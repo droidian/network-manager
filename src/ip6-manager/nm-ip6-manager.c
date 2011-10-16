@@ -27,6 +27,8 @@
 
 #include "nm-ip6-manager.h"
 #include "nm-netlink-monitor.h"
+#include "nm-netlink-utils.h"
+#include "nm-netlink-compat.h"
 #include "NetworkManagerUtils.h"
 #include "nm-marshal.h"
 #include "nm-logging.h"
@@ -44,7 +46,7 @@ typedef struct {
 	NMNetlinkMonitor *monitor;
 	GHashTable *devices;
 
-	struct nl_handle *nlh;
+	struct nl_sock *nlh;
 	struct nl_cache *addr_cache, *route_cache;
 
 	guint netlink_id;
@@ -549,11 +551,12 @@ process_addr (NMIP6Manager *manager, struct nl_msg *msg)
 	device = nm_ip6_manager_get_device (manager, rtnl_addr_get_ifindex (rtnladdr));
 	if (!device) {
 		nm_log_dbg (LOGD_IP6, "ignoring message for unknown device");
+		rtnl_addr_put (rtnladdr);
 		return NULL;
 	}
 
 	old_size = nl_cache_nitems (priv->addr_cache);
-	nl_cache_include (priv->addr_cache, (struct nl_object *)rtnladdr, NULL);
+	nl_cache_include (priv->addr_cache, (struct nl_object *)rtnladdr, NULL, NULL);
 	rtnl_addr_put (rtnladdr);
 
 	/* The kernel will re-notify us of automatically-added addresses
@@ -589,11 +592,12 @@ process_route (NMIP6Manager *manager, struct nl_msg *msg)
 	device = nm_ip6_manager_get_device (manager, rtnl_route_get_oif (rtnlroute));
 	if (!device) {
 		nm_log_dbg (LOGD_IP6, "ignoring message for unknown device");
+		rtnl_route_put (rtnlroute);
 		return NULL;
 	}
 
 	old_size = nl_cache_nitems (priv->route_cache);
-	nl_cache_include (priv->route_cache, (struct nl_object *)rtnlroute, NULL);
+	nl_cache_include (priv->route_cache, (struct nl_object *)rtnlroute, NULL, NULL);
 	rtnl_route_put (rtnlroute);
 
 	/* As above in process_addr */
@@ -619,6 +623,11 @@ process_prefix (NMIP6Manager *manager, struct nl_msg *msg)
 	 */
 
 	nm_log_dbg (LOGD_IP6, "processing netlink new prefix message");
+
+	if (!nlmsg_valid_hdr (nlmsg_hdr (msg), sizeof(*pmsg))) {
+		nm_log_dbg (LOGD_IP6, "ignoring invalid prefix message");
+		return NULL;
+	}
 
 	pmsg = (struct prefixmsg *) NLMSG_DATA (nlmsg_hdr (msg));
 	device = nm_ip6_manager_get_device (manager, pmsg->prefix_ifindex);
@@ -907,6 +916,13 @@ process_nduseropt (NMIP6Manager *manager, struct nl_msg *msg)
 
 	ndmsg = (struct nduseroptmsg *) NLMSG_DATA (nlmsg_hdr (msg));
 
+	if (!nlmsg_valid_hdr (nlmsg_hdr (msg), sizeof (*ndmsg)) ||
+	    nlmsg_datalen (nlmsg_hdr (msg)) <
+		(ndmsg->nduseropt_opts_len + sizeof (*ndmsg))) {
+		nm_log_dbg (LOGD_IP6, "ignoring invalid nduseropt message");
+		return NULL;
+	}
+
 	if (ndmsg->nduseropt_family != AF_INET6 ||
 		ndmsg->nduseropt_icmp_type != ND_ROUTER_ADVERT ||
 		ndmsg->nduseropt_icmp_code != 0) {
@@ -966,6 +982,19 @@ process_newlink (NMIP6Manager *manager, struct nl_msg *msg)
 	struct nlattr *pi[IFLA_INET6_MAX + 1];
 	int err;
 
+	/* FIXME: we have to do this manually for now since libnl doesn't yet
+	 * support the IFLA_PROTINFO attribute of NEWLINK messages.  When it does,
+	 * we can get rid of this function and just grab IFLA_PROTINFO from
+	 * nm_ip6_device_sync_from_netlink(), then get the IFLA_INET6_FLAGS out of
+	 * the PROTINFO.
+	 */
+	err = nlmsg_parse (hdr, sizeof (*ifi), tb, IFLA_MAX, link_policy);
+	if (err < 0) {
+		nm_log_dbg (LOGD_IP6, "ignoring invalid newlink netlink message "
+				      "while parsing PROTINFO attribute");
+		return NULL;
+	}
+
 	ifi = nlmsg_data (hdr);
 	if (ifi->ifi_family != AF_INET6) {
 		nm_log_dbg (LOGD_IP6, "ignoring netlink message family %d", ifi->ifi_family);
@@ -979,18 +1008,6 @@ process_newlink (NMIP6Manager *manager, struct nl_msg *msg)
 		return NULL;
 	}
 
-	/* FIXME: we have to do this manually for now since libnl doesn't yet
-	 * support the IFLA_PROTINFO attribute of NEWLINK messages.  When it does,
-	 * we can get rid of this function and just grab IFLA_PROTINFO from
-	 * nm_ip6_device_sync_from_netlink(), then get the IFLA_INET6_FLAGS out of
-	 * the PROTINFO.
-	 */
-
-	err = nlmsg_parse (hdr, sizeof (*ifi), tb, IFLA_MAX, link_policy);
-	if (err < 0) {
-		nm_log_dbg (LOGD_IP6, "(%s): error parsing PROTINFO attribute", device->iface);
-		return NULL;
-	}
 	if (!tb[IFLA_PROTINFO]) {
 		nm_log_dbg (LOGD_IP6, "(%s): message had no PROTINFO attribute", device->iface);
 		return NULL;
@@ -1248,7 +1265,7 @@ nm_ip6_manager_get_ip6_config (NMIP6Manager *manager, int ifindex)
 		nm_ip6_route_set_dest (ip6route, dest);
 		nm_ip6_route_set_prefix (ip6route, rtnl_route_get_dst_len (rtnlroute));
 		nm_ip6_route_set_next_hop (ip6route, gateway);
-		metric = rtnl_route_get_metric (rtnlroute, 1);
+		rtnl_route_get_metric(rtnlroute, 1, &metric);
 		if (metric != UINT_MAX)
 			nm_ip6_route_set_metric (ip6route, metric);
 		nm_ip6_config_take_route (config, ip6route);
@@ -1344,8 +1361,10 @@ nm_ip6_manager_init (NMIP6Manager *manager)
 	                                     G_CALLBACK (netlink_notification), manager);
 
 	priv->nlh = nm_netlink_get_default_handle ();
-	priv->addr_cache = rtnl_addr_alloc_cache (priv->nlh);
-	priv->route_cache = rtnl_route_alloc_cache (priv->nlh);
+	rtnl_addr_alloc_cache (priv->nlh, &priv->addr_cache);
+	g_warn_if_fail (priv->addr_cache != NULL);
+	rtnl_route_alloc_cache (priv->nlh, NETLINK_ROUTE, NL_AUTO_PROVIDE, &priv->route_cache);
+	g_warn_if_fail (priv->route_cache != NULL);
 }
 
 static void

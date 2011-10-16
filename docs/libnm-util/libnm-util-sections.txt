@@ -657,6 +657,7 @@ NM_SETTING_NAME
 NMSettingSecretFlags
 NMSettingCompareFlags
 NMSetting
+NMSettingClearSecretsWithFlagsFn
 NMSettingClass
 NMSettingValueIterFn
 nm_setting_get_type
@@ -672,6 +673,7 @@ nm_setting_diff
 nm_setting_enumerate_values
 nm_setting_to_string
 nm_setting_clear_secrets
+nm_setting_clear_secrets_with_flags
 nm_setting_need_secrets
 nm_setting_update_secrets
 nm_setting_get_secret_flags
@@ -769,6 +771,7 @@ nm_connection_diff
 nm_connection_verify
 nm_connection_need_secrets
 nm_connection_clear_secrets
+nm_connection_clear_secrets_with_flags
 nm_connection_update_secrets
 nm_connection_set_path
 nm_connection_get_path

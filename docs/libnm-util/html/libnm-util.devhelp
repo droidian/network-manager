@@ -50,6 +50,7 @@
     <function name="nm_connection_verify ()" link="NMConnection.html#nm-connection-verify"/>
     <function name="nm_connection_need_secrets ()" link="NMConnection.html#nm-connection-need-secrets"/>
     <function name="nm_connection_clear_secrets ()" link="NMConnection.html#nm-connection-clear-secrets"/>
+    <function name="nm_connection_clear_secrets_with_flags ()" link="NMConnection.html#nm-connection-clear-secrets-with-flags"/>
     <function name="nm_connection_update_secrets ()" link="NMConnection.html#nm-connection-update-secrets"/>
     <function name="nm_connection_set_path ()" link="NMConnection.html#nm-connection-set-path"/>
     <function name="nm_connection_get_path ()" link="NMConnection.html#nm-connection-get-path"/>
@@ -76,6 +77,7 @@
     <function name="nm_connection_get_setting_wireless ()" link="NMConnection.html#nm-connection-get-setting-wireless"/>
     <function name="nm_connection_get_setting_wireless_security ()" link="NMConnection.html#nm-connection-get-setting-wireless-security"/>
     <function name="The &quot;path&quot; property" link="NMConnection.html#NMConnection--path"/>
+    <function name="The &quot;secrets-cleared&quot; signal" link="NMConnection.html#NMConnection-secrets-cleared"/>
     <function name="The &quot;secrets-updated&quot; signal" link="NMConnection.html#NMConnection-secrets-updated"/>
     <function name="enum NMSettingError" link="NMSetting.html#NMSettingError"/>
     <function name="NM_TYPE_SETTING_ERROR" link="NMSetting.html#NM-TYPE-SETTING-ERROR:CAPS"/>
@@ -89,6 +91,7 @@
     <function name="enum NMSettingSecretFlags" link="NMSetting.html#NMSettingSecretFlags"/>
     <function name="enum NMSettingCompareFlags" link="NMSetting.html#NMSettingCompareFlags"/>
     <function name="NMSetting" link="NMSetting.html#NMSetting-struct"/>
+    <function name="NMSettingClearSecretsWithFlagsFn ()" link="NMSetting.html#NMSettingClearSecretsWithFlagsFn"/>
     <function name="NMSettingClass" link="NMSetting.html#NMSettingClass"/>
     <function name="NMSettingValueIterFn ()" link="NMSetting.html#NMSettingValueIterFn"/>
     <function name="nm_setting_get_type ()" link="NMSetting.html#nm-setting-get-type"/>
@@ -104,6 +107,7 @@
     <function name="nm_setting_enumerate_values ()" link="NMSetting.html#nm-setting-enumerate-values"/>
     <function name="nm_setting_to_string ()" link="NMSetting.html#nm-setting-to-string"/>
     <function name="nm_setting_clear_secrets ()" link="NMSetting.html#nm-setting-clear-secrets"/>
+    <function name="nm_setting_clear_secrets_with_flags ()" link="NMSetting.html#nm-setting-clear-secrets-with-flags"/>
     <function name="nm_setting_need_secrets ()" link="NMSetting.html#nm-setting-need-secrets"/>
     <function name="nm_setting_update_secrets ()" link="NMSetting.html#nm-setting-update-secrets"/>
     <function name="nm_setting_get_secret_flags ()" link="NMSetting.html#nm-setting-get-secret-flags"/>

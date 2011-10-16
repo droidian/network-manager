@@ -495,3 +495,123 @@ a bridge or bond and shouldn't be automatically started by NetworkManager or
 displayed as separate connections in the user interface.
 
 TO BE CONTINUED
+
+
+* Better Tablet/Mobile Behavior
+
+There are a few components to this:
+
+1) kernel driver and hardware capabilities: most mobile devices use periodic
+background scanning to quickly determine whether a known SSID is available and
+notify the connection manager to connect to it.  This typically requires special
+capabilities and good powersave/sleep support from the WiFi kernel driver.
+There is a background scanning API in nl80211, but we need to determine how many
+SSIDs each driver allows for background scanning, and based on that number, give
+the driver the most recent N SSIDs.  We still need to periodically wake the
+device up and do a full scan just in case the user is near a known SSID that was
+not in the N top recently used networks.  This is also beneficial to normal
+desktop use-cases.
+
+wpa_supplicant doesn't currently provide an explicit interface for sending SSIDs
+to the driver for background scanning, but could simply send a list using
+configured networks.  However, NM currently does not send *all* configured
+connections' SSIDs to the supplicant, so that's something we should do first
+to optimize connection times.  To do this, NM would need to order all networks
+using the NM timestamp and convert that into a supplicant priority number, which
+would need to be adjusted periodically when the timestamp was updated.  This
+would involve tracking each network (exposed by the supplicant as a D-Bus
+object) and making sure they were added, deleted, and updated when the backing
+NMConnection objects changed.  One complication is that the supplicant
+requires secrets for various network types when the network is added via D-Bus,
+and NetworkManager might not have those secrets yet.  We may need to modify
+the supplicant allow for *all* secrets (PSKs, WEP keys, etc) to be requested
+on-demand, not just EAP secrets like 802.1x passwords.  We then need to fix
+up the supplicant's D-Bus interface to actually send requests for secrets out
+over D-Bus (like wpa_supplicant_eap_param_needed() does for the socket-based
+control interface) and to handle the resulting reply from a D-Bus client like
+wpa_supplicant_ctrl_iface_ctrl_rsp() does.
+
+With the secrets request stuff and priority handling in place, wpa_supplicant
+would control network selection and roaming (based on the priorities NM gave it
+of course) instead of NetworkManager itself, and hopefully lead to a faster WiFi
+connection process.
+
+2) single-device-at-a-time with overlapping connections: this is also probably
+the best route to go for desktop use-cases as well.  Instead of bringing all
+available connections up, only bring up the "best" connection at any given
+time based on the current priority list (which is rougly Ethernet > WiFi >
+3G/Bluetooth/WiMAX).  However, to ensure seamless connectivity, when one
+connection begins to degrade, the next-best connection should be started before
+the current one is terminated, such that there is a small amount of overlap.
+Consequently the same behavior should be used when a better connection becomes
+available.  This behavior should be suspended when special connections like
+Internet Connection Sharing ones are started, where clearly the priorities
+are different (ie, for Mobile Hotspot 3G > WiFi).
+
+
+* IP over Infiniband (IPoIB)
+
+These interfaces are similar to Ethernet interfaces with a few distinct
+differences:
+
+  1) they have 64-bit MAC addresses (GUIDs in Infiniband parlance)
+  2) DHCP clients need to be modified to handle IPoIB
+  3) they have a different ARP type and different L2 options
+
+By default the interfaces do not have IP capability, but they gain that
+capability when certain kernel modules (ib_ipoib.ko) are loaded, which causes
+the IP-capable interface is created.  The IP-capable interfaces apparently have
+ARPHRD_INFINIBAND set, which is likely what NM should use to identify them.
+
+One outstanding question is whether NM should (a) detect all Infiniband
+interfaces and load ib_ipoib.ko only when there is a defined NMConnection for
+an Infiniband interface, or (b) whether NM should automatically load ib_ipoib.ko
+for every Infiniband interface, or (c) whether NM should only manage Infiniband
+interfaces that already have associated IP-capable interfaces (ie, something
+else is responsible for loading ib_ipoib.ko).  Depending on our implementation,
+(a) might not be possible, because if IPoIB connections are treated similar to
+plain Ethernet connections, we may not have any information about whether a
+specific NMConnection is Infiniband other than the MAC address.
+
+It turns out that on some distros other components (like system services) may
+load ib_ipoib.ko for us.  For exmaple, the 'rdma' package on Fedora/RHEL systems
+contains /etc/rc.d/init.d/rdma which uses values in /etc/rdma/rdma.conf to load
+ib_ipoib.ko at system startup if the user has requested it via IPOIB_LOAD=yes.
+For the time being, if the some other component of the system loads IP for us,
+NetworkManager should probably still recognize the Infiniband interface, but
+leave it in unmanaged mode if there is no available IPoIB interface associated
+with the Infiniband one.  i.e. for now, NM should not automatically load
+ib_ipoib.ko.
+
+The second question is whether to fold IPoIB support into the NMDeviceEthernet
+class as was done for s390 network interfaces, or whether to create a subclass
+of NMDevice:
+
+1) extend NMDeviceEthernet: this would involve loosening the assumption that
+hardware addresses (the 'hw-address'/'perm-hw-address' properties of
+NMDeviceEthernet and the 'mac-address'/'cloned-mac-address' properties of
+NMSettingWired) are 48 bits wide and instead can be either 48 or 64 bits wide.
+
+2) create a new NMDevice subclass for Infiniband devices tailored to Infiniband
+specific behavior and attributes.  This would be a lot more code since we'd have
+to duplicate much of what NMDeviceEthernet already does, plus add the
+Infiniband device class to libnm-glib.  This also would be the least invasive
+from an API standpoint since the existing API would be unchanged, except for
+the addition of a new value in the NMDeviceType enum, which clients should
+ignore if they don't understand it.  (Need to coordinate additions to this enum
+between 0.8.x and 0.9.x since 0.9.x has more device types, but we want to make
+sure new device types get the same number for both branches).
+
+For Infiniband specific options we could either fold them into NMSettingEthernet
+or create a new NMSettingInfiniband class.  Current Infiniband specific options
+are partitions/P_Keys, datagram vs. connected mode, and MTU.  The default MTU
+varies with the 'mode'; for datagram it is currently 2044, while for connected
+mode it is currently 65520.  Given that we only have 2 IB-specific options
+we should probably just fold them into NMSettingEthernet similar to what was
+done for s390-specific options.
+
+For some general (and also Red Hat/Fedora specific) information see:
+
+http://tools.ietf.org/html/rfc4392
+http://rhkernel.org/#RHEL6+2.6.32-71.18.2.el6/Documentation/infiniband/ipoib.txt
+

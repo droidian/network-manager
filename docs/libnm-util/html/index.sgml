@@ -33,6 +33,7 @@
 <ANCHOR id="nm-connection-verify" href="libnm-util/NMConnection.html#nm-connection-verify">
 <ANCHOR id="nm-connection-need-secrets" href="libnm-util/NMConnection.html#nm-connection-need-secrets">
 <ANCHOR id="nm-connection-clear-secrets" href="libnm-util/NMConnection.html#nm-connection-clear-secrets">
+<ANCHOR id="nm-connection-clear-secrets-with-flags" href="libnm-util/NMConnection.html#nm-connection-clear-secrets-with-flags">
 <ANCHOR id="nm-connection-update-secrets" href="libnm-util/NMConnection.html#nm-connection-update-secrets">
 <ANCHOR id="nm-connection-set-path" href="libnm-util/NMConnection.html#nm-connection-set-path">
 <ANCHOR id="nm-connection-get-path" href="libnm-util/NMConnection.html#nm-connection-get-path">
@@ -61,6 +62,7 @@
 <ANCHOR id="NMConnection.property-details" href="libnm-util/NMConnection.html#NMConnection.property-details">
 <ANCHOR id="NMConnection--path" href="libnm-util/NMConnection.html#NMConnection--path">
 <ANCHOR id="NMConnection.signal-details" href="libnm-util/NMConnection.html#NMConnection.signal-details">
+<ANCHOR id="NMConnection-secrets-cleared" href="libnm-util/NMConnection.html#NMConnection-secrets-cleared">
 <ANCHOR id="NMConnection-secrets-updated" href="libnm-util/NMConnection.html#NMConnection-secrets-updated">
 <ANCHOR id="NMSetting" href="libnm-util/NMSetting.html">
 <ANCHOR id="NMSetting.synopsis" href="libnm-util/NMSetting.html#NMSetting.synopsis">
@@ -95,6 +97,7 @@
 <ANCHOR id="NM-SETTING-COMPARE-FLAG-IGNORE-AGENT-OWNED-SECRETS:CAPS" href="libnm-util/NMSetting.html#NM-SETTING-COMPARE-FLAG-IGNORE-AGENT-OWNED-SECRETS:CAPS">
 <ANCHOR id="NM-SETTING-COMPARE-FLAG-IGNORE-NOT-SAVED-SECRETS:CAPS" href="libnm-util/NMSetting.html#NM-SETTING-COMPARE-FLAG-IGNORE-NOT-SAVED-SECRETS:CAPS">
 <ANCHOR id="NMSetting-struct" href="libnm-util/NMSetting.html#NMSetting-struct">
+<ANCHOR id="NMSettingClearSecretsWithFlagsFn" href="libnm-util/NMSetting.html#NMSettingClearSecretsWithFlagsFn">
 <ANCHOR id="NMSettingClass" href="libnm-util/NMSetting.html#NMSettingClass">
 <ANCHOR id="NMSettingValueIterFn" href="libnm-util/NMSetting.html#NMSettingValueIterFn">
 <ANCHOR id="nm-setting-get-type" href="libnm-util/NMSetting.html#nm-setting-get-type">
@@ -116,6 +119,7 @@
 <ANCHOR id="nm-setting-enumerate-values" href="libnm-util/NMSetting.html#nm-setting-enumerate-values">
 <ANCHOR id="nm-setting-to-string" href="libnm-util/NMSetting.html#nm-setting-to-string">
 <ANCHOR id="nm-setting-clear-secrets" href="libnm-util/NMSetting.html#nm-setting-clear-secrets">
+<ANCHOR id="nm-setting-clear-secrets-with-flags" href="libnm-util/NMSetting.html#nm-setting-clear-secrets-with-flags">
 <ANCHOR id="nm-setting-need-secrets" href="libnm-util/NMSetting.html#nm-setting-need-secrets">
 <ANCHOR id="nm-setting-update-secrets" href="libnm-util/NMSetting.html#nm-setting-update-secrets">
 <ANCHOR id="nm-setting-get-secret-flags" href="libnm-util/NMSetting.html#nm-setting-get-secret-flags">

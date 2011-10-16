@@ -141,39 +141,26 @@ typedef struct {
 	char **argv;
 } ArgsInfo;
 
-extern GMainLoop *loop;   /* glib main loop variable */
+/* glib main loop variable - defined in nmcli.c */
+extern GMainLoop *loop;
 
 static ArgsInfo args_info;
-
-/* static function prototypes */
-static void usage (void);
-static void quit (void);
-static void show_connection (NMConnection *data, gpointer user_data);
-static NMConnection *find_connection (GSList *list, const char *filter_type, const char *filter_val);
-static gboolean find_device_for_connection (NmCli *nmc, NMConnection *connection, const char *iface, const char *ap,
-                                            const char *nsp, NMDevice **device, const char **spec_object, GError **error);
-static const char *active_connection_state_to_string (NMActiveConnectionState state);
-static void active_connection_state_cb (NMActiveConnection *active, GParamSpec *pspec, gpointer user_data);
-static void get_connections_cb (NMRemoteSettings *settings, gpointer user_data);
-static NMCResultCode do_connections_list (NmCli *nmc, int argc, char **argv);
-static NMCResultCode do_connections_status (NmCli *nmc, int argc, char **argv);
-static NMCResultCode do_connection_up (NmCli *nmc, int argc, char **argv);
-static NMCResultCode do_connection_down (NmCli *nmc, int argc, char **argv);
 
 static void
 usage (void)
 {
 	fprintf (stderr,
 	         _("Usage: nmcli con { COMMAND | help }\n"
-	         "  COMMAND := { list | status | up | down }\n\n"
+	         "  COMMAND := { list | status | up | down | delete }\n\n"
 	         "  list [id <id> | uuid <id>]\n"
 	         "  status\n"
 #if WITH_WIMAX
-	         "  up id <id> | uuid <id> [iface <iface>] [ap <hwaddr>] [nsp <name>] [--nowait] [--timeout <timeout>]\n"
+	         "  up id <id> | uuid <id> [iface <iface>] [ap <BSSID>] [nsp <name>] [--nowait] [--timeout <timeout>]\n"
 #else
-	         "  up id <id> | uuid <id> [iface <iface>] [ap <hwaddr>] [--nowait] [--timeout <timeout>]\n"
+	         "  up id <id> | uuid <id> [iface <iface>] [ap <BSSID>] [--nowait] [--timeout <timeout>]\n"
 #endif
-	         "  down id <id> | uuid <id>\n"));
+	         "  down id <id> | uuid <id>\n"
+	         "  delete id <id> | uuid <id>\n"));
 }
 
 /* The real commands that do something - i.e. not 'help', etc. */
@@ -182,6 +169,7 @@ static const char *real_con_commands[] = {
 	"status",
 	"up",
 	"down",
+	"delete",
 	NULL
 };
 
@@ -1073,7 +1061,7 @@ find_device_for_connection (NmCli *nmc,
 	g_assert (s_con);
 	con_type = nm_setting_connection_get_connection_type (s_con);
 
-	if (strcmp (con_type, "vpn") == 0) {
+	if (strcmp (con_type, NM_SETTING_VPN_SETTING_NAME) == 0) {
 		/* VPN connections */
 		NMActiveConnection *active = NULL;
 		if (iface) {
@@ -1116,22 +1104,22 @@ find_device_for_connection (NmCli *nmc,
 				}
 			}
 
-			if (found_device && ap && !strcmp (con_type, "802-11-wireless") && NM_IS_DEVICE_WIFI (dev)) {
-				char *hwaddr_up = g_ascii_strup (ap, -1);
+			if (found_device && ap && !strcmp (con_type, NM_SETTING_WIRELESS_SETTING_NAME) && NM_IS_DEVICE_WIFI (dev)) {
+				char *bssid_up = g_ascii_strup (ap, -1);
 				const GPtrArray *aps = nm_device_wifi_get_access_points (NM_DEVICE_WIFI (dev));
 				found_device = NULL;  /* Mark as not found; set to the device again later, only if AP matches */
 
 				for (j = 0; aps && (j < aps->len); j++) {
 					NMAccessPoint *candidate_ap = g_ptr_array_index (aps, j);
-					const char *candidate_hwaddr = nm_access_point_get_hw_address (candidate_ap);
+					const char *candidate_bssid = nm_access_point_get_bssid (candidate_ap);
 
-					if (!strcmp (hwaddr_up, candidate_hwaddr)) {
+					if (!strcmp (bssid_up, candidate_bssid)) {
 						found_device = dev;
 						*spec_object = nm_object_get_path (NM_OBJECT (candidate_ap));
 						break;
 					}
 				}
-				g_free (hwaddr_up);
+				g_free (bssid_up);
 			}
 
 #if WITH_WIMAX
@@ -1576,6 +1564,66 @@ error:
 }
 
 static NMCResultCode
+do_connection_delete (NmCli *nmc, int argc, char **argv)
+{
+	NMConnection *connection = NULL;
+	const char *selector;
+	const char *id = NULL;
+	GError *error = NULL;
+
+	nmc->should_wait = FALSE;
+
+	while (argc > 0) {
+		if (strcmp (*argv, "id") == 0 || strcmp (*argv, "uuid") == 0) {
+			selector = *argv;
+			if (next_arg (&argc, &argv) != 0) {
+				g_string_printf (nmc->return_text, _("Error: %s argument is missing."), *argv);
+				nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
+				goto error;
+			}
+			id = *argv;
+		}
+		else
+			fprintf (stderr, _("Unknown parameter: %s\n"), *argv);
+
+		argc--;
+		argv++;
+	}
+
+	if (!id) {
+		g_string_printf (nmc->return_text, _("Error: id or uuid has to be specified."));
+		nmc->return_value = NMC_RESULT_ERROR_USER_INPUT;
+		goto error;
+	}
+
+	if (!nmc_is_nm_running (nmc, &error)) {
+		if (error) {
+			g_string_printf (nmc->return_text, _("Error: Can't find out if NetworkManager is running: %s."), error->message);
+			nmc->return_value = NMC_RESULT_ERROR_UNKNOWN;
+			g_error_free (error);
+		} else {
+			g_string_printf (nmc->return_text, _("Error: NetworkManager is not running."));
+			nmc->return_value = NMC_RESULT_ERROR_NM_NOT_RUNNING;
+		}
+		goto error;
+	}
+
+	connection = find_connection (nmc->system_connections, selector, id);
+
+	if (!connection) {
+		g_string_printf (nmc->return_text, _("Error: Unknown connection: %s."), id);
+		nmc->return_value = NMC_RESULT_ERROR_UNKNOWN;
+		goto error;
+	}
+
+	/* Delete the connection */
+	nm_remote_connection_delete (NM_REMOTE_CONNECTION (connection), NULL, NULL);
+
+error:
+	return nmc->return_value;
+}
+
+static NMCResultCode
 parse_cmd (NmCli *nmc, int argc, char **argv)
 {
 	GError *error = NULL;
@@ -1599,6 +1647,9 @@ parse_cmd (NmCli *nmc, int argc, char **argv)
 		}
 		else if (matches(*argv, "down") == 0) {
 			nmc->return_value = do_connection_down (nmc, argc-1, argv+1);
+		}
+		else if (matches(*argv, "delete") == 0) {
+			nmc->return_value = do_connection_delete (nmc, argc-1, argv+1);
 		}
 		else if (matches (*argv, "help") == 0) {
 			usage ();
@@ -1672,6 +1723,7 @@ do_connections (NmCli *nmc, int argc, char **argv)
 		if (error || !bus) {
 			g_string_printf (nmc->return_text, _("Error: could not connect to D-Bus."));
 			nmc->return_value = NMC_RESULT_ERROR_UNKNOWN;
+			nmc->should_wait = FALSE;
 			return nmc->return_value;
 		}
 
@@ -1679,8 +1731,8 @@ do_connections (NmCli *nmc, int argc, char **argv)
 		if (!(nmc->system_settings = nm_remote_settings_new (bus))) {
 			g_string_printf (nmc->return_text, _("Error: Could not get system settings."));
 			nmc->return_value = NMC_RESULT_ERROR_UNKNOWN;
+			nmc->should_wait = FALSE;
 			return nmc->return_value;
-
 		}
 
 		/* find out whether settings service is running */
@@ -1689,6 +1741,7 @@ do_connections (NmCli *nmc, int argc, char **argv)
 		if (!nmc->system_settings_running) {
 			g_string_printf (nmc->return_text, _("Error: Can't obtain connections: settings service is not running."));
 			nmc->return_value = NMC_RESULT_ERROR_UNKNOWN;
+			nmc->should_wait = FALSE;
 			return nmc->return_value;
 		}
 

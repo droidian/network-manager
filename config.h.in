@@ -44,6 +44,15 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define if you require libnl-1 legacy support */
+#undef HAVE_LIBNL1
+
+/* Define if you require specific libnl-2 support */
+#undef HAVE_LIBNL2
+
+/* Define if you require specific libnl-3 support */
+#undef HAVE_LIBNL3
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 

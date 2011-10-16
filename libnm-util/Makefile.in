@@ -314,6 +314,12 @@ LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
 LIBICONV = @LIBICONV@
 LIBINTL = @LIBINTL@
 LIBM = @LIBM@
+LIBNL1_CFLAGS = @LIBNL1_CFLAGS@
+LIBNL1_LIBS = @LIBNL1_LIBS@
+LIBNL2_CFLAGS = @LIBNL2_CFLAGS@
+LIBNL2_LIBS = @LIBNL2_LIBS@
+LIBNL3_CFLAGS = @LIBNL3_CFLAGS@
+LIBNL3_LIBS = @LIBNL3_LIBS@
 LIBNL_CFLAGS = @LIBNL_CFLAGS@
 LIBNL_LIBS = @LIBNL_LIBS@
 LIBOBJS = @LIBOBJS@
@@ -492,7 +498,7 @@ libnm_util_la_LIBADD = $(GLIB_LIBS) $(DBUS_LIBS) $(UUID_LIBS) \
 	$(am__append_3) $(am__append_6)
 SYMBOL_VIS_FILE = $(srcdir)/libnm-util.ver
 libnm_util_la_LDFLAGS = -Wl,--version-script=$(SYMBOL_VIS_FILE) \
-	-version-info "2:0:0"
+	-version-info "3:0:1"
 
 libnm_util_includedir = $(includedir)/NetworkManager
 
