@@ -56,6 +56,9 @@ override_dh_auto_configure:
 
 override_dh_install:
 	find debian/tmp -name '*.la' -print -delete
+	# Drop gir1.2-networkmanager-1.0 now
+	find debian/tmp -name NMClient-1.0.* -print -delete
+	find debian/tmp -name NetworkManager-1.0.* -print -delete
 	rm debian/tmp/usr/share/doc/NetworkManager/examples/server.conf
 	rm -vf $(CURDIR)/debian/tmp/etc/init.d/NetworkManager
 	dh_install

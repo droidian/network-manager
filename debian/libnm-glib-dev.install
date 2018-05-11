@@ -15,5 +15,4 @@ usr/include/libnm-glib/nm-wimax-nsp.h
 usr/include/libnm-glib/nm-secret-agent.h
 usr/include/libnm-glib/nm-glib-enum-types.h
 usr/share/gtk-doc/html/libnm-glib/
-usr/share/gir-1.0/NMClient-1.0.gir
 usr/share/vala/vapi/libnm-glib.*
