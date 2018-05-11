@@ -90,7 +90,7 @@ index 2ddc7bc..a741c6e 100644
  
  if HAVE_INTROSPECTION
 diff --git a/configure.ac b/configure.ac
-index 8a066ad..6f561e2 100644
+index 86ce219..a9fb1db 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -322,9 +322,12 @@ GLIB_CFLAGS="$GLIB_CFLAGS -DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_32 -DGLIB_V
