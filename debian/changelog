@@ -1,4 +1,4 @@
-network-manager (1.10.8-1ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.10.8-1ubuntu1) cosmic; urgency=medium
 
   * Merge with Debian (LP: #1758331). Remaining changes:
     - Use systemd-resolved instead of dnsmasq
@@ -42,7 +42,7 @@ network-manager (1.10.8-1ubuntu1) UNRELEASED; urgency=medium
   * Keep libnm-glib/libnm-util a bit longer since unity-control-center
     still needs them. See bug 1744619
 
- -- Jeremy Bicha <jbicha@debian.org>  Fri, 11 May 2018 19:00:51 -0400
+ -- Jeremy Bicha <jbicha@ubuntu.com>  Fri, 11 May 2018 19:52:40 -0400
 
 network-manager (1.10.8-1) unstable; urgency=medium
 
@@ -50,6 +50,14 @@ network-manager (1.10.8-1) unstable; urgency=medium
   * Rebase patches
 
  -- Michael Biebl <biebl@debian.org>  Fri, 11 May 2018 22:19:39 +0200
+
+network-manager (1.10.6-3) unstable; urgency=medium
+
+  * Stop building libnm-glib/libnm-util.
+    Those libraries have been deprecated for several years. The successor is
+    libnm, a GObject-based client library using GDBus instead of dbus-glib.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 18 Apr 2018 19:40:01 +0200
 
 network-manager (1.10.6-2ubuntu1) bionic; urgency=medium
 
@@ -96,14 +104,6 @@ network-manager (1.10.6-2ubuntu1) bionic; urgency=medium
     - settings-preserve-agent-owned-secrets-on-connection-updat.patch
 
  -- Jeremy Bicha <jbicha@ubuntu.com>  Mon, 26 Mar 2018 09:21:12 -0400
-
-network-manager (1.10.6-3) unstable; urgency=medium
-
-  * Stop building libnm-glib/libnm-util.
-    Those libraries have been deprecated for several years. The successor is
-    libnm, a GObject-based client library using GDBus instead of dbus-glib.
-
- -- Michael Biebl <biebl@debian.org>  Wed, 18 Apr 2018 19:40:01 +0200
 
 network-manager (1.10.6-2) unstable; urgency=medium
 
