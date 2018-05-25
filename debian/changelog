@@ -1,3 +1,10 @@
+network-manager (1.10.8-1ubuntu2) cosmic; urgency=medium
+
+  * debian/patches/git_thunderbolt_connect.patch:
+    - enable host to host connection through thunderbolt
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 25 May 2018 16:54:48 +0200
+
 network-manager (1.10.8-1ubuntu1) cosmic; urgency=medium
 
   * Merge with Debian (LP: #1758331). Remaining changes:

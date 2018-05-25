@@ -1,0 +1,108 @@
+From 89af7fbfa6cc4f43446b2f38c3ddd885b5be79f1 Mon Sep 17 00:00:00 2001
+From: Christian Kellner <christian@kellner.me>
+Date: Thu, 19 Apr 2018 14:05:52 +0200
+Subject: [PATCH] all: add support for thunderbolt networking
+
+Load the thunderbolt-net module if we see a host-to-host connection
+and configure the resulting ethernet connection automatically to be
+a link-local only one. The latter is done by setting a new udev
+property "NM_AUTO_DEFAULT_LINK_LOCAL_ONLY" which is picked up when
+we configure the connection for the device.
+
+https://github.com/NetworkManager/NetworkManager/pull/97
+---
+ Makefile.am                      |  4 +++-
+ data/90-nm-thunderbolt.rules     | 13 +++++++++++++
+ src/devices/nm-device-ethernet.c | 23 +++++++++++++++++++++++
+ 4 files changed, 41 insertions(+), 2 deletions(-)
+ create mode 100644 data/90-nm-thunderbolt.rules
+
+Index: network-manager-1.10.8/Makefile.am
+===================================================================
+--- network-manager-1.10.8.orig/Makefile.am
++++ network-manager-1.10.8/Makefile.am
+@@ -3714,7 +3714,8 @@ if WITH_UDEV_DIR
+ udevrulesdir = $(UDEV_DIR)/rules.d
+ udevrules_DATA = \
+ 	data/84-nm-drivers.rules \
+-	data/85-nm-unmanaged.rules
++	data/85-nm-unmanaged.rules \
++	data/90-nm-thunderbolt.rules
+ endif
+ 
+ data/server.conf: $(srcdir)/data/server.conf.in
+@@ -3729,6 +3730,7 @@ EXTRA_DIST += \
+ 	data/org.freedesktop.NetworkManager.service.in \
+ 	data/84-nm-drivers.rules \
+ 	data/85-nm-unmanaged.rules \
++	data/90-nm-thunderbolt.rules \
+ 	data/server.conf.in
+ 
+ CLEANFILES += \
+Index: network-manager-1.10.8/data/90-nm-thunderbolt.rules
+===================================================================
+--- /dev/null
++++ network-manager-1.10.8/data/90-nm-thunderbolt.rules
+@@ -0,0 +1,13 @@
++# Do not modify this file, it will get overwritten on updates.
++# To override or extend the rules place a file in /etc/udev/rules.d
++
++ACTION!="add", GOTO="nm_thunderbolt_end"
++
++# Load he thunderbolt-net driver if we a device of type thunderbolt_xdomain
++# is added.
++SUBSYSTEM=="thunderbolt", ENV{DEVTYPE}=="thunderbolt_xdomain", RUN{builtin}+="kmod load thunderbolt-net"
++
++# For all thunderbolt network devices, we want to enable link-local configuration
++SUBSYSTEM=="net", ENV{ID_NET_DRIVER}=="thunderbolt-net", ENV{NM_AUTO_DEFAULT_LINK_LOCAL_ONLY}="1"
++
++LABEL="nm_thunderbolt_end"
+Index: network-manager-1.10.8/src/devices/nm-device-ethernet.c
+===================================================================
+--- network-manager-1.10.8.orig/src/devices/nm-device-ethernet.c
++++ network-manager-1.10.8/src/devices/nm-device-ethernet.c
+@@ -51,6 +51,7 @@
+ #include "nm-device-factory.h"
+ #include "nm-core-internal.h"
+ #include "NetworkManagerUtils.h"
++#include "nm-utils/nm-udev-utils.h"
+ 
+ #include "introspection/org.freedesktop.NetworkManager.Device.Wired.h"
+ 
+@@ -1425,7 +1426,9 @@ new_default_connection (NMDevice *self)
+ 	NMConnection *connection;
+ 	NMSettingsConnection *const*connections;
+ 	NMSetting *setting;
++	struct udev_device *dev;
+ 	const char *perm_hw_addr;
++	const char *uprop = "0";
+ 	gs_free char *defname = NULL;
+ 	gs_free char *uuid = NULL;
+ 	gs_free char *machine_id = NULL;
+@@ -1470,6 +1473,26 @@ new_default_connection (NMDevice *self)
+ 	g_object_set (setting, NM_SETTING_WIRED_MAC_ADDRESS, perm_hw_addr, NULL);
+ 	nm_connection_add_setting (connection, setting);
+ 
++	/* Check if we should create a Link-Local only connection */
++	dev = nm_platform_link_get_udev_device (nm_device_get_platform (NM_DEVICE (self)), nm_device_get_ip_ifindex (self));
++	if (dev)
++		uprop = udev_device_get_property_value (dev, "NM_AUTO_DEFAULT_LINK_LOCAL_ONLY");
++
++	if (nm_udev_utils_property_as_boolean (uprop)) {
++		setting = nm_setting_ip4_config_new ();
++		g_object_set (setting,
++		              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_LINK_LOCAL,
++		              NULL);
++		nm_connection_add_setting (connection, setting);
++
++		setting = nm_setting_ip6_config_new ();
++		g_object_set (setting,
++		              NM_SETTING_IP_CONFIG_METHOD,  NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL,
++		              NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE,
++		              NULL);
++		nm_connection_add_setting (connection, setting);
++	}
++
+ 	return connection;
+ }
+ 

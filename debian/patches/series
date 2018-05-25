@@ -11,3 +11,5 @@ libnm-Check-self-still-NMManager-or-not.patch
 #dns-manager-don-t-merge-split-DNS-search-domains.patch
 Read-system-connections-from-run.patch
 e91f1a7d2a6b8400b6b331d5b72287dcb5164a39.patch
+#upstream backport
+git_thunderbolt_connect.patch
