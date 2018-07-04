@@ -46,6 +46,8 @@ network-manager (1.10.8-1ubuntu1) cosmic; urgency=medium
       + e91f1a7d2a6b8400b6b331d5b72287dcb5164a39.patch
       + dns-manager-don-t-merge-split-DNS-search-domains.patch (but disabled)
     - debian/tests/urfkill-integration - don't stop/start network manager
+  * Keep libnm-glib/libnm-util a bit longer since unity-control-center
+    still needs them. See bug 1744619
 
  -- Jeremy Bicha <jbicha@ubuntu.com>  Fri, 11 May 2018 19:52:40 -0400
 
