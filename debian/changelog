@@ -1,3 +1,11 @@
+network-manager (1.10.8-1ubuntu3) cosmic; urgency=medium
+
+  * Revert the changes to remove the nmclient bindings, those are needed
+    to build nm-applet until the legacy binaries can be removed, which
+    requires unity-control-center to be updated to use the new library.
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 04 Jul 2018 15:30:19 +0200
+
 network-manager (1.10.8-1ubuntu2) cosmic; urgency=medium
 
   * debian/patches/git_thunderbolt_connect.patch:
