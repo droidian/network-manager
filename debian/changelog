@@ -1,3 +1,11 @@
+network-manager (1.10.8-1ubuntu4) UNRELEASED; urgency=medium
+
+  * debian/10-globally-managed-devices.conf: adjust exception for wwan to
+    specify cdma and gsm, since those are the actual types handled by NM/MM.
+    (LP: #1780606)
+
+ -- Mathieu Trudel-Lapierre <cyphermox@ubuntu.com>  Tue, 10 Jul 2018 08:13:52 -0400
+
 network-manager (1.10.8-1ubuntu3) cosmic; urgency=medium
 
   * Revert the changes to remove the nmclient bindings, those are needed
