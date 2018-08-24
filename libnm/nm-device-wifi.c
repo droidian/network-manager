@@ -59,6 +59,7 @@ typedef struct {
 	NMAccessPoint *active_ap;
 	NMDeviceWifiCapabilities wireless_caps;
 	GPtrArray *aps;
+	gint64 last_scan;
 
 	RequestScanInfo *scan_info;
 } NMDeviceWifiPrivate;
@@ -72,6 +73,7 @@ enum {
 	PROP_ACTIVE_ACCESS_POINT,
 	PROP_WIRELESS_CAPABILITIES,
 	PROP_ACCESS_POINTS,
+	PROP_LAST_SCAN,
 
 	LAST_PROP
 };
@@ -265,6 +267,28 @@ nm_device_wifi_get_access_point_by_path (NMDeviceWifi *device,
 	}
 
 	return ap;
+}
+
+/**
+ * nm_device_wifi_get_last_scan:
+ * @device: a #NMDeviceWifi
+ *
+ * Returns the timestamp (in CLOCK_BOOTTIME milliseconds) for the last finished
+ * network scan. A value of -1 means the device never scanned for access points.
+ *
+ * Use nm_utils_get_timestamp_msec() to obtain current time value suitable for
+ * comparing to this value.
+ *
+ * Returns: the last scan time in seconds
+ *
+ * Since: 1.12
+ **/
+gint64
+nm_device_wifi_get_last_scan (NMDeviceWifi *device)
+{
+	g_return_val_if_fail (NM_IS_DEVICE_WIFI (device), -1);
+
+	return NM_DEVICE_WIFI_GET_PRIVATE (device)->last_scan;
 }
 
 static GVariant *
@@ -666,6 +690,7 @@ nm_device_wifi_init (NMDeviceWifi *device)
 	                  NULL);
 
 	priv->aps = g_ptr_array_new ();
+	priv->last_scan = -1;
 }
 
 static void
@@ -697,6 +722,9 @@ get_property (GObject *object,
 		break;
 	case PROP_ACCESS_POINTS:
 		g_value_take_boxed (value, _nm_utils_copy_object_array (nm_device_wifi_get_access_points (self)));
+		break;
+	case PROP_LAST_SCAN:
+		g_value_set_int64 (value, nm_device_wifi_get_last_scan (self));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -739,6 +767,7 @@ init_dbus (NMObject *object)
 		{ NM_DEVICE_WIFI_ACTIVE_ACCESS_POINT,  &priv->active_ap, NULL, NM_TYPE_ACCESS_POINT },
 		{ NM_DEVICE_WIFI_CAPABILITIES,         &priv->wireless_caps },
 		{ NM_DEVICE_WIFI_ACCESS_POINTS,        &priv->aps, NULL, NM_TYPE_ACCESS_POINT, "access-point" },
+		{ NM_DEVICE_WIFI_LAST_SCAN,            &priv->last_scan },
 		{ NULL },
 	};
 
@@ -887,11 +916,9 @@ nm_device_wifi_class_init (NMDeviceWifiClass *wifi_class)
 		                     G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * NMDeviceWifi:access-points:
+	 * NMDeviceWifi:access-points: (type GPtrArray(NMAccessPoint))
 	 *
 	 * List of all Wi-Fi access points the device can see.
-	 *
-	 * Element-type: NMAccessPoint
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_ACCESS_POINTS,
@@ -899,6 +926,22 @@ nm_device_wifi_class_init (NMDeviceWifiClass *wifi_class)
 		                     G_TYPE_PTR_ARRAY,
 		                     G_PARAM_READABLE |
 		                     G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMDeviceWifi:last-scan:
+	 *
+	 * The timestamp (in CLOCK_BOOTTIME seconds) for the last finished
+	 * network scan. A value of -1 means the device never scanned for
+	 * access points.
+	 *
+	 * Since: 1.12
+	 **/
+	g_object_class_install_property
+	        (object_class, PROP_LAST_SCAN,
+	         g_param_spec_int64 (NM_DEVICE_WIFI_LAST_SCAN, "", "",
+	                             -1, G_MAXINT64, -1,
+	                             G_PARAM_READABLE |
+	                             G_PARAM_STATIC_STRINGS));
 
 	/* signals */
 

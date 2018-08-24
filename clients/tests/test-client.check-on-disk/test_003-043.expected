@@ -1,0 +1,14 @@
+location: clients/tests/test-client.py:839:test_003()/43
+cmd: $NMCLI -f UUID,NAME con s --active
+lang: C
+returncode: 0
+stdout: 96 bytes
+>>>
+UUID                                  NAME     
+UUID-ethernet-REPLACED-REPLACED-REPL  ethernet 
+
+<<<
+stderr: 0 bytes
+>>>
+
+<<<

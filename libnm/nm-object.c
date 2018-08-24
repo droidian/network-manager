@@ -33,7 +33,7 @@
 #include "nm-dbus-helpers.h"
 #include "nm-client.h"
 #include "nm-core-internal.h"
-#include "nm-utils/c-list.h"
+#include "c-list/src/c-list.h"
 
 static gboolean debug = FALSE;
 #define dbgmsg(f,...) if (G_UNLIKELY (debug)) { g_message (f, ## __VA_ARGS__ ); }
@@ -608,8 +608,9 @@ handle_object_property (NMObject *self, const char *property_name, GVariant *val
 	object = g_dbus_object_manager_get_object (priv->object_manager, path);
 	if (!object) {
 		/* This is a server bug -- a dangling object path for an object
-		 * that does not exist. */
-		/* XXX: We've ignored this before and the server hits the condition
+		 * that does not exist.
+		 *
+		 * NOTE: We've ignored this before and the server hits the condition
 		 * more often that it should. Given we're able to recover from
 		 * ther error, let's lower the severity of the log message to
 		 * avoid unnecessarily bothering the user. This can be removed
@@ -899,9 +900,9 @@ demarshal_generic (NMObject *object,
 	else if (pspec->value_type == G_TYPE_UINT)
 		HANDLE_TYPE (G_VARIANT_TYPE_UINT32, guint, g_variant_get_uint32);
 	else if (pspec->value_type == G_TYPE_INT64)
-		HANDLE_TYPE (G_VARIANT_TYPE_INT64, gint, g_variant_get_int64);
+		HANDLE_TYPE (G_VARIANT_TYPE_INT64, gint64, g_variant_get_int64);
 	else if (pspec->value_type == G_TYPE_UINT64)
-		HANDLE_TYPE (G_VARIANT_TYPE_UINT64, guint, g_variant_get_uint64);
+		HANDLE_TYPE (G_VARIANT_TYPE_UINT64, guint64, g_variant_get_uint64);
 	else if (pspec->value_type == G_TYPE_LONG)
 		HANDLE_TYPE (G_VARIANT_TYPE_INT64, glong, g_variant_get_int64);
 	else if (pspec->value_type == G_TYPE_ULONG)
@@ -955,7 +956,7 @@ _nm_object_register_properties (NMObject *object,
 	                  G_CALLBACK (properties_changed), object);
 	g_ptr_array_add (priv->proxies, proxy);
 
-	instance = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+	instance = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, g_free);
 	priv->property_tables = g_slist_prepend (priv->property_tables, instance);
 
 	for (tmp = (NMPropertiesInfo *) info; tmp->name; tmp++) {
@@ -967,7 +968,7 @@ _nm_object_register_properties (NMObject *object,
 		}
 
 		pi = g_malloc0 (sizeof (PropertyInfo));
-		pi->func = tmp->func ? tmp->func : demarshal_generic;
+		pi->func = tmp->func ?: demarshal_generic;
 		pi->object_type = tmp->object_type;
 		pi->field = tmp->field;
 		pi->signal_prefix = tmp->signal_prefix;

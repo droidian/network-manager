@@ -8,7 +8,7 @@
 <link rel="up" href="ref-dbus-manager.html" title="The /org/freedesktop/NetworkManager object">
 <link rel="prev" href="ref-dbus-manager.html" title="The /org/freedesktop/NetworkManager object">
 <link rel="next" href="ref-dbus-agent-manager.html" title="The /org/freedesktop/NetworkManager/AgentManager object">
-<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.28 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -36,37 +36,39 @@
 <div class="refsynopsisdiv">
 <h2>Methods</h2>
 <pre class="synopsis">
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.Reload" title="The Reload() method">Reload</a>                   (IN  u         flags);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.GetDevices" title="The GetDevices() method">GetDevices</a>               (OUT ao        devices);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.GetAllDevices" title="The GetAllDevices() method">GetAllDevices</a>            (OUT ao        devices);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.GetDeviceByIpIface" title="The GetDeviceByIpIface() method">GetDeviceByIpIface</a>       (IN  s         iface,
-                          OUT o         device);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.ActivateConnection" title="The ActivateConnection() method">ActivateConnection</a>       (IN  o         connection,
-                          IN  o         device,
-                          IN  o         specific_object,
-                          OUT o         active_connection);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection" title="The AddAndActivateConnection() method">AddAndActivateConnection</a> (IN  a{sa{sv}} connection,
-                          IN  o         device,
-                          IN  o         specific_object,
-                          OUT o         path,
-                          OUT o         active_connection);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.DeactivateConnection" title="The DeactivateConnection() method">DeactivateConnection</a>     (IN  o         active_connection);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.Sleep" title="The Sleep() method">Sleep</a>                    (IN  b         sleep);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.Enable" title="The Enable() method">Enable</a>                   (IN  b         enable);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.GetPermissions" title="The GetPermissions() method">GetPermissions</a>           (OUT a{ss}     permissions);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.SetLogging" title="The SetLogging() method">SetLogging</a>               (IN  s         level,
-                          IN  s         domains);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.GetLogging" title="The GetLogging() method">GetLogging</a>               (OUT s         level,
-                          OUT s         domains);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.CheckConnectivity" title="The CheckConnectivity() method">CheckConnectivity</a>        (OUT u         connectivity);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.state" title="The state() method">state</a>                    (OUT u         state);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.CheckpointCreate" title="The CheckpointCreate() method">CheckpointCreate</a>         (IN  ao        devices,
-                          IN  u         rollback_timeout,
-                          IN  u         flags,
-                          OUT o         checkpoint);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.CheckpointDestroy" title="The CheckpointDestroy() method">CheckpointDestroy</a>        (IN  o         checkpoint);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.CheckpointRollback" title="The CheckpointRollback() method">CheckpointRollback</a>       (IN  o         checkpoint,
-                          OUT a{su}     result);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.Reload" title="The Reload() method">Reload</a>                          (IN  u         flags);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.GetDevices" title="The GetDevices() method">GetDevices</a>                      (OUT ao        devices);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.GetAllDevices" title="The GetAllDevices() method">GetAllDevices</a>                   (OUT ao        devices);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.GetDeviceByIpIface" title="The GetDeviceByIpIface() method">GetDeviceByIpIface</a>              (IN  s         iface,
+                                 OUT o         device);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.ActivateConnection" title="The ActivateConnection() method">ActivateConnection</a>              (IN  o         connection,
+                                 IN  o         device,
+                                 IN  o         specific_object,
+                                 OUT o         active_connection);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection" title="The AddAndActivateConnection() method">AddAndActivateConnection</a>        (IN  a{sa{sv}} connection,
+                                 IN  o         device,
+                                 IN  o         specific_object,
+                                 OUT o         path,
+                                 OUT o         active_connection);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.DeactivateConnection" title="The DeactivateConnection() method">DeactivateConnection</a>            (IN  o         active_connection);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.Sleep" title="The Sleep() method">Sleep</a>                           (IN  b         sleep);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.Enable" title="The Enable() method">Enable</a>                          (IN  b         enable);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.GetPermissions" title="The GetPermissions() method">GetPermissions</a>                  (OUT a{ss}     permissions);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.SetLogging" title="The SetLogging() method">SetLogging</a>                      (IN  s         level,
+                                 IN  s         domains);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.GetLogging" title="The GetLogging() method">GetLogging</a>                      (OUT s         level,
+                                 OUT s         domains);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.CheckConnectivity" title="The CheckConnectivity() method">CheckConnectivity</a>               (OUT u         connectivity);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.state" title="The state() method">state</a>                           (OUT u         state);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.CheckpointCreate" title="The CheckpointCreate() method">CheckpointCreate</a>                (IN  ao        devices,
+                                 IN  u         rollback_timeout,
+                                 IN  u         flags,
+                                 OUT o         checkpoint);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.CheckpointDestroy" title="The CheckpointDestroy() method">CheckpointDestroy</a>               (IN  o         checkpoint);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.CheckpointRollback" title="The CheckpointRollback() method">CheckpointRollback</a>              (IN  o         checkpoint,
+                                 OUT a{su}     result);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.CheckpointAdjustRollbackTimeout" title="The CheckpointAdjustRollbackTimeout() method">CheckpointAdjustRollbackTimeout</a> (IN  o         checkpoint,
+                                 IN  u         add_timeout);
 </pre>
 </div>
 <div class="refsect1">
@@ -84,6 +86,7 @@
 <pre class="synopsis">
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.Devices" title='The "Devices" property'>Devices</a>                     readable   ao
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.AllDevices" title='The "AllDevices" property'>AllDevices</a>                  readable   ao
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.Checkpoints" title='The "Checkpoints" property'>Checkpoints</a>                 readable   ao
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.NetworkingEnabled" title='The "NetworkingEnabled" property'>NetworkingEnabled</a>           readable   b
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.WirelessEnabled" title='The "WirelessEnabled" property'>WirelessEnabled</a>             readwrite  b
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.WirelessHardwareEnabled" title='The "WirelessHardwareEnabled" property'>WirelessHardwareEnabled</a>     readable   b
@@ -458,7 +461,7 @@ CheckConnectivity (OUT u connectivity);
 state (OUT u state);
 </pre>
 <p>        The overall networking state as determined by the NetworkManager daemon,
-        based on the state of network devices under it's management.
+        based on the state of network devices under its management.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -550,6 +553,43 @@ CheckpointRollback (IN  o     checkpoint,
 <tr>
 <td><p><span class="term"><code class="literal">OUT a{su} <em class="parameter"><code>result</code></em></code>:</span></p></td>
 <td><p>On return, a dictionary of devices and results. Devices are represented by their original D-Bus path; each result is a <a class="link" href="nm-dbus-types.html#NMRollbackResult" title="enum NMRollbackResult">RollbackResult</a>.</p></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-method-org-freedesktop-NetworkManager.CheckpointAdjustRollbackTimeout"></a><h3>The CheckpointAdjustRollbackTimeout() method</h3>
+<pre class="programlisting">
+CheckpointAdjustRollbackTimeout (IN  o checkpoint,
+                                 IN  u add_timeout);
+</pre>
+<p>          timeout will expire. Set to 0 to disable the timeout.
+          Note that the added seconds start counting from now,
+          not "Created" timestamp or the previous expiration
+          time. Note that the "Created" property of the checkpoint
+          will stay unchanged by this call. However, the "RollbackTimeout"
+          will be recalculated to give the approximate new expiration time.
+          The new "RollbackTimeout" property will be approximate up to
+          one second precision, which is the accuracy of the property.
+</p>
+<p>        Reset the timeout for rollback for the checkpoint.
+</p>
+<p>        Since: 1.12
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="literal">IN o <em class="parameter"><code>checkpoint</code></em></code>:</span></p></td>
+<td><p></p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">IN u <em class="parameter"><code>add_timeout</code></em></code>:</span></p></td>
+<td><p>number of seconds from ~now~ in which the</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -664,6 +704,15 @@ AllDevices  readable   ao
 <p>        The list of both realized and un-realized network devices. Un-realized
         devices are software devices which do not yet have backing resources, but
         for which backing resources can be created if the device is activated.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-property-org-freedesktop-NetworkManager.Checkpoints"></a><h3>The "Checkpoints" property</h3>
+<pre class="programlisting">
+Checkpoints  readable   ao
+</pre>
+<p>        The list of active checkpoints.
 </p>
 </div>
 <hr>
@@ -908,6 +957,6 @@ GlobalDnsConfiguration  readwrite  a{sv}
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.27</div>
+<hr>Generated by GTK-Doc V1.28</div>
 </body>
 </html>

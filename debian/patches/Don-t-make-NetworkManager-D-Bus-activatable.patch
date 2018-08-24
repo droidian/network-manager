@@ -10,10 +10,10 @@ to be autostarted by a client request.
  2 files changed, 6 deletions(-)
 
 diff --git a/Makefile.am b/Makefile.am
-index 639921d..2ddc7bc 100644
+index b1a2e69..b168008 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -3689,11 +3689,6 @@ endif
+@@ -3894,11 +3894,6 @@ endif
  data/NetworkManager-dispatcher.service: $(srcdir)/data/NetworkManager-dispatcher.service.in
  	$(AM_V_GEN) $(data_edit) $< >$@
  
@@ -26,13 +26,14 @@ index 639921d..2ddc7bc 100644
  
  examples_DATA += data/server.conf
 diff --git a/data/NetworkManager.service.in b/data/NetworkManager.service.in
-index 95d58f9..1502b89 100644
+index 2692935..ff90456 100644
 --- a/data/NetworkManager.service.in
 +++ b/data/NetworkManager.service.in
-@@ -24,6 +24,5 @@ ProtectHome=read-only
+@@ -24,7 +24,6 @@ ProtectHome=read-only
  
  [Install]
  WantedBy=multi-user.target
 -Alias=dbus-org.freedesktop.NetworkManager.service
  Also=NetworkManager-dispatcher.service
  
+ # We want to enable NetworkManager-wait-online.service whenever this service

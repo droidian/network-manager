@@ -57,7 +57,6 @@
 
 #define NM_CONFIG_KEYFILE_GROUP_KEYFILE                     "keyfile"
 #define NM_CONFIG_KEYFILE_GROUP_IFUPDOWN                    "ifupdown"
-#define NM_CONFIG_KEYFILE_GROUP_IFNET                       "ifnet"
 
 #define NM_CONFIG_KEYFILE_KEY_MAIN_AUTH_POLKIT              "auth-polkit"
 #define NM_CONFIG_KEYFILE_KEY_MAIN_AUTOCONNECT_RETRIES_DEFAULT "autoconnect-retries-default"
@@ -79,6 +78,8 @@
 #define NM_CONFIG_KEYFILE_KEY_DEVICE_MANAGED                "managed"
 #define NM_CONFIG_KEYFILE_KEY_DEVICE_IGNORE_CARRIER         "ignore-carrier"
 #define NM_CONFIG_KEYFILE_KEY_DEVICE_SRIOV_NUM_VFS          "sriov-num-vfs"
+#define NM_CONFIG_KEYFILE_KEY_DEVICE_WIFI_BACKEND           "wifi.backend"
+#define NM_CONFIG_KEYFILE_KEY_DEVICE_WIFI_SCAN_RAND_MAC_ADDRESS "wifi.scan-rand-mac-address"
 #define NM_CONFIG_KEYFILE_KEY_DEVICE_CARRIER_WAIT_TIMEOUT   "carrier-wait-timeout"
 
 #define NM_CONFIG_KEYFILE_KEYPREFIX_WAS                     ".was."

@@ -1,6 +1,5 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/* NetworkManager audit support
- *
+/*
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -24,6 +23,7 @@
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <linux/if_tun.h>
 
 #include "platform/nmp-object.h"
 #include "platform/nmp-netns.h"
@@ -698,6 +698,8 @@ test_software_detect (gconstpointer user_data)
 	const NMPObject *lnk;
 	guint i_step;
 	const gboolean ext = test_data->external_command;
+	NMPlatformLnkTun lnk_tun;
+	nm_auto_close int tun_fd = -1;
 
 	nmtstp_run_command_check ("ip link add %s type dummy", PARENT_NAME);
 	ifindex_parent = nmtstp_assert_wait_for_link (NM_PLATFORM_GET, PARENT_NAME, NM_LINK_TYPE_DUMMY, 100)->ifindex;
@@ -761,13 +763,27 @@ test_software_detect (gconstpointer user_data)
 			gracefully_skip = nm_utils_modprobe (NULL, TRUE, "ip6_tunnel", NULL) != 0;
 		}
 
-		lnk_ip6tnl.local = *nmtst_inet6_from_string ("fd01::15");
-		lnk_ip6tnl.remote = *nmtst_inet6_from_string ("fd01::16");
-		lnk_ip6tnl.parent_ifindex = ifindex_parent;
-		lnk_ip6tnl.tclass = 20;
-		lnk_ip6tnl.encap_limit = 6;
-		lnk_ip6tnl.flow_label = 1337;
-		lnk_ip6tnl.proto = IPPROTO_IPV6;
+		switch (test_data->test_mode) {
+		case 0:
+			lnk_ip6tnl.local = *nmtst_inet6_from_string ("fd01::15");
+			lnk_ip6tnl.remote = *nmtst_inet6_from_string ("fd01::16");
+			lnk_ip6tnl.parent_ifindex = ifindex_parent;
+			lnk_ip6tnl.tclass = 20;
+			lnk_ip6tnl.encap_limit = 6;
+			lnk_ip6tnl.flow_label = 1337;
+			lnk_ip6tnl.proto = IPPROTO_IPV6;
+			break;
+		case 1:
+			lnk_ip6tnl.local = *nmtst_inet6_from_string ("fd01::17");
+			lnk_ip6tnl.remote = *nmtst_inet6_from_string ("fd01::18");
+			lnk_ip6tnl.parent_ifindex = ifindex_parent;
+			lnk_ip6tnl.tclass = 0;
+			lnk_ip6tnl.encap_limit = 0;
+			lnk_ip6tnl.flow_label = 1338;
+			lnk_ip6tnl.proto = IPPROTO_IPV6;
+			lnk_ip6tnl.flags = IP6_TNL_F_IGN_ENCAP_LIMIT | IP6_TNL_F_USE_ORIG_TCLASS;
+			break;
+		}
 
 		if (!nmtstp_link_ip6tnl_add (NULL, ext, DEVICE_NAME, &lnk_ip6tnl)) {
 			if (gracefully_skip) {
@@ -879,6 +895,38 @@ test_software_detect (gconstpointer user_data)
 		g_assert (nmtstp_link_vxlan_add (NULL, ext, DEVICE_NAME, &lnk_vxlan));
 		break;
 	}
+	case NM_LINK_TYPE_TUN: {
+		gboolean owner_valid = nmtst_get_rand_bool ();
+		gboolean group_valid = nmtst_get_rand_bool ();
+
+		switch (test_data->test_mode) {
+		case 0:
+			lnk_tun = (NMPlatformLnkTun) {
+				.type = nmtst_get_rand_bool () ? IFF_TUN : IFF_TAP,
+				.owner = owner_valid ? getuid () : 0,
+				.owner_valid = owner_valid,
+				.group = group_valid ? getgid () : 0,
+				.group_valid = group_valid,
+				.pi = nmtst_get_rand_bool (),
+				.vnet_hdr = nmtst_get_rand_bool (),
+				.multi_queue = nmtst_get_rand_bool (),
+
+				/* if we add the device via iproute2 (external), we can only
+				 * create persistent devices. */
+				.persist = (ext == 1) ? TRUE : nmtst_get_rand_bool (),
+			};
+			break;
+		default:
+			g_assert_not_reached ();
+			break;
+		}
+
+		g_assert (nmtstp_link_tun_add (NULL, ext, DEVICE_NAME, &lnk_tun,
+		                               (!lnk_tun.persist || nmtst_get_rand_bool ())
+		                                 ? &tun_fd
+		                                 : NULL));
+		break;
+	}
 	default:
 		g_assert_not_reached ();
 	}
@@ -909,7 +957,13 @@ test_software_detect (gconstpointer user_data)
 		lnk = nm_platform_link_get_lnk (NM_PLATFORM_GET, ifindex, test_data->link_type, &plink);
 		g_assert (plink);
 		g_assert_cmpint (plink->ifindex, ==, ifindex);
-		g_assert (lnk);
+
+		if (   !lnk
+		    && test_data->link_type == NM_LINK_TYPE_TUN) {
+			/* this is ok. Kernel apparently does not support tun properties via netlink. We
+			 * fetch them from sysfs below. */
+		} else
+			g_assert (lnk);
 
 		switch (test_data->link_type) {
 		case NM_LINK_TYPE_GRE: {
@@ -931,15 +985,31 @@ test_software_detect (gconstpointer user_data)
 		case NM_LINK_TYPE_IP6TNL: {
 			const NMPlatformLnkIp6Tnl *plnk = &lnk->lnk_ip6tnl;
 
-			g_assert (plnk == nm_platform_link_get_lnk_ip6tnl (NM_PLATFORM_GET, ifindex, NULL));
-			g_assert_cmpint (plnk->parent_ifindex, ==, ifindex_parent);
-			nmtst_assert_ip6_address (&plnk->local, "fd01::15");
-			nmtst_assert_ip6_address (&plnk->remote, "fd01::16");
-			g_assert_cmpint (plnk->ttl, ==, 0);
-			g_assert_cmpint (plnk->tclass, ==, 20);
-			g_assert_cmpint (plnk->encap_limit, ==, 6);
-			g_assert_cmpint (plnk->flow_label, ==, 1337);
-			g_assert_cmpint (plnk->proto, ==, IPPROTO_IPV6);
+			switch (test_data->test_mode) {
+			case 0:
+				g_assert (plnk == nm_platform_link_get_lnk_ip6tnl (NM_PLATFORM_GET, ifindex, NULL));
+				g_assert_cmpint (plnk->parent_ifindex, ==, ifindex_parent);
+				nmtst_assert_ip6_address (&plnk->local, "fd01::15");
+				nmtst_assert_ip6_address (&plnk->remote, "fd01::16");
+				g_assert_cmpint (plnk->ttl, ==, 0);
+				g_assert_cmpint (plnk->tclass, ==, 20);
+				g_assert_cmpint (plnk->encap_limit, ==, 6);
+				g_assert_cmpint (plnk->flow_label, ==, 1337);
+				g_assert_cmpint (plnk->proto, ==, IPPROTO_IPV6);
+				break;
+			case 1:
+				g_assert (plnk == nm_platform_link_get_lnk_ip6tnl (NM_PLATFORM_GET, ifindex, NULL));
+				g_assert_cmpint (plnk->parent_ifindex, ==, ifindex_parent);
+				nmtst_assert_ip6_address (&plnk->local, "fd01::17");
+				nmtst_assert_ip6_address (&plnk->remote, "fd01::18");
+				g_assert_cmpint (plnk->ttl, ==, 0);
+				g_assert_cmpint (plnk->flow_label, ==, 1338);
+				g_assert_cmpint (plnk->proto, ==, IPPROTO_IPV6);
+				g_assert_cmpint (plnk->flags & 0xFFFF, /* ignore kernel internal flags */
+				                 ==,
+				                 IP6_TNL_F_IGN_ENCAP_LIMIT | IP6_TNL_F_USE_ORIG_TCLASS);
+				break;
+			}
 			break;
 		}
 		case NM_LINK_TYPE_IPIP: {
@@ -980,6 +1050,35 @@ test_software_detect (gconstpointer user_data)
 			g_assert_cmpint (plnk->ttl, ==, 0);
 			g_assert_cmpint (plnk->tos, ==, 31);
 			g_assert_cmpint (plnk->path_mtu_discovery, ==, FALSE);
+			break;
+		}
+		case NM_LINK_TYPE_TUN: {
+			const NMPlatformLnkTun *plnk;
+			NMPlatformLnkTun lnk_tun2;
+
+			g_assert ((lnk ? &lnk->lnk_tun : NULL) == nm_platform_link_get_lnk_tun (NM_PLATFORM_GET, ifindex, NULL));
+
+			/* kernel might not expose tun options via netlink. Either way, try
+			 * to read them (either from platform cache, or fallback to sysfs).
+			 * See also: rh#1547213. */
+			if (!nm_platform_link_tun_get_properties (NM_PLATFORM_GET,
+			                                          ifindex,
+			                                          &lnk_tun2))
+				g_assert_not_reached ();
+
+			plnk = lnk ? &lnk->lnk_tun : &lnk_tun2;
+			if (lnk)
+				g_assert (memcmp (plnk, &lnk_tun2, sizeof (NMPlatformLnkTun)) == 0);
+
+			if (i_step == 0) {
+				/* Before we upped the device for the first time the kernel didn't notify
+				 * us of the owner set after the link creation:
+				 * https://bugzilla.redhat.com/show_bug.cgi?id=1566062
+				 */
+				break;
+			}
+
+			g_assert (nm_platform_lnk_tun_cmp (plnk, &lnk_tun) == 0);
 			break;
 		}
 		case NM_LINK_TYPE_VLAN: {
@@ -1422,7 +1521,6 @@ test_vlan_set_xgress (void)
 		                              6, 7);
 	}
 
-
 	{
 		const NMVlanQosMapping ingress_map[] = {
 			{ .from = 1, .to = 5 },
@@ -1735,13 +1833,11 @@ test_nl_bugs_veth (void)
 	}
 	g_assert_cmpint (pllink_veth0->parent, ==, ifindex_veth1);
 
-
 	/* The following tests whether we have a workaround for kernel bug
 	 * https://bugzilla.redhat.com/show_bug.cgi?id=1285827 in place. */
 	pllink_veth1 = nm_platform_link_get (NM_PLATFORM_GET, ifindex_veth1);
 	g_assert (pllink_veth1);
 	g_assert_cmpint (pllink_veth1->parent, ==, ifindex_veth0);
-
 
 	/* move one veth peer to another namespace and check that the
 	 * parent/IFLA_LINK of the remaining peer properly updates
@@ -2248,7 +2344,7 @@ test_netns_push (gpointer fixture, gconstpointer test_data)
 		p = pl_base;
 		for (j = nstack; j >= 1; ) {
 			j--;
-			if (NM_FLAGS_HAS (stack[j].ns_types, ns_type)) {
+			if (NM_FLAGS_ANY (stack[j].ns_types, ns_type)) {
 				p = stack[j].pl;
 				break;
 			}
@@ -2289,7 +2385,6 @@ test_netns_push (gpointer fixture, gconstpointer test_data)
 		} else
 			g_assert_not_reached ();
 	}
-
 
 	for (i = nstack; i >= 1; ) {
 		i--;
@@ -2546,11 +2641,13 @@ _nmtstp_setup_tests (void)
 		g_test_add_func ("/link/external", test_external);
 
 		test_software_detect_add ("/link/software/detect/gre", NM_LINK_TYPE_GRE, 0);
-		test_software_detect_add ("/link/software/detect/ip6tnl", NM_LINK_TYPE_IP6TNL, 0);
+		test_software_detect_add ("/link/software/detect/ip6tnl/0", NM_LINK_TYPE_IP6TNL, 0);
+		test_software_detect_add ("/link/software/detect/ip6tnl/1", NM_LINK_TYPE_IP6TNL, 1);
 		test_software_detect_add ("/link/software/detect/ipip", NM_LINK_TYPE_IPIP, 0);
 		test_software_detect_add ("/link/software/detect/macvlan", NM_LINK_TYPE_MACVLAN, 0);
 		test_software_detect_add ("/link/software/detect/macvtap", NM_LINK_TYPE_MACVTAP, 0);
 		test_software_detect_add ("/link/software/detect/sit", NM_LINK_TYPE_SIT, 0);
+		test_software_detect_add ("/link/software/detect/tun", NM_LINK_TYPE_TUN, 0);
 		test_software_detect_add ("/link/software/detect/vlan", NM_LINK_TYPE_VLAN, 0);
 		test_software_detect_add ("/link/software/detect/vxlan/0", NM_LINK_TYPE_VXLAN, 0);
 		test_software_detect_add ("/link/software/detect/vxlan/1", NM_LINK_TYPE_VXLAN, 1);

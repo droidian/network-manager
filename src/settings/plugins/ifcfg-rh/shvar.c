@@ -39,7 +39,7 @@
 #include "nm-core-internal.h"
 #include "nm-core-utils.h"
 #include "nm-utils/nm-enum-utils.h"
-#include "nm-utils/c-list.h"
+#include "c-list/src/c-list.h"
 
 /*****************************************************************************/
 
@@ -1278,7 +1278,7 @@ svSetValueEnum (shvarFile *s, const char *key, GType gtype, int value)
 {
 	gs_free char *v = NULL;
 
-	v = _nm_utils_enum_to_str_full (gtype, value, " ");
+	v = _nm_utils_enum_to_str_full (gtype, value, " ", NULL);
 	return svSetValueStr (s, key, v);
 }
 

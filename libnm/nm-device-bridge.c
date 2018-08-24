@@ -86,7 +86,7 @@ nm_device_bridge_get_carrier (NMDeviceBridge *device)
  * nm_device_bridge_get_slaves:
  * @device: a #NMDeviceBridge
  *
- * Gets the devices currently slaved to @device.
+ * Gets the devices currently enslaved to @device.
  *
  * Returns: (element-type NMDevice): the #GPtrArray containing
  * #NMDevices that are slaves of @device. This is the internal
@@ -253,11 +253,9 @@ nm_device_bridge_class_init (NMDeviceBridgeClass *bridge_class)
 		                       G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * NMDeviceBridge:slaves:
+	 * NMDeviceBridge:slaves: (type GPtrArray(NMDevice))
 	 *
-	 * The devices slaved to the bridge device.
-	 *
-	 * Element-type: NMDevice
+	 * The devices enslaved to the bridge device.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_SLAVES,

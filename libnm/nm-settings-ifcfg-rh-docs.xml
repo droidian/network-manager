@@ -109,6 +109,7 @@ pinging the gateway and waiting for the specified timeout (in seconds)."/>
 <property name="metered" variable="CONNECTION_METERED(+)" format="" values="yes,no,unknown" default="" example="CONNECTION_METERED=yes" description="Whether the device is metered"/>
 <property name="lldp" variable="LLDP(+)" format="" values="boolean value or &apos;rx&apos;" default="missing variable means global default" example="LLDP=no" description="whether LLDP is enabled for the connection"/>
 <property name="auth-retries" variable="AUTH_RETRIES(+)" format="" values="" default="0" example="" description="Number of retries for authentication."/>
+<property name="mdns" variable="CONNECTION_MDNS(+)" format="" values="yes,no,resolve" default="missing variable means global default" example="CONNECTION_MDNS=yes" description="Whether or not mDNS is enabled for the connection"/>
 </setting>
 <setting name="dcb">
 <property name="app-fcoe-flags" variable="DCB_APP_FCOE_ENABLE, DCB_APP_FCOE_ADVERTISE, DCB_APP_FCOE_WILLING" format="" values="" default="no" example="DCB_APP_FCOE_ENABLE=yes DCB_APP_FCOE_ADVERTISE=yes" description="FCOE flags."/>
@@ -178,10 +179,11 @@ If set to -1, a default metric based on the device type is used."/>
 <property name="dns-priority" variable="IPV4_DNS_PRIORITY(+)" format="" values="" default="0" example="IPV4_DNS_PRIORITY=20" description="The priority for DNS servers of this connection. Lower values have higher priority.
 If zero, the default value will be used (50 for VPNs, 100 for other connections).
 A negative value prevents DNS from other connections with greater values to be used."/>
-<property name="dhcp-client-id" variable="DHCP_CLIENT_ID(+)" format="" values="" default="" example="DHCP_CLIENT_ID=ax-srv-1; DHCP_CLIENT_ID=01:44:44:44:44:44:44&quot;" description="A string sent to the DHCP server to identify the local machine.
+<property name="dhcp-client-id" variable="DHCP_CLIENT_ID(+)" format="" values="" default="" example="DHCP_CLIENT_ID=ax-srv-1; DHCP_CLIENT_ID=01:44:44:44:44:44:44" description="A string sent to the DHCP server to identify the local machine.
 A binary value can be specified using hex notation (&apos;aa:bb:cc&apos;)."/>
-<property name="dad-timeout" variable="ARPING_WAIT" format="" values="" default="missing variable means global default (config override or 3)" example="ARPING_WAIT=2" description="Timeout (in seconds) for performing DAD before configuring
-IPv4 addresses. 0 turns off the DAD completely, -1 means default value."/>
+<property name="dad-timeout" variable="ACD_TIMEOUT, ARPING_WAIT" format="" values="" default="missing variable means global default (config override or zero)" example="ACD_TIMEOUT=2000 or ARPING_WAIT=2" description="Timeout (in milliseconds for ACD_TIMEOUT or in seconds
+for ARPING_WAIT) for address conflict detection before configuring
+IPv4 addresses. 0 turns off the ACD completely, -1 means default value."/>
 <property name="dhcp-timeout" variable="IPV4_DHCP_TIMEOUT(+)" format="" values="" default="" example="IPV4_DHCP_TIMEOUT=10" description="A timeout after which the DHCP transaction fails in case of no response."/>
 <property name="dhcp-fqdn" variable="DHCP_FQDN" format="" values="" default="" example="DHCP_FQDN=foo.bar.com" description="FQDN to send to the DHCP server. When both DHCP_HOSTNAME and
 DHCP_FQDN are specified only the latter is used."/>
@@ -215,6 +217,10 @@ A negative value prevents DNS from other connections with greater values to be u
 IPV6_PRIVACY_PREFER_PUBLIC_IP: yes, no" default="no" example="IPV6_PRIVACY=rfc3041 IPV6_PRIVACY_PREFER_PUBLIC_IP=yes" description="Configure IPv6 Privacy Extensions for SLAAC (RFC4941)."/>
 <property name="addr-gen-mode" variable="IPV6_ADDR_GEN_MODE" format="" values="IPV6_ADDR_GEN_MODE: eui64, stable-privacy" default="eui64" example="IPV6_ADDR_GEN_MODE=stable-privacy" description="Configure IPv6 Stable Privacy addressing for SLAAC (RFC7217)."/>
 <property name="token" variable="IPV6_TOKEN" format="" values="" default="" example="IPV6_TOKEN=::53" description="The IPv6 tokenized interface identifier token"/>
+<property name="dhcp-duid" variable="DHCPV6_DUID(+)" format="" values="" default="" example="DHCPV6_DUID=LL; DHCPV6_DUID=0301deadbeef0001; DHCPV6_DUID=03:01:de:ad:be:ef:00:01" description="A string sent to the DHCPv6 server to identify the local machine.
+Apart from the special values &quot;lease&quot;, &quot;stable-llt&quot;, &quot;stable-ll&quot;, &quot;stable-uuid&quot;,
+&quot;llt&quot; and &quot;ll&quot; a binary value in hex format is expected. An hex string where
+each octet is separated by a colon is also accepted."/>
 </setting>
 <setting name="macsec">
 </setting>
@@ -333,6 +339,7 @@ for WEP passphrases. KEY_TYPE specifies the key type and can be either
 <property name="wps-method" variable="WPS_METHOD" format="" values="" default="" example="WPS_METHOD=disabled, WPS_METHOD=&quot;pin pbc&quot;" description="Used to control the WPS methods to be used
 Valid values are &quot;default&quot;, &quot;auto&quot;, &quot;disabled&quot;, &quot;pin&quot; and &quot;pbc&quot;.
 If omitted, whatver the AP announces is used."/>
+<property name="fils" variable="FILS(+)" format="" values="default, disable, optional, required" default="" example="FILS=required" description="Enables or disables FILS (802.11ai)"/>
 </setting>
 <setting name="802-11-wireless">
 <property name="ssid" variable="ESSID" format="" values="" default="" example="ESSID=&quot;Quick Net&quot;" description="SSID of Wi-Fi network."/>

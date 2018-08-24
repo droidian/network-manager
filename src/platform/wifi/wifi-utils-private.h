@@ -24,9 +24,8 @@
 #include "nm-dbus-interface.h"
 #include "wifi-utils.h"
 
-struct WifiData {
-	int ifindex;
-	NMDeviceWifiCapabilities caps;
+typedef struct {
+	gsize struct_size;
 
 	NM80211Mode (*get_mode) (WifiData *data);
 
@@ -34,6 +33,9 @@ struct WifiData {
 
 	/* Set power saving mode on an interface */
 	gboolean (*set_powersave) (WifiData *data, guint32 powersave);
+
+	/* Set WakeOnWLAN mode on an interface */
+	gboolean (*set_wake_on_wlan) (WifiData *data, NMSettingWirelessWakeOnWLan wowl);
 
 	/* Return current frequency in MHz (really associated BSS frequency) */
 	guint32 (*get_freq) (WifiData *data);
@@ -66,9 +68,14 @@ struct WifiData {
 	gboolean (*set_mesh_ssid) (WifiData *data, const guint8 *ssid, gsize len);
 
 	gboolean (*indicate_addressing_running) (WifiData *data, gboolean running);
+} WifiDataClass;
+
+struct WifiData {
+	const WifiDataClass *klass;
+	int ifindex;
+	NMDeviceWifiCapabilities caps;
 };
 
-gpointer wifi_data_new (int ifindex, gsize len);
-void wifi_data_free (WifiData *data);
+gpointer wifi_data_new (const WifiDataClass *klass, int ifindex);
 
 #endif  /* __WIFI_UTILS_PRIVATE_H__ */

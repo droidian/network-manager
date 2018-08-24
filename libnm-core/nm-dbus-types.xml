@@ -280,17 +280,17 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_TYPE_OVS_INTERFACE</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>24</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>a OpenVSwitch interface</para><para></para></entry>
+              <entry role="enum_member_description"><para>a Open vSwitch interface</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_TYPE_OVS_PORT</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>25</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>a OpenVSwitch port</para><para></para></entry>
+              <entry role="enum_member_description"><para>a Open vSwitch port</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_TYPE_OVS_BRIDGE</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>26</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>a OpenVSwitch bridge</para><para></para></entry>
+              <entry role="enum_member_description"><para>a Open vSwitch bridge</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -1120,7 +1120,7 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_OVSDB_FAILED</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>63</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>problem communicating with OpenVSwitch database</para><para></para></entry>
+              <entry role="enum_member_description"><para>problem communicating with Open vSwitch database</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_IP_ADDRESS_DUPLICATE</para><para></para></entry>
@@ -1483,7 +1483,7 @@
     <indexterm zone="NMCheckpointCreateFlags">
       <primary>NMCheckpointCreateFlags</primary>
     </indexterm>
-    <para><para>The flags for CheckpointCreate call</para><para>Since: 1.4</para><para></para></para>
+    <para><para>The flags for CheckpointCreate call</para><para>Since: 1.4 (gi flags generated since 1.12)</para><para></para></para>
     <refsect3 role="enum_members">
       <title>Values</title>
       <informaltable role="enum_members_table" pgwide="1" frame="none">
@@ -1511,6 +1511,11 @@
               <entry role="enum_member_name"><para>NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x04</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>upon rollback, disconnect any new device appeared after the checkpoint (Since: 1.6)</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x08</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>by default, creating a checkpoint fails if there are already existing checkoints that reference the same devices. With this flag, creation of such checkpoints is allowed, however, if an older checkpoint that references overlapping devices gets rolled back, it will automatically destroy this checkpoint during rollback. This allows to create several overlapping checkpoints in parallel, and rollback to them at will. With the special case that rolling back to an older checkpoint will invalidate all overlapping younger checkpoints. This opts-in that the checkpoint can be automatically destroyed by the rollback of an older checkpoint. (Since: 1.12)</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -1551,6 +1556,46 @@
               <entry role="enum_member_name"><para>NM_ROLLBACK_RESULT_ERR_FAILED</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>other errors during rollback.</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMSettingsConnectionFlags" role="enum">
+    <title>enum NMSettingsConnectionFlags</title>
+    <indexterm zone="NMSettingsConnectionFlags">
+      <primary>NMSettingsConnectionFlags</primary>
+    </indexterm>
+    <para><para>Flags describing the current activation state.</para><para>Since: 1.12</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SETTINGS_CONNECTION_FLAG_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>an alias for numeric zero, no flags set.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SETTINGS_CONNECTION_FLAG_UNSAVED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x01</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the connection is not saved to disk. That either means, that the connection is in-memory only and currently is not backed by a file. Or, that the connection is backed by a file, but has modifications in-memory that were not persisted to disk.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SETTINGS_CONNECTION_FLAG_NM_GENERATED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x02</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>A connection is "nm-generated" if it was generated by NetworkManger. If the connection gets modified or saved by the user, the flag gets cleared. A nm-generated is also unsaved and has no backing file as it is in-memory only.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SETTINGS_CONNECTION_FLAG_VOLATILE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x04</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The connection will be deleted when it disconnects. That is for in-memory connections (unsaved), which are currently active but deleted on disconnect. Volatile connections are always unsaved, but they are also no backing file on disk and are entirely in-memory only.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -1618,7 +1663,7 @@
     <indexterm zone="NMSettingsUpdate2Flags">
       <primary>NMSettingsUpdate2Flags</primary>
     </indexterm>
-    <para><para>Since: 1.10.2</para><para></para></para>
+    <para><para>Since: 1.12</para><para></para></para>
     <refsect3 role="enum_members">
       <title>Values</title>
       <informaltable role="enum_members_table" pgwide="1" frame="none">

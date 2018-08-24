@@ -210,7 +210,7 @@ nm_setting_user_check_val (const char *val, GError **error)
 static GHashTable *
 _create_data_hash (void)
 {
-	return g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+	return g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, g_free);
 }
 
 /**
@@ -226,7 +226,6 @@ nm_setting_user_get_keys (NMSettingUser *setting, guint *out_len)
 {
 	NMSettingUser *self = setting;
 	NMSettingUserPrivate *priv;
-	guint len;
 
 	g_return_val_if_fail (NM_IS_SETTING_USER (self), NULL);
 
@@ -237,19 +236,13 @@ nm_setting_user_get_keys (NMSettingUser *setting, guint *out_len)
 		return priv->keys;
 	}
 
-	if (!priv->data || !g_hash_table_size (priv->data)) {
-		NM_SET_OUT (out_len, 0);
-		return (const char **) &priv->keys;
-	}
+	priv->keys = nm_utils_strdict_get_keys (priv->data,
+	                                        TRUE,
+	                                        out_len);
 
-	priv->keys = (const char **) g_hash_table_get_keys_as_array (priv->data, &len);
-	g_qsort_with_data (priv->keys,
-	                   len,
-	                   sizeof (const char *),
-	                   nm_strcmp_p_with_data,
-	                   NULL);
-	NM_SET_OUT (out_len, len);
-	return priv->keys;
+	/* don't return %NULL, but hijack the @keys fields as a pseudo
+	 * empty strv array. */
+	return priv->keys ?: ((const char **) &priv->keys);
 }
 
 /*****************************************************************************/
@@ -587,13 +580,11 @@ nm_setting_user_class_init (NMSettingUserClass *klass)
 	setting_class->verify = verify;
 
 	/**
-	 * NMSettingUser:data:
+	 * NMSettingUser:data: (type GHashTable(utf8,utf8))
 	 *
 	 * A dictionary of key/value pairs with user data. This data is ignored by NetworkManager
 	 * and can be used at the users discretion. The keys only support a strict ascii format,
 	 * but the values can be arbitrary UTF8 strings up to a certain length.
-	 *
-	 * Type: GHashTable(utf8,utf8)
 	 *
 	 * Since: 1.8
 	 **/

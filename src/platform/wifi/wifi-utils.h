@@ -25,6 +25,7 @@
 #include <net/ethernet.h>
 
 #include "nm-dbus-interface.h"
+#include "nm-setting-wireless.h"
 
 typedef struct WifiData WifiData;
 
@@ -34,7 +35,7 @@ WifiData *wifi_utils_init (int ifindex, gboolean check_scan);
 
 int wifi_utils_get_ifindex (WifiData *data);
 
-void wifi_utils_deinit (WifiData *data);
+void wifi_utils_unref (WifiData *data);
 
 NMDeviceWifiCapabilities wifi_utils_get_caps (WifiData *data);
 
@@ -66,6 +67,7 @@ gboolean wifi_utils_get_wowlan (WifiData *data);
 
 gboolean wifi_utils_set_powersave (WifiData *data, guint32 powersave);
 
+gboolean wifi_utils_set_wake_on_wlan (WifiData *data, NMSettingWirelessWakeOnWLan wowl);
 
 /* OLPC Mesh-only functions */
 guint32 wifi_utils_get_mesh_channel (WifiData *data);

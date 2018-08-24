@@ -1,15 +1,11 @@
 Force-online-state-with-unmanaged-devices.patch
 Don-t-setup-Sleep-Monitor-if-not-booted-with-systemd.patch
-Fix-arping-path.patch
 Don-t-make-NetworkManager-D-Bus-activatable.patch
 Fix-iscsiadm-path.patch
-libnm-register-empty-NMClient-and-NetworkManager-when-loa.patch
 Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
 Update-dnsmasq-parameters.patch
 Disable-general-with-expect.patch
 libnm-Check-self-still-NMManager-or-not.patch
 #dns-manager-don-t-merge-split-DNS-search-domains.patch
 Read-system-connections-from-run.patch
-e91f1a7d2a6b8400b6b331d5b72287dcb5164a39.patch
-#upstream backport
-git_thunderbolt_connect.patch
+git-newglib-test.patch

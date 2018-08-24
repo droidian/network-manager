@@ -39,7 +39,7 @@
 #include "NetworkManagerUtils.h"
 #include "nm-manager.h"
 #include "platform/nm-linux-platform.h"
-#include "nm-bus-manager.h"
+#include "nm-dbus-manager.h"
 #include "devices/nm-device.h"
 #include "dhcp/nm-dhcp-manager.h"
 #include "nm-config.h"
@@ -48,7 +48,7 @@
 #include "settings/nm-settings.h"
 #include "nm-auth-manager.h"
 #include "nm-core-internal.h"
-#include "nm-exported-object.h"
+#include "nm-dbus-object.h"
 #include "nm-connectivity.h"
 #include "dns/nm-dns-manager.h"
 #include "systemd/nm-sd.h"
@@ -93,8 +93,10 @@ static void
 _init_nm_debug (NMConfig *config)
 {
 	gs_free char *debug = NULL;
-	const guint D_RLIMIT_CORE = 1;
-	const guint D_FATAL_WARNINGS = 2;
+	enum {
+		D_RLIMIT_CORE =    (1 << 0),
+		D_FATAL_WARNINGS = (1 << 1),
+	};
 	GDebugKey keys[] = {
 		{ "RLIMIT_CORE", D_RLIMIT_CORE },
 		{ "fatal-warnings", D_FATAL_WARNINGS },
@@ -212,7 +214,7 @@ do_early_setup (int *argc, char **argv[], NMConfigCmdLineOptions *config_cli)
 	                                _("NetworkManager monitors all network connections and automatically\nchooses the best connection to use.  It also allows the user to\nspecify wireless access points which wireless cards in the computer\nshould associate with.")))
 		exit (1);
 
-	global_opt.pidfile = global_opt.pidfile ? global_opt.pidfile : g_strdup (NM_DEFAULT_PID_FILE);
+	global_opt.pidfile = global_opt.pidfile ?: g_strdup(NM_DEFAULT_PID_FILE);
 }
 
 /*
@@ -223,20 +225,20 @@ int
 main (int argc, char *argv[])
 {
 	gboolean success = FALSE;
+	NMManager *manager = NULL;
 	NMConfig *config;
-	GError *error = NULL;
+	gs_free_error GError *error = NULL;
 	gboolean wrote_pidfile = FALSE;
 	char *bad_domains = NULL;
 	NMConfigCmdLineOptions *config_cli;
 	guint sd_id = 0;
-
-	nm_g_type_init ();
+	GError *error_invalid_logging_config = NULL;
 
 	/* Known to cause a possible deadlock upon GDBus initialization:
 	 * https://bugzilla.gnome.org/show_bug.cgi?id=674885 */
 	g_type_ensure (G_TYPE_SOCKET);
 	g_type_ensure (G_TYPE_DBUS_CONNECTION);
-	g_type_ensure (NM_TYPE_BUS_MANAGER);
+	g_type_ensure (NM_TYPE_DBUS_MANAGER);
 
 	_nm_utils_is_manager_process = TRUE;
 
@@ -303,11 +305,6 @@ main (int argc, char *argv[])
 		         _("%s.  Please use --help to see a list of valid options.\n"),
 		         error->message);
 		exit (1);
-	} else if (bad_domains) {
-		fprintf (stderr,
-		         _("Ignoring unrecognized log domain(s) '%s' passed on command line.\n"),
-		         bad_domains);
-		g_clear_pointer (&bad_domains, g_free);
 	}
 
 	/* Read the config file and CLI overrides */
@@ -329,15 +326,9 @@ main (int argc, char *argv[])
 		if (!nm_logging_setup (nm_config_get_log_level (config),
 		                       nm_config_get_log_domains (config),
 		                       &bad_domains,
-		                       &error)) {
-			fprintf (stderr, _("Error in configuration file: %s.\n"),
-			         error->message);
-			exit (1);
-		} else if (bad_domains) {
-			fprintf (stderr,
-			         _("Ignoring unrecognized log domain(s) '%s' from config files.\n"),
-			         bad_domains);
-			g_clear_pointer (&bad_domains, g_free);
+		                       &error_invalid_logging_config)) {
+			/* ignore error, and print the failure reason below.
+			 * Likewise, print about bad_domains below. */
 		}
 	}
 
@@ -373,6 +364,19 @@ main (int argc, char *argv[])
 	nm_log_info (LOGD_CORE, "Read config: %s", nm_config_data_get_config_description (nm_config_get_data (config)));
 	nm_config_data_log (nm_config_get_data (config), "CONFIG: ", "  ", NULL);
 
+	if (error_invalid_logging_config) {
+		nm_log_warn (LOGD_CORE, "config: invalid logging configuration: %s", error_invalid_logging_config->message);
+		g_clear_error (&error_invalid_logging_config);
+	}
+	if (bad_domains) {
+		nm_log_warn (LOGD_CORE, "config: invalid logging domains '%s' from %s",
+		             bad_domains,
+		             (global_opt.opt_log_level == NULL && global_opt.opt_log_domains == NULL)
+		               ? "config file"
+		               : "command line");
+		nm_clear_g_free (&bad_domains);
+	}
+
 	/* the first access to State causes the file to be read (and possibly print a warning) */
 	nm_config_state_get (config);
 
@@ -394,27 +398,19 @@ main (int argc, char *argv[])
 	                                                         NM_CONFIG_KEYFILE_KEY_MAIN_AUTH_POLKIT,
 	                                                         NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT_BOOL));
 
-	nm_manager_setup ();
+	if (!nm_dbus_manager_acquire_bus (nm_dbus_manager_get ()))
+		goto done_no_manager;
 
-	if (!nm_bus_manager_get_connection (nm_bus_manager_get ())) {
-		nm_log_warn (LOGD_CORE, "Failed to connect to D-Bus; only private bus is available");
-	} else {
-		/* Start our DBus service */
-		if (!nm_bus_manager_start_service (nm_bus_manager_get ())) {
-			nm_log_err (LOGD_CORE, "failed to start the dbus service.");
-			goto done;
-		}
-	}
-
-#if WITH_CONCHECK
-	NM_UTILS_KEEP_ALIVE (nm_manager_get (), nm_connectivity_get (), "NMManager-depends-on-NMConnectivity");
-#endif
+	manager = nm_manager_setup ();
+	nm_dbus_manager_start (nm_dbus_manager_get(),
+	                       nm_manager_dbus_set_property_handle,
+	                       manager);
 
 	nm_dispatcher_init ();
 
-	g_signal_connect (nm_manager_get (), NM_MANAGER_CONFIGURE_QUIT, G_CALLBACK (manager_configure_quit), config);
+	g_signal_connect (manager, NM_MANAGER_CONFIGURE_QUIT, G_CALLBACK (manager_configure_quit), config);
 
-	if (!nm_manager_start (nm_manager_get (), &error)) {
+	if (!nm_manager_start (manager, &error)) {
 		nm_log_err (LOGD_CORE, "failed to initialize: %s", error->message);
 		goto done;
 	}
@@ -448,16 +444,15 @@ done:
 	 * state here. We don't bother updating the state as devices
 	 * change during regular operation. If NM is killed with SIGKILL,
 	 * it misses to update the state. */
-	nm_manager_write_device_state (nm_manager_get ());
+	nm_manager_write_device_state (manager);
 
-	nm_exported_object_class_set_quitting ();
-
-	nm_manager_stop (nm_manager_get ());
+	nm_manager_stop (manager);
 
 	nm_config_state_set (config, TRUE, TRUE);
 
 	nm_dns_manager_stop (nm_dns_manager_get ());
 
+done_no_manager:
 	if (global_opt.pidfile && wrote_pidfile)
 		unlink (global_opt.pidfile);
 

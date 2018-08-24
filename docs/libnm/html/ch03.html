@@ -8,7 +8,7 @@
 <link rel="up" href="index.html" title="libnm Reference Manual">
 <link rel="prev" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">
 <link rel="next" href="NMConnection.html" title="NMConnection">
-<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.28 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -27,7 +27,10 @@
 <span class="refentrytitle"><a href="NMConnection.html">NMConnection</a></span><span class="refpurpose"> — Describes a connection to specific network or provider</span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="NMSimpleConnection.html">NMSimpleConnection</a></span><span class="refpurpose"></span>
+<span class="refentrytitle"><a href="NMSimpleConnection.html">NMSimpleConnection</a></span><span class="refpurpose"> — An unmanaged connection</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="NMRemoteConnection.html">NMRemoteConnection</a></span><span class="refpurpose"> — A connection managed by NetworkManager server</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="NMSetting.html">NMSetting</a></span><span class="refpurpose"> — Describes related configuration information</span>
@@ -48,10 +51,10 @@
 <span class="refentrytitle"><a href="NMSettingBond.html">NMSettingBond</a></span><span class="refpurpose"> — Describes connection properties for bonds</span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="NMSettingBridge.html">NMSettingBridge</a></span><span class="refpurpose"> — Describes connection properties for bridges</span>
+<span class="refentrytitle"><a href="NMSettingBridgePort.html">NMSettingBridgePort</a></span><span class="refpurpose"> — Describes connection properties for bridge ports</span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="NMSettingBridgePort.html">NMSettingBridgePort</a></span><span class="refpurpose"> — Describes connection properties for bridge ports</span>
+<span class="refentrytitle"><a href="NMSettingBridge.html">NMSettingBridge</a></span><span class="refpurpose"> — Describes connection properties for bridges</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="NMSettingCdma.html">NMSettingCdma</a></span><span class="refpurpose"> — Describes CDMA-based mobile broadband properties</span>
@@ -94,24 +97,45 @@
 <span class="refentrytitle"><a href="NMSettingOlpcMesh.html">NMSettingOlpcMesh</a></span><span class="refpurpose"> — Describes connection properties for OLPC-Mesh devices</span>
 </dt>
 <dt>
+<span class="refentrytitle"><a href="NMSettingOvsBridge.html">NMSettingOvsBridge</a></span><span class="refpurpose"> — Describes connection properties for Open vSwitch bridges.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="NMSettingOvsInterface.html">NMSettingOvsInterface</a></span><span class="refpurpose"> — Describes connection properties for Open vSwitch interfaces.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="NMSettingOvsPatch.html">NMSettingOvsPatch</a></span><span class="refpurpose"> — Describes connection properties for Open vSwitch patch interfaces.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="NMSettingOvsPort.html">NMSettingOvsPort</a></span><span class="refpurpose"> — Describes connection properties for Open vSwitch ports.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="NMSettingPppoe.html">NMSettingPppoe</a></span><span class="refpurpose"> — Describes PPPoE connection properties</span>
+</dt>
+<dt>
 <span class="refentrytitle"><a href="NMSettingPpp.html">NMSettingPpp</a></span><span class="refpurpose"> — Describes connection properties for devices/networks
 that require PPP to deliver IP capability</span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="NMSettingPppoe.html">NMSettingPppoe</a></span><span class="refpurpose"> — Describes PPPoE connection properties</span>
+<span class="refentrytitle"><a href="NMSettingProxy.html">NMSettingProxy</a></span><span class="refpurpose"> — Describes proxy URL, script and other related properties</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="NMSettingSerial.html">NMSettingSerial</a></span><span class="refpurpose"> — Describes connection properties for devices that use
 serial communications</span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="NMSettingTeam.html">NMSettingTeam</a></span><span class="refpurpose"> — Describes connection properties for teams</span>
+<span class="refentrytitle"><a href="NMSettingTCConfig.html">NMSettingTCConfig</a></span><span class="refpurpose"> — Describes connection properties for the Linux Traffic Control</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="NMSettingTeamPort.html">NMSettingTeamPort</a></span><span class="refpurpose"> — Describes connection properties for team ports</span>
 </dt>
 <dt>
+<span class="refentrytitle"><a href="NMSettingTeam.html">NMSettingTeam</a></span><span class="refpurpose"> — Describes connection properties for teams</span>
+</dt>
+<dt>
 <span class="refentrytitle"><a href="NMSettingTun.html">NMSettingTun</a></span><span class="refpurpose"> — Describes connection properties for TUN/TAP interfaces</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="NMSettingUser.html">NMSettingUser</a></span><span class="refpurpose"> — Describes user properties</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="NMSettingVlan.html">NMSettingVlan</a></span><span class="refpurpose"> — Describes connection properties for VLAN interfaces</span>
@@ -129,15 +153,15 @@ serial communications</span>
 <span class="refentrytitle"><a href="NMSettingWired.html">NMSettingWired</a></span><span class="refpurpose"> — Describes connection properties for Ethernet-based networks</span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="NMSettingWireless.html">NMSettingWireless</a></span><span class="refpurpose"> — Describes connection properties for 802.11 Wi-Fi networks</span>
-</dt>
-<dt>
 <span class="refentrytitle"><a href="NMSettingWirelessSecurity.html">NMSettingWirelessSecurity</a></span><span class="refpurpose"> — Describes connection properties for Wi-Fi networks that
 use WEP, LEAP, WPA or WPA2/RSN security</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="NMSettingWireless.html">NMSettingWireless</a></span><span class="refpurpose"> — Describes connection properties for 802.11 Wi-Fi networks</span>
 </dt>
 </dl></div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.27</div>
+<hr>Generated by GTK-Doc V1.28</div>
 </body>
 </html>

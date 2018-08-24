@@ -13,11 +13,7 @@ Build-Depends: debhelper (>= 10.3),
                intltool,
                libdbus-glib-1-dev (>= 0.100),
                libdbus-1-dev (>= 1.1),
-               libiw-dev(>= 27+28pre9),
                libglib2.0-dev (>= 2.32),
-               libnl-3-dev (>= 3.2.8),
-               libnl-route-3-dev (>= 3.2.8),
-               libnl-genl-3-dev (>= 3.2.8),
                ppp-dev (>= 2.4.7-1+1),
                libpolkit-gobject-1-dev,
                libpolkit-agent-1-dev (>= 0.97),
@@ -47,7 +43,7 @@ Build-Depends: debhelper (>= 10.3),
                valac (>= 0.17.1.24),
                dbus <!nocheck>,
                python-dbus <!nocheck>
-Standards-Version: 4.1.3
+Standards-Version: 4.1.5
 Rules-Requires-Root: no
 Vcs-Git: https://code.launchpad.net/~network-manager/network-manager/+git/ubuntu
 Vcs-Browser: https://git.launchpad.net/network-manager?h=cosmic
@@ -58,12 +54,12 @@ Architecture: linux-any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         lsb-base (>= 3.2-14),
-         wpasupplicant (>= 0.7.3-1),
-         dbus (>= 1.1.2),
+         lsb-base,
+         wpasupplicant,
+         dbus,
          udev,
          adduser,
-         isc-dhcp-client (>= 4.1.1-P1-4),
+         isc-dhcp-client,
          libpam-systemd,
          policykit-1
 Recommends: ppp,
@@ -72,7 +68,6 @@ Recommends: ppp,
             modemmanager,
             network-manager-pptp,
             crda,
-            iputils-arping
 Suggests: avahi-autoipd, libteam-utils
 Breaks: ${misc:Breaks}
 Description: network management framework (daemon and userspace tools)

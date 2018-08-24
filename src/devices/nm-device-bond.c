@@ -32,8 +32,6 @@
 #include "nm-core-internal.h"
 #include "nm-ip4-config.h"
 
-#include "introspection/org.freedesktop.NetworkManager.Device.Bond.h"
-
 #include "nm-device-logging.h"
 _LOG_DECLARE_SELF(NMDeviceBond);
 
@@ -78,7 +76,7 @@ static gboolean
 complete_connection (NMDevice *device,
                      NMConnection *connection,
                      const char *specific_object,
-                     const GSList *existing_connections,
+                     NMConnection *const*existing_connections,
                      GError **error)
 {
 	NMSettingBond *s_bond;
@@ -316,7 +314,7 @@ apply_bonding_config (NMDevice *device)
 
 	/* Primary */
 	value = nm_setting_bond_get_option_by_name (s_bond, NM_SETTING_BOND_OPTION_PRIMARY);
-	set_bond_attr (device, mode, NM_SETTING_BOND_OPTION_PRIMARY, value ? value : "");
+	set_bond_attr (device, mode, NM_SETTING_BOND_OPTION_PRIMARY, value ?: "");
 
 	/* ARP targets: clear and initialize the list */
 	contents = nm_platform_sysctl_master_get_option (nm_device_get_platform (device), ifindex,
@@ -340,8 +338,6 @@ apply_bonding_config (NMDevice *device)
 	set_simple_option (device, mode, s_bond, NM_SETTING_BOND_OPTION_FAIL_OVER_MAC);
 	set_simple_option (device, mode, s_bond, NM_SETTING_BOND_OPTION_LACP_RATE);
 	set_simple_option (device, mode, s_bond, NM_SETTING_BOND_OPTION_LP_INTERVAL);
-	set_simple_option (device, mode, s_bond, NM_SETTING_BOND_OPTION_NUM_GRAT_ARP);
-	set_simple_option (device, mode, s_bond, NM_SETTING_BOND_OPTION_NUM_UNSOL_NA);
 	set_simple_option (device, mode, s_bond, NM_SETTING_BOND_OPTION_MIN_LINKS);
 	set_simple_option (device, mode, s_bond, NM_SETTING_BOND_OPTION_PACKETS_PER_SLAVE);
 	set_simple_option (device, mode, s_bond, NM_SETTING_BOND_OPTION_PRIMARY_RESELECT);
@@ -349,6 +345,16 @@ apply_bonding_config (NMDevice *device)
 	set_simple_option (device, mode, s_bond, NM_SETTING_BOND_OPTION_TLB_DYNAMIC_LB);
 	set_simple_option (device, mode, s_bond, NM_SETTING_BOND_OPTION_USE_CARRIER);
 	set_simple_option (device, mode, s_bond, NM_SETTING_BOND_OPTION_XMIT_HASH_POLICY);
+
+	/* num_grat_arp and num_unsol_na are actually the same attribute
+	 * on kernel side and their value in the bond setting is guaranteed
+	 * to be equal. Write only one of the two.
+	 */
+	value = nm_setting_bond_get_option_by_name (s_bond, NM_SETTING_BOND_OPTION_NUM_GRAT_ARP);
+	if (value)
+		set_bond_attr (device, mode, NM_SETTING_BOND_OPTION_NUM_GRAT_ARP, value);
+	else
+		set_simple_option (device, mode, s_bond, NM_SETTING_BOND_OPTION_NUM_UNSOL_NA);
 
 	return NM_ACT_STAGE_RETURN_SUCCESS;
 }
@@ -593,7 +599,7 @@ reapply_connection (NMDevice *device, NMConnection *con_old, NMConnection *con_n
 
 	/* Primary */
 	value = nm_setting_bond_get_option_by_name (s_bond, NM_SETTING_BOND_OPTION_PRIMARY);
-	set_bond_attr (device, mode, NM_SETTING_BOND_OPTION_PRIMARY, value ? value : "");
+	set_bond_attr (device, mode, NM_SETTING_BOND_OPTION_PRIMARY, value ?: "");
 
 	/* Active slave */
 	set_simple_option (device, mode, s_bond, NM_SETTING_BOND_OPTION_ACTIVE_SLAVE);
@@ -607,12 +613,30 @@ nm_device_bond_init (NMDeviceBond * self)
 	nm_assert (nm_device_is_master (NM_DEVICE (self)));
 }
 
+static const NMDBusInterfaceInfoExtended interface_info_device_bond = {
+	.parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT (
+		NM_DBUS_INTERFACE_DEVICE_BOND,
+		.signals = NM_DEFINE_GDBUS_SIGNAL_INFOS (
+			&nm_signal_info_property_changed_legacy,
+		),
+		.properties = NM_DEFINE_GDBUS_PROPERTY_INFOS (
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("HwAddress", "s",  NM_DEVICE_HW_ADDRESS),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Carrier",   "b",  NM_DEVICE_CARRIER),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Slaves",    "ao", NM_DEVICE_SLAVES),
+		),
+	),
+	.legacy_property_changed = TRUE,
+};
+
 static void
 nm_device_bond_class_init (NMDeviceBondClass *klass)
 {
+	NMDBusObjectClass *dbus_object_class = NM_DBUS_OBJECT_CLASS (klass);
 	NMDeviceClass *parent_class = NM_DEVICE_CLASS (klass);
 
 	NM_DEVICE_CLASS_DECLARE_TYPES (klass, NM_SETTING_BOND_SETTING_NAME, NM_LINK_TYPE_BOND)
+
+	dbus_object_class->interface_infos = NM_DBUS_INTERFACE_INFOS (&interface_info_device_bond);
 
 	parent_class->is_master = TRUE;
 	parent_class->get_generic_capabilities = get_generic_capabilities;
@@ -629,10 +653,6 @@ nm_device_bond_class_init (NMDeviceBondClass *klass)
 	parent_class->release_slave = release_slave;
 	parent_class->can_reapply_change = can_reapply_change;
 	parent_class->reapply_connection = reapply_connection;
-
-	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
-	                                        NMDBUS_TYPE_DEVICE_BOND_SKELETON,
-	                                        NULL);
 }
 
 /*****************************************************************************/

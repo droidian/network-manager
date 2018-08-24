@@ -33,7 +33,9 @@
   <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
-<link linkend="gdbus-property-org-freedesktop-NetworkManager-Settings-Connection.Unsaved">Unsaved</link>  readable   b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Settings-Connection.Unsaved">Unsaved</link>   readable   b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Settings-Connection.Flags">Flags</link>     readable   u
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Settings-Connection.Filename">Filename</link>  readable   s
 </synopsis>
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Settings-Connection">
@@ -185,7 +187,7 @@ Update2 (IN  a{sa{sv}} settings,
         storage or sent to a Secret Agent for storage, depending on the flags
         associated with each secret.
 </para><para>        Update2 is a extensible alternative to Update, UpdateUnsaved and Save.
-</para><para>        Since: 1.10.2
+</para><para>        Since: 1.12
 </para>
 <variablelist role="params">
 <varlistentry>
@@ -261,6 +263,27 @@ Unsaved  readable   b
         match the on-disk state. This flag will be set when UpdateUnsaved() is
         called or when any connection details change, and cleared when the
         connection is saved to disk via Save() or from internal operations.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Settings-Connection.Flags">
+  <title>The "Flags" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Settings-Connection.Flags"><primary sortas=".Settings.Connection:Flags">org.freedesktop.NetworkManager.Settings.Connection:Flags</primary></indexterm>
+<programlisting>
+Flags  readable   u
+</programlisting>
+<para>        Additional flags of the connection profile.
+</para><para>        Returns: <link linkend="NMSettingsConnectionFlags">NMSettingsConnectionFlags</link>
+</para><para>        Since: 1.12
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Settings-Connection.Filename">
+  <title>The "Filename" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Settings-Connection.Filename"><primary sortas=".Settings.Connection:Filename">org.freedesktop.NetworkManager.Settings.Connection:Filename</primary></indexterm>
+<programlisting>
+Filename  readable   s
+</programlisting>
+<para>        File that stores the connection in case the connection is file-backed.
+</para><para>        Since: 1.12
 </para>
 </refsect2>
 </refsect1>

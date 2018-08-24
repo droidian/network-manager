@@ -1,22 +1,8 @@
+/* SPDX-License-Identifier: LGPL-2.1+ */
 #pragma once
 
 /***
-  This file is part of systemd.
-
-  Copyright (C) 2014 Intel Corporation. All rights reserved.
-
-  systemd is free software; you can redistribute it and/or modify it
-  under the terms of the GNU Lesser General Public License as published by
-  the Free Software Foundation; either version 2.1 of the License, or
-  (at your option) any later version.
-
-  systemd is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public License
-  along with systemd; If not, see <http://www.gnu.org/licenses/>.
+  Copyright © 2014 Intel Corporation. All rights reserved.
 ***/
 
 #include <netinet/ip6.h>
@@ -33,6 +19,7 @@ struct DHCP6Message {
                 } _packed_;
                 be32_t transaction_id;
         };
+        uint8_t options[];
 } _packed_;
 
 typedef struct DHCP6Message DHCP6Message;
@@ -103,4 +90,10 @@ enum {
         DHCP6_STATUS_NOT_ON_LINK                = 4,
         DHCP6_STATUS_USE_MULTICAST              = 5,
         _DHCP6_STATUS_MAX                       = 6,
+};
+
+enum {
+        DHCP6_FQDN_FLAG_S = (1 << 0),
+        DHCP6_FQDN_FLAG_O = (1 << 1),
+        DHCP6_FQDN_FLAG_N = (1 << 2),
 };

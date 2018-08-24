@@ -5,11 +5,11 @@ usr/bin/nmtui*
 usr/lib/NetworkManager/nm-dhcp-helper
 usr/lib/NetworkManager/nm-iface-helper
 usr/lib/NetworkManager/nm-dispatcher
-usr/lib/*/NetworkManager/libnm-settings-plugin-ifupdown.so
-usr/lib/*/NetworkManager/libnm-settings-plugin-ibft.so
-usr/lib/*/NetworkManager/libnm-device-plugin-*.so
-usr/lib/*/NetworkManager/libnm-ppp-plugin.so
-usr/lib/*/NetworkManager/libnm-wwan.so
+usr/lib/*/NetworkManager/*/libnm-settings-plugin-ifupdown.so
+usr/lib/*/NetworkManager/*/libnm-settings-plugin-ibft.so
+usr/lib/*/NetworkManager/*/libnm-device-plugin-*.so
+usr/lib/*/NetworkManager/*/libnm-ppp-plugin.so
+usr/lib/*/NetworkManager/*/libnm-wwan.so
 usr/lib/pppd/*/*.so
 usr/share/locale/
 usr/share/man/

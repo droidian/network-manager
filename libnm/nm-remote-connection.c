@@ -35,6 +35,14 @@
 
 #include "introspection/org.freedesktop.NetworkManager.Settings.Connection.h"
 
+/**
+ * SECTION:nm-remote-connection
+ * @short_description: A connection managed by NetworkManager server
+ *
+ * A #NMRemoteConnection represents a connection that is exported via
+ * NetworkManager D-Bus interface.
+ **/
+
 static void nm_remote_connection_connection_iface_init (NMConnectionInterface *iface);
 static void nm_remote_connection_initable_iface_init (GInitableIface *iface);
 static void nm_remote_connection_async_initable_iface_init (GAsyncInitableIface *iface);
@@ -50,6 +58,8 @@ G_DEFINE_TYPE_WITH_CODE (NMRemoteConnection, nm_remote_connection, NM_TYPE_OBJEC
 enum {
 	PROP_0,
 	PROP_UNSAVED,
+	PROP_FLAGS,
+	PROP_FILENAME,
 	PROP_VISIBLE,
 
 	LAST_PROP
@@ -59,6 +69,8 @@ typedef struct {
 	NMDBusSettingsConnection *proxy;
 
 	gboolean unsaved;
+	guint32 flags;
+	char *filename;
 
 	gboolean visible;
 } NMRemoteConnectionPrivate;
@@ -101,7 +113,7 @@ update2_cb (GObject *proxy, GAsyncResult *result, gpointer user_data)
  *
  * Asynchronously calls the Update2() D-Bus method.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 void
 nm_remote_connection_update2 (NMRemoteConnection *connection,
@@ -652,6 +664,38 @@ nm_remote_connection_get_unsaved (NMRemoteConnection *connection)
 }
 
 /**
+ * nm_remote_connection_get_flags:
+ * @connection: the #NMRemoteConnection
+ *
+ * Returns: the flags of the connection of type #NMSettingsConnectionFlags.
+ *
+ * Since: 1.12
+ **/
+NMSettingsConnectionFlags
+nm_remote_connection_get_flags (NMRemoteConnection *connection)
+{
+	g_return_val_if_fail (NM_IS_REMOTE_CONNECTION (connection), FALSE);
+
+	return (NMSettingsConnectionFlags) NM_REMOTE_CONNECTION_GET_PRIVATE (connection)->flags;
+}
+
+/**
+ * nm_remote_connection_get_filename:
+ * @connection: the #NMRemoteConnection
+ *
+ * Returns: file that stores the connection in case the connection is file-backed.
+ *
+ * Since: 1.12
+ **/
+const char *
+nm_remote_connection_get_filename (NMRemoteConnection *connection)
+{
+	g_return_val_if_fail (NM_IS_REMOTE_CONNECTION (connection), NULL);
+
+	return NM_REMOTE_CONNECTION_GET_PRIVATE (connection)->filename;
+}
+
+/**
  * nm_remote_connection_get_visible:
  * @connection: the #NMRemoteConnection
  *
@@ -741,6 +785,8 @@ init_dbus (NMObject *object)
 	NMRemoteConnectionPrivate *priv = NM_REMOTE_CONNECTION_GET_PRIVATE (object);
 	const NMPropertiesInfo property_info[] = {
 		{ NM_REMOTE_CONNECTION_UNSAVED, &priv->unsaved },
+		{ NM_REMOTE_CONNECTION_FLAGS, &priv->flags },
+		{ NM_REMOTE_CONNECTION_FILENAME, &priv->filename },
 		{ NULL },
 	};
 
@@ -871,6 +917,12 @@ get_property (GObject *object, guint prop_id,
 	case PROP_UNSAVED:
 		g_value_set_boolean (value, NM_REMOTE_CONNECTION_GET_PRIVATE (object)->unsaved);
 		break;
+	case PROP_FLAGS:
+		g_value_set_boolean (value, NM_REMOTE_CONNECTION_GET_PRIVATE (object)->flags);
+		break;
+	case PROP_FILENAME:
+		g_value_set_string (value, NM_REMOTE_CONNECTION_GET_PRIVATE (object)->filename);
+		break;
 	case PROP_VISIBLE:
 		g_value_set_boolean (value, NM_REMOTE_CONNECTION_GET_PRIVATE (object)->visible);
 		break;
@@ -895,6 +947,7 @@ dispose (GObject *object)
 	NMRemoteConnectionPrivate *priv = NM_REMOTE_CONNECTION_GET_PRIVATE (object);
 
 	g_clear_object (&priv->proxy);
+	nm_clear_g_free (&priv->filename);
 
 	G_OBJECT_CLASS (nm_remote_connection_parent_class)->dispose (object);
 }
@@ -927,6 +980,36 @@ nm_remote_connection_class_init (NMRemoteConnectionClass *remote_class)
 		                       FALSE,
 		                       G_PARAM_READABLE |
 		                       G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMRemoteConnection:flags:
+	 *
+	 * The flags of the connection as unsigned integer. The values
+	 * correspond to the #NMSettingsConnectionFlags enum.
+	 *
+	 * Since: 1.12
+	 **/
+	g_object_class_install_property
+		(object_class, PROP_FLAGS,
+		 g_param_spec_uint (NM_REMOTE_CONNECTION_FLAGS, "", "",
+		                    0, G_MAXUINT32, 0,
+		                    G_PARAM_READABLE |
+		                    G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMRemoteConnection:filename:
+	 *
+	 * File that stores the connection in case the connection is
+	 * file-backed.
+	 *
+	 * Since: 1.12
+	 **/
+	g_object_class_install_property
+	        (object_class, PROP_FILENAME,
+	         g_param_spec_string (NM_REMOTE_CONNECTION_FILENAME, "", "",
+	                              NULL,
+	                              G_PARAM_READABLE |
+	                              G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMRemoteConnection:visible:

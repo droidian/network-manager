@@ -104,7 +104,7 @@ get_secrets_from_user (const char *request_id,
 			rl_startup_hook = set_deftext;
 			pre_input_deftext = g_strdup (secret->value);
 		}
-		pwd = nmc_readline ("%s (%s): ", secret->name, secret->prop_name);
+		pwd = nmc_readline ("%s (%s): ", secret->pretty_name, secret->entry_id);
 
 		/* No password provided, cancel the secrets. */
 		if (!pwd)
@@ -135,7 +135,6 @@ secrets_requested (NMSecretAgentSimple *agent,
 	else
 		nm_secret_agent_simple_response (agent, request_id, NULL);
 }
-
 
 static NMCResultCode
 do_agent_secret (NmCli *nmc, int argc, char **argv)

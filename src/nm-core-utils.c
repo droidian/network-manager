@@ -452,83 +452,6 @@ nm_utils_modprobe (GError **error, gboolean suppress_error_logging, const char *
 	return exit_status;
 }
 
-/**
- * nm_utils_get_start_time_for_pid:
- * @pid: the process identifier
- * @out_state: return the state character, like R, S, Z. See `man 5 proc`.
- * @out_ppid: parent process id
- *
- * Originally copied from polkit source (src/polkit/polkitunixprocess.c)
- * and adjusted.
- *
- * Returns: the timestamp when the process started (by parsing /proc/$PID/stat).
- * If an error occurs (e.g. the process does not exist), 0 is returned.
- *
- * The returned start time counts since boot, in the unit HZ (with HZ usually being (1/100) seconds)
- **/
-guint64
-nm_utils_get_start_time_for_pid (pid_t pid, char *out_state, pid_t *out_ppid)
-{
-	guint64 start_time;
-	char filename[256];
-	gs_free gchar *contents = NULL;
-	size_t length;
-	gs_strfreev gchar **tokens = NULL;
-	guint num_tokens;
-	gchar *p;
-	char state = ' ';
-	gint64 ppid = 0;
-
-	start_time = 0;
-	contents = NULL;
-
-	g_return_val_if_fail (pid > 0, 0);
-
-	nm_sprintf_buf (filename, "/proc/%"G_GUINT64_FORMAT"/stat", (guint64) pid);
-
-	if (!g_file_get_contents (filename, &contents, &length, NULL))
-		goto fail;
-
-	/* start time is the token at index 19 after the '(process name)' entry - since only this
-	 * field can contain the ')' character, search backwards for this to avoid malicious
-	 * processes trying to fool us
-	 */
-	p = strrchr (contents, ')');
-	if (p == NULL)
-		goto fail;
-	p += 2; /* skip ') ' */
-	if (p - contents >= (int) length)
-		goto fail;
-
-	state = p[0];
-
-	tokens = g_strsplit (p, " ", 0);
-
-	num_tokens = g_strv_length (tokens);
-
-	if (num_tokens < 20)
-		goto fail;
-
-	if (out_ppid) {
-		ppid = _nm_utils_ascii_str_to_int64 (tokens[1], 10, 1, G_MAXINT, 0);
-		if (ppid == 0)
-			goto fail;
-	}
-
-	start_time = _nm_utils_ascii_str_to_int64 (tokens[19], 10, 1, G_MAXINT64, 0);
-	if (start_time == 0)
-		goto fail;
-
-	NM_SET_OUT (out_state, state);
-	NM_SET_OUT (out_ppid, ppid);
-	return start_time;
-
-fail:
-	NM_SET_OUT (out_state, ' ');
-	NM_SET_OUT (out_ppid, 0);
-	return 0;
-}
-
 /*****************************************************************************/
 
 typedef struct {
@@ -1246,8 +1169,8 @@ typedef struct {
 static gboolean
 match_device_s390_subchannels_parse (const char *s390_subchannels, guint32 *out_a, guint32 *out_b, guint32 *out_c)
 {
-	const int BUFSIZE = 30;
-	char buf[BUFSIZE + 1];
+	char buf[30 + 1];
+	const int BUFSIZE = G_N_ELEMENTS (buf) - 1;
 	guint i = 0;
 	char *pa = NULL, *pb = NULL, *pc = NULL;
 	gint64 a, b, c;
@@ -1877,110 +1800,6 @@ nm_utils_new_infiniband_name (char *name, const char *parent_name, int p_key)
 
 /*****************************************************************************/
 
-gboolean
-nm_utils_resolve_conf_parse (int addr_family,
-                             const char *rc_contents,
-                             GArray *nameservers,
-                             GPtrArray *dns_options)
-{
-	guint i;
-	gboolean changed = FALSE;
-	gs_free const char **lines = NULL;
-	gsize l;
-
-	g_return_val_if_fail (rc_contents, FALSE);
-	g_return_val_if_fail (nameservers, FALSE);
-	g_return_val_if_fail (   (   addr_family == AF_INET
-	                          && g_array_get_element_size (nameservers) == sizeof (in_addr_t))
-	                      || (   addr_family == AF_INET6
-	                          && g_array_get_element_size (nameservers) == sizeof (struct in6_addr)), FALSE);
-
-	lines = nm_utils_strsplit_set (rc_contents, "\r\n");
-	if (!lines)
-		return FALSE;
-
-/* like glibc's MATCH() macro in resolv/res_init.c. */
-#define RC_MATCH(line, option, out_arg) \
-    ({ \
-        const char *const _line = (line); \
-        gboolean _match = FALSE; \
-        \
-        if (   (strncmp (_line, option, NM_STRLEN (option)) == 0) \
-            && (NM_IN_SET (_line[NM_STRLEN (option)], ' ', '\t'))) { \
-            _match = TRUE;\
-            (out_arg) = &_line[NM_STRLEN (option) + 1]; \
-        } \
-        _match; \
-    })
-
-	for (l = 0; lines[l]; l++) {
-		const char *const line = lines[l];
-		const char *s = NULL;
-
-		if (RC_MATCH (line, "nameserver", s)) {
-			gs_free char *s_cpy = NULL;
-			NMIPAddr ns;
-
-			s = nm_strstrip_avoid_copy (s, &s_cpy);
-			if (inet_pton (addr_family, s, &ns) != 1)
-				continue;
-
-			if (addr_family == AF_INET) {
-				if (!ns.addr4)
-					continue;
-				for (i = 0; i < nameservers->len; i++) {
-					if (g_array_index (nameservers, guint32, i) == ns.addr4)
-						break;
-				}
-			} else {
-				if (IN6_IS_ADDR_UNSPECIFIED (&ns.addr6))
-					continue;
-				for (i = 0; i < nameservers->len; i++) {
-					struct in6_addr *t = &g_array_index (nameservers, struct in6_addr, i);
-
-					if (IN6_ARE_ADDR_EQUAL (t, &ns.addr6))
-						break;
-				}
-			}
-
-			if (i == nameservers->len) {
-				g_array_append_val (nameservers, ns);
-				changed = TRUE;
-			}
-			continue;
-		}
-
-		if (RC_MATCH (line, "options", s)) {
-			if (!dns_options)
-				continue;
-
-			s = nm_str_skip_leading_spaces (s);
-			if (s[0]) {
-				gs_free const char **tokens = NULL;
-				gsize i_tokens;
-
-				tokens = nm_utils_strsplit_set (s, " \t");
-				for (i_tokens = 0; tokens && tokens[i_tokens]; i_tokens++) {
-					gs_free char *t = g_strstrip (g_strdup (tokens[i_tokens]));
-
-					if (   _nm_utils_dns_option_validate (t, NULL, NULL,
-					                                      addr_family == AF_INET6,
-					                                      _nm_utils_dns_option_descs)
-					    && _nm_utils_dns_option_find_idx (dns_options, t) < 0) {
-						g_ptr_array_add (dns_options, g_steal_pointer (&t));
-						changed = TRUE;
-					}
-				}
-			}
-			continue;
-		}
-	}
-
-	return changed;
-}
-
-/*****************************************************************************/
-
 /**
  * nm_utils_cmp_connection_by_autoconnect_priority:
  * @a:
@@ -2225,8 +2044,8 @@ _log_connection_sort_hashes_fcn (gconstpointer a, gconstpointer b)
 	NMSettingPriority p1, p2;
 	NMSetting *s1, *s2;
 
-	s1 = v1->setting ? v1->setting : v1->diff_base_setting;
-	s2 = v2->setting ? v2->setting : v2->diff_base_setting;
+	s1 = v1->setting ?: v1->diff_base_setting;
+	s2 = v2->setting ?: v2->diff_base_setting;
 
 	g_assert (s1 && s2);
 
@@ -2338,7 +2157,13 @@ _log_connection_sort_names (LogConnectionSettingData *setting_data, GArray *sort
 }
 
 void
-nm_utils_log_connection_diff (NMConnection *connection, NMConnection *diff_base, guint32 level, guint64 domain, const char *name, const char *prefix)
+nm_utils_log_connection_diff (NMConnection *connection,
+                              NMConnection *diff_base,
+                              guint32 level,
+                              guint64 domain,
+                              const char *name,
+                              const char *prefix,
+                              const char *dbus_path)
 {
 	GHashTable *connection_diff = NULL;
 	GArray *sorted_hashes;
@@ -2414,7 +2239,6 @@ nm_utils_log_connection_diff (NMConnection *connection, NMConnection *diff_base,
 
 			if (print_header) {
 				GError *err_verify = NULL;
-				const char *path = nm_connection_get_path (connection);
 				const char *t1, *t2;
 
 				t1 = nm_connection_get_connection_type (connection);
@@ -2424,12 +2248,12 @@ nm_utils_log_connection_diff (NMConnection *connection, NMConnection *diff_base,
 					        prefix, name,
 					        connection, G_OBJECT_TYPE_NAME (connection), NM_PRINT_FMT_QUOTE_STRING (t1),
 					        diff_base, G_OBJECT_TYPE_NAME (diff_base), NM_PRINT_FMT_QUOTE_STRING (t2),
-					        NM_PRINT_FMT_QUOTED (path, " [", path, "]", ""));
+					        NM_PRINT_FMT_QUOTED (dbus_path, " [", dbus_path, "]", ""));
 				} else {
 					nm_log (level, domain, NULL, NULL, "%sconnection '%s' (%p/%s/%s%s%s):%s%s%s",
 					        prefix, name,
 					        connection, G_OBJECT_TYPE_NAME (connection), NM_PRINT_FMT_QUOTE_STRING (t1),
-					        NM_PRINT_FMT_QUOTED (path, " [", path, "]", ""));
+					        NM_PRINT_FMT_QUOTED (dbus_path, " [", dbus_path, "]", ""));
 				}
 				print_header = FALSE;
 
@@ -2455,13 +2279,13 @@ nm_utils_log_connection_diff (NMConnection *connection, NMConnection *diff_base,
 			g_string_printf (str1, "%s.%s", setting_data->name, item->item_name);
 			switch (item->diff_result & (NM_SETTING_DIFF_RESULT_IN_A | NM_SETTING_DIFF_RESULT_IN_B)) {
 				case NM_SETTING_DIFF_RESULT_IN_B:
-					nm_log (level, domain, NULL, NULL, "%s%"_NM_LOG_ALIGN"s < %s", prefix, str1->str, str_diff ? str_diff : "NULL");
+					nm_log (level, domain, NULL, NULL, "%s%"_NM_LOG_ALIGN"s < %s", prefix, str1->str, str_diff ?: "NULL");
 					break;
 				case NM_SETTING_DIFF_RESULT_IN_A:
-					nm_log (level, domain, NULL, NULL, "%s%"_NM_LOG_ALIGN"s = %s", prefix, str1->str, str_conn ? str_conn : "NULL");
+					nm_log (level, domain, NULL, NULL, "%s%"_NM_LOG_ALIGN"s = %s", prefix, str1->str, str_conn ?: "NULL");
 					break;
 				default:
-					nm_log (level, domain, NULL, NULL, "%s%"_NM_LOG_ALIGN"s = %s < %s", prefix, str1->str, str_conn ? str_conn : "NULL", str_diff ? str_diff : "NULL");
+					nm_log (level, domain, NULL, NULL, "%s%"_NM_LOG_ALIGN"s = %s < %s", prefix, str1->str, str_conn ?: "NULL", str_diff ?: "NULL");
 					break;
 #undef _NM_LOG_ALIGN
 			}
@@ -2519,7 +2343,6 @@ nm_utils_monotonic_timestamp_as_boottime (gint64 timestamp, gint64 timestamp_ns_
 
 	return timestamp - offset;
 }
-
 
 #define IPV6_PROPERTY_DIR "/proc/sys/net/ipv6/conf/"
 #define IPV4_PROPERTY_DIR "/proc/sys/net/ipv4/conf/"
@@ -2698,20 +2521,20 @@ nm_utils_machine_id_read (void)
 	 */
 	if (   !g_file_get_contents ("/etc/machine-id", &contents, NULL, NULL)
 	    && !g_file_get_contents (LOCALSTATEDIR "/lib/dbus/machine-id", &contents, NULL, NULL))
-		return FALSE;
+		return NULL;
 
 	contents = g_strstrip (contents);
 
 	for (i = 0; i < 32; i++) {
 		if (!g_ascii_isxdigit (contents[i]))
-			return FALSE;
+			return NULL;
 		if (contents[i] >= 'A' && contents[i] <= 'F') {
 			/* canonicalize to lower-case */
 			contents[i] = 'a' + (contents[i] - 'A');
 		}
 	}
 	if (contents[i] != '\0')
-		return FALSE;
+		return NULL;
 
 	return g_steal_pointer (&contents);
 }
@@ -2747,7 +2570,7 @@ _get_contents_error (GError **error, int errsv, const char *format, ...)
 /**
  * nm_utils_fd_get_contents:
  * @fd: open file descriptor to read. The fd will not be closed,
- *   but don't rely on it's state afterwards.
+ *   but don't rely on its state afterwards.
  * @close_fd: if %TRUE, @fd will be closed by the function.
  *  Passing %TRUE here might safe a syscall for dup().
  * @max_length: allocate at most @max_length bytes. If the
@@ -2974,53 +2797,119 @@ nm_utils_file_get_contents (int dirfd,
 
 /*****************************************************************************/
 
-guint8 *
-nm_utils_secret_key_read (gsize *out_key_len, GError **error)
+static gboolean
+_secret_key_read (guint8 **out_secret_key,
+                  gsize *out_key_len)
 {
-	guint8 *secret_key = NULL;
+	guint8 *secret_key;
+	gboolean success = TRUE;
 	gsize key_len;
-
-	/* out_key_len is not optional, because without it you cannot safely
-	 * access the returned memory. */
-	*out_key_len = 0;
+	gs_free_error GError *error = NULL;
 
 	/* Let's try to load a saved secret key first. */
-	if (g_file_get_contents (NMSTATEDIR "/secret_key", (char **) &secret_key, &key_len, NULL)) {
-		if (key_len < 16) {
-			g_set_error_literal (error, NM_UTILS_ERROR, NM_UTILS_ERROR_UNKNOWN,
-			                     "Key is too short to be usable");
-			key_len = 0;
-		}
-	} else {
-		mode_t key_mask;
-
-		/* RFC7217 mandates the key SHOULD be at least 128 bits.
-		 * Let's use twice as much. */
-		key_len = 32;
-		secret_key = g_malloc (key_len);
-
-		if (!nm_utils_random_bytes (secret_key, key_len)) {
-			g_set_error (error, NM_UTILS_ERROR, NM_UTILS_ERROR_UNKNOWN,
-			             "Can't get random data to generate secret key");
-			key_len = 0;
+	if (g_file_get_contents (NMSTATEDIR "/secret_key", (char **) &secret_key, &key_len, &error)) {
+		if (key_len >= 16)
 			goto out;
-		}
 
-		key_mask = umask (0077);
-		if (!g_file_set_contents (NMSTATEDIR "/secret_key", (char *) secret_key, key_len, error)) {
-			g_prefix_error (error, "Can't write " NMSTATEDIR "/secret_key: ");
-			key_len = 0;
+		/* the secret key is borked. Log a warning, but proceed below to generate
+		 * a new one. */
+		nm_log_warn (LOGD_CORE, "secret-key: too short secret key in \"%s\" (generate new key)", NMSTATEDIR "/secret_key");
+		nm_clear_g_free (&secret_key);
+	} else {
+		if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND)) {
+			nm_log_warn (LOGD_CORE, "secret-key: failure reading secret key in \"%s\": %s (generate new key)",
+			             NMSTATEDIR "/secret_key", error->message);
 		}
-		umask (key_mask);
+		g_clear_error (&error);
+	}
+
+	/* RFC7217 mandates the key SHOULD be at least 128 bits.
+	 * Let's use twice as much. */
+	key_len = 32;
+	secret_key = g_malloc (key_len + 1);
+
+	/* the secret-key is binary. Still, ensure that it's NULL terminated, just like
+	 * g_file_set_contents() does. */
+	secret_key[32] = '\0';
+
+	if (!nm_utils_random_bytes (secret_key, key_len)) {
+		nm_log_warn (LOGD_CORE, "secret-key: failure to generate good random data for secret-key (use non-persistent key)");
+		success = FALSE;
+		goto out;
+	}
+
+	if (!nm_utils_file_set_contents (NMSTATEDIR "/secret_key", (char *) secret_key, key_len, 0077, &error)) {
+		nm_log_warn (LOGD_CORE, "secret-key: failure to persist secret key in \"%s\" (%s) (use non-persistent key)",
+		             NMSTATEDIR "/secret_key", error->message);
+		success = FALSE;
+		goto out;
 	}
 
 out:
-	if (key_len) {
-		*out_key_len = key_len;
-		return secret_key;
+	/* regardless of success or failue, we always return a secret-key. The
+	 * caller may choose to ignore the error and proceed. */
+	*out_key_len = key_len;
+	*out_secret_key = secret_key;
+	return success;
+}
+
+typedef struct {
+	const guint8 *secret_key;
+	gsize key_len;
+	bool is_good:1;
+} SecretKeyData;
+
+gboolean
+nm_utils_secret_key_get (const guint8 **out_secret_key,
+                         gsize *out_key_len)
+{
+	static volatile const SecretKeyData *secret_key_static;
+	const SecretKeyData *secret_key;
+
+	secret_key = g_atomic_pointer_get (&secret_key_static);
+	if (G_UNLIKELY (!secret_key)) {
+		static gsize init_value = 0;
+		static SecretKeyData secret_key_data;
+		gboolean tmp_success;
+		gs_free guint8 *tmp_secret_key = NULL;
+		gsize tmp_key_len;
+
+		tmp_success = _secret_key_read (&tmp_secret_key, &tmp_key_len);
+		if (g_once_init_enter (&init_value)) {
+			secret_key_data.secret_key = tmp_secret_key;
+			secret_key_data.key_len = tmp_key_len;
+			secret_key_data.is_good = tmp_success;
+
+			if (g_atomic_pointer_compare_and_exchange (&secret_key_static, NULL, &secret_key_data)) {
+				g_steal_pointer (&tmp_secret_key);
+				secret_key = &secret_key_data;
+			}
+
+			g_once_init_leave (&init_value, 1);
+		}
+		if (!secret_key)
+			secret_key = g_atomic_pointer_get (&secret_key_static);
 	}
-	g_free (secret_key);
-	return NULL;
+
+	*out_secret_key = secret_key->secret_key;
+	*out_key_len = secret_key->key_len;
+	return secret_key->is_good;
+}
+
+gint64
+nm_utils_secret_key_get_timestamp (void)
+{
+	struct stat stat_buf;
+	const guint8 *key;
+	gsize key_len;
+
+	if (!nm_utils_secret_key_get (&key, &key_len))
+		return 0;
+
+	if (stat (NMSTATEDIR "/secret_key", &stat_buf) != 0)
+		return 0;
+
+	return stat_buf.st_mtim.tv_sec;
 }
 
 /*****************************************************************************/
@@ -3308,8 +3197,9 @@ _stable_id_append (GString *str,
 
 NMUtilsStableType
 nm_utils_stable_id_parse (const char *stable_id,
-                          const char *uuid,
+                          const char *deviceid,
                           const char *bootid,
+                          const char *uuid,
                           char **out_generated)
 {
 	gsize i, idx_start;
@@ -3384,6 +3274,8 @@ nm_utils_stable_id_parse (const char *stable_id,
 			_stable_id_append (str, uuid);
 		else if (CHECK_PREFIX ("${BOOT}"))
 			_stable_id_append (str, bootid ?: nm_utils_get_boot_id ());
+		else if (CHECK_PREFIX ("${DEVICE}"))
+			_stable_id_append (str, deviceid);
 		else if (g_str_has_prefix (&stable_id[i], "${RANDOM}")) {
 			/* RANDOM makes not so much sense for cloned-mac-address
 			 * as the result is simmilar to specyifing "cloned-mac-address=random".
@@ -3460,7 +3352,7 @@ _set_stable_privacy (NMUtilsStableType stable_type,
                      const char *ifname,
                      const char *network_id,
                      guint32 dad_counter,
-                     guint8 *secret_key,
+                     const guint8 *secret_key,
                      gsize key_len,
                      GError **error)
 {
@@ -3559,8 +3451,8 @@ nm_utils_ipv6_addr_set_stable_privacy (NMUtilsStableType stable_type,
                                        guint32 dad_counter,
                                        GError **error)
 {
-	gs_free guint8 *secret_key = NULL;
-	gsize key_len = 0;
+	const guint8 *secret_key;
+	gsize key_len;
 
 	g_return_val_if_fail (network_id, FALSE);
 
@@ -3570,9 +3462,7 @@ nm_utils_ipv6_addr_set_stable_privacy (NMUtilsStableType stable_type,
 		return FALSE;
 	}
 
-	secret_key = nm_utils_secret_key_read (&key_len, error);
-	if (!secret_key)
-		return FALSE;
+	nm_utils_secret_key_get (&secret_key, &key_len);
 
 	return _set_stable_privacy (stable_type, addr, ifname, network_id, dad_counter,
 	                            secret_key, key_len, error);
@@ -3708,14 +3598,12 @@ nm_utils_hw_addr_gen_stable_eth (NMUtilsStableType stable_type,
                                  const char *current_mac_address,
                                  const char *generate_mac_address_mask)
 {
-	gs_free guint8 *secret_key = NULL;
-	gsize key_len = 0;
+	const guint8 *secret_key;
+	gsize key_len;
 
 	g_return_val_if_fail (stable_id, NULL);
 
-	secret_key = nm_utils_secret_key_read (&key_len, NULL);
-	if (!secret_key)
-		return NULL;
+	nm_utils_secret_key_get (&secret_key, &key_len);
 
 	return _hw_addr_gen_stable_eth (stable_type,
 	                                stable_id,
@@ -3749,7 +3637,8 @@ nm_utils_setpgid (gpointer unused G_GNUC_UNUSED)
 /**
  * nm_utils_g_value_set_strv:
  * @value: a #GValue, initialized to store a #G_TYPE_STRV
- * @strings: a #GPtrArray of strings
+ * @strings: a #GPtrArray of strings. %NULL values are not
+ *   allowed.
  *
  * Converts @strings to a #GStrv and stores it in @value.
  */
@@ -3757,11 +3646,13 @@ void
 nm_utils_g_value_set_strv (GValue *value, GPtrArray *strings)
 {
 	char **strv;
-	int i;
+	guint i;
 
 	strv = g_new (char *, strings->len + 1);
-	for (i = 0; i < strings->len; i++)
+	for (i = 0; i < strings->len; i++) {
+		nm_assert (strings->pdata[i]);
 		strv[i] = g_strdup (strings->pdata[i]);
+	}
 	strv[i] = NULL;
 
 	g_value_take_boxed (value, strv);
@@ -3891,12 +3782,11 @@ nm_utils_lifetime_rebase_relative_time_on_now (guint32 timestamp,
 	return t;
 }
 
-gboolean
+guint32
 nm_utils_lifetime_get (guint32 timestamp,
                        guint32 lifetime,
                        guint32 preferred,
                        gint32 now,
-                       guint32 *out_lifetime,
                        guint32 *out_preferred)
 {
 	guint32 t_lifetime, t_preferred;
@@ -3904,38 +3794,39 @@ nm_utils_lifetime_get (guint32 timestamp,
 	nm_assert (now >= 0);
 
 	if (timestamp == 0 && lifetime == 0) {
-		/* We treat lifetime==0 && timestamp == 0 addresses as permanent addresses to allow easy
+		/* We treat lifetime==0 && timestamp==0 addresses as permanent addresses to allow easy
 		 * creation of such addresses (without requiring to set the lifetime fields to
 		 * NM_PLATFORM_LIFETIME_PERMANENT). The real lifetime==0 addresses (E.g. DHCP6 telling us
 		 * to drop an address will have timestamp set.
 		 */
-		*out_lifetime = NM_PLATFORM_LIFETIME_PERMANENT;
-		*out_preferred = NM_PLATFORM_LIFETIME_PERMANENT;
-		g_return_val_if_fail (preferred == 0, TRUE);
-	} else {
-		if (now <= 0)
-			now = nm_utils_get_monotonic_timestamp_s ();
-		t_lifetime = nm_utils_lifetime_rebase_relative_time_on_now (timestamp, lifetime, now);
-		if (!t_lifetime) {
-			*out_lifetime = 0;
-			*out_preferred = 0;
-			return FALSE;
-		}
-		t_preferred = nm_utils_lifetime_rebase_relative_time_on_now (timestamp, preferred, now);
-
-		*out_lifetime = t_lifetime;
-		*out_preferred = MIN (t_preferred, t_lifetime);
-
-		/* Assert that non-permanent addresses have a (positive) @timestamp. nm_utils_lifetime_rebase_relative_time_on_now()
-		 * treats addresses with timestamp 0 as *now*. Addresses passed to _address_get_lifetime() always
-		 * should have a valid @timestamp, otherwise on every re-sync, their lifetime will be extended anew.
-		 */
-		g_return_val_if_fail (   timestamp != 0
-		                      || (   lifetime  == NM_PLATFORM_LIFETIME_PERMANENT
-		                          && preferred == NM_PLATFORM_LIFETIME_PERMANENT), TRUE);
-		g_return_val_if_fail (t_preferred <= t_lifetime, TRUE);
+		NM_SET_OUT (out_preferred, NM_PLATFORM_LIFETIME_PERMANENT);
+		g_return_val_if_fail (preferred == 0, NM_PLATFORM_LIFETIME_PERMANENT);
+		return NM_PLATFORM_LIFETIME_PERMANENT;
 	}
-	return TRUE;
+
+	if (now <= 0)
+		now = nm_utils_get_monotonic_timestamp_s ();
+
+	t_lifetime = nm_utils_lifetime_rebase_relative_time_on_now (timestamp, lifetime, now);
+	if (!t_lifetime) {
+		NM_SET_OUT (out_preferred, 0);
+		return 0;
+	}
+
+	t_preferred = nm_utils_lifetime_rebase_relative_time_on_now (timestamp, preferred, now);
+
+	NM_SET_OUT (out_preferred, MIN (t_preferred, t_lifetime));
+
+	/* Assert that non-permanent addresses have a (positive) @timestamp. nm_utils_lifetime_rebase_relative_time_on_now()
+	 * treats addresses with timestamp 0 as *now*. Addresses passed to _address_get_lifetime() always
+	 * should have a valid @timestamp, otherwise on every re-sync, their lifetime will be extended anew.
+	 */
+	g_return_val_if_fail (   timestamp != 0
+	                      || (   lifetime  == NM_PLATFORM_LIFETIME_PERMANENT
+	                          && preferred == NM_PLATFORM_LIFETIME_PERMANENT), t_lifetime);
+	g_return_val_if_fail (t_preferred <= t_lifetime, t_lifetime);
+
+	return t_lifetime;
 }
 
 const char *
@@ -4260,7 +4151,7 @@ nm_utils_read_plugin_paths (const char *dirname, const char *prefix)
 
 		if (!g_str_has_prefix (item, prefix))
 			continue;
-		if (g_str_has_suffix (item, ".la"))
+		if (!g_str_has_suffix (item, ".so"))
 			continue;
 
 		data.path = g_build_filename (dirname, item, NULL);
@@ -4327,6 +4218,43 @@ nm_utils_format_con_diff_for_audit (GHashTable *diff)
 		str->str[str->len - 1] = '\0';
 
 	return g_string_free (str, FALSE);
+}
+
+const char *
+nm_utils_parse_dns_domain (const char *domain, gboolean *is_routing)
+{
+	g_return_val_if_fail (domain, NULL);
+	g_return_val_if_fail (domain[0], NULL);
+
+	if (domain[0] == '~') {
+		domain++;
+		NM_SET_OUT (is_routing, TRUE);
+	} else
+		NM_SET_OUT (is_routing, FALSE);
+
+	return domain;
+}
+
+/*****************************************************************************/
+
+GVariant *
+nm_utils_strdict_to_variant (GHashTable *options)
+{
+	GVariantBuilder builder;
+	gs_free const char **keys = NULL;
+	guint i;
+	guint nkeys;
+
+	keys = nm_utils_strdict_get_keys (options, TRUE, &nkeys);
+
+	g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
+	for (i = 0; i < nkeys; i++) {
+		g_variant_builder_add (&builder,
+		                       "{sv}",
+		                       keys[i],
+		                       g_variant_new_string (g_hash_table_lookup (options, keys[i])));
+	}
+	return g_variant_builder_end (&builder);
 }
 
 /*****************************************************************************/

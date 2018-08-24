@@ -38,8 +38,7 @@
 #include "NetworkManagerUtils.h"
 #include "nm-ip4-config.h"
 #include "ndisc/nm-ndisc.h"
-
-#include "introspection/org.freedesktop.NetworkManager.IP6Config.h"
+#include "nm-dbus-object.h"
 
 /*****************************************************************************/
 
@@ -82,15 +81,15 @@ typedef struct {
 } NMIP6ConfigPrivate;
 
 struct _NMIP6Config {
-	NMExportedObject parent;
+	NMDBusObject parent;
 	NMIP6ConfigPrivate _priv;
 };
 
 struct _NMIP6ConfigClass {
-	NMExportedObjectClass parent;
+	NMDBusObjectClass parent;
 };
 
-G_DEFINE_TYPE (NMIP6Config, nm_ip6_config, NM_TYPE_EXPORTED_OBJECT)
+G_DEFINE_TYPE (NMIP6Config, nm_ip6_config, NM_TYPE_DBUS_OBJECT)
 
 #define NM_IP6_CONFIG_GET_PRIVATE(self) _NM_GET_PRIVATE(self, NMIP6Config, NM_IS_IP6_CONFIG)
 
@@ -366,14 +365,24 @@ _nmtst_ip6_config_addresses_sort (NMIP6Config *self)
 }
 
 NMIP6Config *
-nm_ip6_config_capture (NMDedupMultiIndex *multi_idx, NMPlatform *platform, int ifindex, gboolean capture_resolv_conf, NMSettingIP6ConfigPrivacy use_temporary)
+nm_ip6_config_clone (const NMIP6Config *self)
+{
+	NMIP6Config *copy;
+
+	copy = nm_ip6_config_new (nm_ip6_config_get_multi_idx (self), -1);
+	nm_ip6_config_replace (copy, self, NULL);
+
+	return copy;
+}
+
+NMIP6Config *
+nm_ip6_config_capture (NMDedupMultiIndex *multi_idx, NMPlatform *platform, int ifindex, NMSettingIP6ConfigPrivacy use_temporary)
 {
 	NMIP6Config *self;
 	NMIP6ConfigPrivate *priv;
 	const NMDedupMultiHeadEntry *head_entry;
 	NMDedupMultiIter iter;
 	const NMPObject *plobj = NULL;
-	gboolean has_addresses = FALSE;
 
 	nm_assert (ifindex > 0);
 
@@ -399,7 +408,6 @@ nm_ip6_config_capture (NMDedupMultiIndex *multi_idx, NMPlatform *platform, int i
 			                            NULL,
 			                            NULL))
 				nm_assert_not_reached ();
-			has_addresses = TRUE;
 		}
 		head_entry = nm_ip6_config_lookup_addresses (self);
 		nm_assert (head_entry);
@@ -416,23 +424,6 @@ nm_ip6_config_capture (NMDedupMultiIndex *multi_idx, NMPlatform *platform, int i
 	nmp_cache_iter_for_each (&iter, head_entry, &plobj)
 		_add_route (self, plobj, NULL, NULL);
 
-	/* If the interface has the default route, and has IPv6 addresses, capture
-	 * nameservers from /etc/resolv.conf.
-	 */
-	if (   has_addresses
-	    && priv->best_default_route
-	    && capture_resolv_conf) {
-		gs_free char *rc_contents = NULL;
-
-		if (g_file_get_contents (_PATH_RESCONF, &rc_contents, NULL, NULL)) {
-			if (nm_utils_resolve_conf_parse (AF_INET6,
-			                                 rc_contents,
-			                                 priv->nameservers,
-			                                 priv->dns_options))
-				_notify (self, PROP_NAMESERVERS);
-		}
-	}
-
 	return self;
 }
 
@@ -441,15 +432,12 @@ nm_ip6_config_add_dependent_routes (NMIP6Config *self,
                                     guint32 route_table,
                                     guint32 route_metric)
 {
-	const NMIP6ConfigPrivate *priv;
 	const NMPlatformIP6Address *my_addr;
 	const NMPlatformIP6Route *my_route;
 	int ifindex;
 	NMDedupMultiIter iter;
 
 	g_return_if_fail (NM_IS_IP6_CONFIG (self));
-
-	priv = NM_IP6_CONFIG_GET_PRIVATE (self);
 
 	ifindex = nm_ip6_config_get_ifindex (self);
 	g_return_if_fail (ifindex > 0);
@@ -558,7 +546,7 @@ nm_ip6_config_commit (const NMIP6Config *self,
 	                                                    ifindex,
 	                                                    route_table_sync);
 
-	nm_platform_ip6_address_sync (platform, ifindex, addresses, TRUE);
+	nm_platform_ip6_address_sync (platform, ifindex, addresses, FALSE);
 
 	if (!nm_platform_ip_route_sync (platform,
 	                                AF_INET6,
@@ -577,7 +565,6 @@ nm_ip6_config_merge_setting (NMIP6Config *self,
                              guint32 route_table,
                              guint32 route_metric)
 {
-	NMIP6ConfigPrivate *priv;
 	guint naddresses, nroutes, nnameservers, nsearches;
 	const char *gateway_str;
 	struct in6_addr gateway_bin;
@@ -587,8 +574,6 @@ nm_ip6_config_merge_setting (NMIP6Config *self,
 		return;
 
 	g_return_if_fail (NM_IS_SETTING_IP6_CONFIG (setting));
-
-	priv = NM_IP6_CONFIG_GET_PRIVATE (self);
 
 	naddresses = nm_setting_ip_config_get_num_addresses (setting);
 	nroutes = nm_setting_ip_config_get_num_routes (setting);
@@ -817,17 +802,12 @@ nm_ip6_config_merge (NMIP6Config *dst,
                      NMIPConfigMergeFlags merge_flags,
                      guint32 default_route_metric_penalty)
 {
-	NMIP6ConfigPrivate *dst_priv;
-	const NMIP6ConfigPrivate *src_priv;
 	guint32 i;
 	NMDedupMultiIter ipconf_iter;
 	const NMPlatformIP6Address *address = NULL;
 
 	g_return_if_fail (src != NULL);
 	g_return_if_fail (dst != NULL);
-
-	dst_priv = NM_IP6_CONFIG_GET_PRIVATE (dst);
-	src_priv = NM_IP6_CONFIG_GET_PRIVATE (src);
 
 	g_object_freeze_notify (G_OBJECT (dst));
 
@@ -1070,26 +1050,28 @@ nm_ip6_config_subtract (NMIP6Config *dst,
 	g_object_thaw_notify (G_OBJECT (dst));
 }
 
-void
-nm_ip6_config_intersect (NMIP6Config *dst,
-                         const NMIP6Config *src,
-                         guint32 default_route_metric_penalty)
+static gboolean
+_nm_ip6_config_intersect_helper (NMIP6Config *dst,
+                                 const NMIP6Config *src,
+                                 guint32 default_route_metric_penalty,
+                                 gboolean update_dst)
 {
 	NMIP6ConfigPrivate *dst_priv;
 	const NMIP6ConfigPrivate *src_priv;
 	NMDedupMultiIter ipconf_iter;
 	const NMPlatformIP6Address *a;
 	const NMPlatformIP6Route *r;
-	gboolean changed;
+	gboolean changed, result = FALSE;
 	const NMPObject *new_best_default_route;
 
-	g_return_if_fail (src);
-	g_return_if_fail (dst);
+	g_return_val_if_fail (src, FALSE);
+	g_return_val_if_fail (dst, FALSE);
 
 	dst_priv = NM_IP6_CONFIG_GET_PRIVATE (dst);
 	src_priv = NM_IP6_CONFIG_GET_PRIVATE (src);
 
-	g_object_freeze_notify (G_OBJECT (dst));
+	if (update_dst)
+		g_object_freeze_notify (G_OBJECT (dst));
 
 	/* addresses */
 	changed = FALSE;
@@ -1099,13 +1081,18 @@ nm_ip6_config_intersect (NMIP6Config *dst,
 		                                     NMP_OBJECT_UP_CAST (a)))
 			continue;
 
+		if (!update_dst)
+			return TRUE;
+
 		if (nm_dedup_multi_index_remove_entry (dst_priv->multi_idx,
 		                                       ipconf_iter.current) != 1)
 			nm_assert_not_reached ();
 		changed = TRUE;
 	}
-	if (changed)
+	if (changed) {
 		_notify_addresses (dst);
+		result = TRUE;
+	}
 
 	/* ignore nameservers */
 
@@ -1137,6 +1124,9 @@ nm_ip6_config_intersect (NMIP6Config *dst,
 			continue;
 		}
 
+		if (!update_dst)
+			return TRUE;
+
 		if (nm_dedup_multi_index_remove_entry (dst_priv->multi_idx,
 		                                       ipconf_iter.current) != 1)
 			nm_assert_not_reached ();
@@ -1146,14 +1136,67 @@ nm_ip6_config_intersect (NMIP6Config *dst,
 		nm_assert (changed);
 		_notify (dst, PROP_GATEWAY);
 	}
-	if (changed)
+	if (changed) {
 		_notify_routes (dst);
+		result = TRUE;
+	}
 
 	/* ignore domains */
 	/* ignore dns searches */
 	/* ignore dns options */
 
-	g_object_thaw_notify (G_OBJECT (dst));
+	if (update_dst)
+		g_object_thaw_notify (G_OBJECT (dst));
+
+	return result;
+}
+
+/**
+ * nm_ip6_config_intersect:
+ * @dst: a configuration to be updated
+ * @src: another configuration
+ * @default_route_metric_penalty: the default route metric penalty
+ *
+ * Computes the intersection between @src and @dst and updates @dst in place
+ * with the result.
+ */
+void
+nm_ip6_config_intersect (NMIP6Config *dst,
+                         const NMIP6Config *src,
+                         guint32 default_route_metric_penalty)
+{
+	_nm_ip6_config_intersect_helper (dst, src, default_route_metric_penalty, TRUE);
+}
+
+/**
+ * nm_ip6_config_intersect_alloc:
+ * @a: a configuration
+ * @b: another configuration
+ * @default_route_metric_penalty: the default route metric penalty
+ *
+ * Computes the intersection between @a and @b and returns the result in a newly
+ * allocated configuration.  As a special case, if @a and @b are identical (with
+ * respect to the only properties considered - addresses and routes) the
+ * functions returns NULL so that one of existing configuration can be reused
+ * without allocation.
+ *
+ * Returns: the intersection between @a and @b, or %NULL if the result is equal
+ * to @a and @b.
+ */
+NMIP6Config *
+nm_ip6_config_intersect_alloc (const NMIP6Config *a,
+                               const NMIP6Config *b,
+                               guint32 default_route_metric_penalty)
+{
+	NMIP6Config *a_copy;
+
+	if (_nm_ip6_config_intersect_helper ((NMIP6Config *) a, b,
+	                                     default_route_metric_penalty, FALSE)) {
+		a_copy = nm_ip6_config_clone (a);
+		_nm_ip6_config_intersect_helper (a_copy, b, default_route_metric_penalty, TRUE);
+		return a_copy;
+	} else
+		return NULL;
 }
 
 /**
@@ -1423,7 +1466,7 @@ nm_ip6_config_dump (const NMIP6Config *self, const char *detail)
 
 	g_message ("--------- NMIP6Config %p (%s)", self, detail);
 
-	str = nm_exported_object_get_path (NM_EXPORTED_OBJECT (self));
+	str = nm_dbus_object_get_path (NM_DBUS_OBJECT (self));
 	if (str)
 		g_message ("   path: %s", str);
 
@@ -1629,22 +1672,43 @@ nm_ip6_config_lookup_address (const NMIP6Config *self,
 }
 
 const NMPlatformIP6Address *
-nm_ip6_config_get_address_first_nontentative (const NMIP6Config *self, gboolean linklocal)
+nm_ip6_config_find_first_address (const NMIP6Config *self,
+                                  NMPlatformMatchFlags match_flag)
 {
-	const NMIP6ConfigPrivate *priv;
 	const NMPlatformIP6Address *addr;
 	NMDedupMultiIter iter;
 
 	g_return_val_if_fail (NM_IS_IP6_CONFIG (self), NULL);
 
-	priv = NM_IP6_CONFIG_GET_PRIVATE (self);
+	nm_assert (!NM_FLAGS_ANY (match_flag, ~(  NM_PLATFORM_MATCH_WITH_ADDRTYPE__ANY
+	                                        | NM_PLATFORM_MATCH_WITH_ADDRSTATE__ANY)));
 
-	linklocal = !!linklocal;
+	nm_assert (NM_FLAGS_ANY (match_flag, NM_PLATFORM_MATCH_WITH_ADDRTYPE__ANY));
+	nm_assert (NM_FLAGS_ANY (match_flag, NM_PLATFORM_MATCH_WITH_ADDRSTATE__ANY));
 
 	nm_ip_config_iter_ip6_address_for_each (&iter, self, &addr) {
-		if (   ((!!IN6_IS_ADDR_LINKLOCAL (&addr->address)) == linklocal)
-		    && !(addr->n_ifa_flags & IFA_F_TENTATIVE))
-			return addr;
+
+		if (IN6_IS_ADDR_LINKLOCAL (&addr->address)) {
+			if (!NM_FLAGS_HAS (match_flag, NM_PLATFORM_MATCH_WITH_ADDRTYPE_LINKLOCAL))
+				continue;
+		} else {
+			if (!NM_FLAGS_HAS (match_flag, NM_PLATFORM_MATCH_WITH_ADDRTYPE_NORMAL))
+				continue;
+		}
+
+		if (NM_FLAGS_HAS (addr->n_ifa_flags, IFA_F_DADFAILED)) {
+			if (!NM_FLAGS_HAS (match_flag, NM_PLATFORM_MATCH_WITH_ADDRSTATE_DADFAILED))
+				continue;
+		} else if (   NM_FLAGS_HAS (addr->n_ifa_flags, IFA_F_TENTATIVE)
+		           && !NM_FLAGS_HAS (addr->n_ifa_flags, IFA_F_OPTIMISTIC)) {
+			if (!NM_FLAGS_HAS (match_flag, NM_PLATFORM_MATCH_WITH_ADDRSTATE_TENTATIVE))
+				continue;
+		} else {
+			if (!NM_FLAGS_HAS (match_flag, NM_PLATFORM_MATCH_WITH_ADDRSTATE_NORMAL))
+				continue;
+		}
+
+		return addr;
 	}
 
 	return NULL;
@@ -1980,7 +2044,6 @@ nm_ip6_config_get_subnet_for_host (const NMIP6Config *self, const struct in6_add
 	return subnet;
 }
 
-
 /*****************************************************************************/
 
 void
@@ -2054,17 +2117,9 @@ void
 nm_ip6_config_add_domain (NMIP6Config *self, const char *domain)
 {
 	NMIP6ConfigPrivate *priv = NM_IP6_CONFIG_GET_PRIVATE (self);
-	int i;
 
-	g_return_if_fail (domain != NULL);
-	g_return_if_fail (domain[0] != '\0');
-
-	for (i = 0; i < priv->domains->len; i++)
-		if (!g_strcmp0 (g_ptr_array_index (priv->domains, i), domain))
-			return;
-
-	g_ptr_array_add (priv->domains, g_strdup (domain));
-	_notify (self, PROP_DOMAINS);
+	if (_nm_ip_config_check_and_add_domain (priv->domains, domain))
+		_notify (self, PROP_DOMAINS);
 }
 
 void
@@ -2108,35 +2163,12 @@ nm_ip6_config_reset_searches (NMIP6Config *self)
 }
 
 void
-nm_ip6_config_add_search (NMIP6Config *self, const char *new)
+nm_ip6_config_add_search (NMIP6Config *self, const char *search)
 {
 	NMIP6ConfigPrivate *priv = NM_IP6_CONFIG_GET_PRIVATE (self);
-	char *search;
-	size_t len;
 
-	g_return_if_fail (new != NULL);
-	g_return_if_fail (new[0] != '\0');
-
-	search = g_strdup (new);
-
-	/* Remove trailing dot as it has no effect */
-	len = strlen (search);
-	if (search[len - 1] == '.')
-		search[len - 1] = 0;
-
-	if (!search[0]) {
-		g_free (search);
-		return;
-	}
-
-	if (nm_utils_strv_find_first ((char **) priv->searches->pdata,
-	                               priv->searches->len, search) >= 0) {
-		g_free (search);
-		return;
-	}
-
-	g_ptr_array_add (priv->searches, search);
-	_notify (self, PROP_SEARCHES);
+	if (_nm_ip_config_check_and_add_domain (priv->searches, search))
+		_notify (self, PROP_SEARCHES);
 }
 
 void
@@ -2403,9 +2435,9 @@ nm_ip6_config_equal (const NMIP6Config *a, const NMIP6Config *b)
 {
 	GChecksum *a_checksum = g_checksum_new (G_CHECKSUM_SHA1);
 	GChecksum *b_checksum = g_checksum_new (G_CHECKSUM_SHA1);
-	gsize a_len = g_checksum_type_get_length (G_CHECKSUM_SHA1);
-	gsize b_len = g_checksum_type_get_length (G_CHECKSUM_SHA1);
-	guchar a_data[a_len], b_data[b_len];
+	guchar a_data[20], b_data[20];
+	gsize a_len = sizeof (a_data);
+	gsize b_len = sizeof (b_data);
 	gboolean equal;
 
 	if (a)
@@ -2416,7 +2448,8 @@ nm_ip6_config_equal (const NMIP6Config *a, const NMIP6Config *b)
 	g_checksum_get_digest (a_checksum, a_data, &a_len);
 	g_checksum_get_digest (b_checksum, b_data, &b_len);
 
-	g_assert (a_len == b_len);
+	nm_assert (a_len == sizeof (a_data));
+	nm_assert (b_len == sizeof (b_data));
 	equal = !memcmp (a_data, b_data, a_len);
 
 	g_checksum_free (a_checksum);
@@ -2712,13 +2745,36 @@ finalize (GObject *object)
 	nm_dedup_multi_index_unref (priv->multi_idx);
 }
 
+static const NMDBusInterfaceInfoExtended interface_info_ip6_config = {
+	.parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT (
+		NM_DBUS_INTERFACE_IP6_CONFIG,
+		.signals = NM_DEFINE_GDBUS_SIGNAL_INFOS (
+			&nm_signal_info_property_changed_legacy,
+		),
+		.properties = NM_DEFINE_GDBUS_PROPERTY_INFOS (
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Addresses",   "a(ayuay)",  NM_IP6_CONFIG_ADDRESSES),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("AddressData", "aa{sv}",    NM_IP6_CONFIG_ADDRESS_DATA),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Gateway",     "s",         NM_IP6_CONFIG_GATEWAY),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Routes",      "a(ayuayu)", NM_IP6_CONFIG_ROUTES),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("RouteData",   "aa{sv}",    NM_IP6_CONFIG_ROUTE_DATA),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Nameservers", "aay",       NM_IP6_CONFIG_NAMESERVERS),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Domains",     "as",        NM_IP6_CONFIG_DOMAINS),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Searches",    "as",        NM_IP6_CONFIG_SEARCHES),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("DnsOptions",  "as",        NM_IP6_CONFIG_DNS_OPTIONS),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("DnsPriority", "i",         NM_IP6_CONFIG_DNS_PRIORITY),
+		),
+	),
+	.legacy_property_changed = TRUE,
+};
+
 static void
 nm_ip6_config_class_init (NMIP6ConfigClass *config_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (config_class);
-	NMExportedObjectClass *exported_object_class = NM_EXPORTED_OBJECT_CLASS (config_class);
+	NMDBusObjectClass *dbus_object_class = NM_DBUS_OBJECT_CLASS (config_class);
 
-	exported_object_class->export_path = NM_EXPORT_PATH_NUMBERED (NM_DBUS_PATH"/IP6Config");
+	dbus_object_class->export_path = NM_DBUS_EXPORT_PATH_NUMBERED (NM_DBUS_PATH"/IP6Config");
+	dbus_object_class->interface_infos = NM_DBUS_INTERFACE_INFOS (&interface_info_ip6_config);
 
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
@@ -2792,8 +2848,4 @@ nm_ip6_config_class_init (NMIP6ConfigClass *config_class)
 	                      G_PARAM_STATIC_STRINGS);
 
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
-
-	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (config_class),
-	                                        NMDBUS_TYPE_IP6_CONFIG_SKELETON,
-	                                        NULL);
 }

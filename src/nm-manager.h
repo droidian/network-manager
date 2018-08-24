@@ -22,9 +22,9 @@
 #ifndef __NETWORKMANAGER_MANAGER_H__
 #define __NETWORKMANAGER_MANAGER_H__
 
-#include "nm-exported-object.h"
 #include "settings/nm-settings-connection.h"
-#include "nm-utils/c-list.h"
+#include "c-list/src/c-list.h"
+#include "nm-dbus-manager.h"
 
 #define NM_TYPE_MANAGER            (nm_manager_get_type ())
 #define NM_MANAGER(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_MANAGER, NMManager))
@@ -55,24 +55,21 @@
 #define NM_MANAGER_METERED "metered"
 #define NM_MANAGER_GLOBAL_DNS_CONFIGURATION "global-dns-configuration"
 #define NM_MANAGER_ALL_DEVICES "all-devices"
+#define NM_MANAGER_CHECKPOINTS "checkpoints"
 
 /* Not exported */
 #define NM_MANAGER_SLEEPING "sleeping"
 
-/* signals */
-#define NM_MANAGER_CHECK_PERMISSIONS         "check-permissions"
+/* Signals */
 #define NM_MANAGER_DEVICE_ADDED              "device-added"
 #define NM_MANAGER_DEVICE_REMOVED            "device-removed"
-#define NM_MANAGER_STATE_CHANGED             "state-changed"
 #define NM_MANAGER_USER_PERMISSIONS_CHANGED  "user-permissions-changed"
 
-/* Internal signals */
 #define NM_MANAGER_ACTIVE_CONNECTION_ADDED   "active-connection-added"
 #define NM_MANAGER_ACTIVE_CONNECTION_REMOVED "active-connection-removed"
 #define NM_MANAGER_CONFIGURE_QUIT            "configure-quit"
 #define NM_MANAGER_INTERNAL_DEVICE_ADDED     "internal-device-added"
 #define NM_MANAGER_INTERNAL_DEVICE_REMOVED   "internal-device-removed"
-
 
 GType nm_manager_get_type (void);
 
@@ -85,13 +82,14 @@ gboolean      nm_manager_start                         (NMManager *manager,
                                                         GError **error);
 void          nm_manager_stop                          (NMManager *manager);
 NMState       nm_manager_get_state                     (NMManager *manager);
+
 const CList * nm_manager_get_active_connections        (NMManager *manager);
 
 #define nm_manager_for_each_active_connection(manager, iter, tmp_list) \
 	for (tmp_list = nm_manager_get_active_connections (manager), \
 	     iter = c_list_entry (tmp_list->next, NMActiveConnection, active_connections_lst); \
 	     ({ \
-	         gboolean _has_next = (&iter->active_connections_lst != tmp_list); \
+	         const gboolean _has_next = (&iter->active_connections_lst != tmp_list); \
 	         \
 	         if (!_has_next) \
 	             iter = NULL; \
@@ -107,7 +105,19 @@ void          nm_manager_write_device_state (NMManager *manager);
 
 /* Device handling */
 
-const GSList *      nm_manager_get_devices             (NMManager *manager);
+const CList *       nm_manager_get_devices             (NMManager *manager);
+
+#define nm_manager_for_each_device(manager, iter, tmp_list) \
+	for (tmp_list = nm_manager_get_devices (manager), \
+	     iter = c_list_entry (tmp_list->next, NMDevice, devices_lst); \
+	     ({ \
+	         const gboolean _has_next = (&iter->devices_lst != tmp_list); \
+	         \
+	         if (!_has_next) \
+	             iter = NULL; \
+	         _has_next; \
+	    }); \
+	    iter = c_list_entry (iter->devices_lst.next, NMDevice, devices_lst))
 
 NMDevice *          nm_manager_get_device_by_ifindex   (NMManager *manager,
                                                         int ifindex);
@@ -152,5 +162,14 @@ NMDevice *          nm_manager_get_device    (NMManager *self,
 gboolean            nm_manager_remove_device (NMManager *self,
                                               const char *ifname,
                                               NMDeviceType device_type);
+
+void nm_manager_dbus_set_property_handle (NMDBusObject *obj,
+                                          const NMDBusInterfaceInfoExtended *interface_info,
+                                          const NMDBusPropertyInfoExtended *property_info,
+                                          GDBusConnection *connection,
+                                          const char *sender,
+                                          GDBusMethodInvocation *invocation,
+                                          GVariant *value,
+                                          gpointer user_data);
 
 #endif /* __NETWORKMANAGER_MANAGER_H__ */

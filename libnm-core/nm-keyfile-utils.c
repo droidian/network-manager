@@ -106,7 +106,7 @@ nm_keyfile_plugin_kf_set_##stype##_list (GKeyFile *kf, \
 	const char *alias; \
  \
 	alias = nm_keyfile_plugin_get_alias_for_setting_name (group); \
-	g_key_file_set_##stype##_list (kf, alias ? alias : group, key, list, length); \
+	g_key_file_set_##stype##_list (kf, alias ?: group, key, list, length); \
 }
 
 DEFINE_KF_LIST_WRAPPER(integer, gint*, gint);
@@ -170,7 +170,7 @@ nm_keyfile_plugin_kf_set_##stype (GKeyFile *kf, \
 	const char *alias; \
  \
 	alias = nm_keyfile_plugin_get_alias_for_setting_name (group); \
-	g_key_file_set_##stype (kf, alias ? alias : group, key, value); \
+	g_key_file_set_##stype (kf, alias ?: group, key, value); \
 }
 
 DEFINE_KF_WRAPPER(string, gchar*, const gchar*);
@@ -178,7 +178,6 @@ DEFINE_KF_WRAPPER(integer, gint, gint);
 DEFINE_KF_WRAPPER(uint64, guint64, guint64);
 DEFINE_KF_WRAPPER(boolean, gboolean, gboolean);
 DEFINE_KF_WRAPPER(value, gchar*, const gchar*);
-
 
 gchar **
 nm_keyfile_plugin_kf_get_keys (GKeyFile *kf,
@@ -195,7 +194,7 @@ nm_keyfile_plugin_kf_get_keys (GKeyFile *kf,
 		alias = nm_keyfile_plugin_get_alias_for_setting_name (group);
 		if (alias) {
 			g_clear_error (&local);
-			keys = g_key_file_get_keys (kf, alias, out_length, &local);
+			keys = g_key_file_get_keys (kf, alias, out_length, error ? &local : NULL);
 		}
 	}
 	if (local)
@@ -287,7 +286,6 @@ _nm_keyfile_a_contains_all_in_b (GKeyFile *kf_a, GKeyFile *kf_b)
 	}
 	return TRUE;
 }
-
 
 static gboolean
 _nm_keyfile_equals_ordered (GKeyFile *kf_a, GKeyFile *kf_b)

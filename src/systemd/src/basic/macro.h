@@ -1,23 +1,5 @@
+/* SPDX-License-Identifier: LGPL-2.1+ */
 #pragma once
-
-/***
-  This file is part of systemd.
-
-  Copyright 2010 Lennart Poettering
-
-  systemd is free software; you can redistribute it and/or modify it
-  under the terms of the GNU Lesser General Public License as published by
-  the Free Software Foundation; either version 2.1 of the License, or
-  (at your option) any later version.
-
-  systemd is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public License
-  along with systemd; If not, see <http://www.gnu.org/licenses/>.
-***/
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -47,6 +29,31 @@
 #define _weakref_(x) __attribute__((weakref(#x)))
 #define _alignas_(x) __attribute__((aligned(__alignof(x))))
 #define _cleanup_(x) __attribute__((cleanup(x)))
+#if __GNUC__ >= 7
+#define _fallthrough_ __attribute__((fallthrough))
+#else
+#define _fallthrough_
+#endif
+/* Define C11 noreturn without <stdnoreturn.h> and even on older gcc
+ * compiler versions */
+#ifndef _noreturn_
+#if __STDC_VERSION__ >= 201112L
+#define _noreturn_ _Noreturn
+#else
+#define _noreturn_ __attribute__((noreturn))
+#endif
+#endif
+
+#if !defined(HAS_FEATURE_MEMORY_SANITIZER)
+#  if defined(__has_feature)
+#    if __has_feature(memory_sanitizer)
+#      define HAS_FEATURE_MEMORY_SANITIZER 1
+#    endif
+#  endif
+#  if !defined(HAS_FEATURE_MEMORY_SANITIZER)
+#    define HAS_FEATURE_MEMORY_SANITIZER 0
+#  endif
+#endif
 
 #if (defined (__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))) || defined (__clang__)
 /* Temporarily disable some warnings */
@@ -142,11 +149,25 @@ static inline unsigned long ALIGN_POWER2(unsigned long u) {
         return 1UL << (sizeof(u) * 8 - __builtin_clzl(u - 1UL));
 }
 
+#ifndef __COVERITY__
+#  define VOID_0 ((void)0)
+#else
+#  define VOID_0 ((void*)0)
+#endif
+
 #define ELEMENTSOF(x)                                                    \
         __extension__ (__builtin_choose_expr(                            \
                 !__builtin_types_compatible_p(typeof(x), typeof(&*(x))), \
                 sizeof(x)/sizeof((x)[0]),                                \
-                (void)0))
+                VOID_0))
+
+/*
+ * STRLEN - return the length of a string literal, minus the trailing NUL byte.
+ *          Contrary to strlen(), this is a constant expression.
+ * @x: a string literal.
+ */
+#define STRLEN(x) (sizeof(""x"") - 1)
+
 /*
  * container_of - cast a member of a structure out to the containing structure
  * @ptr: the pointer to the member.
@@ -176,7 +197,7 @@ static inline unsigned long ALIGN_POWER2(unsigned long u) {
                 __builtin_constant_p(_B) &&                             \
                 __builtin_types_compatible_p(typeof(_A), typeof(_B)),   \
                 ((_A) > (_B)) ? (_A) : (_B),                            \
-                (void)0))
+                VOID_0))
 
 /* takes two types and returns the size of the larger one */
 #define MAXSIZE(A, B) (sizeof(union _packed_ { typeof(A) a; typeof(B) b; }))
@@ -332,13 +353,15 @@ static inline unsigned long ALIGN_POWER2(unsigned long u) {
         ({                                              \
                 typeof(x) _x_ = (x);                    \
                 unsigned ans = 1;                       \
-                while (_x_ /= 10)                       \
+                while ((_x_ /= 10) != 0)                \
                         ans++;                          \
                 ans;                                    \
         })
 
 #define SET_FLAG(v, flag, b) \
         (v) = (b) ? ((v) | (flag)) : ((v) & ~(flag))
+#define FLAGS_SET(v, flags) \
+        (((v) & (flags)) == (flags))
 
 #define CASE_F(X) case X:
 #define CASE_F_1(CASE, X) CASE_F(X)
@@ -403,21 +426,10 @@ static inline unsigned long ALIGN_POWER2(unsigned long u) {
 #endif
 #endif
 
-/* Define C11 noreturn without <stdnoreturn.h> and even on older gcc
- * compiler versions */
-#ifndef noreturn
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-#define noreturn _Noreturn
-#else
-#define noreturn __attribute__((noreturn))
-#endif
-#endif
-
 #define DEFINE_TRIVIAL_CLEANUP_FUNC(type, func)                 \
         static inline void func##p(type *p) {                   \
                 if (*p)                                         \
                         func(*p);                               \
-        }                                                       \
-        struct __useless_struct_to_allow_trailing_semicolon__
+        }
 
 #include "log.h"

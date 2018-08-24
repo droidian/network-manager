@@ -319,7 +319,6 @@ listbox_activated (NmtNewtWidget *listbox, gpointer list)
 	edit_clicked (NMT_NEWT_BUTTON (priv->edit), list);
 }
 
-
 static void
 connection_saved (GObject      *conn,
                   GAsyncResult *result,
@@ -502,7 +501,7 @@ nmt_edit_connection_list_class_init (NmtEditConnectionListClass *list_class)
 		                       G_PARAM_READWRITE |
 		                       G_PARAM_CONSTRUCT_ONLY |
 		                       G_PARAM_STATIC_STRINGS));
-	
+
 	/**
 	 * NmtEditConnectionListFilter:
 	 * @list: the #NmtEditConnectionList

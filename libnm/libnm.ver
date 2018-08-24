@@ -1331,3 +1331,51 @@ global:
 	nm_utils_tc_tfilter_from_str;
 	nm_utils_tc_tfilter_to_str;
 } libnm_1_10_0;
+
+libnm_1_12_0 {
+global:
+	nm_checkpoint_create_flags_get_type;
+	nm_checkpoint_get_created;
+	nm_checkpoint_get_devices;
+	nm_checkpoint_get_rollback_timeout;
+	nm_checkpoint_get_type;
+	nm_client_checkpoint_adjust_rollback_timeout;
+	nm_client_checkpoint_adjust_rollback_timeout_finish;
+	nm_client_checkpoint_create;
+	nm_client_checkpoint_create_finish;
+	nm_client_checkpoint_destroy;
+	nm_client_checkpoint_destroy_finish;
+	nm_client_checkpoint_rollback;
+	nm_client_checkpoint_rollback_finish;
+	nm_client_get_checkpoints;
+	nm_connection_get_setting_tc_config;
+	nm_device_ip_tunnel_get_flags;
+	nm_device_wifi_get_last_scan;
+	nm_ip_tunnel_flags_get_type;
+	nm_remote_connection_get_filename;
+	nm_remote_connection_get_flags;
+	nm_setting_connection_get_mdns;
+	nm_setting_connection_mdns_get_type;
+	nm_setting_ip_tunnel_get_flags;
+	nm_setting_ip6_config_get_dhcp_duid;
+	nm_setting_macsec_get_send_sci;
+	nm_setting_vpn_get_data_keys;
+	nm_setting_vpn_get_secret_keys;
+	nm_setting_wireless_security_get_fils;
+	nm_setting_wireless_security_fils_get_type;
+	nm_setting_wireless_get_wake_on_wlan;
+	nm_setting_wireless_wake_on_wlan_get_type;
+	nm_settings_connection_flags_get_type;
+	nm_utils_get_timestamp_msec;
+	nm_vpn_service_plugin_shutdown;
+} libnm_1_10_0;
+
+libnm_1_12_2 {
+	nm_connection_get_setting_ovs_bridge;
+	nm_connection_get_setting_ovs_interface;
+	nm_connection_get_setting_ovs_patch;
+	nm_connection_get_setting_ovs_port;
+	nm_connection_get_setting_tun;
+	nm_device_ovs_bridge_get_slaves;
+	nm_device_ovs_port_get_slaves;
+} libnm_1_12_0;

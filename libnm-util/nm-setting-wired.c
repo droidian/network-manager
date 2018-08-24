@@ -60,7 +60,6 @@ nm_setting_wired_error_quark (void)
 	return quark;
 }
 
-
 G_DEFINE_TYPE_WITH_CODE (NMSettingWired, nm_setting_wired, NM_TYPE_SETTING,
                          _nm_register_setting (NM_SETTING_WIRED_SETTING_NAME,
                                                g_define_type_id,
@@ -947,7 +946,7 @@ nm_setting_wired_class_init (NMSettingWiredClass *setting_class)
 		                             G_PARAM_READWRITE |
 		                             NM_SETTING_PARAM_INFERRABLE |
 		                             G_PARAM_STATIC_STRINGS));
-    
+
 	/**
 	 * NMSettingWired:mac-address-blacklist:
 	 *

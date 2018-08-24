@@ -3,6 +3,9 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
+/* Whether NM is built with address sanitizer */
+#undef ASAN_BUILD
+
 /* Path to ConsoleKit database */
 #undef CKDB_PATH
 
@@ -42,6 +45,10 @@
    don't. */
 #undef HAVE_DECL_GETRANDOM
 
+/* Define to 1 if you have the declaration of `reallocarray', and to 0 if you
+   don't. */
+#undef HAVE_DECL_REALLOCARRAY
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
@@ -50,9 +57,6 @@
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #undef HAVE_GETTEXT
-
-/* Define if you have libgnutls */
-#undef HAVE_GNUTLS
 
 /* Define to 1 if you have the <history.h> header file. */
 #undef HAVE_HISTORY_H
@@ -71,12 +75,6 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
-
-/* Define if nl80211 has critical protocol support */
-#undef HAVE_NL80211_CRITICAL_PROTOCOL_CMDS
-
-/* Define if you have NSS */
-#undef HAVE_NSS
 
 /* Define to 1 if you have the <pppd/pppd.h> header file. */
 #undef HAVE_PPPD_PPPD_H
@@ -122,9 +120,6 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
-
-/* Define if you have VLAN_FLAG_LOOSE_BINDING */
-#undef HAVE_VLAN_FLAG_LOOSE_BINDING
 
 /* Define if you have Linux Wireless Extensions support */
 #undef HAVE_WEXT
@@ -226,6 +221,9 @@
 /* The size of `dev_t', as computed by sizeof. */
 #undef SIZEOF_DEV_T
 
+/* The size of `pid_t', as computed by sizeof. */
+#undef SIZEOF_PID_T
+
 /* The size of `time_t', as computed by sizeof. */
 #undef SIZEOF_TIME_T
 
@@ -296,8 +294,17 @@
 /* Define if you have dhcpcd */
 #undef WITH_DHCPCD
 
+/* Define for libnm to prevent GIR from loading libnm-glib */
+#undef WITH_FAKE_TYPELIBS
+
+/* Define to compile without the IWD wifi-backend */
+#undef WITH_IWD
+
 /* Define if JANSSON is enabled */
 #undef WITH_JANSSON
+
+/* Define if JSON validation in libnm is enabled */
+#undef WITH_JSON_VALIDATION
 
 /* Define if you have libpsl */
 #undef WITH_LIBPSL
@@ -310,9 +317,6 @@
 
 /* Define if you have OpenVSwitch support */
 #undef WITH_OPENVSWITCH
-
-/* whether to compile polkit support */
-#undef WITH_POLKIT
 
 /* Define if you have polkit agent */
 #undef WITH_POLKIT_AGENT

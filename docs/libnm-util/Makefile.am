@@ -17,9 +17,6 @@ DOC_SOURCE_DIR= \
 # Extra options to supply to gtkdoc-scan.
 SCAN_OPTIONS=--rebuild-types --rebuild-sections
 
-# Extra options to supply to gtkdoc-scangobj.
-SCANGOBJ_OPTIONS=--type-init-func 'g_type_init();'
-
 # Extra options to supply to gtkdoc-mkdb.
 MKDB_OPTIONS=--sgml-mode --output-format=xml
 
@@ -33,7 +30,6 @@ CFILE_GLOB=$(top_srcdir)/libnm-util/*.c
 # Header files to ignore when scanning.
 IGNORE_HFILES= \
 	crypto.h \
-	nm-setting-template.h \
 	nm-utils-private.h \
 	nm-setting-private.h \
 	nm-param-spec-specialized.h \
@@ -41,7 +37,7 @@ IGNORE_HFILES= \
 	nm-version.h
 
 # Images to copy into HTML directory.
-HTML_IMAGES = 
+HTML_IMAGES =
 
 # Extra XML files that are included by $(DOC_MAIN_SGML_FILE).
 content_files = version.xml
@@ -52,11 +48,10 @@ extra_files =
 
 # CFLAGS and LDFLAGS for compiling scan program. Only needed
 # if $(DOC_MODULE).types is non-empty.
-GTKDOC_CFLAGS =				\
-	-I$(top_srcdir)/libnm-util	\
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
+GTKDOC_CFLAGS = \
+	-I$(top_srcdir)/libnm-util \
 	-DNM_VERSION_MIN_REQUIRED=NM_VERSION_0_9_8 \
-	$(GLIB_CFLAGS)			\
+	$(GLIB_CFLAGS) \
 	$(DBUS_CFLAGS)
 
 GTKDOC_LIBS = \
@@ -68,7 +63,7 @@ GTKDOC_LIBS = \
 # include common portion ...
 include $(top_srcdir)/gtk-doc.make
 
-EXTRA_DIST += version.xml.in
+EXTRA_DIST += version.xml.in meson.build
 
 CLEANFILES += \
 	libnm-util-sections.txt \

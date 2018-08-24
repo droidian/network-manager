@@ -16,7 +16,7 @@ Closes: #742933
  1 file changed, 5 insertions(+)
 
 diff --git a/src/nm-sleep-monitor.c b/src/nm-sleep-monitor.c
-index 7a37387..867e0d8 100644
+index a7e3a7c..9931f12 100644
 --- a/src/nm-sleep-monitor.c
 +++ b/src/nm-sleep-monitor.c
 @@ -25,6 +25,7 @@
@@ -27,7 +27,7 @@ index 7a37387..867e0d8 100644
  
  #include "nm-core-internal.h"
  #include "NetworkManagerUtils.h"
-@@ -345,6 +346,10 @@ on_proxy_acquired (GObject *object,
+@@ -344,6 +345,10 @@ on_proxy_acquired (GObject *object,
  static void
  nm_sleep_monitor_init (NMSleepMonitor *self)
  {

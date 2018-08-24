@@ -26,10 +26,14 @@
 #include <sys/resource.h>
 #include <time.h>
 
-#define noreturn G_GNUC_NORETURN
-
 #ifndef CLOCK_BOOTTIME
 #define CLOCK_BOOTTIME 7
+#endif
+
+#if defined(HAVE_DECL_REALLOCARRAY) && HAVE_DECL_REALLOCARRAY == 1
+#define HAVE_REALLOCARRAY 1
+#else
+#define HAVE_REALLOCARRAY 0
 #endif
 
 #if defined(HAVE_DECL_EXPLICIT_BZERO) && HAVE_DECL_EXPLICIT_BZERO == 1
@@ -105,7 +109,7 @@ G_STMT_START { \
  * itself.
  *****************************************************************************/
 
-#if (NETWORKMANAGER_COMPILATION) == NM_NETWORKMANAGER_COMPILATION_SYSTEMD
+#if (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_SYSTEMD
 
 #include <netinet/in.h>
 #include <string.h>
@@ -138,6 +142,17 @@ G_STMT_START { \
 #  endif
 #endif
 
+#define VALGRIND 0
+
+static inline pid_t
+raw_getpid (void) {
+#if defined(__alpha__)
+	return (pid_t) syscall (__NR_getxpid);
+#else
+	return (pid_t) syscall (__NR_getpid);
+#endif
+}
+
 /*****************************************************************************/
 
 /* work around missing uchar.h */
@@ -145,8 +160,6 @@ typedef guint16 char16_t;
 typedef guint32 char32_t;
 
 /*****************************************************************************/
-
-#define PID_TO_PTR(p) ((void*) ((uintptr_t) p))
 
 static inline int
 sd_notify (int unset_environment, const char *state)
@@ -167,7 +180,6 @@ sd_notify (int unset_environment, const char *state)
 #define MAX_HANDLE_SZ 128
 #endif
 
-
 /*
  * Some toolchains (E.G. uClibc 0.9.33 and earlier) don't export
  * CLOCK_BOOTTIME even though the kernel supports it, so provide a
@@ -186,7 +198,7 @@ static inline pid_t gettid(void) {
         return (pid_t) syscall(SYS_gettid);
 }
 
-#endif /* (NETWORKMANAGER_COMPILATION) == NM_NETWORKMANAGER_COMPILATION_SYSTEMD */
+#endif /* (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_SYSTEMD */
 
 #endif /* NM_SD_ADAPT_H */
 

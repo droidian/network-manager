@@ -40,7 +40,8 @@
 
 #include "nm-utils/nm-test-utils.h"
 
-#define TEST_NEED_SECRETS_EAP_TLS_CA_CERT TEST_CERT_DIR "/test_ca_cert.pem"
+#define TEST_CERT_DIR                         NM_BUILD_SRCDIR"/libnm-core/tests/certs"
+#define TEST_NEED_SECRETS_EAP_TLS_CA_CERT     TEST_CERT_DIR "/test_ca_cert.pem"
 #define TEST_NEED_SECRETS_EAP_TLS_CLIENT_CERT TEST_CERT_DIR "/test_key_and_cert.pem"
 #define TEST_NEED_SECRETS_EAP_TLS_PRIVATE_KEY TEST_CERT_DIR "/test_key_and_cert.pem"
 
@@ -258,7 +259,6 @@ make_tls_phase2_connection (const char *detail, NMSetting8021xCKScheme scheme)
 	                                       NM_SETTING_SECRET_FLAG_AGENT_OWNED,
 	                                       &error);
 	nmtst_assert_success (success, error);
-
 
 	/* IP4 setting */
 	s_ip4 = (NMSettingIP4Config *) nm_setting_ip4_config_new ();
@@ -651,8 +651,7 @@ test_update_secrets_null_setting_name_with_setting_hash (void)
 
 	secrets = build_wep_secrets (wepkey);
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL,
-	                       NMTST_G_RETURN_MSG (setting_name != NULL || full_connection));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (setting_name != NULL || full_connection));
 	success = nm_connection_update_secrets (connection, NULL, secrets, &error);
 	g_test_assert_expected_messages ();
 	g_assert_no_error (error);

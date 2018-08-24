@@ -37,7 +37,7 @@
  * Evaluates to the minor version number of NetworkManager which this source
  * is compiled against.
  */
-#define NM_MINOR_VERSION (10)
+#define NM_MINOR_VERSION (12)
 
 /**
  * NM_MICRO_VERSION:
@@ -45,7 +45,7 @@
  * Evaluates to the micro version number of NetworkManager which this source
  * compiled against.
  */
-#define NM_MICRO_VERSION (8)
+#define NM_MICRO_VERSION (2)
 
 /**
  * NM_CHECK_VERSION:
@@ -72,13 +72,26 @@
 #define NM_VERSION_1_6    (NM_ENCODE_VERSION (1, 6, 0))
 #define NM_VERSION_1_8    (NM_ENCODE_VERSION (1, 8, 0))
 #define NM_VERSION_1_10   (NM_ENCODE_VERSION (1, 10, 0))
-#define NM_VERSION_1_10_2 (NM_ENCODE_VERSION (1, 10, 2))
-#define NM_VERSION_1_10_4 (NM_ENCODE_VERSION (1, 10, 4))
-#define NM_VERSION_1_10_6 (NM_ENCODE_VERSION (1, 10, 6))
-#define NM_VERSION_1_10_8 (NM_ENCODE_VERSION (1, 10, 8))
+#define NM_VERSION_1_12   (NM_ENCODE_VERSION (1, 12, 0))
+#define NM_VERSION_1_12_2 (NM_ENCODE_VERSION (1, 12, 2))
 
-#define NM_VERSION_CUR_STABLE  NM_VERSION_1_10_8
-#define NM_VERSION_NEXT_STABLE NM_VERSION_1_10_8
+/* For releases, NM_API_VERSION is equal to NM_VERSION.
+ *
+ * For development builds, NM_API_VERSION is the next
+ * stable API after NM_VERSION. When you run a development
+ * version, you are already using the future API, even if
+ * it is not yet release. Hence, the currently used API
+ * version is the future one.  */
+#define NM_API_VERSION \
+    (((NM_MINOR_VERSION % 2) == 1) \
+        ? NM_ENCODE_VERSION (NM_MAJOR_VERSION, NM_MINOR_VERSION + 1, 0                               ) \
+        : NM_ENCODE_VERSION (NM_MAJOR_VERSION, NM_MINOR_VERSION    , ((NM_MICRO_VERSION + 1) / 2) * 2))
+
+/* deprecated. */
+#define NM_VERSION_CUR_STABLE  NM_API_VERSION
+
+/* deprecated. */
+#define NM_VERSION_NEXT_STABLE NM_API_VERSION
 
 #define NM_VERSION NM_ENCODE_VERSION (NM_MAJOR_VERSION, NM_MINOR_VERSION, NM_MICRO_VERSION)
 

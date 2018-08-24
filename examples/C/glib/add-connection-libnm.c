@@ -97,18 +97,12 @@ add_connection (NMClient *client, GMainLoop *loop, const char *con_name)
 	g_object_unref (connection);
 }
 
-
 int
 main (int argc, char *argv[])
 {
 	NMClient *client;
 	GMainLoop *loop;
 	GError *error = NULL;
-
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-	/* Initialize GType system */
-	g_type_init ();
-#endif
 
 	loop = g_main_loop_new (NULL, FALSE);
 

@@ -43,8 +43,6 @@
 #include "devices/wwan/nm-modem-manager.h"
 #include "devices/wwan/nm-modem.h"
 
-#include "introspection/org.freedesktop.NetworkManager.Device.Bluetooth.h"
-
 #include "devices/nm-device-logging.h"
 _LOG_DECLARE_SELF(NMDeviceBt);
 
@@ -217,7 +215,7 @@ static gboolean
 complete_connection (NMDevice *device,
                      NMConnection *connection,
                      const char *specific_object,
-                     const GSList *existing_connections,
+                     NMConnection *const*existing_connections,
                      GError **error)
 {
 	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE ((NMDeviceBt *) device);
@@ -540,11 +538,16 @@ modem_ip4_config_result (NMModem *modem,
 }
 
 static void
-data_port_changed_cb (NMModem *modem, GParamSpec *pspec, gpointer user_data)
+ip_ifindex_changed_cb (NMModem *modem, GParamSpec *pspec, gpointer user_data)
 {
-	NMDevice *self = NM_DEVICE (user_data);
+	NMDevice *device = NM_DEVICE (user_data);
 
-	nm_device_set_ip_iface (self, nm_modem_get_data_port (modem));
+	if (!nm_device_set_ip_ifindex (device,
+	                               nm_modem_get_ip_ifindex (modem))) {
+		nm_device_state_changed (device,
+		                         NM_DEVICE_STATE_FAILED,
+		                         NM_DEVICE_STATE_REASON_IP_CONFIG_UNAVAILABLE);
+	}
 }
 
 static gboolean
@@ -640,29 +643,24 @@ component_added (NMDevice *device, GObject *component)
 	NMDeviceBt *self = NM_DEVICE_BT (device);
 	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE (self);
 	NMModem *modem;
-	const gchar *modem_data_port;
-	const gchar *modem_control_port;
-	char *base;
 	NMDeviceState state;
 	NMDeviceStateReason failure_reason = NM_DEVICE_STATE_REASON_NONE;
 
-	if (!component || !NM_IS_MODEM (component))
+	if (   !component
+	    || !NM_IS_MODEM (component))
 		return FALSE;
+
 	modem = NM_MODEM (component);
-
-	modem_data_port = nm_modem_get_data_port (modem);
-	modem_control_port = nm_modem_get_control_port (modem);
-	g_return_val_if_fail (modem_data_port != NULL || modem_control_port != NULL, FALSE);
-
 	if (!priv->rfcomm_iface)
 		return FALSE;
 
-	base = g_path_get_basename (priv->rfcomm_iface);
-	if (g_strcmp0 (base, modem_data_port) && g_strcmp0 (base, modem_control_port)) {
-		g_free (base);
-		return FALSE;
+	{
+		gs_free char *base = NULL;
+
+		base = g_path_get_basename (priv->rfcomm_iface);
+		if (!nm_streq (base, nm_modem_get_control_port (modem)))
+			return FALSE;
 	}
-	g_free (base);
 
 	/* Got the modem */
 	nm_clear_g_source (&priv->timeout_id);
@@ -696,7 +694,7 @@ component_added (NMDevice *device, GObject *component)
 	g_signal_connect (modem, NM_MODEM_STATE_CHANGED, G_CALLBACK (modem_state_cb), self);
 	g_signal_connect (modem, NM_MODEM_REMOVED, G_CALLBACK (modem_removed_cb), self);
 
-	g_signal_connect (modem, "notify::" NM_MODEM_DATA_PORT, G_CALLBACK (data_port_changed_cb), self);
+	g_signal_connect (modem, "notify::" NM_MODEM_IP_IFINDEX, G_CALLBACK (ip_ifindex_changed_cb), self);
 
 	/* Kick off the modem connection */
 	if (!modem_stage1 (self, modem, &failure_reason))
@@ -753,13 +751,16 @@ bluez_connect_cb (GObject *object,
                   GAsyncResult *res,
                   void *user_data)
 {
-	NMDeviceBt *self = NM_DEVICE_BT (user_data);
+	gs_unref_object NMDeviceBt *self = NM_DEVICE_BT (user_data);
 	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE (self);
 	GError *error = NULL;
 	const char *device;
 
 	device = nm_bluez_device_connect_finish (NM_BLUEZ_DEVICE (object),
 	                                         res, &error);
+
+	if (!nm_device_is_activating (NM_DEVICE (self)))
+		return;
 
 	if (!device) {
 		_LOGW (LOGD_BT, "Error connecting with bluez: %s", error->message);
@@ -768,7 +769,6 @@ bluez_connect_cb (GObject *object,
 		nm_device_state_changed (NM_DEVICE (self),
 		                         NM_DEVICE_STATE_FAILED,
 		                         NM_DEVICE_STATE_REASON_BT_FAILED);
-		g_object_unref (self);
 		return;
 	}
 
@@ -776,7 +776,13 @@ bluez_connect_cb (GObject *object,
 		g_free (priv->rfcomm_iface);
 		priv->rfcomm_iface = g_strdup (device);
 	} else if (priv->bt_type == NM_BT_CAPABILITY_NAP) {
-		nm_device_set_ip_iface (NM_DEVICE (self), device);
+		if (!nm_device_set_ip_iface (NM_DEVICE (self), device)) {
+			_LOGW (LOGD_BT, "Error connecting with bluez: cannot find device %s", device);
+			nm_device_state_changed (NM_DEVICE (self),
+			                         NM_DEVICE_STATE_FAILED,
+			                         NM_DEVICE_STATE_REASON_BT_FAILED);
+			return;
+		}
 	}
 
 	_LOGD (LOGD_BT, "connect request successful");
@@ -784,7 +790,6 @@ bluez_connect_cb (GObject *object,
 	/* Stage 3 gets scheduled when Bluez says we're connected */
 	priv->have_iface = TRUE;
 	check_connect_continue (self);
-	g_object_unref (self);
 }
 
 static void
@@ -898,11 +903,8 @@ act_stage3_ip6_config_start (NMDevice *device,
 {
 	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE ((NMDeviceBt *) device);
 
-	if (priv->bt_type == NM_BT_CAPABILITY_DUN) {
-		return nm_modem_stage3_ip6_config_start (priv->modem,
-		                                         nm_device_get_act_request (device),
-		                                         out_failure_reason);
-	}
+	if (priv->bt_type == NM_BT_CAPABILITY_DUN)
+		return nm_modem_stage3_ip6_config_start (priv->modem, device, out_failure_reason);
 
 	return NM_DEVICE_CLASS (nm_device_bt_parent_class)->act_stage3_ip6_config_start (device, out_config, out_failure_reason);
 }
@@ -1145,10 +1147,26 @@ finalize (GObject *object)
 	G_OBJECT_CLASS (nm_device_bt_parent_class)->finalize (object);
 }
 
+static const NMDBusInterfaceInfoExtended interface_info_device_bluetooth = {
+	.parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT (
+		NM_DBUS_INTERFACE_DEVICE_BLUETOOTH,
+		.signals = NM_DEFINE_GDBUS_SIGNAL_INFOS (
+			&nm_signal_info_property_changed_legacy,
+		),
+		.properties = NM_DEFINE_GDBUS_PROPERTY_INFOS (
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("HwAddress",      "s",  NM_DEVICE_HW_ADDRESS),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Name",           "s",  NM_DEVICE_BT_NAME),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("BtCapabilities", "u",  NM_DEVICE_BT_CAPABILITIES),
+		),
+	),
+	.legacy_property_changed = TRUE,
+};
+
 static void
 nm_device_bt_class_init (NMDeviceBtClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	NMDBusObjectClass *dbus_object_class = NM_DBUS_OBJECT_CLASS (klass);
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (klass);
 
 	object_class->constructed = constructed;
@@ -1156,6 +1174,8 @@ nm_device_bt_class_init (NMDeviceBtClass *klass)
 	object_class->set_property = set_property;
 	object_class->dispose = dispose;
 	object_class->finalize = finalize;
+
+	dbus_object_class->interface_infos = NM_DBUS_INTERFACE_INFOS (&interface_info_device_bluetooth);
 
 	device_class->get_generic_capabilities = get_generic_capabilities;
 	device_class->can_auto_connect = can_auto_connect;
@@ -1200,8 +1220,4 @@ nm_device_bt_class_init (NMDeviceBtClass *klass)
 	                  G_TYPE_NONE, 2,
 	                  G_TYPE_UINT /*guint32 in_bytes*/,
 	                  G_TYPE_UINT /*guint32 out_bytes*/);
-
-	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
-	                                        NMDBUS_TYPE_DEVICE_BLUETOOTH_SKELETON,
-	                                        NULL);
 }

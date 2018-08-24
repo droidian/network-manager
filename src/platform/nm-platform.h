@@ -25,6 +25,7 @@
 #include <linux/if.h>
 #include <linux/if_addr.h>
 #include <linux/if_link.h>
+#include <linux/ip6_tunnel.h>
 
 #include "nm-dbus-interface.h"
 #include "nm-core-types-internal.h"
@@ -32,6 +33,8 @@
 #include "nm-core-utils.h"
 #include "nm-setting-vlan.h"
 #include "nm-setting-wired.h"
+#include "nm-setting-wireless.h"
+#include "nm-setting-ip-tunnel.h"
 
 #define NM_TYPE_PLATFORM            (nm_platform_get_type ())
 #define NM_PLATFORM(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_PLATFORM, NMPlatform))
@@ -169,6 +172,34 @@ typedef enum { /*< skip >*/
 	NM_PLATFORM_ERROR_CANT_SET_MTU,
 } NMPlatformError;
 
+typedef enum {
+
+	/* match-flags are strictly inclusive. That means,
+	 * by default nothing is matched, but if you enable a particular
+	 * flag, a candidate that matches passes the check.
+	 *
+	 * In other words: adding more flags can only extend the result
+	 * set of matching objects.
+	 *
+	 * Also, the flags form partitions. Like, an address can be either of
+	 * ADDRTYPE_NORMAL or ADDRTYPE_LINKLOCAL, but never both. Same for
+	 * the ADDRSTATE match types.
+	 */
+	NM_PLATFORM_MATCH_WITH_NONE                                 = 0,
+
+	NM_PLATFORM_MATCH_WITH_ADDRTYPE_NORMAL                      = (1LL <<  0),
+	NM_PLATFORM_MATCH_WITH_ADDRTYPE_LINKLOCAL                   = (1LL <<  1),
+	NM_PLATFORM_MATCH_WITH_ADDRTYPE__ANY                        =   NM_PLATFORM_MATCH_WITH_ADDRTYPE_NORMAL
+	                                                              | NM_PLATFORM_MATCH_WITH_ADDRTYPE_LINKLOCAL,
+
+	NM_PLATFORM_MATCH_WITH_ADDRSTATE_NORMAL                     = (1LL <<  2),
+	NM_PLATFORM_MATCH_WITH_ADDRSTATE_TENTATIVE                  = (1LL <<  3),
+	NM_PLATFORM_MATCH_WITH_ADDRSTATE_DADFAILED                  = (1LL <<  4),
+	NM_PLATFORM_MATCH_WITH_ADDRSTATE__ANY                       =   NM_PLATFORM_MATCH_WITH_ADDRSTATE_NORMAL
+	                                                              | NM_PLATFORM_MATCH_WITH_ADDRSTATE_TENTATIVE
+	                                                              | NM_PLATFORM_MATCH_WITH_ADDRSTATE_DADFAILED,
+} NMPlatformMatchFlags;
+
 #define NM_PLATFORM_LINK_OTHER_NETNS    (-1)
 
 #define __NMPlatformObject_COMMON \
@@ -254,6 +285,8 @@ struct _NMPlatformObject {
 	__NMPlatformObject_COMMON;
 };
 
+#define NM_PLATFORM_IP_ADDRESS_CAST(address) \
+	NM_CONSTCAST (NMPlatformIPAddress, (address), NMPlatformIPXAddress, NMPlatformIP4Address, NMPlatformIP6Address)
 
 #define __NMPlatformIPAddress_COMMON \
 	__NMPlatformObject_COMMON; \
@@ -343,7 +376,6 @@ typedef union {
 
 #undef __NMPlatformIPAddress_COMMON
 
-
 /* Default value for adding an IPv4 route. This is also what iproute2 does.
  * Note that contrary to IPv6, you can add routes with metric 0 and it is even
  * the default.
@@ -402,7 +434,7 @@ typedef union {
 	 * do not exist from the point-of-view of platform users.
 	 * Such a route is not alive, according to nmp_object_is_alive().
 	 *
-	 * XXX: currently we ignore all flags except RTM_F_CLONED
+	 * NOTE: currently we ignore all flags except RTM_F_CLONED
 	 * and RTNH_F_ONLINK for IPv4.
 	 * We also may not properly consider the flags as part of the ID
 	 * in route-cmp. */ \
@@ -438,7 +470,6 @@ typedef union {
 	guint32 table_coerced; \
 	\
 	/*end*/
-
 
 typedef struct {
 	__NMPlatformIPRoute_COMMON;
@@ -563,7 +594,6 @@ typedef struct {
 
 #undef __NMPlatformObject_COMMON
 
-
 typedef struct {
 	gboolean is_ip4;
 	NMPObjectType obj_type;
@@ -604,6 +634,7 @@ typedef struct {
 	guint8 encap_limit;
 	guint8 proto;
 	guint flow_label;
+	guint32 flags;
 } NMPlatformLnkIp6Tnl;
 
 typedef struct {
@@ -651,6 +682,21 @@ typedef struct {
 } NMPlatformLnkSit;
 
 typedef struct {
+	guint32 owner;
+	guint32 group;
+
+	guint8 type;
+
+	bool owner_valid:1;
+	bool group_valid:1;
+
+	bool pi:1;
+	bool vnet_hdr:1;
+	bool multi_queue:1;
+	bool persist:1;
+} NMPlatformLnkTun;
+
+typedef struct {
 	/* rtnl_link_vlan_get_id(), IFLA_VLAN_ID */
 	guint16 id;
 	NMVlanFlags flags;
@@ -676,15 +722,6 @@ typedef struct {
 	bool l2miss:1;
 	bool l3miss:1;
 } NMPlatformLnkVxlan;
-
-typedef struct {
-	gint64 owner;
-	gint64 group;
-	const char *mode;
-	bool no_pi:1;
-	bool vnet_hdr:1;
-	bool multi_queue:1;
-} NMPlatformTunProperties;
 
 typedef enum {
 	NM_PLATFORM_LINK_DUPLEX_UNKNOWN,
@@ -713,6 +750,8 @@ typedef struct {
 
 	gboolean (*sysctl_set) (NMPlatform *, const char *pathid, int dirfd, const char *path, const char *value);
 	char * (*sysctl_get) (NMPlatform *, const char *pathid, int dirfd, const char *path);
+
+	void (*refresh_all) (NMPlatform *self, NMPObjectType obj_type);
 
 	gboolean (*link_add) (NMPlatform *,
 	                      const char *name,
@@ -809,11 +848,14 @@ typedef struct {
 	                          const NMPlatformLnkSit *props,
 	                          const NMPlatformLink **out_link);
 
+	gboolean (*link_tun_add) (NMPlatform *platform,
+	                          const char *name,
+	                          const NMPlatformLnkTun *props,
+	                          const NMPlatformLink **out_link,
+	                          int *out_fd);
+
 	gboolean (*infiniband_partition_add) (NMPlatform *, int parent, int p_key, const NMPlatformLink **out_link);
 	gboolean (*infiniband_partition_delete) (NMPlatform *, int parent, int p_key);
-
-	gboolean (*tun_add) (NMPlatform *platform, const char *name, gboolean tap, gint64 owner, gint64 group, gboolean pi,
-	                     gboolean vnet_hdr, gboolean multi_queue, const NMPlatformLink **out_link);
 
 	gboolean    (*wifi_get_capabilities) (NMPlatform *, int ifindex, NMDeviceWifiCapabilities *caps);
 	gboolean    (*wifi_get_bssid)        (NMPlatform *, int ifindex, guint8 *bssid);
@@ -826,6 +868,7 @@ typedef struct {
 	void        (*wifi_set_powersave)    (NMPlatform *, int ifindex, guint32 powersave);
 	guint32     (*wifi_find_frequency)   (NMPlatform *, int ifindex, const guint32 *freqs);
 	void        (*wifi_indicate_addressing_running) (NMPlatform *, int ifindex, gboolean running);
+	gboolean    (*wifi_set_wake_on_wlan) (NMPlatform *, int ifindex, NMSettingWirelessWakeOnWLan wowl);
 
 	guint32     (*mesh_get_channel)      (NMPlatform *, int ifindex);
 	gboolean    (*mesh_set_channel)      (NMPlatform *, int ifindex, guint32 channel);
@@ -1028,6 +1071,8 @@ gboolean nm_platform_sysctl_set_ip6_hop_limit_safe (NMPlatform *self, const char
 const char *nm_platform_if_indextoname (NMPlatform *self, int ifindex, char *out_ifname/* of size IFNAMSIZ */);
 int nm_platform_if_nametoindex (NMPlatform *self, const char *ifname);
 
+void nm_platform_refresh_all (NMPlatform *self, NMPObjectType obj_type);
+
 const NMPObject *nm_platform_link_get_obj (NMPlatform *self,
                                            int ifindex,
                                            gboolean visible_only);
@@ -1071,7 +1116,21 @@ gboolean nm_platform_link_is_connected (NMPlatform *self, int ifindex);
 gboolean nm_platform_link_uses_arp (NMPlatform *self, int ifindex);
 guint32 nm_platform_link_get_mtu (NMPlatform *self, int ifindex);
 gboolean nm_platform_link_get_user_ipv6ll_enabled (NMPlatform *self, int ifindex);
+
 gconstpointer nm_platform_link_get_address (NMPlatform *self, int ifindex, size_t *length);
+
+static inline GBytes *
+nm_platform_link_get_address_as_bytes (NMPlatform *self, int ifindex)
+{
+	gconstpointer p;
+	gsize l;
+
+	p = nm_platform_link_get_address (self, ifindex, &l);
+	return p
+	       ? g_bytes_new (p, l)
+	       : NULL;
+}
+
 int nm_platform_link_get_master (NMPlatform *self, int slave);
 
 gboolean nm_platform_link_can_assume (NMPlatform *self, int ifindex);
@@ -1082,6 +1141,10 @@ const char *nm_platform_link_get_type_name (NMPlatform *self, int ifindex);
 
 gboolean nm_platform_link_refresh (NMPlatform *self, int ifindex);
 void nm_platform_process_events (NMPlatform *self);
+
+const NMPlatformLink *nm_platform_process_events_ensure_link (NMPlatform *self,
+                                                              int ifindex,
+                                                              const char *ifname);
 
 gboolean nm_platform_link_set_up (NMPlatform *self, int ifindex, gboolean *out_no_firmware);
 gboolean nm_platform_link_set_down (NMPlatform *self, int ifindex);
@@ -1132,6 +1195,7 @@ const NMPlatformLnkMacsec *nm_platform_link_get_lnk_macsec (NMPlatform *self, in
 const NMPlatformLnkMacvlan *nm_platform_link_get_lnk_macvlan (NMPlatform *self, int ifindex, const NMPlatformLink **out_link);
 const NMPlatformLnkMacvtap *nm_platform_link_get_lnk_macvtap (NMPlatform *self, int ifindex, const NMPlatformLink **out_link);
 const NMPlatformLnkSit *nm_platform_link_get_lnk_sit (NMPlatform *self, int ifindex, const NMPlatformLink **out_link);
+const NMPlatformLnkTun *nm_platform_link_get_lnk_tun (NMPlatform *self, int ifindex, const NMPlatformLink **out_link);
 const NMPlatformLnkVlan *nm_platform_link_get_lnk_vlan (NMPlatform *self, int ifindex, const NMPlatformLink **out_link);
 const NMPlatformLnkVxlan *nm_platform_link_get_lnk_vxlan (NMPlatform *self, int ifindex, const NMPlatformLink **out_link);
 
@@ -1159,16 +1223,6 @@ NMPlatformError nm_platform_link_vxlan_add (NMPlatform *self,
                                             const NMPlatformLnkVxlan *props,
                                             const NMPlatformLink **out_link);
 
-NMPlatformError nm_platform_link_tun_add (NMPlatform *self,
-                                          const char *name,
-                                          gboolean tap,
-                                          gint64 owner,
-                                          gint64 group,
-                                          gboolean pi,
-                                          gboolean vnet_hdr,
-                                          gboolean multi_queue,
-                                          const NMPlatformLink **out_link);
-
 NMPlatformError nm_platform_link_infiniband_add (NMPlatform *self,
                                                  int parent,
                                                  int p_key,
@@ -1179,7 +1233,9 @@ NMPlatformError nm_platform_link_infiniband_delete (NMPlatform *self,
 gboolean nm_platform_link_infiniband_get_properties (NMPlatform *self, int ifindex, int *parent, int *p_key, const char **mode);
 
 gboolean nm_platform_link_veth_get_properties   (NMPlatform *self, int ifindex, int *out_peer_ifindex);
-gboolean nm_platform_link_tun_get_properties    (NMPlatform *self, int ifindex, NMPlatformTunProperties *properties);
+gboolean nm_platform_link_tun_get_properties    (NMPlatform *self,
+                                                 int ifindex,
+                                                 NMPlatformLnkTun *out_properties);
 
 gboolean    nm_platform_wifi_get_capabilities (NMPlatform *self, int ifindex, NMDeviceWifiCapabilities *caps);
 gboolean    nm_platform_wifi_get_bssid        (NMPlatform *self, int ifindex, guint8 *bssid);
@@ -1191,6 +1247,7 @@ void        nm_platform_wifi_set_mode         (NMPlatform *self, int ifindex, NM
 void        nm_platform_wifi_set_powersave    (NMPlatform *self, int ifindex, guint32 powersave);
 guint32     nm_platform_wifi_find_frequency   (NMPlatform *self, int ifindex, const guint32 *freqs);
 void        nm_platform_wifi_indicate_addressing_running (NMPlatform *self, int ifindex, gboolean running);
+gboolean    nm_platform_wifi_set_wake_on_wlan (NMPlatform *self, int ifindex, NMSettingWirelessWakeOnWLan wowl);
 
 guint32     nm_platform_mesh_get_channel      (NMPlatform *self, int ifindex);
 gboolean    nm_platform_mesh_set_channel      (NMPlatform *self, int ifindex, guint32 channel);
@@ -1227,6 +1284,11 @@ NMPlatformError nm_platform_link_sit_add (NMPlatform *self,
                                           const char *name,
                                           const NMPlatformLnkSit *props,
                                           const NMPlatformLink **out_link);
+NMPlatformError nm_platform_link_tun_add (NMPlatform *self,
+                                          const char *name,
+                                          const NMPlatformLnkTun *props,
+                                          const NMPlatformLink **out_link,
+                                          int *out_fd);
 
 const NMPlatformIP6Address *nm_platform_ip6_address_get (NMPlatform *self, int ifindex, struct in6_addr address);
 
@@ -1251,8 +1313,8 @@ gboolean nm_platform_ip6_address_add (NMPlatform *self,
                                       guint32 flags);
 gboolean nm_platform_ip4_address_delete (NMPlatform *self, int ifindex, in_addr_t address, guint8 plen, in_addr_t peer_address);
 gboolean nm_platform_ip6_address_delete (NMPlatform *self, int ifindex, struct in6_addr address, guint8 plen);
-gboolean nm_platform_ip4_address_sync (NMPlatform *self, int ifindex, GPtrArray *known_addresse);
-gboolean nm_platform_ip6_address_sync (NMPlatform *self, int ifindex, const GPtrArray *known_addresses, gboolean keep_link_local);
+gboolean nm_platform_ip4_address_sync (NMPlatform *self, int ifindex, GPtrArray *known_addresses);
+gboolean nm_platform_ip6_address_sync (NMPlatform *self, int ifindex, GPtrArray *known_addresses, gboolean full_sync);
 gboolean nm_platform_ip_address_flush (NMPlatform *self,
                                        int addr_family,
                                        int ifindex);
@@ -1310,6 +1372,7 @@ const char *nm_platform_lnk_ipip_to_string (const NMPlatformLnkIpIp *lnk, char *
 const char *nm_platform_lnk_macsec_to_string (const NMPlatformLnkMacsec *lnk, char *buf, gsize len);
 const char *nm_platform_lnk_macvlan_to_string (const NMPlatformLnkMacvlan *lnk, char *buf, gsize len);
 const char *nm_platform_lnk_sit_to_string (const NMPlatformLnkSit *lnk, char *buf, gsize len);
+const char *nm_platform_lnk_tun_to_string (const NMPlatformLnkTun *lnk, char *buf, gsize len);
 const char *nm_platform_lnk_vlan_to_string (const NMPlatformLnkVlan *lnk, char *buf, gsize len);
 const char *nm_platform_lnk_vxlan_to_string (const NMPlatformLnkVxlan *lnk, char *buf, gsize len);
 const char *nm_platform_ip4_address_to_string (const NMPlatformIP4Address *address, char *buf, gsize len);
@@ -1333,6 +1396,7 @@ int nm_platform_lnk_ipip_cmp (const NMPlatformLnkIpIp *a, const NMPlatformLnkIpI
 int nm_platform_lnk_macsec_cmp (const NMPlatformLnkMacsec *a, const NMPlatformLnkMacsec *b);
 int nm_platform_lnk_macvlan_cmp (const NMPlatformLnkMacvlan *a, const NMPlatformLnkMacvlan *b);
 int nm_platform_lnk_sit_cmp (const NMPlatformLnkSit *a, const NMPlatformLnkSit *b);
+int nm_platform_lnk_tun_cmp (const NMPlatformLnkTun *a, const NMPlatformLnkTun *b);
 int nm_platform_lnk_vlan_cmp (const NMPlatformLnkVlan *a, const NMPlatformLnkVlan *b);
 int nm_platform_lnk_vxlan_cmp (const NMPlatformLnkVxlan *a, const NMPlatformLnkVxlan *b);
 int nm_platform_ip4_address_cmp (const NMPlatformIP4Address *a, const NMPlatformIP4Address *b);
@@ -1368,6 +1432,7 @@ void nm_platform_lnk_ipip_hash_update (const NMPlatformLnkIpIp *obj, NMHashState
 void nm_platform_lnk_macsec_hash_update (const NMPlatformLnkMacsec *obj, NMHashState *h);
 void nm_platform_lnk_macvlan_hash_update (const NMPlatformLnkMacvlan *obj, NMHashState *h);
 void nm_platform_lnk_sit_hash_update (const NMPlatformLnkSit *obj, NMHashState *h);
+void nm_platform_lnk_tun_hash_update (const NMPlatformLnkTun *obj, NMHashState *h);
 void nm_platform_lnk_vlan_hash_update (const NMPlatformLnkVlan *obj, NMHashState *h);
 void nm_platform_lnk_vxlan_hash_update (const NMPlatformLnkVxlan *obj, NMHashState *h);
 
@@ -1387,6 +1452,7 @@ int nm_platform_ip_address_cmp_expiry (const NMPlatformIPAddress *a, const NMPla
 gboolean nm_platform_ethtool_set_wake_on_lan (NMPlatform *self, int ifindex, NMSettingWiredWakeOnLan wol, const char *wol_password);
 gboolean nm_platform_ethtool_set_link_settings (NMPlatform *self, int ifindex, gboolean autoneg, guint32 speed, NMPlatformLinkDuplexType duplex);
 gboolean nm_platform_ethtool_get_link_settings (NMPlatform *self, int ifindex, gboolean *out_autoneg, guint32 *out_speed, NMPlatformLinkDuplexType *out_duplex);
+const char * nm_platform_link_duplex_type_to_string (NMPlatformLinkDuplexType duplex);
 
 void nm_platform_ip4_dev_route_blacklist_set (NMPlatform *self,
                                               int ifindex,

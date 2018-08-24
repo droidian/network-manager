@@ -353,6 +353,45 @@ nm_platform_process_events (NMPlatform *self)
 		klass->process_events (self);
 }
 
+const NMPlatformLink *
+nm_platform_process_events_ensure_link (NMPlatform *self,
+                                        int ifindex,
+                                        const char *ifname)
+{
+	const NMPObject *obj;
+	gboolean refreshed = FALSE;
+
+	g_return_val_if_fail (NM_IS_PLATFORM (self), NULL);
+
+	if (ifindex <= 0 && !ifname)
+		return NULL;
+
+	/* we look into the cache, whether a link for given ifindex/ifname
+	 * exits. If not, we poll the netlink socket, maybe the event
+	 * with the link is waiting.
+	 *
+	 * Then we try again to find the object.
+	 *
+	 * If the link is already cached the first time, we avoid polling
+	 * the netlink socket. */
+again:
+	obj = nmp_cache_lookup_link_full (nm_platform_get_cache (self),
+	                                  ifindex,
+	                                  ifname,
+	                                  FALSE, /* also invisible. We don't care here whether udev is ready */
+	                                  NM_LINK_TYPE_NONE,
+	                                  NULL, NULL);
+	if (obj)
+		return NMP_OBJECT_CAST_LINK (obj);
+	if (!refreshed) {
+		refreshed = TRUE;
+		nm_platform_process_events (self);
+		goto again;
+	}
+
+	return NULL;
+}
+
 /*****************************************************************************/
 
 /**
@@ -597,11 +636,11 @@ nm_platform_link_get_all (NMPlatform *self, gboolean sort_by_name)
 	 * further by moving children/slaves to the end. */
 	g_ptr_array_sort_with_data (links, _link_get_all_presort, GINT_TO_POINTER (sort_by_name));
 
-	unseen = g_hash_table_new (g_direct_hash, g_direct_equal);
+	unseen = g_hash_table_new (nm_direct_hash, NULL);
 	for (i = 0; i < links->len; i++) {
 		item = NMP_OBJECT_CAST_LINK (links->pdata[i]);
 		nm_assert (item->ifindex > 0);
-		if (!nm_g_hash_table_insert (unseen, GINT_TO_POINTER (item->ifindex), NULL))
+		if (!g_hash_table_insert (unseen, GINT_TO_POINTER (item->ifindex), NULL))
 			nm_assert_not_reached ();
 	}
 
@@ -1118,6 +1157,21 @@ nm_platform_link_supports_slaves (NMPlatform *self, int ifindex)
 }
 
 /**
+ * nm_platform_refresh_all:
+ * @self: platform instance
+ * @obj_type: The object type to request.
+ *
+ * Resync and re-request all objects from kernel of a certain @obj_type.
+ */
+void
+nm_platform_refresh_all (NMPlatform *self, NMPObjectType obj_type)
+{
+	_CHECK_SELF_VOID (self, klass);
+
+	klass->refresh_all (self, obj_type);
+}
+
+/**
  * nm_platform_link_refresh:
  * @self: platform instance
  * @ifindex: Interface index
@@ -1325,30 +1379,26 @@ gconstpointer
 nm_platform_link_get_address (NMPlatform *self, int ifindex, size_t *length)
 {
 	const NMPlatformLink *pllink;
-	gconstpointer a = NULL;
-	guint8 l = 0;
 
 	_CHECK_SELF (self, klass, NULL);
-
-	if (length)
-		*length = 0;
 
 	g_return_val_if_fail (ifindex > 0, NULL);
 
 	pllink = nm_platform_link_get (self, ifindex);
-	if (pllink && pllink->addr.len > 0) {
-		if (pllink->addr.len > NM_UTILS_HWADDR_LEN_MAX) {
-			if (length)
-				*length = 0;
-			g_return_val_if_reached (NULL);
-		}
-		a = pllink->addr.data;
-		l = pllink->addr.len;
+
+	if (   !pllink
+	    || pllink->addr.len <= 0) {
+		NM_SET_OUT (length, 0);
+		return NULL;
 	}
 
-	if (length)
-		*length = l;
-	return a;
+	if (pllink->addr.len > NM_UTILS_HWADDR_LEN_MAX) {
+		NM_SET_OUT (length, 0);
+		g_return_val_if_reached (NULL);
+	}
+
+	NM_SET_OUT (length, pllink->addr.len);
+	return pllink->addr.data;
 }
 
 /**
@@ -1844,6 +1894,12 @@ nm_platform_link_get_lnk_sit (NMPlatform *self, int ifindex, const NMPlatformLin
 	return _link_get_lnk (self, ifindex, NM_LINK_TYPE_SIT, out_link);
 }
 
+const NMPlatformLnkTun *
+nm_platform_link_get_lnk_tun (NMPlatform *self, int ifindex, const NMPlatformLink **out_link)
+{
+	return _link_get_lnk (self, ifindex, NM_LINK_TYPE_TUN, out_link);
+}
+
 const NMPlatformLnkVlan *
 nm_platform_link_get_lnk_vlan (NMPlatform *self, int ifindex, const NMPlatformLink **out_link)
 {
@@ -1990,33 +2046,43 @@ nm_platform_link_vxlan_add (NMPlatform *self,
  * @vnet_hdr: whether to set the IFF_VNET_HDR flag
  * @multi_queue: whether to set the IFF_MULTI_QUEUE flag
  * @out_link: on success, the link object
+ * @out_fd: (allow-none): if give, return the file descriptor for the
+ *   created device. Note that when creating a non-persistent device,
+ *   this argument is mandatory, otherwise it makes no sense
+ *   to create such an interface.
+ *   The caller is responsible for closing this file descriptor.
  *
  * Create a TUN or TAP interface.
  */
 NMPlatformError
 nm_platform_link_tun_add (NMPlatform *self,
                           const char *name,
-                          gboolean tap,
-                          gint64 owner,
-                          gint64 group,
-                          gboolean pi,
-                          gboolean vnet_hdr,
-                          gboolean multi_queue,
-                          const NMPlatformLink **out_link)
+                          const NMPlatformLnkTun *props,
+                          const NMPlatformLink **out_link,
+                          int *out_fd)
 {
+	char b[255];
 	NMPlatformError plerr;
 
 	_CHECK_SELF (self, klass, NM_PLATFORM_ERROR_BUG);
 
 	g_return_val_if_fail (name, NM_PLATFORM_ERROR_BUG);
+	g_return_val_if_fail (props, NM_PLATFORM_ERROR_BUG);
+	g_return_val_if_fail (NM_IN_SET (props->type, IFF_TUN, IFF_TAP), NM_PLATFORM_ERROR_BUG);
 
-	plerr = _link_add_check_existing (self, name, tap ? NM_LINK_TYPE_TAP : NM_LINK_TYPE_TUN, out_link);
+	/* creating a non-persistant device requires that the caller handles
+	 * the file descriptor. */
+	g_return_val_if_fail (props->persist || out_fd, NM_PLATFORM_ERROR_BUG);
+
+	NM_SET_OUT (out_fd, -1);
+
+	plerr = _link_add_check_existing (self, name, NM_LINK_TYPE_TUN, out_link);
 	if (plerr != NM_PLATFORM_ERROR_SUCCESS)
 		return plerr;
 
-	_LOGD ("link: adding %s '%s' owner %" G_GINT64_FORMAT " group %" G_GINT64_FORMAT,
-	       tap ? "tap" : "tun", name, owner, group);
-	if (!klass->tun_add (self, name, tap, owner, group, pi, vnet_hdr, multi_queue, out_link))
+	_LOGD ("link: adding tun '%s' %s",
+	       name, nm_platform_lnk_tun_to_string (props, b, sizeof (b)));
+	if (!klass->link_tun_add (self, name, props, out_link, out_fd))
 		return NM_PLATFORM_ERROR_UNSPECIFIED;
 	return NM_PLATFORM_ERROR_SUCCESS;
 }
@@ -2330,7 +2396,6 @@ nm_platform_link_infiniband_delete (NMPlatform *self,
 	return _infiniband_add_add_or_delete (self, parent, p_key, FALSE, NULL);
 }
 
-
 gboolean
 nm_platform_link_infiniband_get_properties (NMPlatform *self,
                                             int ifindex,
@@ -2620,44 +2685,100 @@ nm_platform_link_veth_get_properties (NMPlatform *self, int ifindex, int *out_pe
 	return TRUE;
 }
 
+/**
+ * nm_platform_link_tun_get_properties:
+ * @self: the #NMPlatform instance
+ * @ifindex: the ifindex to look up
+ * @out_properties: (out): (allow-none): return the read properties
+ *
+ * Only recent versions of kernel export tun properties via netlink.
+ * So, if that's the case, then we have the NMPlatformLnkTun instance
+ * in the platform cache ready to return. Otherwise, this function
+ * falls back reading sysctl to obtain the tun properties. That
+ * is racy, because querying sysctl means that the object might
+ * be already removed from cache (while NM didn't yet process the
+ * netlink message).
+ *
+ * Hence, to lookup the tun properties, you always need to use this
+ * function, and use it with care knowing that it might obtain its
+ * data by reading sysctl. Note that we don't want to add this workaround
+ * to the platform cache itself, because the cache should (mainly)
+ * contain data from netlink. To access the sysctl side channel, the
+ * user needs to do explicitly.
+ *
+ * Returns: #TRUE, if the properties could be read. */
 gboolean
-nm_platform_link_tun_get_properties (NMPlatform *self, int ifindex, NMPlatformTunProperties *props)
+nm_platform_link_tun_get_properties (NMPlatform *self,
+                                     int ifindex,
+                                     NMPlatformLnkTun *out_properties)
 {
-	nm_auto_close int dirfd = -1;
+	const NMPObject *plobj;
+	const NMPObject *pllnk;
 	char ifname[IFNAMSIZ];
+	gint64 owner;
+	gint64 group;
 	gint64 flags;
-	gboolean success = TRUE;
+
 	_CHECK_SELF (self, klass, FALSE);
 
 	g_return_val_if_fail (ifindex > 0, FALSE);
-	g_return_val_if_fail (props, FALSE);
 
-	memset (props, 0, sizeof (*props));
-	props->owner = -1;
-	props->group = -1;
-
-	dirfd = nm_platform_sysctl_open_netdir (self, ifindex, ifname);
-	if (dirfd < 0)
+	/* we consider also invisible links (those that are not yet in udev). */
+	plobj = nm_platform_link_get_obj (self, ifindex, FALSE);
+	if (!plobj)
+		return FALSE;
+	if (NMP_OBJECT_CAST_LINK (plobj)->type != NM_LINK_TYPE_TUN)
 		return FALSE;
 
-	props->owner = nm_platform_sysctl_get_int_checked (self, NMP_SYSCTL_PATHID_NETDIR (dirfd, ifname, "owner"), 10, -1, G_MAXINT64, -1);
-	if (errno)
-		success = FALSE;
+	pllnk = plobj->_link.netlink.lnk;
+	if (pllnk) {
+		nm_assert (NMP_OBJECT_GET_TYPE (pllnk) == NMP_OBJECT_TYPE_LNK_TUN);
+		nm_assert (NMP_OBJECT_GET_CLASS (pllnk)->lnk_link_type == NM_LINK_TYPE_TUN);
 
-	props->group = nm_platform_sysctl_get_int_checked (self, NMP_SYSCTL_PATHID_NETDIR (dirfd, ifname, "group"), 10, -1, G_MAXINT64, -1);
-	if (errno)
-		success = FALSE;
+		/* recent kernels expose tun properties via netlink and thus we have them
+		 * in the platform cache. */
+		NM_SET_OUT (out_properties, pllnk->lnk_tun);
+		return TRUE;
+	}
 
-	flags = nm_platform_sysctl_get_int_checked (self, NMP_SYSCTL_PATHID_NETDIR (dirfd, ifname, "tun_flags"), 16, 0, G_MAXINT64, -1);
-	if (flags >= 0) {
-		props->mode = ((flags & (IFF_TUN | IFF_TAP)) == IFF_TUN) ? "tun" : "tap";
-		props->no_pi = !!(flags & IFF_NO_PI);
-		props->vnet_hdr = !!(flags & IFF_VNET_HDR);
-		props->multi_queue = !!(flags & NM_IFF_MULTI_QUEUE);
-	} else
-		success = FALSE;
+	/* fallback to reading sysctl. */
+	{
+		nm_auto_close int dirfd = -1;
 
-	return success;
+		dirfd = nm_platform_sysctl_open_netdir (self, ifindex, ifname);
+		if (dirfd < 0)
+			return FALSE;
+
+		owner = nm_platform_sysctl_get_int_checked (self, NMP_SYSCTL_PATHID_NETDIR (dirfd, ifname, "owner"), 10, -1, G_MAXUINT32, -2);
+		if (owner == -2)
+			return FALSE;
+
+		group = nm_platform_sysctl_get_int_checked (self, NMP_SYSCTL_PATHID_NETDIR (dirfd, ifname, "group"), 10, -1, G_MAXUINT32, -2);
+		if (group == -2)
+			return FALSE;
+
+		flags = nm_platform_sysctl_get_int_checked (self, NMP_SYSCTL_PATHID_NETDIR (dirfd, ifname, "tun_flags"), 16, 0, G_MAXINT64, -1);
+		if (flags == -1)
+			return FALSE;
+	}
+
+	if (out_properties) {
+		memset (out_properties, 0, sizeof (*out_properties));
+		if (owner != -1) {
+			out_properties->owner_valid = TRUE;
+			out_properties->owner = owner;
+		}
+		if (group != -1) {
+			out_properties->group_valid = TRUE;
+			out_properties->group = group;
+		}
+		out_properties->type = (flags & TUN_TYPE_MASK);
+		out_properties->pi = !(flags & IFF_NO_PI);
+		out_properties->vnet_hdr = !!(flags & IFF_VNET_HDR);
+		out_properties->multi_queue = !!(flags & NM_IFF_MULTI_QUEUE);
+		out_properties->persist = !!(flags & IFF_PERSIST);
+	}
+	return TRUE;
 }
 
 gboolean
@@ -2767,6 +2888,16 @@ nm_platform_wifi_indicate_addressing_running (NMPlatform *self, int ifindex, gbo
 	klass->wifi_indicate_addressing_running (self, ifindex, running);
 }
 
+gboolean
+nm_platform_wifi_set_wake_on_wlan (NMPlatform *self, int ifindex, NMSettingWirelessWakeOnWLan wowl)
+{
+	_CHECK_SELF (self, klass, FALSE);
+
+	g_return_val_if_fail (ifindex > 0, FALSE);
+
+	return klass->wifi_set_wake_on_wlan (self, ifindex, wowl);
+}
+
 guint32
 nm_platform_mesh_get_channel (NMPlatform *self, int ifindex)
 {
@@ -2874,6 +3005,13 @@ nm_platform_ethtool_get_link_settings (NMPlatform *self, int ifindex, gboolean *
 	return nmp_utils_ethtool_get_link_settings (ifindex, out_autoneg, out_speed, out_duplex);
 }
 
+NM_UTILS_LOOKUP_STR_DEFINE (nm_platform_link_duplex_type_to_string, NMPlatformLinkDuplexType,
+	NM_UTILS_LOOKUP_DEFAULT_WARN (NULL),
+	NM_UTILS_LOOKUP_STR_ITEM (NM_PLATFORM_LINK_DUPLEX_UNKNOWN, "unknown"),
+	NM_UTILS_LOOKUP_STR_ITEM (NM_PLATFORM_LINK_DUPLEX_FULL,    "full"),
+	NM_UTILS_LOOKUP_STR_ITEM (NM_PLATFORM_LINK_DUPLEX_HALF,    "half"),
+);
+
 /*****************************************************************************/
 
 const NMDedupMultiHeadEntry *
@@ -2932,7 +3070,7 @@ nm_platform_lookup_predicate_routes_main_skip_rtprot_kernel (const NMPObject *ob
  * @user_data: user data for @predicate
  *
  * Returns the result of lookup in a GPtrArray. The result array contains
- * references objects from the cache, it's destroy function will unref them.
+ * references objects from the cache, its destroy function will unref them.
  *
  * The user must unref the GPtrArray, which will also unref the NMPObject
  * elements.
@@ -3111,24 +3249,68 @@ nm_platform_ip6_address_get (NMPlatform *self, int ifindex, struct in6_addr addr
 }
 
 static gboolean
-array_contains_ip6_address (const GPtrArray *addresses, const NMPlatformIP6Address *address, gint32 now)
+_addr_array_clean_expired (int addr_family, int ifindex, GPtrArray *array, guint32 now, GHashTable **idx)
 {
-	guint len = addresses ? addresses->len : 0;
 	guint i;
+	gboolean any_addrs = FALSE;
 
-	for (i = 0; i < len; i++) {
-		NMPlatformIP6Address *candidate = NMP_OBJECT_CAST_IP6_ADDRESS (addresses->pdata[i]);
+	nm_assert_addr_family (addr_family);
+	nm_assert (ifindex > 0);
+	nm_assert (now > 0);
 
-		if (IN6_ARE_ADDR_EQUAL (&candidate->address, &address->address) && candidate->plen == address->plen) {
-			guint32 lifetime, preferred;
+	if (!array)
+		return FALSE;
 
-			if (nm_utils_lifetime_get (candidate->timestamp, candidate->lifetime, candidate->preferred,
-			                           now, &lifetime, &preferred))
-				return TRUE;
+	/* remove all addresses that are already expired. */
+	for (i = 0; i < array->len; i++) {
+		const NMPlatformIPAddress *a = NMP_OBJECT_CAST_IP_ADDRESS (array->pdata[i]);
+
+#if NM_MORE_ASSERTS > 10
+		nm_assert (a);
+		nm_assert (a->ifindex == ifindex);
+		{
+			const NMPObject *o = NMP_OBJECT_UP_CAST (a);
+			guint j;
+
+			nm_assert (NMP_OBJECT_GET_CLASS (o)->addr_family == addr_family);
+			for (j = i + 1; j < array->len; j++) {
+				const NMPObject *o2 = array->pdata[j];
+
+				nm_assert (NMP_OBJECT_GET_TYPE (o) == NMP_OBJECT_GET_TYPE (o2));
+				nm_assert (!nmp_object_id_equal (o, o2));
+			}
 		}
+#endif
+
+		if (   addr_family == AF_INET6
+		    && NM_FLAGS_HAS (a->n_ifa_flags, IFA_F_TEMPORARY)) {
+			/* temporary addresses are never added explicitly by NetworkManager but
+			 * kernel adds them via mngtempaddr flag.
+			 *
+			 * We drop them from this list. */
+			goto clear_and_next;
+		}
+
+		if (!nm_utils_lifetime_get (a->timestamp, a->lifetime, a->preferred,
+		                            now, NULL))
+			goto clear_and_next;
+
+		if (idx) {
+			if (G_UNLIKELY (!*idx)) {
+				*idx = g_hash_table_new ((GHashFunc) nmp_object_id_hash,
+				                         (GEqualFunc) nmp_object_id_equal);
+			}
+			if (!g_hash_table_add (*idx, (gpointer) NMP_OBJECT_UP_CAST (a)))
+				nm_assert_not_reached ();
+		}
+		any_addrs = TRUE;
+		continue;
+
+clear_and_next:
+		nmp_object_unref (g_steal_pointer (&array->pdata[i]));
 	}
 
-	return FALSE;
+	return any_addrs;
 }
 
 static gboolean
@@ -3179,7 +3361,7 @@ ip4_addr_subnets_build_index (const GPtrArray *addresses,
 
 	nm_assert (addresses && addresses->len);
 
-	subnets = g_hash_table_new (NULL, NULL);
+	subnets = g_hash_table_new (nm_direct_hash, NULL);
 
 	/* Build a hash table of all addresses per subnet */
 	for (i = 0; i < addresses->len; i++) {
@@ -3312,39 +3494,8 @@ nm_platform_ip4_address_sync (NMPlatform *self,
 
 	_CHECK_SELF (self, klass, FALSE);
 
-	if (known_addresses) {
-		/* remove all addresses that are already expired. */
-		for (i = 0; i < known_addresses->len; i++) {
-			const NMPObject *o;
-
-			o = known_addresses->pdata[i];
-			nm_assert (o);
-
-			known_address = NMP_OBJECT_CAST_IP4_ADDRESS (known_addresses->pdata[i]);
-
-			if (!nm_utils_lifetime_get (known_address->timestamp, known_address->lifetime, known_address->preferred,
-			                            now, &lifetime, &preferred))
-				goto delete_and_next;
-
-			if (G_UNLIKELY (!known_addresses_idx)) {
-				known_addresses_idx = g_hash_table_new ((GHashFunc) nmp_object_id_hash,
-				                                        (GEqualFunc) nmp_object_id_equal);
-			}
-			if (!nm_g_hash_table_insert (known_addresses_idx, (gpointer) o, (gpointer) o)) {
-				/* duplicate? Keep only the first instance. */
-				goto delete_and_next;
-			}
-
-			continue;
-delete_and_next:
-			nmp_object_unref (o);
-			known_addresses->pdata[i] = NULL;
-		}
-
-		if (   !known_addresses_idx
-		    || g_hash_table_size (known_addresses_idx) == 0)
-			known_addresses = NULL;
-	}
+	if (!_addr_array_clean_expired (AF_INET, ifindex, known_addresses, now, &known_addresses_idx))
+		known_addresses = NULL;
 
 	plat_addresses = nm_platform_lookup_clone (self,
 	                                           nmp_lookup_init_object (&lookup,
@@ -3441,8 +3592,9 @@ delete_and_next:
 
 		known_address = NMP_OBJECT_CAST_IP4_ADDRESS (o);
 
-		if (!nm_utils_lifetime_get (known_address->timestamp, known_address->lifetime, known_address->preferred,
-		                            now, &lifetime, &preferred))
+		lifetime = nm_utils_lifetime_get (known_address->timestamp, known_address->lifetime, known_address->preferred,
+		                                  now, &preferred);
+		if (!lifetime)
 			goto delete_and_next2;
 
 		if (!nm_platform_ip4_address_add (self, ifindex, known_address->address, known_address->plen,
@@ -3460,13 +3612,38 @@ delete_and_next2:
 	return TRUE;
 }
 
+static guint
+ip6_address_scope_priority (const struct in6_addr *addr)
+{
+	if (IN6_IS_ADDR_LINKLOCAL (addr))
+		return 1;
+	if (IN6_IS_ADDR_SITELOCAL (addr))
+		return 2;
+	return 3;
+}
+
+static gint
+ip6_address_scope_cmp (gconstpointer a, gconstpointer b)
+{
+	const NMPlatformIP6Address *x = NMP_OBJECT_CAST_IP6_ADDRESS (*(const void **) a);
+	const NMPlatformIP6Address *y = NMP_OBJECT_CAST_IP6_ADDRESS (*(const void **) b);
+
+	return ip6_address_scope_priority (&x->address) - ip6_address_scope_priority (&y->address);
+}
+
 /**
  * nm_platform_ip6_address_sync:
  * @self: platform instance
  * @ifindex: Interface index
- * @known_addresses: List of IPv6 addresses, as NMPObject. The list
- *   is not modified.
- * @keep_link_local: Don't remove link-local address
+ * @known_addresses: List of addresses. The list will be modified and only
+ *   addresses that were successfully added will be kept in the list.
+ *   That means, expired addresses and addresses that could not be added
+ *   will be dropped.
+ *   Hence, the input argument @known_addresses is also an output argument
+ *   telling which addresses were succesfully added.
+ *   Addresses are removed by unrefing the instance via nmp_object_unref()
+ *   and leaving a NULL tombstone.
+ * @full_sync: Also remove link-local and temporary addresses.
  *
  * A convenience function to synchronize addresses for a specific interface
  * with the least possible disturbance. It simply removes addresses that are
@@ -3477,32 +3654,124 @@ delete_and_next2:
 gboolean
 nm_platform_ip6_address_sync (NMPlatform *self,
                               int ifindex,
-                              const GPtrArray *known_addresses,
-                              gboolean keep_link_local)
+                              GPtrArray *known_addresses,
+                              gboolean full_sync)
 {
 	gs_unref_ptrarray GPtrArray *plat_addresses = NULL;
-	NMPlatformIP6Address *address;
 	gint32 now = nm_utils_get_monotonic_timestamp_s ();
-	guint i;
+	guint i_plat, i_know;
+	gs_unref_hashtable GHashTable *known_addresses_idx = NULL;
 	NMPLookup lookup;
 	guint32 ifa_flags;
 
-	/* Delete unknown addresses */
+	/* The order we want to enforce is only among addresses with the same
+	 * scope, as the kernel keeps addresses sorted by scope. Therefore,
+	 * apply the same sorting to known addresses, so that we don't try to
+	 * unnecessary change the order of addresses with different scopes. */
+	if (known_addresses)
+		g_ptr_array_sort (known_addresses, ip6_address_scope_cmp);
+
+	if (!_addr_array_clean_expired (AF_INET6, ifindex, known_addresses, now, &known_addresses_idx))
+		known_addresses = NULL;
+
+	/* @plat_addresses is in decreasing priority order (highest priority addresses first), contrary to
+	 * @known_addresses which is in increasing priority order (lowest priority addresses first). */
 	plat_addresses = nm_platform_lookup_clone (self,
 	                                           nmp_lookup_init_object (&lookup,
 	                                                                   NMP_OBJECT_TYPE_IP6_ADDRESS,
 	                                                                   ifindex),
 	                                           NULL, NULL);
-	if (plat_addresses) {
-		for (i = 0; i < plat_addresses->len; i++) {
-			address = NMP_OBJECT_CAST_IP6_ADDRESS (plat_addresses->pdata[i]);
 
-			/* Leave link local address management to the kernel */
-			if (keep_link_local && IN6_IS_ADDR_LINKLOCAL (&address->address))
+	if (plat_addresses) {
+		guint known_addresses_len;
+
+		known_addresses_len = known_addresses ? known_addresses->len : 0;
+
+		/* First, compare every address whether it is still a "known address", that is, whether
+		 * to keep it or to delete it.
+		 *
+		 * If we don't find a matching valid address in @known_addresses, we will delete
+		 * plat_addr.
+		 *
+		 * Certain addresses, like temporary addresses, are ignored by this function
+		 * if not run with full_sync. These addresses are usually not managed by NetworkManager
+		 * directly, or at least, they are not managed via nm_platform_ip6_address_sync().
+		 * Only in full_sync mode, we really want to get rid of them (usually, when we take
+		 * the interface down).
+		 *
+		 * Note that we mark handled addresses by setting it to %NULL in @plat_addresses array. */
+		for (i_plat = 0; i_plat < plat_addresses->len; i_plat++) {
+			const NMPObject *plat_obj = plat_addresses->pdata[i_plat];
+			const NMPObject *know_obj;
+			const NMPlatformIP6Address *plat_addr = NMP_OBJECT_CAST_IP6_ADDRESS (plat_obj);
+
+			if (NM_FLAGS_HAS (plat_addr->n_ifa_flags, IFA_F_TEMPORARY)) {
+				if (!full_sync) {
+					/* just mark as handled, without actually deleting the address. */
+					goto clear_and_next;
+				}
+			} else if (known_addresses_idx) {
+				know_obj = g_hash_table_lookup (known_addresses_idx, plat_obj);
+				if (   know_obj
+				    && plat_addr->plen == NMP_OBJECT_CAST_IP6_ADDRESS (know_obj)->plen) {
+					/* technically, plen is not part of the ID for IPv6 addresses and thus
+					 * @plat_addr is essentially the same address as @know_addr (regrading
+					 * its identity, not its other attributes).
+					 * However, we cannot modify an existing addresses' plen without
+					 * removing and readding it. Thus, only keep plat_addr, if the plen
+					 * matches.
+					 *
+					 * keep this one, and continue */
+					continue;
+				}
+			}
+
+			nm_platform_ip6_address_delete (self, ifindex, plat_addr->address, plat_addr->plen);
+clear_and_next:
+			nmp_object_unref (g_steal_pointer (&plat_addresses->pdata[i_plat]));
+		}
+
+		/* Next, we must preserve the priority of the routes. That is, source address
+		 * selection will choose addresses in the order as they are reported by kernel.
+		 * Note that the order in @plat_addresses of the remaining matches is highest
+		 * priority first.
+		 * We need to compare this to the order in @known_addresses (which has lowest
+		 * priority first).
+		 *
+		 * If we find a first discrepancy, we need to delete all remaining addresses
+		 * from that point on, because below we must re-add all the addresses in the
+		 * right order to get their priority right. */
+		i_plat = plat_addresses->len;
+		i_know = 0;
+		while (i_plat > 0) {
+			const NMPlatformIP6Address *plat_addr = NMP_OBJECT_CAST_IP6_ADDRESS (plat_addresses->pdata[--i_plat]);
+
+			if (!plat_addr)
 				continue;
 
-			if (!array_contains_ip6_address (known_addresses, address, now))
-				nm_platform_ip6_address_delete (self, ifindex, address->address, address->plen);
+			for (; i_know < known_addresses_len; i_know++) {
+				const NMPlatformIP6Address *know_addr = NMP_OBJECT_CAST_IP6_ADDRESS (known_addresses->pdata[i_know]);
+
+				if (!know_addr)
+					continue;
+
+				if (IN6_ARE_ADDR_EQUAL (&plat_addr->address, &know_addr->address)) {
+					/* we have a match. Mark address as handled. */
+					i_know++;
+					goto next_plat;
+				}
+
+				/* all remainging addresses need to be removed as well, so that we can
+				 * re-add them in the correct order. Signal that, by setting @i_know
+				 * so that the next @i_plat iteration, we won't enter the loop and
+				 * delete the address right away */
+				i_know = known_addresses_len;
+				break;
+			}
+
+			nm_platform_ip6_address_delete (self, ifindex, plat_addr->address, plat_addr->plen);
+next_plat:
+			;
 		}
 	}
 
@@ -3513,19 +3782,18 @@ nm_platform_ip6_address_sync (NMPlatform *self,
 	            ? IFA_F_NOPREFIXROUTE
 	            : 0;
 
-	/* Add missing addresses */
-	for (i = 0; i < known_addresses->len; i++) {
-		const NMPlatformIP6Address *known_address = NMP_OBJECT_CAST_IP6_ADDRESS (known_addresses->pdata[i]);
+	/* Add missing addresses. New addresses are added by kernel with top
+	 * priority.
+	 */
+	for (i_know = 0; i_know < known_addresses->len; i_know++) {
+		const NMPlatformIP6Address *known_address = NMP_OBJECT_CAST_IP6_ADDRESS (known_addresses->pdata[i_know]);
 		guint32 lifetime, preferred;
 
-		if (NM_FLAGS_HAS (known_address->n_ifa_flags, IFA_F_TEMPORARY)) {
-			/* Kernel manages these */
+		if (!known_address)
 			continue;
-		}
 
-		if (!nm_utils_lifetime_get (known_address->timestamp, known_address->lifetime, known_address->preferred,
-		                            now, &lifetime, &preferred))
-			continue;
+		lifetime = nm_utils_lifetime_get (known_address->timestamp, known_address->lifetime, known_address->preferred,
+		                                  now, &preferred);
 
 		if (!nm_platform_ip6_address_add (self, ifindex, known_address->address,
 		                                  known_address->plen, known_address->peer_address,
@@ -3553,7 +3821,7 @@ nm_platform_ip_address_flush (NMPlatform *self,
 	if (NM_IN_SET (addr_family, AF_UNSPEC, AF_INET))
 		success &= nm_platform_ip4_address_sync (self, ifindex, NULL);
 	if (NM_IN_SET (addr_family, AF_UNSPEC, AF_INET6))
-		success &= nm_platform_ip6_address_sync (self, ifindex, NULL, FALSE);
+		success &= nm_platform_ip6_address_sync (self, ifindex, NULL, TRUE);
 	return success;
 }
 
@@ -3692,7 +3960,8 @@ nm_platform_ip_route_sync (NMPlatform *self,
 
 	for (i_type = 0; routes && i_type < 2; i_type++) {
 		for (i = 0; i < routes->len; i++) {
-			NMPlatformError plerr;
+			NMPlatformError plerr, plerr2;
+			gboolean gateway_route_added = FALSE;
 
 			conf_o = routes->pdata[i];
 
@@ -3712,7 +3981,7 @@ nm_platform_ip_route_sync (NMPlatform *self,
 				routes_idx = g_hash_table_new ((GHashFunc) nmp_object_id_hash,
 				                               (GEqualFunc) nmp_object_id_equal);
 			}
-			if (!nm_g_hash_table_insert (routes_idx, (gpointer) conf_o, (gpointer) conf_o)) {
+			if (!g_hash_table_insert (routes_idx, (gpointer) conf_o, (gpointer) conf_o)) {
 				_LOGD ("route-sync: skip adding duplicate route %s",
 				       nmp_object_to_string (conf_o, NMP_OBJECT_TO_STRING_PUBLIC, sbuf1, sizeof (sbuf1)));
 				continue;
@@ -3738,6 +4007,7 @@ nm_platform_ip_route_sync (NMPlatform *self,
 				}
 			}
 
+sync_route_add:
 			plerr = nm_platform_ip_route_add (self,
 			                                    NMP_NLM_FLAG_APPEND
 			                                  | NMP_NLM_FLAG_SUPPRESS_NETLINK_FAILURE,
@@ -3762,6 +4032,11 @@ nm_platform_ip_route_sync (NMPlatform *self,
 							       nmp_object_to_string (plat_entry->obj, NMP_OBJECT_TO_STRING_PUBLIC, sbuf2, sizeof (sbuf2)));
 						}
 					}
+				} else if (NMP_OBJECT_CAST_IP_ROUTE (conf_o)->rt_source < NM_IP_CONFIG_SOURCE_USER) {
+					_LOGD ("route-sync: ignore failure to add IPv%c route: %s: %s",
+					       vt->is_ip4 ? '4' : '6',
+					       nmp_object_to_string (conf_o, NMP_OBJECT_TO_STRING_PUBLIC, sbuf1, sizeof (sbuf1)),
+					       nm_platform_error_to_string (plerr, sbuf_err, sizeof (sbuf_err)));
 				} else if (   -((int) plerr) == EINVAL
 				           && out_temporary_not_available
 				           && _err_inval_due_to_ipv6_tentative_pref_src (self, conf_o)) {
@@ -3771,25 +4046,68 @@ nm_platform_ip_route_sync (NMPlatform *self,
 					if (!*out_temporary_not_available)
 						*out_temporary_not_available = g_ptr_array_new_full (0, (GDestroyNotify) nmp_object_unref);
 					g_ptr_array_add (*out_temporary_not_available, (gpointer) nmp_object_ref (conf_o));
-				} else if (NMP_OBJECT_CAST_IP_ROUTE (conf_o)->rt_source < NM_IP_CONFIG_SOURCE_USER) {
-					_LOGD ("route-sync: ignore failure to add IPv%c route: %s: %s",
-					       vt->is_ip4 ? '4' : '6',
-					       nmp_object_to_string (conf_o, NMP_OBJECT_TO_STRING_PUBLIC, sbuf1, sizeof (sbuf1)),
-					       nm_platform_error_to_string (plerr, sbuf_err, sizeof (sbuf_err)));
-				} else {
-					const char *reason = "";
+				} else if (   !gateway_route_added
+				           && (   (   -((int) plerr) == ENETUNREACH
+				                   && vt->is_ip4
+				                   && !!NMP_OBJECT_CAST_IP4_ROUTE (conf_o)->gateway)
+				               || (   -((int) plerr) == EHOSTUNREACH
+				                   && !vt->is_ip4
+				                   && !IN6_IS_ADDR_UNSPECIFIED (&NMP_OBJECT_CAST_IP6_ROUTE (conf_o)->gateway)))) {
+					NMPObject oo;
 
-					if (   -((int) plerr) == ENETUNREACH
-					    && (  vt->is_ip4
-					        ? !!NMP_OBJECT_CAST_IP4_ROUTE (conf_o)->gateway
-					        : !IN6_IS_ADDR_UNSPECIFIED (&NMP_OBJECT_CAST_IP6_ROUTE (conf_o)->gateway)))
-						reason = "; is the gateway directly reachable?";
+					if (vt->is_ip4) {
+						const NMPlatformIP4Route *r = NMP_OBJECT_CAST_IP4_ROUTE (conf_o);
 
-					_LOGW ("route-sync: failure to add IPv%c route: %s: %s%s",
+						nmp_object_stackinit (&oo,
+						                      NMP_OBJECT_TYPE_IP4_ROUTE,
+						                      &((NMPlatformIP4Route) {
+						                          .ifindex = r->ifindex,
+						                          .network = r->gateway,
+						                          .plen = 32,
+						                          .metric = r->metric,
+						                          .rt_source = r->rt_source,
+						                          .table_coerced = r->table_coerced,
+						                      }));
+					} else {
+						const NMPlatformIP6Route *r = NMP_OBJECT_CAST_IP6_ROUTE (conf_o);
+
+						nmp_object_stackinit (&oo,
+						                      NMP_OBJECT_TYPE_IP6_ROUTE,
+						                      &((NMPlatformIP6Route) {
+						                          .ifindex = r->ifindex,
+						                          .network = r->gateway,
+						                          .plen = 128,
+						                          .metric = r->metric,
+						                          .rt_source = r->rt_source,
+						                          .table_coerced = r->table_coerced,
+						                      }));
+					}
+
+					_LOGD ("route-sync: failure to add IPv%c route: %s: %s; try adding direct route to gateway %s",
 					       vt->is_ip4 ? '4' : '6',
 					       nmp_object_to_string (conf_o, NMP_OBJECT_TO_STRING_PUBLIC, sbuf1, sizeof (sbuf1)),
 					       nm_platform_error_to_string (plerr, sbuf_err, sizeof (sbuf_err)),
-					       reason);
+					       nmp_object_to_string (&oo, NMP_OBJECT_TO_STRING_PUBLIC, sbuf2, sizeof (sbuf2)));
+
+					plerr2 = nm_platform_ip_route_add (self,
+					                                     NMP_NLM_FLAG_APPEND
+					                                   | NMP_NLM_FLAG_SUPPRESS_NETLINK_FAILURE,
+					                                   &oo);
+
+					if (plerr2 != NM_PLATFORM_ERROR_SUCCESS) {
+						_LOGD ("route-sync: failure to add gateway IPv%c route: %s: %s",
+						       vt->is_ip4 ? '4' : '6',
+						       nmp_object_to_string (conf_o, NMP_OBJECT_TO_STRING_PUBLIC, sbuf1, sizeof (sbuf1)),
+						       nm_platform_error_to_string (plerr, sbuf_err, sizeof (sbuf_err)));
+					}
+
+					gateway_route_added = TRUE;
+					goto sync_route_add;
+				} else {
+					_LOGW ("route-sync: failure to add IPv%c route: %s: %s",
+					       vt->is_ip4 ? '4' : '6',
+					       nmp_object_to_string (conf_o, NMP_OBJECT_TO_STRING_PUBLIC, sbuf1, sizeof (sbuf1)),
+					       nm_platform_error_to_string (plerr, sbuf_err, sizeof (sbuf_err)));
 					success = FALSE;
 				}
 			}
@@ -4377,7 +4695,6 @@ nm_platform_qdisc_sync (NMPlatform *self,
 	                                                                ifindex),
 	                                        NULL, NULL);
 
-
 	if (plat_qdiscs) {
 		for (i = 0; i < plat_qdiscs->len; i++) {
 			const NMPObject *q = g_ptr_array_index (plat_qdiscs, i);
@@ -4442,7 +4759,6 @@ nm_platform_tfilter_sync (NMPlatform *self,
 	                                                                  NMP_OBJECT_TYPE_TFILTER,
 	                                                                  ifindex),
 	                                          NULL, NULL);
-
 
 	if (plat_tfilters) {
 		for (i = 0; i < plat_tfilters->len; i++) {
@@ -4511,7 +4827,6 @@ _lifetime_to_string (guint32 timestamp, guint32 lifetime, gint32 now, char *buf,
 	            nm_utils_lifetime_rebase_relative_time_on_now (timestamp, lifetime, now));
 	return buf;
 }
-
 
 static const char *
 _lifetime_summary_to_string (gint32 now, guint32 timestamp, guint32 preferred, guint32 lifetime, char *buf, size_t buf_size)
@@ -4610,11 +4925,11 @@ nm_platform_link_to_string (const NMPlatformLink *link, char *buf, gsize len)
 	            link->inet6_addr_gen_mode_inv ? " addrgenmode " : "",
 	            link->inet6_addr_gen_mode_inv ? nm_platform_link_inet6_addrgenmode2str (_nm_platform_uint8_inv (link->inet6_addr_gen_mode_inv), str_addrmode, sizeof (str_addrmode)) : "",
 	            str_addr ? " addr " : "",
-	            str_addr ? str_addr : "",
+	            str_addr ?: "",
 	            link->inet6_token.id ? " inet6token " : "",
 	            link->inet6_token.id ? nm_utils_inet6_interface_identifier_to_token (link->inet6_token, str_inet6_token) : "",
 	            link->driver ? " driver " : "",
-	            link->driver ? link->driver : "",
+	            link->driver ?: "",
 	            link->rx_packets, link->rx_bytes,
 	            link->tx_packets, link->tx_bytes);
 	g_string_free (str_flags, TRUE);
@@ -4713,6 +5028,7 @@ nm_platform_lnk_ip6tnl_to_string (const NMPlatformLnkIp6Tnl *lnk, char *buf, gsi
 	            "%s" /* encap limit */
 	            "%s" /* flow label */
 	            "%s" /* proto */
+	            " flags 0x%x"
 	            "",
 	            nm_sprintf_buf (str_remote, " remote %s", nm_utils_inet6_ntop (&lnk->remote, str_remote1)),
 	            nm_sprintf_buf (str_local, " local %s", nm_utils_inet6_ntop (&lnk->local, str_local1)),
@@ -4721,7 +5037,8 @@ nm_platform_lnk_ip6tnl_to_string (const NMPlatformLnkIp6Tnl *lnk, char *buf, gsi
 	            lnk->tclass == 1 ? " tclass inherit" : nm_sprintf_buf (str_tclass, " tclass 0x%x", lnk->tclass),
 	            nm_sprintf_buf (str_encap, " encap-limit %u", lnk->encap_limit),
 	            nm_sprintf_buf (str_flow, " flow-label 0x05%x", lnk->flow_label),
-	            nm_sprintf_buf (str_proto, " proto %u", lnk->proto));
+	            nm_sprintf_buf (str_proto, " proto %u", lnk->proto),
+	            (guint) lnk->flags);
 	return buf;
 }
 
@@ -4838,6 +5155,43 @@ nm_platform_lnk_sit_to_string (const NMPlatformLnkSit *lnk, char *buf, gsize len
 	            lnk->path_mtu_discovery ? "" : " nopmtudisc",
 	            lnk->flags ? nm_sprintf_buf (str_flags, " flags 0x%x", lnk->flags) : "",
 	            lnk->proto ? nm_sprintf_buf (str_proto, " proto 0x%x", lnk->proto) : "");
+	return buf;
+}
+
+const char *
+nm_platform_lnk_tun_to_string (const NMPlatformLnkTun *lnk, char *buf, gsize len)
+{
+	char str_owner[50];
+	char str_group[50];
+	char str_type[50];
+	const char *type;
+
+	if (!nm_utils_to_string_buffer_init_null (lnk, &buf, &len))
+		return buf;
+
+	if (lnk->type == IFF_TUN)
+		type = "tun";
+	else if (lnk->type == IFF_TAP)
+		type = "tap";
+	else
+		type = nm_sprintf_buf (str_type, "tun type %u", (guint) lnk->type);
+
+	g_snprintf (buf, len,
+	            "%s" /* type */
+	            "%s" /* pi */
+	            "%s" /* vnet_hdr */
+	            "%s" /* multi_queue */
+	            "%s" /* persist */
+	            "%s" /* owner */
+	            "%s" /* group */
+	            "",
+	            type,
+	            lnk->pi ? " pi" : "",
+	            lnk->vnet_hdr ? " vnet_hdr" : "",
+	            lnk->multi_queue ? " multi_queue" : "",
+	            lnk->persist ? " persist" : "",
+	            lnk->owner_valid ? nm_sprintf_buf (str_owner, " owner %u", (guint) lnk->owner) : "",
+	            lnk->group_valid ? nm_sprintf_buf (str_group, " group %u", (guint) lnk->group) : "");
 	return buf;
 }
 
@@ -4987,7 +5341,7 @@ nm_platform_ip4_address_to_string (const NMPlatformIP4Address *address, char *bu
 		str_label[0] = 0;
 
 	str_lft_p = _lifetime_to_string (address->timestamp,
-	                                 address->lifetime ? address->lifetime : NM_PLATFORM_LIFETIME_PERMANENT,
+	                                 address->lifetime ?: NM_PLATFORM_LIFETIME_PERMANENT,
 	                                 now, str_lft, sizeof (str_lft)),
 	str_pref_p = (address->lifetime == address->preferred)
 	             ? str_lft_p
@@ -4999,7 +5353,7 @@ nm_platform_ip4_address_to_string (const NMPlatformIP4Address *address, char *bu
 	g_snprintf (buf, len,
 	            "%s/%d lft %s pref %s%s%s%s%s%s src %s",
 	            s_address, address->plen, str_lft_p, str_pref_p, str_time_p,
-	            str_peer ? str_peer : "",
+	            str_peer ?: "",
 	            str_dev,
 	            _to_string_ifa_flags (address->n_ifa_flags, s_flags, sizeof (s_flags)),
 	            str_label,
@@ -5043,10 +5397,10 @@ NM_UTILS_FLAGS2STR_DEFINE (nm_platform_addr_flags2str, unsigned,
 	NM_UTILS_FLAGS2STR (IFA_F_OPTIMISTIC, "optimistic"),
 	NM_UTILS_FLAGS2STR (IFA_F_HOMEADDRESS, "homeaddress"),
 	NM_UTILS_FLAGS2STR (IFA_F_DEPRECATED, "deprecated"),
-	NM_UTILS_FLAGS2STR (IFA_F_TENTATIVE, "tentative"),
 	NM_UTILS_FLAGS2STR (IFA_F_PERMANENT, "permanent"),
 	NM_UTILS_FLAGS2STR (IFA_F_MANAGETEMPADDR, "mngtmpaddr"),
 	NM_UTILS_FLAGS2STR (IFA_F_NOPREFIXROUTE, "noprefixroute"),
+	NM_UTILS_FLAGS2STR (IFA_F_TENTATIVE, "tentative"),
 );
 
 NM_UTILS_ENUM2STR_DEFINE (nm_platform_route_scope2str, int,
@@ -5094,7 +5448,7 @@ nm_platform_ip6_address_to_string (const NMPlatformIP6Address *address, char *bu
 	_to_string_dev (NULL, address->ifindex, str_dev, sizeof (str_dev));
 
 	str_lft_p = _lifetime_to_string (address->timestamp,
-	                                 address->lifetime ? address->lifetime : NM_PLATFORM_LIFETIME_PERMANENT,
+	                                 address->lifetime ?: NM_PLATFORM_LIFETIME_PERMANENT,
 	                                 now, str_lft, sizeof (str_lft)),
 	str_pref_p = (address->lifetime == address->preferred)
 	             ? str_lft_p
@@ -5106,7 +5460,7 @@ nm_platform_ip6_address_to_string (const NMPlatformIP6Address *address, char *bu
 	g_snprintf (buf, len,
 	            "%s/%d lft %s pref %s%s%s%s%s src %s",
 	            s_address, address->plen, str_lft_p, str_pref_p, str_time_p,
-	            str_peer ? str_peer : "",
+	            str_peer ?: "",
 	            str_dev,
 	            _to_string_ifa_flags (address->n_ifa_flags, s_flags, sizeof (s_flags)),
 	            nmp_utils_ip_config_source_to_string (address->addr_source, s_source, sizeof (s_source)));
@@ -5178,7 +5532,6 @@ nm_platform_ip4_route_to_string (const NMPlatformIP4Route *route, char *buf, gsi
 	inet_ntop (AF_INET, &route->gateway, s_gateway, sizeof(s_gateway));
 
 	_to_string_dev (NULL, route->ifindex, str_dev, sizeof (str_dev));
-
 
 	g_snprintf (buf, len,
 	            "%s" /* table */
@@ -5537,7 +5890,8 @@ nm_platform_lnk_ip6tnl_hash_update (const NMPlatformLnkIp6Tnl *obj, NMHashState 
 	                     obj->tclass,
 	                     obj->encap_limit,
 	                     obj->proto,
-	                     obj->flow_label);
+	                     obj->flow_label,
+	                     obj->flags);
 }
 
 int
@@ -5552,6 +5906,7 @@ nm_platform_lnk_ip6tnl_cmp (const NMPlatformLnkIp6Tnl *a, const NMPlatformLnkIp6
 	NM_CMP_FIELD (a, b, encap_limit);
 	NM_CMP_FIELD (a, b, flow_label);
 	NM_CMP_FIELD (a, b, proto);
+	NM_CMP_FIELD (a, b, flags);
 	return 0;
 }
 
@@ -5666,6 +6021,38 @@ nm_platform_lnk_sit_cmp (const NMPlatformLnkSit *a, const NMPlatformLnkSit *b)
 	NM_CMP_FIELD_BOOL (a, b, path_mtu_discovery);
 	NM_CMP_FIELD (a, b, flags);
 	NM_CMP_FIELD (a, b, proto);
+	return 0;
+}
+
+void
+nm_platform_lnk_tun_hash_update (const NMPlatformLnkTun *obj, NMHashState *h)
+{
+	nm_hash_update_vals (h,
+	                     obj->type,
+	                     obj->owner,
+	                     obj->group,
+	                     NM_HASH_COMBINE_BOOLS (guint8,
+	                                            obj->owner_valid,
+	                                            obj->group_valid,
+	                                            obj->pi,
+	                                            obj->vnet_hdr,
+	                                            obj->multi_queue,
+	                                            obj->persist));
+}
+
+int
+nm_platform_lnk_tun_cmp (const NMPlatformLnkTun *a, const NMPlatformLnkTun *b)
+{
+	NM_CMP_SELF (a, b);
+	NM_CMP_FIELD (a, b, type);
+	NM_CMP_FIELD (a, b, owner);
+	NM_CMP_FIELD (a, b, group);
+	NM_CMP_FIELD_BOOL (a, b, owner_valid);
+	NM_CMP_FIELD_BOOL (a, b, group_valid);
+	NM_CMP_FIELD_BOOL (a, b, pi);
+	NM_CMP_FIELD_BOOL (a, b, vnet_hdr);
+	NM_CMP_FIELD_BOOL (a, b, multi_queue);
+	NM_CMP_FIELD_BOOL (a, b, persist);
 	return 0;
 }
 
@@ -6260,13 +6647,12 @@ nm_platform_cache_update_emit_signal (NMPlatform *self,
 	const NMPObject *o;
 	const NMPClass *klass;
 
-	nm_assert (NM_IN_SET ((NMPlatformSignalChangeType) cache_op, (NMPlatformSignalChangeType) NMP_CACHE_OPS_UNCHANGED, NM_PLATFORM_SIGNAL_ADDED, NM_PLATFORM_SIGNAL_CHANGED, NM_PLATFORM_SIGNAL_REMOVED));
+	nm_assert (NM_IN_SET ((NMPlatformSignalChangeType) cache_op, NM_PLATFORM_SIGNAL_NONE,
+	                                                             NM_PLATFORM_SIGNAL_ADDED,
+	                                                             NM_PLATFORM_SIGNAL_CHANGED,
+	                                                             NM_PLATFORM_SIGNAL_REMOVED));
 
 	ASSERT_nmp_cache_ops (nm_platform_get_cache (self), cache_op, obj_old, obj_new);
-
-	nm_assert (NM_IN_SET (nm_platform_netns_get (self),
-	                      NULL,
-	                      nmp_netns_get_current ()));
 
 	NMTST_ASSERT_PLATFORM_NETNS_CURRENT (self);
 

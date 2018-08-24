@@ -553,7 +553,7 @@ nm_config_create_keyfile ()
 
 /* this is an external variable, to make loading testable. Other then that,
  * no code is supposed to change this. */
-guint _nm_config_match_nm_version = NM_VERSION_CUR_STABLE;
+guint _nm_config_match_nm_version = NM_VERSION;
 char *_nm_config_match_env = NULL;
 
 static gboolean
@@ -579,7 +579,7 @@ ignore_config_snippet (GKeyFile *keyfile, gboolean is_base_config)
 		const char *e;
 
 		e = g_getenv ("NM_CONFIG_ENABLE_TAG");
-		_nm_config_match_env = g_strdup (e ? e : "");
+		_nm_config_match_env = g_strdup (e ?: "");
 	}
 
 	/* second, interpret the value as match-spec. */
@@ -615,7 +615,7 @@ _sort_groups_cmp (const char **pa, const char **pb, gpointer dummy)
 	if (a_is_connection) {
 		/* both are [connection.\+] entries. Reverse their order.
 		 * One of the sections might be literally [connection]. That section
-		 * is special and it's order will be fixed later. It doesn't actually
+		 * is special and its order will be fixed later. It doesn't actually
 		 * matter here how it compares with [connection.\+] sections. */
 		return pa > pb ? -1 : 1;
 	}
@@ -633,7 +633,7 @@ _sort_groups_cmp (const char **pa, const char **pb, gpointer dummy)
 	if (a_is_device) {
 		/* both are [device.\+] entries. Reverse their order.
 		 * One of the sections might be literally [device]. That section
-		 * is special and it's order will be fixed later. It doesn't actually
+		 * is special and its order will be fixed later. It doesn't actually
 		 * matter here how it compares with [device.\+] sections. */
 		return pa > pb ? -1 : 1;
 	}
@@ -1383,7 +1383,6 @@ intern_config_write (const char *filename,
 	GKeyFile *keyfile;
 	gs_strfreev char **groups = NULL;
 	guint g, k;
-	gboolean has_intern = FALSE;
 	gboolean success = FALSE;
 	GError *local = NULL;
 
@@ -1449,10 +1448,7 @@ intern_config_write (const char *filename,
 
 			value_set = g_key_file_get_value (keyfile_intern, group, key, NULL);
 
-			if (is_intern) {
-				has_intern = TRUE;
-				g_key_file_set_value (keyfile, group, key, value_set);
-			} else if (is_atomic)
+			if (is_intern || is_atomic)
 				g_key_file_set_value (keyfile, group, key, value_set);
 			else {
 				gs_free char *value_was = NULL;
@@ -2117,7 +2113,7 @@ nm_config_device_state_load_all (void)
 		if (!state)
 			continue;
 
-		if (!nm_g_hash_table_insert (states, GINT_TO_POINTER (ifindex), state))
+		if (!g_hash_table_insert (states, GINT_TO_POINTER (ifindex), state))
 			nm_assert_not_reached ();
 	}
 	g_dir_close (dir);
@@ -2401,17 +2397,17 @@ _set_config_data (NMConfig *self, NMConfigData *new_data, NMConfigChangeFlags re
 	}
 
 	if (new_data) {
-		_LOGI ("config: signal %s (%s)",
+		_LOGI ("signal: %s (%s)",
 		       nm_config_change_flags_to_string (changes, NULL, 0),
 		       nm_config_data_get_config_description (new_data));
 		nm_config_data_log (new_data, "CONFIG: ", "  ", NULL);
 		priv->config_data = new_data;
 	} else if (had_new_data)
-		_LOGI ("config: signal %s (no changes from disk)", nm_config_change_flags_to_string (changes, NULL, 0));
+		_LOGI ("signal: %s (no changes from disk)", nm_config_change_flags_to_string (changes, NULL, 0));
 	else
-		_LOGI ("config: signal %s", nm_config_change_flags_to_string (changes, NULL, 0));
+		_LOGI ("signal: %s", nm_config_change_flags_to_string (changes, NULL, 0));
 	g_signal_emit (self, signals[SIGNAL_CONFIG_CHANGED], 0,
-	               new_data ? new_data : old_data,
+	               new_data ?: old_data,
 	               changes, old_data);
 	if (new_data)
 		g_object_unref (old_data);

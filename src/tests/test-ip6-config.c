@@ -246,8 +246,10 @@ test_nm_ip6_config_addresses_sort_check (NMIP6Config *config, NMSettingIP6Config
 	int *idx = g_new (int, addr_count);
 
 	nm_ip6_config_set_privacy (config, use_tempaddr);
-	copy = nmtst_ip6_config_clone (config);
-	copy2 = nmtst_ip6_config_clone (config);
+	copy = nm_ip6_config_clone (config);
+	g_assert (copy);
+	copy2 = nm_ip6_config_clone (config);
+	g_assert (copy2);
 
 	/* initialize the array of indeces, and keep shuffling them for every @repeat iteration. */
 	for (i = 0; i < addr_count; i++)
@@ -296,9 +298,9 @@ test_nm_ip6_config_addresses_sort (void)
 	ADDR_ADD("2607:f0d0:1002:51::4",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_USER,   0, 0, 0, 0);
 	ADDR_ADD("2607:f0d0:1002:51::5",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_USER,   0, 0, 0, 0);
 	ADDR_ADD("2607:f0d0:1002:51::6",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_NDISC,  0, 0, 0, IFA_F_MANAGETEMPADDR);
-	ADDR_ADD("2607:f0d0:1002:51::3",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_USER,   0, 0, 0, IFA_F_SECONDARY);
-	ADDR_ADD("2607:f0d0:1002:51::8",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_USER,   0, 0, 0, IFA_F_SECONDARY);
-	ADDR_ADD("2607:f0d0:1002:51::0",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_KERNEL, 0, 0, 0, IFA_F_SECONDARY);
+	ADDR_ADD("2607:f0d0:1002:51::3",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_USER,   0, 0, 0, IFA_F_TEMPORARY);
+	ADDR_ADD("2607:f0d0:1002:51::8",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_USER,   0, 0, 0, IFA_F_TEMPORARY);
+	ADDR_ADD("2607:f0d0:1002:51::0",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_KERNEL, 0, 0, 0, IFA_F_TEMPORARY);
 	ADDR_ADD("fec0::1",                  NULL, 128, 0, NM_IP_CONFIG_SOURCE_KERNEL, 0, 0, 0, 0);
 	ADDR_ADD("fe80::208:74ff:feda:625c", NULL, 128, 0, NM_IP_CONFIG_SOURCE_KERNEL, 0, 0, 0, 0);
 	ADDR_ADD("fe80::208:74ff:feda:625d", NULL, 128, 0, NM_IP_CONFIG_SOURCE_KERNEL, 0, 0, 0, 0);
@@ -309,11 +311,11 @@ test_nm_ip6_config_addresses_sort (void)
 	test_nm_ip6_config_addresses_sort_check (config, NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_PUBLIC_ADDR, 8);
 
 	nm_ip6_config_reset_addresses (config);
-	ADDR_ADD("2607:f0d0:1002:51::3",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_USER,   0, 0, 0, IFA_F_SECONDARY);
+	ADDR_ADD("2607:f0d0:1002:51::3",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_USER,   0, 0, 0, IFA_F_TEMPORARY);
 	ADDR_ADD("2607:f0d0:1002:51::4",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_USER,   0, 0, 0, 0);
 	ADDR_ADD("2607:f0d0:1002:51::5",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_USER,   0, 0, 0, 0);
-	ADDR_ADD("2607:f0d0:1002:51::8",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_USER,   0, 0, 0, IFA_F_SECONDARY);
-	ADDR_ADD("2607:f0d0:1002:51::0",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_KERNEL, 0, 0, 0, IFA_F_SECONDARY);
+	ADDR_ADD("2607:f0d0:1002:51::8",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_USER,   0, 0, 0, IFA_F_TEMPORARY);
+	ADDR_ADD("2607:f0d0:1002:51::0",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_KERNEL, 0, 0, 0, IFA_F_TEMPORARY);
 	ADDR_ADD("2607:f0d0:1002:51::6",     NULL,  64, 0, NM_IP_CONFIG_SOURCE_NDISC,  0, 0, 0, IFA_F_MANAGETEMPADDR);
 	ADDR_ADD("fec0::1",                  NULL, 128, 0, NM_IP_CONFIG_SOURCE_KERNEL, 0, 0, 0, 0);
 	ADDR_ADD("fe80::208:74ff:feda:625c", NULL, 128, 0, NM_IP_CONFIG_SOURCE_KERNEL, 0, 0, 0, 0);
@@ -338,11 +340,15 @@ test_strip_search_trailing_dot (void)
 	nm_ip6_config_add_search (config, "bar.");
 	nm_ip6_config_add_search (config, "baz.com");
 	nm_ip6_config_add_search (config, "baz.com.");
+	nm_ip6_config_add_search (config, "foobar..");
+	nm_ip6_config_add_search (config, ".foobar");
+	nm_ip6_config_add_search (config, "~.");
 
-	g_assert_cmpuint (nm_ip6_config_get_num_searches (config), ==, 3);
+	g_assert_cmpuint (nm_ip6_config_get_num_searches (config), ==, 4);
 	g_assert_cmpstr (nm_ip6_config_get_search (config, 0), ==, "foo");
 	g_assert_cmpstr (nm_ip6_config_get_search (config, 1), ==, "bar");
 	g_assert_cmpstr (nm_ip6_config_get_search (config, 2), ==, "baz.com");
+	g_assert_cmpstr (nm_ip6_config_get_search (config, 3), ==, "~");
 
 	g_object_unref (config);
 }

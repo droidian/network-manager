@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 05/11/2018
+.\"      Date: 07/25/2018
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager 1.10.8
+.\"    Source: NetworkManager 1.12.2
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.10\&.8" "Network management daemons"
+.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.12\&.2" "Network management daemons"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -118,6 +118,11 @@ The network connectivity state has changed (no connectivity, went online, etc)\&
 .RE
 .PP
 The environment contains more information about the interface and the connection\&. The following variables are available for the use in the dispatcher scripts:
+.PP
+\fINM_DISPATCHER_ACTION\fR
+.RS 4
+The dispatcher action like "up" or "dhcp4\-change", identical to the first command line argument\&. Since NetworkManager 1\&.12\&.0\&.
+.RE
 .PP
 \fICONNECTION_UUID\fR
 .RS 4
@@ -257,10 +262,11 @@ for more information on configuration file\&.
 .PP
 \fB\-\-plugins\fR
 .RS 4
-List plugins used to manage system\-wide connection settings\&. This list has preference over plugins specified in the configuration file\&. Currently supported plugins are: keyfile,
-\fBifcfg\-rh\fR,
-\fBifcfg\-suse\fR,
-\fBifupdown\fR\&.
+List plugins used to manage system\-wide connection settings\&. This list has preference over plugins specified in the configuration file\&. See
+main\&.plugins
+setting in
+\fBNetworkManager.conf\fR(5)
+for supported options\&.
 .RE
 .PP
 \fB\-\-log\-level\fR

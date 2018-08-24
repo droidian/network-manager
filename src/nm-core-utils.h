@@ -25,8 +25,6 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 
-#include "nm-utils/nm-hash-utils.h"
-
 #include "nm-connection.h"
 
 /*****************************************************************************/
@@ -160,7 +158,7 @@ double nm_utils_exp10 (gint16 e);
 static inline guint32
 nm_utils_ip6_route_metric_normalize (guint32 metric)
 {
-	return metric ? metric : 1024 /*NM_PLATFORM_ROUTE_METRIC_DEFAULT_IP6*/;
+	return metric ?: 1024 /*NM_PLATFORM_ROUTE_METRIC_DEFAULT_IP6*/;
 }
 
 static inline guint32
@@ -179,8 +177,6 @@ nm_utils_ip_route_metric_penalize (int addr_family, guint32 metric, guint32 pena
 }
 
 int nm_utils_modprobe (GError **error, gboolean suppress_error_loggin, const char *arg1, ...) G_GNUC_NULL_TERMINATED;
-
-guint64 nm_utils_get_start_time_for_pid (pid_t pid, char *out_state, pid_t *out_ppid);
 
 void nm_utils_kill_process_sync (pid_t pid, guint64 start_time, int sig, guint64 log_domain,
                                  const char *log_name, guint32 wait_before_kill_msec,
@@ -231,20 +227,27 @@ gboolean nm_utils_connection_has_default_route (NMConnection *connection,
 char *nm_utils_new_vlan_name (const char *parent_iface, guint32 vlan_id);
 const char *nm_utils_new_infiniband_name (char *name, const char *parent_name, int p_key);
 
-gboolean nm_utils_resolve_conf_parse (int addr_family,
-                                      const char *rc_contents,
-                                      GArray *nameservers,
-                                      GPtrArray *dns_options);
-
 int nm_utils_cmp_connection_by_autoconnect_priority (NMConnection *a, NMConnection *b);
 
-void nm_utils_log_connection_diff (NMConnection *connection, NMConnection *diff_base, guint32 level, guint64 domain, const char *name, const char *prefix);
+void nm_utils_log_connection_diff (NMConnection *connection,
+                                   NMConnection *diff_base,
+                                   guint32 level, guint64 domain,
+                                   const char *name,
+                                   const char *prefix,
+                                   const char *dbus_path);
 
 gint64 nm_utils_get_monotonic_timestamp_ns (void);
 gint64 nm_utils_get_monotonic_timestamp_us (void);
 gint64 nm_utils_get_monotonic_timestamp_ms (void);
 gint32 nm_utils_get_monotonic_timestamp_s (void);
 gint64 nm_utils_monotonic_timestamp_as_boottime (gint64 timestamp, gint64 timestamp_ticks_per_ns);
+
+static inline gint64
+nm_utils_get_monotonic_timestamp_ns_cached (gint64 *cache_now)
+{
+	return    (*cache_now)
+	       ?: (*cache_now = nm_utils_get_monotonic_timestamp_ns ());
+}
 
 gboolean    nm_utils_is_valid_path_component (const char *name);
 const char *NM_ASSERT_VALID_PATH_COMPONENT (const char *name);
@@ -280,7 +283,9 @@ gboolean nm_utils_file_set_contents (const gchar *filename,
 char *nm_utils_machine_id_read (void);
 gboolean nm_utils_machine_id_parse (const char *id_str, /*uuid_t*/ guchar *out_uuid);
 
-guint8 *nm_utils_secret_key_read (gsize *out_key_len, GError **error);
+gboolean nm_utils_secret_key_get (const guint8 **out_secret_key,
+                                  gsize *out_key_len);
+gint64 nm_utils_secret_key_get_timestamp (void);
 
 const char *nm_utils_get_boot_id (void);
 
@@ -336,8 +341,9 @@ typedef enum {
 } NMUtilsStableType;
 
 NMUtilsStableType nm_utils_stable_id_parse (const char *stable_id,
-                                            const char *uuid,
+                                            const char *deviceid,
                                             const char *bootid,
+                                            const char *uuid,
                                             char **out_generated);
 
 char *nm_utils_stable_id_random (void);
@@ -410,12 +416,11 @@ guint32 nm_utils_lifetime_rebase_relative_time_on_now (guint32 timestamp,
                                                        guint32 duration,
                                                        gint32 now);
 
-gboolean nm_utils_lifetime_get (guint32 timestamp,
-                                guint32 lifetime,
-                                guint32 preferred,
-                                gint32 now,
-                                guint32 *out_lifetime,
-                                guint32 *out_preferred);
+guint32 nm_utils_lifetime_get (guint32 timestamp,
+                               guint32 lifetime,
+                               guint32 preferred,
+                               gint32 now,
+                               guint32 *out_preferred);
 
 gboolean nm_utils_ip4_address_is_link_local (in_addr_t addr);
 
@@ -429,6 +434,8 @@ struct stat;
 gboolean nm_utils_validate_plugin (const char *path, struct stat *stat, GError **error);
 char **nm_utils_read_plugin_paths (const char *dirname, const char *prefix);
 char *nm_utils_format_con_diff_for_audit (GHashTable *diff);
+
+GVariant *nm_utils_strdict_to_variant (GHashTable *options);
 
 /*****************************************************************************/
 
@@ -449,5 +456,7 @@ const char *nm_icmpv6_router_pref_to_string (NMIcmpv6RouterPref pref, char *buf,
 const char *nm_activation_type_to_string (NMActivationType activation_type);
 
 /*****************************************************************************/
+
+const char *nm_utils_parse_dns_domain (const char *domain, gboolean *is_routing);
 
 #endif /* __NM_CORE_UTILS_H__ */

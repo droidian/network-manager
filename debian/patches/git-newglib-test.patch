@@ -1,0 +1,24 @@
+From 3e8eef538987c909e87b871a6b8c74aee08661a3 Mon Sep 17 00:00:00 2001
+From: Lubomir Rintel <lkundrak@v3.sk>
+Date: Sat, 11 Aug 2018 11:08:42 +0200
+Subject: [PATCH] utils/test: don't assert on debug level messages
+
+They come and go in GLib core for all sorts of purposes. Don't let that
+break our tests.
+---
+ shared/nm-utils/nm-test-utils.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/shared/nm-utils/nm-test-utils.h b/shared/nm-utils/nm-test-utils.h
+index 246357f8a..b575382e4 100644
+--- a/shared/nm-utils/nm-test-utils.h
++++ b/shared/nm-utils/nm-test-utils.h
+@@ -574,7 +574,7 @@ __nmtst_init (int *argc, char ***argv, g
+ 	} else {
+ 		/* We were called not to set logging levels. This means, that the user
+ 		 * expects to assert against (all) messages. Any uncought message is fatal. */
+-		g_log_set_always_fatal (G_LOG_LEVEL_MASK);
++		g_log_set_always_fatal (G_LOG_LEVEL_MASK & ~G_LOG_LEVEL_DEBUG);
+ 	}
+ 
+ 	if ((!__nmtst_internal.assert_logging || (__nmtst_internal.assert_logging && __nmtst_internal.no_expect_message)) &&

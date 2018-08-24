@@ -9,8 +9,7 @@ examples_C_glib_cppflags = \
 	-I$(top_builddir)/libnm-core \
 	-I$(top_srcdir)/libnm \
 	-I$(top_builddir)/libnm \
-	$(GLIB_CFLAGS) \
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE
+	$(GLIB_CFLAGS)
 
 examples_C_glib_cppflags_gdbus = $(examples_C_glib_cppflags)
 examples_C_glib_cppflags_libnm = $(examples_C_glib_cppflags)
@@ -65,6 +64,9 @@ examples_C_glib_monitor_nm_running_gdbus_LDADD = \
 examples_C_glib_monitor_nm_state_gdbus_CPPFLAGS = $(examples_C_glib_cppflags_gdbus)
 examples_C_glib_monitor_nm_state_gdbus_LDADD = \
 	$(GLIB_LIBS)
+
+EXTRA_DIST += \
+	examples/C/glib/meson.build
 
 ###############################################################################
 # examples/C/qt
@@ -123,7 +125,8 @@ EXTRA_DIST += \
 	examples/C/qt/add-connection-wired.cpp \
 	examples/C/qt/list-connections.cpp \
 	examples/C/qt/change-ipv4-addresses.cpp \
-	examples/C/qt/monitor-nm-running.cpp
+	examples/C/qt/monitor-nm-running.cpp \
+	examples/C/qt/meson.build
 
 ###############################################################################
 # examples
@@ -132,6 +135,8 @@ EXTRA_DIST += \
 EXTRA_DIST += \
 	examples/dispatcher/10-ifcfg-rh-routes.sh \
 	examples/dispatcher/70-wifi-wired-exclusive.sh \
+	\
+	examples/js/get_ips.js \
 	\
 	examples/lua/lgi/add-connection.lua \
 	examples/lua/lgi/list-connections.lua \
@@ -144,6 +149,8 @@ EXTRA_DIST += \
 	\
 	examples/nm-conf.d/30-anon.conf \
 	examples/nm-conf.d/31-mac-addr-change.conf \
+	\
+	examples/python/nmex.py \
 	\
 	examples/python/dbus/nm-state.py \
 	examples/python/dbus/add-connection.py \

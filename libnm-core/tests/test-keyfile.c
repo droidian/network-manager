@@ -33,7 +33,7 @@
 
 #include "nm-utils/nm-test-utils.h"
 
-
+#define TEST_CERT_DIR              NM_BUILD_SRCDIR"/libnm-core/tests/certs"
 #define TEST_WIRED_TLS_CA_CERT     TEST_CERT_DIR"/test-ca-cert.pem"
 #define TEST_WIRED_TLS_PRIVKEY     TEST_CERT_DIR"/test-key-and-cert.pem"
 
@@ -202,7 +202,6 @@ _nm_keyfile_read (GKeyFile *keyfile,
 	}
 	return con;
 }
-
 
 static void
 _keyfile_convert (NMConnection **con,
@@ -412,13 +411,11 @@ test_8021x_cert (void)
 	g_assert_no_error (error);
 	g_assert (success);
 
-
 	/* test reseting ca-cert to different values and see whether we can write/read. */
 
 	nm_connection_add_setting (con, NM_SETTING (s_8021x));
 	nmtst_assert_connection_verifies_and_normalizable (con);
 	nmtst_connection_normalize (con);
-
 
 	_test_8021x_cert_check (con, scheme, full_TEST_WIRED_TLS_CA_CERT, -1);
 
@@ -457,7 +454,6 @@ test_8021x_cert_read (void)
 	      "/test_8021x_cert_read/test0", NULL);
 	CLEAR (&con, &keyfile);
 
-
 	keyfile = _keyfile_load_from_data (
 	          "[connection]\n"
 	          "type=ethernet"
@@ -479,7 +475,6 @@ test_8021x_cert_read (void)
 	          );
 	_keyfile_convert (&con, &keyfile, "/test_8021x_cert_read/test2", NULL, NULL, NULL, NULL, NULL, TRUE);
 	CLEAR (&con, &keyfile);
-
 
 	keyfile = _keyfile_load_from_data (
 	          "[connection]\n"
@@ -523,7 +518,6 @@ test_8021x_cert_read (void)
 	g_assert_cmpint (strlen (nm_setting_802_1x_get_private_key_path (s_8021x)), ==, 505);
 	CLEAR (&con, &keyfile);
 
-
 	keyfile = _keyfile_load_from_data (
 	          "[connection]\n"
 	          "type=802-3-ethernet\n"
@@ -549,7 +543,6 @@ test_8021x_cert_read (void)
 	_assert_gbytes (nm_setting_802_1x_get_private_key_blob (s_8021x), "hallo", -1);
 	CLEAR (&con, &keyfile);
 
-
 	keyfile = _keyfile_load_from_data (
 	          "[connection]\n"
 	          "type=802-3-ethernet\n"
@@ -574,7 +567,6 @@ test_8021x_cert_read (void)
 	g_assert (nm_setting_802_1x_get_private_key_scheme (s_8021x) == NM_SETTING_802_1X_CK_SCHEME_BLOB);
 	_assert_gbytes (nm_setting_802_1x_get_private_key_blob (s_8021x), "abc.deR\0", 8);
 	CLEAR (&con, &keyfile);
-
 
 	keyfile = _keyfile_load_from_data (
 	          "[connection]\n"
@@ -628,7 +620,7 @@ test_team_conf_read_valid (void)
 static void
 test_team_conf_read_invalid (void)
 {
-#if WITH_JANSSON
+#if WITH_JSON_VALIDATION
 	GKeyFile *keyfile = NULL;
 	gs_unref_object NMConnection *con = NULL;
 	NMSettingTeam *s_team;
@@ -719,6 +711,33 @@ test_user_1 (void)
 
 /*****************************************************************************/
 
+static void
+test_vpn_1 (void)
+{
+	gs_unref_keyfile GKeyFile *keyfile = NULL;
+	gs_unref_object NMConnection *con = NULL;
+	NMSettingVpn *s_vpn;
+
+	con = nmtst_create_connection_from_keyfile (
+	      "[connection]\n"
+	      "id=t\n"
+	      "type=vpn\n"
+	      "\n"
+	      "[vpn]\n"
+	      "service-type=a.b.c\n"
+	      "vpn-key-1=value1\n"
+	      "",
+	      "/test_vpn_1/invalid", NULL);
+	g_assert (con);
+	s_vpn = NM_SETTING_VPN (nm_connection_get_setting (con, NM_TYPE_SETTING_VPN));
+	g_assert (s_vpn);
+	g_assert_cmpstr (nm_setting_vpn_get_data_item (s_vpn, "vpn-key-1"), ==, "value1");
+
+	CLEAR (&con, &keyfile);
+}
+
+/*****************************************************************************/
+
 NMTST_DEFINE ();
 
 int main (int argc, char **argv)
@@ -731,6 +750,7 @@ int main (int argc, char **argv)
 	g_test_add_func ("/core/keyfile/test_team_conf_read/valid", test_team_conf_read_valid);
 	g_test_add_func ("/core/keyfile/test_team_conf_read/invalid", test_team_conf_read_invalid);
 	g_test_add_func ("/core/keyfile/test_user/1", test_user_1);
+	g_test_add_func ("/core/keyfile/test_vpn/1", test_vpn_1);
 
 	return g_test_run ();
 }

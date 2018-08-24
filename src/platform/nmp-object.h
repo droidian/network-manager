@@ -88,7 +88,7 @@ typedef enum { /*< skip >*/
 	/* Consider all the destination fields of a route, that is, the ID without the ifindex
 	 * and gateway (meaning: network/plen,metric).
 	 * The reason for this is that `ip route change` can replace an existing route
-	 * and modify it's ifindex/gateway. Effectively, that means it deletes an existing
+	 * and modify its ifindex/gateway. Effectively, that means it deletes an existing
 	 * route and adds a different one (as the ID of the route changes). However, it only
 	 * sends one RTM_NEWADDR notification without notifying about the deletion. We detect
 	 * that by having this index to contain overlapping routes which require special
@@ -197,6 +197,10 @@ typedef struct {
 } NMPObjectLnkSit;
 
 typedef struct {
+	NMPlatformLnkTun _public;
+} NMPObjectLnkTun;
+
+typedef struct {
 	NMPlatformLnkVlan _public;
 
 	guint n_ingress_qos_map;
@@ -264,6 +268,9 @@ struct _NMPObject {
 
 		NMPlatformLnkSit        lnk_sit;
 		NMPObjectLnkSit         _lnk_sit;
+
+		NMPlatformLnkTun        lnk_tun;
+		NMPObjectLnkTun         _lnk_tun;
 
 		NMPlatformLnkVlan       lnk_vlan;
 		NMPObjectLnkVlan        _lnk_vlan;
@@ -460,6 +467,8 @@ nmp_object_ref (const NMPObject *obj)
 static inline void
 nmp_object_unref (const NMPObject *obj)
 {
+	nm_assert (!obj || NMP_OBJECT_IS_VALID (obj));
+
 	nm_dedup_multi_obj_unref ((const NMDedupMultiObj *) obj);
 }
 
@@ -481,7 +490,7 @@ nmp_object_unref (const NMPObject *obj)
 NMPObject *nmp_object_new (NMPObjectType obj_type, const NMPlatformObject *plob);
 NMPObject *nmp_object_new_link (int ifindex);
 
-const NMPObject *nmp_object_stackinit (NMPObject *obj, NMPObjectType obj_type, const NMPlatformObject *plobj);
+const NMPObject *nmp_object_stackinit (NMPObject *obj, NMPObjectType obj_type, gconstpointer plobj);
 
 static inline NMPObject *
 nmp_object_stackinit_obj (NMPObject *obj, const NMPObject *src)
@@ -499,7 +508,13 @@ const NMPObject *nmp_object_stackinit_id_ip6_address (NMPObject *obj, int ifinde
 const char *nmp_object_to_string (const NMPObject *obj, NMPObjectToStringMode to_string_mode, char *buf, gsize buf_size);
 void nmp_object_hash_update (const NMPObject *obj, NMHashState *h);
 int nmp_object_cmp (const NMPObject *obj1, const NMPObject *obj2);
-gboolean nmp_object_equal (const NMPObject *obj1, const NMPObject *obj2);
+
+static inline gboolean
+nmp_object_equal (const NMPObject *obj1, const NMPObject *obj2)
+{
+	return nmp_object_cmp (obj1, obj2) == 0;
+}
+
 void nmp_object_copy (NMPObject *dst, const NMPObject *src, gboolean id_only);
 NMPObject *nmp_object_clone (const NMPObject *obj, gboolean id_only);
 
@@ -723,6 +738,16 @@ const NMDedupMultiHeadEntry *nm_platform_lookup_all (NMPlatform *platform,
 const NMDedupMultiEntry *nm_platform_lookup_entry (NMPlatform *platform,
                                                    NMPCacheIdType cache_id_type,
                                                    const NMPObject *obj);
+
+static inline const NMPObject *
+nm_platform_lookup_obj (NMPlatform *platform,
+                        NMPCacheIdType cache_id_type,
+                        const NMPObject *obj)
+{
+	return nm_dedup_multi_entry_get_obj (nm_platform_lookup_entry (platform,
+	                                                               cache_id_type,
+	                                                               obj));
+}
 
 static inline const NMDedupMultiHeadEntry *
 nm_platform_lookup_obj_type (NMPlatform *platform,

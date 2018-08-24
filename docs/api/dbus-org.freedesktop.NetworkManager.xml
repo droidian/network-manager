@@ -8,37 +8,39 @@
   </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager</refname>    <refpurpose>Connection Manager</refpurpose>  </refnamediv>  <refsynopsisdiv role="synopsis">
     <title role="synopsis.title">Methods</title>
     <synopsis>
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.Reload">Reload</link>                   (IN  u         flags);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetDevices">GetDevices</link>               (OUT ao        devices);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetAllDevices">GetAllDevices</link>            (OUT ao        devices);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetDeviceByIpIface">GetDeviceByIpIface</link>       (IN  s         iface,
-                          OUT o         device);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.ActivateConnection">ActivateConnection</link>       (IN  o         connection,
-                          IN  o         device,
-                          IN  o         specific_object,
-                          OUT o         active_connection);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection">AddAndActivateConnection</link> (IN  a{sa{sv}} connection,
-                          IN  o         device,
-                          IN  o         specific_object,
-                          OUT o         path,
-                          OUT o         active_connection);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.DeactivateConnection">DeactivateConnection</link>     (IN  o         active_connection);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.Sleep">Sleep</link>                    (IN  b         sleep);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.Enable">Enable</link>                   (IN  b         enable);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetPermissions">GetPermissions</link>           (OUT a{ss}     permissions);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.SetLogging">SetLogging</link>               (IN  s         level,
-                          IN  s         domains);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetLogging">GetLogging</link>               (OUT s         level,
-                          OUT s         domains);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.CheckConnectivity">CheckConnectivity</link>        (OUT u         connectivity);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.state">state</link>                    (OUT u         state);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.CheckpointCreate">CheckpointCreate</link>         (IN  ao        devices,
-                          IN  u         rollback_timeout,
-                          IN  u         flags,
-                          OUT o         checkpoint);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.CheckpointDestroy">CheckpointDestroy</link>        (IN  o         checkpoint);
-<link linkend="gdbus-method-org-freedesktop-NetworkManager.CheckpointRollback">CheckpointRollback</link>       (IN  o         checkpoint,
-                          OUT a{su}     result);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.Reload">Reload</link>                          (IN  u         flags);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetDevices">GetDevices</link>                      (OUT ao        devices);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetAllDevices">GetAllDevices</link>                   (OUT ao        devices);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetDeviceByIpIface">GetDeviceByIpIface</link>              (IN  s         iface,
+                                 OUT o         device);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.ActivateConnection">ActivateConnection</link>              (IN  o         connection,
+                                 IN  o         device,
+                                 IN  o         specific_object,
+                                 OUT o         active_connection);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection">AddAndActivateConnection</link>        (IN  a{sa{sv}} connection,
+                                 IN  o         device,
+                                 IN  o         specific_object,
+                                 OUT o         path,
+                                 OUT o         active_connection);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.DeactivateConnection">DeactivateConnection</link>            (IN  o         active_connection);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.Sleep">Sleep</link>                           (IN  b         sleep);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.Enable">Enable</link>                          (IN  b         enable);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetPermissions">GetPermissions</link>                  (OUT a{ss}     permissions);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.SetLogging">SetLogging</link>                      (IN  s         level,
+                                 IN  s         domains);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.GetLogging">GetLogging</link>                      (OUT s         level,
+                                 OUT s         domains);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.CheckConnectivity">CheckConnectivity</link>               (OUT u         connectivity);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.state">state</link>                           (OUT u         state);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.CheckpointCreate">CheckpointCreate</link>                (IN  ao        devices,
+                                 IN  u         rollback_timeout,
+                                 IN  u         flags,
+                                 OUT o         checkpoint);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.CheckpointDestroy">CheckpointDestroy</link>               (IN  o         checkpoint);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.CheckpointRollback">CheckpointRollback</link>              (IN  o         checkpoint,
+                                 OUT a{su}     result);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.CheckpointAdjustRollbackTimeout">CheckpointAdjustRollbackTimeout</link> (IN  o         checkpoint,
+                                 IN  u         add_timeout);
 </synopsis>
   </refsynopsisdiv>
   <refsect1 role="signal_proto">
@@ -56,6 +58,7 @@
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.Devices">Devices</link>                     readable   ao
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.AllDevices">AllDevices</link>                  readable   ao
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.Checkpoints">Checkpoints</link>                 readable   ao
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.NetworkingEnabled">NetworkingEnabled</link>           readable   b
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.WirelessEnabled">WirelessEnabled</link>             readwrite  b
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.WirelessHardwareEnabled">WirelessHardwareEnabled</link>     readable   b
@@ -368,7 +371,7 @@ CheckConnectivity (OUT u connectivity);
 state (OUT u state);
 </programlisting>
 <para>        The overall networking state as determined by the NetworkManager daemon,
-        based on the state of network devices under it's management.
+        based on the state of network devices under its management.
 </para>
 <variablelist role="params">
 <varlistentry>
@@ -441,6 +444,35 @@ CheckpointRollback (IN  o     checkpoint,
 <varlistentry>
   <term><literal>OUT a{su} <parameter>result</parameter></literal>:</term>
   <listitem><para>On return, a dictionary of devices and results. Devices are represented by their original D-Bus path; each result is a <link linkend="NMRollbackResult">RollbackResult</link>.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.CheckpointAdjustRollbackTimeout">
+  <title>The CheckpointAdjustRollbackTimeout() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.CheckpointAdjustRollbackTimeout"><primary sortas="Manager.CheckpointAdjustRollbackTimeout">org.freedesktop.NetworkManager.CheckpointAdjustRollbackTimeout()</primary></indexterm>
+<programlisting>
+CheckpointAdjustRollbackTimeout (IN  o checkpoint,
+                                 IN  u add_timeout);
+</programlisting>
+<para>          timeout will expire. Set to 0 to disable the timeout.
+          Note that the added seconds start counting from now,
+          not "Created" timestamp or the previous expiration
+          time. Note that the "Created" property of the checkpoint
+          will stay unchanged by this call. However, the "RollbackTimeout"
+          will be recalculated to give the approximate new expiration time.
+          The new "RollbackTimeout" property will be approximate up to
+          one second precision, which is the accuracy of the property.
+</para><para>        Reset the timeout for rollback for the checkpoint.
+</para><para>        Since: 1.12
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>IN o <parameter>checkpoint</parameter></literal>:</term>
+  <listitem><para></para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>IN u <parameter>add_timeout</parameter></literal>:</term>
+  <listitem><para>number of seconds from ~now~ in which the</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -540,6 +572,15 @@ AllDevices  readable   ao
 <para>        The list of both realized and un-realized network devices. Un-realized
         devices are software devices which do not yet have backing resources, but
         for which backing resources can be created if the device is activated.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.Checkpoints">
+  <title>The "Checkpoints" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.Checkpoints"><primary sortas="Manager:Checkpoints">org.freedesktop.NetworkManager:Checkpoints</primary></indexterm>
+<programlisting>
+Checkpoints  readable   ao
+</programlisting>
+<para>        The list of active checkpoints.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.NetworkingEnabled">

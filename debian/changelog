@@ -1,3 +1,44 @@
+network-manager (1.12.2-0ubuntu3) cosmic; urgency=medium
+
+  * debian/rules:
+    - use --with-libnm-glib, the default reversed since that's a legacy
+      library but we still need it for unity-control-center
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 24 Aug 2018 11:00:09 +0200
+
+network-manager (1.12.2-0ubuntu2) cosmic; urgency=medium
+
+  * debian/patches/git-newglib-test.patch:
+    - backport upstream commit to fix the tests with the new glib 
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 24 Aug 2018 10:44:12 +0200
+
+network-manager (1.12.2-0ubuntu1) cosmic; urgency=medium
+
+  * New upstream version
+  * d/p/libnm-register-empty-NMClient-and-NetworkManager-when-loa.patch,
+    d/p/e91f1a7d2a6b8400b6b331d5b72287dcb5164a39.patch,
+    d/p/git_thunderbolt_connect.patch:
+    - removed, those changes are in the new version
+  * Backport Debian changes
+  * Update symbols file for libnm0
+  * Enable iwd support
+  * Drop version requirements when oldstable ships a newer version
+  * Drop dh_strip override, the dbgsym migration is done
+  * Rebase patches
+  * Make sure the example server.conf is actually installed
+  * Update install path for plugins, it now includes a version number
+  * Drop libnl3 build dependency.
+    Upstream has copied the code directly from libnl3 for the few functions it
+    needs with a few small modifications.
+  * Drop libiw build dependency.
+    Hasn't been needed for a long time and was simply a left over from older
+    releases.
+  * Bump Standards-Version to 4.1.5
+  * Fix compile error due to NM_AVAILABLE_IN_1_12_2 macro (Closes: #905372)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 24 Aug 2018 09:27:39 +0200
+
 network-manager (1.10.8-1ubuntu4) cosmic; urgency=medium
 
   * debian/10-globally-managed-devices.conf: adjust exception for wwan to

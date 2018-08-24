@@ -94,8 +94,7 @@ static void
 _ensure_registered (void)
 {
 	if (G_UNLIKELY (registered_settings == NULL)) {
-		nm_g_type_init ();
-		registered_settings = g_hash_table_new (g_str_hash, g_str_equal);
+		registered_settings = g_hash_table_new (nm_str_hash, g_str_equal);
 		registered_settings_by_type = g_hash_table_new (_nm_gtype_hash, _nm_gtype_equal);
 	}
 }
@@ -683,7 +682,6 @@ set_property_from_dbus (const NMSettingProperty *property,
 	return TRUE;
 }
 
-
 /**
  * _nm_setting_to_dbus:
  * @setting: the #NMSetting
@@ -807,7 +805,7 @@ _nm_setting_new_from_dbus (GType setting_type,
 		GVariant *entry, *entry_key;
 		char *key;
 
-		keys = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+		keys = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, NULL);
 
 		g_variant_iter_init (&iter, setting_dict);
 		while ((entry = g_variant_iter_next_value (&iter))) {
@@ -816,7 +814,7 @@ _nm_setting_new_from_dbus (GType setting_type,
 			g_variant_unref (entry_key);
 			g_variant_unref (entry);
 
-			if (!nm_g_hash_table_add (keys, key)) {
+			if (!g_hash_table_add (keys, key)) {
 				g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_SETTING,
 				             _("duplicate property"));
 				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), key);
@@ -1359,7 +1357,7 @@ nm_setting_diff (NMSetting *a,
 	}
 
 	if (*results == NULL) {
-		*results = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+		*results = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, NULL);
 		results_created = TRUE;
 	}
 
@@ -1800,21 +1798,19 @@ get_secret_flags (NMSetting *setting,
                   NMSettingSecretFlags *out_flags,
                   GError **error)
 {
-	char *flags_prop;
+	gs_free char *name_to_free = NULL;
 	NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
 
 	if (verify_secret && !is_secret_prop (setting, secret_name, error)) {
-		if (out_flags)
-			*out_flags = NM_SETTING_SECRET_FLAG_NONE;
+		NM_SET_OUT (out_flags, NM_SETTING_SECRET_FLAG_NONE);
 		return FALSE;
 	}
 
-	flags_prop = g_strdup_printf ("%s-flags", secret_name);
-	g_object_get (G_OBJECT (setting), flags_prop, &flags, NULL);
-	g_free (flags_prop);
-
-	if (out_flags)
-		*out_flags = flags;
+	g_object_get (G_OBJECT (setting),
+	              nm_construct_name_a ("%s-flags", secret_name, &name_to_free),
+	              &flags,
+	              NULL);
+	NM_SET_OUT (out_flags, flags);
 	return TRUE;
 }
 
@@ -1850,14 +1846,15 @@ set_secret_flags (NMSetting *setting,
                   NMSettingSecretFlags flags,
                   GError **error)
 {
-	char *flags_prop;
+	gs_free char *name_to_free = NULL;
 
 	if (verify_secret)
 		g_return_val_if_fail (is_secret_prop (setting, secret_name, error), FALSE);
 
-	flags_prop = g_strdup_printf ("%s-flags", secret_name);
-	g_object_set (G_OBJECT (setting), flags_prop, flags, NULL);
-	g_free (flags_prop);
+	g_object_set (G_OBJECT (setting),
+	              nm_construct_name_a ("%s-flags", secret_name, &name_to_free),
+	              flags,
+	              NULL);
 	return TRUE;
 }
 

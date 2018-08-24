@@ -89,7 +89,7 @@ NM_GOBJECT_PROPERTIES_DEFINE_BASE (
 );
 
 enum {
-	CONFIG_CHANGED,
+	CONFIG_RECEIVED,
 	RA_TIMEOUT,
 	LAST_SIGNAL
 };
@@ -231,11 +231,11 @@ _data_complete (NMNDiscDataInternal *data)
 	return &data->public;
 }
 
-static void
-_emit_config_change (NMNDisc *self, NMNDiscConfigMap changed)
+void
+nm_ndisc_emit_config_change (NMNDisc *self, NMNDiscConfigMap changed)
 {
 	_config_changed_log (self, changed);
-	g_signal_emit (self, signals[CONFIG_CHANGED], 0,
+	g_signal_emit (self, signals[CONFIG_RECEIVED], 0,
 	               _data_complete (&NM_NDISC_GET_PRIVATE (self)->rdata),
 	               (guint) changed);
 }
@@ -348,6 +348,11 @@ nm_ndisc_add_address (NMNDisc *ndisc, const NMNDiscAddress *new)
 	NMNDiscPrivate *priv = NM_NDISC_GET_PRIVATE (ndisc);
 	NMNDiscDataInternal *rdata = &priv->rdata;
 	guint i;
+
+	nm_assert (new);
+	nm_assert (new->timestamp > 0 && new->timestamp < G_MAXINT32);
+	nm_assert (!IN6_IS_ADDR_UNSPECIFIED (&new->address));
+	nm_assert (!IN6_IS_ADDR_LINKLOCAL (&new->address));
 
 	for (i = 0; i < rdata->addresses->len; i++) {
 		NMNDiscAddress *item = &g_array_index (rdata->addresses, NMNDiscAddress, i);
@@ -738,7 +743,7 @@ nm_ndisc_set_iid (NMNDisc *ndisc, const NMUtilsIPv6IfaceId iid)
 		if (rdata->addresses->len) {
 			_LOGD ("IPv6 interface identifier changed, flushing addresses");
 			g_array_remove_range (rdata->addresses, 0, rdata->addresses->len);
-			_emit_config_change (ndisc, NM_NDISC_CONFIG_ADDRESSES);
+			nm_ndisc_emit_config_change (ndisc, NM_NDISC_CONFIG_ADDRESSES);
 			solicit_routers (ndisc);
 		}
 		return TRUE;
@@ -791,8 +796,8 @@ nm_ndisc_start (NMNDisc *ndisc)
 	}
 }
 
-void
-nm_ndisc_dad_failed (NMNDisc *ndisc, struct in6_addr *address)
+NMNDiscConfigMap
+nm_ndisc_dad_failed (NMNDisc *ndisc, const struct in6_addr *address, gboolean emit_changed_signal)
 {
 	NMNDiscDataInternal *rdata;
 	guint i;
@@ -814,8 +819,10 @@ nm_ndisc_dad_failed (NMNDisc *ndisc, struct in6_addr *address)
 		i++;
 	}
 
-	if (changed)
-		_emit_config_change (ndisc, NM_NDISC_CONFIG_ADDRESSES);
+	if (emit_changed_signal && changed)
+		nm_ndisc_emit_config_change (ndisc, NM_NDISC_CONFIG_ADDRESSES);
+
+	return changed ? NM_NDISC_CONFIG_ADDRESSES : NM_NDISC_CONFIG_NONE;
 }
 
 #define CONFIG_MAP_MAX_STR 7
@@ -887,6 +894,23 @@ get_expiry_time (guint32 timestamp, guint32 lifetime)
 		                   : (_item->lifetime) / 2); \
 	})
 
+static const char *
+_get_exp (char *buf, gsize buf_size, gint64 now_ns, gint32 expiry_time)
+{
+	int l;
+
+	if (expiry_time == G_MAXINT32)
+		return "permanent";
+	l = g_snprintf (buf, buf_size,
+	                "%.4f",
+	                ((double) ((expiry_time * NM_UTILS_NS_PER_SECOND) - now_ns)) / ((double) NM_UTILS_NS_PER_SECOND));
+	nm_assert (l < buf_size);
+	return buf;
+}
+
+#define get_exp(buf, now_ns, item) \
+	_get_exp ((buf), G_N_ELEMENTS (buf), (now_ns), (get_expiry (item)))
+
 static void
 _config_changed_log (NMNDisc *ndisc, NMNDiscConfigMap changed)
 {
@@ -896,9 +920,13 @@ _config_changed_log (NMNDisc *ndisc, NMNDiscConfigMap changed)
 	char changedstr[CONFIG_MAP_MAX_STR];
 	char addrstr[INET6_ADDRSTRLEN];
 	char str_pref[35];
+	char str_exp[100];
+	gint64 now_ns;
 
 	if (!_LOGD_ENABLED ())
 		return;
+
+	now_ns = nm_utils_get_monotonic_timestamp_ns ();
 
 	priv = NM_NDISC_GET_PRIVATE (ndisc);
 	rdata = &priv->rdata;
@@ -910,35 +938,38 @@ _config_changed_log (NMNDisc *ndisc, NMNDiscConfigMap changed)
 		NMNDiscGateway *gateway = &g_array_index (rdata->gateways, NMNDiscGateway, i);
 
 		inet_ntop (AF_INET6, &gateway->address, addrstr, sizeof (addrstr));
-		_LOGD ("  gateway %s pref %s exp %d", addrstr,
+		_LOGD ("  gateway %s pref %s exp %s", addrstr,
 		       nm_icmpv6_router_pref_to_string (gateway->preference, str_pref, sizeof (str_pref)),
-		       get_expiry (gateway));
+		       get_exp (str_exp, now_ns, gateway));
 	}
 	for (i = 0; i < rdata->addresses->len; i++) {
-		NMNDiscAddress *address = &g_array_index (rdata->addresses, NMNDiscAddress, i);
+		const NMNDiscAddress *address = &g_array_index (rdata->addresses, NMNDiscAddress, i);
 
 		inet_ntop (AF_INET6, &address->address, addrstr, sizeof (addrstr));
-		_LOGD ("  address %s exp %d", addrstr, get_expiry (address));
+		_LOGD ("  address %s exp %s", addrstr,
+		       get_exp (str_exp, now_ns, address));
 	}
 	for (i = 0; i < rdata->routes->len; i++) {
 		NMNDiscRoute *route = &g_array_index (rdata->routes, NMNDiscRoute, i);
 
 		inet_ntop (AF_INET6, &route->network, addrstr, sizeof (addrstr));
-		_LOGD ("  route %s/%u via %s pref %s exp %d", addrstr, (guint) route->plen,
+		_LOGD ("  route %s/%u via %s pref %s exp %s", addrstr, (guint) route->plen,
 		       nm_utils_inet6_ntop (&route->gateway, NULL),
 		       nm_icmpv6_router_pref_to_string (route->preference, str_pref, sizeof (str_pref)),
-		       get_expiry (route));
+		       get_exp (str_exp, now_ns, route));
 	}
 	for (i = 0; i < rdata->dns_servers->len; i++) {
 		NMNDiscDNSServer *dns_server = &g_array_index (rdata->dns_servers, NMNDiscDNSServer, i);
 
 		inet_ntop (AF_INET6, &dns_server->address, addrstr, sizeof (addrstr));
-		_LOGD ("  dns_server %s exp %d", addrstr, get_expiry (dns_server));
+		_LOGD ("  dns_server %s exp %s", addrstr,
+		       get_exp (str_exp, now_ns, dns_server));
 	}
 	for (i = 0; i < rdata->dns_domains->len; i++) {
 		NMNDiscDNSDomain *dns_domain = &g_array_index (rdata->dns_domains, NMNDiscDNSDomain, i);
 
-		_LOGD ("  dns_domain %s exp %d", dns_domain->domain, get_expiry (dns_domain));
+		_LOGD ("  dns_domain %s exp %s", dns_domain->domain,
+		       get_exp (str_exp, now_ns, dns_domain));
 	}
 }
 
@@ -979,7 +1010,7 @@ clean_addresses (NMNDisc *ndisc, gint32 now, NMNDiscConfigMap *changed, gint32 *
 	rdata = &NM_NDISC_GET_PRIVATE (ndisc)->rdata;
 
 	for (i = 0; i < rdata->addresses->len; ) {
-		NMNDiscAddress *item = &g_array_index (rdata->addresses, NMNDiscAddress, i);
+		const NMNDiscAddress *item = &g_array_index (rdata->addresses, NMNDiscAddress, i);
 
 		if (item->lifetime != NM_NDISC_INFINITY) {
 			gint32 expiry = get_expiry (item);
@@ -1102,7 +1133,7 @@ check_timestamps (NMNDisc *ndisc, gint32 now, NMNDiscConfigMap changed)
 	clean_dns_domains (ndisc, now, &changed, &nextevent);
 
 	if (changed)
-		_emit_config_change (ndisc, changed);
+		nm_ndisc_emit_config_change (ndisc, changed);
 
 	if (nextevent != G_MAXINT32) {
 		if (nextevent <= now)
@@ -1354,7 +1385,7 @@ nm_ndisc_class_init (NMNDiscClass *klass)
 	                      G_PARAM_STATIC_STRINGS);
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
-	signals[CONFIG_CHANGED] =
+	signals[CONFIG_RECEIVED] =
 	    g_signal_new (NM_NDISC_CONFIG_RECEIVED,
 	                  G_OBJECT_CLASS_TYPE (klass),
 	                  G_SIGNAL_RUN_FIRST,

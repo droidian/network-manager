@@ -30,8 +30,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "NetworkManager.h"
-
 #include "nmt-newt.h"
 #include "nm-editor-bindings.h"
 
@@ -228,7 +226,7 @@ main (int argc, char **argv)
 	int i;
 
 	setlocale (LC_ALL, "");
-	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+	bindtextdomain (GETTEXT_PACKAGE, NMLOCALEDIR);
 	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 	textdomain (GETTEXT_PACKAGE);
 

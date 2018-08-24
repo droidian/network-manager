@@ -2,12 +2,12 @@
 .\"     Title: nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 05/11/2018
+.\"      Date: 07/25/2018
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.10.8
+.\"    Source: NetworkManager 1.12.2
 .\"  Language: English
 .\"
-.TH "NMCLI" "1" "" "NetworkManager 1\&.10\&.8" "General Commands Manual"
+.TH "NMCLI" "1" "" "NetworkManager 1\&.12\&.2" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -138,6 +138,12 @@ disables them,
 auto
 only produces colors when standard output is directed to a terminal\&. The default value is
 auto\&.
+.sp
+The actual colors used are configured as described in
+\fBterminal-colors.d\fR(5)\&. Please refer to the
+COLORS
+section for a list of color names supported by
+\fBnmcli\fR\&.
 .RE
 .PP
 \fB\-f\fR | \fB\-\-fields\fR {\fIfield1\fR,\fIfield2\fR... | all | common}
@@ -1134,13 +1140,19 @@ Monitors all devices in case no interface is specified\&. The monitor terminates
 command\&.
 .RE
 .PP
-\fBwifi\fR [\fBlist\fR\ [\fBifname\fR\ \fIifname\fR]\ [\fBbssid\fR\ \fIBSSID\fR]]
+\fBwifi\fR [\fBlist\fR\ [\fB\-\-rescan\fR\ |\ \fBauto\fR\ |\ \fBno\fR\ |\ \fByes\fR]\ [\fBifname\fR\ \fIifname\fR]\ [\fBbssid\fR\ \fIBSSID\fR]]
 .RS 4
 List available Wi\-Fi access points\&. The
 \fBifname\fR
 and
 \fBbssid\fR
 options can be used to list APs for a particular interface or with a specific BSSID, respectively\&.
+.sp
+By default,
+\fBnmcli\fR
+ensures that the access point list is no older than 30 seconds and triggers a network scan if necessary\&. The
+\fB\-\-rescan\fR
+can be used to either force or disable the scan regardless of how fresh the access point list is\&.
 .RE
 .PP
 \fBwifi\fR \fBconnect\fR \fI(B)SSID\fR [\fBpassword\fR\ \fIpassword\fR] [\fBwep\-key\-type\fR\ {key\ |\ phrase}] [\fBifname\fR\ \fIifname\fR] [\fBbssid\fR\ \fIBSSID\fR] [\fBname\fR\ \fIname\fR] [\fBprivate\fR\ {yes\ |\ no}] [\fBhidden\fR\ {yes\ |\ no}]
@@ -2398,6 +2410,196 @@ Read the JavaScript PAC (proxy auto\-config) script from file or pass it directl
 T}
 .TE
 .sp 1
+.SH "COLORS"
+.PP
+Implicit coloring can be disabled by an empty file
+/etc/terminal\-colors\&.d/nmcli\&.disable\&.
+.PP
+See
+\fBterminal-colors.d\fR(5)
+for more details about colorization configuration\&. The logical color names supported by
+\fBnmcli\fR
+are:
+.PP
+\fBconnection\-activated\fR
+.RS 4
+A connection that is active\&.
+.RE
+.PP
+\fBconnection\-activating\fR
+.RS 4
+Connection that is being activated\&.
+.RE
+.PP
+\fBconnection\-disconnecting\fR
+.RS 4
+Connection that is being disconnected\&.
+.RE
+.PP
+\fBconnection\-invisible\fR
+.RS 4
+Connection whose details is the user not permitted to see\&.
+.RE
+.PP
+\fBconnectivity\-full\fR
+.RS 4
+Conectivity state when Internet is reachable\&.
+.RE
+.PP
+\fBconnectivity\-limited\fR
+.RS 4
+Conectivity state when only a local network reachable\&.
+.RE
+.PP
+\fBconnectivity\-none\fR
+.RS 4
+Conectivity state when the network is disconnected\&.
+.RE
+.PP
+\fBconnectivity\-portal\fR
+.RS 4
+Conectivity state when a captive portal hijacked the connection\&.
+.RE
+.PP
+\fBconnectivity\-unknown\fR
+.RS 4
+Conectivity state when a connectivity check didn\*(Aqt run\&.
+.RE
+.PP
+\fBdevice\-activated\fR
+.RS 4
+Device that is connected\&.
+.RE
+.PP
+\fBdevice\-activating\fR
+.RS 4
+Device that is being configured\&.
+.RE
+.PP
+\fBdevice\-disconnected\fR
+.RS 4
+Device that is not connected\&.
+.RE
+.PP
+\fBdevice\-firmware\-missing\fR
+.RS 4
+Warning of a missing device firmware\&.
+.RE
+.PP
+\fBdevice\-plugin\-missing\fR
+.RS 4
+Warning of a missing device plugin\&.
+.RE
+.PP
+\fBdevice\-unavailable\fR
+.RS 4
+Device that is not available for activation\&.
+.RE
+.PP
+\fBmanager\-running\fR
+.RS 4
+Notice that the NetworkManager daemon is available\&.
+.RE
+.PP
+\fBmanager\-starting\fR
+.RS 4
+Notice that the NetworkManager daemon is being initially connected\&.
+.RE
+.PP
+\fBmanager\-stopped\fR
+.RS 4
+Notice that the NetworkManager daemon is not available\&.
+.RE
+.PP
+\fBpermission\-auth\fR
+.RS 4
+An action that requires user authentication to get permission\&.
+.RE
+.PP
+\fBpermission\-no\fR
+.RS 4
+An action that is not permitted\&.
+.RE
+.PP
+\fBpermission\-yes\fR
+.RS 4
+An action that is permitted\&.
+.RE
+.PP
+\fBprompt\fR
+.RS 4
+Prompt in interactive mode\&.
+.RE
+.PP
+\fBstate\-asleep\fR
+.RS 4
+Indication that NetworkManager in suspended state\&.
+.RE
+.PP
+\fBstate\-connected\-global\fR
+.RS 4
+Indication that NetworkManager in connected to Internet\&.
+.RE
+.PP
+\fBstate\-connected\-local\fR
+.RS 4
+Indication that NetworkManager in local network\&.
+.RE
+.PP
+\fBstate\-connected\-site\fR
+.RS 4
+Indication that NetworkManager in connected to networks other than Internet\&.
+.RE
+.PP
+\fBstate\-connecting\fR
+.RS 4
+Indication that NetworkManager is establishing a network connection\&.
+.RE
+.PP
+\fBstate\-disconnected\fR
+.RS 4
+Indication that NetworkManager is disconnected from a network\&.
+.RE
+.PP
+\fBstate\-disconnecting\fR
+.RS 4
+Indication that NetworkManager is being disconnected from a network\&.
+.RE
+.PP
+\fBwifi\-signal\-excellent\fR
+.RS 4
+Wi\-Fi network with an excellent signal level\&.
+.RE
+.PP
+\fBwifi\-signal\-fair\fR
+.RS 4
+Wi\-Fi network with a fair signal level\&.
+.RE
+.PP
+\fBwifi\-signal\-good\fR
+.RS 4
+Wi\-Fi network with a good signal level\&.
+.RE
+.PP
+\fBwifi\-signal\-poor\fR
+.RS 4
+Wi\-Fi network with a poor signal level\&.
+.RE
+.PP
+\fBwifi\-signal\-unknown\fR
+.RS 4
+Wi\-Fi network that hasn\*(Aqt been actually seen (a hidden AP)\&.
+.RE
+.PP
+\fBdisabled\fR
+.RS 4
+A property that is turned off\&.
+.RE
+.PP
+\fBenabled\fR
+.RS 4
+A property that is turned on\&.
+.RE
 .SH "ENVIRONMENT VARIABLES"
 .PP
 \fBnmcli\fR\*(Aqs behavior is affected by the following environment variables\&.
@@ -2706,4 +2908,5 @@ NetworkManager\&.
 \fBNetworkManager.conf\fR(5),
 \fBnm-settings\fR(5),
 \fBnm-applet\fR(1),
-\fBnm-connection-editor\fR(1)\&.
+\fBnm-connection-editor\fR(1),
+\fBterminal-colors.d\fR(5)\&.

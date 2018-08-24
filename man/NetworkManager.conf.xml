@@ -132,7 +132,7 @@ plugins-=remove-me
           <para>
             Lists system settings plugin names separated by ','. These
             plugins are used to read and write system-wide
-            connections. When multiple plugins are specified, the
+            connection profiles. When multiple plugins are specified, the
             connections are read from all listed plugins. When writing
             connections, the plugins will be asked to save the
             connection in the order listed here; if the first plugin
@@ -142,15 +142,12 @@ plugins-=remove-me
             to the user.
           </para>
           <para>
-            If NetworkManager defines a distro-specific
-            network-configuration plugin for your system, then that
-            will normally be listed here. (See below for the available
-            plugins.) Note that the <literal>keyfile</literal> plugin
-            is always appended to the end of this list (if it doesn't
-            already appear earlier in the list), so if there is no
-            distro-specific plugin for your system then you can leave
-            this key unset and NetworkManager will fall back to using
-            <literal>keyfile</literal>.
+            The default value and the number of available plugins is
+            distro-specific. See <xref linkend="settings-plugins"/>
+            below for the available plugins.
+            Note that NetworkManager's native <literal>keyfile</literal>
+            plugin is always appended to the end of this list (if it doesn't
+            already appear earlier in the list).
           </para>
         </listitem>
       </varlistentry>
@@ -312,6 +309,7 @@ no-auto-default=*
         <listitem><para>Set the DNS (<filename>resolv.conf</filename>) processing mode.
         If the key is unspecified, <literal>default</literal> is used,
         unless <filename>/etc/resolv.conf</filename> is a symlink to
+        <filename>/run/systemd/resolve/stub-resolv.conf</filename>,
         <filename>/run/systemd/resolve/resolv.conf</filename>,
         <filename>/lib/systemd/resolv.conf</filename> or
         <filename>/usr/lib/systemd/resolv.conf</filename>.
@@ -365,8 +363,11 @@ no-auto-default=*
         a symlink.</para>
         <para><literal>file</literal>: NetworkManager will write
         <filename>/etc/resolv.conf</filename> as file. If it finds
-        a symlink, it will follow the symlink and update the target
-        instead.</para>
+        a symlink to an existing target, it will follow the symlink and
+        update the target instead. In no case will an existing symlink
+        be replaced by a file. Note that older versions of NetworkManager
+        behaved differently and would replace dangling symlinks with a
+        plain file.</para>
         <para><literal>resolvconf</literal>: NetworkManager will run
         resolvconf to update the DNS configuration.</para>
         <para><literal>netconfig</literal>: NetworkManager will run
@@ -602,12 +603,10 @@ unmanaged-devices=mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface-name:eth
         <varlistentry>
           <term><varname>backend</varname></term>
           <listitem><para>The logging backend. Supported values
-          are "<literal>debug</literal>", "<literal>syslog</literal>",
-          "<literal>journal</literal>".
-          "<literal>debug</literal>" uses syslog and logs to standard error.
-          If NetworkManager is started in debug mode (<literal>--debug</literal>)
-          this option is ignored and "<literal>debug</literal>" is always used.
-          Otherwise, the default is "<literal>&NM_CONFIG_DEFAULT_LOGGING_BACKEND_TEXT;</literal>".
+          are "<literal>syslog</literal>" and "<literal>journal</literal>".
+          When NetworkManager is started with "<literal>--debug</literal>"
+          in addition all messages will be printed to stderr.
+          If unspecified, the default is "<literal>&NM_CONFIG_DEFAULT_LOGGING_BACKEND_TEXT;</literal>".
           </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -655,6 +654,9 @@ ipv6.ip6-privacy=0
           <term><varname>connection.lldp</varname></term>
         </varlistentry>
         <varlistentry>
+          <term><varname>connection.mdns</varname></term>
+        </varlistentry>
+        <varlistentry>
           <term><varname>connection.stable-id</varname></term>
         </varlistentry>
         <varlistentry>
@@ -683,6 +685,9 @@ ipv6.ip6-privacy=0
           <term><varname>ipv4.dad-timeout</varname></term>
         </varlistentry>
         <varlistentry>
+          <term><varname>ipv4.dhcp-client-id</varname></term>
+        </varlistentry>
+        <varlistentry>
           <term><varname>ipv4.dhcp-timeout</varname></term>
           <listitem><para>If left unspecified, the default value for
            the interface type is used.</para></listitem>
@@ -696,6 +701,10 @@ ipv6.ip6-privacy=0
             is different from explicitly selecting the main table 254, because of how NetworkManager
             removes extraneous routes from the tables.
           </para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><varname>ipv6.dhcp-duid</varname></term>
+          <listitem><para>If left unspecified, it defaults to "lease".</para></listitem>
         </varlistentry>
         <varlistentry>
           <term><varname>ipv6.dhcp-timeout</varname></term>
@@ -746,6 +755,11 @@ ipv6.ip6-privacy=0
         </varlistentry>
         <varlistentry>
           <term><varname>wifi-sec.pmf</varname></term>
+          <listitem><para>If left unspecified, the default value
+          "<literal>optional</literal>" will be used.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><varname>wifi-sec.fils</varname></term>
           <listitem><para>If left unspecified, the default value
           "<literal>optional</literal>" will be used.</para></listitem>
         </varlistentry>
@@ -927,6 +941,15 @@ managed=1
             </para>
           </listitem>
         </varlistentry>
+        <varlistentry id="wifi.backend">
+          <term><varname>wifi.backend</varname></term>
+          <listitem>
+            <para>
+              Specify the Wi-Fi backend used for the device. Currently supported
+              are <literal>wpa_supplicant</literal> and <literal>iwd</literal> (experimental).
+            </para>
+          </listitem>
+        </varlistentry>
         <varlistentry>
           <term><varname>wifi.scan-generate-mac-address-mask</varname></term>
           <listitem>
@@ -979,7 +1002,7 @@ managed=1
           <listitem><para>The URI of a web page to periodically
           request when connectivity is being checked.  This page
           should return the header "X-NetworkManager-Status" with a
-          value of "online".  Alternatively, it's body content should
+          value of "online".  Alternatively, its body content should
           be set to "NetworkManager is online".  The body content
           check can be controlled by the <literal>response</literal>
           option.  If this option is blank or missing, connectivity
@@ -1151,8 +1174,13 @@ enable=nm-version-min:1.3,nm-version-min:1.2.6,nm-version-min:1.0.16
     </para>
   </refsect1>
 
-  <refsect1>
+  <refsect1 id="settings-plugins">
     <title>Plugins</title>
+
+    <para>
+      Settings plugins for reading and writing connection profiles. The number of
+      available plugins is distribution specific.
+    </para>
 
     <variablelist>
       <varlistentry>
@@ -1164,6 +1192,8 @@ enable=nm-version-min:1.3,nm-version-min:1.2.6,nm-version-min:1.0.16
             capabilities that NetworkManager has. It writes files out
             in an .ini-style format in
             <filename>/etc/NetworkManager/system-connections</filename>.
+            See <link linkend='nm-settings-keyfile'><citerefentry><refentrytitle>nm-settings-keyfile</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>
+            for details about the file format.
           </para>
           <para>
             The stored connection file may contain passwords, secrets and
@@ -1180,6 +1210,7 @@ enable=nm-version-min:1.3,nm-version-min:1.2.6,nm-version-min:1.0.16
           </para>
         </listitem>
       </varlistentry>
+
       <varlistentry>
         <term><varname>ifcfg-rh</varname></term>
         <listitem>
@@ -1193,17 +1224,9 @@ enable=nm-version-min:1.3,nm-version-min:1.2.6,nm-version-min:1.0.16
             Enabling <literal>ifcfg-rh</literal> implicitly enables
             <literal>ibft</literal> plugin, if it is available.
             This can be disabled by adding <literal>no-ibft</literal>.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term><varname>ifcfg-suse</varname></term>
-        <listitem>
-          <para>
-            This plugin is deprecated and its selection has no effect.
-            The <literal>keyfile</literal> plugin should be used
-            instead.
+            See <filename>/usr/share/doc/initscripts/sysconfig.txt</filename>
+            and <link linkend='nm-settings-ifcfg-rh'><citerefentry><refentrytitle>nm-settings-ifcfg-rh</refentrytitle><manvolnum>5</manvolnum></citerefentry></link>
+            for more information about the ifcfg file format.
           </para>
         </listitem>
       </varlistentry>
@@ -1240,6 +1263,17 @@ enable=nm-version-min:1.3,nm-version-min:1.2.6,nm-version-min:1.0.16
           <para>
             Note that ibft plugin uses <filename>/sbin/iscsiadm</filename> and thus requires
             CAP_SYS_ADMIN capability.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>ifcfg-suse</varname>, <varname>ifnet</varname></term>
+        <listitem>
+          <para>
+            These plugins are deprecated and their selection has no effect.
+            The <literal>keyfile</literal> plugin should be used
+            instead.
           </para>
         </listitem>
       </varlistentry>

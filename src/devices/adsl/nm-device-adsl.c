@@ -39,8 +39,6 @@
 #include "nm-setting-adsl.h"
 #include "nm-utils.h"
 
-#include "introspection/org.freedesktop.NetworkManager.Device.Adsl.h"
-
 #include "devices/nm-device-logging.h"
 _LOG_DECLARE_SELF (NMDeviceAdsl);
 
@@ -116,7 +114,7 @@ static gboolean
 complete_connection (NMDevice *device,
                      NMConnection *connection,
                      const char *specific_object,
-                     const GSList *existing_connections,
+                     NMConnection *const*existing_connections,
                      GError **error)
 {
 	NMSettingAdsl *s_adsl;
@@ -137,8 +135,6 @@ complete_connection (NMDevice *device,
 	                           _("ADSL connection"),
 	                           NULL,
 	                           FALSE); /* No IPv6 yet by default */
-
-
 	return TRUE;
 }
 
@@ -198,7 +194,7 @@ br2684_assign_vcc (NMDeviceAdsl *self, NMSettingAdsl *s_adsl)
 
 	_LOGD (LOGD_ADSL, "assigning address %d.%d.%d encapsulation %s",
 	       priv->atm_index, addr.sap_addr.vpi, addr.sap_addr.vci,
-	       encapsulation ? encapsulation : "(none)");
+	       encapsulation ?: "(none)");
 
 	err = connect (priv->brfd, (struct sockaddr*) &addr, sizeof (addr));
 	if (err != 0) {
@@ -431,8 +427,22 @@ ppp_state_changed (NMPPPManager *ppp_manager, NMPPPStatus status, gpointer user_
 }
 
 static void
+ppp_ifindex_set (NMPPPManager *ppp_manager,
+                 int ifindex,
+                 const char *iface,
+                 gpointer user_data)
+{
+	NMDevice *device = NM_DEVICE (user_data);
+
+	if (!nm_device_set_ip_ifindex (device, ifindex)) {
+		nm_device_state_changed (device,
+		                         NM_DEVICE_STATE_FAILED,
+		                         NM_DEVICE_STATE_REASON_IP_CONFIG_UNAVAILABLE);
+	}
+}
+
+static void
 ppp_ip4_config (NMPPPManager *ppp_manager,
-                const char *iface,
                 NMIP4Config *config,
                 gpointer user_data)
 {
@@ -440,7 +450,6 @@ ppp_ip4_config (NMPPPManager *ppp_manager,
 
 	/* Ignore PPP IP4 events that come in after initial configuration */
 	if (nm_device_activate_ip4_state_in_conf (device)) {
-		nm_device_set_ip_iface (device, iface);
 		nm_device_activate_schedule_ip4_config_result (device, config);
 	}
 }
@@ -499,6 +508,9 @@ act_stage3_ip4_config_start (NMDevice *device,
 	g_signal_connect (priv->ppp_manager, NM_PPP_MANAGER_SIGNAL_STATE_CHANGED,
 	                  G_CALLBACK (ppp_state_changed),
 	                  self);
+	g_signal_connect (priv->ppp_manager, NM_PPP_MANAGER_SIGNAL_IFINDEX_SET,
+	                  G_CALLBACK (ppp_ifindex_set),
+	                  self);
 	g_signal_connect (priv->ppp_manager, NM_PPP_MANAGER_SIGNAL_IP4_CONFIG,
 	                  G_CALLBACK (ppp_ip4_config),
 	                  self);
@@ -513,7 +525,7 @@ adsl_cleanup (NMDeviceAdsl *self)
 	if (priv->ppp_manager) {
 		g_signal_handlers_disconnect_by_func (priv->ppp_manager, G_CALLBACK (ppp_state_changed), self);
 		g_signal_handlers_disconnect_by_func (priv->ppp_manager, G_CALLBACK (ppp_ip4_config), self);
-		nm_ppp_manager_stop_sync (priv->ppp_manager);
+		nm_ppp_manager_stop (priv->ppp_manager, NULL, NULL);
 		g_clear_object (&priv->ppp_manager);
 	}
 
@@ -639,16 +651,32 @@ dispose (GObject *object)
 	G_OBJECT_CLASS (nm_device_adsl_parent_class)->dispose (object);
 }
 
+static const NMDBusInterfaceInfoExtended interface_info_device_adsl = {
+	.parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT (
+		NM_DBUS_INTERFACE_DEVICE_ADSL,
+		.signals = NM_DEFINE_GDBUS_SIGNAL_INFOS (
+			&nm_signal_info_property_changed_legacy,
+		),
+		.properties = NM_DEFINE_GDBUS_PROPERTY_INFOS (
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Carrier", "b", NM_DEVICE_CARRIER),
+		),
+	),
+	.legacy_property_changed = TRUE,
+};
+
 static void
 nm_device_adsl_class_init (NMDeviceAdslClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	NMDBusObjectClass *dbus_object_class = NM_DBUS_OBJECT_CLASS (klass);
 	NMDeviceClass *parent_class = NM_DEVICE_CLASS (klass);
 
 	object_class->constructed  = constructed;
 	object_class->dispose      = dispose;
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
+
+	dbus_object_class->interface_infos = NM_DBUS_INTERFACE_INFOS (&interface_info_device_adsl);
 
 	parent_class->get_generic_capabilities = get_generic_capabilities;
 
@@ -666,8 +694,4 @@ nm_device_adsl_class_init (NMDeviceAdslClass *klass)
 	                       G_PARAM_STATIC_STRINGS);
 
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
-
-	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
-	                                        NMDBUS_TYPE_DEVICE_ADSL_SKELETON,
-	                                        NULL);
 }

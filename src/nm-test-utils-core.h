@@ -30,6 +30,14 @@
 
 /*****************************************************************************/
 
+#define NMTST_EXPECT_NM(level, msg)     NMTST_EXPECT ("NetworkManager", level, msg)
+
+#define NMTST_EXPECT_NM_ERROR(msg)      NMTST_EXPECT_NM (G_LOG_LEVEL_MESSAGE, "*<error> [*] "msg)
+#define NMTST_EXPECT_NM_WARN(msg)       NMTST_EXPECT_NM (G_LOG_LEVEL_MESSAGE, "*<warn>  [*] "msg)
+#define NMTST_EXPECT_NM_INFO(msg)       NMTST_EXPECT_NM (G_LOG_LEVEL_INFO,    "*<info>  [*] "msg)
+#define NMTST_EXPECT_NM_DEBUG(msg)      NMTST_EXPECT_NM (G_LOG_LEVEL_DEBUG,   "*<debug> [*] "msg)
+#define NMTST_EXPECT_NM_TRACE(msg)      NMTST_EXPECT_NM (G_LOG_LEVEL_DEBUG,   "*<trace> [*] "msg)
+
 static inline void
 nmtst_init_with_logging (int *argc, char ***argv, const char *log_level, const char *log_domains)
 {
@@ -300,7 +308,6 @@ nmtst_platform_ip6_routes_equal_aptr (const NMPObject *const*a, const NMPlatform
 
 #endif
 
-
 #ifdef __NETWORKMANAGER_IP4_CONFIG_H__
 
 #include "nm-utils/nm-dedup-multi.h"
@@ -313,20 +320,7 @@ nmtst_ip4_config_new (int ifindex)
 	return nm_ip4_config_new (multi_idx, ifindex);
 }
 
-static inline NMIP4Config *
-nmtst_ip4_config_clone (NMIP4Config *config)
-{
-	NMIP4Config *copy;
-
-	g_assert (config);
-	copy = nm_ip4_config_new (nm_ip4_config_get_multi_idx (config), -1);
-	g_assert (copy);
-	nm_ip4_config_replace (copy, config, NULL);
-	return copy;
-}
-
 #endif
-
 
 #ifdef __NETWORKMANAGER_IP6_CONFIG_H__
 
@@ -338,18 +332,6 @@ nmtst_ip6_config_new (int ifindex)
 	nm_auto_unref_dedup_multi_index NMDedupMultiIndex *multi_idx = nm_dedup_multi_index_new ();
 
 	return nm_ip6_config_new (multi_idx, ifindex);
-}
-
-static inline NMIP6Config *
-nmtst_ip6_config_clone (NMIP6Config *config)
-{
-	NMIP6Config *copy;
-
-	g_assert (config);
-	copy = nm_ip6_config_new (nm_ip6_config_get_multi_idx (config), -1);
-	g_assert (copy);
-	nm_ip6_config_replace (copy, config, NULL);
-	return copy;
 }
 
 #endif

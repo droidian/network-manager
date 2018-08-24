@@ -8,11 +8,11 @@ Bug-Ubuntu: https://launchpad.net/bugs/1594551
  src/settings/plugins/keyfile/nms-keyfile-plugin.c | 18 ++++++++++++++++++
  1 file changed, 18 insertions(+)
 
-diff --git a/src/settings/plugins/keyfile/nms-keyfile-plugin.c b/src/settings/plugins/keyfile/nms-keyfile-plugin.c
-index 4af8014..297ac3d 100644
---- a/src/settings/plugins/keyfile/nms-keyfile-plugin.c
-+++ b/src/settings/plugins/keyfile/nms-keyfile-plugin.c
-@@ -410,6 +410,8 @@ _sort_paths (const char **f1, const char **f2, GHashTable *paths)
+Index: network-manager-1.12.2/src/settings/plugins/keyfile/nms-keyfile-plugin.c
+===================================================================
+--- network-manager-1.12.2.orig/src/settings/plugins/keyfile/nms-keyfile-plugin.c
++++ network-manager-1.12.2/src/settings/plugins/keyfile/nms-keyfile-plugin.c
+@@ -411,6 +411,8 @@ _sort_paths (const char **f1, const char
  	return strcmp (*f1, *f2);
  }
  
@@ -21,7 +21,7 @@ index 4af8014..297ac3d 100644
  static void
  read_connections (NMSettingsPlugin *config)
  {
-@@ -445,6 +447,22 @@ read_connections (NMSettingsPlugin *config)
+@@ -446,6 +448,22 @@ read_connections (NMSettingsPlugin *conf
  	}
  	g_dir_close (dir);
  
