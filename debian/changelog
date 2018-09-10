@@ -1,3 +1,11 @@
+network-manager (1.12.2-0ubuntu4) cosmic; urgency=medium
+
+  Cherry-pick fixes from debian:
+  * Fix compile error due to NM_AVAILABLE_IN_1_12_2 macro in n-m-applet
+  * Apply patch from upstream to fix FTBFS with GLib 2.57
+
+ -- Didier Roche <didrocks@ubuntu.com>  Mon, 10 Sep 2018 11:36:35 +0200
+
 network-manager (1.12.2-0ubuntu3) cosmic; urgency=medium
 
   * debian/rules:
