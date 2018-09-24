@@ -20,6 +20,10 @@ try:
 except ImportError:
     DBusTestCase = object  # dummy so that the class declaration works
 
+import gi
+
+gi.require_version('NetworkManager', '1.0')
+gi.require_version('NMClient', '1.0')
 from gi.repository import NetworkManager, NMClient, GLib
 
 sys.path.append(os.path.dirname(__file__))
