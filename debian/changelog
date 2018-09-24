@@ -1,11 +1,11 @@
-network-manager (1.12.2-0ubuntu5) UNRELEASED; urgency=medium
+network-manager (1.12.2-0ubuntu5) cosmic; urgency=medium
 
   * debian/tests/nm: Add the required `gi.require_version()` calls - thanks to
     the autopkgtests for noticing this.
   * debian/tests/control: The nm tests need dnsmasq-base and isc-dhcp-client
     too.
 
- -- Iain Lane <iain@orangesquash.org.uk>  Mon, 24 Sep 2018 09:34:20 +0100
+ -- Iain Lane <iain@orangesquash.org.uk>  Mon, 24 Sep 2018 10:17:30 +0100
 
 network-manager (1.12.2-0ubuntu4) cosmic; urgency=medium
 
