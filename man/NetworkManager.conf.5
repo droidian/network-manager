@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 05/11/2018
+.\"      Date: 07/25/2018
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.10.8
+.\"    Source: NetworkManager 1.12.2
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.10\&.8" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.12\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -109,12 +109,13 @@ plugins\-=remove\-me
 .PP
 \fIplugins\fR
 .RS 4
-Lists system settings plugin names separated by \*(Aq,\*(Aq\&. These plugins are used to read and write system\-wide connections\&. When multiple plugins are specified, the connections are read from all listed plugins\&. When writing connections, the plugins will be asked to save the connection in the order listed here; if the first plugin cannot write out that connection type (or can\*(Aqt write out any connections) the next plugin is tried, etc\&. If none of the plugins can save the connection, an error is returned to the user\&.
+Lists system settings plugin names separated by \*(Aq,\*(Aq\&. These plugins are used to read and write system\-wide connection profiles\&. When multiple plugins are specified, the connections are read from all listed plugins\&. When writing connections, the plugins will be asked to save the connection in the order listed here; if the first plugin cannot write out that connection type (or can\*(Aqt write out any connections) the next plugin is tried, etc\&. If none of the plugins can save the connection, an error is returned to the user\&.
 .sp
-If NetworkManager defines a distro\-specific network\-configuration plugin for your system, then that will normally be listed here\&. (See below for the available plugins\&.) Note that the
+The default value and the number of available plugins is distro\-specific\&. See
+the section called \(lqPLUGINS\(rq
+below for the available plugins\&. Note that NetworkManager\*(Aqs native
 keyfile
-plugin is always appended to the end of this list (if it doesn\*(Aqt already appear earlier in the list), so if there is no distro\-specific plugin for your system then you can leave this key unset and NetworkManager will fall back to using
-keyfile\&.
+plugin is always appended to the end of this list (if it doesn\*(Aqt already appear earlier in the list)\&.
 .RE
 .PP
 \fImonitor\-connection\-files\fR
@@ -223,6 +224,7 @@ default
 is used, unless
 /etc/resolv\&.conf
 is a symlink to
+/run/systemd/resolve/stub\-resolv\&.conf,
 /run/systemd/resolve/resolv\&.conf,
 /lib/systemd/resolv\&.conf
 or
@@ -266,7 +268,7 @@ by replacing it with a symlink\&.
 .sp
 file: NetworkManager will write
 /etc/resolv\&.conf
-as file\&. If it finds a symlink, it will follow the symlink and update the target instead\&.
+as file\&. If it finds a symlink to an existing target, it will follow the symlink and update the target instead\&. In no case will an existing symlink be replaced by a file\&. Note that older versions of NetworkManager behaved differently and would replace dangling symlinks with a plain file\&.
 .sp
 resolvconf: NetworkManager will run resolvconf to update the DNS configuration\&.
 .sp
@@ -549,7 +551,7 @@ INFO\&.
 .PP
 \fIbackend\fR
 .RS 4
-The logging backend\&. Supported values are "debug", "syslog", "journal"\&. "debug" uses syslog and logs to standard error\&. If NetworkManager is started in debug mode (\-\-debug) this option is ignored and "debug" is always used\&. Otherwise, the default is "syslog"\&.
+The logging backend\&. Supported values are "syslog" and "journal"\&. When NetworkManager is started with "\-\-debug" in addition all messages will be printed to stderr\&. If unspecified, the default is "syslog"\&.
 .RE
 .PP
 \fIaudit\fR
@@ -595,6 +597,10 @@ If left unspecified, the default value is 3 tries before failing the connection\
 .RS 4
 .RE
 .PP
+\fIconnection\&.mdns\fR
+.RS 4
+.RE
+.PP
 \fIconnection\&.stable\-id\fR
 .RS 4
 .RE
@@ -631,6 +637,10 @@ If configured explicitly to 0, the MTU is not reconfigured during device activat
 .RS 4
 .RE
 .PP
+\fIipv4\&.dhcp\-client\-id\fR
+.RS 4
+.RE
+.PP
 \fIipv4\&.dhcp\-timeout\fR
 .RS 4
 If left unspecified, the default value for the interface type is used\&.
@@ -643,6 +653,11 @@ If left unspecified, the default value for the interface type is used\&.
 \fIipv4\&.route\-table\fR
 .RS 4
 If left unspecified, routes are only added to the main table\&. Note that this is different from explicitly selecting the main table 254, because of how NetworkManager removes extraneous routes from the tables\&.
+.RE
+.PP
+\fIipv6\&.dhcp\-duid\fR
+.RS 4
+If left unspecified, it defaults to "lease"\&.
 .RE
 .PP
 \fIipv6\&.dhcp\-timeout\fR
@@ -697,6 +712,11 @@ If left unspecified, the default value "ignore" will be used\&.
 .RE
 .PP
 \fIwifi\-sec\&.pmf\fR
+.RS 4
+If left unspecified, the default value "optional" will be used\&.
+.RE
+.PP
+\fIwifi\-sec\&.fils\fR
 .RS 4
 If left unspecified, the default value "optional" will be used\&.
 .RE
@@ -821,6 +841,15 @@ allows to influence the generated MAC address to use certain vendor OUIs\&. If d
 wifi\&.cloned\-mac\-address\&.
 .RE
 .PP
+\fIwifi\&.backend\fR
+.RS 4
+Specify the Wi\-Fi backend used for the device\&. Currently supported are
+wpa_supplicant
+and
+iwd
+(experimental)\&.
+.RE
+.PP
 \fIwifi\&.scan\-generate\-mac\-address\-mask\fR
 .RS 4
 Like the per\-connection settings
@@ -851,7 +880,7 @@ This section controls NetworkManager\*(Aqs optional connectivity checking functi
 .PP
 \fIuri\fR
 .RS 4
-The URI of a web page to periodically request when connectivity is being checked\&. This page should return the header "X\-NetworkManager\-Status" with a value of "online"\&. Alternatively, it\*(Aqs body content should be set to "NetworkManager is online"\&. The body content check can be controlled by the
+The URI of a web page to periodically request when connectivity is being checked\&. This page should return the header "X\-NetworkManager\-Status" with a value of "online"\&. Alternatively, its body content should be set to "NetworkManager is online"\&. The body content check can be controlled by the
 response
 option\&. If this option is blank or missing, connectivity checking is disabled\&.
 .RE
@@ -994,12 +1023,16 @@ enable=nm\-version\-min:1\&.3,nm\-version\-min:1\&.2\&.6,nm\-version\-min:1\&.0\
 .RE
 .SH "PLUGINS"
 .PP
+Settings plugins for reading and writing connection profiles\&. The number of available plugins is distribution specific\&.
+.PP
 \fIkeyfile\fR
 .RS 4
 The
 keyfile
 plugin is the generic plugin that supports all the connection types and capabilities that NetworkManager has\&. It writes files out in an \&.ini\-style format in
-/etc/NetworkManager/system\-connections\&.
+/etc/NetworkManager/system\-connections\&. See
+\fBnm-settings-keyfile\fR(5)
+for details about the file format\&.
 .sp
 The stored connection file may contain passwords, secrets and private keys in plain text, so it will be made readable only to root, and the plugin will ignore files that are readable or writable by any user or group other than root\&. See "Secret flag types" in
 \fBnm-settings\fR(5)
@@ -1017,14 +1050,11 @@ ifcfg\-rh
 implicitly enables
 ibft
 plugin, if it is available\&. This can be disabled by adding
-no\-ibft\&.
-.RE
-.PP
-\fIifcfg\-suse\fR
-.RS 4
-This plugin is deprecated and its selection has no effect\&. The
-keyfile
-plugin should be used instead\&.
+no\-ibft\&. See
+/usr/share/doc/initscripts/sysconfig\&.txt
+and
+\fBnm-settings-ifcfg-rh\fR(5)
+for more information about the ifcfg file format\&.
 .RE
 .PP
 \fIifupdown\fR
@@ -1051,6 +1081,13 @@ or to change the plugin order\&.
 Note that ibft plugin uses
 /sbin/iscsiadm
 and thus requires CAP_SYS_ADMIN capability\&.
+.RE
+.PP
+\fIifcfg\-suse\fR, \fIifnet\fR
+.RS 4
+These plugins are deprecated and their selection has no effect\&. The
+keyfile
+plugin should be used instead\&.
 .RE
 .SH "APPENDIX"
 .SS "Device List Format"

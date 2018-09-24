@@ -71,33 +71,33 @@ GType nm_setting_team_port_get_type (void);
 NMSetting *  nm_setting_team_port_new (void);
 
 const char * nm_setting_team_port_get_config (NMSettingTeamPort *setting);
-NM_AVAILABLE_IN_1_10_2
+NM_AVAILABLE_IN_1_12
 gint nm_setting_team_port_get_queue_id (NMSettingTeamPort *setting);
-NM_AVAILABLE_IN_1_10_2
+NM_AVAILABLE_IN_1_12
 gint nm_setting_team_port_get_prio (NMSettingTeamPort *setting);
-NM_AVAILABLE_IN_1_10_2
+NM_AVAILABLE_IN_1_12
 gboolean nm_setting_team_port_get_sticky (NMSettingTeamPort *setting);
-NM_AVAILABLE_IN_1_10_2
+NM_AVAILABLE_IN_1_12
 gint nm_setting_team_port_get_lacp_prio (NMSettingTeamPort *setting);
-NM_AVAILABLE_IN_1_10_2
+NM_AVAILABLE_IN_1_12
 gint nm_setting_team_port_get_lacp_key (NMSettingTeamPort *setting);
-NM_AVAILABLE_IN_1_10_2
+NM_AVAILABLE_IN_1_12
 guint nm_setting_team_port_get_num_link_watchers (NMSettingTeamPort *setting);
-NM_AVAILABLE_IN_1_10_2
+NM_AVAILABLE_IN_1_12
 NMTeamLinkWatcher *
 nm_setting_team_port_get_link_watcher (NMSettingTeamPort *setting, guint idx);
-NM_AVAILABLE_IN_1_10_2
+NM_AVAILABLE_IN_1_12
 gboolean
 nm_setting_team_port_add_link_watcher (NMSettingTeamPort *setting,
                                        NMTeamLinkWatcher *link_watcher);
-NM_AVAILABLE_IN_1_10_2
+NM_AVAILABLE_IN_1_12
 void
 nm_setting_team_port_remove_link_watcher (NMSettingTeamPort *setting, guint idx);
-NM_AVAILABLE_IN_1_10_2
+NM_AVAILABLE_IN_1_12
 gboolean
 nm_setting_team_port_remove_link_watcher_by_value (NMSettingTeamPort *setting,
                                                    NMTeamLinkWatcher *link_watcher);
-NM_AVAILABLE_IN_1_10_2
+NM_AVAILABLE_IN_1_12
 void nm_setting_team_port_clear_link_watchers (NMSettingTeamPort *setting);
 G_END_DECLS
 

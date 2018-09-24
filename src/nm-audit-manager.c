@@ -123,7 +123,7 @@ build_message (GPtrArray *fields, AuditBackend backend)
 	for (i = 0; i < fields->len; i++) {
 		field = fields->pdata[i];
 
-		if (!NM_FLAGS_HAS (field->backends, backend))
+		if (!NM_FLAGS_ANY (field->backends, backend))
 			continue;
 
 		if (first)
@@ -156,7 +156,6 @@ build_message (GPtrArray *fields, AuditBackend backend)
 	}
 	return g_string_free (string, FALSE);
 }
-
 
 static void
 nm_audit_log (NMAuditManager *self, GPtrArray *fields, const char *file,

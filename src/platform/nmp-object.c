@@ -325,7 +325,7 @@ _vlan_xgress_qos_mappings_cmp (guint n_map,
 
 static void
 _vlan_xgress_qos_mappings_cpy (guint *dst_n_map,
-                               const NMVlanQosMapping **dst_map,
+                               NMVlanQosMapping **dst_map,
                                guint src_n_map,
                                const NMVlanQosMapping *src_map)
 {
@@ -388,7 +388,7 @@ _nmp_object_fixup_link_udev_fields (NMPObject **obj_new, NMPObject *obj_orig, gb
 	/* The link contains internal fields that are combined by
 	 * properties from netlink and udev. Update those properties */
 
-	/* When a link is not in netlink, it's udev fields don't matter. */
+	/* When a link is not in netlink, its udev fields don't matter. */
 	if (obj->_link.netlink.is_in_netlink) {
 		driver = _link_get_driver (obj->_link.udev.device,
 		                           obj->link.kind,
@@ -532,7 +532,7 @@ _nmp_object_stackinit_from_type (NMPObject *obj, NMPObjectType obj_type)
 }
 
 const NMPObject *
-nmp_object_stackinit (NMPObject *obj, NMPObjectType obj_type, const NMPlatformObject *plobj)
+nmp_object_stackinit (NMPObject *obj, NMPObjectType obj_type, gconstpointer plobj)
 {
 	const NMPClass *klass = nmp_class_from_type (obj_type);
 
@@ -865,12 +865,6 @@ _vt_cmd_obj_cmp_lnk_vlan (const NMPObject *obj1, const NMPObject *obj2)
 	return c;
 }
 
-gboolean
-nmp_object_equal (const NMPObject *obj1, const NMPObject *obj2)
-{
-	return nmp_object_cmp (obj1, obj2) == 0;
-}
-
 /* @src is a const object, which is not entirely correct for link types, where
  * we increase the ref count for src->_link.udev.device.
  * Hence, nmp_object_copy() can violate the const promise of @src.
@@ -922,11 +916,11 @@ _vt_cmd_obj_copy_lnk_vlan (NMPObject *dst, const NMPObject *src)
 {
 	dst->lnk_vlan = src->lnk_vlan;
 	_vlan_xgress_qos_mappings_cpy (&dst->_lnk_vlan.n_ingress_qos_map,
-	                               &dst->_lnk_vlan.ingress_qos_map,
+	                               NM_UNCONST_PPTR (NMVlanQosMapping, &dst->_lnk_vlan.ingress_qos_map),
 	                               src->_lnk_vlan.n_ingress_qos_map,
 	                               src->_lnk_vlan.ingress_qos_map);
 	_vlan_xgress_qos_mappings_cpy (&dst->_lnk_vlan.n_egress_qos_map,
-	                               &dst->_lnk_vlan.egress_qos_map,
+	                               NM_UNCONST_PPTR (NMVlanQosMapping, &dst->_lnk_vlan.egress_qos_map),
 	                               src->_lnk_vlan.n_egress_qos_map,
 	                               src->_lnk_vlan.egress_qos_map);
 }
@@ -1088,7 +1082,7 @@ nmp_object_id_hash (const NMPObject *obj)
 	NMHashState h;
 
 	if (!obj)
-		return 0;
+		return nm_hash_static (914932607u);
 
 	nm_hash_init (&h, 914932607u);
 	nmp_object_id_hash_update (obj, &h);
@@ -1532,8 +1526,6 @@ const NMPLookup *
 nmp_lookup_init_obj_type (NMPLookup *lookup,
                           NMPObjectType obj_type)
 {
-	NMPObject *o;
-
 	nm_assert (lookup);
 
 	switch (obj_type) {
@@ -1544,7 +1536,7 @@ nmp_lookup_init_obj_type (NMPLookup *lookup,
 	case NMP_OBJECT_TYPE_IP6_ROUTE:
 	case NMP_OBJECT_TYPE_QDISC:
 	case NMP_OBJECT_TYPE_TFILTER:
-		o = _nmp_object_stackinit_from_type (&lookup->selector_obj, obj_type);
+		_nmp_object_stackinit_from_type (&lookup->selector_obj, obj_type);
 		lookup->cache_id_type = NMP_CACHE_ID_TYPE_OBJECT_TYPE;
 		return _L (lookup);
 	default:
@@ -1776,6 +1768,54 @@ nmp_cache_lookup_link_full (const NMPCache *cache,
 
 /*****************************************************************************/
 
+static NMDedupMultiIdxMode
+_obj_get_add_mode (const NMPObject *obj)
+{
+	/* new objects are usually appended to the list. Except for
+	 * addresses, which are prepended during `ip address add`.
+	 *
+	 * Actually, for routes it is more complicated, because depending on
+	 * `ip route append`, `ip route replace`, `ip route prepend`, the object
+	 * will be added at the tail, at the front, or even replace an element
+	 * in the list. However, that is handled separately by nmp_cache_update_netlink_route()
+	 * and of no concern here. */
+	if (NM_IN_SET (NMP_OBJECT_GET_TYPE (obj),
+	               NMP_OBJECT_TYPE_IP4_ADDRESS,
+	               NMP_OBJECT_TYPE_IP6_ADDRESS))
+		return NM_DEDUP_MULTI_IDX_MODE_PREPEND;
+	return NM_DEDUP_MULTI_IDX_MODE_APPEND;
+}
+
+static void
+_idxcache_update_order_for_dump (NMPCache *cache,
+                                 const NMDedupMultiEntry *entry)
+{
+	const NMPClass *klass;
+	const guint8 *i_idx_type;
+	const NMDedupMultiEntry *entry2;
+
+	nm_dedup_multi_entry_reorder (entry, NULL, TRUE);
+
+	klass = NMP_OBJECT_GET_CLASS (entry->obj);
+	for (i_idx_type = klass->supported_cache_ids; *i_idx_type; i_idx_type++) {
+		NMPCacheIdType id_type = *i_idx_type;
+
+		if (id_type == NMP_CACHE_ID_TYPE_OBJECT_TYPE)
+			continue;
+
+		entry2 = nm_dedup_multi_index_lookup_obj (cache->multi_idx,
+		                                          _idx_type_get (cache, id_type),
+		                                          entry->obj);
+		if (!entry2)
+			continue;
+
+		nm_assert (entry2 != entry);
+		nm_assert (entry2->obj == entry->obj);
+
+		nm_dedup_multi_entry_reorder (entry2, NULL, TRUE);
+	}
+}
+
 static void
 _idxcache_update_other_cache_ids (NMPCache *cache,
                                   NMPCacheIdType cache_id_type,
@@ -1835,7 +1875,7 @@ _idxcache_update_other_cache_ids (NMPCache *cache,
 		                               obj_new,
 		                               is_dump
 		                                 ? NM_DEDUP_MULTI_IDX_MODE_APPEND_FORCE
-		                                 : NM_DEDUP_MULTI_IDX_MODE_APPEND,
+		                                 : _obj_get_add_mode (obj_new),
 		                               is_dump
 		                                 ? NULL
 		                                 : entry_order,
@@ -1913,7 +1953,7 @@ _idxcache_update (NMPCache *cache,
 		                               obj_new,
 		                               is_dump
 		                                 ? NM_DEDUP_MULTI_IDX_MODE_APPEND_FORCE
-		                                 : NM_DEDUP_MULTI_IDX_MODE_APPEND,
+		                                 : _obj_get_add_mode (obj_new),
 		                               NULL,
 		                               entry_old ?: NM_DEDUP_MULTI_ENTRY_MISSING,
 		                               NULL,
@@ -2170,6 +2210,8 @@ nmp_cache_update_netlink (NMPCache *cache,
 	}
 
 	if (nmp_object_equal (obj_old, obj_hand_over)) {
+		if (is_dump)
+			_idxcache_update_order_for_dump (cache, entry_old);
 		nm_dedup_multi_entry_set_dirty (entry_old, FALSE);
 		NM_SET_OUT (out_obj_new, nmp_object_ref (obj_old));
 		return NMP_CACHE_OPS_UNCHANGED;
@@ -2243,6 +2285,8 @@ nmp_cache_update_netlink_route (NMPCache *cache,
 	}
 
 	if (nmp_object_equal (entry_old->obj, obj_hand_over)) {
+		if (is_dump)
+			_idxcache_update_order_for_dump (cache, entry_old);
 		nm_dedup_multi_entry_set_dirty (entry_old, FALSE);
 		goto update_done;
 	}
@@ -2266,9 +2310,8 @@ update_done:
 	 * properly find @obj_replaced. */
 	resync_required = FALSE;
 	entry_replace = NULL;
-	if (is_dump) {
+	if (is_dump)
 		goto out;
-	}
 
 	if (!entry_new) {
 		if (   NM_FLAGS_HAS (nlmsgflags, NLM_F_REPLACE)
@@ -2283,6 +2326,8 @@ update_done:
 		goto out;
 	}
 
+	/* FIXME: for routes, we only maintain the order correctly for the BY_WEAK_ID
+	 * index. For all other indexes their order becomes messed up. */
 	entry_cur = _lookup_entry_with_idx_type (cache,
 	                                         NMP_CACHE_ID_TYPE_ROUTES_BY_WEAK_ID,
 	                                         entry_new->obj);
@@ -2341,7 +2386,6 @@ out:
 	NM_SET_OUT (out_resync_required, resync_required);
 	return ops_type;
 }
-
 
 NMPCacheOpsType
 nmp_cache_update_link_udev (NMPCache *cache,
@@ -2734,6 +2778,17 @@ const NMPClass _nmp_classes[NMP_OBJECT_TYPE_MAX] = {
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_sit_to_string,
 		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_sit_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_sit_cmp,
+	},
+	[NMP_OBJECT_TYPE_LNK_TUN - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
+		.obj_type                           = NMP_OBJECT_TYPE_LNK_TUN,
+		.sizeof_data                        = sizeof (NMPObjectLnkTun),
+		.sizeof_public                      = sizeof (NMPlatformLnkTun),
+		.obj_type_name                      = "tun",
+		.lnk_link_type                      = NM_LINK_TYPE_TUN,
+		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_tun_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_tun_hash_update,
+		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_tun_cmp,
 	},
 	[NMP_OBJECT_TYPE_LNK_VLAN - 1] = {
 		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),

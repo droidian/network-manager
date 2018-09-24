@@ -59,7 +59,7 @@ static const char* _link_watcher_name[] = {
 struct NMTeamLinkWatcher {
 	guint refcount;
 
-	guint8 type;	/* LinkWatcherTypes */
+	guint8 type; /* LinkWatcherTypes */
 
 	/*
 	 * The union is constructed in order to allow mapping the options of all the
@@ -115,7 +115,7 @@ struct NMTeamLinkWatcher {
  *
  * Returns: (transfer full): the new #NMTeamLinkWatcher object
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 NMTeamLinkWatcher *
 nm_team_link_watcher_new_ethtool (gint delay_up,
@@ -158,7 +158,7 @@ nm_team_link_watcher_new_ethtool (gint delay_up,
  *
  * Returns: (transfer full): the new #NMTeamLinkWatcher object, or %NULL on error
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 NMTeamLinkWatcher *
 nm_team_link_watcher_new_nsna_ping (gint init_wait,
@@ -222,7 +222,7 @@ nm_team_link_watcher_new_nsna_ping (gint init_wait,
  *
  * Returns: (transfer full): the new #NMTeamLinkWatcher object, or %NULL on error
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 NMTeamLinkWatcher *
 nm_team_link_watcher_new_arp_ping (gint init_wait,
@@ -287,7 +287,7 @@ nm_team_link_watcher_new_arp_ping (gint init_wait,
  *
  * Increases the reference count of the object.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 void
 nm_team_link_watcher_ref (NMTeamLinkWatcher *watcher){
@@ -303,7 +303,7 @@ nm_team_link_watcher_ref (NMTeamLinkWatcher *watcher){
  * Decreases the reference count of the object.  If the reference count
  * reaches zero, the object will be destroyed.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 void
 nm_team_link_watcher_unref (NMTeamLinkWatcher *watcher)
@@ -328,7 +328,7 @@ nm_team_link_watcher_unref (NMTeamLinkWatcher *watcher)
  *
  * Returns: %TRUE if the objects contain the same values, %FALSE if they do not.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gboolean
 nm_team_link_watcher_equal (NMTeamLinkWatcher *watcher, NMTeamLinkWatcher *other)
@@ -356,7 +356,7 @@ nm_team_link_watcher_equal (NMTeamLinkWatcher *watcher, NMTeamLinkWatcher *other
  *
  * Returns: (transfer full): a copy of @watcher
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 NMTeamLinkWatcher *
 nm_team_link_watcher_dup (NMTeamLinkWatcher *watcher)
@@ -396,7 +396,7 @@ nm_team_link_watcher_dup (NMTeamLinkWatcher *watcher)
  *
  * Gets the name of the link watcher to be used.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 const char *
 nm_team_link_watcher_get_name (NMTeamLinkWatcher *watcher)
@@ -413,7 +413,7 @@ nm_team_link_watcher_get_name (NMTeamLinkWatcher *watcher)
  * Gets the delay_up interval (in milliseconds) that elapses between the link
  * coming up and the runner beeing notified about it.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 int
 nm_team_link_watcher_get_delay_up (NMTeamLinkWatcher *watcher)
@@ -432,7 +432,7 @@ nm_team_link_watcher_get_delay_up (NMTeamLinkWatcher *watcher)
  * Gets the delay_down interval (in milliseconds) that elapses between the link
  * going down and the runner beeing notified about it.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 int
 nm_team_link_watcher_get_delay_down (NMTeamLinkWatcher *watcher)
@@ -451,7 +451,7 @@ nm_team_link_watcher_get_delay_down (NMTeamLinkWatcher *watcher)
  * Gets the init_wait interval (in milliseconds) that the team slave should
  * wait before sending the first packet to the target host.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 int
 nm_team_link_watcher_get_init_wait (NMTeamLinkWatcher *watcher)
@@ -472,7 +472,7 @@ nm_team_link_watcher_get_init_wait (NMTeamLinkWatcher *watcher)
  * Gets the interval (in milliseconds) that the team slave should wait between
  * sending two check packets to the target host.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 int
 nm_team_link_watcher_get_interval (NMTeamLinkWatcher *watcher)
@@ -492,7 +492,7 @@ nm_team_link_watcher_get_interval (NMTeamLinkWatcher *watcher)
  *
  * Gets the number of missed replies after which the link is considered down.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 int
 nm_team_link_watcher_get_missed_max (NMTeamLinkWatcher *watcher)
@@ -513,7 +513,7 @@ nm_team_link_watcher_get_missed_max (NMTeamLinkWatcher *watcher)
  * Gets the host name/ip address to be used as destination for the link probing
  * packets.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 const char *
 nm_team_link_watcher_get_target_host (NMTeamLinkWatcher *watcher)
@@ -529,7 +529,7 @@ nm_team_link_watcher_get_target_host (NMTeamLinkWatcher *watcher)
  *
  * Gets the ip address to be used as source for the link probing packets.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 const char *
 nm_team_link_watcher_get_source_host (NMTeamLinkWatcher *watcher)
@@ -545,7 +545,7 @@ nm_team_link_watcher_get_source_host (NMTeamLinkWatcher *watcher)
  *
  * Gets the arp ping watcher flags.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 NMTeamLinkWatcherArpPingFlags
 nm_team_link_watcher_get_flags (NMTeamLinkWatcher *watcher)
@@ -659,7 +659,7 @@ nm_setting_team_get_config (NMSettingTeam *setting)
  *
  * Returns: the ##NMSettingTeam:notify-peers-count property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gint
 nm_setting_team_get_notify_peers_count (NMSettingTeam *setting)
@@ -675,7 +675,7 @@ nm_setting_team_get_notify_peers_count (NMSettingTeam *setting)
  *
  * Returns: the ##NMSettingTeam:notify-peers-interval property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gint
 nm_setting_team_get_notify_peers_interval (NMSettingTeam *setting)
@@ -691,7 +691,7 @@ nm_setting_team_get_notify_peers_interval (NMSettingTeam *setting)
  *
  * Returns: the ##NMSettingTeam:mcast-rejoin-count property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gint
 nm_setting_team_get_mcast_rejoin_count (NMSettingTeam *setting)
@@ -707,7 +707,7 @@ nm_setting_team_get_mcast_rejoin_count (NMSettingTeam *setting)
  *
  * Returns: the ##NMSettingTeam:mcast-rejoin-interval property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gint
 nm_setting_team_get_mcast_rejoin_interval (NMSettingTeam *setting)
@@ -723,7 +723,7 @@ nm_setting_team_get_mcast_rejoin_interval (NMSettingTeam *setting)
  *
  * Returns: the ##NMSettingTeam:runner property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 const char *
 nm_setting_team_get_runner (NMSettingTeam *setting)
@@ -739,7 +739,7 @@ nm_setting_team_get_runner (NMSettingTeam *setting)
  *
  * Returns: the ##NMSettingTeam:runner-hwaddr-policy property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 const char *
 nm_setting_team_get_runner_hwaddr_policy (NMSettingTeam *setting)
@@ -755,7 +755,7 @@ nm_setting_team_get_runner_hwaddr_policy (NMSettingTeam *setting)
  *
  * Returns: the ##NMSettingTeam:runner-tx-balancer property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 const char *
 nm_setting_team_get_runner_tx_balancer (NMSettingTeam *setting)
@@ -771,7 +771,7 @@ nm_setting_team_get_runner_tx_balancer (NMSettingTeam *setting)
  *
  * Returns: the ##NMSettingTeam:runner-tx-balancer_interval property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gint
 nm_setting_team_get_runner_tx_balancer_interval (NMSettingTeam *setting)
@@ -787,7 +787,7 @@ nm_setting_team_get_runner_tx_balancer_interval (NMSettingTeam *setting)
  *
  * Returns: the ##NMSettingTeam:runner_active property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gboolean
 nm_setting_team_get_runner_active (NMSettingTeam *setting)
@@ -803,7 +803,7 @@ nm_setting_team_get_runner_active (NMSettingTeam *setting)
  *
  * Returns: the ##NMSettingTeam:runner-fast-rate property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gboolean
 nm_setting_team_get_runner_fast_rate (NMSettingTeam *setting)
@@ -819,7 +819,7 @@ nm_setting_team_get_runner_fast_rate (NMSettingTeam *setting)
  *
  * Returns: the ##NMSettingTeam:runner-sys-prio property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gint
 nm_setting_team_get_runner_sys_prio (NMSettingTeam *setting)
@@ -835,7 +835,7 @@ nm_setting_team_get_runner_sys_prio (NMSettingTeam *setting)
  *
  * Returns: the ##NMSettingTeam:runner-min-ports property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gint
 nm_setting_team_get_runner_min_ports (NMSettingTeam *setting)
@@ -851,7 +851,7 @@ nm_setting_team_get_runner_min_ports (NMSettingTeam *setting)
  *
  * Returns: the ##NMSettingTeam:runner-agg-select-policy property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 const char *
 nm_setting_team_get_runner_agg_select_policy (NMSettingTeam *setting)
@@ -870,7 +870,7 @@ nm_setting_team_get_runner_agg_select_policy (NMSettingTeam *setting)
  *
  * Returns: %TRUE if the txhash element was found and removed; %FALSE if it was not.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gboolean
 nm_setting_team_remove_runner_tx_hash_by_value (NMSettingTeam *setting,
@@ -899,7 +899,7 @@ nm_setting_team_remove_runner_tx_hash_by_value (NMSettingTeam *setting,
  *
  * Returns: the number of elements in txhash
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 guint
 nm_setting_team_get_num_runner_tx_hash (NMSettingTeam *setting)
@@ -918,7 +918,7 @@ nm_setting_team_get_num_runner_tx_hash (NMSettingTeam *setting)
  *
  * Returns: the txhash element at index @idx
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 const char *
 nm_setting_team_get_runner_tx_hash (NMSettingTeam *setting, guint idx)
@@ -938,7 +938,7 @@ nm_setting_team_get_runner_tx_hash (NMSettingTeam *setting, guint idx)
  *
  * Removes the txhash element at index @idx.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 void
 nm_setting_team_remove_runner_tx_hash (NMSettingTeam *setting, guint idx)
@@ -962,7 +962,7 @@ nm_setting_team_remove_runner_tx_hash (NMSettingTeam *setting, guint idx)
  * Returns: %TRUE if the txhash element was added; %FALSE if the element
  * was already knnown.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gboolean
 nm_setting_team_add_runner_tx_hash (NMSettingTeam *setting, const char *txhash)
@@ -992,7 +992,7 @@ nm_setting_team_add_runner_tx_hash (NMSettingTeam *setting, const char *txhash)
  *
  * Returns: the number of configured link watchers
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 guint
 nm_setting_team_get_num_link_watchers (NMSettingTeam *setting)
@@ -1011,7 +1011,7 @@ nm_setting_team_get_num_link_watchers (NMSettingTeam *setting)
  *
  * Returns: (transfer none): the link watcher at index @idx.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 NMTeamLinkWatcher *
 nm_setting_team_get_link_watcher (NMSettingTeam *setting, guint idx)
@@ -1034,7 +1034,7 @@ nm_setting_team_get_link_watcher (NMSettingTeam *setting, guint idx)
  * Returns: %TRUE if the link watcher is added; %FALSE if an identical link
  * watcher was already there.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gboolean
 nm_setting_team_add_link_watcher (NMSettingTeam *setting,
@@ -1063,7 +1063,7 @@ nm_setting_team_add_link_watcher (NMSettingTeam *setting,
  *
  * Removes the link watcher at index #idx.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 void
 nm_setting_team_remove_link_watcher (NMSettingTeam *setting, guint idx)
@@ -1086,7 +1086,7 @@ nm_setting_team_remove_link_watcher (NMSettingTeam *setting, guint idx)
  *
  * Returns: %TRUE if the link watcher was found and removed, %FALSE otherwise.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gboolean
 nm_setting_team_remove_link_watcher_by_value (NMSettingTeam *setting,
@@ -1113,7 +1113,7 @@ nm_setting_team_remove_link_watcher_by_value (NMSettingTeam *setting,
  *
  * Removes all configured link watchers.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 void
 nm_setting_team_clear_link_watchers (NMSettingTeam *setting) {
@@ -1303,7 +1303,6 @@ finalize (GObject *object)
 
 	G_OBJECT_CLASS (nm_setting_team_parent_class)->finalize (object);
 }
-
 
 #define JSON_TO_VAL(typ, id)   _nm_utils_json_extract_##typ (priv->config, _prop_to_keys[id], FALSE)
 
@@ -1600,7 +1599,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd notify_peers.count.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NOTIFY_PEERS_COUNT,
@@ -1614,7 +1613,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd notify_peers.interval.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_NOTIFY_PEERS_INTERVAL,
@@ -1628,7 +1627,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd mcast_rejoin.count.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_MCAST_REJOIN_COUNT,
@@ -1642,7 +1641,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd mcast_rejoin.interval.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_MCAST_REJOIN_INTERVAL,
@@ -1656,13 +1655,13 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd runner.name.
 	 * Permitted values are: "roundrobin", "broadcast", "activebackup",
-	 * "loadbalance", "lacp".
+	 * "loadbalance", "lacp", "random".
 	 * When setting the runner, all the properties specific to the runner
 	 * will be reset to the default value; all the properties specific to
 	 * other runners will be set to an empty value (or if not possible to
 	 * a default value).
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_RUNNER,
@@ -1676,7 +1675,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd runner.hwaddr_policy.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_RUNNER_HWADDR_POLICY,
@@ -1690,7 +1689,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd runner.tx_hash.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_RUNNER_TX_HASH,
@@ -1705,7 +1704,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd runner.tx_balancer.name.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_RUNNER_TX_BALANCER,
@@ -1719,7 +1718,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd runner.tx_balancer.interval.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_RUNNER_TX_BALANCER_INTERVAL,
@@ -1733,7 +1732,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd runner.active.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_RUNNER_ACTIVE,
@@ -1747,7 +1746,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd runner.fast_rate.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_RUNNER_FAST_RATE,
@@ -1761,7 +1760,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd runner.sys_prio.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_RUNNER_SYS_PRIO,
@@ -1775,7 +1774,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd runner.min_ports.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_RUNNER_MIN_PORTS,
@@ -1789,7 +1788,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 *
 	 * Corresponds to the teamd runner.agg_select_policy.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_RUNNER_AGG_SELECT_POLICY,
@@ -1799,7 +1798,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 		                      G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * NMSettingTeam:link-watchers:
+	 * NMSettingTeam:link-watchers: (type GPtrArray(NMTeamLinkWatcher))
 	 *
 	 * Link watchers configuration for the connection: each link watcher is
 	 * defined by a dictionary, whose keys depend upon the selected link
@@ -1810,8 +1809,7 @@ nm_setting_team_class_init (NMSettingTeamClass *setting_class)
 	 * arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
 	 * 'validate-incative', 'send-always'. See teamd.conf man for more details.
 	 *
-	 * Element-Type: NMTeamLinkWatcher
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_LINK_WATCHERS,

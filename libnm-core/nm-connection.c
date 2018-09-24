@@ -515,7 +515,6 @@ nm_connection_compare (NMConnection *a,
 	return TRUE;
 }
 
-
 static gboolean
 diff_one_connection (NMConnection *a,
                      NMConnection *b,
@@ -587,7 +586,7 @@ nm_connection_diff (NMConnection *a,
 	if (a == b)
 		return TRUE;
 
-	diffs = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_hash_table_destroy);
+	diffs = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, (GDestroyNotify) g_hash_table_destroy);
 
 	/* Diff A to B, then B to A to capture keys in B that aren't in A */
 	if (diff_one_connection (a, b, flags, FALSE, diffs))
@@ -792,13 +791,11 @@ _normalize_ethernet_link_neg (NMConnection *self)
 	NMSettingWired *s_wired = nm_connection_get_setting_wired (self);
 
 	if (s_wired) {
-		gboolean autoneg = nm_setting_wired_get_auto_negotiate (s_wired);
 		guint32 speed = nm_setting_wired_get_speed (s_wired);
 		const char *duplex = nm_setting_wired_get_duplex (s_wired);
 
-		if (   (autoneg && (speed || duplex))
-		    || (!autoneg && (   (speed && !duplex)
-		                     || (!speed && duplex)))) {
+		if (   (speed && !duplex)
+		    || (!speed && duplex)) {
 			speed = 0;
 			duplex = NULL;
 			g_object_set (s_wired,
@@ -959,7 +956,7 @@ _normalize_infiniband_mtu (NMConnection *self, GHashTable *parameters)
 				max_mtu = 65520;
 
 			if (max_mtu && nm_setting_infiniband_get_mtu (s_infini) > max_mtu) {
-				g_object_set (s_infini, NM_SETTING_INFINIBAND_MTU, max_mtu, NULL);
+				g_object_set (s_infini, NM_SETTING_INFINIBAND_MTU, (guint) max_mtu, NULL);
 				return TRUE;
 			}
 		}
@@ -1370,7 +1367,7 @@ nm_connection_verify_secrets (NMConnection *connection, GError **error)
  * @parameters: (allow-none) (element-type utf8 gpointer): a #GHashTable with
  * normalization parameters to allow customization of the normalization by providing
  * specific arguments. Unknown arguments will be ignored and the default will be
- * used. The keys must be strings, hashed by g_str_hash() and g_str_equal() functions.
+ * used. The keys must be strings compared with g_str_equal() function.
  * The values are opaque and depend on the parameter name.
  * @modified: (out) (allow-none): outputs whether any settings were modified.
  * @error: location to store error, or %NULL. Contains the reason,
@@ -1531,7 +1528,7 @@ nm_connection_update_secrets (NMConnection *connection,
 
 		g_signal_handlers_block_by_func (setting, (GCallback) setting_changed_cb, connection);
 		success_detail = _nm_setting_update_secrets (setting,
-		                                             setting_dict ? setting_dict : secrets,
+		                                             setting_dict ?: secrets,
 		                                             error);
 		g_signal_handlers_unblock_by_func (setting, (GCallback) setting_changed_cb, connection);
 
@@ -2447,7 +2444,7 @@ nm_connection_get_setting_ovs_patch (NMConnection *connection)
 {
 	return _connection_get_setting_check (connection, NM_TYPE_SETTING_OVS_PATCH);
 }
- 
+
 /**
  * nm_connection_get_setting_ovs_port:
  * @connection: the #NMConnection
@@ -2530,7 +2527,7 @@ nm_connection_get_setting_serial (NMConnection *connection)
  *
  * Returns: (transfer none): an #NMSettingTCConfig if the connection contains one, otherwise %NULL
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 NMSettingTCConfig *
 nm_connection_get_setting_tc_config (NMConnection *connection)
@@ -2724,7 +2721,7 @@ nm_connection_get_private (NMConnection *connection)
 		                         priv, (GDestroyNotify) nm_connection_private_free);
 
 		priv->self = connection;
-		priv->settings = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_object_unref);
+		priv->settings = g_hash_table_new_full (nm_str_hash, g_str_equal, NULL, g_object_unref);
 	}
 
 	return priv;

@@ -21,15 +21,14 @@
 #include "nm-default.h"
 
 #include <string.h>
+#include <sys/wait.h>
 
 #include "NetworkManager.h"
 #include "nm-dbus-compat.h"
 
-#if ((NETWORKMANAGER_COMPILATION) == NM_NETWORKMANAGER_COMPILATION_LIB_LEGACY)
-#include "nm-dbus-glib-types.h"
-#endif
-
 #include "nm-test-libnm-utils.h"
+
+#define NMTSTC_NM_SERVICE NM_BUILD_SRCDIR"/tools/test-networkmanager-service.py"
 
 /*****************************************************************************/
 
@@ -58,8 +57,7 @@ name_exists (GDBusConnection *c, const char *name)
 	return exists;
 }
 
-#if ((NETWORKMANAGER_COMPILATION) == NM_NETWORKMANAGER_COMPILATION_LIB_LEGACY)
-
+#if (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_GLIB
 static DBusGProxy *
 _libdbus_create_proxy_test (DBusGConnection *bus)
 {
@@ -75,16 +73,62 @@ _libdbus_create_proxy_test (DBusGConnection *bus)
 
 	return proxy;
 }
-
 #endif
+
+typedef struct {
+	GMainLoop *mainloop;
+	GDBusConnection *bus;
+	int exit_code;
+	bool exited:1;
+	bool name_found:1;
+} ServiceInitWaitData;
+
+static gboolean
+_service_init_wait_probe_name (gpointer user_data)
+{
+	ServiceInitWaitData *data = user_data;
+
+	if (!name_exists (data->bus, "org.freedesktop.NetworkManager"))
+		return G_SOURCE_CONTINUE;
+
+	data->name_found = TRUE;
+	g_main_loop_quit (data->mainloop);
+	return G_SOURCE_REMOVE;
+}
+
+static void
+_service_init_wait_child_wait (GPid pid,
+                               gint status,
+                               gpointer user_data)
+{
+	ServiceInitWaitData *data = user_data;
+
+	data->exited = TRUE;
+	data->exit_code = status;
+	g_main_loop_quit (data->mainloop);
+}
+
+NMTstcServiceInfo *
+nmtstc_service_available (NMTstcServiceInfo *info)
+{
+	gs_free char *m = NULL;
+
+	if (info)
+		return info;
+
+	/* This happens, when test-networkmanager-service.py exits with 77 status
+	 * code. */
+	m = g_strdup_printf ("missing dependency for running NetworkManager stub service %s", NMTSTC_NM_SERVICE);
+	g_test_skip (m);
+	return NULL;
+}
 
 NMTstcServiceInfo *
 nmtstc_service_init (void)
 {
 	NMTstcServiceInfo *info;
-	const char *args[] = { TEST_NM_PYTHON, TEST_NM_SERVICE, NULL };
+	const char *args[] = { TEST_NM_PYTHON, NMTSTC_NM_SERVICE, NULL };
 	GError *error = NULL;
-	int i;
 
 	info = g_malloc0 (sizeof (*info));
 
@@ -96,18 +140,55 @@ nmtstc_service_init (void)
 	 * make sure the service exits if the test program crashes.
 	 */
 	g_spawn_async_with_pipes (NULL, (char **) args, NULL,
-	                          G_SPAWN_SEARCH_PATH,
+	                            G_SPAWN_SEARCH_PATH
+	                          | G_SPAWN_DO_NOT_REAP_CHILD,
 	                          NULL, NULL,
 	                          &info->pid, &info->keepalive_fd, NULL, NULL, &error);
 	g_assert_no_error (error);
 
-	/* Wait until the service is registered on the bus */
-	for (i = 1000; i > 0; i--) {
-		if (name_exists (info->bus, "org.freedesktop.NetworkManager"))
-			break;
-		g_usleep (G_USEC_PER_SEC / 50);
+	{
+		nm_auto_unref_gsource GSource *timeout_source = NULL;
+		nm_auto_unref_gsource GSource *child_source = NULL;
+		GMainContext *context = g_main_context_new ();
+		ServiceInitWaitData data = {
+			.bus = info->bus,
+			.mainloop = g_main_loop_new (context, FALSE),
+		};
+		gboolean had_timeout;
+
+		timeout_source = g_timeout_source_new (50);
+		g_source_set_callback (timeout_source, _service_init_wait_probe_name, &data, NULL);
+		g_source_attach (timeout_source, context);
+
+		child_source = g_child_watch_source_new (info->pid);
+		g_source_set_callback (child_source, (GSourceFunc)(void (*) (void)) _service_init_wait_child_wait, &data, NULL);
+		g_source_attach (child_source, context);
+
+		had_timeout = !nmtst_main_loop_run (data.mainloop, 30000);
+
+		g_source_destroy (timeout_source);
+		g_source_destroy (child_source);
+		g_main_loop_unref (data.mainloop);
+		g_main_context_unref (context);
+
+		if (had_timeout)
+			g_error ("test service %s did not start in time", NMTSTC_NM_SERVICE);
+		if (!data.name_found) {
+			g_assert (data.exited);
+			info->pid = NM_PID_T_INVAL;
+			nmtstc_service_cleanup (info);
+
+			if (   WIFEXITED (data.exit_code)
+			    && WEXITSTATUS (data.exit_code) == 77) {
+				/* If the stub service exited with status 77 it means that it decided
+				 * that it cannot conduct the tests and the test should be (gracefully)
+				 * skip. The likely reason for that, is that libnm is not available
+				 * via pygobject. */
+				return NULL;
+			}
+			g_error ("test service %s exited with error code %d", NMTSTC_NM_SERVICE, data.exit_code);
+		}
 	}
-	g_assert (i > 0);
 
 	/* Grab a proxy to our fake NM service to trigger tests */
 	info->proxy = g_dbus_proxy_new_sync (info->bus,
@@ -121,7 +202,7 @@ nmtstc_service_init (void)
 	                                     NULL, &error);
 	g_assert_no_error (error);
 
-#if ((NETWORKMANAGER_COMPILATION) == NM_NETWORKMANAGER_COMPILATION_LIB_LEGACY)
+#if (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_GLIB
 	info->libdbus.bus = dbus_g_bus_get (DBUS_BUS_SESSION, &error);
 	g_assert_no_error (error);
 	g_assert (info->libdbus.bus);
@@ -132,32 +213,50 @@ nmtstc_service_init (void)
 void
 nmtstc_service_cleanup (NMTstcServiceInfo *info)
 {
-	int i;
+	int ret;
+	gint64 t;
+	int status;
 
-	g_object_unref (info->proxy);
-	kill (info->pid, SIGTERM);
+	if (!info)
+		return;
 
-	/* Wait until the bus notices the service is gone */
-	for (i = 100; i > 0; i--) {
-		if (!name_exists (info->bus, "org.freedesktop.NetworkManager"))
-			break;
-		g_usleep (G_USEC_PER_SEC / 50);
-	}
-	g_assert (i > 0);
+	nm_close (nm_steal_fd (&info->keepalive_fd));
 
-	g_object_unref (info->bus);
-	nm_close (info->keepalive_fd);
+	g_clear_object (&info->proxy);
 
-#if ((NETWORKMANAGER_COMPILATION) == NM_NETWORKMANAGER_COMPILATION_LIB_LEGACY)
+#if (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_GLIB
 	g_clear_pointer (&info->libdbus.bus, dbus_g_connection_unref);
 #endif
+
+	if (info->pid != NM_PID_T_INVAL) {
+		kill (info->pid, SIGTERM);
+
+		t = g_get_monotonic_time ();
+again_wait:
+		ret = waitpid (info->pid, &status, WNOHANG);
+		if (ret == 0) {
+			if (t + 2000000 < g_get_monotonic_time ()) {
+				kill (info->pid, SIGKILL);
+				g_error ("child process %lld did not exit within timeout", (long long) info->pid);
+			}
+			g_usleep (G_USEC_PER_SEC / 50);
+			goto again_wait;
+		}
+		if (ret == -1 && errno == EINTR)
+			goto again_wait;
+
+		g_assert (ret == info->pid);
+	}
+
+	g_assert (!name_exists (info->bus, "org.freedesktop.NetworkManager"));
+
+	g_clear_object (&info->bus);
 
 	memset (info, 0, sizeof (*info));
 	g_free (info);
 }
 
-#if ((NETWORKMANAGER_COMPILATION) == NM_NETWORKMANAGER_COMPILATION_LIB)
-
+#if !((NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_GLIB)
 typedef struct {
 	GMainLoop *loop;
 	const char *ifname;
@@ -270,8 +369,7 @@ nmtstc_service_add_wired_device (NMTstcServiceInfo *sinfo, NMClient *client,
 {
 	return add_device_common (sinfo, client, "AddWiredDevice", ifname, hwaddr, subchannels);
 }
-
-#endif /* NM_NETWORKMANAGER_COMPILATION_LIB */
+#endif
 
 void
 nmtstc_service_add_connection (NMTstcServiceInfo *sinfo,
@@ -279,7 +377,7 @@ nmtstc_service_add_connection (NMTstcServiceInfo *sinfo,
                                gboolean verify_connection,
                                char **out_path)
 {
-#if ((NETWORKMANAGER_COMPILATION) == NM_NETWORKMANAGER_COMPILATION_LIB_LEGACY)
+#if (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_GLIB
 	gs_unref_hashtable GHashTable *new_settings = NULL;
 	gboolean success;
 	gs_free_error GError *error = NULL;
@@ -353,7 +451,7 @@ nmtstc_service_update_connection (NMTstcServiceInfo *sinfo,
 		path = nm_connection_get_path (connection);
 	g_assert (path);
 
-#if ((NETWORKMANAGER_COMPILATION) == NM_NETWORKMANAGER_COMPILATION_LIB_LEGACY)
+#if (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_GLIB
 	{
 		gs_unref_hashtable GHashTable *new_settings = NULL;
 		gboolean success;
@@ -414,8 +512,7 @@ nmtstc_service_update_connection_variant (NMTstcServiceInfo *sinfo,
 
 /*****************************************************************************/
 
-#if ((NETWORKMANAGER_COMPILATION) == NM_NETWORKMANAGER_COMPILATION_LIB_LEGACY)
-
+#if (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_GLIB
 NMClient *
 nmtstc_nm_client_new (void)
 {
@@ -461,7 +558,6 @@ nmtstc_nm_remote_settings_new (void)
 
 	return settings;
 }
-
-#endif /* NM_NETWORKMANAGER_COMPILATION_LIB_LEGACY */
+#endif
 
 /*****************************************************************************/

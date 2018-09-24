@@ -114,18 +114,18 @@ ip4_start (NMDhcpClient *client, const char *dhcp_anycast_addr, const char *last
 	argv = g_ptr_array_new ();
 	g_ptr_array_add (argv, (gpointer) dhcpcd_path);
 
-	g_ptr_array_add (argv, (gpointer) "-B");	/* Don't background on lease (disable fork()) */
+	g_ptr_array_add (argv, (gpointer) "-B");    /* Don't background on lease (disable fork()) */
 
-	g_ptr_array_add (argv, (gpointer) "-K");	/* Disable built-in carrier detection */
+	g_ptr_array_add (argv, (gpointer) "-K");    /* Disable built-in carrier detection */
 
-	g_ptr_array_add (argv, (gpointer) "-L");	/* Disable built-in IPv4LL */
+	g_ptr_array_add (argv, (gpointer) "-L");    /* Disable built-in IPv4LL */
 
 	/* --noarp. Don't request or claim the address by ARP; this also disables IPv4LL. */
 	g_ptr_array_add (argv, (gpointer) "-A");
 
-	g_ptr_array_add (argv, (gpointer) "-G");	/* Let NM handle routing */
+	g_ptr_array_add (argv, (gpointer) "-G");    /* Let NM handle routing */
 
-	g_ptr_array_add (argv, (gpointer) "-c");	/* Set script file */
+	g_ptr_array_add (argv, (gpointer) "-c");    /* Set script file */
 	g_ptr_array_add (argv, (gpointer) nm_dhcp_helper_path);
 
 #ifdef DHCPCD_SUPPORTS_IPV6
@@ -177,9 +177,8 @@ static gboolean
 ip6_start (NMDhcpClient *client,
            const char *dhcp_anycast_addr,
            const struct in6_addr *ll_addr,
-           gboolean info_only,
            NMSettingIP6ConfigPrivacy privacy,
-           const GByteArray *duid,
+           GBytes *duid,
            guint needed_prefixes)
 {
 	NMDhcpDhcpcd *self = NM_DHCP_DHCPCD (client);
@@ -189,12 +188,11 @@ ip6_start (NMDhcpClient *client,
 }
 
 static void
-stop (NMDhcpClient *client, gboolean release, const GByteArray *duid)
+stop (NMDhcpClient *client, gboolean release, GBytes *duid)
 {
 	NMDhcpDhcpcd *self = NM_DHCP_DHCPCD (client);
 	NMDhcpDhcpcdPrivate *priv = NM_DHCP_DHCPCD_GET_PRIVATE (self);
 
-	/* Chain up to parent */
 	NM_DHCP_CLIENT_CLASS (nm_dhcp_dhcpcd_parent_class)->stop (client, release, duid);
 
 	if (priv->pid_file) {
@@ -253,7 +251,6 @@ const NMDhcpClientFactory _nm_dhcp_client_factory_dhcpcd = {
 	.name = "dhcpcd",
 	.get_type = nm_dhcp_dhcpcd_get_type,
 	.get_path = nm_dhcp_dhcpcd_get_path,
-	.get_lease_ip_configs = NULL,
 };
 
 #endif /* WITH_DHCPCD */

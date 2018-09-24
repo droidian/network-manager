@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- * Copyright 2013 Red Hat, Inc.
+ * Copyright 2013 - 2017 Red Hat, Inc.
  */
 
 /**
@@ -28,12 +28,9 @@
 
 #include <stdlib.h>
 
-#include "NetworkManager.h"
-
-#include "nm-utils/nm-hash-utils.h"
-
 #include "nmtui.h"
 #include "nmt-connect-connection-list.h"
+#include "nm-client-utils.h"
 
 G_DEFINE_TYPE (NmtConnectConnectionList, nmt_connect_connection_list, NMT_TYPE_NEWT_LISTBOX)
 
@@ -310,7 +307,7 @@ add_connections_for_aps (NmtConnectDevice *nmtdev,
 		}
 
 		if (!nmtconn->name)
-			nmtconn->name = nmtconn->ssid ? nmtconn->ssid : "<unknown>";
+			nmtconn->name = nmtconn->ssid ?: "<unknown>";
 
 		nmtdev->conns = g_slist_prepend (nmtdev->conns, nmtconn);
 	}
@@ -379,7 +376,7 @@ append_nmt_devices_for_virtual_devices (GSList          *nmt_devices,
 			g_free (name);
 		else {
 			nmtdev = g_slice_new0 (NmtConnectDevice);
-			nmtdev->name = name ? name : g_strdup ("Unknown");
+			nmtdev->name = name ?: g_strdup("Unknown");
 			nmtdev->sort_order = sort_order;
 
 			g_hash_table_insert (devices_by_name, nmtdev->name, nmtdev);
@@ -527,7 +524,7 @@ nmt_connect_connection_list_rebuild (NmtConnectConnectionList *list)
 			if (nmtconn->ap) {
 				guint8 strength = nm_access_point_get_strength (nmtconn->ap);
 
-				strength_col = nm_utils_wifi_strength_bars (strength);
+				strength_col = nmc_wifi_strength_bars (strength);
 			} else
 				strength_col = NULL;
 
@@ -536,7 +533,7 @@ nmt_connect_connection_list_rebuild (NmtConnectConnectionList *list)
 			                       nmtconn->name,
 			                       (int)(max_width - nmt_newt_text_width (nmtconn->name)), "",
 			                       strength_col ? " " : "",
-			                       strength_col ? strength_col : "");
+			                       strength_col ?: "");
 
 			nmt_newt_listbox_append (listbox, row, nmtconn);
 			g_free (row);

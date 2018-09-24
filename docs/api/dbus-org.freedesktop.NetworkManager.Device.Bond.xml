@@ -68,7 +68,7 @@ Carrier  readable   b
 <programlisting>
 Slaves  readable   ao
 </programlisting>
-<para>        Array of object paths representing devices which are currently slaved to
+<para>        Array of object paths representing devices which are currently enslaved to
         this device.
 </para>
 </refsect2>

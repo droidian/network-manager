@@ -19,7 +19,6 @@
 #ifndef __NM_SECRET_AGENT_SIMPLE_H__
 #define __NM_SECRET_AGENT_SIMPLE_H__
 
-#include "NetworkManager.h"
 #include "nm-secret-agent-old.h"
 
 #define NM_TYPE_SECRET_AGENT_SIMPLE            (nm_secret_agent_simple_get_type ())
@@ -42,12 +41,24 @@ typedef struct {
 
 } NMSecretAgentSimpleClass;
 
+typedef enum {
+	NM_SECRET_AGENT_SECRET_TYPE_PROPERTY,
+	NM_SECRET_AGENT_SECRET_TYPE_SECRET,
+	NM_SECRET_AGENT_SECRET_TYPE_VPN_SECRET,
+} NMSecretAgentSecretType;
+
 typedef struct {
-	char *name, *prop_name, *value;
-	char *vpn_property;
-	char *vpn_type;
-	gboolean password;
+	const NMSecretAgentSecretType secret_type;
+	const char *pretty_name;
+	const char *entry_id;
+	char *value;
+	const char *vpn_type;
+	gboolean is_secret;
 } NMSecretAgentSimpleSecret;
+
+#define NM_SECRET_AGENT_ENTRY_ID_PREFX_VPN_SECRET "vpn.secret."
+
+#define NM_SECRET_AGENT_VPN_TYPE_OPENCONNECT  NM_DBUS_INTERFACE".openconnect"
 
 GType nm_secret_agent_simple_get_type (void);
 

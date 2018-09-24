@@ -15,9 +15,6 @@ DOC_SOURCE_DIR=$(top_srcdir)/libnm-glib
 # Extra options to supply to gtkdoc-scan.
 SCAN_OPTIONS=
 
-# Extra options to supply to gtkdoc-scangobj.
-SCANGOBJ_OPTIONS=--type-init-func 'g_type_init();'
-
 # Extra options to supply to gtkdoc-mkdb.
 MKDB_OPTIONS=--sgml-mode --output-format=xml
 
@@ -52,19 +49,18 @@ extra_files = libnm-glib.png
 
 # CFLAGS and LDFLAGS for compiling scan program. Only needed
 # if $(DOC_MODULE).types is non-empty.
-GTKDOC_CFLAGS =				\
-	-I$(top_srcdir)/shared	\
+GTKDOC_CFLAGS = \
+	-I$(top_srcdir)/shared \
 	-I$(top_builddir)/shared \
-	-I$(top_srcdir)/libnm-util	\
-	-I$(top_builddir)/libnm-util	\
-	-I$(top_srcdir)/libnm-glib	\
-	-I$(top_builddir)/libnm-glib	\
-	-DNM_VERSION_MAX_ALLOWED=NM_VERSION_NEXT_STABLE \
+	-I$(top_srcdir)/libnm-util \
+	-I$(top_builddir)/libnm-util \
+	-I$(top_srcdir)/libnm-glib \
+	-I$(top_builddir)/libnm-glib \
 	-DNM_VERSION_MIN_REQUIRED=NM_VERSION_0_9_8 \
-	$(GLIB_CFLAGS)			\
+	$(GLIB_CFLAGS) \
 	$(DBUS_CFLAGS)
 
-GTKDOC_LIBS =  \
+GTKDOC_LIBS = \
 	$(top_builddir)/libnm-glib/libnm-glib.la \
 	$(GLIB_LIBS)
 
@@ -72,7 +68,7 @@ GTKDOC_LIBS =  \
 # include common portion ...
 include $(top_srcdir)/gtk-doc.make
 
-EXTRA_DIST += version.xml.in
+EXTRA_DIST += version.xml.in meson.build
 
 CLEANFILES += \
 	libnm-glib-sections.txt \

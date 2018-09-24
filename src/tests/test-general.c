@@ -232,13 +232,13 @@ test_nm_utils_log_connection_diff (void)
 
 	connection = nm_simple_connection_new ();
 	nm_connection_add_setting (connection, nm_setting_connection_new ());
-	nm_utils_log_connection_diff (connection, NULL, LOGL_DEBUG, LOGD_CORE, "test1", ">>> ");
+	nm_utils_log_connection_diff (connection, NULL, LOGL_DEBUG, LOGD_CORE, "test1", ">>> ", NULL);
 
 	nm_connection_add_setting (connection, nm_setting_wired_new ());
-	nm_utils_log_connection_diff (connection, NULL, LOGL_DEBUG, LOGD_CORE, "test2", ">>> ");
+	nm_utils_log_connection_diff (connection, NULL, LOGL_DEBUG, LOGD_CORE, "test2", ">>> ", NULL);
 
 	connection2 = nm_simple_connection_new_clone (connection);
-	nm_utils_log_connection_diff (connection, connection2, LOGL_DEBUG, LOGD_CORE, "test3", ">>> ");
+	nm_utils_log_connection_diff (connection, connection2, LOGL_DEBUG, LOGD_CORE, "test3", ">>> ", NULL);
 
 	g_object_set (nm_connection_get_setting_connection (connection),
 	              NM_SETTING_CONNECTION_ID, "id",
@@ -248,24 +248,24 @@ test_nm_utils_log_connection_diff (void)
 	              NM_SETTING_CONNECTION_ID, "id2",
 	              NM_SETTING_CONNECTION_MASTER, "master2",
 	              NULL);
-	nm_utils_log_connection_diff (connection, connection2, LOGL_DEBUG, LOGD_CORE, "test4", ">>> ");
+	nm_utils_log_connection_diff (connection, connection2, LOGL_DEBUG, LOGD_CORE, "test4", ">>> ", NULL);
 
 	nm_connection_add_setting (connection, nm_setting_802_1x_new ());
-	nm_utils_log_connection_diff (connection, connection2, LOGL_DEBUG, LOGD_CORE, "test5", ">>> ");
+	nm_utils_log_connection_diff (connection, connection2, LOGL_DEBUG, LOGD_CORE, "test5", ">>> ", NULL);
 
 	g_object_set (nm_connection_get_setting_802_1x (connection),
 	              NM_SETTING_802_1X_PASSWORD, "id2",
 	              NM_SETTING_802_1X_PASSWORD_FLAGS, NM_SETTING_SECRET_FLAG_NOT_SAVED,
 	              NULL);
-	nm_utils_log_connection_diff (connection, NULL, LOGL_DEBUG, LOGD_CORE, "test6", ">>> ");
-	nm_utils_log_connection_diff (connection, connection2, LOGL_DEBUG, LOGD_CORE, "test7", ">>> ");
-	nm_utils_log_connection_diff (connection2, connection, LOGL_DEBUG, LOGD_CORE, "test8", ">>> ");
+	nm_utils_log_connection_diff (connection, NULL, LOGL_DEBUG, LOGD_CORE, "test6", ">>> ", NULL);
+	nm_utils_log_connection_diff (connection, connection2, LOGL_DEBUG, LOGD_CORE, "test7", ">>> ", NULL);
+	nm_utils_log_connection_diff (connection2, connection, LOGL_DEBUG, LOGD_CORE, "test8", ">>> ", NULL);
 
 	g_clear_object (&connection);
 	g_clear_object (&connection2);
 
 	connection = nmtst_create_minimal_connection ("id-vpn-1", NULL, NM_SETTING_VPN_SETTING_NAME, NULL);
-	nm_utils_log_connection_diff (connection, NULL, LOGL_DEBUG, LOGD_CORE, "test-vpn-1", ">>> ");
+	nm_utils_log_connection_diff (connection, NULL, LOGL_DEBUG, LOGD_CORE, "test-vpn-1", ">>> ", NULL);
 
 	g_clear_object (&connection);
 }
@@ -708,7 +708,6 @@ test_connection_no_match_ip4_addr (void)
 	g_object_set (G_OBJECT (s_ip6),
 	              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
 	              NULL);
-
 
 	s_ip4 = nm_connection_get_setting_ip4_config (orig);
 	g_assert (s_ip4);
@@ -1232,7 +1231,6 @@ _do_test_match_spec_config (const char *file, gint line, const char *spec_str, g
 		GSList *specs2 = g_slist_append (NULL, sss);
 		NMMatchSpecMatchType match_result2;
 
-
 		match_result2 = nm_match_spec_config (specs2, version, NULL);
 		if (match_result == NM_MATCH_SPEC_NO_MATCH)
 			g_assert_cmpint (match_result2, ==, NM_MATCH_SPEC_NO_MATCH);
@@ -1288,7 +1286,6 @@ test_match_spec_config (void)
 	do_test_match_spec_config ("nm-version-min:1", 1, 3, 0, NM_MATCH_SPEC_MATCH);
 	do_test_match_spec_config ("nm-version-min:1", 1, 3, 30, NM_MATCH_SPEC_MATCH);
 	do_test_match_spec_config ("nm-version-min:1", 1, 4, 30, NM_MATCH_SPEC_MATCH);
-
 
 	do_test_match_spec_config ("nm-version-max:1.2.3", 0, 2, 30, NM_MATCH_SPEC_NO_MATCH);
 	do_test_match_spec_config ("nm-version-max:1.2.3", 1, 1, 1, NM_MATCH_SPEC_NO_MATCH);
@@ -1460,6 +1457,11 @@ test_nm_utils_strbuf_append (void)
 static void
 test_duplicate_decl_specifier (void)
 {
+	/* We're intentionally assigning values to static arrays v_const
+	 * and v_result without using it afterwards just so that valgrind
+	 * doesn't complain about the leak. */
+	NM_PRAGMA_WARNING_DISABLE("-Wunused-but-set-variable")
+
 	/* have some static variables, so that the result is certainly not optimized out. */
 	static const int v_const[1] = { 1 };
 	static int v_result[1] = { };
@@ -1477,6 +1479,8 @@ test_duplicate_decl_specifier (void)
 	})
 
 	v_result[0] = TEST_MAX (v_const[0], nmtst_get_rand_int () % 5) + v2;
+
+	NM_PRAGMA_WARNING_REENABLE
 }
 
 static void
@@ -1617,7 +1621,7 @@ do_test_stable_id_parse (const char *stable_id,
 	else
 		g_assert (stable_id);
 
-	stable_type = nm_utils_stable_id_parse (stable_id, "_CONNECTION", "_BOOT", &generated);
+	stable_type = nm_utils_stable_id_parse (stable_id, "_DEVICE", "_BOOT", "_CONNECTION", &generated);
 
 	g_assert_cmpint (expected_stable_type, ==, stable_type);
 

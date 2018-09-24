@@ -216,6 +216,30 @@ nm_setting_vpn_get_data_item (NMSettingVpn *setting, const char *key)
 }
 
 /**
+ * nm_setting_vpn_get_data_keys:
+ * @setting: the #NMSettingVpn
+ * @out_length: (allow-none): (out): the length of the returned array
+ *
+ * Retrieves every data key inside @setting, as an array.
+ *
+ * Returns: (array length=out_length) (transfer container): a
+ *   %NULL-terminated array containing each data key or %NULL if
+ *   there are no data items.
+ *
+ * Since: 1.12
+ */
+const char **
+nm_setting_vpn_get_data_keys (NMSettingVpn *setting,
+                              guint *out_length)
+{
+	g_return_val_if_fail (NM_IS_SETTING_VPN (setting), NULL);
+
+	return nm_utils_strdict_get_keys (NM_SETTING_VPN_GET_PRIVATE (setting)->data,
+	                                  TRUE,
+	                                  out_length);
+}
+
+/**
  * nm_setting_vpn_remove_data_item:
  * @setting: the #NMSettingVpn
  * @key: the name of the data item to remove
@@ -240,32 +264,52 @@ nm_setting_vpn_remove_data_item (NMSettingVpn *setting, const char *key)
 }
 
 static void
-foreach_item_helper (GHashTable *hash,
+foreach_item_helper (NMSettingVpn *self,
+                     gboolean is_secrets,
                      NMVpnIterFunc func,
                      gpointer user_data)
 {
-	GList *keys, *liter;
-	GSList *copied = NULL, *siter;
+	NMSettingVpnPrivate *priv;
+	guint len, i;
+	gs_strfreev char **keys = NULL;
+	GHashTable *hash;
 
-	g_return_if_fail (hash != NULL);
+	nm_assert (NM_IS_SETTING_VPN (self));
+	nm_assert (func);
 
-	/* Grab keys and copy them so that the callback func can modify
-	 * the hash table items if it wants to.
-	 */
-	keys = g_hash_table_get_keys (hash);
-	for (liter = keys; liter; liter = g_list_next (liter))
-		copied = g_slist_prepend (copied, g_strdup (liter->data));
-	copied = g_slist_reverse (copied);
-	g_list_free (keys);
+	priv = NM_SETTING_VPN_GET_PRIVATE (self);
 
-	for (siter = copied; siter; siter = g_slist_next (siter)) {
-		gpointer value;
-
-		value = g_hash_table_lookup (hash, siter->data);
-		func (siter->data, value, user_data);
+	if (is_secrets) {
+		keys = (char **) nm_setting_vpn_get_secret_keys (self, &len);
+		hash = priv->secrets;
+	} else {
+		keys = (char **) nm_setting_vpn_get_data_keys (self, &len);
+		hash = priv->data;
 	}
 
-	g_slist_free_full (copied, g_free);
+	if (!len) {
+		nm_assert (!keys);
+		return;
+	}
+
+	for (i = 0; i < len; i++) {
+		nm_assert (keys[i]);
+		keys[i] = g_strdup (keys[i]);
+	}
+	nm_assert (!keys[i]);
+
+	for (i = 0; i < len; i++) {
+		const char *value;
+
+		value = g_hash_table_lookup (hash, keys[i]);
+		/* NOTE: note that we call the function with a clone of @key,
+		 * not with the actual key from the dictionary.
+		 *
+		 * The @value on the other hand, is actually inside our dictionary,
+		 * it's not a clone. However, it might be %NULL, in case the key was
+		 * deleted while iterating. */
+		func (keys[i], value, user_data);
+	}
 }
 
 /**
@@ -284,8 +328,9 @@ nm_setting_vpn_foreach_data_item (NMSettingVpn *setting,
                                   gpointer user_data)
 {
 	g_return_if_fail (NM_IS_SETTING_VPN (setting));
+	g_return_if_fail (func);
 
-	foreach_item_helper (NM_SETTING_VPN_GET_PRIVATE (setting)->data, func, user_data);
+	foreach_item_helper (setting, FALSE, func, user_data);
 }
 
 /**
@@ -348,6 +393,30 @@ nm_setting_vpn_get_secret (NMSettingVpn *setting, const char *key)
 }
 
 /**
+ * nm_setting_vpn_get_secret_keys:
+ * @setting: the #NMSettingVpn
+ * @out_length: (allow-none): (out): the length of the returned array
+ *
+ * Retrieves every secret key inside @setting, as an array.
+ *
+ * Returns: (array length=out_length) (transfer container): a
+ *   %NULL-terminated array containing each secret key or %NULL if
+ *   there are no secrets.
+ *
+ * Since: 1.12
+ */
+const char **
+nm_setting_vpn_get_secret_keys (NMSettingVpn *setting,
+                                guint *out_length)
+{
+	g_return_val_if_fail (NM_IS_SETTING_VPN (setting), NULL);
+
+	return nm_utils_strdict_get_keys (NM_SETTING_VPN_GET_PRIVATE (setting)->secrets,
+	                                  TRUE,
+	                                  out_length);
+}
+
+/**
  * nm_setting_vpn_remove_secret:
  * @setting: the #NMSettingVpn
  * @key: the name of the secret to remove
@@ -387,8 +456,9 @@ nm_setting_vpn_foreach_secret (NMSettingVpn *setting,
                                gpointer user_data)
 {
 	g_return_if_fail (NM_IS_SETTING_VPN (setting));
+	g_return_if_fail (func);
 
-	foreach_item_helper (NM_SETTING_VPN_GET_PRIVATE (setting)->secrets, func, user_data);
+	foreach_item_helper (setting, TRUE, func, user_data);
 }
 
 /**
@@ -719,22 +789,12 @@ clear_secrets_with_flags (NMSetting *setting,
 }
 
 static void
-destroy_one_secret (gpointer data)
-{
-	char *secret = (char *) data;
-
-	/* Don't leave the secret lying around in memory */
-	memset (secret, 0, strlen (secret));
-	g_free (secret);
-}
-
-static void
 nm_setting_vpn_init (NMSettingVpn *setting)
 {
 	NMSettingVpnPrivate *priv = NM_SETTING_VPN_GET_PRIVATE (setting);
 
-	priv->data = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
-	priv->secrets = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, destroy_one_secret);
+	priv->data = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, g_free);
+	priv->secrets = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, (GDestroyNotify) nm_free_secret);
 }
 
 static void
@@ -885,12 +945,10 @@ nm_setting_vpn_class_init (NMSettingVpnClass *setting_class)
 		                       G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * NMSettingVpn:data:
+	 * NMSettingVpn:data: (type GHashTable(utf8,utf8)):
 	 *
 	 * Dictionary of key/value pairs of VPN plugin specific data.  Both keys and
 	 * values must be strings.
-	 *
-	 * Type: GHashTable(utf8,utf8)
 	 **/
 	/* ---keyfile---
 	 * property: data
@@ -912,12 +970,10 @@ nm_setting_vpn_class_init (NMSettingVpnClass *setting_class)
 	                                      _nm_utils_strdict_from_dbus);
 
 	/**
-	 * NMSettingVpn:secrets:
+	 * NMSettingVpn:secrets: (type GHashTable(utf8,utf8)):
 	 *
 	 * Dictionary of key/value pairs of VPN plugin specific secrets like
 	 * passwords or private keys.  Both keys and values must be strings.
-	 *
-	 * Type: GHashTable(utf8,utf8)
 	 **/
 	/* ---keyfile---
 	 * property: secrets

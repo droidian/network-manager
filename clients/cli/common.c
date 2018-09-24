@@ -16,7 +16,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2012 - 2014 Red Hat, Inc.
+ * Copyright 2012 - 2018 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -26,12 +26,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <termios.h>
 #include <sys/ioctl.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include "nm-utils/nm-hash-utils.h"
 #include "nm-vpn-helpers.h"
 #include "nm-client-utils.h"
 
@@ -49,6 +47,9 @@ _ip_config_get_routes (NMIPConfig *cfg)
 
 	ptr_array = nm_ip_config_get_routes (cfg);
 	if (!ptr_array)
+		return NULL;
+
+	if (ptr_array->len == 0)
 		return NULL;
 
 	arr = g_new (char *, ptr_array->len + 1);
@@ -102,24 +103,19 @@ _ip_config_get_routes (NMIPConfig *cfg)
 }
 
 static gconstpointer
-_metagen_ip4_config_get_fcn (const NMMetaEnvironment *environment,
-                             gpointer environment_user_data,
-                             const NmcMetaGenericInfo *info,
-                             gpointer target,
-                             NMMetaAccessorGetType get_type,
-                             NMMetaAccessorGetFlags get_flags,
-                             NMMetaAccessorGetOutFlags *out_flags,
-                             gpointer *out_to_free)
+_metagen_ip4_config_get_fcn (NMC_META_GENERIC_INFO_GET_FCN_ARGS)
 {
 	NMIPConfig *cfg4 = target;
 	GPtrArray *ptr_array;
 	char **arr;
 	const char *const*arrc;
 	guint i = 0;
+	const char *str;
 
 	nm_assert (info->info_type < _NMC_GENERIC_INFO_TYPE_IP4_CONFIG_NUM);
 
-	NMC_HANDLE_TERMFORMAT (NM_META_TERM_COLOR_NORMAL);
+	NMC_HANDLE_COLOR (NM_META_COLOR_NONE);
+	NM_SET_OUT (out_is_default, TRUE);
 
 	switch (info->info_type) {
 	case NMC_GENERIC_INFO_TYPE_IP4_CONFIG_ADDRESS:
@@ -140,7 +136,9 @@ _metagen_ip4_config_get_fcn (const NMMetaEnvironment *environment,
 			arr = NULL;
 		goto arr_out;
 	case NMC_GENERIC_INFO_TYPE_IP4_CONFIG_GATEWAY:
-		return nm_ip_config_get_gateway (cfg4);
+		str = nm_ip_config_get_gateway (cfg4);
+		NM_SET_OUT (out_is_default, !str);
+		return str;
 	case NMC_GENERIC_INFO_TYPE_IP4_CONFIG_ROUTE:
 		if (!NM_FLAGS_HAS (get_flags, NM_META_ACCESSOR_GET_FLAGS_ACCEPT_STRV))
 			return NULL;
@@ -168,34 +166,31 @@ _metagen_ip4_config_get_fcn (const NMMetaEnvironment *environment,
 	g_return_val_if_reached (NULL);
 
 arrc_out:
+	NM_SET_OUT (out_is_default, !arrc || !arrc[0]);
 	*out_flags |= NM_META_ACCESSOR_GET_OUT_FLAGS_STRV;
 	return arrc;
 
 arr_out:
+	NM_SET_OUT (out_is_default, !arr || !arr[0]);
 	*out_flags |= NM_META_ACCESSOR_GET_OUT_FLAGS_STRV;
 	*out_to_free = arr;
 	return arr;
 }
 
 static gconstpointer
-_metagen_ip6_config_get_fcn (const NMMetaEnvironment *environment,
-                             gpointer environment_user_data,
-                             const NmcMetaGenericInfo *info,
-                             gpointer target,
-                             NMMetaAccessorGetType get_type,
-                             NMMetaAccessorGetFlags get_flags,
-                             NMMetaAccessorGetOutFlags *out_flags,
-                             gpointer *out_to_free)
+_metagen_ip6_config_get_fcn (NMC_META_GENERIC_INFO_GET_FCN_ARGS)
 {
 	NMIPConfig *cfg6 = target;
 	GPtrArray *ptr_array;
 	char **arr;
 	const char *const*arrc;
 	guint i = 0;
+	const char *str;
 
 	nm_assert (info->info_type < _NMC_GENERIC_INFO_TYPE_IP6_CONFIG_NUM);
 
-	NMC_HANDLE_TERMFORMAT (NM_META_TERM_COLOR_NORMAL);
+	NMC_HANDLE_COLOR (NM_META_COLOR_NONE);
+	NM_SET_OUT (out_is_default, TRUE);
 
 	switch (info->info_type) {
 	case NMC_GENERIC_INFO_TYPE_IP6_CONFIG_ADDRESS:
@@ -216,7 +211,9 @@ _metagen_ip6_config_get_fcn (const NMMetaEnvironment *environment,
 			arr = NULL;
 		goto arr_out;
 	case NMC_GENERIC_INFO_TYPE_IP6_CONFIG_GATEWAY:
-		return nm_ip_config_get_gateway (cfg6);
+		str = nm_ip_config_get_gateway (cfg6);
+		NM_SET_OUT (out_is_default, !str);
+		return str;
 	case NMC_GENERIC_INFO_TYPE_IP6_CONFIG_ROUTE:
 		if (!NM_FLAGS_HAS (get_flags, NM_META_ACCESSOR_GET_FLAGS_ACCEPT_STRV))
 			return NULL;
@@ -239,10 +236,12 @@ _metagen_ip6_config_get_fcn (const NMMetaEnvironment *environment,
 	g_return_val_if_reached (NULL);
 
 arrc_out:
+	NM_SET_OUT (out_is_default, !arrc || !arrc[0]);
 	*out_flags |= NM_META_ACCESSOR_GET_OUT_FLAGS_STRV;
 	return arrc;
 
 arr_out:
+	NM_SET_OUT (out_is_default, !arr || !arr[0]);
 	*out_flags |= NM_META_ACCESSOR_GET_OUT_FLAGS_STRV;
 	*out_to_free = arr;
 	return arr;
@@ -259,11 +258,6 @@ const NmcMetaGenericInfo *const metagen_ip4_config[_NMC_GENERIC_INFO_TYPE_IP4_CO
 	_METAGEN_IP4_CONFIG (NMC_GENERIC_INFO_TYPE_IP4_CONFIG_WINS,    "WINS"),
 };
 
-static const NmcMetaGenericInfo *const metagen_ip4_config_group[] = {
-	NMC_META_GENERIC_WITH_NESTED ("IP4", metagen_ip4_config, .name_header = N_("GROUP")),
-	NULL,
-};
-
 const NmcMetaGenericInfo *const metagen_ip6_config[_NMC_GENERIC_INFO_TYPE_IP6_CONFIG_NUM + 1] = {
 #define _METAGEN_IP6_CONFIG(type, name) \
 	[type] = NMC_META_GENERIC(name, .info_type = type, .get_fcn = _metagen_ip6_config_get_fcn)
@@ -274,14 +268,9 @@ const NmcMetaGenericInfo *const metagen_ip6_config[_NMC_GENERIC_INFO_TYPE_IP6_CO
 	_METAGEN_IP6_CONFIG (NMC_GENERIC_INFO_TYPE_IP6_CONFIG_DOMAIN,  "DOMAIN"),
 };
 
-static const NmcMetaGenericInfo *const metagen_ip6_config_group[] = {
-	NMC_META_GENERIC_WITH_NESTED ("IP6", metagen_ip6_config, .name_header = N_("GROUP")),
-	NULL,
-};
-
 /*****************************************************************************/
 
-const NmcMetaGenericInfo *const nmc_fields_dhcp4_config[] = {
+const NmcMetaGenericInfo *const nmc_fields_dhcp_config[] = {
 	NMC_META_GENERIC ("GROUP"),    /* 0 */
 	NMC_META_GENERIC ("OPTION"),   /* 1 */
 	NULL,
@@ -294,12 +283,6 @@ const NmcMetaGenericInfo *const nmc_fields_ip6_config[] = {
 	NMC_META_GENERIC ("ROUTE"),     /* 3 */
 	NMC_META_GENERIC ("DNS"),       /* 4 */
 	NMC_META_GENERIC ("DOMAIN"),    /* 5 */
-	NULL,
-};
-
-const NmcMetaGenericInfo *const nmc_fields_dhcp6_config[] = {
-	NMC_META_GENERIC ("GROUP"),    /* 0 */
-	NMC_META_GENERIC ("OPTION"),   /* 1 */
 	NULL,
 };
 
@@ -320,7 +303,7 @@ print_ip4_config (NMIPConfig *cfg4,
 	if (!nmc_print (nmc_config,
 	                (gpointer[]) { cfg4, NULL },
 	                NULL,
-	                (const NMMetaAbstractInfo *const*) metagen_ip4_config_group,
+	                NMC_META_GENERIC_GROUP ("IP4", metagen_ip4_config, N_("GROUP")),
 	                field_str,
 	                &error)) {
 		return FALSE;
@@ -346,7 +329,7 @@ print_ip6_config (NMIPConfig *cfg6,
 	if (!nmc_print (nmc_config,
 	                (gpointer[]) { cfg6, NULL },
 	                NULL,
-	                (const NMMetaAbstractInfo *const*) metagen_ip6_config_group,
+	                NMC_META_GENERIC_GROUP ("IP6", metagen_ip6_config, N_("GROUP")),
 	                field_str,
 	                &error)) {
 		return FALSE;
@@ -355,82 +338,37 @@ print_ip6_config (NMIPConfig *cfg6,
 }
 
 gboolean
-print_dhcp4_config (NMDhcpConfig *dhcp4,
-                    const NmcConfig *nmc_config,
-                    const char *group_prefix,
-                    const char *one_field)
+print_dhcp_config (NMDhcpConfig *dhcp,
+                   const NmcConfig *nmc_config,
+                   const char *group_prefix,
+                   const char *one_field)
 {
 	GHashTable *table;
 	const NMMetaAbstractInfo *const*tmpl;
 	NmcOutputField *arr;
 
-	if (dhcp4 == NULL)
+	if (dhcp == NULL)
 		return FALSE;
 
-	table = nm_dhcp_config_get_options (dhcp4);
+	table = nm_dhcp_config_get_options (dhcp);
 	if (table) {
-		GHashTableIter table_iter;
-		gpointer key, value;
 		char **options_arr = NULL;
-		int i = 0;
 		NMC_OUTPUT_DATA_DEFINE_SCOPED (out);
+		gs_free const char **keys = NULL;
+		guint i, nkeys;
 
-		tmpl = (const NMMetaAbstractInfo *const*) nmc_fields_dhcp4_config;
+		tmpl = (const NMMetaAbstractInfo *const*) nmc_fields_dhcp_config;
 		out_indices = parse_output_fields (one_field,
 		                                   tmpl, FALSE, NULL, NULL);
 		arr = nmc_dup_fields_array (tmpl, NMC_OF_FLAG_FIELD_NAMES);
 		g_ptr_array_add (out.output_data, arr);
 
-		options_arr = g_new (char *, g_hash_table_size (table) + 1);
-		g_hash_table_iter_init (&table_iter, table);
-		while (g_hash_table_iter_next (&table_iter, &key, &value))
-			options_arr[i++] = g_strdup_printf ("%s = %s", (char *) key, (char *) value);
-		options_arr[i] = NULL;
+		keys = (const char **) g_hash_table_get_keys_as_array (table, &nkeys);
+		nm_utils_strv_sort (keys, nkeys);
 
-		arr = nmc_dup_fields_array (tmpl, NMC_OF_FLAG_SECTION_PREFIX);
-		set_val_strc (arr, 0, group_prefix);
-		set_val_arr  (arr, 1, options_arr);
-		g_ptr_array_add (out.output_data, arr);
-
-		print_data_prepare_width (out.output_data);
-		print_data (nmc_config, out_indices, NULL, 0, &out);
-
-		return TRUE;
-	}
-	return FALSE;
-}
-
-gboolean
-print_dhcp6_config (NMDhcpConfig *dhcp6,
-                    const NmcConfig *nmc_config,
-                    const char *group_prefix,
-                    const char *one_field)
-{
-	GHashTable *table;
-	const NMMetaAbstractInfo *const*tmpl;
-	NmcOutputField *arr;
-
-	if (dhcp6 == NULL)
-		return FALSE;
-
-	table = nm_dhcp_config_get_options (dhcp6);
-	if (table) {
-		GHashTableIter table_iter;
-		gpointer key, value;
-		char **options_arr = NULL;
-		int i = 0;
-		NMC_OUTPUT_DATA_DEFINE_SCOPED (out);
-
-		tmpl = (const NMMetaAbstractInfo *const*) nmc_fields_dhcp6_config;
-		out_indices = parse_output_fields (one_field,
-		                                   tmpl, FALSE, NULL, NULL);
-		arr = nmc_dup_fields_array (tmpl, NMC_OF_FLAG_FIELD_NAMES);
-		g_ptr_array_add (out.output_data, arr);
-
-		options_arr = g_new (char *, g_hash_table_size (table) + 1);
-		g_hash_table_iter_init (&table_iter, table);
-		while (g_hash_table_iter_next (&table_iter, &key, &value))
-			options_arr[i++] = g_strdup_printf ("%s = %s", (char *) key, (char *) value);
+		options_arr = g_new (char *, nkeys + 1);
+		for (i = 0; i < nkeys; i++)
+			options_arr[i] = g_strdup_printf ("%s = %s", keys[i], (const char *) g_hash_table_lookup (table, keys[i]));
 		options_arr[i] = NULL;
 
 		arr = nmc_dup_fields_array (tmpl, NMC_OF_FLAG_SECTION_PREFIX);
@@ -449,10 +387,13 @@ print_dhcp6_config (NMDhcpConfig *dhcp6,
 /*
  * nmc_find_connection:
  * @connections: array of NMConnections to search in
- * @filter_type: "id", "uuid", "path" or %NULL
+ * @filter_type: "id", "uuid", "path", "filename", or %NULL
  * @filter_val: connection to find (connection name, UUID or path)
- * @start: where to start in @list. The location is updated so that the function
- *   can be called multiple times (for connections with the same name).
+ * @out_result: if not NULL, attach all matching connection to this
+ *   list. If necessary, a new array will be allocated. If the array
+ *   already contains a connection, it will not be added a second time.
+ *   All object are referenced by the array. If the function allocates
+ *   a new array, it will set the free function to g_object_unref.
  * @complete: print possible completions
  *
  * Find a connection in @list according to @filter_val. @filter_type determines
@@ -467,64 +408,169 @@ NMConnection *
 nmc_find_connection (const GPtrArray *connections,
                      const char *filter_type,
                      const char *filter_val,
-                     int *start,
+                     GPtrArray **out_result,
                      gboolean complete)
 {
 	NMConnection *connection;
-	NMConnection *found = NULL;
-	int i;
-	const char *id;
-	const char *uuid;
-	const char *path, *path_num;
+	NMConnection *best_candidate = NULL;
+	GPtrArray *result = out_result ? *out_result : NULL;
+	guint i, j;
 
-	for (i = start ? *start : 0; i < connections->len; i++) {
+	nm_assert (connections);
+	nm_assert (filter_val);
+
+	for (i = 0; i < connections->len; i++) {
+		const char *v, *v_num;
+
 		connection = NM_CONNECTION (connections->pdata[i]);
-
-		id = nm_connection_get_id (connection);
-		uuid = nm_connection_get_uuid (connection);
-		path = nm_connection_get_path (connection);
-		path_num = path ? strrchr (path, '/') + 1 : NULL;
 
 		/* When filter_type is NULL, compare connection ID (filter_val)
 		 * against all types. Otherwise, only compare against the specific
 		 * type. If 'path' filter type is specified, comparison against
 		 * numeric index (in addition to the whole path) is allowed.
 		 */
-		if (!filter_type || strcmp (filter_type, "id")  == 0) {
+		if (NM_IN_STRSET (filter_type, NULL, "id")) {
+			v = nm_connection_get_id (connection);
 			if (complete)
-				nmc_complete_strings (filter_val, id, NULL);
-			if (strcmp (filter_val, id) == 0)
+				nmc_complete_strings (filter_val, v, NULL);
+			if (nm_streq0 (filter_val, v))
 				goto found;
 		}
 
-		if (!filter_type || strcmp (filter_type, "uuid") == 0) {
+		if (NM_IN_STRSET (filter_type, NULL, "uuid")) {
+			v = nm_connection_get_uuid (connection);
 			if (complete && (filter_type || *filter_val))
-				nmc_complete_strings (filter_val, uuid, NULL);
-			if (strcmp (filter_val, uuid) == 0)
+				nmc_complete_strings (filter_val, v, NULL);
+			if (nm_streq0 (filter_val, v))
 				goto found;
 		}
 
-		if (!filter_type || strcmp (filter_type, "path") == 0) {
+		if (NM_IN_STRSET (filter_type, NULL, "path")) {
+			v = nm_connection_get_path (connection);
+			v_num = nm_utils_dbus_path_get_last_component (v);
 			if (complete && (filter_type || *filter_val))
-				nmc_complete_strings (filter_val, path, filter_type ? path_num : NULL, NULL);
-		        if (g_strcmp0 (filter_val, path) == 0 || (filter_type && g_strcmp0 (filter_val, path_num) == 0))
+				nmc_complete_strings (filter_val, v, filter_type ? v_num : NULL, NULL);
+			if (   nm_streq0 (filter_val, v)
+			    || (filter_type && nm_streq0 (filter_val, v_num)))
+				goto found;
+		}
+
+		if (NM_IN_STRSET (filter_type, NULL, "filename")) {
+			v = nm_remote_connection_get_filename (NM_REMOTE_CONNECTION (connections->pdata[i]));
+			if (complete && (filter_type || *filter_val))
+				nmc_complete_strings (filter_val, v, NULL);
+			if (nm_streq0 (filter_val, v))
 				goto found;
 		}
 
 		continue;
 found:
-		if (!start)
+		if (!out_result)
 			return connection;
-		if (found) {
-			*start = i;
-			return found;
+		if (!best_candidate)
+			best_candidate = connection;
+		if (!result)
+			result = g_ptr_array_new_with_free_func (g_object_unref);
+		for (j = 0; j < result->len; j++) {
+			if (connection == result->pdata[j])
+				break;
 		}
-		found = connection;
+		if (j == result->len)
+			g_ptr_array_add (result, g_object_ref (connection));
 	}
 
-	if (start)
-		*start = 0;
-	return found;
+	NM_SET_OUT (out_result, result);
+	return best_candidate;
+}
+
+NMActiveConnection *
+nmc_find_active_connection (const GPtrArray *active_cons,
+                            const char *filter_type,
+                            const char *filter_val,
+                            GPtrArray **out_result,
+                            gboolean complete)
+{
+	guint i, j;
+	NMActiveConnection *best_candidate = NULL;
+	GPtrArray *result = out_result ? *out_result : NULL;
+
+	nm_assert (filter_val);
+
+	for (i = 0; i < active_cons->len; i++) {
+		NMRemoteConnection *con;
+		NMActiveConnection *candidate = g_ptr_array_index (active_cons, i);
+		const char *v, *v_num;
+
+		con = nm_active_connection_get_connection (candidate);
+
+		/* When filter_type is NULL, compare connection ID (filter_val)
+		 * against all types. Otherwise, only compare against the specific
+		 * type. If 'path' or 'apath' filter types are specified, comparison
+		 * against numeric index (in addition to the whole path) is allowed.
+		 */
+		if (NM_IN_STRSET (filter_type, NULL, "id")) {
+			v = nm_active_connection_get_id (candidate);
+			if (complete)
+				nmc_complete_strings (filter_val, v, NULL);
+			if (nm_streq0 (filter_val, v))
+				goto found;
+		}
+
+		if (NM_IN_STRSET (filter_type, NULL, "uuid")) {
+			v = nm_active_connection_get_uuid (candidate);
+			if (complete && (filter_type || *filter_val))
+				nmc_complete_strings (filter_val, v, NULL);
+			if (nm_streq0 (filter_val, v))
+				goto found;
+		}
+
+		if (NM_IN_STRSET (filter_type, NULL, "path")) {
+			v = con ? nm_connection_get_path (NM_CONNECTION (con)) : NULL;
+			v_num = nm_utils_dbus_path_get_last_component (v);
+			if (complete && (filter_type || *filter_val))
+				nmc_complete_strings (filter_val, v, filter_type ? v_num : NULL, NULL);
+			if (   nm_streq0 (filter_val, v)
+			    || (filter_type && nm_streq0 (filter_val, v_num)))
+				goto found;
+		}
+
+		if (NM_IN_STRSET (filter_type, NULL, "filename")) {
+			v = nm_remote_connection_get_filename (con);
+			if (complete && (filter_type || *filter_val))
+				nmc_complete_strings (filter_val, v, NULL);
+			if (nm_streq0 (filter_val, v))
+				goto found;
+		}
+
+		if (NM_IN_STRSET (filter_type, NULL, "apath")) {
+			v = nm_object_get_path (NM_OBJECT (candidate));
+			v_num = nm_utils_dbus_path_get_last_component (v);
+			if (complete && (filter_type || *filter_val))
+				nmc_complete_strings (filter_val, v, filter_type ? v_num : NULL, NULL);
+			if (   nm_streq0 (filter_val, v)
+			    || (filter_type && nm_streq0 (filter_val, v_num)))
+				goto found;
+		}
+
+		continue;
+
+found:
+		if (!out_result)
+			return candidate;
+		if (!best_candidate)
+			best_candidate = candidate;
+		if (!result)
+			result = g_ptr_array_new_with_free_func (g_object_unref);
+		for (j = 0; j < result->len; j++) {
+			if (candidate == result->pdata[j])
+				break;
+		}
+		if (j == result->len)
+			g_ptr_array_add (result, g_object_ref (candidate));
+	}
+
+	NM_SET_OUT (out_result, result);
+	return best_candidate;
 }
 
 static gboolean
@@ -532,10 +578,10 @@ vpn_openconnect_get_secrets (NMConnection *connection, GPtrArray *secrets)
 {
 	GError *error = NULL;
 	NMSettingVpn *s_vpn;
-	const char *vpn_type, *gw, *port;
-	char *cookie = NULL;
-	char *gateway = NULL;
-	char *gwcert = NULL;
+	const char *gw, *port;
+	gs_free char *cookie = NULL;
+	gs_free char *gateway = NULL;
+	gs_free char *gwcert = NULL;
 	int status = 0;
 	int i;
 	gboolean ret;
@@ -547,8 +593,7 @@ vpn_openconnect_get_secrets (NMConnection *connection, GPtrArray *secrets)
 		return FALSE;
 
 	s_vpn = nm_connection_get_setting_vpn (connection);
-	vpn_type = nm_setting_vpn_get_service_type (s_vpn);
-	if (g_strcmp0 (vpn_type, NM_DBUS_INTERFACE ".openconnect"))
+	if (!nm_streq0 (nm_setting_vpn_get_service_type (s_vpn), NM_SECRET_AGENT_VPN_TYPE_OPENCONNECT))
 		return FALSE;
 
 	/* Get gateway and port */
@@ -571,34 +616,31 @@ vpn_openconnect_get_secrets (NMConnection *connection, GPtrArray *secrets)
 
 	/* Append port to the host value */
 	if (gateway && port) {
-		char *tmp = gateway;
-		gateway = g_strdup_printf ("%s%s", gateway, port);
-		g_free (tmp);
+		gs_free char *tmp = gateway;
+
+		gateway = g_strdup_printf ("%s%s", tmp, port);
 	}
 
 	/* Fill secrets to the array */
 	for (i = 0; i < secrets->len; i++) {
 		NMSecretAgentSimpleSecret *secret = secrets->pdata[i];
 
-		if (!g_strcmp0 (secret->vpn_type, vpn_type)) {
-			if (!g_strcmp0 (secret->vpn_property, "cookie")) {
-				g_free (secret->value);
-				secret->value = cookie;
-				cookie = NULL;
-			} else if (!g_strcmp0 (secret->vpn_property, "gateway")) {
-				g_free (secret->value);
-				secret->value = gateway;
-				gateway = NULL;
-			} else if (!g_strcmp0 (secret->vpn_property, "gwcert")) {
-				g_free (secret->value);
-				secret->value = gwcert;
-				gwcert = NULL;
-			}
+		if (secret->secret_type != NM_SECRET_AGENT_SECRET_TYPE_VPN_SECRET)
+			continue;
+		if (!nm_streq0 (secret->vpn_type, NM_SECRET_AGENT_VPN_TYPE_OPENCONNECT))
+			continue;
+
+		if (nm_streq0 (secret->entry_id, NM_SECRET_AGENT_ENTRY_ID_PREFX_VPN_SECRET "cookie")) {
+			g_free (secret->value);
+			secret->value = g_steal_pointer (&cookie);
+		} else if (nm_streq0 (secret->entry_id, NM_SECRET_AGENT_ENTRY_ID_PREFX_VPN_SECRET "gateway")) {
+			g_free (secret->value);
+			secret->value = g_steal_pointer (&gateway);
+		} else if (nm_streq0 (secret->entry_id, NM_SECRET_AGENT_ENTRY_ID_PREFX_VPN_SECRET "gwcert")) {
+			g_free (secret->value);
+			secret->value = g_steal_pointer (&gwcert);
 		}
 	}
-	g_free (cookie);
-	g_free (gateway);
-	g_free (gwcert);
 
 	return TRUE;
 }
@@ -625,7 +667,7 @@ get_secrets_from_user (const char *request_id,
 
 		/* First try to find the password in provided passwords file,
 		 * then ask user. */
-		if (pwds_hash && (pwd = g_hash_table_lookup (pwds_hash, secret->prop_name))) {
+		if (pwds_hash && (pwd = g_hash_table_lookup (pwds_hash, secret->entry_id))) {
 			pwd = g_strdup (pwd);
 		} else {
 			if (ask) {
@@ -641,8 +683,10 @@ get_secrets_from_user (const char *request_id,
 				}
 				if (msg)
 					g_print ("%s\n", msg);
-				pwd = nmc_readline_echo (secret->password ? echo_on : TRUE,
-				                         "%s (%s): ", secret->name, secret->prop_name);
+				pwd = nmc_readline_echo (secret->is_secret
+				                         ? echo_on
+				                         : TRUE,
+				                         "%s (%s): ", secret->pretty_name, secret->entry_id);
 				if (!pwd)
 					pwd = g_strdup ("");
 			} else {
@@ -650,7 +694,7 @@ get_secrets_from_user (const char *request_id,
 					g_print ("%s\n", msg);
 				g_printerr (_("Warning: password for '%s' not given in 'passwd-file' "
 				              "and nmcli cannot ask without '--ask' option.\n"),
-				            secret->prop_name);
+				            secret->entry_id);
 			}
 		}
 		/* No password provided, cancel the secrets. */
@@ -883,6 +927,31 @@ nmc_readline (const char *prompt_fmt, ...)
 	return str;
 }
 
+static void
+nmc_secret_redisplay (void)
+{
+	int save_point = rl_point;
+	int save_end = rl_end;
+	char *save_line_buffer = rl_line_buffer;
+	const char *subst = nmc_password_subst_char ();
+	int subst_len = strlen (subst);
+	int i;
+
+	rl_point = g_utf8_strlen (save_line_buffer, save_point) * subst_len;
+	rl_end = g_utf8_strlen (rl_line_buffer, -1) * subst_len;
+	rl_line_buffer = g_slice_alloc (rl_end + 1);
+
+	for (i = 0; i + subst_len <= rl_end; i += subst_len)
+		memcpy (&rl_line_buffer[i], subst, subst_len);
+	rl_line_buffer[i] = '\0';
+
+	rl_redisplay ();
+	g_slice_free1 (rl_end + 1, rl_line_buffer);
+	rl_line_buffer = save_line_buffer;
+	rl_end = save_end;
+	rl_point = save_point;
+}
+
 /**
  * nmc_readline_echo:
  *
@@ -894,29 +963,28 @@ nmc_readline_echo (gboolean echo_on, const char *prompt_fmt, ...)
 {
 	va_list args;
 	char *prompt, *str;
-	struct termios termios_orig, termios_new;
+	HISTORY_STATE *saved_history;
+	HISTORY_STATE passwd_history = { 0, };
 
 	va_start (args, prompt_fmt);
 	prompt = g_strdup_vprintf (prompt_fmt, args);
 	va_end (args);
 
-	/* Disable echoing characters */
+	/* Hide the actual password */
 	if (!echo_on) {
-		tcgetattr (STDIN_FILENO, &termios_orig);
-		termios_new = termios_orig;
-		termios_new.c_lflag &= ~(ECHO);
-		tcsetattr (STDIN_FILENO, TCSADRAIN, &termios_new);
+		saved_history = history_get_history_state ();
+		history_set_history_state (&passwd_history);
+		rl_redisplay_function = nmc_secret_redisplay;
 	}
 
 	str = nmc_readline_helper (prompt);
 
 	g_free (prompt);
 
-	/* Restore original terminal settings */
+	/* Restore the non-hiding behavior */
 	if (!echo_on) {
-		tcsetattr (STDIN_FILENO, TCSADRAIN, &termios_orig);
-		/* New line - setting ECHONL | ICANON did not help */
-		fprintf (stdout, "\n");
+		rl_redisplay_function = rl_redisplay;
+		history_set_history_state (saved_history);
 	}
 
 	return str;
@@ -1215,9 +1283,8 @@ nmc_do_cmd (NmCli *nmc, const NMCCommand cmds[], const char *cmd, int argc, char
 		/* A valid command was specified. */
 		if (c->usage && argc == 2 && nmc->complete)
 			nmc_complete_help (*(argv+1));
-		if (c->usage && nmc_arg_is_help (*(argv+1))) {
-			if (!nmc->complete)
-				c->usage ();
+		if (!nmc->complete && c->usage && nmc_arg_is_help (*(argv+1))) {
+			c->usage ();
 			g_simple_async_result_complete_in_idle (simple);
 			g_object_unref (simple);
 		} else {

@@ -47,12 +47,12 @@ test_wireless_enabled (NMClient *client)
 	wireless = nm_client_wireless_get_enabled (client);
 	g_print ("Wireless enabled? %s\n", wireless ? "yes" : "no");
 
-//	nm_client_wireless_set_enabled (client, !wireless);
+// nm_client_wireless_set_enabled (client, !wireless);
 
 	wireless = nm_client_wireless_hardware_get_enabled (client);
 	g_print ("Wireless HW enabled? %s\n", wireless ? "yes" : "no");
 
-//	nm_client_wireless_set_enabled (client, !wireless);
+// nm_client_wireless_set_enabled (client, !wireless);
 
 	return TRUE;
 }
@@ -399,8 +399,6 @@ int
 main (int argc, char *argv[])
 {
 	NMClient *client;
-
-	nm_g_type_init ();
 
 	client = nm_client_new ();
 	if (!client) {

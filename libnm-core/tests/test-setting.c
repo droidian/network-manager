@@ -37,6 +37,8 @@
 
 #include "nm-utils/nm-test-utils.h"
 
+#define TEST_CERT_DIR NM_BUILD_SRCDIR"/libnm-core/tests/certs"
+
 /*****************************************************************************/
 
 static void
@@ -599,7 +601,6 @@ test_bond_normalize (void)
                        NM_SETTING_DCB_FLAG_ADVERTISE | \
                        NM_SETTING_DCB_FLAG_WILLING)
 
-
 static void
 test_dcb_flags_valid (void)
 {
@@ -663,23 +664,23 @@ test_dcb_flags_invalid (void)
 	s_dcb = (NMSettingDcb *) nm_setting_dcb_new ();
 	g_assert (s_dcb);
 
-	g_test_expect_message ("GLib-GObject", G_LOG_LEVEL_WARNING, "*invalid or out of range*");
+	NMTST_EXPECT ("GLib-GObject", G_LOG_LEVEL_WARNING, "*invalid or out of range*");
 	TEST_FLAG (NM_SETTING_DCB_APP_FCOE_FLAGS, nm_setting_dcb_get_app_fcoe_flags, 0x332523);
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("GLib-GObject", G_LOG_LEVEL_WARNING, "*invalid or out of range*");
+	NMTST_EXPECT ("GLib-GObject", G_LOG_LEVEL_WARNING, "*invalid or out of range*");
 	TEST_FLAG (NM_SETTING_DCB_APP_ISCSI_FLAGS, nm_setting_dcb_get_app_iscsi_flags, 0xFF);
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("GLib-GObject", G_LOG_LEVEL_WARNING, "*invalid or out of range*");
+	NMTST_EXPECT ("GLib-GObject", G_LOG_LEVEL_WARNING, "*invalid or out of range*");
 	TEST_FLAG (NM_SETTING_DCB_APP_FIP_FLAGS, nm_setting_dcb_get_app_fip_flags, 0x1111);
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("GLib-GObject", G_LOG_LEVEL_WARNING, "*invalid or out of range*");
+	NMTST_EXPECT ("GLib-GObject", G_LOG_LEVEL_WARNING, "*invalid or out of range*");
 	TEST_FLAG (NM_SETTING_DCB_PRIORITY_FLOW_CONTROL_FLAGS, nm_setting_dcb_get_priority_flow_control_flags, G_MAXUINT32);
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("GLib-GObject", G_LOG_LEVEL_WARNING, "*invalid or out of range*");
+	NMTST_EXPECT ("GLib-GObject", G_LOG_LEVEL_WARNING, "*invalid or out of range*");
 	TEST_FLAG (NM_SETTING_DCB_PRIORITY_GROUP_FLAGS, nm_setting_dcb_get_priority_group_flags,
 	           (NM_SETTING_DCB_FLAG_ENABLE | NM_SETTING_DCB_FLAG_ADVERTISE | NM_SETTING_DCB_FLAG_WILLING) + 1);
 	g_test_assert_expected_messages ();
@@ -869,6 +870,7 @@ test_dcb_bandwidth_sums (void)
 
 /*****************************************************************************/
 
+#if WITH_JSON_VALIDATION
 static void
 _test_team_config_sync (const char *team_config,
                         int notify_peer_count,
@@ -941,7 +943,6 @@ _test_team_config_sync (const char *team_config,
 
 	g_assert (nm_setting_verify ((NMSetting *) s_team, NULL, NULL));
 }
-
 
 static void
 test_runner_roundrobin_sync_from_config (void)
@@ -1182,7 +1183,6 @@ _test_team_port_config_sync (const char *team_port_config,
 	g_assert (nm_setting_verify ((NMSetting *) s_team_port, NULL, NULL));
 }
 
-
 static void
 test_team_port_default (void)
 {
@@ -1258,6 +1258,7 @@ test_team_port_full_config (void)
 	                             "\"send_always\": true}]}",
 	                             10, 20, true, 30, 40, NULL);
 }
+#endif
 
 /*****************************************************************************/
 
@@ -1439,7 +1440,7 @@ test_tc_config_tfilter (void)
 }
 
 static void
-test_tc_config_setting (void)
+test_tc_config_setting_valid (void)
 {
 	gs_unref_object NMSettingTCConfig *s_tc = NULL;
 	NMTCQdisc *qdisc1, *qdisc2;
@@ -1470,6 +1471,70 @@ test_tc_config_setting (void)
 
 	nm_tc_qdisc_unref (qdisc1);
 	nm_tc_qdisc_unref (qdisc2);
+}
+
+static void
+test_tc_config_setting_duplicates (void)
+{
+	gs_unref_ptrarray GPtrArray *qdiscs = NULL;
+	gs_unref_ptrarray GPtrArray *tfilters = NULL;
+	NMSettingConnection *s_con;
+	NMConnection *con;
+	NMSetting *s_tc;
+	NMTCQdisc *qdisc;
+	NMTCTfilter *tfilter;
+	GError *error = NULL;
+
+	con = nmtst_create_minimal_connection ("dummy",
+	                                       NULL,
+	                                       NM_SETTING_DUMMY_SETTING_NAME,
+	                                       &s_con);
+	g_object_set (s_con,
+	              NM_SETTING_CONNECTION_INTERFACE_NAME, "dummy1",
+	              NULL);
+
+	s_tc = nm_setting_tc_config_new ();
+	nm_connection_add_setting (con, s_tc);
+	qdiscs = g_ptr_array_new_with_free_func ((GDestroyNotify) nm_tc_qdisc_unref);
+	tfilters = g_ptr_array_new_with_free_func ((GDestroyNotify) nm_tc_tfilter_unref);
+
+	/* 1. add duplicate qdiscs */
+	qdisc = nm_utils_tc_qdisc_from_str ("handle 1234 parent fff1:1 pfifo_fast", &error);
+	nmtst_assert_success (qdisc, error);
+	g_ptr_array_add (qdiscs, qdisc);
+
+	qdisc = nm_utils_tc_qdisc_from_str ("handle 1234 parent fff1:1 pfifo_fast", &error);
+	nmtst_assert_success (qdisc, error);
+	g_ptr_array_add (qdiscs, qdisc);
+
+	g_object_set (s_tc, NM_SETTING_TC_CONFIG_QDISCS, qdiscs, NULL);
+	nmtst_assert_connection_unnormalizable (con,
+	                                        NM_CONNECTION_ERROR,
+	                                        NM_CONNECTION_ERROR_INVALID_PROPERTY);
+
+	/* 2. make qdiscs unique */
+	g_ptr_array_remove_index (qdiscs, 0);
+	g_object_set (s_tc, NM_SETTING_TC_CONFIG_QDISCS, qdiscs, NULL);
+	nmtst_assert_connection_verifies_and_normalizable (con);
+
+	/* 3. add duplicate filters */
+	tfilter = nm_utils_tc_tfilter_from_str ("parent 1234: matchall action simple sdata Hello", &error);
+	nmtst_assert_success (tfilter, error);
+	g_ptr_array_add (tfilters, tfilter);
+
+	tfilter = nm_utils_tc_tfilter_from_str ("parent 1234: matchall action simple sdata Hello", &error);
+	nmtst_assert_success (tfilter, error);
+	g_ptr_array_add (tfilters, tfilter);
+
+	g_object_set (s_tc, NM_SETTING_TC_CONFIG_TFILTERS, tfilters, NULL);
+	nmtst_assert_connection_unnormalizable (con,
+	                                        NM_CONNECTION_ERROR,
+	                                        NM_CONNECTION_ERROR_INVALID_PROPERTY);
+
+	/* 4. make filters unique */
+	g_ptr_array_remove_index (tfilters, 0);
+	g_object_set (s_tc, NM_SETTING_TC_CONFIG_TFILTERS, tfilters, NULL);
+	nmtst_assert_connection_verifies_and_normalizable (con);
 }
 
 static void
@@ -1607,10 +1672,11 @@ main (int argc, char **argv)
 	g_test_add_func ("/libnm/settings/tc_config/qdisc", test_tc_config_qdisc);
 	g_test_add_func ("/libnm/settings/tc_config/action", test_tc_config_action);
 	g_test_add_func ("/libnm/settings/tc_config/tfilter", test_tc_config_tfilter);
-	g_test_add_func ("/libnm/settings/tc_config/setting", test_tc_config_setting);
+	g_test_add_func ("/libnm/settings/tc_config/setting/valid", test_tc_config_setting_valid);
+	g_test_add_func ("/libnm/settings/tc_config/setting/duplicates", test_tc_config_setting_duplicates);
 	g_test_add_func ("/libnm/settings/tc_config/dbus", test_tc_config_dbus);
 
-#if WITH_JANSSON
+#if WITH_JSON_VALIDATION
 	g_test_add_func ("/libnm/settings/team/sync_runner_from_config_roundrobin",
 	                 test_runner_roundrobin_sync_from_config);
 	g_test_add_func ("/libnm/settings/team/sync_runner_from_config_broadcast",
@@ -1639,7 +1705,6 @@ main (int argc, char **argv)
 	g_test_add_func ("/libnm/settings/team-port/sync_from_config_lacp_prio", test_team_port_lacp_prio);
 	g_test_add_func ("/libnm/settings/team-port/sync_from_config_lacp_key", test_team_port_lacp_key);
 	g_test_add_func ("/libnm/settings/team-port/sycn_from_config_full", test_team_port_full_config);
-
 #endif
 
 	return g_test_run ();

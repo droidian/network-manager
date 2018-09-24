@@ -1,3 +1,21 @@
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Copyright 2016 - 2017 Red Hat, Inc.
+ */
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <syslog.h>
@@ -111,8 +129,11 @@ const NMPlatformLink *nmtstp_wait_for_link_until (NMPlatform *platform, const ch
 			g_assert_not_reached (); \
 	} G_STMT_END
 
-const NMPlatformLink *nmtstp_assert_wait_for_link (NMPlatform *platform, const char *ifname, NMLinkType expected_link_type, guint timeout_ms);
-const NMPlatformLink *nmtstp_assert_wait_for_link_until (NMPlatform *platform, const char *ifname, NMLinkType expected_link_type, gint64 until_ms);
+#define nmtstp_assert_wait_for_link(platform, ifname, expected_link_type, timeout_ms) \
+	nmtst_assert_nonnull (nmtstp_wait_for_link (platform, ifname, expected_link_type, timeout_ms))
+
+#define nmtstp_assert_wait_for_link_until(platform, ifname, expected_link_type, until_ms) \
+	nmtst_assert_nonnull (nmtstp_wait_for_link_until (platform, ifname, expected_link_type, until_ms))
 
 /*****************************************************************************/
 
@@ -289,6 +310,11 @@ const NMPlatformLink *nmtstp_link_sit_add (NMPlatform *platform,
                                            gboolean external_command,
                                            const char *name,
                                            const NMPlatformLnkSit *lnk);
+const NMPlatformLink *nmtstp_link_tun_add (NMPlatform *platform,
+                                           gboolean external_command,
+                                           const char *name,
+                                           const NMPlatformLnkTun *lnk,
+                                           int *out_fd);
 const NMPlatformLink *nmtstp_link_vxlan_add (NMPlatform *platform,
                                              gboolean external_command,
                                              const char *name,

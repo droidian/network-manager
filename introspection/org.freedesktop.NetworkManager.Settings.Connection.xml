@@ -130,7 +130,7 @@
 
         Update2 is a extensible alternative to Update, UpdateUnsaved and Save.
 
-        Since: 1.10.2
+        Since: 1.12
     -->
     <method name="Update2">
       <arg name="settings" type="a{sa{sv}}" direction="in"/>
@@ -158,6 +158,26 @@
         connection is saved to disk via Save() or from internal operations.
     -->
     <property name="Unsaved" type="b" access="read"/>
+
+    <!--
+        Flags:
+
+        Additional flags of the connection profile.
+
+        Returns: <link linkend="NMSettingsConnectionFlags">NMSettingsConnectionFlags</link>
+
+        Since: 1.12
+    -->
+    <property name="Flags" type="u" access="read"/>
+
+    <!--
+        Filename:
+
+        File that stores the connection in case the connection is file-backed.
+
+        Since: 1.12
+    -->
+    <property name="Filename" type="s" access="read"/>
 
     <!--
         PropertiesChanged:

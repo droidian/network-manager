@@ -80,7 +80,6 @@ static const _NMUtilsTeamPropertyKeys _prop_to_keys[LAST_PROP] = {
 	[PROP_LINK_WATCHERS] = { "link_watch", NULL, NULL, 0 }
 };
 
-
 /**
  * nm_setting_team_port_new:
  *
@@ -114,7 +113,7 @@ nm_setting_team_port_get_config (NMSettingTeamPort *setting)
  *
  * Returns: the #NMSettingTeamPort:queue_id property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gint
 nm_setting_team_port_get_queue_id (NMSettingTeamPort *setting)
@@ -130,7 +129,7 @@ nm_setting_team_port_get_queue_id (NMSettingTeamPort *setting)
  *
  * Returns: the #NMSettingTeamPort:prio property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gint
 nm_setting_team_port_get_prio (NMSettingTeamPort *setting)
@@ -146,7 +145,7 @@ nm_setting_team_port_get_prio (NMSettingTeamPort *setting)
  *
  * Returns: the #NMSettingTeamPort:sticky property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gboolean
 nm_setting_team_port_get_sticky (NMSettingTeamPort *setting)
@@ -162,7 +161,7 @@ nm_setting_team_port_get_sticky (NMSettingTeamPort *setting)
  *
  * Returns: the #NMSettingTeamPort:lacp-prio property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gint
 nm_setting_team_port_get_lacp_prio (NMSettingTeamPort *setting)
@@ -178,7 +177,7 @@ nm_setting_team_port_get_lacp_prio (NMSettingTeamPort *setting)
  *
  * Returns: the #NMSettingTeamPort:lacp-key property of the setting
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gint
 nm_setting_team_port_get_lacp_key (NMSettingTeamPort *setting)
@@ -194,7 +193,7 @@ nm_setting_team_port_get_lacp_key (NMSettingTeamPort *setting)
  *
  * Returns: the number of configured link watchers
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 guint
 nm_setting_team_port_get_num_link_watchers (NMSettingTeamPort *setting)
@@ -213,7 +212,7 @@ nm_setting_team_port_get_num_link_watchers (NMSettingTeamPort *setting)
  *
  * Returns: (transfer none): the link watcher at index @idx.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 NMTeamLinkWatcher *
 nm_setting_team_port_get_link_watcher (NMSettingTeamPort *setting, guint idx)
@@ -236,7 +235,7 @@ nm_setting_team_port_get_link_watcher (NMSettingTeamPort *setting, guint idx)
  * Returns: %TRUE if the link watcher is added; %FALSE if an identical link
  * watcher was already there.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gboolean
 nm_setting_team_port_add_link_watcher (NMSettingTeamPort *setting,
@@ -265,7 +264,7 @@ nm_setting_team_port_add_link_watcher (NMSettingTeamPort *setting,
  *
  * Removes the link watcher at index #idx.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 void
 nm_setting_team_port_remove_link_watcher (NMSettingTeamPort *setting, guint idx)
@@ -288,7 +287,7 @@ nm_setting_team_port_remove_link_watcher (NMSettingTeamPort *setting, guint idx)
  *
  * Returns: %TRUE if the link watcher was found and removed, %FALSE otherwise.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 gboolean
 nm_setting_team_port_remove_link_watcher_by_value (NMSettingTeamPort *setting,
@@ -315,7 +314,7 @@ nm_setting_team_port_remove_link_watcher_by_value (NMSettingTeamPort *setting,
  *
  * Removes all configured link watchers.
  *
- * Since: 1.10.2
+ * Since: 1.12
  **/
 void
 nm_setting_team_port_clear_link_watchers (NMSettingTeamPort *setting)
@@ -630,7 +629,7 @@ nm_setting_team_port_class_init (NMSettingTeamPortClass *setting_class)
 	 * Corresponds to the teamd ports.PORTIFNAME.queue_id.
 	 * When set to -1 means the parameter is skipped from the json config.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_QUEUE_ID,
@@ -644,7 +643,7 @@ nm_setting_team_port_class_init (NMSettingTeamPortClass *setting_class)
 	 *
 	 * Corresponds to the teamd ports.PORTIFNAME.prio.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_PRIO,
@@ -658,7 +657,7 @@ nm_setting_team_port_class_init (NMSettingTeamPortClass *setting_class)
 	 *
 	 * Corresponds to the teamd ports.PORTIFNAME.sticky.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_STICKY,
@@ -672,7 +671,7 @@ nm_setting_team_port_class_init (NMSettingTeamPortClass *setting_class)
 	 *
 	 * Corresponds to the teamd ports.PORTIFNAME.lacp_prio.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_LACP_PRIO,
@@ -686,7 +685,7 @@ nm_setting_team_port_class_init (NMSettingTeamPortClass *setting_class)
 	 *
 	 * Corresponds to the teamd ports.PORTIFNAME.lacp_key.
 	 *
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_LACP_KEY,
@@ -696,7 +695,7 @@ nm_setting_team_port_class_init (NMSettingTeamPortClass *setting_class)
 		                   G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * NMSettingTeamPort:link-watchers:
+	 * NMSettingTeamPort:link-watchers: (type GPtrArray(NMTeamLinkWatcher))
 	 *
 	 * Link watchers configuration for the connection: each link watcher is
 	 * defined by a dictionary, whose keys depend upon the selected link
@@ -707,8 +706,7 @@ nm_setting_team_port_class_init (NMSettingTeamPortClass *setting_class)
 	 * arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
 	 * 'validate-incative', 'send-always'. See teamd.conf man for more details.
 	 *
-	 * Element-Type: NMTeamLinkWatcher
-	 * Since: 1.10.2
+	 * Since: 1.12
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_LINK_WATCHERS,

@@ -31,6 +31,7 @@
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.AccessPoints">AccessPoints</link>          readable   ao
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.ActiveAccessPoint">ActiveAccessPoint</link>     readable   o
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.WirelessCapabilities">WirelessCapabilities</link>  readable   u
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.LastScan">LastScan</link>              readable   x
 </synopsis>
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Wireless">
@@ -203,6 +204,17 @@ WirelessCapabilities  readable   u
 </programlisting>
 <para>        The capabilities of the wireless device.
 </para><para>        Returns: <link linkend="NMDeviceWifiCapabilities">NMDeviceWifiCapabilities</link>
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.LastScan">
+  <title>The "LastScan" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.LastScan"><primary sortas="DeviceWifi:LastScan">org.freedesktop.NetworkManager.Device.Wireless:LastScan</primary></indexterm>
+<programlisting>
+LastScan  readable   x
+</programlisting>
+<para>        The timestamp (in CLOCK_BOOTTIME milliseconds) for the last finished network scan.
+        A value of -1 means the device never scanned for access points.
+</para><para>        Since: 1.12
 </para>
 </refsect2>
 </refsect1>

@@ -304,7 +304,7 @@ nm_ip_config_class_init (NMIPConfigClass *config_class)
 	                         G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * NMIPConfig:routes:
+	 * NMIPConfig:routes: (type GPtrArray(NMIPRoute))
 	 *
 	 * A #GPtrArray containing the routes (#NMIPRoute) of the configuration.
 	 **/
@@ -491,7 +491,7 @@ nm_ip_config_get_wins_servers (NMIPConfig *config)
  * Gets the routes.
  *
  * Returns: (element-type NMIPRoute) (transfer none): the #GPtrArray containing
- * #NMIPRoutes. This is the internal copy used by the configuration, and must
+ * #NMIPRoute<!-- -->s. This is the internal copy used by the configuration, and must
  * not be modified. The library never modifies the returned array and thus it is
  * safe for callers to reference and keep using it.
  *

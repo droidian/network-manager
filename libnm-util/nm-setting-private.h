@@ -80,7 +80,6 @@ gboolean _nm_setting_clear_secrets_with_flags (NMSetting *setting,
                                                NMSettingClearSecretsWithFlagsFn func,
                                                gpointer user_data);
 
-
 /* NM_SETTING_COMPARE_FLAG_INFERRABLE: check whether a device-generated
  * connection can be replaced by a already-defined connection. This flag only
  * takes into account properties marked with the %NM_SETTING_PARAM_INFERRABLE
@@ -105,7 +104,7 @@ gboolean _nm_setting_clear_secrets_with_flags (NMSetting *setting,
 /* Ensure the setting's GType is registered at library load time */
 #define NM_SETTING_REGISTER_TYPE(x) \
 static void __attribute__((constructor)) register_setting (void) \
-{ nm_g_type_init (); g_type_ensure (x); }
+{ g_type_ensure (x); }
 
 NMSetting *nm_setting_find_in_list (GSList *settings_list, const char *setting_name);
 

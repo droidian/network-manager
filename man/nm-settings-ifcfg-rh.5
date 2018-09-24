@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 05/11/2018
+.\"      Date: 07/25/2018
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.10.8
+.\"    Source: NetworkManager 1.12.2
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.10\&.8" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.12\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -973,6 +973,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 id
@@ -1161,6 +1162,19 @@ T}:T{
 0
 T}:T{
 Number of retries for authentication\&.
+T}
+T{
+mdns
+T}:T{
+CONNECTION_MDNS\fI(+)\fR
+T}:T{
+missing variable means global default
+T}:T{
+Whether or not mDNS is enabled for the connection\fB
+
+Example: \fRCONNECTION_MDNS=yes\fB
+
+Allowed values: \fRyes,no,resolve
 T}
 .TE
 .sp 1
@@ -1640,18 +1654,18 @@ T}:T{
 T}:T{
 A string sent to the DHCP server to identify the local machine\&. A binary value can be specified using hex notation (\*(Aqaa:bb:cc\*(Aq)\&.\fB
 
-Example: \fRDHCP_CLIENT_ID=ax\-srv\-1; DHCP_CLIENT_ID=01:44:44:44:44:44:44"
+Example: \fRDHCP_CLIENT_ID=ax\-srv\-1; DHCP_CLIENT_ID=01:44:44:44:44:44:44
 T}
 T{
 dad\-timeout
 T}:T{
-ARPING_WAIT
+ACD_TIMEOUT, ARPING_WAIT
 T}:T{
-missing variable means global default (config override or 3)
+missing variable means global default (config override or zero)
 T}:T{
-Timeout (in seconds) for performing DAD before configuring IPv4 addresses\&. 0 turns off the DAD completely, \-1 means default value\&.\fB
+Timeout (in milliseconds for ACD_TIMEOUT or in seconds for ARPING_WAIT) for address conflict detection before configuring IPv4 addresses\&. 0 turns off the ACD completely, \-1 means default value\&.\fB
 
-Example: \fRARPING_WAIT=2
+Example: \fRACD_TIMEOUT=2000 or ARPING_WAIT=2
 T}
 T{
 dhcp\-timeout
@@ -1696,6 +1710,7 @@ T}:T{
 Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -1893,6 +1908,17 @@ T}:T{
 The IPv6 tokenized interface identifier token\fB
 
 Example: \fRIPV6_TOKEN=::53
+T}
+T{
+dhcp\-duid
+T}:T{
+DHCPV6_DUID\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+A string sent to the DHCPv6 server to identify the local machine\&. Apart from the special values "lease", "stable\-llt", "stable\-ll", "stable\-uuid", "llt" and "ll" a binary value in hex format is expected\&. An hex string where each octet is separated by a colon is also accepted\&.\fB
+
+Example: \fRDHCPV6_DUID=LL; DHCPV6_DUID=0301deadbeef0001; DHCPV6_DUID=03:01:de:ad:be:ef:00:01
 T}
 .TE
 .sp 1
@@ -2466,6 +2492,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 key\-mgmt
@@ -2659,6 +2686,19 @@ T}:T{
 Used to control the WPS methods to be used Valid values are "default", "auto", "disabled", "pin" and "pbc"\&. If omitted, whatver the AP announces is used\&.\fB
 
 Example: \fRWPS_METHOD=disabled, WPS_METHOD="pin pbc"
+T}
+T{
+fils
+T}:T{
+FILS\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Enables or disables FILS (802\&.11ai)\fB
+
+Example: \fRFILS=required\fB
+
+Allowed values: \fRdefault, disable, optional, required
 T}
 .TE
 .sp 1

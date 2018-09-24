@@ -7,7 +7,7 @@
 <meta name="description" content="This manual is the reference documentation for NetworkManager, the standard Linux network management service. It is intended for system administrators and integrators who need to understand the capabilities of NetworkManager, its configuration options, command line tools and the D-Bus API for programmatic control of the service. The end users NetworkManager should instead refer to respective documentation of their desktop environment of choice. The application developers who prefer not to use the D-Bus API directly can use the libnm library shipped with NetworkManager or its bindings to a higher level language such as Python, Ruby or Vala via GObject introspection.">
 <link rel="home" href="index.html" title="NetworkManager Reference Manual">
 <link rel="next" href="manpages.html" title="Part I. Manual Pages">
-<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.28 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -16,7 +16,7 @@
 <div>
 <div><table class="navigation" id="top" width="100%" cellpadding="2" cellspacing="0"><tr><th valign="middle"><p class="title">NetworkManager Reference Manual</p></th></tr></table></div>
 <div><p class="releaseinfo">
-      for NetworkManager 1.10.8
+      for NetworkManager 1.12.2
 
       The latest version of this documentation can be found on-line at
       <a class="ulink" href="https://developer.gnome.org/NetworkManager/stable/" target="_top">https://developer.gnome.org/NetworkManager/stable/</a>.
@@ -166,7 +166,7 @@
 <span class="refentrytitle"><a href="settings-ovs-bridge.html">ovs-bridge</a></span><span class="refpurpose"> — OvsBridge Link Settings</span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="settings-ovs-interface.html">ovs-interface</a></span><span class="refpurpose"> — OpenVSwitch Interface Settings</span>
+<span class="refentrytitle"><a href="settings-ovs-interface.html">ovs-interface</a></span><span class="refpurpose"> — Open vSwitch Interface Settings</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="settings-ovs-patch.html">ovs-patch</a></span><span class="refpurpose"> — OvsPatch Link Settings</span>
@@ -295,6 +295,18 @@
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.OlpcMesh.html">org.freedesktop.NetworkManager.Device.OlpcMesh</a></span><span class="refpurpose"> — OLPC Wireless Mesh Device</span>
 </dt>
 <dt>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.OvsBridge.html">org.freedesktop.NetworkManager.Device.OvsBridge</a></span><span class="refpurpose"> — OvsBridge Device</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.OvsInterface.html">org.freedesktop.NetworkManager.Device.OvsInterface</a></span><span class="refpurpose"> — OvsInterface Device</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.OvsPort.html">org.freedesktop.NetworkManager.Device.OvsPort</a></span><span class="refpurpose"> — OvsPort Device</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Ppp.html">org.freedesktop.NetworkManager.Device.Ppp</a></span><span class="refpurpose"> — PPP Device</span>
+</dt>
+<dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Team.html">org.freedesktop.NetworkManager.Device.Team</a></span><span class="refpurpose"> — Teaming Device</span>
 </dt>
 <dt>
@@ -311,9 +323,6 @@
 </dt>
 <dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html">org.freedesktop.NetworkManager.Device.Wireless</a></span><span class="refpurpose"> — Wi-Fi Device</span>
-</dt>
-<dt>
-<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.WiMax.html">org.freedesktop.NetworkManager.Device.WiMax</a></span><span class="refpurpose"> — WiMax Device</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.PPP.html">org.freedesktop.NetworkManager.PPP</a></span><span class="refpurpose"> — Helper interface for a PPP plugin</span>
@@ -348,6 +357,10 @@
 <dd><dl><dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.AccessPoint.html">org.freedesktop.NetworkManager.AccessPoint</a></span><span class="refpurpose"> — Wi-Fi Access Point</span>
 </dt></dl></dd>
+<dt><span class="chapter"><a href="ref-dbus-checkpoint.html">The <code class="literal">/org/freedesktop/NetworkManager/Checkpoint/*</code> objects</a></span></dt>
+<dd><dl><dt>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Checkpoint.html">org.freedesktop.NetworkManager.Checkpoint</a></span><span class="refpurpose"> — Configuration and State Snapshot</span>
+</dt></dl></dd>
 <dt><span class="chapter"><a href="dbus-types.html">Types</a></span></dt>
 <dd><dl><dt>
 <span class="refentrytitle"><a href="nm-dbus-types.html">NetworkManager D-Bus API Types</a></span><span class="refpurpose"></span>
@@ -362,7 +375,7 @@
 </dl></dd>
 <dt><span class="part"><a href="vpn-plugins.html">V. VPN Plugin D-Bus API Reference</a></span></dt>
 <dd><dl>
-<dt><span class="chapter"><a href="dbus-vpn-types.html">VPN services</a></span></dt>
+<dt><span class="chapter"><a href="dbus-vpn-plugin.html">VPN services</a></span></dt>
 <dd><dl><dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.VPN.Plugin.html">org.freedesktop.NetworkManager.VPN.Plugin</a></span><span class="refpurpose"> — VPN Service</span>
 </dt></dl></dd>
@@ -376,6 +389,6 @@
 </dl></div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.27</div>
+<hr>Generated by GTK-Doc V1.28</div>
 </body>
 </html>

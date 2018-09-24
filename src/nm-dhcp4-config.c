@@ -26,9 +26,8 @@
 
 #include "nm-dbus-interface.h"
 #include "nm-utils.h"
-#include "nm-exported-object.h"
-
-#include "introspection/org.freedesktop.NetworkManager.DHCP4Config.h"
+#include "nm-dbus-object.h"
+#include "nm-core-utils.h"
 
 /*****************************************************************************/
 
@@ -41,15 +40,15 @@ typedef struct {
 } NMDhcp4ConfigPrivate;
 
 struct _NMDhcp4Config {
-	NMExportedObject parent;
+	NMDBusObject parent;
 	NMDhcp4ConfigPrivate _priv;
 };
 
 struct _NMDhcp4ConfigClass {
-	NMExportedObjectClass parent;
+	NMDBusObjectClass parent;
 };
 
-G_DEFINE_TYPE (NMDhcp4Config, nm_dhcp4_config, NM_TYPE_EXPORTED_OBJECT)
+G_DEFINE_TYPE (NMDhcp4Config, nm_dhcp4_config, NM_TYPE_DBUS_OBJECT)
 
 #define NM_DHCP4_CONFIG_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMDhcp4Config, NM_IS_DHCP4_CONFIG)
 
@@ -60,22 +59,14 @@ nm_dhcp4_config_set_options (NMDhcp4Config *self,
                              GHashTable *options)
 {
 	NMDhcp4ConfigPrivate *priv = NM_DHCP4_CONFIG_GET_PRIVATE (self);
-	GHashTableIter iter;
-	const char *key, *value;
-	GVariantBuilder builder;
+	GVariant *val;
 
 	g_return_if_fail (NM_IS_DHCP4_CONFIG (self));
-	g_return_if_fail (options != NULL);
+	g_return_if_fail (options);
 
+	val = nm_utils_strdict_to_variant (options);
 	g_variant_unref (priv->options);
-
-	g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
-	g_hash_table_iter_init (&iter, options);
-	while (g_hash_table_iter_next (&iter, (gpointer) &key, (gpointer) &value))
-		g_variant_builder_add (&builder, "{sv}", key, g_variant_new_string (value));
-
-	priv->options = g_variant_builder_end (&builder);
-	g_variant_ref_sink (priv->options);
+	priv->options = g_variant_ref_sink (val);
 	_notify (self, PROP_OPTIONS);
 }
 
@@ -147,17 +138,31 @@ finalize (GObject *object)
 	G_OBJECT_CLASS (nm_dhcp4_config_parent_class)->finalize (object);
 }
 
+static const NMDBusInterfaceInfoExtended interface_info_dhcp4_config = {
+	.parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT (
+		NM_DBUS_INTERFACE_DHCP4_CONFIG,
+		.signals = NM_DEFINE_GDBUS_SIGNAL_INFOS (
+			&nm_signal_info_property_changed_legacy,
+		),
+		.properties = NM_DEFINE_GDBUS_PROPERTY_INFOS (
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Options", "a{sv}",  NM_DHCP4_CONFIG_OPTIONS),
+		),
+	),
+	.legacy_property_changed = TRUE,
+};
+
 static void
 nm_dhcp4_config_class_init (NMDhcp4ConfigClass *config_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (config_class);
-	NMExportedObjectClass *exported_object_class = NM_EXPORTED_OBJECT_CLASS (config_class);
+	NMDBusObjectClass *dbus_object_class = NM_DBUS_OBJECT_CLASS (config_class);
 
 	object_class->get_property = get_property;
 	object_class->finalize = finalize;
 
-	exported_object_class->export_path = NM_EXPORT_PATH_NUMBERED (NM_DBUS_PATH"/DHCP4Config");
-	exported_object_class->export_on_construction = TRUE;
+	dbus_object_class->export_path = NM_DBUS_EXPORT_PATH_NUMBERED (NM_DBUS_PATH"/DHCP4Config");
+	dbus_object_class->interface_infos = NM_DBUS_INTERFACE_INFOS (&interface_info_dhcp4_config);
+	dbus_object_class->export_on_construction = TRUE;
 
 	obj_properties[PROP_OPTIONS] =
 	     g_param_spec_variant (NM_DHCP4_CONFIG_OPTIONS, "", "",
@@ -167,8 +172,4 @@ nm_dhcp4_config_class_init (NMDhcp4ConfigClass *config_class)
 	                           G_PARAM_STATIC_STRINGS);
 
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
-
-	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (config_class),
-	                                        NMDBUS_TYPE_DHCP4_CONFIG_SKELETON,
-	                                        NULL);
 }

@@ -21,6 +21,10 @@
 #ifndef __NM_SETTING_PRIVATE_H__
 #define __NM_SETTING_PRIVATE_H__
 
+#if !((NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_CORE_PRIVATE)
+#error Cannot use this header.
+#endif
+
 #include "nm-setting.h"
 #include "nm-connection.h"
 #include "nm-core-enum-types.h"
@@ -54,7 +58,6 @@ gboolean _nm_setting_clear_secrets_with_flags (NMSetting *setting,
                                                NMSettingClearSecretsWithFlagsFn func,
                                                gpointer user_data);
 
-
 /* The property of the #NMSetting should be considered during comparisons that
  * use the %NM_SETTING_COMPARE_FLAG_INFERRABLE flag. Properties that don't have
  * this flag, are ignored when doing an infrerrable comparison.  This flag should
@@ -85,7 +88,7 @@ gboolean _nm_setting_clear_secrets_with_flags (NMSetting *setting,
 /* Ensure the setting's GType is registered at library load time */
 #define NM_SETTING_REGISTER_TYPE(x) \
 static void __attribute__((constructor)) register_setting (void) \
-{ nm_g_type_init (); g_type_ensure (x); }
+{ g_type_ensure (x); }
 
 GVariant *_nm_setting_get_deprecated_virtual_interface_name (NMSetting *setting,
                                                              NMConnection *connection,

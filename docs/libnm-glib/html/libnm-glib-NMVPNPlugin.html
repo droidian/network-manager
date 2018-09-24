@@ -8,7 +8,7 @@
 <link rel="up" href="ch02.html" title="libnm-glib API Reference">
 <link rel="prev" href="NMVPNConnection.html" title="NMVPNConnection">
 <link rel="next" href="libnm-glib-NMVpnPluginUiWidget.html" title="NMVpnPluginUiWidget">
-<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.28 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -41,7 +41,7 @@
 <tbody>
 <tr>
 <td class="function_type">
-<a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
+<a href="https://developer.gnome.org/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="libnm-glib-NMVPNPlugin.html#nm-vpn-plugin-error-quark" title="nm_vpn_plugin_error_quark ()">nm_vpn_plugin_error_quark</a> <span class="c_punctuation">()</span>
@@ -49,7 +49,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="../dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="returnvalue">DBusGConnection</span></a> *
+<a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="returnvalue">DBusGConnection</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="libnm-glib-NMVPNPlugin.html#nm-vpn-plugin-get-connection" title="nm_vpn_plugin_get_connection ()">nm_vpn_plugin_get_connection</a> <span class="c_punctuation">()</span>
@@ -57,7 +57,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="../libnm-util/libnm-util-NetworkManagerVPN.html#NMVPNServiceState"><span class="returnvalue">NMVPNServiceState</span></a>
+<span class="returnvalue">NMVPNServiceState</span>
 </td>
 <td class="function_name">
 <a class="link" href="libnm-glib-NMVPNPlugin.html#nm-vpn-plugin-get-state" title="nm_vpn_plugin_get_state ()">nm_vpn_plugin_get_state</a> <span class="c_punctuation">()</span>
@@ -121,7 +121,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="libnm-glib-NMVPNPlugin.html#nm-vpn-plugin-disconnect" title="nm_vpn_plugin_disconnect ()">nm_vpn_plugin_disconnect</a> <span class="c_punctuation">()</span>
@@ -160,19 +160,19 @@
 <a name="libnm-glib-NMVPNPlugin.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="nm-vpn-plugin-error-quark"></a><h3>nm_vpn_plugin_error_quark ()</h3>
-<pre class="programlisting"><a href="../glib/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Quarks.html#GQuark"><span class="returnvalue">GQuark</span></a>
 nm_vpn_plugin_error_quark (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-vpn-plugin-get-connection"></a><h3>nm_vpn_plugin_get_connection ()</h3>
-<pre class="programlisting"><a href="../dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="returnvalue">DBusGConnection</span></a> *
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGConnection.html#DBusGConnection"><span class="returnvalue">DBusGConnection</span></a> *
 nm_vpn_plugin_get_connection (<em class="parameter"><code><span class="type">NMVPNPlugin</span> *plugin</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-vpn-plugin-get-state"></a><h3>nm_vpn_plugin_get_state ()</h3>
-<pre class="programlisting"><a href="../libnm-util/libnm-util-NetworkManagerVPN.html#NMVPNServiceState"><span class="returnvalue">NMVPNServiceState</span></a>
+<pre class="programlisting"><span class="returnvalue">NMVPNServiceState</span>
 nm_vpn_plugin_get_state (<em class="parameter"><code><span class="type">NMVPNPlugin</span> *plugin</code></em>);</pre>
 </div>
 <hr>
@@ -180,7 +180,7 @@ nm_vpn_plugin_get_state (<em class="parameter"><code><span class="type">NMVPNPlu
 <a name="nm-vpn-plugin-set-state"></a><h3>nm_vpn_plugin_set_state ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_vpn_plugin_set_state (<em class="parameter"><code><span class="type">NMVPNPlugin</span> *plugin</code></em>,
-                         <em class="parameter"><code><a href="../libnm-util/libnm-util-NetworkManagerVPN.html#NMVPNServiceState"><span class="type">NMVPNServiceState</span></a> state</code></em>);</pre>
+                         <em class="parameter"><code><span class="type">NMVPNServiceState</span> state</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
@@ -235,35 +235,35 @@ nm_vpn_plugin_set_login_banner (<em class="parameter"><code><span class="type">N
 <a name="nm-vpn-plugin-failure"></a><h3>nm_vpn_plugin_failure ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_vpn_plugin_failure (<em class="parameter"><code><span class="type">NMVPNPlugin</span> *plugin</code></em>,
-                       <em class="parameter"><code><a href="../libnm-util/libnm-util-NetworkManagerVPN.html#NMVPNPluginFailure"><span class="type">NMVPNPluginFailure</span></a> reason</code></em>);</pre>
+                       <em class="parameter"><code><span class="type">NMVPNPluginFailure</span> reason</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-vpn-plugin-set-config"></a><h3>nm_vpn_plugin_set_config ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_vpn_plugin_set_config (<em class="parameter"><code><span class="type">NMVPNPlugin</span> *plugin</code></em>,
-                          <em class="parameter"><code><a href="../glib/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *config</code></em>);</pre>
+                          <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *config</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-vpn-plugin-set-ip4-config"></a><h3>nm_vpn_plugin_set_ip4_config ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_vpn_plugin_set_ip4_config (<em class="parameter"><code><span class="type">NMVPNPlugin</span> *plugin</code></em>,
-                              <em class="parameter"><code><a href="../glib/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *ip4_config</code></em>);</pre>
+                              <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *ip4_config</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-vpn-plugin-set-ip6-config"></a><h3>nm_vpn_plugin_set_ip6_config ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_vpn_plugin_set_ip6_config (<em class="parameter"><code><span class="type">NMVPNPlugin</span> *plugin</code></em>,
-                              <em class="parameter"><code><a href="../glib/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *ip6_config</code></em>);</pre>
+                              <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *ip6_config</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-vpn-plugin-disconnect"></a><h3>nm_vpn_plugin_disconnect ()</h3>
-<pre class="programlisting"><a href="../glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_vpn_plugin_disconnect (<em class="parameter"><code><span class="type">NMVPNPlugin</span> *plugin</code></em>,
-                          <em class="parameter"><code><a href="../glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **err</code></em>);</pre>
+                          <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **err</code></em>);</pre>
 </div>
 </div>
 <div class="refsect1">
@@ -381,6 +381,6 @@ nm_vpn_plugin_disconnect (<em class="parameter"><code><span class="type">NMVPNPl
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.27</div>
+<hr>Generated by GTK-Doc V1.28</div>
 </body>
 </html>

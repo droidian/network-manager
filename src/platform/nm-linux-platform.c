@@ -21,6 +21,7 @@
 
 #include "nm-linux-platform.h"
 
+#include <poll.h>
 #include <endian.h>
 #include <errno.h>
 #include <unistd.h>
@@ -36,14 +37,14 @@
 #include <linux/if_link.h>
 #include <linux/if_tun.h>
 #include <linux/if_tunnel.h>
-#include <netlink/netlink.h>
-#include <netlink/msg.h>
+#include <linux/ip6_tunnel.h>
 #include <libudev.h>
 
 #include "nm-utils.h"
 #include "nm-core-internal.h"
 #include "nm-setting-vlan.h"
 
+#include "nm-netlink.h"
 #include "nm-core-utils.h"
 #include "nmp-object.h"
 #include "nmp-netns.h"
@@ -78,10 +79,6 @@ enum {
 /*****************************************************************************/
 
 #define VLAN_FLAG_MVRP 0x8
-
-/* nm-internal error codes for libnl. Make sure they don't overlap. */
-#define _NLE_NM_NOBUFS 500
-#define _NLE_MSG_TRUNC 501
 
 /*****************************************************************************/
 
@@ -127,6 +124,18 @@ enum {
 #define IFLA_IPTUN_MAX                  (__IFLA_IPTUN_MAX - 1)
 #endif
 
+#define IFLA_TUN_UNSPEC                 0
+#define IFLA_TUN_OWNER                  1
+#define IFLA_TUN_GROUP                  2
+#define IFLA_TUN_TYPE                   3
+#define IFLA_TUN_PI                     4
+#define IFLA_TUN_VNET_HDR               5
+#define IFLA_TUN_PERSIST                6
+#define IFLA_TUN_MULTI_QUEUE            7
+#define IFLA_TUN_NUM_QUEUES             8
+#define IFLA_TUN_NUM_DISABLED_QUEUES    9
+#define __IFLA_TUN_MAX                  10
+#define IFLA_TUN_MAX (__IFLA_TUN_MAX - 1)
 
 static const gboolean RTA_PREF_SUPPORTED_AT_COMPILETIME = (RTA_MAX >= 20 /* RTA_PREF */);
 
@@ -172,7 +181,6 @@ G_STATIC_ASSERT (RTA_MAX == (__RTA_MAX - 1));
 #define _NMLOG2(level, ...)               _LOG     (       level, _NMLOG2_DOMAIN, NULL,     __VA_ARGS__)
 #define _NMLOG2_err(errsv, level, ...)    _LOG_err (errsv, level, _NMLOG2_DOMAIN, NULL,     __VA_ARGS__)
 
-
 #define _LOG_print(__level, __domain, __errsv, self, ...) \
     G_STMT_START { \
         char __prefix[32]; \
@@ -216,7 +224,6 @@ G_STATIC_ASSERT (RTA_MAX == (__RTA_MAX - 1));
                         g_strerror (__errsv), __errsv); \
         } \
     } G_STMT_END
-
 
 #define LOG_FMT_IP_TUNNEL "adding %s '%s' parent %u local %s remote %s"
 
@@ -283,7 +290,7 @@ typedef enum {
 
 #define FOR_EACH_DELAYED_ACTION(iflags, flags_all) \
 	for ((iflags) = (DelayedActionType) 0x1LL; (iflags) <= DELAYED_ACTION_TYPE_MAX; (iflags) <<= 1) \
-		if (NM_FLAGS_HAS (flags_all, iflags))
+		if (NM_FLAGS_ANY (flags_all, iflags))
 
 typedef enum {
 	/* Negative values are errors from kernel. Add dummy member to
@@ -297,12 +304,8 @@ typedef enum {
 	WAIT_FOR_NL_RESPONSE_RESULT_FAILED_POLL,
 	WAIT_FOR_NL_RESPONSE_RESULT_FAILED_TIMEOUT,
 	WAIT_FOR_NL_RESPONSE_RESULT_FAILED_DISPOSING,
+	WAIT_FOR_NL_RESPONSE_RESULT_FAILED_SETNS,
 } WaitForNlResponseResult;
-
-typedef void (*WaitForNlResponseCallback) (NMPlatform *platform,
-                                           guint32 seq_number,
-                                           WaitForNlResponseResult seq_result,
-                                           gpointer user_data);
 
 static void delayed_action_schedule (NMPlatform *platform, DelayedActionType action_type, gpointer user_data);
 static gboolean delayed_action_handle_all (NMPlatform *platform, gboolean read_netlink);
@@ -328,7 +331,9 @@ wait_for_nl_response_to_plerr (WaitForNlResponseResult seq_result)
 }
 
 static const char *
-wait_for_nl_response_to_string (WaitForNlResponseResult seq_result, char *buf, gsize buf_size)
+wait_for_nl_response_to_string (WaitForNlResponseResult seq_result,
+                                const char *errmsg,
+                                char *buf, gsize buf_size)
 {
 	char *buf0 = buf;
 
@@ -343,8 +348,13 @@ wait_for_nl_response_to_string (WaitForNlResponseResult seq_result, char *buf, g
 		nm_utils_strbuf_append_str (&buf, &buf_size, "failure");
 		break;
 	default:
-		if (seq_result < 0)
-			nm_utils_strbuf_append (&buf, &buf_size, "failure %d (%s)", -((int) seq_result), g_strerror (-((int) seq_result)));
+		if (seq_result < 0) {
+			nm_utils_strbuf_append (&buf, &buf_size, "failure %d (%s%s%s)",
+			                        -((int) seq_result),
+			                        g_strerror (-((int) seq_result)),
+			                        errmsg ? " - " : "",
+			                        errmsg ?: "");
+		}
 		else
 			nm_utils_strbuf_append (&buf, &buf_size, "internal failure %d", (int) seq_result);
 		break;
@@ -538,8 +548,7 @@ static const LinkDesc linktypes[] = {
 	{ NM_LINK_TYPE_OPENVSWITCH,   "openvswitch", "openvswitch", NULL },
 	{ NM_LINK_TYPE_PPP,           "ppp",         NULL,          "ppp" },
 	{ NM_LINK_TYPE_SIT,           "sit",         "sit",         NULL },
-	{ NM_LINK_TYPE_TAP,           "tap",         NULL,          NULL },
-	{ NM_LINK_TYPE_TUN,           "tun",         NULL,          NULL },
+	{ NM_LINK_TYPE_TUN,           "tun",         "tun",         NULL },
 	{ NM_LINK_TYPE_VETH,          "veth",        "veth",        NULL },
 	{ NM_LINK_TYPE_VLAN,          "vlan",        "vlan",        "vlan" },
 	{ NM_LINK_TYPE_VXLAN,         "vxlan",       "vxlan",       "vxlan" },
@@ -800,36 +809,25 @@ _linktype_get_type (NMPlatform *platform,
 		    && !NM_IN_SET (obj->link.type, NM_LINK_TYPE_UNKNOWN, NM_LINK_TYPE_NONE)
 		    && nm_streq (ifname, obj->link.name)
 		    && (   !kind
-		        || !g_strcmp0 (kind, obj->link.kind))) {
+		        || nm_streq0 (kind, obj->link.kind))) {
 			nm_assert (obj->link.kind == g_intern_string (obj->link.kind));
 			*out_kind = obj->link.kind;
 			return obj->link.type;
 		}
 	}
 
+	/* we intern kind to not require us to keep the pointer alive. Essentially
+	 * leaking it in a global cache. That should be safe enough, because the
+	 * kind comes only from kernel messages, which depend on the number of
+	 * available drivers. So, there is not the danger that we leak uncontrolled
+	 * many kinds. */
 	*out_kind = g_intern_string (kind);
 
 	if (kind) {
 		for (i = 0; i < G_N_ELEMENTS (linktypes); i++) {
-			if (g_strcmp0 (kind, linktypes[i].rtnl_type) == 0)
+			if (nm_streq0 (kind, linktypes[i].rtnl_type)) {
 				return linktypes[i].nm_type;
-		}
-
-		if (!strcmp (kind, "tun")) {
-			NMPlatformTunProperties props;
-
-			if (   platform
-			    && nm_platform_link_tun_get_properties (platform, ifindex, &props)) {
-				if (!g_strcmp0 (props.mode, "tap"))
-					return NM_LINK_TYPE_TAP;
-				if (!g_strcmp0 (props.mode, "tun"))
-					return NM_LINK_TYPE_TUN;
 			}
-
-			/* try guessing the type using the link flags instead... */
-			if (flags & IFF_POINTOPOINT)
-				return NM_LINK_TYPE_TUN;
-			return NM_LINK_TYPE_TAP;
 		}
 	}
 
@@ -950,137 +948,6 @@ _nl_addattr_l (struct nlmsghdr *n,
 	n->nlmsg_len = NLMSG_ALIGN (n->nlmsg_len) + RTA_ALIGN (len);
 	return TRUE;
 }
-
-static void
-_nm_auto_nl_msg_cleanup (void *ptr)
-{
-	nlmsg_free (*((struct nl_msg **) ptr));
-}
-#define nm_auto_nlmsg nm_auto(_nm_auto_nl_msg_cleanup)
-
-static const char *
-_nl_nlmsghdr_to_str (const struct nlmsghdr *hdr, char *buf, gsize len)
-{
-	const char *b;
-	const char *s;
-	guint flags, flags_before;
-	const char *prefix;
-
-	nm_utils_to_string_buffer_init (&buf, &len);
-	b = buf;
-
-	switch (hdr->nlmsg_type) {
-	case RTM_NEWLINK:    s = "RTM_NEWLINK";  break;
-	case RTM_DELLINK:    s = "RTM_DELLINK";  break;
-	case RTM_NEWADDR:    s = "RTM_NEWADDR";  break;
-	case RTM_DELADDR:    s = "RTM_DELADDR";  break;
-	case RTM_NEWROUTE:   s = "RTM_NEWROUTE"; break;
-	case RTM_DELROUTE:   s = "RTM_DELROUTE"; break;
-	case RTM_NEWQDISC:   s = "RTM_NEWQDISC"; break;
-	case RTM_DELQDISC:   s = "RTM_DELQDISC"; break;
-	case RTM_NEWTFILTER: s = "RTM_NEWTFILTER"; break;
-	case RTM_DELTFILTER: s = "RTM_DELTFILTER"; break;
-	case NLMSG_NOOP:     s = "NLMSG_NOOP"; break;
-	case NLMSG_ERROR:    s = "NLMSG_ERROR"; break;
-	case NLMSG_DONE:     s = "NLMSG_DONE"; break;
-	case NLMSG_OVERRUN:  s = "NLMSG_OVERRUN"; break;
-	default:             s = NULL;       break;
-	}
-
-	if (s)
-		nm_utils_strbuf_append_str (&buf, &len, s);
-	else
-		nm_utils_strbuf_append (&buf, &len, "(%u)", (unsigned) hdr->nlmsg_type);
-
-	flags = hdr->nlmsg_flags;
-
-	if (!flags) {
-		nm_utils_strbuf_append_str (&buf, &len, ", flags 0");
-		goto flags_done;
-	}
-
-#define _F(f, n) \
-	G_STMT_START { \
-		if (NM_FLAGS_ALL (flags, f)) { \
-			flags &= ~(f); \
-			nm_utils_strbuf_append (&buf, &len, "%s%s", prefix, n); \
-			if (!flags) \
-				goto flags_done; \
-			prefix = ","; \
-		} \
-	} G_STMT_END
-
-	prefix = ", flags ";
-	flags_before = flags;
-	_F (NLM_F_REQUEST, "request");
-	_F (NLM_F_MULTI, "multi");
-	_F (NLM_F_ACK, "ack");
-	_F (NLM_F_ECHO, "echo");
-	_F (NLM_F_DUMP_INTR, "dump_intr");
-	_F (0x20 /*NLM_F_DUMP_FILTERED*/, "dump_filtered");
-
-	if (flags_before != flags)
-		prefix = ";";
-
-	switch (hdr->nlmsg_type) {
-	case RTM_NEWLINK:
-	case RTM_NEWADDR:
-	case RTM_NEWROUTE:
-	case RTM_NEWQDISC:
-	case RTM_NEWTFILTER:
-		_F (NLM_F_REPLACE, "replace");
-		_F (NLM_F_EXCL, "excl");
-		_F (NLM_F_CREATE, "create");
-		_F (NLM_F_APPEND, "append");
-		break;
-	case RTM_GETLINK:
-	case RTM_GETADDR:
-	case RTM_GETROUTE:
-	case RTM_DELQDISC:
-	case RTM_DELTFILTER:
-		_F (NLM_F_DUMP, "dump");
-		_F (NLM_F_ROOT, "root");
-		_F (NLM_F_MATCH, "match");
-		_F (NLM_F_ATOMIC, "atomic");
-		break;
-	}
-
-#undef _F
-
-	if (flags_before != flags)
-		prefix = ";";
-	nm_utils_strbuf_append (&buf, &len, "%s0x%04x", prefix, flags);
-
-flags_done:
-
-	nm_utils_strbuf_append (&buf, &len, ", seq %u", (unsigned) hdr->nlmsg_seq);
-
-	return b;
-}
-
-static int
-_nl_nla_parse (struct nlattr *tb[], int maxtype, struct nlattr *head, int len,
-               const struct nla_policy *policy)
-{
-	return nla_parse (tb, maxtype, head, len, (struct nla_policy *) policy);
-}
-#define nla_parse(...) _nl_nla_parse(__VA_ARGS__)
-
-static int
-_nl_nlmsg_parse (struct nlmsghdr *nlh, int hdrlen, struct nlattr *tb[],
-                 int maxtype, const struct nla_policy *policy)
-{
-	return nlmsg_parse (nlh, hdrlen, tb, maxtype, (struct nla_policy *) policy);
-}
-#define nlmsg_parse(...) _nl_nlmsg_parse(__VA_ARGS__)
-
-static int
-_nl_nla_parse_nested (struct nlattr *tb[], int maxtype, struct nlattr *nla,
-                      const struct nla_policy *policy)
-{
-	return nla_parse_nested (tb, maxtype, nla, (struct nla_policy *) policy);
-}
-#define nla_parse_nested(...) _nl_nla_parse_nested(__VA_ARGS__)
 
 /******************************************************************
  * NMPObject/netlink functions
@@ -1292,6 +1159,7 @@ _parse_lnk_ip6tnl (const char *kind, struct nlattr *info_data)
 		[IFLA_IPTUN_ENCAP_LIMIT] = { .type = NLA_U8 },
 		[IFLA_IPTUN_FLOWINFO]    = { .type = NLA_U32 },
 		[IFLA_IPTUN_PROTO]       = { .type = NLA_U8 },
+		[IFLA_IPTUN_FLAGS]       = { .type = NLA_U32 },
 	};
 	struct nlattr *tb[IFLA_IPTUN_MAX + 1];
 	int err;
@@ -1326,6 +1194,8 @@ _parse_lnk_ip6tnl (const char *kind, struct nlattr *info_data)
 	}
 	if (tb[IFLA_IPTUN_PROTO])
 		props->proto = nla_get_u8 (tb[IFLA_IPTUN_PROTO]);
+	if (tb[IFLA_IPTUN_FLAGS])
+		props->flags = nla_get_u32 (tb[IFLA_IPTUN_FLAGS]);
 
 	return obj;
 }
@@ -1505,6 +1375,60 @@ _parse_lnk_sit (const char *kind, struct nlattr *info_data)
 
 /*****************************************************************************/
 
+static NMPObject *
+_parse_lnk_tun (const char *kind, struct nlattr *info_data)
+{
+	static const struct nla_policy policy[IFLA_TUN_MAX + 1] = {
+		[IFLA_TUN_OWNER]               = { .type = NLA_U32 },
+		[IFLA_TUN_GROUP]               = { .type = NLA_U32 },
+		[IFLA_TUN_TYPE]                = { .type = NLA_U8 },
+		[IFLA_TUN_PI]                  = { .type = NLA_U8 },
+		[IFLA_TUN_VNET_HDR]            = { .type = NLA_U8 },
+		[IFLA_TUN_PERSIST]             = { .type = NLA_U8 },
+		[IFLA_TUN_MULTI_QUEUE]         = { .type = NLA_U8 },
+		[IFLA_TUN_NUM_QUEUES]          = { .type = NLA_U32 },
+		[IFLA_TUN_NUM_DISABLED_QUEUES] = { .type = NLA_U32 },
+	};
+	struct nlattr *tb[IFLA_TUN_MAX + 1];
+	int err;
+	NMPObject *obj;
+	NMPlatformLnkTun *props;
+
+	if (!info_data || !nm_streq0 (kind, "tun"))
+		return NULL;
+
+	err = nla_parse_nested (tb, IFLA_TUN_MAX, info_data, policy);
+	if (err < 0)
+		return NULL;
+
+	if (!tb[IFLA_TUN_TYPE]) {
+		/* we require at least a type. */
+		return NULL;
+	}
+
+	obj = nmp_object_new (NMP_OBJECT_TYPE_LNK_TUN, NULL);
+	props = &obj->lnk_tun;
+
+	props->type = nla_get_u8 (tb[IFLA_TUN_TYPE]);
+
+	props->pi = !!nla_get_u8_cond (tb, IFLA_TUN_PI, FALSE);
+	props->vnet_hdr = !!nla_get_u8_cond (tb, IFLA_TUN_VNET_HDR, FALSE);
+	props->multi_queue = !!nla_get_u8_cond (tb, IFLA_TUN_MULTI_QUEUE, FALSE);
+	props->persist = !!nla_get_u8_cond (tb, IFLA_TUN_PERSIST, FALSE);
+
+	if (tb[IFLA_TUN_OWNER]) {
+		props->owner_valid = TRUE;
+		props->owner = nla_get_u32 (tb[IFLA_TUN_OWNER]);
+	}
+	if (tb[IFLA_TUN_GROUP]) {
+		props->group_valid = TRUE;
+		props->group = nla_get_u32 (tb[IFLA_TUN_GROUP]);
+	}
+	return obj;
+}
+
+/*****************************************************************************/
+
 static gboolean
 _vlan_qos_mapping_from_nla (struct nlattr *nlattr,
                             const NMVlanQosMapping **out_map,
@@ -1609,7 +1533,6 @@ _parse_lnk_vlan (const char *kind, struct nlattr *info_data)
 	                                 &obj->_lnk_vlan.egress_qos_map,
 	                                 &obj->_lnk_vlan.n_egress_qos_map))
 		return NULL;
-
 
 	obj_result = obj;
 	obj = NULL;
@@ -1935,6 +1858,9 @@ _new_from_nl_link (NMPlatform *platform, const NMPCache *cache, struct nlmsghdr 
 		break;
 	case NM_LINK_TYPE_SIT:
 		lnk_data = _parse_lnk_sit (nl_info_kind, nl_info_data);
+		break;
+	case NM_LINK_TYPE_TUN:
+		lnk_data = _parse_lnk_tun (nl_info_kind, nl_info_data);
 		break;
 	case NM_LINK_TYPE_VLAN:
 		lnk_data = _parse_lnk_vlan (nl_info_kind, nl_info_data);
@@ -2665,8 +2591,7 @@ _nl_msg_new_link (int nlmsg_type,
 
 	nm_assert (NM_IN_SET (nlmsg_type, RTM_DELLINK, RTM_NEWLINK, RTM_GETLINK));
 
-	if (!(msg = nlmsg_alloc_simple (nlmsg_type, nlmsg_flags)))
-		g_return_val_if_reached (NULL);
+	msg = nlmsg_alloc_simple (nlmsg_type, nlmsg_flags);
 
 	if (nlmsg_append (msg, &ifi, sizeof (ifi), NLMSG_ALIGNTO) < 0)
 		goto nla_put_failure;
@@ -2708,8 +2633,6 @@ _nl_msg_new_address (int nlmsg_type,
 	nm_assert (NM_IN_SET (nlmsg_type, RTM_NEWADDR, RTM_DELADDR));
 
 	msg = nlmsg_alloc_simple (nlmsg_type, nlmsg_flags);
-	if (!msg)
-		g_return_val_if_reached (NULL);
 
 	if (scope == -1) {
 		/* Allow having scope unset, and detect the scope (including IPv4 compatibility hack). */
@@ -2822,8 +2745,6 @@ _nl_msg_new_route (int nlmsg_type,
 	nm_assert (NM_IN_SET (nlmsg_type, RTM_NEWROUTE, RTM_DELROUTE));
 
 	msg = nlmsg_alloc_simple (nlmsg_type, (int) nlmsgflags);
-	if (!msg)
-		g_return_val_if_reached (NULL);
 
 	if (nlmsg_append (msg, &rtmsg, sizeof (rtmsg), NLMSG_ALIGNTO) < 0)
 		goto nla_put_failure;
@@ -2921,8 +2842,6 @@ _nl_msg_new_qdisc (int nlmsg_type,
 	};
 
 	msg = nlmsg_alloc_simple (nlmsg_type, nlmsg_flags);
-	if (!msg)
-		return NULL;
 
 	if (nlmsg_append (msg, &tcm, sizeof (tcm), NLMSG_ALIGNTO) < 0)
 		goto nla_put_failure;
@@ -2997,8 +2916,6 @@ _nl_msg_new_tfilter (int nlmsg_type,
 	};
 
 	msg = nlmsg_alloc_simple (nlmsg_type, nlmsg_flags);
-	if (!msg)
-		return NULL;
 
 	if (nlmsg_append (msg, &tcm, sizeof (tcm), NLMSG_ALIGNTO) < 0)
 		goto nla_put_failure;
@@ -3040,6 +2957,7 @@ typedef struct {
 	DelayedActionWaitForNlResponseType response_type;
 	gint64 timeout_abs_ns;
 	WaitForNlResponseResult *out_seq_result;
+	char **out_errmsg;
 	union {
 		gint *out_refresh_all_in_progess;
 		NMPObject **out_route_get;
@@ -3500,7 +3418,7 @@ delayed_action_to_string_full (DelayedActionType action_type, gpointer user_data
 			                        (timeout < 0 ? -timeout : timeout) % NM_UTILS_NS_PER_SECOND,
 			                        (int) data->response_type,
 			                        data->seq_result ? ", " : "",
-			                        data->seq_result ? wait_for_nl_response_to_string (data->seq_result, b, sizeof (b)) : "");
+			                        data->seq_result ? wait_for_nl_response_to_string (data->seq_result, NULL, b, sizeof (b)) : "");
 		} else
 			nm_utils_strbuf_append_str (&buf, &buf_size, " (any)");
 		break;
@@ -3582,27 +3500,58 @@ delayed_action_wait_for_nl_response_complete (NMPlatform *platform,
 }
 
 static void
+delayed_action_wait_for_nl_response_complete_check (NMPlatform *platform,
+                                                    WaitForNlResponseResult force_result,
+                                                    guint32 *out_next_seq_number,
+                                                    gint64 *out_next_timeout_abs_ns,
+                                                    gint64 *p_now_ns)
+{
+	NMLinuxPlatformPrivate *priv = NM_LINUX_PLATFORM_GET_PRIVATE (platform);
+	guint i;
+	guint32 next_seq_number = 0;
+	gint64 next_timeout_abs_ns = 0;
+	gint now_ns = 0;
+
+	for (i = 0; i < priv->delayed_action.list_wait_for_nl_response->len; ) {
+		const DelayedActionWaitForNlResponseData *data = &g_array_index (priv->delayed_action.list_wait_for_nl_response, DelayedActionWaitForNlResponseData, i);
+
+		if (data->seq_result)
+			delayed_action_wait_for_nl_response_complete (platform, i, data->seq_result);
+		else if (   p_now_ns
+		         && ((now_ns ?: (now_ns = nm_utils_get_monotonic_timestamp_ns ())) >= data->timeout_abs_ns)) {
+			/* the caller can optionally check for timeout by providing a p_now_ns argument. */
+			delayed_action_wait_for_nl_response_complete (platform, i, WAIT_FOR_NL_RESPONSE_RESULT_FAILED_TIMEOUT);
+		} else if (force_result != WAIT_FOR_NL_RESPONSE_RESULT_UNKNOWN)
+			delayed_action_wait_for_nl_response_complete (platform, i, force_result);
+		else {
+			if (   next_seq_number == 0
+			    || next_timeout_abs_ns > data->timeout_abs_ns) {
+				next_seq_number = data->seq_number;
+				next_timeout_abs_ns = data->timeout_abs_ns;
+			}
+			i++;
+		}
+	}
+
+	if (force_result != WAIT_FOR_NL_RESPONSE_RESULT_UNKNOWN) {
+		nm_assert (!NM_FLAGS_HAS (priv->delayed_action.flags, DELAYED_ACTION_TYPE_WAIT_FOR_NL_RESPONSE));
+		nm_assert (priv->delayed_action.list_wait_for_nl_response->len == 0);
+	}
+
+	NM_SET_OUT (out_next_seq_number, next_seq_number);
+	NM_SET_OUT (out_next_timeout_abs_ns, next_timeout_abs_ns);
+	NM_SET_OUT (p_now_ns, now_ns);
+}
+
+static void
 delayed_action_wait_for_nl_response_complete_all (NMPlatform *platform,
                                                   WaitForNlResponseResult fallback_result)
 {
-	NMLinuxPlatformPrivate *priv = NM_LINUX_PLATFORM_GET_PRIVATE (platform);
-
-	if (NM_FLAGS_HAS (priv->delayed_action.flags, DELAYED_ACTION_TYPE_WAIT_FOR_NL_RESPONSE)) {
-		while (priv->delayed_action.list_wait_for_nl_response->len > 0) {
-			const DelayedActionWaitForNlResponseData *data;
-			guint idx = priv->delayed_action.list_wait_for_nl_response->len - 1;
-			WaitForNlResponseResult r;
-
-			data = &g_array_index (priv->delayed_action.list_wait_for_nl_response, DelayedActionWaitForNlResponseData, idx);
-
-			/* prefer the result that we already have. */
-			r = data->seq_result ? : fallback_result;
-
-			delayed_action_wait_for_nl_response_complete (platform, idx, r);
-		}
-	}
-	nm_assert (!NM_FLAGS_HAS (priv->delayed_action.flags, DELAYED_ACTION_TYPE_WAIT_FOR_NL_RESPONSE));
-	nm_assert (priv->delayed_action.list_wait_for_nl_response->len == 0);
+	delayed_action_wait_for_nl_response_complete_check (platform,
+	                                                    fallback_result,
+	                                                    NULL,
+	                                                    NULL,
+	                                                    NULL);
 }
 
 /*****************************************************************************/
@@ -3785,6 +3734,7 @@ static void
 delayed_action_schedule_WAIT_FOR_NL_RESPONSE (NMPlatform *platform,
                                               guint32 seq_number,
                                               WaitForNlResponseResult *out_seq_result,
+                                              char **out_errmsg,
                                               DelayedActionWaitForNlResponseType response_type,
                                               gpointer response_out_data)
 {
@@ -3792,6 +3742,7 @@ delayed_action_schedule_WAIT_FOR_NL_RESPONSE (NMPlatform *platform,
 		.seq_number = seq_number,
 		.timeout_abs_ns = nm_utils_get_monotonic_timestamp_ns () + (200 * (NM_UTILS_NS_PER_SECOND / 1000)),
 		.out_seq_result = out_seq_result,
+		.out_errmsg = out_errmsg,
 		.response_type = response_type,
 		.response.out_data = response_out_data,
 	};
@@ -3976,40 +3927,46 @@ cache_on_change (NMPlatform *platform,
 		    && (obj_new && obj_new->_link.netlink.is_in_netlink)
 		    && (!obj_old || !obj_old->_link.netlink.is_in_netlink))
 		{
-			if (!obj_new->_link.netlink.lnk) {
+			gboolean re_request_link = FALSE;
+			const NMPlatformLnkTun *lnk_tun;
+
+			if (   !obj_new->_link.netlink.lnk
+			    && NM_IN_SET (obj_new->link.type, NM_LINK_TYPE_GRE,
+			                                      NM_LINK_TYPE_IP6TNL,
+			                                      NM_LINK_TYPE_INFINIBAND,
+			                                      NM_LINK_TYPE_MACVLAN,
+			                                      NM_LINK_TYPE_MACVLAN,
+			                                      NM_LINK_TYPE_SIT,
+			                                      NM_LINK_TYPE_TUN,
+			                                      NM_LINK_TYPE_VLAN,
+			                                      NM_LINK_TYPE_VXLAN)) {
 				/* certain link-types also come with a IFLA_INFO_DATA/lnk_data. It may happen that
 				 * kernel didn't send this notification, thus when we first learn about a link
 				 * that lacks an lnk_data we re-request it again.
 				 *
 				 * For example https://bugzilla.redhat.com/show_bug.cgi?id=1284001 */
-				switch (obj_new->link.type) {
-				case NM_LINK_TYPE_GRE:
-				case NM_LINK_TYPE_IP6TNL:
-				case NM_LINK_TYPE_INFINIBAND:
-				case NM_LINK_TYPE_MACVLAN:
-				case NM_LINK_TYPE_MACVTAP:
-				case NM_LINK_TYPE_SIT:
-				case NM_LINK_TYPE_VLAN:
-				case NM_LINK_TYPE_VXLAN:
-					delayed_action_schedule (platform,
-					                         DELAYED_ACTION_TYPE_REFRESH_LINK,
-					                         GINT_TO_POINTER (obj_new->link.ifindex));
-					break;
-				default:
-					break;
-				}
-			}
-			if (   obj_new->link.type == NM_LINK_TYPE_VETH
-			    && obj_new->link.parent == 0) {
+				re_request_link = TRUE;
+			} else if (   obj_new->link.type == NM_LINK_TYPE_TUN
+			           && obj_new->_link.netlink.lnk
+			           && (lnk_tun = &(obj_new->_link.netlink.lnk)->lnk_tun)
+			           && !lnk_tun->persist
+			           && lnk_tun->pi
+			           && !lnk_tun->vnet_hdr
+			           && !lnk_tun->multi_queue
+			           && !lnk_tun->owner_valid
+			           && !lnk_tun->group_valid) {
+				/* kernel has/had a know issue that the first notification for TUN device would
+				 * be sent with invalid parameters. The message looks like that kind, so refetch
+				 * it. */
+				re_request_link = TRUE;
+			} else if (   obj_new->link.type == NM_LINK_TYPE_VETH
+			           && obj_new->link.parent == 0) {
 				/* the initial notification when adding a veth pair can lack the parent/IFLA_LINK
 				 * (https://bugzilla.redhat.com/show_bug.cgi?id=1285827).
 				 * Request it again. */
-				delayed_action_schedule (platform,
-				                         DELAYED_ACTION_TYPE_REFRESH_LINK,
-				                         GINT_TO_POINTER (obj_new->link.ifindex));
-			}
-			if (   obj_new->link.type == NM_LINK_TYPE_ETHERNET
-			    && obj_new->link.addr.len == 0) {
+				re_request_link = TRUE;
+			} else if (   obj_new->link.type == NM_LINK_TYPE_ETHERNET
+			           && obj_new->link.addr.len == 0) {
 				/* Due to a kernel bug, we sometimes receive spurious NEWLINK
 				 * messages after a wifi interface has disappeared. Since the
 				 * link is not present anymore we can't determine its type and
@@ -4017,6 +3974,9 @@ cache_on_change (NMPlatform *platform,
 				 * specified.  Request the link again to check if it really
 				 * exists.  https://bugzilla.redhat.com/show_bug.cgi?id=1302037
 				 */
+				re_request_link = TRUE;
+			}
+			if (re_request_link) {
 				delayed_action_schedule (platform,
 				                         DELAYED_ACTION_TYPE_REFRESH_LINK,
 				                         GINT_TO_POINTER (obj_new->link.ifindex));
@@ -4067,8 +4027,10 @@ cache_on_change (NMPlatform *platform,
 static guint32
 _nlh_seq_next_get (NMLinuxPlatformPrivate *priv)
 {
-	/* generate a new sequence number, but skip zero. */
-	return priv->nlh_seq_next++ ?: priv->nlh_seq_next++;
+	/* generate a new sequence number, but never return zero.
+	 * Wrapping numbers are not a problem, because we don't rely
+	 * on strictly increasing sequence numbers. */
+	return (++priv->nlh_seq_next) ?: (++priv->nlh_seq_next);
 }
 
 /**
@@ -4079,12 +4041,13 @@ _nlh_seq_next_get (NMLinuxPlatformPrivate *priv)
  * @response_type:
  * @response_out_data:
  *
- * Returns: 0 on success or a negative errno. Beware, it's an errno, not nlerror.
+ * Returns: 0 on success or a negative errno.
  */
 static int
 _nl_send_nlmsghdr (NMPlatform *platform,
                    struct nlmsghdr *nlhdr,
                    WaitForNlResponseResult *out_seq_result,
+                   char **out_errmsg,
                    DelayedActionWaitForNlResponseType response_type,
                    gpointer response_out_data)
 {
@@ -4129,7 +4092,7 @@ again:
 		}
 	}
 
-	delayed_action_schedule_WAIT_FOR_NL_RESPONSE (platform, seq, out_seq_result,
+	delayed_action_schedule_WAIT_FOR_NL_RESPONSE (platform, seq, out_seq_result, out_errmsg,
 	                                              response_type, response_out_data);
 	return 0;
 }
@@ -4148,6 +4111,7 @@ static int
 _nl_send_nlmsg (NMPlatform *platform,
                 struct nl_msg *nlmsg,
                 WaitForNlResponseResult *out_seq_result,
+                char **out_errmsg,
                 DelayedActionWaitForNlResponseType response_type,
                 gpointer response_out_data)
 {
@@ -4166,7 +4130,7 @@ _nl_send_nlmsg (NMPlatform *platform,
 		return nle;
 	}
 
-	delayed_action_schedule_WAIT_FOR_NL_RESPONSE (platform, seq, out_seq_result,
+	delayed_action_schedule_WAIT_FOR_NL_RESPONSE (platform, seq, out_seq_result, out_errmsg,
 	                                              response_type, response_out_data);
 	return 0;
 }
@@ -4204,7 +4168,7 @@ do_request_link_no_delayed_actions (NMPlatform *platform, int ifindex, const cha
 	                          0,
 	                          0);
 	if (nlmsg) {
-		nle = _nl_send_nlmsg (platform, nlmsg, NULL, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
+		nle = _nl_send_nlmsg (platform, nlmsg, NULL, NULL, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
 		if (nle < 0) {
 			_LOGE ("do-request-link: %d %s: failed sending netlink request \"%s\" (%d)",
 			       ifindex, name ?: "",
@@ -4263,8 +4227,6 @@ do_request_all_no_delayed_actions (NMPlatform *platform, DelayedActionType actio
 		 * because we need the sequence number.
 		 */
 		nlmsg = nlmsg_alloc_simple (klass->rtm_gettype, NLM_F_DUMP);
-		if (!nlmsg)
-			continue;
 
 		if (   klass->obj_type == NMP_OBJECT_TYPE_QDISC
 		    || klass->obj_type == NMP_OBJECT_TYPE_TFILTER) {
@@ -4281,7 +4243,7 @@ do_request_all_no_delayed_actions (NMPlatform *platform, DelayedActionType actio
 		if (nle < 0)
 			continue;
 
-		if (_nl_send_nlmsg (platform, nlmsg, NULL, DELAYED_ACTION_RESPONSE_TYPE_REFRESH_ALL_IN_PROGRESS, out_refresh_all_in_progess) < 0) {
+		if (_nl_send_nlmsg (platform, nlmsg, NULL, NULL, DELAYED_ACTION_RESPONSE_TYPE_REFRESH_ALL_IN_PROGRESS, out_refresh_all_in_progess) < 0) {
 			nm_assert (*out_refresh_all_in_progess > 0);
 			*out_refresh_all_in_progess -= 1;
 		}
@@ -4325,7 +4287,7 @@ event_seq_check_refresh_all (NMPlatform *platform, guint32 seq_number)
 }
 
 static void
-event_seq_check (NMPlatform *platform, guint32 seq_number, WaitForNlResponseResult seq_result)
+event_seq_check (NMPlatform *platform, guint32 seq_number, WaitForNlResponseResult seq_result, const char *msg)
 {
 	NMLinuxPlatformPrivate *priv = NM_LINUX_PLATFORM_GET_PRIVATE (platform);
 	DelayedActionWaitForNlResponseData *data;
@@ -4344,11 +4306,13 @@ event_seq_check (NMPlatform *platform, guint32 seq_number, WaitForNlResponseResu
 				/* We potentially receive many parts partial responses for the same sequence number.
 				 * Thus, we only remember the result, and collect it later. */
 				if (data->seq_result < 0) {
-					/* we already saw an error for this seqence number.
+					/* we already saw an error for this sequence number.
 					 * Preserve it. */
 				} else if (   seq_result != WAIT_FOR_NL_RESPONSE_RESULT_RESPONSE_UNKNOWN
 				           || data->seq_result == WAIT_FOR_NL_RESPONSE_RESULT_UNKNOWN)
 					data->seq_result = seq_result;
+				if (data->out_errmsg && !*data->out_errmsg)
+					*data->out_errmsg = g_strdup (msg);
 				return;
 			}
 		}
@@ -4391,7 +4355,7 @@ event_valid_msg (NMPlatform *platform, struct nl_msg *msg, gboolean handle_event
 	obj = nmp_object_new_from_nl (platform, cache, msg, id_only);
 	if (!obj) {
 		_LOGT ("event-notification: %s: ignore",
-		       _nl_nlmsghdr_to_str (msghdr, buf_nlmsghdr, sizeof (buf_nlmsghdr)));
+		       nl_nlmsghdr_to_str (msghdr, buf_nlmsghdr, sizeof (buf_nlmsghdr)));
 		return;
 	}
 
@@ -4409,7 +4373,7 @@ event_valid_msg (NMPlatform *platform, struct nl_msg *msg, gboolean handle_event
 	}
 
 	_LOGT ("event-notification: %s%s: %s",
-	       _nl_nlmsghdr_to_str (msghdr, buf_nlmsghdr, sizeof (buf_nlmsghdr)),
+	       nl_nlmsghdr_to_str (msghdr, buf_nlmsghdr, sizeof (buf_nlmsghdr)),
 	       is_dump ? ", in-dump" : "",
 	       nmp_object_to_string (obj,
 	                             id_only ? NMP_OBJECT_TO_STRING_ID : NMP_OBJECT_TO_STRING_PUBLIC,
@@ -4547,13 +4511,14 @@ do_add_link_with_lookup (NMPlatform *platform,
 {
 	const NMPObject *obj = NULL;
 	WaitForNlResponseResult seq_result = WAIT_FOR_NL_RESPONSE_RESULT_UNKNOWN;
+	gs_free char *errmsg = NULL;
 	int nle;
 	char s_buf[256];
 	NMPCache *cache = nm_platform_get_cache (platform);
 
 	event_handler_read_netlink (platform, FALSE);
 
-	nle = _nl_send_nlmsg (platform, nlmsg, &seq_result, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
+	nle = _nl_send_nlmsg (platform, nlmsg, &seq_result, &errmsg, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
 	if (nle < 0) {
 		_LOGE ("do-add-link[%s/%s]: failed sending netlink request \"%s\" (%d)",
 		       name,
@@ -4573,7 +4538,7 @@ do_add_link_with_lookup (NMPlatform *platform,
 	        "do-add-link[%s/%s]: %s",
 	        name,
 	        nm_link_type_to_string (link_type),
-	        wait_for_nl_response_to_string (seq_result, s_buf, sizeof (s_buf)));
+	        wait_for_nl_response_to_string (seq_result, errmsg, s_buf, sizeof (s_buf)));
 
 	if (out_link) {
 		obj = nmp_cache_lookup_link_full (cache, 0, name, FALSE, link_type, NULL, NULL);
@@ -4590,6 +4555,7 @@ do_add_addrroute (NMPlatform *platform,
                   gboolean suppress_netlink_failure)
 {
 	WaitForNlResponseResult seq_result = WAIT_FOR_NL_RESPONSE_RESULT_UNKNOWN;
+	gs_free char *errmsg = NULL;
 	int nle;
 	char s_buf[256];
 
@@ -4599,7 +4565,7 @@ do_add_addrroute (NMPlatform *platform,
 
 	event_handler_read_netlink (platform, FALSE);
 
-	nle = _nl_send_nlmsg (platform, nlmsg, &seq_result, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
+	nle = _nl_send_nlmsg (platform, nlmsg, &seq_result, &errmsg, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
 	if (nle < 0) {
 		_LOGE ("do-add-%s[%s]: failure sending netlink request \"%s\" (%d)",
 		       NMP_OBJECT_GET_CLASS (obj_id)->obj_type_name,
@@ -4620,7 +4586,7 @@ do_add_addrroute (NMPlatform *platform,
 	        "do-add-%s[%s]: %s",
 	        NMP_OBJECT_GET_CLASS (obj_id)->obj_type_name,
 	        nmp_object_to_string (obj_id, NMP_OBJECT_TO_STRING_ID, NULL, 0),
-	        wait_for_nl_response_to_string (seq_result, s_buf, sizeof (s_buf)));
+	        wait_for_nl_response_to_string (seq_result, errmsg, s_buf, sizeof (s_buf)));
 
 	if (NMP_OBJECT_GET_TYPE (obj_id) == NMP_OBJECT_TYPE_IP6_ADDRESS) {
 		/* In rare cases, the object is not yet ready as we received the ACK from
@@ -4641,6 +4607,7 @@ static gboolean
 do_delete_object (NMPlatform *platform, const NMPObject *obj_id, struct nl_msg *nlmsg)
 {
 	WaitForNlResponseResult seq_result = WAIT_FOR_NL_RESPONSE_RESULT_UNKNOWN;
+	gs_free char *errmsg = NULL;
 	int nle;
 	char s_buf[256];
 	gboolean success;
@@ -4648,7 +4615,7 @@ do_delete_object (NMPlatform *platform, const NMPObject *obj_id, struct nl_msg *
 
 	event_handler_read_netlink (platform, FALSE);
 
-	nle = _nl_send_nlmsg (platform, nlmsg, &seq_result, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
+	nle = _nl_send_nlmsg (platform, nlmsg, &seq_result, &errmsg, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
 	if (nle < 0) {
 		_LOGE ("do-delete-%s[%s]: failure sending netlink request \"%s\" (%d)",
 		       NMP_OBJECT_GET_CLASS (obj_id)->obj_type_name,
@@ -4680,7 +4647,7 @@ do_delete_object (NMPlatform *platform, const NMPObject *obj_id, struct nl_msg *
 	        "do-delete-%s[%s]: %s%s",
 	        NMP_OBJECT_GET_CLASS (obj_id)->obj_type_name,
 	        nmp_object_to_string (obj_id, NMP_OBJECT_TO_STRING_ID, NULL, 0),
-	        wait_for_nl_response_to_string (seq_result, s_buf, sizeof (s_buf)),
+	        wait_for_nl_response_to_string (seq_result, errmsg, s_buf, sizeof (s_buf)),
 	        log_detail);
 
 	if (NM_IN_SET (NMP_OBJECT_GET_TYPE (obj_id),
@@ -4711,6 +4678,7 @@ do_change_link (NMPlatform *platform,
 	nm_auto_pop_netns NMPNetns *netns = NULL;
 	int nle;
 	WaitForNlResponseResult seq_result = WAIT_FOR_NL_RESPONSE_RESULT_UNKNOWN;
+	gs_free char *errmsg = NULL;
 	char s_buf[256];
 	NMPlatformError result = NM_PLATFORM_ERROR_SUCCESS;
 	NMLogLevel log_level = LOGL_DEBUG;
@@ -4726,7 +4694,7 @@ do_change_link (NMPlatform *platform,
 	}
 
 retry:
-	nle = _nl_send_nlmsg (platform, nlmsg, &seq_result, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
+	nle = _nl_send_nlmsg (platform, nlmsg, &seq_result, &errmsg, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
 	if (nle < 0) {
 		log_level = LOGL_ERR;
 		log_detail_free = g_strdup_printf (", failure sending netlink request: %s (%d)",
@@ -4783,7 +4751,7 @@ out:
 	        "do-change-link[%d]: %s changing link: %s%s",
 	        ifindex,
 	        log_result,
-	        wait_for_nl_response_to_string (seq_result, s_buf, sizeof (s_buf)),
+	        wait_for_nl_response_to_string (seq_result, errmsg, s_buf, sizeof (s_buf)),
 	        log_detail);
 	return result;
 }
@@ -4858,6 +4826,12 @@ link_refresh (NMPlatform *platform, int ifindex)
 {
 	do_request_link (platform, ifindex, NULL);
 	return !!nm_platform_link_get_obj (platform, ifindex, TRUE);
+}
+
+static void
+refresh_all (NMPlatform *platform, NMPObjectType obj_type)
+{
+	do_request_one_type (platform, obj_type);
 }
 
 static gboolean
@@ -5392,6 +5366,7 @@ link_ip6tnl_add (NMPlatform *platform,
 	            & IP6_FLOWINFO_TCLASS_MASK;
 	NLA_PUT_U32 (nlmsg, IFLA_IPTUN_FLOWINFO, htonl (flowinfo));
 	NLA_PUT_U8 (nlmsg, IFLA_IPTUN_PROTO, props->proto);
+	NLA_PUT_U32 (nlmsg, IFLA_IPTUN_FLAGS, props->flags);
 
 	nla_nest_end (nlmsg, data);
 	nla_nest_end (nlmsg, info);
@@ -5612,6 +5587,62 @@ link_sit_add (NMPlatform *platform,
 	return do_add_link_with_lookup (platform, NM_LINK_TYPE_SIT, name, nlmsg, out_link);
 nla_put_failure:
 	g_return_val_if_reached (FALSE);
+}
+
+static gboolean
+link_tun_add (NMPlatform *platform,
+              const char *name,
+              const NMPlatformLnkTun *props,
+              const NMPlatformLink **out_link,
+              int *out_fd)
+{
+	const NMPObject *obj;
+	struct ifreq ifr = { };
+	nm_auto_close int fd = -1;
+
+	nm_assert (NM_IN_SET (props->type, IFF_TAP, IFF_TUN));
+	nm_assert (props->persist || out_fd);
+
+	fd = open ("/dev/net/tun", O_RDWR | O_CLOEXEC);
+	if (fd < 0)
+		return FALSE;
+
+	nm_utils_ifname_cpy (ifr.ifr_name, name);
+	ifr.ifr_flags =   ((short) props->type)
+	                | ((short) IFF_TUN_EXCL)
+	                | (!props->pi          ? (short) IFF_NO_PI          : (short) 0)
+	                | ( props->vnet_hdr    ? (short) IFF_VNET_HDR       : (short) 0)
+	                | ( props->multi_queue ? (short) NM_IFF_MULTI_QUEUE : (short) 0);
+	if (ioctl (fd, TUNSETIFF, &ifr))
+		return FALSE;
+
+	if (props->owner_valid) {
+		if (ioctl (fd, TUNSETOWNER, (uid_t) props->owner))
+			return FALSE;
+	}
+
+	if (props->group_valid) {
+		if (ioctl (fd, TUNSETGROUP, (gid_t) props->group))
+			return FALSE;
+	}
+
+	if (props->persist) {
+		if (ioctl (fd, TUNSETPERSIST, 1))
+			return FALSE;
+	}
+
+	do_request_link (platform, 0, name);
+	obj = nmp_cache_lookup_link_full (nm_platform_get_cache (platform),
+	                                  0, name, FALSE,
+	                                  NM_LINK_TYPE_TUN,
+	                                  NULL, NULL);
+
+	if (!obj)
+		return FALSE;
+
+	NM_SET_OUT (out_link, &obj->link);
+	NM_SET_OUT (out_fd, nm_steal_fd (&fd));
+	return TRUE;
 }
 
 static gboolean
@@ -5854,64 +5885,6 @@ link_vlan_change (NMPlatform *platform,
 	return do_change_link (platform, CHANGE_LINK_TYPE_UNSPEC, ifindex, nlmsg, NULL) == NM_PLATFORM_ERROR_SUCCESS;
 }
 
-static int
-tun_add (NMPlatform *platform, const char *name, gboolean tap,
-         gint64 owner, gint64 group, gboolean pi, gboolean vnet_hdr,
-         gboolean multi_queue, const NMPlatformLink **out_link)
-{
-	const NMPObject *obj;
-	struct ifreq ifr = { };
-	int fd;
-
-	fd = open ("/dev/net/tun", O_RDWR | O_CLOEXEC);
-	if (fd < 0)
-		return FALSE;
-
-	nm_utils_ifname_cpy (ifr.ifr_name, name);
-	ifr.ifr_flags = tap ? IFF_TAP : IFF_TUN;
-
-	if (!pi)
-		ifr.ifr_flags |= IFF_NO_PI;
-	if (vnet_hdr)
-		ifr.ifr_flags |= IFF_VNET_HDR;
-	if (multi_queue)
-		ifr.ifr_flags |= NM_IFF_MULTI_QUEUE;
-
-	if (ioctl (fd, TUNSETIFF, &ifr)) {
-		nm_close (fd);
-		return FALSE;
-	}
-
-	if (owner >= 0 && owner < G_MAXINT32) {
-		if (ioctl (fd, TUNSETOWNER, (uid_t) owner)) {
-			nm_close (fd);
-			return FALSE;
-		}
-	}
-
-	if (group >= 0 && group < G_MAXINT32) {
-		if (ioctl (fd, TUNSETGROUP, (gid_t) group)) {
-			nm_close (fd);
-			return FALSE;
-		}
-	}
-
-	if (ioctl (fd, TUNSETPERSIST, 1)) {
-		nm_close (fd);
-		return FALSE;
-	}
-	do_request_link (platform, 0, name);
-	obj = nmp_cache_lookup_link_full (nm_platform_get_cache (platform),
-	                                  0, name, FALSE,
-	                                  tap ? NM_LINK_TYPE_TAP : NM_LINK_TYPE_TUN,
-	                                  NULL, NULL);
-	if (out_link)
-		*out_link = obj ? &obj->link : NULL;
-
-	nm_close (fd);
-	return !!obj;
-}
-
 static gboolean
 link_enslave (NMPlatform *platform, int master, int slave)
 {
@@ -6117,6 +6090,14 @@ wifi_indicate_addressing_running (NMPlatform *platform, int ifindex, gboolean ru
 {
 	WIFI_GET_WIFI_DATA_NETNS (wifi_data, platform, ifindex, );
 	wifi_utils_indicate_addressing_running (wifi_data, running);
+}
+
+static gboolean
+wifi_set_wake_on_wlan (NMPlatform *platform, int ifindex,
+                       NMSettingWirelessWakeOnWLan wowl)
+{
+	WIFI_GET_WIFI_DATA_NETNS (wifi_data, platform, ifindex, FALSE);
+	return wifi_utils_set_wake_on_wlan (wifi_data, wowl);
 }
 
 /*****************************************************************************/
@@ -6453,7 +6434,7 @@ ip_route_get (NMPlatform *platform,
 		}
 
 		seq_result = WAIT_FOR_NL_RESPONSE_RESULT_UNKNOWN;
-		nle = _nl_send_nlmsghdr (platform, &req.n, &seq_result, DELAYED_ACTION_RESPONSE_TYPE_ROUTE_GET, &route);
+		nle = _nl_send_nlmsghdr (platform, &req.n, &seq_result, NULL, DELAYED_ACTION_RESPONSE_TYPE_ROUTE_GET, &route);
 		if (nle < 0) {
 			_LOGE ("get-route: failure sending netlink request \"%s\" (%d)",
 			       g_strerror (-nle), -nle);
@@ -6492,6 +6473,7 @@ qdisc_add (NMPlatform *platform,
            const NMPlatformQdisc *qdisc)
 {
 	WaitForNlResponseResult seq_result = WAIT_FOR_NL_RESPONSE_RESULT_UNKNOWN;
+	gs_free char *errmsg = NULL;
 	int nle;
 	char s_buf[256];
 	nm_auto_nlmsg struct nl_msg *msg = NULL;
@@ -6500,7 +6482,7 @@ qdisc_add (NMPlatform *platform,
 
 	event_handler_read_netlink (platform, FALSE);
 
-	nle = _nl_send_nlmsg (platform, msg, &seq_result, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
+	nle = _nl_send_nlmsg (platform, msg, &seq_result, &errmsg, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
 	if (nle < 0) {
 		_LOGE ("do-add-qdisc: failed sending netlink request \"%s\" (%d)",
 		      nl_geterror (nle), -nle);
@@ -6515,7 +6497,7 @@ qdisc_add (NMPlatform *platform,
 	            ? LOGL_DEBUG
 	            : LOGL_WARN,
 	        "do-add-qdisc: %s",
-	        wait_for_nl_response_to_string (seq_result, s_buf, sizeof (s_buf)));
+	        wait_for_nl_response_to_string (seq_result, errmsg, s_buf, sizeof (s_buf)));
 
 	if (seq_result == WAIT_FOR_NL_RESPONSE_RESULT_RESPONSE_OK)
 		return NM_PLATFORM_ERROR_SUCCESS;
@@ -6531,6 +6513,7 @@ tfilter_add (NMPlatform *platform,
              const NMPlatformTfilter *tfilter)
 {
 	WaitForNlResponseResult seq_result = WAIT_FOR_NL_RESPONSE_RESULT_UNKNOWN;
+	gs_free char *errmsg = NULL;
 	int nle;
 	char s_buf[256];
 	nm_auto_nlmsg struct nl_msg *msg = NULL;
@@ -6539,7 +6522,7 @@ tfilter_add (NMPlatform *platform,
 
 	event_handler_read_netlink (platform, FALSE);
 
-	nle = _nl_send_nlmsg (platform, msg, &seq_result, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
+	nle = _nl_send_nlmsg (platform, msg, &seq_result, &errmsg, DELAYED_ACTION_RESPONSE_TYPE_VOID, NULL);
 	if (nle < 0) {
 		_LOGE ("do-add-tfilter: failed sending netlink request \"%s\" (%d)",
 		      nl_geterror (nle), -nle);
@@ -6554,7 +6537,7 @@ tfilter_add (NMPlatform *platform,
 	            ? LOGL_DEBUG
 	            : LOGL_WARN,
 	        "do-add-tfilter: %s",
-	        wait_for_nl_response_to_string (seq_result, s_buf, sizeof (s_buf)));
+	        wait_for_nl_response_to_string (seq_result, errmsg, s_buf, sizeof (s_buf)));
 
 	if (seq_result == WAIT_FOR_NL_RESPONSE_RESULT_RESPONSE_OK)
 		return NM_PLATFORM_ERROR_SUCCESS;
@@ -6585,15 +6568,12 @@ event_handler_recvmsgs (NMPlatform *platform, gboolean handle_events)
 {
 	NMLinuxPlatformPrivate *priv = NM_LINUX_PLATFORM_GET_PRIVATE (platform);
 	struct nl_sock *sk = priv->nlh;
-	int n, err = 0, multipart = 0, interrupted = 0;
+	int n;
+	int err = 0;
+	gboolean multipart = 0;
+	gboolean interrupted = FALSE;
 	struct nlmsghdr *hdr;
 	WaitForNlResponseResult seq_result;
-
-	/*
-	nla is passed on to not only to nl_recv() but may also be passed
-	to a function pointer provided by the caller which may or may not
-	initialize the variable. Thomas Graf.
-	*/
 	struct sockaddr_nl nla = {0};
 	nm_auto_free struct ucred *creds = NULL;
 	nm_auto_free unsigned char *buf = NULL;
@@ -6601,56 +6581,28 @@ event_handler_recvmsgs (NMPlatform *platform, gboolean handle_events)
 continue_reading:
 	g_clear_pointer (&buf, free);
 	g_clear_pointer (&creds, free);
-	errno = 0;
 	n = nl_recv (sk, &nla, &buf, &creds);
 
 	if (n <= 0) {
-		/* workaround libnl3 <= 3.2.15 returning danling pointers in case nl_recv()
-		 * fails. Fixed by libnl3 69468517d0de1675d80f24661ff57a5dbac7275c. */
-		buf = NULL;
-		creds = NULL;
-	}
 
-	switch (n) {
-	case 0:
-		/* Work around a libnl bug fixed in 3.2.22 (375a6294) */
-		if (errno == EAGAIN) {
-			/* EAGAIN is equal to EWOULDBLOCK. If it would not be, we'd have to
-			 * workaround libnl3 mapping EWOULDBLOCK to -NLE_FAILURE. */
-			G_STATIC_ASSERT (EAGAIN == EWOULDBLOCK);
-			n = -NLE_AGAIN;
-		}
-		break;
-	case -NLE_MSG_TRUNC: {
-		int buf_size;
+		if (n == -NLE_MSG_TRUNC) {
+			int buf_size;
 
-		/* the message receive buffer was too small. We lost one message, which
-		 * is unfortunate. Try to double the buffer size for the next time. */
-		buf_size = nl_socket_get_msg_buf_size (sk);
-		if (buf_size < 512*1024) {
-			buf_size *= 2;
-			_LOGT ("netlink: recvmsg: increase message buffer size for recvmsg() to %d bytes", buf_size);
-			if (nl_socket_set_msg_buf_size (sk, buf_size) < 0)
-				nm_assert_not_reached ();
-			if (!handle_events)
-				goto continue_reading;
+			/* the message receive buffer was too small. We lost one message, which
+			 * is unfortunate. Try to double the buffer size for the next time. */
+			buf_size = nl_socket_get_msg_buf_size (sk);
+			if (buf_size < 512*1024) {
+				buf_size *= 2;
+				_LOGT ("netlink: recvmsg: increase message buffer size for recvmsg() to %d bytes", buf_size);
+				if (nl_socket_set_msg_buf_size (sk, buf_size) < 0)
+					nm_assert_not_reached ();
+				if (!handle_events)
+					goto continue_reading;
+			}
 		}
-		n = -_NLE_MSG_TRUNC;
-		break;
-	}
-	case -NLE_NOMEM:
-		if (errno == ENOBUFS) {
-			/* we are very much interested in a overrun of the receive buffer.
-			 * nl_recv() maps all kinds of errors to NLE_NOMEM, so check also
-			 * for errno explicitly. And if so, hack our own return code to signal
-			 * the overrun. */
-			n = -_NLE_NM_NOBUFS;
-		}
-		break;
-	}
 
-	if (n <= 0)
 		return n;
+	}
 
 	hdr = (struct nlmsghdr *) buf;
 	while (nlmsg_ok (hdr, n)) {
@@ -6659,12 +6611,9 @@ continue_reading:
 		gboolean process_valid_msg = FALSE;
 		guint32 seq_number;
 		char buf_nlmsghdr[400];
+		const char *extack_msg = NULL;
 
-		msg = nlmsg_convert (hdr);
-		if (!msg) {
-			err = -NLE_NOMEM;
-			goto out;
-		}
+		msg = nlmsg_alloc_convert (hdr);
 
 		nlmsg_set_proto (msg, NETLINK_ROUTE);
 		nlmsg_set_src (msg, &nla);
@@ -6679,13 +6628,13 @@ continue_reading:
 		}
 
 		_LOGt ("netlink: recvmsg: new message %s",
-		       _nl_nlmsghdr_to_str (hdr, buf_nlmsghdr, sizeof (buf_nlmsghdr)));
+		       nl_nlmsghdr_to_str (hdr, buf_nlmsghdr, sizeof (buf_nlmsghdr)));
 
 		if (creds)
 			nlmsg_set_creds (msg, creds);
 
 		if (hdr->nlmsg_flags & NLM_F_MULTI)
-			multipart = 1;
+			multipart = TRUE;
 
 		if (hdr->nlmsg_flags & NLM_F_DUMP_INTR) {
 			/*
@@ -6693,7 +6642,7 @@ continue_reading:
 			 * all messages until a NLMSG_DONE is
 			 * received and report the inconsistency.
 			 */
-			interrupted = 1;
+			interrupted = TRUE;
 		}
 
 		/* Other side wishes to see an ack for this message */
@@ -6708,7 +6657,7 @@ continue_reading:
 			 * usually the end of a message and therefore we slip
 			 * out of the loop by default. the user may overrule
 			 * this action by skipping this packet. */
-			multipart = 0;
+			multipart = FALSE;
 			seq_result = WAIT_FOR_NL_RESPONSE_RESULT_RESPONSE_OK;
 		} else if (hdr->nlmsg_type == NLMSG_NOOP) {
 			/* Message to be ignored, the default action is to
@@ -6735,10 +6684,28 @@ continue_reading:
 			} else if (e->error) {
 				int errsv = e->error > 0 ? e->error : -e->error;
 
+				if (   NM_FLAGS_HAS (hdr->nlmsg_flags, NLM_F_ACK_TLVS)
+				    && hdr->nlmsg_len >= sizeof (*e) + e->msg.nlmsg_len) {
+					static const struct nla_policy policy[NLMSGERR_ATTR_MAX + 1] = {
+						[NLMSGERR_ATTR_MSG]     = { .type = NLA_STRING },
+						[NLMSGERR_ATTR_OFFS]    = { .type = NLA_U32 },
+					};
+					struct nlattr *tb[NLMSGERR_ATTR_MAX + 1];
+					struct nlattr *tlvs;
+
+					tlvs = (struct nlattr *) ((char *) e + sizeof (*e) + e->msg.nlmsg_len - NLMSG_HDRLEN);
+					if (!nla_parse (tb, NLMSGERR_ATTR_MAX, tlvs,
+					                hdr->nlmsg_len - sizeof (*e) - e->msg.nlmsg_len, policy)) {
+						if (tb[NLMSGERR_ATTR_MSG])
+							extack_msg = nla_get_string (tb[NLMSGERR_ATTR_MSG]);
+					}
+				}
+
 				/* Error message reported back from kernel. */
-				_LOGD ("netlink: recvmsg: error message from kernel: %s (%d) for request %d",
+				_LOGD ("netlink: recvmsg: error message from kernel: %s (%d)%s%s%s for request %d",
 				       strerror (errsv),
 				       errsv,
+				       NM_PRINT_FMT_QUOTED (extack_msg, " \"", extack_msg, "\"", ""),
 				       nlmsg_hdr (msg)->nlmsg_seq);
 				seq_result = -errsv;
 			} else
@@ -6767,7 +6734,7 @@ continue_reading:
 			seq_result = WAIT_FOR_NL_RESPONSE_RESULT_RESPONSE_OK;
 		}
 
-		event_seq_check (platform, seq_number, seq_result);
+		event_seq_check (platform, seq_number, seq_result, extack_msg);
 
 		if (abort_parsing)
 			goto stop;
@@ -6787,9 +6754,9 @@ stop:
 		 * Repeat reading. */
 		goto continue_reading;
 	}
-out:
+
 	if (interrupted)
-		err = -NLE_DUMP_INTR;
+		return -NLE_DUMP_INTR;
 	return err;
 }
 
@@ -6800,46 +6767,50 @@ event_handler_read_netlink (NMPlatform *platform, gboolean wait_for_acks)
 {
 	nm_auto_pop_netns NMPNetns *netns = NULL;
 	NMLinuxPlatformPrivate *priv = NM_LINUX_PLATFORM_GET_PRIVATE (platform);
-	int r, nle;
+	int r;
 	struct pollfd pfd;
 	gboolean any = FALSE;
-	gint64 now_ns;
 	int timeout_ms;
-	guint i;
 	struct {
 		guint32 seq_number;
 		gint64 timeout_abs_ns;
-	} data_next;
+		gint64 now_ns;
+	} next;
 
-	if (!nm_platform_netns_push (platform, &netns))
+	if (!nm_platform_netns_push (platform, &netns)) {
+		delayed_action_wait_for_nl_response_complete_all (platform,
+		                                                  WAIT_FOR_NL_RESPONSE_RESULT_FAILED_SETNS);
 		return FALSE;
+	}
 
-	while (TRUE) {
-
-		while (TRUE) {
+	for (;;) {
+		for (;;) {
+			int nle;
 
 			nle = event_handler_recvmsgs (platform, TRUE);
 
 			if (nle < 0) {
 				switch (nle) {
-				case -NLE_AGAIN:
+				case -EAGAIN:
 					goto after_read;
 				case -NLE_DUMP_INTR:
 					_LOGD ("netlink: read: uncritical failure to retrieve incoming events: %s (%d)", nl_geterror (nle), nle);
 					break;
-				case -_NLE_MSG_TRUNC:
-				case -_NLE_NM_NOBUFS:
+				case -NLE_MSG_TRUNC:
+				case -ENOBUFS:
 					_LOGI ("netlink: read: %s. Need to resynchronize platform cache",
 					       ({
 					            const char *_reason = "unknown";
 					            switch (nle) {
-					            case -_NLE_MSG_TRUNC: _reason = "message truncated";       break;
-					            case -_NLE_NM_NOBUFS: _reason = "too many netlink events"; break;
+					            case -NLE_MSG_TRUNC: _reason = "message truncated";       break;
+					            case -ENOBUFS:       _reason = "too many netlink events"; break;
 					            }
 					            _reason;
 					       }));
 					event_handler_recvmsgs (platform, FALSE);
-					delayed_action_wait_for_nl_response_complete_all (platform, WAIT_FOR_NL_RESPONSE_RESULT_FAILED_RESYNC);
+					delayed_action_wait_for_nl_response_complete_all (platform,
+					                                                  WAIT_FOR_NL_RESPONSE_RESULT_FAILED_RESYNC);
+
 					delayed_action_schedule (platform,
 					                         DELAYED_ACTION_TYPE_REFRESH_ALL_LINKS |
 					                         DELAYED_ACTION_TYPE_REFRESH_ALL_IP4_ADDRESSES |
@@ -6863,39 +6834,23 @@ after_read:
 		if (!NM_FLAGS_HAS (priv->delayed_action.flags, DELAYED_ACTION_TYPE_WAIT_FOR_NL_RESPONSE))
 			return any;
 
-		now_ns = 0;
-		data_next.seq_number = 0;
-		data_next.timeout_abs_ns = 0;
-
-		for (i = 0; i < priv->delayed_action.list_wait_for_nl_response->len; ) {
-			DelayedActionWaitForNlResponseData *data = &g_array_index (priv->delayed_action.list_wait_for_nl_response, DelayedActionWaitForNlResponseData, i);
-
-			if (data->seq_result)
-				delayed_action_wait_for_nl_response_complete (platform, i, data->seq_result);
-			else if ((now_ns ?: (now_ns = nm_utils_get_monotonic_timestamp_ns ())) > data->timeout_abs_ns)
-				delayed_action_wait_for_nl_response_complete (platform, i, WAIT_FOR_NL_RESPONSE_RESULT_FAILED_TIMEOUT);
-			else {
-				i++;
-
-				if (   data_next.seq_number == 0
-				    || data_next.timeout_abs_ns > data->timeout_abs_ns) {
-					data_next.seq_number = data->seq_number;
-					data_next.timeout_abs_ns = data->timeout_abs_ns;
-				}
-			}
-		}
+		delayed_action_wait_for_nl_response_complete_check (platform,
+		                                                    WAIT_FOR_NL_RESPONSE_RESULT_UNKNOWN,
+		                                                    &next.seq_number,
+		                                                    &next.timeout_abs_ns,
+		                                                    &next.now_ns);
 
 		if (   !wait_for_acks
 		    || !NM_FLAGS_HAS (priv->delayed_action.flags, DELAYED_ACTION_TYPE_WAIT_FOR_NL_RESPONSE))
 			return any;
 
-		nm_assert (data_next.seq_number);
-		nm_assert (data_next.timeout_abs_ns > 0);
-		nm_assert (now_ns > 0);
+		nm_assert (next.seq_number);
+		nm_assert (next.now_ns > 0);
+		nm_assert (next.timeout_abs_ns > next.now_ns);
 
-		_LOGT ("netlink: read: wait for ACK for sequence number %u...", data_next.seq_number);
+		_LOGT ("netlink: read: wait for ACK for sequence number %u...", next.seq_number);
 
-		timeout_ms = (data_next.timeout_abs_ns - now_ns) / (NM_UTILS_NS_PER_SECOND / 1000);
+		timeout_ms = (next.timeout_abs_ns - next.now_ns) / (NM_UTILS_NS_PER_SECOND / 1000);
 
 		memset (&pfd, 0, sizeof (pfd));
 		pfd.fd = nl_socket_get_fd (priv->nlh);
@@ -6906,6 +6861,7 @@ after_read:
 			/* timeout and there is nothing to read. */
 			goto after_read;
 		}
+
 		if (r < 0) {
 			int errsv = errno;
 
@@ -7032,7 +6988,7 @@ handle_udev_event (NMUdevClient *udev_client,
 	seqnum = udev_device_get_seqnum (udevice);
 	_LOGD ("UDEV event: action '%s' subsys '%s' device '%s' (%s); seqnum=%" G_GUINT64_FORMAT,
 	        action, subsys, udev_device_get_sysname (udevice),
-	        ifindex ? ifindex : "unknown", seqnum);
+	        ifindex ?: "unknown", seqnum);
 
 	if (NM_IN_STRSET (action, "add", "move"))
 		udev_device_added (platform, udevice);
@@ -7047,11 +7003,10 @@ nm_linux_platform_init (NMLinuxPlatform *self)
 {
 	NMLinuxPlatformPrivate *priv = NM_LINUX_PLATFORM_GET_PRIVATE (self);
 
-	priv->nlh_seq_next = 1;
 	priv->delayed_action.list_master_connected = g_ptr_array_new ();
 	priv->delayed_action.list_refresh_link = g_ptr_array_new ();
 	priv->delayed_action.list_wait_for_nl_response = g_array_new (FALSE, TRUE, sizeof (DelayedActionWaitForNlResponseData));
-	priv->wifi_data = g_hash_table_new_full (NULL, NULL, NULL, (GDestroyNotify) wifi_utils_deinit);
+	priv->wifi_data = g_hash_table_new_full (nm_direct_hash, NULL, NULL, (GDestroyNotify) wifi_utils_unref);
 }
 
 static void
@@ -7096,6 +7051,10 @@ constructed (GObject *_object)
 	/* use 8 MB for receive socket kernel queue. */
 	nle = nl_socket_set_buffer_size (priv->nlh, 8*1024*1024, 0);
 	g_assert (!nle);
+
+	nle = nl_socket_set_ext_ack (priv->nlh, TRUE);
+	if (nle)
+		_LOGD ("could not enable extended acks on netlink socket");
 
 	/* explicitly set the msg buffer size and disable MSG_PEEK.
 	 * If we later encounter NLE_MSG_TRUNC, we will adjust the buffer size. */
@@ -7176,7 +7135,8 @@ dispose (GObject *object)
 
 	_LOGD ("dispose");
 
-	delayed_action_wait_for_nl_response_complete_all (platform, WAIT_FOR_NL_RESPONSE_RESULT_FAILED_DISPOSING);
+	delayed_action_wait_for_nl_response_complete_all (platform,
+	                                                  WAIT_FOR_NL_RESPONSE_RESULT_FAILED_DISPOSING);
 
 	priv->delayed_action.flags = DELAYED_ACTION_TYPE_NONE;
 	g_ptr_array_set_size (priv->delayed_action.list_master_connected, 0);
@@ -7226,6 +7186,7 @@ nm_linux_platform_class_init (NMLinuxPlatformClass *klass)
 	platform_class->link_add = link_add;
 	platform_class->link_delete = link_delete;
 
+	platform_class->refresh_all = refresh_all;
 	platform_class->link_refresh = link_refresh;
 
 	platform_class->link_set_netns = link_set_netns;
@@ -7264,8 +7225,6 @@ nm_linux_platform_class_init (NMLinuxPlatformClass *klass)
 	platform_class->link_vlan_change = link_vlan_change;
 	platform_class->link_vxlan_add = link_vxlan_add;
 
-	platform_class->tun_add = tun_add;
-
 	platform_class->infiniband_partition_add = infiniband_partition_add;
 	platform_class->infiniband_partition_delete = infiniband_partition_delete;
 
@@ -7279,6 +7238,7 @@ nm_linux_platform_class_init (NMLinuxPlatformClass *klass)
 	platform_class->wifi_set_powersave = wifi_set_powersave;
 	platform_class->wifi_find_frequency = wifi_find_frequency;
 	platform_class->wifi_indicate_addressing_running = wifi_indicate_addressing_running;
+	platform_class->wifi_set_wake_on_wlan = wifi_set_wake_on_wlan;
 
 	platform_class->mesh_get_channel = mesh_get_channel;
 	platform_class->mesh_set_channel = mesh_set_channel;
@@ -7290,6 +7250,7 @@ nm_linux_platform_class_init (NMLinuxPlatformClass *klass)
 	platform_class->link_macvlan_add = link_macvlan_add;
 	platform_class->link_ipip_add = link_ipip_add;
 	platform_class->link_sit_add = link_sit_add;
+	platform_class->link_tun_add = link_tun_add;
 
 	platform_class->object_delete = object_delete;
 	platform_class->ip4_address_add = ip4_address_add;

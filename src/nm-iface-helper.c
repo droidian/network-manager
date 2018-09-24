@@ -33,6 +33,8 @@
 #include <signal.h>
 #include <linux/rtnetlink.h>
 
+#include "nm-utils/nm-c-list.h"
+
 #include "main-utils.h"
 #include "NetworkManagerUtils.h"
 #include "platform/nm-linux-platform.h"
@@ -55,6 +57,9 @@
 static struct {
 	GMainLoop *main_loop;
 	int ifindex;
+
+	guint dad_failed_id;
+	CList dad_failed_lst_head;
 } gl/*obal*/ = {
 	.ifindex = -1,
 };
@@ -120,7 +125,7 @@ dhcp4_state_changed (NMDhcpClient *client,
 		g_assert (nm_ip4_config_get_ifindex (ip4_config) == gl.ifindex);
 
 		existing = nm_ip4_config_capture (nm_platform_get_multi_idx (NM_PLATFORM_GET),
-		                                  NM_PLATFORM_GET, gl.ifindex, FALSE);
+		                                  NM_PLATFORM_GET, gl.ifindex);
 		if (last_config)
 			nm_ip4_config_subtract (existing, last_config, 0);
 
@@ -166,7 +171,7 @@ ndisc_config_changed (NMNDisc *ndisc, const NMNDiscData *rdata, guint changed_in
 	NMIP6Config *existing;
 
 	existing = nm_ip6_config_capture (nm_platform_get_multi_idx (NM_PLATFORM_GET),
-	                                  NM_PLATFORM_GET, gl.ifindex, FALSE, global_opt.tempaddr);
+	                                  NM_PLATFORM_GET, gl.ifindex, global_opt.tempaddr);
 	if (ndisc_config)
 		nm_ip6_config_subtract (existing, ndisc_config, 0);
 	else {
@@ -316,19 +321,59 @@ do_early_setup (int *argc, char **argv[])
 	return TRUE;
 }
 
+typedef struct {
+	NMPlatform *platform;
+	NMNDisc *ndisc;
+} DadFailedHandleData;
+
+static gboolean
+dad_failed_handle_idle (gpointer user_data)
+{
+	DadFailedHandleData *data = user_data;
+	NMCListElem *elem;
+
+	while ((elem = c_list_first_entry (&gl.dad_failed_lst_head, NMCListElem, lst))) {
+		nm_auto_nmpobj const NMPObject *obj = elem->data;
+
+		nm_c_list_elem_free (elem);
+
+		if (nm_ndisc_dad_addr_is_fail_candidate (data->platform, obj)) {
+			nm_ndisc_dad_failed (data->ndisc,
+			                     &NMP_OBJECT_CAST_IP6_ADDRESS (obj)->address,
+			                     TRUE);
+		}
+	}
+
+	gl.dad_failed_id = 0;
+	return G_SOURCE_REMOVE;
+}
+
 static void
 ip6_address_changed (NMPlatform *platform,
                      int obj_type_i,
                      int iface,
-                     NMPlatformIP6Address *addr,
+                     const NMPlatformIP6Address *addr,
                      int change_type_i,
                      NMNDisc *ndisc)
 {
 	const NMPlatformSignalChangeType change_type = change_type_i;
+	DadFailedHandleData *data;
 
-	if (   (change_type == NM_PLATFORM_SIGNAL_CHANGED && addr->n_ifa_flags & IFA_F_DADFAILED)
-	    || (change_type == NM_PLATFORM_SIGNAL_REMOVED && addr->n_ifa_flags & IFA_F_TENTATIVE))
-		nm_ndisc_dad_failed (ndisc, &addr->address);
+	if (!nm_ndisc_dad_addr_is_fail_candidate_event (change_type, addr))
+		return;
+
+	c_list_link_tail (&gl.dad_failed_lst_head,
+	                  &nm_c_list_elem_new_stale ((gpointer) nmp_object_ref (NMP_OBJECT_UP_CAST (addr)))->lst);
+	if (gl.dad_failed_id)
+		return;
+
+	data = g_slice_new (DadFailedHandleData);
+	data->platform = platform;
+	data->ndisc = ndisc;
+	gl.dad_failed_id = g_idle_add_full (G_PRIORITY_DEFAULT_IDLE,
+	                                    dad_failed_handle_idle,
+	                                    data,
+	                                    nm_g_slice_free_fcn (DadFailedHandleData));
 }
 
 int
@@ -340,14 +385,13 @@ main (int argc, char *argv[])
 	gs_free char *pidfile = NULL;
 	gs_unref_object NMDhcpClient *dhcp4_client = NULL;
 	gs_unref_object NMNDisc *ndisc = NULL;
-	GByteArray *hwaddr = NULL;
-	size_t hwaddr_len = 0;
-	gconstpointer tmp;
+	gs_unref_bytes GBytes *hwaddr = NULL;
+	gs_unref_bytes GBytes *client_id = NULL;
 	gs_free NMUtilsIPv6IfaceId *iid = NULL;
 	guint sd_id;
 	char sysctl_path_buf[NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE];
 
-	nm_g_type_init ();
+	c_list_init (&gl.dad_failed_lst_head);
 
 	setpgid (getpid (), getpid ());
 
@@ -431,11 +475,7 @@ main (int argc, char *argv[])
 	/* Set up platform interaction layer */
 	nm_linux_platform_setup ();
 
-	tmp = nm_platform_link_get_address (NM_PLATFORM_GET, gl.ifindex, &hwaddr_len);
-	if (tmp) {
-		hwaddr = g_byte_array_sized_new (hwaddr_len);
-		g_byte_array_append (hwaddr, tmp, hwaddr_len);
-	}
+	hwaddr = nm_platform_link_get_address_as_bytes (NM_PLATFORM_GET, gl.ifindex);
 
 	if (global_opt.iid_str) {
 		GBytes *bytes;
@@ -447,6 +487,16 @@ main (int argc, char *argv[])
 			return 1;
 		}
 		iid = g_bytes_unref_to_data (bytes, &ignored);
+	}
+
+	if (global_opt.dhcp4_clientid) {
+		/* this string is just a plain hex-string. Unlike ipv4.dhcp-client-id, which
+		 * is parsed via nm_dhcp_utils_client_id_string_to_bytes(). */
+		client_id = nm_utils_hexstr2bin (global_opt.dhcp4_clientid);
+		if (!client_id || g_bytes_get_size (client_id) < 2) {
+			fprintf (stderr, _("(%s): Invalid DHCP client-id %s\n"), global_opt.ifname, global_opt.dhcp4_clientid);
+			return 1;
+		}
 	}
 
 	if (global_opt.dhcp4_address) {
@@ -463,7 +513,7 @@ main (int argc, char *argv[])
 		                                          !!global_opt.dhcp4_hostname,
 		                                          global_opt.dhcp4_hostname,
 		                                          global_opt.dhcp4_fqdn,
-		                                          global_opt.dhcp4_clientid,
+		                                          client_id,
 		                                          NM_DHCP_TIMEOUT_DEFAULT,
 		                                          NULL,
 		                                          global_opt.dhcp4_address);
@@ -523,7 +573,8 @@ main (int argc, char *argv[])
 
 	g_main_loop_run (gl.main_loop);
 
-	g_clear_pointer (&hwaddr, g_byte_array_unref);
+	nm_clear_g_source (&gl.dad_failed_id);
+	nm_c_list_elem_free_all (&gl.dad_failed_lst_head, (GDestroyNotify) nmp_object_unref);
 
 	if (pidfile && wrote_pidfile)
 		unlink (pidfile);
@@ -547,7 +598,7 @@ const NMDhcpClientFactory *const _nm_dhcp_manager_factories[4] = {
 #include "nm-config.h"
 #include "devices/nm-device.h"
 #include "nm-active-connection.h"
-#include "nm-bus-manager.h"
+#include "nm-dbus-manager.h"
 
 void
 nm_main_config_reload (int signal)
@@ -579,21 +630,40 @@ nm_config_get_configure_and_quit (NMConfig *config)
 	return TRUE;
 }
 
-NMBusManager *
-nm_bus_manager_get (void)
+NMDBusManager *
+nm_dbus_manager_get (void)
 {
-	return GUINT_TO_POINTER (1);
+	return NULL;
+}
+
+gboolean
+nm_dbus_manager_is_stopping (NMDBusManager *self)
+{
+	return FALSE;
 }
 
 void
-nm_bus_manager_register_object (NMBusManager *bus_manager,
-                                GDBusObjectSkeleton *object)
+_nm_dbus_manager_obj_export (NMDBusObject *obj)
 {
 }
 
 void
-nm_bus_manager_unregister_object (NMBusManager *bus_manager,
-                                  GDBusObjectSkeleton *object)
+_nm_dbus_manager_obj_unexport (NMDBusObject *obj)
+{
+}
+
+void
+_nm_dbus_manager_obj_notify (NMDBusObject *obj,
+                             guint n_pspecs,
+                             const GParamSpec *const*pspecs)
+{
+}
+
+void
+_nm_dbus_manager_obj_emit_signal (NMDBusObject *obj,
+                                  const NMDBusInterfaceInfoExtended *interface_info,
+                                  const GDBusSignalInfo *signal_info,
+                                  GVariant *args)
 {
 }
 

@@ -337,7 +337,7 @@ device_ip6_prefix_delegated (NMDevice *device,
 		/* Allocate a delegation delegation for new prefix. */
 		g_array_set_size (priv->ip6_prefix_delegations, i + 1);
 		delegation = &g_array_index (priv->ip6_prefix_delegations, IP6PrefixDelegation, i);
-		delegation->subnets = g_hash_table_new (NULL, NULL);
+		delegation->subnets = g_hash_table_new (nm_direct_hash, NULL);
 		delegation->next_subnet = 0;
 	}
 
@@ -385,7 +385,8 @@ get_best_ip_device (NMPolicy *self,
                     gboolean fully_activated)
 {
 	NMPolicyPrivate *priv = NM_POLICY_GET_PRIVATE (self);
-	const GSList *iter;
+	const CList *tmp_lst;
+	NMDevice *device;
 	NMDevice *best_device;
 	NMDevice *prev_device;
 	guint32 best_metric = G_MAXUINT32;
@@ -400,8 +401,7 @@ get_best_ip_device (NMPolicy *self,
 	              ? (fully_activated ? priv->default_device4 : priv->activating_device4)
 	              : (fully_activated ? priv->default_device6 : priv->activating_device6);
 
-	for (iter = nm_manager_get_devices (priv->manager); iter; iter = iter->next) {
-		NMDevice *device = NM_DEVICE (iter->data);
+	nm_manager_for_each_device (priv->manager, device, tmp_lst) {
 		NMDeviceState state;
 		const NMPObject *r;
 		NMConnection *connection;
@@ -418,7 +418,7 @@ get_best_ip_device (NMPolicy *self,
 
 		r = nm_device_get_best_default_route (device, addr_family);
 		if (r) {
-			/* XXX: the best route might have rt_source NM_IP_CONFIG_SOURCE_VPN,
+			/* NOTE: the best route might have rt_source NM_IP_CONFIG_SOURCE_VPN,
 			 * which means it was injected by a VPN, not added by device.
 			 *
 			 * In this case, is it really the best device? Why do we even need the best
@@ -461,15 +461,15 @@ static gboolean
 all_devices_not_active (NMPolicy *self)
 {
 	NMPolicyPrivate *priv = NM_POLICY_GET_PRIVATE (self);
-	const GSList *iter = nm_manager_get_devices (priv->manager);
+	const CList *tmp_lst;
+	NMDevice *device;
 
-	while (iter != NULL) {
+	nm_manager_for_each_device (priv->manager, device, tmp_lst) {
 		NMDeviceState state;
 
-		state = nm_device_get_state (NM_DEVICE (iter->data));
+		state = nm_device_get_state (device);
 		if (   state <= NM_DEVICE_STATE_DISCONNECTED
 		    || state >= NM_DEVICE_STATE_DEACTIVATING) {
-			iter = g_slist_next (iter);
 			continue;
 		}
 		return FALSE;
@@ -1065,22 +1065,19 @@ update_ip_dns (NMPolicy *self, int addr_family)
 	gpointer ip_config;
 	const char *ip_iface = NULL;
 	NMVpnConnection *vpn = NULL;
-	NMDnsIPConfigType dns_type = NM_DNS_IP_CONFIG_TYPE_BEST_DEVICE;
 
 	nm_assert_addr_family (addr_family);
 
 	ip_config = get_best_ip_config (self, addr_family, &ip_iface, NULL, NULL, &vpn);
 	if (ip_config) {
-		if (vpn)
-			dns_type = NM_DNS_IP_CONFIG_TYPE_VPN;
-
 		/* Tell the DNS manager this config is preferred by re-adding it with
 		 * a different IP config type.
 		 */
-		nm_dns_manager_add_ip_config (NM_POLICY_GET_PRIVATE (self)->dns_manager,
-		                              ip_iface,
+		nm_dns_manager_set_ip_config (NM_POLICY_GET_PRIVATE (self)->dns_manager,
 		                              ip_config,
-		                              dns_type);
+		                              vpn
+		                                ? NM_DNS_IP_CONFIG_TYPE_VPN
+		                                : NM_DNS_IP_CONFIG_TYPE_BEST_DEVICE);
 	}
 
 	if (addr_family == AF_INET6)
@@ -1172,9 +1169,11 @@ pending_ac_state_changed (NMActiveConnection *ac, guint state, guint reason, NMP
 		 * device, but block the current connection to avoid an activation
 		 * loop.
 		 */
-		con = nm_active_connection_get_settings_connection (ac);
-		nm_settings_connection_autoconnect_blocked_reason_set (con, NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_FAILED, TRUE);
-		schedule_activate_check (self, nm_active_connection_get_device (ac));
+		if (reason != NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_DISCONNECTED) {
+			con = nm_active_connection_get_settings_connection (ac);
+			nm_settings_connection_autoconnect_blocked_reason_set (con, NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_FAILED, TRUE);
+			schedule_activate_check (self, nm_active_connection_get_device (ac));
+		}
 
 		/* Cleanup */
 		g_signal_handlers_disconnect_by_func (ac, pending_ac_state_changed, self);
@@ -1195,7 +1194,7 @@ auto_activate_device (NMPolicy *self,
 	gs_free NMSettingsConnection **connections = NULL;
 	guint i, len;
 	gs_free_error GError *error = NULL;
-	NMAuthSubject *subject;
+	gs_unref_object NMAuthSubject *subject = NULL;
 	NMActiveConnection *ac;
 
 	nm_assert (NM_IS_POLICY (self));
@@ -1245,8 +1244,10 @@ auto_activate_device (NMPolicy *self,
 	if (!best_connection)
 		return;
 
-	_LOGI (LOGD_DEVICE, "auto-activating connection '%s'",
-	       nm_settings_connection_get_id (best_connection));
+	_LOGI (LOGD_DEVICE, "auto-activating connection '%s' (%s)",
+	       nm_settings_connection_get_id (best_connection),
+	       nm_settings_connection_get_uuid (best_connection));
+
 	subject = nm_auth_subject_new_internal ();
 	ac = nm_manager_activate_connection (priv->manager,
 	                                     best_connection,
@@ -1272,13 +1273,11 @@ auto_activate_device (NMPolicy *self,
 	 * activation fails in early stages without changing device
 	 * state.
 	 */
-	if (nm_g_hash_table_add (priv->pending_active_connections, ac)) {
+	if (g_hash_table_add (priv->pending_active_connections, ac)) {
 		g_signal_connect (ac, NM_ACTIVE_CONNECTION_STATE_CHANGED,
 		                  G_CALLBACK (pending_ac_state_changed), g_object_ref (self));
 		g_object_weak_ref (G_OBJECT (ac), (GWeakNotify) pending_ac_gone, self);
 	}
-
-	g_object_unref (subject);
 }
 
 static gboolean
@@ -1362,7 +1361,7 @@ process_secondaries (NMPolicy *self,
 			if (connected) {
 				_LOGD (LOGD_DEVICE, "secondary connection '%s' succeeded; active path '%s'",
 				       nm_active_connection_get_settings_connection_id (active),
-				       nm_exported_object_get_path (NM_EXPORTED_OBJECT (active)));
+				       nm_dbus_object_get_path (NM_DBUS_OBJECT (active)));
 
 				/* Secondary connection activated */
 				secondary_data->secondaries = g_slist_remove (secondary_data->secondaries, secondary_active);
@@ -1378,7 +1377,7 @@ process_secondaries (NMPolicy *self,
 			} else {
 				_LOGD (LOGD_DEVICE, "secondary connection '%s' failed; active path '%s'",
 				       nm_active_connection_get_settings_connection_id (active),
-				       nm_exported_object_get_path (NM_EXPORTED_OBJECT (active)));
+				       nm_dbus_object_get_path (NM_DBUS_OBJECT (active)));
 
 				/* Secondary connection failed -> do not watch other connections */
 				priv->pending_secondaries = g_slist_remove (priv->pending_secondaries, secondary_data);
@@ -1674,7 +1673,7 @@ activate_secondary_connections (NMPolicy *self,
 		ac = nm_manager_activate_connection (priv->manager,
 		                                     settings_con,
 		                                     NULL,
-		                                     nm_exported_object_get_path (NM_EXPORTED_OBJECT (req)),
+		                                     nm_dbus_object_get_path (NM_DBUS_OBJECT (req)),
 		                                     device,
 		                                     nm_active_connection_get_subject (NM_ACTIVE_CONNECTION (req)),
 		                                     NM_ACTIVATION_TYPE_MANAGED,
@@ -1713,7 +1712,6 @@ device_state_changed (NMDevice *device,
 	NMPolicy *self = _PRIV_TO_SELF (priv);
 	NMActiveConnection *ac;
 	NMSettingsConnection *connection = nm_device_get_settings_connection (device);
-	const char *ip_iface = nm_device_get_ip_iface (device);
 	NMIP4Config *ip4_config;
 	NMIP6Config *ip6_config;
 	NMSettingConnection *s_con = NULL;
@@ -1810,10 +1808,10 @@ device_state_changed (NMDevice *device,
 
 		ip4_config = nm_device_get_ip4_config (device);
 		if (ip4_config)
-			nm_dns_manager_add_ip_config (priv->dns_manager, ip_iface, ip4_config, NM_DNS_IP_CONFIG_TYPE_DEFAULT);
+			nm_dns_manager_set_ip_config (priv->dns_manager, NM_IP_CONFIG_CAST (ip4_config), NM_DNS_IP_CONFIG_TYPE_DEFAULT);
 		ip6_config = nm_device_get_ip6_config (device);
 		if (ip6_config)
-			nm_dns_manager_add_ip_config (priv->dns_manager, ip_iface, ip6_config, NM_DNS_IP_CONFIG_TYPE_DEFAULT);
+			nm_dns_manager_set_ip_config (priv->dns_manager, NM_IP_CONFIG_CAST (ip6_config), NM_DNS_IP_CONFIG_TYPE_DEFAULT);
 
 		update_routing_and_dns (self, FALSE);
 
@@ -1906,14 +1904,24 @@ device_state_changed (NMDevice *device,
 }
 
 static void
-device_ip4_config_changed (NMDevice *device,
-                           NMIP4Config *new_config,
-                           NMIP4Config *old_config,
-                           gpointer user_data)
+device_ip_config_changed (NMDevice *device,
+                          NMIPConfig *new_config,
+                          NMIPConfig *old_config,
+                          gpointer user_data)
 {
 	NMPolicyPrivate *priv = user_data;
 	NMPolicy *self = _PRIV_TO_SELF (priv);
-	const char *ip_iface = nm_device_get_ip_iface (device);
+	int addr_family;
+
+	nm_assert (new_config || old_config);
+	nm_assert (!new_config || NM_IS_IP_CONFIG (new_config, AF_UNSPEC));
+	nm_assert (!old_config || NM_IS_IP_CONFIG (old_config, AF_UNSPEC));
+
+	if (new_config) {
+		addr_family = nm_ip_config_get_addr_family (new_config);
+		nm_assert (!old_config || addr_family == nm_ip_config_get_addr_family (old_config));
+	} else
+		addr_family = nm_ip_config_get_addr_family (old_config);
 
 	nm_dns_manager_begin_updates (priv->dns_manager, __func__);
 
@@ -1924,54 +1932,24 @@ device_ip4_config_changed (NMDevice *device,
 	 */
 	if (nm_device_get_state (device) == NM_DEVICE_STATE_ACTIVATED) {
 		if (old_config != new_config) {
-			if (old_config)
-				nm_dns_manager_remove_ip_config (priv->dns_manager, old_config);
 			if (new_config)
-				nm_dns_manager_add_ip_config (priv->dns_manager, ip_iface, new_config, NM_DNS_IP_CONFIG_TYPE_DEFAULT);
+				nm_dns_manager_set_ip_config (priv->dns_manager, new_config, NM_DNS_IP_CONFIG_TYPE_DEFAULT);
+			if (old_config)
+				nm_dns_manager_set_ip_config (priv->dns_manager, old_config, NM_DNS_IP_CONFIG_TYPE_REMOVED);
 		}
-		update_ip_dns (self, AF_INET);
-		update_ip4_routing (self, TRUE);
-		update_system_hostname (self, "ip4 conf");
+		update_ip_dns (self, addr_family);
+		if (addr_family == AF_INET)
+			update_ip4_routing (self, TRUE);
+		else
+			update_ip6_routing (self, TRUE);
+		update_system_hostname (self,
+		                        addr_family == AF_INET
+		                          ? "ip4 conf"
+		                          : "ip6 conf");
 	} else {
 		/* Old configs get removed immediately */
 		if (old_config)
-			nm_dns_manager_remove_ip_config (priv->dns_manager, old_config);
-	}
-
-	nm_dns_manager_end_updates (priv->dns_manager, __func__);
-}
-
-static void
-device_ip6_config_changed (NMDevice *device,
-                           NMIP6Config *new_config,
-                           NMIP6Config *old_config,
-                           gpointer user_data)
-{
-	NMPolicyPrivate *priv = user_data;
-	NMPolicy *self = _PRIV_TO_SELF (priv);
-	const char *ip_iface = nm_device_get_ip_iface (device);
-
-	nm_dns_manager_begin_updates (priv->dns_manager, __func__);
-
-	/* We catch already all the IP events registering on the device state changes but
-	 * the ones where the IP changes but the device state keep stable (i.e., activated):
-	 * ignore IP config changes but when the device is in activated state.
-	 * Prevents unecessary changes to DNS information.
-	 */
-	if (nm_device_get_state (device) == NM_DEVICE_STATE_ACTIVATED) {
-		if (old_config != new_config) {
-			if (old_config)
-				nm_dns_manager_remove_ip_config (priv->dns_manager, old_config);
-			if (new_config)
-				nm_dns_manager_add_ip_config (priv->dns_manager, ip_iface, new_config, NM_DNS_IP_CONFIG_TYPE_DEFAULT);
-		}
-		update_ip_dns (self, AF_INET6);
-		update_ip6_routing (self, TRUE);
-		update_system_hostname (self, "ip6 conf");
-	} else {
-		/* Old configs get removed immediately */
-		if (old_config)
-			nm_dns_manager_remove_ip_config (priv->dns_manager, old_config);
+			nm_dns_manager_set_ip_config (priv->dns_manager, old_config, NM_DNS_IP_CONFIG_TYPE_REMOVED);
 	}
 
 	nm_dns_manager_end_updates (priv->dns_manager, __func__);
@@ -2014,8 +1992,8 @@ devices_list_register (NMPolicy *self, NMDevice *device)
 
 	/* Connect state-changed with _after, so that the handler is invoked after other handlers. */
 	g_signal_connect_after (device, NM_DEVICE_STATE_CHANGED,          (GCallback) device_state_changed, priv);
-	g_signal_connect       (device, NM_DEVICE_IP4_CONFIG_CHANGED,     (GCallback) device_ip4_config_changed, priv);
-	g_signal_connect       (device, NM_DEVICE_IP6_CONFIG_CHANGED,     (GCallback) device_ip6_config_changed, priv);
+	g_signal_connect       (device, NM_DEVICE_IP4_CONFIG_CHANGED,     (GCallback) device_ip_config_changed, priv);
+	g_signal_connect       (device, NM_DEVICE_IP6_CONFIG_CHANGED,     (GCallback) device_ip_config_changed, priv);
 	g_signal_connect       (device, NM_DEVICE_IP6_PREFIX_DELEGATED,   (GCallback) device_ip6_prefix_delegated, priv);
 	g_signal_connect       (device, NM_DEVICE_IP6_SUBNET_NEEDED,      (GCallback) device_ip6_subnet_needed, priv);
 	g_signal_connect       (device, "notify::" NM_DEVICE_AUTOCONNECT, (GCallback) device_autoconnect_changed, priv);
@@ -2032,7 +2010,7 @@ device_added (NMManager *manager, NMDevice *device, gpointer user_data)
 
 	priv = NM_POLICY_GET_PRIVATE (self);
 
-	if (!nm_g_hash_table_add (priv->devices, device))
+	if (!g_hash_table_add (priv->devices, device))
 		g_return_if_reached ();
 
 	devices_list_register (self, device);
@@ -2070,21 +2048,16 @@ vpn_connection_activated (NMPolicy *self, NMVpnConnection *vpn)
 	NMPolicyPrivate *priv = NM_POLICY_GET_PRIVATE (self);
 	NMIP4Config *ip4_config;
 	NMIP6Config *ip6_config;
-	const char *ip_iface;
 
 	nm_dns_manager_begin_updates (priv->dns_manager, __func__);
 
-	ip_iface = nm_vpn_connection_get_ip_iface (vpn, TRUE);
-
-	/* Add the VPN connection's IP configs from DNS */
-
 	ip4_config = nm_vpn_connection_get_ip4_config (vpn);
 	if (ip4_config)
-		nm_dns_manager_add_ip_config (priv->dns_manager, ip_iface, ip4_config, NM_DNS_IP_CONFIG_TYPE_VPN);
+		nm_dns_manager_set_ip_config (priv->dns_manager, NM_IP_CONFIG_CAST (ip4_config), NM_DNS_IP_CONFIG_TYPE_VPN);
 
 	ip6_config = nm_vpn_connection_get_ip6_config (vpn);
 	if (ip6_config)
-		nm_dns_manager_add_ip_config (priv->dns_manager, ip_iface, ip6_config, NM_DNS_IP_CONFIG_TYPE_VPN);
+		nm_dns_manager_set_ip_config (priv->dns_manager, NM_IP_CONFIG_CAST (ip6_config), NM_DNS_IP_CONFIG_TYPE_VPN);
 
 	update_routing_and_dns (self, TRUE);
 
@@ -2101,16 +2074,12 @@ vpn_connection_deactivated (NMPolicy *self, NMVpnConnection *vpn)
 	nm_dns_manager_begin_updates (priv->dns_manager, __func__);
 
 	ip4_config = nm_vpn_connection_get_ip4_config (vpn);
-	if (ip4_config) {
-		/* Remove the VPN connection's IP4 config from DNS */
-		nm_dns_manager_remove_ip_config (priv->dns_manager, ip4_config);
-	}
+	if (ip4_config)
+		nm_dns_manager_set_ip_config (priv->dns_manager, NM_IP_CONFIG_CAST (ip4_config), NM_DNS_IP_CONFIG_TYPE_REMOVED);
 
 	ip6_config = nm_vpn_connection_get_ip6_config (vpn);
-	if (ip6_config) {
-		/* Remove the VPN connection's IP6 config from DNS */
-		nm_dns_manager_remove_ip_config (priv->dns_manager, ip6_config);
-	}
+	if (ip6_config)
+		nm_dns_manager_set_ip_config (priv->dns_manager, NM_IP_CONFIG_CAST (ip6_config), NM_DNS_IP_CONFIG_TYPE_REMOVED);
 
 	update_routing_and_dns (self, TRUE);
 
@@ -2154,7 +2123,7 @@ vpn_connection_retry_after_failure (NMVpnConnection *vpn, NMPolicy *self)
 	                                     &error)) {
 		_LOGW (LOGD_DEVICE, "VPN '%s' reconnect failed: %s",
 		       nm_settings_connection_get_id (connection),
-		       error->message ? error->message : "unknown");
+		       error->message ?: "unknown");
 		g_clear_error (&error);
 	}
 }
@@ -2220,12 +2189,13 @@ schedule_activate_all_cb (gpointer user_data)
 {
 	NMPolicy *self = user_data;
 	NMPolicyPrivate *priv = NM_POLICY_GET_PRIVATE (self);
-	const GSList *iter;
+	const CList *tmp_lst;
+	NMDevice *device;
 
 	priv->schedule_activate_all_id = 0;
 
-	for (iter = nm_manager_get_devices (priv->manager); iter; iter = g_slist_next (iter))
-		schedule_activate_check (self, iter->data);
+	nm_manager_for_each_device (priv->manager, device, tmp_lst)
+		schedule_activate_check (self, device);
 
 	return G_SOURCE_REMOVE;
 }
@@ -2259,7 +2229,8 @@ firewall_state_changed (NMFirewallManager *manager,
 {
 	NMPolicy *self = (NMPolicy *) user_data;
 	NMPolicyPrivate *priv = NM_POLICY_GET_PRIVATE (self);
-	const GSList *iter;
+	const CList *tmp_lst;
+	NMDevice *device;
 
 	if (initialized_now) {
 		/* the firewall manager was initializing, but all requests
@@ -2272,8 +2243,8 @@ firewall_state_changed (NMFirewallManager *manager,
 		return;
 
 	/* add interface of each device to correct zone */
-	for (iter = nm_manager_get_devices (priv->manager); iter; iter = g_slist_next (iter))
-		nm_device_update_firewall_zone (iter->data);
+	nm_manager_for_each_device (priv->manager, device, tmp_lst)
+		nm_device_update_firewall_zone (device);
 }
 
 static void
@@ -2318,14 +2289,13 @@ connection_updated (NMSettings *settings,
 {
 	NMPolicyPrivate *priv = user_data;
 	NMPolicy *self = _PRIV_TO_SELF (priv);
-	const GSList *iter;
+	const CList *tmp_lst;
 	NMDevice *device = NULL;
+	NMDevice *dev;
 
 	if (by_user) {
 		/* find device with given connection */
-		for (iter = nm_manager_get_devices (priv->manager); iter; iter = g_slist_next (iter)) {
-			NMDevice *dev = NM_DEVICE (iter->data);
-
+		nm_manager_for_each_device (priv->manager, dev, tmp_lst) {
 			if (nm_device_get_settings_connection (dev) == connection) {
 				device = dev;
 				break;
@@ -2353,10 +2323,9 @@ _deactivate_if_active (NMPolicy *self, NMSettingsConnection *connection)
 	nm_assert (NM_IS_SETTINGS_CONNECTION (connection));
 
 	nm_manager_for_each_active_connection (priv->manager, ac, tmp_list) {
-		NMActiveConnectionState state = nm_active_connection_get_state (ac);
 
 		if (   nm_active_connection_get_settings_connection (ac) == connection
-		    && (state <= NM_ACTIVE_CONNECTION_STATE_ACTIVATED)) {
+		    && (nm_active_connection_get_state (ac) <= NM_ACTIVE_CONNECTION_STATE_ACTIVATED)) {
 			if (!nm_manager_deactivate_connection (priv->manager,
 			                                       ac,
 			                                       NM_DEVICE_STATE_REASON_CONNECTION_REMOVED,
@@ -2391,7 +2360,7 @@ connection_flags_changed (NMSettings *settings,
 	NMPolicy *self = _PRIV_TO_SELF (priv);
 
 	if (NM_FLAGS_HAS (nm_settings_connection_get_flags (connection),
-	                  NM_SETTINGS_CONNECTION_FLAGS_VISIBLE)) {
+	                  NM_SETTINGS_CONNECTION_INT_FLAGS_VISIBLE)) {
 		if (!nm_settings_connection_autoconnect_is_blocked (connection))
 			schedule_activate_all (self);
 	} else
@@ -2523,8 +2492,8 @@ nm_policy_init (NMPolicy *self)
 	else /* default - full mode */
 		priv->hostname_mode = NM_POLICY_HOSTNAME_MODE_FULL;
 
-	priv->devices = g_hash_table_new (NULL, NULL);
-	priv->pending_active_connections = g_hash_table_new (NULL, NULL);
+	priv->devices = g_hash_table_new (nm_direct_hash, NULL);
+	priv->pending_active_connections = g_hash_table_new (nm_direct_hash, NULL);
 	priv->ip6_prefix_delegations = g_array_new (FALSE, FALSE, sizeof (IP6PrefixDelegation));
 	g_array_set_clear_func (priv->ip6_prefix_delegations, clear_ip6_prefix_delegation);
 }

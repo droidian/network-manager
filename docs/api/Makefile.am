@@ -62,7 +62,6 @@ content_files = \
 	dbus-org.freedesktop.NetworkManager.Device.Vlan.xml \
 	dbus-org.freedesktop.NetworkManager.Device.Adsl.xml \
 	dbus-org.freedesktop.NetworkManager.AgentManager.xml \
-	dbus-org.freedesktop.NetworkManager.Device.WiMax.xml \
 	dbus-org.freedesktop.NetworkManager.Device.IPTunnel.xml \
 	dbus-org.freedesktop.NetworkManager.Device.Tun.xml \
 	dbus-org.freedesktop.NetworkManager.Device.Bridge.xml \
@@ -101,7 +100,7 @@ include $(top_srcdir)/gtk-doc.make
 
 ####################################
 
-EXTRA_DIST += version.xml.in settings-spec.xsl $(GENERATED_FILES)
+EXTRA_DIST += version.xml.in settings-spec.xsl meson.build $(GENERATED_FILES)
 CLEANFILES += html/* tmpl/* xml/* \
 	NetworkManager-sections.txt \
 	NetworkManager-overrides.txt

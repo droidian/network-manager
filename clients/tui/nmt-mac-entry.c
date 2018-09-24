@@ -32,9 +32,7 @@
 
 #include <string.h>
 
-#include "NetworkManager.h"
 #include "nm-common-macros.h"
-
 
 G_DEFINE_TYPE (NmtMacEntry, nmt_mac_entry, NMT_TYPE_NEWT_ENTRY)
 

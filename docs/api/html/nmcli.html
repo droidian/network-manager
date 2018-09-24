@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="NetworkManager.conf.html" title="NetworkManager.conf">
 <link rel="next" href="nmcli-examples.html" title="nmcli-examples">
-<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.28 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -107,10 +107,16 @@
 </tr>
 <tr>
 <td><p><span class="term">  <code class="option">-c</code>  |   <code class="option">--colors</code>  { yes  |   no  |   auto } </span></p></td>
-<td><p>This option controls color output (using terminal escape sequences).
+<td>
+<p>This option controls color output (using terminal escape sequences).
           <code class="literal">yes</code> enables colors, <code class="literal">no</code> disables them,
           <code class="literal">auto</code> only produces colors when standard output is directed
-          to a terminal. The default value is <code class="literal">auto</code>.</p></td>
+          to a terminal. The default value is <code class="literal">auto</code>.</p>
+<p>The actual colors used are configured as described in
+          <span class="citerefentry"><span class="refentrytitle">terminal-colors.d</span>(5)</span>.
+          Please refer to the <a class="link" href="nmcli.html#colors" title="Colors">Colors</a> section for a
+          list of color names supported by <span class="command"><strong>nmcli</strong></span>.</p>
+</td>
 </tr>
 <tr>
 <td><p><span class="term">  <code class="option">-f</code>  |   <code class="option">--fields</code>  { <em class="replaceable"><code>field1</code></em>,<em class="replaceable"><code>field2</code></em>...  |   all  |   common } </span></p></td>
@@ -975,13 +981,20 @@
           <span class="command"><strong>wifi</strong></span>
            [
             <span class="command"><strong>list</strong></span>
+             [<code class="option">--rescan</code> |   <code class="option">auto</code>  |   <code class="option">no</code>  |   <code class="option">yes</code> ]
              [<code class="option">ifname</code> <em class="replaceable"><code>ifname</code></em>]
              [<code class="option">bssid</code> <em class="replaceable"><code>BSSID</code></em>]
           ]
         </span></p></td>
-<td><p>List available Wi-Fi access points. The <code class="option">ifname</code> and
+<td>
+<p>List available Wi-Fi access points. The <code class="option">ifname</code> and
           <code class="option">bssid</code> options can be used to list APs for a particular
-          interface or with a specific BSSID, respectively.</p></td>
+          interface or with a specific BSSID, respectively.</p>
+<p>By default, <span class="command"><strong>nmcli</strong></span> ensures that the access point list
+          is no older than 30 seconds and triggers a network scan if necessary. The
+          <code class="option">--rescan</code> can be used to either force or disable the scan
+          regardless of how fresh the access point list is.</p>
+</td>
 </tr>
 <tr>
 <td><p><span class="term">
@@ -2023,6 +2036,166 @@ It's equivalent to the <code class="literal">+bond.options 'option=value'</code>
 <br class="table-break">
 </div>
 <div class="refsect1">
+<a name="colors"></a><h2>Colors</h2>
+<p>Implicit coloring can be disabled by an empty file
+    <code class="filename">/etc/terminal-colors.d/nmcli.disable</code>.</p>
+<p>See <span class="citerefentry"><span class="refentrytitle">terminal-colors.d</span>(5)</span>
+    for more details about colorization configuration.
+    The logical color names supported by <span class="command"><strong>nmcli</strong></span> are:</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="option">connection-activated</code></span></p></td>
+<td><p>A connection that is active.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">connection-activating</code></span></p></td>
+<td><p>Connection that is being activated.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">connection-disconnecting</code></span></p></td>
+<td><p>Connection that is being disconnected.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">connection-invisible</code></span></p></td>
+<td><p>Connection whose details is the user not permitted to see.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">connectivity-full</code></span></p></td>
+<td><p>Conectivity state when Internet is reachable.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">connectivity-limited</code></span></p></td>
+<td><p>Conectivity state when only a local network reachable.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">connectivity-none</code></span></p></td>
+<td><p>Conectivity state when the network is disconnected.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">connectivity-portal</code></span></p></td>
+<td><p>Conectivity state when a captive portal hijacked the connection.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">connectivity-unknown</code></span></p></td>
+<td><p>Conectivity state when a connectivity check didn't run.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">device-activated</code></span></p></td>
+<td><p>Device that is connected.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">device-activating</code></span></p></td>
+<td><p>Device that is being configured.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">device-disconnected</code></span></p></td>
+<td><p>Device that is not connected.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">device-firmware-missing</code></span></p></td>
+<td><p>Warning of a missing device firmware.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">device-plugin-missing</code></span></p></td>
+<td><p>Warning of a missing device plugin.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">device-unavailable</code></span></p></td>
+<td><p>Device that is not available for activation.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">manager-running</code></span></p></td>
+<td><p>Notice that the NetworkManager daemon is available.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">manager-starting</code></span></p></td>
+<td><p>Notice that the NetworkManager daemon is being initially connected.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">manager-stopped</code></span></p></td>
+<td><p>Notice that the NetworkManager daemon is not available.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">permission-auth</code></span></p></td>
+<td><p>An action that requires user authentication to get permission.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">permission-no</code></span></p></td>
+<td><p>An action that is not permitted.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">permission-yes</code></span></p></td>
+<td><p>An action that is permitted.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">prompt</code></span></p></td>
+<td><p>Prompt in interactive mode.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">state-asleep</code></span></p></td>
+<td><p>Indication that NetworkManager in suspended state.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">state-connected-global</code></span></p></td>
+<td><p>Indication that NetworkManager in connected to Internet.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">state-connected-local</code></span></p></td>
+<td><p>Indication that NetworkManager in local network.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">state-connected-site</code></span></p></td>
+<td><p>Indication that NetworkManager in connected to networks other than Internet.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">state-connecting</code></span></p></td>
+<td><p>Indication that NetworkManager is establishing a network connection.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">state-disconnected</code></span></p></td>
+<td><p>Indication that NetworkManager is disconnected from a network.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">state-disconnecting</code></span></p></td>
+<td><p>Indication that NetworkManager is being disconnected from a network.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">wifi-signal-excellent</code></span></p></td>
+<td><p>Wi-Fi network with an excellent signal level.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">wifi-signal-fair</code></span></p></td>
+<td><p>Wi-Fi network with a fair signal level.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">wifi-signal-good</code></span></p></td>
+<td><p>Wi-Fi network with a good signal level.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">wifi-signal-poor</code></span></p></td>
+<td><p>Wi-Fi network with a poor signal level.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">wifi-signal-unknown</code></span></p></td>
+<td><p>Wi-Fi network that hasn't been actually seen (a hidden AP).</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">disabled</code></span></p></td>
+<td><p>A property that is turned off.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">enabled</code></span></p></td>
+<td><p>A property that is turned on.</p></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
 <a name="environment_variables"></a><h2>Environment Variables</h2>
 <p><span class="command"><strong>nmcli</strong></span>'s behavior is affected by the following
     environment variables.</p>
@@ -2319,10 +2492,11 @@ It's equivalent to the <code class="literal">+bond.options 'option=value'</code>
     <a class="link" href="NetworkManager.conf.html" title="NetworkManager.conf"><span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span></a>,
     <a class="link" href="nm-settings.html" title="nm-settings"><span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span></a>,
     <span class="citerefentry"><span class="refentrytitle">nm-applet</span>(1)</span>,
-    <span class="citerefentry"><span class="refentrytitle">nm-connection-editor</span>(1)</span>.</p>
+    <span class="citerefentry"><span class="refentrytitle">nm-connection-editor</span>(1)</span>,
+    <span class="citerefentry"><span class="refentrytitle">terminal-colors.d</span>(5)</span>.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.27</div>
+<hr>Generated by GTK-Doc V1.28</div>
 </body>
 </html>

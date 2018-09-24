@@ -88,6 +88,30 @@ nm_active_connection_get_type
 </SECTION>
 
 <SECTION>
+<FILE>nm-autoptr</FILE>
+
+</SECTION>
+
+<SECTION>
+<FILE>nm-checkpoint</FILE>
+<TITLE>NMCheckpoint</TITLE>
+NM_CHECKPOINT_DEVICES
+NM_CHECKPOINT_CREATED
+NM_CHECKPOINT_ROLLBACK_TIMEOUT
+nm_checkpoint_get_devices
+nm_checkpoint_get_created
+nm_checkpoint_get_rollback_timeout
+<SUBSECTION Standard>
+NMCheckpointClass
+NM_CHECKPOINT
+NM_CHECKPOINT_CLASS
+NM_CHECKPOINT_GET_CLASS
+NM_IS_CHECKPOINT
+NM_TYPE_CHECKPOINT
+nm_checkpoint_get_type
+</SECTION>
+
+<SECTION>
 <FILE>nm-client</FILE>
 <TITLE>NMClient</TITLE>
 NM_CLIENT_VERSION
@@ -197,6 +221,15 @@ nm_client_reload_connections_finish
 nm_client_get_dns_mode
 nm_client_get_dns_rc_manager
 nm_client_get_dns_configuration
+nm_client_get_checkpoints
+nm_client_checkpoint_create
+nm_client_checkpoint_create_finish
+nm_client_checkpoint_destroy
+nm_client_checkpoint_destroy_finish
+nm_client_checkpoint_rollback
+nm_client_checkpoint_rollback_finish
+nm_client_checkpoint_adjust_rollback_timeout
+nm_client_checkpoint_adjust_rollback_timeout_finish
 <SUBSECTION Standard>
 NMClientClass
 NMDnsEntry
@@ -310,6 +343,7 @@ NM_TYPE_ACTIVE_CONNECTION_STATE_REASON
 NM_TYPE_AGENT_MANAGER_ERROR
 NM_TYPE_BLUETOOTH_CAPABILITIES
 NM_TYPE_CAPABILITY
+NM_TYPE_CHECKPOINT_CREATE_FLAGS
 NM_TYPE_CONNECTION_ERROR
 NM_TYPE_CONNECTION_SERIALIZATION_FLAGS
 NM_TYPE_CONNECTIVITY_STATE
@@ -320,12 +354,14 @@ NM_TYPE_DEVICE_MODEM_CAPABILITIES
 NM_TYPE_DEVICE_STATE_REASON
 NM_TYPE_DEVICE_TYPE
 NM_TYPE_DEVICE_WIFI_CAPABILITIES
+NM_TYPE_IP_TUNNEL_FLAGS
 NM_TYPE_IP_TUNNEL_MODE
 NM_TYPE_MANAGER_ERROR
 NM_TYPE_METERED
 NM_TYPE_SECRET_AGENT_CAPABILITIES
 NM_TYPE_SECRET_AGENT_ERROR
 NM_TYPE_SECRET_AGENT_GET_SECRETS_FLAGS
+NM_TYPE_SETTINGS_CONNECTION_FLAGS
 NM_TYPE_SETTINGS_ERROR
 NM_TYPE_SETTINGS_UPDATE2_FLAGS
 NM_TYPE_SETTING_802_1X_AUTH_FLAGS
@@ -334,6 +370,7 @@ NM_TYPE_SETTING_802_1X_CK_SCHEME
 NM_TYPE_SETTING_COMPARE_FLAGS
 NM_TYPE_SETTING_CONNECTION_AUTOCONNECT_SLAVES
 NM_TYPE_SETTING_CONNECTION_LLDP
+NM_TYPE_SETTING_CONNECTION_MDNS
 NM_TYPE_SETTING_DCB_FLAGS
 NM_TYPE_SETTING_DIFF_RESULT
 NM_TYPE_SETTING_IP6_CONFIG_ADDR_GEN_MODE
@@ -348,8 +385,10 @@ NM_TYPE_SETTING_SERIAL_PARITY
 NM_TYPE_SETTING_TUN_MODE
 NM_TYPE_SETTING_WIRED_WAKE_ON_LAN
 NM_TYPE_SETTING_WIRELESS_POWERSAVE
+NM_TYPE_SETTING_WIRELESS_SECURITY_FILS
 NM_TYPE_SETTING_WIRELESS_SECURITY_PMF
 NM_TYPE_SETTING_WIRELESS_SECURITY_WPS_METHOD
+NM_TYPE_SETTING_WIRELESS_WAKE_ON_WLAN
 NM_TYPE_STATE
 NM_TYPE_TEAM_LINK_WATCHER_ARP_PING_FLAGS
 NM_TYPE_UTILS_SECURITY_TYPE
@@ -369,6 +408,7 @@ nm_active_connection_state_reason_get_type
 nm_agent_manager_error_get_type
 nm_bluetooth_capabilities_get_type
 nm_capability_get_type
+nm_checkpoint_create_flags_get_type
 nm_connection_error_get_type
 nm_connection_serialization_flags_get_type
 nm_crypto_error_get_type
@@ -378,6 +418,7 @@ nm_device_modem_capabilities_get_type
 nm_device_state_reason_get_type
 nm_device_type_get_type
 nm_device_wifi_capabilities_get_type
+nm_ip_tunnel_flags_get_type
 nm_ip_tunnel_mode_get_type
 nm_manager_error_get_type
 nm_metered_get_type
@@ -390,6 +431,7 @@ nm_setting_802_1x_ck_scheme_get_type
 nm_setting_compare_flags_get_type
 nm_setting_connection_autoconnect_slaves_get_type
 nm_setting_connection_lldp_get_type
+nm_setting_connection_mdns_get_type
 nm_setting_dcb_flags_get_type
 nm_setting_diff_result_get_type
 nm_setting_ip6_config_addr_gen_mode_get_type
@@ -404,8 +446,11 @@ nm_setting_serial_parity_get_type
 nm_setting_tun_mode_get_type
 nm_setting_wired_wake_on_lan_get_type
 nm_setting_wireless_powersave_get_type
+nm_setting_wireless_security_fils_get_type
 nm_setting_wireless_security_pmf_get_type
 nm_setting_wireless_security_wps_method_get_type
+nm_setting_wireless_wake_on_wlan_get_type
+nm_settings_connection_flags_get_type
 nm_settings_error_get_type
 nm_settings_update2_flags_get_type
 nm_state_get_type
@@ -422,6 +467,7 @@ nm_wimax_nsp_network_type_get_type
 
 <SECTION>
 <FILE>nm-core-types</FILE>
+<TITLE>NMSettingOvs</TITLE>
 NMConnection
 NMSetting
 NMSetting8021x
@@ -510,6 +556,7 @@ NM_DBUS_INTERFACE_DEVICE_VXLAN
 NM_DBUS_INTERFACE_DEVICE_GRE
 NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL
 NM_DBUS_INTERFACE_DEVICE_STATISTICS
+NM_DBUS_INTERFACE_CHECKPOINT
 NM_DBUS_INTERFACE_SETTINGS
 NM_DBUS_PATH_SETTINGS
 NM_DBUS_INTERFACE_SETTINGS_CONNECTION
@@ -560,6 +607,7 @@ NM_LLDP_DEST_NEAREST_CUSTOMER_BRIDGE
 NMIPTunnelMode
 NMCheckpointCreateFlags
 NMRollbackResult
+NMSettingsConnectionFlags
 NMActivationStateFlags
 NMSettingsUpdate2Flags
 </SECTION>
@@ -829,6 +877,7 @@ NM_DEVICE_IP_TUNNEL_INPUT_KEY
 NM_DEVICE_IP_TUNNEL_OUTPUT_KEY
 NM_DEVICE_IP_TUNNEL_ENCAPSULATION_LIMIT
 NM_DEVICE_IP_TUNNEL_FLOW_LABEL
+NM_DEVICE_IP_TUNNEL_FLAGS
 NMDeviceIPTunnel
 nm_device_ip_tunnel_get_parent
 nm_device_ip_tunnel_get_mode
@@ -841,6 +890,7 @@ nm_device_ip_tunnel_get_input_key
 nm_device_ip_tunnel_get_output_key
 nm_device_ip_tunnel_get_encapsulation_limit
 nm_device_ip_tunnel_get_flow_label
+nm_device_ip_tunnel_get_flags
 <SUBSECTION Standard>
 NMDeviceIPTunnelClass
 NM_DEVICE_IP_TUNNEL
@@ -957,6 +1007,9 @@ nm_device_olpc_mesh_get_type
 
 <SECTION>
 <FILE>nm-device-ovs-bridge</FILE>
+<TITLE>NMDeviceOvsBridge</TITLE>
+NM_DEVICE_OVS_BRIDGE_SLAVES
+nm_device_ovs_bridge_get_slaves
 <SUBSECTION Standard>
 NMDeviceOvsBridgeClass
 NM_DEVICE_OVS_BRIDGE
@@ -969,6 +1022,7 @@ nm_device_ovs_bridge_get_type
 
 <SECTION>
 <FILE>nm-device-ovs-interface</FILE>
+<TITLE>NMDeviceOvsInterface</TITLE>
 <SUBSECTION Standard>
 NMDeviceOvsInterfaceClass
 NM_DEVICE_OVS_INTERFACE
@@ -981,6 +1035,9 @@ nm_device_ovs_interface_get_type
 
 <SECTION>
 <FILE>nm-device-ovs-port</FILE>
+<TITLE>NMDeviceOvsPort</TITLE>
+NM_DEVICE_OVS_PORT_SLAVES
+nm_device_ovs_port_get_slaves
 <SUBSECTION Standard>
 NMDeviceOvsPortClass
 NM_DEVICE_OVS_PORT
@@ -993,6 +1050,7 @@ nm_device_ovs_port_get_type
 
 <SECTION>
 <FILE>nm-device-ppp</FILE>
+<TITLE>NMDevicePpp</TITLE>
 <SUBSECTION Standard>
 NMDevicePppClass
 NM_DEVICE_PPP
@@ -1135,6 +1193,7 @@ NM_DEVICE_WIFI_BITRATE
 NM_DEVICE_WIFI_ACTIVE_ACCESS_POINT
 NM_DEVICE_WIFI_CAPABILITIES
 NM_DEVICE_WIFI_ACCESS_POINTS
+NM_DEVICE_WIFI_LAST_SCAN
 NMDeviceWifi
 nm_device_wifi_get_hw_address
 nm_device_wifi_get_permanent_hw_address
@@ -1144,6 +1203,7 @@ nm_device_wifi_get_capabilities
 nm_device_wifi_get_active_access_point
 nm_device_wifi_get_access_point_by_path
 nm_device_wifi_get_access_points
+nm_device_wifi_get_last_scan
 nm_device_wifi_request_scan
 nm_device_wifi_request_scan_options
 nm_device_wifi_request_scan_async
@@ -1301,14 +1361,14 @@ json_true
 json_object_size
 json_object_set_new
 json_object_iter
-json_object_iter_at
 json_integer_value
 json_string_value
 </SECTION>
 
 <SECTION>
 <FILE>nm-libnm-utils</FILE>
-nm_utils_fixup_desc_string
+nm_utils_fixup_vendor_string
+nm_utils_fixup_product_string
 </SECTION>
 
 <SECTION>
@@ -1335,6 +1395,8 @@ nm_object_get_type
 NM_REMOTE_CONNECTION_DBUS_CONNECTION
 NM_REMOTE_CONNECTION_PATH
 NM_REMOTE_CONNECTION_UNSAVED
+NM_REMOTE_CONNECTION_FLAGS
+NM_REMOTE_CONNECTION_FILENAME
 NM_REMOTE_CONNECTION_VISIBLE
 NMRemoteConnection
 nm_remote_connection_update2
@@ -1352,6 +1414,8 @@ nm_remote_connection_get_secrets
 nm_remote_connection_get_secrets_async
 nm_remote_connection_get_secrets_finish
 nm_remote_connection_get_unsaved
+nm_remote_connection_get_flags
+nm_remote_connection_get_filename
 nm_remote_connection_get_visible
 <SUBSECTION Standard>
 NMRemoteConnectionClass
@@ -1800,8 +1864,10 @@ NM_SETTING_CONNECTION_GATEWAY_PING_TIMEOUT
 NM_SETTING_CONNECTION_METERED
 NM_SETTING_CONNECTION_LLDP
 NM_SETTING_CONNECTION_AUTH_RETRIES
+NM_SETTING_CONNECTION_MDNS
 NMSettingConnectionAutoconnectSlaves
 NMSettingConnectionLldp
+NMSettingConnectionMdns
 NMSettingConnection
 nm_setting_connection_new
 nm_setting_connection_get_id
@@ -1834,6 +1900,7 @@ nm_setting_connection_get_gateway_ping_timeout
 nm_setting_connection_get_metered
 nm_setting_connection_get_lldp
 nm_setting_connection_get_auth_retries
+nm_setting_connection_get_mdns
 <SUBSECTION Standard>
 NMSettingConnectionClass
 NM_IS_SETTING_CONNECTION
@@ -2003,6 +2070,7 @@ nm_setting_infiniband_get_type
 <SECTION>
 <FILE>nm-setting-ip-config</FILE>
 <TITLE>NMSettingIPConfig</TITLE>
+NM_IP_ADDRESS_ATTRIBUTE_LABEL
 nm_ip_address_new
 nm_ip_address_new_binary
 nm_ip_address_ref
@@ -2169,7 +2237,9 @@ NM_SETTING_IP_TUNNEL_OUTPUT_KEY
 NM_SETTING_IP_TUNNEL_ENCAPSULATION_LIMIT
 NM_SETTING_IP_TUNNEL_FLOW_LABEL
 NM_SETTING_IP_TUNNEL_MTU
+NM_SETTING_IP_TUNNEL_FLAGS
 NMSettingIPTunnel
+NMIPTunnelFlags
 nm_setting_ip_tunnel_new
 nm_setting_ip_tunnel_get_parent
 nm_setting_ip_tunnel_get_mode
@@ -2183,6 +2253,7 @@ nm_setting_ip_tunnel_get_output_key
 nm_setting_ip_tunnel_get_encapsulation_limit
 nm_setting_ip_tunnel_get_flow_label
 nm_setting_ip_tunnel_get_mtu
+nm_setting_ip_tunnel_get_flags
 <SUBSECTION Standard>
 NMSettingIPTunnelClass
 NM_IS_SETTING_IP_TUNNEL
@@ -2225,6 +2296,7 @@ NM_SETTING_IP6_CONFIG_SETTING_NAME
 NM_SETTING_IP6_CONFIG_IP6_PRIVACY
 NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE
 NM_SETTING_IP6_CONFIG_TOKEN
+NM_SETTING_IP6_CONFIG_DHCP_DUID
 NM_SETTING_IP6_CONFIG_METHOD_IGNORE
 NM_SETTING_IP6_CONFIG_METHOD_AUTO
 NM_SETTING_IP6_CONFIG_METHOD_DHCP
@@ -2238,6 +2310,7 @@ nm_setting_ip6_config_new
 nm_setting_ip6_config_get_ip6_privacy
 nm_setting_ip6_config_get_addr_gen_mode
 nm_setting_ip6_config_get_token
+nm_setting_ip6_config_get_dhcp_duid
 <SUBSECTION Standard>
 NMSettingIP6ConfigClass
 NM_IS_SETTING_IP6_CONFIG
@@ -2260,6 +2333,7 @@ NM_SETTING_MACSEC_MKA_CAK_FLAGS
 NM_SETTING_MACSEC_MKA_CKN
 NM_SETTING_MACSEC_PORT
 NM_SETTING_MACSEC_VALIDATION
+NM_SETTING_MACSEC_SEND_SCI
 NMSettingMacsec
 NMSettingMacsecMode
 NMSettingMacsecValidation
@@ -2274,6 +2348,7 @@ nm_setting_macsec_get_mka_cak_flags
 nm_setting_macsec_get_mka_ckn
 nm_setting_macsec_get_port
 nm_setting_macsec_get_validation
+nm_setting_macsec_get_send_sci
 <SUBSECTION Standard>
 NMSettingMacsecClass
 NM_IS_SETTING_MACSEC
@@ -2333,6 +2408,7 @@ nm_setting_olpc_mesh_get_type
 
 <SECTION>
 <FILE>nm-setting-ovs-bridge</FILE>
+<TITLE>NMSettingOvsBridge</TITLE>
 NM_SETTING_OVS_BRIDGE_SETTING_NAME
 NM_SETTING_OVS_BRIDGE_FAIL_MODE
 NM_SETTING_OVS_BRIDGE_MCAST_SNOOPING_ENABLE
@@ -2355,6 +2431,7 @@ nm_setting_ovs_bridge_get_type
 
 <SECTION>
 <FILE>nm-setting-ovs-interface</FILE>
+<TITLE>NMSettingOvsInterface</TITLE>
 NM_SETTING_OVS_INTERFACE_SETTING_NAME
 NM_SETTING_OVS_INTERFACE_TYPE
 nm_setting_ovs_interface_new
@@ -2371,6 +2448,7 @@ nm_setting_ovs_interface_get_type
 
 <SECTION>
 <FILE>nm-setting-ovs-patch</FILE>
+<TITLE>NMSettingOvsPatch</TITLE>
 NM_SETTING_OVS_PATCH_SETTING_NAME
 NM_SETTING_OVS_PATCH_PEER
 nm_setting_ovs_patch_new
@@ -2387,6 +2465,7 @@ nm_setting_ovs_patch_get_type
 
 <SECTION>
 <FILE>nm-setting-ovs-port</FILE>
+<TITLE>NMSettingOvsPort</TITLE>
 NM_SETTING_OVS_PORT_SETTING_NAME
 NM_SETTING_OVS_PORT_VLAN_MODE
 NM_SETTING_OVS_PORT_TAG
@@ -2543,6 +2622,7 @@ nm_setting_serial_get_type
 
 <SECTION>
 <FILE>nm-setting-tc-config</FILE>
+<TITLE>NMSettingTCConfig</TITLE>
 nm_tc_qdisc_new
 nm_tc_qdisc_ref
 nm_tc_qdisc_unref
@@ -2772,6 +2852,7 @@ nm_setting_tun_get_type
 
 <SECTION>
 <FILE>nm-setting-user</FILE>
+<TITLE>NMSettingUser</TITLE>
 NM_SETTING_USER_SETTING_NAME
 NM_SETTING_USER_DATA
 nm_setting_user_new
@@ -2846,11 +2927,13 @@ nm_setting_vpn_add_data_item
 nm_setting_vpn_get_data_item
 nm_setting_vpn_remove_data_item
 nm_setting_vpn_foreach_data_item
+nm_setting_vpn_get_data_keys
 nm_setting_vpn_get_num_secrets
 nm_setting_vpn_add_secret
 nm_setting_vpn_get_secret
 nm_setting_vpn_remove_secret
 nm_setting_vpn_foreach_secret
+nm_setting_vpn_get_secret_keys
 nm_setting_vpn_get_timeout
 <SUBSECTION Standard>
 NMSettingVpnClass
@@ -2990,6 +3073,7 @@ nm_setting_wired_get_type
 <FILE>nm-setting-wireless</FILE>
 <TITLE>NMSettingWireless</TITLE>
 NM_SETTING_WIRELESS_SETTING_NAME
+NMSettingWirelessWakeOnWLan
 NM_SETTING_WIRELESS_SSID
 NM_SETTING_WIRELESS_MODE
 NM_SETTING_WIRELESS_BAND
@@ -3006,6 +3090,7 @@ NM_SETTING_WIRELESS_SEEN_BSSIDS
 NM_SETTING_WIRELESS_HIDDEN
 NM_SETTING_WIRELESS_POWERSAVE
 NM_SETTING_WIRELESS_MAC_ADDRESS_RANDOMIZATION
+NM_SETTING_WIRELESS_WAKE_ON_WLAN
 NM_SETTING_WIRELESS_MODE_ADHOC
 NM_SETTING_WIRELESS_MODE_AP
 NM_SETTING_WIRELESS_MODE_INFRA
@@ -3037,6 +3122,7 @@ nm_setting_wireless_add_seen_bssid
 nm_setting_wireless_get_num_seen_bssids
 nm_setting_wireless_get_seen_bssid
 nm_setting_wireless_ap_security_compatible
+nm_setting_wireless_get_wake_on_wlan
 <SUBSECTION Standard>
 NMSettingWirelessClass
 NM_IS_SETTING_WIRELESS
@@ -3054,6 +3140,7 @@ NM_SETTING_WIRELESS_SECURITY_SETTING_NAME
 NMWepKeyType
 NMSettingWirelessSecurityPmf
 NMSettingWirelessSecurityWpsMethod
+NMSettingWirelessSecurityFils
 NM_SETTING_WIRELESS_SECURITY_KEY_MGMT
 NM_SETTING_WIRELESS_SECURITY_WEP_TX_KEYIDX
 NM_SETTING_WIRELESS_SECURITY_AUTH_ALG
@@ -3073,6 +3160,7 @@ NM_SETTING_WIRELESS_SECURITY_PSK_FLAGS
 NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD
 NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD_FLAGS
 NM_SETTING_WIRELESS_SECURITY_WPS_METHOD
+NM_SETTING_WIRELESS_SECURITY_FILS
 NMSettingWirelessSecurity
 nm_setting_wireless_security_new
 nm_setting_wireless_security_get_key_mgmt
@@ -3107,6 +3195,7 @@ nm_setting_wireless_security_get_auth_alg
 nm_setting_wireless_security_get_wep_key_flags
 nm_setting_wireless_security_get_wep_key_type
 nm_setting_wireless_security_get_wps_method
+nm_setting_wireless_security_get_fils
 <SUBSECTION Standard>
 NMSettingWirelessSecurityClass
 NM_IS_SETTING_WIRELESS_SECURITY
@@ -3136,8 +3225,10 @@ nm_simple_connection_get_type
 
 <SECTION>
 <FILE>nm-types</FILE>
+<TITLE>NMDeviceOvs</TITLE>
 NMAccessPoint
 NMActiveConnection
+NMCheckpoint
 NMClient
 NMDevice
 NMDeviceAdsl
@@ -3248,6 +3339,7 @@ nm_utils_tc_action_from_str
 nm_utils_tc_action_to_str
 nm_utils_tc_tfilter_from_str
 nm_utils_tc_tfilter_to_str
+nm_utils_get_timestamp_msec
 NMVariantAttributeSpec
 stat
 </SECTION>
@@ -3277,7 +3369,10 @@ NM_AVAILABLE_IN_1_8
 NM_DEPRECATED_IN_1_10
 NM_DEPRECATED_IN_1_10_FOR
 NM_AVAILABLE_IN_1_10
-NM_AVAILABLE_IN_1_10_2
+NM_DEPRECATED_IN_1_12
+NM_DEPRECATED_IN_1_12_FOR
+NM_AVAILABLE_IN_1_12
+NM_AVAILABLE_IN_1_12_2
 </SECTION>
 
 <SECTION>
@@ -3404,6 +3499,7 @@ nm_vpn_editor_plugin_get_plugin_info
 nm_vpn_editor_plugin_set_plugin_info
 NMVpnEditor
 NMVpnEditorPluginVT
+NMVpnPluginInfo
 <SUBSECTION Standard>
 NMVpnEditorPlugin
 NM_IS_VPN_EDITOR_PLUGIN

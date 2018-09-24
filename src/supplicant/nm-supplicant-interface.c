@@ -93,6 +93,7 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMSupplicantInterface,
 	PROP_FAST_SUPPORT,
 	PROP_AP_SUPPORT,
 	PROP_PMF_SUPPORT,
+	PROP_FILS_SUPPORT,
 );
 
 typedef struct {
@@ -102,6 +103,7 @@ typedef struct {
 	NMSupplicantFeature fast_support;
 	NMSupplicantFeature ap_support;   /* Lightweight AP mode support */
 	NMSupplicantFeature pmf_support;
+	NMSupplicantFeature fils_support;
 	guint32        max_scan_ssids;
 	guint32        ready_count;
 
@@ -127,7 +129,7 @@ typedef struct {
 	GHashTable *   bss_proxies;
 	char *         current_bss;
 
-	gint32         last_scan; /* timestamp as returned by nm_utils_get_monotonic_timestamp_s() */
+	gint64         last_scan; /* timestamp as returned by nm_utils_get_monotonic_timestamp_ms() */
 
 } NMSupplicantInterfacePrivate;
 
@@ -207,7 +209,7 @@ bss_proxy_properties_changed_cb (GDBusProxy *proxy,
 	NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self);
 
 	if (priv->scanning)
-		priv->last_scan = nm_utils_get_monotonic_timestamp_s ();
+		priv->last_scan = nm_utils_get_monotonic_timestamp_ms ();
 
 	g_signal_emit (self, signals[BSS_UPDATED], 0,
 	               g_dbus_proxy_get_object_path (proxy),
@@ -342,7 +344,7 @@ set_state (NMSupplicantInterface *self, NMSupplicantInterfaceState new_state)
 
 	if (   priv->state == NM_SUPPLICANT_INTERFACE_STATE_SCANNING
 	    || old_state == NM_SUPPLICANT_INTERFACE_STATE_SCANNING)
-		priv->last_scan = nm_utils_get_monotonic_timestamp_s ();
+		priv->last_scan = nm_utils_get_monotonic_timestamp_ms ();
 
 	/* Disconnect reason is no longer relevant when not in the DISCONNECTED state */
 	if (priv->state != NM_SUPPLICANT_INTERFACE_STATE_DISCONNECTED)
@@ -404,7 +406,7 @@ set_scanning (NMSupplicantInterface *self, gboolean new_scanning)
 
 		/* Cache time of last scan completion */
 		if (priv->scanning == FALSE)
-			priv->last_scan = nm_utils_get_monotonic_timestamp_s ();
+			priv->last_scan = nm_utils_get_monotonic_timestamp_ms ();
 
 		_notify (self, PROP_SCANNING);
 	}
@@ -436,8 +438,8 @@ nm_supplicant_interface_get_current_bss (NMSupplicantInterface *self)
 	return priv->state >= NM_SUPPLICANT_INTERFACE_STATE_READY ? priv->current_bss : NULL;
 }
 
-gint32
-nm_supplicant_interface_get_last_scan_time (NMSupplicantInterface *self)
+gint64
+nm_supplicant_interface_get_last_scan (NMSupplicantInterface *self)
 {
 	return NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self)->last_scan;
 }
@@ -565,6 +567,12 @@ nm_supplicant_interface_get_pmf_support (NMSupplicantInterface *self)
 	return NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self)->pmf_support;
 }
 
+NMSupplicantFeature
+nm_supplicant_interface_get_fils_support (NMSupplicantInterface *self)
+{
+	return NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self)->fils_support;
+}
+
 void
 nm_supplicant_interface_set_ap_support (NMSupplicantInterface *self,
                                         NMSupplicantFeature ap_support)
@@ -594,6 +602,15 @@ nm_supplicant_interface_set_pmf_support (NMSupplicantInterface *self,
 	NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self);
 
 	priv->pmf_support = pmf_support;
+}
+
+void
+nm_supplicant_interface_set_fils_support (NMSupplicantInterface *self,
+                                          NMSupplicantFeature fils_support)
+{
+	NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self);
+
+	priv->fils_support = fils_support;
 }
 
 /*****************************************************************************/
@@ -970,7 +987,7 @@ wpas_iface_scan_done (GDBusProxy *proxy,
 	NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self);
 
 	/* Cache last scan completed time */
-	priv->last_scan = nm_utils_get_monotonic_timestamp_s ();
+	priv->last_scan = nm_utils_get_monotonic_timestamp_ms ();
 	priv->scan_done_success |= success;
 	scan_done_emit_signal (self);
 }
@@ -985,7 +1002,7 @@ wpas_iface_bss_added (GDBusProxy *proxy,
 	NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self);
 
 	if (priv->scanning)
-		priv->last_scan = nm_utils_get_monotonic_timestamp_s ();
+		priv->last_scan = nm_utils_get_monotonic_timestamp_ms ();
 
 	bss_add_new (self, path);
 }
@@ -1057,9 +1074,8 @@ props_changed_cb (GDBusProxy *proxy,
 	}
 
 	if (g_variant_lookup (changed_properties, "CurrentBSS", "&o", &s)) {
-		if (strcmp (s, "/") == 0)
-			s = NULL;
-		if (g_strcmp0 (s, priv->current_bss) != 0) {
+		s = nm_utils_dbus_normalize_object_path (s);
+		if (!nm_streq0 (s, priv->current_bss)) {
 			g_free (priv->current_bss);
 			priv->current_bss = g_strdup (s);
 			_notify (self, PROP_CURRENT_BSS);
@@ -1198,7 +1214,6 @@ static void
 interface_get_cb (GDBusProxy *proxy, GAsyncResult *result, gpointer user_data)
 {
 	NMSupplicantInterface *self;
-	NMSupplicantInterfacePrivate *priv;
 	gs_unref_variant GVariant *variant = NULL;
 	gs_free_error GError *error = NULL;
 	const char *path;
@@ -1210,7 +1225,6 @@ interface_get_cb (GDBusProxy *proxy, GAsyncResult *result, gpointer user_data)
 		return;
 
 	self = NM_SUPPLICANT_INTERFACE (user_data);
-	priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self);
 
 	if (variant) {
 		g_variant_get (variant, "(&o)", &path);
@@ -1900,6 +1914,10 @@ set_property (GObject *object,
 		/* construct-only */
 		priv->pmf_support = g_value_get_int (value);
 		break;
+	case PROP_FILS_SUPPORT:
+		/* construct-only */
+		priv->fils_support = g_value_get_int (value);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -1920,7 +1938,8 @@ nm_supplicant_interface_new (const char *ifname,
                              NMSupplicantDriver driver,
                              NMSupplicantFeature fast_support,
                              NMSupplicantFeature ap_support,
-                             NMSupplicantFeature pmf_support)
+                             NMSupplicantFeature pmf_support,
+                             NMSupplicantFeature fils_support)
 {
 	g_return_val_if_fail (ifname != NULL, NULL);
 
@@ -1930,6 +1949,7 @@ nm_supplicant_interface_new (const char *ifname,
 	                     NM_SUPPLICANT_INTERFACE_FAST_SUPPORT, (int) fast_support,
 	                     NM_SUPPLICANT_INTERFACE_AP_SUPPORT, (int) ap_support,
 	                     NM_SUPPLICANT_INTERFACE_PMF_SUPPORT, (int) pmf_support,
+	                     NM_SUPPLICANT_INTERFACE_FILS_SUPPORT, (int) fils_support,
 	                     NULL);
 }
 
@@ -1964,7 +1984,7 @@ dispose (GObject *object)
 	nm_clear_g_cancellable (&priv->other_cancellable);
 
 	g_clear_object (&priv->wpas_proxy);
-	g_clear_pointer (&priv->bss_proxies, (GDestroyNotify) g_hash_table_destroy);
+	g_clear_pointer (&priv->bss_proxies, g_hash_table_destroy);
 
 	g_clear_pointer (&priv->net_path, g_free);
 	g_clear_pointer (&priv->dev, g_free);
@@ -2023,6 +2043,14 @@ nm_supplicant_interface_class_init (NMSupplicantInterfaceClass *klass)
 	                      G_PARAM_STATIC_STRINGS);
 	obj_properties[PROP_PMF_SUPPORT] =
 	    g_param_spec_int (NM_SUPPLICANT_INTERFACE_PMF_SUPPORT, "", "",
+	                      NM_SUPPLICANT_FEATURE_UNKNOWN,
+	                      NM_SUPPLICANT_FEATURE_YES,
+	                      NM_SUPPLICANT_FEATURE_UNKNOWN,
+	                      G_PARAM_WRITABLE |
+	                      G_PARAM_CONSTRUCT_ONLY |
+	                      G_PARAM_STATIC_STRINGS);
+	obj_properties[PROP_FILS_SUPPORT] =
+	    g_param_spec_int (NM_SUPPLICANT_INTERFACE_FILS_SUPPORT, "", "",
 	                      NM_SUPPLICANT_FEATURE_UNKNOWN,
 	                      NM_SUPPLICANT_FEATURE_YES,
 	                      NM_SUPPLICANT_FEATURE_UNKNOWN,

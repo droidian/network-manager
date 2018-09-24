@@ -20,11 +20,53 @@
 #include "nm-default.h"
 
 #include "nm-client-utils.h"
+#include "nm-utils.h"
 
 #include "nm-device-bond.h"
 #include "nm-device-bridge.h"
 #include "nm-device-team.h"
 
+/*****************************************************************************/
+
+static int
+_nmc_objects_sort_by_path_cmp (gconstpointer pa, gconstpointer pb, gpointer user_data)
+{
+	NMObject *a = *((NMObject **) pa);
+	NMObject *b = *((NMObject **) pb);
+
+	NM_CMP_SELF (a, b);
+	NM_CMP_RETURN (nm_utils_dbus_path_cmp (nm_object_get_path (a),
+	                                       nm_object_get_path (b)));
+	return 0;
+}
+
+const NMObject **
+nmc_objects_sort_by_path (const NMObject *const* objs, gssize len)
+{
+	const NMObject **arr;
+	gsize i, l;
+
+	if (len < 0)
+		l = NM_PTRARRAY_LEN (objs);
+	else
+		l = len;
+
+	arr = g_new (const NMObject *, l + 1);
+	for (i = 0; i < l; i++)
+		arr[i] = objs[i];
+	arr[l] = NULL;
+
+	if (l > 1) {
+		g_qsort_with_data (arr,
+		                   l,
+		                   sizeof (gpointer),
+		                   _nmc_objects_sort_by_path_cmp,
+		                   NULL);
+	}
+	return arr;
+}
+
+/*****************************************************************************/
 /*
  * Convert string to unsigned integer.
  * If required, the resulting number is checked to be in the <min,max> range.
@@ -69,7 +111,7 @@ nmc_string_to_bool (const char *str, gboolean *val_bool, GError **error)
 
 	if (g_strcmp0 (str, "o") == 0) {
 		g_set_error (error, 1, 0,
-		             /* Translators: the first %s is the partial value entered by
+		             /* TRANSLATORS: the first %s is the partial value entered by
 		              * the user, the second %s a list of compatible values.
 		              */
 		             _("'%s' is ambiguous (%s)"), str, "on x off");
@@ -100,7 +142,7 @@ nmc_string_to_tristate (const char *str, NMCTriStateValue *val, GError **error)
 
 	if (g_strcmp0 (str, "o") == 0) {
 		g_set_error (error, 1, 0,
-		             /* Translators: the first %s is the partial value entered by
+		             /* TRANSLATORS: the first %s is the partial value entered by
 		              * the user, the second %s a list of compatible values.
 		              */
 		             _("'%s' is ambiguous (%s)"), str, "on x off");
@@ -133,10 +175,10 @@ nmc_string_is_valid (const char *input, const char **allowed, GError **error)
 {
 	const char **p;
 	size_t input_ln, p_len;
-	gboolean prev_match = FALSE;
-	const char *ret = NULL;
+	const char *partial_match = NULL;
+	gboolean ambiguous = FALSE;
 
-	g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+	g_return_val_if_fail (!error || !*error, NULL);
 
 	if (!input || !*input)
 		goto finish;
@@ -145,24 +187,34 @@ nmc_string_is_valid (const char *input, const char **allowed, GError **error)
 	for (p = allowed; p && *p; p++) {
 		p_len = strlen (*p);
 		if (g_ascii_strncasecmp (input, *p, input_ln) == 0) {
-			if (input_ln == p_len) {
-				ret = *p;
-				break;
-			}
-			if (!prev_match)
-				ret = *p;
-			else {
-				g_set_error (error, 1, 1, _("'%s' is ambiguous (%s x %s)"),
-				             input, ret, *p);
-				return NULL;
-			}
-			prev_match = TRUE;
+			if (input_ln == p_len)
+				return *p;
+			if (!partial_match)
+				partial_match = *p;
+			else
+				ambiguous = TRUE;
 		}
 	}
 
+	if (ambiguous) {
+		GString *candidates = g_string_new ("");
+
+		for (p = allowed; *p; p++) {
+			if (g_ascii_strncasecmp (input, *p, input_ln) == 0) {
+				if (candidates->len > 0)
+					g_string_append (candidates, ", ");
+				g_string_append (candidates, *p);
+			}
+		}
+		g_set_error (error, 1, 1, _("'%s' is ambiguous: %s"),
+		             input, candidates->str);
+		g_string_free (candidates, TRUE);
+		return NULL;
+	}
 finish:
-	if (ret == NULL) {
+	if (!partial_match) {
 		char *valid_vals = g_strjoinv (", ", (char **) allowed);
+
 		if (!input || !*input)
 			g_set_error (error, 1, 0, _("missing name, try one of [%s]"), valid_vals);
 		else
@@ -170,19 +222,8 @@ finish:
 
 		g_free (valid_vals);
 	}
-	return ret;
-}
 
-/*
- * Wrapper function for g_strsplit_set() that removes empty strings
- * from the vector as they are not useful in most cases.
- */
-char **
-nmc_strsplit_set (const char *str, const char *delimiter, int max_tokens)
-{
-	/* remove empty strings */
-	return _nm_utils_strv_cleanup (g_strsplit_set (str, delimiter, max_tokens),
-	                               FALSE, TRUE, FALSE);
+	return partial_match;
 }
 
 gboolean
@@ -517,4 +558,73 @@ nmc_activation_get_effective_state (NMActiveConnection *active,
 	}
 
 	return ac_state;
+}
+
+static gboolean
+can_show_graphics (void)
+{
+	static gboolean can_show_graphics_set = FALSE;
+	gboolean can_show_graphics = TRUE;
+	char *locale_str;
+
+	if (G_LIKELY (can_show_graphics_set))
+		return can_show_graphics;
+
+	if (!g_get_charset (NULL)) {
+		/* Non-UTF-8 locale */
+		locale_str = g_locale_from_utf8 ("\342\226\202\342\226\204\342\226\206\342\226\210", -1, NULL, NULL, NULL);
+		if (locale_str)
+			g_free (locale_str);
+		else
+			can_show_graphics = FALSE;
+	}
+
+	/* The linux console font typically doesn't have characters we need */
+	if (g_strcmp0 (g_getenv ("TERM"), "linux") == 0)
+		can_show_graphics = FALSE;
+
+	return can_show_graphics;
+}
+
+/**
+ * nmc_wifi_strength_bars:
+ * @strength: the access point strength, from 0 to 100
+ *
+ * Converts @strength into a 4-character-wide graphical representation of
+ * strength suitable for printing to stdout. If the current locale and terminal
+ * support it, this will use unicode graphics characters to represent
+ * "bars". Otherwise it will use 0 to 4 asterisks.
+ *
+ * Returns: the graphical representation of the access point strength
+ */
+const char *
+nmc_wifi_strength_bars (guint8 strength)
+{
+	if (!can_show_graphics ())
+		return nm_utils_wifi_strength_bars (strength);
+
+	if (strength > 80)
+		return /* ▂▄▆█ */ "\342\226\202\342\226\204\342\226\206\342\226\210";
+	else if (strength > 55)
+		return /* ▂▄▆_ */ "\342\226\202\342\226\204\342\226\206_";
+	else if (strength > 30)
+		return /* ▂▄__ */ "\342\226\202\342\226\204__";
+	else if (strength > 5)
+		return /* ▂___ */ "\342\226\202___";
+	else
+		return /* ____ */ "____";
+}
+
+/**
+ * nmc_utils_password_subst_char:
+ *
+ * Returns: the string substituted when hiding actual password glyphs
+ */
+const char *
+nmc_password_subst_char (void)
+{
+	if (can_show_graphics ())
+		return "\u2022"; /* Bullet */
+	else
+		return "*";
 }

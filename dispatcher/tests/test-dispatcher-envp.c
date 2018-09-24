@@ -24,13 +24,31 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "nm-core-internal.h"
 #include "nm-dispatcher-utils.h"
 #include "nm-dispatcher-api.h"
 
 #include "nm-utils/nm-test-utils.h"
 
+#define TEST_DIR      NM_BUILD_SRCDIR"/dispatcher/tests"
+
 /*****************************************************************************/
+
+static void
+_print_env (const char *const*denv, GHashTable *expected_env)
+{
+	const char *const*iter;
+	GHashTableIter k;
+	const char *key;
+
+	g_print ("\n******* Generated environment:\n");
+	for (iter = denv; iter && *iter; iter++)
+		g_print ("   %s\n", *iter);
+
+	g_print ("\n******* Expected environment:\n");
+	g_hash_table_iter_init (&k, expected_env);
+	while (g_hash_table_iter_next (&k, (gpointer) &key, NULL))
+		g_print ("   %s\n", key);
+}
 
 static gboolean
 parse_main (GKeyFile *kf,
@@ -48,9 +66,7 @@ parse_main (GKeyFile *kf,
 	NMSettingConnection *s_con;
 	GVariantBuilder props;
 
-	*out_expected_iface = g_key_file_get_string (kf, "main", "expected-iface", error);
-	if (*out_expected_iface == NULL)
-		return FALSE;
+	*out_expected_iface = g_key_file_get_string (kf, "main", "expected-iface", NULL);
 
 	*out_connectivity_state = g_key_file_get_string (kf, "main", "connectivity-state", NULL);
 	*out_vpn_ip_iface = g_key_file_get_string (kf, "main", "vpn-ip-iface", NULL);
@@ -509,8 +525,7 @@ test_generic (const char *file, const char *override_vpn_ip_iface)
 	gs_strfreev char **denv = NULL;
 	char **iter;
 
-	/* Read in the test file */
-	p = g_build_filename (SRCDIR, file, NULL);
+	p = g_build_filename (TEST_DIR, file, NULL);
 	success = get_dispatcher_file (p,
 	                               &con_dict,
 	                               &con_props,
@@ -544,7 +559,7 @@ test_generic (const char *file, const char *override_vpn_ip_iface)
 	                                           device_dhcp4_props,
 	                                           device_dhcp6_props,
 	                                           connectivity_change,
-	                                           override_vpn_ip_iface ? override_vpn_ip_iface : vpn_ip_iface,
+	                                           override_vpn_ip_iface ?: vpn_ip_iface,
 	                                           vpn_proxy_props,
 	                                           vpn_ip4_props,
 	                                           vpn_ip6_props,
@@ -554,28 +569,12 @@ test_generic (const char *file, const char *override_vpn_ip_iface)
 	g_assert ((!denv && error_message) || (denv && !error_message));
 
 	if (error_message)
-		g_warning ("%s", error_message);
+		g_error ("FAILED: %s", error_message);
 
-	/* Print out environment for now */
-#ifdef DEBUG
-	g_message ("\n******* Generated environment:");
-	for (iter = denv; iter && *iter; iter++)
-		g_message ("   %s", *iter);
-#endif
-
-#ifdef DEBUG
-	{
-		GHashTableIter k;
-		const char *key;
-
-		g_message ("\n******* Expected environment:");
-		g_hash_table_iter_init (&k, expected_env);
-		while (g_hash_table_iter_next (&k, (gpointer) &key, NULL))
-			g_message ("   %s", key);
+	if (g_strv_length (denv) != g_hash_table_size (expected_env)) {
+		_print_env (NM_CAST_STRV_CC (denv), expected_env);
+		g_assert_cmpint (g_strv_length (denv), ==, g_hash_table_size (expected_env));
 	}
-#endif
-
-	g_assert_cmpint (g_strv_length (denv), ==, g_hash_table_size (expected_env));
 
 	/* Compare dispatcher generated env and expected env */
 	for (iter = denv; iter && *iter; iter++) {
@@ -590,9 +589,10 @@ test_generic (const char *file, const char *override_vpn_ip_iface)
 		}
 
 		foo = g_hash_table_lookup (expected_env, i_value);
-		if (!foo)
-			g_warning ("Failed to find %s in environment", i_value);
-		g_assert (foo);
+		if (!foo) {
+			_print_env (NM_CAST_STRV_CC (denv), expected_env);
+			g_error ("Failed to find %s in environment", i_value);
+		}
 	}
 
 	g_assert_cmpstr (expected_iface, ==, out_iface);

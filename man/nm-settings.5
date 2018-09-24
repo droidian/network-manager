@@ -2,12 +2,12 @@
 .\"     Title: nm-settings
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 05/11/2018
+.\"      Date: 07/25/2018
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.10.8
+.\"    Source: NetworkManager 1.12.2
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.10\&.8" "Configuration"
+.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.12\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -94,6 +94,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 auth\-retries
@@ -111,7 +112,7 @@ boolean
 T}:T{
 TRUE
 T}:T{
-Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available\&. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection\&.
+Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available\&. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection\&. Note that autoconnect is not implemented for VPN profiles\&. See "secondaries" as an alternative to automatically connect VPN profiles\&.
 T}
 T{
 autoconnect\-priority
@@ -138,7 +139,7 @@ NMSettingConnectionAutoconnectSlaves (int32)
 T}:T{
 \ \&
 T}:T{
-Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection\&. This only has a real effect for master connections\&. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, \-1: default\&. If \-1 (default) is set, global connection\&.autoconnect\-slaves is read to determine the real value\&. If it is default as well, this fallbacks to 0\&.
+Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection\&. This only has a real effect for master connections\&. The properties "autoconnect", "autoconnect\-priority" and "autoconnect\-retries" are unrelated to this setting\&. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, \-1: default\&. If \-1 (default) is set, global connection\&.autoconnect\-slaves is read to determine the real value\&. If it is default as well, this fallbacks to 0\&.
 T}
 T{
 gateway\-ping\-timeout
@@ -184,6 +185,15 @@ T}:T{
 \ \&
 T}:T{
 Interface name of the master device or UUID of the master connection\&.
+T}
+T{
+mdns
+T}:T{
+int32
+T}:T{
+\-1
+T}:T{
+Whether mDNS is enabled for the connection\&. The permitted values are: yes: register hostname and resolving for the connection, no: disable mDNS for the interface, resolve: do not register hostname but allow resolving of mDNS host names\&. When updating this property on a currently activated connection, the change takes effect immediately\&. This feature requires a plugin which supports mDNS\&. One such plugin is dns\-systemd\-resolved\&.
 T}
 T{
 metered
@@ -246,7 +256,7 @@ string
 T}:T{
 \ \&
 T}:T{
-Token to generate stable IDs for the connection\&. The stable\-id is used for generating IPv6 stable private addresses with ipv6\&.addr\-gen\-mode=stable\-privacy\&. It is also used to seed the generated cloned MAC address for ethernet\&.cloned\-mac\-address=stable and wifi\&.cloned\-mac\-address=stable\&. Note that also the interface name of the activating connection and a per\-host secret key is included into the address generation so that the same stable\-id on different hosts/devices yields different addresses\&. If the value is unset, an ID unique for the connection is used\&. Specifying a stable\-id allows multiple connections to generate the same addresses\&. Another use is to generate IDs at runtime via dynamic substitutions\&. The \*(Aq$\*(Aq character is treated special to perform dynamic substitutions at runtime\&. Currently supported are "${CONNECTION}", "${BOOT}", "${RANDOM}"\&. These effectively create unique IDs per\-connection, per\-boot, or every time\&. Any unrecognized patterns following \*(Aq$\*(Aq are treated verbatim, however are reserved for future use\&. You are thus advised to avoid \*(Aq$\*(Aq or escape it as "$$"\&. For example, set it to "${CONNECTION}/${BOOT}" to create a unique id for this connection that changes with every reboot\&. Note that two connections only use the same effective id if their stable\-id is also identical before performing dynamic substitutions\&.
+This represents the identity of the connection used for various purposes\&. It allows to configure multiple profiles to share the identity\&. Also, the stable\-id can contain placeholders that are substituted dynamically and deterministically depending on the context\&. The stable\-id is used for generating IPv6 stable private addresses with ipv6\&.addr\-gen\-mode=stable\-privacy\&. It is also used to seed the generated cloned MAC address for ethernet\&.cloned\-mac\-address=stable and wifi\&.cloned\-mac\-address=stable\&. It is also used as DHCP client identifier with ipv4\&.dhcp\-client\-id=stable and to derive the DHCP DUID with ipv6\&.dhcp\-duid=stable\-[llt,ll,uuid]\&. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm\&. For example, a per\-host key is commonly also included, so that different systems end up generating different IDs\&. Or with ipv6\&.addr\-gen\-mode=stable\-privacy, also the device\*(Aqs name is included, so that different interfaces yield different addresses\&. The \*(Aq$\*(Aq character is treated special to perform dynamic substitutions at runtime\&. Currently supported are "${CONNECTION}", "${DEVICE}", "${BOOT}", "${RANDOM}"\&. These effectively create unique IDs per\-connection, per\-device, per\-boot, or every time\&. Note that "${DEVICE}" corresponds the the interface name of the device\&. Any unrecognized patterns following \*(Aq$\*(Aq are treated verbatim, however are reserved for future use\&. You are thus advised to avoid \*(Aq$\*(Aq or escape it as "$$"\&. For example, set it to "${CONNECTION}\-${BOOT}\-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates\&. If the value is unset, a global connection default is consulted\&. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection\&.
 T}
 T{
 timestamp
@@ -1027,7 +1037,7 @@ byte array
 T}:T{
 \ \&
 T}:T{
-If specified, the MAC address of bridge\&. When creating a new bridge, this MAC address will be set\&. If this field is left unspecified, the "ethernet\&.cloned\-mac\-address" is referred instead to generate the initial MAC address\&. Note that setting "ethernet\&.cloned\-mac\-address" anyway overwrites the MAC address of the bridge later while activating the bridge\&. Hence, this property is deprecated\&.
+If specified, the MAC address of bridge\&. When creating a new bridge, this MAC address will be set\&. If this field is left unspecified, the "ethernet\&.cloned\-mac\-address" is referred instead to generate the initial MAC address\&. Note that setting "ethernet\&.cloned\-mac\-address" anyway overwrites the MAC address of the bridge later while activating the bridge\&. Hence, this property is deprecated\&. Deprecated: 1
 T}
 T{
 max\-age
@@ -1321,7 +1331,7 @@ priority\-bandwidth
 T}:T{
 array of uint32
 T}:T{
-[0, 0, 0, 0, 0, 0, 0, 0]
+[0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L]
 T}:T{
 An array of 8 uint values, where the array index corresponds to the User Priority (0 \- 7) and the value indicates the percentage of bandwidth of the priority\*(Aqs assigned group that the priority may use\&.  The sum of all percentages for priorities which belong to the same group must total 100 percents\&.
 T}
@@ -1330,7 +1340,7 @@ priority\-flow\-control
 T}:T{
 array of uint32
 T}:T{
-[0, 0, 0, 0, 0, 0, 0, 0]
+[False, False, False, False, False, False, False, False]
 T}:T{
 An array of 8 boolean values, where the array index corresponds to the User Priority (0 \- 7) and the value indicates whether or not the corresponding priority should transmit priority pause\&.
 T}
@@ -1348,7 +1358,7 @@ priority\-group\-bandwidth
 T}:T{
 array of uint32
 T}:T{
-[0, 0, 0, 0, 0, 0, 0, 0]
+[0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L]
 T}:T{
 An array of 8 uint values, where the array index corresponds to the Priority Group ID (0 \- 7) and the value indicates the percentage of link bandwidth allocated to that group\&.  Allowed values are 0 \- 100, and the sum of all values must total 100 percents\&.
 T}
@@ -1366,7 +1376,7 @@ priority\-group\-id
 T}:T{
 array of uint32
 T}:T{
-[0, 0, 0, 0, 0, 0, 0, 0]
+[0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L]
 T}:T{
 An array of 8 uint values, where the array index corresponds to the User Priority (0 \- 7) and the value indicates the Priority Group ID\&.  Allowed Priority Group ID values are 0 \- 7 or 15 for the unrestricted group\&.
 T}
@@ -1375,7 +1385,7 @@ priority\-strict\-bandwidth
 T}:T{
 array of uint32
 T}:T{
-[0, 0, 0, 0, 0, 0, 0, 0]
+[False, False, False, False, False, False, False, False]
 T}:T{
 An array of 8 boolean values, where the array index corresponds to the User Priority (0 \- 7) and the value indicates whether or not the priority may use all of the bandwidth allocated to its assigned group\&.
 T}
@@ -1384,7 +1394,7 @@ priority\-traffic\-class
 T}:T{
 array of uint32
 T}:T{
-[0, 0, 0, 0, 0, 0, 0, 0]
+[0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L]
 T}:T{
 An array of 8 uint values, where the array index corresponds to the User Priority (0 \- 7) and the value indicates the traffic class (0 \- 7) to which the priority is mapped\&.
 T}
@@ -1746,7 +1756,7 @@ int32
 T}:T{
 \-1
 T}:T{
-Timeout in milliseconds used to check for the presence of duplicate IP addresses on the network\&.  If an address conflict is detected, the activation will fail\&.  A zero value means that no duplicate address detection is performed, \-1 means the default value (either configuration ipvx\&.dad\-timeout override or 3 seconds)\&.  A value greater than zero is a timeout in milliseconds\&.
+Timeout in milliseconds used to check for the presence of duplicate IP addresses on the network\&.  If an address conflict is detected, the activation will fail\&.  A zero value means that no duplicate address detection is performed, \-1 means the default value (either configuration ipvx\&.dad\-timeout override or zero)\&.  A value greater than zero is a timeout in milliseconds\&. The property is currently implemented only for IPv4\&.
 T}
 T{
 dhcp\-client\-id
@@ -1755,7 +1765,7 @@ string
 T}:T{
 \ \&
 T}:T{
-A string sent to the DHCP server to identify the local machine which the DHCP server may use to customize the DHCP lease and options\&. When the property is a hex string (\*(Aqaa:bb:cc\*(Aq) it is interpreted as a binary client ID, in which case the first byte is assumed to be the \*(Aqtype\*(Aq field as per RFC 2132 section 9\&.14 and the remaining bytes may be an hardware address (e\&.g\&. \*(Aq01:xx:xx:xx:xx:xx:xx\*(Aq where 1 is the Ethernet ARP type and the rest is a MAC address)\&. If the property is not a hex string it is considered as a non\-hardware\-address client ID and the \*(Aqtype\*(Aq field is set to 0\&.
+A string sent to the DHCP server to identify the local machine which the DHCP server may use to customize the DHCP lease and options\&. When the property is a hex string (\*(Aqaa:bb:cc\*(Aq) it is interpreted as a binary client ID, in which case the first byte is assumed to be the \*(Aqtype\*(Aq field as per RFC 2132 section 9\&.14 and the remaining bytes may be an hardware address (e\&.g\&. \*(Aq01:xx:xx:xx:xx:xx:xx\*(Aq where 1 is the Ethernet ARP type and the rest is a MAC address)\&. If the property is not a hex string it is considered as a non\-hardware\-address client ID and the \*(Aqtype\*(Aq field is set to 0\&. The special values "mac" and "perm\-mac" are supported, which use the current or permanent MAC address of the device to generate a client identifier with type ethernet type (01)\&. Currently, these options only work for ethernet type of links\&. The special value "stable" is supported to generate a type 0 client identifier based on the stable\-id (see connection\&.stable\-id) and a per\-host key\&. If unset, a globally configured default is used\&. If still unset, the client\-id from the last lease is reused\&.
 T}
 T{
 dhcp\-fqdn
@@ -1818,7 +1828,7 @@ int32
 T}:T{
 0
 T}:T{
-Intra\-connection DNS priority\&. The relative priority to be used when determining the order of DNS servers in resolv\&.conf\&.  A lower value means that servers will be on top of the file\&.  Zero selects the default value, which is 50 for VPNs and 100 for other connections\&.  Note that the priority is to order DNS settings for multiple active connections\&. It does not disambiguate multiple DNS servers within the same connection profile\&. For that, just specify the DNS servers in the desired order\&. When multiple devices have configurations with the same priority, the one with an active default route will be preferred\&. Note that when using dns=dnsmasq the order is meaningless since dnsmasq forwards queries to all known servers at the same time\&. Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used\&.
+DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower value is better (higher priority)\&.  Zero selects the default value, which is 50 for VPNs and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&.  To prioritize a given server over another one within the same connection, just specify them in the desired order\&.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred\&.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used\&. When using a DNS resolver that supports split\-DNS as dns=dnsmasq or dns=systemd\-resolved, each connection is used to query domains in its search list\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins\&.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored\&.
 T}
 T{
 dns\-search
@@ -1827,7 +1837,7 @@ array of string
 T}:T{
 []
 T}:T{
-Array of DNS search domains\&.
+Array of DNS search domains\&. Domains starting with a tilde (\*(Aq~\*(Aq) are considered \*(Aqrouting\*(Aq domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names\&.
 T}
 T{
 gateway
@@ -1969,6 +1979,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 addr\-gen\-mode
@@ -2004,7 +2015,16 @@ int32
 T}:T{
 \-1
 T}:T{
-Timeout in milliseconds used to check for the presence of duplicate IP addresses on the network\&.  If an address conflict is detected, the activation will fail\&.  A zero value means that no duplicate address detection is performed, \-1 means the default value (either configuration ipvx\&.dad\-timeout override or 3 seconds)\&.  A value greater than zero is a timeout in milliseconds\&.
+Timeout in milliseconds used to check for the presence of duplicate IP addresses on the network\&.  If an address conflict is detected, the activation will fail\&.  A zero value means that no duplicate address detection is performed, \-1 means the default value (either configuration ipvx\&.dad\-timeout override or zero)\&.  A value greater than zero is a timeout in milliseconds\&. The property is currently implemented only for IPv4\&.
+T}
+T{
+dhcp\-duid
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+A string containing the DHCPv6 Unique Identifier (DUID) used by the dhcp client to identify itself to DHCPv6 servers (RFC 3315)\&. The DUID is carried in the Client Identifier option\&. If the property is a hex string (\*(Aqaa:bb:cc\*(Aq) it is interpreted as a binary DUID and filled as an opaque value in the Client Identifier option\&. The special value "lease" will retrieve the DUID previously used from the lease file belonging to the connection\&. If no DUID is found and "dhclient" is the configured dhcp client, the DUID is searched in the system\-wide dhclient lease file\&. If still no DUID is found, or another dhcp client is used, a global and permanent DUID\-UUID (RFC 6355) will be generated based on the machine\-id\&. The special values "llt" and "ll" will generate a DUID of type LLT or LL (see RFC 3315) based on the current MAC address of the device\&. In order to try providing a stable DUID\-LLT, the time field will contain a constant timestamp that is used globally (for all profiles) and persisted to disk\&. The special values "stable\-llt", "stable\-ll" and "stable\-uuid" will generate a DUID of the corresponding type, derived from the connection\*(Aqs stable\-id and a per\-host unique key\&. So, the link\-layer address of "stable\-ll" and "stable\-llt" will be a generated address derived from the stable id\&. The DUID\-LLT time value in the "stable\-llt" option will be picked among a static timespan of three years (the upper bound of the interval is the same constant timestamp used in "llt")\&. When the property is unset, the global value provided for "ipv6\&.dhcp\-duid" is used\&. If no global value is provided, the default "lease" value is assumed\&.
 T}
 T{
 dhcp\-hostname
@@ -2058,7 +2078,7 @@ int32
 T}:T{
 0
 T}:T{
-Intra\-connection DNS priority\&. The relative priority to be used when determining the order of DNS servers in resolv\&.conf\&.  A lower value means that servers will be on top of the file\&.  Zero selects the default value, which is 50 for VPNs and 100 for other connections\&.  Note that the priority is to order DNS settings for multiple active connections\&. It does not disambiguate multiple DNS servers within the same connection profile\&. For that, just specify the DNS servers in the desired order\&. When multiple devices have configurations with the same priority, the one with an active default route will be preferred\&. Note that when using dns=dnsmasq the order is meaningless since dnsmasq forwards queries to all known servers at the same time\&. Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used\&.
+DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower value is better (higher priority)\&.  Zero selects the default value, which is 50 for VPNs and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&.  To prioritize a given server over another one within the same connection, just specify them in the desired order\&.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred\&.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used\&. When using a DNS resolver that supports split\-DNS as dns=dnsmasq or dns=systemd\-resolved, each connection is used to query domains in its search list\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins\&.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored\&.
 T}
 T{
 dns\-search
@@ -2067,7 +2087,7 @@ array of string
 T}:T{
 []
 T}:T{
-Array of DNS search domains\&.
+Array of DNS search domains\&. Domains starting with a tilde (\*(Aq~\*(Aq) are considered \*(Aqrouting\*(Aq domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names\&.
 T}
 T{
 gateway
@@ -2216,6 +2236,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 encapsulation\-limit
@@ -2225,6 +2246,15 @@ T}:T{
 0
 T}:T{
 How many additional levels of encapsulation are permitted to be prepended to packets\&. This property applies only to IPv6 tunnels\&.
+T}
+T{
+flags
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+Tunnel flags\&. Currently the following values are supported: NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT (0x1), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_TCLASS (0x2), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FLOWLABEL (0x4), NM_IP_TUNNEL_FLAG_IP6_MIP6_DEV (0x8), NM_IP_TUNNEL_FLAG_IP6_RCV_DSCP_COPY (0x10), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FWMARK (0x20)\&. They are valid only for IPv6 tunnels\&.
 T}
 T{
 flow\-label
@@ -2360,6 +2390,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 encrypt
@@ -2432,6 +2463,15 @@ T}:T{
 1
 T}:T{
 The port component of the SCI (Secure Channel Identifier), between 1 and 65534\&.
+T}
+T{
+send\-sci
+T}:T{
+boolean
+T}:T{
+TRUE
+T}:T{
+Specifies whether the SCI (Secure Channel Identifier) is included in every packet\&.
 T}
 T{
 validation
@@ -2640,7 +2680,7 @@ T}
 .sp 1
 .SS "ovs\-interface setting"
 .PP
-OpenVSwitch Interface Settings\&.
+Open vSwitch Interface Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2710,7 +2750,7 @@ string
 T}:T{
 \ \&
 T}:T{
-Specifies the unicast destination IP address of a remote OpenVSwitch bridge port to connect to\&.
+Specifies the unicast destination IP address of a remote Open vSwitch bridge port to connect to\&.
 T}
 .TE
 .sp 1
@@ -3395,7 +3435,7 @@ string
 T}:T{
 "roundrobin"
 T}:T{
-Corresponds to the teamd runner\&.name\&. Permitted values are: "roundrobin", "broadcast", "activebackup", "loadbalance", "lacp"\&. When setting the runner, all the properties specific to the runner will be reset to the default value; all the properties specific to other runners will be set to an empty value (or if not possible to a default value)\&.
+Corresponds to the teamd runner\&.name\&. Permitted values are: "roundrobin", "broadcast", "activebackup", "loadbalance", "lacp", "random"\&. When setting the runner, all the properties specific to the runner will be reset to the default value; all the properties specific to other runners will be set to an empty value (or if not possible to a default value)\&.
 T}
 T{
 runner\-active
@@ -4164,7 +4204,7 @@ boolean
 T}:T{
 FALSE
 T}:T{
-If TRUE, enforce auto\-negotiation of port speed and duplex mode\&.  If FALSE, "speed" and "duplex" properties should be both set or link configuration will be skipped\&.
+When TRUE, enforce auto\-negotiation of speed and duplex mode\&. If "speed" and "duplex" properties are both specified, only that single mode will be advertised and accepted during the link auto\-negotiation process: this works only for BASE\-T 802\&.3 specifications and is useful for enforcing gigabits modes, as in these cases link negotiation is mandatory\&. When FALSE, "speed" and "duplex" properties should be both set or link configuration will be skipped\&.
 T}
 T{
 cloned\-mac\-address
@@ -4182,7 +4222,7 @@ string
 T}:T{
 \ \&
 T}:T{
-Can be specified only when "auto\-negotiate" is "off"\&. In that case, statically configures the device to use that specified duplex mode, either "half" or "full"\&. Must be set together with the "speed" property if specified\&. Before specifying a duplex mode be sure your device supports it\&.
+When a value is set, either "half" or "full", configures the device to use the specified duplex mode\&. If "auto\-negotiate" is "yes" the specified duplex mode will be the only one advertised during link negotiation: this works only for BASE\-T 802\&.3 specifications and is useful for enforcing gigabits modes, as in these cases link negotiation is mandatory\&. If the value is unset (the default), the link configuration will be either skipped (if "auto\-negotiate" is "no", the default) or will be auto\-negotiated (if "auto\-negotiate" is "yes") and the local device will advertise all the supported duplex modes\&. Must be set together with the "speed" property if specified\&. Before specifying a duplex mode be sure your device supports it\&.
 T}
 T{
 generate\-mac\-address\-mask
@@ -4272,7 +4312,7 @@ uint32
 T}:T{
 0
 T}:T{
-Can be set to a value greater than zero only when "auto\-negotiate" is "off"\&. In that case, statically configures the device to use that specified speed\&. In Mbit/s, ie 100 == 100Mbit/s\&. Must be set together with the "duplex" property when non\-zero\&. Before specifying a speed value be sure your device supports it\&.
+When a value grater than 0 is set, configures the device to use the specified speed\&. If "auto\-negotiate" is "yes" the specified speed will be the only one advertised during link negotiation: this works only for BASE\-T 802\&.3 specifications and is useful for enforcing gigabit speeds, as in this case link negotiation is mandatory\&. If the value is unset (0, the default), the link configuration will be either skipped (if "auto\-negotiate" is "no", the default) or will be auto\-negotiated (if "auto\-negotiate" is "yes") and the local device will advertise all the supported speeds\&. In Mbit/s, ie 100 == 100Mbit/s\&. Must be set together with the "duplex" property when non\-zero\&. Before specifying a speed value be sure your device supports it\&.
 T}
 T{
 wake\-on\-lan
@@ -4310,6 +4350,7 @@ T}:T{
 Value Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -4390,7 +4431,7 @@ boolean
 T}:T{
 FALSE
 T}:T{
-If TRUE, indicates this network is a non\-broadcasting network that hides its SSID\&.  In this case various workarounds may take place, such as probe\-scanning the SSID for more reliable network discovery\&.  However, these workarounds expose inherent insecurities with hidden SSID networks, and thus hidden SSID networks should be used with caution\&.
+If TRUE, indicates this network is a non\-broadcasting network that hides its SSID\&.  In this case various workarounds may take place, such as probe\-scanning the SSID for more reliable network discovery\&.  However, these workarounds expose inherent insecurities with hidden SSID networks, and thus hidden SSID networks should be used with caution\&. Note that marking the network as hidden may be a privacy issue for you, as the explicit probe\-scans may be distinctly recognizable on the air\&.
 T}
 T{
 mac\-address
@@ -4500,6 +4541,15 @@ T}:T{
 T}:T{
 If non\-zero, directs the device to use the specified transmit power\&. Units are dBm\&.  This property is highly driver dependent and not all devices support setting a static transmit power\&.
 T}
+T{
+wake\-on\-wlan
+T}:T{
+uint32
+T}:T{
+1
+T}:T{
+The NMSettingWirelessWakeOnWLan options to enable\&. Not all devices support all options\&. May be any combination of NM_SETTING_WIRELESS_WAKE_ON_WLAN_ANY (0x2), NM_SETTING_WIRELESS_WAKE_ON_WLAN_DISCONNECT (0x4), NM_SETTING_WIRELESS_WAKE_ON_WLAN_MAGIC (0x8), NM_SETTING_WIRELESS_WAKE_ON_WLAN_GTK_REKEY_FAILURE (0x10), NM_SETTING_WIRELESS_WAKE_ON_WLAN_EAP_IDENTITY_REQUEST (0x20), NM_SETTING_WIRELESS_WAKE_ON_WLAN_4WAY_HANDSHAKE (0x40), NM_SETTING_WIRELESS_WAKE_ON_WLAN_RFKILL_RELEASE (0x80), NM_SETTING_WIRELESS_WAKE_ON_WLAN_TCP (0x100) or the special values NM_SETTING_WIRELESS_WAKE_ON_WLAN_DEFAULT (0x1) (to use global settings) and NM_SETTING_WIRELESS_WAKE_ON_WLAN_IGNORE (0x8000) (to disable management of Wake\-on\-LAN in NetworkManager)\&.
+T}
 .TE
 .sp 1
 .SS "802\-11\-wireless\-security setting"
@@ -4537,6 +4587,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 auth\-alg
@@ -4546,6 +4597,15 @@ T}:T{
 \ \&
 T}:T{
 When WEP is used (ie, key\-mgmt = "none" or "ieee8021x") indicate the 802\&.11 authentication algorithm required by the AP here\&.  One of "open" for Open System, "shared" for Shared Key, or "leap" for Cisco LEAP\&.  When using Cisco LEAP (ie, key\-mgmt = "ieee8021x" and auth\-alg = "leap") the "leap\-username" and "leap\-password" properties must be specified\&.
+T}
+T{
+fils
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+Indicates whether Fast Initial Link Setup (802\&.11ai) must be enabled for the connection\&.  One of NM_SETTING_WIRELESS_SECURITY_FILS_DEFAULT (0) (use global default value), NM_SETTING_WIRELESS_SECURITY_FILS_DISABLE (1) (disable FILS), NM_SETTING_WIRELESS_SECURITY_FILS_OPTIONAL (2) (enable FILS if the supplicant and the access point support it) or NM_SETTING_WIRELESS_SECURITY_FILS_REQUIRED (3) (enable FILS and fail if not supported)\&.  When set to NM_SETTING_WIRELESS_SECURITY_FILS_DEFAULT (0) and no global default is set, FILS will be optionally enabled\&.
 T}
 T{
 group

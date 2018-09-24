@@ -22,36 +22,19 @@
 #include "nm-ovsdb.h"
 
 #include <string.h>
-#include <jansson.h>
 #include <gmodule.h>
 #include <gio/gunixsocketaddress.h>
 
+#include "nm-utils/nm-jansson.h"
 #include "devices/nm-device.h"
 #include "platform/nm-platform.h"
 #include "nm-core-internal.h"
 
-/* Added in Jansson v2.4 (released Sep 23 2012), but travis.ci has v2.2. */
-#ifndef json_boolean
-#define json_boolean(val) ((val) ? json_true() : json_false())
-#endif
-
-/* Added in Jansson v2.5 (released Sep 19 2013), but travis.ci has v2.2. */
-#ifndef json_array_foreach
-#define json_array_foreach(array, index, value) \
-	for (index = 0; \
-	     index < json_array_size(array) && (value = json_array_get(array, index)); \
-	     index++)
-#endif
-
-/* Added in Jansson v2.3 (released Jan 27 2012) */
-#ifndef json_object_foreach
-#define json_object_foreach(object, key, value) \
-    for(key = json_object_iter_key(json_object_iter(object)); \
-        key && (value = json_object_iter_value(json_object_key_to_iter(key))); \
-        key = json_object_iter_key(json_object_iter_next(object, json_object_key_to_iter(key))))
-#endif
-
 /*****************************************************************************/
+
+#if JANSSON_VERSION_HEX < 0x020400
+#warning "requires at least libjansson 2.4"
+#endif
 
 typedef struct {
 	char *name;
@@ -95,7 +78,7 @@ typedef struct {
 	GHashTable *interfaces;         /* interface uuid => OpenvswitchInterface */
 	GHashTable *ports;              /* port uuid => OpenvswitchPort */
 	GHashTable *bridges;            /* bridge uuid => OpenvswitchBridge */
-	const char *db_uuid;
+	char *db_uuid;
 } NMOvsdbPrivate;
 
 struct _NMOvsdb {
@@ -144,7 +127,7 @@ typedef struct {
 	OvsdbMethodCallback callback;
 	gpointer user_data;
 	union {
-		const char *ifname;
+		char *ifname;
 		struct {
 			NMConnection *bridge;
 			NMConnection *port;
@@ -380,7 +363,7 @@ _insert_interface (json_t *params, NMConnection *interface)
 		json_pack ("{s:s, s:s, s:{s:s, s:s, s:o, s:[s, [[s, s]]]}, s:s}",
 		           "op", "insert", "table", "Interface", "row",
 		           "name", nm_connection_get_interface_name (interface),
-		           "type", type ? type : "",
+		           "type", type ?: "",
 		           "options", options,
 		           "external_ids", "map", "NM.connection.uuid", nm_connection_get_uuid (interface),
 		           "uuid-name", "rowInterface"));
@@ -884,7 +867,7 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 
 	if (ovs) {
 		iter = json_object_iter (ovs);
-		priv->db_uuid = g_strdup (iter ? json_object_iter_key (iter) : NULL);
+		priv->db_uuid = iter ? g_strdup (json_object_iter_key (iter)) : NULL;
 	}
 
 	/* Interfaces */
@@ -908,7 +891,7 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 				_LOGT ("removed an '%s' interface: %s%s%s",
 				       ovs_interface->type, ovs_interface->name,
 				       ovs_interface->connection_uuid ? ", " : "",
-				       ovs_interface->connection_uuid ? ovs_interface->connection_uuid : "");
+				       ovs_interface->connection_uuid ?: "");
 				if (g_strcmp0 (ovs_interface->type, "internal") == 0) {
 					/* Currently the factory only creates NMDevices for
 					 * internal interfaces. Ignore the rest. */
@@ -927,14 +910,14 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 			if (old) {
 				_LOGT ("changed an '%s' interface: %s%s%s", type, ovs_interface->name,
 				       ovs_interface->connection_uuid ? ", " : "",
-				       ovs_interface->connection_uuid ? ovs_interface->connection_uuid : "");
+				       ovs_interface->connection_uuid ?: "");
 				g_signal_emit (self, signals[DEVICE_CHANGED], 0,
 				               "ovs-interface", ovs_interface->name);
 			} else {
 				_LOGT ("added an '%s' interface: %s%s%s",
 				       ovs_interface->type, ovs_interface->name,
 				       ovs_interface->connection_uuid ? ", " : "",
-				       ovs_interface->connection_uuid ? ovs_interface->connection_uuid : "");
+				       ovs_interface->connection_uuid ?: "");
 				if (g_strcmp0 (ovs_interface->type, "internal") == 0) {
 					/* Currently the factory only creates NMDevices for
 					 * internal interfaces. Ignore the rest. */
@@ -966,7 +949,7 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 				old = FALSE;
 				_LOGT ("removed a port: %s%s%s", ovs_port->name,
 				       ovs_port->connection_uuid ? ", " : "",
-				       ovs_port->connection_uuid ? ovs_port->connection_uuid : "");
+				       ovs_port->connection_uuid ?: "");
 				g_signal_emit (self, signals[DEVICE_REMOVED], 0,
 				               ovs_port->name, NM_DEVICE_TYPE_OVS_PORT);
 			}
@@ -982,13 +965,13 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 			if (old) {
 				_LOGT ("changed a port: %s%s%s", ovs_port->name,
 				       ovs_port->connection_uuid ? ", " : "",
-				       ovs_port->connection_uuid ? ovs_port->connection_uuid : "");
+				       ovs_port->connection_uuid ?: "");
 				g_signal_emit (self, signals[DEVICE_CHANGED], 0,
 				               NM_SETTING_OVS_PORT_SETTING_NAME, ovs_port->name);
 			} else {
 				_LOGT ("added a port: %s%s%s", ovs_port->name,
 				       ovs_port->connection_uuid ? ", " : "",
-				       ovs_port->connection_uuid ? ovs_port->connection_uuid : "");
+				       ovs_port->connection_uuid ?: "");
 				g_signal_emit (self, signals[DEVICE_ADDED], 0,
 				               ovs_port->name, NM_DEVICE_TYPE_OVS_PORT);
 			}
@@ -1016,7 +999,7 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 				old = FALSE;
 				_LOGT ("removed a bridge: %s%s%s", ovs_bridge->name,
 				       ovs_bridge->connection_uuid ? ", " : "",
-				       ovs_bridge->connection_uuid ? ovs_bridge->connection_uuid : "");
+				       ovs_bridge->connection_uuid ?: "");
 				g_signal_emit (self, signals[DEVICE_REMOVED], 0,
 				               ovs_bridge->name, NM_DEVICE_TYPE_OVS_BRIDGE);
 			}
@@ -1032,13 +1015,13 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 			if (old) {
 				_LOGT ("changed a bridge: %s%s%s", ovs_bridge->name,
 				       ovs_bridge->connection_uuid ? ", " : "",
-				       ovs_bridge->connection_uuid ? ovs_bridge->connection_uuid : "");
+				       ovs_bridge->connection_uuid ?: "");
 				g_signal_emit (self, signals[DEVICE_CHANGED], 0,
 				               NM_SETTING_OVS_BRIDGE_SETTING_NAME, ovs_bridge->name);
 			} else {
 				_LOGT ("added a bridge: %s%s%s", ovs_bridge->name,
 				       ovs_bridge->connection_uuid ? ", " : "",
-				       ovs_bridge->connection_uuid ? ovs_bridge->connection_uuid : "");
+				       ovs_bridge->connection_uuid ?: "");
 				g_signal_emit (self, signals[DEVICE_ADDED], 0,
 				               ovs_bridge->name, NM_DEVICE_TYPE_OVS_BRIDGE);
 			}
@@ -1169,7 +1152,6 @@ ovsdb_got_msg (NMOvsdb *self, json_t *msg)
 
 		return;
 	}
-
 
 	/* This is a message we are not interested in. */
 	_LOGW ("got an unknown message, ignoring");

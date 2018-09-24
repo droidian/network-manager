@@ -36,11 +36,7 @@
 
 #include "nm-test-utils-core.h"
 
-#define DEBUG 1
-
-static const int IFINDEX = 5;
-static const guint32 ROUTE_TABLE = RT_TABLE_MAIN;
-static const guint32 ROUTE_METRIC = 100;
+#define TEST_DIR             NM_BUILD_SRCDIR"/src/dhcp/tests"
 
 static void
 test_config (const char *orig,
@@ -154,7 +150,7 @@ test_override_client_id (void)
 static const char *quote_client_id_expected = \
 	"# Created by NetworkManager\n"
 	"\n"
-	"send dhcp-client-identifier \"1234\"; # added by NetworkManager\n"
+	"send dhcp-client-identifier \"\\x00abcd\"; # added by NetworkManager\n"
 	"\n"
 	"option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;\n"
 	"option ms-classless-static-routes code 249 = array of unsigned integer 8;\n"
@@ -172,7 +168,65 @@ test_quote_client_id (void)
 {
 	test_config (NULL, quote_client_id_expected,
 	             AF_INET, NULL, 0, FALSE,
-	             "1234",
+	             "abcd",
+	             NULL,
+	             "eth0",
+	             NULL);
+}
+
+/*****************************************************************************/
+
+static const char *quote_client_id_expected_2 = \
+	"# Created by NetworkManager\n"
+	"\n"
+	"send dhcp-client-identifier 00:61:5c:62:63; # added by NetworkManager\n"
+	"\n"
+	"option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;\n"
+	"option ms-classless-static-routes code 249 = array of unsigned integer 8;\n"
+	"option wpad code 252 = string;\n"
+	"\n"
+	"also request rfc3442-classless-static-routes;\n"
+	"also request ms-classless-static-routes;\n"
+	"also request static-routes;\n"
+	"also request wpad;\n"
+	"also request ntp-servers;\n"
+	"\n";
+
+static void
+test_quote_client_id_2 (void)
+{
+	test_config (NULL, quote_client_id_expected_2,
+	             AF_INET, NULL, 0, FALSE,
+	             "a\\bc",
+	             NULL,
+	             "eth0",
+	             NULL);
+}
+
+/*****************************************************************************/
+
+static const char *hex_zero_client_id_expected = \
+	"# Created by NetworkManager\n"
+	"\n"
+	"send dhcp-client-identifier 00:11:22:33; # added by NetworkManager\n"
+	"\n"
+	"option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;\n"
+	"option ms-classless-static-routes code 249 = array of unsigned integer 8;\n"
+	"option wpad code 252 = string;\n"
+	"\n"
+	"also request rfc3442-classless-static-routes;\n"
+	"also request ms-classless-static-routes;\n"
+	"also request static-routes;\n"
+	"also request wpad;\n"
+	"also request ntp-servers;\n"
+	"\n";
+
+static void
+test_hex_zero_client_id (void)
+{
+	test_config (NULL, hex_zero_client_id_expected,
+	             AF_INET, NULL, 0, FALSE,
+	             "00:11:22:33",
 	             NULL,
 	             "eth0",
 	             NULL);
@@ -183,7 +237,7 @@ test_quote_client_id (void)
 static const char *ascii_client_id_expected = \
 	"# Created by NetworkManager\n"
 	"\n"
-	"send dhcp-client-identifier \"qb:cd:ef:12:34:56\"; # added by NetworkManager\n"
+	"send dhcp-client-identifier \"\\x00qb:cd:ef:12:34:56\"; # added by NetworkManager\n"
 	"\n"
 	"option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;\n"
 	"option ms-classless-static-routes code 249 = array of unsigned integer 8;\n"
@@ -239,13 +293,13 @@ test_hex_single_client_id (void)
 /*****************************************************************************/
 
 static const char *existing_hex_client_id_orig = \
-	"send dhcp-client-identifier 00:30:04:20:7A:08;\n";
+	"send dhcp-client-identifier 10:30:04:20:7A:08;\n";
 
 static const char *existing_hex_client_id_expected = \
 	"# Created by NetworkManager\n"
 	"# Merged from /path/to/dhclient.conf\n"
 	"\n"
-	"send dhcp-client-identifier 00:30:04:20:7A:08;\n"
+	"send dhcp-client-identifier 10:30:04:20:7A:08;\n"
 	"\n"
 	"option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;\n"
 	"option ms-classless-static-routes code 249 = array of unsigned integer 8;\n"
@@ -262,7 +316,7 @@ static void
 test_existing_hex_client_id (void)
 {
 	gs_unref_bytes GBytes *new_client_id = NULL;
-	const guint8 bytes[] = { 0x00, 0x30, 0x04,0x20, 0x7A, 0x08 };
+	const guint8 bytes[] = { 0x10, 0x30, 0x04, 0x20, 0x7A, 0x08 };
 
 	new_client_id = g_bytes_new (bytes, sizeof (bytes));
 	test_config (existing_hex_client_id_orig, existing_hex_client_id_expected,
@@ -275,16 +329,52 @@ test_existing_hex_client_id (void)
 
 /*****************************************************************************/
 
+static const char *existing_escaped_client_id_orig = \
+	"send dhcp-client-identifier \"\\044test\\xfe\";\n";
+
+static const char *existing_escaped_client_id_expected = \
+	"# Created by NetworkManager\n"
+	"# Merged from /path/to/dhclient.conf\n"
+	"\n"
+	"send dhcp-client-identifier \"\\044test\\xfe\";\n"
+	"\n"
+	"option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;\n"
+	"option ms-classless-static-routes code 249 = array of unsigned integer 8;\n"
+	"option wpad code 252 = string;\n"
+	"\n"
+	"also request rfc3442-classless-static-routes;\n"
+	"also request ms-classless-static-routes;\n"
+	"also request static-routes;\n"
+	"also request wpad;\n"
+	"also request ntp-servers;\n"
+	"\n";
+
+static void
+test_existing_escaped_client_id (void)
+{
+	gs_unref_bytes GBytes *new_client_id = NULL;
+
+	new_client_id = g_bytes_new ("$test\xfe", 6);
+	test_config (existing_escaped_client_id_orig, existing_escaped_client_id_expected,
+	             AF_INET, NULL, 0, FALSE,
+	             NULL,
+	             new_client_id,
+	             "eth0",
+	             NULL);
+}
+
+/*****************************************************************************/
+
 #define EACID "qb:cd:ef:12:34:56"
 
 static const char *existing_ascii_client_id_orig = \
-	"send dhcp-client-identifier \"" EACID "\";\n";
+	"send dhcp-client-identifier \"\\x00" EACID "\";\n";
 
 static const char *existing_ascii_client_id_expected = \
 	"# Created by NetworkManager\n"
 	"# Merged from /path/to/dhclient.conf\n"
 	"\n"
-	"send dhcp-client-identifier \"" EACID "\";\n"
+	"send dhcp-client-identifier \"\\x00" EACID "\";\n"
 	"\n"
 	"option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;\n"
 	"option ms-classless-static-routes code 249 = array of unsigned integer 8;\n"
@@ -585,23 +675,26 @@ test_existing_multiline_alsoreq (void)
 static void
 test_one_duid (const char *escaped, const guint8 *unescaped, guint len)
 {
-	GByteArray *t;
+	GBytes *t;
 	char *w;
+	gsize t_len;
+	gconstpointer t_arr;
 
 	t = nm_dhcp_dhclient_unescape_duid (escaped);
 	g_assert (t);
-	g_assert_cmpint (t->len, ==, len);
-	g_assert_cmpint (memcmp (t->data, unescaped, len), ==, 0);
-	g_byte_array_free (t, TRUE);
+	t_arr = g_bytes_get_data (t, &t_len);
+	g_assert (t_arr);
+	g_assert_cmpint (t_len, ==, len);
+	g_assert_cmpint (memcmp (t_arr, unescaped, len), ==, 0);
+	g_bytes_unref (t);
 
-	t = g_byte_array_sized_new (len);
-	g_byte_array_append (t, unescaped, len);
+	t = g_bytes_new_static (unescaped, len);
 	w = nm_dhcp_dhclient_escape_duid (t);
 	g_assert (w);
 	g_assert_cmpint (strlen (escaped), ==, strlen (w));
 	g_assert_cmpstr (escaped, ==, w);
 
-	g_byte_array_free (t, TRUE);
+	g_bytes_unref (t);
 	g_free (w);
 }
 
@@ -640,25 +733,26 @@ test_read_duid_from_leasefile (void)
 {
 	const guint8 expected[] = { 0x00, 0x01, 0x00, 0x01, 0x18, 0x79, 0xa6,
 	                            0x13, 0x60, 0x67, 0x20, 0xec, 0x4c, 0x70 };
-	GByteArray *duid;
+	gs_unref_bytes GBytes *duid = NULL;
 	GError *error = NULL;
+	gconstpointer duid_arr;
+	gsize duid_len;
 
-	duid = nm_dhcp_dhclient_read_duid (TESTDIR "/test-dhclient-duid.leases", &error);
+	duid = nm_dhcp_dhclient_read_duid (TEST_DIR"/test-dhclient-duid.leases", &error);
 	g_assert_no_error (error);
 	g_assert (duid);
-	g_assert_cmpint (duid->len, ==, sizeof (expected));
-	g_assert_cmpint (memcmp (duid->data, expected, duid->len), ==, 0);
-
-	g_byte_array_free (duid, TRUE);
+	duid_arr = g_bytes_get_data (duid, &duid_len);
+	g_assert_cmpint (duid_len, ==, sizeof (expected));
+	g_assert_cmpint (memcmp (duid_arr, expected, duid_len), ==, 0);
 }
 
 static void
 test_read_commented_duid_from_leasefile (void)
 {
-	GByteArray *duid;
+	GBytes *duid;
 	GError *error = NULL;
 
-	duid = nm_dhcp_dhclient_read_duid (TESTDIR "/test-dhclient-commented-duid.leases", &error);
+	duid = nm_dhcp_dhclient_read_duid (TEST_DIR"/test-dhclient-commented-duid.leases", &error);
 	g_assert_no_error (error);
 	g_assert (duid == NULL);
 }
@@ -691,17 +785,18 @@ static void
 test_write_existing_duid (void)
 {
 	const char *duid = "\\000\\001\\000\\001\\023o\\023n\\000\\\"\\372\\214\\326\\302";
-	const char *expected_contents = "default-duid \"\\000\\001\\000\\001\\027X\\350X\\000#\\025\\010~\\254\";\n";
+	const char *original_contents = "default-duid \"\\000\\001\\000\\001\\027X\\350X\\000#\\025\\010~\\254\";\n";
+	const char *expected_contents = "default-duid \"\\000\\001\\000\\001\\023o\\023n\\000\\\"\\372\\214\\326\\302\";\n";
 	GError *error = NULL;
 	char *contents = NULL;
 	gboolean success;
 	const char *path = "test-dhclient-write-existing-duid.leases";
 
-	success = g_file_set_contents (path, expected_contents, -1, &error);
+	success = g_file_set_contents (path, original_contents, -1, &error);
 	g_assert_no_error (error);
 	g_assert (success);
 
-	/* Save other DUID; should be a no-op */
+	/* Save other DUID; should be overwritten */
 	success = nm_dhcp_dhclient_save_duid (path, duid, &error);
 	g_assert_no_error (error);
 	g_assert (success);
@@ -717,14 +812,14 @@ test_write_existing_duid (void)
 	g_free (contents);
 }
 
+#define DUID "\\000\\001\\000\\001\\023o\\023n\\000\\\"\\372\\214\\326\\302"
 static void
 test_write_existing_commented_duid (void)
 {
-	#define DUID "\\000\\001\\000\\001\\023o\\023n\\000\\\"\\372\\214\\326\\302"
-	#define ORIG_CONTENTS "#default-duid \"\\000\\001\\000\\001\\027X\\350X\\000#\\025\\010~\\254\";\n"
-	const char *expected_contents = \
-		"default-duid \"" DUID "\";\n"
-		ORIG_CONTENTS;
+#define ORIG_CONTENTS "#default-duid \"\\000\\001\\000\\001\\027X\\350X\\000#\\025\\010~\\254\";\n"
+	const char *expected_contents =
+	    "default-duid \"" DUID "\";\n"
+	    ORIG_CONTENTS;
 	GError *error = NULL;
 	char *contents = NULL;
 	gboolean success;
@@ -734,7 +829,7 @@ test_write_existing_commented_duid (void)
 	g_assert_no_error (error);
 	g_assert (success);
 
-	/* Save other DUID; should be a no-op */
+	/* Save other DUID; should be saved on top */
 	success = nm_dhcp_dhclient_save_duid (path, DUID, &error);
 	g_assert_no_error (error);
 	g_assert (success);
@@ -748,18 +843,45 @@ test_write_existing_commented_duid (void)
 	g_assert_cmpstr (expected_contents, ==, contents);
 
 	g_free (contents);
+#undef ORIG_CONTENTS
+}
+
+static void
+test_write_existing_multiline_duid (void)
+{
+#define ORIG_CONTENTS "### Commented old DUID ###\n" \
+                      "#default-duid \"\\000\\001\\000\\001\\027X\\350X\\000#\\025\\010~\\254\";\n"
+	const char *expected_contents = \
+	    "default-duid \"" DUID "\";\n"
+	    ORIG_CONTENTS;
+	GError *error = NULL;
+	gs_free char *contents = NULL;
+	gboolean success;
+	nmtst_auto_unlinkfile char *path = g_strdup ("test-dhclient-write-existing-multiline-duid.leases");
+
+	success = g_file_set_contents (path, ORIG_CONTENTS, -1, &error);
+	nmtst_assert_success (success, error);
+
+	success = nm_dhcp_dhclient_save_duid (path, DUID, &error);
+	nmtst_assert_success (success, error);
+
+	success = g_file_get_contents (path, &contents, NULL, &error);
+	nmtst_assert_success (success, error);
+
+	g_assert_cmpstr (expected_contents, ==, contents);
+#undef ORIG_CONTENTS
 }
 
 /*****************************************************************************/
 
 static const char *interface1_orig = \
 	"interface \"eth0\" {\n"
-	"	also request my-option;\n"
-	"	initial-delay 5;\n"
+	"\talso request my-option;\n"
+	"\tinitial-delay 5;\n"
 	"}\n"
 	"interface \"eth1\" {\n"
-	"	also request another-option;\n"
-	"	initial-delay 0;\n"
+	"\talso request another-option;\n"
+	"\tinitial-delay 0;\n"
 	"}\n"
 	"\n"
 	"also request yet-another-option;\n";
@@ -798,12 +920,12 @@ test_interface1 (void)
 
 static const char *interface2_orig = \
 	"interface eth0 {\n"
-	"	also request my-option;\n"
-	"	initial-delay 5;\n"
+	"\talso request my-option;\n"
+	"\tinitial-delay 5;\n"
 	" }\n"
 	"interface eth1 {\n"
-	"	initial-delay 0;\n"
-	"	request another-option;\n"
+	"\tinitial-delay 0;\n"
+	"\trequest another-option;\n"
 	" } \n"
 	"\n"
 	"also request yet-another-option;\n";
@@ -844,12 +966,12 @@ test_config_req_intf (void)
 {
 	static const char *const orig = \
 		"request subnet-mask, broadcast-address, routers,\n"
-		"	rfc3442-classless-static-routes,\n"
-		"	interface-mtu, host-name, domain-name, domain-search,\n"
-		"	domain-name-servers, nis-domain, nis-servers,\n"
-		"	nds-context, nds-servers, nds-tree-name,\n"
-		"	netbios-name-servers, netbios-dd-server,\n"
-		"	netbios-node-type, netbios-scope, ntp-servers;\n"
+		"\trfc3442-classless-static-routes,\n"
+		"\tinterface-mtu, host-name, domain-name, domain-search,\n"
+		"\tdomain-name-servers, nis-domain, nis-servers,\n"
+		"\tnds-context, nds-servers, nds-tree-name,\n"
+		"\tnetbios-name-servers, netbios-dd-server,\n"
+		"\tnetbios-node-type, netbios-scope, ntp-servers;\n"
 		"";
 	static const char *const expected = \
 		"# Created by NetworkManager\n"
@@ -895,133 +1017,6 @@ test_config_req_intf (void)
 
 /*****************************************************************************/
 
-static void
-test_read_lease_ip4_config_basic (void)
-{
-	nm_auto_unref_dedup_multi_index NMDedupMultiIndex *multi_idx = nm_dedup_multi_index_new ();
-	GError *error = NULL;
-	char *contents = NULL;
-	gboolean success;
-	const char *path = TESTDIR "/leases/basic.leases";
-	GSList *leases;
-	GDateTime *now;
-	NMIP4Config *config;
-	const NMPlatformIP4Address *addr;
-	guint32 expected_addr;
-
-	success = g_file_get_contents (path, &contents, NULL, &error);
-	g_assert_no_error (error);
-	g_assert (success);
-
-	/* Date from before the least expiration */
-	now = g_date_time_new_utc (2013, 11, 1, 19, 55, 32);
-	leases = nm_dhcp_dhclient_read_lease_ip_configs (multi_idx, AF_INET, "wlan0", IFINDEX, ROUTE_TABLE, ROUTE_METRIC, contents, now);
-	g_assert_cmpint (g_slist_length (leases), ==, 2);
-
-	/* IP4Config #1 */
-	config = g_slist_nth_data (leases, 0);
-	g_assert (NM_IS_IP4_CONFIG (config));
-
-	/* Address */
-	g_assert_cmpint (nm_ip4_config_get_num_addresses (config), ==, 1);
-	expected_addr = nmtst_inet4_from_string ("192.168.1.180");
-	addr = _nmtst_ip4_config_get_address (config, 0);
-	g_assert_cmpint (addr->address, ==, expected_addr);
-	g_assert_cmpint (addr->peer_address, ==, expected_addr);
-	g_assert_cmpint (addr->plen, ==, 24);
-
-	/* Gateway */
-	expected_addr = nmtst_inet4_from_string ("192.168.1.1");
-	g_assert_cmpint (nmtst_ip4_config_get_gateway (config), ==, expected_addr);
-
-	/* DNS */
-	g_assert_cmpint (nm_ip4_config_get_num_nameservers (config), ==, 1);
-	expected_addr = nmtst_inet4_from_string ("192.168.1.1");
-	g_assert_cmpint (nm_ip4_config_get_nameserver (config, 0), ==, expected_addr);
-
-	g_assert_cmpint (nm_ip4_config_get_num_domains (config), ==, 0);
-
-	/* IP4Config #2 */
-	config = g_slist_nth_data (leases, 1);
-	g_assert (NM_IS_IP4_CONFIG (config));
-
-	/* Address */
-	g_assert_cmpint (nm_ip4_config_get_num_addresses (config), ==, 1);
-	expected_addr = nmtst_inet4_from_string ("10.77.52.141");
-	addr = _nmtst_ip4_config_get_address (config, 0);
-	g_assert_cmpint (addr->address, ==, expected_addr);
-	g_assert_cmpint (addr->peer_address, ==, expected_addr);
-	g_assert_cmpint (addr->plen, ==, 8);
-
-	/* Gateway */
-	expected_addr = nmtst_inet4_from_string ("10.77.52.254");
-	g_assert_cmpint (nmtst_ip4_config_get_gateway (config), ==, expected_addr);
-
-	/* DNS */
-	g_assert_cmpint (nm_ip4_config_get_num_nameservers (config), ==, 2);
-	expected_addr = nmtst_inet4_from_string ("8.8.8.8");
-	g_assert_cmpint (nm_ip4_config_get_nameserver (config, 0), ==, expected_addr);
-	expected_addr = nmtst_inet4_from_string ("8.8.4.4");
-	g_assert_cmpint (nm_ip4_config_get_nameserver (config, 1), ==, expected_addr);
-
-	/* Domains */
-	g_assert_cmpint (nm_ip4_config_get_num_domains (config), ==, 1);
-	g_assert_cmpstr (nm_ip4_config_get_domain (config, 0), ==, "morriesguest.local");
-
-	g_slist_free_full (leases, g_object_unref);
-	g_date_time_unref (now);
-	g_free (contents);
-}
-
-static void
-test_read_lease_ip4_config_expired (void)
-{
-	nm_auto_unref_dedup_multi_index NMDedupMultiIndex *multi_idx = nm_dedup_multi_index_new ();
-	GError *error = NULL;
-	char *contents = NULL;
-	gboolean success;
-	const char *path = TESTDIR "/leases/basic.leases";
-	GSList *leases;
-	GDateTime *now;
-
-	success = g_file_get_contents (path, &contents, NULL, &error);
-	g_assert_no_error (error);
-	g_assert (success);
-
-	/* Date from *after* the lease expiration */
-	now = g_date_time_new_utc (2013, 12, 1, 19, 55, 32);
-	leases = nm_dhcp_dhclient_read_lease_ip_configs (multi_idx, AF_INET, "wlan0", IFINDEX, ROUTE_TABLE, ROUTE_METRIC, contents, now);
-	g_assert (leases == NULL);
-
-	g_date_time_unref (now);
-	g_free (contents);
-}
-
-static void
-test_read_lease_ip4_config_expect_failure (gconstpointer user_data)
-{
-	nm_auto_unref_dedup_multi_index NMDedupMultiIndex *multi_idx = nm_dedup_multi_index_new ();
-	GError *error = NULL;
-	char *contents = NULL;
-	gboolean success;
-	GSList *leases;
-	GDateTime *now;
-
-	success = g_file_get_contents ((const char *) user_data, &contents, NULL, &error);
-	g_assert_no_error (error);
-	g_assert (success);
-
-	/* Date from before the least expiration */
-	now = g_date_time_new_utc (2013, 11, 1, 1, 1, 1);
-	leases = nm_dhcp_dhclient_read_lease_ip_configs (multi_idx, AF_INET, "wlan0", IFINDEX, ROUTE_TABLE, ROUTE_METRIC, contents, now);
-	g_assert (leases == NULL);
-
-	g_date_time_unref (now);
-	g_free (contents);
-}
-
-/*****************************************************************************/
-
 NMTST_DEFINE ();
 
 int
@@ -1031,10 +1026,13 @@ main (int argc, char **argv)
 
 	g_test_add_func ("/dhcp/dhclient/orig_missing", test_orig_missing);
 	g_test_add_func ("/dhcp/dhclient/override_client_id", test_override_client_id);
-	g_test_add_func ("/dhcp/dhclient/quote_client_id", test_quote_client_id);
+	g_test_add_func ("/dhcp/dhclient/quote_client_id/1", test_quote_client_id);
+	g_test_add_func ("/dhcp/dhclient/quote_client_id/2", test_quote_client_id_2);
+	g_test_add_func ("/dhcp/dhclient/hex_zero_client_id", test_hex_zero_client_id);
 	g_test_add_func ("/dhcp/dhclient/ascii_client_id", test_ascii_client_id);
 	g_test_add_func ("/dhcp/dhclient/hex_single_client_id", test_hex_single_client_id);
 	g_test_add_func ("/dhcp/dhclient/existing-hex-client-id", test_existing_hex_client_id);
+	g_test_add_func ("/dhcp/dhclient/existing-client-id", test_existing_escaped_client_id);
 	g_test_add_func ("/dhcp/dhclient/existing-ascii-client-id", test_existing_ascii_client_id);
 	g_test_add_func ("/dhcp/dhclient/fqdn", test_fqdn);
 	g_test_add_func ("/dhcp/dhclient/fqdn_options_override", test_fqdn_options_override);
@@ -1055,18 +1053,7 @@ main (int argc, char **argv)
 	g_test_add_func ("/dhcp/dhclient/write_duid", test_write_duid);
 	g_test_add_func ("/dhcp/dhclient/write_existing_duid", test_write_existing_duid);
 	g_test_add_func ("/dhcp/dhclient/write_existing_commented_duid", test_write_existing_commented_duid);
-
-	g_test_add_func ("/dhcp/dhclient/leases/ip4-config/basic", test_read_lease_ip4_config_basic);
-	g_test_add_func ("/dhcp/dhclient/leases/ip4-config/expired", test_read_lease_ip4_config_expired);
-	g_test_add_data_func ("/dhcp/dhclient/leases/ip4-config/missing-address",
-	                      TESTDIR "/leases/malformed1.leases",
-	                      test_read_lease_ip4_config_expect_failure);
-	g_test_add_data_func ("/dhcp/dhclient/leases/ip4-config/missing-gateway",
-	                      TESTDIR "/leases/malformed2.leases",
-	                      test_read_lease_ip4_config_expect_failure);
-	g_test_add_data_func ("/dhcp/dhclient/leases/ip4-config/missing-expire",
-	                      TESTDIR "/leases/malformed3.leases",
-	                      test_read_lease_ip4_config_expect_failure);
+	g_test_add_func ("/dhcp/dhclient/write_existing_multiline_duid", test_write_existing_multiline_duid);
 
 	return g_test_run ();
 }

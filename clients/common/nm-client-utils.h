@@ -30,9 +30,9 @@ typedef enum {
 	NMC_TRI_STATE_UNKNOWN,
 } NMCTriStateValue;
 
-const char *nmc_string_is_valid (const char *input, const char **allowed, GError **error);
+const NMObject **nmc_objects_sort_by_path (const NMObject *const*objs, gssize len);
 
-char **nmc_strsplit_set (const char *str, const char *delimiter, int max_tokens);
+const char *nmc_string_is_valid (const char *input, const char **allowed, GError **error);
 
 gboolean nmc_string_to_uint (const char *str,
                              gboolean range_check,
@@ -44,7 +44,7 @@ gboolean nmc_string_to_tristate (const char *str, NMCTriStateValue *val, GError 
 
 gboolean matches (const char *cmd, const char *pattern);
 
-/* FIXME: don't expose this function on it's own, at least not from this file. */
+/* FIXME: don't expose this function on its own, at least not from this file. */
 const char *nmc_bond_validate_mode (const char *mode, GError **error);
 
 const char *nm_active_connection_state_reason_to_string (NMActiveConnectionStateReason reason);
@@ -55,5 +55,9 @@ const char *nmc_device_metered_to_string (NMMetered value);
 NMActiveConnectionState nmc_activation_get_effective_state (NMActiveConnection *active,
                                                             NMDevice *device,
                                                             const char **reason);
+
+const char *nmc_wifi_strength_bars (guint8 strength);
+
+const char *nmc_password_subst_char (void);
 
 #endif /* __NM_CLIENT_UTILS_H__ */

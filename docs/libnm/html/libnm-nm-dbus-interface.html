@@ -8,7 +8,7 @@
 <link rel="up" href="ch02.html" title="Client Object API Reference">
 <link rel="prev" href="libnm-nm-errors.html" title="nm-errors">
 <link rel="next" href="ch03.html" title="Connection and Setting API Reference">
-<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.28 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -203,6 +203,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-STATISTICS:CAPS" title="NM_DBUS_INTERFACE_DEVICE_STATISTICS">NM_DBUS_INTERFACE_DEVICE_STATISTICS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-CHECKPOINT:CAPS" title="NM_DBUS_INTERFACE_CHECKPOINT">NM_DBUS_INTERFACE_CHECKPOINT</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -406,6 +410,10 @@
 </tr>
 <tr>
 <td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMSettingsConnectionFlags" title="enum NMSettingsConnectionFlags">NMSettingsConnectionFlags</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMActivationStateFlags" title="enum NMActivationStateFlags">NMActivationStateFlags</a></td>
 </tr>
 <tr>
@@ -435,11 +443,13 @@
     <span class="lineart">├──</span> NM80211ApSecurityFlags
     <span class="lineart">├──</span> NMActivationStateFlags
     <span class="lineart">├──</span> NMBluetoothCapabilities
+    <span class="lineart">├──</span> NMCheckpointCreateFlags
     <span class="lineart">├──</span> NMDeviceCapabilities
     <span class="lineart">├──</span> NMDeviceModemCapabilities
     <span class="lineart">├──</span> NMDeviceWifiCapabilities
     <span class="lineart">├──</span> NMSecretAgentCapabilities
     <span class="lineart">├──</span> NMSecretAgentGetSecretsFlags
+    <span class="lineart">├──</span> NMSettingsConnectionFlags
     <span class="lineart">╰──</span> NMSettingsUpdate2Flags
 </pre>
 </div>
@@ -693,6 +703,12 @@
 <div class="refsect2">
 <a name="NM-DBUS-INTERFACE-DEVICE-STATISTICS:CAPS"></a><h3>NM_DBUS_INTERFACE_DEVICE_STATISTICS</h3>
 <pre class="programlisting">#define NM_DBUS_INTERFACE_DEVICE_STATISTICS    NM_DBUS_INTERFACE_DEVICE ".Statistics"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DBUS-INTERFACE-CHECKPOINT:CAPS"></a><h3>NM_DBUS_INTERFACE_CHECKPOINT</h3>
+<pre class="programlisting">#define NM_DBUS_INTERFACE_CHECKPOINT           NM_DBUS_INTERFACE ".Checkpoint"
 </pre>
 </div>
 <hr>
@@ -1130,21 +1146,21 @@ GSM/UMTS, or LTE network access protocols</p>
 <tr>
 <td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-OVS-INTERFACE:CAPS"></a>NM_DEVICE_TYPE_OVS_INTERFACE</p></td>
 <td class="enum_member_description">
-<p>a OpenVSwitch interface</p>
+<p>a Open vSwitch interface</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-OVS-PORT:CAPS"></a>NM_DEVICE_TYPE_OVS_PORT</p></td>
 <td class="enum_member_description">
-<p>a OpenVSwitch port</p>
+<p>a Open vSwitch port</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-OVS-BRIDGE:CAPS"></a>NM_DEVICE_TYPE_OVS_BRIDGE</p></td>
 <td class="enum_member_description">
-<p>a OpenVSwitch bridge</p>
+<p>a Open vSwitch bridge</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2240,7 +2256,7 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <tr>
 <td class="enum_member_name"><p><a name="NM-DEVICE-STATE-REASON-OVSDB-FAILED:CAPS"></a>NM_DEVICE_STATE_REASON_OVSDB_FAILED</p></td>
 <td class="enum_member_description">
-<p>problem communicating with OpenVSwitch database</p>
+<p>problem communicating with Open vSwitch database</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2861,10 +2877,28 @@ VPN plugin authentication dialogs.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CHECKPOINT-CREATE-FLAG-ALLOW-OVERLAPPING:CAPS"></a>NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING</p></td>
+<td class="enum_member_description">
+<p>by default, creating
+  a checkpoint fails if there are already existing checkoints that
+  reference the same devices. With this flag, creation of such
+  checkpoints is allowed, however, if an older checkpoint
+  that references overlapping devices gets rolled back, it will
+  automatically destroy this checkpoint during rollback. This
+  allows to create several overlapping checkpoints in parallel,
+  and rollback to them at will. With the special case that
+  rolling back to an older checkpoint will invalidate all
+  overlapping younger checkpoints. This opts-in that the
+  checkpoint can be automatically destroyed by the rollback
+  of an older checkpoint. (Since: 1.12)</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
-<p class="since">Since: 1.4</p>
+<p class="since">Since: 1.4 (gi flags generated since 1.12)</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -2911,6 +2945,62 @@ VPN plugin authentication dialogs.</p>
 </table></div>
 </div>
 <p class="since">Since: 1.4</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingsConnectionFlags"></a><h3>enum NMSettingsConnectionFlags</h3>
+<p>Flags describing the current activation state.</p>
+<div class="refsect3">
+<a name="NMSettingsConnectionFlags.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTINGS-CONNECTION-FLAG-NONE:CAPS"></a>NM_SETTINGS_CONNECTION_FLAG_NONE</p></td>
+<td class="enum_member_description">
+<p>an alias for numeric zero, no flags set.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTINGS-CONNECTION-FLAG-UNSAVED:CAPS"></a>NM_SETTINGS_CONNECTION_FLAG_UNSAVED</p></td>
+<td class="enum_member_description">
+<p>the connection is not saved to disk.
+  That either means, that the connection is in-memory only and currently
+  is not backed by a file. Or, that the connection is backed by a file,
+  but has modifications in-memory that were not persisted to disk.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTINGS-CONNECTION-FLAG-NM-GENERATED:CAPS"></a>NM_SETTINGS_CONNECTION_FLAG_NM_GENERATED</p></td>
+<td class="enum_member_description">
+<p>A connection is "nm-generated" if
+ it was generated by NetworkManger. If the connection gets modified or saved
+ by the user, the flag gets cleared. A nm-generated is also unsaved
+ and has no backing file as it is in-memory only.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTINGS-CONNECTION-FLAG-VOLATILE:CAPS"></a>NM_SETTINGS_CONNECTION_FLAG_VOLATILE</p></td>
+<td class="enum_member_description">
+<p>The connection will be deleted
+ when it disconnects. That is for in-memory connections (unsaved), which are
+ currently active but deleted on disconnect. Volatile connections are
+ always unsaved, but they are also no backing file on disk and are entirely
+ in-memory only.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.12</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -3068,11 +3158,11 @@ VPN plugin authentication dialogs.</p>
 </tbody>
 </table></div>
 </div>
-<p class="since">Since: 1.10.2</p>
+<p class="since">Since: 1.12</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.27</div>
+<hr>Generated by GTK-Doc V1.28</div>
 </body>
 </html>

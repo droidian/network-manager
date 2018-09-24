@@ -31,7 +31,7 @@ const char *nm_utils_get_shared_wifi_permission (NMConnection *connection);
 void nm_utils_complete_generic (NMPlatform *platform,
                                 NMConnection *connection,
                                 const char *ctype,
-                                const GSList *existing,
+                                NMConnection *const*existing_connections,
                                 const char *preferred_id,
                                 const char *fallback_id_prefix,
                                 const char *ifname_prefix,
@@ -48,21 +48,41 @@ NMConnection *nm_utils_match_connection (NMConnection *const*connections,
                                          NMUtilsMatchFilterFunc match_filter_func,
                                          gpointer match_filter_data);
 
-void nm_utils_g_value_set_object_path (GValue *value, gpointer object);
+int nm_match_spec_device_by_pllink (const NMPlatformLink *pllink,
+                                    const char *match_device_type,
+                                    const GSList *specs,
+                                    int no_match_value);
 
-/**
- * NMUtilsObjectFunc:
- * @object: the object to filter on
- * @user_data: data passed to the function from the caller
+
+/*****************************************************************************/
+
+/* during shutdown, there are two relevant timeouts. One is
+ * NM_SHUTDOWN_TIMEOUT_MS which is plenty of time, that we give for all
+ * actions to complete. Of course, during shutdown components should hurry
+ * to cleanup.
  *
- * Returns: %TRUE if the object should be used, %FALSE if not
+ * When we initiate shutdown, we should start killing child processes
+ * with SIGTERM. If they don't complete within NM_SHUTDOWN_TIMEOUT_MS, we send
+ * SIGKILL.
+ *
+ * After NM_SHUTDOWN_TIMEOUT_MS, NetworkManager will however not yet terminate right
+ * away. It iterates the mainloop for another NM_SHUTDOWN_TIMEOUT_MS_EXTRA. This
+ * should give time to reap the child process (after SIGKILL).
+ *
+ * So, the maxiumum time we should wait before sending SIGKILL should be at most
+ * NM_SHUTDOWN_TIMEOUT_MS.
  */
-typedef gboolean (*NMUtilsObjectFunc) (GObject *object, gpointer user_data);
+#define NM_SHUTDOWN_TIMEOUT_MS            1500
+#define NM_SHUTDOWN_TIMEOUT_MS_WATCHDOG    500
 
-void nm_utils_g_value_set_object_path_array (GValue *value,
-                                             GSList *objects,
-                                             NMUtilsObjectFunc filter_func,
-                                             gpointer user_data);
+typedef struct _NMShutdownWaitObjHandle NMShutdownWaitObjHandle;
+
+NMShutdownWaitObjHandle *_nm_shutdown_wait_obj_register (GObject *watched_obj,
+                                                        const char *msg_reason);
+
+#define nm_shutdown_wait_obj_register(watched_obj, msg_reason) _nm_shutdown_wait_obj_register((watched_obj), (""msg_reason""))
+
+void nm_shutdown_wait_obj_unregister (NMShutdownWaitObjHandle *handle);
 
 /*****************************************************************************/
 

@@ -26,7 +26,7 @@
 #include <string.h>
 
 #include "nm-utils/c-list-util.h"
-#include "nm-utils/nm-hash-utils.h"
+#include "nm-utils/nm-enum-utils.h"
 
 #include "nm-utils.h"
 #include "nm-setting-private.h"
@@ -168,6 +168,17 @@ _test_hash_str (const char *str)
 static void
 test_nm_hash (void)
 {
+	g_assert (nm_hash_static (0));
+	g_assert (nm_hash_static (777));
+
+	g_assert (nm_hash_str (NULL));
+	g_assert (nm_hash_str (""));
+	g_assert (nm_hash_str ("a"));
+
+	g_assert (nm_hash_ptr (NULL));
+	g_assert (nm_hash_ptr (""));
+	g_assert (nm_hash_ptr ("a"));
+
 	_test_hash_str ("");
 	_test_hash_str ("a");
 	_test_hash_str ("aa");
@@ -200,6 +211,10 @@ static void
 test_nm_g_slice_free_fcn (void)
 {
 	gpointer p;
+	struct {
+		char a1;
+		char a2;
+	} xx;
 
 	p = g_slice_new (gint64);
 	(nm_g_slice_free_fcn (gint64)) (p);
@@ -212,6 +227,9 @@ test_nm_g_slice_free_fcn (void)
 
 	p = g_slice_new (gint64);
 	nm_g_slice_free_fcn_gint64 (p);
+
+	p = g_slice_alloc (sizeof (xx));
+	(nm_g_slice_free_fcn (xx)) (p);
 }
 
 /*****************************************************************************/
@@ -279,7 +297,6 @@ test_nm_utils_strsplit_set (void)
 
 typedef struct {
 	int val;
-	int idx;
 	CList lst;
 } CListSort;
 
@@ -303,71 +320,86 @@ _c_list_sort_cmp (const CList *lst_a, const CList *lst_b, const void *user_data)
 }
 
 static void
-test_c_list_sort (void)
+_do_test_c_list_sort (CListSort *elements, guint n_list, gboolean headless)
 {
-	guint i, n_list, repeat, headless;
 	CList head, *iter, *iter_prev, *lst;
-	CListSort elements[30];
+	guint i;
 	const CListSort *el_prev;
+	CListSort *el;
 
 	c_list_init (&head);
-	c_list_sort (&head, _c_list_sort_cmp, NULL);
-	g_assert (c_list_length (&head) == 0);
-	g_assert (c_list_is_empty (&head));
+	for (i = 0; i < n_list; i++) {
+		el = &elements[i];
+		el->val = nmtst_get_rand_int () % (2*n_list);
+		c_list_link_tail (&head, &el->lst);
+	}
 
-	for (repeat = 0; repeat < 10; repeat++) {
-		for (n_list = 1; n_list < G_N_ELEMENTS (elements); n_list++) {
-			for (headless = 0; headless < 2; headless++) {
-				c_list_init (&head);
-				for (i = 0; i < n_list; i++) {
-					CListSort *el;
+	if (headless) {
+		lst = head.next;
+		c_list_unlink_stale (&head);
+		lst = c_list_sort_headless (lst, _c_list_sort_cmp, NULL);
+		g_assert (lst);
+		g_assert (lst->next);
+		g_assert (lst->prev);
+		g_assert (c_list_length (lst) == n_list - 1);
+		iter_prev = lst->prev;
+		for (iter = lst; iter != lst; iter = iter->next) {
+			g_assert (iter);
+			g_assert (iter->next);
+			g_assert (iter->prev == iter_prev);
+		}
+		c_list_link_before (lst, &head);
+	} else
+		c_list_sort (&head, _c_list_sort_cmp, NULL);
 
-					el = &elements[i];
-					el->val = nmtst_get_rand_int () % (2*n_list);
-					el->idx = i;
-					c_list_link_tail (&head, &el->lst);
-				}
+	g_assert (!c_list_is_empty (&head));
+	g_assert (c_list_length (&head) == n_list);
 
-				if (headless) {
-					lst = head.next;
-					c_list_unlink_stale (&head);
-					lst = c_list_sort_headless (lst, _c_list_sort_cmp, NULL);
-					g_assert (lst);
-					g_assert (lst->next);
-					g_assert (lst->prev);
-					g_assert (c_list_length (lst) == n_list - 1);
-					iter_prev = lst->prev;
-					for (iter = lst; iter != lst; iter = iter->next) {
-						g_assert (iter);
-						g_assert (iter->next);
-						g_assert (iter->prev == iter_prev);
-					}
-					c_list_link_before (lst, &head);
-				} else {
-					c_list_sort (&head, _c_list_sort_cmp, NULL);
-				}
+	el_prev = NULL;
+	c_list_for_each (iter, &head) {
+		el = c_list_entry (iter, CListSort, lst);
+		g_assert (el >= elements && el < &elements[n_list]);
+		if (el_prev) {
+			if (el_prev->val == el->val)
+				g_assert (el_prev < el);
+			else
+				g_assert (el_prev->val < el->val);
+			g_assert (iter->prev == &el_prev->lst);
+			g_assert (el_prev->lst.next == iter);
+		}
+		el_prev = el;
+	}
+	g_assert (head.prev == &el_prev->lst);
+}
 
-				g_assert (!c_list_is_empty (&head));
-				g_assert (c_list_length (&head) == n_list);
+static void
+test_c_list_sort (void)
+{
+	const guint N_ELEMENTS = 10000;
+	guint n_list, repeat;
+	gs_free CListSort *elements = NULL;
 
-				el_prev = NULL;
-				c_list_for_each (iter, &head) {
-					CListSort *el;
+	{
+		CList head;
 
-					el = c_list_entry (iter, CListSort, lst);
-					g_assert (el->idx >= 0 && el->idx < n_list);
-					g_assert (el == &elements[el->idx]);
-					if (el_prev) {
-						g_assert (el_prev->val <= el->val);
-						if (el_prev->val == el->val)
-							g_assert (el_prev->idx < el->idx);
-						g_assert (iter->prev == &el_prev->lst);
-						g_assert (el_prev->lst.next == iter);
-					}
-					el_prev = el;
-				}
-				g_assert (head.prev == &el_prev->lst);
-			}
+		c_list_init (&head);
+		c_list_sort (&head, _c_list_sort_cmp, NULL);
+		g_assert (c_list_length (&head) == 0);
+		g_assert (c_list_is_empty (&head));
+	}
+
+	elements = g_new0 (CListSort, N_ELEMENTS);
+	for (n_list = 1; n_list < N_ELEMENTS; n_list++) {
+		if (n_list > 150) {
+			n_list += nmtst_get_rand_int () % n_list;
+			if (n_list >= N_ELEMENTS)
+				break;
+		}
+		{
+			const guint N_REPEAT = n_list > 50 ? 1 : 5;
+
+			for (repeat = 0; repeat < N_REPEAT; repeat++)
+				_do_test_c_list_sort (elements, n_list, nmtst_get_rand_int () % 2);
 		}
 	}
 }
@@ -742,54 +774,54 @@ test_setting_vpn_items (void)
 	nm_setting_vpn_remove_secret (s_vpn, "foobar4");
 
 	/* Try to add some blank values and make sure they are rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (key != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key != NULL));
 	nm_setting_vpn_add_data_item (s_vpn, NULL, NULL);
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (strlen (key) > 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strlen (key) > 0));
 	nm_setting_vpn_add_data_item (s_vpn, "", "");
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (item != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (item != NULL));
 	nm_setting_vpn_add_data_item (s_vpn, "foobar1", NULL);
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (strlen (item) > 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strlen (item) > 0));
 	nm_setting_vpn_add_data_item (s_vpn, "foobar1", "");
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (key != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key != NULL));
 	nm_setting_vpn_add_data_item (s_vpn, NULL, "blahblah1");
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (strlen (key) > 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strlen (key) > 0));
 	nm_setting_vpn_add_data_item (s_vpn, "", "blahblah1");
 	g_test_assert_expected_messages ();
 
 	nm_setting_vpn_foreach_data_item (s_vpn, vpn_check_empty_func, NULL);
 
 	/* Try to add some blank secrets and make sure they are rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (key != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key != NULL));
 	nm_setting_vpn_add_secret (s_vpn, NULL, NULL);
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (strlen (key) > 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strlen (key) > 0));
 	nm_setting_vpn_add_secret (s_vpn, "", "");
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (secret != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (secret != NULL));
 	nm_setting_vpn_add_secret (s_vpn, "foobar1", NULL);
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (strlen (secret) > 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strlen (secret) > 0));
 	nm_setting_vpn_add_secret (s_vpn, "foobar1", "");
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (key != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key != NULL));
 	nm_setting_vpn_add_secret (s_vpn, NULL, "blahblah1");
 	g_test_assert_expected_messages ();
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (strlen (key) > 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strlen (key) > 0));
 	nm_setting_vpn_add_secret (s_vpn, "", "blahblah1");
 	g_test_assert_expected_messages ();
 
@@ -942,7 +974,7 @@ test_setting_ip4_config_labels (void)
 	nmtst_assert_setting_verifies (NM_SETTING (s_ip4));
 
 	addr = nm_setting_ip_config_get_address (s_ip4, 0);
-	label = nm_ip_address_get_attribute (addr, "label");
+	label = nm_ip_address_get_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 	g_assert (label == NULL);
 
 	/* The 'address-labels' property should be omitted from the serialization if
@@ -967,28 +999,28 @@ test_setting_ip4_config_labels (void)
 	/* addr 2 */
 	addr = nm_ip_address_new (AF_INET, "2.3.4.5", 24, &error);
 	g_assert_no_error (error);
-	nm_ip_address_set_attribute (addr, "label", g_variant_new_string ("eth0:1"));
+	nm_ip_address_set_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL, g_variant_new_string ("eth0:1"));
 
 	nm_setting_ip_config_add_address (s_ip4, addr);
 	nm_ip_address_unref (addr);
 	nmtst_assert_setting_verifies (NM_SETTING (s_ip4));
 
 	addr = nm_setting_ip_config_get_address (s_ip4, 1);
-	label = nm_ip_address_get_attribute (addr, "label");
+	label = nm_ip_address_get_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 	g_assert (label != NULL);
 	g_assert_cmpstr (g_variant_get_string (label, NULL), ==, "eth0:1");
 
 	/* addr 3 */
 	addr = nm_ip_address_new (AF_INET, "3.4.5.6", 24, &error);
 	g_assert_no_error (error);
-	nm_ip_address_set_attribute (addr, "label", NULL);
+	nm_ip_address_set_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL, NULL);
 
 	nm_setting_ip_config_add_address (s_ip4, addr);
 	nm_ip_address_unref (addr);
 	nmtst_assert_setting_verifies (NM_SETTING (s_ip4));
 
 	addr = nm_setting_ip_config_get_address (s_ip4, 2);
-	label = nm_ip_address_get_attribute (addr, "label");
+	label = nm_ip_address_get_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 	g_assert (label == NULL);
 
 	/* Remove addr 1 and re-verify remaining addresses */
@@ -997,13 +1029,13 @@ test_setting_ip4_config_labels (void)
 
 	addr = nm_setting_ip_config_get_address (s_ip4, 0);
 	g_assert_cmpstr (nm_ip_address_get_address (addr), ==, "2.3.4.5");
-	label = nm_ip_address_get_attribute (addr, "label");
+	label = nm_ip_address_get_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 	g_assert (label != NULL);
 	g_assert_cmpstr (g_variant_get_string (label, NULL), ==, "eth0:1");
 
 	addr = nm_setting_ip_config_get_address (s_ip4, 1);
 	g_assert_cmpstr (nm_ip_address_get_address (addr), ==, "3.4.5.6");
-	label = nm_ip_address_get_attribute (addr, "label");
+	label = nm_ip_address_get_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 	g_assert (label == NULL);
 
 	/* If we serialize as the daemon, the labels should appear in the D-Bus
@@ -1034,11 +1066,11 @@ test_setting_ip4_config_labels (void)
 	g_assert (addrs != NULL);
 	g_assert_cmpint (addrs->len, ==, 2);
 	addr = addrs->pdata[0];
-	label = nm_ip_address_get_attribute (addr, "label");
+	label = nm_ip_address_get_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 	g_assert (label != NULL);
 	g_assert_cmpstr (g_variant_get_string (label, NULL), ==, "eth0:1");
 	addr = addrs->pdata[1];
-	label = nm_ip_address_get_attribute (addr, "label");
+	label = nm_ip_address_get_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 	g_assert (label == NULL);
 	g_ptr_array_unref (addrs);
 
@@ -1061,13 +1093,13 @@ test_setting_ip4_config_labels (void)
 
 	addr = nm_setting_ip_config_get_address (s_ip4, 0);
 	g_assert_cmpstr (nm_ip_address_get_address (addr), ==, "2.3.4.5");
-	label = nm_ip_address_get_attribute (addr, "label");
+	label = nm_ip_address_get_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 	g_assert (label != NULL);
 	g_assert_cmpstr (g_variant_get_string (label, NULL), ==, "eth0:1");
 
 	addr = nm_setting_ip_config_get_address (s_ip4, 1);
 	g_assert_cmpstr (nm_ip_address_get_address (addr), ==, "3.4.5.6");
-	label = nm_ip_address_get_attribute (addr, "label");
+	label = nm_ip_address_get_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 	g_assert (label == NULL);
 
 	g_object_unref (conn);
@@ -1084,12 +1116,12 @@ test_setting_ip4_config_labels (void)
 
 	addr = nm_setting_ip_config_get_address (s_ip4, 0);
 	g_assert_cmpstr (nm_ip_address_get_address (addr), ==, "2.3.4.5");
-	label = nm_ip_address_get_attribute (addr, "label");
+	label = nm_ip_address_get_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 	g_assert_cmpstr (g_variant_get_string (label, NULL), ==, "eth0:1");
 
 	addr = nm_setting_ip_config_get_address (s_ip4, 1);
 	g_assert_cmpstr (nm_ip_address_get_address (addr), ==, "3.4.5.6");
-	label = nm_ip_address_get_attribute (addr, "label");
+	label = nm_ip_address_get_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 	g_assert (label == NULL);
 
 	/* Test explicit property assignment */
@@ -1109,13 +1141,13 @@ test_setting_ip4_config_labels (void)
 
 	addr = nm_setting_ip_config_get_address (s_ip4, 0);
 	g_assert_cmpstr (nm_ip_address_get_address (addr), ==, "2.3.4.5");
-	label = nm_ip_address_get_attribute (addr, "label");
+	label = nm_ip_address_get_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 	g_assert (label != NULL);
 	g_assert_cmpstr (g_variant_get_string (label, NULL), ==, "eth0:1");
 
 	addr = nm_setting_ip_config_get_address (s_ip4, 1);
 	g_assert_cmpstr (nm_ip_address_get_address (addr), ==, "3.4.5.6");
-	label = nm_ip_address_get_attribute (addr, "label");
+	label = nm_ip_address_get_attribute (addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 	g_assert (label == NULL);
 
 	g_object_unref (conn);
@@ -2259,47 +2291,47 @@ test_setting_connection_permissions_helpers (void)
 	s_con = NM_SETTING_CONNECTION (nm_setting_connection_new ());
 
 	/* Ensure a bad [type] is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (strcmp (ptype, "user") == 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strcmp (ptype, "user") == 0));
 	success = nm_setting_connection_add_permission (s_con, "foobar", "blah", NULL);
 	g_test_assert_expected_messages ();
 	g_assert (!success);
 
 	/* Ensure a bad [type] is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (ptype));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (ptype));
 	success = nm_setting_connection_add_permission (s_con, NULL, "blah", NULL);
 	g_test_assert_expected_messages ();
 	g_assert (!success);
 
 	/* Ensure a bad [item] is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (uname));
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (p != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (uname));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (p != NULL));
 	success = nm_setting_connection_add_permission (s_con, "user", NULL, NULL);
 	g_test_assert_expected_messages ();
 	g_assert (!success);
 
 	/* Ensure a bad [item] is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (uname[0] != '\0'));
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (p != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (uname[0] != '\0'));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (p != NULL));
 	success = nm_setting_connection_add_permission (s_con, "user", "", NULL);
 	g_test_assert_expected_messages ();
 	g_assert (!success);
 
 	/* Ensure an [item] with ':' is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (strchr (uname, ':') == NULL));
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (p != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strchr (uname, ':') == NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (p != NULL));
 	success = nm_setting_connection_add_permission (s_con, "user", "ad:asdf", NULL);
 	g_test_assert_expected_messages ();
 	g_assert (!success);
 
 	/* Ensure a non-UTF-8 [item] is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (g_utf8_validate (uname, -1, NULL) == TRUE));
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (p != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (g_utf8_validate (uname, -1, NULL) == TRUE));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (p != NULL));
 	success = nm_setting_connection_add_permission (s_con, "user", buf, NULL);
 	g_test_assert_expected_messages ();
 	g_assert (!success);
 
 	/* Ensure a non-NULL [detail] is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (detail == NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (detail == NULL));
 	success = nm_setting_connection_add_permission (s_con, "user", "dafasdf", "asdf");
 	g_test_assert_expected_messages ();
 	g_assert (!success);
@@ -2370,55 +2402,56 @@ test_setting_connection_permissions_property (void)
 	s_con = NM_SETTING_CONNECTION (nm_setting_connection_new ());
 
 	/* Ensure a bad [type] is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (strncmp (str, PERM_USER_PREFIX, strlen (PERM_USER_PREFIX)) == 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strncmp (str, PERM_USER_PREFIX, strlen (PERM_USER_PREFIX)) == 0));
 	add_permission_property (s_con, "foobar", "blah", -1, NULL);
 	g_test_assert_expected_messages ();
 	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure a bad [type] is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (strncmp (str, PERM_USER_PREFIX, strlen (PERM_USER_PREFIX)) == 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strncmp (str, PERM_USER_PREFIX, strlen (PERM_USER_PREFIX)) == 0));
 	add_permission_property (s_con, NULL, "blah", -1, NULL);
 	g_test_assert_expected_messages ();
 	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure a bad [item] is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (last_colon > str));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (last_colon > str));
 	add_permission_property (s_con, "user", NULL, -1, NULL);
 	g_test_assert_expected_messages ();
 	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure a bad [item] is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (last_colon > str));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (last_colon > str));
 	add_permission_property (s_con, "user", "", -1, NULL);
 	g_test_assert_expected_messages ();
 	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure an [item] with ':' in the middle is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (str[i] != ':'));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (str[i] != ':'));
 	add_permission_property (s_con, "user", "ad:asdf", -1, NULL);
 	g_test_assert_expected_messages ();
 	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure an [item] with ':' at the end is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (str[i] != ':'));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (str[i] != ':'));
 	add_permission_property (s_con, "user", "adasdfaf:", -1, NULL);
 	g_test_assert_expected_messages ();
 	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure a non-UTF-8 [item] is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (g_utf8_validate (str, -1, NULL) == TRUE));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (g_utf8_validate (str, -1, NULL) == TRUE));
 	add_permission_property (s_con, "user", buf, (int) sizeof (buf), NULL);
 	g_test_assert_expected_messages ();
 	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure a non-NULL [detail] is rejected */
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (*(last_colon + 1) == '\0'));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (*(last_colon + 1) == '\0'));
 	add_permission_property (s_con, "user", "dafasdf", -1, "asdf");
 	g_test_assert_expected_messages ();
 	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 0);
 
 	/* Ensure a valid call results in success */
 	success = nm_setting_connection_add_permission (s_con, "user", TEST_UNAME, NULL);
+	g_assert (success);
 	g_assert_cmpint (nm_setting_connection_get_num_permissions (s_con), ==, 1);
 
 	check_permission (s_con, 0, TEST_UNAME);
@@ -2572,6 +2605,7 @@ test_connection_diff_a_only (void)
 			{ NM_SETTING_CONNECTION_METERED,              NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_CONNECTION_LLDP,                 NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_CONNECTION_AUTH_RETRIES,         NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_CONNECTION_MDNS,                 NM_SETTING_DIFF_RESULT_IN_A },
 			{ NULL, NM_SETTING_DIFF_RESULT_UNKNOWN }
 		} },
 		{ NM_SETTING_WIRED_SETTING_NAME, {
@@ -3040,10 +3074,10 @@ test_setting_compare_addresses (void)
 
 	a = nm_ip_address_new (AF_INET, "192.168.7.5", 24, NULL);
 
-	nm_ip_address_set_attribute (a, "label", g_variant_new_string ("xoxoxo"));
+	nm_ip_address_set_attribute (a, NM_IP_ADDRESS_ATTRIBUTE_LABEL, g_variant_new_string ("xoxoxo"));
 	nm_setting_ip_config_add_address ((NMSettingIPConfig *) s1, a);
 
-	nm_ip_address_set_attribute (a, "label", g_variant_new_string ("hello"));
+	nm_ip_address_set_attribute (a, NM_IP_ADDRESS_ATTRIBUTE_LABEL, g_variant_new_string ("hello"));
 	nm_setting_ip_config_add_address ((NMSettingIPConfig *) s2, a);
 
 	nm_ip_address_unref (a);
@@ -3072,10 +3106,10 @@ test_setting_compare_routes (void)
 
 	r = nm_ip_route_new (AF_INET, "192.168.12.0", 24, "192.168.11.1", 473, NULL);
 
-	nm_ip_route_set_attribute (r, "label", g_variant_new_string ("xoxoxo"));
+	nm_ip_route_set_attribute (r, NM_IP_ADDRESS_ATTRIBUTE_LABEL, g_variant_new_string ("xoxoxo"));
 	nm_setting_ip_config_add_route ((NMSettingIPConfig *) s1, r);
 
-	nm_ip_route_set_attribute (r, "label", g_variant_new_string ("hello"));
+	nm_ip_route_set_attribute (r, NM_IP_ADDRESS_ATTRIBUTE_LABEL, g_variant_new_string ("hello"));
 	nm_setting_ip_config_add_route ((NMSettingIPConfig *) s2, r);
 
 	nm_ip_route_unref (r);
@@ -3546,7 +3580,7 @@ test_setting_connection_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_connection_add_permission (s_con, "user", "billsmith", NULL));
 	ASSERT_CHANGED (nm_setting_connection_remove_permission (s_con, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (iter != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (iter != NULL));
 	ASSERT_UNCHANGED (nm_setting_connection_remove_permission (s_con, 1));
 	g_test_assert_expected_messages ();
 
@@ -3554,7 +3588,7 @@ test_setting_connection_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_connection_add_secondary (s_con, uuid));
 	ASSERT_CHANGED (nm_setting_connection_remove_secondary (s_con, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (elt != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (elt != NULL));
 	ASSERT_UNCHANGED (nm_setting_connection_remove_secondary (s_con, 1));
 	g_test_assert_expected_messages ();
 
@@ -3606,7 +3640,7 @@ test_setting_ip4_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_dns (s_ip4, "11.22.0.0"));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_dns (s_ip4, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->dns->len));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->dns->len));
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_dns (s_ip4, 1));
 	g_test_assert_expected_messages ();
 
@@ -3616,7 +3650,7 @@ test_setting_ip4_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_dns_search (s_ip4, "foobar.com"));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_dns_search (s_ip4, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->dns_search->len));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->dns_search->len));
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_dns_search (s_ip4, 1));
 	g_test_assert_expected_messages ();
 
@@ -3628,7 +3662,7 @@ test_setting_ip4_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_address (s_ip4, addr));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_address (s_ip4, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->addresses->len));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->addresses->len));
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_address (s_ip4, 1));
 	g_test_assert_expected_messages ();
 
@@ -3641,7 +3675,7 @@ test_setting_ip4_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_route (s_ip4, route));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_route (s_ip4, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->routes->len));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->routes->len));
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_route (s_ip4, 1));
 	g_test_assert_expected_messages ();
 
@@ -3651,7 +3685,7 @@ test_setting_ip4_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_dns_option (s_ip4, "debug"));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_dns_option (s_ip4, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->dns_options->len));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->dns_options->len));
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_dns_option (s_ip4, 1));
 	g_test_assert_expected_messages ();
 
@@ -3682,7 +3716,7 @@ test_setting_ip6_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_dns (s_ip6, "1:2:3::4:5:6"));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_dns (s_ip6, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->dns->len));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->dns->len));
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_dns (s_ip6, 1));
 	g_test_assert_expected_messages ();
 
@@ -3692,7 +3726,7 @@ test_setting_ip6_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_dns_search (s_ip6, "foobar.com"));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_dns_search (s_ip6, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->dns_search->len));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->dns_search->len));
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_dns_search (s_ip6, 1));
 	g_test_assert_expected_messages ();
 
@@ -3705,7 +3739,7 @@ test_setting_ip6_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_address (s_ip6, addr));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_address (s_ip6, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->addresses->len));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->addresses->len));
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_address (s_ip6, 1));
 	g_test_assert_expected_messages ();
 
@@ -3718,7 +3752,7 @@ test_setting_ip6_changed_signal (void)
 	ASSERT_CHANGED (nm_setting_ip_config_add_route (s_ip6, route));
 	ASSERT_CHANGED (nm_setting_ip_config_remove_route (s_ip6, 0));
 
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->routes->len));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (idx >= 0 && idx < priv->routes->len));
 	ASSERT_UNCHANGED (nm_setting_ip_config_remove_route (s_ip6, 1));
 	g_test_assert_expected_messages ();
 
@@ -3748,7 +3782,7 @@ test_setting_vlan_changed_signal (void)
 
 	ASSERT_CHANGED (nm_setting_vlan_add_priority (s_vlan, NM_VLAN_INGRESS_MAP, 1, 3));
 	ASSERT_CHANGED (nm_setting_vlan_remove_priority (s_vlan, NM_VLAN_INGRESS_MAP, 0));
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (idx < g_slist_length (list)));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (idx < g_slist_length (list)));
 	ASSERT_UNCHANGED (nm_setting_vlan_remove_priority (s_vlan, NM_VLAN_INGRESS_MAP, 1));
 	g_test_assert_expected_messages ();
 	ASSERT_CHANGED (nm_setting_vlan_add_priority_str (s_vlan, NM_VLAN_INGRESS_MAP, "1:3"));
@@ -3756,7 +3790,7 @@ test_setting_vlan_changed_signal (void)
 
 	ASSERT_CHANGED (nm_setting_vlan_add_priority (s_vlan, NM_VLAN_EGRESS_MAP, 1, 3));
 	ASSERT_CHANGED (nm_setting_vlan_remove_priority (s_vlan, NM_VLAN_EGRESS_MAP, 0));
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (idx < g_slist_length (list)));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (idx < g_slist_length (list)));
 	ASSERT_UNCHANGED (nm_setting_vlan_remove_priority (s_vlan, NM_VLAN_EGRESS_MAP, 1));
 	g_test_assert_expected_messages ();
 	ASSERT_CHANGED (nm_setting_vlan_add_priority_str (s_vlan, NM_VLAN_EGRESS_MAP, "1:3"));
@@ -3855,7 +3889,7 @@ test_setting_wireless_security_changed_signal (void)
 	/* Protos */
 	ASSERT_CHANGED (nm_setting_wireless_security_add_proto (s_wsec, "wpa"));
 	ASSERT_CHANGED (nm_setting_wireless_security_remove_proto (s_wsec, 0));
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (elt != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (elt != NULL));
 	ASSERT_UNCHANGED (nm_setting_wireless_security_remove_proto (s_wsec, 1));
 	g_test_assert_expected_messages ();
 
@@ -3865,7 +3899,7 @@ test_setting_wireless_security_changed_signal (void)
 	/* Pairwise ciphers */
 	ASSERT_CHANGED (nm_setting_wireless_security_add_pairwise (s_wsec, "tkip"));
 	ASSERT_CHANGED (nm_setting_wireless_security_remove_pairwise (s_wsec, 0));
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (elt != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (elt != NULL));
 	ASSERT_UNCHANGED (nm_setting_wireless_security_remove_pairwise (s_wsec, 1));
 	g_test_assert_expected_messages ();
 
@@ -3875,7 +3909,7 @@ test_setting_wireless_security_changed_signal (void)
 	/* Group ciphers */
 	ASSERT_CHANGED (nm_setting_wireless_security_add_group (s_wsec, "ccmp"));
 	ASSERT_CHANGED (nm_setting_wireless_security_remove_group (s_wsec, 0));
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (elt != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (elt != NULL));
 	ASSERT_UNCHANGED (nm_setting_wireless_security_remove_group (s_wsec, 1));
 	g_test_assert_expected_messages ();
 
@@ -3910,7 +3944,7 @@ test_setting_802_1x_changed_signal (void)
 	/* EAP methods */
 	ASSERT_CHANGED (nm_setting_802_1x_add_eap_method (s_8021x, "tls"));
 	ASSERT_CHANGED (nm_setting_802_1x_remove_eap_method (s_8021x, 0));
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (elt != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (elt != NULL));
 	ASSERT_UNCHANGED (nm_setting_802_1x_remove_eap_method (s_8021x, 1));
 	g_test_assert_expected_messages ();
 
@@ -3920,7 +3954,7 @@ test_setting_802_1x_changed_signal (void)
 	/* alternate subject matches */
 	ASSERT_CHANGED (nm_setting_802_1x_add_altsubject_match (s_8021x, "EMAIL:server@example.com"));
 	ASSERT_CHANGED (nm_setting_802_1x_remove_altsubject_match (s_8021x, 0));
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (elt != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (elt != NULL));
 	ASSERT_UNCHANGED (nm_setting_802_1x_remove_altsubject_match (s_8021x, 1));
 	g_test_assert_expected_messages ();
 
@@ -3930,7 +3964,7 @@ test_setting_802_1x_changed_signal (void)
 	/* phase2 alternate subject matches */
 	ASSERT_CHANGED (nm_setting_802_1x_add_phase2_altsubject_match (s_8021x, "EMAIL:server@example.com"));
 	ASSERT_CHANGED (nm_setting_802_1x_remove_phase2_altsubject_match (s_8021x, 0));
-	g_test_expect_message ("libnm", G_LOG_LEVEL_CRITICAL, NMTST_G_RETURN_MSG (elt != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (elt != NULL));
 	ASSERT_UNCHANGED (nm_setting_802_1x_remove_phase2_altsubject_match (s_8021x, 1));
 	g_test_assert_expected_messages ();
 
@@ -5848,7 +5882,7 @@ test_nm_utils_check_valid_json (void)
 {
 	_json_config_check_valid (NULL, FALSE);
 	_json_config_check_valid ("", FALSE);
-#if WITH_JANSSON
+#if WITH_JSON_VALIDATION
 	_json_config_check_valid ("{ }", TRUE);
 	_json_config_check_valid ("{ \"a\" : 1 }", TRUE);
 	_json_config_check_valid ("{ \"a\" : }", FALSE);
@@ -5873,7 +5907,7 @@ _team_config_equal_check (const char *conf1,
 static void
 test_nm_utils_team_config_equal (void)
 {
-#if WITH_JANSSON
+#if WITH_JSON_VALIDATION
 	_team_config_equal_check ("", "", TRUE, TRUE);
 	_team_config_equal_check ("{}",
 	                          "{ }",
@@ -6060,66 +6094,6 @@ again:
 
 /*****************************************************************************/
 
-static void
-test_g_ptr_array_insert (void)
-{
-	/* this test only makes sense on a recent glib, where we compare our compat
-	 * with the original implementation. */
-#if GLIB_CHECK_VERSION(2, 40, 0)
-	gs_unref_ptrarray GPtrArray *arr1 = g_ptr_array_new ();
-	gs_unref_ptrarray GPtrArray *arr2 = g_ptr_array_new ();
-	GRand *rand = nmtst_get_rand ();
-	guint i;
-
-	for (i = 0; i < 560; i++) {
-		gint32 idx = g_rand_int_range (rand, -1, arr1->len + 1);
-
-		g_ptr_array_insert (arr1, idx, GINT_TO_POINTER (i));
-		_nm_g_ptr_array_insert (arr2, idx, GINT_TO_POINTER (i));
-
-		g_assert_cmpint (arr1->len, ==, arr2->len);
-		g_assert (memcmp (arr1->pdata, arr2->pdata, arr1->len * sizeof (gpointer)) == 0);
-	}
-#endif
-}
-
-/*****************************************************************************/
-
-static void
-test_g_hash_table_get_keys_as_array (void)
-{
-	GHashTable *table = g_hash_table_new (g_str_hash, g_str_equal);
-	guint length = 0;
-	char **keys;
-
-	g_hash_table_insert (table, "one",   "1");
-	g_hash_table_insert (table, "two",   "2");
-	g_hash_table_insert (table, "three", "3");
-
-	keys = (char **) _nm_g_hash_table_get_keys_as_array (table, &length);
-	g_assert (keys);
-	g_assert_cmpuint (length, ==, 3);
-
-	g_assert (   !strcmp (keys[0], "one")
-	          || !strcmp (keys[1], "one")
-	          || !strcmp (keys[2], "one"));
-
-	g_assert (   !strcmp (keys[0], "two")
-	          || !strcmp (keys[1], "two")
-	          || !strcmp (keys[2], "two"));
-
-	g_assert (   !strcmp (keys[0], "three")
-	          || !strcmp (keys[1], "three")
-	          || !strcmp (keys[2], "three"));
-
-	g_assert (!keys[3]);
-
-	g_free (keys);
-	g_hash_table_unref (table);
-}
-
-/*****************************************************************************/
-
 static int
 _test_find_binary_search_cmp (gconstpointer a, gconstpointer b, gpointer dummy)
 {
@@ -6196,7 +6170,9 @@ _test_find_binary_search_do_uint32 (const int *int_array, gsize len)
 	const int OFFSET = 100;
 	const int NEEDLE = 0 + OFFSET;
 	gssize expected_result = -1;
-	guint32 array[len];
+	guint32 array[30];
+
+	g_assert (len <= G_N_ELEMENTS (array));
 
 	/* the test data has negative values. Shift them... */
 	for (idx = 0; idx < len; idx++) {
@@ -6353,105 +6329,219 @@ test_nm_utils_ptrarray_find_binary_search_with_duplicates (void)
 }
 
 /*****************************************************************************/
+
 static void
-test_nm_utils_enum_from_str_do (GType type, const char *str,
-                                gboolean exp_result, int exp_flags,
-                                const char *exp_err_token)
+_test_nm_utils_enum_to_str_do_full (GType type,
+                                    int flags,
+                                    const char *exp_str,
+                                    const NMUtilsEnumValueInfo *value_infos)
 {
-	int flags = 1;
-	char *err_token = NULL;
+	gs_free char *str = NULL;
+	int flags2;
+	gs_free char *err_token = NULL;
 	gboolean result;
 
-	result = nm_utils_enum_from_str (type, str, &flags, &err_token);
+	g_assert (exp_str);
+
+	str = _nm_utils_enum_to_str_full (type, flags, ", ", value_infos);
+	g_assert_cmpstr (str, ==, exp_str);
+
+	if (!value_infos) {
+		gs_free char *str2 = NULL;
+
+		str2 = nm_utils_enum_to_str (type, flags);
+		g_assert_cmpstr (str2, ==, exp_str);
+	}
+
+	result = _nm_utils_enum_from_str_full (type, str, &flags2, &err_token, value_infos);
+	g_assert (result == TRUE);
+	g_assert_cmpint (flags2, ==, flags);
+	g_assert_cmpstr (err_token, ==, NULL);
+}
+
+#define _test_nm_utils_enum_to_str_do(...) _test_nm_utils_enum_to_str_do_full (__VA_ARGS__, NULL)
+
+static void
+_test_nm_utils_enum_from_str_do_full (GType type,
+                                     const char *str,
+                                     gboolean exp_result,
+                                     int exp_flags,
+                                     const char *exp_err_token,
+                                     const NMUtilsEnumValueInfo *value_infos)
+{
+	int flags;
+	gs_free char *err_token = NULL;
+	gboolean result;
+
+	result = _nm_utils_enum_from_str_full (type, str, &flags, &err_token, value_infos);
 
 	g_assert (result == exp_result);
 	g_assert_cmpint (flags, ==, exp_flags);
 	g_assert_cmpstr (err_token, ==, exp_err_token);
 
-	g_free (err_token);
+	if (!value_infos) {
+		int flags2;
+		gs_free char *err_token2 = NULL;
+		gboolean result2;
+
+		result2 = nm_utils_enum_from_str (type, str, &flags2, &err_token2);
+		g_assert (result2 == exp_result);
+		g_assert_cmpint (flags2, ==, exp_flags);
+		g_assert_cmpstr (err_token2, ==, exp_err_token);
+	}
+
+	if (result) {
+		int flags2;
+		gs_free char *str2 = NULL;
+		gs_free char *err_token2 = NULL;
+
+		str2 = _nm_utils_enum_to_str_full (type, flags, ", ", value_infos);
+		g_assert (str2);
+
+		result = _nm_utils_enum_from_str_full (type, str2, &flags2, &err_token2, value_infos);
+		g_assert (result == TRUE);
+		g_assert_cmpint (flags2, ==, flags);
+		g_assert_cmpstr (err_token, ==, NULL);
+	}
 }
 
-static void
-test_nm_utils_enum_to_str_do (GType type, int flags, const char *exp_str)
-{
-	char *str;
-
-	str = nm_utils_enum_to_str (type, flags);
-	g_assert_cmpstr (str, ==, exp_str);
-	g_free (str);
-}
+#define _test_nm_utils_enum_from_str_do(...) _test_nm_utils_enum_from_str_do_full(__VA_ARGS__, NULL)
 
 static void
-test_nm_utils_enum_get_values_do (GType type, int from, int to, const char *exp_str)
+_test_nm_utils_enum_get_values_do (GType type, int from, int to, const char *exp_str)
 {
-	const char **strv;
-	char *str;
+	gs_free const char **strv = NULL;
+	gs_free char *str = NULL;
+
+	g_assert (exp_str);
 
 	strv = nm_utils_enum_get_values (type, from, to);
 	g_assert (strv);
 	str = g_strjoinv (",", (char **) strv);
 	g_assert_cmpstr (str, ==, exp_str);
-	g_free (str);
-	g_free (strv);
 }
 
-
-static void test_nm_utils_enum (void)
+static void
+test_nm_utils_enum (void)
 {
 	GType bool_enum = nm_test_general_bool_enum_get_type();
 	GType meta_flags = nm_test_general_meta_flags_get_type();
 	GType color_flags = nm_test_general_color_flags_get_type();
+	static const NMUtilsEnumValueInfo color_value_infos[] = {
+		{
+			.nick = "nick-4d",
+			.value = 0x4D,
+		},
+		{
+			.nick = "nick-5",
+			.value = 5,
+		},
+		{
+			.nick = "nick-red",
+			.value = NM_TEST_GENERAL_COLOR_FLAGS_RED,
+		},
+		{ 0 },
+	};
 
-	test_nm_utils_enum_to_str_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_YES, "yes");
-	test_nm_utils_enum_to_str_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_UNKNOWN, "unknown");
-	test_nm_utils_enum_to_str_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_INVALID, "4");
-	test_nm_utils_enum_to_str_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_67, "67");
-	test_nm_utils_enum_to_str_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_46, "64");
+	_test_nm_utils_enum_to_str_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_YES, "yes");
+	_test_nm_utils_enum_to_str_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_UNKNOWN, "unknown");
+	_test_nm_utils_enum_to_str_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_INVALID, "4");
+	_test_nm_utils_enum_to_str_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_67, "67");
+	_test_nm_utils_enum_to_str_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_46, "64");
 
-	test_nm_utils_enum_to_str_do (meta_flags, NM_TEST_GENERAL_META_FLAGS_NONE, "none");
-	test_nm_utils_enum_to_str_do (meta_flags, NM_TEST_GENERAL_META_FLAGS_BAZ, "baz");
-	test_nm_utils_enum_to_str_do (meta_flags, NM_TEST_GENERAL_META_FLAGS_FOO |
-	                                          NM_TEST_GENERAL_META_FLAGS_BAR |
-	                                          NM_TEST_GENERAL_META_FLAGS_BAZ, "foo, bar, baz");
-	test_nm_utils_enum_to_str_do (meta_flags, 0xFF, "foo, bar, baz, 0xf8");
-	test_nm_utils_enum_to_str_do (meta_flags, NM_TEST_GENERAL_META_FLAGS_0x8, "0x8");
-	test_nm_utils_enum_to_str_do (meta_flags, NM_TEST_GENERAL_META_FLAGS_0x4, "0x10");
+	_test_nm_utils_enum_to_str_do (meta_flags, NM_TEST_GENERAL_META_FLAGS_NONE, "none");
+	_test_nm_utils_enum_to_str_do (meta_flags, NM_TEST_GENERAL_META_FLAGS_BAZ, "baz");
+	_test_nm_utils_enum_to_str_do (meta_flags, NM_TEST_GENERAL_META_FLAGS_FOO |
+	                                           NM_TEST_GENERAL_META_FLAGS_BAR |
+	                                           NM_TEST_GENERAL_META_FLAGS_BAZ, "foo, bar, baz");
+	_test_nm_utils_enum_to_str_do (meta_flags, 0xFF, "foo, bar, baz, 0xf8");
+	_test_nm_utils_enum_to_str_do (meta_flags, NM_TEST_GENERAL_META_FLAGS_0x8, "0x8");
+	_test_nm_utils_enum_to_str_do (meta_flags, NM_TEST_GENERAL_META_FLAGS_0x4, "0x10");
 
-	test_nm_utils_enum_to_str_do (color_flags, NM_TEST_GENERAL_COLOR_FLAGS_RED, "red");
-	test_nm_utils_enum_to_str_do (color_flags, NM_TEST_GENERAL_COLOR_FLAGS_WHITE, "0x1");
-	test_nm_utils_enum_to_str_do (color_flags, NM_TEST_GENERAL_COLOR_FLAGS_RED |
-	                                           NM_TEST_GENERAL_COLOR_FLAGS_GREEN, "red, green");
+	_test_nm_utils_enum_to_str_do (color_flags, NM_TEST_GENERAL_COLOR_FLAGS_RED, "red");
+	_test_nm_utils_enum_to_str_do (color_flags, NM_TEST_GENERAL_COLOR_FLAGS_WHITE, "0x1");
+	_test_nm_utils_enum_to_str_do (color_flags, NM_TEST_GENERAL_COLOR_FLAGS_RED |
+	                                            NM_TEST_GENERAL_COLOR_FLAGS_GREEN, "red, green");
 
-	test_nm_utils_enum_from_str_do (bool_enum, "", FALSE, 0, NULL);
-	test_nm_utils_enum_from_str_do (bool_enum, " ", FALSE, 0, NULL);
-	test_nm_utils_enum_from_str_do (bool_enum, "invalid", FALSE, 0, "invalid");
-	test_nm_utils_enum_from_str_do (bool_enum, "yes", TRUE, NM_TEST_GENERAL_BOOL_ENUM_YES, NULL);
-	test_nm_utils_enum_from_str_do (bool_enum, "no", TRUE, NM_TEST_GENERAL_BOOL_ENUM_NO, NULL);
-	test_nm_utils_enum_from_str_do (bool_enum, "yes,no", FALSE, 0, "yes,no");
+	_test_nm_utils_enum_to_str_do_full (color_flags,
+	                                      NM_TEST_GENERAL_COLOR_FLAGS_RED
+	                                    | NM_TEST_GENERAL_COLOR_FLAGS_GREEN,
+	                                    "nick-red, green",
+	                                    color_value_infos);
 
-	test_nm_utils_enum_from_str_do (meta_flags, "", TRUE, 0, NULL);
-	test_nm_utils_enum_from_str_do (meta_flags, " ", TRUE, 0, NULL);
-	test_nm_utils_enum_from_str_do (meta_flags, "foo", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO, NULL);
-	test_nm_utils_enum_from_str_do (meta_flags, "foo,baz", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO |
-	                                                             NM_TEST_GENERAL_META_FLAGS_BAZ, NULL);
-	test_nm_utils_enum_from_str_do (meta_flags, "foo, baz", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO |
+	_test_nm_utils_enum_to_str_do_full (color_flags,
+	                                      0x4D
+	                                    |  NM_TEST_GENERAL_COLOR_FLAGS_RED
+	                                    | NM_TEST_GENERAL_COLOR_FLAGS_GREEN,
+	                                    "nick-4d",
+	                                    color_value_infos);
+
+	_test_nm_utils_enum_to_str_do_full (color_flags,
+	                                      5
+	                                    | NM_TEST_GENERAL_COLOR_FLAGS_GREEN,
+	                                    "nick-5, green",
+	                                    color_value_infos);
+
+	_test_nm_utils_enum_from_str_do (bool_enum, "", FALSE, 0, NULL);
+	_test_nm_utils_enum_from_str_do (bool_enum, " ", FALSE, 0, NULL);
+	_test_nm_utils_enum_from_str_do (bool_enum, "invalid", FALSE, 0, "invalid");
+	_test_nm_utils_enum_from_str_do (bool_enum, "yes", TRUE, NM_TEST_GENERAL_BOOL_ENUM_YES, NULL);
+	_test_nm_utils_enum_from_str_do (bool_enum, "no", TRUE, NM_TEST_GENERAL_BOOL_ENUM_NO, NULL);
+	_test_nm_utils_enum_from_str_do (bool_enum, "yes,no", FALSE, 0, "yes,no");
+
+	_test_nm_utils_enum_from_str_do (meta_flags, "", TRUE, 0, NULL);
+	_test_nm_utils_enum_from_str_do (meta_flags, " ", TRUE, 0, NULL);
+	_test_nm_utils_enum_from_str_do (meta_flags, "foo", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO, NULL);
+	_test_nm_utils_enum_from_str_do (meta_flags, "foo,baz", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO |
 	                                                              NM_TEST_GENERAL_META_FLAGS_BAZ, NULL);
-	test_nm_utils_enum_from_str_do (meta_flags, "foo,,bar", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO |
-	                                                              NM_TEST_GENERAL_META_FLAGS_BAR, NULL);
-	test_nm_utils_enum_from_str_do (meta_flags, "foo,baz,quux,bar", FALSE, 0, "quux");
-	test_nm_utils_enum_from_str_do (meta_flags, "foo,0x6", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO | 0x6, NULL);
-	test_nm_utils_enum_from_str_do (meta_flags, "0x30,0x08,foo", TRUE, 0x39, NULL);
+	_test_nm_utils_enum_from_str_do (meta_flags, "foo, baz", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO |
+	                                                               NM_TEST_GENERAL_META_FLAGS_BAZ, NULL);
+	_test_nm_utils_enum_from_str_do (meta_flags, "foo,,bar", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO |
+	                                                               NM_TEST_GENERAL_META_FLAGS_BAR, NULL);
+	_test_nm_utils_enum_from_str_do (meta_flags, "foo,baz,quux,bar", FALSE, 0, "quux");
+	_test_nm_utils_enum_from_str_do (meta_flags, "foo,0x6", TRUE, NM_TEST_GENERAL_META_FLAGS_FOO | 0x6, NULL);
+	_test_nm_utils_enum_from_str_do (meta_flags, "0x30,0x08,foo", TRUE, 0x39, NULL);
 
-	test_nm_utils_enum_from_str_do (color_flags, "green", TRUE, NM_TEST_GENERAL_COLOR_FLAGS_GREEN, NULL);
-	test_nm_utils_enum_from_str_do (color_flags, "blue,red", TRUE, NM_TEST_GENERAL_COLOR_FLAGS_BLUE |
-	                                                               NM_TEST_GENERAL_COLOR_FLAGS_RED, NULL);
-	test_nm_utils_enum_from_str_do (color_flags, "blue,white", FALSE, 0, "white");
+	_test_nm_utils_enum_from_str_do (color_flags, "green", TRUE, NM_TEST_GENERAL_COLOR_FLAGS_GREEN, NULL);
+	_test_nm_utils_enum_from_str_do (color_flags, "blue,red", TRUE, NM_TEST_GENERAL_COLOR_FLAGS_BLUE |
+	                                                                NM_TEST_GENERAL_COLOR_FLAGS_RED, NULL);
+	_test_nm_utils_enum_from_str_do (color_flags, "blue,white", FALSE, 0, "white");
 
-	test_nm_utils_enum_get_values_do (bool_enum, 0, G_MAXINT, "no,yes,maybe,unknown,67,64");
-	test_nm_utils_enum_get_values_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_YES,
-	                                  NM_TEST_GENERAL_BOOL_ENUM_MAYBE, "yes,maybe");
-	test_nm_utils_enum_get_values_do (meta_flags, 0, G_MAXINT, "none,foo,bar,baz,0x8,0x10");
-	test_nm_utils_enum_get_values_do (color_flags, 0, G_MAXINT, "blue,red,green");
+	_test_nm_utils_enum_from_str_do_full (color_flags,
+	                                      "nick-red",
+	                                      TRUE,
+	                                      NM_TEST_GENERAL_COLOR_FLAGS_RED,
+	                                      NULL,
+	                                      color_value_infos);
+
+	_test_nm_utils_enum_from_str_do_full (color_flags,
+	                                      "0x4D",
+	                                      TRUE,
+	                                      0x4D,
+	                                      NULL,
+	                                      color_value_infos);
+
+	_test_nm_utils_enum_from_str_do_full (color_flags,
+	                                      "green,nick-4d",
+	                                      TRUE,
+	                                        0x4D
+	                                      | NM_TEST_GENERAL_COLOR_FLAGS_GREEN,
+	                                      NULL,
+	                                      color_value_infos);
+
+	_test_nm_utils_enum_from_str_do_full (color_flags,
+	                                      "nick-4d,nick-red,nick-5,green,nick-red",
+	                                      TRUE,
+	                                        0x4D
+	                                      | NM_TEST_GENERAL_COLOR_FLAGS_GREEN,
+	                                      NULL,
+	                                      color_value_infos);
+
+	_test_nm_utils_enum_get_values_do (bool_enum, 0, G_MAXINT, "no,yes,maybe,unknown,67,64");
+	_test_nm_utils_enum_get_values_do (bool_enum, NM_TEST_GENERAL_BOOL_ENUM_YES,
+	                                   NM_TEST_GENERAL_BOOL_ENUM_MAYBE, "yes,maybe");
+	_test_nm_utils_enum_get_values_do (meta_flags, 0, G_MAXINT, "none,foo,bar,baz,0x8,0x10");
+	_test_nm_utils_enum_get_values_do (color_flags, 0, G_MAXINT, "blue,red,green");
 }
 
 /*****************************************************************************/
@@ -6749,7 +6839,6 @@ test_nm_in_strset (void)
 	_ASSERT (3, !NM_IN_STRSET_SE ("a",  G(NULL), G("b"),  G("b")));
 	_ASSERT (3, !NM_IN_STRSET_SE (NULL, G("a"),  G("b"),  G("b")));
 
-
 	_ASSERT (3,  NM_IN_STRSET ("a",  G(NULL), G("b"),  G("a"),  N("a")));
 	_ASSERT (4,  NM_IN_STRSET ("a",  G(NULL), G("b"),  G("c"),  G("a")));
 	_ASSERT (4, !NM_IN_STRSET ("a",  G(NULL), G("b"),  G("c"),  G("d")));
@@ -6832,7 +6921,7 @@ test_route_attributes_format (void)
 	gs_unref_hashtable GHashTable *ht = NULL;
 	char *str;
 
-	ht = g_hash_table_new_full (g_str_hash, g_str_equal,
+	ht = g_hash_table_new_full (nm_str_hash, g_str_equal,
 	                            NULL, (GDestroyNotify) g_variant_unref);
 
 	str = nm_utils_format_variant_attributes (NULL, ' ', '=');
@@ -6896,6 +6985,22 @@ test_nm_set_out (void)
 	})
 	g_assert (_T1 (3) > 1);
 #undef _T1
+}
+
+/*****************************************************************************/
+
+static void
+test_get_start_time_for_pid (void)
+{
+	guint64 x_start_time;
+	char x_state;
+	pid_t x_ppid;
+
+	x_start_time = nm_utils_get_start_time_for_pid (getpid (), &x_state, &x_ppid);
+
+	g_assert (x_start_time > 0);
+	g_assert (x_ppid == getppid ());
+	g_assert (!NM_IN_SET (x_state, '\0', ' '));
 }
 
 /*****************************************************************************/
@@ -7039,8 +7144,6 @@ int main (int argc, char **argv)
 
 	g_test_add_func ("/core/general/_nm_utils_ascii_str_to_int64", test_nm_utils_ascii_str_to_int64);
 	g_test_add_func ("/core/general/nm_utils_is_power_of_two", test_nm_utils_is_power_of_two);
-	g_test_add_func ("/core/general/_glib_compat_g_ptr_array_insert", test_g_ptr_array_insert);
-	g_test_add_func ("/core/general/_glib_compat_g_hash_table_get_keys_as_array", test_g_hash_table_get_keys_as_array);
 	g_test_add_func ("/core/general/_nm_utils_ptrarray_find_binary_search", test_nm_utils_ptrarray_find_binary_search);
 	g_test_add_func ("/core/general/_nm_utils_ptrarray_find_binary_search_with_duplicates", test_nm_utils_ptrarray_find_binary_search_with_duplicates);
 	g_test_add_func ("/core/general/_nm_utils_strstrdictkey", test_nm_utils_strstrdictkey);
@@ -7054,6 +7157,8 @@ int main (int argc, char **argv)
 	g_test_add_func ("/core/general/nm-set-out", test_nm_set_out);
 	g_test_add_func ("/core/general/route_attributes/parse", test_route_attributes_parse);
 	g_test_add_func ("/core/general/route_attributes/format", test_route_attributes_format);
+
+	g_test_add_func ("/core/general/get_start_time_for_pid", test_get_start_time_for_pid);
 
 	return g_test_run ();
 }

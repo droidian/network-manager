@@ -159,9 +159,7 @@ nm_setting_bond_get_option (NMSettingBond *setting,
                             const char **out_value)
 {
 	NMSettingBondPrivate *priv;
-	guint i, len;
-	GHashTableIter iter;
-	const char *key, *value;
+	guint len;
 
 	g_return_val_if_fail (NM_IS_SETTING_BOND (setting), FALSE);
 
@@ -171,23 +169,8 @@ nm_setting_bond_get_option (NMSettingBond *setting,
 	if (idx >= len)
 		return FALSE;
 
-	if (!G_UNLIKELY (priv->options_idx_cache)) {
-		NMUtilsNamedValue *options;
-
-		i = 0;
-		options = g_new (NMUtilsNamedValue, len);
-		g_hash_table_iter_init (&iter, priv->options);
-		while (g_hash_table_iter_next (&iter, (gpointer *) &key, (gpointer *) &value)) {
-			options[i].name = key;
-			options[i].value_str = value;
-			i++;
-		}
-		nm_assert (i == len);
-
-		g_qsort_with_data (options, len, sizeof (options[0]),
-		                   nm_utils_named_entry_cmp_with_data, NULL);
-		priv->options_idx_cache = options;
-	}
+	if (!G_UNLIKELY (priv->options_idx_cache))
+		priv->options_idx_cache = nm_utils_named_values_from_str_dict (priv->options, NULL);
 
 	NM_SET_OUT (out_name, priv->options_idx_cache[idx].name);
 	NM_SET_OUT (out_value, priv->options_idx_cache[idx].value_str);
@@ -554,7 +537,7 @@ _nm_setting_bond_option_supported (const char *option, NMBondMode mode)
 
 	for (i = 0; i < G_N_ELEMENTS (bond_unsupp_modes); i++) {
 		if (nm_streq (option, bond_unsupp_modes[i].option))
-		    return !NM_FLAGS_HAS (bond_unsupp_modes[i].unsupp_modes, BIT (mode));
+			return !NM_FLAGS_ANY (bond_unsupp_modes[i].unsupp_modes, BIT (mode));
 	}
 
 	return TRUE;
@@ -947,7 +930,7 @@ nm_setting_bond_init (NMSettingBond *setting)
 {
 	NMSettingBondPrivate *priv = NM_SETTING_BOND_GET_PRIVATE (setting);
 
-	priv->options = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+	priv->options = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, g_free);
 
 	/* Default values: */
 	nm_setting_bond_add_option (setting, NM_SETTING_BOND_OPTION_MODE, "balance-rr");
@@ -994,13 +977,11 @@ nm_setting_bond_class_init (NMSettingBondClass *setting_class)
 
 	/* Properties */
 	/**
-	 * NMSettingBond:options:
+	 * NMSettingBond:options: (type GHashTable(utf8,utf8)):
 	 *
 	 * Dictionary of key/value pairs of bonding options.  Both keys and values
 	 * must be strings. Option names must contain only alphanumeric characters
 	 * (ie, [a-zA-Z0-9]).
-	 *
-	 * Type: GHashTable(utf8,utf8)
 	 **/
 	/* ---ifcfg-rh---
 	 * property: options

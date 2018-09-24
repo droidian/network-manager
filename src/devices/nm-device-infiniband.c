@@ -32,8 +32,6 @@
 #include "nm-device-factory.h"
 #include "nm-core-internal.h"
 
-#include "introspection/org.freedesktop.NetworkManager.Device.Infiniband.h"
-
 #define NM_DEVICE_INFINIBAND_IS_PARTITION "is-partition"
 
 /*****************************************************************************/
@@ -117,29 +115,11 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 }
 
 static guint32
-get_configured_mtu (NMDevice *device, gboolean *out_is_user_config)
+get_configured_mtu (NMDevice *device, NMDeviceMtuSource *out_source)
 {
-	NMSettingInfiniband *setting;
-	gint64 mtu_default;
-	guint32 mtu;
-
-	nm_assert (NM_IS_DEVICE (device));
-	nm_assert (out_is_user_config);
-
-	setting = NM_SETTING_INFINIBAND (nm_device_get_applied_setting (device, NM_TYPE_SETTING_INFINIBAND));
-	if (!setting)
-		g_return_val_if_reached (0);
-
-	mtu = nm_setting_infiniband_get_mtu (setting);
-	if (mtu == 0) {
-		mtu_default = nm_device_get_configured_mtu_from_connection_default (device, "infiniband.mtu");
-		if (mtu_default >= 0) {
-			*out_is_user_config = TRUE;
-			return (guint32) mtu_default;
-		}
-	}
-	*out_is_user_config = (mtu != 0);
-	return mtu;
+	return nm_device_get_configured_mtu_from_connection (device,
+	                                                     NM_TYPE_SETTING_INFINIBAND,
+	                                                     out_source);
 }
 
 static gboolean
@@ -177,7 +157,7 @@ static gboolean
 complete_connection (NMDevice *device,
                      NMConnection *connection,
                      const char *specific_object,
-                     const GSList *existing_connections,
+                     NMConnection *const*existing_connections,
                      GError **error)
 {
 	NMSettingInfiniband *s_infiniband;
@@ -368,16 +348,33 @@ nm_device_infiniband_init (NMDeviceInfiniband * self)
 {
 }
 
+static const NMDBusInterfaceInfoExtended interface_info_device_infiniband = {
+	.parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT (
+		NM_DBUS_INTERFACE_DEVICE_INFINIBAND,
+		.signals = NM_DEFINE_GDBUS_SIGNAL_INFOS (
+			&nm_signal_info_property_changed_legacy,
+		),
+		.properties = NM_DEFINE_GDBUS_PROPERTY_INFOS (
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("HwAddress",       "s",  NM_DEVICE_HW_ADDRESS),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Carrier",         "b",  NM_DEVICE_CARRIER),
+		),
+	),
+	.legacy_property_changed = TRUE,
+};
+
 static void
 nm_device_infiniband_class_init (NMDeviceInfinibandClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	NMDBusObjectClass *dbus_object_class = NM_DBUS_OBJECT_CLASS (klass);
 	NMDeviceClass *parent_class = NM_DEVICE_CLASS (klass);
 
 	NM_DEVICE_CLASS_DECLARE_TYPES (klass, NM_SETTING_INFINIBAND_SETTING_NAME, NM_LINK_TYPE_INFINIBAND)
 
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
+
+	dbus_object_class->interface_infos = NM_DBUS_INTERFACE_INFOS (&interface_info_device_infiniband);
 
 	parent_class->create_and_realize = create_and_realize;
 	parent_class->unrealize = unrealize;
@@ -396,10 +393,6 @@ nm_device_infiniband_class_init (NMDeviceInfinibandClass *klass)
 	                           G_PARAM_STATIC_STRINGS);
 
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
-
-	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
-	                                        NMDBUS_TYPE_DEVICE_INFINIBAND_SKELETON,
-	                                        NULL);
 }
 
 /*****************************************************************************/
@@ -433,7 +426,7 @@ create_device (NMDeviceFactory *factory,
 	                                  NM_DEVICE_TYPE_DESC, "InfiniBand",
 	                                  NM_DEVICE_DEVICE_TYPE, NM_DEVICE_TYPE_INFINIBAND,
 	                                  NM_DEVICE_LINK_TYPE, NM_LINK_TYPE_INFINIBAND,
-	                                  /* XXX: Partition should probably be a different link type! */
+	                                  /* NOTE: Partition should probably be a different link type! */
 	                                  NM_DEVICE_INFINIBAND_IS_PARTITION, is_partition,
 	                                  NULL);
 }

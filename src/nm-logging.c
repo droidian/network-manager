@@ -98,6 +98,12 @@ static struct Global {
 	const char *prefix;
 	const char *syslog_identifier;
 	enum {
+		/* before we setup syslog (during start), the backend defaults to GLIB, meaning:
+		 * we use g_log() for all logging. At that point, the application is not yet supposed
+		 * to do any logging and doing so indicates a bug.
+		 *
+		 * Afterwards, the backend is either SYSLOG or JOURNAL. From that point, also
+		 * g_log() is redirected to this backend via a logging handler. */
 		LOG_BACKEND_GLIB,
 		LOG_BACKEND_SYSLOG,
 		LOG_BACKEND_JOURNAL,
@@ -663,7 +669,7 @@ _nm_log_impl (const char *file,
 				NMLogDomain dom = dom_all & _nm_logging_enabled_state[level];
 
 				for (diter = &global.domain_desc[0]; diter->name; diter++) {
-					if (!NM_FLAGS_HAS (dom_all, diter->num))
+					if (!NM_FLAGS_ANY (dom_all, diter->num))
 						continue;
 
 					/* construct a list of all domains (not only the enabled ones).
@@ -681,7 +687,7 @@ _nm_log_impl (const char *file,
 						g_string_append (s_domain_all, diter->name);
 					}
 
-					if (NM_FLAGS_HAS (dom, diter->num)) {
+					if (NM_FLAGS_ANY (dom, diter->num)) {
 						if (i_domain > 0) {
 							/* SYSLOG_FACILITY is specified multiple times for each domain that is actually enabled. */
 							_iovec_set_format_a (iov++, _MAX_LEN (30, diter->name), "SYSLOG_FACILITY=%s", diter->name);
@@ -768,6 +774,9 @@ nm_log_handler (const gchar *log_domain,
 		break;
 	}
 
+	if (global.debug_stderr)
+		g_printerr ("%s%s\n", global.prefix, message ?: "");
+
 	switch (global.log_backend) {
 #if SYSTEMD_JOURNAL
 	case LOG_BACKEND_JOURNAL:
@@ -829,21 +838,36 @@ nm_logging_set_prefix (const char *format, ...)
 void
 nm_logging_syslog_openlog (const char *logging_backend, gboolean debug)
 {
+	gboolean fetch_monotonic_timestamp = FALSE;
+	gboolean obsolete_debug_backend = FALSE;
+
+	nm_assert (NM_IN_STRSET (""NM_CONFIG_DEFAULT_LOGGING_BACKEND,
+	                         NM_LOG_CONFIG_BACKEND_JOURNAL,
+	                         NM_LOG_CONFIG_BACKEND_SYSLOG));
+
 	if (global.log_backend != LOG_BACKEND_GLIB)
 		g_return_if_reached ();
 
 	if (!logging_backend)
 		logging_backend = ""NM_CONFIG_DEFAULT_LOGGING_BACKEND;
 
+	if (nm_streq (logging_backend, NM_LOG_CONFIG_BACKEND_DEBUG)) {
+		/* "debug" was wrongly documented as a valid logging backend. It makes no sense however,
+		 * because printing to stderr only makes sense when not demonizing. Whether to daemonize
+		 * is only controlled via command line arguments (--no-daemon, --debug) and not via the
+		 * logging backend from configuration.
+		 *
+		 * Fall back to the default. */
+		logging_backend = ""NM_CONFIG_DEFAULT_LOGGING_BACKEND;
+		obsolete_debug_backend = TRUE;
+	}
+
 #if SYSTEMD_JOURNAL
-	if (strcmp (logging_backend, "syslog") != 0) {
+	if (!nm_streq (logging_backend, NM_LOG_CONFIG_BACKEND_SYSLOG)) {
 		global.log_backend = LOG_BACKEND_JOURNAL;
 		global.uses_syslog = TRUE;
 		global.debug_stderr = debug;
-
-		/* ensure we read a monotonic timestamp. Reading the timestamp the first
-		 * time causes a logging message. We don't want to do that during _nm_log_impl. */
-		nm_utils_get_monotonic_timestamp_ns ();
+		fetch_monotonic_timestamp = TRUE;
 	} else
 #endif
 	{
@@ -857,5 +881,30 @@ nm_logging_syslog_openlog (const char *logging_backend, gboolean debug)
 	                   G_LOG_LEVEL_MASK | G_LOG_FLAG_FATAL | G_LOG_FLAG_RECURSION,
 	                   nm_log_handler,
 	                   NULL);
-}
 
+	if (fetch_monotonic_timestamp) {
+		/* ensure we read a monotonic timestamp. Reading the timestamp the first
+		 * time causes a logging message. We don't want to do that during _nm_log_impl. */
+		nm_utils_get_monotonic_timestamp_ns ();
+	}
+
+	if (obsolete_debug_backend)
+		nm_log_dbg (LOGD_CORE, "config: ignore deprecated logging backend 'debug', fallback to '%s'", logging_backend);
+
+	if (nm_streq (logging_backend, NM_LOG_CONFIG_BACKEND_SYSLOG)) {
+		/* good */
+	} else if (nm_streq (logging_backend, NM_LOG_CONFIG_BACKEND_JOURNAL)) {
+#if !SYSTEMD_JOURNAL
+		nm_log_warn (LOGD_CORE, "config: logging backend 'journal' is not available, fallback to 'syslog'");
+#endif
+	} else {
+		nm_log_warn (LOGD_CORE, "config: invalid logging backend '%s', fallback to '%s'",
+		             logging_backend,
+#if SYSTEMD_JOURNAL
+		             NM_LOG_CONFIG_BACKEND_JOURNAL
+#else
+		             NM_LOG_CONFIG_BACKEND_SYSLOG
+#endif
+		             );
+	}
+}

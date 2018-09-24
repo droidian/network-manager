@@ -33,8 +33,6 @@
 #include "supplicant/nm-supplicant-interface.h"
 #include "supplicant/nm-supplicant-config.h"
 
-#include "introspection/org.freedesktop.NetworkManager.Device.Macsec.h"
-
 #include "nm-device-logging.h"
 _LOG_DECLARE_SELF(NMDeviceMacsec);
 
@@ -186,8 +184,12 @@ update_properties (NMDevice *device)
 		nm_device_parent_set_ifindex (device, props->parent_ifindex);
 
 #define CHECK_PROPERTY_CHANGED(field, prop) \
-	if (props->field != priv->props.field) \
-		_notify (self, prop)
+	G_STMT_START { \
+		if (priv->props.field != props->field) { \
+			priv->props.field = props->field; \
+			_notify (self, prop); \
+		} \
+	} G_STMT_END
 
 	CHECK_PROPERTY_CHANGED (sci, PROP_SCI);
 	CHECK_PROPERTY_CHANGED (cipher_suite, PROP_CIPHER_SUITE);
@@ -202,7 +204,6 @@ update_properties (NMDevice *device)
 	CHECK_PROPERTY_CHANGED (scb, PROP_SCB);
 	CHECK_PROPERTY_CHANGED (replay_protect, PROP_REPLAY_PROTECT);
 
-	priv->props = *props;
 	g_object_thaw_notify ((GObject *) device);
 }
 
@@ -222,7 +223,7 @@ build_supplicant_config (NMDeviceMacsec *self, GError **error)
 	mtu = nm_platform_link_get_mtu (nm_device_get_platform (NM_DEVICE (self)),
 	                                nm_device_get_ifindex (NM_DEVICE (self)));
 
-	config = nm_supplicant_config_new ();
+	config = nm_supplicant_config_new (FALSE, FALSE);
 
 	s_macsec = (NMSettingMacsec *)
 		nm_device_get_applied_setting (NM_DEVICE (self), NM_TYPE_SETTING_MACSEC);
@@ -477,11 +478,8 @@ handle_auth_or_fail (NMDeviceMacsec *self,
                      NMActRequest *req,
                      gboolean new_secrets)
 {
-	NMDeviceMacsecPrivate *priv;
 	const char *setting_name;
 	NMConnection *applied_connection;
-
-	priv = NM_DEVICE_MACSEC_GET_PRIVATE (self);
 
 	if (!nm_device_auth_retries_try_next (NM_DEVICE (self)))
 		return NM_ACT_STAGE_RETURN_FAILURE;
@@ -492,13 +490,14 @@ handle_auth_or_fail (NMDeviceMacsec *self,
 
 	applied_connection = nm_act_request_get_applied_connection (req);
 	setting_name = nm_connection_need_secrets (applied_connection, NULL);
-	if (setting_name) {
-		macsec_secrets_get_secrets (self, setting_name,
-		                            NM_SECRET_AGENT_GET_SECRETS_FLAG_ALLOW_INTERACTION
-		                             | (new_secrets ? NM_SECRET_AGENT_GET_SECRETS_FLAG_REQUEST_NEW : 0));
-	} else
+	if (!setting_name) {
 		_LOGI (LOGD_DEVICE, "Cleared secrets, but setting didn't need any secrets.");
+		return NM_ACT_STAGE_RETURN_FAILURE;
+	}
 
+	macsec_secrets_get_secrets (self, setting_name,
+	                              NM_SECRET_AGENT_GET_SECRETS_FLAG_ALLOW_INTERACTION
+	                            | (new_secrets ? NM_SECRET_AGENT_GET_SECRETS_FLAG_REQUEST_NEW : 0));
 	return NM_ACT_STAGE_RETURN_POSTPONE;
 }
 
@@ -705,6 +704,7 @@ create_and_realize (NMDevice *device,
 	sci.s.port = htons (nm_setting_macsec_get_port (s_macsec));
 	lnk.sci = be64toh (sci.u);
 	lnk.validation = nm_setting_macsec_get_validation (s_macsec);
+	lnk.include_sci = nm_setting_macsec_get_send_sci (s_macsec);
 
 	parent_ifindex = nm_device_get_ifindex (parent);
 	g_warn_if_fail (parent_ifindex > 0);
@@ -731,7 +731,6 @@ link_changed (NMDevice *device,
 	NM_DEVICE_CLASS (nm_device_macsec_parent_class)->link_changed (device, pllink);
 	update_properties (device);
 }
-
 
 static void
 device_state_changed (NMDevice *device,
@@ -812,16 +811,44 @@ dispose (GObject *object)
 	G_OBJECT_CLASS (nm_device_macsec_parent_class)->dispose (object);
 }
 
+static const NMDBusInterfaceInfoExtended interface_info_device_macsec = {
+	.parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT (
+		NM_DBUS_INTERFACE_DEVICE_MACSEC,
+		.signals = NM_DEFINE_GDBUS_SIGNAL_INFOS (
+			&nm_signal_info_property_changed_legacy,
+		),
+		.properties = NM_DEFINE_GDBUS_PROPERTY_INFOS (
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Parent",        "o",  NM_DEVICE_PARENT),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Sci",           "t",  NM_DEVICE_MACSEC_SCI),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("IcvLength",     "y",  NM_DEVICE_MACSEC_ICV_LENGTH),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("CipherSuite",   "t",  NM_DEVICE_MACSEC_CIPHER_SUITE),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Window",        "u",  NM_DEVICE_MACSEC_WINDOW),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("EncodingSa",    "y",  NM_DEVICE_MACSEC_ENCODING_SA),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Validation",    "s",  NM_DEVICE_MACSEC_VALIDATION),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Encrypt",       "b",  NM_DEVICE_MACSEC_ENCRYPT),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Protect",       "b",  NM_DEVICE_MACSEC_PROTECT),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("IncludeSci",    "b",  NM_DEVICE_MACSEC_INCLUDE_SCI),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Es",            "b",  NM_DEVICE_MACSEC_ES),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Scb",           "b",  NM_DEVICE_MACSEC_SCB),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("ReplayProtect", "b",  NM_DEVICE_MACSEC_REPLAY_PROTECT),
+		),
+	),
+	.legacy_property_changed = TRUE,
+};
+
 static void
 nm_device_macsec_class_init (NMDeviceMacsecClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	NMDBusObjectClass *dbus_object_class = NM_DBUS_OBJECT_CLASS (klass);
 	NMDeviceClass *parent_class = NM_DEVICE_CLASS (klass);
 
 	NM_DEVICE_CLASS_DECLARE_TYPES (klass, NULL, NM_LINK_TYPE_MACSEC)
 
 	object_class->get_property = get_property;
 	object_class->dispose = dispose;
+
+	dbus_object_class->interface_infos = NM_DBUS_INTERFACE_INFOS (&interface_info_device_macsec);
 
 	parent_class->act_stage2_config = act_stage2_config;
 	parent_class->check_connection_compatible = check_connection_compatible;
@@ -886,10 +913,6 @@ nm_device_macsec_class_init (NMDeviceMacsecClass *klass)
 	                          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
-
-	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (klass),
-	                                        NMDBUS_TYPE_DEVICE_MACSEC_SKELETON,
-	                                        NULL);
 }
 
 /*************************************************************/

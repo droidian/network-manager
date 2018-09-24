@@ -32,8 +32,6 @@
 #include <netinet/in.h>
 #include <stdlib.h>
 
-#include "NetworkManager.h"
-
 #include "nmt-route-entry.h"
 #include "nmt-ip-entry.h"
 
@@ -154,7 +152,7 @@ static newtComponent
 nmt_route_entry_get_focus_component (NmtNewtWidget *widget)
 {
 	NmtRouteEntryPrivate *priv = NMT_ROUTE_ENTRY_GET_PRIVATE (widget);
-	
+
 	return nmt_newt_widget_get_focus_component (priv->dest);
 }
 

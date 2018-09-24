@@ -27,6 +27,9 @@
 #include "nm-setting-ip6-config.h"
 #include "NetworkManagerUtils.h"
 
+#include "platform/nm-platform.h"
+#include "platform/nmp-object.h"
+
 #define NM_TYPE_NDISC            (nm_ndisc_get_type ())
 #define NM_NDISC(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_NDISC, NMNDisc))
 #define NM_NDISC_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NM_TYPE_NDISC, NMNDiscClass))
@@ -97,6 +100,7 @@ typedef struct {
 } NMNDiscDNSDomain;
 
 typedef enum {
+	NM_NDISC_CONFIG_NONE                                = 0,
 	NM_NDISC_CONFIG_DHCP_LEVEL                          = 1 << 0,
 	NM_NDISC_CONFIG_GATEWAYS                            = 1 << 1,
 	NM_NDISC_CONFIG_ADDRESSES                           = 1 << 2,
@@ -168,13 +172,17 @@ typedef struct {
 
 GType nm_ndisc_get_type (void);
 
+void nm_ndisc_emit_config_change (NMNDisc *self, NMNDiscConfigMap changed);
+
 int nm_ndisc_get_ifindex (NMNDisc *self);
 const char *nm_ndisc_get_ifname (NMNDisc *self);
 NMNDiscNodeType nm_ndisc_get_node_type (NMNDisc *self);
 
 gboolean nm_ndisc_set_iid (NMNDisc *ndisc, const NMUtilsIPv6IfaceId iid);
 void nm_ndisc_start (NMNDisc *ndisc);
-void nm_ndisc_dad_failed (NMNDisc *ndisc, struct in6_addr *address);
+NMNDiscConfigMap nm_ndisc_dad_failed (NMNDisc *ndisc,
+                                      const struct in6_addr *address,
+                                      gboolean emit_changed_signal);
 void nm_ndisc_set_config (NMNDisc *ndisc,
                           const GArray *addresses,
                           const GArray *dns_servers,
@@ -183,5 +191,33 @@ void nm_ndisc_set_config (NMNDisc *ndisc,
 NMPlatform *nm_ndisc_get_platform (NMNDisc *self);
 NMPNetns *nm_ndisc_netns_get (NMNDisc *self);
 gboolean nm_ndisc_netns_push (NMNDisc *self, NMPNetns **netns);
+
+static inline gboolean
+nm_ndisc_dad_addr_is_fail_candidate_event (NMPlatformSignalChangeType change_type,
+                                           const NMPlatformIP6Address *addr)
+{
+	return    !NM_FLAGS_HAS (addr->n_ifa_flags, IFA_F_TEMPORARY)
+	       && (   (change_type == NM_PLATFORM_SIGNAL_CHANGED && addr->n_ifa_flags & IFA_F_DADFAILED)
+	           || (change_type == NM_PLATFORM_SIGNAL_REMOVED && addr->n_ifa_flags & IFA_F_TENTATIVE));
+}
+
+static inline gboolean
+nm_ndisc_dad_addr_is_fail_candidate (NMPlatform *platform,
+                                     const NMPObject *obj)
+{
+	const NMPlatformIP6Address *addr;
+
+	addr = NMP_OBJECT_CAST_IP6_ADDRESS (nm_platform_lookup_obj (platform,
+	                                                            NMP_CACHE_ID_TYPE_OBJECT_TYPE,
+	                                                            obj));
+	if (   addr
+	    && (   NM_FLAGS_HAS (addr->n_ifa_flags, IFA_F_TEMPORARY)
+	        || !NM_FLAGS_HAS (addr->n_ifa_flags, IFA_F_DADFAILED))) {
+		/* the address still/again exists and is not in DADFAILED state. Skip it. */
+		return FALSE;
+	}
+
+	return TRUE;
+}
 
 #endif /* __NETWORKMANAGER_NDISC_H__ */

@@ -27,8 +27,10 @@
 #include "nm-setting-olpc-mesh.h"
 #include "nm-device-wifi.h"
 #include "nm-device-olpc-mesh.h"
+#include "nm-device-iwd.h"
 #include "settings/nm-settings-connection.h"
 #include "platform/nm-platform.h"
+#include "nm-config.h"
 
 /*****************************************************************************/
 
@@ -75,6 +77,7 @@ create_device (NMDeviceFactory *factory,
 {
 	NMDeviceWifiCapabilities capabilities;
 	NM80211Mode mode;
+	gs_free char *backend = NULL;
 
 	g_return_val_if_fail (iface != NULL, NULL);
 	g_return_val_if_fail (plink != NULL, NULL);
@@ -98,10 +101,30 @@ create_device (NMDeviceFactory *factory,
 		return NULL;
 	}
 
-	if (plink->type == NM_LINK_TYPE_WIFI)
-		return nm_device_wifi_new (iface, capabilities);
-	else
+	if (plink->type != NM_LINK_TYPE_WIFI)
 		return nm_device_olpc_mesh_new (iface);
+
+	backend = nm_config_data_get_device_config_by_pllink (NM_CONFIG_GET_DATA,
+	                                                      NM_CONFIG_KEYFILE_KEY_DEVICE_WIFI_BACKEND,
+	                                                      plink,
+	                                                      "wifi",
+	                                                      NULL);
+	nm_strstrip (backend);
+
+	nm_log_dbg (LOGD_PLATFORM | LOGD_WIFI,
+	            "(%s) config: backend is %s%s%s%s",
+	            iface,
+	            NM_PRINT_FMT_QUOTE_STRING (backend),
+	            WITH_IWD ? " (iwd support enabled)" : "");
+	if (!backend || !strcasecmp (backend, "wpa_supplicant"))
+		return nm_device_wifi_new (iface, capabilities);
+#if WITH_IWD
+	else if (!strcasecmp (backend, "iwd"))
+		return nm_device_iwd_new (iface, capabilities);
+#endif
+
+	nm_log_warn (LOGD_PLATFORM | LOGD_WIFI, "(%s) config: unknown or unsupported wifi-backend %s", iface, backend);
+	return NULL;
 }
 
 /*****************************************************************************/

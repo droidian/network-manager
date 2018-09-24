@@ -21,24 +21,23 @@
 #ifndef __NETWORKMANAGER_TYPES_H__
 #define __NETWORKMANAGER_TYPES_H__
 
-#ifdef __NM_UTILS_PRIVATE_H__
-#error "nm-utils-private.h" must not be used outside of libnm-core/. Do you want "nm-core-internal.h"?
+#if !((NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_DAEMON)
+#error Cannot use this header.
 #endif
 
 #define _NM_SD_MAX_CLIENT_ID_LEN (sizeof (guint32) + 128)
 
 /* core */
-typedef struct _NMExportedObject     NMExportedObject;
+typedef struct _NMDBusObject         NMDBusObject;
 typedef struct _NMActiveConnection   NMActiveConnection;
 typedef struct _NMAuditManager       NMAuditManager;
 typedef struct _NMVpnConnection      NMVpnConnection;
 typedef struct _NMActRequest         NMActRequest;
 typedef struct _NMAuthSubject        NMAuthSubject;
-typedef struct _NMBusManager         NMBusManager;
+typedef struct _NMDBusManager        NMDBusManager;
 typedef struct _NMConfig             NMConfig;
 typedef struct _NMConfigData         NMConfigData;
-typedef struct _NMArpingManager      NMArpingManager;
-typedef struct _NMConnectionProvider NMConnectionProvider;
+typedef struct _NMAcdManager         NMAcdManager;
 typedef struct _NMConnectivity       NMConnectivity;
 typedef struct _NMDevice             NMDevice;
 typedef struct _NMDhcp4Config        NMDhcp4Config;
@@ -76,10 +75,12 @@ typedef enum {
 } NMActivationType;
 
 typedef enum {
-	NM_ACTIVATION_REASON_UNSET = 0,
-	NM_ACTIVATION_REASON_AUTOCONNECT = 1,
-	NM_ACTIVATION_REASON_AUTOCONNECT_SLAVES = 2,
-	NM_ACTIVATION_REASON_USER_REQUEST = 3,
+	NM_ACTIVATION_REASON_UNSET,
+	NM_ACTIVATION_REASON_EXTERNAL,
+	NM_ACTIVATION_REASON_ASSUME,
+	NM_ACTIVATION_REASON_AUTOCONNECT,
+	NM_ACTIVATION_REASON_AUTOCONNECT_SLAVES,
+	NM_ACTIVATION_REASON_USER_REQUEST,
 } NMActivationReason;
 
 typedef enum {
@@ -102,6 +103,7 @@ typedef enum {
 	NM_IP_CONFIG_SOURCE_KERNEL,
 	NM_IP_CONFIG_SOURCE_SHARED,
 	NM_IP_CONFIG_SOURCE_IP4LL,
+	NM_IP_CONFIG_SOURCE_IP6LL,
 	NM_IP_CONFIG_SOURCE_PPP,
 	NM_IP_CONFIG_SOURCE_WWAN,
 	NM_IP_CONFIG_SOURCE_VPN,
@@ -164,7 +166,6 @@ typedef enum {
 	NM_LINK_TYPE_OPENVSWITCH,
 	NM_LINK_TYPE_PPP,
 	NM_LINK_TYPE_SIT,
-	NM_LINK_TYPE_TAP,
 	NM_LINK_TYPE_TUN,
 	NM_LINK_TYPE_VETH,
 	NM_LINK_TYPE_VLAN,
@@ -198,6 +199,7 @@ typedef enum {
 	NMP_OBJECT_TYPE_LNK_MACVLAN,
 	NMP_OBJECT_TYPE_LNK_MACVTAP,
 	NMP_OBJECT_TYPE_LNK_SIT,
+	NMP_OBJECT_TYPE_LNK_TUN,
 	NMP_OBJECT_TYPE_LNK_VLAN,
 	NMP_OBJECT_TYPE_LNK_VXLAN,
 
@@ -211,7 +213,6 @@ typedef enum {
 	NM_IP_CONFIG_MERGE_NO_DEFAULT_ROUTES        = (1LL << 1),
 	NM_IP_CONFIG_MERGE_NO_DNS                   = (1LL << 2),
 } NMIPConfigMergeFlags;
-
 
 /**
  * NMIPRouteTableSyncMode:
@@ -228,7 +229,6 @@ typedef enum {
 	NM_IP_ROUTE_TABLE_SYNC_MODE_ALL         = 3,
 } NMIPRouteTableSyncMode;
 
-
 /* settings */
 typedef struct _NMAgentManager       NMAgentManager;
 typedef struct _NMSecretAgent        NMSecretAgent;
@@ -237,5 +237,7 @@ typedef struct _NMSettingsConnection NMSettingsConnection;
 
 /* utils */
 typedef struct _NMUtilsIPv6IfaceId   NMUtilsIPv6IfaceId;
+
+#define NM_SETTING_CONNECTION_MDNS_UNKNOWN ((NMSettingConnectionMdns) -42)
 
 #endif  /* NM_TYPES_H */

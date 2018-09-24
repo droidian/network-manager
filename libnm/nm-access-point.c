@@ -144,9 +144,9 @@ nm_access_point_get_ssid (NMAccessPoint *ap)
  * nm_access_point_get_frequency:
  * @ap: a #NMAccessPoint
  *
- * Gets the frequency of the access point.
+ * Gets the frequency of the access point in MHz.
  *
- * Returns: the frequency
+ * Returns: the frequency in MHz
  **/
 guint32
 nm_access_point_get_frequency (NMAccessPoint *ap)
@@ -209,9 +209,9 @@ nm_access_point_get_max_bitrate (NMAccessPoint *ap)
  * nm_access_point_get_strength:
  * @ap: a #NMAccessPoint
  *
- * Gets the current signal strength of the access point.
+ * Gets the current signal strength of the access point as a percentage.
  *
- * Returns: the signal strength
+ * Returns: the signal strength (0 to 100)
  **/
 guint8
 nm_access_point_get_strength (NMAccessPoint *ap)
@@ -483,7 +483,6 @@ init_dbus (NMObject *object)
 	                                property_info);
 }
 
-
 static void
 nm_access_point_class_init (NMAccessPointClass *ap_class)
 {
@@ -588,7 +587,7 @@ nm_access_point_class_init (NMAccessPointClass *ap_class)
 		                      NULL,
 		                      G_PARAM_READABLE |
 		                      G_PARAM_STATIC_STRINGS));
-	
+
 	/**
 	 * NMAccessPoint:mode:
 	 *

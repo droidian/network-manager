@@ -37,7 +37,6 @@
 #include "nms-ifupdown-plugin.h"
 #include "nms-ifupdown-parser.h"
 
-
 static const gchar*
 _ifupdownplugin_guess_connection_type (if_block *block)
 {
@@ -62,7 +61,6 @@ _ifupdownplugin_guess_connection_type (if_block *block)
 	nm_log_info (LOGD_SETTINGS, "guessed connection type (%s) = %s", block->name, ret_type);
 	return ret_type;
 }
-
 
 struct _Mapping {
 	const gchar *domain;
@@ -340,7 +338,7 @@ update_wireless_security_setting_from_if_block(NMConnection *connection,
 			}
 
 			g_object_set(wireless_security_setting,
-					   newkey, typed_property_value ? typed_property_value : property_value,
+					   newkey, typed_property_value ?: property_value,
 					   NULL);
 			security = TRUE;
 
@@ -388,7 +386,7 @@ update_wireless_security_setting_from_if_block(NMConnection *connection,
 			}
 
 			g_object_set(wireless_security_setting,
-					   newkey, typed_property_value ? typed_property_value : property_value,
+					   newkey, typed_property_value ?: property_value,
 					   NULL);
 			security = TRUE;
 
@@ -400,7 +398,6 @@ update_wireless_security_setting_from_if_block(NMConnection *connection,
 	next:
 		curr = curr->next;
 	}
-
 
 	if (security)
 		nm_connection_add_setting (connection, NM_SETTING (wireless_security_setting));

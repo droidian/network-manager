@@ -1,21 +1,7 @@
+/* SPDX-License-Identifier: LGPL-2.1+ */
 /***
-  This file is part of systemd.
-
-  Copyright (C) 2014 Axis Communications AB. All rights reserved.
-  Copyright (C) 2015 Tom Gundersen
-
-  systemd is free software; you can redistribute it and/or modify it
-  under the terms of the GNU Lesser General Public License as published by
-  the Free Software Foundation; either version 2.1 of the License, or
-  (at your option) any later version.
-
-  systemd is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public License
-  along with systemd; If not, see <http://www.gnu.org/licenses/>.
+  Copyright © 2014 Axis Communications AB. All rights reserved.
+  Copyright © 2015 Tom Gundersen
 ***/
 
 #include "nm-sd-adapt.h"
@@ -154,8 +140,7 @@ int sd_ipv4acd_new(sd_ipv4acd **ret) {
         acd->ifindex = -1;
         acd->fd = -1;
 
-        *ret = acd;
-        acd = NULL;
+        *ret = TAKE_PTR(acd);
 
         return 0;
 }
@@ -208,8 +193,7 @@ static int ipv4acd_set_next_wakeup(sd_ipv4acd *acd, usec_t usec, usec_t random_u
         (void) sd_event_source_set_description(timer, "ipv4acd-timer");
 
         sd_event_source_unref(acd->timer_event_source);
-        acd->timer_event_source = timer;
-        timer = NULL;
+        acd->timer_event_source = TAKE_PTR(timer);
 
         return 0;
 }
@@ -289,8 +273,7 @@ static int ipv4acd_on_timeout(sd_event_source *s, uint64_t usec, void *userdata)
                         break;
                 }
 
-                /* fall through */
-
+                _fallthrough_;
         case IPV4ACD_STATE_WAITING_ANNOUNCE:
                 /* Send announcement packet */
                 r = arp_send_announcement(acd->fd, acd->ifindex, acd->address, &acd->mac_addr);

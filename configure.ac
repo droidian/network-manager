@@ -1,9 +1,14 @@
 AC_PREREQ([2.63])
 
 dnl The NM version number
+dnl
+dnl NOTE: When incrementing version also:
+dnl  - add corresponding NM_VERSION_x_y_z macros in
+dnl    "shared/nm-version-macros.h.in"
+dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
-m4_define([nm_minor_version], [10])
-m4_define([nm_micro_version], [8])
+m4_define([nm_minor_version], [12])
+m4_define([nm_micro_version], [2])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
 
@@ -62,11 +67,18 @@ dnl
 AC_TYPE_PID_T
 AC_CHECK_SIZEOF(dev_t)
 AC_CHECK_SIZEOF(time_t)
+AC_CHECK_SIZEOF(pid_t)
 
 AC_CHECK_DECLS([
 	explicit_bzero],
 	[], [], [[
 #include <string.h>
+]])
+
+AC_CHECK_DECLS([
+	reallocarray],
+	[], [], [[
+#include <malloc.h>
 ]])
 
 AC_CHECK_HEADERS(sys/auxv.h)
@@ -120,29 +132,19 @@ AC_CHECK_FUNCS([__secure_getenv secure_getenv])
 # Alternative configuration plugins
 AC_ARG_ENABLE(config-plugin-ibft, AS_HELP_STRING([--enable-config-plugin-ibft], [enable ibft configuration plugin]))
 AC_ARG_ENABLE(ifcfg-rh, AS_HELP_STRING([--enable-ifcfg-rh], [enable ifcfg-rh configuration plugin (Fedora/RHEL)]))
-AC_ARG_ENABLE(ifcfg-suse,
-              AS_HELP_STRING([--enable-ifcfg-suse], [enable ifcfg-suse configuration plugin (SUSE) (deprecated)]))
 AC_ARG_ENABLE(ifupdown, AS_HELP_STRING([--enable-ifupdown], [enable ifupdown configuration plugin (Debian/Ubuntu)]))
-AC_ARG_ENABLE(ifnet, AS_HELP_STRING([--enable-ifnet], [enable ifnet configuration plugin (Gentoo)]))
 # Default alternative plugins by distribution
-AS_IF([test -z "$enable_ifcfg_rh"], AC_CHECK_FILE(/etc/redhat-release, enable_ifcfg_rh=yes))
-AS_IF([test -z "$enable_ifcfg_rh"], AC_CHECK_FILE(/etc/fedora-release, enable_ifcfg_rh=yes))
-AS_IF([test -z "$enable_ifcfg_rh"], AC_CHECK_FILE(/etc/mandriva-release, enable_ifcfg_rh=yes))
-AS_IF([test -z "$enable_ifcfg_suse"], AC_CHECK_FILE(/etc/SuSE-release, enable_ifcfg_suse=yes))
+AS_IF([test -z "$enable_ifcfg_rh"], AC_CHECK_FILE(/etc/sysconfig/network-scripts, enable_ifcfg_rh=yes))
 AS_IF([test -z "$enable_ifupdown"], AC_CHECK_FILE(/etc/debian_version, enable_ifupdown=yes))
-AS_IF([test -z "$enable_ifnet"], AC_CHECK_FILE(/etc/gentoo-release, enable_ifnet=yes))
 # Otherwise plugins default to "no"
 AS_IF([test -z "$enable_ifcfg_rh"], enable_ifcfg_rh=no)
-AS_IF([test -z "$enable_ifcfg_suse"], enable_ifcfg_suse=no)
 AS_IF([test -z "$enable_ifupdown"], enable_ifupdown=no)
-AS_IF([test -z "$enable_ifnet"], enable_ifnet=no)
 # Enable ibft by default
 AS_IF([test -z "$enable_config_plugin_ibft"], enable_config_plugin_ibft="yes")
 # Create automake conditionals
 AM_CONDITIONAL(CONFIG_PLUGIN_IBFT, test "$enable_config_plugin_ibft" = "yes")
 AM_CONDITIONAL(CONFIG_PLUGIN_IFCFG_RH, test "$enable_ifcfg_rh" = "yes")
 AM_CONDITIONAL(CONFIG_PLUGIN_IFUPDOWN, test "$enable_ifupdown" = "yes")
-AM_CONDITIONAL(CONFIG_PLUGIN_IFNET, test "$enable_ifnet" = "yes")
 
 AC_ARG_WITH(config-plugins-default,
             AS_HELP_STRING([--with-config-plugins-default=PLUGINS],
@@ -152,15 +154,12 @@ if test -z "$config_plugins_default" -o "$config_plugins_default" = no; then
 	config_plugins_default=''
 	test "$enable_ifcfg_rh" = "yes"           && config_plugins_default="$config_plugins_default,ifcfg-rh"
 	test "$enable_ifupdown" = "yes"           && config_plugins_default="$config_plugins_default,ifupdown"
-	test "$enable_ifnet" = "yes"              && config_plugins_default="$config_plugins_default,ifnet"
 	test "$enable_config_plugin_ibft" = "yes" && config_plugins_default="$config_plugins_default,ibft"
 	config_plugins_default="${config_plugins_default#,}"
 fi
 
 test "$enable_ifcfg_rh" = "yes"           && distro_plugins="$distro_plugins,ifcfg-rh"
-test "$enable_ifcfg_suse" = "yes"         && distro_plugins="$distro_plugins,ifcfg-suse"
 test "$enable_ifupdown" = "yes"           && distro_plugins="$distro_plugins,ifupdown"
-test "$enable_ifnet" = "yes"              && distro_plugins="$distro_plugins,ifnet"
 distro_plugins="${distro_plugins#,}"
 
 AC_DEFINE_UNQUOTED(NM_CONFIG_DEFAULT_MAIN_PLUGINS, "$config_plugins_default", [Default configuration option for main.plugins setting])
@@ -184,10 +183,9 @@ dnl
 AC_ARG_WITH(dist-version,
             AS_HELP_STRING([--with-dist-version=<NM-distribution-version>],
                            [Define the NM''s distribution version string]),
-            ac_distver=$withval, ac_distver="")
-if ! test x"$ac_distver" = x""; then
-	AC_DEFINE_UNQUOTED(NM_DIST_VERSION, "$ac_distver", [Define the distribution version string])
-fi
+            ac_distver=$withval, ac_distver=$NM_VERSION)
+AC_DEFINE_UNQUOTED(NM_DIST_VERSION, "$ac_distver", [Define the distribution version string])
+AC_SUBST(NM_DIST_VERSION, "$ac_distver")
 
 AC_ARG_ENABLE(wifi, AS_HELP_STRING([--enable-wifi], [enable Wi-Fi support]))
 if test "${enable_wifi}" != "no"; then
@@ -212,94 +210,31 @@ if test x"$ac_with_wext" = x"yes"; then
 	if test "$enable_wifi" != "yes"; then
 		AC_MSG_ERROR(Enabling WEXT support and disabling Wi-Fi makes no sense)
 	fi
-	AC_MSG_CHECKING([Linux kernel WEXT headers])
-	AC_COMPILE_IFELSE(
-	                  [AC_LANG_PROGRAM(
-	                                   [[#ifndef __user
-	                                     #define __user
-	                                     #endif
-	                                     #include <sys/types.h>
-	                                     #include <linux/types.h>
-	                                     #include <sys/socket.h>
-	                                     #include <linux/wireless.h>]],
-	                                   [[#ifndef IWEVGENIE
-	                                     #error "not found"
-	                                     #endif]])],
-	                  [ac_have_iwevgenie=yes],
-	                  [ac_have_iwevgenie=no])
-	AC_MSG_RESULT($ac_have_iwevgenie)
-	if test "$ac_have_iwevgenie" = no; then
-		AC_MSG_ERROR(Linux kernel development header linux/wireless.h not installed or not functional)
-	fi
 	AC_DEFINE(HAVE_WEXT, 1, [Define if you have Linux Wireless Extensions support])
 else
 	AC_DEFINE(HAVE_WEXT, 0, [Define if you have Linux Wireless Extensions support])
 fi
 AM_CONDITIONAL(WITH_WEXT, test x"${ac_with_wext}" = x"yes")
 
-AC_MSG_CHECKING([Linux kernel nl80211 headers])
-AC_COMPILE_IFELSE(
-                  [AC_LANG_PROGRAM(
-                                   [[#ifndef __user
-                                     #define __user
-                                     #endif
-                                     #include <sys/types.h>
-                                     #include <linux/types.h>
-                                     #include <sys/socket.h>
-                                     #include <linux/nl80211.h>]],
-                                   [[int a = NL80211_RATE_INFO_BITRATE; a++;]])],
-                  [ac_have_nl80211=yes],
-                  [ac_have_nl80211=no])
-AC_MSG_RESULT($ac_have_nl80211)
-if test "$ac_have_nl80211" = no; then
-	AC_MSG_ERROR(Linux kernel development header linux/nl80211.h not installed or not functional)
-fi
-
-if test "$with_wifi" = "yes"; then
-	AC_MSG_CHECKING([Linux kernel nl80211 Critical Protocol Start/Stop])
-	AC_COMPILE_IFELSE(
-	                  [AC_LANG_PROGRAM(
-	                                   [[#ifndef __user
-	                                     #define __user
-	                                     #endif
-	                                     #include <sys/types.h>
-	                                     #include <linux/types.h>
-	                                     #include <sys/socket.h>
-	                                     #include <linux/nl80211.h>]],
-	                                   [[unsigned a = NL80211_CMD_CRIT_PROTOCOL_START; a++;]])],
-	                  [ac_have_nl80211_critproto=yes],
-	                  [ac_have_nl80211_critproto=no])
-	AC_MSG_RESULT($ac_have_nl80211_critproto)
-else
-	ac_have_nl80211_critproto='no'
-fi
-if test "$ac_have_nl80211_critproto" = yes; then
-	AC_DEFINE(HAVE_NL80211_CRITICAL_PROTOCOL_CMDS, 1, [Define if nl80211 has critical protocol support])
-else
-	AC_DEFINE(HAVE_NL80211_CRITICAL_PROTOCOL_CMDS, 0, [Define if nl80211 has critical protocol support])
-fi
-
 dnl
-dnl Check for newer VLAN flags
+dnl Default to using wpa_supplicant but allow IWD as wifi backend
 dnl
-AC_MSG_CHECKING([Linux kernel VLAN_FLAG_LOOSE_BINDING enum value])
-AC_COMPILE_IFELSE(
-                  [AC_LANG_PROGRAM(
-                                   [[#ifndef __user
-                                     #define __user
-                                     #endif
-                                     #include <sys/types.h>
-                                     #include <linux/types.h>
-                                     #include <linux/if_vlan.h>]],
-                                   [[unsigned a = VLAN_FLAG_LOOSE_BINDING;]])],
-                  [ac_have_vlan_flag_loose_binding=yes],
-                  [ac_have_vlan_flag_loose_binding=no])
-AC_MSG_RESULT($ac_have_vlan_flag_loose_binding)
-if test "$ac_have_vlan_flag_loose_binding" = yes; then
-	AC_DEFINE(HAVE_VLAN_FLAG_LOOSE_BINDING, 1, [Define if you have VLAN_FLAG_LOOSE_BINDING])
-else
-	AC_DEFINE(HAVE_VLAN_FLAG_LOOSE_BINDING, 0, [Define if you have VLAN_FLAG_LOOSE_BINDING])
+AC_ARG_WITH(iwd,
+            AS_HELP_STRING([--with-iwd=yes],
+                           [Support IWD as wifi-backend in addition to wpa_supplicant (experimental)]),
+            ac_with_iwd=$withval, ac_with_iwd="no")
+if test "$ac_with_iwd" != 'no'; then
+	ac_with_iwd='yes'
 fi
+if test x"$ac_with_iwd" = x"yes"; then
+	if test "$enable_wifi" != "yes"; then
+		AC_MSG_ERROR(Enabling IWD support and disabling Wi-Fi makes no sense)
+	fi
+	AC_DEFINE(WITH_IWD, 1, [Define to compile with the IWD wifi-backend])
+else
+	AC_DEFINE(WITH_IWD, 0, [Define to compile without the IWD wifi-backend])
+fi
+AM_CONDITIONAL(WITH_IWD, test x"${ac_with_iwd}" = x"yes")
 
 dnl
 dnl Checks for libdl - on certain platforms its part of libc
@@ -310,35 +245,45 @@ AC_SUBST([DL_LIBS], "$ac_cv_search_dlopen")
 PKG_CHECK_MODULES(GLIB, [gio-unix-2.0 >= 2.37.6 gmodule-2.0],
                   [AC_SUBST(LOG_DRIVER, '$(top_srcdir)/build-aux/tap-driver.sh')
                    AC_SUBST(AM_TESTS_FD_REDIRECT, '--tap')],
-                  [PKG_CHECK_MODULES(GLIB, gio-unix-2.0 >= 2.32 gmodule-2.0)
+                  [PKG_CHECK_MODULES(GLIB, gio-unix-2.0 >= 2.40 gmodule-2.0)
                    AC_SUBST(LOG_DRIVER, '$(top_srcdir)/build-aux/test-driver')])
 
-dnl GLIB_VERSION_MIN_REQUIRED should match the version above.
-dnl GLIB_VERSION_MAX_ALLOWED should be set to the same version;
-dnl nm-glib.h will cause it to be overridden for the functions
-dnl we have compat versions of.
-GLIB_CFLAGS="$GLIB_CFLAGS -DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_32 -DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_32"
+GLIB_CFLAGS="$GLIB_CFLAGS -DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_40 -DGLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_40"
 
 AC_SUBST(GLIB_CFLAGS)
 AC_SUBST(GLIB_LIBS)
 
+GOBJECT_INTROSPECTION_CHECK([0.9.6])
+
 AC_ARG_WITH(libnm-glib,
-            AS_HELP_STRING([--without-libnm-glib],
-                           [don't build legacy libraries]))
-if test "$with_libnm_glib" != "no"; then
+            AS_HELP_STRING([--with-libnm-glib],
+                           [build legacy libraries]))
+fake_typelibs=no
+if test "$with_libnm_glib" == "yes"; then
 	PKG_CHECK_MODULES(DBUS, dbus-1 >= 1.1 dbus-glib-1 >= 0.94, :,
 	                  [AC_MSG_FAILURE([$DBUS_PKG_ERRORS
 
 Configure with --without-libnm-glib if you do not need the legacy libraries])
 	                  ])
 
-	with_libnm_glib=yes
+	if test "${found_introspection}" = "yes"; then
+		AC_PATH_PROG(GLIB_COMPILE_RESOURCES, glib-compile-resources)
+		if ! test x"$GLIB_COMPILE_RESOURCES" = x""; then
+			fake_typelibs=yes
+		fi
+	fi
+else
+	with_libnm_glib=no
 fi
-AM_CONDITIONAL(WITH_LEGACY_LIBRARIES, test "$with_libnm_glib" != "no")
+AM_CONDITIONAL(WITH_LEGACY_LIBRARIES, test "$with_libnm_glib" == "yes")
+if test "$fake_typelibs" = "yes"; then
+	AC_DEFINE(WITH_FAKE_TYPELIBS, 1, [Define for libnm to prevent GIR from loading libnm-glib])
+else
+	AC_DEFINE(WITH_FAKE_TYPELIBS, 0, [Define for libnm to prevent GIR from loading libnm-glib])
+fi
+AM_CONDITIONAL(WITH_FAKE_TYPELIBS, test "${fake_typelibs}" = "yes")
 
 PKG_CHECK_MODULES([LIBUDEV], [libudev >= 175])
-
-GOBJECT_INTROSPECTION_CHECK([0.9.6])
 
 # Qt4
 PKG_CHECK_MODULES(QT, [QtCore >= 4 QtDBus QtNetwork], [have_qt=yes],[have_qt=no])
@@ -401,8 +346,8 @@ AS_IF([test "$with_hostname_persist" = "gentoo"], hostname_persist=gentoo)
 AS_IF([test "$with_hostname_persist" = "slackware"], hostname_persist=slackware)
 AS_IF([test "$with_hostname_persist" = "default"], hostname_persist=default)
 # if the method was not explicitly set, try to guess it from the enabled plugins
-AS_IF([test -z "$hostname_persist" -a "$distro_plugins" = "ifcfg-suse"], hostname_persist=suse)
-AS_IF([test -z "$hostname_persist" -a "$distro_plugins" = "ifnet"], hostname_persist=gentoo)
+AS_IF([test -z "$hostname_persist" -a -f /etc/SuSE-release], hostname_persist=suse)
+AS_IF([test -z "$hostname_persist" -a -f /etc/gentoo-release], hostname_persist=gentoo)
 AS_IF([test -z "$hostname_persist" -a -f /etc/slackware-version], hostname_persist=slackware)
 AS_IF([test -z "$hostname_persist"], hostname_persist=default)
 
@@ -446,10 +391,8 @@ AC_ARG_WITH(config-logging-backend-default,
             nm_config_logging_backend_default="$withval",
             nm_config_logging_backend_default="")
 
-if test "$nm_config_logging_backend_default" != 'debug' \
-     -a "$nm_config_logging_backend_default" != 'syslog' \
-     -a "$nm_config_logging_backend_default" != 'journal' \
-     -a "$nm_config_logging_backend_default" != 'journal-syslog-style'; then
+if test "$nm_config_logging_backend_default" != 'syslog' \
+     -a "$nm_config_logging_backend_default" != 'journal'; then
 	# unknown backend. Reset to default. Silently accept the invalid value to
 	# be future proof.
 	nm_config_logging_backend_default=''
@@ -619,15 +562,28 @@ else
 fi
 AC_SUBST(NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT)
 
-# libnl support for the linux platform
-PKG_CHECK_MODULES(LIBNL, libnl-3.0 >= 3.2.8)
-
 # uuid library
 PKG_CHECK_MODULES(UUID, uuid)
 
 # Teamd control checks
 
-PKG_CHECK_MODULES(JANSSON, [jansson], [have_jansson=yes], [have_jansson=no])
+PKG_CHECK_MODULES(JANSSON, [jansson >= 2.5], [have_jansson=yes], [have_jansson=no])
+if test "$have_jansson" = "yes"; then
+	AC_DEFINE(WITH_JANSSON, 1, [Define if JANSSON is enabled])
+
+	AC_CHECK_TOOLS(READELF, [eu-readelf readelf])
+	JANSSON_LIBDIR=`$PKG_CONFIG --variable=libdir jansson`
+	JANSSON_SONAME=`$READELF -d $JANSSON_LIBDIR/libjansson.so |sed -n 's/.*SONAME.*\[[\([^]]*\)]]/\1/p'`
+
+	if test "$JANSSON_SONAME" = ""; then
+		AC_MSG_ERROR(Unable to locate the Jansson library)
+	fi
+	AC_DEFINE_UNQUOTED(JANSSON_SONAME, "$JANSSON_SONAME", [Define to path to the Jansson shared library])
+else
+	AC_DEFINE(WITH_JANSSON, 0, [Define if JANSSON is enabled])
+fi
+AM_CONDITIONAL(WITH_JANSSON, test "${have_jansson}" = "yes")
+
 PKG_CHECK_MODULES(LIBTEAMDCTL, [libteamdctl >= 1.9], [have_teamdctl=yes],[have_teamdctl=no])
 if test "$have_jansson" = "yes" -a "$have_teamdctl" = "yes"; then
 	have_team_prereq=yes
@@ -659,46 +615,30 @@ AC_ARG_ENABLE(json-validation,
               [enable_json_validation=${enableval}],
               [enable_json_validation=${have_jansson}])
 if (test "${enable_json_validation}" == "no"); then
-	AC_DEFINE(WITH_JANSSON, 0, [Define if JANSSON is enabled])
+	AC_DEFINE(WITH_JSON_VALIDATION, 0, [Define if JSON validation in libnm is enabled])
 else
 	if test "$have_jansson" = "no"; then
 		AC_MSG_ERROR([jansson is needed for team configuration validation. Use --disable-json-validation to build without it.])
 	fi
-
-	AC_DEFINE(WITH_JANSSON, 1, [Define if JANSSON is enabled])
-
-	AC_CHECK_TOOLS(READELF, [eu-readelf readelf])
-	JANSSON_LIBDIR=`$PKG_CONFIG --variable=libdir jansson`
-	JANSSON_SONAME=`$READELF -d $JANSSON_LIBDIR/libjansson.so |sed -n 's/.*SONAME.*\[[\([^]]*\)]]/\1/p'`
-
-	if test "$JANSSON_SONAME" = ""; then
-		AC_MSG_ERROR(Unable to locate the Jansson library)
-	fi
-	AC_DEFINE_UNQUOTED(JANSSON_SONAME, "$JANSSON_SONAME", [Define to path to the Jansson shared library])
+		AC_DEFINE(WITH_JSON_VALIDATION, 1, [Define if JSON validation in libnm is enabled])
 fi
-AM_CONDITIONAL(WITH_JANSSON, test "${enable_json_validation}" != "no")
+AM_CONDITIONAL(WITH_JSON_VALIDATION, test "${enable_json_validation}" != "no")
 
 # we usually compile with polkit support. --enable-polkit=yes|no only sets the
 # default configuration for main.auth-polkit. User can always enable/disable polkit
-# autorization via config. Only when specifying --enable-polkit=disabled, we do
-# not compile support. In this case, the user cannot enable polkit authorization via
-# configuration.
+# autorization via config.
 AC_ARG_ENABLE(polkit,
-              AS_HELP_STRING([--enable-polkit=yes|no|disabled],
-                             [set default value for auth-polkit configuration option. This value can be overwritten by NM configuration. 'disabled' compiles NM without any support]),
+              AS_HELP_STRING([--enable-polkit=yes|no],
+                             [set default value for auth-polkit configuration option. This value can be overwritten by NM configuration. 'disabled' is an alias for 'no']),
               [enable_polkit=${enableval}], [enable_polkit=yes])
 if (test "${enable_polkit}" != "no" -a "${enable_polkit}" != "disabled"); then
-	enable_polkit=yes
+	enable_polkit=true
 	AC_DEFINE(NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT, "true", [The default value of the auth-polkit configuration option])
 	AC_SUBST(NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT_TEXT, true)
 else
+	enable_polkit=false
 	AC_DEFINE(NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT, "false", [The default value of the auth-polkit configuration option])
 	AC_SUBST(NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT_TEXT, false)
-fi
-if (test "${enable_polkit}" != "disabled"); then
-	AC_DEFINE(WITH_POLKIT, 1, [whether to compile polkit support])
-else
-	AC_DEFINE(WITH_POLKIT, 0, [whether to compile polkit support])
 fi
 
 PKG_CHECK_MODULES(POLKIT, [polkit-agent-1 >= 0.97], [have_pk_agent=yes],[have_pk_agent=no])
@@ -726,12 +666,9 @@ AC_SUBST(NM_MODIFY_SYSTEM_POLICY)
 AC_ARG_WITH(crypto,
             AS_HELP_STRING([--with-crypto=nss|gnutls],
                            [Cryptography library to use for certificate and key operations]),
-            ac_crypto=$withval,
-            ac_crypto=nss)
-
-with_nss=no
-with_gnutls=no
-if test x"$ac_crypto" = xnss; then
+            with_crypto=$withval,
+            with_crypto=nss)
+if test "$with_crypto" = 'nss'; then
 	PKG_CHECK_MODULES(NSS, [nss])
 
 	# Work around a pkg-config bug (fdo #29801) where exists != usable
@@ -739,28 +676,16 @@ if test x"$ac_crypto" = xnss; then
 	if test x"$?" != "x0"; then
 		AC_MSG_ERROR([No usable NSS found])
 	fi
-
-	AC_DEFINE(HAVE_NSS, 1, [Define if you have NSS])
-	with_nss=yes
-elif test x"$ac_crypto" = xgnutls; then
+elif test "$with_crypto" = 'gnutls'; then
 	PKG_CHECK_MODULES(GNUTLS, [gnutls >= 2.12])
-	AC_DEFINE(HAVE_GNUTLS, 1, [Define if you have libgnutls])
-	with_gnutls=yes
 else
 	AC_MSG_ERROR([Please choose either 'nss' or 'gnutls' for certificate and crypto operations])
 fi
-AM_CONDITIONAL(WITH_NSS, test x"$with_nss" != xno)
-AM_CONDITIONAL(WITH_GNUTLS, test x"$with_gnutls" != xno)
-
-# Shouldn't ever trigger this, but just in case...
-if test x"$ac_nss" = xno -a x"$ac_gnutls" = xno; then
-	AC_MSG_ERROR([Could not find required development headers and libraries for '$ac_crypto'])
-fi
+AM_CONDITIONAL(WITH_NSS, test "$with_crypto" = 'nss')
+AM_CONDITIONAL(WITH_GNUTLS, test "$with_crypto" = 'gnutls')
 
 GLIB_MAKEFILE='$(top_srcdir)/Makefile.glib'
 AC_SUBST(GLIB_MAKEFILE)
-GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`
-AC_SUBST(GLIB_GENMARSHAL)
 GLIB_MKENUMS=`$PKG_CONFIG --variable=glib_mkenums glib-2.0`
 AC_SUBST(GLIB_MKENUMS)
 
@@ -1111,7 +1036,6 @@ else
 	enable_concheck=no
 	AC_DEFINE(WITH_CONCHECK, 0, [Define if you want connectivity checking support])
 fi
-AM_CONDITIONAL(WITH_CONCHECK, test "${enable_concheck}" = "yes")
 
 PKG_CHECK_MODULES(LIBNDP, [libndp])
 
@@ -1149,7 +1073,10 @@ else
 	more_logging_default=no
 fi
 
-NM_COMPILER_WARNINGS(${more_warnings_default})
+NM_COMPILER_WARNINGS(CFLAGS, ${more_warnings_default})
+
+NM_COMPILER_FLAG(LIBSYSTEMD_NM_CFLAGS, "-Wno-gnu-variable-sized-type-not-at-end")
+AC_SUBST(LIBSYSTEMD_NM_CFLAGS)
 
 CC_CHECK_FLAGS_APPEND([with_cflags], [CFLAGS], [\
 	-fno-strict-aliasing \
@@ -1189,16 +1116,25 @@ fi
 NM_LTO
 NM_LD_GC
 
-AC_ARG_ENABLE(address-sanitizer,
-              AS_HELP_STRING([--enable-address-sanitizer], [Compile with address sanitizer (default: no)]))
-if (test "${enable_address_sanitizer}" = "yes"); then
+AC_ARG_WITH(address-sanitizer,
+            AS_HELP_STRING([--with-address-sanitizer=yes|no|exec], [Enable address sanitizer (default: no)]))
+if test "$with_address_sanitizer" = yes -o "$with_address_sanitizer" = "exec"; then
 	CC_CHECK_FLAGS_APPEND([asan_cflags], [CFLAGS], [-fsanitize=address])
 	AS_IF([test -z "$asan_cflags"],
 		[AC_MSG_ERROR([*** -fsanitize=address is not supported])])
 
-	sanitizer_cflags="$sanitizer_cflags -fsanitize=address"
-	sanitizer_ldflags="$sanitizer_ldflags -Wc,-fsanitize=address"
-	sanitizers="${sanitizers}asan "
+	sanitizer_exec_cflags="$sanitizer_exec_cflags -fsanitize=address"
+	sanitizer_exec_ldflags="$sanitizer_exec_ldflags -Wc,-fsanitize=address"
+	AC_DEFINE(ASAN_BUILD, 1, [Whether NM is built with address sanitizer])
+
+	if test "$with_address_sanitizer" = "yes"; then
+		sanitizer_lib_cflags="$sanitizer_lib_cflags -fsanitize=address"
+		sanitizer_lib_ldflags="$sanitizer_lib_ldflags -Wc,-fsanitize=address"
+		sanitizers="${sanitizers}address "
+		asan_options="ASAN_OPTIONS=detect_leaks=0"
+	else
+		sanitizers="${sanitizers}address(executables-only) "
+	fi
 fi
 
 AC_ARG_ENABLE(undefined-sanitizer,
@@ -1209,19 +1145,21 @@ if (test "${enable_undefined_sanitizer}" = "yes"); then
 	AS_IF([test -z "$ubsan_cflags"],
 	      [AC_MSG_ERROR([*** -fsanitize=undefined is not supported])])
 
-	sanitizer_cflags="$sanitizer_cflags -fsanitize=undefined"
-	sanitizer_ldflags="$sanitizer_ldflags -Wc,-fsanitize=undefined"
-	sanitizers="${sanitizers}ubsan "
+	sanitizer_exec_cflags="$sanitizer_exec_cflags -fsanitize=undefined"
+	sanitizer_lib_cflags="$sanitizer_lib_cflags -fsanitize=undefined"
+	sanitizer_exec_ldflags="$sanitizer_exec_ldflags -Wc,-fsanitize=undefined"
+	sanitizer_lib_ldflags="$sanitizer_lib_ldflags -Wc,-fsanitize=undefined"
+	sanitizers="${sanitizers}undefined-behavior "
 fi
 
 if test -n "$sanitizers"; then
-	CFLAGS="$CFLAGS $sanitizer_cflags -DVALGRIND=1 -fno-omit-frame-pointer"
-	LDFLAGS="$LDFLAGS $sanitizer_ldflags"
 	sanitizers="${sanitizers% }"
-	AC_SUBST(SANITIZER_ENV, [ASAN_OPTIONS=detect_leaks=0])
+	AC_SUBST(SANITIZER_ENV, ["$asan_options"])
+	AC_SUBST(SANITIZER_EXEC_CFLAGS, ["$sanitizer_exec_cflags -DVALGRIND=1 -fno-omit-frame-pointer"])
+	AC_SUBST(SANITIZER_LIB_CFLAGS, ["$sanitizer_lib_cflags -DVALGRIND=1 -fno-omit-frame-pointer"])
+	AC_SUBST(SANITIZER_EXEC_LDFLAGS, [$sanitizer_exec_ldflags])
+	AC_SUBST(SANITIZER_LIB_LDFLAGS, [$sanitizer_lib_ldflags])
 fi
-
-AC_SUBST(SANITIZERS, [$sanitizers])
 
 AC_MSG_CHECKING([CC support C11 _Generic()])
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([[int foo(void); int foo() { int a = 0; int b = _Generic (a, int: 4); return b + a; }]],
@@ -1274,7 +1212,7 @@ else
 		with_valgrind_suppressions='$(top_srcdir)/valgrind.suppressions'
 	fi
 fi
-AC_SUBST(NM_LOG_COMPILER, 'LOG_COMPILER = "$(top_srcdir)/tools/run-nm-test.sh" --called-from-make "$(LIBTOOL)" "$(with_valgrind)" "'"$with_valgrind_suppressions"'" --launch-dbus=auto')
+AC_SUBST(NM_LOG_COMPILER, 'LOG_COMPILER = "$(top_srcdir)/tools/run-nm-test.sh" --called-from-make "$(abs_top_builddir)" "$(LIBTOOL)" "$(with_valgrind)" "'"$with_valgrind_suppressions"'" --launch-dbus=auto')
 
 AM_PATH_PYTHON([], [], [PYTHON=python])
 AC_SUBST(PYTHON, [$PYTHON])
@@ -1365,6 +1303,10 @@ echo
 echo "System paths:"
 echo "  prefix: $prefix"
 echo "  exec_prefix: $exec_prefix"
+echo "  sysconfdir: $sysconfdir"
+echo "  localstatedir: $localstatedir"
+echo "  runstatedir: $runstatedir"
+echo "  datadir: $datadir"
 echo "  systemdunitdir: $with_systemdsystemunitdir"
 echo "  nmbinary: $nmbinary"
 echo "  nmconfdir: $nmconfdir"
@@ -1377,14 +1319,10 @@ echo
 echo "Platform:"
 echo "  session tracking: $session_tracking"
 echo "  suspend/resume: $with_suspend_resume"
-if test "${enable_polkit}" = "yes"; then
-	if test "${enable_modify_system}" = "yes"; then
-		echo "  policykit: yes (permissive modify.system) (default: main.auth-polkit=${enable_polkit})"
-	else
-		echo "  policykit: yes (restrictive modify.system) (default: main.auth-polkit=${enable_polkit})"
-	fi
+if test "${enable_modify_system}" = "yes"; then
+	echo "  policykit: main.auth-polkit=${enable_polkit} (permissive modify.system)"
 else
-	echo  "  policykit: no"
+	echo "  policykit: main.auth-polkit=${enable_polkit} (restrictive modify.system)"
 fi
 echo "  polkit agent: ${enable_polkit_agent}"
 echo "  selinux: $have_selinux"
@@ -1405,13 +1343,13 @@ echo "  ovs: $enable_ovs"
 echo "  libnm-glib: $with_libnm_glib"
 echo "  nmcli: $build_nmcli"
 echo "  nmtui: $build_nmtui"
+echo "  iwd: $ac_with_iwd"
 echo
 
 echo "Configuration plugins (main.plugins=${config_plugins_default})"
 echo "  ibft: ${enable_config_plugin_ibft}"
 echo "  ifcfg-rh: ${enable_ifcfg_rh}"
 echo "  ifupdown: ${enable_ifupdown}"
-echo "  ifnet: ${enable_ifnet}"
 echo
 
 echo "Handlers for /etc/resolv.conf:"
@@ -1440,6 +1378,7 @@ echo "  code coverage: $enable_code_coverage"
 echo "  LTO: $enable_lto"
 echo "  linker garbage collection: $enable_ld_gc"
 echo "  JSON validation for libnm: $enable_json_validation"
+echo "  crypto: $with_crypto"
 echo "  sanitizers: $sanitizers"
 echo "  Mozilla Public Suffix List: $with_libpsl"
 echo

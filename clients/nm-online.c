@@ -38,8 +38,6 @@
 #include <getopt.h>
 #include <locale.h>
 
-#include "NetworkManager.h"
-
 #define PROGRESS_STEPS 15
 
 #define EXIT_FAILURE_OFFLINE     1
@@ -245,8 +243,6 @@ main (int argc, char *argv[])
 	bindtextdomain (GETTEXT_PACKAGE, NMLOCALEDIR);
 	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 	textdomain (GETTEXT_PACKAGE);
-
-	nm_g_type_init ();
 
 	data.start_timestamp_ms = _now_ms ();
 

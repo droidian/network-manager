@@ -8,7 +8,7 @@
 <link rel="up" href="ch02.html" title="Client Object API Reference">
 <link rel="prev" href="NMSecretAgentOld.html" title="NMSecretAgentOld">
 <link rel="next" href="libnm-nm-errors.html" title="nm-errors">
-<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.28 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -61,25 +61,25 @@
 <tbody>
 <tr>
 <td class="property_type">
-<a href="../gio/GDBusConnection.html#GDBusConnection-struct"><span class="type">GDBusConnection</span></a> *</td>
+<a href="https://developer.gnome.org/gio/unstable/GDBusConnection.html#GDBusConnection-struct"><span class="type">GDBusConnection</span></a> *</td>
 <td class="property_name"><a class="link" href="NMObject.html#NMObject--dbus-connection" title="The “dbus-connection” property">dbus-connection</a></td>
 <td class="property_flags">Read</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="../gio/GDBusObject.html#GDBusObject-struct"><span class="type">GDBusObject</span></a> *</td>
+<a href="https://developer.gnome.org/gio/unstable/GDBusObject.html#GDBusObject-struct"><span class="type">GDBusObject</span></a> *</td>
 <td class="property_name"><a class="link" href="NMObject.html#NMObject--dbus-object" title="The “dbus-object” property">dbus-object</a></td>
 <td class="property_flags">Write / Construct Only</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="../gio/GDBusObjectManager.html#GDBusObjectManager-struct"><span class="type">GDBusObjectManager</span></a> *</td>
+<a href="https://developer.gnome.org/gio/unstable/GDBusObjectManager.html#GDBusObjectManager-struct"><span class="type">GDBusObjectManager</span></a> *</td>
 <td class="property_name"><a class="link" href="NMObject.html#NMObject--dbus-object-manager" title="The “dbus-object-manager” property">dbus-object-manager</a></td>
 <td class="property_flags">Write / Construct Only</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMObject.html#NMObject--path" title="The “path” property">path</a></td>
 <td class="property_flags">Read</td>
 </tr>
@@ -115,10 +115,11 @@
 </div>
 <div class="refsect1">
 <a name="NMObject.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> NMObject
         <span class="lineart">├──</span> <a class="link" href="NMAccessPoint.html" title="NMAccessPoint">NMAccessPoint</a>
         <span class="lineart">├──</span> <a class="link" href="NMActiveConnection.html" title="NMActiveConnection">NMActiveConnection</a>
+        <span class="lineart">├──</span> <a class="link" href="NMCheckpoint.html" title="NMCheckpoint">NMCheckpoint</a>
         <span class="lineart">├──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
         <span class="lineart">├──</span> <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig">NMDhcpConfig</a>
         <span class="lineart">├──</span> <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
@@ -130,7 +131,7 @@
 <a name="NMObject.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
 <p>
 NMObject implements
- <a href="../gio/GInitable.html#GInitable-struct">GInitable</a> and  <a href="../gio/GAsyncInitable.html#GAsyncInitable-struct">GAsyncInitable</a>.</p>
+ <a href="https://developer.gnome.org/gio/unstable/GInitable.html#GInitable-struct">GInitable</a> and  <a href="https://developer.gnome.org/gio/unstable/GAsyncInitable.html#GAsyncInitable-struct">GAsyncInitable</a>.</p>
 </div>
 <div class="refsect1">
 <a name="NMObject.description"></a><h2>Description</h2>
@@ -193,31 +194,31 @@ object, and must not be modified.</p>
 <a name="NMObject.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMObject--dbus-connection"></a><h3>The <code class="literal">“dbus-connection”</code> property</h3>
-<pre class="programlisting">  “dbus-connection”          <a href="../gio/GDBusConnection.html#GDBusConnection-struct"><span class="type">GDBusConnection</span></a> *</pre>
-<p>The <a href="../gio/GDBusConnection.html#GDBusConnection-struct"><span class="type">GDBusConnection</span></a> of the object.</p>
+<pre class="programlisting">  “dbus-connection”          <a href="https://developer.gnome.org/gio/unstable/GDBusConnection.html#GDBusConnection-struct"><span class="type">GDBusConnection</span></a> *</pre>
+<p>The <a href="https://developer.gnome.org/gio/unstable/GDBusConnection.html#GDBusConnection-struct"><span class="type">GDBusConnection</span></a> of the object.</p>
 <p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <p>Flags: Read</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMObject--dbus-object"></a><h3>The <code class="literal">“dbus-object”</code> property</h3>
-<pre class="programlisting">  “dbus-object”              <a href="../gio/GDBusObject.html#GDBusObject-struct"><span class="type">GDBusObject</span></a> *</pre>
-<p>The <a href="../gio/GDBusObject.html#GDBusObject-struct"><span class="type">GDBusObject</span></a> of the object.</p>
+<pre class="programlisting">  “dbus-object”              <a href="https://developer.gnome.org/gio/unstable/GDBusObject.html#GDBusObject-struct"><span class="type">GDBusObject</span></a> *</pre>
+<p>The <a href="https://developer.gnome.org/gio/unstable/GDBusObject.html#GDBusObject-struct"><span class="type">GDBusObject</span></a> of the object.</p>
 <p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <p>Flags: Write / Construct Only</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMObject--dbus-object-manager"></a><h3>The <code class="literal">“dbus-object-manager”</code> property</h3>
-<pre class="programlisting">  “dbus-object-manager”      <a href="../gio/GDBusObjectManager.html#GDBusObjectManager-struct"><span class="type">GDBusObjectManager</span></a> *</pre>
-<p>The <a href="../gio/GDBusObjectManager.html#GDBusObjectManager-struct"><span class="type">GDBusObjectManager</span></a> of the object.</p>
+<pre class="programlisting">  “dbus-object-manager”      <a href="https://developer.gnome.org/gio/unstable/GDBusObjectManager.html#GDBusObjectManager-struct"><span class="type">GDBusObjectManager</span></a> *</pre>
+<p>The <a href="https://developer.gnome.org/gio/unstable/GDBusObjectManager.html#GDBusObjectManager-struct"><span class="type">GDBusObjectManager</span></a> of the object.</p>
 <p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <p>Flags: Write / Construct Only</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NMObject--path"></a><h3>The <code class="literal">“path”</code> property</h3>
-<pre class="programlisting">  “path”                     <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “path”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The D-Bus object path.</p>
 <p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <p>Flags: Read</p>
@@ -226,6 +227,6 @@ object, and must not be modified.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.27</div>
+<hr>Generated by GTK-Doc V1.28</div>
 </body>
 </html>

@@ -33,24 +33,15 @@ char *nm_dhcp_dhclient_create_config (const char *interface,
                                       const char *orig_contents,
                                       GBytes **out_new_client_id);
 
-char *nm_dhcp_dhclient_escape_duid (const GByteArray *duid);
+char *nm_dhcp_dhclient_escape_duid (GBytes *duid);
 
-GByteArray *nm_dhcp_dhclient_unescape_duid (const char *duid);
+GBytes *nm_dhcp_dhclient_unescape_duid (const char *duid);
 
-GByteArray *nm_dhcp_dhclient_read_duid (const char *leasefile, GError **error);
+GBytes *nm_dhcp_dhclient_read_duid (const char *leasefile, GError **error);
 
 gboolean nm_dhcp_dhclient_save_duid (const char *leasefile,
                                      const char *escaped_duid,
                                      GError **error);
-
-GSList *nm_dhcp_dhclient_read_lease_ip_configs (struct _NMDedupMultiIndex *multi_idx,
-                                                int addr_family,
-                                                const char *iface,
-                                                int ifindex,
-                                                guint32 route_table,
-                                                guint32 route_metric,
-                                                const char *contents,
-                                                GDateTime *now);
 
 GBytes *nm_dhcp_dhclient_get_client_id_from_config_file (const char *path);
 

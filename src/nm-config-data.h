@@ -100,7 +100,6 @@ typedef enum { /*< flags >*/
 	/* main-file or config-description changed */
 	NM_CONFIG_CHANGE_CONFIG_FILES              = (1L << 10),
 
-
 	/* any configuration on disk changed */
 	NM_CONFIG_CHANGE_VALUES                    = (1L << 11),
 
@@ -109,7 +108,6 @@ typedef enum { /*< flags >*/
 
 	/* any internal configuration on disk changed (NetworkManager-intern.conf) */
 	NM_CONFIG_CHANGE_VALUES_INTERN             = (1L << 13),
-
 
 	/* configuration regarding connectivity changed */
 	NM_CONFIG_CHANGE_CONNECTIVITY              = (1L << 14),
@@ -188,6 +186,12 @@ char *nm_config_data_get_device_config (const NMConfigData *self,
                                         NMDevice *device,
                                         gboolean *has_match);
 
+char *nm_config_data_get_device_config_by_pllink (const NMConfigData *self,
+                                                  const char *property,
+                                                  const NMPlatformLink *pllink,
+                                                  const char *match_device_type,
+                                                  gboolean *has_match);
+
 gboolean nm_config_data_get_device_config_boolean (const NMConfigData *self,
                                                    const char *property,
                                                    NMDevice *device,
@@ -200,18 +204,18 @@ gboolean nm_config_data_is_intern_atomic_group (const NMConfigData *self, const 
 
 GKeyFile *nm_config_data_clone_keyfile_intern (const NMConfigData *self);
 
-const char *const *nm_global_dns_config_get_searches (const NMGlobalDnsConfig *dns);
-const char *const *nm_global_dns_config_get_options (const NMGlobalDnsConfig *dns);
-guint nm_global_dns_config_get_num_domains (const NMGlobalDnsConfig *dns);
-NMGlobalDnsDomain *nm_global_dns_config_get_domain (const NMGlobalDnsConfig *dns, guint i);
-NMGlobalDnsDomain *nm_global_dns_config_lookup_domain (const NMGlobalDnsConfig *dns, const char *name);
+const char *const *nm_global_dns_config_get_searches (const NMGlobalDnsConfig *dns_config);
+const char *const *nm_global_dns_config_get_options (const NMGlobalDnsConfig *dns_config);
+guint nm_global_dns_config_get_num_domains (const NMGlobalDnsConfig *dns_config);
+NMGlobalDnsDomain *nm_global_dns_config_get_domain (const NMGlobalDnsConfig *dns_config, guint i);
+NMGlobalDnsDomain *nm_global_dns_config_lookup_domain (const NMGlobalDnsConfig *dns_config, const char *name);
 const char *nm_global_dns_domain_get_name (const NMGlobalDnsDomain *domain);
 const char *const *nm_global_dns_domain_get_servers (const NMGlobalDnsDomain *domain);
 const char *const *nm_global_dns_domain_get_options (const NMGlobalDnsDomain *domain);
-gboolean nm_global_dns_config_is_internal (const NMGlobalDnsConfig *dns);
-gboolean nm_global_dns_config_is_empty (const NMGlobalDnsConfig *dns);
-void nm_global_dns_config_update_checksum (const NMGlobalDnsConfig *dns, GChecksum *sum);
-void nm_global_dns_config_free (NMGlobalDnsConfig *conf);
+gboolean nm_global_dns_config_is_internal (const NMGlobalDnsConfig *dns_config);
+gboolean nm_global_dns_config_is_empty (const NMGlobalDnsConfig *dns_config);
+void nm_global_dns_config_update_checksum (const NMGlobalDnsConfig *dns_config, GChecksum *sum);
+void nm_global_dns_config_free (NMGlobalDnsConfig *dns_config);
 
 NMGlobalDnsConfig *nm_global_dns_config_from_dbus (const GValue *value, GError **error);
 void nm_global_dns_config_to_dbus (const NMGlobalDnsConfig *dns_config, GValue *value);

@@ -1,28 +1,15 @@
+/* SPDX-License-Identifier: LGPL-2.1+ */
 /***
-  This file is part of systemd.
-
-  Copyright 2016 Lennart Poettering
-
-  systemd is free software; you can redistribute it and/or modify it
-  under the terms of the GNU Lesser General Public License as published by
-  the Free Software Foundation; either version 2.1 of the License, or
-  (at your option) any later version.
-
-  systemd is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public License
-  along with systemd; If not, see <http://www.gnu.org/licenses/>.
 ***/
 
 #include "nm-sd-adapt.h"
 
+#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 
 #include "fd-util.h"
+#include "fs-util.h"
 #include "hexdecoct.h"
 #include "id128-util.h"
 #include "io-util.h"
@@ -120,7 +107,7 @@ int id128_read_fd(int fd, Id128Format f, sd_id128_t *ret) {
                 if (buffer[32] != '\n')
                         return -EINVAL;
 
-                /* fall through */
+                _fallthrough_;
         case 32: /* plain UUID without trailing newline */
                 if (f == ID128_UUID)
                         return -EINVAL;
@@ -132,7 +119,7 @@ int id128_read_fd(int fd, Id128Format f, sd_id128_t *ret) {
                 if (buffer[36] != '\n')
                         return -EINVAL;
 
-                /* fall through */
+                _fallthrough_;
         case 36: /* RFC UUID without trailing newline */
                 if (f == ID128_PLAIN)
                         return -EINVAL;
@@ -183,9 +170,13 @@ int id128_write_fd(int fd, Id128Format f, sd_id128_t id, bool do_sync) {
         if (do_sync) {
                 if (fsync(fd) < 0)
                         return -errno;
+
+                r = fsync_directory_of_file(fd);
+                if (r < 0)
+                        return r;
         }
 
-        return r;
+        return 0;
 }
 
 int id128_write(const char *p, Id128Format f, sd_id128_t id, bool do_sync) {

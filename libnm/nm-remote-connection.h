@@ -37,11 +37,12 @@ G_BEGIN_DECLS
 #define NM_IS_REMOTE_CONNECTION_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_REMOTE_CONNECTION))
 #define NM_REMOTE_CONNECTION_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_REMOTE_CONNECTION, NMRemoteConnectionClass))
 
-
 /* Properties */
 #define NM_REMOTE_CONNECTION_DBUS_CONNECTION "dbus-connection"
 #define NM_REMOTE_CONNECTION_PATH            "path"
 #define NM_REMOTE_CONNECTION_UNSAVED         "unsaved"
+#define NM_REMOTE_CONNECTION_FLAGS           "flags"
+#define NM_REMOTE_CONNECTION_FILENAME        "filename"
 #define NM_REMOTE_CONNECTION_VISIBLE         "visible"
 
 /**
@@ -60,7 +61,7 @@ typedef struct {
 
 GType nm_remote_connection_get_type (void);
 
-NM_AVAILABLE_IN_1_10_2
+NM_AVAILABLE_IN_1_12
 void nm_remote_connection_update2 (NMRemoteConnection *connection,
                                    GVariant *settings,
                                    NMSettingsUpdate2Flags flags,
@@ -68,7 +69,7 @@ void nm_remote_connection_update2 (NMRemoteConnection *connection,
                                    GCancellable *cancellable,
                                    GAsyncReadyCallback callback,
                                    gpointer user_data);
-NM_AVAILABLE_IN_1_10_2
+NM_AVAILABLE_IN_1_12
 GVariant *nm_remote_connection_update2_finish (NMRemoteConnection *connection,
                                                GAsyncResult *result,
                                                GError **error);
@@ -122,6 +123,12 @@ GVariant *nm_remote_connection_get_secrets_finish (NMRemoteConnection *connectio
                                                    GError **error);
 
 gboolean nm_remote_connection_get_unsaved (NMRemoteConnection *connection);
+
+NM_AVAILABLE_IN_1_12
+NMSettingsConnectionFlags nm_remote_connection_get_flags (NMRemoteConnection *connection);
+
+NM_AVAILABLE_IN_1_12
+const char *nm_remote_connection_get_filename (NMRemoteConnection *connection);
 
 gboolean nm_remote_connection_get_visible (NMRemoteConnection *connection);
 

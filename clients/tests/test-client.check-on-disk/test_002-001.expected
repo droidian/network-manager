@@ -1,0 +1,18 @@
+location: clients/tests/test-client.py:766:test_002()/1
+cmd: $NMCLI d
+lang: C
+returncode: 0
+stdout: 258 bytes
+>>>
+DEVICE  TYPE      STATE        CONNECTION 
+eth0    ethernet  unavailable  --         
+eth1    ethernet  unavailable  --         
+wlan0   wifi      unavailable  --         
+wlan1   wifi      unavailable  --         
+wlan1   wifi      unavailable  --         
+
+<<<
+stderr: 0 bytes
+>>>
+
+<<<

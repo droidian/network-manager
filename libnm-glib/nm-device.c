@@ -1311,7 +1311,6 @@ nm_device_set_autoconnect (NMDevice *device, gboolean autoconnect)
 	g_value_init (&value, G_TYPE_BOOLEAN);
 	g_value_set_boolean (&value, autoconnect);
 
-
 	NM_DEVICE_GET_PRIVATE (device)->autoconnect = autoconnect;
 
 	_nm_object_set_property (NM_OBJECT (device),
@@ -2006,7 +2005,7 @@ nm_device_disambiguate_names (NMDevice **devices,
 
 			g_free (names[i]);
 			name = get_device_type_name_with_iface (devices[i]);
-			/* Translators: the first %s is a bus name (eg, "USB") or
+			/* TRANSLATORS: the first %s is a bus name (eg, "USB") or
 			 * product name, the second is a device type (eg,
 			 * "Ethernet"). You can change this to something like
 			 * "%2$s (%1$s)" if there's no grammatical way to combine
@@ -2100,7 +2099,7 @@ nm_device_get_physical_port_id (NMDevice *device)
  *
  * Gets the  MTU of the #NMDevice.
  *
- * Returns: the MTU of the device.
+ * Returns: the MTU of the device in bytes.
  *
  * Since: 0.9.10
  **/

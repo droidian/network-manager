@@ -167,7 +167,7 @@ test_nm_utils_kill_child_spawn (char **argv, gboolean do_not_reap_child)
 }
 
 static pid_t
-test_nm_utils_kill_child_create_and_join_pgroup (void)
+do_test_nm_utils_kill_child_create_and_join_pgroup (void)
 {
 	int err, tmp = 0;
 	int pipefd[2];
@@ -177,10 +177,7 @@ test_nm_utils_kill_child_create_and_join_pgroup (void)
 	g_assert (err == 0);
 
 	pgid = fork();
-	if (pgid < 0) {
-		g_assert_not_reached ();
-		return pgid;
-	}
+	g_assert (pgid >= 0);
 
 	if (pgid == 0) {
 		/* child process... */
@@ -206,7 +203,6 @@ test_nm_utils_kill_child_create_and_join_pgroup (void)
 	err = setpgid (0, pgid);
 	g_assert (err == 0);
 
-
 	do {
 		err = waitpid (pgid, &tmp, 0);
 	} while (err == -1 && errno == EINTR);
@@ -219,9 +215,8 @@ test_nm_utils_kill_child_create_and_join_pgroup (void)
 #define TEST_TOKEN  "nm_test_kill_child_process"
 
 static void
-test_nm_utils_kill_child (void)
+do_test_nm_utils_kill_child (void)
 {
-	int err;
 	GLogLevelFlags fatal_mask;
 	char *argv_watchdog[] = {
 			"bash",
@@ -255,15 +250,12 @@ test_nm_utils_kill_child (void)
 			"trap \"while true; do :; done\" TERM; while true; do :; done; #" TEST_TOKEN,
 			NULL,
 		};
-	pid_t gpid;
 	pid_t pid1a_1, pid1a_2, pid1a_3, pid2a, pid3a, pid4a;
 	pid_t pid1s_1, pid1s_2, pid1s_3, pid2s, pid3s, pid4s;
 
 	const int expected_exit_47 = 12032; /* exit with status 47 */
 	const int expected_signal_TERM = SIGTERM;
 	const int expected_signal_KILL = SIGKILL;
-
-	gpid = test_nm_utils_kill_child_create_and_join_pgroup ();
 
 	test_nm_utils_kill_child_spawn (argv_watchdog, FALSE);
 
@@ -284,90 +276,121 @@ test_nm_utils_kill_child (void)
 	/* give processes time to start (and potentially block signals) ... */
 	g_usleep (G_USEC_PER_SEC / 10);
 
-
 	fatal_mask = g_log_set_always_fatal (G_LOG_FATAL_MASK);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-1-1' (*): waiting up to 3000 milliseconds for process to terminate normally after sending SIGTERM (15)...");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-1-1' (*): after sending SIGTERM (15), process * exited by signal 15 (* usec elapsed)");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-s-1-1' (*): waiting up to 3000 milliseconds for process to terminate normally after sending SIGTERM (15)...");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-s-1-1' (*): after sending SIGTERM (15), process * exited by signal 15 (* usec elapsed)");
 	test_nm_utils_kill_child_sync_do ("test-s-1-1", pid1s_1, SIGTERM, 3000, TRUE,  &expected_signal_TERM);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-1-2' (*): waiting for process to terminate after sending SIGKILL (9)...");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-1-2' (*): after sending SIGKILL (9), process * exited by signal 9 (* usec elapsed)");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-s-1-2' (*): waiting for process to terminate after sending SIGKILL (9)...");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-s-1-2' (*): after sending SIGKILL (9), process * exited by signal 9 (* usec elapsed)");
 	test_nm_utils_kill_child_sync_do ("test-s-1-2", pid1s_2, SIGKILL, 1000 / 2, TRUE,  &expected_signal_KILL);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-1-3' (*): waiting up to 1 milliseconds for process to terminate normally after sending no signal (0)...");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-1-3' (*): sending SIGKILL...");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-1-3' (*): after sending no signal (0) and SIGKILL, process * exited by signal 9 (* usec elapsed)");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-s-1-3' (*): waiting up to 1 milliseconds for process to terminate normally after sending no signal (0)...");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-s-1-3' (*): sending SIGKILL...");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-s-1-3' (*): after sending no signal (0) and SIGKILL, process * exited by signal 9 (* usec elapsed)");
 	test_nm_utils_kill_child_sync_do ("test-s-1-3", pid1s_3, 0, 1, TRUE,  &expected_signal_KILL);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-2' (*): process * already terminated normally with status 47");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-s-2' (*): process * already terminated normally with status 47");
 	test_nm_utils_kill_child_sync_do ("test-s-2", pid2s, SIGTERM, 3000, TRUE,  &expected_exit_47);
 
 	/* send invalid signal. */
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE, "*kill child process 'test-s-3-0' (*): failed to send Unexpected signal: Invalid argument (22)");
+	NMTST_EXPECT_NM_ERROR ("kill child process 'test-s-3-0' (*): failed to send Unexpected signal: Invalid argument (22)");
 	test_nm_utils_kill_child_sync_do ("test-s-3-0", pid3s, -1, 0, FALSE, NULL);
 
 	/* really kill pid3s */
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-3-1' (*): waiting up to 3000 milliseconds for process to terminate normally after sending SIGTERM (15)...");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-3-1' (*): after sending SIGTERM (15), process * exited normally with status 47 (* usec elapsed)");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-s-3-1' (*): waiting up to 3000 milliseconds for process to terminate normally after sending SIGTERM (15)...");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-s-3-1' (*): after sending SIGTERM (15), process * exited normally with status 47 (* usec elapsed)");
 	test_nm_utils_kill_child_sync_do ("test-s-3-1", pid3s, SIGTERM, 3000, TRUE,  &expected_exit_47);
 
 	/* pid3s should not be a valid process, hence the call should fail. Note, that there
 	 * is a race here. */
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE, "*kill child process 'test-s-3-2' (*): failed due to unexpected return value -1 by waitpid (No child processes, 10) after sending no signal (0)");
+	NMTST_EXPECT_NM_ERROR ("kill child process 'test-s-3-2' (*): failed due to unexpected return value -1 by waitpid (No child processes, 10) after sending no signal (0)");
 	test_nm_utils_kill_child_sync_do ("test-s-3-2", pid3s, 0, 0, FALSE, NULL);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-4' (*): waiting up to 1 milliseconds for process to terminate normally after sending SIGTERM (15)...");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-4' (*): sending SIGKILL...");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-s-4' (*): after sending SIGTERM (15) and SIGKILL, process * exited by signal 9 (* usec elapsed)");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-s-4' (*): waiting up to 1 milliseconds for process to terminate normally after sending SIGTERM (15)...");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-s-4' (*): sending SIGKILL...");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-s-4' (*): after sending SIGTERM (15) and SIGKILL, process * exited by signal 9 (* usec elapsed)");
 	test_nm_utils_kill_child_sync_do ("test-s-4", pid4s, SIGTERM, 1, TRUE, &expected_signal_KILL);
 
-
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-1-1' (*): wait for process to terminate after sending SIGTERM (15) (send SIGKILL in 3000 milliseconds)...");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-1-1' (*): terminated by signal 15 (* usec elapsed)");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-1-1' (*): wait for process to terminate after sending SIGTERM (15) (send SIGKILL in 3000 milliseconds)...");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-1-1' (*): terminated by signal 15 (* usec elapsed)");
 	test_nm_utils_kill_child_async_do ("test-a-1-1", pid1a_1, SIGTERM, 3000, TRUE, &expected_signal_TERM);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-1-2' (*): wait for process to terminate after sending SIGKILL (9)...");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-1-2' (*): terminated by signal 9 (* usec elapsed)");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-1-2' (*): wait for process to terminate after sending SIGKILL (9)...");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-1-2' (*): terminated by signal 9 (* usec elapsed)");
 	test_nm_utils_kill_child_async_do ("test-a-1-2", pid1a_2, SIGKILL, 1000 / 2, TRUE, &expected_signal_KILL);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-1-3' (*): wait for process to terminate after sending no signal (0) (send SIGKILL in 1 milliseconds)...");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-1-3' (*): process not terminated after * usec. Sending SIGKILL signal");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-1-3' (*): terminated by signal 9 (* usec elapsed)");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-1-3' (*): wait for process to terminate after sending no signal (0) (send SIGKILL in 1 milliseconds)...");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-1-3' (*): process not terminated after * usec. Sending SIGKILL signal");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-1-3' (*): terminated by signal 9 (* usec elapsed)");
 	test_nm_utils_kill_child_async_do ("test-a-1-3", pid1a_3, 0, 1, TRUE, &expected_signal_KILL);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-2' (*): process * already terminated normally with status 47");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-2' (*): invoke callback: terminated normally with status 47");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-2' (*): process * already terminated normally with status 47");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-2' (*): invoke callback: terminated normally with status 47");
 	test_nm_utils_kill_child_async_do ("test-a-2", pid2a, SIGTERM, 3000, TRUE, &expected_exit_47);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE, "*kill child process 'test-a-3-0' (*): unexpected error sending Unexpected signal: Invalid argument (22)");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-3-0' (*): invoke callback: killing child failed");
+	NMTST_EXPECT_NM_ERROR ("kill child process 'test-a-3-0' (*): unexpected error sending Unexpected signal: Invalid argument (22)");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-3-0' (*): invoke callback: killing child failed");
 	/* coverity[negative_returns] */
 	test_nm_utils_kill_child_async_do ("test-a-3-0", pid3a, -1, 1000 / 2, FALSE, NULL);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-3-1' (*): wait for process to terminate after sending SIGTERM (15) (send SIGKILL in 3000 milliseconds)...");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-3-1' (*): terminated normally with status 47 (* usec elapsed)");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-3-1' (*): wait for process to terminate after sending SIGTERM (15) (send SIGKILL in 3000 milliseconds)...");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-3-1' (*): terminated normally with status 47 (* usec elapsed)");
 	test_nm_utils_kill_child_async_do ("test-a-3-1", pid3a, SIGTERM, 3000, TRUE, &expected_exit_47);
 
 	/* pid3a should not be a valid process, hence the call should fail. Note, that there
 	 * is a race here. */
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_MESSAGE, "*kill child process 'test-a-3-2' (*): failed due to unexpected return value -1 by waitpid (No child processes, 10) after sending no signal (0)");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-3-2' (*): invoke callback: killing child failed");
+	NMTST_EXPECT_NM_ERROR ("kill child process 'test-a-3-2' (*): failed due to unexpected return value -1 by waitpid (No child processes, 10) after sending no signal (0)");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-3-2' (*): invoke callback: killing child failed");
 	test_nm_utils_kill_child_async_do ("test-a-3-2", pid3a, 0, 0, FALSE, NULL);
 
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-4' (*): wait for process to terminate after sending SIGTERM (15) (send SIGKILL in 1 milliseconds)...");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-4' (*): process not terminated after * usec. Sending SIGKILL signal");
-	g_test_expect_message ("NetworkManager", G_LOG_LEVEL_DEBUG, "*kill child process 'test-a-4' (*): terminated by signal 9 (* usec elapsed)");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-4' (*): wait for process to terminate after sending SIGTERM (15) (send SIGKILL in 1 milliseconds)...");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-4' (*): process not terminated after * usec. Sending SIGKILL signal");
+	NMTST_EXPECT_NM_DEBUG ("kill child process 'test-a-4' (*): terminated by signal 9 (* usec elapsed)");
 	test_nm_utils_kill_child_async_do ("test-a-4", pid4a, SIGTERM, 1, TRUE, &expected_signal_KILL);
-
-	err = setpgid (0, 0);
-	g_assert (err == 0);
-
-	kill (-gpid, SIGKILL);
 
 	g_log_set_always_fatal (fatal_mask);
 
 	g_test_assert_expected_messages ();
+}
+
+static void
+test_nm_utils_kill_child (void)
+{
+	int err;
+	int exit_status;
+	pid_t gpid;
+	pid_t child_pid;
+
+	/* the tests spawns several processes, we want to clean them up
+	 * by sending a SIGKILL to the process group.
+	 *
+	 * The current process might be a session leader, which prevents it from
+	 * creating a new process group. Hence, first fork and let the child
+	 * create a new process group, run the tests, and kill all pending
+	 * processes. */
+	child_pid = fork ();
+	g_assert (child_pid >= 0);
+
+	if (child_pid == 0) {
+		gpid = do_test_nm_utils_kill_child_create_and_join_pgroup ();
+
+		do_test_nm_utils_kill_child ();
+
+		err = setpgid (0, 0);
+		g_assert (err == 0);
+
+		kill (-gpid, SIGKILL);
+
+		exit (0);
+	};
+
+	do {
+		err = waitpid (child_pid, &exit_status, 0);
+	} while (err == -1 && errno == EINTR);
+	g_assert (err == child_pid);
+	g_assert (WIFEXITED (exit_status) && WEXITSTATUS(exit_status) == 0);
 }
 
 /*****************************************************************************/
@@ -432,7 +455,7 @@ test_nm_utils_array_remove_at_indexes (void)
 
 	idx = g_array_new (FALSE, FALSE, sizeof (guint));
 	array = g_array_new (FALSE, FALSE, sizeof (gssize));
-	unique = g_hash_table_new (NULL, NULL);
+	unique = g_hash_table_new (nm_direct_hash, NULL);
 	for (i_len = 1; i_len < 20; i_len++) {
 		for (i_idx_len = 1; i_idx_len <= i_len; i_idx_len++) {
 			for (i_rnd = 0; i_rnd < 20; i_rnd++) {

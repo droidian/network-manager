@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingIP4Config.html" title="NMSettingIP4Config">
 <link rel="next" href="NMSettingIPConfig.html" title="NMSettingIPConfig">
-<meta name="generator" content="GTK-Doc V1.27 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.28 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -72,6 +72,13 @@
 <a class="link" href="NMSettingIP6Config.html#nm-setting-ip6-config-get-token" title="nm_setting_ip6_config_get_token ()">nm_setting_ip6_config_get_token</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIP6Config.html#nm-setting-ip6-config-get-dhcp-duid" title="nm_setting_ip6_config_get_dhcp_duid ()">nm_setting_ip6_config_get_dhcp_duid</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -85,9 +92,15 @@
 </colgroup>
 <tbody>
 <tr>
-<td class="property_type"><a href="../glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--addr-gen-mode" title="The “addr-gen-mode” property">addr-gen-mode</a></td>
 <td class="property_flags">Read / Write / Construct</td>
+</tr>
+<tr>
+<td class="property_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--dhcp-duid" title="The “dhcp-duid” property">dhcp-duid</a></td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6ConfigPrivacy" title="enum NMSettingIP6ConfigPrivacy"><span class="type">NMSettingIP6ConfigPrivacy</span></a></td>
@@ -96,7 +109,7 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--token" title="The “token” property">token</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -126,6 +139,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-TOKEN:CAPS" title="NM_SETTING_IP6_CONFIG_TOKEN">NM_SETTING_IP6_CONFIG_TOKEN</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-DHCP-DUID:CAPS" title="NM_SETTING_IP6_CONFIG_DHCP_DUID">NM_SETTING_IP6_CONFIG_DHCP_DUID</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -171,7 +188,7 @@
 <pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">├──</span> NMSettingIP6ConfigAddrGenMode
     <span class="lineart">╰──</span> NMSettingIP6ConfigPrivacy
-    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
             <span class="lineart">╰──</span> NMSettingIP6Config
@@ -291,6 +308,35 @@ property.</p>
 </div>
 <p class="since">Since: 1.4</p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip6-config-get-dhcp-duid"></a><h3>nm_setting_ip6_config_get_dhcp_duid ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_ip6_config_get_dhcp_duid (<em class="parameter"><code><a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> *setting</code></em>);</pre>
+<p>Returns the value contained in the <a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--dhcp-duid" title="The “dhcp-duid” property"><span class="type">“dhcp-duid”</span></a>
+property.</p>
+<div class="refsect3">
+<a name="nm-setting-ip6-config-get-dhcp-duid.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-ip6-config-get-dhcp-duid.returns"></a><h4>Returns</h4>
+<p> The configured DUID value to be included in the DHCPv6 requests
+sent to the DHCPv6 servers.</p>
+</div>
+<p class="since">Since: 1.12</p>
+</div>
 </div>
 <div class="refsect1">
 <a name="NMSettingIP6Config.other_details"></a><h2>Types and Values</h2>
@@ -315,6 +361,12 @@ property.</p>
 <div class="refsect2">
 <a name="NM-SETTING-IP6-CONFIG-TOKEN:CAPS"></a><h3>NM_SETTING_IP6_CONFIG_TOKEN</h3>
 <pre class="programlisting">#define NM_SETTING_IP6_CONFIG_TOKEN "token"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP6-CONFIG-DHCP-DUID:CAPS"></a><h3>NM_SETTING_IP6_CONFIG_DHCP_DUID</h3>
+<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_DHCP_DUID "dhcp-duid"
 </pre>
 </div>
 <hr>
@@ -467,7 +519,7 @@ specified by RFC7217.</p>
 <a name="NMSettingIP6Config.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMSettingIP6Config--addr-gen-mode"></a><h3>The <code class="literal">“addr-gen-mode”</code> property</h3>
-<pre class="programlisting">  “addr-gen-mode”            <a href="../glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
+<pre class="programlisting">  “addr-gen-mode”            <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Configure method for creating the address for use with RFC4862 IPv6
 Stateless Address Autoconfiguration. The permitted values are:
 <a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-ADDR-GEN-MODE-EUI64:CAPS"><code class="literal">NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64</code></a> or
@@ -496,6 +548,38 @@ temporary addresses configured with this option.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMSettingIP6Config--dhcp-duid"></a><h3>The <code class="literal">“dhcp-duid”</code> property</h3>
+<pre class="programlisting">  “dhcp-duid”                <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<p>A string containing the DHCPv6 Unique Identifier (DUID) used by the dhcp
+client to identify itself to DHCPv6 servers (RFC 3315). The DUID is carried
+in the Client Identifier option.
+If the property is a hex string ('aa:bb:cc') it is interpreted as a binary
+DUID and filled as an opaque value in the Client Identifier option.</p>
+<p>The special value "lease" will retrieve the DUID previously used from the
+lease file belonging to the connection. If no DUID is found and "dhclient"
+is the configured dhcp client, the DUID is searched in the system-wide
+dhclient lease file. If still no DUID is found, or another dhcp client is
+used, a global and permanent DUID-UUID (RFC 6355) will be generated based
+on the machine-id.</p>
+<p>The special values "llt" and "ll" will generate a DUID of type LLT or LL
+(see RFC 3315) based on the current MAC address of the device. In order to
+try providing a stable DUID-LLT, the time field will contain a constant
+timestamp that is used globally (for all profiles) and persisted to disk.</p>
+<p>The special values "stable-llt", "stable-ll" and "stable-uuid" will generate
+a DUID of the corresponding type, derived from the connection's stable-id and
+a per-host unique key.
+So, the link-layer address of "stable-ll" and "stable-llt" will be a generated
+address derived from the stable id. The DUID-LLT time value in the "stable-llt"
+option will be picked among a static timespan of three years (the upper bound
+of the interval is the same constant timestamp used in "llt").</p>
+<p>When the property is unset, the global value provided for "ipv6.dhcp-duid" is
+used. If no global value is provided, the default "lease" value is assumed.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.12</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMSettingIP6Config--ip6-privacy"></a><h3>The <code class="literal">“ip6-privacy”</code> property</h3>
 <pre class="programlisting">  “ip6-privacy”              <a class="link" href="NMSettingIP6Config.html#NMSettingIP6ConfigPrivacy" title="enum NMSettingIP6ConfigPrivacy"><span class="type">NMSettingIP6ConfigPrivacy</span></a></pre>
 <p>Configure IPv6 Privacy Extensions for SLAAC, described in RFC4941.  If
@@ -518,7 +602,7 @@ setting as another way of avoiding host tracking with IPv6 addresses.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIP6Config--token"></a><h3>The <code class="literal">“token”</code> property</h3>
-<pre class="programlisting">  “token”                    <a href="../glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “token”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Configure the token for draft-chown-6man-tokenised-ipv6-identifiers-02
 IPv6 tokenized interface identifiers. Useful with eui64 addr-gen-mode.</p>
 <p>Flags: Read / Write</p>
@@ -528,6 +612,6 @@ IPv6 tokenized interface identifiers. Useful with eui64 addr-gen-mode.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.27</div>
+<hr>Generated by GTK-Doc V1.28</div>
 </body>
 </html>

@@ -48,18 +48,12 @@ on_name_vanished (GDBusConnection *connection,
 	g_print ("Name '%s' does not exist on the system bus => NM is not running\n", name);
 }
 
-
 int
 main (int argc, char *argv[])
 {
 	guint watcher_id;
 	GMainLoop *loop;
 	GBusNameWatcherFlags flags;
-
-#if !GLIB_CHECK_VERSION (2, 35, 0)
-	/* Initialize GType system */
-	g_type_init ();
-#endif
 
 	g_print ("Monitor 'org.freedesktop.NetworkManager' D-Bus name\n");
 	g_print ("===================================================\n");

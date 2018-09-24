@@ -36,8 +36,7 @@
 #include "platform/nm-platform-utils.h"
 #include "NetworkManagerUtils.h"
 #include "nm-core-internal.h"
-
-#include "introspection/org.freedesktop.NetworkManager.IP4Config.h"
+#include "nm-dbus-object.h"
 
 /*****************************************************************************/
 
@@ -293,6 +292,7 @@ typedef struct {
 	int ifindex;
 	NMIPConfigSource mtu_source;
 	gint dns_priority;
+	NMSettingConnectionMdns mdns;
 	GArray *nameservers;
 	GPtrArray *domains;
 	GPtrArray *searches;
@@ -317,15 +317,15 @@ typedef struct {
 } NMIP4ConfigPrivate;
 
 struct _NMIP4Config {
-	NMExportedObject parent;
+	NMDBusObject parent;
 	NMIP4ConfigPrivate _priv;
 };
 
 struct _NMIP4ConfigClass {
-	NMExportedObjectClass parent;
+	NMDBusObjectClass parent;
 };
 
-G_DEFINE_TYPE (NMIP4Config, nm_ip4_config, NM_TYPE_EXPORTED_OBJECT)
+G_DEFINE_TYPE (NMIP4Config, nm_ip4_config, NM_TYPE_DBUS_OBJECT)
 
 #define NM_IP4_CONFIG_GET_PRIVATE(self) _NM_GET_PRIVATE(self, NMIP4Config, NM_IS_IP4_CONFIG)
 
@@ -582,14 +582,24 @@ sort_captured_addresses (const CList *lst_a, const CList *lst_b, gconstpointer u
 }
 
 NMIP4Config *
-nm_ip4_config_capture (NMDedupMultiIndex *multi_idx, NMPlatform *platform, int ifindex, gboolean capture_resolv_conf)
+nm_ip4_config_clone (const NMIP4Config *self)
+{
+	NMIP4Config *copy;
+
+	copy = nm_ip4_config_new (nm_ip4_config_get_multi_idx (self), -1);
+	nm_ip4_config_replace (copy, self, NULL);
+
+	return copy;
+}
+
+NMIP4Config *
+nm_ip4_config_capture (NMDedupMultiIndex *multi_idx, NMPlatform *platform, int ifindex)
 {
 	NMIP4Config *self;
 	NMIP4ConfigPrivate *priv;
 	const NMDedupMultiHeadEntry *head_entry;
 	NMDedupMultiIter iter;
 	const NMPObject *plobj = NULL;
-	gboolean has_addresses = FALSE;
 
 	nm_assert (ifindex > 0);
 
@@ -621,7 +631,6 @@ nm_ip4_config_capture (NMDedupMultiIndex *multi_idx, NMPlatform *platform, int i
 		nm_dedup_multi_head_entry_sort (head_entry,
 		                                sort_captured_addresses,
 		                                NULL);
-		has_addresses = TRUE;
 		_notify_addresses (self);
 	}
 
@@ -633,23 +642,6 @@ nm_ip4_config_capture (NMDedupMultiIndex *multi_idx, NMPlatform *platform, int i
 	nmp_cache_iter_for_each (&iter, head_entry, &plobj)
 		_add_route (self, plobj, NULL, NULL);
 
-	/* If the interface has the default route, and has IPv4 addresses, capture
-	 * nameservers from /etc/resolv.conf.
-	 */
-	if (   has_addresses
-	    && priv->best_default_route
-	    && capture_resolv_conf) {
-		gs_free char *rc_contents = NULL;
-
-		if (g_file_get_contents (_PATH_RESCONF, &rc_contents, NULL, NULL)) {
-			if (nm_utils_resolve_conf_parse (AF_INET,
-			                                 rc_contents,
-			                                 priv->nameservers,
-			                                 priv->dns_options))
-				_notify (self, PROP_NAMESERVERS);
-		}
-	}
-
 	return self;
 }
 
@@ -659,7 +651,6 @@ nm_ip4_config_add_dependent_routes (NMIP4Config *self,
                                     guint32 route_metric,
                                     GPtrArray **out_ip4_dev_route_blacklist)
 {
-	const NMIP4ConfigPrivate *priv;
 	GPtrArray *ip4_dev_route_blacklist = NULL;
 	const NMPlatformIP4Address *my_addr;
 	const NMPlatformIP4Route *my_route;
@@ -667,8 +658,6 @@ nm_ip4_config_add_dependent_routes (NMIP4Config *self,
 	NMDedupMultiIter iter;
 
 	g_return_if_fail (NM_IS_IP4_CONFIG (self));
-
-	priv = NM_IP4_CONFIG_GET_PRIVATE (self);
 
 	ifindex = nm_ip4_config_get_ifindex (self);
 	g_return_if_fail (ifindex > 0);
@@ -893,10 +882,10 @@ _nm_ip_config_merge_route_attributes (int addr_family,
 void
 nm_ip4_config_merge_setting (NMIP4Config *self,
                              NMSettingIPConfig *setting,
+                             NMSettingConnectionMdns mdns,
                              guint32 route_table,
                              guint32 route_metric)
 {
-	NMIP4ConfigPrivate *priv;
 	guint naddresses, nroutes, nnameservers, nsearches;
 	int i, priority;
 	const char *gateway_str;
@@ -906,8 +895,6 @@ nm_ip4_config_merge_setting (NMIP4Config *self,
 		return;
 
 	g_return_if_fail (NM_IS_SETTING_IP4_CONFIG (setting));
-
-	priv = NM_IP4_CONFIG_GET_PRIVATE (self);
 
 	g_object_freeze_notify (G_OBJECT (self));
 
@@ -946,7 +933,7 @@ nm_ip4_config_merge_setting (NMIP4Config *self,
 		address.preferred = NM_PLATFORM_LIFETIME_PERMANENT;
 		address.addr_source = NM_IP_CONFIG_SOURCE_USER;
 
-		label = nm_ip_address_get_attribute (s_addr, "label");
+		label = nm_ip_address_get_attribute (s_addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL);
 		if (label)
 			g_strlcpy (address.label, g_variant_get_string (label, NULL), sizeof (address.label));
 
@@ -1012,6 +999,8 @@ nm_ip4_config_merge_setting (NMIP4Config *self,
 	if (priority)
 		nm_ip4_config_set_dns_priority (self, priority);
 
+	nm_ip4_config_mdns_set (self, mdns);
+
 	g_object_thaw_notify (G_OBJECT (self));
 }
 
@@ -1058,7 +1047,7 @@ nm_ip4_config_create_setting (const NMIP4Config *self)
 
 		s_addr = nm_ip_address_new_binary (AF_INET, &address->address, address->plen, NULL);
 		if (*address->label)
-			nm_ip_address_set_attribute (s_addr, "label", g_variant_new_string (address->label));
+			nm_ip_address_set_attribute (s_addr, NM_IP_ADDRESS_ATTRIBUTE_LABEL, g_variant_new_string (address->label));
 
 		nm_setting_ip_config_add_address (s_ip4, s_addr);
 		nm_ip_address_unref (s_addr);
@@ -1226,6 +1215,11 @@ nm_ip4_config_merge (NMIP4Config *dst,
 	/* DNS priority */
 	if (nm_ip4_config_get_dns_priority (src))
 		nm_ip4_config_set_dns_priority (dst, nm_ip4_config_get_dns_priority (src));
+
+	/* mdns */
+	nm_ip4_config_mdns_set (dst,
+	                        NM_MAX (nm_ip4_config_mdns_get (src),
+	                                nm_ip4_config_mdns_get (dst)));
 
 	g_object_thaw_notify (G_OBJECT (dst));
 }
@@ -1463,13 +1457,18 @@ nm_ip4_config_subtract (NMIP4Config *dst,
 	if (nm_ip4_config_get_dns_priority (src) == nm_ip4_config_get_dns_priority (dst))
 		nm_ip4_config_set_dns_priority (dst, 0);
 
+	/* mdns */
+	if (nm_ip4_config_mdns_get (src) == nm_ip4_config_mdns_get (dst))
+		nm_ip4_config_mdns_set (dst, NM_SETTING_CONNECTION_MDNS_DEFAULT);
+
 	g_object_thaw_notify (G_OBJECT (dst));
 }
 
-void
-nm_ip4_config_intersect (NMIP4Config *dst,
-                         const NMIP4Config *src,
-                         guint32 default_route_metric_penalty)
+static gboolean
+_nm_ip4_config_intersect_helper (NMIP4Config *dst,
+                                 const NMIP4Config *src,
+                                 guint32 default_route_metric_penalty,
+                                 gboolean update_dst)
 {
 	NMIP4ConfigPrivate *dst_priv;
 	const NMIP4ConfigPrivate *src_priv;
@@ -1477,15 +1476,16 @@ nm_ip4_config_intersect (NMIP4Config *dst,
 	const NMPlatformIP4Address *a;
 	const NMPlatformIP4Route *r;
 	const NMPObject *new_best_default_route;
-	gboolean changed;
+	gboolean changed, result = FALSE;
 
-	g_return_if_fail (src);
-	g_return_if_fail (dst);
+	g_return_val_if_fail (src, FALSE);
+	g_return_val_if_fail (dst, FALSE);
 
 	dst_priv = NM_IP4_CONFIG_GET_PRIVATE (dst);
 	src_priv = NM_IP4_CONFIG_GET_PRIVATE (src);
 
-	g_object_freeze_notify (G_OBJECT (dst));
+	if (update_dst)
+		g_object_freeze_notify (G_OBJECT (dst));
 
 	/* addresses */
 	changed = FALSE;
@@ -1495,13 +1495,18 @@ nm_ip4_config_intersect (NMIP4Config *dst,
 		                                     NMP_OBJECT_UP_CAST (a)))
 			continue;
 
+		if (!update_dst)
+			return TRUE;
+
 		if (nm_dedup_multi_index_remove_entry (dst_priv->multi_idx,
 		                                       ipconf_iter.current) != 1)
 			nm_assert_not_reached ();
 		changed = TRUE;
 	}
-	if (changed)
+	if (changed) {
 		_notify_addresses (dst);
+		result = TRUE;
+	}
 
 	/* ignore nameservers */
 
@@ -1533,6 +1538,9 @@ nm_ip4_config_intersect (NMIP4Config *dst,
 			continue;
 		}
 
+		if (!update_dst)
+			return TRUE;
+
 		if (nm_dedup_multi_index_remove_entry (dst_priv->multi_idx,
 		                                       ipconf_iter.current) != 1)
 			nm_assert_not_reached ();
@@ -1542,18 +1550,71 @@ nm_ip4_config_intersect (NMIP4Config *dst,
 		nm_assert (changed);
 		_notify (dst, PROP_GATEWAY);
 	}
-	if (changed)
+
+	if (changed) {
 		_notify_routes (dst);
+		result = TRUE;
+	}
 
 	/* ignore domains */
 	/* ignore dns searches */
 	/* ignore dns options */
 	/* ignore NIS */
 	/* ignore WINS */
+	/* ignore mdns */
 
-	g_object_thaw_notify (G_OBJECT (dst));
+	if (update_dst)
+		g_object_thaw_notify (G_OBJECT (dst));
+	return result;
 }
 
+/**
+ * nm_ip4_config_intersect:
+ * @dst: a configuration to be updated
+ * @src: another configuration
+ * @default_route_metric_penalty: the default route metric penalty
+ *
+ * Computes the intersection between @src and @dst and updates @dst in place
+ * with the result.
+ */
+void
+nm_ip4_config_intersect (NMIP4Config *dst,
+                         const NMIP4Config *src,
+                         guint32 default_route_metric_penalty)
+{
+	_nm_ip4_config_intersect_helper (dst, src, default_route_metric_penalty, TRUE);
+}
+
+/**
+ * nm_ip4_config_intersect_alloc:
+ * @a: a configuration
+ * @b: another configuration
+ * @default_route_metric_penalty: the default route metric penalty
+ *
+ * Computes the intersection between @a and @b and returns the result in a newly
+ * allocated configuration.  As a special case, if @a and @b are identical (with
+ * respect to the only properties considered - addresses and routes) the
+ * functions returns NULL so that one of existing configuration can be reused
+ * without allocation.
+ *
+ * Returns: the intersection between @a and @b, or %NULL if the result is equal
+ * to @a and @b.
+ */
+NMIP4Config *
+nm_ip4_config_intersect_alloc (const NMIP4Config *a,
+                               const NMIP4Config *b,
+                               guint32 default_route_metric_penalty)
+{
+	NMIP4Config *a_copy;
+
+	if (_nm_ip4_config_intersect_helper ((NMIP4Config *) a, b,
+	                                     default_route_metric_penalty, FALSE)) {
+		a_copy = nm_ip4_config_clone (a);
+		_nm_ip4_config_intersect_helper (a_copy, b, default_route_metric_penalty, TRUE);
+		return a_copy;
+	} else
+		return NULL;
+}
 
 /**
  * nm_ip4_config_replace:
@@ -1779,6 +1840,8 @@ nm_ip4_config_replace (NMIP4Config *dst, const NMIP4Config *src, gboolean *relev
 		has_relevant_changes = TRUE;
 	}
 
+	dst_priv->mdns = src_priv->mdns;
+
 	/* DNS priority */
 	if (src_priv->dns_priority != dst_priv->dns_priority) {
 		nm_ip4_config_set_dns_priority (dst, src_priv->dns_priority);
@@ -1871,7 +1934,7 @@ nm_ip4_config_dump (const NMIP4Config *self, const char *detail)
 		return;
 	}
 
-	str = nm_exported_object_get_path (NM_EXPORTED_OBJECT (self));
+	str = nm_dbus_object_get_path (NM_DBUS_OBJECT (self));
 	if (str)
 		g_message ("   path: %s", str);
 
@@ -2270,6 +2333,31 @@ _nm_ip4_config_get_nameserver (const NMIP4Config *self, guint i)
 
 /*****************************************************************************/
 
+gboolean
+_nm_ip_config_check_and_add_domain (GPtrArray *array, const char *domain)
+{
+	char *copy = NULL;
+	size_t len;
+
+	g_return_val_if_fail (domain, FALSE);
+	g_return_val_if_fail (domain[0] != '\0', FALSE);
+
+	if (domain[0] == '.' || strstr (domain, ".."))
+		return FALSE;
+
+	len = strlen (domain);
+	if (domain[len - 1] == '.')
+		domain = copy = g_strndup (domain, len - 1);
+
+	if (nm_utils_strv_find_first ((char **) array->pdata, array->len, domain) >= 0) {
+		g_free (copy);
+		return FALSE;
+	}
+
+	g_ptr_array_add (array, copy ?: g_strdup (domain));
+	return TRUE;
+}
+
 void
 nm_ip4_config_reset_domains (NMIP4Config *self)
 {
@@ -2285,17 +2373,9 @@ void
 nm_ip4_config_add_domain (NMIP4Config *self, const char *domain)
 {
 	NMIP4ConfigPrivate *priv = NM_IP4_CONFIG_GET_PRIVATE (self);
-	int i;
 
-	g_return_if_fail (domain != NULL);
-	g_return_if_fail (domain[0] != '\0');
-
-	for (i = 0; i < priv->domains->len; i++)
-		if (!g_strcmp0 (g_ptr_array_index (priv->domains, i), domain))
-			return;
-
-	g_ptr_array_add (priv->domains, g_strdup (domain));
-	_notify (self, PROP_DOMAINS);
+	if (_nm_ip_config_check_and_add_domain (priv->domains, domain))
+		_notify (self, PROP_DOMAINS);
 }
 
 void
@@ -2339,35 +2419,12 @@ nm_ip4_config_reset_searches (NMIP4Config *self)
 }
 
 void
-nm_ip4_config_add_search (NMIP4Config *self, const char *new)
+nm_ip4_config_add_search (NMIP4Config *self, const char *search)
 {
 	NMIP4ConfigPrivate *priv = NM_IP4_CONFIG_GET_PRIVATE (self);
-	char *search;
-	size_t len;
 
-	g_return_if_fail (new != NULL);
-	g_return_if_fail (new[0] != '\0');
-
-	search = g_strdup (new);
-
-	/* Remove trailing dot as it has no effect */
-	len = strlen (search);
-	if (search[len - 1] == '.')
-		search[len - 1] = 0;
-
-	if (!search[0]) {
-		g_free (search);
-		return;
-	}
-
-	if (nm_utils_strv_find_first ((char **) priv->searches->pdata,
-	                               priv->searches->len, search) >= 0) {
-		g_free (search);
-		return;
-	}
-
-	g_ptr_array_add (priv->searches, search);
-	_notify (self, PROP_SEARCHES);
+	if (_nm_ip_config_check_and_add_domain (priv->searches, search))
+		_notify (self, PROP_SEARCHES);
 }
 
 void
@@ -2452,6 +2509,21 @@ nm_ip4_config_get_dns_option (const NMIP4Config *self, guint i)
 	const NMIP4ConfigPrivate *priv = NM_IP4_CONFIG_GET_PRIVATE (self);
 
 	return g_ptr_array_index (priv->dns_options, i);
+}
+
+/*****************************************************************************/
+
+NMSettingConnectionMdns
+nm_ip4_config_mdns_get (const NMIP4Config *self)
+{
+	return NM_IP4_CONFIG_GET_PRIVATE (self)->mdns;
+}
+
+void
+nm_ip4_config_mdns_set (NMIP4Config *self,
+                        NMSettingConnectionMdns mdns)
+{
+	NM_IP4_CONFIG_GET_PRIVATE (self)->mdns = mdns;
 }
 
 /*****************************************************************************/
@@ -2806,9 +2878,9 @@ nm_ip4_config_equal (const NMIP4Config *a, const NMIP4Config *b)
 {
 	GChecksum *a_checksum = g_checksum_new (G_CHECKSUM_SHA1);
 	GChecksum *b_checksum = g_checksum_new (G_CHECKSUM_SHA1);
-	gsize a_len = g_checksum_type_get_length (G_CHECKSUM_SHA1);
-	gsize b_len = g_checksum_type_get_length (G_CHECKSUM_SHA1);
-	guchar a_data[a_len], b_data[b_len];
+	guchar a_data[20], b_data[20];
+	gsize a_len = sizeof (a_data);
+	gsize b_len = sizeof (b_data);
 	gboolean equal;
 
 	if (a)
@@ -2819,7 +2891,8 @@ nm_ip4_config_equal (const NMIP4Config *a, const NMIP4Config *b)
 	g_checksum_get_digest (a_checksum, a_data, &a_len);
 	g_checksum_get_digest (b_checksum, b_data, &b_len);
 
-	g_assert (a_len == b_len);
+	nm_assert (a_len == sizeof (a_data));
+	nm_assert (b_len == sizeof (b_data));
 	equal = !memcmp (a_data, b_data, a_len);
 
 	g_checksum_free (a_checksum);
@@ -2889,7 +2962,7 @@ get_property (GObject *object, guint prop_id,
 
 				if (*address->label) {
 					g_variant_builder_add (&addr_builder, "{sv}",
-					                       "label",
+					                       NM_IP_ADDRESS_ATTRIBUTE_LABEL,
 					                       g_variant_new_string (address->label));
 				}
 
@@ -3065,6 +3138,7 @@ nm_ip4_config_init (NMIP4Config *self)
 	nm_ip_config_dedup_multi_idx_type_init ((NMIPConfigDedupMultiIdxType *) &priv->idx_ip4_routes,
 	                                        NMP_OBJECT_TYPE_IP4_ROUTE);
 
+	priv->mdns = NM_SETTING_CONNECTION_MDNS_DEFAULT;
 	priv->nameservers = g_array_new (FALSE, FALSE, sizeof (guint32));
 	priv->domains = g_ptr_array_new_with_free_func (g_free);
 	priv->searches = g_ptr_array_new_with_free_func (g_free);
@@ -3112,13 +3186,37 @@ finalize (GObject *object)
 	nm_dedup_multi_index_unref (priv->multi_idx);
 }
 
+static const NMDBusInterfaceInfoExtended interface_info_ip4_config = {
+	.parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT (
+		NM_DBUS_INTERFACE_IP4_CONFIG,
+		.signals = NM_DEFINE_GDBUS_SIGNAL_INFOS (
+			&nm_signal_info_property_changed_legacy,
+		),
+		.properties = NM_DEFINE_GDBUS_PROPERTY_INFOS (
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Addresses",   "aau",    NM_IP4_CONFIG_ADDRESSES),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("AddressData", "aa{sv}", NM_IP4_CONFIG_ADDRESS_DATA),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Gateway",     "s",      NM_IP4_CONFIG_GATEWAY),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Routes",      "aau",    NM_IP4_CONFIG_ROUTES),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("RouteData",   "aa{sv}", NM_IP4_CONFIG_ROUTE_DATA),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Nameservers", "au",     NM_IP4_CONFIG_NAMESERVERS),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Domains",     "as",     NM_IP4_CONFIG_DOMAINS),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("Searches",    "as",     NM_IP4_CONFIG_SEARCHES),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("DnsOptions",  "as",     NM_IP4_CONFIG_DNS_OPTIONS),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("DnsPriority", "i",      NM_IP4_CONFIG_DNS_PRIORITY),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L ("WinsServers", "au",     NM_IP4_CONFIG_WINS_SERVERS),
+		),
+	),
+	.legacy_property_changed = TRUE,
+};
+
 static void
 nm_ip4_config_class_init (NMIP4ConfigClass *config_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (config_class);
-	NMExportedObjectClass *exported_object_class = NM_EXPORTED_OBJECT_CLASS (config_class);
+	NMDBusObjectClass *dbus_object_class = NM_DBUS_OBJECT_CLASS (config_class);
 
-	exported_object_class->export_path = NM_EXPORT_PATH_NUMBERED (NM_DBUS_PATH"/IP4Config");
+	dbus_object_class->export_path = NM_DBUS_EXPORT_PATH_NUMBERED (NM_DBUS_PATH"/IP4Config");
+	dbus_object_class->interface_infos = NM_DBUS_INTERFACE_INFOS (&interface_info_ip4_config);
 
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
@@ -3198,8 +3296,4 @@ nm_ip4_config_class_init (NMIP4ConfigClass *config_class)
 	                          G_PARAM_STATIC_STRINGS);
 
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
-
-	nm_exported_object_class_add_interface (NM_EXPORTED_OBJECT_CLASS (config_class),
-	                                        NMDBUS_TYPE_IP4_CONFIG_SKELETON,
-	                                        NULL);
 }

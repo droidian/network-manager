@@ -25,7 +25,7 @@
 #include <string.h>
 
 #include "NetworkManagerUtils.h"
-#include "nm-utils/c-list.h"
+#include "c-list/src/c-list.h"
 
 /*****************************************************************************/
 
@@ -174,7 +174,7 @@ _cb_info_create (NMFirewallManager *self,
 
 	if (priv->running || priv->proxy_cancellable) {
 		info->mode_mutable = CB_INFO_MODE_DBUS_WAITING;
-		info->dbus.arg = g_variant_new ("(ss)", zone ? zone : "", iface);
+		info->dbus.arg = g_variant_new ("(ss)", zone ?: "", iface);
 	} else
 		info->mode_mutable = CB_INFO_MODE_IDLE;
 

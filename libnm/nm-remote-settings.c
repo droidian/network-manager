@@ -533,13 +533,12 @@ nm_remote_settings_save_hostname (NMRemoteSettings *settings,
 	NMRemoteSettingsPrivate *priv;
 	gboolean ret;
 
-
 	g_return_val_if_fail (NM_IS_REMOTE_SETTINGS (settings), FALSE);
 
 	priv = NM_REMOTE_SETTINGS_GET_PRIVATE (settings);
 
 	ret = nmdbus_settings_call_save_hostname_sync (priv->proxy,
-	                                               hostname ? hostname : "",
+	                                               hostname ?: "",
 	                                               cancellable, error);
 	if (error && *error)
 		g_dbus_error_strip_remote_error (*error);
@@ -584,7 +583,7 @@ nm_remote_settings_save_hostname_async (NMRemoteSettings *settings,
 		g_simple_async_result_set_check_cancellable (simple, cancellable);
 
 	nmdbus_settings_call_save_hostname (priv->proxy,
-	                                    hostname ? hostname : "",
+	                                    hostname ?: "",
 	                                    cancellable, save_hostname_cb, simple);
 }
 
