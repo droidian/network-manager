@@ -2686,11 +2686,15 @@ plugin_interactive_secrets_required (NMVpnConnection *self,
 	gs_free const char **hints = NULL;
 	gs_free char *message_hint = NULL;
 
+	if (!NM_IN_SET (priv->vpn_state, STATE_CONNECT,
+	                                 STATE_NEED_AUTH)) {
+		_LOGD ("VPN plugin: requested secrets; state %s (%d); ignore request in current state",
+		       vpn_state_to_string (priv->vpn_state), priv->vpn_state);
+		return;
+	}
+
 	_LOGI ("VPN plugin: requested secrets; state %s (%d)",
 	       vpn_state_to_string (priv->vpn_state), priv->vpn_state);
-
-	g_return_if_fail (priv->vpn_state == STATE_CONNECT ||
-	                  priv->vpn_state == STATE_NEED_AUTH);
 
 	priv->secrets_idx = SECRETS_REQ_INTERACTIVE;
 	_set_vpn_state (self, STATE_NEED_AUTH, NM_ACTIVE_CONNECTION_STATE_REASON_NONE, FALSE);
@@ -2757,6 +2761,9 @@ dispose (GObject *object)
 {
 	NMVpnConnection *self = NM_VPN_CONNECTION (object);
 	NMVpnConnectionPrivate *priv = NM_VPN_CONNECTION_GET_PRIVATE (self);
+
+	if (priv->proxy)
+		g_signal_handlers_disconnect_by_data (priv->proxy, self);
 
 	nm_clear_g_source (&priv->start_timeout);
 

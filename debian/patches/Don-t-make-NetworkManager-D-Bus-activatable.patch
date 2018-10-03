@@ -10,10 +10,10 @@ to be autostarted by a client request.
  2 files changed, 6 deletions(-)
 
 diff --git a/Makefile.am b/Makefile.am
-index b1a2e69..b168008 100644
+index 0b8becd..1803e1a 100644
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -3894,11 +3894,6 @@ endif
+@@ -3895,11 +3895,6 @@ endif
  data/NetworkManager-dispatcher.service: $(srcdir)/data/NetworkManager-dispatcher.service.in
  	$(AM_V_GEN) $(data_edit) $< >$@
  

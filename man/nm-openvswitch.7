@@ -2,12 +2,12 @@
 .\"     Title: nm-openvswitch
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 07/25/2018
+.\"      Date: 09/18/2018
 .\"    Manual: OpenVSwitch support overview
-.\"    Source: NetworkManager 1.12.2
+.\"    Source: NetworkManager 1.12.4
 .\"  Language: English
 .\"
-.TH "NM\-OPENVSWITCH" "7" "" "NetworkManager 1\&.12\&.2" "OpenVSwitch support overview"
+.TH "NM\-OPENVSWITCH" "7" "" "NetworkManager 1\&.12\&.4" "OpenVSwitch support overview"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -131,9 +131,9 @@ of the link (e\&.g\&. "wired", "bond", "dummy", etc\&.)\&. Other interfaces ("in
 .nf
 $ \fBnmcli conn add type ovs\-bridge conn\&.interface bridge0\fR
 Connection \*(Aqovs\-bridge\-bridge0\*(Aq (d10fc64d\-1d48\-4394\-a1b8\-e1aea72f27d5) successfully added\&.
-$ \fBnmcli conn add type ovs\-port conn\&.interface port0 conn\&.master bridge0\fR
+$ \fBnmcli conn add type ovs\-port conn\&.interface port0 master bridge0\fR
 Connection \*(Aqovs\-port\-port0\*(Aq (5ae22bae\-bba4\-4815\-9ade\-7e635633e1f0) successfully added\&.
-$ \fBnmcli conn add type ovs\-interface conn\&.interface iface0 conn\&.master port0 \e
+$ \fBnmcli conn add type ovs\-interface conn\&.interface iface0 master port0 \e
   ipv4\&.method manual ipv4\&.address 192\&.0\&.2\&.1/24\fR
 Connection \*(Aqovs\-interface\-iface0\*(Aq (3640d2a1\-a2fd\-4718\-92f1\-cffadb5b6cdc) successfully added\&.
 .fi
@@ -150,9 +150,9 @@ As said above, you need to create a Port even for a single interface\&. Also, be
 .RS 4
 .\}
 .nf
-$ \fBnmcli conn add type ovs\-port conn\&.interface port1 conn\&.master bridge0\fR
+$ \fBnmcli conn add type ovs\-port conn\&.interface port1 master bridge0\fR
 Connection \*(Aqovs\-port\-port1\*(Aq (67d041eb\-8e7b\-4458\-afee\-a1d07c9c4552) successfully added\&.
-$ \fBnmcli conn add type ethernet conn\&.interface eth0 conn\&.master port1\fR
+$ \fBnmcli conn add type ethernet conn\&.interface eth0 master port1\fR
 Connection \*(Aqovs\-slave\-eth0\*(Aq (d459c45c\-cf78\-4c1c\-b4b7\-505e71379624) successfully added\&.
 .fi
 .if n \{\
@@ -167,9 +167,9 @@ Again, you need a port\&.
 .RS 4
 .\}
 .nf
-$ \fBnmcli conn add type ovs\-port conn\&.interface port2 conn\&.master bridge0 ovs\-port\&.tag 120\fR
+$ \fBnmcli conn add type ovs\-port conn\&.interface port2 master bridge0 ovs\-port\&.tag 120\fR
 Connection \*(Aqovs\-port\-port2\*(Aq (3994c093\-4ef7\-4549\-a4fd\-627b831c3cb8) successfully added\&.
-$ \fBnmcli conn add type ethernet conn\&.interface eth1 conn\&.master port2\fR
+$ \fBnmcli conn add type ethernet conn\&.interface eth1 master port2\fR
 Connection \*(Aqovs\-slave\-eth1\*(Aq (099be06e\-71ad\-484d\-8d5a\-fcadc5f207f5) successfully added\&.
 .fi
 .if n \{\
@@ -184,11 +184,11 @@ It\*(Aqs just a port with a tag\&.
 .RS 4
 .\}
 .nf
-$ \fBnmcli conn add type ovs\-port conn\&.interface bond0 conn\&.master bridge0\fR
+$ \fBnmcli conn add type ovs\-port conn\&.interface bond0 master bridge0\fR
 Connection \*(Aqovs\-port\-bond0\*(Aq (d154ebf9\-e999\-4e1b\-a084\-a3de53d25d8a) successfully added\&.
-$ \fBnmcli conn add type ethernet conn\&.interface eth2 conn\&.master bond0\fR
+$ \fBnmcli conn add type ethernet conn\&.interface eth2 master bond0\fR
 Connection \*(Aqovs\-slave\-eth2\*(Aq (475ac1bf\-30b2\-4534\-a877\-27f33f58b082) successfully added\&.
-$ \fBnmcli conn add type ethernet conn\&.interface eth3 conn\&.master bond0\fR
+$ \fBnmcli conn add type ethernet conn\&.interface eth3 master bond0\fR
 Connection \*(Aqovs\-slave\-eth3\*(Aq (8dedeecb\-ed12\-482b\-b77a\-24a4fb835136) successfully added\&.
 .fi
 .if n \{\

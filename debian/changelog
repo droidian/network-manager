@@ -1,3 +1,75 @@
+network-manager (1.12.4-1ubuntu1) UNRELEASED; urgency=medium
+
+  * Merge with Debian (LP: #1795704). Remaining changes:
+    - Use systemd-resolved instead of dnsmasq
+    - debian/control:
+      + Depend on isc-dhcp-client instead of recommends
+      + Recommend network-manager-pptp
+      + Suggest avahi-autoipd for IPv4LL support
+    - debian/rules, debian/network-manager.postinst:
+      + Don't restart NetworkManager on upgrade but recommend restarting
+        the computer
+    - debian/rules, debian/network-manager.postinst:
+      + Don't install sysvinit scripts or migrate from sysvinit
+    - debian/network-manager.postinst:
+      + Don't add the netdev group.
+      + drop in an empty override file for NetworkManager to manage all
+        devices for upgrade from any version, as long as there is no
+        netplan configuration yet.
+    - debian/network-manager.maintscript
+      + Remove /etc/dbus-1/system.d/nm-ofono.conf
+    - debian/default-wifi-powersave-on.conf, debian/rules:
+      + Install a config file to enable WiFi powersave
+    - Enable build tests
+    - Add autopkgtests
+    - debian/source_network-manager.py, debian/network-manager.install,
+      debian/network-manager.links: Add apport hook
+    - Add network-manager-config-connectivity-ubuntu package
+    - NetworkManager.conf: disable MAC randomization feature. There is no
+      easy way for desktop users to disable this feature yet. And there are
+      reports that it doesn't work well with some systems.
+    - Update Vcs links to point to Ubuntu branch
+    - Add patches. See patch descriptions for more details:
+      + Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
+      + Update-dnsmasq-parameters.patch
+      + Disable-general-with-expect.patch
+      + libnm-Check-self-still-NMManager-or-not.patch
+      + dns-manager-don-t-merge-split-DNS-search-domains.patch (but disabled)
+      + Read-system-connections-from-run.patch
+    - debian/tests/urfkill-integration - don't stop/start network manager
+
+ -- Iain Lane <iain.lane@canonical.com>  Wed, 03 Oct 2018 09:27:59 +0100
+
+network-manager (1.12.4-1) unstable; urgency=medium
+
+  * New upstream version 1.12.4
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 23 Sep 2018 10:23:25 +0200
+
+network-manager (1.12.2-3) unstable; urgency=medium
+
+  [ Simon McVittie ]
+  * Apply patch from upstream to fix FTBFS with GLib 2.57 (Closes: #906965)
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 04 Sep 2018 16:07:24 +0200
+
+network-manager (1.12.2-2) unstable; urgency=medium
+
+  * Fix compile error due to NM_AVAILABLE_IN_1_12_2 macro (Closes: #905372)
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 05 Aug 2018 15:00:41 +0200
+
+network-manager (1.12.2-1) unstable; urgency=medium
+
+  * New upstream version 1.12.2
+    - Robustness fixes to connectivity checking (Closes: #903996)
+  * Rebase patches
+  * Update symbols file for libnm0
+  * Bump Standards-Version to 4.1.5
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 25 Jul 2018 13:35:31 +0200
+
 network-manager (1.12.2-0ubuntu5) cosmic; urgency=medium
 
   * debian/tests/nm: Add the required `gi.require_version()` calls - thanks to
@@ -55,6 +127,89 @@ network-manager (1.12.2-0ubuntu1) cosmic; urgency=medium
   * Fix compile error due to NM_AVAILABLE_IN_1_12_2 macro (Closes: #905372)
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 24 Aug 2018 09:27:39 +0200
+
+network-manager (1.12.0-5) unstable; urgency=medium
+
+  * manager: accept non-null device for VPN activations (Closes: #903109)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 12 Jul 2018 13:24:13 +0200
+
+network-manager (1.12.0-4) unstable; urgency=medium
+
+  * Add Conflicts to network-manager-dev against deprecated libraries.
+    The deprecated libnm-glib-dev, libnm-glib-vpn-dev and libnm-util-dev
+    require header files from network-manager-dev which are no longer
+    provided in newer versions. Add Conflicts to network-manager-dev to
+    ensure that we don't get a broken combination of installed packages.
+    (Closes: #903029)
+  * Update description of network-manager-dev
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 05 Jul 2018 13:48:51 +0200
+
+network-manager (1.12.0-3) unstable; urgency=medium
+
+  * Increase timeout in test-nm-client to 30s.
+    On slow architectures it can take longer then 3s for the test service to
+    start up.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 05 Jul 2018 03:58:53 +0200
+
+network-manager (1.12.0-2) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 03 Jul 2018 23:55:36 +0200
+
+network-manager (1.12.0-1) experimental; urgency=medium
+
+  * New upstream version 1.12.0
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 01 Jul 2018 21:14:07 +0200
+
+network-manager (1.11.90-2) experimental; urgency=medium
+
+  * Drop libnl3 build dependency.
+    Upstream has copied the code directly from libnl3 for the few functions it
+    needs with a few small modifications.
+  * Drop libiw build dependency.
+    Hasn't been needed for a long time and was simply a left over from older
+    releases.
+  * Cherry-pick upstream fixes to make test suite pass on slower buildds
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 18 Jun 2018 14:15:40 +0200
+
+network-manager (1.11.90-1) experimental; urgency=medium
+
+  * New upstream version 1.11.90 (1.12 rc1)
+  * Rebase patches
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 17 Jun 2018 15:43:10 +0200
+
+network-manager (1.11.4-1) experimental; urgency=medium
+
+  * New upstream version 1.11.4
+  * Update install path for plugins, it now includes a version number
+  * Update symbols file for libnm0
+  * Make sure the example server.conf is actually installed
+  * Rebase patches
+  * Drop dh_strip override, the dbgsym migration is done
+  * Enable iwd support
+  * Drop version requirements when oldstable ships a newer version
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 11 Jun 2018 13:28:39 +0200
+
+network-manager (1.11.3-1) experimental; urgency=medium
+
+  * New upstream version 1.11.3
+  * Rebase patches
+  * Update symbols file for libnm0
+  * Drop inetutils-arputils Suggests.
+    The ACD functionality of NetworkManager is no longer using arping, so
+    the Suggests is no longer useful.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 23 Apr 2018 23:35:35 +0200
 
 network-manager (1.10.8-1ubuntu4) cosmic; urgency=medium
 
