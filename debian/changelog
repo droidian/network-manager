@@ -37,8 +37,11 @@ network-manager (1.12.4-1ubuntu1) UNRELEASED; urgency=medium
       + dns-manager-don-t-merge-split-DNS-search-domains.patch (but disabled)
       + Read-system-connections-from-run.patch
     - debian/tests/urfkill-integration - don't stop/start network manager
+  * Revert "Add Conflicts to network-manager-dev against deprecated libraries"
+    This reverts commit b4acc5e03e2b821e1cccc69529bb70826c741942.  We're still
+    building libnm-glib for now, so these packages have a use in Ubuntu.
 
- -- Iain Lane <iain.lane@canonical.com>  Wed, 03 Oct 2018 09:27:59 +0100
+ -- Iain Lane <iain.lane@canonical.com>  Wed, 03 Oct 2018 09:37:01 +0100
 
 network-manager (1.12.4-1) unstable; urgency=medium
 
