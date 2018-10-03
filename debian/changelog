@@ -1,4 +1,4 @@
-network-manager (1.12.4-1ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.12.4-1ubuntu1) cosmic; urgency=medium
 
   * Merge with Debian (LP: #1795704). Remaining changes:
     - Use systemd-resolved instead of dnsmasq
@@ -41,7 +41,7 @@ network-manager (1.12.4-1ubuntu1) UNRELEASED; urgency=medium
     This reverts commit b4acc5e03e2b821e1cccc69529bb70826c741942.  We're still
     building libnm-glib for now, so these packages have a use in Ubuntu.
 
- -- Iain Lane <iain.lane@canonical.com>  Wed, 03 Oct 2018 09:37:01 +0100
+ -- Iain Lane <iain.lane@canonical.com>  Wed, 03 Oct 2018 10:03:10 +0100
 
 network-manager (1.12.4-1) unstable; urgency=medium
 
