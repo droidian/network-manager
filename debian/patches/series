@@ -9,3 +9,4 @@ libnm-Check-self-still-NMManager-or-not.patch
 #dns-manager-don-t-merge-split-DNS-search-domains.patch
 Read-system-connections-from-run.patch
 Import-some-missing-WoWLAN-patches.patch
+git-mac-change.patch

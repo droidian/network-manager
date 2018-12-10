@@ -2,6 +2,8 @@ network-manager (1.12.6-0ubuntu1) UNRELEASED; urgency=medium
 
   * New upstream version
     - Fix a vulnerability in the internal DHCPv6 client (CVE-2018-15688).
+  * debian/patches/git_mac_change.patch:
+    - backported a regression fix from upstream git
 
   [ Alfonso Sanchez-Beato ]
   * Import some WoWLAN patches from the newer stable serie (LP: #1781597)
