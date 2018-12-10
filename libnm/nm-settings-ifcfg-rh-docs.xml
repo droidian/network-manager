@@ -109,7 +109,7 @@ pinging the gateway and waiting for the specified timeout (in seconds)."/>
 <property name="metered" variable="CONNECTION_METERED(+)" format="" values="yes,no,unknown" default="" example="CONNECTION_METERED=yes" description="Whether the device is metered"/>
 <property name="lldp" variable="LLDP(+)" format="" values="boolean value or &apos;rx&apos;" default="missing variable means global default" example="LLDP=no" description="whether LLDP is enabled for the connection"/>
 <property name="auth-retries" variable="AUTH_RETRIES(+)" format="" values="" default="0" example="" description="Number of retries for authentication."/>
-<property name="mdns" variable="CONNECTION_MDNS(+)" format="" values="yes,no,resolve" default="missing variable means global default" example="CONNECTION_MDNS=yes" description="Whether or not mDNS is enabled for the connection"/>
+<property name="mdns" variable="MDNS(+)" format="" values="yes,no,resolve" default="missing variable means global default" example="MDNS=yes" description="Whether or not mDNS is enabled for the connection"/>
 </setting>
 <setting name="dcb">
 <property name="app-fcoe-flags" variable="DCB_APP_FCOE_ENABLE, DCB_APP_FCOE_ADVERTISE, DCB_APP_FCOE_WILLING" format="" values="" default="no" example="DCB_APP_FCOE_ENABLE=yes DCB_APP_FCOE_ADVERTISE=yes" description="FCOE flags."/>

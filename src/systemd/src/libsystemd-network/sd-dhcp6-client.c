@@ -776,8 +776,8 @@ static int client_parse_message(
                 uint8_t *optval;
                 be32_t iaid_lease;
 
-                if (len < offsetof(DHCP6Option, data) ||
-                    len < offsetof(DHCP6Option, data) + be16toh(option->len))
+                if (len < pos + offsetof(DHCP6Option, data) ||
+                    len < pos + offsetof(DHCP6Option, data) + be16toh(option->len))
                         return -ENOBUFS;
 
                 optcode = be16toh(option->code);
@@ -828,13 +828,14 @@ static int client_parse_message(
                         break;
 
                 case SD_DHCP6_OPTION_STATUS_CODE:
-                        status = dhcp6_option_parse_status(option);
-                        if (status) {
+                        status = dhcp6_option_parse_status(option, optlen + sizeof(DHCP6Option));
+                        if (status < 0)
+                                return status;
+
+                        if (status > 0) {
                                 log_dhcp6_client(client, "%s Status %s",
                                                  dhcp6_message_type_to_string(message->type),
                                                  dhcp6_message_status_to_string(status));
-                                dhcp6_lease_free_ia(&lease->ia);
-                                dhcp6_lease_free_ia(&lease->pd);
 
                                 return -EINVAL;
                         }
@@ -1233,6 +1234,7 @@ static int client_start(sd_dhcp6_client *client, enum DHCP6State state) {
                 log_dhcp6_client(client, "T1 expires in %s",
                                  format_timespan(time_string, FORMAT_TIMESPAN_MAX, timeout, USEC_PER_SEC));
 
+                client->lease->ia.timeout_t1 = sd_event_source_unref(client->lease->ia.timeout_t1);
                 r = sd_event_add_time(client->event,
                                       &client->lease->ia.timeout_t1,
                                       clock_boottime_or_monotonic(), time_now + timeout,
@@ -1255,6 +1257,7 @@ static int client_start(sd_dhcp6_client *client, enum DHCP6State state) {
                 log_dhcp6_client(client, "T2 expires in %s",
                                  format_timespan(time_string, FORMAT_TIMESPAN_MAX, timeout, USEC_PER_SEC));
 
+                client->lease->ia.timeout_t2 = sd_event_source_unref(client->lease->ia.timeout_t2);
                 r = sd_event_add_time(client->event,
                                       &client->lease->ia.timeout_t2,
                                       clock_boottime_or_monotonic(), time_now + timeout,

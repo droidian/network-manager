@@ -221,10 +221,10 @@ receive_ra (struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
 				.preferred = ndp_msg_opt_prefix_preferred_time (msg, offset),
 			};
 
-			if (address.preferred > address.lifetime)
-				address.preferred = address.lifetime;
-			if (nm_ndisc_complete_and_add_address (ndisc, &address))
-				changed |= NM_NDISC_CONFIG_ADDRESSES;
+			if (address.preferred <= address.lifetime) {
+				if (nm_ndisc_complete_and_add_address (ndisc, &address, now))
+					changed |= NM_NDISC_CONFIG_ADDRESSES;
+			}
 		}
 	}
 	ndp_msg_opt_for_each_offset(offset, msg, NDP_MSG_OPT_ROUTE) {
@@ -491,13 +491,17 @@ receive_rs (struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
 static gboolean
 event_ready (GIOChannel *source, GIOCondition condition, NMNDisc *ndisc)
 {
+	_nm_unused gs_unref_object NMNDisc *ndisc_keep_alive = g_object_ref (ndisc);
 	nm_auto_pop_netns NMPNetns *netns = NULL;
 	NMLndpNDiscPrivate *priv = NM_LNDP_NDISC_GET_PRIVATE ((NMLndpNDisc *) ndisc);
 
 	_LOGD ("processing libndp events");
 
-	if (!nm_ndisc_netns_push (ndisc, &netns))
-		return G_SOURCE_CONTINUE;
+	if (!nm_ndisc_netns_push (ndisc, &netns)) {
+		/* something is very wrong. Stop handling events. */
+		priv->event_id = 0;
+		return G_SOURCE_REMOVE;
+	}
 
 	ndp_callall_eventfd_handler (priv->ndp);
 	return G_SOURCE_CONTINUE;
