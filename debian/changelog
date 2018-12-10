@@ -1,3 +1,10 @@
+network-manager (1.12.6-0ubuntu1) UNRELEASED; urgency=medium
+
+  * New upstream version
+    - Fix a vulnerability in the internal DHCPv6 client (CVE-2018-15688).
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 10 Dec 2018 16:53:47 +0100
+
 network-manager (1.12.4-1ubuntu1) cosmic; urgency=medium
 
   * Merge with Debian (LP: #1795704). Remaining changes:
