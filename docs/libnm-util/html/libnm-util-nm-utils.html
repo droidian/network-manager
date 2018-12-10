@@ -8,7 +8,7 @@
 <link rel="up" href="ch01.html" title="libnm-util API Reference">
 <link rel="prev" href="NMSettingVPN.html" title="NMSettingVPN">
 <link rel="next" href="libnm-util-NetworkManager.html" title="NetworkManager">
-<meta name="generator" content="GTK-Doc V1.28 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -703,7 +703,7 @@ Returns <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.
 <a name="nm-utils-gvalue-hash-dup"></a><h3>nm_utils_gvalue_hash_dup ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="returnvalue">GHashTable</span></a> *
 nm_utils_gvalue_hash_dup (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *hash</code></em>);</pre>
-<p>Utility function to duplicate a hash table of <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValues</span></a>.</p>
+<p>Utility function to duplicate a hash table of <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValues</span></a>.</p>
 <div class="refsect3">
 <a name="nm-utils-gvalue-hash-dup.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -950,7 +950,7 @@ is a WPA PSK, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-M
 <div class="refsect2">
 <a name="nm-utils-ip4-addresses-from-gvalue"></a><h3>nm_utils_ip4_addresses_from_gvalue ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="returnvalue">GSList</span></a> *
-nm_utils_ip4_addresses_from_gvalue (<em class="parameter"><code>const <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
+nm_utils_ip4_addresses_from_gvalue (<em class="parameter"><code>const <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> *value</code></em>);</pre>
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArrays</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32s</span></a> representing
 a list of NetworkManager IPv4 addresses (which is a tuple of address, gateway,
 and prefix) into a <a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> of <a class="link" href="NMSettingIP4Config.html#NMIP4Address"><span class="type">NMIP4Address</span></a> objects.  The specific format of
@@ -966,7 +966,7 @@ extended in the future.</p>
 </colgroup>
 <tbody><tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> containing a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArrays</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32s</span></a></p></td>
+<td class="parameter_description"><p><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> containing a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArrays</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32s</span></a></p></td>
 <td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
@@ -982,7 +982,7 @@ extended in the future.</p>
 <a name="nm-utils-ip4-addresses-to-gvalue"></a><h3>nm_utils_ip4_addresses_to_gvalue ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_utils_ip4_addresses_to_gvalue (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *list</code></em>,
-                                  <em class="parameter"><code><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
+                                  <em class="parameter"><code><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> *value</code></em>);</pre>
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> of <a class="link" href="NMSettingIP4Config.html#NMIP4Address"><span class="type">NMIP4Address</span></a> objects into a
 <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArrays</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32s</span></a> representing a list of NetworkManager IPv4
 addresses (which is a tuple of address, gateway, and prefix).   The specific
@@ -1004,7 +1004,7 @@ extended in the future.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p>a pointer to a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> into which to place the converted addresses,
+<td class="parameter_description"><p>a pointer to a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> into which to place the converted addresses,
 which should be unset by the caller (when no longer needed) with
 <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#g-value-unset"><code class="function">g_value_unset()</code></a>.</p></td>
 <td class="parameter_annotations"> </td>
@@ -1017,7 +1017,7 @@ which should be unset by the caller (when no longer needed) with
 <div class="refsect2">
 <a name="nm-utils-ip4-routes-from-gvalue"></a><h3>nm_utils_ip4_routes_from_gvalue ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="returnvalue">GSList</span></a> *
-nm_utils_ip4_routes_from_gvalue (<em class="parameter"><code>const <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
+nm_utils_ip4_routes_from_gvalue (<em class="parameter"><code>const <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> *value</code></em>);</pre>
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArrays</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32s</span></a> representing
 a list of NetworkManager IPv4 routes (which is a tuple of route, next hop,
 prefix, and metric) into a <a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> of <a class="link" href="NMSettingIP4Config.html#NMIP4Route"><span class="type">NMIP4Route</span></a> objects.  The specific
@@ -1033,7 +1033,7 @@ extended in the future.</p>
 </colgroup>
 <tbody><tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> containing a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArrays</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32s</span></a></p></td>
+<td class="parameter_description"><p><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> containing a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArrays</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32s</span></a></p></td>
 <td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
@@ -1049,7 +1049,7 @@ extended in the future.</p>
 <a name="nm-utils-ip4-routes-to-gvalue"></a><h3>nm_utils_ip4_routes_to_gvalue ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_utils_ip4_routes_to_gvalue (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *list</code></em>,
-                               <em class="parameter"><code><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
+                               <em class="parameter"><code><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> *value</code></em>);</pre>
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> of <a class="link" href="NMSettingIP4Config.html#NMIP4Route"><span class="type">NMIP4Route</span></a> objects into a
 <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArrays</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32s</span></a> representing a list of NetworkManager IPv4
 routes (which is a tuple of route, next hop, prefix, and metric).   The
@@ -1071,7 +1071,7 @@ be extended in the future.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p>a pointer to a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> into which to place the converted routes,
+<td class="parameter_description"><p>a pointer to a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> into which to place the converted routes,
 which should be unset by the caller (when no longer needed) with
 <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#g-value-unset"><code class="function">g_value_unset()</code></a>.</p></td>
 <td class="parameter_annotations"> </td>
@@ -1163,11 +1163,11 @@ falls in the predefined classes.</p>
 <div class="refsect2">
 <a name="nm-utils-ip6-addresses-from-gvalue"></a><h3>nm_utils_ip6_addresses_from_gvalue ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="returnvalue">GSList</span></a> *
-nm_utils_ip6_addresses_from_gvalue (<em class="parameter"><code>const <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
-<p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/gobject/unstable/gobject-Value-arrays.html#GValueArray"><span class="type">GValueArrays</span></a> of (<a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> of guchars) and <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>
+nm_utils_ip6_addresses_from_gvalue (<em class="parameter"><code>const <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> *value</code></em>);</pre>
+<p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/gobject/unstable/gobject-Value-arrays.html#GValueArray-struct"><span class="type">GValueArrays</span></a> of (<a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> of guchars) and <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>
 representing a list of NetworkManager IPv6 addresses (which is a tuple of address,
 prefix, and gateway), into a <a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> of <a class="link" href="NMSettingIP6Config.html#NMIP6Address"><span class="type">NMIP6Address</span></a> objects.  The specific format of
-this serialization is not guaranteed to be stable and the <a href="https://developer.gnome.org/gobject/unstable/gobject-Value-arrays.html#GValueArray"><span class="type">GValueArray</span></a> may be
+this serialization is not guaranteed to be stable and the <a href="https://developer.gnome.org/gobject/unstable/gobject-Value-arrays.html#GValueArray-struct"><span class="type">GValueArray</span></a> may be
 extended in the future.</p>
 <div class="refsect3">
 <a name="nm-utils-ip6-addresses-from-gvalue.parameters"></a><h4>Parameters</h4>
@@ -1195,9 +1195,9 @@ extended in the future.</p>
 <a name="nm-utils-ip6-addresses-to-gvalue"></a><h3>nm_utils_ip6_addresses_to_gvalue ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_utils_ip6_addresses_to_gvalue (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *list</code></em>,
-                                  <em class="parameter"><code><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
+                                  <em class="parameter"><code><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> *value</code></em>);</pre>
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> of <a class="link" href="NMSettingIP6Config.html#NMIP6Address"><span class="type">NMIP6Address</span></a> objects into a
-<a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/gobject/unstable/gobject-Value-arrays.html#GValueArray"><span class="type">GValueArrays</span></a> representing a list of NetworkManager IPv6 addresses
+<a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/gobject/unstable/gobject-Value-arrays.html#GValueArray-struct"><span class="type">GValueArrays</span></a> representing a list of NetworkManager IPv6 addresses
 (which is a tuple of address, prefix, and gateway). The specific format of
 this serialization is not guaranteed to be stable and may be extended in the
 future.</p>
@@ -1217,7 +1217,7 @@ future.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p>a pointer to a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> into which to place the converted addresses,
+<td class="parameter_description"><p>a pointer to a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> into which to place the converted addresses,
 which should be unset by the caller (when no longer needed) with
 <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#g-value-unset"><code class="function">g_value_unset()</code></a>.</p></td>
 <td class="parameter_annotations"> </td>
@@ -1230,8 +1230,8 @@ which should be unset by the caller (when no longer needed) with
 <div class="refsect2">
 <a name="nm-utils-ip6-routes-from-gvalue"></a><h3>nm_utils_ip6_routes_from_gvalue ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="returnvalue">GSList</span></a> *
-nm_utils_ip6_routes_from_gvalue (<em class="parameter"><code>const <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
-<p>Utility function <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/gobject/unstable/gobject-Value-arrays.html#GValueArray"><span class="type">GValueArrays</span></a> of (<a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchars</span></a>), <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>,
+nm_utils_ip6_routes_from_gvalue (<em class="parameter"><code>const <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> *value</code></em>);</pre>
+<p>Utility function <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/gobject/unstable/gobject-Value-arrays.html#GValueArray-struct"><span class="type">GValueArrays</span></a> of (<a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchars</span></a>), <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>,
 (<a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchars</span></a>), and <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> representing a list of NetworkManager IPv6
 routes (which is a tuple of destination, prefix, next hop, and metric)
 into a <a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> of <a class="link" href="NMSettingIP6Config.html#NMIP6Route"><span class="type">NMIP6Route</span></a> objects.  The specific format of this serialization
@@ -1246,7 +1246,7 @@ is not guaranteed to be stable and may be extended in the future.</p>
 </colgroup>
 <tbody><tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> containing a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/gobject/unstable/gobject-Value-arrays.html#GValueArray"><span class="type">GValueArrays</span></a> of (<a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchars</span></a>), <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>,
+<td class="parameter_description"><p><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> containing a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/gobject/unstable/gobject-Value-arrays.html#GValueArray-struct"><span class="type">GValueArrays</span></a> of (<a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchars</span></a>), <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>,
 (<a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchars</span></a>), and <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a></p></td>
 <td class="parameter_annotations"> </td>
 </tr></tbody>
@@ -1263,9 +1263,9 @@ is not guaranteed to be stable and may be extended in the future.</p>
 <a name="nm-utils-ip6-routes-to-gvalue"></a><h3>nm_utils_ip6_routes_to_gvalue ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_utils_ip6_routes_to_gvalue (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *list</code></em>,
-                               <em class="parameter"><code><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
+                               <em class="parameter"><code><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> *value</code></em>);</pre>
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> of <a class="link" href="NMSettingIP6Config.html#NMIP6Route"><span class="type">NMIP6Route</span></a> objects into a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of
-<a href="https://developer.gnome.org/gobject/unstable/gobject-Value-arrays.html#GValueArray"><span class="type">GValueArrays</span></a> of (<a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchars</span></a>), <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>, (<a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchars</span></a>), and <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>
+<a href="https://developer.gnome.org/gobject/unstable/gobject-Value-arrays.html#GValueArray-struct"><span class="type">GValueArrays</span></a> of (<a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchars</span></a>), <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>, (<a href="https://developer.gnome.org/glib/unstable/glib-Arrays.html#GArray"><span class="type">GArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guchar"><span class="type">guchars</span></a>), and <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>
 representing a list of NetworkManager IPv6 routes (which is a tuple of destination,
 prefix, next hop, and metric).  The specific format of this serialization is not
 guaranteed to be stable and may be extended in the future.</p>
@@ -1285,7 +1285,7 @@ guaranteed to be stable and may be extended in the future.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p>a pointer to a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> into which to place the converted routes,
+<td class="parameter_description"><p>a pointer to a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> into which to place the converted routes,
 which should be unset by the caller (when no longer needed) with
 <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#g-value-unset"><code class="function">g_value_unset()</code></a>.</p></td>
 <td class="parameter_annotations"> </td>
@@ -1298,8 +1298,8 @@ which should be unset by the caller (when no longer needed) with
 <div class="refsect2">
 <a name="nm-utils-ip6-dns-from-gvalue"></a><h3>nm_utils_ip6_dns_from_gvalue ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="returnvalue">GSList</span></a> *
-nm_utils_ip6_dns_from_gvalue (<em class="parameter"><code>const <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
-<p>Converts a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> containing a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of IP6 DNS, represented as
+nm_utils_ip6_dns_from_gvalue (<em class="parameter"><code>const <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> *value</code></em>);</pre>
+<p>Converts a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> containing a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of IP6 DNS, represented as
 <a href="https://developer.gnome.org/glib/unstable/glib-Byte-Arrays.html#GByteArray"><span class="type">GByteArrays</span></a> into a <a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> of <code class="literal"><span class="type">struct in6_addr</span></code>s.</p>
 <p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <div class="refsect3">
@@ -1312,7 +1312,7 @@ nm_utils_ip6_dns_from_gvalue (<em class="parameter"><code>const <a href="https:/
 </colgroup>
 <tbody><tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p>a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a></p></td>
+<td class="parameter_description"><p>a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a></p></td>
 <td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
@@ -1327,7 +1327,7 @@ nm_utils_ip6_dns_from_gvalue (<em class="parameter"><code>const <a href="https:/
 <a name="nm-utils-ip6-dns-to-gvalue"></a><h3>nm_utils_ip6_dns_to_gvalue ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_utils_ip6_dns_to_gvalue (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> *list</code></em>,
-                            <em class="parameter"><code><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
+                            <em class="parameter"><code><a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> *value</code></em>);</pre>
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-Singly-Linked-Lists.html#GSList"><span class="type">GSList</span></a> of <code class="literal"><span class="type">struct
 in6_addr</span></code> structs into a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a href="https://developer.gnome.org/glib/unstable/glib-Byte-Arrays.html#GByteArray"><span class="type">GByteArrays</span></a>
 representing each server's IPv6 addresses in network byte order.
@@ -1350,7 +1350,7 @@ stable and may be extended in the future.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p>a pointer to a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> into which to place the converted DNS server
+<td class="parameter_description"><p>a pointer to a <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> into which to place the converted DNS server
 addresses, which should be unset by the caller (when no longer needed) with
 <a href="https://developer.gnome.org/gobject/unstable/gobject-Generic-values.html#g-value-unset"><code class="function">g_value_unset()</code></a>.</p></td>
 <td class="parameter_annotations"> </td>
@@ -2498,6 +2498,6 @@ for both <a class="link" href="libnm-util-nm-utils.html#nm-utils-inet4-ntop" tit
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.28</div>
+<hr>Generated by GTK-Doc V1.29</div>
 </body>
 </html>

@@ -302,7 +302,7 @@ companion_state_changed_cb (NMDeviceWifi *companion,
 }
 
 static gboolean
-companion_scan_prohibited_cb (NMDeviceWifi *companion, gpointer user_data)
+companion_scan_prohibited_cb (NMDeviceWifi *companion, gboolean periodic, gpointer user_data)
 {
 	NMDeviceOlpcMesh *self = NM_DEVICE_OLPC_MESH (user_data);
 	NMDeviceState state = nm_device_get_state (NM_DEVICE (self));
@@ -369,7 +369,7 @@ device_added_cb (NMManager *manager, NMDevice *other, gpointer user_data)
 		nm_device_queue_recheck_available (NM_DEVICE (self),
 		                                   NM_DEVICE_STATE_REASON_NONE,
 		                                   NM_DEVICE_STATE_REASON_NONE);
-		nm_device_remove_pending_action (NM_DEVICE (self), NM_PENDING_ACTION_WAITING_FOR_COMPANION, TRUE);
+		nm_device_remove_pending_action (NM_DEVICE (self), NM_PENDING_ACTION_WAITING_FOR_COMPANION, FALSE);
 	}
 }
 

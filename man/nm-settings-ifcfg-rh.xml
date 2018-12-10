@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-<refentry id="nm-settings-ifcfg-rh"><refentryinfo><title>nm-settings-ifcfg-rh</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-ifcfg-rh</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.12.4</refmiscinfo></refmeta><refnamediv><refname>nm-settings-ifcfg-rh</refname><refpurpose>Description of <emphasis>ifcfg-rh</emphasis> settings plugin</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
+<refentry id="nm-settings-ifcfg-rh"><refentryinfo><title>nm-settings-ifcfg-rh</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-ifcfg-rh</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.12.6</refmiscinfo></refmeta><refnamediv><refname>nm-settings-ifcfg-rh</refname><refpurpose>Description of <emphasis>ifcfg-rh</emphasis> settings plugin</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
           NetworkManager is based on the concept of connection profiles that contain
           network configuration (see <citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry> for details). The profiles can be
           stored in various formats. NetworkManager uses plugins for reading and writing
@@ -257,9 +257,9 @@ Allowed values: </emphasis>yes,no,unknown</entry></row><row><entry align="left">
 
 Example: </emphasis>LLDP=no<emphasis role="bold">
 
-Allowed values: </emphasis>boolean value or 'rx'</entry></row><row><entry align="left">auth-retries</entry><entry align="left">AUTH_RETRIES<emphasis>(+)</emphasis></entry><entry align="left">0</entry><entry align="left">Number of retries for authentication.</entry></row><row><entry align="left">mdns</entry><entry align="left">CONNECTION_MDNS<emphasis>(+)</emphasis></entry><entry align="left">missing variable means global default</entry><entry align="left">Whether or not mDNS is enabled for the connection<emphasis role="bold">
+Allowed values: </emphasis>boolean value or 'rx'</entry></row><row><entry align="left">auth-retries</entry><entry align="left">AUTH_RETRIES<emphasis>(+)</emphasis></entry><entry align="left">0</entry><entry align="left">Number of retries for authentication.</entry></row><row><entry align="left">mdns</entry><entry align="left">MDNS<emphasis>(+)</emphasis></entry><entry align="left">missing variable means global default</entry><entry align="left">Whether or not mDNS is enabled for the connection<emphasis role="bold">
 
-Example: </emphasis>CONNECTION_MDNS=yes<emphasis role="bold">
+Example: </emphasis>MDNS=yes<emphasis role="bold">
 
 Allowed values: </emphasis>yes,no,resolve</entry></row></tbody></tgroup></table><table><title>dcb setting</title><tgroup cols="4"><thead><row><entry>Property</entry><entry>Ifcfg-rh Variable</entry><entry>Default</entry><entry>Description</entry></row></thead><tbody><row><entry align="left">app-fcoe-flags</entry><entry align="left">DCB_APP_FCOE_ENABLE, DCB_APP_FCOE_ADVERTISE, DCB_APP_FCOE_WILLING</entry><entry align="left">no</entry><entry align="left">FCOE flags.<emphasis role="bold">
 

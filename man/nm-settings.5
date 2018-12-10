@@ -2,12 +2,12 @@
 .\"     Title: nm-settings
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 09/18/2018
+.\"      Date: 12/01/2018
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.12.4
+.\"    Source: NetworkManager 1.12.6
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.12\&.4" "Configuration"
+.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.12\&.6" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -193,7 +193,7 @@ int32
 T}:T{
 \-1
 T}:T{
-Whether mDNS is enabled for the connection\&. The permitted values are: yes: register hostname and resolving for the connection, no: disable mDNS for the interface, resolve: do not register hostname but allow resolving of mDNS host names\&. When updating this property on a currently activated connection, the change takes effect immediately\&. This feature requires a plugin which supports mDNS\&. One such plugin is dns\-systemd\-resolved\&.
+Whether mDNS is enabled for the connection\&. The permitted values are: yes: register hostname and resolving for the connection, no: disable mDNS for the interface, resolve: do not register hostname but allow resolving of mDNS host names\&. This feature requires a plugin which supports mDNS\&. One such plugin is dns\-systemd\-resolved\&.
 T}
 T{
 metered
@@ -1331,7 +1331,7 @@ priority\-bandwidth
 T}:T{
 array of uint32
 T}:T{
-[0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L]
+[0, 0, 0, 0, 0, 0, 0, 0]
 T}:T{
 An array of 8 uint values, where the array index corresponds to the User Priority (0 \- 7) and the value indicates the percentage of bandwidth of the priority\*(Aqs assigned group that the priority may use\&.  The sum of all percentages for priorities which belong to the same group must total 100 percents\&.
 T}
@@ -1358,7 +1358,7 @@ priority\-group\-bandwidth
 T}:T{
 array of uint32
 T}:T{
-[0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L]
+[0, 0, 0, 0, 0, 0, 0, 0]
 T}:T{
 An array of 8 uint values, where the array index corresponds to the Priority Group ID (0 \- 7) and the value indicates the percentage of link bandwidth allocated to that group\&.  Allowed values are 0 \- 100, and the sum of all values must total 100 percents\&.
 T}
@@ -1376,7 +1376,7 @@ priority\-group\-id
 T}:T{
 array of uint32
 T}:T{
-[0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L]
+[0, 0, 0, 0, 0, 0, 0, 0]
 T}:T{
 An array of 8 uint values, where the array index corresponds to the User Priority (0 \- 7) and the value indicates the Priority Group ID\&.  Allowed Priority Group ID values are 0 \- 7 or 15 for the unrestricted group\&.
 T}
@@ -1394,7 +1394,7 @@ priority\-traffic\-class
 T}:T{
 array of uint32
 T}:T{
-[0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L]
+[0, 0, 0, 0, 0, 0, 0, 0]
 T}:T{
 An array of 8 uint values, where the array index corresponds to the User Priority (0 \- 7) and the value indicates the traffic class (0 \- 7) to which the priority is mapped\&.
 T}
@@ -4431,7 +4431,7 @@ boolean
 T}:T{
 FALSE
 T}:T{
-If TRUE, indicates this network is a non\-broadcasting network that hides its SSID\&.  In this case various workarounds may take place, such as probe\-scanning the SSID for more reliable network discovery\&.  However, these workarounds expose inherent insecurities with hidden SSID networks, and thus hidden SSID networks should be used with caution\&. Note that marking the network as hidden may be a privacy issue for you, as the explicit probe\-scans may be distinctly recognizable on the air\&.
+If TRUE, indicates that the network is a non\-broadcasting network that hides its SSID\&. This works both in infrastructure and AP mode\&. In infrastructure mode, various workarounds are used for a more reliable discovery of hidden networks, such as probe\-scanning the SSID\&.  However, these workarounds expose inherent insecurities with hidden SSID networks, and thus hidden SSID networks should be used with caution\&. In AP mode, the created network does not broadcast its SSID\&. Note that marking the network as hidden may be a privacy issue for you (in infrastructure mode) or client stations (in AP mode), as the explicit probe\-scans are distinctly recognizable on the air\&.
 T}
 T{
 mac\-address

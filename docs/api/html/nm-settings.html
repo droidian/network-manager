@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nmtui.html" title="nmtui">
 <link rel="next" href="nm-settings-keyfile.html" title="nm-settings-keyfile">
-<meta name="generator" content="GTK-Doc V1.28 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -185,7 +185,7 @@
 <a name="nm-settings.property.connection.mdns"></a>mdns</td>
 <td align="left">int32</td>
 <td align="left">-1</td>
-<td>Whether mDNS is enabled for the connection. The permitted values are: yes: register hostname and resolving for the connection, no: disable mDNS for the interface, resolve: do not register hostname but allow resolving of mDNS host names. When updating this property on a currently activated connection, the change takes effect immediately. This feature requires a plugin which supports mDNS. One such plugin is dns-systemd-resolved.</td>
+<td>Whether mDNS is enabled for the connection. The permitted values are: yes: register hostname and resolving for the connection, no: disable mDNS for the interface, resolve: do not register hostname but allow resolving of mDNS host names. This feature requires a plugin which supports mDNS. One such plugin is dns-systemd-resolved.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1052,7 +1052,7 @@
 <td align="left">
 <a name="nm-settings.property.dcb.priority-bandwidth"></a>priority-bandwidth</td>
 <td align="left">array of uint32</td>
-<td align="left">[0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L]</td>
+<td align="left">[0, 0, 0, 0, 0, 0, 0, 0]</td>
 <td>An array of 8 uint values, where the array index corresponds to the User Priority (0 - 7) and the value indicates the percentage of bandwidth of the priority's assigned group that the priority may use.  The sum of all percentages for priorities which belong to the same group must total 100 percents.</td>
 </tr>
 <tr>
@@ -1073,7 +1073,7 @@
 <td align="left">
 <a name="nm-settings.property.dcb.priority-group-bandwidth"></a>priority-group-bandwidth</td>
 <td align="left">array of uint32</td>
-<td align="left">[0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L]</td>
+<td align="left">[0, 0, 0, 0, 0, 0, 0, 0]</td>
 <td>An array of 8 uint values, where the array index corresponds to the Priority Group ID (0 - 7) and the value indicates the percentage of link bandwidth allocated to that group.  Allowed values are 0 - 100, and the sum of all values must total 100 percents.</td>
 </tr>
 <tr>
@@ -1087,7 +1087,7 @@
 <td align="left">
 <a name="nm-settings.property.dcb.priority-group-id"></a>priority-group-id</td>
 <td align="left">array of uint32</td>
-<td align="left">[0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L]</td>
+<td align="left">[0, 0, 0, 0, 0, 0, 0, 0]</td>
 <td>An array of 8 uint values, where the array index corresponds to the User Priority (0 - 7) and the value indicates the Priority Group ID.  Allowed Priority Group ID values are 0 - 7 or 15 for the unrestricted group.</td>
 </tr>
 <tr>
@@ -1101,7 +1101,7 @@
 <td align="left">
 <a name="nm-settings.property.dcb.priority-traffic-class"></a>priority-traffic-class</td>
 <td align="left">array of uint32</td>
-<td align="left">[0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L]</td>
+<td align="left">[0, 0, 0, 0, 0, 0, 0, 0]</td>
 <td>An array of 8 uint values, where the array index corresponds to the User Priority (0 - 7) and the value indicates the traffic class (0 - 7) to which the priority is mapped.</td>
 </tr>
 </tbody>
@@ -3457,7 +3457,7 @@
 <a name="nm-settings.property.802-11-wireless.hidden"></a>hidden</td>
 <td align="left">boolean</td>
 <td align="left">FALSE</td>
-<td>If TRUE, indicates this network is a non-broadcasting network that hides its SSID.  In this case various workarounds may take place, such as probe-scanning the SSID for more reliable network discovery.  However, these workarounds expose inherent insecurities with hidden SSID networks, and thus hidden SSID networks should be used with caution. Note that marking the network as hidden may be a privacy issue for you, as the explicit probe-scans may be distinctly recognizable on the air.</td>
+<td>If TRUE, indicates that the network is a non-broadcasting network that hides its SSID. This works both in infrastructure and AP mode. In infrastructure mode, various workarounds are used for a more reliable discovery of hidden networks, such as probe-scanning the SSID.  However, these workarounds expose inherent insecurities with hidden SSID networks, and thus hidden SSID networks should be used with caution. In AP mode, the created network does not broadcast its SSID. Note that marking the network as hidden may be a privacy issue for you (in infrastructure mode) or client stations (in AP mode), as the explicit probe-scans are distinctly recognizable on the air.</td>
 </tr>
 <tr>
 <td align="left">
@@ -3759,6 +3759,6 @@
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.28</div>
+<hr>Generated by GTK-Doc V1.29</div>
 </body>
 </html>
