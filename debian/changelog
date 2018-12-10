@@ -1,3 +1,11 @@
+network-manager (1.12.6-0ubuntu2) disco; urgency=medium
+
+  [ Robie Basak ]
+  * debian/tests:
+    - Make dep8 nm test directly invokable
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 10 Dec 2018 22:03:01 +0100
+
 network-manager (1.12.6-0ubuntu1) disco; urgency=medium
 
   * New upstream version

@@ -46,7 +46,7 @@ Build-Depends: debhelper (>= 10.3),
 Standards-Version: 4.1.5
 Rules-Requires-Root: no
 Vcs-Git: https://code.launchpad.net/~network-manager/network-manager/+git/ubuntu
-Vcs-Browser: https://git.launchpad.net/network-manager?h=cosmic
+Vcs-Browser: https://git.launchpad.net/network-manager?h=disco
 Homepage: https://wiki.gnome.org/Projects/NetworkManager
 
 Package: network-manager
