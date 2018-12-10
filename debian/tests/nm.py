@@ -821,32 +821,36 @@ class Suspend(NetworkManagerTest, DBusTestCase):
         self.assert_iface_up(self.dev_w_client, expected_ip_a)
 
 
-# avoid unintelligible error messages, and breaking "make check" when not being
-# root
-if os.getuid() != 0:
-    sys.stderr.write('This integration test suite needs to be run as root\n')
-    sys.exit(1)
+def setUpModule():
+    # AppArmor currently does not allow us to access the system D-BUS from an
+    # unshared file system. Hack the policy to allow that until that gets fixed
+    # properly. See https://launchpad.net/bugs/1244157
+    subprocess.check_call("sed '/nm-dhcp-client.action {/ s/{/flags=(attach_disconnected) {/'"
+                          " /etc/apparmor.d/sbin.dhclient > $ADTTMP/sbin.dhclient",
+                          shell=True)
+    subprocess.check_call('apparmor_parser -Kr $ADTTMP/sbin.dhclient', shell=True)
 
-# AppArmor currently does not allow us to access the system D-BUS from an
-# unshared file system. Hack the policy to allow that until that gets fixed
-# properly. See https://launchpad.net/bugs/1244157
-subprocess.check_call("sed '/nm-dhcp-client.action {/ s/{/flags=(attach_disconnected) {/'"
-                      " /etc/apparmor.d/sbin.dhclient > $ADTTMP/sbin.dhclient",
-                      shell=True)
-subprocess.check_call('apparmor_parser -Kr $ADTTMP/sbin.dhclient', shell=True)
+    # unshare the mount namespace, so that our tmpfs mounts are guaranteed to get
+    # cleaned up, and don't influence the production system
+    libc6 = ctypes.cdll.LoadLibrary('libc.so.6')
+    assert libc6.unshare(ctypes.c_int(0x00020000)) == 0, 'failed to unshare mount namespace'
 
-# unshare the mount namespace, so that our tmpfs mounts are guaranteed to get
-# cleaned up, and don't influence the production system
-libc6 = ctypes.cdll.LoadLibrary('libc.so.6')
-assert libc6.unshare(ctypes.c_int(0x00020000)) == 0, 'failed to unshare mount namespace'
+    # stop system-wide NetworkManager to avoid interfering with tests
+    nm_running = subprocess.call('service network-manager stop 2>&1', shell=True) == 0
 
-# stop system-wide NetworkManager to avoid interfering with tests
-nm_running = subprocess.call('service network-manager stop 2>&1', shell=True) == 0
 
-# write to stdout, not stderr
-runner = unittest.TextTestRunner(stream=sys.stdout, verbosity=2)
-try:
-    unittest.main(testRunner=runner)
-finally:
+def tearDownModule():
     subprocess.call('dhclient eth0', shell=True)
     subprocess.call('sleep 10', shell=True)
+
+
+if __name__ == '__main__':
+    # avoid unintelligible error messages, and breaking "make check" when not being
+    # root
+    if os.getuid() != 0:
+        sys.stderr.write('This integration test suite needs to be run as root\n')
+        sys.exit(1)
+
+    # write to stdout, not stderr
+    runner = unittest.TextTestRunner(stream=sys.stdout, verbosity=2)
+    unittest.main(testRunner=runner)
