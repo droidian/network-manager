@@ -8,6 +8,7 @@ network-manager (1.12.6-0ubuntu3) UNRELEASED; urgency=medium
     'state DOWN', so the implementation detail we were checking previously no
     longer holds. The testsuite does still check that the IPs are removed from
     the interface, which is logically what we want anyway. (LP: #1805857)
+  * debian/control: Fix Vcs-Git
 
  -- Iain Lane <iain.lane@canonical.com>  Wed, 19 Dec 2018 12:23:29 +0000
 
