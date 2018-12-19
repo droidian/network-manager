@@ -192,7 +192,6 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
 
         out = subprocess.check_output(['ip', 'a', 'show', 'dev', iface],
                                       universal_newlines=True)
-        self.assertIn('state DOWN', out)
         self.assertNotIn('inet 192', out)
         self.assertNotIn('inet6 2600', out)
 

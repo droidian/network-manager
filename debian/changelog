@@ -1,3 +1,16 @@
+network-manager (1.12.6-0ubuntu3) UNRELEASED; urgency=medium
+
+  * debian/tests/nm.py: Make assert_iface_down() not check the interface's
+    state. We call nmclient.deactivate_connection() to terminate connections
+    that the testsuite sets up, and according to upstream this is not
+    guaranteed to do anything in particular to the link state. It seems that
+    dnsmasq 2.80 somehow alters the previous assumption that it would be
+    'state DOWN', so the implementation detail we were checking previously no
+    longer holds. The testsuite does still check that the IPs are removed from
+    the interface, which is logically what we want anyway. (LP: #1805857)
+
+ -- Iain Lane <iain.lane@canonical.com>  Wed, 19 Dec 2018 12:23:29 +0000
+
 network-manager (1.12.6-0ubuntu2) disco; urgency=medium
 
   [ Robie Basak ]
