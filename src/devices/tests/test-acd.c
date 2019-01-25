@@ -20,6 +20,8 @@
 
 #include "nm-default.h"
 
+#include "n-acd/src/n-acd.h"
+
 #include "devices/nm-acd-manager.h"
 #include "platform/tests/test-common.h"
 
@@ -30,6 +32,46 @@
 #define ADDR2 0x02020202
 #define ADDR3 0x03030303
 #define ADDR4 0x04040404
+
+/*****************************************************************************/
+
+static gboolean
+_skip_acd_test_check (void)
+{
+	NAcd *acd;
+	NAcdConfig *config;
+	const guint8 hwaddr[ETH_ALEN] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
+	int r;
+	static int skip = -1;
+
+	if (skip == -1) {
+		r = n_acd_config_new (&config);
+		g_assert (r == 0);
+
+		n_acd_config_set_ifindex (config, 1);
+		n_acd_config_set_transport (config, N_ACD_TRANSPORT_ETHERNET);
+		n_acd_config_set_mac (config, hwaddr, sizeof (hwaddr));
+
+		r = n_acd_new (&acd, config);
+		n_acd_config_free (config);
+		if (r == 0)
+			n_acd_unref (acd);
+
+		skip = (r != 0);
+	}
+	return skip;
+}
+
+#define _skip_acd_test() \
+	({ \
+		gboolean _skip = _skip_acd_test_check (); \
+		\
+		if (_skip) \
+			g_test_skip ("Cannot create NAcd. Running under valgind?"); \
+		_skip; \
+	})
+
+/*****************************************************************************/
 
 typedef struct {
 	int ifindex0;
@@ -61,20 +103,26 @@ typedef struct {
 } TestInfo;
 
 static void
-acd_manager_probe_terminated (NMAcdManager *acd_manager, GMainLoop *loop)
+acd_manager_probe_terminated (NMAcdManager *acd_manager, gpointer user_data)
 {
-	g_main_loop_quit (loop);
+	g_main_loop_quit (user_data);
 }
 
 static void
 test_acd_common (test_fixture *fixture, TestInfo *info)
 {
-	gs_unref_object NMAcdManager *manager = NULL;
+	NMAcdManager *manager;
 	GMainLoop *loop;
 	int i;
 	const guint WAIT_TIME_OPTIMISTIC = 50;
 	guint wait_time;
-	gulong signal_id;
+	static const NMAcdCallbacks callbacks = {
+		.probe_terminated_callback = acd_manager_probe_terminated,
+		.user_data_destroy         = (GDestroyNotify) g_main_loop_unref,
+	};
+
+	if (_skip_acd_test ())
+		return;
 
 	/* first, try with a short waittime. We hope that this is long enough
 	 * to successfully complete the test. Only if that's not the case, we
@@ -83,7 +131,13 @@ test_acd_common (test_fixture *fixture, TestInfo *info)
 	wait_time = WAIT_TIME_OPTIMISTIC;
 again:
 
-	manager = nm_acd_manager_new (fixture->ifindex0, fixture->hwaddr0, fixture->hwaddr0_len);
+	loop = g_main_loop_new (NULL, FALSE);
+
+	manager = nm_acd_manager_new (fixture->ifindex0,
+	                              fixture->hwaddr0,
+	                              fixture->hwaddr0_len,
+	                              &callbacks,
+	                              g_main_loop_ref (loop));
 	g_assert (manager != NULL);
 
 	for (i = 0; info->addresses[i]; i++)
@@ -94,16 +148,13 @@ again:
 		                        24, 0, 3600, 1800, 0, NULL);
 	}
 
-	loop = g_main_loop_new (NULL, FALSE);
-	signal_id = g_signal_connect (manager, NM_ACD_MANAGER_PROBE_TERMINATED,
-	                              G_CALLBACK (acd_manager_probe_terminated), loop);
 	g_assert (nm_acd_manager_start_probe (manager, wait_time));
 	g_assert (nmtst_main_loop_run (loop, 2000));
-	g_signal_handler_disconnect (manager, signal_id);
 	g_main_loop_unref (loop);
 
 	for (i = 0; info->addresses[i]; i++) {
 		gboolean val;
+		char sbuf[NM_UTILS_INET_ADDRSTRLEN];
 
 		val = nm_acd_manager_check_address (manager, info->addresses[i]);
 		if (val == info->expected_result[i])
@@ -113,14 +164,16 @@ again:
 			/* probably we just had a glitch and the system took longer than
 			 * expected. Re-verify with a large timeout this time. */
 			wait_time = 1000;
-			g_clear_object (&manager);
+			nm_clear_pointer (&manager, nm_acd_manager_free);
 			goto again;
 		}
 
 		g_error ("expected check for address #%d (%s) to %s, but it didn't",
-		         i, nm_utils_inet4_ntop (info->addresses[i], NULL),
+		         i, nm_utils_inet4_ntop (info->addresses[i], sbuf),
 		         info->expected_result[i] ? "detect no duplicated" : "detect a duplicate");
 	}
+
+	nm_acd_manager_free (manager);
 }
 
 static void
@@ -146,10 +199,17 @@ test_acd_probe_2 (test_fixture *fixture, gconstpointer user_data)
 static void
 test_acd_announce (test_fixture *fixture, gconstpointer user_data)
 {
-	gs_unref_object NMAcdManager *manager = NULL;
+	NMAcdManager *manager;
 	GMainLoop *loop;
 
-	manager = nm_acd_manager_new (fixture->ifindex0, fixture->hwaddr0, fixture->hwaddr0_len);
+	if (_skip_acd_test ())
+		return;
+
+	manager = nm_acd_manager_new (fixture->ifindex0,
+	                              fixture->hwaddr0,
+	                              fixture->hwaddr0_len,
+	                              NULL,
+	                              NULL);
 	g_assert (manager != NULL);
 
 	g_assert (nm_acd_manager_add_address (manager, ADDR1));
@@ -159,6 +219,8 @@ test_acd_announce (test_fixture *fixture, gconstpointer user_data)
 	nm_acd_manager_announce_addresses (manager);
 	g_assert (!nmtst_main_loop_run (loop, 200));
 	g_main_loop_unref (loop);
+
+	nm_acd_manager_free (manager);
 }
 
 static void

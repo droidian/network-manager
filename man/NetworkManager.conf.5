@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 10/24/2018
+.\"      Date: 01/22/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.14.4
+.\"    Source: NetworkManager 1.15.2
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.14\&.4" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.15\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -121,6 +121,16 @@ plugin is always appended to the end of this list (if it doesn\*(Aqt already app
 \fImonitor\-connection\-files\fR
 .RS 4
 Whether the configured settings plugin(s) should set up file monitors and immediately pick up changes made to connection files while NetworkManager is running\&. This is disabled by default; NetworkManager will only read the connection files at startup, and when explicitly requested via the ReloadConnections D\-Bus call\&. If this key is set to \*(Aqtrue\*(Aq, then NetworkManager will reload connection files any time they changed\&. Automatic reloading is not advised because there are race conditions involved and it depends on the way how the editor updates the file\&. In some situations, NetworkManager might first delete and add the connection anew, instead of updating the existing one\&. Also, NetworkManager might pick up incomplete settings while the user is still editing the files\&.
+.sp
+Note that neither this setting nor restarting the NetworkManager daemon is the advised way to reload connection profiles from disk\&. Instead, after modifying the files reload them with
+\fBnmcli connection reload\fR
+or
+\fBnmcli connection load "$FILENAME"\fR\&. Even better, instead of modifying files directly, use NetworkManager tools like
+\fBnmcli\fR,
+\fBnmtui\fR
+or the GUI\&.
+.sp
+This setting is deprecated and will have no effect in the future\&.
 .RE
 .PP
 \fIauth\-polkit\fR
@@ -158,7 +168,7 @@ Specify devices for which NetworkManager shouldn\*(Aqt create default wired conn
 to apply to all devices\&.
 .sp
 When the default wired connection is deleted or saved to a new persistent connection by a plugin, the device is added to a list in the file
-/run/NetworkManager/no\-auto\-default\&.state
+/var/lib/NetworkManager/no\-auto\-default\&.state
 to prevent creating the default connection for that device again\&.
 .sp
 See
@@ -203,7 +213,7 @@ for the syntax how to specify a device\&.
 \fIconfigure\-and\-quit\fR
 .RS 4
 When set to \*(Aqtrue\*(Aq, NetworkManager quits after performing initial network configuration but spawns small helpers to preserve DHCP leases and IPv6 addresses\&. This is useful in environments where network setup is more or less static or it is desirable to save process time but still handle some dynamic configurations\&. When this option is
-true, network configuration for WiFi, WWAN, Bluetooth, ADSL, and PPPoE interfaces cannot be preserved due to their use of external services, and these devices will be deconfigured when NetworkManager quits even though other interface\*(Aqs configuration may be preserved\&. Also, to preserve DHCP addresses the \*(Aqdhcp\*(Aq option must be set to \*(Aqinternal\*(Aq\&. The default value of the \*(Aqconfigure\-and\-quit\*(Aq option is \*(Aqfalse\*(Aq, meaning that NetworkManager will continue running after initial network configuration and continue responding to system and hardware events, D\-Bus requests, and user commands\&.
+true, network configuration for Wi\-Fi, WWAN, Bluetooth, ADSL, and PPPoE interfaces cannot be preserved due to their use of external services, and these devices will be deconfigured when NetworkManager quits even though other interface\*(Aqs configuration may be preserved\&. Also, to preserve DHCP addresses the \*(Aqdhcp\*(Aq option must be set to \*(Aqinternal\*(Aq\&. The default value of the \*(Aqconfigure\-and\-quit\*(Aq option is \*(Aqfalse\*(Aq, meaning that NetworkManager will continue running after initial network configuration and continue responding to system and hardware events, D\-Bus requests, and user commands\&.
 .RE
 .PP
 \fIhostname\-mode\fR
@@ -219,7 +229,9 @@ none: NetworkManager will not manage the transient hostname and will never set i
 .PP
 \fIdns\fR
 .RS 4
-Set the DNS (resolv\&.conf) processing mode\&. If the key is unspecified,
+Set the DNS processing mode\&.
+.sp
+If the key is unspecified,
 default
 is used, unless
 /etc/resolv\&.conf
@@ -240,14 +252,29 @@ dnsmasq: NetworkManager will run dnsmasq as a local caching nameserver, using a 
 resolv\&.conf
 to point to the local nameserver\&. It is possible to pass custom options to the dnsmasq instance by adding them to files in the "/etc/NetworkManager/dnsmasq\&.d/" directory\&. Note that when multiple upstream servers are available, dnsmasq will initially contact them in parallel and then use the fastest to respond, probing again other servers after some time\&. This behavior can be modified passing the \*(Aqall\-servers\*(Aq or \*(Aqstrict\-order\*(Aq options to dnsmasq (see the manual page for more details)\&.
 .sp
+systemd\-resolved: NetworkManager will push the DNS configuration to systemd\-resolved
+.sp
 unbound: NetworkManager will talk to unbound and dnssec\-triggerd, providing a "split DNS" configuration with DNSSEC support\&.
 /etc/resolv\&.conf
 will be managed by dnssec\-trigger daemon\&.
 .sp
-systemd\-resolved: NetworkManager will push the DNS configuration to systemd\-resolved
-.sp
 none: NetworkManager will not modify resolv\&.conf\&. This implies
 rc\-manager\ \&unmanaged
+.sp
+Note that the plugins
+dnsmasq,
+systemd\-resolved
+and
+unbound
+are caching local nameservers\&. Hence, when NetworkManager writes
+/var/run/NetworkManager/resolv\&.conf
+and
+/etc/resolv\&.conf
+(according to
+rc\-manager
+setting below), the name server there will be localhost only\&. NetworkManager also writes a file
+/var/run/NetworkManager/no\-stub\-resolv\&.conf
+that contains the original name servers pushed to the DNS plugin\&.
 .RE
 .PP
 \fIrc\-manager\fR
@@ -279,6 +306,26 @@ unmanaged: don\*(Aqt touch
 .sp
 none: deprecated alias for
 symlink\&.
+.RE
+.PP
+\fIsystemd\-resolved\fR
+.RS 4
+Send the connection DNS configuration to
+systemd\-resolved\&. Defaults to "true"\&.
+.sp
+Note that this setting is complementary to the
+\fIdns\fR
+setting\&. You can keep this enabled while using
+\fIdns\fR
+set to another DNS plugin alongside
+systemd\-resolved, or
+\fIdns\fR
+set to
+systemd\-resolved
+to configure the system resolver to use
+systemd\-resolved\&.
+.sp
+If systemd\-resolved is enabled, the connectivity check resolves the hostname per\-device\&.
 .RE
 .PP
 \fIdebug\fR
@@ -583,6 +630,16 @@ ipv6\&.ip6\-privacy=0
 Not all properties can be overwritten, only the following properties are supported to have their default values configured (see
 \fBnm-settings\fR(5)
 for details)\&. A default value is only consulted if the corresponding per\-connection value explicitly allows for that\&.
+
+
+.PP
+\fI802\-1x\&.auth\-timeout\fR
+.RS 4
+.RE
+.PP
+\fIcdma\&.mtu\fR
+.RS 4
+.RE
 .PP
 \fIconnection\&.auth\-retries\fR
 .RS 4
@@ -627,6 +684,10 @@ If configured explicitly to 0, the MTU is not reconfigured during device activat
 .RS 4
 .RE
 .PP
+\fIgsm\&.mtu\fR
+.RS 4
+.RE
+.PP
 \fIinfiniband\&.mtu\fR
 .RS 4
 If configured explicitly to 0, the MTU is not reconfigured during device activation unless it is required due to IPv6 constraints\&. If left unspecified, a DHCP/IPv6 SLAAC provided value is used or the MTU is left unspecified on activation\&.
@@ -650,6 +711,11 @@ If configured explicitly to 0, the MTU is not reconfigured during device activat
 If left unspecified, the default value for the interface type is used\&.
 .RE
 .PP
+\fIipv4\&.dns\-priority\fR
+.RS 4
+If unspecified or zero, use 50 for VPN profiles and 100 for other profiles\&.
+.RE
+.PP
 \fIipv4\&.route\-metric\fR
 .RS 4
 .RE
@@ -667,6 +733,11 @@ If left unspecified, it defaults to "lease"\&.
 \fIipv6\&.dhcp\-timeout\fR
 .RS 4
 If left unspecified, the default value for the interface type is used\&.
+.RE
+.PP
+\fIipv6\&.dns\-priority\fR
+.RS 4
+If unspecified or zero, use 50 for VPN profiles and 100 for other profiles\&.
 .RE
 .PP
 \fIipv6\&.ip6\-privacy\fR
@@ -729,6 +800,11 @@ If left unspecified, the default value "optional" will be used\&.
 .RS 4
 If left unspecified, the default value "optional" will be used\&.
 .RE
+.PP
+\fIwifi\&.wake\-on\-wlan\fR
+.RS 4
+.RE
+
 .SS "Sections"
 .PP
 You can configure multiple
@@ -1004,7 +1080,7 @@ enable=env:TAG1
 .RE
 .\}
 .sp
-More then one match can be specified\&. The configuration will be enabled if one of the predicates matches ("or")\&. The special prefix "except:" can be used to negate the match\&. Note that if one except\-predicate matches, the entire configuration will be disabled\&. In other words, a except predicate always wins over other predicates\&.
+More then one match can be specified\&. The configuration will be enabled if one of the predicates matches ("or")\&. The special prefix "except:" can be used to negate the match\&. Note that if one except\-predicate matches, the entire configuration will be disabled\&. In other words, a except predicate always wins over other predicates\&. If the setting only consists of "except:" matches and none of the negative conditions are satisfied, the configuration is still enabled\&.
 .sp
 .if n \{\
 .RS 4
@@ -1161,12 +1237,22 @@ driver:DRIVER
 Match the device driver as reported by "nmcli \-f GENERAL\&.DRIVER,GENERAL\&.DRIVER\-VERSION device show"\&. "DRIVER" must match the driver name exactly and does not support globbing\&. Optionally, a driver version may be specified separated by \*(Aq/\*(Aq\&. Globbing is supported for the version\&.
 .RE
 .PP
+dhcp\-plugin:DHCP
+.RS 4
+Match the configured DHCP plugin "main\&.dhcp"\&.
+.RE
+.PP
 except:SPEC
 .RS 4
 Negative match of a device\&.
 SPEC
 must be explicitly qualified with a prefix such as
 interface\-name:\&. A negative match has higher priority then the positive matches above\&.
+.sp
+If there is a list consisting only of negative matches, the behavior is the same as if there is also match\-all\&. That means, if none of all the negative matches is satisfied, the overall result is still a positive match\&. That means,
+"except:interface\-name:eth0"
+is the same as
+"*,except:interface\-name:eth0"\&.
 .RE
 .PP
 SPEC[,;]SPEC

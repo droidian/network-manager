@@ -278,7 +278,7 @@ if [ $RESULT -ne 0 -a $RESULT -ne 77 ]; then
         UNRESOLVED=$(awk -F: '/obj:\// {print $NF}' "$LOGFILE" | sort | uniq)
         if [ -n "$UNRESOLVED" ]; then
             echo Some addresses could not be resolved into symbols. >&2
-            echo The errors might get suppressed when you install the debuging symbols. >&2
+            echo The errors might get suppressed when you install the debugging symbols. >&2
             if [ -x /usr/bin/dnf ]; then
                 echo Hint: dnf debuginfo-install $UNRESOLVED >&2
             elif [ -x /usr/bin/debuginfo-install ]; then
@@ -294,8 +294,11 @@ fi
 if [ $HAS_ERRORS -eq 0 ]; then
     # valgrind doesn't support setns syscall and spams the logfile.
     # hack around it...
-    if [ "$TEST_NAME" = 'test-link-linux' -a -z "$(sed -e '/^--[0-9]\+-- WARNING: unhandled .* syscall: /,/^--[0-9]\+-- it at http.*\.$/d' "$LOGFILE")" ]; then
-        HAS_ERRORS=1
+    if [ "$TEST_NAME" = 'test-link-linux' -o \
+         "$TEST_NAME" = 'test-acd' ]; then
+        if [ -z "$(sed -e '/^--[0-9]\+-- WARNING: unhandled .* syscall: /,/^--[0-9]\+-- it at http.*\.$/d' "$LOGFILE")" ]; then
+            HAS_ERRORS=1
+        fi
     fi
 fi
 

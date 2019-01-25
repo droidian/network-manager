@@ -2,12 +2,12 @@
 .\"     Title: nm-openvswitch
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 10/24/2018
-.\"    Manual: OpenVSwitch support overview
-.\"    Source: NetworkManager 1.14.4
+.\"      Date: 01/22/2019
+.\"    Manual: Open vSwitch support overview
+.\"    Source: NetworkManager 1.15.2
 .\"  Language: English
 .\"
-.TH "NM\-OPENVSWITCH" "7" "" "NetworkManager 1\&.14\&.4" "OpenVSwitch support overview"
+.TH "NM\-OPENVSWITCH" "7" "" "NetworkManager 1\&.15\&.2" "Open vSwitch support overview"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,10 +28,10 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-nm-openvswitch \- overview of NetworkManager OpenVSwitch support
+nm-openvswitch \- overview of NetworkManager Open vSwitch support
 .SH "OVERVIEW"
 .PP
-NetworkManager includes basic OpenVSwitch support, good enough to be capable of setting up simple OpenVSwitch configurations\&. It is not extensive and does not expose all functionality of OpenVSwitch provides\&. For large or complicated deployments users are advised to use native tools shipped with OpenVSwitch\&. This document seeks to provide overview of functionality currently provided by NetworkManager, its capabilities and limitations\&.
+NetworkManager includes basic Open vSwitch support, good enough to be capable of setting up simple Open vSwitch configurations\&. It is not extensive and does not expose all functionality of Open vSwitch provides\&. For large or complicated deployments users are advised to use native tools shipped with Open vSwitch\&. This document seeks to provide overview of functionality currently provided by NetworkManager, its capabilities and limitations\&.
 .PP
 First and foremost: NetworkManager applies the configuration by modifying the OVSDB directly\&. Its configuration model follows the OVSDB database model closely and it does not provide the level of abstraction
 \fBovs\-vsctl\fR
@@ -206,7 +206,7 @@ It\*(Aqs just a Port with multiple interfaces\&. See nm\-settings manual for Bon
 .sp -1
 .IP \(bu 2.3
 .\}
-Not all OpenVSwitch capabilities are supported\&.
+Not all Open vSwitch capabilities are supported\&.
 .RE
 .sp
 .RS 4
@@ -217,7 +217,7 @@ Not all OpenVSwitch capabilities are supported\&.
 .sp -1
 .IP \(bu 2.3
 .\}
-OpenVSwitch devices don\*(Aqt expose many useful properties on D\-Bus\&.
+Open vSwitch devices don\*(Aqt expose many useful properties on D\-Bus\&.
 .RE
 .PP
 Probably many more\&.

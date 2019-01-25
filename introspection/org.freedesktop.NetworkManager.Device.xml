@@ -198,7 +198,7 @@
     <!--
         DeviceType:
 
-        The general type of the network device; ie Ethernet, WiFi, etc.
+        The general type of the network device; ie Ethernet, Wi-Fi, etc.
 
         Returns: <link linkend="NMDeviceType">NMDeviceType</link>
     -->
@@ -255,6 +255,28 @@
         their AvailableConnections was activated.
     -->
     <property name="Real" type="b" access="read"/>
+
+    <!--
+        Ip4Connectivity:
+
+        The result of the last IPv4 connectivity check.
+
+        Since: 1.16
+
+        Returns: <link linkend="NMConnectivityState">NMConnectivityState</link>
+    -->
+    <property name="Ip4Connectivity" type="u" access="read"/>
+
+    <!--
+        Ip6Connectivity:
+
+        The result of the last IPv6 connectivity check.
+
+        Since: 1.16
+
+        Returns: <link linkend="NMConnectivityState">NMConnectivityState</link>
+    -->
+    <property name="Ip6Connectivity" type="u" access="read"/>
 
     <!--
         Reapply:

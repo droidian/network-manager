@@ -34,7 +34,7 @@ enum NMActStageReturn {
 	NM_ACT_STAGE_RETURN_IP_DONE,     /* IP config stage is done (state IP_DONE),
 	                                    For the ip-config stage, this is similar to
 	                                    NM_ACT_STAGE_RETURN_SUCCESS, except that no
-	                                    IP config should be commited. */
+	                                    IP config should be committed. */
 	NM_ACT_STAGE_RETURN_IP_FAIL,     /* IP config stage failed (state IP_FAIL), activation may proceed */
 };
 
@@ -111,9 +111,12 @@ void nm_device_set_wwan_ip6_config (NMDevice *device, NMIP6Config *config);
 
 gboolean nm_device_hw_addr_is_explict (NMDevice *device);
 
-void nm_device_ip_method_failed (NMDevice *self, int family, NMDeviceStateReason reason);
+void nm_device_ip_method_failed (NMDevice *self, int addr_family, NMDeviceStateReason reason);
 
-gboolean nm_device_ipv6_sysctl_set (NMDevice *self, const char *property, const char *value);
+gboolean nm_device_sysctl_ip_conf_set (NMDevice *self,
+                                       int addr_family,
+                                       const char *property,
+                                       const char *value);
 
 /*****************************************************************************/
 
@@ -147,9 +150,9 @@ void nm_device_commit_mtu (NMDevice *self);
 	)
 
 gboolean _nm_device_hash_check_invalid_keys (GHashTable *hash, const char *setting_name,
-                                             GError **error, const char **whitelist);
+                                             GError **error, const char *const*whitelist);
 #define nm_device_hash_check_invalid_keys(hash, setting_name, error, ...) \
-	_nm_device_hash_check_invalid_keys (hash, setting_name, error, ((const char *[]) { __VA_ARGS__, NULL }))
+	_nm_device_hash_check_invalid_keys (hash, setting_name, error, NM_MAKE_STRV (__VA_ARGS__))
 
 gboolean nm_device_match_parent (NMDevice *device, const char *parent);
 gboolean nm_device_match_parent_hwaddr (NMDevice *device,

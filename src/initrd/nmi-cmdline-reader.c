@@ -39,7 +39,17 @@ get_conn (GHashTable *connections, const char *ifname, const char *type_name)
 {
 	NMConnection *connection;
 	NMSetting *setting;
-	const char *basename = ifname ?: "default_connection";
+	const char *basename;
+	NMConnectionMultiConnect multi_connect;
+
+	if (ifname) {
+		basename = ifname;
+		multi_connect = NM_CONNECTION_MULTI_CONNECT_SINGLE;
+	} else {
+		/* This is essentially for the "ip=dhcp" scenario. */
+		basename = "default_connection";
+		multi_connect = NM_CONNECTION_MULTI_CONNECT_MULTIPLE;
+	}
 
 	connection = g_hash_table_lookup (connections, (gpointer)basename);
 
@@ -71,6 +81,7 @@ get_conn (GHashTable *connections, const char *ifname, const char *type_name)
 		              NM_SETTING_CONNECTION_ID, ifname ?: "Wired Connection",
 		              NM_SETTING_CONNECTION_UUID, nm_utils_uuid_generate_a (),
 		              NM_SETTING_CONNECTION_INTERFACE_NAME, ifname,
+		              NM_SETTING_CONNECTION_MULTI_CONNECT, multi_connect,
 		              NULL);
 
 		if (!type_name)
@@ -132,7 +143,7 @@ _base_setting_set (NMConnection *connection, const char *property, const char *v
 	GParamSpec *spec = g_object_class_find_property (object_class, property);
 
 	if (!spec) {
-		_LOGW (LOGD_CORE, "'%s' does not support setting %s\n", type_name, property);
+		_LOGW (LOGD_CORE, "'%s' does not support setting %s", type_name, property);
 		return;
 	}
 
@@ -151,7 +162,7 @@ _base_setting_set (NMConnection *connection, const char *property, const char *v
 	} else if (G_IS_PARAM_SPEC_STRING (spec))
 		g_object_set (setting, property, value, NULL);
 	else
-		_LOGW (LOGD_CORE, "Don't know how to set '%s' of %s\n", property, type_name);
+		_LOGW (LOGD_CORE, "Don't know how to set '%s' of %s", property, type_name);
 
 	g_type_class_unref (object_class);
 }
@@ -211,7 +222,7 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 			dns[1] = get_word (&argument, ':');
 			dns_addr_family[1] = guess_ip_address_family (dns[1]);
 			if (argument && *argument)
-				_LOGW (LOGD_CORE, "Ignoring extra: '%s'.\n", argument);
+				_LOGW (LOGD_CORE, "Ignoring extra: '%s'.", argument);
 		} else {
 			mtu = tmp;
 			macaddr = argument;
@@ -236,12 +247,12 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 
 			index = g_hash_table_lookup (nic, "index");
 			if (!index) {
-				_LOGW (LOGD_CORE, "Ignoring an iBFT entry without an index\n");
+				_LOGW (LOGD_CORE, "Ignoring an iBFT entry without an index");
 				continue;
 			}
 
 			if (!nmi_ibft_update_connection_from_nic (connection, nic, &error)) {
-				_LOGW (LOGD_CORE, "Unable to merge iBFT configuration: %s\n", error->message);
+				_LOGW (LOGD_CORE, "Unable to merge iBFT configuration: %s", error->message);
 				g_error_free (error);
 			}
 
@@ -261,10 +272,10 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 	if (netmask && *netmask) {
 		NMIPAddr addr;
 
-		if (nm_utils_parse_inaddr_bin (AF_INET, netmask, &addr)) {
+		if (nm_utils_parse_inaddr_bin (AF_INET, netmask, NULL, &addr)) {
 			client_ip_prefix = nm_utils_ip4_netmask_to_prefix (addr.addr4);
 		} else {
-			_LOGW (LOGD_CORE, "Unrecognized address: %s\n", client_ip);
+			_LOGW (LOGD_CORE, "Unrecognized address: %s", client_ip);
 		}
 	}
 
@@ -273,7 +284,7 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 		NMIPAddress *address = NULL;
 		NMIPAddr addr;
 
-		if (nm_utils_parse_inaddr_prefix_bin (client_ip_family, client_ip, &addr,
+		if (nm_utils_parse_inaddr_prefix_bin (client_ip_family, client_ip, NULL, &addr,
 		                                      client_ip_prefix == -1 ? &client_ip_prefix : NULL)) {
 			if (client_ip_prefix == -1) {
 				switch (client_ip_family) {
@@ -288,11 +299,11 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 
 			address = nm_ip_address_new_binary (client_ip_family, &addr.addr_ptr, client_ip_prefix, &error);
 			if (!address) {
-				_LOGW (LOGD_CORE, "Invalid address '%s': %s\n", client_ip, error->message);
+				_LOGW (LOGD_CORE, "Invalid address '%s': %s", client_ip, error->message);
 				g_clear_error (&error);
 			}
 		} else {
-			_LOGW (LOGD_CORE, "Unrecognized address: %s\n", client_ip);
+			_LOGW (LOGD_CORE, "Unrecognized address: %s", client_ip);
 		}
 
 		if (address) {
@@ -312,7 +323,7 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 				nm_setting_ip_config_add_address (s_ip6, address);
 				break;
 			default:
-				_LOGW (LOGD_CORE, "Unknown address family: %s\n", client_ip);
+				_LOGW (LOGD_CORE, "Unknown address family: %s", client_ip);
 				break;
 			}
 			nm_ip_address_unref (address);
@@ -377,12 +388,12 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 				ibft = nmi_ibft_read (sysfs_dir);
 			nic = g_hash_table_lookup (ibft, mac_up);
 			if (!nic)
-				_LOGW (LOGD_CORE, "No iBFT NIC for %s (%s)\n", ifname, mac_up);
+				_LOGW (LOGD_CORE, "No iBFT NIC for %s (%s)", ifname, mac_up);
 		}
 
 		if (nic) {
 			if (!nmi_ibft_update_connection_from_nic (connection, nic, &error)) {
-				_LOGW (LOGD_CORE, "Unable to merge iBFT configuration: %s\n", error->message);
+				_LOGW (LOGD_CORE, "Unable to merge iBFT configuration: %s", error->message);
 				g_clear_error (&error);
 			}
 		}
@@ -403,11 +414,11 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 				g_object_set (s_ip6, NM_SETTING_IP_CONFIG_GATEWAY, gateway_ip, NULL);
 				break;
 			default:
-				_LOGW (LOGD_CORE, "Unknown address family: %s\n", gateway_ip);
+				_LOGW (LOGD_CORE, "Unknown address family: %s", gateway_ip);
 				break;
 			}
 		} else {
-			_LOGW (LOGD_CORE, "Invalid gateway: %s\n", gateway_ip);
+			_LOGW (LOGD_CORE, "Invalid gateway: %s", gateway_ip);
 		}
 	}
 
@@ -428,11 +439,11 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 				nm_setting_ip_config_add_dns (s_ip6, dns[i]);
 				break;
 			default:
-				_LOGW (LOGD_CORE, "Unknown address family: %s\n", dns[i]);
+				_LOGW (LOGD_CORE, "Unknown address family: %s", dns[i]);
 				break;
 			}
 		} else {
-			_LOGW (LOGD_CORE, "Invalid name server: %s\n", dns[i]);
+			_LOGW (LOGD_CORE, "Invalid name server: %s", dns[i]);
 		}
 	}
 
@@ -496,7 +507,7 @@ parse_master (GHashTable *connections, char *argument, const char *type_name)
 	} while (slaves && *slaves != '\0');
 
 	if (argument && *argument)
-		_LOGW (LOGD_CORE, "Ignoring extra: '%s'.\n", argument);
+		_LOGW (LOGD_CORE, "Ignoring extra: '%s'.", argument);
 }
 
 static void
@@ -518,19 +529,18 @@ parse_rd_route (GHashTable *connections, char *argument)
 	gateway = get_word (&argument, ':');
 	interface = get_word (&argument, ':');
 
-	family = guess_ip_address_family (net);
 	connection = get_conn (connections, interface, NULL);
 
 	if (net && *net) {
-		if (!nm_utils_parse_inaddr_prefix_bin (family, net, &net_addr, &net_prefix)) {
-			_LOGW (LOGD_CORE, "Unrecognized address: %s\n", net);
+		if (!nm_utils_parse_inaddr_prefix_bin (family, net, &family, &net_addr, &net_prefix)) {
+			_LOGW (LOGD_CORE, "Unrecognized address: %s", net);
 			return;
 		}
 	}
 
-	if (gateway && *net) {
-		if (!nm_utils_parse_inaddr_bin (family, gateway, &gateway_addr)) {
-			_LOGW (LOGD_CORE, "Unrecognized address: %s\n", gateway);
+	if (gateway && *gateway) {
+		if (!nm_utils_parse_inaddr_bin (family, gateway, &family, &gateway_addr)) {
+			_LOGW (LOGD_CORE, "Unrecognized address: %s", gateway);
 			return;
 		}
 	}
@@ -547,7 +557,7 @@ parse_rd_route (GHashTable *connections, char *argument)
 			net_prefix = 128;
 		break;
 	default:
-		_LOGW (LOGD_CORE, "Unknown address family: %s\n", net);
+		_LOGW (LOGD_CORE, "Unknown address family: %s", net);
 		return;
 	}
 
@@ -588,7 +598,7 @@ parse_vlan (GHashTable *connections, char *argument)
 	              NULL);
 
 	if (argument && *argument)
-		_LOGW (LOGD_CORE, "Ignoring extra: '%s'.\n", argument);
+		_LOGW (LOGD_CORE, "Ignoring extra: '%s'.", argument);
 }
 
 static void
@@ -624,14 +634,14 @@ parse_nameserver (GHashTable *connections, char *argument)
 		s_ip = nm_connection_get_setting_ip6_config (connection);
 		break;
 	default:
-		_LOGW (LOGD_CORE, "Unknown address family: %s\n", dns);
+		_LOGW (LOGD_CORE, "Unknown address family: %s", dns);
 		break;
 	}
 
 	nm_setting_ip_config_add_dns (s_ip, dns);
 
 	if (argument && *argument)
-		_LOGW (LOGD_CORE, "xIgnoring extra: '%s'.\n", argument);
+		_LOGW (LOGD_CORE, "Ignoring extra: '%s'.", argument);
 }
 
 static void

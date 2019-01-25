@@ -1182,7 +1182,7 @@ _nm_dbus_manager_obj_notify (NMDBusObject *obj,
 	priv = NM_DBUS_MANAGER_GET_PRIVATE (self);
 
 	/* do a naive search for the matching NMDBusPropertyInfoExtended infos. Since the number of
-	 * (interaces x properties) is static and possibly small, this naive search is effectively
+	 * (interfaces x properties) is static and possibly small, this naive search is effectively
 	 * O(1). We might wanna introduce some index to lookup the properties in question faster.
 	 *
 	 * The nice part of this implementation is however, that the order in which properties
@@ -1469,6 +1469,14 @@ static const GDBusInterfaceInfo interface_info_objmgr = NM_DEFINE_GDBUS_INTERFAC
 );
 
 /*****************************************************************************/
+
+GDBusConnection *
+nm_dbus_manager_get_dbus_connection (NMDBusManager *self)
+{
+	g_return_val_if_fail (NM_IS_DBUS_MANAGER (self), NULL);
+
+	return NM_DBUS_MANAGER_GET_PRIVATE (self)->connection;
+}
 
 void
 nm_dbus_manager_start (NMDBusManager *self,

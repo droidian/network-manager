@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <linux/if.h>
 
 #include "nm-act-request.h"
 #include "nm-device-private.h"
@@ -118,11 +119,11 @@ static NMActStageReturn
 act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
 	NMDeviceWpan *self = NM_DEVICE_WPAN (device);
-	NMConnection *connection;
 	NMSettingWpan *s_wpan;
 	NMPlatform *platform;
 	guint16 pan_id;
 	guint16 short_address;
+	gint16 page, channel;
 	int ifindex;
 	const guint8 *hwaddr;
 	gsize hwaddr_len = 0;
@@ -138,12 +139,11 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 	g_return_val_if_fail (platform, NM_ACT_STAGE_RETURN_FAILURE);
 
 	ifindex = nm_device_get_ifindex (device);
+
 	g_return_val_if_fail (ifindex > 0, NM_ACT_STAGE_RETURN_FAILURE);
 
-	connection = nm_device_get_applied_connection (device);
-	g_return_val_if_fail (connection, NM_ACT_STAGE_RETURN_FAILURE);
+	s_wpan = nm_device_get_applied_setting (device, NM_TYPE_SETTING_WPAN);
 
-	s_wpan = NM_SETTING_WPAN (nm_connection_get_setting (connection, NM_TYPE_SETTING_WPAN));
 	g_return_val_if_fail (s_wpan, NM_ACT_STAGE_RETURN_FAILURE);
 
 	hwaddr = nm_platform_link_get_address (platform, ifindex, &hwaddr_len);
@@ -182,9 +182,18 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 		}
 	}
 
+	channel = nm_setting_wpan_get_channel (s_wpan);
+	if (channel != NM_SETTING_WPAN_CHANNEL_DEFAULT) {
+		page = nm_setting_wpan_get_page (s_wpan);
+		if (!nm_platform_wpan_set_channel (platform, ifindex, page, channel)) {
+			_LOGW (LOGD_DEVICE, "unable to set the channel");
+			goto out;
+		}
+	}
+
 	ret = NM_ACT_STAGE_RETURN_SUCCESS;
 out:
-        nm_device_bring_up (device, TRUE, NULL);
+	nm_device_bring_up (device, TRUE, NULL);
 
 	if (lowpan_device)
 		nm_device_bring_up (lowpan_device, TRUE, NULL);

@@ -52,7 +52,7 @@ test_cleanup_internal (void)
 	inet_pton (AF_INET6, "2001:db8:e:f:1:2:3:4", &gateway6);
 
 	/* Create and set up device */
-	g_assert (nm_platform_link_dummy_add (NM_PLATFORM_GET, DEVICE_NAME, NULL) == NM_PLATFORM_ERROR_SUCCESS);
+	g_assert (NMTST_NM_ERR_SUCCESS (nm_platform_link_dummy_add (NM_PLATFORM_GET, DEVICE_NAME, NULL)));
 	accept_signal (link_added);
 	free_signal (link_added);
 	g_assert (nm_platform_link_set_up (NM_PLATFORM_GET, nm_platform_link_get_ifindex (NM_PLATFORM_GET, DEVICE_NAME), NULL));
@@ -128,8 +128,7 @@ _nmtstp_init_tests (int *argc, char ***argv)
 void
 _nmtstp_setup_tests (void)
 {
-	nm_platform_link_delete (NM_PLATFORM_GET, nm_platform_link_get_ifindex (NM_PLATFORM_GET, DEVICE_NAME));
-	g_assert (!nm_platform_link_get_by_ifname (NM_PLATFORM_GET, DEVICE_NAME));
+	nmtstp_link_delete (NM_PLATFORM_GET, -1, -1, DEVICE_NAME, FALSE);
 
 	g_test_add_func ("/internal", test_cleanup_internal);
 	/* FIXME: add external cleanup check */

@@ -67,12 +67,9 @@ typedef struct {
 	NMSettingPriority priority;
 } SettingInfo;
 
-enum {
-	PROP_0,
+NM_GOBJECT_PROPERTIES_DEFINE_BASE (
 	PROP_NAME,
-
-	PROP_LAST
-};
+);
 
 typedef struct {
 	GenData *gendata;
@@ -354,6 +351,77 @@ _properties_override_add_transform (GArray *properties_override,
 
 static NMSettInfoSetting _sett_info_settings[_NM_META_SETTING_TYPE_NUM];
 
+static int
+_property_infos_sort_cmp_setting_connection (gconstpointer p_a,
+                                             gconstpointer p_b,
+                                             gpointer user_data)
+{
+	const NMSettInfoProperty *a = *((const NMSettInfoProperty *const*) p_a);
+	const NMSettInfoProperty *b = *((const NMSettInfoProperty *const*) p_b);
+	int c_name;
+
+	c_name = strcmp (a->name, b->name);
+	nm_assert (c_name != 0);
+
+#define CMP_AND_RETURN(n_a, n_b, name) \
+	G_STMT_START { \
+		gboolean _is = nm_streq (n_a, ""name); \
+		\
+		if (   _is \
+		    || nm_streq (n_b, ""name)) \
+			return _is ? -1 : 1; \
+	} G_STMT_END
+
+	/* for [connection], report first id, uuid, type in that order. */
+	if (c_name != 0) {
+		CMP_AND_RETURN (a->name, b->name, NM_SETTING_CONNECTION_ID);
+		CMP_AND_RETURN (a->name, b->name, NM_SETTING_CONNECTION_UUID);
+		CMP_AND_RETURN (a->name, b->name, NM_SETTING_CONNECTION_TYPE);
+	}
+
+#undef CMP_AND_RETURN
+
+	return c_name;
+}
+
+static const NMSettInfoProperty *const*
+_property_infos_sort (const NMSettInfoProperty *property_infos,
+                      guint property_infos_len,
+                      NMSettingClass *setting_class)
+{
+	const NMSettInfoProperty **arr;
+	guint i;
+
+#if NM_MORE_ASSERTS > 5
+	/* assert that the property names are all unique and sorted. */
+	for (i = 0; i < property_infos_len; i++) {
+		if (property_infos[i].param_spec)
+			nm_assert (nm_streq (property_infos[i].name, property_infos[i].param_spec->name));
+		if (i > 0)
+			nm_assert (strcmp (property_infos[i - 1].name, property_infos[i].name) < 0);
+	}
+#endif
+
+	if (property_infos_len <= 1)
+		return NULL;
+	if (G_TYPE_FROM_CLASS (setting_class) != NM_TYPE_SETTING_CONNECTION) {
+		/* we only do something special for certain setting types. This one,
+		 * has just alphabetical sorting. */
+		return NULL;
+	}
+
+	arr = g_new (const NMSettInfoProperty *, property_infos_len);
+	for (i = 0; i < property_infos_len; i++)
+		arr[i] = &property_infos[i];
+
+	g_qsort_with_data (arr,
+	                   property_infos_len,
+	                   sizeof (const NMSettInfoProperty *),
+	                   _property_infos_sort_cmp_setting_connection,
+	                   NULL);
+	return arr;
+}
+
 void
 _nm_setting_class_commit_full (NMSettingClass *setting_class,
                                NMMetaSettingType meta_type,
@@ -387,19 +455,21 @@ _nm_setting_class_commit_full (NMSettingClass *setting_class,
 #if NM_MORE_ASSERTS > 10
 	/* assert that properties_override is constructed consistently. */
 	for (i = 0; i < override_len; i++) {
-		guint j;
 		const NMSettInfoProperty *p = &g_array_index (properties_override, NMSettInfoProperty, i);
+		gboolean found = FALSE;
+		guint j;
 
 		nm_assert (!_nm_sett_info_property_find_in_array ((NMSettInfoProperty *) properties_override->data,
 		                                                  i,
 		                                                  p->name));
 		for (j = 0; j < n_property_specs; j++) {
-			if (nm_streq (property_specs[j]->name, p->name)) {
-				nm_assert (p->param_spec == property_specs[j]);
-				break;
-			}
+			if (!nm_streq (property_specs[j]->name, p->name))
+				continue;
+			nm_assert (!found);
+			found = TRUE;
+			nm_assert (p->param_spec == property_specs[j]);
 		}
-		nm_assert ((j == n_property_specs) == (p->param_spec == NULL));
+		nm_assert (found == (p->param_spec != NULL));
 	}
 #endif
 
@@ -429,26 +499,20 @@ _nm_setting_class_commit_full (NMSettingClass *setting_class,
 	sett_info->property_infos_len = properties_override->len;
 	sett_info->property_infos = (const NMSettInfoProperty *) g_array_free (properties_override,
 	                                                                       properties_override->len == 0);
-}
 
-const NMSettInfoSetting *
-_nm_sett_info_setting_get (NMSettingClass *setting_class)
-{
-	if (   NM_IS_SETTING_CLASS (setting_class)
-	    && setting_class->setting_info) {
-		nm_assert (setting_class->setting_info->meta_type < G_N_ELEMENTS (_sett_info_settings));
-		return &_sett_info_settings[setting_class->setting_info->meta_type];
-	}
-	return NULL;
+	sett_info->property_infos_sorted = _property_infos_sort (sett_info->property_infos,
+	                                                         sett_info->property_infos_len,
+	                                                         setting_class);
 }
 
 const NMSettInfoProperty *
-_nm_sett_info_property_get (NMSettingClass *setting_class,
-                            const char *property_name)
+_nm_sett_info_setting_get_property_info (const NMSettInfoSetting *sett_info,
+                                         const char *property_name)
 {
-	const NMSettInfoSetting *sett_info = _nm_sett_info_setting_get (setting_class);
 	const NMSettInfoProperty *property;
 	gssize idx;
+
+	nm_assert (property_name);
 
 	if (!sett_info)
 		return NULL;
@@ -470,6 +534,21 @@ _nm_sett_info_property_get (NMSettingClass *setting_class,
 	nm_assert (idx == sett_info->property_infos_len - 1 || strcmp (property[0].name, property[1].name) < 0);
 
 	return property;
+}
+
+const NMSettInfoSetting *
+_nm_setting_class_get_sett_info (NMSettingClass *setting_class)
+{
+	const NMSettInfoSetting *sett_info;
+
+	if (   !NM_IS_SETTING_CLASS (setting_class)
+	    || !setting_class->setting_info)
+		return NULL;
+
+	nm_assert (setting_class->setting_info->meta_type < G_N_ELEMENTS (_sett_info_settings));
+	sett_info = &_sett_info_settings[setting_class->setting_info->meta_type];
+	nm_assert (sett_info->setting_class == setting_class);
+	return sett_info;
 }
 
 /*****************************************************************************/
@@ -654,7 +733,7 @@ _nm_setting_to_dbus (NMSetting *setting, NMConnection *connection, NMConnectionS
 		                       g_hash_table_lookup (priv->gendata->hash, gendata_keys[i]));
 	}
 
-	sett_info = _nm_sett_info_setting_get (NM_SETTING_GET_CLASS (setting));
+	sett_info = _nm_setting_class_get_sett_info (NM_SETTING_GET_CLASS (setting));
 	for (i = 0; i < sett_info->property_infos_len; i++) {
 		const NMSettInfoProperty *property = &sett_info->property_infos[i];
 		GParamSpec *prop_spec = property->param_spec;
@@ -662,10 +741,13 @@ _nm_setting_to_dbus (NMSetting *setting, NMConnection *connection, NMConnectionS
 		if (!prop_spec) {
 			if (!property->synth_func)
 				continue;
-
-			if (flags & NM_CONNECTION_SERIALIZE_ONLY_SECRETS)
-				continue;
 		} else {
+
+			/* For the moment, properties backed by a GObject property don't
+			 * define a synth function. There is no problem supporting that,
+			 * however, for now just disallow it. */
+			nm_assert (!property->synth_func);
+
 			if (!(prop_spec->flags & G_PARAM_WRITABLE))
 				continue;
 
@@ -686,9 +768,10 @@ _nm_setting_to_dbus (NMSetting *setting, NMConnection *connection, NMConnectionS
 		}
 
 		if (property->synth_func)
-			dbus_value = property->synth_func (setting, connection, property->name);
+			dbus_value = property->synth_func (sett_info, i, connection, setting, flags);
 		else
 			dbus_value = get_property_for_dbus (setting, property, TRUE);
+
 		if (dbus_value) {
 			/* Allow dbus_value to be either floating or not. */
 			g_variant_take_ref (dbus_value);
@@ -775,7 +858,7 @@ _nm_setting_new_from_dbus (GType setting_type,
 		}
 	}
 
-	sett_info = _nm_sett_info_setting_get (NM_SETTING_GET_CLASS (setting));
+	sett_info = _nm_setting_class_get_sett_info (NM_SETTING_GET_CLASS (setting));
 
 	if (sett_info->detail.gendata_info) {
 		GHashTable *hash;
@@ -797,53 +880,41 @@ _nm_setting_new_from_dbus (GType setting_type,
 	}
 
 	for (i = 0; i < sett_info->property_infos_len; i++) {
-		const NMSettInfoProperty *property = &sett_info->property_infos[i];
+		const NMSettInfoProperty *property_info = &sett_info->property_infos[i];
 		gs_unref_variant GVariant *value = NULL;
 		gs_free_error GError *local = NULL;
 
-		if (property->param_spec && !(property->param_spec->flags & G_PARAM_WRITABLE))
+		if (   property_info->param_spec
+		    && !(property_info->param_spec->flags & G_PARAM_WRITABLE))
 			continue;
 
-		value = g_variant_lookup_value (setting_dict, property->name, NULL);
+		value = g_variant_lookup_value (setting_dict, property_info->name, NULL);
 
 		if (value && keys)
-			g_hash_table_remove (keys, property->name);
+			g_hash_table_remove (keys, property_info->name);
 
-		if (value && property->set_func) {
+		if (   value
+		    && property_info->set_func) {
 
-			if (!g_variant_type_equal (g_variant_get_type (value), property->dbus_type)) {
+			if (!g_variant_type_equal (g_variant_get_type (value), property_info->dbus_type)) {
 				/* for backward behavior, fail unless best-effort is chosen. */
 				if (NM_FLAGS_HAS (parse_flags, NM_SETTING_PARSE_FLAGS_BEST_EFFORT))
 					continue;
 				g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
 				             _("can't set property of type '%s' from value of type '%s'"),
-				             property->dbus_type ?
-				                 g_variant_type_peek_string (property->dbus_type) :
-				                 property->param_spec ?
-				                     g_type_name (property->param_spec->value_type) : "(unknown)",
+				             property_info->dbus_type ?
+				                 g_variant_type_peek_string (property_info->dbus_type) :
+				                 property_info->param_spec ?
+				                     g_type_name (property_info->param_spec->value_type) : "(unknown)",
 				             g_variant_get_type_string (value));
-				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property->name);
+				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property_info->name);
 				return NULL;
 			}
 
-			if (!property->set_func (setting,
-			                         connection_dict,
-			                         property->name,
-			                         value,
-			                         parse_flags,
-			                         &local)) {
-				if (!NM_FLAGS_HAS (parse_flags, NM_SETTING_PARSE_FLAGS_STRICT))
-					continue;
-				g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
-				             _("failed to set property: %s"),
-				             local->message);
-				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property->name);
-				return NULL;
-			}
-		} else if (!value && property->not_set_func) {
-			if (!property->not_set_func (setting,
+			if (!property_info->set_func (setting,
 			                             connection_dict,
-			                             property->name,
+			                             property_info->name,
+			                             value,
 			                             parse_flags,
 			                             &local)) {
 				if (!NM_FLAGS_HAS (parse_flags, NM_SETTING_PARSE_FLAGS_STRICT))
@@ -851,35 +922,52 @@ _nm_setting_new_from_dbus (GType setting_type,
 				g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
 				             _("failed to set property: %s"),
 				             local->message);
-				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property->name);
+				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property_info->name);
 				return NULL;
 			}
-		} else if (value && property->param_spec) {
+		} else if (   !value
+		           && property_info->not_set_func) {
+			if (!property_info->not_set_func (setting,
+			                                  connection_dict,
+			                                  property_info->name,
+			                                  parse_flags,
+			                                  &local)) {
+				if (!NM_FLAGS_HAS (parse_flags, NM_SETTING_PARSE_FLAGS_STRICT))
+					continue;
+				g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
+				             _("failed to set property: %s"),
+				             local->message);
+				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property_info->name);
+				return NULL;
+			}
+		} else if (   value
+		           && property_info->param_spec) {
 			nm_auto_unset_gvalue GValue object_value = G_VALUE_INIT;
 
-			g_value_init (&object_value, property->param_spec->value_type);
-			if (!set_property_from_dbus (property, value, &object_value)) {
+			g_value_init (&object_value, property_info->param_spec->value_type);
+			if (!set_property_from_dbus (property_info, value, &object_value)) {
 				/* for backward behavior, fail unless best-effort is chosen. */
 				if (NM_FLAGS_HAS (parse_flags, NM_SETTING_PARSE_FLAGS_BEST_EFFORT))
 					continue;
 				g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
 				             _("can't set property of type '%s' from value of type '%s'"),
-				             property->dbus_type ?
-				                 g_variant_type_peek_string (property->dbus_type) :
-				                 property->param_spec ?
-				                     g_type_name (property->param_spec->value_type) : "(unknown)",
+				               property_info->dbus_type
+				             ? g_variant_type_peek_string (property_info->dbus_type)
+				             : (  property_info->param_spec
+				                ? g_type_name (property_info->param_spec->value_type)
+				                : "(unknown)"),
 				             g_variant_get_type_string (value));
-				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property->name);
+				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property_info->name);
 				return NULL;
 			}
 
-			if (!nm_g_object_set_property (G_OBJECT (setting), property->param_spec->name, &object_value, &local)) {
+			if (!nm_g_object_set_property (G_OBJECT (setting), property_info->param_spec->name, &object_value, &local)) {
 				if (!NM_FLAGS_HAS (parse_flags, NM_SETTING_PARSE_FLAGS_STRICT))
 					continue;
 				g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
 				             _("can not set property: %s"),
 				             local->message);
-				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property->name);
+				g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), property_info->name);
 				return NULL;
 			}
 		}
@@ -921,7 +1009,7 @@ nm_setting_get_dbus_property_type (NMSetting *setting,
 	g_return_val_if_fail (NM_IS_SETTING (setting), NULL);
 	g_return_val_if_fail (property_name != NULL, NULL);
 
-	property = _nm_sett_info_property_get (NM_SETTING_GET_CLASS (setting), property_name);
+	property = _nm_setting_class_get_property_info (NM_SETTING_GET_CLASS (setting), property_name);
 	g_return_val_if_fail (property != NULL, NULL);
 
 	if (property->dbus_type)
@@ -934,13 +1022,13 @@ gboolean
 _nm_setting_get_property (NMSetting *setting, const char *property_name, GValue *value)
 {
 	const NMSettInfoSetting *sett_info;
-	GParamSpec *prop_spec;
+	const NMSettInfoProperty *property_info;
 
 	g_return_val_if_fail (NM_IS_SETTING (setting), FALSE);
 	g_return_val_if_fail (property_name, FALSE);
 	g_return_val_if_fail (value, FALSE);
 
-	sett_info = _nm_sett_info_setting_get (NM_SETTING_GET_CLASS (setting));
+	sett_info = _nm_setting_class_get_sett_info (NM_SETTING_GET_CLASS (setting));
 
 	if (sett_info->detail.gendata_info) {
 		GVariant *variant;
@@ -958,26 +1046,84 @@ _nm_setting_get_property (NMSetting *setting, const char *property_name, GValue 
 		return TRUE;
 	}
 
-	prop_spec = g_object_class_find_property (G_OBJECT_GET_CLASS (setting), property_name);
-	if (!prop_spec) {
+	property_info = _nm_sett_info_setting_get_property_info (sett_info, property_name);
+	if (   !property_info
+	    || !property_info->param_spec) {
 		g_value_unset (value);
 		return FALSE;
 	}
 
-	g_value_init (value, prop_spec->value_type);
+	g_value_init (value, property_info->param_spec->value_type);
 	g_object_get_property (G_OBJECT (setting), property_name, value);
 	return TRUE;
 }
 
 static void
-duplicate_setting (NMSetting *setting,
-                   const char *name,
-                   const GValue *value,
-                   GParamFlags flags,
-                   gpointer user_data)
+_gobject_copy_property (GObject *src,
+                        GObject *dst,
+                        const char *property_name,
+                        GType gtype)
 {
-	if ((flags & (G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY)) == G_PARAM_WRITABLE)
-		g_object_set_property (G_OBJECT (user_data), name, value);
+	nm_auto_unset_gvalue GValue value = G_VALUE_INIT;
+
+	nm_assert (G_IS_OBJECT (src));
+	nm_assert (G_IS_OBJECT (dst));
+
+	g_value_init (&value, gtype);
+	g_object_get_property (src, property_name, &value);
+	g_object_set_property (dst, property_name, &value);
+}
+
+static void
+duplicate_copy_properties (const NMSettInfoSetting *sett_info,
+                           NMSetting *src,
+                           NMSetting *dst)
+{
+	if (sett_info->detail.gendata_info) {
+		GenData *gendata = _gendata_hash (src, FALSE);
+
+		if (   gendata
+		    && g_hash_table_size (gendata->hash) > 0) {
+			GHashTableIter iter;
+			GHashTable *h = _gendata_hash (dst, TRUE)->hash;
+			const char *key;
+			GVariant *val;
+
+			g_hash_table_iter_init (&iter, gendata->hash);
+			while (g_hash_table_iter_next (&iter, (gpointer *) &key, (gpointer *) &val)) {
+				g_hash_table_insert (h,
+				                     g_strdup (key),
+				                     g_variant_ref (val));
+			}
+		}
+	}
+
+	if (sett_info->property_infos_len > 0) {
+		gboolean frozen = FALSE;
+		guint i;
+
+		for (i = 0; i < sett_info->property_infos_len; i++) {
+			const NMSettInfoProperty *property_info = &sett_info->property_infos[i];
+
+			if (property_info->param_spec) {
+				if ((property_info->param_spec->flags & (G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY)) != G_PARAM_WRITABLE)
+					continue;
+
+				if (!frozen) {
+					g_object_freeze_notify (G_OBJECT (dst));
+					frozen = TRUE;
+				}
+				_gobject_copy_property (G_OBJECT (src),
+				                        G_OBJECT (dst),
+				                        property_info->param_spec->name,
+				                        G_PARAM_SPEC_VALUE_TYPE (property_info->param_spec));
+				continue;
+			}
+		}
+
+		if (frozen)
+			g_object_thaw_notify (G_OBJECT (dst));
+	}
 }
 
 /**
@@ -993,37 +1139,22 @@ NMSetting *
 nm_setting_duplicate (NMSetting *setting)
 {
 	const NMSettInfoSetting *sett_info;
-	GObject *dup;
+	NMSettingClass *klass;
+	NMSetting *dst;
 
 	g_return_val_if_fail (NM_IS_SETTING (setting), NULL);
 
-	dup = g_object_new (G_OBJECT_TYPE (setting), NULL);
+	klass = NM_SETTING_GET_CLASS (setting);
+	nm_assert (NM_IS_SETTING_CLASS (klass));
+	nm_assert (klass->duplicate_copy_properties);
 
-	sett_info = _nm_sett_info_setting_get (NM_SETTING_GET_CLASS (setting));
+	dst = g_object_new (G_TYPE_FROM_CLASS (klass), NULL);
 
-	if (sett_info->detail.gendata_info) {
-		GenData *gendata = _gendata_hash (setting, FALSE);
+	sett_info = _nm_setting_class_get_sett_info (klass);
+	nm_assert (sett_info);
 
-		if (   gendata
-		    && g_hash_table_size (gendata->hash) > 0) {
-			GHashTableIter iter;
-			GHashTable *h = _gendata_hash (NM_SETTING (dup), TRUE)->hash;
-			const char *key;
-			GVariant *val;
-
-			g_hash_table_iter_init (&iter, gendata->hash);
-			while (g_hash_table_iter_next (&iter, (gpointer *) &key, (gpointer *) &val)) {
-				g_hash_table_insert (h,
-				                     g_strdup (key),
-				                     g_variant_ref (val));
-			}
-		}
-	} else {
-		g_object_freeze_notify (dup);
-		nm_setting_enumerate_values (setting, duplicate_setting, dup);
-		g_object_thaw_notify (dup);
-	}
-	return NM_SETTING (dup);
+	klass->duplicate_copy_properties (sett_info, setting, dst);
+	return dst;
 }
 
 /**
@@ -1131,58 +1262,148 @@ _nm_setting_verify_secret_string (const char *str,
 	return TRUE;
 }
 
-static gboolean
-compare_property (NMSetting *setting,
-                  NMSetting *other,
-                  const GParamSpec *prop_spec,
-                  NMSettingCompareFlags flags)
+gboolean
+_nm_setting_should_compare_secret_property (NMSetting *setting,
+                                            NMSetting *other,
+                                            const char *secret_name,
+                                            NMSettingCompareFlags flags)
 {
-	const NMSettInfoProperty *property;
-	GVariant *value1, *value2;
-	int cmp;
+	NMSettingSecretFlags a_secret_flags = NM_SETTING_SECRET_FLAG_NONE;
+	NMSettingSecretFlags b_secret_flags = NM_SETTING_SECRET_FLAG_NONE;
 
-	/* Handle compare flags */
-	if (prop_spec->flags & NM_SETTING_PARAM_SECRET) {
-		NMSettingSecretFlags a_secret_flags = NM_SETTING_SECRET_FLAG_NONE;
-		NMSettingSecretFlags b_secret_flags = NM_SETTING_SECRET_FLAG_NONE;
+	nm_assert (NM_IS_SETTING (setting));
+	nm_assert (!other || G_OBJECT_TYPE (setting) == G_OBJECT_TYPE (other));
 
-		g_return_val_if_fail (!NM_IS_SETTING_VPN (setting), FALSE);
+	/* secret_name must be a valid secret for @setting. */
+	nm_assert (nm_setting_get_secret_flags (setting, secret_name, NULL, NULL));
 
-		if (!nm_setting_get_secret_flags (setting, prop_spec->name, &a_secret_flags, NULL))
-			g_return_val_if_reached (FALSE);
-		if (!nm_setting_get_secret_flags (other, prop_spec->name, &b_secret_flags, NULL))
-			g_return_val_if_reached (FALSE);
+	if (!NM_FLAGS_ANY (flags,   NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS
+	                          | NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS))
+		return TRUE;
 
-		/* If the secret flags aren't the same the settings aren't the same */
-		if (a_secret_flags != b_secret_flags)
-			return FALSE;
-
-		/* Check for various secret flags that might cause us to ignore comparing
-		 * this property.
-		 */
-		if (   (flags & NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS)
-		    && (a_secret_flags & NM_SETTING_SECRET_FLAG_AGENT_OWNED))
-			return TRUE;
-
-		if (   (flags & NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS)
-		    && (a_secret_flags & NM_SETTING_SECRET_FLAG_NOT_SAVED))
-			return TRUE;
+	nm_setting_get_secret_flags (setting, secret_name, &a_secret_flags, NULL);
+	if (other) {
+		if (!nm_setting_get_secret_flags (other, secret_name, &b_secret_flags, NULL)) {
+			/* secret-name may not be a valid secret for @other. That is fine, we ignore that
+			 * and treat @b_secret_flags as NM_SETTING_SECRET_FLAG_NONE.
+			 *
+			 * This can happen with VPN secrets, where the caller knows that @secret_name
+			 * is a secret for setting, but it may not be a secret for @other. Accept that.
+			 *
+			 * Mark @other as missing. */
+			other = NULL;
+		}
 	}
 
-	property = _nm_sett_info_property_get (NM_SETTING_GET_CLASS (setting), prop_spec->name);
-	g_return_val_if_fail (property != NULL, FALSE);
+	/* when @setting has the secret-flags that should be ignored,
+	 * we skip the comparisong if:
+	 *
+	 *   - @other is not present,
+	 *   - @other does not have a secret named @secret_name
+	 *   - @other also has the secret flat to be ignored.
+	 *
+	 * This makes the check symmetric (aside the fact that @setting must
+	 * have the secret while @other may not -- which is asymetric). */
+	if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS)
+	    && NM_FLAGS_HAS (a_secret_flags, NM_SETTING_SECRET_FLAG_AGENT_OWNED)
+	    && (   !other
+	        || NM_FLAGS_HAS (b_secret_flags, NM_SETTING_SECRET_FLAG_AGENT_OWNED)))
+		return FALSE;
 
-	value1 = get_property_for_dbus (setting, property, TRUE);
-	value2 = get_property_for_dbus (other, property, TRUE);
+	if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS)
+	    && NM_FLAGS_HAS (a_secret_flags, NM_SETTING_SECRET_FLAG_NOT_SAVED)
+	    && (   !other
+	        || NM_FLAGS_HAS (b_secret_flags, NM_SETTING_SECRET_FLAG_NOT_SAVED)))
+		return FALSE;
 
-	cmp = nm_property_compare (value1, value2);
+	return TRUE;
+}
 
-	if (value1)
-		g_variant_unref (value1);
-	if (value2)
-		g_variant_unref (value2);
+static NMTernary
+compare_property (const NMSettInfoSetting *sett_info,
+                  guint property_idx,
+                  NMSetting *setting,
+                  NMSetting *other,
+                  NMSettingCompareFlags flags)
+{
+	const NMSettInfoProperty *property_info = &sett_info->property_infos[property_idx];
+	const GParamSpec *param_spec = property_info->param_spec;
 
-	return cmp == 0;
+	if (!param_spec)
+		return NM_TERNARY_DEFAULT;
+
+	if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_FUZZY)
+	    && NM_FLAGS_ANY (param_spec->flags, NM_SETTING_PARAM_FUZZY_IGNORE | NM_SETTING_PARAM_SECRET))
+		return NM_TERNARY_DEFAULT;
+
+	if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_INFERRABLE)
+	    && !NM_FLAGS_HAS (param_spec->flags, NM_SETTING_PARAM_INFERRABLE))
+		return NM_TERNARY_DEFAULT;
+
+	if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_IGNORE_REAPPLY_IMMEDIATELY)
+	    && NM_FLAGS_HAS (param_spec->flags, NM_SETTING_PARAM_REAPPLY_IMMEDIATELY))
+		return NM_TERNARY_DEFAULT;
+
+	if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS)
+	    && NM_FLAGS_HAS (param_spec->flags, NM_SETTING_PARAM_SECRET))
+		return NM_TERNARY_DEFAULT;
+
+	if (nm_streq (param_spec->name, NM_SETTING_NAME))
+		return NM_TERNARY_DEFAULT;
+
+	if (   NM_FLAGS_HAS (param_spec->flags, NM_SETTING_PARAM_SECRET)
+	    && !_nm_setting_should_compare_secret_property (setting,
+	                                                    other,
+	                                                    param_spec->name,
+	                                                    flags))
+		return NM_TERNARY_DEFAULT;
+
+	if (other) {
+		gs_unref_variant GVariant *value1  = NULL;
+		gs_unref_variant GVariant *value2  = NULL;
+
+		value1 = get_property_for_dbus (setting, property_info, TRUE);
+		value2 = get_property_for_dbus (other, property_info, TRUE);
+
+		if (nm_property_compare (value1, value2) != 0)
+			return NM_TERNARY_FALSE;
+	}
+
+	return NM_TERNARY_TRUE;
+}
+
+static NMTernary
+_compare_property (const NMSettInfoSetting *sett_info,
+                   guint property_idx,
+                   NMSetting *setting,
+                   NMSetting *other,
+                   NMSettingCompareFlags flags)
+{
+	NMTernary compare_result;
+
+	nm_assert (sett_info);
+	nm_assert (NM_IS_SETTING_CLASS (sett_info->setting_class));
+	nm_assert (property_idx < sett_info->property_infos_len);
+	nm_assert (NM_SETTING_GET_CLASS (setting) == sett_info->setting_class);
+	nm_assert (!other || NM_SETTING_GET_CLASS (other) == sett_info->setting_class);
+
+	compare_result = NM_SETTING_GET_CLASS (setting)->compare_property (sett_info,
+	                                                                   property_idx,
+	                                                                   setting,
+	                                                                   other,
+	                                                                   flags);
+
+	nm_assert (NM_IN_SET (compare_result, NM_TERNARY_DEFAULT,
+	                                      NM_TERNARY_FALSE,
+	                                      NM_TERNARY_TRUE));
+
+	/* check that the inferable flag and the GObject property flag corresponds. */
+	nm_assert (   !NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_INFERRABLE)
+	           || !sett_info->property_infos[property_idx].param_spec
+	           || NM_FLAGS_HAS (sett_info->property_infos[property_idx].param_spec->flags, NM_SETTING_PARAM_INFERRABLE)
+	           || compare_result == NM_TERNARY_DEFAULT);
+
+	return compare_result;
 }
 
 /**
@@ -1203,9 +1424,6 @@ nm_setting_compare (NMSetting *a,
                     NMSettingCompareFlags flags)
 {
 	const NMSettInfoSetting *sett_info;
-	GParamSpec **property_specs;
-	guint n_property_specs;
-	int same = TRUE;
 	guint i;
 
 	g_return_val_if_fail (NM_IS_SETTING (a), FALSE);
@@ -1215,7 +1433,7 @@ nm_setting_compare (NMSetting *a,
 	if (G_OBJECT_TYPE (a) != G_OBJECT_TYPE (b))
 		return FALSE;
 
-	sett_info = _nm_sett_info_setting_get (NM_SETTING_GET_CLASS (a));
+	sett_info = _nm_setting_class_get_sett_info (NM_SETTING_GET_CLASS (a));
 
 	if (sett_info->detail.gendata_info) {
 		GenData *a_gendata = _gendata_hash (a, FALSE);
@@ -1227,87 +1445,10 @@ nm_setting_compare (NMSetting *a,
 		                                  g_variant_equal);
 	}
 
-	/* And now all properties */
-	property_specs = g_object_class_list_properties (G_OBJECT_GET_CLASS (a), &n_property_specs);
-	for (i = 0; i < n_property_specs && same; i++) {
-		GParamSpec *prop_spec = property_specs[i];
-
-		/* Fuzzy compare ignores secrets and properties defined with the FUZZY_IGNORE flag */
-		if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_FUZZY)
-		    && !NM_FLAGS_ANY (prop_spec->flags, NM_SETTING_PARAM_FUZZY_IGNORE | NM_SETTING_PARAM_SECRET))
-			continue;
-
-		if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_INFERRABLE)
-		    && !NM_FLAGS_HAS (prop_spec->flags, NM_SETTING_PARAM_INFERRABLE))
-			continue;
-
-		if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_IGNORE_REAPPLY_IMMEDIATELY)
-		    && NM_FLAGS_HAS (prop_spec->flags, NM_SETTING_PARAM_REAPPLY_IMMEDIATELY))
-			continue;
-
-		if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS)
-		    && NM_FLAGS_HAS (prop_spec->flags, NM_SETTING_PARAM_SECRET))
-			continue;
-
-		same = NM_SETTING_GET_CLASS (a)->compare_property (a, b, prop_spec, flags);
-	}
-	g_free (property_specs);
-
-	return same;
-}
-
-static inline gboolean
-should_compare_prop (NMSetting *setting,
-                     const char *prop_name,
-                     NMSettingCompareFlags comp_flags,
-                     GParamFlags prop_flags)
-{
-	/* Fuzzy compare ignores secrets and properties defined with the FUZZY_IGNORE flag */
-	if (   (comp_flags & NM_SETTING_COMPARE_FLAG_FUZZY)
-	    && (prop_flags & (NM_SETTING_PARAM_FUZZY_IGNORE | NM_SETTING_PARAM_SECRET)))
-		return FALSE;
-
-	if ((comp_flags & NM_SETTING_COMPARE_FLAG_INFERRABLE) && !(prop_flags & NM_SETTING_PARAM_INFERRABLE))
-		return FALSE;
-
-	if ((comp_flags & NM_SETTING_COMPARE_FLAG_IGNORE_REAPPLY_IMMEDIATELY) && !(prop_flags & NM_SETTING_PARAM_REAPPLY_IMMEDIATELY))
-		return FALSE;
-
-	if (prop_flags & NM_SETTING_PARAM_SECRET) {
-		NMSettingSecretFlags secret_flags = NM_SETTING_SECRET_FLAG_NONE;
-
-		if (comp_flags & NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS)
-			return FALSE;
-
-		if (   NM_IS_SETTING_VPN (setting)
-		    && g_strcmp0 (prop_name, NM_SETTING_VPN_SECRETS) == 0) {
-			/* FIXME: NMSettingVPN:NM_SETTING_VPN_SECRETS has NM_SETTING_PARAM_SECRET.
-			 * nm_setting_get_secret_flags() quite possibly fails, but it might succeed if the
-			 * setting accidently uses a key "secrets". */
-			return TRUE;
-		}
-
-		if (!nm_setting_get_secret_flags (setting, prop_name, &secret_flags, NULL))
-			g_return_val_if_reached (FALSE);
-
-		if (   (comp_flags & NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS)
-		    && (secret_flags & NM_SETTING_SECRET_FLAG_AGENT_OWNED))
-			return FALSE;
-
-		if (   (comp_flags & NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS)
-		    && (secret_flags & NM_SETTING_SECRET_FLAG_NOT_SAVED))
+	for (i = 0; i < sett_info->property_infos_len; i++) {
+		if (_compare_property (sett_info, i, a, b, flags) == NM_TERNARY_FALSE)
 			return FALSE;
 	}
-
-	if (   (comp_flags & NM_SETTING_COMPARE_FLAG_IGNORE_ID)
-	    && NM_IS_SETTING_CONNECTION (setting)
-	    && !strcmp (prop_name, NM_SETTING_CONNECTION_ID))
-		return FALSE;
-
-	if (   (comp_flags & NM_SETTING_COMPARE_FLAG_IGNORE_TIMESTAMP)
-	    && NM_IS_SETTING_CONNECTION (setting)
-	    && !strcmp (prop_name, NM_SETTING_CONNECTION_TIMESTAMP))
-		return FALSE;
 
 	return TRUE;
 }
@@ -1399,7 +1540,7 @@ nm_setting_diff (NMSetting *a,
 		results_created = TRUE;
 	}
 
-	sett_info = _nm_sett_info_setting_get (NM_SETTING_GET_CLASS (a));
+	sett_info = _nm_setting_class_get_sett_info (NM_SETTING_GET_CLASS (a));
 
 	if (sett_info->detail.gendata_info) {
 		const char *key;
@@ -1442,71 +1583,93 @@ nm_setting_diff (NMSetting *a,
 			}
 		}
 	} else {
-		gs_free GParamSpec **property_specs = NULL;
-		guint n_property_specs;
-
-		property_specs = g_object_class_list_properties (G_OBJECT_GET_CLASS (a), &n_property_specs);
-
-		for (i = 0; i < n_property_specs; i++) {
-			GParamSpec *prop_spec = property_specs[i];
+		for (i = 0; i < sett_info->property_infos_len; i++) {
 			NMSettingDiffResult r = NM_SETTING_DIFF_RESULT_UNKNOWN;
+			const NMSettInfoProperty *property_info;
+			NMTernary compare_result;
+			GParamSpec *prop_spec;
 
-			/* Handle compare flags */
-			if (!should_compare_prop (a, prop_spec->name, flags, prop_spec->flags))
+			compare_result = _compare_property (sett_info, i, a, b, flags);
+			if (compare_result == NM_TERNARY_DEFAULT)
 				continue;
-			if (strcmp (prop_spec->name, NM_SETTING_NAME) == 0)
-				continue;
+
+			if (   NM_FLAGS_ANY (flags,   NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS
+			                            | NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS)
+			    && b
+			    && compare_result == NM_TERNARY_FALSE) {
+				/* we have setting @b and the property is not the same. But we also are instructed
+				 * to ignore secrets based on the flags.
+				 *
+				 * Note that compare_property() called with two settings will ignore secrets
+				 * based on the flags, but it will do so if *both* settings have the flag we
+				 * look for. So that is symetric behavior and good.
+				 *
+				 * But for the purpose of diff(), we do a asymmetric comparison because and
+				 * we want to skip testing the property if setting @a alone indicates to do
+				 * so.
+				 *
+				 * We need to double-check whether the property should be ignored by
+				 * looking at @a alone. */
+				if (_compare_property (sett_info, i, a, NULL, flags) == NM_TERNARY_DEFAULT)
+					continue;
+			}
 
 			compared_any = TRUE;
 
+			property_info = &sett_info->property_infos[i];
+			prop_spec = property_info->param_spec;
+
 			if (b) {
-				gboolean different;
+				if (compare_result == NM_TERNARY_FALSE) {
+					if (prop_spec) {
+						gboolean a_is_default, b_is_default;
+						GValue value = G_VALUE_INIT;
 
-				different = !NM_SETTING_GET_CLASS (a)->compare_property (a, b, prop_spec, flags);
-				if (different) {
-					gboolean a_is_default, b_is_default;
-					GValue value = G_VALUE_INIT;
+						g_value_init (&value, prop_spec->value_type);
+						g_object_get_property (G_OBJECT (a), prop_spec->name, &value);
+						a_is_default = g_param_value_defaults (prop_spec, &value);
 
-					g_value_init (&value, prop_spec->value_type);
-					g_object_get_property (G_OBJECT (a), prop_spec->name, &value);
-					a_is_default = g_param_value_defaults (prop_spec, &value);
+						g_value_reset (&value);
+						g_object_get_property (G_OBJECT (b), prop_spec->name, &value);
+						b_is_default = g_param_value_defaults (prop_spec, &value);
 
-					g_value_reset (&value);
-					g_object_get_property (G_OBJECT (b), prop_spec->name, &value);
-					b_is_default = g_param_value_defaults (prop_spec, &value);
-
-					g_value_unset (&value);
-					if ((flags & NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT) == 0) {
-						if (!a_is_default)
-							r |= a_result;
-						if (!b_is_default)
-							r |= b_result;
-					} else {
+						g_value_unset (&value);
+						if (!NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT)) {
+							if (!a_is_default)
+								r |= a_result;
+							if (!b_is_default)
+								r |= b_result;
+						} else {
+							r |= a_result | b_result;
+							if (a_is_default)
+								r |= a_result_default;
+							if (b_is_default)
+								r |= b_result_default;
+						}
+					} else
 						r |= a_result | b_result;
-						if (a_is_default)
-							r |= a_result_default;
-						if (b_is_default)
-							r |= b_result_default;
-					}
 				}
 			} else if ((flags & (NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT | NM_SETTING_COMPARE_FLAG_DIFF_RESULT_NO_DEFAULT)) == 0)
 				r = a_result;  /* only in A */
 			else {
-				GValue value = G_VALUE_INIT;
+				if (prop_spec) {
+					GValue value = G_VALUE_INIT;
 
-				g_value_init (&value, prop_spec->value_type);
-				g_object_get_property (G_OBJECT (a), prop_spec->name, &value);
-				if (!g_param_value_defaults (prop_spec, &value))
+					g_value_init (&value, prop_spec->value_type);
+					g_object_get_property (G_OBJECT (a), prop_spec->name, &value);
+					if (!g_param_value_defaults (prop_spec, &value))
+						r |= a_result;
+					else if (flags & NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT)
+						r |= a_result | a_result_default;
+
+					g_value_unset (&value);
+				} else
 					r |= a_result;
-				else if (flags & NM_SETTING_COMPARE_FLAG_DIFF_RESULT_WITH_DEFAULT)
-					r |= a_result | a_result_default;
-
-				g_value_unset (&value);
 			}
 
 			if (r != NM_SETTING_DIFF_RESULT_UNKNOWN) {
 				diff_found = TRUE;
-				_setting_diff_add_result (*results, prop_spec->name, r);
+				_setting_diff_add_result (*results, property_info->name, r);
 			}
 		}
 	}
@@ -1535,33 +1698,6 @@ nm_setting_diff (NMSetting *a,
 	}
 }
 
-#define CMP_AND_RETURN(n_a, n_b, name) \
-	G_STMT_START { \
-		gboolean _is = (strcmp (n_a, ""name) == 0); \
-		\
-		if (_is || (strcmp (n_b, ""name) == 0)) \
-			return _is ? -1 : 1; \
-	} G_STMT_END
-
-static int
-_enumerate_values_sort (GParamSpec **p_a, GParamSpec **p_b, GType *p_type)
-{
-	const char *n_a = (*p_a)->name;
-	const char *n_b = (*p_b)->name;
-	int c = strcmp (n_a, n_b);
-
-	if (c) {
-		if (*p_type == NM_TYPE_SETTING_CONNECTION) {
-			/* for [connection], report first id, uuid, type in that order. */
-			CMP_AND_RETURN (n_a, n_b, NM_SETTING_CONNECTION_ID);
-			CMP_AND_RETURN (n_a, n_b, NM_SETTING_CONNECTION_UUID);
-			CMP_AND_RETURN (n_a, n_b, NM_SETTING_CONNECTION_TYPE);
-		}
-	}
-	return c;
-}
-#undef CMP_AND_RETURN
-
 /**
  * nm_setting_enumerate_values:
  * @setting: the #NMSetting
@@ -1577,18 +1713,16 @@ nm_setting_enumerate_values (NMSetting *setting,
                              gpointer user_data)
 {
 	const NMSettInfoSetting *sett_info;
-	GParamSpec **property_specs;
-	guint n_properties;
 	guint i;
-	GType type;
 
 	g_return_if_fail (NM_IS_SETTING (setting));
 	g_return_if_fail (func != NULL);
 
-	sett_info = _nm_sett_info_setting_get (NM_SETTING_GET_CLASS (setting));
+	sett_info = _nm_setting_class_get_sett_info (NM_SETTING_GET_CLASS (setting));
 
 	if (sett_info->detail.gendata_info) {
 		const char *const*names;
+		guint n_properties;
 
 		/* the properties of this setting are not real GObject properties.
 		 * Hence, this API makes little sense (or does it?). Still, call
@@ -1618,100 +1752,135 @@ nm_setting_enumerate_values (NMSetting *setting,
 		return;
 	}
 
-	property_specs = g_object_class_list_properties (G_OBJECT_GET_CLASS (setting), &n_properties);
-
-	/* sort the properties. This has an effect on the order in which keyfile
-	 * prints them. */
-	type = G_OBJECT_TYPE (setting);
-	g_qsort_with_data (property_specs, n_properties, sizeof (gpointer),
-	                   (GCompareDataFunc) _enumerate_values_sort, &type);
-
-	for (i = 0; i < n_properties; i++) {
-		GParamSpec *prop_spec = property_specs[i];
+	for (i = 0; i < sett_info->property_infos_len; i++) {
+		GParamSpec *prop_spec = _nm_sett_info_property_info_get_sorted (sett_info, i)->param_spec;
 		GValue value = G_VALUE_INIT;
+
+		if (!prop_spec)
+			continue;
 
 		g_value_init (&value, G_PARAM_SPEC_VALUE_TYPE (prop_spec));
 		g_object_get_property (G_OBJECT (setting), prop_spec->name, &value);
 		func (setting, prop_spec->name, &value, prop_spec->flags, user_data);
 		g_value_unset (&value);
 	}
+}
 
-	g_free (property_specs);
+/**
+ * _nm_setting_aggregate:
+ * @setting: the #NMSetting to aggregate.
+ * @type: the #NMConnectionAggregateType aggregate type.
+ * @arg: the in/out arguments for aggregation. They depend on @type.
+ *
+ * This is the implementation detail of _nm_connection_aggregate(). It
+ * makes no sense to call this function directly outside of _nm_connection_aggregate().
+ *
+ * Returns: %TRUE if afterwards the aggregation is complete. That means,
+ *   the only caller _nm_connection_aggregate() will not visit other settings
+ *   after a setting returns %TRUE (indicating that there is nothing further
+ *   to aggregate). Note that is very different from the boolean return
+ *   argument of _nm_connection_aggregate(), which serves a different purpose.
+ */
+gboolean
+_nm_setting_aggregate (NMSetting *setting,
+                       NMConnectionAggregateType type,
+                       gpointer arg)
+{
+	const NMSettInfoSetting *sett_info;
+	guint i;
+
+	g_return_val_if_fail (NM_IS_SETTING (setting), FALSE);
+	g_return_val_if_fail (arg, FALSE);
+	g_return_val_if_fail (NM_IN_SET (type, NM_CONNECTION_AGGREGATE_ANY_SECRETS,
+	                                       NM_CONNECTION_AGGREGATE_ANY_SYSTEM_SECRET_FLAGS),
+	                      FALSE);
+
+	if (NM_IS_SETTING_VPN (setting))
+		return _nm_setting_vpn_aggregate (NM_SETTING_VPN (setting), type, arg);
+
+	sett_info = _nm_setting_class_get_sett_info (NM_SETTING_GET_CLASS (setting));
+	for (i = 0; i < sett_info->property_infos_len; i++) {
+		const NMSettInfoProperty *property_info = &sett_info->property_infos[i];
+		GParamSpec *prop_spec = property_info->param_spec;
+		nm_auto_unset_gvalue GValue value = G_VALUE_INIT;
+		NMSettingSecretFlags secret_flags;
+
+		if (   !prop_spec
+		    || !NM_FLAGS_HAS (prop_spec->flags, NM_SETTING_PARAM_SECRET)) {
+			nm_assert (!nm_setting_get_secret_flags (setting, property_info->name, NULL, NULL));
+			continue;
+		}
+
+		/* for the moment, all aggregate types only care about secrets. */
+		nm_assert (nm_setting_get_secret_flags (setting, property_info->name, NULL, NULL));
+
+		switch (type) {
+
+		case NM_CONNECTION_AGGREGATE_ANY_SECRETS:
+			g_value_init (&value, G_PARAM_SPEC_VALUE_TYPE (prop_spec));
+			g_object_get_property (G_OBJECT (setting), prop_spec->name, &value);
+			if (!g_param_value_defaults (prop_spec, &value)) {
+				*((gboolean *) arg) = TRUE;
+				return TRUE;
+			}
+			break;
+
+		case NM_CONNECTION_AGGREGATE_ANY_SYSTEM_SECRET_FLAGS:
+			if (!nm_setting_get_secret_flags (setting, prop_spec->name, &secret_flags, NULL))
+				nm_assert_not_reached ();
+			if (secret_flags == NM_SETTING_SECRET_FLAG_NONE) {
+				*((gboolean *) arg) = TRUE;
+				return TRUE;
+			}
+			break;
+
+		}
+	}
+
+	return FALSE;
+}
+
+static gboolean
+clear_secrets (const NMSettInfoSetting *sett_info,
+               guint property_idx,
+               NMSetting *setting,
+               NMSettingClearSecretsWithFlagsFn func,
+               gpointer user_data)
+{
+	NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
+	GParamSpec *param_spec = sett_info->property_infos[property_idx].param_spec;
+
+	if (!param_spec)
+		return FALSE;
+
+	if (!NM_FLAGS_HAS (param_spec->flags, NM_SETTING_PARAM_SECRET))
+		return FALSE;
+
+	if (func) {
+		if (!nm_setting_get_secret_flags (setting, param_spec->name, &flags, NULL))
+			nm_assert_not_reached ();
+		if (!func (setting, param_spec->name, flags, user_data))
+			return FALSE;
+	} else
+		nm_assert (nm_setting_get_secret_flags (setting, param_spec->name, NULL, NULL));
+
+	{
+		nm_auto_unset_gvalue GValue value = G_VALUE_INIT;
+
+		g_value_init (&value, param_spec->value_type);
+		g_object_get_property (G_OBJECT (setting), param_spec->name, &value);
+		if (g_param_value_defaults (param_spec, &value))
+			return FALSE;
+
+		g_param_value_set_default (param_spec, &value);
+		g_object_set_property (G_OBJECT (setting), param_spec->name, &value);
+	}
+
+	return TRUE;
 }
 
 /**
  * _nm_setting_clear_secrets:
- * @setting: the #NMSetting
- *
- * Resets and clears any secrets in the setting.  Secrets should be added to the
- * setting only when needed, and cleared immediately after use to prevent
- * leakage of information.
- *
- * Returns: %TRUE if the setting changed at all
- **/
-gboolean
-_nm_setting_clear_secrets (NMSetting *setting)
-{
-	gs_free GParamSpec **property_specs = NULL;
-	guint n_property_specs;
-	guint i;
-	gboolean changed = FALSE;
-
-	g_return_val_if_fail (NM_IS_SETTING (setting), FALSE);
-
-	property_specs = g_object_class_list_properties (G_OBJECT_GET_CLASS (setting), &n_property_specs);
-	for (i = 0; i < n_property_specs; i++) {
-		GParamSpec *prop_spec = property_specs[i];
-
-		if (prop_spec->flags & NM_SETTING_PARAM_SECRET) {
-			GValue value = G_VALUE_INIT;
-
-			g_value_init (&value, prop_spec->value_type);
-			g_object_get_property (G_OBJECT (setting), prop_spec->name, &value);
-			if (!g_param_value_defaults (prop_spec, &value)) {
-				g_param_value_set_default (prop_spec, &value);
-				g_object_set_property (G_OBJECT (setting), prop_spec->name, &value);
-				changed = TRUE;
-			}
-			g_value_unset (&value);
-		}
-	}
-	return changed;
-}
-
-static gboolean
-clear_secrets_with_flags (NMSetting *setting,
-                          GParamSpec *pspec,
-                          NMSettingClearSecretsWithFlagsFn func,
-                          gpointer user_data)
-{
-	NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
-	gboolean changed = FALSE;
-
-	g_return_val_if_fail (!NM_IS_SETTING_VPN (setting), FALSE);
-
-	/* Clear the secret if the user function says to do so */
-	if (!nm_setting_get_secret_flags (setting, pspec->name, &flags, NULL))
-		g_return_val_if_reached (FALSE);
-
-	if (func (setting, pspec->name, flags, user_data) == TRUE) {
-		GValue value = G_VALUE_INIT;
-
-		g_value_init (&value, pspec->value_type);
-		g_object_get_property (G_OBJECT (setting), pspec->name, &value);
-		if (!g_param_value_defaults (pspec, &value)) {
-			g_param_value_set_default (pspec, &value);
-			g_object_set_property (G_OBJECT (setting), pspec->name, &value);
-			changed = TRUE;
-		}
-		g_value_unset (&value);
-	}
-
-	return changed;
-}
-
-/**
- * _nm_setting_clear_secrets_with_flags:
  * @setting: the #NMSetting
  * @func: (scope call): function to be called to determine whether a
  *     specific secret should be cleared or not
@@ -1722,27 +1891,30 @@ clear_secrets_with_flags (NMSetting *setting,
  * Returns: %TRUE if the setting changed at all
  **/
 gboolean
-_nm_setting_clear_secrets_with_flags (NMSetting *setting,
-                                      NMSettingClearSecretsWithFlagsFn func,
-                                      gpointer user_data)
+_nm_setting_clear_secrets (NMSetting *setting,
+                           NMSettingClearSecretsWithFlagsFn func,
+                           gpointer user_data)
 {
-	gs_free GParamSpec **property_specs = NULL;
-	guint n_property_specs;
-	guint i;
+	const NMSettInfoSetting *sett_info;
 	gboolean changed = FALSE;
+	guint i;
+	gboolean (*my_clear_secrets) (const struct _NMSettInfoSetting *sett_info,
+	                              guint property_idx,
+	                              NMSetting *setting,
+	                              NMSettingClearSecretsWithFlagsFn func,
+	                              gpointer user_data);
 
-	g_return_val_if_fail (setting, FALSE);
 	g_return_val_if_fail (NM_IS_SETTING (setting), FALSE);
-	g_return_val_if_fail (func != NULL, FALSE);
 
-	property_specs = g_object_class_list_properties (G_OBJECT_GET_CLASS (setting), &n_property_specs);
-	for (i = 0; i < n_property_specs; i++) {
-		if (property_specs[i]->flags & NM_SETTING_PARAM_SECRET) {
-			changed |= NM_SETTING_GET_CLASS (setting)->clear_secrets_with_flags (setting,
-			                                                                     property_specs[i],
-			                                                                     func,
-			                                                                     user_data);
-		}
+	my_clear_secrets = NM_SETTING_GET_CLASS (setting)->clear_secrets;
+
+	sett_info = _nm_setting_class_get_sett_info (NM_SETTING_GET_CLASS (setting));
+	for (i = 0; i < sett_info->property_infos_len; i++) {
+		changed |= my_clear_secrets (sett_info,
+		                             i,
+		                             setting,
+		                             func,
+		                             user_data);
 	}
 	return changed;
 }
@@ -1781,7 +1953,7 @@ update_one_secret (NMSetting *setting, const char *key, GVariant *value, GError 
 	GParamSpec *prop_spec;
 	GValue prop_value = { 0, };
 
-	property = _nm_sett_info_property_get (NM_SETTING_GET_CLASS (setting), key);
+	property = _nm_setting_class_get_property_info (NM_SETTING_GET_CLASS (setting), key);
 	if (!property) {
 		g_set_error_literal (error,
 		                     NM_CONNECTION_ERROR,
@@ -1867,52 +2039,72 @@ _nm_setting_update_secrets (NMSetting *setting, GVariant *secrets, GError **erro
 	return result;
 }
 
-static gboolean
-is_secret_prop (NMSetting *setting, const char *secret_name, GError **error)
+static void
+_set_error_secret_property_not_found (GError **error,
+                                      NMSetting *setting,
+                                      const char *secret_name)
+{
+	g_set_error_literal (error,
+	                     NM_CONNECTION_ERROR,
+	                     NM_CONNECTION_ERROR_PROPERTY_NOT_FOUND,
+	                     _("not a secret property"));
+	g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), secret_name);
+}
+
+gboolean
+_nm_setting_property_is_regular_secret (NMSetting *setting,
+                                        const char *secret_name)
 {
 	const NMSettInfoProperty *property;
-	GParamSpec *pspec;
 
-	property = _nm_sett_info_property_get (NM_SETTING_GET_CLASS (setting), secret_name);
-	if (!property) {
-		g_set_error_literal (error,
-		                     NM_CONNECTION_ERROR,
-		                     NM_CONNECTION_ERROR_PROPERTY_NOT_FOUND,
-		                     _("secret is not set"));
-		g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), secret_name);
-		return FALSE;
-	}
+	nm_assert (NM_IS_SETTING (setting));
+	nm_assert (secret_name);
 
-	pspec = property->param_spec;
-	if (!pspec || !(pspec->flags & NM_SETTING_PARAM_SECRET)) {
-		g_set_error_literal (error,
-		                     NM_CONNECTION_ERROR,
-		                     NM_CONNECTION_ERROR_PROPERTY_NOT_SECRET,
-		                     _("not a secret property"));
-		g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), secret_name);
-		return FALSE;
-	}
+	property = _nm_setting_class_get_property_info (NM_SETTING_GET_CLASS (setting), secret_name);
+	return    property
+	       && property->param_spec
+	       && NM_FLAGS_HAS (property->param_spec->flags, NM_SETTING_PARAM_SECRET);
+}
 
-	return TRUE;
+gboolean
+_nm_setting_property_is_regular_secret_flags (NMSetting *setting,
+                                              const char *secret_flags_name)
+{
+	const NMSettInfoProperty *property;
+
+	nm_assert (NM_IS_SETTING (setting));
+	nm_assert (secret_flags_name);
+
+	property = _nm_setting_class_get_property_info (NM_SETTING_GET_CLASS (setting), secret_flags_name);
+	return    property
+	       && property->param_spec
+	       && !NM_FLAGS_HAS (property->param_spec->flags, NM_SETTING_PARAM_SECRET)
+	       && G_PARAM_SPEC_VALUE_TYPE (property->param_spec) == NM_TYPE_SETTING_SECRET_FLAGS;
 }
 
 static gboolean
 get_secret_flags (NMSetting *setting,
                   const char *secret_name,
-                  gboolean verify_secret,
                   NMSettingSecretFlags *out_flags,
                   GError **error)
 {
-	gs_free char *name_to_free = NULL;
-	NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
+	gs_free char *secret_flags_name_free = NULL;
+	const char *secret_flags_name;
+	NMSettingSecretFlags flags;
 
-	if (verify_secret && !is_secret_prop (setting, secret_name, error)) {
+	if (!_nm_setting_property_is_regular_secret (setting,
+	                                             secret_name)) {
+		_set_error_secret_property_not_found (error, setting, secret_name);
 		NM_SET_OUT (out_flags, NM_SETTING_SECRET_FLAG_NONE);
 		return FALSE;
 	}
 
+	secret_flags_name = nm_construct_name_a ("%s-flags", secret_name, &secret_flags_name_free);
+
+	nm_assert (_nm_setting_property_is_regular_secret_flags (setting, secret_flags_name));
+
 	g_object_get (G_OBJECT (setting),
-	              nm_construct_name_a ("%s-flags", secret_name, &name_to_free),
+	              secret_flags_name,
 	              &flags,
 	              NULL);
 	NM_SET_OUT (out_flags, flags);
@@ -1941,25 +2133,34 @@ nm_setting_get_secret_flags (NMSetting *setting,
 	g_return_val_if_fail (NM_IS_SETTING (setting), FALSE);
 	g_return_val_if_fail (secret_name != NULL, FALSE);
 
-	return NM_SETTING_GET_CLASS (setting)->get_secret_flags (setting, secret_name, TRUE, out_flags, error);
+	return NM_SETTING_GET_CLASS (setting)->get_secret_flags (setting, secret_name, out_flags, error);
 }
 
 static gboolean
 set_secret_flags (NMSetting *setting,
                   const char *secret_name,
-                  gboolean verify_secret,
                   NMSettingSecretFlags flags,
                   GError **error)
 {
-	gs_free char *name_to_free = NULL;
+	gs_free char *secret_flags_name_free = NULL;
+	const char *secret_flags_name;
 
-	if (verify_secret)
-		g_return_val_if_fail (is_secret_prop (setting, secret_name, error), FALSE);
+	if (!_nm_setting_property_is_regular_secret (setting,
+	                                             secret_name)) {
+		_set_error_secret_property_not_found (error, setting, secret_name);
+		return FALSE;
+	}
 
-	g_object_set (G_OBJECT (setting),
-	              nm_construct_name_a ("%s-flags", secret_name, &name_to_free),
-	              flags,
-	              NULL);
+	secret_flags_name = nm_construct_name_a ("%s-flags", secret_name, &secret_flags_name_free);
+
+	nm_assert (_nm_setting_property_is_regular_secret_flags (setting, secret_flags_name));
+
+	if (!nm_g_object_set_property_flags (G_OBJECT (setting),
+	                                     secret_flags_name,
+	                                     NM_TYPE_SETTING_SECRET_FLAGS,
+	                                     flags,
+	                                     error))
+		g_return_val_if_reached (FALSE);
 	return TRUE;
 }
 
@@ -1984,9 +2185,9 @@ nm_setting_set_secret_flags (NMSetting *setting,
 {
 	g_return_val_if_fail (NM_IS_SETTING (setting), FALSE);
 	g_return_val_if_fail (secret_name != NULL, FALSE);
-	g_return_val_if_fail (flags <= NM_SETTING_SECRET_FLAGS_ALL, FALSE);
+	g_return_val_if_fail (_nm_setting_secret_flags_valid (flags), FALSE);
 
-	return NM_SETTING_GET_CLASS (setting)->set_secret_flags (setting, secret_name, TRUE, flags, error);
+	return NM_SETTING_GET_CLASS (setting)->set_secret_flags (setting, secret_name, flags, error);
 }
 
 /**
@@ -2031,9 +2232,11 @@ nm_setting_to_string (NMSetting *setting)
 }
 
 GVariant *
-_nm_setting_get_deprecated_virtual_interface_name (NMSetting *setting,
+_nm_setting_get_deprecated_virtual_interface_name (const NMSettInfoSetting *sett_info,
+                                                   guint property_idx,
                                                    NMConnection *connection,
-                                                   const char *property)
+                                                   NMSetting *setting,
+                                                   NMConnectionSerializationFlags flags)
 {
 	NMSettingConnection *s_con;
 
@@ -2301,11 +2504,6 @@ _nm_setting_gendata_reset_from_hash (NMSetting *setting,
 /*****************************************************************************/
 
 static void
-nm_setting_init (NMSetting *setting)
-{
-}
-
-static void
 get_property (GObject *object, guint prop_id,
               GValue *value, GParamSpec *pspec)
 {
@@ -2319,6 +2517,13 @@ get_property (GObject *object, guint prop_id,
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
 	}
+}
+
+/*****************************************************************************/
+
+static void
+nm_setting_init (NMSetting *setting)
+{
 }
 
 static void
@@ -2361,11 +2566,12 @@ nm_setting_class_init (NMSettingClass *setting_class)
 	object_class->get_property = get_property;
 	object_class->finalize     = finalize;
 
-	setting_class->update_one_secret = update_one_secret;
-	setting_class->get_secret_flags = get_secret_flags;
-	setting_class->set_secret_flags = set_secret_flags;
-	setting_class->compare_property = compare_property;
-	setting_class->clear_secrets_with_flags = clear_secrets_with_flags;
+	setting_class->update_one_secret         = update_one_secret;
+	setting_class->get_secret_flags          = get_secret_flags;
+	setting_class->set_secret_flags          = set_secret_flags;
+	setting_class->compare_property          = compare_property;
+	setting_class->clear_secrets             = clear_secrets;
+	setting_class->duplicate_copy_properties = duplicate_copy_properties;
 
 	/**
 	 * NMSetting:name:
@@ -2374,10 +2580,11 @@ nm_setting_class_init (NMSettingClass *setting_class)
 	 * connection.  Each setting type has a name unique to that type, for
 	 * example "ppp" or "802-11-wireless" or "802-3-ethernet".
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_NAME,
-		 g_param_spec_string (NM_SETTING_NAME, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_NAME] =
+	    g_param_spec_string (NM_SETTING_NAME, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
+
+	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 }

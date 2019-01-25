@@ -7,8 +7,8 @@ dnl  - add corresponding NM_VERSION_x_y_z macros in
 dnl    "shared/nm-version-macros.h.in"
 dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
-m4_define([nm_minor_version], [14])
-m4_define([nm_micro_version], [4])
+m4_define([nm_minor_version], [15])
+m4_define([nm_micro_version], [2])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
 
@@ -79,6 +79,12 @@ AC_CHECK_DECLS([
 	reallocarray],
 	[], [], [[
 #include <malloc.h>
+]])
+
+AC_CHECK_DECLS([
+	memfd_create],
+	[], [], [[
+#include <sys/mman.h>
 ]])
 
 AC_CHECK_HEADERS(sys/auxv.h)
@@ -518,6 +524,20 @@ case $with_suspend_resume in
 		;;
 esac
 
+# eBPF support
+AC_ARG_WITH(ebpf,
+            AS_HELP_STRING([--with-ebpf=yes|no|auto], [Build with eBPF support (default: auto)]),
+            [], [with_ebpf=auto])
+if test "$with_ebpf" = "yes" -o "$with_ebpf" = "auto"; then
+	AC_CHECK_HEADER(linux/bpf.h, [have_ebpf=yes], [have_ebpf=no])
+else
+	have_ebpf=no
+fi
+if test "$with_ebpf" = "yes" -a "$have_ebpf" = "no"; then
+	AC_MSG_ERROR([--with-ebpf=yes requires eBPF kernel header])
+fi
+AM_CONDITIONAL(WITH_EBPF, test "${have_ebpf}" = "yes")
+
 # SELinux support
 AC_ARG_WITH(selinux,
             AS_HELP_STRING([--with-selinux=yes|no|auto], [Build with SELinux (default: auto)]),
@@ -623,7 +643,7 @@ AM_CONDITIONAL(WITH_JSON_VALIDATION, test "${enable_json_validation}" != "no")
 
 # we usually compile with polkit support. --enable-polkit=yes|no only sets the
 # default configuration for main.auth-polkit. User can always enable/disable polkit
-# autorization via config.
+# authorization via config.
 AC_ARG_ENABLE(polkit,
               AS_HELP_STRING([--enable-polkit=yes|no],
                              [set default value for auth-polkit configuration option. This value can be overwritten by NM configuration. 'disabled' is an alias for 'no']),
@@ -808,8 +828,8 @@ else
     AC_DEFINE(WITH_DHCPCANON, 0, [Define if you have dhcpcanon])
 fi
 
-# OpenVSwitch integration
-AC_ARG_ENABLE(ovs, AS_HELP_STRING([--enable-ovs], [enable OpenVSwitch support]))
+# Open vSwitch integration
+AC_ARG_ENABLE(ovs, AS_HELP_STRING([--enable-ovs], [enable Open vSwitch support]))
 if test "${enable_ovs}" != "no"; then
 	enable_ovs='yes'
 	if test "$have_jansson" = "no"; then
@@ -1043,7 +1063,7 @@ else
 	more_logging_default=no
 fi
 
-NM_COMPILER_WARNINGS(CFLAGS, ${more_warnings_default})
+NM_COMPILER_WARNINGS(AM_CFLAGS, ${more_warnings_default})
 
 NM_COMPILER_FLAG(LIBSYSTEMD_NM_CFLAGS, "-Wno-gnu-variable-sized-type-not-at-end")
 AC_SUBST(LIBSYSTEMD_NM_CFLAGS)
@@ -1051,7 +1071,7 @@ AC_SUBST(LIBSYSTEMD_NM_CFLAGS)
 CC_CHECK_FLAGS_APPEND([with_cflags], [CFLAGS], [\
 	-fno-strict-aliasing \
 ])
-CFLAGS="$CFLAGS $with_cflags"
+AM_CFLAGS="$AM_CFLAGS $with_cflags"
 
 AC_ARG_ENABLE(more-asserts,
               AS_HELP_STRING([--enable-more-asserts],
@@ -1248,6 +1268,7 @@ fi
 
 AM_CONDITIONAL(BUILD_DOCS, test "$build_docs" = "yes")
 AM_CONDITIONAL(HAVE_DOCS, test "$build_docs" = "yes" -o "$use_pregen_docs" = "yes")
+AC_SUBST(AM_CFLAGS)
 
 AC_CONFIG_FILES([
 Makefile
@@ -1352,4 +1373,5 @@ echo "  JSON validation for libnm: $enable_json_validation"
 echo "  crypto: $with_crypto (have-gnutls: $have_crypto_gnutls, have-nss: $have_crypto_nss)"
 echo "  sanitizers: $sanitizers"
 echo "  Mozilla Public Suffix List: $with_libpsl"
+echo "  eBPF: $have_ebpf"
 echo

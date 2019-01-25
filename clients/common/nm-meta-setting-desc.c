@@ -285,13 +285,14 @@ _dump_team_link_watcher (NMTeamLinkWatcher *watcher)
 	DUMP_WATCHER_INT (w_dump, watcher, "init-wait", init_wait);
 	DUMP_WATCHER_INT (w_dump, watcher, "interval", interval);
 	DUMP_WATCHER_INT (w_dump, watcher, "missed-max", missed_max);
-#undef DUMP_WATCHER_INT
 	g_string_append_printf (w_dump, " target-host=%s",
 	                        nm_team_link_watcher_get_target_host (watcher));
 
 	if (nm_streq (name, NM_TEAM_LINK_WATCHER_NSNA_PING))
 		return g_string_free (w_dump, FALSE);
 
+	DUMP_WATCHER_INT (w_dump, watcher, "vlanid", vlanid);
+#undef DUMP_WATCHER_INT
 	g_string_append_printf (w_dump, " source-host=%s",
 	                        nm_team_link_watcher_get_source_host (watcher));
 	flags = nm_team_link_watcher_get_flags (watcher);
@@ -313,7 +314,7 @@ _parse_team_link_watcher (const char *str,
 	gs_free char *str_clean = NULL;
 	guint i;
 	gs_free const char *name = NULL;
-	int val1 = 0, val2 = 0, val3 = 3;
+	int val1 = 0, val2 = 0, val3 = 3, val4 = -1;
 	gs_free const char *target_host = NULL;
 	gs_free const char *source_host = NULL;
 	NMTeamLinkWatcherArpPingFlags flags = 0;
@@ -358,6 +359,8 @@ _parse_team_link_watcher (const char *str,
 			val2 = _nm_utils_ascii_str_to_int64 (pair[1], 10, 0, G_MAXINT32, -1);
 		else if (nm_streq (pair[0], "missed-max"))
 			val3 = _nm_utils_ascii_str_to_int64 (pair[1], 10, 0, G_MAXINT32, -1);
+		else if (nm_streq (pair[0], "vlanid"))
+			val4 = _nm_utils_ascii_str_to_int64 (pair[1], 10, -1, 4094, -2);
 		else if (nm_streq (pair[0], "target-host"))
 			target_host = g_strdup (pair[1]);
 		else if (nm_streq (pair[0], "source-host"))
@@ -382,6 +385,11 @@ _parse_team_link_watcher (const char *str,
 			             "value is not a valid number [0, MAXINT]");
 			return NULL;
 		}
+		if (val4 < -1) {
+			g_set_error (error, 1, 0, "'%s' is not valid: %s", watcherv[i],
+			             "value is not a valid number [-1, 4094]");
+			return NULL;
+		}
 	}
 
 	if (nm_streq0 (name, NM_TEAM_LINK_WATCHER_ETHTOOL))
@@ -389,7 +397,7 @@ _parse_team_link_watcher (const char *str,
 	else if (nm_streq0 (name, NM_TEAM_LINK_WATCHER_NSNA_PING))
 		return nm_team_link_watcher_new_nsna_ping (val1, val2, val3, target_host, error);
 	else if (nm_streq0 (name, NM_TEAM_LINK_WATCHER_ARP_PING))
-		return nm_team_link_watcher_new_arp_ping (val1, val2, val3, target_host, source_host, flags, error);
+		return nm_team_link_watcher_new_arp_ping2 (val1, val2, val3, val4, target_host, source_host, flags, error);
 
 	if (!name)
 		g_set_error (error, 1, 0, "link watcher name missing");
@@ -1953,9 +1961,8 @@ nmc_property_set_bytes (NMSetting *setting, const char *prop, const char *value,
 	gs_free char *val_strip = NULL;
 	gs_free const char **strv = NULL;
 	const char **iter;
-	GBytes *bytes;
-	GByteArray *array = NULL;
-	gboolean success = TRUE;
+	gs_unref_bytes GBytes *bytes = NULL;
+	GByteArray *array;
 
 	nm_assert (!error || !*error);
 
@@ -1977,8 +1984,7 @@ nmc_property_set_bytes (NMSetting *setting, const char *prop, const char *value,
 		if (v == -1) {
 			g_set_error (error, 1, 0, _("'%s' is not a valid hex character"), *iter);
 			g_byte_array_free (array, TRUE);
-			success = FALSE;
-			goto done;
+			return FALSE;
 		}
 		v8 = v;
 		g_byte_array_append (array, &v8, 1);
@@ -1986,13 +1992,8 @@ nmc_property_set_bytes (NMSetting *setting, const char *prop, const char *value,
 	bytes = g_byte_array_free_to_bytes (array);
 
 done:
-	if (success)
-		g_object_set (setting, prop, bytes, NULL);
-
-	if (bytes)
-		g_bytes_unref (bytes);
-
-	return success;
+	g_object_set (setting, prop, bytes, NULL);
+	return TRUE;
 }
 
 /*****************************************************************************/
@@ -3349,7 +3350,7 @@ DEFINE_REMOVER_INDEX_OR_VALUE (_remove_fcn_ipv4_config_dns,
                                _validate_and_remove_ipv4_dns)
 
 static gboolean
-_set_fcn_ip4_config_dns_search (ARGS_SET_FCN)
+_set_fcn_ip_config_dns_search (ARGS_SET_FCN)
 {
 	gs_free const char **strv = NULL;
 	gsize i;
@@ -3368,9 +3369,9 @@ _set_fcn_ip4_config_dns_search (ARGS_SET_FCN)
 }
 
 static gboolean
-_validate_and_remove_ipv4_dns_search (NMSettingIPConfig *setting,
-                                      const char *dns_search,
-                                      GError **error)
+_validate_and_remove_ip_dns_search (NMSettingIPConfig *setting,
+                                    const char *dns_search,
+                                    GError **error)
 {
 	gboolean ret;
 
@@ -3381,33 +3382,36 @@ _validate_and_remove_ipv4_dns_search (NMSettingIPConfig *setting,
 		             dns_search);
 	return ret;
 }
-DEFINE_REMOVER_INDEX_OR_VALUE (_remove_fcn_ipv4_config_dns_search,
+DEFINE_REMOVER_INDEX_OR_VALUE (_remove_fcn_ip_config_dns_search,
                                NM_SETTING_IP_CONFIG,
                                nm_setting_ip_config_get_num_dns_searches,
                                nm_setting_ip_config_remove_dns_search,
-                               _validate_and_remove_ipv4_dns_search)
+                               _validate_and_remove_ip_dns_search)
 
 static gboolean
-_set_fcn_ip4_config_dns_options (ARGS_SET_FCN)
+_set_fcn_ip_config_dns_options (ARGS_SET_FCN)
 {
 	gs_free const char **strv = NULL;
+	NMSettingIPConfig *s_ip;
 	gsize i;
 
 	nm_assert (!error || !*error);
+	s_ip = NM_SETTING_IP_CONFIG (setting);
 
-	nm_setting_ip_config_clear_dns_options (NM_SETTING_IP_CONFIG (setting), TRUE);
 	strv = nm_utils_strsplit_set (value, " \t,", FALSE);
 	if (strv) {
-		for (i = 0; strv[i]; i++)
-			nm_setting_ip_config_add_dns_option (NM_SETTING_IP_CONFIG (setting), strv[i]);
+		for (i = 0; strv[i]; i++) {
+			nm_setting_ip_config_remove_dns_option_by_value (s_ip, strv[i]);
+			nm_setting_ip_config_add_dns_option (s_ip, strv[i]);
+		}
 	}
 	return TRUE;
 }
 
 static gboolean
-_validate_and_remove_ipv4_dns_option (NMSettingIPConfig *setting,
-                                      const char *dns_option,
-                                      GError **error)
+_validate_and_remove_ip_dns_option (NMSettingIPConfig *setting,
+                                    const char *dns_option,
+                                    GError **error)
 {
 	gboolean ret;
 
@@ -3418,11 +3422,11 @@ _validate_and_remove_ipv4_dns_option (NMSettingIPConfig *setting,
 		             dns_option);
 	return ret;
 }
-DEFINE_REMOVER_INDEX_OR_VALUE (_remove_fcn_ipv4_config_dns_options,
+DEFINE_REMOVER_INDEX_OR_VALUE (_remove_fcn_ip_config_dns_options,
                                NM_SETTING_IP_CONFIG,
                                nm_setting_ip_config_get_num_dns_options,
                                nm_setting_ip_config_remove_dns_option,
-                               _validate_and_remove_ipv4_dns_option)
+                               _validate_and_remove_ip_dns_option)
 
 static gboolean
 _set_fcn_ip4_config_addresses (ARGS_SET_FCN)
@@ -3591,82 +3595,6 @@ DEFINE_REMOVER_INDEX_OR_VALUE (_remove_fcn_ipv6_config_dns,
                                nm_setting_ip_config_get_num_dns,
                                nm_setting_ip_config_remove_dns,
                                _validate_and_remove_ipv6_dns)
-
-static gboolean
-_set_fcn_ip6_config_dns_search (ARGS_SET_FCN)
-{
-	gs_free const char **strv = NULL;
-	gsize i;
-
-	nm_assert (!error || !*error);
-
-	strv = nm_utils_strsplit_set (value, " \t,", FALSE);
-	if (!verify_string_list (strv, property_info->property_name, nmc_util_is_domain, error))
-		return FALSE;
-
-	if (strv) {
-		for (i = 0; strv[i]; i++)
-			nm_setting_ip_config_add_dns_search (NM_SETTING_IP_CONFIG (setting), strv[i]);
-	}
-	return TRUE;
-}
-
-static gboolean
-_validate_and_remove_ipv6_dns_search (NMSettingIPConfig *setting,
-                                      const char *dns_search,
-                                      GError **error)
-{
-	gboolean ret;
-
-	ret = nm_setting_ip_config_remove_dns_search_by_value (setting, dns_search);
-	if (!ret)
-		g_set_error (error, 1, 0,
-		             _("the property doesn't contain DNS search domain '%s'"),
-		             dns_search);
-	return ret;
-}
-DEFINE_REMOVER_INDEX_OR_VALUE (_remove_fcn_ipv6_config_dns_search,
-                               NM_SETTING_IP_CONFIG,
-                               nm_setting_ip_config_get_num_dns_searches,
-                               nm_setting_ip_config_remove_dns_search,
-                               _validate_and_remove_ipv6_dns_search)
-
-static gboolean
-_set_fcn_ip6_config_dns_options (ARGS_SET_FCN)
-{
-	gs_free const char **strv = NULL;
-	gsize i;
-
-	nm_assert (!error || !*error);
-
-	nm_setting_ip_config_clear_dns_options (NM_SETTING_IP_CONFIG (setting), TRUE);
-	strv = nm_utils_strsplit_set (value, " \t,", FALSE);
-	if (strv) {
-		for (i = 0; strv[i]; i++)
-			nm_setting_ip_config_add_dns_option (NM_SETTING_IP_CONFIG (setting), strv[i]);
-	}
-	return TRUE;
-}
-
-static gboolean
-_validate_and_remove_ipv6_dns_option (NMSettingIPConfig *setting,
-                                      const char *dns_option,
-                                      GError **error)
-{
-	gboolean ret;
-
-	ret = nm_setting_ip_config_remove_dns_option_by_value (setting, dns_option);
-	if (!ret)
-		g_set_error (error, 1, 0,
-		             _("the property doesn't contain DNS option '%s'"),
-		             dns_option);
-	return ret;
-}
-DEFINE_REMOVER_INDEX_OR_VALUE (_remove_fcn_ipv6_config_dns_options,
-                               NM_SETTING_IP_CONFIG,
-                               nm_setting_ip_config_get_num_dns_options,
-                               nm_setting_ip_config_remove_dns_option,
-                               _validate_and_remove_ipv6_dns_option)
 
 static gboolean
 _dns_options_is_default (NMSettingIPConfig *setting)
@@ -5194,8 +5122,6 @@ static const NMMetaPropertyType _pt_ethtool = {
 #define PROPERTY_INFO_WITH_DESC(name, ...) \
 	PROPERTY_INFO (name, DESCRIBE_DOC_##name, ##__VA_ARGS__)
 
-#define VALUES_STATIC(...)  (((const char *[]) { __VA_ARGS__, NULL }))
-
 #define ENUM_VALUE_INFOS(...)  (((const NMUtilsEnumValueInfo []) { __VA_ARGS__, { 0 } }))
 #define INT_VALUE_INFOS(...)  (((const NMMetaUtilsIntValueInfo []) { __VA_ARGS__, { 0 } }))
 
@@ -5254,7 +5180,7 @@ static const NMMetaPropertyInfo *const property_infos_802_1X[] = {
 			.remove_fcn =               _remove_fcn_802_1x_eap,
 		),
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("leap", "md5", "tls", "peap", "ttls", "sim", "fast", "pwd"),
+			.values_static =            NM_MAKE_STRV ("leap", "md5", "tls", "peap", "ttls", "sim", "fast", "pwd"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_IDENTITY,
@@ -5321,19 +5247,19 @@ static const NMMetaPropertyInfo *const property_infos_802_1X[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PHASE1_PEAPVER,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("0", "1"),
+			.values_static =            NM_MAKE_STRV ("0", "1"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PHASE1_PEAPLABEL,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("0", "1"),
+			.values_static =            NM_MAKE_STRV ("0", "1"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PHASE1_FAST_PROVISIONING,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("0", "1", "2", "3"),
+			.values_static =            NM_MAKE_STRV ("0", "1", "2", "3"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PHASE1_AUTH_FLAGS,
@@ -5348,13 +5274,13 @@ static const NMMetaPropertyInfo *const property_infos_802_1X[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PHASE2_AUTH,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("pap", "chap", "mschap", "mschapv2", "gtc", "otp", "md5", "tls"),
+			.values_static =            NM_MAKE_STRV ("pap", "chap", "mschap", "mschapv2", "gtc", "otp", "md5", "tls"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PHASE2_AUTHEAP,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("md5", "mschapv2", "otp", "gtc", "tls"),
+			.values_static =            NM_MAKE_STRV ("md5", "mschapv2", "otp", "gtc", "tls"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PHASE2_CA_CERT,
@@ -5516,9 +5442,9 @@ static const NMMetaPropertyInfo *const property_infos_ADSL[] = {
 		.def_hint =                     NM_META_TEXT_PROMPT_ADSL_PROTO_CHOICES,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC (NM_SETTING_ADSL_PROTOCOL_PPPOA,
-			                                           NM_SETTING_ADSL_PROTOCOL_PPPOE,
-			                                           NM_SETTING_ADSL_PROTOCOL_IPOATM),
+			.values_static =            NM_MAKE_STRV (NM_SETTING_ADSL_PROTOCOL_PPPOA,
+			                                          NM_SETTING_ADSL_PROTOCOL_PPPOE,
+			                                          NM_SETTING_ADSL_PROTOCOL_IPOATM),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_ADSL_ENCAPSULATION,
@@ -5528,8 +5454,8 @@ static const NMMetaPropertyInfo *const property_infos_ADSL[] = {
 		.def_hint =                     NM_META_TEXT_PROMPT_ADSL_ENCAP_CHOICES,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC (NM_SETTING_ADSL_ENCAPSULATION_VCMUX,
-			                                           NM_SETTING_ADSL_ENCAPSULATION_LLC),
+			.values_static =            NM_MAKE_STRV (NM_SETTING_ADSL_ENCAPSULATION_VCMUX,
+			                                          NM_SETTING_ADSL_ENCAPSULATION_LLC),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_ADSL_VPI,
@@ -5557,9 +5483,9 @@ static const NMMetaPropertyInfo *const property_infos_BLUETOOTH[] = {
 		.def_hint =                     NM_META_TEXT_PROMPT_BT_TYPE_CHOICES,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC (NM_SETTING_BLUETOOTH_TYPE_DUN,
-			                                           NM_SETTING_BLUETOOTH_TYPE_PANU,
-			                                           NM_SETTING_BLUETOOTH_TYPE_NAP),
+			.values_static =            NM_MAKE_STRV (NM_SETTING_BLUETOOTH_TYPE_DUN,
+			                                          NM_SETTING_BLUETOOTH_TYPE_PANU,
+			                                          NM_SETTING_BLUETOOTH_TYPE_NAP),
 		),
 	),
 	NULL
@@ -5812,11 +5738,11 @@ static const NMMetaPropertyInfo *const property_infos_CONNECTION[] = {
 		.inf_flags =                    NM_META_PROPERTY_INF_FLAG_DONT_ASK,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC (NM_SETTING_BOND_SETTING_NAME,
-			                                           NM_SETTING_BRIDGE_SETTING_NAME,
-			                                           NM_SETTING_OVS_BRIDGE_SETTING_NAME,
-			                                           NM_SETTING_OVS_PORT_SETTING_NAME,
-			                                           NM_SETTING_TEAM_SETTING_NAME),
+			.values_static =            NM_MAKE_STRV (NM_SETTING_BOND_SETTING_NAME,
+			                                          NM_SETTING_BRIDGE_SETTING_NAME,
+			                                          NM_SETTING_OVS_BRIDGE_SETTING_NAME,
+			                                          NM_SETTING_OVS_PORT_SETTING_NAME,
+			                                          NM_SETTING_TEAM_SETTING_NAME),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES,
@@ -5851,7 +5777,7 @@ static const NMMetaPropertyInfo *const property_infos_CONNECTION[] = {
 			.set_fcn =                  _set_fcn_connection_metered,
 		),
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("yes", "no", "unknown"),
+			.values_static =            NM_MAKE_STRV ("yes", "no", "unknown"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_LLDP,
@@ -5904,7 +5830,7 @@ static const NMMetaPropertyInfo *const property_infos_DCB[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_DCB_APP_FCOE_MODE,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC (NM_SETTING_DCB_FCOE_MODE_FABRIC,
+			.values_static =            NM_MAKE_STRV (NM_SETTING_DCB_FCOE_MODE_FABRIC,
 			                                           NM_SETTING_DCB_FCOE_MODE_VN2VN),
 		),
 	),
@@ -6134,7 +6060,7 @@ static const NMMetaPropertyInfo *const property_infos_INFINIBAND[] = {
 		.def_hint =                     NM_META_TEXT_PROMPT_IB_MODE_CHOICES,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("datagram", "connected"),
+			.values_static =            NM_MAKE_STRV ("datagram", "connected"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_INFINIBAND_P_KEY,
@@ -6183,15 +6109,15 @@ static const NMMetaPropertyInfo *const property_infos_IP4_CONFIG[] = {
 	PROPERTY_INFO (NM_SETTING_IP_CONFIG_DNS_SEARCH, DESCRIBE_DOC_NM_SETTING_IP4_CONFIG_DNS_SEARCH,
 		.property_type = DEFINE_PROPERTY_TYPE (
 			.get_fcn =                  _get_fcn_gobject,
-			.set_fcn =                  _set_fcn_ip4_config_dns_search,
-			.remove_fcn =               _remove_fcn_ipv4_config_dns_search,
+			.set_fcn =                  _set_fcn_ip_config_dns_search,
+			.remove_fcn =               _remove_fcn_ip_config_dns_search,
 		),
 	),
 	PROPERTY_INFO (NM_SETTING_IP_CONFIG_DNS_OPTIONS, DESCRIBE_DOC_NM_SETTING_IP4_CONFIG_DNS_OPTIONS,
 		.property_type = DEFINE_PROPERTY_TYPE (
 			.get_fcn =                  _get_fcn_nmc_with_default,
-			.set_fcn =                  _set_fcn_ip4_config_dns_options,
-			.remove_fcn =               _remove_fcn_ipv4_config_dns_options,
+			.set_fcn =                  _set_fcn_ip_config_dns_options,
+			.remove_fcn =               _remove_fcn_ip_config_dns_options,
 		),
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (get_with_default,
 			.fcn =                      GET_FCN_WITH_DEFAULT (NMSettingIPConfig, _dns_options_is_default),
@@ -6346,15 +6272,15 @@ static const NMMetaPropertyInfo *const property_infos_IP6_CONFIG[] = {
 	PROPERTY_INFO (NM_SETTING_IP_CONFIG_DNS_SEARCH, DESCRIBE_DOC_NM_SETTING_IP6_CONFIG_DNS_SEARCH,
 		.property_type = DEFINE_PROPERTY_TYPE (
 			.get_fcn =                  _get_fcn_gobject,
-			.set_fcn =                  _set_fcn_ip6_config_dns_search,
-			.remove_fcn =               _remove_fcn_ipv6_config_dns_search,
+			.set_fcn =                  _set_fcn_ip_config_dns_search,
+			.remove_fcn =               _remove_fcn_ip_config_dns_search,
 		),
 	),
 	PROPERTY_INFO (NM_SETTING_IP_CONFIG_DNS_OPTIONS, DESCRIBE_DOC_NM_SETTING_IP6_CONFIG_DNS_OPTIONS,
 		.property_type = DEFINE_PROPERTY_TYPE (
 			.get_fcn =                  _get_fcn_nmc_with_default,
-			.set_fcn =                  _set_fcn_ip6_config_dns_options,
-			.remove_fcn =               _remove_fcn_ipv6_config_dns_options,
+			.set_fcn =                  _set_fcn_ip_config_dns_options,
+			.remove_fcn =               _remove_fcn_ip_config_dns_options,
 		),
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (get_with_default,
 			.fcn =     GET_FCN_WITH_DEFAULT (NMSettingIPConfig, _dns_options_is_default),
@@ -6734,7 +6660,7 @@ static const NMMetaPropertyInfo *const property_infos_OVS_BRIDGE[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_OVS_BRIDGE_FAIL_MODE,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =        VALUES_STATIC ("secure", "standalone"),
+			.values_static =            NM_MAKE_STRV ("secure", "standalone"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_OVS_BRIDGE_MCAST_SNOOPING_ENABLE,
@@ -6755,7 +6681,7 @@ static const NMMetaPropertyInfo *const property_infos_OVS_INTERFACE[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_OVS_INTERFACE_TYPE,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =        VALUES_STATIC ("internal", "patch"),
+			.values_static =            NM_MAKE_STRV ("internal", "patch"),
 		),
 	),
 	NULL
@@ -6776,7 +6702,7 @@ static const NMMetaPropertyInfo *const property_infos_OVS_PORT[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_OVS_PORT_VLAN_MODE,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =        VALUES_STATIC ("access", "native-tagged", "native-untagged", "trunk"),
+			.values_static =            NM_MAKE_STRV ("access", "native-tagged", "native-untagged", "trunk"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_OVS_PORT_TAG,
@@ -6785,13 +6711,13 @@ static const NMMetaPropertyInfo *const property_infos_OVS_PORT[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_OVS_PORT_LACP,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =        VALUES_STATIC ("active", "off", "passive"),
+			.values_static =            NM_MAKE_STRV ("active", "off", "passive"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_OVS_PORT_BOND_MODE,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =        VALUES_STATIC ("active-backup", "balance-slb", "balance-tcp"),
+			.values_static =            NM_MAKE_STRV ("active-backup", "balance-slb", "balance-tcp"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_OVS_PORT_BOND_UPDELAY,
@@ -6987,20 +6913,20 @@ static const NMMetaPropertyInfo *const property_infos_TEAM[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_TEAM_RUNNER,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC (NM_SETTING_TEAM_RUNNER_BROADCAST,
-			                                           NM_SETTING_TEAM_RUNNER_ROUNDROBIN,
-			                                           NM_SETTING_TEAM_RUNNER_RANDOM,
-			                                           NM_SETTING_TEAM_RUNNER_ACTIVEBACKUP,
-			                                           NM_SETTING_TEAM_RUNNER_LOADBALANCE,
-			                                           NM_SETTING_TEAM_RUNNER_LACP),
+			.values_static =            NM_MAKE_STRV (NM_SETTING_TEAM_RUNNER_BROADCAST,
+			                                          NM_SETTING_TEAM_RUNNER_ROUNDROBIN,
+			                                          NM_SETTING_TEAM_RUNNER_RANDOM,
+			                                          NM_SETTING_TEAM_RUNNER_ACTIVEBACKUP,
+			                                          NM_SETTING_TEAM_RUNNER_LOADBALANCE,
+			                                          NM_SETTING_TEAM_RUNNER_LACP),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_TEAM_RUNNER_HWADDR_POLICY,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC (NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_SAME_ALL,
-			                                           NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_BY_ACTIVE,
-			                                           NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_ONLY_ACTIVE),
+			.values_static =            NM_MAKE_STRV (NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_SAME_ALL,
+			                                          NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_BY_ACTIVE,
+			                                          NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_ONLY_ACTIVE),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_TEAM_RUNNER_TX_HASH,
@@ -7013,7 +6939,7 @@ static const NMMetaPropertyInfo *const property_infos_TEAM[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_TEAM_RUNNER_TX_BALANCER,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("basic"),
+			.values_static =            NM_MAKE_STRV ("basic"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_TEAM_RUNNER_TX_BALANCER_INTERVAL,
@@ -7058,11 +6984,11 @@ static const NMMetaPropertyInfo *const property_infos_TEAM[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC (NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_LACP_PRIO,
-			                                           NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_LACP_PRIO_STABLE,
-			                                           NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_BANDWIDTH,
-			                                           NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_COUNT,
-			                                           NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_PORT_CONFIG),
+			.values_static =            NM_MAKE_STRV (NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_LACP_PRIO,
+			                                          NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_LACP_PRIO_STABLE,
+			                                          NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_BANDWIDTH,
+			                                          NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_COUNT,
+			                                          NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_PORT_CONFIG),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_TEAM_LINK_WATCHERS,
@@ -7473,7 +7399,7 @@ static const NMMetaPropertyInfo *const property_infos_WIRED[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRED_DUPLEX,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("half", "full"),
+			.values_static =            NM_MAKE_STRV ("half", "full"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRED_AUTO_NEGOTIATE,
@@ -7525,7 +7451,7 @@ static const NMMetaPropertyInfo *const property_infos_WIRED[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRED_S390_NETTYPE,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("qeth", "lcs", "ctc"),
+			.values_static =            NM_MAKE_STRV ("qeth", "lcs", "ctc"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRED_S390_OPTIONS,
@@ -7587,15 +7513,15 @@ static const NMMetaPropertyInfo *const property_infos_WIRELESS[] = {
 		.def_hint =                     NM_META_TEXT_PROMPT_WIFI_MODE_CHOICES,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC (NM_SETTING_WIRELESS_MODE_INFRA,
-			                                           NM_SETTING_WIRELESS_MODE_ADHOC,
-			                                           NM_SETTING_WIRELESS_MODE_AP),
+			.values_static =            NM_MAKE_STRV (NM_SETTING_WIRELESS_MODE_INFRA,
+			                                          NM_SETTING_WIRELESS_MODE_ADHOC,
+			                                          NM_SETTING_WIRELESS_MODE_AP),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_BAND,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("a", "bg"),
+			.values_static =            NM_MAKE_STRV ("a", "bg"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_CHANNEL,
@@ -7697,7 +7623,7 @@ static const NMMetaPropertyInfo *const property_infos_WIRELESS_SECURITY[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("none", "ieee8021x", "wpa-none", "wpa-psk", "wpa-eap"),
+			.values_static =            NM_MAKE_STRV ("none", "ieee8021x", "wpa-none", "wpa-psk", "wpa-eap"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_SECURITY_WEP_TX_KEYIDX,
@@ -7706,7 +7632,7 @@ static const NMMetaPropertyInfo *const property_infos_WIRELESS_SECURITY[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_SECURITY_AUTH_ALG,
 		.property_type =                &_pt_gobject_string,
 		.property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-			.values_static =            VALUES_STATIC ("open", "shared", "leap"),
+			.values_static =            NM_MAKE_STRV ("open", "shared", "leap"),
 		),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_SECURITY_PROTO,
@@ -7873,6 +7799,34 @@ static const NMMetaPropertyInfo *const property_infos_WPAN[] = {
 			),
 		),
 	),
+	PROPERTY_INFO_WITH_DESC (NM_SETTING_WPAN_PAGE,
+		.is_cli_option =                TRUE,
+		.property_alias =               "page",
+		.prompt =                       N_("Page (<default|0-31>)"),
+		.property_type =                &_pt_gobject_int,
+		.property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (gobject_int, \
+			.value_infos =          INT_VALUE_INFOS (
+				{
+					.value = NM_SETTING_WPAN_PAGE_DEFAULT,
+					.nick = "default",
+				}
+			),
+		),
+	),
+	PROPERTY_INFO_WITH_DESC (NM_SETTING_WPAN_CHANNEL,
+		.is_cli_option =                TRUE,
+		.property_alias =               "channel",
+		.prompt =                       N_("Channel (<default|0-26>)"),
+		.property_type =                &_pt_gobject_int,
+		.property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (gobject_int, \
+			.value_infos =          INT_VALUE_INFOS (
+				{
+					.value = NM_SETTING_WPAN_CHANNEL_DEFAULT,
+					.nick = "default",
+				}
+			),
+		),
+	),
 	NULL
 };
 
@@ -7917,9 +7871,9 @@ static void
 _setting_init_fcn_gsm (ARGS_SETTING_INIT_FCN)
 {
 	if (init_type == NM_META_ACCESSOR_SETTING_INIT_TYPE_CLI) {
-		/* Initialize 'number' so that 'gsm' is valid */
+		/* Initialize 'apn' so that 'gsm' is valid */
 		g_object_set (NM_SETTING_GSM (setting),
-		              NM_SETTING_GSM_NUMBER, "*99#",
+		              NM_SETTING_GSM_APN, "internet",
 		              NULL);
 	}
 }
@@ -8031,10 +7985,10 @@ _setting_init_fcn_wireless (ARGS_SETTING_INIT_FCN)
 #define SETTING_PRETTY_NAME_MACVLAN             N_("macvlan connection")
 #define SETTING_PRETTY_NAME_MATCH               N_("Match")
 #define SETTING_PRETTY_NAME_OLPC_MESH           N_("OLPC Mesh connection")
-#define SETTING_PRETTY_NAME_OVS_BRIDGE          N_("OpenVSwitch bridge settings")
-#define SETTING_PRETTY_NAME_OVS_INTERFACE       N_("OpenVSwitch interface settings")
-#define SETTING_PRETTY_NAME_OVS_PATCH           N_("OpenVSwitch patch interface settings")
-#define SETTING_PRETTY_NAME_OVS_PORT            N_("OpenVSwitch port settings")
+#define SETTING_PRETTY_NAME_OVS_BRIDGE          N_("Open vSwitch bridge settings")
+#define SETTING_PRETTY_NAME_OVS_INTERFACE       N_("Open vSwitch interface settings")
+#define SETTING_PRETTY_NAME_OVS_PATCH           N_("Open vSwitch patch interface settings")
+#define SETTING_PRETTY_NAME_OVS_PORT            N_("Open vSwitch port settings")
 #define SETTING_PRETTY_NAME_PPP                 N_("PPP settings")
 #define SETTING_PRETTY_NAME_PPPOE               N_("PPPoE")
 #define SETTING_PRETTY_NAME_PROXY               N_("Proxy")

@@ -1051,6 +1051,7 @@ nm_ip4_config_create_setting (const NMIP4Config *self)
 	NMDedupMultiIter ipconf_iter;
 	const NMPlatformIP4Address *address;
 	const NMPlatformIP4Route *route;
+	char sbuf[NM_UTILS_INET_ADDRSTRLEN];
 
 	s_ip4 = NM_SETTING_IP_CONFIG (nm_setting_ip4_config_new ());
 
@@ -1095,7 +1096,7 @@ nm_ip4_config_create_setting (const NMIP4Config *self)
 		g_object_set (s_ip4,
 		              NM_SETTING_IP_CONFIG_GATEWAY,
 		              nm_utils_inet4_ntop (NMP_OBJECT_CAST_IP4_ROUTE (priv->best_default_route)->gateway,
-		                                   NULL),
+		                                   sbuf),
 		              NULL);
 	}
 
@@ -1130,7 +1131,7 @@ nm_ip4_config_create_setting (const NMIP4Config *self)
 	for (i = 0; i < nnameservers; i++) {
 		guint32 nameserver = nm_ip4_config_get_nameserver (self, i);
 
-		nm_setting_ip_config_add_dns (s_ip4, nm_utils_inet4_ntop (nameserver, NULL));
+		nm_setting_ip_config_add_dns (s_ip4, nm_utils_inet4_ntop (nameserver, sbuf));
 	}
 	for (i = 0; i < nsearches; i++) {
 		const char *search = nm_ip4_config_get_search (self, i);
@@ -2039,9 +2040,11 @@ nm_ip_config_dump (const NMIPConfig *self,
 	}
 
 	for (i = 0; i < nm_ip_config_get_num_nameservers (self); i++) {
+		char buf[NM_UTILS_INET_ADDRSTRLEN];
+
 		ptr = nm_ip_config_get_nameserver (self, i);
 		nm_log (level, domain, NULL, NULL, " dns      : %s",
-		        nm_utils_inet_ntop (addr_family, ptr, NULL));
+		        nm_utils_inet_ntop (addr_family, ptr, buf));
 	}
 
 	for (i = 0; i < nm_ip_config_get_num_domains (self); i++)
@@ -2110,7 +2113,7 @@ nm_ip4_config_add_address (NMIP4Config *self, const NMPlatformIP4Address *new)
 {
 	g_return_if_fail (self);
 	g_return_if_fail (new);
-	g_return_if_fail (new->plen > 0 && new->plen <= 32);
+	g_return_if_fail (new->plen <= 32);
 	g_return_if_fail (NM_IP4_CONFIG_GET_PRIVATE (self)->ifindex > 0);
 
 	_add_address (self, NULL, new);
@@ -2996,29 +2999,19 @@ nm_ip4_config_hash (const NMIP4Config *self, GChecksum *sum, gboolean dns_only)
 gboolean
 nm_ip4_config_equal (const NMIP4Config *a, const NMIP4Config *b)
 {
-	GChecksum *a_checksum = g_checksum_new (G_CHECKSUM_SHA1);
-	GChecksum *b_checksum = g_checksum_new (G_CHECKSUM_SHA1);
-	guchar a_data[20], b_data[20];
-	gsize a_len = sizeof (a_data);
-	gsize b_len = sizeof (b_data);
-	gboolean equal;
+	nm_auto_free_checksum GChecksum *a_checksum = g_checksum_new (G_CHECKSUM_SHA1);
+	nm_auto_free_checksum GChecksum *b_checksum = g_checksum_new (G_CHECKSUM_SHA1);
+	guint8 a_data[NM_UTILS_CHECKSUM_LENGTH_SHA1];
+	guint8 b_data[NM_UTILS_CHECKSUM_LENGTH_SHA1];
 
 	if (a)
 		nm_ip4_config_hash (a, a_checksum, FALSE);
 	if (b)
 		nm_ip4_config_hash (b, b_checksum, FALSE);
 
-	g_checksum_get_digest (a_checksum, a_data, &a_len);
-	g_checksum_get_digest (b_checksum, b_data, &b_len);
-
-	nm_assert (a_len == sizeof (a_data));
-	nm_assert (b_len == sizeof (b_data));
-	equal = !memcmp (a_data, b_data, a_len);
-
-	g_checksum_free (a_checksum);
-	g_checksum_free (b_checksum);
-
-	return equal;
+	nm_utils_checksum_get_digest (a_checksum, a_data);
+	nm_utils_checksum_get_digest (b_checksum, b_data);
+	return !memcmp (a_data, b_data, sizeof (a_data));
 }
 
 /*****************************************************************************/
@@ -3034,6 +3027,7 @@ get_property (GObject *object, guint prop_id,
 	const NMPlatformIP4Route *route;
 	GVariantBuilder builder_data, builder_legacy;
 	guint i;
+	char addr_str[NM_UTILS_INET_ADDRSTRLEN];
 
 	switch (prop_id) {
 	case PROP_IFINDEX:
@@ -3071,14 +3065,14 @@ get_property (GObject *object, guint prop_id,
 				g_variant_builder_init (&addr_builder, G_VARIANT_TYPE ("a{sv}"));
 				g_variant_builder_add (&addr_builder, "{sv}",
 				                       "address",
-				                       g_variant_new_string (nm_utils_inet4_ntop (address->address, NULL)));
+				                       g_variant_new_string (nm_utils_inet4_ntop (address->address, addr_str)));
 				g_variant_builder_add (&addr_builder, "{sv}",
 				                       "prefix",
 				                       g_variant_new_uint32 (address->plen));
 				if (address->peer_address != address->address) {
 					g_variant_builder_add (&addr_builder, "{sv}",
 					                       "peer",
-					                       g_variant_new_string (nm_utils_inet4_ntop (address->peer_address, NULL)));
+					                       g_variant_new_string (nm_utils_inet4_ntop (address->peer_address, addr_str)));
 				}
 
 				if (*address->label) {
@@ -3133,14 +3127,14 @@ out_addresses_cached:
 			g_variant_builder_init (&route_builder, G_VARIANT_TYPE ("a{sv}"));
 			g_variant_builder_add (&route_builder, "{sv}",
 			                       "dest",
-			                       g_variant_new_string (nm_utils_inet4_ntop (route->network, NULL)));
+			                       g_variant_new_string (nm_utils_inet4_ntop (route->network, addr_str)));
 			g_variant_builder_add (&route_builder, "{sv}",
 			                       "prefix",
 			                       g_variant_new_uint32 (route->plen));
 			if (route->gateway) {
 				g_variant_builder_add (&route_builder, "{sv}",
 				                       "next-hop",
-				                       g_variant_new_string (nm_utils_inet4_ntop (route->gateway, NULL)));
+				                       g_variant_new_string (nm_utils_inet4_ntop (route->gateway, addr_str)));
 			}
 			g_variant_builder_add (&route_builder, "{sv}",
 			                       "metric",
@@ -3182,9 +3176,8 @@ out_routes_cached:
 		break;
 	case PROP_GATEWAY:
 		if (priv->best_default_route) {
-			g_value_set_string (value,
-			                    nm_utils_inet4_ntop (NMP_OBJECT_CAST_IP4_ROUTE (priv->best_default_route)->gateway,
-			                                         NULL));
+			g_value_take_string (value,
+			                    nm_utils_inet4_ntop_dup (NMP_OBJECT_CAST_IP4_ROUTE (priv->best_default_route)->gateway));
 		} else
 			g_value_set_string (value, NULL);
 		break;
@@ -3193,7 +3186,6 @@ out_routes_cached:
 
 		for (i = 0; i < priv->nameservers->len; i++) {
 			GVariantBuilder nested_builder;
-			char addr_str[NM_UTILS_INET_ADDRSTRLEN];
 
 			nm_utils_inet4_ntop (g_array_index (priv->nameservers, in_addr_t, i),
 			                     addr_str);
@@ -3230,8 +3222,6 @@ out_routes_cached:
 	case PROP_WINS_SERVER_DATA:
 		g_variant_builder_init (&builder_data, G_VARIANT_TYPE ("as"));
 		for (i = 0; i < priv->wins->len; i++) {
-			char addr_str[NM_UTILS_INET_ADDRSTRLEN];
-
 			g_variant_builder_add (&builder_data,
 			                       "s",
 			                       nm_utils_inet4_ntop (g_array_index (priv->wins, in_addr_t, i),

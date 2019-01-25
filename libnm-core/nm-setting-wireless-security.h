@@ -54,9 +54,9 @@ G_BEGIN_DECLS
  * @NM_WEP_KEY_TYPE_LAST: placeholder value for bounds-checking
  *
  * The #NMWepKeyType values specify how any WEP keys present in the setting
- * are intepreted.  There are no standards governing how to hash the various WEP
+ * are interpreted.  There are no standards governing how to hash the various WEP
  * key/passphrase formats into the actual WEP key.  Unfortunately some WEP keys
- * can be interpreted in multiple ways, requring the setting to specify how to
+ * can be interpreted in multiple ways, requiring the setting to specify how to
  * interpret the any WEP keys.  For example, the key "732f2d712e4a394a375d366931"
  * is both a valid Hexadecimal WEP key and a WEP passphrase.  Further, many
  * ASCII keys are also valid WEP passphrases, but since passphrases and ASCII
@@ -99,9 +99,12 @@ typedef enum {
  *
  * Configure the use of WPS by a connection while it activates.
  *
+ * Note: prior to 1.16, this was a GEnum type instead of a GFlags type
+ * altough, with the same numeric values.
+ *
  * Since: 1.10
  **/
-typedef enum {
+typedef enum { /*< flags >*/
 	NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DEFAULT     = 0x00000000,
 	NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DISABLED    = 0x00000001,
 	NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_AUTO        = 0x00000002,

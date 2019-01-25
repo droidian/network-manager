@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-<refentry id="nm-settings-ifcfg-rh"><refentryinfo><title>nm-settings-ifcfg-rh</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-ifcfg-rh</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.14.4</refmiscinfo></refmeta><refnamediv><refname>nm-settings-ifcfg-rh</refname><refpurpose>Description of <emphasis>ifcfg-rh</emphasis> settings plugin</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
+<refentry id="nm-settings-ifcfg-rh"><refentryinfo><title>nm-settings-ifcfg-rh</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-ifcfg-rh</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.15.2</refmiscinfo></refmeta><refnamediv><refname>nm-settings-ifcfg-rh</refname><refpurpose>Description of <emphasis>ifcfg-rh</emphasis> settings plugin</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
           NetworkManager is based on the concept of connection profiles that contain
           network configuration (see <citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry> for details). The profiles can be
           stored in various formats. NetworkManager uses plugins for reading and writing
@@ -287,7 +287,7 @@ Example: </emphasis>DCB_PG_PCT=10,5,10,15,10,10,10,30</entry></row><row><entry a
 
 Example: </emphasis>DCB_PG_UPPCT=7,13,10,10,15,15,10,20</entry></row><row><entry align="left">priority-strict-bandwidth</entry><entry align="left">DCB_PG_STRICT</entry><entry align="left"/><entry align="left">Priority values. String of eight "0" or "1", where "0" means "may not utilize all bandwidth", "1" means "may utilize all bandwidth".<emphasis role="bold">
 
-Example: </emphasis>DCB_PG_STRICT=01101110</entry></row><row><entry align="left">priority-traffic-class</entry><entry align="left">DCB_PG_UP2TC</entry><entry align="left"/><entry align="left">Priority values. String of eight trafic class values (0 - 7).<emphasis role="bold">
+Example: </emphasis>DCB_PG_STRICT=01101110</entry></row><row><entry align="left">priority-traffic-class</entry><entry align="left">DCB_PG_UP2TC</entry><entry align="left"/><entry align="left">Priority values. String of eight traffic class values (0 - 7).<emphasis role="bold">
 
 Example: </emphasis>DCB_PG_UP2TC=01623701</entry></row></tbody></tgroup></table><para>
           All DCB related configuration is a NetworkManager extension. DCB=yes must be

@@ -246,7 +246,7 @@ nm_setting_802_1x_check_cert_scheme (gconstpointer pdata, gsize length, GError *
 	if (scheme != NM_SETTING_802_1X_CK_SCHEME_BLOB) {
 		/* An actual URI must be NUL terminated, contain at least
 		 * one non-NUL character, and contain only one trailing NUL
-		 * chracter.
+		 * character.
 		 * And ensure it's UTF-8 valid too so we can pass it through
 		 * D-Bus and stuff like that. */
 
@@ -3369,8 +3369,6 @@ finalize (GObject *object)
 	NMSetting8021x *self = NM_SETTING_802_1X (object);
 	NMSetting8021xPrivate *priv = NM_SETTING_802_1X_GET_PRIVATE (self);
 
-	/* Strings first. g_free() already checks for NULLs so we don't have to */
-
 	g_free (priv->identity);
 	g_free (priv->anonymous_identity);
 	g_free (priv->ca_path);
@@ -3416,8 +3414,8 @@ nm_setting_802_1x_class_init (NMSetting8021xClass *klass)
 
 	g_type_class_add_private (klass, sizeof (NMSetting8021xPrivate));
 
-	object_class->set_property = set_property;
 	object_class->get_property = get_property;
+	object_class->set_property = set_property;
 	object_class->finalize     = finalize;
 
 	setting_class->verify       = verify;

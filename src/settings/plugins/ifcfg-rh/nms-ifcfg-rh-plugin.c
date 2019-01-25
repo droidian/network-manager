@@ -539,7 +539,7 @@ read_connections (SettingsPluginIfcfg *plugin)
 	 * iterating over the files.
 	 *
 	 * To have sensible, reproducible behavior, sort the paths by last modification
-	 * time prefering older files.
+	 * time preferring older files.
 	 */
 	paths = _paths_from_connections (priv->connections);
 	g_ptr_array_sort_with_data (filenames, (GCompareDataFunc) _sort_paths, paths);
@@ -602,12 +602,9 @@ load_connection (NMSettingsPlugin *config,
 {
 	SettingsPluginIfcfg *plugin = SETTINGS_PLUGIN_IFCFG (config);
 	NMIfcfgConnection *connection;
-	int dir_len = strlen (IFCFG_DIR);
 	char *ifcfg_path;
 
-	if (   strncmp (filename, IFCFG_DIR, dir_len) != 0
-	    || filename[dir_len] != '/'
-	    || strchr (filename + dir_len + 1, '/') != NULL)
+	if (!nm_utils_file_is_in_path (filename, IFCFG_DIR))
 		return FALSE;
 
 	/* get the real ifcfg-path. This allows us to properly
@@ -987,7 +984,7 @@ config_changed_cb (NMConfig *config,
 	 * won't be offered.
 	 *
 	 * On SIGHUP and SIGUSR1 try to re-connect to D-Bus. So in the unlikely
-	 * event that the D-Bus conneciton is broken, that allows for recovery
+	 * event that the D-Bus connection is broken, that allows for recovery
 	 * without need for restarting NetworkManager. */
 	if (!NM_FLAGS_ANY (changes,   NM_CONFIG_CHANGE_CAUSE_SIGHUP
 	                            | NM_CONFIG_CHANGE_CAUSE_SIGUSR1))

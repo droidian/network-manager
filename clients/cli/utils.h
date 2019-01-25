@@ -40,7 +40,7 @@ gboolean nmc_parse_args (nmc_arg_t *arg_arr, gboolean last, int *argc, char ***a
 char *ssid_to_hex (const char *str, gsize len);
 void nmc_terminal_erase_line (void);
 void nmc_terminal_show_progress (const char *str);
-void nmc_terminal_spawn_pager (const NmcConfig *nmc_config);
+pid_t nmc_terminal_spawn_pager (const NmcConfig *nmc_config);
 char *nmc_colorize (const NmcConfig *nmc_config, NMMetaColor color, const char * fmt, ...)  _nm_printf (3, 4);
 void nmc_filter_out_colors_inplace (char *str);
 char *nmc_filter_out_colors (const char *str);
@@ -166,6 +166,8 @@ typedef enum {
 	NMC_GENERIC_INFO_TYPE_DEVICE_STATUS_DEVICE = 0,
 	NMC_GENERIC_INFO_TYPE_DEVICE_STATUS_TYPE,
 	NMC_GENERIC_INFO_TYPE_DEVICE_STATUS_STATE,
+	NMC_GENERIC_INFO_TYPE_DEVICE_STATUS_IP4_CONNECTIVITY,
+	NMC_GENERIC_INFO_TYPE_DEVICE_STATUS_IP6_CONNECTIVITY,
 	NMC_GENERIC_INFO_TYPE_DEVICE_STATUS_DBUS_PATH,
 	NMC_GENERIC_INFO_TYPE_DEVICE_STATUS_CONNECTION,
 	NMC_GENERIC_INFO_TYPE_DEVICE_STATUS_CON_UUID,
@@ -184,6 +186,8 @@ typedef enum {
 	NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_MTU,
 	NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_STATE,
 	NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_REASON,
+	NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_IP4_CONNECTIVITY,
+	NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_IP6_CONNECTIVITY,
 	NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_UDI,
 	NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_IP_IFACE,
 	NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_IS_SOFTWARE,

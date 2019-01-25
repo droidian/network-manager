@@ -725,7 +725,7 @@ add_ip4_vpn_gateway_route (NMIP4Config *config,
 	                              AF_INET,
 	                              &vpn_gw,
 	                              ifindex,
-	                              (NMPObject **) &route_resolved) == NM_PLATFORM_ERROR_SUCCESS) {
+	                              (NMPObject **) &route_resolved) >= 0) {
 		const NMPlatformIP4Route *r = NMP_OBJECT_CAST_IP4_ROUTE (route_resolved);
 
 		if (r->ifindex == ifindex) {
@@ -799,7 +799,7 @@ add_ip6_vpn_gateway_route (NMIP6Config *config,
 	                              AF_INET6,
 	                              vpn_gw,
 	                              ifindex,
-	                              (NMPObject **) &route_resolved) == NM_PLATFORM_ERROR_SUCCESS) {
+	                              (NMPObject **) &route_resolved) >= 0) {
 		const NMPlatformIP6Route *r = NMP_OBJECT_CAST_IP6_ROUTE (route_resolved);
 
 		if (r->ifindex == ifindex) {
@@ -851,6 +851,7 @@ nm_vpn_connection_new (NMSettingsConnection *settings_connection,
                        NMDevice *parent_device,
                        const char *specific_object,
                        NMActivationReason activation_reason,
+                       NMActivationStateFlags initial_state_flags,
                        NMAuthSubject *subject)
 {
 	g_return_val_if_fail (!settings_connection || NM_IS_SETTINGS_CONNECTION (settings_connection), NULL);
@@ -864,6 +865,7 @@ nm_vpn_connection_new (NMSettingsConnection *settings_connection,
 	                                         NM_ACTIVE_CONNECTION_INT_SUBJECT, subject,
 	                                         NM_ACTIVE_CONNECTION_INT_ACTIVATION_REASON, activation_reason,
 	                                         NM_ACTIVE_CONNECTION_VPN, TRUE,
+	                                         NM_ACTIVE_CONNECTION_STATE_FLAGS, (guint) initial_state_flags,
 	                                         NULL);
 }
 
@@ -882,14 +884,15 @@ NM_UTILS_LOOKUP_STR_DEFINE_STATIC (_vpn_plugin_failure_to_string, NMVpnPluginFai
 	NM_UTILS_LOOKUP_STR_ITEM (NM_VPN_PLUGIN_FAILURE_CONNECT_FAILED, "connect-failed"),
 	NM_UTILS_LOOKUP_STR_ITEM (NM_VPN_PLUGIN_FAILURE_BAD_IP_CONFIG,  "bad-ip-config"),
 );
-#define vpn_plugin_failure_to_string(failure) NM_UTILS_LOOKUP_STR (_vpn_plugin_failure_to_string, failure)
+
+#define vpn_plugin_failure_to_string_a(failure) NM_UTILS_LOOKUP_STR_A (_vpn_plugin_failure_to_string, failure)
 
 static void
 plugin_failed (NMVpnConnection *self, guint reason)
 {
 	NMVpnConnectionPrivate *priv = NM_VPN_CONNECTION_GET_PRIVATE (self);
 
-	_LOGW ("VPN plugin: failed: %s (%d)", vpn_plugin_failure_to_string (reason), reason);
+	_LOGW ("VPN plugin: failed: %s (%d)", vpn_plugin_failure_to_string_a (reason), reason);
 
 	switch (reason) {
 	case NM_VPN_PLUGIN_FAILURE_LOGIN_FAILED:
@@ -914,7 +917,8 @@ NM_UTILS_LOOKUP_STR_DEFINE_STATIC (_vpn_service_state_to_string, NMVpnServiceSta
 	NM_UTILS_LOOKUP_STR_ITEM (NM_VPN_SERVICE_STATE_STOPPING, "stopping"),
 	NM_UTILS_LOOKUP_STR_ITEM (NM_VPN_SERVICE_STATE_STOPPED,  "stopped"),
 );
-#define vpn_service_state_to_string(state) NM_UTILS_LOOKUP_STR (_vpn_service_state_to_string, state)
+
+#define vpn_service_state_to_string_a(state) NM_UTILS_LOOKUP_STR_A (_vpn_service_state_to_string, state)
 
 NM_UTILS_LOOKUP_STR_DEFINE_STATIC (_vpn_state_to_string, VpnState,
 	NM_UTILS_LOOKUP_DEFAULT (NULL),
@@ -930,7 +934,8 @@ NM_UTILS_LOOKUP_STR_DEFINE_STATIC (_vpn_state_to_string, VpnState,
 	NM_UTILS_LOOKUP_STR_ITEM (STATE_DISCONNECTED,  "disconnected"),
 	NM_UTILS_LOOKUP_STR_ITEM (STATE_FAILED,        "failed"),
 );
-#define vpn_state_to_string(state) NM_UTILS_LOOKUP_STR (_vpn_state_to_string, state)
+
+#define vpn_state_to_string_a(state) NM_UTILS_LOOKUP_STR_A (_vpn_state_to_string, state)
 
 static void
 plugin_state_changed (NMVpnConnection *self, NMVpnServiceState new_service_state)
@@ -939,7 +944,7 @@ plugin_state_changed (NMVpnConnection *self, NMVpnServiceState new_service_state
 	NMVpnServiceState old_service_state = priv->service_state;
 
 	_LOGI ("VPN plugin: state changed: %s (%d)",
-	       vpn_service_state_to_string (new_service_state), new_service_state);
+	       vpn_service_state_to_string_a (new_service_state), new_service_state);
 	priv->service_state = new_service_state;
 
 	if (new_service_state == NM_VPN_SERVICE_STATE_STOPPED) {
@@ -979,15 +984,16 @@ print_vpn_config (NMVpnConnection *self)
 	const NMPlatformIP6Address *address6;
 	char *dns_domain = NULL;
 	guint32 num, i;
-	char buf[NM_UTILS_INET_ADDRSTRLEN];
+	char b1[NM_UTILS_INET_ADDRSTRLEN];
+	char b2[NM_UTILS_INET_ADDRSTRLEN];
 	NMDedupMultiIter ipconf_iter;
 
 	if (priv->ip4_external_gw) {
 		_LOGI ("Data: VPN Gateway: %s",
-		       nm_utils_inet4_ntop (priv->ip4_external_gw, NULL));
+		       nm_utils_inet4_ntop (priv->ip4_external_gw, b1));
 	} else if (priv->ip6_external_gw) {
 		_LOGI ("Data: VPN Gateway: %s",
-		       nm_utils_inet6_ntop (priv->ip6_external_gw, NULL));
+		       nm_utils_inet6_ntop (priv->ip6_external_gw, b1));
 	}
 
 	_LOGI ("Data: Tunnel Device: %s%s%s", NM_PRINT_FMT_QUOTE_STRING (priv->ip_iface));
@@ -1001,22 +1007,22 @@ print_vpn_config (NMVpnConnection *self)
 		nm_assert (address4);
 
 		if (priv->ip4_internal_gw)
-			_LOGI ("Data:   Internal Gateway: %s", nm_utils_inet4_ntop (priv->ip4_internal_gw, NULL));
-		_LOGI ("Data:   Internal Address: %s", address4 ? nm_utils_inet4_ntop (address4->address, NULL) : "??");
+			_LOGI ("Data:   Internal Gateway: %s", nm_utils_inet4_ntop (priv->ip4_internal_gw, b1));
+		_LOGI ("Data:   Internal Address: %s", address4 ? nm_utils_inet4_ntop (address4->address, b1) : "??");
 		_LOGI ("Data:   Internal Prefix: %d", address4 ? (int) address4->plen : -1);
-		_LOGI ("Data:   Internal Point-to-Point Address: %s", nm_utils_inet4_ntop (address4->peer_address, NULL));
+		_LOGI ("Data:   Internal Point-to-Point Address: %s", nm_utils_inet4_ntop (address4->peer_address, b1));
 
 		nm_ip_config_iter_ip4_route_for_each (&ipconf_iter, priv->ip4_config, &route) {
 			_LOGI ("Data:   Static Route: %s/%d   Next Hop: %s",
-			       nm_utils_inet4_ntop (route->network, NULL),
+			       nm_utils_inet4_ntop (route->network, b1),
 			       route->plen,
-			       nm_utils_inet4_ntop (route->gateway, buf));
+			       nm_utils_inet4_ntop (route->gateway, b2));
 		}
 
 		num = nm_ip4_config_get_num_nameservers (priv->ip4_config);
 		for (i = 0; i < num; i++) {
 			_LOGI ("Data:   Internal DNS: %s",
-			       nm_utils_inet4_ntop (nm_ip4_config_get_nameserver (priv->ip4_config, i), NULL));
+			       nm_utils_inet4_ntop (nm_ip4_config_get_nameserver (priv->ip4_config, i), b1));
 		}
 
 		if (nm_ip4_config_get_num_domains (priv->ip4_config) > 0)
@@ -1035,22 +1041,22 @@ print_vpn_config (NMVpnConnection *self)
 		nm_assert (address6);
 
 		if (priv->ip6_internal_gw)
-			_LOGI ("Data:   Internal Gateway: %s", nm_utils_inet6_ntop (priv->ip6_internal_gw, NULL));
-		_LOGI ("Data:   Internal Address: %s", nm_utils_inet6_ntop (&address6->address, NULL));
+			_LOGI ("Data:   Internal Gateway: %s", nm_utils_inet6_ntop (priv->ip6_internal_gw, b1));
+		_LOGI ("Data:   Internal Address: %s", nm_utils_inet6_ntop (&address6->address, b1));
 		_LOGI ("Data:   Internal Prefix: %d", address6->plen);
-		_LOGI ("Data:   Internal Point-to-Point Address: %s", nm_utils_inet6_ntop (&address6->peer_address, NULL));
+		_LOGI ("Data:   Internal Point-to-Point Address: %s", nm_utils_inet6_ntop (&address6->peer_address, b1));
 
 		nm_ip_config_iter_ip6_route_for_each (&ipconf_iter, priv->ip6_config, &route) {
 			_LOGI ("Data:   Static Route: %s/%d   Next Hop: %s",
-			       nm_utils_inet6_ntop (&route->network, NULL),
+			       nm_utils_inet6_ntop (&route->network, b1),
 			       route->plen,
-			       nm_utils_inet6_ntop (&route->gateway, buf));
+			       nm_utils_inet6_ntop (&route->gateway, b2));
 		}
 
 		num = nm_ip6_config_get_num_nameservers (priv->ip6_config);
 		for (i = 0; i < num; i++) {
 			_LOGI ("Data:   Internal DNS: %s",
-			       nm_utils_inet6_ntop (nm_ip6_config_get_nameserver (priv->ip6_config, i), NULL));
+			       nm_utils_inet6_ntop (nm_ip6_config_get_nameserver (priv->ip6_config, i), b1));
 		}
 
 		if (nm_ip6_config_get_num_domains (priv->ip6_config) > 0)
@@ -1878,7 +1884,7 @@ connect_success (NMVpnConnection *self)
 	timeout = nm_setting_vpn_get_timeout (s_vpn);
 	if (timeout == 0) {
 		timeout = nm_config_data_get_connection_default_int64 (NM_CONFIG_GET_DATA,
-		                                                       "vpn.timeout",
+		                                                       NM_CON_DEFAULT ("vpn.timeout"),
 		                                                       NULL,
 		                                                       1, G_MAXUINT32, 60);
 	}
@@ -2687,12 +2693,12 @@ plugin_interactive_secrets_required (NMVpnConnection *self,
 	if (!NM_IN_SET (priv->vpn_state, STATE_CONNECT,
 	                                 STATE_NEED_AUTH)) {
 		_LOGD ("VPN plugin: requested secrets; state %s (%d); ignore request in current state",
-		       vpn_state_to_string (priv->vpn_state), priv->vpn_state);
+		       vpn_state_to_string_a (priv->vpn_state), priv->vpn_state);
 		return;
 	}
 
 	_LOGI ("VPN plugin: requested secrets; state %s (%d)",
-	       vpn_state_to_string (priv->vpn_state), priv->vpn_state);
+	       vpn_state_to_string_a (priv->vpn_state), priv->vpn_state);
 
 	priv->secrets_idx = SECRETS_REQ_INTERACTIVE;
 	_set_vpn_state (self, STATE_NEED_AUTH, NM_ACTIVE_CONNECTION_STATE_REASON_NONE, FALSE);

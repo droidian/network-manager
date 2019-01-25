@@ -916,16 +916,8 @@ class WifiDevice(Device):
         self.aps = []
         self.scan_cb_id = None
 
-        # Note: we would like to simulate how nmcli calls RequestScan() and we could
-        # do so by using an older timestamp. However, that makes the client tests
-        # racy, because if a bunch of nmcli instances run in parallel against this
-        # service, earlier instances will issue a RequestScan(), while later instances
-        # won't do that (because the LastScan timestamp is already updated). That means,
-        # the later instances will print the scan result immediately, and in another sort
-        # order. That should be fixed, by nmcli not starting to print anything, before
-        # all RequestScan() requests complete, and thus, always print a consistent list
-        # of results.
-        ts = NM.utils_get_timestamp_msec()
+        # Use a randomly older timestamp to trigger RequestScan() from the client
+        ts = max(0, NM.utils_get_timestamp_msec() - Util.random_int(self.path, 20000, 40000))
 
         props = {
             PRP_WIFI_HW_ADDRESS:            mac,
@@ -1349,9 +1341,14 @@ class NetworkManager(ExportedObj):
 
     @dbus.service.method(dbus_interface=IFACE_NM, in_signature='a{sa{sv}}oo', out_signature='oo')
     def AddAndActivateConnection(self, con_hash, devpath, specific_object):
+        conpath, acpath, result = self.AddAndActivateConnection2(con_hash, devpath, specific_object, dict())
+        return (conpath, acpath)
+
+    @dbus.service.method(dbus_interface=IFACE_NM, in_signature='a{sa{sv}}ooa{sv}', out_signature='ooa{sv}')
+    def AddAndActivateConnection2(self, con_hash, devpath, specific_object, options):
         device = self.find_device_first(path = devpath, require = BusErr.UnknownDeviceException)
         conpath = gl.settings.AddConnection(con_hash)
-        return (conpath, self.ActivateConnection(conpath, devpath, specific_object))
+        return (conpath, self.ActivateConnection(conpath, devpath, specific_object), [])
 
     @dbus.service.method(dbus_interface=IFACE_NM, in_signature='o', out_signature='')
     def DeactivateConnection(self, active_connection):

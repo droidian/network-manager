@@ -168,7 +168,7 @@ typedef enum {
  * @NM_CONNECTIVITY_PORTAL: The Internet connection is hijacked by a captive
  *   portal gateway. The graphical shell may open a sandboxed web browser window
  *   (because the captive portals typically attempt a man-in-the-middle attacks
- *   agains the https connections) for the purpose of authenticating to a gateway
+ *   against the https connections) for the purpose of authenticating to a gateway
  *   and retrigger the connectivity check with CheckConnectivity() when the
  *   browser window is dismissed.
  * @NM_CONNECTIVITY_LIMITED: The host is connected to a network, does not appear
@@ -190,7 +190,7 @@ typedef enum {
  * @NM_DEVICE_TYPE_UNKNOWN: unknown device
  * @NM_DEVICE_TYPE_GENERIC: generic support for unrecognized device types
  * @NM_DEVICE_TYPE_ETHERNET: a wired ethernet device
- * @NM_DEVICE_TYPE_WIFI: an 802.11 WiFi device
+ * @NM_DEVICE_TYPE_WIFI: an 802.11 Wi-Fi device
  * @NM_DEVICE_TYPE_UNUSED1: not used
  * @NM_DEVICE_TYPE_UNUSED2: not used
  * @NM_DEVICE_TYPE_BT: a Bluetooth device supporting PAN or DUN access protocols
@@ -456,7 +456,7 @@ typedef enum {
  *   setting physical link properties, and anything else required to connect
  *   to the requested network.
  * @NM_DEVICE_STATE_CONFIG: the device is connecting to the requested network.
- *   This may include operations like associating with the WiFi AP, dialing
+ *   This may include operations like associating with the Wi-Fi AP, dialing
  *   the modem, connecting to the remote Bluetooth device, etc.
  * @NM_DEVICE_STATE_NEED_AUTH: the device requires more information to continue
  *   connecting to the requested network.  This includes secrets like WiFi
@@ -549,7 +549,7 @@ typedef enum {
  * @NM_DEVICE_STATE_REASON_DEPENDENCY_FAILED: A dependency of the connection failed
  * @NM_DEVICE_STATE_REASON_BR2684_FAILED: Problem with the RFC 2684 Ethernet over ADSL bridge
  * @NM_DEVICE_STATE_REASON_MODEM_MANAGER_UNAVAILABLE: ModemManager not running
- * @NM_DEVICE_STATE_REASON_SSID_NOT_FOUND: The WiFi network could not be found
+ * @NM_DEVICE_STATE_REASON_SSID_NOT_FOUND: The Wi-Fi network could not be found
  * @NM_DEVICE_STATE_REASON_SECONDARY_CONNECTION_FAILED: A secondary connection of the base connection failed
  * @NM_DEVICE_STATE_REASON_DCB_FCOE_FAILED: DCB or FCoE setup failed
  * @NM_DEVICE_STATE_REASON_TEAMD_CONTROL_FAILED: teamd control failed
@@ -960,20 +960,25 @@ typedef enum { /*< flags >*/
  * @NM_ACTIVATION_STATE_FLAG_IP6_READY: IPv6 setting is completed.
  * @NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES: The master has any slave devices attached.
  *   This only makes sense if the device is a master.
+ * @NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY: the lifetime
+ *   of the activation is bound to the visilibity of the connection profile,
+ *   which in turn depends on "connection.permissions" and whether a session
+ *   for the user exists. Since: 1.16
  *
  * Flags describing the current activation state.
  *
  * Since: 1.10
  **/
 typedef enum { /*< flags >*/
-	NM_ACTIVATION_STATE_FLAG_NONE                       = 0,
+	NM_ACTIVATION_STATE_FLAG_NONE                                 = 0,
 
-	NM_ACTIVATION_STATE_FLAG_IS_MASTER                  = (1LL <<  0),
-	NM_ACTIVATION_STATE_FLAG_IS_SLAVE                   = (1LL <<  1),
-	NM_ACTIVATION_STATE_FLAG_LAYER2_READY               = (1LL <<  2),
-	NM_ACTIVATION_STATE_FLAG_IP4_READY                  = (1LL <<  3),
-	NM_ACTIVATION_STATE_FLAG_IP6_READY                  = (1LL <<  4),
-	NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES          = (1LL <<  5),
+	NM_ACTIVATION_STATE_FLAG_IS_MASTER                            = (1LL <<  0),
+	NM_ACTIVATION_STATE_FLAG_IS_SLAVE                             = (1LL <<  1),
+	NM_ACTIVATION_STATE_FLAG_LAYER2_READY                         = (1LL <<  2),
+	NM_ACTIVATION_STATE_FLAG_IP4_READY                            = (1LL <<  3),
+	NM_ACTIVATION_STATE_FLAG_IP6_READY                            = (1LL <<  4),
+	NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES                    = (1LL <<  5),
+	NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY = (1LL <<  6),
 } NMActivationStateFlags;
 
 /**
@@ -1004,7 +1009,7 @@ typedef enum { /*< flags >*/
  *   again (because it's about to be deleted), but a manual activation will
  *   clear the volatile flag.
  * @NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT: usually, when the connection
- *   has autoconnect enabled and is modified, it becomes elegible to autoconnect
+ *   has autoconnect enabled and is modified, it becomes eligible to autoconnect
  *   right away. Setting this flag, disables autoconnect until the connection
  *   is manually activated.
  *

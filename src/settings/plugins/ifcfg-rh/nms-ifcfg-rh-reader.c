@@ -189,7 +189,7 @@ _secret_password_raw_to_bytes (const char *ifcfg_key,
 		password_raw += 2;
 
 	secret = nm_secret_buf_new (strlen (password_raw) / 2 + 3);
-	if (!_nm_utils_str2bin_full (password_raw, FALSE, ":", secret->bin, secret->len, &len)) {
+	if (!_nm_utils_hexstr2bin_full (password_raw, FALSE, FALSE, ":", 0, secret->bin, secret->len, &len)) {
 		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 		             "Invalid hex password in %s",
 		             ifcfg_key);
@@ -670,7 +670,7 @@ read_full_ip4_address (shvarFile *ifcfg,
 		                       &has_key, &a, error))
 			return FALSE;
 		if (has_key)
-			*out_gateway = g_strdup (nm_utils_inet4_ntop (a, inet_buf));
+			*out_gateway = nm_utils_inet4_ntop_dup (a);
 	}
 
 	/* Prefix */
@@ -810,7 +810,7 @@ enum {
  * setting, and one for initscript's handle_ip_file(), which takes the lines
  * and passes them to `ip route add`. The modes are similar, but certain properties
  * are not allowed for OPTIONS.
- * The mode is differenciated by having an @options_route argument.
+ * The mode is differentiated by having an @options_route argument.
  *
  * Returns: returns a negative errno on failure. On success, it returns 0
  *   and @out_route.
@@ -873,7 +873,7 @@ parse_route_line (const char *line,
 	};
 
 	nm_assert (line);
-	nm_assert (NM_IN_SET (addr_family, AF_INET, AF_INET6));
+	nm_assert_addr_family (addr_family);
 	nm_assert (!options_route || nm_ip_route_get_family (options_route) == addr_family);
 
 	/* initscripts read the legacy route file line-by-line and
@@ -1018,6 +1018,7 @@ parse_line_type_addr_with_prefix:
 			if (info->type == PARSE_LINE_TYPE_ADDR) {
 				if (!nm_utils_parse_inaddr_bin (addr_family,
 				                                s,
+				                                NULL,
 				                                &info->v.addr.addr)) {
 					if (   info == &infos[PARSE_LINE_ATTR_ROUTE_VIA]
 					    && nm_streq (s, "(null)")) {
@@ -1045,6 +1046,7 @@ parse_line_type_addr_with_prefix:
 					prefix = 0;
 				} else if (!nm_utils_parse_inaddr_prefix_bin (addr_family,
 				                                              s,
+				                                              NULL,
 				                                              &info->v.addr.addr,
 				                                              &prefix)) {
 					g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
@@ -1150,7 +1152,7 @@ next:
 			                                                    : ""));
 			break;
 		case PARSE_LINE_TYPE_FLAG:
-			/* NOTE: the flag (for "onlink") only allows to explictly set "TRUE".
+			/* NOTE: the flag (for "onlink") only allows to explicitly set "TRUE".
 			 * There is no way to express an explicit "FALSE" setting
 			 * of this attribute, hence, the file format cannot encode
 			 * that configuration. */
@@ -1527,7 +1529,6 @@ make_ip4_setting (shvarFile *ifcfg,
 	gboolean never_default;
 	gint64 timeout;
 	int priority;
-	char inet_buf[NM_UTILS_INET_ADDRSTRLEN];
 	const char *const *item;
 	guint32 route_table;
 
@@ -1679,7 +1680,7 @@ make_ip4_setting (shvarFile *ifcfg,
 					PARSE_WARNING ("ignoring GATEWAY (/etc/sysconfig/network) for %s "
 					               "because the connection has no static addresses", f);
 				} else
-					gateway = g_strdup (nm_utils_inet4_ntop (a, inet_buf));
+					gateway = nm_utils_inet4_ntop_dup (a);
 			}
 		}
 	}
@@ -2226,20 +2227,19 @@ make_sriov_setting (shvarFile *ifcfg)
 {
 	gs_unref_hashtable GHashTable *keys = NULL;
 	gs_unref_ptrarray GPtrArray *vfs = NULL;
-	NMTernary autoprobe_drivers;
+	int autoprobe_drivers;
 	NMSettingSriov *s_sriov;
-	int total_vfs;
+	gint64 total_vfs;
 
-	total_vfs = svGetValueInt64 (ifcfg, "SRIOV_TOTAL_VFS", 10, 0, G_MAXINT32, 0);
-	if (!total_vfs)
-		return NULL;
+
+	total_vfs = svGetValueInt64 (ifcfg, "SRIOV_TOTAL_VFS", 10, 0, G_MAXUINT32, -1);
 
 	autoprobe_drivers = svGetValueInt64 (ifcfg,
 	                                     "SRIOV_AUTOPROBE_DRIVERS",
 	                                     10,
-	                                     NM_TERNARY_FALSE,
+	                                     NM_TERNARY_DEFAULT,
 	                                     NM_TERNARY_TRUE,
-	                                     NM_TERNARY_DEFAULT);
+	                                     -2);
 
 	keys = svGetKeys (ifcfg, SV_KEY_TYPE_SRIOV_VF);
 	if (keys) {
@@ -2261,7 +2261,7 @@ make_sriov_setting (shvarFile *ifcfg)
 
 			key += NM_STRLEN ("SRIOV_VF");
 
-			vf = _nm_utils_sriov_vf_from_strparts (key, value, &error);
+			vf = _nm_utils_sriov_vf_from_strparts (key, value, TRUE, &error);
 			if (!vf) {
 				PARSE_WARNING ("ignoring invalid SR-IOV VF '%s %s': %s",
 				               key, value, error->message);
@@ -2273,11 +2273,21 @@ make_sriov_setting (shvarFile *ifcfg)
 		}
 	}
 
+	/* Create the setting when at least one key is set */
+	if (   total_vfs < 0
+	    && !vfs
+	    && autoprobe_drivers < NM_TERNARY_DEFAULT)
+		return NULL;
+
 	s_sriov = (NMSettingSriov *) nm_setting_sriov_new ();
+
+	autoprobe_drivers = NM_MAX (autoprobe_drivers, NM_TERNARY_DEFAULT);
+	total_vfs = NM_MAX (total_vfs, 0);
+
 	g_object_set (s_sriov,
-	              NM_SETTING_SRIOV_TOTAL_VFS, total_vfs,
+	              NM_SETTING_SRIOV_TOTAL_VFS, (guint) total_vfs,
 	              NM_SETTING_SRIOV_VFS, vfs,
-	              NM_SETTING_SRIOV_AUTOPROBE_DRIVERS, (int) autoprobe_drivers,
+	              NM_SETTING_SRIOV_AUTOPROBE_DRIVERS, autoprobe_drivers,
 	              NULL);
 
 	return (NMSetting *) s_sriov;
@@ -3151,7 +3161,7 @@ eap_tls_reader (const char *eap_method,
 	/* FIXME: writer does not actually write IEEE_8021X_CLIENT_CERT_PASSWORD and other
 	 * certificate related passwords. It should, because otherwise persisting such profiles
 	 * to ifcfg looses information. As this currently only matters for PKCS11 URIs, it seems
-	 * a seldomly used feature so that it is not fixed yet. */
+	 * a seldom used feature so that it is not fixed yet. */
 	_secret_set_from_ifcfg (s_8021x,
 	                        ifcfg,
 	                        keys_ifcfg,
@@ -3526,7 +3536,7 @@ fill_8021x (shvarFile *ifcfg,
 				goto next;
 
 			/* Some EAP methods don't provide keying material, thus they
-			 * cannot be used with WiFi unless they are an inner method
+			 * cannot be used with Wi-Fi unless they are an inner method
 			 * used with TTLS or PEAP or whatever.
 			 */
 			if (wifi && eap->wifi_phase2_only) {

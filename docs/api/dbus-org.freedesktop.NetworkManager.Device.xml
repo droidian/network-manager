@@ -55,6 +55,8 @@
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Metered">Metered</link>               readable   u
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.LldpNeighbors">LldpNeighbors</link>         readable   aa{sv}
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Real">Real</link>                  readable   b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Ip4Connectivity">Ip4Connectivity</link>       readable   u
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Ip6Connectivity">Ip6Connectivity</link>       readable   u
 </synopsis>
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device">
@@ -417,7 +419,7 @@ NmPluginMissing  readable   b
 <programlisting>
 DeviceType  readable   u
 </programlisting>
-<para>        The general type of the network device; ie Ethernet, WiFi, etc.
+<para>        The general type of the network device; ie Ethernet, Wi-Fi, etc.
 </para><para>        Returns: <link linkend="NMDeviceType">NMDeviceType</link>
 </para>
 </refsect2>
@@ -482,6 +484,28 @@ Real  readable   b
 <para>        True if the device exists, or False for placeholder devices that do not
         yet exist but could be automatically created by NetworkManager if one of
         their AvailableConnections was activated.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device.Ip4Connectivity">
+  <title>The "Ip4Connectivity" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device.Ip4Connectivity"><primary sortas=".Device:Ip4Connectivity">org.freedesktop.NetworkManager.Device:Ip4Connectivity</primary></indexterm>
+<programlisting>
+Ip4Connectivity  readable   u
+</programlisting>
+<para>        The result of the last IPv4 connectivity check.
+</para><para>        Since: 1.16
+</para><para>        Returns: <link linkend="NMConnectivityState">NMConnectivityState</link>
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device.Ip6Connectivity">
+  <title>The "Ip6Connectivity" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device.Ip6Connectivity"><primary sortas=".Device:Ip6Connectivity">org.freedesktop.NetworkManager.Device:Ip6Connectivity</primary></indexterm>
+<programlisting>
+Ip6Connectivity  readable   u
+</programlisting>
+<para>        The result of the last IPv6 connectivity check.
+</para><para>        Since: 1.16
+</para><para>        Returns: <link linkend="NMConnectivityState">NMConnectivityState</link>
 </para>
 </refsect2>
 </refsect1>

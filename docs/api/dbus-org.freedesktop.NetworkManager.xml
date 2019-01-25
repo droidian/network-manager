@@ -22,6 +22,13 @@
                                  IN  o         specific_object,
                                  OUT o         path,
                                  OUT o         active_connection);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection2">AddAndActivateConnection2</link>       (IN  a{sa{sv}} connection,
+                                 IN  o         device,
+                                 IN  o         specific_object,
+                                 IN  a{sv}     options,
+                                 OUT o         path,
+                                 OUT o         active_connection,
+                                 OUT a{sv}     result);
 <link linkend="gdbus-method-org-freedesktop-NetworkManager.DeactivateConnection">DeactivateConnection</link>            (IN  o         active_connection);
 <link linkend="gdbus-method-org-freedesktop-NetworkManager.Sleep">Sleep</link>                           (IN  b         sleep);
 <link linkend="gdbus-method-org-freedesktop-NetworkManager.Enable">Enable</link>                          (IN  b         enable);
@@ -194,7 +201,7 @@ ActivateConnection (IN  o connection,
 </varlistentry>
 <varlistentry>
   <term><literal>IN o <parameter>specific_object</parameter></literal>:</term>
-  <listitem><para>The path of a connection-type-specific object this activation should use. This parameter is currently ignored for wired and mobile broadband connections, and the value of "/" should be used (ie, no specific object). For WiFi connections, pass the object path of a specific AP from the card's scan list, or "/" to pick an AP automatically. For VPN connections, pass the object path of an ActiveConnection object that should serve as the "base" connection (to which the VPN connections lifetime will be tied), or pass "/" and NM will automatically use the current default device.</para></listitem>
+  <listitem><para>The path of a connection-type-specific object this activation should use. This parameter is currently ignored for wired and mobile broadband connections, and the value of "/" should be used (ie, no specific object). For Wi-Fi connections, pass the object path of a specific AP from the card's scan list, or "/" to pick an AP automatically. For VPN connections, pass the object path of an ActiveConnection object that should serve as the "base" connection (to which the VPN connections lifetime will be tied), or pass "/" and NM will automatically use the current default device.</para></listitem>
 </varlistentry>
 <varlistentry>
   <term><literal>OUT o <parameter>active_connection</parameter></literal>:</term>
@@ -216,6 +223,7 @@ AddAndActivateConnection (IN  a{sa{sv}} connection,
         (automatically filling in missing settings with the capabilities of the
         given device and specific object), then activate the new connection.
         Cannot be used for VPN connections at this time.
+</para><para>        See also AddAndActivateConnection2.
 </para>
 <variablelist role="params">
 <varlistentry>
@@ -228,7 +236,7 @@ AddAndActivateConnection (IN  a{sa{sv}} connection,
 </varlistentry>
 <varlistentry>
   <term><literal>IN o <parameter>specific_object</parameter></literal>:</term>
-  <listitem><para>The path of a connection-type-specific object this activation should use. This parameter is currently ignored for wired and mobile broadband connections, and the value of "/" should be used (ie, no specific object). For WiFi connections, pass the object path of a specific AP from the card's scan list, which will be used to complete the details of the newly added connection.</para></listitem>
+  <listitem><para>The path of a connection-type-specific object this activation should use. This parameter is currently ignored for wired and mobile broadband connections, and the value of "/" should be used (ie, no specific object). For Wi-Fi connections, pass the object path of a specific AP from the card's scan list, which will be used to complete the details of the newly added connection.</para></listitem>
 </varlistentry>
 <varlistentry>
   <term><literal>OUT o <parameter>path</parameter></literal>:</term>
@@ -237,6 +245,59 @@ AddAndActivateConnection (IN  a{sa{sv}} connection,
 <varlistentry>
   <term><literal>OUT o <parameter>active_connection</parameter></literal>:</term>
   <listitem><para>The path of the active connection object representing this active connection.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection2">
+  <title>The AddAndActivateConnection2() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection2"><primary sortas="Manager.AddAndActivateConnection2">org.freedesktop.NetworkManager.AddAndActivateConnection2()</primary></indexterm>
+<programlisting>
+AddAndActivateConnection2 (IN  a{sa{sv}} connection,
+                           IN  o         device,
+                           IN  o         specific_object,
+                           IN  a{sv}     options,
+                           OUT o         path,
+                           OUT o         active_connection,
+                           OUT a{sv}     result);
+</programlisting>
+<para>          output arguments are supported.
+</para><para>        Adds a new connection using the given details (if any) as a template
+        (automatically filling in missing settings with the capabilities of the
+        given device and specific object), then activate the new connection.
+        Cannot be used for VPN connections at this time.
+</para><para>        This method extends AddAndActivateConnection to allow passing further
+        parameters. At this time the following options are supported:
+</para><para>         * persist: A string value of either "disk" (default), "memory" or "volatile". If "memory" is passed, the connection will not be saved to disk. If "volatile" is passed, the connection will not be saved to disk and will be destroyed when disconnected.
+         * bind-activation: Bind the activation lifetime. Set to "dbus-name" to automatically disconnect when the requesting process disappears from the bus. The default of "none" means the connection is kept activated normally.
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>IN a{sa{sv}} <parameter>connection</parameter></literal>:</term>
+  <listitem><para>Connection settings and properties; if incomplete missing settings will be automatically completed using the given device and specific object.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>IN o <parameter>device</parameter></literal>:</term>
+  <listitem><para>The object path of device to be activated using the given connection.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>IN o <parameter>specific_object</parameter></literal>:</term>
+  <listitem><para>The path of a connection-type-specific object this activation should use. This parameter is currently ignored for wired and mobile broadband connections, and the value of "/" should be used (ie, no specific object). For Wi-Fi connections, pass the object path of a specific AP from the card's scan list, which will be used to complete the details of the newly added connection.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>IN a{sv} <parameter>options</parameter></literal>:</term>
+  <listitem><para>Further options for the method call.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>OUT o <parameter>path</parameter></literal>:</term>
+  <listitem><para>Object path of the new connection that was just added.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>OUT o <parameter>active_connection</parameter></literal>:</term>
+  <listitem><para>The path of the active connection object representing this active connection.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>OUT a{sv} <parameter>result</parameter></literal>:</term>
+  <listitem><para>a dictionary of additional output arguments for future extension. Currently not additional</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -300,7 +361,7 @@ GetPermissions (OUT a{ss} permissions);
 </programlisting>
 <para>        Returns the permissions a caller has for various authenticated operations
         that NetworkManager provides, like Enable/Disable networking, changing
-        WiFi, WWAN, and WiMAX state, etc.
+        Wi-Fi, WWAN, and WiMAX state, etc.
 </para>
 <variablelist role="params">
 <varlistentry>

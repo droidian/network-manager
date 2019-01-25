@@ -13,36 +13,35 @@ configure_file(
   output: server,
   install: true,
   install_dir: join_paths(nm_datadir, 'doc', nm_name, 'examples'),
-  configuration: data_conf
+  configuration: data_conf,
 )
 
 if install_systemd_unit_dir
   services = [
-    ['NetworkManager-dispatcher.service', systemd_system_unit_dir],
-    ['NetworkManager.service', systemd_system_unit_dir],
-    ['org.freedesktop.NetworkManager.service', dbus_sys_dir]
+    'NetworkManager-dispatcher.service',
+    'NetworkManager.service',
   ]
 
   if have_systemd_200
-    services += [['NetworkManager-wait-online.service', systemd_system_unit_dir]]
+    services += ['NetworkManager-wait-online.service']
   else
-    services += [['NetworkManager-wait-online-systemd-pre200.service', systemd_system_unit_dir]]
+    services += ['NetworkManager-wait-online-systemd-pre200.service']
   endif
 
   foreach service: services
     configure_file(
-      input: service[0] + '.in',
-      output: service[0],
+      input: service + '.in',
+      output: service,
       install: true,
-      install_dir: service[1],
-      configuration: data_conf
+      install_dir: systemd_system_unit_dir,
+      configuration: data_conf,
     )
   endforeach
 
   if enable_ovs
     install_data(
       'NetworkManager-ovs.conf',
-      install_dir: join_paths(systemd_system_unit_dir, 'NetworkManager.service.d')
+      install_dir: join_paths(systemd_system_unit_dir, 'NetworkManager.service.d'),
     )
   endif
 endif
@@ -51,12 +50,12 @@ if install_udev_dir
   data = files(
     '84-nm-drivers.rules',
     '85-nm-unmanaged.rules',
-    '90-nm-thunderbolt.rules'
+    '90-nm-thunderbolt.rules',
   )
 
   install_data(
     data,
-    install_dir: join_paths(udev_dir, 'rules.d')
+    install_dir: join_paths(udev_dir, 'rules.d'),
   )
 endif
 
@@ -66,7 +65,7 @@ if enable_polkit
   policy_in = configure_file(
     input: policy + '.in.in',
     output: policy + '.in',
-    configuration: data_conf
+    configuration: data_conf,
   )
 
   custom_target(
@@ -75,6 +74,6 @@ if enable_polkit
     output: policy,
     command: intltool_xml_cmd,
     install: true,
-    install_dir: polkit_dir
+    install_dir: polkit_dir,
   )
 endif

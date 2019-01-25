@@ -29,6 +29,8 @@
 
 #include "nm-core-internal.h"
 
+/*****************************************************************************/
+
 static void nm_vpn_editor_plugin_default_init (NMVpnEditorPluginInterface *iface);
 
 G_DEFINE_INTERFACE (NMVpnEditorPlugin, nm_vpn_editor_plugin, G_TYPE_OBJECT)
@@ -36,18 +38,16 @@ G_DEFINE_INTERFACE (NMVpnEditorPlugin, nm_vpn_editor_plugin, G_TYPE_OBJECT)
 static void
 nm_vpn_editor_plugin_default_init (NMVpnEditorPluginInterface *iface)
 {
-	/* Properties */
-
 	/**
 	 * NMVpnEditorPlugin:name:
 	 *
 	 * Short display name of the VPN plugin.
 	 */
 	g_object_interface_install_property (iface,
-		 g_param_spec_string (NM_VPN_EDITOR_PLUGIN_NAME, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	    g_param_spec_string (NM_VPN_EDITOR_PLUGIN_NAME, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMVpnEditorPlugin:description:
@@ -55,10 +55,10 @@ nm_vpn_editor_plugin_default_init (NMVpnEditorPluginInterface *iface)
 	 * Longer description of the VPN plugin.
 	 */
 	g_object_interface_install_property (iface,
-		 g_param_spec_string (NM_VPN_EDITOR_PLUGIN_DESCRIPTION, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	    g_param_spec_string (NM_VPN_EDITOR_PLUGIN_DESCRIPTION, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * NMVpnEditorPlugin:service:
@@ -66,10 +66,10 @@ nm_vpn_editor_plugin_default_init (NMVpnEditorPluginInterface *iface)
 	 * D-Bus service name of the plugin's VPN service.
 	 */
 	g_object_interface_install_property (iface,
-		 g_param_spec_string (NM_VPN_EDITOR_PLUGIN_SERVICE, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	    g_param_spec_string (NM_VPN_EDITOR_PLUGIN_SERVICE, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS));
 }
 
 /*****************************************************************************/
@@ -379,8 +379,8 @@ _nm_vpn_editor_plugin_load (const char *plugin_name,
  * @user_data: user data for @check_file
  * @error: on failure the error reason.
  *
- * Load the shared libary @plugin_name and create a new
- * #NMVpnEditorPlugin instace via the #NMVpnEditorPluginFactory
+ * Load the shared library @plugin_name and create a new
+ * #NMVpnEditorPlugin instance via the #NMVpnEditorPluginFactory
  * function.
  *
  * If @plugin_name is not an absolute path name, it assumes the file
@@ -419,8 +419,8 @@ nm_vpn_editor_plugin_load_from_file  (const char *plugin_name,
  *  the given service.
  * @error: on failure the error reason.
  *
- * Load the shared libary @plugin_name and create a new
- * #NMVpnEditorPlugin instace via the #NMVpnEditorPluginFactory
+ * Load the shared library @plugin_name and create a new
+ * #NMVpnEditorPlugin instance via the #NMVpnEditorPluginFactory
  * function.
  *
  * This is similar to nm_vpn_editor_plugin_load_from_file(), but

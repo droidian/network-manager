@@ -245,19 +245,19 @@ usage (void)
 	g_printerr (_("Usage: nmcli [OPTIONS] OBJECT { COMMAND | help }\n"
 	              "\n"
 	              "OPTIONS\n"
-	              "  -o[verview]                                    overview mode (hide default values)\n"
-	              "  -t[erse]                                       terse output\n"
-	              "  -p[retty]                                      pretty output\n"
-	              "  -m[ode] tabular|multiline                      output mode\n"
-	              "  -c[olors] auto|yes|no                          whether to use colors in output\n"
-	              "  -f[ields] <field1,field2,...>|all|common       specify fields to output\n"
-	              "  -g[et-values] <field1,field2,...>|all|common   shortcut for -m tabular -t -f\n"
-	              "  -e[scape] yes|no                               escape columns separators in values\n"
-	              "  -a[sk]                                         ask for missing parameters\n"
-	              "  -s[how-secrets]                                allow displaying passwords\n"
-	              "  -w[ait] <seconds>                              set timeout waiting for finishing operations\n"
-	              "  -v[ersion]                                     show program version\n"
-	              "  -h[elp]                                        print this help\n"
+	              "  -a, --ask                                ask for missing parameters\n"
+	              "  -c, --colors auto|yes|no                 whether to use colors in output\n"
+	              "  -e, --escape yes|no                      escape columns separators in values\n"
+	              "  -f, --fields <field,...>|all|common      specify fields to output\n"
+	              "  -g, --get-values <field,...>|all|common  shortcut for -m tabular -t -f\n"
+	              "  -h, --help                               print this help\n"
+	              "  -m, --mode tabular|multiline             output mode\n"
+	              "  -o, --overview                           overview mode\n"
+	              "  -p, --pretty                             pretty output\n"
+	              "  -s, --show-secrets                       allow displaying passwords\n"
+	              "  -t, --terse                              terse output\n"
+	              "  -v, --version                            how program version\n"
+	              "  -w, --wait <seconds>                     set timeout waiting for finishing operations\n"
 	              "\n"
 	              "OBJECT\n"
 	              "  g[eneral]       NetworkManager's general status and operations\n"
@@ -996,6 +996,14 @@ nmc_value_transforms_register (void)
 	g_value_register_transform_func (G_TYPE_BYTES,
 	                                 G_TYPE_STRING,
 	                                 nmc_convert_bytes_to_string);
+}
+
+void
+nm_cli_spawn_pager (NmCli *nmc)
+{
+	if (nmc->pager_pid > 0)
+		return;
+	nmc->pager_pid = nmc_terminal_spawn_pager (&nmc->nmc_config);
 }
 
 static void

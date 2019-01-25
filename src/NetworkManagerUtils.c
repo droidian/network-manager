@@ -34,6 +34,7 @@
 
 #include "platform/nm-platform.h"
 #include "nm-auth-utils.h"
+#include "systemd/nm-sd-utils-shared.h"
 
 /*****************************************************************************/
 
@@ -48,11 +49,11 @@ nm_utils_get_shared_wifi_permission (NMConnection *connection)
 {
 	NMSettingWireless *s_wifi;
 	NMSettingWirelessSecurity *s_wsec;
-	const char *method = NULL;
+	const char *method;
 
-	method = nm_utils_get_ip_config_method (connection, NM_TYPE_SETTING_IP4_CONFIG);
-	if (strcmp (method, NM_SETTING_IP4_CONFIG_METHOD_SHARED) != 0)
-		return NULL;  /* Not shared */
+	method = nm_utils_get_ip_config_method (connection, AF_INET);
+	if (!nm_streq (method, NM_SETTING_IP4_CONFIG_METHOD_SHARED))
+		return NULL;
 
 	s_wifi = nm_connection_get_setting_wireless (connection);
 	if (s_wifi) {
@@ -160,38 +161,39 @@ next:
 
 const char *
 nm_utils_get_ip_config_method (NMConnection *connection,
-                               GType         ip_setting_type)
+                               int addr_family)
 {
 	NMSettingConnection *s_con;
-	NMSettingIPConfig *s_ip4, *s_ip6;
+	NMSettingIPConfig *s_ip;
 	const char *method;
 
 	s_con = nm_connection_get_setting_connection (connection);
 
-	if (ip_setting_type == NM_TYPE_SETTING_IP4_CONFIG) {
+	if (addr_family == AF_INET) {
 		g_return_val_if_fail (s_con != NULL, NM_SETTING_IP4_CONFIG_METHOD_AUTO);
 
-		s_ip4 = nm_connection_get_setting_ip4_config (connection);
-		if (!s_ip4)
+		s_ip = nm_connection_get_setting_ip4_config (connection);
+		if (!s_ip)
 			return NM_SETTING_IP4_CONFIG_METHOD_DISABLED;
-		method = nm_setting_ip_config_get_method (s_ip4);
+
+		method = nm_setting_ip_config_get_method (s_ip);
 		g_return_val_if_fail (method != NULL, NM_SETTING_IP4_CONFIG_METHOD_AUTO);
-
 		return method;
+	}
 
-	} else if (ip_setting_type == NM_TYPE_SETTING_IP6_CONFIG) {
+	if (addr_family == AF_INET6) {
 		g_return_val_if_fail (s_con != NULL, NM_SETTING_IP6_CONFIG_METHOD_AUTO);
 
-		s_ip6 = nm_connection_get_setting_ip6_config (connection);
-		if (!s_ip6)
+		s_ip = nm_connection_get_setting_ip6_config (connection);
+		if (!s_ip)
 			return NM_SETTING_IP6_CONFIG_METHOD_IGNORE;
-		method = nm_setting_ip_config_get_method (s_ip6);
+
+		method = nm_setting_ip_config_get_method (s_ip);
 		g_return_val_if_fail (method != NULL, NM_SETTING_IP6_CONFIG_METHOD_AUTO);
-
 		return method;
+	}
 
-	} else
-		g_assert_not_reached ();
+	g_return_val_if_reached ("" /* bogus */);
 }
 
 gboolean
@@ -221,16 +223,13 @@ nm_utils_connection_has_default_route (NMConnection *connection,
 		goto out;
 	}
 
+	method = nm_utils_get_ip_config_method (connection, addr_family);
 	if (addr_family == AF_INET) {
-		method = nm_utils_get_ip_config_method (connection, NM_TYPE_SETTING_IP4_CONFIG);
-		if (NM_IN_STRSET (method, NULL,
-		                          NM_SETTING_IP4_CONFIG_METHOD_DISABLED,
+		if (NM_IN_STRSET (method, NM_SETTING_IP4_CONFIG_METHOD_DISABLED,
 		                          NM_SETTING_IP4_CONFIG_METHOD_LINK_LOCAL))
 			goto out;
 	} else {
-		method = nm_utils_get_ip_config_method (connection, NM_TYPE_SETTING_IP6_CONFIG);
-		if (NM_IN_STRSET (method, NULL,
-		                          NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
+		if (NM_IN_STRSET (method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
 		                          NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL))
 			goto out;
 	}
@@ -341,29 +340,28 @@ check_ip6_method (NMConnection *orig,
 	if (!props)
 		return TRUE;
 
-	/* If the generated connection is 'link-local' and the candidate is both 'auto'
-	 * and may-fail=TRUE, then the candidate is OK to use.  may-fail is included
-	 * in the decision because if the candidate is 'auto' but may-fail=FALSE, then
-	 * the connection could not possibly have been previously activated on the
-	 * device if the device has no non-link-local IPv6 address.
-	 */
-	orig_ip6_method = nm_utils_get_ip_config_method (orig, NM_TYPE_SETTING_IP6_CONFIG);
-	candidate_ip6_method = nm_utils_get_ip_config_method (candidate, NM_TYPE_SETTING_IP6_CONFIG);
+	orig_ip6_method = nm_utils_get_ip_config_method (orig, AF_INET6);
+	candidate_ip6_method = nm_utils_get_ip_config_method (candidate, AF_INET6);
 	candidate_ip6 = nm_connection_get_setting_ip6_config (candidate);
 
-	if (   strcmp (orig_ip6_method, NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL) == 0
-	    && strcmp (candidate_ip6_method, NM_SETTING_IP6_CONFIG_METHOD_AUTO) == 0
-	    && (!candidate_ip6 || nm_setting_ip_config_get_may_fail (candidate_ip6))) {
+	if (   nm_streq (orig_ip6_method, NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL)
+	    && nm_streq (candidate_ip6_method, NM_SETTING_IP6_CONFIG_METHOD_AUTO)
+	    && (   !candidate_ip6
+	        || nm_setting_ip_config_get_may_fail (candidate_ip6))) {
+		/* If the generated connection is 'link-local' and the candidate is both 'auto'
+		 * and may-fail=TRUE, then the candidate is OK to use.  may-fail is included
+		 * in the decision because if the candidate is 'auto' but may-fail=FALSE, then
+		 * the connection could not possibly have been previously activated on the
+		 * device if the device has no non-link-local IPv6 address.
+		 */
 		allow = TRUE;
-	}
-
-	/* If the generated connection method is 'link-local' or 'auto' and the candidate
-	 * method is 'ignore' we can take the connection, because NM didn't simply take care
-	 * of IPv6.
-	 */
-	if (  (   strcmp (orig_ip6_method, NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL) == 0
-	       || strcmp (orig_ip6_method, NM_SETTING_IP6_CONFIG_METHOD_AUTO) == 0)
-	    && strcmp (candidate_ip6_method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE) == 0) {
+	} else if (   NM_IN_STRSET (orig_ip6_method, NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL,
+	                                             NM_SETTING_IP6_CONFIG_METHOD_AUTO)
+	           && nm_streq0 (candidate_ip6_method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE)) {
+		/* If the generated connection method is 'link-local' or 'auto' and the candidate
+		 * method is 'ignore' we can take the connection, because NM didn't simply take care
+		 * of IPv6.
+		 */
 		allow = TRUE;
 	}
 
@@ -372,6 +370,7 @@ check_ip6_method (NMConnection *orig,
 		                  NM_SETTING_IP6_CONFIG_SETTING_NAME,
 		                  NM_SETTING_IP_CONFIG_METHOD);
 	}
+
 	return allow;
 }
 
@@ -519,19 +518,20 @@ check_ip4_method (NMConnection *orig,
 	if (!props)
 		return TRUE;
 
-	/* If the generated connection is 'disabled' (device had no IP addresses)
-	 * but it has no carrier, that most likely means that IP addressing could
-	 * not complete and thus no IP addresses were assigned.  In that case, allow
-	 * matching to the "auto" method.
-	 */
-	orig_ip4_method = nm_utils_get_ip_config_method (orig, NM_TYPE_SETTING_IP4_CONFIG);
-	candidate_ip4_method = nm_utils_get_ip_config_method (candidate, NM_TYPE_SETTING_IP4_CONFIG);
+	orig_ip4_method = nm_utils_get_ip_config_method (orig, AF_INET);
+	candidate_ip4_method = nm_utils_get_ip_config_method (candidate, AF_INET);
 	candidate_ip4 = nm_connection_get_setting_ip4_config (candidate);
 
-	if (   strcmp (orig_ip4_method, NM_SETTING_IP4_CONFIG_METHOD_DISABLED) == 0
-	    && strcmp (candidate_ip4_method, NM_SETTING_IP4_CONFIG_METHOD_AUTO) == 0
-	    && (!candidate_ip4 || nm_setting_ip_config_get_may_fail (candidate_ip4))
-	    && (device_has_carrier == FALSE)) {
+	if (   nm_streq (orig_ip4_method, NM_SETTING_IP4_CONFIG_METHOD_DISABLED)
+	    && nm_streq (candidate_ip4_method, NM_SETTING_IP4_CONFIG_METHOD_AUTO)
+	    && (   !candidate_ip4
+	        || nm_setting_ip_config_get_may_fail (candidate_ip4))
+	    && !device_has_carrier) {
+		/* If the generated connection is 'disabled' (device had no IP addresses)
+		 * but it has no carrier, that most likely means that IP addressing could
+		 * not complete and thus no IP addresses were assigned.  In that case, allow
+		 * matching to the "auto" method.
+		 */
 		remove_from_hash (settings, props,
 		                  NM_SETTING_IP4_CONFIG_SETTING_NAME,
 		                  NM_SETTING_IP_CONFIG_METHOD);
@@ -881,6 +881,7 @@ nm_utils_match_connection (NMConnection *const*connections,
 int
 nm_match_spec_device_by_pllink (const NMPlatformLink *pllink,
                                 const char *match_device_type,
+                                const char *match_dhcp_plugin,
                                 const GSList *specs,
                                 int no_match_value)
 {
@@ -897,7 +898,8 @@ nm_match_spec_device_by_pllink (const NMPlatformLink *pllink,
 	                          pllink ? pllink->driver : NULL,
 	                          NULL,
 	                          NULL,
-	                          NULL);
+	                          NULL,
+	                          match_dhcp_plugin);
 
 	switch (m) {
 	case NM_MATCH_SPEC_MATCH:
@@ -997,4 +999,63 @@ nm_shutdown_wait_obj_unregister (NMShutdownWaitObjHandle *handle)
 
 	g_object_weak_unref (handle->watched_obj, _shutdown_waitobj_cb, handle);
 	_shutdown_waitobj_unregister (handle);
+}
+
+/*****************************************************************************/
+
+/**
+ * nm_utils_file_is_in_path:
+ * @abs_filename: the absolute filename to test
+ * @abs_path: the absolute path, to check whether filename is in.
+ *
+ * This tests, whether @abs_filename is a file which lies inside @abs_path.
+ * Basically, this checks whether @abs_filename is the same as @abs_path +
+ * basename(@abs_filename). It allows simple normalizations, like coalescing
+ * multiple "//".
+ *
+ * However, beware that this function is purely filename based. That means,
+ * it will reject files that reference the same file (i.e. inode) via
+ * symlinks or bind mounts. Maybe one would like to check for file (inode)
+ * identity, but that is not really possible based on the file name alone.
+ *
+ * This means, that nm_utils_file_is_in_path("/var/run/some-file", "/var/run")
+ * will succeed, but nm_utils_file_is_in_path("/run/some-file", "/var/run")
+ * will not (although, it's well known that they reference the same path).
+ *
+ * Also, note that @abs_filename must not have trailing slashes itself.
+ * So, this will reject nm_utils_file_is_in_path("/usr/lib/", "/usr") as
+ * invalid, because the function searches for file names (and "lib/" is
+ * clearly a directory).
+ *
+ * Returns: if @abs_filename is a file inside @abs_path, returns the
+ *   trailing part of @abs_filename which is the filename. Otherwise
+ *   %NULL.
+ */
+const char *
+nm_utils_file_is_in_path (const char *abs_filename,
+                          const char *abs_path)
+{
+	const char *path;
+
+	g_return_val_if_fail (abs_filename && abs_filename[0] == '/', NULL);
+	g_return_val_if_fail (abs_path && abs_path[0] == '/', NULL);
+
+	path = nm_sd_utils_path_startswith (abs_filename, abs_path);
+	if (!path)
+		return NULL;
+
+	nm_assert (path[0] != '/');
+	nm_assert (path > abs_filename);
+	nm_assert (path <= &abs_filename[strlen (abs_filename)]);
+
+	/* we require a non-empty remainder with no slashes. That is, only a filename.
+	 *
+	 * Note this will reject "/var/run/" as not being in "/var",
+	 * while "/var/run" would pass. The function searches for files
+	 * only, so a trailing slash (indicating a directory) is not allowed).
+	 * This is despite that the function cannot determine whether "/var/run"
+	 * is itself a file or a directory. "*/
+	return path[0] && !strchr (path, '/')
+	       ? path
+	       : NULL;
 }

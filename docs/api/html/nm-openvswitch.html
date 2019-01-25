@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nm-initrd-generator.html" title="nm-initrd-generator">
 <link rel="next" href="ref-settings.html" title="Part II. Network Configuration Setting Specification">
-<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -24,17 +24,17 @@
 <div class="refnamediv"><table width="100%"><tr>
 <td valign="top">
 <h2><span class="refentrytitle">nm-openvswitch</span></h2>
-<p>nm-openvswitch — overview of NetworkManager OpenVSwitch support</p>
+<p>nm-openvswitch — overview of NetworkManager Open vSwitch support</p>
 </td>
 <td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
 <div class="refsect1">
 <a name="id-1.2.12.4"></a><h2>Overview</h2>
-<p>NetworkManager includes basic OpenVSwitch support, good enough
-    to be capable of setting up simple OpenVSwitch configurations. It is not
-    extensive and does not expose all functionality of OpenVSwitch provides.
+<p>NetworkManager includes basic Open vSwitch support, good enough
+    to be capable of setting up simple Open vSwitch configurations. It is not
+    extensive and does not expose all functionality of Open vSwitch provides.
     For large or complicated deployments users are advised to use native tools
-    shipped with OpenVSwitch. This document seeks to provide overview of
+    shipped with Open vSwitch. This document seeks to provide overview of
     functionality currently provided by NetworkManager, its capabilities and
     limitations.</p>
 <p>First and foremost: NetworkManager applies the configuration by
@@ -96,7 +96,7 @@
 <div class="refsect1">
 <a name="id-1.2.12.5"></a><h2>Examples</h2>
 <div class="example">
-<a name="id-1.2.12.5.2"></a><p class="title"><b>Example 14. Creating a Bridge with a single internal Interface</b></p>
+<a name="id-1.2.12.5.2"></a><p class="title"><b>Example 16. Creating a Bridge with a single internal Interface</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli conn add type ovs-bridge conn.interface bridge0</code></strong>
 Connection 'ovs-bridge-bridge0' (d10fc64d-1d48-4394-a1b8-e1aea72f27d5) successfully added.
@@ -113,7 +113,7 @@ Connection 'ovs-interface-iface0' (3640d2a1-a2fd-4718-92f1-cffadb5b6cdc) success
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.12.5.3"></a><p class="title"><b>Example 15. Adding a Linux interface to a Bridge</b></p>
+<a name="id-1.2.12.5.3"></a><p class="title"><b>Example 17. Adding a Linux interface to a Bridge</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli conn add type ovs-port conn.interface port1 master bridge0</code></strong>
 Connection 'ovs-port-port1' (67d041eb-8e7b-4458-afee-a1d07c9c4552) successfully added.
@@ -124,7 +124,7 @@ Connection 'ovs-slave-eth0' (d459c45c-cf78-4c1c-b4b7-505e71379624) successfully 
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.12.5.4"></a><p class="title"><b>Example 16. Creating a VLAN</b></p>
+<a name="id-1.2.12.5.4"></a><p class="title"><b>Example 18. Creating a VLAN</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli conn add type ovs-port conn.interface port2 master bridge0 ovs-port.tag 120</code></strong>
 Connection 'ovs-port-port2' (3994c093-4ef7-4549-a4fd-627b831c3cb8) successfully added.
@@ -135,7 +135,7 @@ Connection 'ovs-slave-eth1' (099be06e-71ad-484d-8d5a-fcadc5f207f5) successfully 
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.12.5.5"></a><p class="title"><b>Example 17. Creating a Bond</b></p>
+<a name="id-1.2.12.5.5"></a><p class="title"><b>Example 19. Creating a Bond</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli conn add type ovs-port conn.interface bond0 master bridge0</code></strong>
 Connection 'ovs-port-bond0' (d154ebf9-e999-4e1b-a084-a3de53d25d8a) successfully added.
@@ -155,8 +155,8 @@ Connection 'ovs-slave-eth3' (8dedeecb-ed12-482b-b77a-24a4fb835136) successfully 
 <div class="refsect1">
 <a name="id-1.2.12.6"></a><h2>Bugs</h2>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem"><p>Not all OpenVSwitch capabilities are supported.</p></li>
-<li class="listitem"><p>OpenVSwitch devices don't expose many useful properties on D-Bus.</p></li>
+<li class="listitem"><p>Not all Open vSwitch capabilities are supported.</p></li>
+<li class="listitem"><p>Open vSwitch devices don't expose many useful properties on D-Bus.</p></li>
 </ul></div>
 <p>Probably many more.</p>
 </div>
@@ -172,6 +172,6 @@ Connection 'ovs-slave-eth3' (8dedeecb-ed12-482b-b77a-24a4fb835136) successfully 
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29.1</div>
+<hr>Generated by GTK-Doc V1.29</div>
 </body>
 </html>

@@ -54,7 +54,7 @@ typedef enum {
 static inline NMDeviceStateReason
 nm_device_state_reason_check (NMDeviceStateReason reason)
 {
-	/* the device-state-reason serves mostly informational purpse during a state
+	/* the device-state-reason serves mostly informational purpose during a state
 	 * change. In some cases however, decisions are made based on the reason.
 	 * I tend to think that interpreting the state reason to derive some behaviors
 	 * is confusing, because the cause and effect are so far apart.
@@ -76,6 +76,7 @@ nm_device_state_reason_check (NMDeviceStateReason reason)
 #define NM_PENDING_ACTION_WAITING_FOR_SUPPLICANT    "waiting-for-supplicant"
 #define NM_PENDING_ACTION_WIFI_SCAN                 "wifi-scan"
 #define NM_PENDING_ACTION_WAITING_FOR_COMPANION     "waiting-for-companion"
+#define NM_PENDING_ACTION_LINK_INIT                 "link-init"
 
 #define NM_PENDING_ACTIONPREFIX_QUEUED_STATE_CHANGE "queued-state-change-"
 #define NM_PENDING_ACTIONPREFIX_ACTIVATION          "activation-"
@@ -142,13 +143,13 @@ nm_device_state_reason_check (NMDeviceStateReason reason)
 #define NM_DEVICE_STATE_CHANGED         "state-changed"
 #define NM_DEVICE_LINK_INITIALIZED      "link-initialized"
 #define NM_DEVICE_AUTOCONNECT_ALLOWED   "autoconnect-allowed"
-#define NM_DEVICE_CONNECTIVITY_CHANGED  "connectivity-changed"
 
 #define NM_DEVICE_STATISTICS_REFRESH_RATE_MS "refresh-rate-ms"
 #define NM_DEVICE_STATISTICS_TX_BYTES        "tx-bytes"
 #define NM_DEVICE_STATISTICS_RX_BYTES        "rx-bytes"
 
-#define NM_DEVICE_CONNECTIVITY               "connectivity"
+#define NM_DEVICE_IP4_CONNECTIVITY           "ip4-connectivity"
+#define NM_DEVICE_IP6_CONNECTIVITY           "ip6-connectivity"
 
 #define NM_TYPE_DEVICE            (nm_device_get_type ())
 #define NM_DEVICE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_DEVICE, NMDevice))
@@ -221,6 +222,10 @@ typedef enum { /*< skip >*/
 	NM_DEVICE_CHECK_DEV_AVAILABLE_ALL                                   = (1L << 1) - 1,
 } NMDeviceCheckDevAvailableFlags;
 
+typedef void (*NMDeviceDeactivateCallback) (NMDevice *self,
+                                            GError *error,
+                                            gpointer user_data);
+
 typedef struct _NMDeviceClass {
 	NMDBusObjectClass parent;
 
@@ -278,7 +283,7 @@ typedef struct _NMDeviceClass {
 	 * Hook for derived classes to be notfied during realize_start_setup()
 	 * and perform additional setup.
 	 *
-	 * The default implemention of NMDevice calls link_changed().
+	 * The default implementation of NMDevice calls link_changed().
 	 */
 	void        (*realize_start_notify) (NMDevice *self,
 	                                     const NMPlatformLink *pllink);
@@ -327,9 +332,11 @@ typedef struct _NMDeviceClass {
 
 	guint32     (*get_configured_mtu) (NMDevice *self, NMDeviceMtuSource *out_source);
 
+	const char *(*get_auto_ip_config_method) (NMDevice *self, int addr_family);
+
 	/* Checks whether the connection is compatible with the device using
 	 * only the devices type and characteristics.  Does not use any live
-	 * network information like WiFi scan lists etc.
+	 * network information like Wi-Fi scan lists etc.
 	 */
 	gboolean    (* check_connection_compatible) (NMDevice *self,
 	                                             NMConnection *connection,
@@ -378,11 +385,8 @@ typedef struct _NMDeviceClass {
 	/* Async deactivating (in the DEACTIVATING phase) */
 	void            (* deactivate_async)        (NMDevice *self,
 	                                             GCancellable *cancellable,
-	                                             GAsyncReadyCallback callback,
+	                                             NMDeviceDeactivateCallback callback,
 	                                             gpointer user_data);
-	gboolean        (* deactivate_async_finish) (NMDevice *self,
-	                                             GAsyncResult *res,
-	                                             GError **error);
 
 	void            (* deactivate_reset_hw_addr) (NMDevice *self);
 
@@ -481,6 +485,7 @@ int             nm_device_get_ifindex           (NMDevice *dev);
 gboolean        nm_device_is_software           (NMDevice *dev);
 gboolean        nm_device_is_real               (NMDevice *dev);
 const char *    nm_device_get_ip_iface          (NMDevice *dev);
+const char *    nm_device_get_ip_iface_from_platform (NMDevice *dev);
 int             nm_device_get_ip_ifindex        (const NMDevice *dev);
 const char *    nm_device_get_driver            (NMDevice *dev);
 const char *    nm_device_get_driver_version    (NMDevice *dev);
@@ -541,7 +546,10 @@ NMConnection *  nm_device_get_settings_connection_get_connection (NMDevice *self
 NMConnection *  nm_device_get_applied_connection (NMDevice *dev);
 gboolean        nm_device_has_unmodified_applied_connection (NMDevice *self,
                                                              NMSettingCompareFlags compare_flags);
-NMSetting *     nm_device_get_applied_setting   (NMDevice *dev, GType setting_type);
+NMActivationStateFlags nm_device_get_activation_state_flags (NMDevice *self);
+
+gpointer /* (NMSetting *) */ nm_device_get_applied_setting   (NMDevice *dev,
+                                                              GType setting_type);
 
 void            nm_device_removed               (NMDevice *self, gboolean unconfigure_ip_config);
 
@@ -617,7 +625,7 @@ void nm_device_copy_ip6_dns_config (NMDevice *self, NMDevice *from_device);
  *   the settings plugin (for example keyfile.unmanaged-devices or ifcfg-rh's
  *   NM_CONTROLLED=no). Although this is user-configuration (provided from
  *   the settings plugins, such as NM_CONTROLLED=no in ifcfg-rh), it cannot
- *   be overruled and is authorative. That is because users may depend on
+ *   be overruled and is authoritative. That is because users may depend on
  *   dropping a ifcfg-rh file to ensure the device is unmanaged.
  * @NM_UNMANAGED_USER_CONF: %TRUE when unmanaged by user decision via
  *   the NetworkManager.conf ("unmanaged" in the [device] section).
@@ -634,7 +642,7 @@ void nm_device_copy_ip6_dns_config (NMDevice *self, NMDevice *from_device);
 typedef enum { /*< skip >*/
 	NM_UNMANAGED_NONE          = 0,
 
-	/* these flags are authorative. If one of them is set,
+	/* these flags are authoritative. If one of them is set,
 	 * the device cannot be managed. */
 	NM_UNMANAGED_SLEEPING      = (1LL <<  0),
 	NM_UNMANAGED_QUITTING      = (1LL <<  1),
@@ -722,6 +730,8 @@ typedef enum {
 
 	NM_DEVICE_AUTOCONNECT_BLOCKED_WRONG_PIN             = (1LL <<  1),
 	NM_DEVICE_AUTOCONNECT_BLOCKED_MANUAL_DISCONNECT     = (1LL <<  2),
+	NM_DEVICE_AUTOCONNECT_BLOCKED_SIM_MISSING           = (1LL <<  3),
+	NM_DEVICE_AUTOCONNECT_BLOCKED_INIT_FAILED           = (1LL <<  4),
 
 	_NM_DEVICE_AUTOCONNECT_BLOCKED_LAST,
 
@@ -765,7 +775,9 @@ void nm_device_queue_state   (NMDevice *self,
 
 gboolean nm_device_get_firmware_missing (NMDevice *self);
 
-void nm_device_disconnect_active_connection (NMActiveConnection *active);
+void nm_device_disconnect_active_connection (NMActiveConnection *active,
+                                             NMDeviceStateReason device_reason,
+                                             NMActiveConnectionStateReason active_reason);
 
 void nm_device_queue_activation (NMDevice *device, NMActRequest *req);
 
@@ -773,7 +785,13 @@ gboolean nm_device_supports_vlans (NMDevice *device);
 
 gboolean nm_device_add_pending_action    (NMDevice *device, const char *action, gboolean assert_not_yet_pending);
 gboolean nm_device_remove_pending_action (NMDevice *device, const char *action, gboolean assert_is_pending);
-gboolean nm_device_has_pending_action    (NMDevice *device);
+const char *nm_device_has_pending_action_reason (NMDevice *device);
+
+static inline gboolean
+nm_device_has_pending_action (NMDevice *device)
+{
+	return !!nm_device_has_pending_action_reason (device);
+}
 
 NMSettingsConnection *nm_device_get_best_connection (NMDevice *device,
                                                      const char *specific_object,
@@ -836,12 +854,13 @@ typedef void (*NMDeviceConnectivityCallback) (NMDevice *self,
 void nm_device_check_connectivity_update_interval (NMDevice *self);
 
 NMDeviceConnectivityHandle *nm_device_check_connectivity (NMDevice *self,
+                                                          int addr_family,
                                                           NMDeviceConnectivityCallback callback,
                                                           gpointer user_data);
 
 void nm_device_check_connectivity_cancel (NMDeviceConnectivityHandle *handle);
 
-NMConnectivityState nm_device_get_connectivity_state (NMDevice *self);
+NMConnectivityState nm_device_get_connectivity_state (NMDevice *self, int addr_family);
 
 typedef struct _NMBtVTableNetworkServer NMBtVTableNetworkServer;
 struct _NMBtVTableNetworkServer {

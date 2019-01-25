@@ -67,7 +67,7 @@ struct IsoLangToEncodings
 	const char *const *encodings;
 };
 
-#define LANG_ENCODINGS(l, ...) { .lang = l, .encodings = (const char *[]) { __VA_ARGS__, NULL }}
+#define LANG_ENCODINGS(l, ...) { .lang = l, .encodings = NM_MAKE_STRV (__VA_ARGS__), }
 
 /* 5-letter language codes */
 static const struct IsoLangToEncodings isoLangEntries5[] =
@@ -112,7 +112,7 @@ static const struct IsoLangToEncodings isoLangEntries2[] =
 	LANG_ENCODINGS ("bg",      "windows-1251","koi8-r", "iso-8859-5"), /* Bulgarian */
 	LANG_ENCODINGS ("mk",      "koi8-r", "windows-1251", "iso-8859-5"),/* Macedonian */
 	LANG_ENCODINGS ("sr",      "koi8-r", "windows-1251", "iso-8859-5"),/* Serbian */
-	LANG_ENCODINGS ("uk",      "koi8-u", "koi8-r", "windows-1251"),    /* Ukranian */
+	LANG_ENCODINGS ("uk",      "koi8-u", "koi8-r", "windows-1251"),    /* Ukrainian */
 
 	/* Arabic */
 	LANG_ENCODINGS ("ar",      "iso-8859-6","windows-1256"),
@@ -836,7 +836,7 @@ device_supports_ap_ciphers (guint32 dev_caps,
 
 /**
  * nm_utils_ap_mode_security_valid:
- * @type: the security type to check device capabilties against,
+ * @type: the security type to check device capabilities against,
  * e.g. #NMU_SEC_STATIC_WEP
  * @wifi_caps: bitfield of the capabilities of the specific Wi-Fi device, e.g.
  * #NM_WIFI_DEVICE_CAP_CIPHER_WEP40
@@ -872,16 +872,16 @@ nm_utils_ap_mode_security_valid (NMUtilsSecurityType type,
 
 /**
  * nm_utils_security_valid:
- * @type: the security type to check AP flags and device capabilties against,
+ * @type: the security type to check AP flags and device capabilities against,
  * e.g. #NMU_SEC_STATIC_WEP
  * @wifi_caps: bitfield of the capabilities of the specific Wi-Fi device, e.g.
  * #NM_WIFI_DEVICE_CAP_CIPHER_WEP40
  * @have_ap: whether the @ap_flags, @ap_wpa, and @ap_rsn arguments are valid
  * @adhoc: whether the capabilities being tested are from an Ad-Hoc AP (IBSS)
  * @ap_flags: bitfield of AP capabilities, e.g. #NM_802_11_AP_FLAGS_PRIVACY
- * @ap_wpa: bitfield of AP capabilties derived from the AP's WPA beacon,
+ * @ap_wpa: bitfield of AP capabilities derived from the AP's WPA beacon,
  * e.g. (#NM_802_11_AP_SEC_PAIR_TKIP | #NM_802_11_AP_SEC_KEY_MGMT_PSK)
- * @ap_rsn: bitfield of AP capabilties derived from the AP's RSN/WPA2 beacon,
+ * @ap_rsn: bitfield of AP capabilities derived from the AP's RSN/WPA2 beacon,
  * e.g. (#NM_802_11_AP_SEC_PAIR_CCMP | #NM_802_11_AP_SEC_PAIR_TKIP)
  *
  * Given a set of device capabilities, and a desired security type to check
@@ -891,7 +891,7 @@ nm_utils_ap_mode_security_valid (NMUtilsSecurityType type,
  * NOTE: this function cannot handle checking security for AP/Hotspot mode;
  * use nm_utils_ap_mode_security_valid() instead.
  *
- * Returns: %TRUE if the device capabilities and AP capabilties intersect and are
+ * Returns: %TRUE if the device capabilities and AP capabilities intersect and are
  * compatible with the desired @type, %FALSE if they are not
  **/
 gboolean
@@ -1173,7 +1173,7 @@ nm_utils_ip4_dns_from_variant (GVariant *value)
 	dns = g_new (char *, length + 1);
 
 	for (i = 0; i < length; i++)
-		dns[i] = g_strdup (nm_utils_inet4_ntop (array[i], NULL));
+		dns[i] = nm_utils_inet4_ntop_dup (array[i]);
 	dns[i] = NULL;
 
 	return dns;
@@ -1271,7 +1271,7 @@ nm_utils_ip4_addresses_from_variant (GVariant *value, char **out_gateway)
 			g_ptr_array_add (addresses, addr);
 
 			if (addr_array[2] && out_gateway && !*out_gateway)
-				*out_gateway = g_strdup (nm_utils_inet4_ntop (addr_array[2], NULL));
+				*out_gateway = nm_utils_inet4_ntop_dup (addr_array[2]);
 		} else {
 			g_warning ("Ignoring invalid IP4 address: %s", error->message);
 			g_clear_error (&error);
@@ -1389,30 +1389,13 @@ nm_utils_ip4_routes_from_variant (GVariant *value)
 guint32
 nm_utils_ip4_netmask_to_prefix (guint32 netmask)
 {
-	guint32 prefix;
-	guint8 v;
-	const guint8 *p = (guint8 *) &netmask;
+	G_STATIC_ASSERT_EXPR (__SIZEOF_INT__   == 4);
+	G_STATIC_ASSERT_EXPR (sizeof (int)     == 4);
+	G_STATIC_ASSERT_EXPR (sizeof (netmask) == 4);
 
-	if (p[3]) {
-		prefix = 24;
-		v = p[3];
-	} else if (p[2]) {
-		prefix = 16;
-		v = p[2];
-	} else if (p[1]) {
-		prefix = 8;
-		v = p[1];
-	} else {
-		prefix = 0;
-		v = p[0];
-	}
-
-	while (v) {
-		prefix++;
-		v <<= 1;
-	}
-
-	return prefix;
+	return  (  (netmask != 0)
+	         ? (32 - __builtin_ctz (ntohl (netmask)))
+	         : 0);
 }
 
 /**
@@ -1510,7 +1493,7 @@ nm_utils_ip6_dns_from_variant (GVariant *value)
 			continue;
 		}
 
-		dns[i++] = g_strdup (nm_utils_inet6_ntop (ip, NULL));
+		dns[i++] = nm_utils_inet6_ntop_dup (ip);
 		g_variant_unref (ip_var);
 	}
 	dns[i] = NULL;
@@ -1629,7 +1612,7 @@ nm_utils_ip6_addresses_from_variant (GVariant *value, char **out_gateway)
 					goto next;
 				}
 				if (!IN6_IS_ADDR_UNSPECIFIED (gateway_bytes))
-					*out_gateway = g_strdup (nm_utils_inet6_ntop (gateway_bytes, NULL));
+					*out_gateway = nm_utils_inet6_ntop_dup (gateway_bytes);
 			}
 		} else {
 			g_warning ("Ignoring invalid IP6 address: %s", error->message);
@@ -2017,7 +2000,7 @@ _string_append_tc_handle (GString *string, guint32 handle)
  * or to pretty-format (use symbolic name for root) the key in keyfile.
  * The presence of prefix determnines which one is the case.
  *
- * Private API due to general uglyness and overall uselessness for anything
+ * Private API due to general ugliness and overall uselessness for anything
  * sensible.
  */
 void
@@ -2737,11 +2720,14 @@ nm_utils_sriov_vf_from_str (const char *str, GError **error)
 		detail++;
 	}
 
-	return _nm_utils_sriov_vf_from_strparts (str, detail, error);
+	return _nm_utils_sriov_vf_from_strparts (str, detail, FALSE, error);
 }
 
 NMSriovVF *
-_nm_utils_sriov_vf_from_strparts (const char *index, const char *detail, GError **error)
+_nm_utils_sriov_vf_from_strparts (const char *index,
+                                  const char *detail,
+                                  gboolean ignore_unknown,
+                                  GError **error)
 {
 	NMSriovVF *vf;
 	guint32 n_index;
@@ -2761,7 +2747,12 @@ _nm_utils_sriov_vf_from_strparts (const char *index, const char *detail, GError 
 
 	vf = nm_sriov_vf_new (n_index);
 	if (detail) {
-		ht = nm_utils_parse_variant_attributes (detail, ' ', '=', TRUE, _nm_sriov_vf_attribute_spec, error);
+		ht = nm_utils_parse_variant_attributes (detail,
+		                                        ' ',
+		                                        '=',
+		                                        ignore_unknown,
+		                                        _nm_sriov_vf_attribute_spec,
+		                                        error);
 		if (!ht) {
 			nm_sriov_vf_unref (vf);
 			return NULL;
@@ -2785,6 +2776,57 @@ _nm_utils_sriov_vf_from_strparts (const char *index, const char *detail, GError 
 
 /*****************************************************************************/
 
+NMUuid *
+_nm_utils_uuid_parse (const char *str,
+                      NMUuid *out_uuid)
+{
+	nm_assert (str);
+	nm_assert (out_uuid);
+
+	if (uuid_parse (str, out_uuid->uuid) != 0)
+		return NULL;
+	return out_uuid;
+}
+
+char *
+_nm_utils_uuid_unparse (const NMUuid *uuid,
+                        char *out_str /*[37]*/)
+{
+	nm_assert (uuid);
+
+	if (!out_str) {
+		/* for convenience, allow %NULL to indicate that a new
+		 * string should be allocated. */
+		out_str = g_malloc (37);
+	}
+	uuid_unparse_lower (uuid->uuid, out_str);
+	return out_str;
+}
+
+NMUuid *
+_nm_utils_uuid_generate_random (NMUuid *out_uuid)
+{
+	nm_assert (out_uuid);
+
+	uuid_generate_random (out_uuid->uuid);
+	return out_uuid;
+}
+
+gboolean
+nm_utils_uuid_is_null (const NMUuid *uuid)
+{
+	int i;
+
+	if (!uuid)
+		return TRUE;
+
+	for (i = 0; i < G_N_ELEMENTS (uuid->uuid); i++) {
+		if (uuid->uuid[i])
+			return FALSE;
+	}
+	return TRUE;
+}
+
 /**
  * nm_utils_uuid_generate_buf_:
  * @buf: input buffer, must contain at least 37 bytes
@@ -2794,11 +2836,12 @@ _nm_utils_sriov_vf_from_strparts (const char *index, const char *detail, GError 
 char *
 nm_utils_uuid_generate_buf_ (char *buf)
 {
-	uuid_t uuid;
+	NMUuid uuid;
 
-	uuid_generate_random (uuid);
-	uuid_unparse_lower (uuid, buf);
-	return buf;
+	nm_assert (buf);
+
+	_nm_utils_uuid_generate_random (&uuid);
+	return _nm_utils_uuid_unparse (&uuid, buf);
 }
 
 /**
@@ -2811,6 +2854,84 @@ char *
 nm_utils_uuid_generate (void)
 {
 	return nm_utils_uuid_generate_buf_ (g_malloc (37));
+}
+
+/**
+ * nm_utils_uuid_generate_from_string_bin:
+ * @uuid: the UUID to update inplace. This function cannot
+ *   fail to succeed.
+ * @s: a string to use as the seed for the UUID
+ * @slen: if negative, treat @s as zero terminated C string.
+ *   Otherwise, assume the length as given (and allow @s to be
+ *   non-null terminated or contain '\0').
+ * @uuid_type: a type identifier which UUID format to generate.
+ * @type_args: additional arguments, depending on the uuid_type
+ *
+ * For a given @s, this function will always return the same UUID.
+ *
+ * Returns: the input @uuid. This function cannot fail.
+ **/
+NMUuid *
+nm_utils_uuid_generate_from_string_bin (NMUuid *uuid, const char *s, gssize slen, int uuid_type, gpointer type_args)
+{
+	g_return_val_if_fail (uuid, FALSE);
+	g_return_val_if_fail (slen == 0 || s, FALSE);
+
+	if (slen < 0)
+		slen = s ? strlen (s) : 0;
+
+	switch (uuid_type) {
+	case NM_UTILS_UUID_TYPE_LEGACY:
+		g_return_val_if_fail (!type_args, NULL);
+		nm_crypto_md5_hash (NULL,
+		                    0,
+		                    (guint8 *) s,
+		                    slen,
+		                    (guint8 *) uuid,
+		                    sizeof (*uuid));
+		break;
+	case NM_UTILS_UUID_TYPE_VERSION3:
+	case NM_UTILS_UUID_TYPE_VERSION5: {
+		NMUuid ns_uuid = { 0 };
+
+		if (type_args) {
+			/* type_args can be a name space UUID. Interpret it as (char *) */
+			if (!_nm_utils_uuid_parse (type_args, &ns_uuid))
+				g_return_val_if_reached (NULL);
+		}
+
+		if (uuid_type == NM_UTILS_UUID_TYPE_VERSION3) {
+			nm_crypto_md5_hash ((guint8 *) s,
+			                    slen,
+			                    (guint8 *) &ns_uuid,
+			                    sizeof (ns_uuid),
+			                    (guint8 *) uuid,
+			                    sizeof (*uuid));
+		} else {
+			nm_auto_free_checksum GChecksum *sum = NULL;
+			union {
+				guint8 sha1[NM_UTILS_CHECKSUM_LENGTH_SHA1];
+				NMUuid uuid;
+			} digest;
+
+			sum = g_checksum_new (G_CHECKSUM_SHA1);
+			g_checksum_update (sum, (guchar *) &ns_uuid, sizeof (ns_uuid));
+			g_checksum_update (sum, (guchar *) s, slen);
+			nm_utils_checksum_get_digest (sum, digest.sha1);
+
+			G_STATIC_ASSERT_EXPR (sizeof (digest.sha1) > sizeof (digest.uuid));
+			*uuid = digest.uuid;
+		}
+
+		uuid->uuid[6] = (uuid->uuid[6] & 0x0F) | (uuid_type << 4);
+		uuid->uuid[8] = (uuid->uuid[8] & 0x3F) | 0x80;
+		break;
+	}
+	default:
+		g_return_val_if_reached (NULL);
+	}
+
+	return uuid;
 }
 
 /**
@@ -2830,54 +2951,10 @@ nm_utils_uuid_generate (void)
 char *
 nm_utils_uuid_generate_from_string (const char *s, gssize slen, int uuid_type, gpointer type_args)
 {
-	uuid_t uuid;
-	char *buf;
+	NMUuid uuid;
 
-	g_return_val_if_fail (slen == 0 || s, FALSE);
-
-	g_return_val_if_fail (uuid_type == NM_UTILS_UUID_TYPE_LEGACY || uuid_type == NM_UTILS_UUID_TYPE_VARIANT3, NULL);
-	g_return_val_if_fail (!type_args || uuid_type == NM_UTILS_UUID_TYPE_VARIANT3, NULL);
-
-	if (slen < 0)
-		slen = s ? strlen (s) : 0;
-
-	switch (uuid_type) {
-	case NM_UTILS_UUID_TYPE_LEGACY:
-		nm_crypto_md5_hash (NULL,
-		                    0,
-		                    (guint8 *) s,
-		                    slen,
-		                    (guint8 *) uuid,
-		                    sizeof (uuid));
-		break;
-	case NM_UTILS_UUID_TYPE_VARIANT3: {
-		uuid_t ns_uuid = { 0 };
-
-		if (type_args) {
-			/* type_args can be a name space UUID. Interpret it as (char *) */
-			if (uuid_parse ((char *) type_args, ns_uuid) != 0)
-				g_return_val_if_reached (NULL);
-		}
-
-		nm_crypto_md5_hash ((guint8 *) s,
-		                    slen,
-		                    (guint8 *) ns_uuid,
-		                    sizeof (ns_uuid),
-		                    (guint8 *) uuid,
-		                    sizeof (uuid));
-
-		uuid[6] = (uuid[6] & 0x0F) | 0x30;
-		uuid[8] = (uuid[8] & 0x3F) | 0x80;
-		break;
-	}
-	default:
-		g_return_val_if_reached (NULL);
-	}
-
-	buf = g_malloc (37);
-	uuid_unparse_lower (uuid, &buf[0]);
-
-	return buf;
+	nm_utils_uuid_generate_from_string_bin (&uuid, s, slen, uuid_type, type_args);
+	return _nm_utils_uuid_unparse (&uuid, NULL);
 }
 
 /**
@@ -2902,7 +2979,7 @@ _nm_utils_uuid_generate_from_strings (const char *string1, ...)
 	char *uuid;
 
 	if (!string1)
-		return nm_utils_uuid_generate_from_string (NULL, 0, NM_UTILS_UUID_TYPE_VARIANT3, NM_UTILS_UUID_NS);
+		return nm_utils_uuid_generate_from_string (NULL, 0, NM_UTILS_UUID_TYPE_VERSION3, NM_UTILS_UUID_NS);
 
 	str = g_string_sized_new (120); /* effectively allocates power of 2 (128)*/
 
@@ -2916,7 +2993,7 @@ _nm_utils_uuid_generate_from_strings (const char *string1, ...)
 	}
 	va_end (args);
 
-	uuid = nm_utils_uuid_generate_from_string (str->str, str->len, NM_UTILS_UUID_TYPE_VARIANT3, NM_UTILS_UUID_NS);
+	uuid = nm_utils_uuid_generate_from_string (str->str, str->len, NM_UTILS_UUID_TYPE_VERSION3, NM_UTILS_UUID_NS);
 
 	g_string_free (str, TRUE);
 	return uuid;
@@ -3527,60 +3604,68 @@ nm_utils_hwaddr_len (int type)
 }
 
 guint8 *
-_nm_utils_str2bin_full (const char *asc,
-                        gboolean delimiter_required,
-                        const char *delimiter_candidates,
-                        guint8 *buffer,
-                        gsize buffer_length,
-                        gsize *out_len)
+_nm_utils_hexstr2bin_full (const char *hexstr,
+                           gboolean allow_0x_prefix,
+                           gboolean delimiter_required,
+                           const char *delimiter_candidates,
+                           gsize required_len,
+                           guint8 *buffer,
+                           gsize buffer_len,
+                           gsize *out_len)
 {
-	const char *in = asc;
+	const char *in = hexstr;
 	guint8 *out = buffer;
 	gboolean delimiter_has = TRUE;
 	guint8 delimiter = '\0';
+	gsize len;
 
-	nm_assert (asc);
+	nm_assert (hexstr);
 	nm_assert (buffer);
-	nm_assert (buffer_length);
-	nm_assert (out_len);
+	nm_assert (required_len > 0 || out_len);
+
+	if (   allow_0x_prefix
+	    && in[0] == '0'
+	    && in[1] == 'x')
+		in += 2;
 
 	while (TRUE) {
 		const guint8 d1 = in[0];
 		guint8 d2;
+		int i1, i2;
 
-		if (!g_ascii_isxdigit (d1))
-			return NULL;
-
-#define HEXVAL(c) ((c) <= '9' ? (c) - '0' : ((c) & 0x4F) - ('A' - 10))
+		i1 = nm_utils_hexchar_to_int (d1);
+		if (i1 < 0)
+			goto fail;
 
 		/* If there's no leading zero (ie "aa:b:cc") then fake it */
 		d2 = in[1];
-		if (d2 && g_ascii_isxdigit (d2)) {
-			*out++ = (HEXVAL (d1) << 4) + HEXVAL (d2);
+		if (   d2
+		    && (i2 = nm_utils_hexchar_to_int (d2)) >= 0) {
+			*out++ = (i1 << 4) + i2;
 			d2 = in[2];
 			if (!d2)
 				break;
 			in += 2;
 		} else {
 			/* Fake leading zero */
-			*out++ = HEXVAL (d1);
+			*out++ = i1;
 			if (!d2) {
 				if (!delimiter_has) {
 					/* when using no delimiter, there must be pairs of hex chars */
-					return NULL;
+					goto fail;
 				}
 				break;
 			}
 			in += 1;
 		}
 
-		if (--buffer_length == 0)
-			return NULL;
+		if (--buffer_len == 0)
+			goto fail;
 
 		if (delimiter_has) {
 			if (d2 != delimiter) {
 				if (delimiter)
-					return NULL;
+					goto fail;
 				if (delimiter_candidates) {
 					while (delimiter_candidates[0]) {
 						if (delimiter_candidates++[0] == d2)
@@ -3589,7 +3674,7 @@ _nm_utils_str2bin_full (const char *asc,
 				}
 				if (!delimiter) {
 					if (delimiter_required)
-						return NULL;
+						goto fail;
 					delimiter_has = FALSE;
 					continue;
 				}
@@ -3598,11 +3683,66 @@ _nm_utils_str2bin_full (const char *asc,
 		}
 	}
 
-	*out_len = out - buffer;
-	return buffer;
+	len = out - buffer;
+	if (   required_len == 0
+	    || len == required_len) {
+		NM_SET_OUT (out_len, len);
+		return buffer;
+	}
+
+fail:
+	NM_SET_OUT (out_len, 0);
+	return NULL;
 }
 
-#define hwaddr_aton(asc, buffer, buffer_length, out_len) _nm_utils_str2bin_full ((asc), TRUE, ":-", (buffer), (buffer_length), (out_len))
+guint8 *
+_nm_utils_hexstr2bin_alloc (const char *hexstr,
+                            gboolean allow_0x_prefix,
+                            gboolean delimiter_required,
+                            const char *delimiter_candidates,
+                            gsize required_len,
+                            gsize *out_len)
+{
+	guint8 *buffer;
+	gsize buffer_len, len;
+
+	g_return_val_if_fail (hexstr, NULL);
+
+	nm_assert (required_len > 0 || out_len);
+
+	if (   allow_0x_prefix
+	    && hexstr[0] == '0'
+	    && hexstr[1] == 'x')
+		hexstr += 2;
+
+	if (!hexstr[0])
+		goto fail;
+
+	if (required_len > 0)
+		buffer_len = required_len;
+	else
+		buffer_len = strlen (hexstr) / 2 + 3;
+
+	buffer = g_malloc (buffer_len);
+
+	if (_nm_utils_hexstr2bin_full (hexstr,
+	                               FALSE,
+	                               delimiter_required,
+	                               delimiter_candidates,
+	                               required_len,
+	                               buffer,
+	                               buffer_len,
+	                               &len)) {
+		NM_SET_OUT (out_len, len);
+		return buffer;
+	}
+
+	g_free (buffer);
+
+fail:
+	NM_SET_OUT (out_len, 0);
+	return NULL;
+}
 
 /**
  * nm_utils_hexstr2bin:
@@ -3619,22 +3759,16 @@ GBytes *
 nm_utils_hexstr2bin (const char *hex)
 {
 	guint8 *buffer;
-	gsize buffer_length, len;
+	gsize len;
 
-	g_return_val_if_fail (hex != NULL, NULL);
-
-	if (hex[0] == '0' && hex[1] == 'x')
-		hex += 2;
-
-	buffer_length = strlen (hex) / 2 + 3;
-	buffer = g_malloc (buffer_length);
-	if (!_nm_utils_str2bin_full (hex, FALSE, ":", buffer, buffer_length, &len)) {
-		g_free (buffer);
+	buffer = _nm_utils_hexstr2bin_alloc (hex, TRUE, FALSE, ":", 0, &len);
+	if (!buffer)
 		return NULL;
-	}
 	buffer = g_realloc (buffer, len);
 	return g_bytes_new_take (buffer, len);
 }
+
+#define hwaddr_aton(asc, buffer, buffer_len, out_len) _nm_utils_hexstr2bin_full ((asc), FALSE, TRUE, ":-", 0, (buffer), (buffer_len), (out_len))
 
 /**
  * nm_utils_hwaddr_atoba:
@@ -3728,15 +3862,45 @@ nm_utils_hwaddr_aton (const char *asc, gpointer buffer, gsize length)
 	return buffer;
 }
 
-void
-_nm_utils_bin2str_full (gconstpointer addr, gsize length, const char delimiter, gboolean upper_case, char *out)
+/**
+ * _nm_utils_bin2hexstr_full:
+ * @addr: pointer of @length bytes.
+ * @length: number of bytes in @addr
+ * @delimiter: either '\0', otherwise the output string will have the
+ *   given delimiter character between each two hex numbers.
+ * @upper_case: if TRUE, use upper case ASCII characters for hex.
+ * @out: if %NULL, the function will allocate a new buffer of
+ *   either (@length*2+1) or (@length*3) bytes, depending on whether
+ *   a @delimiter is specified. In that case, the allocated buffer will
+ *   be returned and must be freed by the caller.
+ *   If not %NULL, the buffer must already be preallocated and contain
+ *   at least (@length*2+1) or (@length*3) bytes, depending on the delimiter.
+ *
+ * Returns: the binary value converted to a hex string. If @out is given,
+ *   this always returns @out. If @out is %NULL, a newly allocated string
+ *   is returned.
+ */
+char *
+_nm_utils_bin2hexstr_full (gconstpointer addr,
+                           gsize length,
+                           char delimiter,
+                           gboolean upper_case,
+                           char *out)
 {
 	const guint8 *in = addr;
 	const char *LOOKUP = upper_case ? "0123456789ABCDEF" : "0123456789abcdef";
+	char *out0;
 
 	nm_assert (addr);
-	nm_assert (out);
 	nm_assert (length > 0);
+
+	if (out)
+		out0 = out;
+	else {
+		out0 = out = g_new (char, delimiter == '\0'
+		                          ? length * 2 + 1
+		                          : length * 3);
+	}
 
 	/* @out must contain at least @length*3 bytes if @delimiter is set,
 	 * otherwise, @length*2+1. */
@@ -3754,6 +3918,7 @@ _nm_utils_bin2str_full (gconstpointer addr, gsize length, const char delimiter, 
 	}
 
 	*out = 0;
+	return out0;
 }
 
 /**
@@ -3779,7 +3944,8 @@ nm_utils_bin2hexstr (gconstpointer src, gsize len, int final_len)
 	g_return_val_if_fail (final_len < 0 || (gsize) final_len < buflen, NULL);
 
 	result = g_malloc (buflen);
-	_nm_utils_bin2str_full (src, len, '\0', FALSE, result);
+
+	_nm_utils_bin2hexstr_full (src, len, '\0', FALSE, result);
 
 	/* Cut converted key off at the correct length for this cipher type */
 	if (final_len >= 0 && (gsize) final_len < buflen)
@@ -3800,14 +3966,10 @@ nm_utils_bin2hexstr (gconstpointer src, gsize len, int final_len)
 char *
 nm_utils_hwaddr_ntoa (gconstpointer addr, gsize length)
 {
-	char *result;
-
 	g_return_val_if_fail (addr, g_strdup (""));
 	g_return_val_if_fail (length > 0, g_strdup (""));
 
-	result = g_malloc (length * 3);
-	_nm_utils_bin2str_full (addr, length, ':', TRUE, result);
-	return result;
+	return _nm_utils_bin2hexstr_full (addr, length, ':', TRUE, NULL);
 }
 
 const char *
@@ -3819,31 +3981,7 @@ nm_utils_hwaddr_ntoa_buf (gconstpointer addr, gsize addr_len, gboolean upper_cas
 	if (buf_len < addr_len * 3)
 		g_return_val_if_reached (NULL);
 
-	_nm_utils_bin2str_full (addr, addr_len, ':', upper_case, buf);
-	return buf;
-}
-
-/**
- * _nm_utils_bin2str:
- * @addr: (type guint8) (array length=length): a binary hardware address
- * @length: the length of @addr
- * @upper_case: the case for the hexadecimal digits.
- *
- * Converts @addr to textual form.
- *
- * Return value: (transfer full): the textual form of @addr
- */
-char *
-_nm_utils_bin2str (gconstpointer addr, gsize length, gboolean upper_case)
-{
-	char *result;
-
-	g_return_val_if_fail (addr, g_strdup (""));
-	g_return_val_if_fail (length > 0, g_strdup (""));
-
-	result = g_malloc (length * 3);
-	_nm_utils_bin2str_full (addr, length, ':', upper_case, result);
-	return result;
+	return _nm_utils_bin2hexstr_full (addr, addr_len, ':', upper_case, buf);
 }
 
 /**
@@ -4096,13 +4234,18 @@ _nm_utils_hwaddr_cloned_not_set (NMSetting *setting,
 }
 
 GVariant *
-_nm_utils_hwaddr_cloned_data_synth (NMSetting *setting,
+_nm_utils_hwaddr_cloned_data_synth (const NMSettInfoSetting *sett_info,
+                                    guint property_idx,
                                     NMConnection *connection,
-                                    const char *property)
+                                    NMSetting *setting,
+                                    NMConnectionSerializationFlags flags)
 {
 	gs_free char *addr = NULL;
 
-	nm_assert (nm_streq0 (property, "assigned-mac-address"));
+	if (flags & NM_CONNECTION_SERIALIZE_ONLY_SECRETS)
+		return NULL;
+
+	nm_assert (nm_streq0 (sett_info->property_infos[property_idx].name, "assigned-mac-address"));
 
 	g_object_get (setting,
 	              "cloned-mac-address",
@@ -4123,7 +4266,9 @@ _nm_utils_hwaddr_cloned_data_synth (NMSetting *setting,
 	 * To preserve that behavior, serialize "" as NULL.
 	 */
 
-	return addr && addr[0] ? g_variant_new_string (addr) : NULL;
+	return addr && addr[0]
+	       ? g_variant_new_take_string (g_steal_pointer (&addr))
+	       : NULL;
 }
 
 gboolean
@@ -4362,10 +4507,11 @@ nm_utils_inet_ntop (int addr_family, gconstpointer addr, char *dst)
 
 	nm_assert_addr_family (addr_family);
 	nm_assert (addr);
+	nm_assert (dst);
 
 	s = inet_ntop (addr_family,
 	               addr,
-	               dst ?: _nm_utils_inet_ntop_buffer,
+	               dst,
 	               addr_family == AF_INET6 ? INET6_ADDRSTRLEN : INET_ADDRSTRLEN);
 	nm_assert (s);
 	return s;
@@ -4391,6 +4537,11 @@ nm_utils_inet_ntop (int addr_family, gconstpointer addr, char *dst)
 const char *
 nm_utils_inet4_ntop (in_addr_t inaddr, char *dst)
 {
+	/* relying on the static buffer (by leaving @dst as %NULL) is discouraged.
+	 * Don't do that!
+	 *
+	 * However, still support it to be lenient against mistakes and because
+	 * this is public API of libnm. */
 	return inet_ntop (AF_INET, &inaddr, dst ?: _nm_utils_inet_ntop_buffer,
 	                  INET_ADDRSTRLEN);
 }
@@ -4416,6 +4567,11 @@ nm_utils_inet4_ntop (in_addr_t inaddr, char *dst)
 const char *
 nm_utils_inet6_ntop (const struct in6_addr *in6addr, char *dst)
 {
+	/* relying on the static buffer (by leaving @dst as %NULL) is discouraged.
+	 * Don't do that!
+	 *
+	 * However, still support it to be lenient against mistakes and because
+	 * this is public API of libnm. */
 	g_return_val_if_fail (in6addr, NULL);
 	return inet_ntop (AF_INET6, in6addr, dst ?: _nm_utils_inet_ntop_buffer,
 	                  INET6_ADDRSTRLEN);
@@ -4510,7 +4666,7 @@ _nm_utils_dhcp_duid_valid (const char *duid, GBytes **out_duid_bin)
 		return TRUE;
 	}
 
-	if (_nm_utils_str2bin_full (duid, FALSE, ":", duid_arr, sizeof (duid_arr), &duid_len)) {
+	if (_nm_utils_hexstr2bin_full (duid, FALSE, FALSE, ":", 0, duid_arr, sizeof (duid_arr), &duid_len)) {
 		/* MAX DUID length is 128 octects + the type code (2 octects). */
 		if (   duid_len > 2
 		    && duid_len <= (128 + 2)) {
@@ -5280,7 +5436,7 @@ _nm_utils_team_link_watcher_from_json (json_t *json_element)
 	const char *j_key;
 	json_t *j_val;
 	gs_free char *name = NULL, *target_host = NULL, *source_host = NULL;
-	int val1 = 0, val2 = 0, val3 = 3;
+	int val1 = 0, val2 = 0, val3 = 3, val4 = -1;
 	NMTeamLinkWatcherArpPingFlags flags = 0;
 
 	g_return_val_if_fail (json_element, NULL);
@@ -5301,6 +5457,8 @@ _nm_utils_team_link_watcher_from_json (json_t *json_element)
 			val2 = json_integer_value (j_val);
 		else if (nm_streq (j_key, "missed_max"))
 			val3 = json_integer_value (j_val);
+		else if (nm_streq (j_key, "vlanid"))
+			val4 = json_integer_value (j_val);
 		else if (nm_streq (j_key, "validate_active")) {
 			if (json_is_true (j_val))
 				flags |= NM_TEAM_LINK_WATCHER_ARP_PING_FLAG_VALIDATE_ACTIVE;
@@ -5318,8 +5476,8 @@ _nm_utils_team_link_watcher_from_json (json_t *json_element)
 	else if (nm_streq0 (name, NM_TEAM_LINK_WATCHER_NSNA_PING))
 		return nm_team_link_watcher_new_nsna_ping (val1, val2, val3, target_host, NULL);
 	else if (nm_streq0 (name, NM_TEAM_LINK_WATCHER_ARP_PING)) {
-		return nm_team_link_watcher_new_arp_ping (val1, val2, val3, target_host,
-		                                          source_host, flags, NULL);
+		return nm_team_link_watcher_new_arp_ping2 (val1, val2, val3, val4, target_host,
+		                                           source_host, flags, NULL);
 	} else
 		return NULL;
 }
@@ -5369,6 +5527,9 @@ _nm_utils_team_link_watcher_to_json (NMTeamLinkWatcher *watcher)
 	if (nm_streq (name, NM_TEAM_LINK_WATCHER_NSNA_PING))
 		return json_element;
 
+	int_val = nm_team_link_watcher_get_vlanid (watcher);
+	if (int_val != -1)
+		json_object_set_new (json_element, "vlanid", json_integer (int_val));
 	str_val = nm_team_link_watcher_get_source_host (watcher);
 	if (!str_val)
 		goto fail;
@@ -5870,6 +6031,12 @@ _nm_utils_team_link_watchers_to_variant (GPtrArray *link_watchers)
 		}
 
 		/* arp_ping watcher only */
+		int_val = nm_team_link_watcher_get_vlanid (watcher);
+		if (int_val != -1) {
+			g_variant_builder_add (&watcher_builder, "{sv}",
+			                       "vlanid",
+			                       g_variant_new_int32 (int_val));
+		}
 		g_variant_builder_add (&watcher_builder, "{sv}",
 		                       "source-host",
 		                       g_variant_new_string (nm_team_link_watcher_get_source_host (watcher)));
@@ -5920,7 +6087,7 @@ _nm_utils_team_link_watchers_from_variant (GVariant *value)
 	while (g_variant_iter_next (&iter, "@a{sv}", &watcher_var)) {
 		NMTeamLinkWatcher *watcher;
 		const char *name;
-		int val1, val2, val3 = 0;
+		int val1, val2, val3 = 0, val4 = -1;
 		const char *target_host = NULL, *source_host = NULL;
 		gboolean bval;
 		NMTeamLinkWatcherArpPingFlags flags = NM_TEAM_LINK_WATCHER_ARP_PING_FLAG_NONE;
@@ -5951,6 +6118,8 @@ _nm_utils_team_link_watchers_from_variant (GVariant *value)
 			if (!g_variant_lookup (watcher_var, "missed-max", "i", &val3))
 				val3 = 3;
 			if nm_streq (name, NM_TEAM_LINK_WATCHER_ARP_PING) {
+				if (!g_variant_lookup (watcher_var, "vlanid", "i", &val4))
+					val4 = -1;
 				if (!g_variant_lookup (watcher_var, "source-host", "&s", &source_host))
 					goto next;
 				if (!g_variant_lookup (watcher_var, "validate-active", "b", &bval))
@@ -5965,9 +6134,9 @@ _nm_utils_team_link_watchers_from_variant (GVariant *value)
 					bval = FALSE;
 				if (bval)
 					flags |= NM_TEAM_LINK_WATCHER_ARP_PING_FLAG_SEND_ALWAYS;
-				watcher = nm_team_link_watcher_new_arp_ping (val1, val2, val3,
-				                                             target_host, source_host,
-				                                             flags, &error);
+				watcher = nm_team_link_watcher_new_arp_ping2 (val1, val2, val3, val4,
+				                                              target_host, source_host,
+				                                              flags, &error);
 			} else
 				watcher = nm_team_link_watcher_new_nsna_ping (val1, val2, val3,
 				                                              target_host, &error);

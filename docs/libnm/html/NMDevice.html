@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="next" href="libnm-nm-device-6lowpan.html" title="nm-device-6lowpan">
-<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -193,6 +193,14 @@
 </td>
 <td class="function_name">
 <a class="link" href="NMDevice.html#nm-device-get-dhcp6-config" title="nm_device_get_dhcp6_config ()">nm_device_get_dhcp6_config</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="libnm-nm-dbus-interface.html#NMConnectivityState" title="enum NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMDevice.html#nm-device-get-connectivity" title="nm_device_get_connectivity ()">nm_device_get_connectivity</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -578,9 +586,19 @@
 <td class="property_flags">Read</td>
 </tr>
 <tr>
+<td class="property_type"><a class="link" href="libnm-nm-dbus-interface.html#NMConnectivityState" title="enum NMConnectivityState"><span class="type">NMConnectivityState</span></a></td>
+<td class="property_name"><a class="link" href="NMDevice.html#NMDevice--ip4-connectivity" title="The “ip4-connectivity” property">ip4-connectivity</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
 <td class="property_type">
 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *</td>
 <td class="property_name"><a class="link" href="NMDevice.html#NMDevice--ip6-config" title="The “ip6-config” property">ip6-config</a></td>
+<td class="property_flags">Read</td>
+</tr>
+<tr>
+<td class="property_type"><a class="link" href="libnm-nm-dbus-interface.html#NMConnectivityState" title="enum NMConnectivityState"><span class="type">NMConnectivityState</span></a></td>
+<td class="property_name"><a class="link" href="NMDevice.html#NMDevice--ip6-connectivity" title="The “ip6-connectivity” property">ip6-connectivity</a></td>
 <td class="property_flags">Read</td>
 </tr>
 <tr>
@@ -781,6 +799,14 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDevice.html#NM-DEVICE-LLDP-NEIGHBORS:CAPS" title="NM_DEVICE_LLDP_NEIGHBORS">NM_DEVICE_LLDP_NEIGHBORS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDevice.html#NM-DEVICE-IP4-CONNECTIVITY:CAPS" title="NM_DEVICE_IP4_CONNECTIVITY">NM_DEVICE_IP4_CONNECTIVITY</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDevice.html#NM-DEVICE-IP6-CONNECTIVITY:CAPS" title="NM_DEVICE_IP6_CONNECTIVITY">NM_DEVICE_IP6_CONNECTIVITY</a></td>
 </tr>
 <tr>
 <td class="datatype_keyword"> </td>
@@ -1393,6 +1419,43 @@ works with VPN connections.</p>
 not activated or not using DHCPv6. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-get-connectivity"></a><h3>nm_device_get_connectivity ()</h3>
+<pre class="programlisting"><a class="link" href="libnm-nm-dbus-interface.html#NMConnectivityState" title="enum NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
+nm_device_get_connectivity (<em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
+                            <em class="parameter"><code><span class="type">int</span> addr_family</code></em>);</pre>
+<p>The connectivity state of the device for given address family.
+Supported address families are <code class="literal">AF_INET</code> for IPv4, <code class="literal">AF_INET6</code>
+for IPv6 or <code class="literal">AF_UNSPEC</code> for any.</p>
+<div class="refsect3">
+<a name="nm-device-get-connectivity.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>addr_family</p></td>
+<td class="parameter_description"><p>network address family</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-get-connectivity.returns"></a><h4>Returns</h4>
+<p> the current connectivity state</p>
+</div>
+<p class="since">Since: 1.16</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -2313,7 +2376,7 @@ nm_device_delete_async (<em class="parameter"><code><a class="link" href="NMDevi
                         <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                         <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
                         <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
-<p>Asynchronously begins deleteing the software device. Hardware devices can't
+<p>Asynchronously begins deleting the software device. Hardware devices can't
 be deleted.</p>
 <div class="refsect3">
 <a name="nm-device-delete-async.parameters"></a><h4>Parameters</h4>
@@ -2943,6 +3006,18 @@ nm_lldp_neighbor_get_attr_type (<em class="parameter"><code><a class="link" href
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-DEVICE-IP4-CONNECTIVITY:CAPS"></a><h3>NM_DEVICE_IP4_CONNECTIVITY</h3>
+<pre class="programlisting">#define NM_DEVICE_IP4_CONNECTIVITY "ip4-connectivity"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-IP6-CONNECTIVITY:CAPS"></a><h3>NM_DEVICE_IP6_CONNECTIVITY</h3>
+<pre class="programlisting">#define NM_DEVICE_IP6_CONNECTIVITY "ip6-connectivity"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMDevice-struct"></a><h3>NMDevice</h3>
 <pre class="programlisting">typedef struct _NMDevice NMDevice;</pre>
 </div>
@@ -3059,10 +3134,28 @@ operations like addressing and routing.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMDevice--ip4-connectivity"></a><h3>The <code class="literal">“ip4-connectivity”</code> property</h3>
+<pre class="programlisting">  “ip4-connectivity”         <a class="link" href="libnm-nm-dbus-interface.html#NMConnectivityState" title="enum NMConnectivityState"><span class="type">NMConnectivityState</span></a></pre>
+<p>The IPv4 connectivity state of the device.</p>
+<p>Flags: Read</p>
+<p>Default value: NM_CONNECTIVITY_UNKNOWN</p>
+<p class="since">Since: 1.16</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMDevice--ip6-config"></a><h3>The <code class="literal">“ip6-config”</code> property</h3>
 <pre class="programlisting">  “ip6-config”               <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *</pre>
 <p>The IPv6 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> of the device.</p>
 <p>Flags: Read</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDevice--ip6-connectivity"></a><h3>The <code class="literal">“ip6-connectivity”</code> property</h3>
+<pre class="programlisting">  “ip6-connectivity”         <a class="link" href="libnm-nm-dbus-interface.html#NMConnectivityState" title="enum NMConnectivityState"><span class="type">NMConnectivityState</span></a></pre>
+<p>The IPv6 connectivity state of the device.</p>
+<p>Flags: Read</p>
+<p>Default value: NM_CONNECTIVITY_UNKNOWN</p>
+<p class="since">Since: 1.16</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -3225,6 +3318,6 @@ user_function (<a class="link" href="NMDevice.html" title="NMDevice"><span class
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29.1</div>
+<hr>Generated by GTK-Doc V1.29</div>
 </body>
 </html>

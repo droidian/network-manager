@@ -2,12 +2,12 @@
 .\"     Title: nm-online
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 10/24/2018
+.\"      Date: 01/22/2019
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.14.4
+.\"    Source: NetworkManager 1.15.2
 .\"  Language: English
 .\"
-.TH "NM\-ONLINE" "1" "" "NetworkManager 1\&.14\&.4" "General Commands Manual"
+.TH "NM\-ONLINE" "1" "" "NetworkManager 1\&.15\&.2" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -50,14 +50,9 @@ or
 dhcp, to indicate that IPv6 connectivity is expected\&.
 .SH "OPTIONS"
 .PP
-\fB\-t\fR | \fB\-\-timeout\fR \fIseconds\fR
+\fB\-h\fR | \fB\-\-help\fR
 .RS 4
-Time to wait for a connection, in seconds\&. If the option is not provided, the default timeout is 30 seconds\&.
-.RE
-.PP
-\fB\-x\fR | \fB\-\-exit\fR
-.RS 4
-Exit immediately if NetworkManager is not running or connecting\&.
+Print help information\&.
 .RE
 .PP
 \fB\-q\fR | \fB\-\-quiet\fR
@@ -70,6 +65,16 @@ Don\*(Aqt print anything\&.
 Wait for NetworkManager startup to complete, rather than waiting for network connectivity specifically\&. Startup is considered complete once NetworkManager has activated (or attempted to activate) every auto\-activate connection which is available given the current network state\&. (This is generally only useful at boot time; after startup has completed,
 \fBnm\-online \-s\fR
 will just return immediately, regardless of the current network state\&.)
+.RE
+.PP
+\fB\-t\fR | \fB\-\-timeout\fR \fIseconds\fR
+.RS 4
+Time to wait for a connection, in seconds\&. If the option is not provided, the default timeout is 30 seconds\&.
+.RE
+.PP
+\fB\-x\fR | \fB\-\-exit\fR
+.RS 4
+Exit immediately if NetworkManager is not running or connecting\&.
 .RE
 .SH "EXIT STATUS"
 .PP

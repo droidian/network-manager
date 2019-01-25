@@ -78,9 +78,14 @@
                                                      | NM_NETWORKMANAGER_COMPILATION_WITH_DAEMON \
                                                      )
 
+#define NM_NETWORKMANAGER_COMPILATION_SYSTEMD_SHARED ( 0 \
+                                                     | NM_NETWORKMANAGER_COMPILATION_WITH_GLIB \
+                                                     | NM_NETWORKMANAGER_COMPILATION_WITH_SYSTEMD \
+                                                     )
+
 #define NM_NETWORKMANAGER_COMPILATION_SYSTEMD        ( 0 \
                                                      | NM_NETWORKMANAGER_COMPILATION_DAEMON \
-                                                     | NM_NETWORKMANAGER_COMPILATION_WITH_SYSTEMD \
+                                                     | NM_NETWORKMANAGER_COMPILATION_SYSTEMD_SHARED \
                                                      )
 
 #define NM_NETWORKMANAGER_COMPILATION_GLIB           ( 0 \
@@ -179,7 +184,7 @@
 #if NM_MORE_ASSERTS == 0
 #ifndef G_DISABLE_CAST_CHECKS
 /* Unless compiling with G_DISABLE_CAST_CHECKS, glib performs type checking
- * during G_VARIANT_TYPE() via g_variant_type_checked_(). This is not necesary
+ * during G_VARIANT_TYPE() via g_variant_type_checked_(). This is not necessary
  * because commonly this cast is needed during something like
  *
  *   g_variant_builder_init (&props, G_VARIANT_TYPE ("a{sv}"));
@@ -303,6 +308,7 @@ _nm_g_return_if_fail_warning (const char *log_domain,
 /*****************************************************************************/
 
 #if (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_DAEMON
+#include "nm-core-types.h"
 #include "nm-types.h"
 #include "nm-logging.h"
 #endif

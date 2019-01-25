@@ -30,15 +30,19 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <resolv.h>
+#include <byteswap.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <linux/if.h>
 #include <linux/if_infiniband.h>
+#include <net/if_arp.h>
 #include <net/ethernet.h>
 
 #include "nm-utils/nm-random-utils.h"
 #include "nm-utils/nm-io-utils.h"
+#include "nm-utils/unaligned.h"
+#include "nm-utils/nm-secret-utils.h"
 #include "nm-utils.h"
 #include "nm-core-internal.h"
 #include "nm-setting-connection.h"
@@ -47,7 +51,22 @@
 #include "nm-setting-wireless.h"
 #include "nm-setting-wireless-security.h"
 
+#ifdef __NM_SD_UTILS_H__
+#error "nm-core-utils.c should stay independent of systemd utils. Are you looking for NetworkMangerUtils.c? "
+#endif
+
 G_STATIC_ASSERT (sizeof (NMUtilsTestFlags) <= sizeof (int));
+
+/* we read _nm_utils_testing without memory barrier. This is thread-safe,
+ * because the static variable is initialized to zero, and only reset
+ * once to a non-zero value (via g_atomic_int_compare_and_exchange()).
+ *
+ * Since there is only one integer that contains the data, there is no
+ * caching problem reading this (atomic int) variable without
+ * synchronization/memory-barrier. Contrary to a double-checked locking,
+ * where one needs a memory barrier to read the variable and ensure
+ * that also the related data is coherent in cache. Here there is no
+ * related data. */
 static int _nm_utils_testing = 0;
 
 gboolean
@@ -66,6 +85,7 @@ nm_utils_get_testing ()
 {
 	NMUtilsTestFlags flags;
 
+again:
 	flags = (NMUtilsTestFlags) _nm_utils_testing;
 	if (flags != NM_UTILS_TEST_NONE) {
 		/* Flags already initialized. Return them. */
@@ -78,12 +98,11 @@ nm_utils_get_testing ()
 	if (g_test_initialized ())
 		flags |= _NM_UTILS_TEST_GENERAL;
 
-	if (g_atomic_int_compare_and_exchange (&_nm_utils_testing, 0, (int) flags)) {
-		/* Done. We set it. */
-		return flags & NM_UTILS_TEST_ALL;
-	}
-	/* It changed in the meantime (??). Re-read the value. */
-	return ((NMUtilsTestFlags) _nm_utils_testing) & NM_UTILS_TEST_ALL;
+	g_atomic_int_compare_and_exchange (&_nm_utils_testing, 0, (int) flags);
+
+	/* regardless of whether we won the race of initializing _nm_utils_testing,
+	 * go back and read the value again. It must be non-zero by now. */
+	goto again;
 }
 
 void
@@ -708,7 +727,7 @@ _sleep_duration_convert_ms_to_us (guint32 sleep_duration_msec)
  * @log_domain: log debug information for this domain. Errors and warnings are logged both
  * as %LOGD_CORE and @log_domain.
  * @log_name: name of the process to kill for logging.
- * @child_status: (out) (allow-none): return the exit status of the child, if no error occured.
+ * @child_status: (out) (allow-none): return the exit status of the child, if no error occurred.
  * @wait_before_kill_msec: Waittime in milliseconds before sending %SIGKILL signal. Set this value
  * to zero, not to send %SIGKILL. If @sig is already %SIGKILL, this parameter has not effect.
  * @sleep_duration_msec: the synchronous function sleeps repeatedly waiting for the child to terminate.
@@ -717,7 +736,7 @@ _sleep_duration_convert_ms_to_us (guint32 sleep_duration_msec)
  * Kill a child process synchronously and wait. The function first checks if the child already terminated
  * and if it did, return the exit status. Otherwise send one @sig signal. @sig  will always be
  * sent unless the child already exited. If the child does not exit within @wait_before_kill_msec milliseconds,
- * the function will send %SIGKILL and waits for the child indefinitly. If @wait_before_kill_msec is zero, no
+ * the function will send %SIGKILL and waits for the child indefinitely. If @wait_before_kill_msec is zero, no
  * %SIGKILL signal will be sent.
  *
  * In case of error, errno is preserved to contain the last reason of failure.
@@ -894,7 +913,7 @@ out:
  * @sleep_duration_msec: the synchronous function sleeps repeatedly waiting for the child to terminate.
  *   Set to zero, to use the default (meaning 20 wakeups per seconds).
  * @max_wait_msec: if 0, waits indefinitely until the process is gone (or a zombie). Otherwise, this
- *   is the maxium wait time until returning. If @max_wait_msec is non-zero but smaller then @wait_before_kill_msec,
+ *   is the maximum wait time until returning. If @max_wait_msec is non-zero but smaller then @wait_before_kill_msec,
  *   we will not send a final %SIGKILL.
  *
  * Kill a non-child process synchronously and wait. This function will not return before the
@@ -1114,13 +1133,17 @@ nm_utils_read_link_absolute (const char *link_file, GError **error)
 		return ln;
 
 	dirname = g_path_get_dirname (link_file);
-	if (!g_path_is_absolute (link_file)) {
-		gs_free char *dirname_rel = dirname;
+	if (!g_path_is_absolute (dirname)) {
 		gs_free char *current_dir = g_get_current_dir ();
 
-		dirname = g_build_filename (current_dir, dirname_rel, NULL);
-	}
-	ln_abs = g_build_filename (dirname, ln, NULL);
+		/* @link_file argument was not an absolute path in the first place.
+		 * That actually may be a bug, because the CWD is not well defined
+		 * in most cases. Anyway, apparently we were able to load the file
+		 * even from a relative path. So, when making the link absolute, we
+		 * also need to prepend the CWD. */
+		ln_abs = g_build_filename (current_dir, dirname, ln, NULL);
+	} else
+		ln_abs = g_build_filename (dirname, ln, NULL);
 	g_free (dirname);
 	g_free (ln);
 	return ln_abs;
@@ -1133,6 +1156,7 @@ nm_utils_read_link_absolute (const char *link_file, GError **error)
 #define DEVICE_TYPE_TAG "type:"
 #define DRIVER_TAG "driver:"
 #define SUBCHAN_TAG "s390-subchannels:"
+#define DHCP_PLUGIN_TAG "dhcp-plugin:"
 #define EXCEPT_TAG "except:"
 #define MATCH_TAG_CONFIG_NM_VERSION             "nm-version:"
 #define MATCH_TAG_CONFIG_NM_VERSION_MIN         "nm-version-min:"
@@ -1144,6 +1168,7 @@ typedef struct {
 	const char *device_type;
 	const char *driver;
 	const char *driver_version;
+	const char *dhcp_plugin;
 	struct {
 		const char *value;
 		gboolean is_parsed;
@@ -1280,6 +1305,34 @@ match_device_hwaddr_eval (const char *spec_str,
 		_has; \
 	})
 
+static NMMatchSpecMatchType
+_match_result (gboolean has_except,
+               gboolean has_not_except,
+               gboolean has_match,
+               gboolean has_match_except)
+{
+	if (   has_except
+	    && !has_not_except) {
+		/* a match spec that only consists of a list of except matches is treated specially. */
+		nm_assert (!has_match);
+		if (has_match_except) {
+			/* one of the "except:" matches matched. The result is an explicit
+			 * negative match. */
+			return NM_MATCH_SPEC_NEG_MATCH;
+		} else {
+			/* none of the "except:" matches matched. The result is a positive match,
+			 * despite there being no positive match. */
+			return NM_MATCH_SPEC_MATCH;
+		}
+	}
+
+	if (has_match_except)
+		return NM_MATCH_SPEC_NEG_MATCH;
+	if (has_match)
+		return NM_MATCH_SPEC_MATCH;
+	return NM_MATCH_SPEC_NO_MATCH;
+}
+
 static const char *
 match_except (const char *spec_str, gboolean *out_except)
 {
@@ -1361,6 +1414,9 @@ match_device_eval (const char *spec_str,
 	if (_MATCH_CHECK (spec_str, SUBCHAN_TAG))
 		return match_data_s390_subchannels_eval (spec_str, match_data);
 
+	if (_MATCH_CHECK (spec_str, DHCP_PLUGIN_TAG))
+		return nm_streq0 (spec_str, match_data->dhcp_plugin);
+
 	if (allow_fuzzy) {
 		if (match_device_hwaddr_eval (spec_str, match_data))
 			return TRUE;
@@ -1379,17 +1435,21 @@ nm_match_spec_device (const GSList *specs,
                       const char *driver,
                       const char *driver_version,
                       const char *hwaddr,
-                      const char *s390_subchannels)
+                      const char *s390_subchannels,
+                      const char *dhcp_plugin)
 {
 	const GSList *iter;
-	NMMatchSpecMatchType match;
+	gboolean has_match = FALSE;
+	gboolean has_match_except = FALSE;
+	gboolean has_except = FALSE;
+	gboolean has_not_except = FALSE;
 	const char *spec_str;
-	gboolean except;
 	MatchDeviceData match_data = {
 	    .interface_name = interface_name,
 	    .device_type = nm_str_not_empty (device_type),
 	    .driver = nm_str_not_empty (driver),
 	    .driver_version = nm_str_not_empty (driver_version),
+	    .dhcp_plugin = nm_str_not_empty (dhcp_plugin),
 	    .hwaddr = {
 	        .value = hwaddr,
 	    },
@@ -1403,19 +1463,9 @@ nm_match_spec_device (const GSList *specs,
 	if (!specs)
 		return NM_MATCH_SPEC_NO_MATCH;
 
-	match = NM_MATCH_SPEC_NO_MATCH;
-
-	/* pre-search for "*" */
 	for (iter = specs; iter; iter = iter->next) {
-		spec_str = iter->data;
+		gboolean except;
 
-		if (spec_str && spec_str[0] == '*' && spec_str[1] == '\0') {
-			match = NM_MATCH_SPEC_MATCH;
-			break;
-		}
-	}
-
-	for (iter = specs; iter; iter = iter->next) {
 		spec_str = iter->data;
 
 		if (!spec_str || !*spec_str)
@@ -1423,10 +1473,14 @@ nm_match_spec_device (const GSList *specs,
 
 		spec_str = match_except (spec_str, &except);
 
-		if (   !except
-		    && match == NM_MATCH_SPEC_MATCH) {
-			/* we have no "except-match" but already match. No need to evaluate
-			 * the match, we cannot match stronger. */
+		if (except)
+			has_except = TRUE;
+		else
+			has_not_except = TRUE;
+
+		if (   ( except && has_match_except)
+		    || (!except && has_match)) {
+			/* evaluating the match does not give new information. Skip it. */
 			continue;
 		}
 
@@ -1436,11 +1490,12 @@ nm_match_spec_device (const GSList *specs,
 			continue;
 
 		if (except)
-			return NM_MATCH_SPEC_NEG_MATCH;
-		match = NM_MATCH_SPEC_MATCH;
+			has_match_except = TRUE;
+		else
+			has_match = TRUE;
 	}
 
-	return match;
+	return _match_result (has_except, has_not_except, has_match, has_match_except);
 }
 
 static gboolean
@@ -1510,7 +1565,10 @@ NMMatchSpecMatchType
 nm_match_spec_config (const GSList *specs, guint cur_nm_version, const char *env)
 {
 	const GSList *iter;
-	NMMatchSpecMatchType match = NM_MATCH_SPEC_NO_MATCH;
+	gboolean has_match = FALSE;
+	gboolean has_match_except = FALSE;
+	gboolean has_except = FALSE;
+	gboolean has_not_except = FALSE;
 
 	if (!specs)
 		return NM_MATCH_SPEC_NO_MATCH;
@@ -1525,6 +1583,17 @@ nm_match_spec_config (const GSList *specs, guint cur_nm_version, const char *env
 
 		spec_str = match_except (spec_str, &except);
 
+		if (except)
+			has_except = TRUE;
+		else
+			has_not_except = TRUE;
+
+		if (   ( except && has_match_except)
+		    || (!except && has_match)) {
+			/* evaluating the match does not give new information. Skip it. */
+			continue;
+		}
+
 		if (_MATCH_CHECK (spec_str, MATCH_TAG_CONFIG_NM_VERSION))
 			v_match = match_config_eval (spec_str, MATCH_TAG_CONFIG_NM_VERSION, cur_nm_version);
 		else if (_MATCH_CHECK (spec_str, MATCH_TAG_CONFIG_NM_VERSION_MIN))
@@ -1534,15 +1603,18 @@ nm_match_spec_config (const GSList *specs, guint cur_nm_version, const char *env
 		else if (_MATCH_CHECK (spec_str, MATCH_TAG_CONFIG_ENV))
 			v_match = env && env[0] && !strcmp (spec_str, env);
 		else
+			v_match = FALSE;
+
+		if (!v_match)
 			continue;
 
-		if (v_match) {
-			if (except)
-				return NM_MATCH_SPEC_NEG_MATCH;
-			match = NM_MATCH_SPEC_MATCH;
-		}
+		if (except)
+			has_match_except = TRUE;
+		else
+			has_match = TRUE;
 	}
-	return match;
+
+	return _match_result (has_except, has_not_except, has_match, has_match_except);
 }
 
 #undef _MATCH_CHECK
@@ -1875,173 +1947,6 @@ nm_utils_cmp_connection_by_autoconnect_priority (NMConnection *a, NMConnection *
 
 /*****************************************************************************/
 
-static gint64 monotonic_timestamp_offset_sec;
-static int monotonic_timestamp_clock_mode = 0;
-
-static void
-monotonic_timestamp_get (struct timespec *tp)
-{
-	int clock_mode = 0;
-	int err = 0;
-
-	switch (monotonic_timestamp_clock_mode) {
-	case 0:
-		/* the clock is not yet initialized (first run) */
-		err = clock_gettime (CLOCK_BOOTTIME, tp);
-		if (err == -1 && errno == EINVAL) {
-			clock_mode = 2;
-			err = clock_gettime (CLOCK_MONOTONIC, tp);
-		} else
-			clock_mode = 1;
-		break;
-	case 1:
-		/* default, return CLOCK_BOOTTIME */
-		err = clock_gettime (CLOCK_BOOTTIME, tp);
-		break;
-	case 2:
-		/* fallback, return CLOCK_MONOTONIC. Kernels prior to 2.6.39
-		 * (released on 18 May, 2011) don't support CLOCK_BOOTTIME. */
-		err = clock_gettime (CLOCK_MONOTONIC, tp);
-		break;
-	}
-
-	g_assert (err == 0); (void)err;
-	g_assert (tp->tv_nsec >= 0 && tp->tv_nsec < NM_UTILS_NS_PER_SECOND);
-
-	if (G_LIKELY (clock_mode == 0))
-		return;
-
-	/* Calculate an offset for the time stamp.
-	 *
-	 * We always want positive values, because then we can initialize
-	 * a timestamp with 0 and be sure, that it will be less then any
-	 * value nm_utils_get_monotonic_timestamp_*() might return.
-	 * For this to be true also for nm_utils_get_monotonic_timestamp_s() at
-	 * early boot, we have to shift the timestamp to start counting at
-	 * least from 1 second onward.
-	 *
-	 * Another advantage of shifting is, that this way we make use of the whole 31 bit
-	 * range of signed int, before the time stamp for nm_utils_get_monotonic_timestamp_s()
-	 * wraps (~68 years).
-	 **/
-	monotonic_timestamp_offset_sec = (- ((gint64) tp->tv_sec)) + 1;
-	monotonic_timestamp_clock_mode = clock_mode;
-
-	if (nm_logging_enabled (LOGL_DEBUG, LOGD_CORE)) {
-		time_t now = time (NULL);
-		struct tm tm;
-		char s[255];
-
-		strftime (s, sizeof (s), "%Y-%m-%d %H:%M:%S", localtime_r (&now, &tm));
-		nm_log_dbg (LOGD_CORE, "monotonic timestamp started counting 1.%09ld seconds ago with "
-		                       "an offset of %lld.0 seconds to %s (local time is %s)",
-		                       tp->tv_nsec, (long long) -monotonic_timestamp_offset_sec,
-		                       clock_mode == 1 ? "CLOCK_BOOTTIME" : "CLOCK_MONOTONIC", s);
-	}
-}
-
-/**
- * nm_utils_get_monotonic_timestamp_ns:
- *
- * Returns: a monotonically increasing time stamp in nanoseconds,
- * starting at an unspecified offset. See clock_gettime(), %CLOCK_BOOTTIME.
- *
- * The returned value will start counting at an undefined point
- * in the past and will always be positive.
- *
- * All the nm_utils_get_monotonic_timestamp_*s functions return the same
- * timestamp but in different scales (nsec, usec, msec, sec).
- **/
-gint64
-nm_utils_get_monotonic_timestamp_ns (void)
-{
-	struct timespec tp = { 0 };
-
-	monotonic_timestamp_get (&tp);
-
-	/* Although the result will always be positive, we return a signed
-	 * integer, which makes it easier to calculate time differences (when
-	 * you want to subtract signed values).
-	 **/
-	return (((gint64) tp.tv_sec) + monotonic_timestamp_offset_sec) * NM_UTILS_NS_PER_SECOND +
-	       tp.tv_nsec;
-}
-
-/**
- * nm_utils_get_monotonic_timestamp_us:
- *
- * Returns: a monotonically increasing time stamp in microseconds,
- * starting at an unspecified offset. See clock_gettime(), %CLOCK_BOOTTIME.
- *
- * The returned value will start counting at an undefined point
- * in the past and will always be positive.
- *
- * All the nm_utils_get_monotonic_timestamp_*s functions return the same
- * timestamp but in different scales (nsec, usec, msec, sec).
- **/
-gint64
-nm_utils_get_monotonic_timestamp_us (void)
-{
-	struct timespec tp = { 0 };
-
-	monotonic_timestamp_get (&tp);
-
-	/* Although the result will always be positive, we return a signed
-	 * integer, which makes it easier to calculate time differences (when
-	 * you want to subtract signed values).
-	 **/
-	return (((gint64) tp.tv_sec) + monotonic_timestamp_offset_sec) * ((gint64) G_USEC_PER_SEC) +
-	       (tp.tv_nsec / (NM_UTILS_NS_PER_SECOND/G_USEC_PER_SEC));
-}
-
-/**
- * nm_utils_get_monotonic_timestamp_ms:
- *
- * Returns: a monotonically increasing time stamp in milliseconds,
- * starting at an unspecified offset. See clock_gettime(), %CLOCK_BOOTTIME.
- *
- * The returned value will start counting at an undefined point
- * in the past and will always be positive.
- *
- * All the nm_utils_get_monotonic_timestamp_*s functions return the same
- * timestamp but in different scales (nsec, usec, msec, sec).
- **/
-gint64
-nm_utils_get_monotonic_timestamp_ms (void)
-{
-	struct timespec tp = { 0 };
-
-	monotonic_timestamp_get (&tp);
-
-	/* Although the result will always be positive, we return a signed
-	 * integer, which makes it easier to calculate time differences (when
-	 * you want to subtract signed values).
-	 **/
-	return (((gint64) tp.tv_sec) + monotonic_timestamp_offset_sec) * ((gint64) 1000) +
-	       (tp.tv_nsec / (NM_UTILS_NS_PER_SECOND/1000));
-}
-
-/**
- * nm_utils_get_monotonic_timestamp_s:
- *
- * Returns: nm_utils_get_monotonic_timestamp_ms() in seconds (throwing
- * away sub second parts). The returned value will always be positive.
- *
- * This value wraps after roughly 68 years which should be fine for any
- * practical purpose.
- *
- * All the nm_utils_get_monotonic_timestamp_*s functions return the same
- * timestamp but in different scales (nsec, usec, msec, sec).
- **/
-gint32
-nm_utils_get_monotonic_timestamp_s (void)
-{
-	struct timespec tp = { 0 };
-
-	monotonic_timestamp_get (&tp);
-	return (((gint64) tp.tv_sec) + monotonic_timestamp_offset_sec);
-}
-
 typedef struct
 {
 	const char *name;
@@ -2128,7 +2033,7 @@ _log_connection_get_property (NMSetting *setting, const char *name)
 		return g_strdup ("****");
 
 	if (!_nm_setting_get_property (setting, name, &val))
-		g_return_val_if_reached (FALSE);
+		return g_strdup ("<unknown>");
 
 	if (G_VALUE_HOLDS_STRING (&val)) {
 		const char *val_s;
@@ -2231,7 +2136,7 @@ nm_utils_log_connection_diff (NMConnection *connection,
 		return;
 	}
 
-	/* FIXME: it doesn't nicely show the content of NMSettingVpn, becuase nm_connection_diff() does not
+	/* FIXME: it doesn't nicely show the content of NMSettingVpn, because nm_connection_diff() does not
 	 * expand the hash values. */
 
 	sorted_hashes = _log_connection_sort_hashes (connection, diff_base, connection_diff);
@@ -2319,49 +2224,6 @@ nm_utils_log_connection_diff (NMConnection *connection,
 out:
 	g_hash_table_destroy (connection_diff);
 	g_array_free (sorted_hashes, TRUE);
-}
-
-/**
- * nm_utils_monotonic_timestamp_as_boottime:
- * @timestamp: the monotonic-timestamp that should be converted into CLOCK_BOOTTIME.
- * @timestamp_ns_per_tick: How many nano seconds make one unit of @timestamp? E.g. if
- * @timestamp is in unit seconds, pass %NM_UTILS_NS_PER_SECOND; @timestamp in nano
- * seconds, pass 1; @timestamp in milli seconds, pass %NM_UTILS_NS_PER_SECOND/1000; etc.
- *
- * Returns: the monotonic-timestamp as CLOCK_BOOTTIME, as returned by clock_gettime().
- * The unit is the same as the passed in @timestamp basd on @timestamp_ns_per_tick.
- * E.g. if you passed @timestamp in as seconds, it will return boottime in seconds.
- * If @timestamp is a non-positive, it returns -1. Note that a (valid) monotonic-timestamp
- * is always positive.
- *
- * On older kernels that don't support CLOCK_BOOTTIME, the returned time is instead CLOCK_MONOTONIC.
- **/
-gint64
-nm_utils_monotonic_timestamp_as_boottime (gint64 timestamp, gint64 timestamp_ns_per_tick)
-{
-	gint64 offset;
-
-	/* only support ns-per-tick being a multiple of 10. */
-	g_return_val_if_fail (timestamp_ns_per_tick == 1
-	                      || (timestamp_ns_per_tick > 0 &&
-	                          timestamp_ns_per_tick <= NM_UTILS_NS_PER_SECOND &&
-	                          timestamp_ns_per_tick % 10 == 0),
-	                      -1);
-
-	/* Check that the timestamp is in a valid range. */
-	g_return_val_if_fail (timestamp >= 0, -1);
-
-	/* if the caller didn't yet ever fetch a monotonic-timestamp, he cannot pass any meaningful
-	 * value (because he has no idea what these timestamps would be). That would be a bug. */
-	g_return_val_if_fail (monotonic_timestamp_clock_mode != 0, -1);
-
-	/* calculate the offset of monotonic-timestamp to boottime. offset_s is <= 1. */
-	offset = monotonic_timestamp_offset_sec * (NM_UTILS_NS_PER_SECOND / timestamp_ns_per_tick);
-
-	/* check for overflow. */
-	g_return_val_if_fail (offset > 0 || timestamp < G_MAXINT64 + offset, G_MAXINT64);
-
-	return timestamp - offset;
 }
 
 #define IPV6_PROPERTY_DIR "/proc/sys/net/ipv6/conf/"
@@ -2503,209 +2365,549 @@ nm_utils_is_specific_hostname (const char *name)
 
 /*****************************************************************************/
 
-gboolean
-nm_utils_machine_id_parse (const char *id_str, /*uuid_t*/ guchar *out_uuid)
+typedef struct {
+	NMUuid bin;
+	char _nul_sentinel; /* just for safety, if somebody accidentally uses the binary in a string context. */
+
+	/* depending on whether the string is packed or not (with/without hyphens),
+	 * it's 32 or 36 characters long (plus the trailing NUL).
+	 *
+	 * The difference is that boot-id is a valid RFC 4211 UUID and represented
+	 * as a 36 ascii string (with hyphens). The machine-id technically is not
+	 * a UUID, but just a 32 byte sequence of hexchars. */
+	char str[37];
+	bool is_fake;
+} UuidData;
+
+static UuidData *
+_uuid_data_init (UuidData *uuid_data,
+                 gboolean packed,
+                 gboolean is_fake,
+                 const NMUuid *uuid)
 {
-	int i;
-	guint8 v0, v1;
+	nm_assert (uuid_data);
+	nm_assert (uuid);
 
-	if (!id_str)
-		return FALSE;
-
-	for (i = 0; i < 32; i++) {
-		if (!g_ascii_isxdigit (id_str[i]))
-			return FALSE;
+	uuid_data->bin = *uuid;
+	uuid_data->_nul_sentinel = '\0';
+	uuid_data->is_fake = is_fake;
+	if (packed) {
+		G_STATIC_ASSERT_EXPR (sizeof (uuid_data->str) >= (sizeof (*uuid) * 2 + 1));
+		_nm_utils_bin2hexstr_full (uuid,
+		                           sizeof (*uuid),
+		                           '\0',
+		                           FALSE,
+		                           uuid_data->str);
+	} else {
+		G_STATIC_ASSERT_EXPR (sizeof (uuid_data->str) >= 37);
+		_nm_utils_uuid_unparse (uuid, uuid_data->str);
 	}
-	if (id_str[i] != '\0')
-		return FALSE;
-
-	if (out_uuid) {
-		for (i = 0; i < 16; i++) {
-			v0 = g_ascii_xdigit_value (*(id_str++));
-			v1 = g_ascii_xdigit_value (*(id_str++));
-			out_uuid[i] = (v0 << 4) + v1;
-		}
-	}
-	return TRUE;
-}
-
-char *
-nm_utils_machine_id_read (void)
-{
-	gs_free char *contents = NULL;
-	int i;
-
-	/* Get the machine ID from /etc/machine-id; it's always in /etc no matter
-	 * where our configured SYSCONFDIR is.  Alternatively, it might be in
-	 * LOCALSTATEDIR /lib/dbus/machine-id.
-	 */
-	if (   !g_file_get_contents ("/etc/machine-id", &contents, NULL, NULL)
-	    && !g_file_get_contents (LOCALSTATEDIR "/lib/dbus/machine-id", &contents, NULL, NULL))
-		return NULL;
-
-	contents = g_strstrip (contents);
-
-	for (i = 0; i < 32; i++) {
-		if (!g_ascii_isxdigit (contents[i]))
-			return NULL;
-		if (contents[i] >= 'A' && contents[i] <= 'F') {
-			/* canonicalize to lower-case */
-			contents[i] = 'a' + (contents[i] - 'A');
-		}
-	}
-	if (contents[i] != '\0')
-		return NULL;
-
-	return g_steal_pointer (&contents);
+	return uuid_data;
 }
 
 /*****************************************************************************/
 
-static gboolean
-_secret_key_read (guint8 **out_secret_key,
-                  gsize *out_key_len)
+static const UuidData *
+_machine_id_get (gboolean allow_fake)
 {
-	guint8 *secret_key;
-	gboolean success = TRUE;
-	gsize key_len;
-	gs_free_error GError *error = NULL;
+	static const UuidData *volatile p_uuid_data;
+	const UuidData *d;
 
-	/* Let's try to load a saved secret key first. */
-	if (g_file_get_contents (NMSTATEDIR "/secret_key", (char **) &secret_key, &key_len, &error)) {
-		if (key_len >= 16)
-			goto out;
+again:
+	d = g_atomic_pointer_get (&p_uuid_data);
+	if (G_UNLIKELY (!d)) {
+		static gsize lock;
+		static UuidData uuid_data;
+		gs_free char *content = NULL;
+		gboolean is_fake = TRUE;
+		const char *fake_type = NULL;
+		NMUuid uuid;
 
-		/* the secret key is borked. Log a warning, but proceed below to generate
-		 * a new one. */
-		nm_log_warn (LOGD_CORE, "secret-key: too short secret key in \"%s\" (generate new key)", NMSTATEDIR "/secret_key");
-		nm_clear_g_free (&secret_key);
-	} else {
-		if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND)) {
+		/* Get the machine ID from /etc/machine-id; it's always in /etc no matter
+		 * where our configured SYSCONFDIR is.  Alternatively, it might be in
+		 * LOCALSTATEDIR /lib/dbus/machine-id.
+		 */
+		if (   nm_utils_file_get_contents (-1, "/etc/machine-id", 100*1024, 0, &content, NULL, NULL) >= 0
+		    || nm_utils_file_get_contents (-1, LOCALSTATEDIR"/lib/dbus/machine-id", 100*1024, 0, &content, NULL, NULL) >= 0) {
+			g_strstrip (content);
+			if (_nm_utils_hexstr2bin_full (content,
+			                               FALSE,
+			                               FALSE,
+			                               NULL,
+			                               16,
+			                               (guint8 *) &uuid,
+			                               sizeof (uuid),
+			                               NULL)) {
+				if (!nm_utils_uuid_is_null (&uuid)) {
+					/* an all-zero machine-id is not valid. */
+					is_fake = FALSE;
+				}
+			}
+		}
+
+		if (is_fake) {
+			const guint8 *seed_bin;
+			const char *hash_seed;
+			gsize seed_len;
+
+			if (!allow_fake) {
+				/* we don't allow generating (and memoizing) a fake key.
+				 * Signal that no valid machine-id exists. */
+				return NULL;
+			}
+
+			if (nm_utils_host_id_get (&seed_bin, &seed_len)) {
+				/* we have no valid machine-id. Generate a fake one by hashing
+				 * the secret-key. This key is commonly persisted, so it should be
+				 * stable accross reboots (despite having a broken system without
+				 * proper machine-id). */
+				fake_type = "secret-key";
+				hash_seed = "ab085f06-b629-46d1-a553-84eeba5683b6";
+			} else {
+				/* the secret-key is not valid/persistent either. That happens when we fail
+				 * to read/write the secret-key to disk. Fallback to boot-id. The boot-id
+				 * itself may be fake and randomly generated ad-hoc, but that is as best
+				 * as it gets.  */
+				seed_bin = (const guint8 *) nm_utils_boot_id_bin ();
+				seed_len = sizeof (NMUuid);
+				fake_type = "boot-id";
+				hash_seed = "7ff0c8f5-5399-4901-ab63-61bf594abe8b";
+			}
+
+			/* the fake machine-id is based on secret-key/boot-id, but we hash it
+			 * again, so that they are not literally the same. */
+			nm_utils_uuid_generate_from_string_bin (&uuid,
+			                                        (const char *) seed_bin,
+			                                        seed_len,
+			                                        NM_UTILS_UUID_TYPE_VERSION5,
+			                                        (gpointer) hash_seed);
+		}
+
+		if (!g_once_init_enter (&lock))
+			goto again;
+
+		d = _uuid_data_init (&uuid_data, TRUE, is_fake, &uuid);
+		g_atomic_pointer_set (&p_uuid_data, d);
+		g_once_init_leave (&lock, 1);
+
+		if (is_fake) {
+			nm_log_err (LOGD_CORE,
+			            "/etc/machine-id: no valid machine-id. Use fake one based on %s: %s",
+			            fake_type,
+			            d->str);
+		} else
+			nm_log_dbg (LOGD_CORE, "/etc/machine-id: %s", d->str);
+	}
+
+	return d;
+}
+
+const char *
+nm_utils_machine_id_str (void)
+{
+	return _machine_id_get (TRUE)->str;
+}
+
+const NMUuid *
+nm_utils_machine_id_bin (void)
+{
+	return &_machine_id_get (TRUE)->bin;
+}
+
+gboolean
+nm_utils_machine_id_is_fake (void)
+{
+	return _machine_id_get (TRUE)->is_fake;
+}
+
+/*****************************************************************************/
+
+/* prefix for version2 secret key. The secret key is hashed with /etc/machine-id. */
+#define SECRET_KEY_V2_PREFIX "nm-v2:"
+#define SECRET_KEY_FILE      NMSTATEDIR"/secret_key"
+
+static gboolean
+_host_id_read_timestamp (gboolean use_secret_key_file,
+                         const guint8 *host_id,
+                         gsize host_id_len,
+                         gint64 *out_timestamp_ns)
+{
+	struct stat st;
+	gint64 now;
+	guint64 v;
+
+	if (   use_secret_key_file
+	    && stat (SECRET_KEY_FILE, &st) == 0) {
+		/* don't check for overflow or timestamps in the future. We get whatever
+		 * (bogus) date is on the file. */
+		*out_timestamp_ns = (st.st_mtim.tv_sec * NM_UTILS_NS_PER_SECOND) + st.st_mtim.tv_nsec;
+		return TRUE;
+	}
+
+	/* generate a fake timestamp based on the host-id.
+	 *
+	 * This really should never happen under normal circumstances. We already
+	 * are in a code path, where the system has a problem (unable to get good randomness
+	 * and/or can't access the secret_key). In such a scenario, a fake timestamp is the
+	 * least of our problems.
+	 *
+	 * At least, generate something sensible so we don't have to worry about the
+	 * timestamp. It is wrong to worry about using a fake timestamp (which is tied to
+	 * the secret_key) if we are unable to access the secret_key file in the first place.
+	 *
+	 * Pick a random timestamp from the past two years. Yes, this timestamp
+	 * is not stable accross restarts, but apparently neither is the host-id
+	 * nor the secret_key itself. */
+
+#define EPOCH_TWO_YEARS  (G_GINT64_CONSTANT (2 * 365 * 24 * 3600) * NM_UTILS_NS_PER_SECOND)
+
+	v = nm_hash_siphash42 (1156657133u, host_id, host_id_len);
+
+	now = time (NULL);
+	*out_timestamp_ns = NM_MAX ((gint64) 1,
+	                            (now * NM_UTILS_NS_PER_SECOND) - ((gint64) (v % ((guint64) (EPOCH_TWO_YEARS)))));
+	return FALSE;
+}
+
+static const guint8 *
+_host_id_hash_v2 (const guint8 *seed_arr,
+                  gsize seed_len,
+                  guint8 *out_digest /* 32 bytes (NM_UTILS_CHECKSUM_LENGTH_SHA256) */)
+{
+	nm_auto_free_checksum GChecksum *sum = g_checksum_new (G_CHECKSUM_SHA256);
+	const UuidData *machine_id_data;
+	char slen[100];
+
+	/*
+	    (stat -c '%s' /var/lib/NetworkManager/secret_key;
+	     echo -n ' ';
+	     cat /var/lib/NetworkManager/secret_key;
+	     cat /etc/machine-id | tr -d '\n' | sed -n 's/[a-f0-9-]/\0/pg') | sha256sum
+	*/
+
+	nm_sprintf_buf (slen, "%"G_GSIZE_FORMAT" ", seed_len);
+	g_checksum_update (sum, (const guchar *) slen, strlen (slen));
+
+	g_checksum_update (sum, (const guchar *) seed_arr, seed_len);
+
+	machine_id_data = _machine_id_get (FALSE);
+	if (   machine_id_data
+	    && !machine_id_data->is_fake)
+		g_checksum_update (sum, (const guchar *) machine_id_data->str, strlen (machine_id_data->str));
+
+	nm_utils_checksum_get_digest_len (sum, out_digest, NM_UTILS_CHECKSUM_LENGTH_SHA256);
+	return out_digest;
+}
+
+static gboolean
+_host_id_read (guint8 **out_host_id,
+               gsize *out_host_id_len)
+{
+#define SECRET_KEY_LEN 32u
+	guint8 sha256_digest[NM_UTILS_CHECKSUM_LENGTH_SHA256];
+	nm_auto_clear_secret_ptr NMSecretPtr file_content = { 0 };
+	const guint8 *secret_arr;
+	gsize secret_len;
+	GError *error = NULL;
+	gboolean success;
+
+	if (nm_utils_file_get_contents (-1,
+	                                SECRET_KEY_FILE,
+	                                10*1024,
+	                                NM_UTILS_FILE_GET_CONTENTS_FLAG_SECRET,
+	                                (char **) &file_content.str,
+	                                &file_content.len,
+	                                &error) < 0) {
+		if (!nm_utils_error_is_notfound (error)) {
 			nm_log_warn (LOGD_CORE, "secret-key: failure reading secret key in \"%s\": %s (generate new key)",
-			             NMSTATEDIR "/secret_key", error->message);
+			             SECRET_KEY_FILE, error->message);
 		}
 		g_clear_error (&error);
+	} else if (   file_content.len >= NM_STRLEN (SECRET_KEY_V2_PREFIX) + SECRET_KEY_LEN
+	           && memcmp (file_content.bin, SECRET_KEY_V2_PREFIX, NM_STRLEN (SECRET_KEY_V2_PREFIX)) == 0) {
+		/* for this type of secret key, we require a prefix followed at least SECRET_KEY_LEN (32) bytes. We
+		 * (also) do that, because older versions of NetworkManager wrote exactly 32 bytes without
+		 * prefix, so we won't wrongly interpret such legacy keys as v2 (if they accidentally have
+		 * a SECRET_KEY_V2_PREFIX prefix, they'll still have the wrong size).
+		 *
+		 * Note that below we generate the random seed in base64 encoding. But that is only done
+		 * to write an ASCII file. There is no base64 decoding and the ASCII is hashed as-is.
+		 * We would accept any binary data just as well (provided a suitable prefix and at least
+		 * 32 bytes).
+		 *
+		 * Note that when hashing the v2 content, we also hash the prefix. There is no strong reason,
+		 * except that it seems simpler not to distinguish between the v2 prefix and the content.
+		 * It's all just part of the seed. */
+
+		secret_arr = _host_id_hash_v2 (file_content.bin, file_content.len, sha256_digest);
+		secret_len = NM_UTILS_CHECKSUM_LENGTH_SHA256;
+		success = TRUE;
+		goto out;
+	} else if (file_content.len >= 16) {
+		secret_arr = file_content.bin;
+		secret_len = file_content.len;
+		success = TRUE;
+		goto out;
+	} else {
+		/* the secret key is borked. Log a warning, but proceed below to generate
+		 * a new one. */
+		nm_log_warn (LOGD_CORE, "secret-key: too short secret key in \"%s\" (generate new key)", SECRET_KEY_FILE);
 	}
 
-	/* RFC7217 mandates the key SHOULD be at least 128 bits.
-	 * Let's use twice as much. */
-	key_len = 32;
-	secret_key = g_malloc (key_len + 1);
+	/* generate and persist new key */
+	{
+#define SECRET_KEY_LEN_BASE64 ((((SECRET_KEY_LEN / 3) + 1) * 4) + 4)
+		guint8 rnd_buf[SECRET_KEY_LEN];
+		guint8 new_content[NM_STRLEN (SECRET_KEY_V2_PREFIX) + SECRET_KEY_LEN_BASE64];
+		int base64_state = 0;
+		int base64_save = 0;
+		gsize len;
 
-	/* the secret-key is binary. Still, ensure that it's NULL terminated, just like
-	 * g_file_set_contents() does. */
-	secret_key[32] = '\0';
+		success = nm_utils_random_bytes (rnd_buf, sizeof (rnd_buf));
 
-	if (!nm_utils_random_bytes (secret_key, key_len)) {
-		nm_log_warn (LOGD_CORE, "secret-key: failure to generate good random data for secret-key (use non-persistent key)");
-		success = FALSE;
-		goto out;
-	}
+		/* Our key is really binary data. But since we anyway generate a random seed
+		 * (with 32 random bytes), don't write it in binary, but instead create
+		 * an pure ASCII (base64) representation. Note that the ASCII will still be taken
+		 * as-is (no base64 decoding is done). The sole purpose is to write a ASCII file
+		 * instead of a binary. The content is gibberish either way. */
+		memcpy (new_content, SECRET_KEY_V2_PREFIX, NM_STRLEN (SECRET_KEY_V2_PREFIX));
+		len = NM_STRLEN (SECRET_KEY_V2_PREFIX);
+		len += g_base64_encode_step (rnd_buf,
+		                             sizeof (rnd_buf),
+		                             FALSE,
+		                             (char *) &new_content[len],
+		                             &base64_state,
+		                             &base64_save);
+		len += g_base64_encode_close (FALSE,
+		                              (char *) &new_content[len],
+		                              &base64_state,
+		                              &base64_save);
+		nm_assert (len <= sizeof (new_content));
 
-	if (!nm_utils_file_set_contents (NMSTATEDIR "/secret_key", (char *) secret_key, key_len, 0077, &error)) {
-		nm_log_warn (LOGD_CORE, "secret-key: failure to persist secret key in \"%s\" (%s) (use non-persistent key)",
-		             NMSTATEDIR "/secret_key", error->message);
-		success = FALSE;
-		goto out;
+		secret_arr = _host_id_hash_v2 (new_content, len, sha256_digest);
+		secret_len = NM_UTILS_CHECKSUM_LENGTH_SHA256;
+
+		if (!success)
+			nm_log_warn (LOGD_CORE, "secret-key: failure to generate good random data for secret-key (use non-persistent key)");
+		else if (nm_utils_get_testing ()) {
+			/* for test code, we don't write the generated secret-key to disk. */
+		} else if (!nm_utils_file_set_contents (SECRET_KEY_FILE,
+		                                        (const char *) new_content,
+		                                        len,
+		                                        0077,
+		                                        &error)) {
+			nm_log_warn (LOGD_CORE, "secret-key: failure to persist secret key in \"%s\" (%s) (use non-persistent key)",
+			             SECRET_KEY_FILE, error->message);
+			g_clear_error (&error);
+			success = FALSE;
+		} else
+			nm_log_dbg (LOGD_CORE, "secret-key: persist new secret key to \"%s\"", SECRET_KEY_FILE);
+
+		nm_explicit_bzero (rnd_buf, sizeof (rnd_buf));
+		nm_explicit_bzero (new_content, sizeof (new_content));
 	}
 
 out:
-	/* regardless of success or failue, we always return a secret-key. The
-	 * caller may choose to ignore the error and proceed. */
-	*out_key_len = key_len;
-	*out_secret_key = secret_key;
+	*out_host_id_len = secret_len;
+	*out_host_id = nm_memdup (secret_arr, secret_len);
 	return success;
 }
 
 typedef struct {
-	const guint8 *secret_key;
-	gsize key_len;
+	guint8 *host_id;
+	gsize host_id_len;
+	gint64 timestamp_ns;
 	bool is_good:1;
-} SecretKeyData;
+	bool timestamp_is_good:1;
+} HostIdData;
 
-gboolean
-nm_utils_secret_key_get (const guint8 **out_secret_key,
-                         gsize *out_key_len)
+static const HostIdData *
+_host_id_get (void)
 {
-	static volatile const SecretKeyData *secret_key_static;
-	const SecretKeyData *secret_key;
+	static const HostIdData *volatile host_id_static;
+	const HostIdData *host_id;
 
-	secret_key = g_atomic_pointer_get (&secret_key_static);
-	if (G_UNLIKELY (!secret_key)) {
+again:
+	host_id = g_atomic_pointer_get (&host_id_static);
+	if (G_UNLIKELY (!host_id)) {
+		static HostIdData host_id_data;
 		static gsize init_value = 0;
-		static SecretKeyData secret_key_data;
-		gboolean tmp_success;
-		gs_free guint8 *tmp_secret_key = NULL;
-		gsize tmp_key_len;
 
-		tmp_success = _secret_key_read (&tmp_secret_key, &tmp_key_len);
-		if (g_once_init_enter (&init_value)) {
-			secret_key_data.secret_key = tmp_secret_key;
-			secret_key_data.key_len = tmp_key_len;
-			secret_key_data.is_good = tmp_success;
+		if (!g_once_init_enter (&init_value))
+			goto again;
 
-			if (g_atomic_pointer_compare_and_exchange (&secret_key_static, NULL, &secret_key_data)) {
-				g_steal_pointer (&tmp_secret_key);
-				secret_key = &secret_key_data;
-			}
+		host_id_data.is_good = _host_id_read (&host_id_data.host_id,
+		                                      &host_id_data.host_id_len);
 
-			g_once_init_leave (&init_value, 1);
-		}
-		if (!secret_key)
-			secret_key = g_atomic_pointer_get (&secret_key_static);
+		host_id_data.timestamp_is_good = _host_id_read_timestamp (host_id_data.is_good,
+		                                                          host_id_data.host_id,
+		                                                          host_id_data.host_id_len,
+		                                                          &host_id_data.timestamp_ns);
+		if (   !host_id_data.timestamp_is_good
+		    && host_id_data.is_good)
+			nm_log_warn (LOGD_CORE, "secret-key: failure reading host timestamp (use fake one)");
+
+		host_id = &host_id_data;
+		g_atomic_pointer_set (&host_id_static, host_id);
+		g_once_init_leave (&init_value, 1);
 	}
 
-	*out_secret_key = secret_key->secret_key;
-	*out_key_len = secret_key->key_len;
-	return secret_key->is_good;
+	return host_id;
+}
+
+/**
+ * nm_utils_host_id_get:
+ * @out_host_id: (out) (transfer none): the binary host key
+ * @out_host_id_len: the length of the host key.
+ *
+ * This returns a per-host key that depends on /var/lib/NetworkManage/secret_key
+ * and (depending on the version) on /etc/machine-id. If /var/lib/NetworkManage/secret_key
+ * does not exist, it will be generated and persisted for next boot.
+ *
+ * Returns: %TRUE, if the host key is "good". Note that this function
+ *   will always succeed to return a host-key, and that this key
+ *   won't change during the run of the program (no matter what).
+ *   A %FALSE return possibly means, that the secret_key is not persisted
+ *   to disk, and/or that it was generated with bad randomness.
+ */
+gboolean
+nm_utils_host_id_get (const guint8 **out_host_id,
+                      gsize *out_host_id_len)
+{
+	const HostIdData *host_id;
+
+	host_id = _host_id_get ();
+	*out_host_id = host_id->host_id;
+	*out_host_id_len = host_id->host_id_len;
+	return host_id->is_good;
 }
 
 gint64
-nm_utils_secret_key_get_timestamp (void)
+nm_utils_host_id_get_timestamp_ns (void)
 {
-	struct stat stat_buf;
-	const guint8 *key;
-	gsize key_len;
-
-	if (!nm_utils_secret_key_get (&key, &key_len))
-		return 0;
-
-	if (stat (NMSTATEDIR "/secret_key", &stat_buf) != 0)
-		return 0;
-
-	return stat_buf.st_mtim.tv_sec;
+	return _host_id_get ()->timestamp_ns;
 }
 
 /*****************************************************************************/
 
-const char *
-nm_utils_get_boot_id (void)
+static const UuidData *
+_boot_id_get (void)
 {
-	static const char *boot_id;
+	static const UuidData *volatile p_boot_id;
+	const UuidData *d;
 
-	if (G_UNLIKELY (!boot_id)) {
+again:
+	d = g_atomic_pointer_get (&p_boot_id);
+	if (G_UNLIKELY (!d)) {
+		static gsize lock;
+		static UuidData boot_id;
 		gs_free char *contents = NULL;
+		NMUuid uuid;
+		gboolean is_fake = FALSE;
 
 		nm_utils_file_get_contents (-1, "/proc/sys/kernel/random/boot_id", 0,
 		                            NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
 		                            &contents, NULL, NULL);
-		if (contents) {
-			g_strstrip (contents);
-			if (contents[0]) {
-				/* clone @contents because we keep @boot_id until the program
-				 * ends.
-				 * nm_utils_file_get_contents() likely allocated a larger
-				 * buffer chunk initially and (although using realloc to shrink
-				 * the buffer) it might not be best to keep this memory
-				 * around. */
-				boot_id = g_strdup (contents);
-			}
+		if (   !contents
+		    || !_nm_utils_uuid_parse (nm_strstrip (contents), &uuid)) {
+			/* generate a random UUID instead. */
+			is_fake = TRUE;
+			_nm_utils_uuid_generate_random (&uuid);
 		}
-		if (!boot_id)
-			boot_id = nm_utils_uuid_generate ();
+
+		if (!g_once_init_enter (&lock))
+			goto again;
+
+		d = _uuid_data_init (&boot_id, FALSE, is_fake, &uuid);
+		g_atomic_pointer_set (&p_boot_id, d);
+		g_once_init_leave (&lock, 1);
 	}
 
-	return boot_id;
+	return d;
+}
+
+const char *
+nm_utils_boot_id_str (void)
+{
+	return _boot_id_get ()->str;
+}
+
+const NMUuid *
+nm_utils_boot_id_bin (void)
+{
+	return &_boot_id_get ()->bin;
+}
+
+/*****************************************************************************/
+
+/**
+ * nm_utils_arp_type_detect_from_hwaddrlen:
+ * @hwaddr_len: the length of the hardware address in bytes.
+ *
+ * Detects the arp-type based on the length of the MAC address.
+ * On success, this returns a (positive) value in uint16_t range,
+ * like ARPHRD_ETHER or ARPHRD_INFINIBAND.
+ *
+ * On failure, returns a negative error code.
+ *
+ * Returns: the arp-type or negative value on error. */
+int
+nm_utils_arp_type_detect_from_hwaddrlen (gsize hwaddr_len)
+{
+	switch (hwaddr_len) {
+	case ETH_ALEN:
+		return ARPHRD_ETHER;
+	case INFINIBAND_ALEN:
+		return ARPHRD_INFINIBAND;
+	default:
+		/* Note: if you ever support anything but ethernet and infiniband,
+		 * make sure to look at all callers. They assert that it's one of
+		 * these two. */
+		return -EINVAL;
+	}
+}
+
+gboolean
+nm_utils_arp_type_validate_hwaddr (int arp_type,
+                                   const guint8 *hwaddr,
+                                   gsize hwaddr_len)
+{
+
+	if (!hwaddr)
+		return FALSE;
+
+	if (arp_type == ARPHRD_ETHER) {
+		G_STATIC_ASSERT (ARPHRD_ETHER >= 0 && ARPHRD_ETHER <= 0xFF);
+		if (hwaddr_len != ETH_ALEN)
+			return FALSE;
+	} else if (arp_type == ARPHRD_INFINIBAND) {
+		G_STATIC_ASSERT (ARPHRD_INFINIBAND >= 0 && ARPHRD_INFINIBAND <= 0xFF);
+		if (hwaddr_len != INFINIBAND_ALEN)
+			return FALSE;
+	} else
+		return FALSE;
+
+	nm_assert (arp_type == nm_utils_arp_type_detect_from_hwaddrlen (hwaddr_len));
+	return TRUE;
+}
+
+gboolean
+nm_utils_arp_type_get_hwaddr_relevant_part (int arp_type,
+                                            const guint8 **hwaddr,
+                                            gsize *hwaddr_len)
+{
+	g_return_val_if_fail (   hwaddr
+	                      && hwaddr_len
+	                      && nm_utils_arp_type_validate_hwaddr (arp_type, *hwaddr, *hwaddr_len),
+	                      FALSE);
+
+	/* for infiniband, we only consider the last 8 bytes. */
+	if (arp_type == ARPHRD_INFINIBAND) {
+		*hwaddr += (INFINIBAND_ALEN - 8);
+		*hwaddr_len = 8;
+	}
+
+	return TRUE;
 }
 
 /*****************************************************************************/
@@ -2888,14 +3090,12 @@ nm_utils_ipv6_interface_identifier_get_from_token (NMUtilsIPv6IfaceId *iid,
 /**
  * nm_utils_inet6_interface_identifier_to_token:
  * @iid: %NMUtilsIPv6IfaceId interface identifier
- * @buf: the destination buffer or %NULL
+ * @buf: the destination buffer of at least %NM_UTILS_INET_ADDRSTRLEN
+ *   bytes.
  *
  * Converts the interface identifier to a string token.
- * If the destination buffer it set, set it is used to store the
- * resulting token, otherwise an internal static buffer is used.
- * The buffer needs to be %NM_UTILS_INET_ADDRSTRLEN characters long.
  *
- * Returns: a statically allocated array. Do not g_free().
+ * Returns: the input buffer filled with the id as string.
  */
 const char *
 nm_utils_inet6_interface_identifier_to_token (NMUtilsIPv6IfaceId iid, char *buf)
@@ -2920,9 +3120,8 @@ nm_utils_stable_id_random (void)
 char *
 nm_utils_stable_id_generated_complete (const char *stable_id_generated)
 {
-	guint8 buf[20];
-	GChecksum *sum;
-	gsize buf_size;
+	nm_auto_free_checksum GChecksum *sum = NULL;
+	guint8 buf[NM_UTILS_CHECKSUM_LENGTH_SHA1];
 	char *base64;
 
 	/* for NM_UTILS_STABLE_TYPE_GENERATED we genererate a possibly long string
@@ -2933,15 +3132,8 @@ nm_utils_stable_id_generated_complete (const char *stable_id_generated)
 	g_return_val_if_fail (stable_id_generated, NULL);
 
 	sum = g_checksum_new (G_CHECKSUM_SHA1);
-	nm_assert (sum);
-
 	g_checksum_update (sum, (guchar *) stable_id_generated, strlen (stable_id_generated));
-
-	buf_size = sizeof (buf);
-	g_checksum_get_digest (sum, buf, &buf_size);
-	nm_assert (buf_size == sizeof (buf));
-
-	g_checksum_free (sum);
+	nm_utils_checksum_get_digest (sum, buf);
 
 	/* we don't care to use the sha1 sum in common hex representation.
 	 * Use instead base64, it's 27 chars (stripping the padding) vs.
@@ -2967,6 +3159,7 @@ _stable_id_append (GString *str,
 NMUtilsStableType
 nm_utils_stable_id_parse (const char *stable_id,
                           const char *deviceid,
+                          const char *hwaddr,
                           const char *bootid,
                           const char *uuid,
                           char **out_generated)
@@ -3042,12 +3235,14 @@ nm_utils_stable_id_parse (const char *stable_id,
 		if (CHECK_PREFIX ("${CONNECTION}"))
 			_stable_id_append (str, uuid);
 		else if (CHECK_PREFIX ("${BOOT}"))
-			_stable_id_append (str, bootid ?: nm_utils_get_boot_id ());
+			_stable_id_append (str, bootid);
 		else if (CHECK_PREFIX ("${DEVICE}"))
 			_stable_id_append (str, deviceid);
+		else if (CHECK_PREFIX ("${MAC}"))
+			_stable_id_append (str, hwaddr);
 		else if (g_str_has_prefix (&stable_id[i], "${RANDOM}")) {
 			/* RANDOM makes not so much sense for cloned-mac-address
-			 * as the result is simmilar to specyifing "cloned-mac-address=random".
+			 * as the result is similar to specyifing "cloned-mac-address=random".
 			 * It makes however sense for RFC 7217 Stable Privacy IPv6 addresses
 			 * where this is effectively the only way to generate a different
 			 * (random) host identifier for each connect.
@@ -3121,28 +3316,20 @@ _set_stable_privacy (NMUtilsStableType stable_type,
                      const char *ifname,
                      const char *network_id,
                      guint32 dad_counter,
-                     const guint8 *secret_key,
-                     gsize key_len,
+                     const guint8 *host_id,
+                     gsize host_id_len,
                      GError **error)
 {
-	GChecksum *sum;
-	guint8 digest[32];
+	nm_auto_free_checksum GChecksum *sum = NULL;
+	guint8 digest[NM_UTILS_CHECKSUM_LENGTH_SHA256];
 	guint32 tmp[2];
-	gsize len = sizeof (digest);
 
-	nm_assert (key_len);
+	nm_assert (host_id_len);
 	nm_assert (network_id);
 
-	/* Documentation suggests that this can fail.
-	 * Maybe in case of a missing algorithm in crypto library? */
 	sum = g_checksum_new (G_CHECKSUM_SHA256);
-	if (!sum) {
-		g_set_error_literal (error, NM_UTILS_ERROR, NM_UTILS_ERROR_UNKNOWN,
-		                     "Can't create a SHA256 hash");
-		return FALSE;
-	}
 
-	key_len = MIN (key_len, G_MAXUINT32);
+	host_id_len = MIN (host_id_len, G_MAXUINT32);
 
 	if (stable_type != NM_UTILS_STABLE_TYPE_UUID) {
 		guint8 stable_type_uint8;
@@ -3155,7 +3342,7 @@ _set_stable_privacy (NMUtilsStableType stable_type,
 		 *
 		 * That is no real problem and it is still impossible to
 		 * force a collision here, because of how the remaining
-		 * fields are hashed. That is, as we also hash @key_len
+		 * fields are hashed. That is, as we also hash @host_id_len
 		 * and the terminating '\0' of @network_id, it is unambigiously
 		 * possible to revert the process and deduce the @stable_type.
 		 */
@@ -3166,27 +3353,20 @@ _set_stable_privacy (NMUtilsStableType stable_type,
 	g_checksum_update (sum, (const guchar *) ifname, strlen (ifname) + 1);
 	g_checksum_update (sum, (const guchar *) network_id, strlen (network_id) + 1);
 	tmp[0] = htonl (dad_counter);
-	tmp[1] = htonl (key_len);
+	tmp[1] = htonl (host_id_len);
 	g_checksum_update (sum, (const guchar *) tmp, sizeof (tmp));
-	g_checksum_update (sum, (const guchar *) secret_key, key_len);
-
-	g_checksum_get_digest (sum, digest, &len);
-
-	nm_assert (len == sizeof (digest));
+	g_checksum_update (sum, (const guchar *) host_id, host_id_len);
+	nm_utils_checksum_get_digest (sum, digest);
 
 	while (_is_reserved_ipv6_iid (digest)) {
 		g_checksum_reset (sum);
 		tmp[0] = htonl (++dad_counter);
-		g_checksum_update (sum, digest, len);
+		g_checksum_update (sum, digest, sizeof (digest));
 		g_checksum_update (sum, (const guchar *) &tmp[0], sizeof (tmp[0]));
-		g_checksum_get_digest (sum, digest, &len);
-		nm_assert (len == sizeof (digest));
+		nm_utils_checksum_get_digest (sum, digest);
 	}
 
-	g_checksum_free (sum);
-
 	memcpy (addr->s6_addr + 8, &digest[0], 8);
-
 	return TRUE;
 }
 
@@ -3196,11 +3376,11 @@ nm_utils_ipv6_addr_set_stable_privacy_impl (NMUtilsStableType stable_type,
                                             const char *ifname,
                                             const char *network_id,
                                             guint32 dad_counter,
-                                            guint8 *secret_key,
-                                            gsize key_len,
+                                            guint8 *host_id,
+                                            gsize host_id_len,
                                             GError **error)
 {
-	return _set_stable_privacy (stable_type, addr, ifname, network_id, dad_counter, secret_key, key_len, error);
+	return _set_stable_privacy (stable_type, addr, ifname, network_id, dad_counter, host_id, host_id_len, error);
 }
 
 #define RFC7217_IDGEN_RETRIES 3
@@ -3220,8 +3400,8 @@ nm_utils_ipv6_addr_set_stable_privacy (NMUtilsStableType stable_type,
                                        guint32 dad_counter,
                                        GError **error)
 {
-	const guint8 *secret_key;
-	gsize key_len;
+	const guint8 *host_id;
+	gsize host_id_len;
 
 	g_return_val_if_fail (network_id, FALSE);
 
@@ -3231,10 +3411,10 @@ nm_utils_ipv6_addr_set_stable_privacy (NMUtilsStableType stable_type,
 		return FALSE;
 	}
 
-	nm_utils_secret_key_get (&secret_key, &key_len);
+	nm_utils_host_id_get (&host_id, &host_id_len);
 
 	return _set_stable_privacy (stable_type, addr, ifname, network_id, dad_counter,
-	                            secret_key, key_len, error);
+	                            host_id, host_id_len, error);
 }
 
 /*****************************************************************************/
@@ -3306,42 +3486,36 @@ nm_utils_hw_addr_gen_random_eth (const char *current_mac_address,
 static char *
 _hw_addr_gen_stable_eth (NMUtilsStableType stable_type,
                          const char *stable_id,
-                         const guint8 *secret_key,
-                         gsize key_len,
+                         const guint8 *host_id,
+                         gsize host_id_len,
                          const char *ifname,
                          const char *current_mac_address,
                          const char *generate_mac_address_mask)
 {
-	GChecksum *sum;
+	nm_auto_free_checksum GChecksum *sum = NULL;
 	guint32 tmp;
-	guint8 digest[32];
-	gsize len = sizeof (digest);
+	guint8 digest[NM_UTILS_CHECKSUM_LENGTH_SHA256];
 	struct ether_addr bin_addr;
 	guint8 stable_type_uint8;
 
 	nm_assert (stable_id);
-	nm_assert (secret_key);
+	nm_assert (host_id);
 
 	sum = g_checksum_new (G_CHECKSUM_SHA256);
-	if (!sum)
-		return NULL;
 
-	key_len = MIN (key_len, G_MAXUINT32);
+	host_id_len = MIN (host_id_len, G_MAXUINT32);
 
 	nm_assert (stable_type < (NMUtilsStableType) 255);
 	stable_type_uint8 = stable_type;
 	g_checksum_update (sum, (const guchar *) &stable_type_uint8, sizeof (stable_type_uint8));
 
-	tmp = htonl ((guint32) key_len);
+	tmp = htonl ((guint32) host_id_len);
 	g_checksum_update (sum, (const guchar *) &tmp, sizeof (tmp));
-	g_checksum_update (sum, (const guchar *) secret_key, key_len);
+	g_checksum_update (sum, (const guchar *) host_id, host_id_len);
 	g_checksum_update (sum, (const guchar *) (ifname ?: ""), ifname ? (strlen (ifname) + 1) : 1);
 	g_checksum_update (sum, (const guchar *) stable_id, strlen (stable_id) + 1);
 
-	g_checksum_get_digest (sum, digest, &len);
-	g_checksum_free (sum);
-
-	g_return_val_if_fail (len == 32, NULL);
+	nm_utils_checksum_get_digest (sum, digest);
 
 	memcpy (&bin_addr, digest, ETH_ALEN);
 	_hw_addr_eth_complete (&bin_addr, current_mac_address, generate_mac_address_mask);
@@ -3351,13 +3525,13 @@ _hw_addr_gen_stable_eth (NMUtilsStableType stable_type,
 char *
 nm_utils_hw_addr_gen_stable_eth_impl (NMUtilsStableType stable_type,
                                       const char *stable_id,
-                                      const guint8 *secret_key,
-                                      gsize key_len,
+                                      const guint8 *host_id,
+                                      gsize host_id_len,
                                       const char *ifname,
                                       const char *current_mac_address,
                                       const char *generate_mac_address_mask)
 {
-	return _hw_addr_gen_stable_eth (stable_type, stable_id, secret_key, key_len, ifname, current_mac_address, generate_mac_address_mask);
+	return _hw_addr_gen_stable_eth (stable_type, stable_id, host_id, host_id_len, ifname, current_mac_address, generate_mac_address_mask);
 }
 
 char *
@@ -3367,20 +3541,164 @@ nm_utils_hw_addr_gen_stable_eth (NMUtilsStableType stable_type,
                                  const char *current_mac_address,
                                  const char *generate_mac_address_mask)
 {
-	const guint8 *secret_key;
-	gsize key_len;
+	const guint8 *host_id;
+	gsize host_id_len;
 
 	g_return_val_if_fail (stable_id, NULL);
 
-	nm_utils_secret_key_get (&secret_key, &key_len);
+	nm_utils_host_id_get (&host_id, &host_id_len);
 
 	return _hw_addr_gen_stable_eth (stable_type,
 	                                stable_id,
-	                                secret_key,
-	                                key_len,
+	                                host_id,
+	                                host_id_len,
 	                                ifname,
 	                                current_mac_address,
 	                                generate_mac_address_mask);
+}
+
+/*****************************************************************************/
+
+GBytes *
+nm_utils_dhcp_client_id_mac (int arp_type,
+                             const guint8 *hwaddr,
+                             gsize hwaddr_len)
+{
+	guint8 *client_id_buf;
+	const guint8 hwaddr_type = arp_type;
+
+	if (!nm_utils_arp_type_get_hwaddr_relevant_part (arp_type, &hwaddr, &hwaddr_len))
+		g_return_val_if_reached (NULL);
+
+	client_id_buf = g_malloc (hwaddr_len + 1);
+	client_id_buf[0] = hwaddr_type;
+	memcpy (&client_id_buf[1], hwaddr, hwaddr_len);
+	return g_bytes_new_take (client_id_buf, hwaddr_len + 1);
+}
+
+#define HASH_KEY ((const guint8[16]) { 0x80, 0x11, 0x8c, 0xc2, 0xfe, 0x4a, 0x03, 0xee, 0x3e, 0xd6, 0x0c, 0x6f, 0x36, 0x39, 0x14, 0x09 })
+
+/**
+ * nm_utils_create_dhcp_iaid:
+ * @legacy_unstable_byteorder: legacy behavior is to generate a u32 iaid which
+ *   is endianness dependant. This is to preserve backward compatibility.
+ *   For non-legacy behavior, the returned integer is in stable endianness,
+ *   and corresponds to legacy behavior on little endian systems.
+ * @interface_id: the seed for hashing when generating the ID. Usually,
+ *   this is the interface name.
+ * @interface_id_len: length of @interface_id
+ *
+ * This corresponds to systemd's dhcp_identifier_set_iaid() for generating
+ * a IAID for the interface.
+ *
+ * Returns: the IAID in host byte order. */
+guint32
+nm_utils_create_dhcp_iaid (gboolean legacy_unstable_byteorder,
+                           const guint8 *interface_id,
+                           gsize interface_id_len)
+{
+	guint64 u64;
+	guint32 u32;
+
+	u64 = c_siphash_hash (HASH_KEY, interface_id, interface_id_len);
+	u32 = (u64 & 0xffffffffu) ^ (u64 >> 32);
+	if (legacy_unstable_byteorder) {
+		/* legacy systemd code dhcp_identifier_set_iaid() generates the iaid
+		 * dependent on the host endianness. Since this function returns the IAID
+		 * in native-byte order, we need to account for that.
+		 *
+		 * On little endian systems, we want the legacy-behavior is identical to
+		 * the endianness-agnostic behavior. So, we need to swap the bytes on
+		 * big-endian systems.
+		 *
+		 * (https://github.com/systemd/systemd/pull/10614). */
+		return htole32 (u32);
+	} else {
+		/* we return the value as-is, in native byte order. */
+		return u32;
+	}
+}
+
+/**
+ * nm_utils_dhcp_client_id_systemd_node_specific_full:
+ * @legacy_unstable_byteorder: historically, the code would generate a iaid
+ *   dependent on host endianness. This is undesirable, if backward compatibility
+ *   are not a concern, generate stable endianness.
+ * @interface_id: a binary identifer that is hashed into the DUID.
+ *   Comonly this is the interface-name, but it may be the MAC address.
+ * @interface_id_len: the length of @interface_id.
+ * @machine_id: the binary identifier for the machine. It is hashed
+ *   into the DUID. It commonly is /etc/machine-id (parsed in binary as NMUuid).
+ * @machine_id_len: the length of the @machine_id.
+ *
+ * Systemd's sd_dhcp_client generates a default client ID (type 255, node-specific,
+ * RFC 4361) if no explicit client-id is set. This function duplicates that
+ * implementation and exposes it as (internal) API.
+ *
+ * Returns: a %GBytes of generated client-id. This function cannot fail.
+ */
+GBytes *
+nm_utils_dhcp_client_id_systemd_node_specific_full (gboolean legacy_unstable_byteorder,
+                                                    const guint8 *interface_id,
+                                                    gsize interface_id_len,
+                                                    const guint8 *machine_id,
+                                                    gsize machine_id_len)
+{
+	const guint16 DUID_TYPE_EN = 2;
+	const guint32 SYSTEMD_PEN = 43793;
+	struct _nm_packed {
+		guint8 type;
+		guint32 iaid;
+		struct _nm_packed {
+			guint16 type;
+			union {
+				struct _nm_packed {
+						/* DUID_TYPE_EN */
+						guint32 pen;
+						uint8_t id[8];
+				} en;
+			};
+		} duid;
+	} *client_id;
+	guint64 u64;
+	guint32 u32;
+
+	g_return_val_if_fail (interface_id, NULL);
+	g_return_val_if_fail (interface_id_len > 0, NULL);
+	g_return_val_if_fail (machine_id, NULL);
+	g_return_val_if_fail (machine_id_len > 0, NULL);
+
+	client_id = g_malloc (sizeof (*client_id));
+
+	client_id->type = 255;
+
+	u32 = nm_utils_create_dhcp_iaid (legacy_unstable_byteorder,
+	                                 interface_id,
+	                                 interface_id_len);
+	unaligned_write_be32 (&client_id->iaid, u32);
+
+	unaligned_write_be16 (&client_id->duid.type, DUID_TYPE_EN);
+
+	unaligned_write_be32 (&client_id->duid.en.pen, SYSTEMD_PEN);
+
+	u64 = htole64 (c_siphash_hash (HASH_KEY, machine_id, machine_id_len));
+	memcpy(client_id->duid.en.id, &u64, sizeof (client_id->duid.en.id));
+
+	G_STATIC_ASSERT_EXPR (sizeof (*client_id) == 19);
+	return g_bytes_new_take (client_id, 19);
+}
+
+GBytes *
+nm_utils_dhcp_client_id_systemd_node_specific (gboolean legacy_unstable_byteorder,
+                                               const char *ifname)
+{
+	g_return_val_if_fail (ifname && ifname[0], NULL);
+
+	return nm_utils_dhcp_client_id_systemd_node_specific_full (legacy_unstable_byteorder,
+	                                                           (const guint8 *) ifname,
+	                                                           strlen (ifname),
+	                                                           (const guint8 *) nm_utils_machine_id_bin (),
+	                                                           sizeof (NMUuid));
 }
 
 /*****************************************************************************/

@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="NetworkManager.html" title="NetworkManager">
 <link rel="next" href="nmcli.html" title="nmcli">
-<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -146,7 +146,8 @@ plugins-=remove-me
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">monitor-connection-files</code></span></p></td>
-<td><p>Whether the configured settings plugin(s)
+<td>
+<p>Whether the configured settings plugin(s)
         should set up file monitors and immediately pick up changes
         made to connection files while NetworkManager is running. This
         is disabled by default; NetworkManager will only read
@@ -159,7 +160,19 @@ plugins-=remove-me
         In some situations, NetworkManager might first delete and add the
         connection anew, instead of updating the existing one. Also, NetworkManager
         might pick up incomplete settings while the user is still editing the files.
-        </p></td>
+        </p>
+<p>
+        Note that neither this setting nor restarting the NetworkManager daemon
+        is the advised way to reload connection profiles from disk. Instead, after
+        modifying the files reload them with <span class="command"><strong>nmcli connection reload</strong></span>
+        or <span class="command"><strong>nmcli connection load "$FILENAME"</strong></span>. Even better,
+        instead of modifying files directly, use NetworkManager tools like
+        <span class="command"><strong>nmcli</strong></span>, <span class="command"><strong>nmtui</strong></span> or the GUI.
+        </p>
+<p>
+        This setting is deprecated and will have no effect in the future.
+        </p>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">auth-polkit</code></span></p></td>
@@ -200,7 +213,7 @@ plugins-=remove-me
 <p>When the default wired connection is deleted or saved
         to a new persistent connection by a plugin, the device is
         added to a list in the file
-        <code class="filename">/run/NetworkManager/no-auto-default.state</code>
+        <code class="filename">/var/lib/NetworkManager/no-auto-default.state</code>
         to prevent creating the default connection for that device
         again.</p>
 <p>See <a class="xref" href="NetworkManager.conf.html#device-spec" title="Device List Format">the section called “Device List Format”</a> for the syntax how to
@@ -254,7 +267,7 @@ no-auto-default=*
             environments where network setup is more or less static or it is
             desirable to save process time but still handle some dynamic
             configurations.  When this option is <code class="literal">true</code>,
-            network configuration for WiFi, WWAN, Bluetooth, ADSL, and PPPoE
+            network configuration for Wi-Fi, WWAN, Bluetooth, ADSL, and PPPoE
             interfaces cannot be preserved due to their use of external
             services, and these devices will be deconfigured when NetworkManager
             quits even though other interface's configuration may be preserved.
@@ -297,8 +310,8 @@ no-auto-default=*
 <tr>
 <td><p><span class="term"><code class="varname">dns</code></span></p></td>
 <td>
-<p>Set the DNS (<code class="filename">resolv.conf</code>) processing mode.
-        If the key is unspecified, <code class="literal">default</code> is used,
+<p>Set the DNS processing mode.</p>
+<p>If the key is unspecified, <code class="literal">default</code> is used,
         unless <code class="filename">/etc/resolv.conf</code> is a symlink to
         <code class="filename">/run/systemd/resolve/stub-resolv.conf</code>,
         <code class="filename">/run/systemd/resolve/resolv.conf</code>,
@@ -322,15 +335,22 @@ no-auto-default=*
         after some time. This behavior can be modified passing the
         'all-servers' or 'strict-order' options to dnsmasq (see the
         manual page for more details).</p>
+<p><code class="literal">systemd-resolved</code>: NetworkManager will
+        push the DNS configuration to systemd-resolved</p>
 <p><code class="literal">unbound</code>: NetworkManager will talk
         to unbound and dnssec-triggerd, providing a "split DNS"
         configuration with DNSSEC support. <code class="filename">/etc/resolv.conf</code>
         will be managed by dnssec-trigger daemon.</p>
-<p><code class="literal">systemd-resolved</code>: NetworkManager will
-        push the DNS configuration to systemd-resolved</p>
 <p><code class="literal">none</code>: NetworkManager will not
         modify resolv.conf. This implies
         <code class="literal">rc-manager</code> <code class="literal">unmanaged</code></p>
+<p>Note that the plugins <code class="literal">dnsmasq</code>, <code class="literal">systemd-resolved</code>
+        and <code class="literal">unbound</code> are caching local nameservers.
+        Hence, when NetworkManager writes <code class="filename">/var/run/NetworkManager/resolv.conf</code>
+        and <code class="filename">/etc/resolv.conf</code> (according to <code class="literal">rc-manager</code>
+        setting below), the name server there will be localhost only.
+        NetworkManager also writes a file <code class="filename">/var/run/NetworkManager/no-stub-resolv.conf</code>
+        that contains the original name servers pushed to the DNS plugin.</p>
 </td>
 </tr>
 <tr>
@@ -367,6 +387,22 @@ no-auto-default=*
         <code class="filename">/etc/resolv.conf</code>.</p>
 <p><code class="literal">none</code>: deprecated alias for
         <code class="literal">symlink</code>.</p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">systemd-resolved</code></span></p></td>
+<td>
+<p>Send the connection DNS configuration to
+        <code class="literal">systemd-resolved</code>. Defaults to "<code class="literal">true</code>".
+        </p>
+<p>Note that this setting is complementary to the
+        <code class="varname">dns</code> setting. You can keep this enabled while using
+        <code class="varname">dns</code> set to another DNS plugin alongside
+        <code class="literal">systemd-resolved</code>, or <code class="varname">dns</code> set to
+        <code class="literal">systemd-resolved</code> to configure the system resolver to use
+        <code class="literal">systemd-resolved</code>.</p>
+<p>If systemd-resolved is enabled, the connectivity check resolves the
+        hostname per-device.</p>
 </td>
 </tr>
 <tr>
@@ -595,6 +631,8 @@ ipv6.ip6-privacy=0
       (see <a class="link" href="nm-settings.html" title="nm-settings"><span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span></a> for details).
       A default value is only consulted if the corresponding per-connection value
       explicitly allows for that.
+      
+      
       </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -602,6 +640,14 @@ ipv6.ip6-privacy=0
 <col>
 </colgroup>
 <tbody>
+<tr>
+<td><p><span class="term"><code class="varname">802-1x.auth-timeout</code></span></p></td>
+<td></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">cdma.mtu</code></span></p></td>
+<td></td>
+</tr>
 <tr>
 <td><p><span class="term"><code class="varname">connection.auth-retries</code></span></p></td>
 <td><p>If left unspecified, the default value is 3 tries before failing the connection.
@@ -644,6 +690,10 @@ ipv6.ip6-privacy=0
 <td></td>
 </tr>
 <tr>
+<td><p><span class="term"><code class="varname">gsm.mtu</code></span></p></td>
+<td></td>
+</tr>
+<tr>
 <td><p><span class="term"><code class="varname">infiniband.mtu</code></span></p></td>
 <td><p>If configured explicitly to 0, the MTU is not reconfigured during device activation unless it is required due to IPv6 constraints. If left unspecified, a DHCP/IPv6 SLAAC provided value is used or the MTU is left unspecified on activation.</p></td>
 </tr>
@@ -665,6 +715,11 @@ ipv6.ip6-privacy=0
            the interface type is used.</p></td>
 </tr>
 <tr>
+<td><p><span class="term"><code class="varname">ipv4.dns-priority</code></span></p></td>
+<td><p>If unspecified or zero, use 50 for VPN profiles
+           and 100 for other profiles.</p></td>
+</tr>
+<tr>
 <td><p><span class="term"><code class="varname">ipv4.route-metric</code></span></p></td>
 <td></td>
 </tr>
@@ -683,6 +738,11 @@ ipv6.ip6-privacy=0
 <td><p><span class="term"><code class="varname">ipv6.dhcp-timeout</code></span></p></td>
 <td><p>If left unspecified, the default value for
            the interface type is used.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">ipv6.dns-priority</code></span></p></td>
+<td><p>If unspecified or zero, use 50 for VPN profiles
+           and 100 for other profiles.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">ipv6.ip6-privacy</code></span></p></td>
@@ -742,9 +802,15 @@ ipv6.ip6-privacy=0
 <td><p>If left unspecified, the default value
           "<code class="literal">optional</code>" will be used.</p></td>
 </tr>
+<tr>
+<td><p><span class="term"><code class="varname">wifi.wake-on-wlan</code></span></p></td>
+<td></td>
+</tr>
 </tbody>
 </table></div>
 <p>
+      
+      
     </p>
 </div>
 <hr>
@@ -1164,6 +1230,8 @@ enable=env:TAG1
               be used to negate the match. Note that if one except-predicate
               matches, the entire configuration will be disabled.
               In other words, a except predicate always wins over other predicates.
+              If the setting only consists of "except:" matches and none of the
+              negative conditions are satisfied, the configuration is still enabled.
 </p>
 <pre class="programlisting">
 # enable the configuration either when the environment variable
@@ -1351,10 +1419,21 @@ enable=nm-version-min:1.3,nm-version-min:1.2.6,nm-version-min:1.0.16
           </p></td>
 </tr>
 <tr>
+<td><p><span class="term">dhcp-plugin:DHCP</span></p></td>
+<td><p>Match the configured DHCP plugin "<code class="literal">main.dhcp</code>".
+          </p></td>
+</tr>
+<tr>
 <td><p><span class="term">except:SPEC</span></p></td>
-<td><p>Negative match of a device. <code class="literal">SPEC</code> must be explicitly qualified with
+<td>
+<p>Negative match of a device. <code class="literal">SPEC</code> must be explicitly qualified with
              a prefix such as <code class="literal">interface-name:</code>. A negative match has higher priority then the positive
-             matches above.</p></td>
+             matches above.</p>
+<p>If there is a list consisting only of negative matches, the behavior is the same as if there
+             is also match-all. That means, if none of all the negative matches is satisfied, the overall result is
+             still a positive match. That means, <code class="literal">"except:interface-name:eth0"</code> is the same as
+             <code class="literal">"*,except:interface-name:eth0"</code>.</p>
+</td>
 </tr>
 <tr>
 <td><p><span class="term">SPEC[,;]SPEC</span></p></td>
@@ -1401,6 +1480,6 @@ interface-name:vboxnet*,except:interface-name:vboxnet2
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29.1</div>
+<hr>Generated by GTK-Doc V1.29</div>
 </body>
 </html>

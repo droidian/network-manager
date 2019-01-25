@@ -125,7 +125,7 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CONNECTIVITY_PORTAL</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>The Internet connection is hijacked by a captive portal gateway. The graphical shell may open a sandboxed web browser window (because the captive portals typically attempt a man-in-the-middle attacks agains the https connections) for the purpose of authenticating to a gateway and retrigger the connectivity check with CheckConnectivity() when the browser window is dismissed.</para><para></para></entry>
+              <entry role="enum_member_description"><para>The Internet connection is hijacked by a captive portal gateway. The graphical shell may open a sandboxed web browser window (because the captive portals typically attempt a man-in-the-middle attacks against the https connections) for the purpose of authenticating to a gateway and retrigger the connectivity check with CheckConnectivity() when the browser window is dismissed.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CONNECTIVITY_LIMITED</para><para></para></entry>
@@ -175,7 +175,7 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_TYPE_WIFI</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>an 802.11 WiFi device</para><para></para></entry>
+              <entry role="enum_member_description"><para>an 802.11 Wi-Fi device</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_TYPE_UNUSED1</para><para></para></entry>
@@ -760,7 +760,7 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_STATE_CONFIG</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>50</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>the device is connecting to the requested network. This may include operations like associating with the WiFi AP, dialing the modem, connecting to the remote Bluetooth device, etc.</para><para></para></entry>
+              <entry role="enum_member_description"><para>the device is connecting to the requested network. This may include operations like associating with the Wi-Fi AP, dialing the modem, connecting to the remote Bluetooth device, etc.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_STATE_NEED_AUTH</para><para></para></entry>
@@ -1085,7 +1085,7 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SSID_NOT_FOUND</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>53</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>The WiFi network could not be found</para><para></para></entry>
+              <entry role="enum_member_description"><para>The Wi-Fi network could not be found</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SECONDARY_CONNECTION_FAILED</para><para></para></entry>
@@ -1722,6 +1722,11 @@
               <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>The master has any slave devices attached. This only makes sense if the device is a master.</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the lifetime of the activation is bound to the visilibity of the connection profile, which in turn depends on "connection.permissions" and whether a session for the user exists. Since: 1.16</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -1775,7 +1780,7 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>usually, when the connection has autoconnect enabled and is modified, it becomes elegible to autoconnect right away. Setting this flag, disables autoconnect until the connection is manually activated.</para><para></para></entry>
+              <entry role="enum_member_description"><para>usually, when the connection has autoconnect enabled and is modified, it becomes eligible to autoconnect right away. Setting this flag, disables autoconnect until the connection is manually activated.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>

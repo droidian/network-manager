@@ -76,8 +76,9 @@ static inline char
 nm_utils_addr_family_to_char (int addr_family)
 {
 	switch (addr_family) {
-	case AF_INET:  return '4';
-	case AF_INET6: return '6';
+	case AF_UNSPEC: return 'X';
+	case AF_INET:   return '4';
+	case AF_INET6:  return '6';
 	}
 	g_return_val_if_reached ('?');
 }
@@ -101,6 +102,7 @@ typedef struct {
 	union {
 		guint8 addr_ptr[1];
 		in_addr_t addr4;
+		struct in_addr addr4_struct;
 		struct in6_addr addr6;
 
 		/* NMIPAddr is really a union for IP addresses.
@@ -113,16 +115,17 @@ typedef struct {
 extern const NMIPAddr nm_ip_addr_zero;
 
 static inline void
-nm_ip_addr_set (int addr_family, gpointer dst, const NMIPAddr *src)
+nm_ip_addr_set (int addr_family, gpointer dst, gconstpointer src)
 {
 	nm_assert_addr_family (addr_family);
 	nm_assert (dst);
 	nm_assert (src);
 
-	if (addr_family != AF_INET6)
-		*((in_addr_t *) dst) = src->addr4;
-	else
-		*((struct in6_addr *) dst) = src->addr6;
+	memcpy (dst,
+	        src,
+	        (addr_family != AF_INET6)
+	          ? sizeof (in_addr_t)
+	          : sizeof (struct in6_addr));
 }
 
 /*****************************************************************************/
@@ -217,19 +220,7 @@ nm_ip_addr_set (int addr_family, gpointer dst, const NMIPAddr *src)
 
 /*****************************************************************************/
 
-static inline gboolean
-nm_utils_mem_all_zero (gconstpointer mem, gsize len)
-{
-	const guint8 *p;
-
-	for (p = mem; len-- > 0; p++) {
-		if (*p != 0)
-			return FALSE;
-	}
-
-	/* incidentally, a buffer with len==0, is also *all-zero*. */
-	return TRUE;
-}
+gboolean nm_utils_memeqzero (gconstpointer data, gsize length);
 
 /*****************************************************************************/
 
@@ -262,6 +253,17 @@ nm_memdup (gconstpointer data, gsize size)
 	return p;
 }
 
+static inline char *
+_nm_strndup_a_step (char *s, const char *str, gsize len)
+{
+	NM_PRAGMA_WARNING_DISABLE ("-Wstringop-truncation");
+	if (len > 0)
+		strncpy (s, str, len);
+	s[len] = '\0';
+	return s;
+	NM_PRAGMA_WARNING_REENABLE;
+}
+
 /* Similar to g_strndup(), however, if the string (including the terminating
  * NUL char) fits into alloca_maxlen, this will alloca() the memory.
  *
@@ -270,7 +272,12 @@ nm_memdup (gconstpointer data, gsize size)
  *
  * In case malloc() is necessary, @out_str_free will be set (this string
  * must be freed afterwards). It is permissible to pass %NULL as @out_str_free,
- * if you ensure that len < alloca_maxlen. */
+ * if you ensure that len < alloca_maxlen.
+ *
+ * Note that just like g_strndup(), this always returns a buffer with @len + 1
+ * bytes, even if strlen(@str) is shorter than that (NUL terminated early). We fill
+ * the buffer with strncpy(), which means, that @str is copied up to the first
+ * NUL character and then filled with NUL characters. */
 #define nm_strndup_a(alloca_maxlen, str, len, out_str_free) \
 	({ \
 		const gsize _alloca_maxlen = (alloca_maxlen); \
@@ -278,6 +285,8 @@ nm_memdup (gconstpointer data, gsize size)
 		const gsize _len = (len); \
 		char **const _out_str_free = (out_str_free); \
 		char *_s; \
+		\
+		G_STATIC_ASSERT_EXPR ((alloca_maxlen) <= 300); \
 		\
 		if (   _out_str_free \
 		    && _len >= _alloca_maxlen) { \
@@ -287,11 +296,43 @@ nm_memdup (gconstpointer data, gsize size)
 			g_assert (_len < _alloca_maxlen); \
 			_s = g_alloca (_len + 1); \
 		} \
-		if (_len > 0) \
-			strncpy (_s, _str, _len); \
-		_s[_len] = '\0'; \
-		_s; \
+		_nm_strndup_a_step (_s, _str, _len); \
 	})
+
+/*****************************************************************************/
+
+/* generic macro to convert an int to a (heap allocated) string.
+ *
+ * Usually, an inline function nm_strdup_int64() would be enough. However,
+ * that cannot be used for guint64. So, we would also need nm_strdup_uint64().
+ * This causes suble error potential, because the caller needs to ensure to
+ * use the right one (and compiler isn't going to help as it silently casts).
+ *
+ * Instead, this generic macro is supposed to handle all integers correctly. */
+#if _NM_CC_SUPPORT_GENERIC
+#define nm_strdup_int(val) \
+	_Generic ((val), \
+	          char:               g_strdup_printf ("%d",   (int)                (val)), \
+	          \
+	          signed char:        g_strdup_printf ("%d",   (signed)             (val)), \
+	          signed short:       g_strdup_printf ("%d",   (signed)             (val)), \
+	          signed:             g_strdup_printf ("%d",   (signed)             (val)), \
+	          signed long:        g_strdup_printf ("%ld",  (signed long)        (val)), \
+	          signed long long:   g_strdup_printf ("%lld", (signed long long)   (val)), \
+	          \
+	          unsigned char:      g_strdup_printf ("%u",   (unsigned)           (val)), \
+	          unsigned short:     g_strdup_printf ("%u",   (unsigned)           (val)), \
+	          unsigned:           g_strdup_printf ("%u",   (unsigned)           (val)), \
+	          unsigned long:      g_strdup_printf ("%lu",  (unsigned long)      (val)), \
+	          unsigned long long: g_strdup_printf ("%llu", (unsigned long long) (val))  \
+	)
+#else
+#define nm_strdup_int(val) \
+	(  (   sizeof (val) == sizeof (guint64) \
+	    && ((typeof (val)) -1) > 0) \
+	 ? g_strdup_printf ("%"G_GUINT64_FORMAT, (guint64) (val)) \
+	 : g_strdup_printf ("%"G_GINT64_FORMAT, (gint64) (val)))
+#endif
 
 /*****************************************************************************/
 
@@ -315,6 +356,7 @@ _nm_utils_strbuf_init (char *buf, gsize len, char **p_buf_ptr, gsize *p_buf_len)
 void nm_utils_strbuf_append (char **buf, gsize *len, const char *format, ...) _nm_printf (3, 4);
 void nm_utils_strbuf_append_c (char **buf, gsize *len, char c);
 void nm_utils_strbuf_append_str (char **buf, gsize *len, const char *str);
+void nm_utils_strbuf_append_bin (char **buf, gsize *len, gconstpointer str, gsize str_len);
 void nm_utils_strbuf_seek_end (char **buf, gsize *len);
 
 const char *nm_strquote (char *buf, gsize buf_len, const char *str);
@@ -379,6 +421,46 @@ char **_nm_utils_strv_cleanup (char **strv,
 
 /*****************************************************************************/
 
+#define NM_UTILS_CHECKSUM_LENGTH_MD5          16
+#define NM_UTILS_CHECKSUM_LENGTH_SHA1         20
+#define NM_UTILS_CHECKSUM_LENGTH_SHA256       32
+
+#define nm_utils_checksum_get_digest(sum, arr) \
+	G_STMT_START { \
+		GChecksum *const _sum = (sum); \
+		gsize _len; \
+		\
+		G_STATIC_ASSERT_EXPR (   sizeof (arr) == NM_UTILS_CHECKSUM_LENGTH_MD5 \
+		                      || sizeof (arr) == NM_UTILS_CHECKSUM_LENGTH_SHA1 \
+		                      || sizeof (arr) == NM_UTILS_CHECKSUM_LENGTH_SHA256); \
+		G_STATIC_ASSERT_EXPR (sizeof (arr) == G_N_ELEMENTS (arr)); \
+		\
+		nm_assert (_sum); \
+		\
+		_len = G_N_ELEMENTS (arr); \
+		\
+		g_checksum_get_digest (_sum, (arr), &_len); \
+		nm_assert (_len == G_N_ELEMENTS (arr)); \
+	} G_STMT_END
+
+#define nm_utils_checksum_get_digest_len(sum, buf, len) \
+	G_STMT_START { \
+		GChecksum *const _sum = (sum); \
+		const gsize _len0 = (len); \
+		gsize _len; \
+		\
+		nm_assert (NM_IN_SET (_len0, NM_UTILS_CHECKSUM_LENGTH_MD5, \
+		                             NM_UTILS_CHECKSUM_LENGTH_SHA1, \
+		                             NM_UTILS_CHECKSUM_LENGTH_SHA256)); \
+		nm_assert (_sum); \
+		\
+		_len = _len0; \
+		g_checksum_get_digest (_sum, (buf), &_len); \
+		nm_assert (_len == _len0); \
+	} G_STMT_END
+
+/*****************************************************************************/
+
 guint32 _nm_utils_ip4_prefix_to_netmask (guint32 prefix);
 guint32 _nm_utils_ip4_get_default_prefix (guint32 ip);
 
@@ -389,6 +471,7 @@ gboolean nm_utils_ip_is_site_local (int addr_family,
 
 gboolean nm_utils_parse_inaddr_bin  (int addr_family,
                                      const char *text,
+                                     int *out_addr_family,
                                      gpointer out_addr);
 
 gboolean nm_utils_parse_inaddr (int addr_family,
@@ -397,6 +480,7 @@ gboolean nm_utils_parse_inaddr (int addr_family,
 
 gboolean nm_utils_parse_inaddr_prefix_bin (int addr_family,
                                            const char *text,
+                                           int *out_addr_family,
                                            gpointer out_addr,
                                            int *out_prefix);
 
@@ -539,19 +623,6 @@ _nm_g_slice_free_fcn_define (16)
 
 /*****************************************************************************/
 
-static inline int
-nm_errno (int errsv)
-{
-	/* several API returns negative errno values as errors. Normalize
-	 * negative values to positive values.
-	 *
-	 * As a special case, map G_MININT to G_MAXINT. If you care about the
-	 * distinction, then check for G_MININT before. */
-	return errsv >= 0
-	       ? errsv
-	       : ((errsv == G_MININT) ? G_MAXINT : -errsv);
-}
-
 /**
  * NMUtilsError:
  * @NM_UTILS_ERROR_UNKNOWN: unknown or unclassified error
@@ -605,6 +676,8 @@ void nm_utils_error_set_cancelled (GError **error,
 gboolean nm_utils_error_is_cancelled (GError *error,
                                       gboolean consider_is_disposing);
 
+gboolean nm_utils_error_is_notfound (GError *error);
+
 static inline void
 nm_utils_error_set_literal (GError **error, int error_code, const char *literal)
 {
@@ -620,23 +693,83 @@ nm_utils_error_set_literal (GError **error, int error_code, const char *literal)
 	             NM_UTILS_ERROR_UNKNOWN, \
 	             fmt, \
 	             ##__VA_ARGS__, \
-	             g_strerror (nm_errno (errsv)))
+	             g_strerror (({ \
+	                            const int _errsv = (errsv); \
+	                            \
+	                            (  _errsv >= 0 \
+	                             ? _errsv \
+	                             : (  (_errsv == G_MININT) \
+	                                ? G_MAXINT \
+	                                : -errsv)); \
+	                          })))
 
 /*****************************************************************************/
 
 gboolean nm_g_object_set_property (GObject *object,
-                                   const char   *property_name,
+                                   const char *property_name,
                                    const GValue *value,
                                    GError **error);
 
+gboolean nm_g_object_set_property_string (GObject *object,
+                                          const char *property_name,
+                                          const char *value,
+                                          GError **error);
+
+gboolean nm_g_object_set_property_string_static (GObject *object,
+                                                 const char *property_name,
+                                                 const char *value,
+                                                 GError **error);
+
+gboolean nm_g_object_set_property_string_take (GObject *object,
+                                               const char *property_name,
+                                               char *value,
+                                               GError **error);
+
 gboolean nm_g_object_set_property_boolean (GObject *object,
-                                           const char   *property_name,
+                                           const char *property_name,
                                            gboolean value,
                                            GError **error);
 
+gboolean nm_g_object_set_property_char (GObject *object,
+                                        const char *property_name,
+                                        gint8 value,
+                                        GError **error);
+
+gboolean nm_g_object_set_property_uchar (GObject *object,
+                                         const char *property_name,
+                                         guint8 value,
+                                         GError **error);
+
+gboolean nm_g_object_set_property_int (GObject *object,
+                                       const char *property_name,
+                                       int value,
+                                       GError **error);
+
+gboolean nm_g_object_set_property_int64 (GObject *object,
+                                         const char *property_name,
+                                         gint64 value,
+                                         GError **error);
+
 gboolean nm_g_object_set_property_uint (GObject *object,
-                                        const char   *property_name,
+                                        const char *property_name,
                                         guint value,
+                                        GError **error);
+
+gboolean nm_g_object_set_property_uint64 (GObject *object,
+                                          const char *property_name,
+                                          guint64 value,
+                                          GError **error);
+
+gboolean nm_g_object_set_property_flags (GObject *object,
+                                         const char *property_name,
+                                         GType gtype,
+                                         guint value,
+                                         GError **error);
+
+gboolean nm_g_object_set_property_enum (GObject *object,
+                                        const char *property_name,
+                                        GType gtype,
+                                        int value,
                                         GError **error);
 
 GParamSpec *nm_g_object_class_find_property_from_gtype (GType gtype,
@@ -906,5 +1039,58 @@ void _nm_utils_user_data_unpack (gpointer user_data, int nargs, ...);
 
 const char *_nm_utils_escape_spaces (const char *str, char **to_free);
 char *_nm_utils_unescape_spaces (char *str);
+
+/*****************************************************************************/
+
+typedef void (*NMUtilsInvokeOnIdleCallback) (gpointer callback_user_data,
+                                             GCancellable *cancellable);
+
+void nm_utils_invoke_on_idle (NMUtilsInvokeOnIdleCallback callback,
+                              gpointer callback_user_data,
+                              GCancellable *cancellable);
+
+/*****************************************************************************/
+
+static inline void
+nm_strv_ptrarray_add_string_take (GPtrArray *cmd,
+                                  char *str)
+{
+	nm_assert (cmd);
+	nm_assert (str);
+
+	g_ptr_array_add (cmd, str);
+}
+
+static inline void
+nm_strv_ptrarray_add_string_dup (GPtrArray *cmd,
+                                 const char *str)
+{
+	nm_strv_ptrarray_add_string_take (cmd,
+	                                  g_strdup (str));
+}
+
+#define nm_strv_ptrarray_add_string_concat(cmd, ...) \
+	nm_strv_ptrarray_add_string_take ((cmd), g_strconcat (__VA_ARGS__, NULL))
+
+#define nm_strv_ptrarray_add_string_printf(cmd, ...) \
+	nm_strv_ptrarray_add_string_take ((cmd), g_strdup_printf (__VA_ARGS__))
+
+#define nm_strv_ptrarray_add_int(cmd, val) \
+	nm_strv_ptrarray_add_string_take ((cmd), nm_strdup_int (val))
+
+static inline void
+nm_strv_ptrarray_take_gstring (GPtrArray *cmd,
+                               GString **gstr)
+{
+	nm_assert (gstr && *gstr);
+
+	nm_strv_ptrarray_add_string_take (cmd,
+	                                  g_string_free (g_steal_pointer (gstr),
+	                                                 FALSE));
+}
+
+/*****************************************************************************/
+
+int nm_utils_getpagesize (void);
 
 #endif /* __NM_SHARED_UTILS_H__ */

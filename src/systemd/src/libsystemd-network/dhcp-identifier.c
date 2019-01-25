@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: LGPL-2.1+ */
 
-#include "nm-sd-adapt.h"
+#include "nm-sd-adapt-core.h"
 
 #include <linux/if_infiniband.h>
 #include <net/if_arp.h>
@@ -15,22 +15,23 @@
 #include "sparse-endian.h"
 #include "virt.h"
 
-#if 0 /* NM_IGNORED */
-#else /* NM_IGNORED */
-#include <net/if.h>
-#endif /* NM_IGNORED */
-
 #define SYSTEMD_PEN    43793
 #define HASH_KEY       SD_ID128_MAKE(80,11,8c,c2,fe,4a,03,ee,3e,d6,0c,6f,36,39,14,09)
 #define APPLICATION_ID SD_ID128_MAKE(a5,0a,d1,12,bf,60,45,77,a2,fb,74,1a,b1,95,5b,03)
 #define USEC_2000       ((usec_t) 946684800000000) /* 2000-01-01 00:00:00 UTC */
 
-int dhcp_validate_duid_len(uint16_t duid_type, size_t duid_len) {
+int dhcp_validate_duid_len(uint16_t duid_type, size_t duid_len, bool strict) {
         struct duid d;
 
         assert_cc(sizeof(d.raw) >= MAX_DUID_LEN);
         if (duid_len > MAX_DUID_LEN)
                 return -EINVAL;
+
+        if (!strict) {
+                /* Strict validation is not requested. We only ensure that the
+                 * DUID is not too long. */
+                return 0;
+        }
 
         switch (duid_type) {
         case DUID_TYPE_LLT:
@@ -117,8 +118,13 @@ int dhcp_identifier_set_duid_en(struct duid *duid, size_t *len) {
         assert(len);
 
         r = sd_id128_get_machine(&machine_id);
-        if (r < 0)
+        if (r < 0) {
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+                machine_id = SD_ID128_MAKE(01, 02, 03, 04, 05, 06, 07, 08, 09, 0a, 0b, 0c, 0d, 0e, 0f, 10);
+#else
                 return r;
+#endif
+        }
 
         unaligned_write_be16(&duid->type, DUID_TYPE_EN);
         unaligned_write_be32(&duid->en.pen, SYSTEMD_PEN);
@@ -154,38 +160,37 @@ int dhcp_identifier_set_duid_uuid(struct duid *duid, size_t *len) {
 }
 #endif
 
-int dhcp_identifier_set_iaid(int ifindex, uint8_t *mac, size_t mac_len, void *_id) {
+int dhcp_identifier_set_iaid(
+                int ifindex,
+                const uint8_t *mac,
+                size_t mac_len,
+                bool legacy_unstable_byteorder,
+                void *_id) {
 #if 0 /* NM_IGNORED */
         /* name is a pointer to memory in the sd_device struct, so must
          * have the same scope */
         _cleanup_(sd_device_unrefp) sd_device *device = NULL;
-#else /* NM_IGNORED */
-        char name_buf[IF_NAMESIZE];
-#endif /* NM_IGNORED */
         const char *name = NULL;
         uint64_t id;
+        uint32_t id32;
 
-#if 0 /* NM_IGNORED */
         if (detect_container() <= 0) {
                 /* not in a container, udev will be around */
                 char ifindex_str[2 + DECIMAL_STR_MAX(int)];
-                int initialized, r;
+                int r;
 
                 sprintf(ifindex_str, "n%d", ifindex);
                 if (sd_device_new_from_device_id(&device, ifindex_str) >= 0) {
-                        r = sd_device_get_is_initialized(device, &initialized);
+                        r = sd_device_get_is_initialized(device);
                         if (r < 0)
                                 return r;
-                        if (!initialized)
+                        if (r == 0)
                                 /* not yet ready */
                                 return -EBUSY;
 
                         name = net_get_name(device);
                 }
         }
-#else /* NM_IGNORED */
-        name = if_indextoname(ifindex, name_buf);
-#endif /* NM_IGNORED */
 
         if (name)
                 id = siphash24(name, strlen(name), HASH_KEY.bytes);
@@ -193,10 +198,23 @@ int dhcp_identifier_set_iaid(int ifindex, uint8_t *mac, size_t mac_len, void *_i
                 /* fall back to MAC address if no predictable name available */
                 id = siphash24(mac, mac_len, HASH_KEY.bytes);
 
-        id = htole64(id);
+        id32 = (id & 0xffffffff) ^ (id >> 32);
 
-        /* fold into 32 bits */
-        unaligned_write_be32(_id, (id & 0xffffffff) ^ (id >> 32));
+        if (legacy_unstable_byteorder)
+                /* for historical reasons (a bug), the bits were swapped and thus
+                 * the result was endianness dependant. Preserve that behavior. */
+                id32 = __bswap_32(id32);
+        else
+                /* the fixed behavior returns a stable byte order. Since LE is expected
+                 * to be more common, swap the bytes on LE to give the same as legacy
+                 * behavior. */
+                id32 = be32toh(id32);
 
+        unaligned_write_ne32(_id, id32);
         return 0;
+#else /* NM_IGNORED */
+        /* for NetworkManager, we don't use this function and we should never call here.
+         * This got replaced by nm_utils_create_dhcp_iaid(). */
+        g_return_val_if_reached (-EINVAL);
+#endif /* NM_IGNORED */
 }
