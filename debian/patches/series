@@ -1,16 +1,5 @@
 Force-online-state-with-unmanaged-devices.patch
 Don-t-setup-Sleep-Monitor-if-not-booted-with-systemd.patch
-Don-t-make-NetworkManager-D-Bus-activatable.patch
-sd-dhcp-lease-fix-memleaks.patch
-dhcp6-fix-buffer-size-checking.patch
-sd-dhcp6-fix-argument-and-error-handling-of-dhcp6_option_.patch
-sd-dhcp6-make-dhcp6_option_parse_domainname-not-store-emp.patch
-sd-dhcp-remove-unreachable-route-after-rebinding-return-N.patch
-dhcp6-make-sure-we-have-enough-space-for-the-DHCP6-option.patch
-cli-wait-for-all-wifi-scans-to-finish-before-displaying-t.patch
-cli-fix-memory-leaks.patch
-cli-tests-fix-output-on-failure.patch
-tests-simulate-old-LastScan-wifi-value-in-test-networkman.patch
 # Ubuntu patches
 Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
 Update-dnsmasq-parameters.patch

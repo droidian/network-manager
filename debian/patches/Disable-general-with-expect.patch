@@ -7,11 +7,11 @@ which tends to fail on ppc64el and arm64
  Makefile.am | 1 -
  1 file changed, 1 deletion(-)
 
-Index: network-manager-1.14.4/Makefile.am
+Index: network-manager-1.15.2/Makefile.am
 ===================================================================
---- network-manager-1.14.4.orig/Makefile.am
-+++ network-manager-1.14.4/Makefile.am
-@@ -3404,7 +3404,6 @@ src_tests_ldadd = \
+--- network-manager-1.15.2.orig/Makefile.am
++++ network-manager-1.15.2/Makefile.am
+@@ -3622,7 +3622,6 @@ src_tests_ldadd = \
  
  check_programs += \
  	src/tests/test-general \

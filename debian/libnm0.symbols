@@ -8,6 +8,7 @@ libnm.so.0 libnm0 #MINVER#
  libnm_1_12_0@libnm_1_12_0 1.11.3
  libnm_1_12_2@libnm_1_12_2 1.12.2
  libnm_1_14_0@libnm_1_14_0 1.13.90
+ libnm_1_16_0@libnm_1_16_0 1.15.2
  libnm_1_2_0@libnm_1_2_0 1.1.90
  libnm_1_2_4@libnm_1_2_4 1.2.4
  libnm_1_4_0@libnm_1_4_0 1.4.0
@@ -62,6 +63,8 @@ libnm.so.0 libnm0 #MINVER#
  nm_checkpoint_get_type@libnm_1_12_0 1.11.3
  nm_client_activate_connection_async@libnm_1_0_0 1.0.0
  nm_client_activate_connection_finish@libnm_1_0_0 1.0.0
+ nm_client_add_and_activate_connection2@libnm_1_16_0 1.15.2
+ nm_client_add_and_activate_connection2_finish@libnm_1_16_0 1.15.2
  nm_client_add_and_activate_connection_async@libnm_1_0_0 1.0.0
  nm_client_add_and_activate_connection_finish@libnm_1_0_0 1.0.0
  nm_client_add_connection_async@libnm_1_0_0 1.0.0
@@ -254,6 +257,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_device_get_autoconnect@libnm_1_0_0 1.0.0
  nm_device_get_available_connections@libnm_1_0_0 1.0.0
  nm_device_get_capabilities@libnm_1_0_0 1.0.0
+ nm_device_get_connectivity@libnm_1_16_0 1.15.2
  nm_device_get_description@libnm_1_0_0 1.0.0
  nm_device_get_device_type@libnm_1_0_0 1.0.0
  nm_device_get_dhcp4_config@libnm_1_0_0 1.0.0
@@ -1245,6 +1249,8 @@ libnm.so.0 libnm0 #MINVER#
  nm_team_link_watcher_get_source_host@libnm_1_10_2 1.10.2
  nm_team_link_watcher_get_target_host@libnm_1_10_2 1.10.2
  nm_team_link_watcher_get_type@libnm_1_10_2 1.10.2
+ nm_team_link_watcher_get_vlanid@libnm_1_16_0 1.15.2
+ nm_team_link_watcher_new_arp_ping2@libnm_1_16_0 1.15.2
  nm_team_link_watcher_new_arp_ping@libnm_1_10_2 1.10.2
  nm_team_link_watcher_new_ethtool@libnm_1_10_2 1.10.2
  nm_team_link_watcher_new_nsna_ping@libnm_1_10_2 1.10.2

@@ -2,6 +2,10 @@
 
 include /usr/share/dpkg/architecture.mk
 
+# Without that the tests fail, cannot register existing type 'NMAgentManagerError'
+LDFLAGS=$(shell echo $$LDFLAGS | sed -e 's/-Wl,-Bsymbolic-functions//')
+export LDFLAGS
+
 PPPD_PLUGIN_DIR := $(shell dh_ppp --plugin-dir)
 
 %:

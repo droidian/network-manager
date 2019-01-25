@@ -1,8 +1,15 @@
-network-manager (1.14.4-4ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.15.2-0ubuntu1) UNRELEASED; urgency=medium
 
-  * Resynchronized with Debian
+  * Update to the current serie, resynchronize with Debian
+  * debian/libnm0.symbols:
+    - updated for the new version
+  * debian/patches
+    - removed the changes that are included in the new version
+  * debian/rules:
+    - strip '-Wl,-Bsymbolic-functions' from LDFLAGS otherwise the
+      tests fails on 'cannot register existing type 'NMAgentManagerError''
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 25 Jan 2019 11:10:07 +0100
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 25 Jan 2019 11:31:56 +0100
 
 network-manager (1.14.4-4) unstable; urgency=medium
 
