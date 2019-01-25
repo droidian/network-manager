@@ -21,13 +21,13 @@
 
 #include "nm-default.h"
 
+#include "nm-setting-vpn.h"
+
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
 
 #include "nm-utils/nm-secret-utils.h"
-
-#include "nm-setting-vpn.h"
 #include "nm-utils.h"
 #include "nm-utils-private.h"
 #include "nm-setting-private.h"
@@ -45,9 +45,16 @@
  * properties.
  **/
 
-G_DEFINE_TYPE (NMSettingVpn, nm_setting_vpn, NM_TYPE_SETTING)
+/*****************************************************************************/
 
-#define NM_SETTING_VPN_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_VPN, NMSettingVpnPrivate))
+NM_GOBJECT_PROPERTIES_DEFINE (NMSettingVpn,
+	PROP_SERVICE_TYPE,
+	PROP_USER_NAME,
+	PROP_PERSISTENT,
+	PROP_DATA,
+	PROP_SECRETS,
+	PROP_TIMEOUT,
+);
 
 typedef struct {
 	char *service_type;
@@ -85,30 +92,11 @@ typedef struct {
 	guint32 timeout;
 } NMSettingVpnPrivate;
 
-enum {
-	PROP_0,
-	PROP_SERVICE_TYPE,
-	PROP_USER_NAME,
-	PROP_PERSISTENT,
-	PROP_DATA,
-	PROP_SECRETS,
-	PROP_TIMEOUT,
+G_DEFINE_TYPE (NMSettingVpn, nm_setting_vpn, NM_TYPE_SETTING)
 
-	LAST_PROP
-};
+#define NM_SETTING_VPN_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_VPN, NMSettingVpnPrivate))
 
-/**
- * nm_setting_vpn_new:
- *
- * Creates a new #NMSettingVpn object with default values.
- *
- * Returns: (transfer full): the new empty #NMSettingVpn object
- **/
-NMSetting *
-nm_setting_vpn_new (void)
-{
-	return (NMSetting *) g_object_new (NM_TYPE_SETTING_VPN, NULL);
-}
+/*****************************************************************************/
 
 /**
  * nm_setting_vpn_get_service_type:
@@ -194,7 +182,7 @@ nm_setting_vpn_add_data_item (NMSettingVpn *setting,
 
 	g_hash_table_insert (NM_SETTING_VPN_GET_PRIVATE (setting)->data,
 	                     g_strdup (key), g_strdup (item));
-	g_object_notify (G_OBJECT (setting), NM_SETTING_VPN_DATA);
+	_notify (setting, PROP_DATA);
 }
 
 /**
@@ -259,7 +247,7 @@ nm_setting_vpn_remove_data_item (NMSettingVpn *setting, const char *key)
 
 	found = g_hash_table_remove (NM_SETTING_VPN_GET_PRIVATE (setting)->data, key);
 	if (found)
-		g_object_notify (G_OBJECT (setting), NM_SETTING_VPN_DATA);
+		_notify (setting, PROP_DATA);
 	return found;
 }
 
@@ -371,7 +359,7 @@ nm_setting_vpn_add_secret (NMSettingVpn *setting,
 
 	g_hash_table_insert (NM_SETTING_VPN_GET_PRIVATE (setting)->secrets,
 	                     g_strdup (key), g_strdup (secret));
-	g_object_notify (G_OBJECT (setting), NM_SETTING_VPN_SECRETS);
+	_notify (setting, PROP_SECRETS);
 }
 
 /**
@@ -436,7 +424,7 @@ nm_setting_vpn_remove_secret (NMSettingVpn *setting, const char *key)
 
 	found = g_hash_table_remove (NM_SETTING_VPN_GET_PRIVATE (setting)->secrets, key);
 	if (found)
-		g_object_notify (G_OBJECT (setting), NM_SETTING_VPN_SECRETS);
+		_notify (setting, PROP_SECRETS);
 	return found;
 }
 
@@ -459,6 +447,66 @@ nm_setting_vpn_foreach_secret (NMSettingVpn *setting,
 	g_return_if_fail (func);
 
 	foreach_item_helper (setting, TRUE, func, user_data);
+}
+
+gboolean
+_nm_setting_vpn_aggregate (NMSettingVpn *setting,
+                           NMConnectionAggregateType type,
+                           gpointer arg)
+{
+	NMSettingVpnPrivate *priv;
+	NMSettingSecretFlags secret_flags;
+	const char *key_name;
+	GHashTableIter iter;
+
+	g_return_val_if_fail (NM_IS_SETTING_VPN (setting), FALSE);
+
+	priv = NM_SETTING_VPN_GET_PRIVATE (setting);
+
+	switch (type) {
+
+	case NM_CONNECTION_AGGREGATE_ANY_SECRETS:
+		if (g_hash_table_size (priv->secrets) > 0) {
+			*((gboolean *) arg) = TRUE;
+			return TRUE;
+		}
+		return FALSE;
+
+	case NM_CONNECTION_AGGREGATE_ANY_SYSTEM_SECRET_FLAGS:
+
+		g_hash_table_iter_init (&iter, priv->secrets);
+		while (g_hash_table_iter_next (&iter, (gpointer *) &key_name, NULL)) {
+			if (!nm_setting_get_secret_flags (NM_SETTING (setting), key_name, &secret_flags, NULL))
+				nm_assert_not_reached ();
+			if (secret_flags == NM_SETTING_SECRET_FLAG_NONE) {
+				*((gboolean *) arg) = TRUE;
+				return TRUE;
+			}
+		}
+
+		/* Ok, we have no secrets with system-secret flags.
+		 * But do we have any secret-flags (without secrets) that indicate system secrets? */
+		g_hash_table_iter_init (&iter, priv->data);
+		while (g_hash_table_iter_next (&iter, (gpointer *) &key_name, NULL)) {
+			gs_free char *secret_name = NULL;
+
+			if (!g_str_has_suffix (key_name, "-flags"))
+				continue;
+			secret_name = g_strndup (key_name, strlen (key_name) - NM_STRLEN ("-flags"));
+			if (secret_name[0] == '\0')
+				continue;
+			if (!nm_setting_get_secret_flags (NM_SETTING (setting), secret_name, &secret_flags, NULL))
+				nm_assert_not_reached ();
+			if (secret_flags == NM_SETTING_SECRET_FLAG_NONE) {
+				*((gboolean *) arg) = TRUE;
+				return TRUE;
+			}
+		}
+
+		return FALSE;
+	}
+
+	g_return_val_if_reached (FALSE);
 }
 
 /**
@@ -634,7 +682,7 @@ update_one_secret (NMSetting *setting, const char *key, GVariant *value, GError 
 	}
 
 	if (success == NM_SETTING_UPDATE_SECRET_SUCCESS_MODIFIED)
-		g_object_notify (G_OBJECT (setting), NM_SETTING_VPN_SECRETS);
+		_notify (NM_SETTING_VPN (setting), PROP_SECRETS);
 
 	return success;
 }
@@ -642,48 +690,59 @@ update_one_secret (NMSetting *setting, const char *key, GVariant *value, GError 
 static gboolean
 get_secret_flags (NMSetting *setting,
                   const char *secret_name,
-                  gboolean verify_secret,
                   NMSettingSecretFlags *out_flags,
                   GError **error)
 {
 	NMSettingVpnPrivate *priv = NM_SETTING_VPN_GET_PRIVATE (setting);
-	gs_free char *flags_key = NULL;
-	gpointer val;
-	unsigned long tmp;
-	NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
+	gs_free char *flags_key_free = NULL;
+	const char *flags_key;
+	const char *flags_val;
+	gint64 i64;
 
-	flags_key = g_strdup_printf ("%s-flags", secret_name);
-	if (g_hash_table_lookup_extended (priv->data, flags_key, NULL, &val)) {
-		errno = 0;
-		tmp = strtoul ((const char *) val, NULL, 10);
-		if ((errno != 0) || (tmp > NM_SETTING_SECRET_FLAGS_ALL)) {
-			g_set_error (error,
-			             NM_CONNECTION_ERROR,
-			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-			             _("failed to convert value '%s' to uint"),
-			             (const char *) val);
+	flags_key = nm_construct_name_a ("%s-flags", secret_name, &flags_key_free);
+
+	if (!g_hash_table_lookup_extended (priv->data, flags_key, NULL, (gpointer *) &flags_val)) {
+		NM_SET_OUT (out_flags, NM_SETTING_SECRET_FLAG_NONE);
+
+		/* having no secret flag for the secret is fine, as long as there
+		 * is the secret itself... */
+		if (!g_hash_table_contains (priv->secrets, secret_name)) {
+			g_set_error_literal (error,
+			                     NM_CONNECTION_ERROR,
+			                     NM_CONNECTION_ERROR_PROPERTY_NOT_SECRET,
+			                     _("secret flags property not found"));
 			g_prefix_error (error, "%s.%s: ", NM_SETTING_VPN_SETTING_NAME, flags_key);
 			return FALSE;
 		}
-		flags = (NMSettingSecretFlags) tmp;
+		return TRUE;
 	}
 
-	if (out_flags)
-		*out_flags = flags;
+	i64 = _nm_utils_ascii_str_to_int64 (flags_val, 10, 0, NM_SETTING_SECRET_FLAGS_ALL, -1);
+	if (   i64 == -1
+	    || !_nm_setting_secret_flags_valid (i64)) {
+		/* The flags keys is set to an unexpected value. That is a configuration
+		 * error. Note that keys named "*-flags" are reserved for secrets. The user
+		 * must not use this for anything but secret flags. Hence, we cannot fail
+		 * to read the secret, we pretend that the secret flag is set to the default
+		 * NM_SETTING_SECRET_FLAG_NONE. */
+		NM_SET_OUT (out_flags, NM_SETTING_SECRET_FLAG_NONE);
+		return TRUE;
+	}
+
+	NM_SET_OUT (out_flags, (NMSettingSecretFlags) i64);
 	return TRUE;
 }
 
 static gboolean
 set_secret_flags (NMSetting *setting,
                   const char *secret_name,
-                  gboolean verify_secret,
                   NMSettingSecretFlags flags,
                   GError **error)
 {
 	g_hash_table_insert (NM_SETTING_VPN_GET_PRIVATE (setting)->data,
 	                     g_strdup_printf ("%s-flags", secret_name),
 	                     g_strdup_printf ("%u", flags));
-	g_object_notify (G_OBJECT (setting), NM_SETTING_VPN_SECRETS);
+	_notify (NM_SETTING_VPN (setting), PROP_SECRETS);
 	return TRUE;
 }
 
@@ -694,131 +753,143 @@ need_secrets (NMSetting *setting)
 	return g_ptr_array_sized_new (1);
 }
 
-static gboolean
-_compare_secrets (NMSettingVpn *a,
-                  NMSettingVpn *b,
-                  NMSettingCompareFlags flags)
+static NMTernary
+compare_property_secrets (NMSettingVpn *a,
+                          NMSettingVpn *b,
+                          NMSettingCompareFlags flags)
 {
-	GHashTable *a_secrets;
 	GHashTableIter iter;
 	const char *key, *val;
+	int run;
 
-	a_secrets = NM_SETTING_VPN_GET_PRIVATE (a)->secrets;
-	g_hash_table_iter_init (&iter, a_secrets);
-	while (g_hash_table_iter_next (&iter, (gpointer) &key, (gpointer) &val)) {
-		NMSettingSecretFlags a_secret_flags = NM_SETTING_SECRET_FLAG_NONE;
-		NMSettingSecretFlags b_secret_flags = NM_SETTING_SECRET_FLAG_NONE;
+	if (NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_FUZZY))
+		return NM_TERNARY_DEFAULT;
+	if (NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_IGNORE_SECRETS))
+		return NM_TERNARY_DEFAULT;
 
-		nm_setting_get_secret_flags (NM_SETTING (a), key, &a_secret_flags, NULL);
-		nm_setting_get_secret_flags (NM_SETTING (b), key, &b_secret_flags, NULL);
+	if (!b)
+		return TRUE;
 
-		/* If the secret flags aren't the same, the settings aren't the same */
-		if (a_secret_flags != b_secret_flags)
+	for (run = 0; run < 2; run++) {
+		NMSettingVpn *current_a = (run == 0) ? a : b;
+		NMSettingVpn *current_b = (run == 0) ? b : a;
+
+		g_hash_table_iter_init (&iter, NM_SETTING_VPN_GET_PRIVATE (current_a)->secrets);
+		while (g_hash_table_iter_next (&iter, (gpointer) &key, (gpointer) &val)) {
+
+			if (nm_streq0 (val, nm_setting_vpn_get_secret (current_b, key)))
+				continue;
+			if (!_nm_setting_should_compare_secret_property (NM_SETTING (current_a),
+			                                                 NM_SETTING (current_b),
+			                                                 key,
+			                                                 flags))
+				continue;
+
 			return FALSE;
-
-		if (   (flags & NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS)
-		    && (a_secret_flags & NM_SETTING_SECRET_FLAG_AGENT_OWNED))
-			continue;
-
-		if (   (flags & NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS)
-		    && (a_secret_flags & NM_SETTING_SECRET_FLAG_NOT_SAVED))
-			continue;
-
-		/* Now compare the values themselves */
-		if (g_strcmp0 (val, nm_setting_vpn_get_secret (b, key)) != 0)
-			return FALSE;
+		}
 	}
 
 	return TRUE;
 }
 
-static gboolean
-compare_one_secret (NMSettingVpn *a,
-                    NMSettingVpn *b,
-                    NMSettingCompareFlags flags)
-{
-	if (!_compare_secrets (a, b, flags))
-		return FALSE;
-	if (!_compare_secrets (b, a, flags))
-		return FALSE;
-
-	return TRUE;
-}
-
-static gboolean
-compare_property (NMSetting *setting,
+static NMTernary
+compare_property (const NMSettInfoSetting *sett_info,
+                  guint property_idx,
+                  NMSetting *setting,
                   NMSetting *other,
-                  const GParamSpec *prop_spec,
                   NMSettingCompareFlags flags)
 {
-	gboolean same;
-
-	/* We only need to treat the 'secrets' property specially */
-	if (g_strcmp0 (prop_spec->name, NM_SETTING_VPN_SECRETS) != 0)
-		return NM_SETTING_CLASS (nm_setting_vpn_parent_class)->compare_property (setting, other, prop_spec, flags);
-
-	/* Compare A to B to ensure everything in A is found in B */
-	same = compare_one_secret (NM_SETTING_VPN (setting), NM_SETTING_VPN (other), flags);
-	if (same) {
-		/* And then B to A to ensure everything in B is also found in A */
-		same = compare_one_secret (NM_SETTING_VPN (other), NM_SETTING_VPN (setting), flags);
+	if (nm_streq (sett_info->property_infos[property_idx].name, NM_SETTING_VPN_SECRETS)) {
+		if (NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_INFERRABLE))
+			return NM_TERNARY_DEFAULT;
+		return compare_property_secrets (NM_SETTING_VPN (setting), NM_SETTING_VPN (other), flags);
 	}
 
-	return same;
+	return NM_SETTING_CLASS (nm_setting_vpn_parent_class)->compare_property (sett_info,
+	                                                                         property_idx,
+	                                                                         setting,
+	                                                                         other,
+	                                                                         flags);
 }
 
 static gboolean
-clear_secrets_with_flags (NMSetting *setting,
-                          GParamSpec *pspec,
-                          NMSettingClearSecretsWithFlagsFn func,
-                          gpointer user_data)
+clear_secrets (const NMSettInfoSetting *sett_info,
+               guint property_idx,
+               NMSetting *setting,
+               NMSettingClearSecretsWithFlagsFn func,
+               gpointer user_data)
 {
 	NMSettingVpnPrivate *priv = NM_SETTING_VPN_GET_PRIVATE (setting);
+	GParamSpec *prop_spec = sett_info->property_infos[property_idx].param_spec;
 	GHashTableIter iter;
 	const char *secret;
 	gboolean changed = TRUE;
 
-	if (priv->secrets == NULL)
+	if (   !prop_spec
+	    || !NM_FLAGS_HAS (prop_spec->flags, NM_SETTING_PARAM_SECRET))
 		return FALSE;
 
-	/* Iterate through secrets hash and check each entry */
+	nm_assert (nm_streq (prop_spec->name, NM_SETTING_VPN_SECRETS));
+
+	if (!priv->secrets)
+		return FALSE;
+
 	g_hash_table_iter_init (&iter, priv->secrets);
 	while (g_hash_table_iter_next (&iter, (gpointer) &secret, NULL)) {
-		NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
 
-		nm_setting_get_secret_flags (setting, secret, &flags, NULL);
-		if (func (setting, pspec->name, flags, user_data) == TRUE) {
-			g_hash_table_iter_remove (&iter);
-			changed = TRUE;
-		}
+		if (func) {
+			NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
+
+			if (!nm_setting_get_secret_flags (setting, secret, &flags, NULL))
+				nm_assert_not_reached ();
+
+			if (!func (setting, secret, flags, user_data))
+				continue;
+		} else
+			nm_assert (nm_setting_get_secret_flags (setting, secret, NULL, NULL));
+
+		g_hash_table_iter_remove (&iter);
+		changed = TRUE;
 	}
 
 	if (changed)
-		g_object_notify (G_OBJECT (setting), NM_SETTING_VPN_SECRETS);
+		_notify (NM_SETTING_VPN (setting), PROP_SECRETS);
 
 	return changed;
 }
 
+/*****************************************************************************/
+
 static void
-nm_setting_vpn_init (NMSettingVpn *setting)
+get_property (GObject *object, guint prop_id,
+              GValue *value, GParamSpec *pspec)
 {
+	NMSettingVpn *setting = NM_SETTING_VPN (object);
 	NMSettingVpnPrivate *priv = NM_SETTING_VPN_GET_PRIVATE (setting);
 
-	priv->data = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, g_free);
-	priv->secrets = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, (GDestroyNotify) nm_free_secret);
-}
-
-static void
-finalize (GObject *object)
-{
-	NMSettingVpnPrivate *priv = NM_SETTING_VPN_GET_PRIVATE (object);
-
-	g_free (priv->service_type);
-	g_free (priv->user_name);
-	g_hash_table_destroy (priv->data);
-	g_hash_table_destroy (priv->secrets);
-
-	G_OBJECT_CLASS (nm_setting_vpn_parent_class)->finalize (object);
+	switch (prop_id) {
+	case PROP_SERVICE_TYPE:
+		g_value_set_string (value, nm_setting_vpn_get_service_type (setting));
+		break;
+	case PROP_USER_NAME:
+		g_value_set_string (value, nm_setting_vpn_get_user_name (setting));
+		break;
+	case PROP_PERSISTENT:
+		g_value_set_boolean (value, priv->persistent);
+		break;
+	case PROP_DATA:
+		g_value_take_boxed (value, _nm_utils_copy_strdict (priv->data));
+		break;
+	case PROP_SECRETS:
+		g_value_take_boxed (value, _nm_utils_copy_strdict (priv->secrets));
+		break;
+	case PROP_TIMEOUT:
+		g_value_set_uint (value, nm_setting_vpn_get_timeout (setting));
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+		break;
+	}
 }
 
 static void
@@ -856,36 +927,41 @@ set_property (GObject *object, guint prop_id,
 	}
 }
 
+/*****************************************************************************/
+
 static void
-get_property (GObject *object, guint prop_id,
-              GValue *value, GParamSpec *pspec)
+nm_setting_vpn_init (NMSettingVpn *setting)
 {
-	NMSettingVpn *setting = NM_SETTING_VPN (object);
 	NMSettingVpnPrivate *priv = NM_SETTING_VPN_GET_PRIVATE (setting);
 
-	switch (prop_id) {
-	case PROP_SERVICE_TYPE:
-		g_value_set_string (value, nm_setting_vpn_get_service_type (setting));
-		break;
-	case PROP_USER_NAME:
-		g_value_set_string (value, nm_setting_vpn_get_user_name (setting));
-		break;
-	case PROP_PERSISTENT:
-		g_value_set_boolean (value, priv->persistent);
-		break;
-	case PROP_DATA:
-		g_value_take_boxed (value, _nm_utils_copy_strdict (priv->data));
-		break;
-	case PROP_SECRETS:
-		g_value_take_boxed (value, _nm_utils_copy_strdict (priv->secrets));
-		break;
-	case PROP_TIMEOUT:
-		g_value_set_uint (value, nm_setting_vpn_get_timeout (setting));
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-		break;
-	}
+	priv->data = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, g_free);
+	priv->secrets = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, (GDestroyNotify) nm_free_secret);
+}
+
+/**
+ * nm_setting_vpn_new:
+ *
+ * Creates a new #NMSettingVpn object with default values.
+ *
+ * Returns: (transfer full): the new empty #NMSettingVpn object
+ **/
+NMSetting *
+nm_setting_vpn_new (void)
+{
+	return (NMSetting *) g_object_new (NM_TYPE_SETTING_VPN, NULL);
+}
+
+static void
+finalize (GObject *object)
+{
+	NMSettingVpnPrivate *priv = NM_SETTING_VPN_GET_PRIVATE (object);
+
+	g_free (priv->service_type);
+	g_free (priv->user_name);
+	g_hash_table_destroy (priv->data);
+	g_hash_table_destroy (priv->secrets);
+
+	G_OBJECT_CLASS (nm_setting_vpn_parent_class)->finalize (object);
 }
 
 static void
@@ -897,17 +973,17 @@ nm_setting_vpn_class_init (NMSettingVpnClass *klass)
 
 	g_type_class_add_private (klass, sizeof (NMSettingVpnPrivate));
 
-	object_class->set_property = set_property;
 	object_class->get_property = get_property;
+	object_class->set_property = set_property;
 	object_class->finalize     = finalize;
 
-	setting_class->verify                   = verify;
-	setting_class->update_one_secret        = update_one_secret;
-	setting_class->get_secret_flags         = get_secret_flags;
-	setting_class->set_secret_flags         = set_secret_flags;
-	setting_class->need_secrets             = need_secrets;
-	setting_class->compare_property         = compare_property;
-	setting_class->clear_secrets_with_flags = clear_secrets_with_flags;
+	setting_class->verify            = verify;
+	setting_class->update_one_secret = update_one_secret;
+	setting_class->get_secret_flags  = get_secret_flags;
+	setting_class->set_secret_flags  = set_secret_flags;
+	setting_class->need_secrets      = need_secrets;
+	setting_class->compare_property  = compare_property;
+	setting_class->clear_secrets     = clear_secrets;
 
 	/**
 	 * NMSettingVpn:service-type:
@@ -916,12 +992,11 @@ nm_setting_vpn_class_init (NMSettingVpnClass *klass)
 	 * its network.  i.e. org.freedesktop.NetworkManager.vpnc for the vpnc
 	 * plugin.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_SERVICE_TYPE,
-		 g_param_spec_string (NM_SETTING_VPN_SERVICE_TYPE, "", "",
-		                      NULL,
-		                      G_PARAM_READWRITE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_SERVICE_TYPE] =
+	    g_param_spec_string (NM_SETTING_VPN_SERVICE_TYPE, "", "",
+	                         NULL,
+	                         G_PARAM_READWRITE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMSettingVpn:user-name:
@@ -933,12 +1008,11 @@ nm_setting_vpn_class_init (NMSettingVpnClass *klass)
 	 * will automatically supply the username of the user which requested the
 	 * VPN connection.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_USER_NAME,
-		 g_param_spec_string (NM_SETTING_VPN_USER_NAME, "", "",
-		                      NULL,
-		                      G_PARAM_READWRITE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_USER_NAME] =
+	    g_param_spec_string (NM_SETTING_VPN_USER_NAME, "", "",
+	                         NULL,
+	                         G_PARAM_READWRITE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMSettingVpn:persistent:
@@ -947,12 +1021,11 @@ nm_setting_vpn_class_init (NMSettingVpnClass *klass)
 	 * the VPN will attempt to stay connected across link changes and outages,
 	 * until explicitly disconnected.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_PERSISTENT,
-		 g_param_spec_boolean (NM_SETTING_VPN_PERSISTENT, "", "",
-		                       FALSE,
-		                       G_PARAM_READWRITE |
-		                       G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_PERSISTENT] =
+	    g_param_spec_boolean (NM_SETTING_VPN_PERSISTENT, "", "",
+	                          FALSE,
+	                          G_PARAM_READWRITE |
+	                          G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMSettingVpn:data: (type GHashTable(utf8,utf8)):
@@ -968,16 +1041,14 @@ nm_setting_vpn_class_init (NMSettingVpnClass *klass)
 	 * example: remote=ovpn.corp.com cipher=AES-256-CBC username=joe
 	 * ---end---
 	 */
-	g_object_class_install_property
-		(object_class, PROP_DATA,
-		 g_param_spec_boxed (NM_SETTING_VPN_DATA, "", "",
-		                     G_TYPE_HASH_TABLE,
-		                     G_PARAM_READWRITE |
-		                     G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_DATA] =
+	    g_param_spec_boxed (NM_SETTING_VPN_DATA, "", "",
+	                        G_TYPE_HASH_TABLE,
+	                        G_PARAM_READWRITE |
+	                        G_PARAM_STATIC_STRINGS);
 
 	_properties_override_add_transform (properties_override,
-	                                    g_object_class_find_property (G_OBJECT_CLASS (setting_class),
-	                                                                  NM_SETTING_VPN_DATA),
+	                                    obj_properties[PROP_DATA],
 	                                    G_VARIANT_TYPE ("a{ss}"),
 	                                    _nm_utils_strdict_to_dbus,
 	                                    _nm_utils_strdict_from_dbus);
@@ -996,17 +1067,15 @@ nm_setting_vpn_class_init (NMSettingVpnClass *klass)
 	 * example: password=Popocatepetl
 	 * ---end---
 	 */
-	g_object_class_install_property
-		(object_class, PROP_SECRETS,
-		 g_param_spec_boxed (NM_SETTING_VPN_SECRETS, "", "",
-		                     G_TYPE_HASH_TABLE,
-		                     G_PARAM_READWRITE |
-		                     NM_SETTING_PARAM_SECRET |
-		                     G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_SECRETS] =
+	    g_param_spec_boxed (NM_SETTING_VPN_SECRETS, "", "",
+	                        G_TYPE_HASH_TABLE,
+	                        G_PARAM_READWRITE |
+	                        NM_SETTING_PARAM_SECRET |
+	                        G_PARAM_STATIC_STRINGS);
 
 	_properties_override_add_transform (properties_override,
-	                                    g_object_class_find_property (G_OBJECT_CLASS (setting_class),
-	                                                                  NM_SETTING_VPN_SECRETS),
+	                                    obj_properties[PROP_SECRETS],
 	                                    G_VARIANT_TYPE ("a{ss}"),
 	                                    _nm_utils_strdict_to_dbus,
 	                                    _nm_utils_strdict_from_dbus);
@@ -1022,12 +1091,13 @@ nm_setting_vpn_class_init (NMSettingVpnClass *klass)
 	 *
 	 * Since: 1.2
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_TIMEOUT,
-		 g_param_spec_uint (NM_SETTING_VPN_TIMEOUT, "", "",
-		                    0, G_MAXUINT32, 0,
-		                    G_PARAM_READWRITE |
-		                    G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_TIMEOUT] =
+	    g_param_spec_uint (NM_SETTING_VPN_TIMEOUT, "", "",
+	                       0, G_MAXUINT32, 0,
+	                       G_PARAM_READWRITE |
+	                       G_PARAM_STATIC_STRINGS);
+
+	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
 	_nm_setting_class_commit_full (setting_class, NM_META_SETTING_TYPE_VPN,
 	                               NULL, properties_override);

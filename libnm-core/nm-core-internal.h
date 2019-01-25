@@ -101,6 +101,11 @@
 #define NM_BR_MIN_AGEING_TIME   0
 #define NM_BR_MAX_AGEING_TIME   1000000
 
+#define NM_BR_PORT_MAX_PRIORITY 63
+#define NM_BR_PORT_DEF_PRIORITY 32
+
+#define NM_BR_PORT_MAX_PATH_COST 65535
+
 /* NM_SETTING_COMPARE_FLAG_INFERRABLE: check whether a device-generated
  * connection can be replaced by a already-defined connection. This flag only
  * takes into account properties marked with the %NM_SETTING_PARAM_INFERRABLE
@@ -121,11 +126,21 @@
  */
 #define NM_SETTING_COMPARE_FLAG_NONE ((NMSettingCompareFlags) 0)
 
+/*****************************************************************************/
+
 #define NM_SETTING_SECRET_FLAGS_ALL \
-	(NM_SETTING_SECRET_FLAG_NONE | \
-	 NM_SETTING_SECRET_FLAG_AGENT_OWNED | \
-	 NM_SETTING_SECRET_FLAG_NOT_SAVED | \
-	 NM_SETTING_SECRET_FLAG_NOT_REQUIRED)
+	((NMSettingSecretFlags) (  NM_SETTING_SECRET_FLAG_NONE \
+	                         | NM_SETTING_SECRET_FLAG_AGENT_OWNED \
+	                         | NM_SETTING_SECRET_FLAG_NOT_SAVED \
+	                         | NM_SETTING_SECRET_FLAG_NOT_REQUIRED))
+
+static inline gboolean
+_nm_setting_secret_flags_valid (NMSettingSecretFlags flags)
+{
+	return !NM_FLAGS_ANY (flags, ~NM_SETTING_SECRET_FLAGS_ALL);
+}
+
+/*****************************************************************************/
 
 typedef enum { /*< skip >*/
 	NM_SETTING_PARSE_FLAGS_NONE                     = 0,
@@ -145,6 +160,26 @@ gboolean _nm_connection_replace_settings (NMConnection *connection,
 gpointer _nm_connection_check_main_setting (NMConnection *connection,
                                             const char *setting_name,
                                             GError **error);
+
+typedef enum {
+	/* whether the connection has any secrets.
+	 *
+	 * @arg may be %NULL or a pointer to a gboolean for the result. The return
+	 *   value of _nm_connection_aggregate() is likewise the boolean result. */
+	NM_CONNECTION_AGGREGATE_ANY_SECRETS,
+
+	/* whether the connection has any secret with flags NM_SETTING_SECRET_FLAG_NONE.
+	 * Note that this only cares about the flags, not whether the secret is actually
+	 * present.
+	 *
+	 * @arg may be %NULL or a pointer to a gboolean for the result. The return
+	 *   value of _nm_connection_aggregate() is likewise the boolean result. */
+	NM_CONNECTION_AGGREGATE_ANY_SYSTEM_SECRET_FLAGS,
+} NMConnectionAggregateType;
+
+gboolean _nm_connection_aggregate (NMConnection *connection,
+                                   NMConnectionAggregateType type,
+                                   gpointer arg);
 
 /**
  * NMSettingVerifyResult:
@@ -212,15 +247,26 @@ guint nm_setting_ethtool_init_features (NMSettingEthtool *setting,
 guint8 *_nm_utils_hwaddr_aton (const char *asc, gpointer buffer, gsize buffer_length, gsize *out_length);
 const char *nm_utils_hwaddr_ntoa_buf (gconstpointer addr, gsize addr_len, gboolean upper_case, char *buf, gsize buf_len);
 
-char *_nm_utils_bin2str (gconstpointer addr, gsize length, gboolean upper_case);
-void _nm_utils_bin2str_full (gconstpointer addr, gsize length, const char delimiter, gboolean upper_case, char *out);
+char *_nm_utils_bin2hexstr_full (gconstpointer addr, gsize length, const char delimiter, gboolean upper_case, char *out);
 
-guint8 *_nm_utils_str2bin_full (const char *asc,
-                                gboolean delimiter_required,
-                                const char *delimiter_candidates,
-                                guint8 *buffer,
-                                gsize buffer_length,
-                                gsize *out_len);
+guint8 *_nm_utils_hexstr2bin_full (const char *hexstr,
+                                   gboolean allow_0x_prefix,
+                                   gboolean delimiter_required,
+                                   const char *delimiter_candidates,
+                                   gsize required_len,
+                                   guint8 *buffer,
+                                   gsize buffer_len,
+                                   gsize *out_len);
+
+#define _nm_utils_hexstr2bin_buf(hexstr, allow_0x_prefix, delimiter_required, delimiter_candidates, buffer) \
+    _nm_utils_hexstr2bin_full ((hexstr), (allow_0x_prefix), (delimiter_required), (delimiter_candidates), G_N_ELEMENTS (buffer), (buffer), G_N_ELEMENTS (buffer), NULL)
+
+guint8 *_nm_utils_hexstr2bin_alloc (const char *hexstr,
+                                    gboolean allow_0x_prefix,
+                                    gboolean delimiter_required,
+                                    const char *delimiter_candidates,
+                                    gsize required_len,
+                                    gsize *out_len);
 
 GSList *    _nm_utils_hash_values_to_slist (GHashTable *hash);
 
@@ -234,7 +280,7 @@ gboolean _nm_ip_route_attribute_validate_all (const NMIPRoute *route);
 const char **_nm_ip_route_get_attribute_names (const NMIPRoute *route, gboolean sorted, guint *out_length);
 GHashTable *_nm_ip_route_get_attributes_direct (NMIPRoute *route);
 
-NMSriovVF *_nm_utils_sriov_vf_from_strparts (const char *index, const char *detail, GError **error);
+NMSriovVF *_nm_utils_sriov_vf_from_strparts (const char *index, const char *detail, gboolean ignore_unknown, GError **error);
 gboolean _nm_sriov_vf_attribute_validate_all (const NMSriovVF *vf, GError **error);
 
 static inline void
@@ -272,8 +318,25 @@ gboolean _nm_utils_check_module_file (const char *name,
                                       gpointer user_data,
                                       GError **error);
 
+/*****************************************************************************/
+
+typedef struct _NMUuid {
+	guchar uuid[16];
+} NMUuid;
+
+NMUuid *_nm_utils_uuid_parse (const char *str,
+                              NMUuid *uuid);
+char *_nm_utils_uuid_unparse (const NMUuid *uuid,
+                              char *out_str /*[37]*/);
+NMUuid *_nm_utils_uuid_generate_random (NMUuid *out_uuid);
+
+gboolean nm_utils_uuid_is_null (const NMUuid *uuid);
+
 #define NM_UTILS_UUID_TYPE_LEGACY            0
-#define NM_UTILS_UUID_TYPE_VARIANT3          1
+#define NM_UTILS_UUID_TYPE_VERSION3          3
+#define NM_UTILS_UUID_TYPE_VERSION5          5
+
+NMUuid *nm_utils_uuid_generate_from_string_bin (NMUuid *uuid, const char *s, gssize slen, int uuid_type, gpointer type_args);
 
 char *nm_utils_uuid_generate_from_string (const char *s, gssize slen, int uuid_type, gpointer type_args);
 
@@ -293,6 +356,10 @@ char *nm_utils_uuid_generate_buf_ (char *buf);
 void _nm_dbus_errors_init (void);
 
 extern gboolean _nm_utils_is_manager_process;
+
+gboolean _nm_dbus_typecheck_response (GVariant *response,
+                                      const GVariantType *reply_type,
+                                      GError **error);
 
 gulong _nm_dbus_signal_connect_data (GDBusProxy *proxy,
                                      const char *signal_name,
@@ -317,6 +384,11 @@ GVariant *_nm_dbus_proxy_call_sync   (GDBusProxy           *proxy,
                                       int                   timeout_msec,
                                       GCancellable         *cancellable,
                                       GError              **error);
+
+GVariant * _nm_dbus_connection_call_finish (GDBusConnection *dbus_connection,
+                                            GAsyncResult *result,
+                                            const GVariantType *reply_type,
+                                            GError **error);
 
 gboolean _nm_dbus_error_has_name (GError     *error,
                                   const char *dbus_error_name);
@@ -452,6 +524,30 @@ NMSettingBluetooth *_nm_connection_get_setting_bluetooth_for_nap (NMConnection *
 
 const char *nm_utils_inet_ntop (int addr_family, gconstpointer addr, char *dst);
 
+static inline char *
+nm_utils_inet4_ntop_dup (in_addr_t addr)
+{
+	char buf[NM_UTILS_INET_ADDRSTRLEN];
+
+	return g_strdup (nm_utils_inet4_ntop (addr, buf));
+}
+
+static inline char *
+nm_utils_inet6_ntop_dup (const struct in6_addr *addr)
+{
+	char buf[NM_UTILS_INET_ADDRSTRLEN];
+
+	return g_strdup (nm_utils_inet6_ntop (addr, buf));
+}
+
+static inline char *
+nm_utils_inet_ntop_dup (int addr_family, const struct in6_addr *addr)
+{
+	char buf[NM_UTILS_INET_ADDRSTRLEN];
+
+	return g_strdup (nm_utils_inet_ntop (addr_family, addr, buf));
+}
+
 gboolean _nm_utils_inet6_is_token (const struct in6_addr *in6addr);
 
 /*****************************************************************************/
@@ -521,9 +617,11 @@ typedef struct _NMSettInfoSetting NMSettInfoSetting;
 
 typedef GVariant *(*NMSettingPropertyGetFunc)           (NMSetting     *setting,
                                                          const char    *property);
-typedef GVariant *(*NMSettingPropertySynthFunc)         (NMSetting     *setting,
+typedef GVariant *(*NMSettingPropertySynthFunc)         (const NMSettInfoSetting *sett_info,
+                                                         guint property_idx,
                                                          NMConnection  *connection,
-                                                         const char    *property);
+                                                         NMSetting     *setting,
+                                                         NMConnectionSerializationFlags flags);
 typedef gboolean  (*NMSettingPropertySetFunc)           (NMSetting     *setting,
                                                          GVariant      *connection_dict,
                                                          const char    *property,
@@ -576,15 +674,51 @@ typedef struct {
 
 struct _NMSettInfoSetting {
 	NMSettingClass *setting_class;
+
+	/* the properties, sorted by property name. */
 	const NMSettInfoProperty *property_infos;
+
+	/* the @property_infos list is sorted by property name. For some uses we need
+	 * a different sort order. If @property_infos_sorted is set, this is the order
+	 * instead. It is used for:
+	 *
+	 *   - nm_setting_enumerate_values()
+	 *   - keyfile writer adding keys to the group.
+	 *
+	 * Note that currently only NMSettingConnection implements here a sort order
+	 * that differs from alphabetical sort of the property names.
+	 */
+	const NMSettInfoProperty *const*property_infos_sorted;
+
 	guint property_infos_len;
 	NMSettInfoSettDetail detail;
 };
 
-const NMSettInfoSetting *_nm_sett_info_setting_get (NMSettingClass *setting_class);
+static inline const NMSettInfoProperty *
+_nm_sett_info_property_info_get_sorted (const NMSettInfoSetting *sett_info,
+                                        guint idx)
+{
+	nm_assert (sett_info);
+	nm_assert (idx < sett_info->property_infos_len);
+	nm_assert (!sett_info->property_infos_sorted || sett_info->property_infos_sorted[idx]);
 
-const NMSettInfoProperty *_nm_sett_info_property_get (NMSettingClass *setting_class,
-                                                      const char *property_name);
+	return   sett_info->property_infos_sorted
+	       ? sett_info->property_infos_sorted[idx]
+	       : &sett_info->property_infos[idx];
+}
+
+const NMSettInfoProperty *_nm_sett_info_setting_get_property_info (const NMSettInfoSetting *sett_info,
+                                                                   const char *property_name);
+
+const NMSettInfoSetting *_nm_setting_class_get_sett_info (NMSettingClass *setting_class);
+
+static inline const NMSettInfoProperty *
+_nm_setting_class_get_property_info (NMSettingClass *setting_class,
+                                     const char *property_name)
+{
+	return _nm_sett_info_setting_get_property_info (_nm_setting_class_get_sett_info (setting_class),
+	                                                property_name);
+}
 
 /*****************************************************************************/
 

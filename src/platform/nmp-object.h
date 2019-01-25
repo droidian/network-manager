@@ -21,11 +21,45 @@
 #ifndef __NMP_OBJECT_H__
 #define __NMP_OBJECT_H__
 
+#include <netinet/in.h>
+
 #include "nm-utils/nm-obj.h"
 #include "nm-utils/nm-dedup-multi.h"
 #include "nm-platform.h"
 
 struct udev_device;
+
+/*****************************************************************************/
+
+typedef union {
+	struct sockaddr     sa;
+	struct sockaddr_in  in;
+	struct sockaddr_in6 in6;
+} NMSockAddrUnion;
+
+#define NM_SOCK_ADDR_UNION_INIT_UNSPEC \
+	{ \
+		.sa = { \
+			.sa_family = AF_UNSPEC, \
+		}, \
+	}
+
+int nm_sock_addr_union_cmp (const NMSockAddrUnion *a,
+                            const NMSockAddrUnion *b);
+
+void nm_sock_addr_union_hash_update (const NMSockAddrUnion *a,
+                                     NMHashState *h);
+
+void nm_sock_addr_union_cpy (NMSockAddrUnion *dst,
+                             gconstpointer src /* unaligned (const NMSockAddrUnion *) */);
+
+void nm_sock_addr_union_cpy_untrusted (NMSockAddrUnion *dst,
+                                       gconstpointer src /* unaligned (const NMSockAddrUnion *) */,
+                                       gsize src_len);
+
+const char *nm_sock_addr_union_to_string (const NMSockAddrUnion *sa,
+                                          char *buf,
+                                          gsize len);
 
 /*****************************************************************************/
 
@@ -36,10 +70,12 @@ typedef struct {
 } NMPWireGuardAllowedIP;
 
 typedef struct _NMPWireGuardPeer {
-	NMIPAddr endpoint_addr;
+	NMSockAddrUnion endpoint;
+
 	struct timespec last_handshake_time;
 	guint64 rx_bytes;
 	guint64 tx_bytes;
+
 	union {
 		const NMPWireGuardAllowedIP *allowed_ips;
 		guint _construct_idx_start;
@@ -48,11 +84,11 @@ typedef struct _NMPWireGuardPeer {
 		guint allowed_ips_len;
 		guint _construct_idx_end;
 	};
+
 	guint16 persistent_keepalive_interval;
-	guint16 endpoint_port;
+
 	guint8 public_key[NMP_WIREGUARD_PUBLIC_KEY_LEN];
 	guint8 preshared_key[NMP_WIREGUARD_SYMMETRIC_KEY_LEN];
-	guint8 endpoint_family;
 } NMPWireGuardPeer;
 
 /*****************************************************************************/
@@ -100,14 +136,14 @@ typedef enum { /*< skip >*/
 	 *
 	 * Also, note that links may be considered invisible. This index type
 	 * expose all links, even invisible ones. For addresses/routes, this
-	 * distiction doesn't exist, as all addresses/routes that are alive
+	 * distinction doesn't exist, as all addresses/routes that are alive
 	 * are visible as well. */
 	NMP_CACHE_ID_TYPE_OBJECT_TYPE,
 
 	/* index for the link objects by ifname. */
 	NMP_CACHE_ID_TYPE_LINK_BY_IFNAME,
 
-	/* indeces for the visible default-routes, ignoring ifindex.
+	/* indices for the visible default-routes, ignoring ifindex.
 	 * This index only contains two partitions: all visible default-routes,
 	 * separate for IPv4 and IPv6. */
 	NMP_CACHE_ID_TYPE_DEFAULT_ROUTES,
@@ -504,7 +540,7 @@ nmp_object_ref (const NMPObject *obj)
 	}
 
 	/* ref and unref accept const pointers. NMPObject is supposed to be shared
-	 * and kept immutable. Disallowing to take/retrun a reference to a const
+	 * and kept immutable. Disallowing to take/return a reference to a const
 	 * NMPObject is cumbersome, because callers are precisely expected to
 	 * keep a ref on the otherwise immutable object. */
 	g_return_val_if_fail (NMP_OBJECT_IS_VALID (obj), NULL);

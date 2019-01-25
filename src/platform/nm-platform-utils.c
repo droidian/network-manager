@@ -29,6 +29,7 @@
 #include <linux/ethtool.h>
 #include <linux/sockios.h>
 #include <linux/mii.h>
+#include <linux/if.h>
 #include <linux/version.h>
 #include <linux/rtnetlink.h>
 #include <fcntl.h>
@@ -664,7 +665,7 @@ nmp_utils_ethtool_set_features (int ifindex,
 	              "set-features",
 	              success
 	                ? "successfully setting features"
-	                : "at least some of the features were not successfuly set");
+	                : "at least some of the features were not successfully set");
 	return success;
 }
 
@@ -1247,7 +1248,7 @@ nmp_utils_ip_config_source_to_string (NMIPConfigSource source, char *buf, gsize 
  * @ifindex: the ifindex for which to open "/sys/class/net/%s"
  * @ifname_guess: (allow-none): optional argument, if present used as initial
  *   guess as the current name for @ifindex. If guessed right,
- *   it saves an addtional if_indextoname() call.
+ *   it saves an additional if_indextoname() call.
  * @out_ifname: (allow-none): if present, must be at least IFNAMSIZ
  *   characters. On success, this will contain the actual ifname
  *   found while opening the directory.
@@ -1276,7 +1277,6 @@ nmp_utils_sysctl_open_netdir (int ifindex,
 	for (try_count = 0; try_count < 10; try_count++, ifname = NULL) {
 		nm_auto_close int fd_dir = -1;
 		nm_auto_close int fd_ifindex = -1;
-		int fd;
 
 		if (!ifname) {
 			ifname = nmp_utils_if_indextoname (ifindex, ifname_buf);
@@ -1309,15 +1309,13 @@ nmp_utils_sysctl_open_netdir (int ifindex,
 			continue;
 		fd_buf[nn] = '\0';
 
-		if (ifindex != _nm_utils_ascii_str_to_int64 (fd_buf, 10, 1, G_MAXINT, -1))
+		if (ifindex != (int) _nm_utils_ascii_str_to_int64 (fd_buf, 10, 1, G_MAXINT, -1))
 			continue;
 
 		if (out_ifname)
 			strcpy (out_ifname, ifname);
 
-		fd = fd_dir;
-		fd_dir = -1;
-		return fd;
+		return nm_steal_fd (&fd_dir);
 	}
 
 	return -1;

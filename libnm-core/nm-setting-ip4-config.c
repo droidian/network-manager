@@ -21,9 +21,10 @@
 
 #include "nm-default.h"
 
+#include "nm-setting-ip4-config.h"
+
 #include <string.h>
 
-#include "nm-setting-ip4-config.h"
 #include "nm-setting-private.h"
 
 /**
@@ -50,35 +51,23 @@
  * connection.
  **/
 
-G_DEFINE_TYPE (NMSettingIP4Config, nm_setting_ip4_config, NM_TYPE_SETTING_IP_CONFIG)
+/*****************************************************************************/
 
-#define NM_SETTING_IP4_CONFIG_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_IP4_CONFIG, NMSettingIP4ConfigPrivate))
+NM_GOBJECT_PROPERTIES_DEFINE_BASE (
+	PROP_DHCP_CLIENT_ID,
+	PROP_DHCP_FQDN,
+);
 
 typedef struct {
 	char *dhcp_client_id;
 	char *dhcp_fqdn;
 } NMSettingIP4ConfigPrivate;
 
-enum {
-	PROP_0,
-	PROP_DHCP_CLIENT_ID,
-	PROP_DHCP_FQDN,
+G_DEFINE_TYPE (NMSettingIP4Config, nm_setting_ip4_config, NM_TYPE_SETTING_IP_CONFIG)
 
-	LAST_PROP
-};
+#define NM_SETTING_IP4_CONFIG_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_IP4_CONFIG, NMSettingIP4ConfigPrivate))
 
-/**
- * nm_setting_ip4_config_new:
- *
- * Creates a new #NMSettingIP4Config object with default values.
- *
- * Returns: (transfer full): the new empty #NMSettingIP4Config object
- **/
-NMSetting *
-nm_setting_ip4_config_new (void)
-{
-	return (NMSetting *) g_object_new (NM_TYPE_SETTING_IP4_CONFIG, NULL);
-}
+/*****************************************************************************/
 
 /**
  * nm_setting_ip4_config_get_dhcp_client_id:
@@ -252,62 +241,6 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 	return TRUE;
 }
 
-static void
-nm_setting_ip4_config_init (NMSettingIP4Config *setting)
-{
-}
-
-static void
-finalize (GObject *object)
-{
-	NMSettingIP4ConfigPrivate *priv = NM_SETTING_IP4_CONFIG_GET_PRIVATE (object);
-
-	g_free (priv->dhcp_client_id);
-	g_free (priv->dhcp_fqdn);
-
-	G_OBJECT_CLASS (nm_setting_ip4_config_parent_class)->finalize (object);
-}
-
-static void
-set_property (GObject *object, guint prop_id,
-              const GValue *value, GParamSpec *pspec)
-{
-	NMSettingIP4ConfigPrivate *priv = NM_SETTING_IP4_CONFIG_GET_PRIVATE (object);
-
-	switch (prop_id) {
-	case PROP_DHCP_CLIENT_ID:
-		g_free (priv->dhcp_client_id);
-		priv->dhcp_client_id = g_value_dup_string (value);
-		break;
-	case PROP_DHCP_FQDN:
-		g_free (priv->dhcp_fqdn);
-		priv->dhcp_fqdn = g_value_dup_string (value);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-		break;
-	}
-}
-
-static void
-get_property (GObject *object, guint prop_id,
-              GValue *value, GParamSpec *pspec)
-{
-	NMSettingIP4Config *s_ip4 = NM_SETTING_IP4_CONFIG (object);
-
-	switch (prop_id) {
-	case PROP_DHCP_CLIENT_ID:
-		g_value_set_string (value, nm_setting_ip4_config_get_dhcp_client_id (s_ip4));
-		break;
-	case PROP_DHCP_FQDN:
-		g_value_set_string (value, nm_setting_ip4_config_get_dhcp_fqdn (s_ip4));
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-		break;
-	}
-}
-
 static GVariant *
 ip4_dns_to_dbus (const GValue *prop_value)
 {
@@ -376,15 +309,20 @@ ip4_addresses_set (NMSetting  *setting,
 }
 
 static GVariant *
-ip4_address_labels_get (NMSetting    *setting,
+ip4_address_labels_get (const NMSettInfoSetting *sett_info,
+                        guint property_idx,
                         NMConnection *connection,
-                        const char   *property)
+                        NMSetting *setting,
+                        NMConnectionSerializationFlags flags)
 {
 	NMSettingIPConfig *s_ip = NM_SETTING_IP_CONFIG (setting);
 	gboolean have_labels = FALSE;
 	GPtrArray *labels;
 	GVariant *ret;
 	int num_addrs, i;
+
+	if (flags & NM_CONNECTION_SERIALIZE_ONLY_SECRETS)
+		return NULL;
 
 	num_addrs = nm_setting_ip_config_get_num_addresses (s_ip);
 	for (i = 0; i < num_addrs; i++) {
@@ -414,18 +352,19 @@ ip4_address_labels_get (NMSetting    *setting,
 }
 
 static GVariant *
-ip4_address_data_get (NMSetting    *setting,
+ip4_address_data_get (const NMSettInfoSetting *sett_info,
+                      guint property_idx,
                       NMConnection *connection,
-                      const char   *property)
+                      NMSetting *setting,
+                      NMConnectionSerializationFlags flags)
 {
-	GPtrArray *addrs;
-	GVariant *ret;
+	gs_unref_ptrarray GPtrArray *addrs = NULL;
+
+	if (flags & NM_CONNECTION_SERIALIZE_ONLY_SECRETS)
+		return NULL;
 
 	g_object_get (setting, NM_SETTING_IP_CONFIG_ADDRESSES, &addrs, NULL);
-	ret = nm_utils_ip_addresses_to_variant (addrs);
-	g_ptr_array_unref (addrs);
-
-	return ret;
+	return nm_utils_ip_addresses_to_variant (addrs);
 }
 
 static gboolean
@@ -486,18 +425,19 @@ ip4_routes_set (NMSetting  *setting,
 }
 
 static GVariant *
-ip4_route_data_get (NMSetting    *setting,
+ip4_route_data_get (const NMSettInfoSetting *sett_info,
+                    guint property_idx,
                     NMConnection *connection,
-                    const char   *property)
+                    NMSetting *setting,
+                    NMConnectionSerializationFlags flags)
 {
-	GPtrArray *routes;
-	GVariant *ret;
+	gs_unref_ptrarray GPtrArray *routes = NULL;
+
+	if (flags & NM_CONNECTION_SERIALIZE_ONLY_SECRETS)
+		return NULL;
 
 	g_object_get (setting, NM_SETTING_IP_CONFIG_ROUTES, &routes, NULL);
-	ret = nm_utils_ip_routes_to_variant (routes);
-	g_ptr_array_unref (routes);
-
-	return ret;
+	return nm_utils_ip_routes_to_variant (routes);
 }
 
 static gboolean
@@ -522,6 +462,79 @@ ip4_route_data_set (NMSetting  *setting,
 	return TRUE;
 }
 
+/*****************************************************************************/
+
+static void
+get_property (GObject *object, guint prop_id,
+              GValue *value, GParamSpec *pspec)
+{
+	NMSettingIP4Config *s_ip4 = NM_SETTING_IP4_CONFIG (object);
+
+	switch (prop_id) {
+	case PROP_DHCP_CLIENT_ID:
+		g_value_set_string (value, nm_setting_ip4_config_get_dhcp_client_id (s_ip4));
+		break;
+	case PROP_DHCP_FQDN:
+		g_value_set_string (value, nm_setting_ip4_config_get_dhcp_fqdn (s_ip4));
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+		break;
+	}
+}
+
+static void
+set_property (GObject *object, guint prop_id,
+              const GValue *value, GParamSpec *pspec)
+{
+	NMSettingIP4ConfigPrivate *priv = NM_SETTING_IP4_CONFIG_GET_PRIVATE (object);
+
+	switch (prop_id) {
+	case PROP_DHCP_CLIENT_ID:
+		g_free (priv->dhcp_client_id);
+		priv->dhcp_client_id = g_value_dup_string (value);
+		break;
+	case PROP_DHCP_FQDN:
+		g_free (priv->dhcp_fqdn);
+		priv->dhcp_fqdn = g_value_dup_string (value);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+		break;
+	}
+}
+
+/*****************************************************************************/
+
+static void
+nm_setting_ip4_config_init (NMSettingIP4Config *setting)
+{
+}
+
+/**
+ * nm_setting_ip4_config_new:
+ *
+ * Creates a new #NMSettingIP4Config object with default values.
+ *
+ * Returns: (transfer full): the new empty #NMSettingIP4Config object
+ **/
+NMSetting *
+nm_setting_ip4_config_new (void)
+{
+	return (NMSetting *) g_object_new (NM_TYPE_SETTING_IP4_CONFIG, NULL);
+}
+
+static void
+finalize (GObject *object)
+{
+	NMSettingIP4ConfigPrivate *priv = NM_SETTING_IP4_CONFIG_GET_PRIVATE (object);
+
+	g_free (priv->dhcp_client_id);
+	g_free (priv->dhcp_fqdn);
+
+	G_OBJECT_CLASS (nm_setting_ip4_config_parent_class)->finalize (object);
+}
+
 static void
 nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *klass)
 {
@@ -531,8 +544,8 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *klass)
 
 	g_type_class_add_private (setting_class, sizeof (NMSettingIP4ConfigPrivate));
 
-	object_class->set_property = set_property;
 	object_class->get_property = get_property;
+	object_class->set_property = set_property;
 	object_class->finalize     = finalize;
 
 	setting_class->verify = verify;
@@ -721,11 +734,16 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *klass)
 	 * with type ethernet (01). Currently, these options only work for ethernet
 	 * type of links.
 	 *
-	 * The special value "stable" is supported to generate a type 0 client identifier based
-	 * on the stable-id (see connection.stable-id) and a per-host key.
+	 * The special value "duid" generates a RFC4361-compliant client identifier based
+	 * on a hash of the interface name as IAID and /etc/machine-id.
 	 *
-	 * If unset, a globally configured default is used. If still unset, the
-	 * client-id from the last lease is reused.
+	 * The special value "stable" is supported to generate a type 0 client identifier based
+	 * on the stable-id (see connection.stable-id) and a per-host key. If you set the
+	 * stable-id, you may want to include the "${DEVICE}" or "${MAC}" specifier to get a
+	 * per-device key.
+	 *
+	 * If unset, a globally configured default is used. If still unset, the default
+	 * depends on the DHCP plugin.
 	 **/
 	/* ---ifcfg-rh---
 	 * property: dhcp-client-id
@@ -735,12 +753,11 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *klass)
 	 * example: DHCP_CLIENT_ID=ax-srv-1; DHCP_CLIENT_ID=01:44:44:44:44:44:44
 	 * ---end---
 	 */
-	g_object_class_install_property
-		(object_class, PROP_DHCP_CLIENT_ID,
-		 g_param_spec_string (NM_SETTING_IP4_CONFIG_DHCP_CLIENT_ID, "", "",
-		                      NULL,
-		                      G_PARAM_READWRITE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_DHCP_CLIENT_ID] =
+	    g_param_spec_string (NM_SETTING_IP4_CONFIG_DHCP_CLIENT_ID, "", "",
+	                         NULL,
+	                         G_PARAM_READWRITE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/* ---ifcfg-rh---
 	 * property: dad-timeout
@@ -779,12 +796,11 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *klass)
 	 * example: DHCP_FQDN=foo.bar.com
 	 * ---end---
 	 */
-	g_object_class_install_property
-		(object_class, PROP_DHCP_FQDN,
-		 g_param_spec_string (NM_SETTING_IP4_CONFIG_DHCP_FQDN, "", "",
-		                      NULL,
-		                      G_PARAM_READWRITE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_DHCP_FQDN] =
+	    g_param_spec_string (NM_SETTING_IP4_CONFIG_DHCP_FQDN, "", "",
+	                         NULL,
+	                         G_PARAM_READWRITE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/* IP4-specific property overrides */
 
@@ -889,6 +905,8 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *klass)
 	                                    G_VARIANT_TYPE ("aa{sv}"),
 	                                    ip4_route_data_get,
 	                                    ip4_route_data_set);
+
+	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
 	_nm_setting_class_commit_full (setting_class, NM_META_SETTING_TYPE_IP4_CONFIG,
 	                               NULL, properties_override);

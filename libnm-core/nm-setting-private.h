@@ -48,10 +48,9 @@ typedef enum NMSettingUpdateSecretResult {
 NMSettingUpdateSecretResult _nm_setting_update_secrets (NMSetting *setting,
                                                         GVariant *secrets,
                                                         GError **error);
-gboolean _nm_setting_clear_secrets (NMSetting *setting);
-gboolean _nm_setting_clear_secrets_with_flags (NMSetting *setting,
-                                               NMSettingClearSecretsWithFlagsFn func,
-                                               gpointer user_data);
+gboolean _nm_setting_clear_secrets (NMSetting *setting,
+                                    NMSettingClearSecretsWithFlagsFn func,
+                                    gpointer user_data);
 
 /* The property of the #NMSetting should be considered during comparisons that
  * use the %NM_SETTING_COMPARE_FLAG_INFERRABLE flag. Properties that don't have
@@ -82,9 +81,11 @@ gboolean _nm_setting_clear_secrets_with_flags (NMSetting *setting,
 
 #define NM_SETTING_PARAM_GENDATA_BACKED (1 << (7 + G_PARAM_USER_SHIFT))
 
-GVariant *_nm_setting_get_deprecated_virtual_interface_name (NMSetting *setting,
+GVariant *_nm_setting_get_deprecated_virtual_interface_name (const NMSettInfoSetting *sett_info,
+                                                             guint property_idx,
                                                              NMConnection *connection,
-                                                             const char *property);
+                                                             NMSetting *setting,
+                                                             NMConnectionSerializationFlags flags);
 
 NMSettingVerifyResult _nm_setting_verify (NMSetting *setting,
                                           NMConnection *connection,
@@ -94,6 +95,13 @@ gboolean _nm_setting_verify_secret_string (const char *str,
                                            const char *setting_name,
                                            const char *property,
                                            GError **error);
+
+gboolean _nm_setting_aggregate (NMSetting *setting,
+                                NMConnectionAggregateType type,
+                                gpointer arg);
+gboolean _nm_setting_vpn_aggregate (NMSettingVpn *setting,
+                                    NMConnectionAggregateType type,
+                                    gpointer arg);
 
 gboolean _nm_setting_slave_type_is_valid (const char *slave_type, const char **out_port_type);
 
@@ -106,6 +114,11 @@ NMSetting  *_nm_setting_new_from_dbus (GType setting_type,
                                        GVariant *connection_dict,
                                        NMSettingParseFlags parse_flags,
                                        GError **error);
+
+gboolean _nm_setting_property_is_regular_secret (NMSetting *setting,
+                                                 const char *secret_name);
+gboolean _nm_setting_property_is_regular_secret_flags (NMSetting *setting,
+                                                       const char *secret_flags_name);
 
 /*****************************************************************************/
 
@@ -186,6 +199,11 @@ gboolean _nm_setting_use_legacy_property (NMSetting *setting,
                                           const char *new_property);
 
 GPtrArray  *_nm_setting_need_secrets (NMSetting *setting);
+
+gboolean _nm_setting_should_compare_secret_property (NMSetting *setting,
+                                                     NMSetting *other,
+                                                     const char *secret_name,
+                                                     NMSettingCompareFlags flags);
 
 /*****************************************************************************/
 

@@ -82,7 +82,19 @@ G_DEFINE_TYPE (NMDeviceOlpcMesh, nm_device_olpc_mesh, NM_TYPE_DEVICE)
 static gboolean
 get_autoconnect_allowed (NMDevice *device)
 {
-	return FALSE;
+	NMDeviceOlpcMesh *self = NM_DEVICE_OLPC_MESH (device);
+	NMDeviceOlpcMeshPrivate *priv = NM_DEVICE_OLPC_MESH_GET_PRIVATE (self);
+
+	/* We shall always have a companion if we're >= DISCONENCTED, and this
+	 * ought not be called until then. */
+	g_return_val_if_fail (priv->companion, FALSE);
+
+	/* We must not attempt to autoconnect when the companion is connected or
+	 * connecting, * because we'd tear down its connection. */
+	if (nm_device_get_state (priv->companion) > NM_DEVICE_STATE_DISCONNECTED)
+		return FALSE;
+
+	return TRUE;
 }
 
 #define DEFAULT_SSID "olpc-mesh"
@@ -154,7 +166,7 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 		       nm_device_get_iface (priv->companion));
 	}
 
-	/* wait with continuing configuration untill the companion device is done scanning */
+	/* wait with continuing configuration until the companion device is done scanning */
 	g_object_get (priv->companion, NM_DEVICE_WIFI_SCANNING, &scanning, NULL);
 	if (scanning) {
 		priv->stage1_waiting = TRUE;
@@ -181,16 +193,13 @@ static NMActStageReturn
 act_stage2_config (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
 	NMDeviceOlpcMesh *self = NM_DEVICE_OLPC_MESH (device);
-	NMConnection *connection;
 	NMSettingOlpcMesh *s_mesh;
 	guint32 channel;
 	GBytes *ssid;
 	const char *anycast_addr;
 
-	connection = nm_device_get_applied_connection (device);
-	g_return_val_if_fail (connection, NM_ACT_STAGE_RETURN_FAILURE);
+	s_mesh = nm_device_get_applied_setting (device, NM_TYPE_SETTING_OLPC_MESH);
 
-	s_mesh = nm_connection_get_setting_olpc_mesh (connection);
 	g_return_val_if_fail (s_mesh, NM_ACT_STAGE_RETURN_FAILURE);
 
 	channel = nm_setting_olpc_mesh_get_channel (s_mesh);
@@ -265,6 +274,11 @@ companion_state_changed_cb (NMDeviceWifi *companion,
 	NMDeviceOlpcMesh *self = NM_DEVICE_OLPC_MESH (user_data);
 	NMDeviceState self_state = nm_device_get_state (NM_DEVICE (self));
 
+	if (   old_state > NM_DEVICE_STATE_DISCONNECTED
+	    && state <= NM_DEVICE_STATE_DISCONNECTED) {
+		nm_device_emit_recheck_auto_activate (NM_DEVICE (self));
+	}
+
 	if (   self_state < NM_DEVICE_STATE_PREPARE
 	    || self_state > NM_DEVICE_STATE_ACTIVATED
 	    || state < NM_DEVICE_STATE_PREPARE
@@ -316,7 +330,7 @@ check_companion (NMDeviceOlpcMesh *self, NMDevice *other)
 	g_assert (priv->companion == NULL);
 	priv->companion = g_object_ref (other);
 
-	_LOGI (LOGD_OLPC, "found companion WiFi device %s",
+	_LOGI (LOGD_OLPC, "found companion Wi-Fi device %s",
 	       nm_device_get_iface (other));
 
 	g_signal_connect (G_OBJECT (other), NM_DEVICE_STATE_CHANGED,

@@ -2,12 +2,12 @@
 .\"     Title: nmcli-examples
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 10/24/2018
+.\"      Date: 01/22/2019
 .\"    Manual: Examples
-.\"    Source: NetworkManager 1.14.4
+.\"    Source: NetworkManager 1.15.2
 .\"  Language: English
 .\"
-.TH "NMCLI\-EXAMPLES" "7" "" "NetworkManager 1\&.14\&.4" "Examples"
+.TH "NMCLI\-EXAMPLES" "7" "" "NetworkManager 1\&.15\&.2" "Examples"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -200,7 +200,25 @@ The first command makes NetworkManager log in DEBUG level, and only for CORE, ET
 \fBNetworkManager.conf\fR(5)
 manual page for available logging levels and domains\&.
 .PP
-\fBExample\ \&6.\ \&Adding a bonding master and two slave connection profiles\fR
+\fBExample\ \&6.\ \&Activating a VPN connection profile requiring interactive password input\fR
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \fBnmcli \-\-ask con up my\-vpn\-con\fR
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+This command activates a VPN connection profile enabling nmcli to interact with the user (\*(Aq\-\-ask\*(Aq): this will allow nmcli to prompt for the VPN password on the command line when the
+\fIpassword\-flags\fR
+are set to \*(Aq0x02\*(Aq (\*(Aqalways ask\*(Aq, see
+\fBnm-settings\fR(5)
+)\&. This is particularly useful for OTP based VPNs, as the user needs to be prompted for the password each time the connection is activated\&.
+.PP
+\fBExample\ \&7.\ \&Adding a bonding master and two slave connection profiles\fR
 .sp
 .if n \{\
 .RS 4
@@ -224,7 +242,7 @@ mode\&. The next two commands add slaves connections, both enslaved to
 interface, the second to
 \fIeth2\fR\&.
 .PP
-\fBExample\ \&7.\ \&Adding a team master and two slave connection profiles\fR
+\fBExample\ \&8.\ \&Adding a team master and two slave connection profiles\fR
 .sp
 .if n \{\
 .RS 4
@@ -266,7 +284,7 @@ will use its default configuration\&. You will activate the whole setup by activ
 .sp
 By default, the created profiles are marked for auto\-activation\&. But if another connection has been activated on the device, the new profile won\*(Aqt activate automatically and you need to activate it manually\&.
 .PP
-\fBExample\ \&8.\ \&Adding a bridge and two slave profiles\fR
+\fBExample\ \&9.\ \&Adding a bridge and two slave profiles\fR
 .sp
 .if n \{\
 .RS 4
@@ -288,7 +306,7 @@ This example demonstrates adding a bridge master connection and two slaves\&. Th
 interface, the second to
 \fIens4\fR\&. The last command will disable 802\&.1D STP for the TowerBridge profile\&.
 .PP
-\fBExample\ \&9.\ \&Adding an ethernet connection profile with manual IP configuration\fR
+\fBExample\ \&10.\ \&Adding an ethernet connection profile with manual IP configuration\fR
 .sp
 .if n \{\
 .RS 4
@@ -312,7 +330,7 @@ that is bound to interface name
 \fIcon show\fR
 command displays the profile so that all parameters can be reviewed\&.
 .PP
-\fBExample\ \&10.\ \&Convenient field values retrieval for scripting\fR
+\fBExample\ \&11.\ \&Convenient field values retrieval for scripting\fR
 .sp
 .if n \{\
 .RS 4
@@ -352,7 +370,30 @@ This example shows retrieval of ip4 connection field values via the \-\-get\-val
 \fBnmcli\fR(1)
 manual page for more customized output\&.
 .PP
-\fBExample\ \&11.\ \&Escaping colon characters in tabular mode\fR
+\fBExample\ \&12.\ \&Adding an Ethernet connection and configuring SR\-IOV VFs\fR
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \fBnmcli con add type ethernet con\-name EthernetPF ifname em1\fR
+$ \fBnmcli con modify EthernetPF sriov\&.total\-vfs 3 sriov\&.autoprobe\-drivers false\fR
+$ \fBnmcli con modify EthernetPF sriov\&.vfs \*(Aq0 mac=00:11:22:33:44:55 vlans=10, 1 trust=true spoof\-check=false\*(Aq\fR
+$ \fBnmcli con modify EthernetPF +sriov\&.vfs \*(Aq2 max\-tx\-rate=20\*(Aq\fR
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+This example demonstrates adding an Ethernet connection for physical function (PF)
+\fIens4\fR
+and configuring 3 SR\-IOV virtual functions (VFs) on it\&. The first VF is configured with MAC address 00:11:22:33:44:55 and VLAN 10, the second one has the
+\fItrust\fR
+and
+\fIspoof\-check\fR
+features respectively enabled and disabled\&. VF number 2 has a maximux transmission rate of 20Mbps\&. The kernel is instructed to not automatically instantiate a network interface for the VFs\&.
+.PP
+\fBExample\ \&13.\ \&Escaping colon characters in tabular mode\fR
 .sp
 .if n \{\
 .RS 4
@@ -371,7 +412,7 @@ nager/ActiveConnection/9
 .PP
 This example shows escaping colon characters in tabular mode\&. It may be useful for script processing, because \*(Aq:\*(Aq is used as a field separator\&.
 .PP
-\fBExample\ \&12.\ \&nmcli usage in a NetworkManager dispatcher script to make Ethernet and Wi\-Fi mutually exclusive\fR
+\fBExample\ \&14.\ \&nmcli usage in a NetworkManager dispatcher script to make Ethernet and Wi\-Fi mutually exclusive\fR
 .sp
 .if n \{\
 .RS 4
@@ -409,7 +450,7 @@ manual page for more information about NetworkManager dispatcher scripts\&.
 .PP
 \fBExample sessions of interactive connection editor\fR
 .PP
-\fBExample\ \&13.\ \&Adding an ethernet connection profile in interactive editor (a)\fR
+\fBExample\ \&15.\ \&Adding an ethernet connection profile in interactive editor (a)\fR
 .sp
 .if n \{\
 .RS 4

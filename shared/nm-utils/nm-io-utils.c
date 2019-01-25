@@ -110,7 +110,7 @@ _mem_realloc (char *old, gboolean do_bzero_mem, gsize cur_len, gsize new_len)
  * A reimplementation of g_file_get_contents() with a few differences:
  *   - accepts an open fd, instead of a path name. This allows you to
  *     use openat().
- *   - limits the maxium filesize to max_length.
+ *   - limits the maximum filesize to max_length.
  *
  * Returns: a negative error code on failure.
  */
@@ -268,7 +268,7 @@ nm_utils_fd_get_contents (int fd,
  *
  * A reimplementation of g_file_get_contents() with a few differences:
  *   - accepts an @dirfd to open @filename relative to that path via openat().
- *   - limits the maxium filesize to max_length.
+ *   - limits the maximum filesize to max_length.
  *   - uses O_CLOEXEC on internal file descriptor
  *
  * Returns: a negative error code on failure.
@@ -351,7 +351,7 @@ nm_utils_file_set_contents (const char *filename,
 		length = strlen (contents);
 
 	tmp_name = g_strdup_printf ("%s.XXXXXX", filename);
-	fd = g_mkstemp_full (tmp_name, O_RDWR, mode);
+	fd = g_mkstemp_full (tmp_name, O_RDWR | O_CLOEXEC, mode);
 	if (fd < 0) {
 		errsv = errno;
 		g_set_error (error,

@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingWireless.html" title="NMSettingWireless">
 <link rel="next" href="ch04.html" title="Device and Runtime Configuration API Reference">
-<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -70,6 +70,22 @@
 <a class="link" href="NMSettingWpan.html#nm-setting-wpan-get-short-address" title="nm_setting_wpan_get_short_address ()">nm_setting_wpan_get_short_address</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
+<tr>
+<td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint16"><span class="returnvalue">gint16</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingWpan.html#nm-setting-wpan-get-page" title="nm_setting_wpan_get_page ()">nm_setting_wpan_get_page</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint16"><span class="returnvalue">gint16</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingWpan.html#nm-setting-wpan-get-channel" title="nm_setting_wpan_get_channel ()">nm_setting_wpan_get_channel</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -96,6 +112,22 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingWpan.html#NM-SETTING-WPAN-SHORT-ADDRESS:CAPS" title="NM_SETTING_WPAN_SHORT_ADDRESS">NM_SETTING_WPAN_SHORT_ADDRESS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingWpan.html#NM-SETTING-WPAN-PAGE:CAPS" title="NM_SETTING_WPAN_PAGE">NM_SETTING_WPAN_PAGE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingWpan.html#NM-SETTING-WPAN-CHANNEL:CAPS" title="NM_SETTING_WPAN_CHANNEL">NM_SETTING_WPAN_CHANNEL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingWpan.html#NM-SETTING-WPAN-PAGE-DEFAULT:CAPS" title="NM_SETTING_WPAN_PAGE_DEFAULT">NM_SETTING_WPAN_PAGE_DEFAULT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingWpan.html#NM-SETTING-WPAN-CHANNEL-DEFAULT:CAPS" title="NM_SETTING_WPAN_CHANNEL_DEFAULT">NM_SETTING_WPAN_CHANNEL_DEFAULT</a></td>
 </tr>
 </tbody>
 </table></div>
@@ -197,6 +229,58 @@ nm_setting_wpan_get_short_address (<em class="parameter"><code><a class="link" h
 </div>
 <p class="since">Since: 1.14</p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-wpan-get-page"></a><h3>nm_setting_wpan_get_page ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint16"><span class="returnvalue">gint16</span></a>
+nm_setting_wpan_get_page (<em class="parameter"><code><a class="link" href="NMSettingWpan.html" title="NMSettingWpan"><span class="type">NMSettingWpan</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-wpan-get-page.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingWpan.html" title="NMSettingWpan"><span class="type">NMSettingWpan</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-wpan-get-page.returns"></a><h4>Returns</h4>
+<p> the <span class="type">“page”</span> property of the setting</p>
+</div>
+<p class="since">Since: 1.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-wpan-get-channel"></a><h3>nm_setting_wpan_get_channel ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint16"><span class="returnvalue">gint16</span></a>
+nm_setting_wpan_get_channel (<em class="parameter"><code><a class="link" href="NMSettingWpan.html" title="NMSettingWpan"><span class="type">NMSettingWpan</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-wpan-get-channel.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingWpan.html" title="NMSettingWpan"><span class="type">NMSettingWpan</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-wpan-get-channel.returns"></a><h4>Returns</h4>
+<p> the <span class="type">“channel”</span> property of the setting</p>
+</div>
+<p class="since">Since: 1.16</p>
+</div>
 </div>
 <div class="refsect1">
 <a name="NMSettingWpan.other_details"></a><h2>Types and Values</h2>
@@ -223,9 +307,33 @@ nm_setting_wpan_get_short_address (<em class="parameter"><code><a class="link" h
 <pre class="programlisting">#define NM_SETTING_WPAN_SHORT_ADDRESS      "short-address"
 </pre>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-WPAN-PAGE:CAPS"></a><h3>NM_SETTING_WPAN_PAGE</h3>
+<pre class="programlisting">#define NM_SETTING_WPAN_PAGE               "page"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-WPAN-CHANNEL:CAPS"></a><h3>NM_SETTING_WPAN_CHANNEL</h3>
+<pre class="programlisting">#define NM_SETTING_WPAN_CHANNEL            "channel"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-WPAN-PAGE-DEFAULT:CAPS"></a><h3>NM_SETTING_WPAN_PAGE_DEFAULT</h3>
+<pre class="programlisting">#define NM_SETTING_WPAN_PAGE_DEFAULT    -1
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-WPAN-CHANNEL-DEFAULT:CAPS"></a><h3>NM_SETTING_WPAN_CHANNEL_DEFAULT</h3>
+<pre class="programlisting">#define NM_SETTING_WPAN_CHANNEL_DEFAULT -1
+</pre>
+</div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29.1</div>
+<hr>Generated by GTK-Doc V1.29</div>
 </body>
 </html>

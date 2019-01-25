@@ -159,6 +159,7 @@
     <keyword type="method" name="The GetDeviceByIpIface() method" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.GetDeviceByIpIface"/>
     <keyword type="method" name="The ActivateConnection() method" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.ActivateConnection"/>
     <keyword type="method" name="The AddAndActivateConnection() method" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection"/>
+    <keyword type="method" name="The AddAndActivateConnection2() method" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection2"/>
     <keyword type="method" name="The DeactivateConnection() method" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.DeactivateConnection"/>
     <keyword type="method" name="The Sleep() method" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.Sleep"/>
     <keyword type="method" name="The Enable() method" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.Enable"/>
@@ -263,6 +264,8 @@
     <keyword type="property" name="The &quot;Metered&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Metered"/>
     <keyword type="property" name="The &quot;LldpNeighbors&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.LldpNeighbors"/>
     <keyword type="property" name="The &quot;Real&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Real"/>
+    <keyword type="property" name="The &quot;Ip4Connectivity&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Ip4Connectivity"/>
+    <keyword type="property" name="The &quot;Ip6Connectivity&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Ip6Connectivity"/>
     <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Statistics.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Statistics.PropertiesChanged"/>
     <keyword type="property" name="The &quot;RefreshRateMs&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Statistics.html#gdbus-property-org-freedesktop-NetworkManager-Device-Statistics.RefreshRateMs"/>
     <keyword type="property" name="The &quot;TxBytes&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Statistics.html#gdbus-property-org-freedesktop-NetworkManager-Device-Statistics.TxBytes"/>
@@ -764,6 +767,7 @@
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IP4_READY" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.16.2.27.4.2.1.4.5.1.1id-1.4.16.2.27.4.2.1.4.5.1.2"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IP6_READY" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.16.2.27.4.2.1.4.6.1.1id-1.4.16.2.27.4.2.1.4.6.1.2"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.16.2.27.4.2.1.4.7.1.1id-1.4.16.2.27.4.2.1.4.7.1.2"/>
+    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.16.2.27.4.2.1.4.8.1.1id-1.4.16.2.27.4.2.1.4.8.1.2"/>
     <keyword type="constant" name="NM_SETTINGS_UPDATE2_FLAG_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.16.2.28.4.2.1.4.1.1.1id-1.4.16.2.28.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_SETTINGS_UPDATE2_FLAG_TO_DISK" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.16.2.28.4.2.1.4.2.1.1id-1.4.16.2.28.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.16.2.28.4.2.1.4.3.1.1id-1.4.16.2.28.4.2.1.4.3.1.2"/>

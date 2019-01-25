@@ -241,7 +241,7 @@ create_and_realize (NMDevice *device,
 	NMSettingVlan *s_vlan;
 	int parent_ifindex;
 	guint vlan_id;
-	NMPlatformError plerr;
+	int r;
 
 	s_vlan = nm_connection_get_setting_vlan (connection);
 	g_assert (s_vlan);
@@ -271,18 +271,18 @@ create_and_realize (NMDevice *device,
 
 	vlan_id = nm_setting_vlan_get_id (s_vlan);
 
-	plerr = nm_platform_link_vlan_add (nm_device_get_platform (device),
-	                                   iface,
-	                                   parent_ifindex,
-	                                   vlan_id,
-	                                   nm_setting_vlan_get_flags (s_vlan),
-	                                   out_plink);
-	if (plerr != NM_PLATFORM_ERROR_SUCCESS) {
+	r = nm_platform_link_vlan_add (nm_device_get_platform (device),
+	                               iface,
+	                               parent_ifindex,
+	                               vlan_id,
+	                               nm_setting_vlan_get_flags (s_vlan),
+	                               out_plink);
+	if (r < 0) {
 		g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
 		             "Failed to create VLAN interface '%s' for '%s': %s",
 		             iface,
 		             nm_connection_get_id (connection),
-		             nm_platform_error_to_string_a (plerr));
+		             nm_strerror (r));
 		return FALSE;
 	}
 
@@ -493,7 +493,7 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 		parent_mtu_maybe_changed (parent_device, NULL, device);
 	}
 
-	s_vlan = (NMSettingVlan *) nm_device_get_applied_setting (device, NM_TYPE_SETTING_VLAN);
+	s_vlan = nm_device_get_applied_setting (device, NM_TYPE_SETTING_VLAN);
 	if (s_vlan) {
 		gs_free NMVlanQosMapping *ingress_map = NULL;
 		gs_free NMVlanQosMapping *egress_map = NULL;

@@ -61,7 +61,7 @@ struct _NMDeviceModemClass {
 
 G_DEFINE_TYPE (NMDeviceModem, nm_device_modem, NM_TYPE_DEVICE)
 
-#define NM_DEVICE_MODEM_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMDeviceModem, NM_IS_DEVICE_MODEM)
+#define NM_DEVICE_MODEM_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMDeviceModem, NM_IS_DEVICE_MODEM, NMDevice)
 
 /*****************************************************************************/
 
@@ -125,14 +125,40 @@ modem_prepare_result (NMModem *modem,
 	if (success)
 		nm_device_activate_schedule_stage2_device_config (device);
 	else {
-		if (nm_device_state_reason_check (reason) == NM_DEVICE_STATE_REASON_SIM_PIN_INCORRECT) {
-			/* If the connect failed because the SIM PIN was wrong don't allow
-			 * the device to be auto-activated anymore, which would risk locking
-			 * the SIM if the incorrect PIN continues to be used.
-			 */
+		/* There are several reasons to block autoconnection at device level:
+		 *
+		 *  - Wrong SIM-PIN: The device won't autoconnect because it doesn't make sense
+		 *    to retry the connection with the same PIN. This error also makes autoconnection
+		 *    blocked at settings level, so not even a modem unplug and replug will allow
+		 *    autoconnection again. It is somewhat redundant to block autoconnection at
+		 *    both device and setting level really.
+		 *
+		 *  - SIM wrong or not inserted: If the modem is reporting a SIM not inserted error,
+		 *    we can block autoconnection at device level, so that if the same device is
+		 *    unplugged and replugged with a SIM (or if a SIM hotplug event happens in MM,
+		 *    recreating the device completely), we can try the autoconnection again.
+		 *
+		 *  - Modem initialization failed: For some reason unknown to NM, the modem wasn't
+		 *    initialized correctly, which leads to an unusable device. A device unplug and
+		 *    replug may solve the issue, so make it a device-level autoconnection blocking
+		 *    reason.
+		 */
+		switch (nm_device_state_reason_check (reason)) {
+		case NM_DEVICE_STATE_REASON_GSM_SIM_PIN_REQUIRED:
+		case NM_DEVICE_STATE_REASON_GSM_SIM_PUK_REQUIRED:
+		case NM_DEVICE_STATE_REASON_SIM_PIN_INCORRECT:
 			nm_device_autoconnect_blocked_set (device, NM_DEVICE_AUTOCONNECT_BLOCKED_WRONG_PIN);
+			break;
+		case NM_DEVICE_STATE_REASON_GSM_SIM_NOT_INSERTED:
+		case NM_DEVICE_STATE_REASON_GSM_SIM_WRONG:
+			nm_device_autoconnect_blocked_set (device, NM_DEVICE_AUTOCONNECT_BLOCKED_SIM_MISSING);
+			break;
+		case NM_DEVICE_STATE_REASON_MODEM_INIT_FAILED:
+			nm_device_autoconnect_blocked_set (device, NM_DEVICE_AUTOCONNECT_BLOCKED_INIT_FAILED);
+			break;
+		default:
+			break;
 		}
-
 		nm_device_state_changed (device, NM_DEVICE_STATE_FAILED, reason);
 	}
 }
@@ -218,7 +244,7 @@ modem_ip6_config_result (NMModem *modem,
 	}
 
 	/* Re-enable IPv6 on the interface */
-	nm_device_ipv6_sysctl_set (device, "disable_ipv6", "0");
+	nm_device_sysctl_ip_conf_set (device, AF_INET6, "disable_ipv6", "0");
 
 	if (config)
 		nm_device_set_wwan_ip6_config (device, config);
@@ -277,7 +303,7 @@ ip_ifindex_changed_cb (NMModem *modem, GParamSpec *pspec, gpointer user_data)
 	 * internally, and leaving it enabled could allow the kernel's IPv6
 	 * RA handling code to run before NM is ready.
 	 */
-	nm_device_ipv6_sysctl_set (device, "disable_ipv6", "1");
+	nm_device_sysctl_ip_conf_set (device, AF_INET6, "disable_ipv6", "1");
 }
 
 static void
@@ -448,7 +474,7 @@ check_connection_available (NMDevice *device,
 	state = nm_modem_get_state (priv->modem);
 	if (state <= NM_MODEM_STATE_INITIALIZING) {
 		nm_utils_error_set_literal (error, NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY,
-		                            "modem not initalized");
+		                            "modem not initialized");
 		return FALSE;
 	}
 
@@ -483,44 +509,35 @@ deactivate (NMDevice *device)
 
 /*****************************************************************************/
 
-static gboolean
-deactivate_async_finish (NMDevice *self,
-                         GAsyncResult *res,
-                         GError **error)
-{
-	return !g_simple_async_result_propagate_error (G_SIMPLE_ASYNC_RESULT (res), error);
-}
-
 static void
-modem_deactivate_async_ready (NMModem *modem,
-                              GAsyncResult *res,
-                              GSimpleAsyncResult *simple)
+modem_deactivate_async_cb (NMModem *modem,
+                           GError *error,
+                           gpointer user_data)
 {
-	GError *error = NULL;
+	gs_unref_object NMDevice *self = NULL;
+	NMDeviceDeactivateCallback callback;
+	gpointer callback_user_data;
 
-	if (!nm_modem_deactivate_async_finish (modem, res, &error))
-		g_simple_async_result_take_error (simple, error);
-	g_simple_async_result_complete (simple);
-	g_object_unref (simple);
+	nm_utils_user_data_unpack (user_data, &self, &callback, &callback_user_data);
+	callback (self, error, callback_user_data);
 }
 
 static void
 deactivate_async (NMDevice *self,
                   GCancellable *cancellable,
-                  GAsyncReadyCallback callback,
+                  NMDeviceDeactivateCallback callback,
                   gpointer user_data)
 {
-	GSimpleAsyncResult *simple;
+	nm_assert (G_IS_CANCELLABLE (cancellable));
+	nm_assert (callback);
 
-	simple = g_simple_async_result_new (G_OBJECT (self),
-	                                    callback,
-	                                    user_data,
-	                                    deactivate_async);
-	nm_modem_deactivate_async (NM_DEVICE_MODEM_GET_PRIVATE ((NMDeviceModem *) self)->modem,
+	nm_modem_deactivate_async (NM_DEVICE_MODEM_GET_PRIVATE (self)->modem,
 	                           self,
 	                           cancellable,
-	                           (GAsyncReadyCallback) modem_deactivate_async_ready,
-	                           simple);
+	                           modem_deactivate_async_cb,
+	                           nm_utils_user_data_pack (g_object_ref (self),
+	                                                    callback,
+	                                                    user_data));
 }
 
 /*****************************************************************************/
@@ -805,7 +822,6 @@ nm_device_modem_class_init (NMDeviceModemClass *klass)
 	device_class->check_connection_available = check_connection_available;
 	device_class->complete_connection = complete_connection;
 	device_class->deactivate_async = deactivate_async;
-	device_class->deactivate_async_finish = deactivate_async_finish;
 	device_class->deactivate = deactivate;
 	device_class->act_stage1_prepare = act_stage1_prepare;
 	device_class->act_stage2_config = act_stage2_config;

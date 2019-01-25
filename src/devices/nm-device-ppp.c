@@ -125,10 +125,12 @@ act_stage2_config (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 	NMActRequest *req;
 	GError *error = NULL;
 
-	req = nm_device_get_act_request (NM_DEVICE (self));
+	req = nm_device_get_act_request (device);
+
 	g_return_val_if_fail (req, NM_ACT_STAGE_RETURN_FAILURE);
 
-	s_pppoe = (NMSettingPppoe *) nm_device_get_applied_setting ((NMDevice *) self, NM_TYPE_SETTING_PPPOE);
+	s_pppoe = nm_device_get_applied_setting (device, NM_TYPE_SETTING_PPPOE);
+
 	g_return_val_if_fail (s_pppoe, NM_ACT_STAGE_RETURN_FAILURE);
 
 	g_clear_object (&priv->ip4_config);
@@ -221,7 +223,7 @@ deactivate (NMDevice *device)
 	NMDevicePppPrivate *priv = NM_DEVICE_PPP_GET_PRIVATE (self);
 
 	if (priv->ppp_manager) {
-		nm_ppp_manager_stop (priv->ppp_manager, NULL, NULL);
+		nm_ppp_manager_stop (priv->ppp_manager, NULL, NULL, NULL);
 		g_clear_object (&priv->ppp_manager);
 	}
 }

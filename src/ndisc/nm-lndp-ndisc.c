@@ -259,7 +259,7 @@ receive_ra (struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
 
 			/* Pad the lifetime somewhat to give a bit of slack in cases
 			 * where one RA gets lost or something (which can happen on unreliable
-			 * links like WiFi where certain types of frames are not retransmitted).
+			 * links like Wi-Fi where certain types of frames are not retransmitted).
 			 * Note that 0 has special meaning and is therefore not adjusted.
 			 */
 			if (dns_server.lifetime && dns_server.lifetime < 7200)
@@ -281,7 +281,7 @@ receive_ra (struct ndp *ndp, struct ndp_msg *msg, gpointer user_data)
 
 			/* Pad the lifetime somewhat to give a bit of slack in cases
 			 * where one RA gets lost or something (which can happen on unreliable
-			 * links like WiFi where certain types of frames are not retransmitted).
+			 * links like Wi-Fi where certain types of frames are not retransmitted).
 			 * Note that 0 has special meaning and is therefore not adjusted.
 			 */
 			if (dns_domain.lifetime && dns_domain.lifetime < 7200)
@@ -539,14 +539,14 @@ start (NMNDisc *ndisc)
 static inline int
 ipv6_sysctl_get (NMPlatform *platform, const char *ifname, const char *property, int min, int max, int defval)
 {
-	char buf[NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE];
-
-	return (int) nm_platform_sysctl_get_int_checked (platform,
-	                                                 NMP_SYSCTL_PATHID_ABSOLUTE (nm_utils_sysctl_ip_conf_path (AF_INET6, buf, ifname, property)),
-	                                                 10,
-	                                                 min,
-	                                                 max,
-	                                                 defval);
+	return nm_platform_sysctl_ip_conf_get_int_checked (platform,
+	                                                   AF_INET6,
+	                                                   ifname,
+	                                                   property,
+	                                                   10,
+	                                                   min,
+	                                                   max,
+	                                                   defval);
 }
 
 static void

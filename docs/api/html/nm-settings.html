@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nmtui.html" title="nmtui">
 <link rel="next" href="nm-settings-keyfile.html" title="nm-settings-keyfile">
-<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -241,7 +241,7 @@
 <a name="nm-settings.property.connection.stable-id"></a>stable-id</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>This represents the identity of the connection used for various purposes. It allows to configure multiple profiles to share the identity. Also, the stable-id can contain placeholders that are substituted dynamically and deterministically depending on the context. The stable-id is used for generating IPv6 stable private addresses with ipv6.addr-gen-mode=stable-privacy. It is also used to seed the generated cloned MAC address for ethernet.cloned-mac-address=stable and wifi.cloned-mac-address=stable. It is also used as DHCP client identifier with ipv4.dhcp-client-id=stable and to derive the DHCP DUID with ipv6.dhcp-duid=stable-[llt,ll,uuid]. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm. For example, a per-host key is commonly also included, so that different systems end up generating different IDs. Or with ipv6.addr-gen-mode=stable-privacy, also the device's name is included, so that different interfaces yield different addresses. The '$' character is treated special to perform dynamic substitutions at runtime. Currently supported are "${CONNECTION}", "${DEVICE}", "${BOOT}", "${RANDOM}". These effectively create unique IDs per-connection, per-device, per-boot, or every time. Note that "${DEVICE}" corresponds the the interface name of the device. Any unrecognized patterns following '$' are treated verbatim, however are reserved for future use. You are thus advised to avoid '$' or escape it as "$$". For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates. If the value is unset, a global connection default is consulted. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection.</td>
+<td>This represents the identity of the connection used for various purposes. It allows to configure multiple profiles to share the identity. Also, the stable-id can contain placeholders that are substituted dynamically and deterministically depending on the context. The stable-id is used for generating IPv6 stable private addresses with ipv6.addr-gen-mode=stable-privacy. It is also used to seed the generated cloned MAC address for ethernet.cloned-mac-address=stable and wifi.cloned-mac-address=stable. It is also used as DHCP client identifier with ipv4.dhcp-client-id=stable and to derive the DHCP DUID with ipv6.dhcp-duid=stable-[llt,ll,uuid]. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm. For example, a per-host key is commonly also included, so that different systems end up generating different IDs. Or with ipv6.addr-gen-mode=stable-privacy, also the device's name is included, so that different interfaces yield different addresses. The '$' character is treated special to perform dynamic substitutions at runtime. Currently supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}". These effectively create unique IDs per-connection, per-device, per-boot, or every time. Note that "${DEVICE}" corresponds the the interface name of the device and "${MAC}" is the permanent MAC address of the device. Any unrecognized patterns following '$' are treated verbatim, however are reserved for future use. You are thus advised to avoid '$' or escape it as "$$". For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates. If the value is unset, a global connection default is consulted. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1202,7 +1202,7 @@
 <a name="nm-settings.property.gsm.number"></a>number</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>Number to dial when establishing a PPP data session with the GSM-based mobile broadband network.  Many modems do not require PPP for connections to the mobile network and thus this property should be left blank, which allows NetworkManager to select the appropriate settings automatically.</td>
+<td>Legacy setting that used to help establishing PPP data sessions for GSM-based modems. Deprecated: 1</td>
 </tr>
 <tr>
 <td align="left">
@@ -1356,7 +1356,7 @@
 <a name="nm-settings.property.ipv4.dhcp-client-id"></a>dhcp-client-id</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>A string sent to the DHCP server to identify the local machine which the DHCP server may use to customize the DHCP lease and options. When the property is a hex string ('aa:bb:cc') it is interpreted as a binary client ID, in which case the first byte is assumed to be the 'type' field as per RFC 2132 section 9.14 and the remaining bytes may be an hardware address (e.g. '01:xx:xx:xx:xx:xx:xx' where 1 is the Ethernet ARP type and the rest is a MAC address). If the property is not a hex string it is considered as a non-hardware-address client ID and the 'type' field is set to 0. The special values "mac" and "perm-mac" are supported, which use the current or permanent MAC address of the device to generate a client identifier with type ethernet (01). Currently, these options only work for ethernet type of links. The special value "stable" is supported to generate a type 0 client identifier based on the stable-id (see connection.stable-id) and a per-host key. If unset, a globally configured default is used. If still unset, the client-id from the last lease is reused.</td>
+<td>A string sent to the DHCP server to identify the local machine which the DHCP server may use to customize the DHCP lease and options. When the property is a hex string ('aa:bb:cc') it is interpreted as a binary client ID, in which case the first byte is assumed to be the 'type' field as per RFC 2132 section 9.14 and the remaining bytes may be an hardware address (e.g. '01:xx:xx:xx:xx:xx:xx' where 1 is the Ethernet ARP type and the rest is a MAC address). If the property is not a hex string it is considered as a non-hardware-address client ID and the 'type' field is set to 0. The special values "mac" and "perm-mac" are supported, which use the current or permanent MAC address of the device to generate a client identifier with type ethernet (01). Currently, these options only work for ethernet type of links. The special value "duid" generates a RFC4361-compliant client identifier based on a hash of the interface name as IAID and /etc/machine-id. The special value "stable" is supported to generate a type 0 client identifier based on the stable-id (see connection.stable-id) and a per-host key. If you set the stable-id, you may want to include the "${DEVICE}" or "${MAC}" specifier to get a per-device key. If unset, a globally configured default is used. If still unset, the default depends on the DHCP plugin.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1405,7 +1405,7 @@
 <a name="nm-settings.property.ipv4.dns-priority"></a>dns-priority</td>
 <td align="left">int32</td>
 <td align="left">0</td>
-<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority).  Zero selects the default value, which is 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports split-DNS as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
+<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports split-DNS as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1538,7 +1538,7 @@
 <a name="nm-settings.property.ipv6.dhcp-duid"></a>dhcp-duid</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>A string containing the DHCPv6 Unique Identifier (DUID) used by the dhcp client to identify itself to DHCPv6 servers (RFC 3315). The DUID is carried in the Client Identifier option. If the property is a hex string ('aa:bb:cc') it is interpreted as a binary DUID and filled as an opaque value in the Client Identifier option. The special value "lease" will retrieve the DUID previously used from the lease file belonging to the connection. If no DUID is found and "dhclient" is the configured dhcp client, the DUID is searched in the system-wide dhclient lease file. If still no DUID is found, or another dhcp client is used, a global and permanent DUID-UUID (RFC 6355) will be generated based on the machine-id. The special values "llt" and "ll" will generate a DUID of type LLT or LL (see RFC 3315) based on the current MAC address of the device. In order to try providing a stable DUID-LLT, the time field will contain a constant timestamp that is used globally (for all profiles) and persisted to disk. The special values "stable-llt", "stable-ll" and "stable-uuid" will generate a DUID of the corresponding type, derived from the connection's stable-id and a per-host unique key. So, the link-layer address of "stable-ll" and "stable-llt" will be a generated address derived from the stable id. The DUID-LLT time value in the "stable-llt" option will be picked among a static timespan of three years (the upper bound of the interval is the same constant timestamp used in "llt"). When the property is unset, the global value provided for "ipv6.dhcp-duid" is used. If no global value is provided, the default "lease" value is assumed.</td>
+<td>A string containing the DHCPv6 Unique Identifier (DUID) used by the dhcp client to identify itself to DHCPv6 servers (RFC 3315). The DUID is carried in the Client Identifier option. If the property is a hex string ('aa:bb:cc') it is interpreted as a binary DUID and filled as an opaque value in the Client Identifier option. The special value "lease" will retrieve the DUID previously used from the lease file belonging to the connection. If no DUID is found and "dhclient" is the configured dhcp client, the DUID is searched in the system-wide dhclient lease file. If still no DUID is found, or another dhcp client is used, a global and permanent DUID-UUID (RFC 6355) will be generated based on the machine-id. The special values "llt" and "ll" will generate a DUID of type LLT or LL (see RFC 3315) based on the current MAC address of the device. In order to try providing a stable DUID-LLT, the time field will contain a constant timestamp that is used globally (for all profiles) and persisted to disk. The special values "stable-llt", "stable-ll" and "stable-uuid" will generate a DUID of the corresponding type, derived from the connection's stable-id and a per-host unique key. You may want to include the "${DEVICE}" or "${MAC}" specifier in the stable-id, in case this profile gets activated on multiple devices. So, the link-layer address of "stable-ll" and "stable-llt" will be a generated address derived from the stable id. The DUID-LLT time value in the "stable-llt" option will be picked among a static timespan of three years (the upper bound of the interval is the same constant timestamp used in "llt"). When the property is unset, the global value provided for "ipv6.dhcp-duid" is used. If no global value is provided, the default "lease" value is assumed.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1580,7 +1580,7 @@
 <a name="nm-settings.property.ipv6.dns-priority"></a>dns-priority</td>
 <td align="left">int32</td>
 <td align="left">0</td>
-<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority).  Zero selects the default value, which is 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports split-DNS as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
+<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports split-DNS as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
 </tr>
 <tr>
 <td align="left">
@@ -2491,14 +2491,14 @@
 <a name="nm-settings.property.sriov.total-vfs"></a>total-vfs</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
-<td>The total number of virtual functions to create.</td>
+<td>The total number of virtual functions to create. Note that when the sriov setting is present NetworkManager enforces the number of virtual functions on the interface also when it is zero. To prevent any changes to SR-IOV parameters don't add a sriov setting to the connection.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.sriov.vfs"></a>vfs</td>
 <td align="left">array of vardict</td>
 <td align="left">[]</td>
-<td>Array of virtual function descriptors. Each VF descriptor is a dictionary mapping attribute names to GVariant values. The 'index' entry is mandatory for each VF. When represented as string a VF is in the form: "INDEX [ATTR=VALUE[ ATTR=VALUE]...]". for example: "2 mac=00:11:22:33:44:55 spoof-check=true". The "vlans" attribute is represented as a semicolor-separated list of VLAN descriptors, where each descriptor has the form "ID[.PRIORITY[.PROTO]]". PROTO can be either 'q' for 802.1Q (the default) or 'ad' for 802.1ad.</td>
+<td>Array of virtual function descriptors. Each VF descriptor is a dictionary mapping attribute names to GVariant values. The 'index' entry is mandatory for each VF. When represented as string a VF is in the form: "INDEX [ATTR=VALUE[ ATTR=VALUE]...]". for example: "2 mac=00:11:22:33:44:55 spoof-check=true". Multiple VFs can be specified using a comma as separator. Currently the following attributes are supported: mac, spoof-check, trust, min-tx-rate, max-tx-rate, vlans. The "vlans" attribute is represented as a semicolon-separated list of VLAN descriptors, where each descriptor has the form "ID[.PRIORITY[.PROTO]]". PROTO can be either 'q' for 802.1Q (the default) or 'ad' for 802.1ad.</td>
 </tr>
 </tbody>
 </table></div>
@@ -2575,7 +2575,7 @@
 <a name="nm-settings.property.team.link-watchers"></a>link-watchers</td>
 <td align="left">array of vardict</td>
 <td align="left">[]</td>
-<td>Link watchers configuration for the connection: each link watcher is defined by a dictionary, whose keys depend upon the selected link watcher. Available link watchers are 'ethtool', 'nsna_ping' and 'arp_ping' and it is specified in the dictionary with the key 'name'. Available keys are:   ethtool: 'delay-up', 'delay-down', 'init-wait'; nsna_ping: 'init-wait', 'interval', 'missed-max', 'target-host'; arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active', 'validate-incative', 'send-always'. See teamd.conf man for more details.</td>
+<td>Link watchers configuration for the connection: each link watcher is defined by a dictionary, whose keys depend upon the selected link watcher. Available link watchers are 'ethtool', 'nsna_ping' and 'arp_ping' and it is specified in the dictionary with the key 'name'. Available keys are:   ethtool: 'delay-up', 'delay-down', 'init-wait'; nsna_ping: 'init-wait', 'interval', 'missed-max', 'target-host'; arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active', 'validate-inactive', 'send-always'. See teamd.conf man for more details.</td>
 </tr>
 <tr>
 <td align="left">
@@ -2722,7 +2722,7 @@
 <a name="nm-settings.property.team-port.link-watchers"></a>link-watchers</td>
 <td align="left">array of vardict</td>
 <td align="left">[]</td>
-<td>Link watchers configuration for the connection: each link watcher is defined by a dictionary, whose keys depend upon the selected link watcher. Available link watchers are 'ethtool', 'nsna_ping' and 'arp_ping' and it is specified in the dictionary with the key 'name'. Available keys are:   ethtool: 'delay-up', 'delay-down', 'init-wait'; nsna_ping: 'init-wait', 'interval', 'missed-max', 'target-host'; arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active', 'validate-incative', 'send-always'. See teamd.conf man for more details.</td>
+<td>Link watchers configuration for the connection: each link watcher is defined by a dictionary, whose keys depend upon the selected link watcher. Available link watchers are 'ethtool', 'nsna_ping' and 'arp_ping' and it is specified in the dictionary with the key 'name'. Available keys are:   ethtool: 'delay-up', 'delay-down', 'init-wait'; nsna_ping: 'init-wait', 'interval', 'missed-max', 'target-host'; arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active', 'validate-inactive', 'send-always'. See teamd.conf man for more details.</td>
 </tr>
 <tr>
 <td align="left">
@@ -3154,7 +3154,7 @@
 <a name="nm-settings.property.802-3-ethernet.assigned-mac-address"></a>assigned-mac-address</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>The new field for the cloned MAC address. It can be either a hardware address in ASCII representation, or one of the special values "preserve", "permanent", "random" or "stable". This field replaces the deprecated "cloned-mac-address" on D-Bus, which can only contain explict hardware addresses. Note that this property only exists in D-Bus API. libnm and nmcli continue to call this property "cloned-mac-address".</td>
+<td>The new field for the cloned MAC address. It can be either a hardware address in ASCII representation, or one of the special values "preserve", "permanent", "random" or "stable". This field replaces the deprecated "cloned-mac-address" on D-Bus, which can only contain explicit hardware addresses. Note that this property only exists in D-Bus API. libnm and nmcli continue to call this property "cloned-mac-address".</td>
 </tr>
 <tr>
 <td align="left">
@@ -3280,7 +3280,7 @@
 <a name="nm-settings.property.802-11-wireless.assigned-mac-address"></a>assigned-mac-address</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>The new field for the cloned MAC address. It can be either a hardware address in ASCII representation, or one of the special values "preserve", "permanent", "random" or "stable". This field replaces the deprecated "cloned-mac-address" on D-Bus, which can only contain explict hardware addresses. Note that this property only exists in D-Bus API. libnm and nmcli continue to call this property "cloned-mac-address".</td>
+<td>The new field for the cloned MAC address. It can be either a hardware address in ASCII representation, or one of the special values "preserve", "permanent", "random" or "stable". This field replaces the deprecated "cloned-mac-address" on D-Bus, which can only contain explicit hardware addresses. Note that this property only exists in D-Bus API. libnm and nmcli continue to call this property "cloned-mac-address".</td>
 </tr>
 <tr>
 <td align="left">
@@ -3592,10 +3592,24 @@
 <tbody>
 <tr>
 <td align="left">
+<a name="nm-settings.property.wpan.channel"></a>channel</td>
+<td align="left">int32</td>
+<td align="left">-1</td>
+<td>IEEE 802.15.4 channel. A positive integer or -1, meaning "do not set, use whatever the device is already set to".</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings.property.wpan.mac-address"></a>mac-address</td>
 <td align="left">string</td>
 <td align="left"> </td>
 <td>If specified, this connection will only apply to the IEEE 802.15.4 (WPAN) MAC layer device whose permanent MAC address matches.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wpan.page"></a>page</td>
+<td align="left">int32</td>
+<td align="left">-1</td>
+<td>IEEE 802.15.4 channel page. A positive integer or -1, meaning "do not set, use whatever the device is already set to".</td>
 </tr>
 <tr>
 <td align="left">
@@ -3652,6 +3666,6 @@
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29.1</div>
+<hr>Generated by GTK-Doc V1.29</div>
 </body>
 </html>

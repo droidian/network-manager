@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "nm-utils/nm-secret-utils.h"
+
 #include "nm-utils.h"
 #include "nm-core-types-internal.h"
 #include "nm-setting-connection.h"
@@ -40,21 +42,7 @@
  * necessary for connection to MACsec (IEEE 802.1AE) interfaces.
  **/
 
-G_DEFINE_TYPE (NMSettingMacsec, nm_setting_macsec, NM_TYPE_SETTING)
-
-#define NM_SETTING_MACSEC_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_MACSEC, NMSettingMacsecPrivate))
-
-typedef struct {
-	char *parent;
-	NMSettingMacsecMode mode;
-	bool encrypt:1;
-	bool send_sci:1;
-	char *mka_cak;
-	NMSettingSecretFlags mka_cak_flags;
-	char *mka_ckn;
-	int port;
-	NMSettingMacsecValidation validation;
-} NMSettingMacsecPrivate;
+/*****************************************************************************/
 
 NM_GOBJECT_PROPERTIES_DEFINE_BASE (
 	PROP_PARENT,
@@ -68,20 +56,23 @@ NM_GOBJECT_PROPERTIES_DEFINE_BASE (
 	PROP_SEND_SCI,
 );
 
-/**
- * nm_setting_macsec_new:
- *
- * Creates a new #NMSettingMacsec object with default values.
- *
- * Returns: (transfer full): the new empty #NMSettingMacsec object
- *
- * Since: 1.6
- **/
-NMSetting *
-nm_setting_macsec_new (void)
-{
-	return (NMSetting *) g_object_new (NM_TYPE_SETTING_MACSEC, NULL);
-}
+typedef struct {
+	char *parent;
+	NMSettingMacsecMode mode;
+	bool encrypt:1;
+	bool send_sci:1;
+	char *mka_cak;
+	NMSettingSecretFlags mka_cak_flags;
+	char *mka_ckn;
+	int port;
+	NMSettingMacsecValidation validation;
+} NMSettingMacsecPrivate;
+
+G_DEFINE_TYPE (NMSettingMacsec, nm_setting_macsec, NM_TYPE_SETTING)
+
+#define NM_SETTING_MACSEC_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_MACSEC, NMSettingMacsecPrivate))
+
+/*****************************************************************************/
 
 /**
  * nm_setting_macsec_get_parent:
@@ -243,6 +234,12 @@ verify_macsec_key (const char *key, gboolean cak, GError **error)
 {
 	int req_len;
 
+	/* CAK is a connection secret and can be NULL for various
+	 * reasons (agent-owned, no permissions to get secrets, etc.)
+	 */
+	if (cak && !key)
+		return TRUE;
+
 	if (!key || !key[0]) {
 		g_set_error_literal (error,
 		                     NM_CONNECTION_ERROR,
@@ -254,7 +251,7 @@ verify_macsec_key (const char *key, gboolean cak, GError **error)
 	req_len = cak ?
 	    NM_SETTING_MACSEC_MKA_CAK_LENGTH :
 	    NM_SETTING_MACSEC_MKA_CKN_LENGTH;
-	if (strlen (key) != req_len) {
+	if (strlen (key) != (gsize) req_len) {
 		g_set_error (error,
 		             NM_CONNECTION_ERROR,
 		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
@@ -340,6 +337,10 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 			g_prefix_error (error, "%s.%s: ", NM_SETTING_MACSEC_SETTING_NAME, NM_SETTING_MACSEC_MKA_CKN);
 			return FALSE;
 		}
+		if (!verify_macsec_key (priv->mka_cak, TRUE, error)) {
+			g_prefix_error (error, "%s.%s: ", NM_SETTING_MACSEC_SETTING_NAME, NM_SETTING_MACSEC_MKA_CAK);
+			return FALSE;
+		}
 	} else if (priv->mode == NM_SETTING_MACSEC_MODE_EAP) {
 		if (!s_8021x) {
 			g_set_error (error,
@@ -350,6 +351,13 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 			g_prefix_error (error, "%s: ", NM_SETTING_MACSEC_SETTING_NAME);
 			return FALSE;
 		}
+	} else {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("must be either psk (0) or eap (1)"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_MACSEC_SETTING_NAME, NM_SETTING_MACSEC_MODE);
+		return FALSE;
 	}
 
 	if (priv->port <= 0 || priv->port > 65534) {
@@ -362,57 +370,21 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		return FALSE;
 	}
 
+	if (   priv->mode != NM_SETTING_MACSEC_MODE_PSK
+	    && (priv->mka_cak || priv->mka_ckn)) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("only valid for psk mode"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_MACSEC_SETTING_NAME,
+		                priv->mka_cak ? NM_SETTING_MACSEC_MKA_CAK : NM_SETTING_MACSEC_MKA_CKN);
+		return NM_SETTING_VERIFY_NORMALIZABLE;
+	}
+
 	return TRUE;
 }
 
-static void
-nm_setting_macsec_init (NMSettingMacsec *setting)
-{
-}
-
-static void
-set_property (GObject *object, guint prop_id,
-              const GValue *value, GParamSpec *pspec)
-{
-	NMSettingMacsec *setting = NM_SETTING_MACSEC (object);
-	NMSettingMacsecPrivate *priv = NM_SETTING_MACSEC_GET_PRIVATE (setting);
-
-	switch (prop_id) {
-	case PROP_PARENT:
-		g_free (priv->parent);
-		priv->parent = g_value_dup_string (value);
-		break;
-	case PROP_MODE:
-		priv->mode = g_value_get_int (value);
-		break;
-	case PROP_ENCRYPT:
-		priv->encrypt = g_value_get_boolean (value);
-		break;
-	case PROP_MKA_CAK:
-		g_free (priv->mka_cak);
-		priv->mka_cak = g_value_dup_string (value);
-		break;
-	case PROP_MKA_CAK_FLAGS:
-		priv->mka_cak_flags = g_value_get_flags (value);
-		break;
-	case PROP_MKA_CKN:
-		g_free (priv->mka_ckn);
-		priv->mka_ckn = g_value_dup_string (value);
-		break;
-	case PROP_PORT:
-		priv->port = g_value_get_int (value);
-		break;
-	case PROP_VALIDATION:
-		priv->validation = g_value_get_int (value);
-		break;
-	case PROP_SEND_SCI:
-		priv->send_sci = g_value_get_boolean (value);
-		break;
-	default:
-		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-		break;
-	}
-}
+/*****************************************************************************/
 
 static void
 get_property (GObject *object, guint prop_id,
@@ -456,16 +428,79 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
+set_property (GObject *object, guint prop_id,
+              const GValue *value, GParamSpec *pspec)
+{
+	NMSettingMacsec *setting = NM_SETTING_MACSEC (object);
+	NMSettingMacsecPrivate *priv = NM_SETTING_MACSEC_GET_PRIVATE (setting);
+
+	switch (prop_id) {
+	case PROP_PARENT:
+		g_free (priv->parent);
+		priv->parent = g_value_dup_string (value);
+		break;
+	case PROP_MODE:
+		priv->mode = g_value_get_int (value);
+		break;
+	case PROP_ENCRYPT:
+		priv->encrypt = g_value_get_boolean (value);
+		break;
+	case PROP_MKA_CAK:
+		nm_free_secret (priv->mka_cak);
+		priv->mka_cak = g_value_dup_string (value);
+		break;
+	case PROP_MKA_CAK_FLAGS:
+		priv->mka_cak_flags = g_value_get_flags (value);
+		break;
+	case PROP_MKA_CKN:
+		g_free (priv->mka_ckn);
+		priv->mka_ckn = g_value_dup_string (value);
+		break;
+	case PROP_PORT:
+		priv->port = g_value_get_int (value);
+		break;
+	case PROP_VALIDATION:
+		priv->validation = g_value_get_int (value);
+		break;
+	case PROP_SEND_SCI:
+		priv->send_sci = g_value_get_boolean (value);
+		break;
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+		break;
+	}
+}
+
+/*****************************************************************************/
+
+static void
+nm_setting_macsec_init (NMSettingMacsec *setting)
+{
+}
+
+/**
+ * nm_setting_macsec_new:
+ *
+ * Creates a new #NMSettingMacsec object with default values.
+ *
+ * Returns: (transfer full): the new empty #NMSettingMacsec object
+ *
+ * Since: 1.6
+ **/
+NMSetting *
+nm_setting_macsec_new (void)
+{
+	return (NMSetting *) g_object_new (NM_TYPE_SETTING_MACSEC, NULL);
+}
+
+static void
 finalize (GObject *object)
 {
 	NMSettingMacsec *setting = NM_SETTING_MACSEC (object);
 	NMSettingMacsecPrivate *priv = NM_SETTING_MACSEC_GET_PRIVATE (setting);
 
 	g_free (priv->parent);
-	if (priv->mka_cak) {
-		memset (priv->mka_cak, 0, strlen (priv->mka_cak));
-		g_free (priv->mka_cak);
-	}
+	nm_free_secret (priv->mka_cak);
 	g_free (priv->mka_ckn);
 
 	G_OBJECT_CLASS (nm_setting_macsec_parent_class)->finalize (object);
@@ -479,8 +514,8 @@ nm_setting_macsec_class_init (NMSettingMacsecClass *klass)
 
 	g_type_class_add_private (klass, sizeof (NMSettingMacsecPrivate));
 
-	object_class->set_property = set_property;
 	object_class->get_property = get_property;
+	object_class->set_property = set_property;
 	object_class->finalize     = finalize;
 
 	setting_class->verify       = verify;

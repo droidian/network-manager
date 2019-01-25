@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 10/24/2018
+.\"      Date: 01/22/2019
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager 1.14.4
+.\"    Source: NetworkManager 1.15.2
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.14\&.4" "Network management daemons"
+.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.15\&.2" "Network management daemons"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -34,7 +34,7 @@ NetworkManager \- network management daemon
 \fBNetworkManager \fR\fB[OPTIONS...]\fR
 .SH "DESCRIPTION"
 .PP
-The NetworkManager daemon attempts to make networking configuration and operation as painless and automatic as possible by managing the primary network connection and other network interfaces, like Ethernet, WiFi, and Mobile Broadband devices\&. NetworkManager will connect any network device when a connection for that device becomes available, unless that behavior is disabled\&. Information about networking is exported via a D\-Bus interface to any interested application, providing a rich API with which to inspect and control network settings and operation\&.
+The NetworkManager daemon attempts to make networking configuration and operation as painless and automatic as possible by managing the primary network connection and other network interfaces, like Ethernet, Wi\-Fi, and Mobile Broadband devices\&. NetworkManager will connect any network device when a connection for that device becomes available, unless that behavior is disabled\&. Information about networking is exported via a D\-Bus interface to any interested application, providing a rich API with which to inspect and control network settings and operation\&.
 .SH "DISPATCHER SCRIPTS"
 .PP
 NetworkManager will execute scripts in the
@@ -305,9 +305,14 @@ device manager is used for the network device discovery\&. The following propert
 .PP
 \fINM_UNMANAGED\fR
 .RS 4
-No default connection will be created and automatic activation will not be attempted when this property of a device is set to a true value ("1" or "true")\&. You will still be able to attach a connection to the device manually or observe externally added configuration such as addresses or routes\&.
-.sp
-Create an udev rule that sets this property to prevent NetworkManager from interfering with virtual Ethernet device interfaces that are managed by virtualization tools\&.
+If set to
+"1"
+or
+"true", the device is configured as unmanaged by NetworkManager\&. Note that the user still can explicitly overrule this configuration via means like
+\fBnmcli device set "$DEVICE" managed yes\fR
+or
+"device*\&.managed=1"
+in NetworkManager\&.conf\&.
 .RE
 .SH "SIGNALS"
 .PP

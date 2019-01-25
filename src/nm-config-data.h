@@ -170,12 +170,28 @@ gboolean          nm_config_data_get_no_auto_default_for_device (const NMConfigD
 
 const char *nm_config_data_get_dns_mode (const NMConfigData *self);
 const char *nm_config_data_get_rc_manager (const NMConfigData *self);
+gboolean nm_config_data_get_systemd_resolved (const NMConfigData *self);
 
 gboolean nm_config_data_get_ignore_carrier (const NMConfigData *self, NMDevice *device);
 gboolean nm_config_data_get_assume_ipv6ll_only (const NMConfigData *self, NMDevice *device);
 int      nm_config_data_get_sriov_num_vfs (const NMConfigData *self, NMDevice *device);
 
 NMGlobalDnsConfig *nm_config_data_get_global_dns_config (const NMConfigData *self);
+
+extern const char *__start_connection_defaults[];
+extern const char *__stop_connection_defaults[];
+
+#define NM_CON_DEFAULT_NOP(name) \
+	static const char *NM_UNIQ_T (connection_default, NM_UNIQ) \
+		_nm_used _nm_section ("connection_defaults") = "" name
+
+#define NM_CON_DEFAULT(name) \
+	({ \
+		static const char *__con_default_prop \
+			_nm_used _nm_section ("connection_defaults") = "" name; \
+		\
+		name; \
+	})
 
 char *nm_config_data_get_connection_default (const NMConfigData *self,
                                              const char *property,
@@ -231,6 +247,15 @@ void nm_global_dns_config_to_dbus (const NMGlobalDnsConfig *dns_config, GValue *
 GKeyFile *_nm_config_data_get_keyfile (const NMConfigData *self);
 GKeyFile *_nm_config_data_get_keyfile_user (const NMConfigData *self);
 GKeyFile *_nm_config_data_get_keyfile_intern (const NMConfigData *self);
+
+/*****************************************************************************/
+
+/* nm-config-data.c requires getting the DHCP manager's configuration. That is a bit
+ * ugly, and optimally, NMConfig* is independent of NMDhcpManager. Instead of
+ * including the header, forward declare the two functions that we need. */
+struct _NMDhcpManager;
+struct _NMDhcpManager *nm_dhcp_manager_get (void);
+const char *nm_dhcp_manager_get_config (struct _NMDhcpManager *self);
 
 #endif /* NM_CONFIG_DATA_H */
 

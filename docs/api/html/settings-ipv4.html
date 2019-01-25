@@ -8,7 +8,7 @@
 <link rel="up" href="ch01.html" title="Configuration Settings">
 <link rel="prev" href="settings-infiniband.html" title="infiniband">
 <link rel="next" href="settings-ipv6.html" title="ipv6">
-<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -75,7 +75,7 @@
 <td><pre class="screen">dhcp-client-id</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td>A string sent to the DHCP server to identify the local machine which the DHCP server may use to customize the DHCP lease and options. When the property is a hex string ('aa:bb:cc') it is interpreted as a binary client ID, in which case the first byte is assumed to be the 'type' field as per RFC 2132 section 9.14 and the remaining bytes may be an hardware address (e.g. '01:xx:xx:xx:xx:xx:xx' where 1 is the Ethernet ARP type and the rest is a MAC address). If the property is not a hex string it is considered as a non-hardware-address client ID and the 'type' field is set to 0. The special values "mac" and "perm-mac" are supported, which use the current or permanent MAC address of the device to generate a client identifier with type ethernet (01). Currently, these options only work for ethernet type of links. The special value "stable" is supported to generate a type 0 client identifier based on the stable-id (see connection.stable-id) and a per-host key. If unset, a globally configured default is used. If still unset, the client-id from the last lease is reused.</td>
+<td>A string sent to the DHCP server to identify the local machine which the DHCP server may use to customize the DHCP lease and options. When the property is a hex string ('aa:bb:cc') it is interpreted as a binary client ID, in which case the first byte is assumed to be the 'type' field as per RFC 2132 section 9.14 and the remaining bytes may be an hardware address (e.g. '01:xx:xx:xx:xx:xx:xx' where 1 is the Ethernet ARP type and the rest is a MAC address). If the property is not a hex string it is considered as a non-hardware-address client ID and the 'type' field is set to 0. The special values "mac" and "perm-mac" are supported, which use the current or permanent MAC address of the device to generate a client identifier with type ethernet (01). Currently, these options only work for ethernet type of links. The special value "duid" generates a RFC4361-compliant client identifier based on a hash of the interface name as IAID and /etc/machine-id. The special value "stable" is supported to generate a type 0 client identifier based on the stable-id (see connection.stable-id) and a per-host key. If you set the stable-id, you may want to include the "${DEVICE}" or "${MAC}" specifier to get a per-device key. If unset, a globally configured default is used. If still unset, the default depends on the DHCP plugin.</td>
 </tr>
 <tr>
 <td><pre class="screen">dhcp-fqdn</pre></td>
@@ -117,7 +117,7 @@
 <td><pre class="screen">dns-priority</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">0</pre></td>
-<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority).  Zero selects the default value, which is 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports split-DNS as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
+<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports split-DNS as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
 </tr>
 <tr>
 <td><pre class="screen">dns-search</pre></td>
@@ -192,6 +192,6 @@
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29.1</div>
+<hr>Generated by GTK-Doc V1.29</div>
 </body>
 </html>

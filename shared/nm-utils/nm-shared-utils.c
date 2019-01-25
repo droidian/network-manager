@@ -59,6 +59,41 @@ nm_utils_strbuf_append_c (char **buf, gsize *len, char c)
 }
 
 void
+nm_utils_strbuf_append_bin (char **buf, gsize *len, gconstpointer str, gsize str_len)
+{
+	switch (*len) {
+	case 0:
+		return;
+	case 1:
+		if (str_len == 0) {
+			(*buf)[0] = '\0';
+			return;
+		}
+		(*buf)[0] = '\0';
+		*len = 0;
+		(*buf)++;
+		return;
+	default:
+		if (str_len == 0) {
+			(*buf)[0] = '\0';
+			return;
+		}
+		if (str_len >= *len) {
+			memcpy (*buf, str, *len - 1);
+			(*buf)[*len - 1] = '\0';
+			*buf = &(*buf)[*len];
+			*len = 0;
+		} else {
+			memcpy (*buf, str, str_len);
+			*buf = &(*buf)[str_len];
+			(*buf)[0] = '\0';
+			*len -= str_len;
+		}
+		return;
+	}
+}
+
+void
 nm_utils_strbuf_append_str (char **buf, gsize *len, const char *str)
 {
 	gsize src_len;
@@ -118,7 +153,7 @@ nm_utils_strbuf_append (char **buf, gsize *len, const char *format, ...)
 /**
  * nm_utils_strbuf_seek_end:
  * @buf: the input/output buffer
- * @len: the input/output lenght of the buffer.
+ * @len: the input/output length of the buffer.
  *
  * Commonly, one uses nm_utils_strbuf_append*(), to incrementally
  * append strings to the buffer. However, sometimes we need to use
@@ -459,34 +494,25 @@ nm_utils_ip_is_site_local (int addr_family,
 gboolean
 nm_utils_parse_inaddr_bin (int addr_family,
                            const char *text,
+                           int *out_addr_family,
                            gpointer out_addr)
 {
 	NMIPAddr addrbin;
 
 	g_return_val_if_fail (text, FALSE);
 
-	if (addr_family == AF_UNSPEC)
+	if (addr_family == AF_UNSPEC) {
+		g_return_val_if_fail (!out_addr || out_addr_family, FALSE);
 		addr_family = strchr (text, ':') ? AF_INET6 : AF_INET;
-	else
+	} else
 		g_return_val_if_fail (NM_IN_SET (addr_family, AF_INET, AF_INET6), FALSE);
 
-	/* use a temporary variable @addrbin, to guarantee that @out_addr
-	 * is only modified on success. */
 	if (inet_pton (addr_family, text, &addrbin) != 1)
 		return FALSE;
 
-	if (out_addr) {
-		switch (addr_family) {
-		case AF_INET:
-			*((in_addr_t *) out_addr) = addrbin.addr4;
-			break;
-		case AF_INET6:
-			*((struct in6_addr *) out_addr) = addrbin.addr6;
-			break;
-		default:
-			nm_assert_not_reached ();
-		}
-	}
+	NM_SET_OUT (out_addr_family, addr_family);
+	if (out_addr)
+		nm_ip_addr_set (addr_family, out_addr, &addrbin);
 	return TRUE;
 }
 
@@ -498,9 +524,7 @@ nm_utils_parse_inaddr (int addr_family,
 	NMIPAddr addrbin;
 	char addrstr_buf[MAX (INET_ADDRSTRLEN, INET6_ADDRSTRLEN)];
 
-	nm_assert (!out_addr || !*out_addr);
-
-	if (!nm_utils_parse_inaddr_bin (addr_family, text, &addrbin))
+	if (!nm_utils_parse_inaddr_bin (addr_family, text, &addr_family, &addrbin))
 		return FALSE;
 	NM_SET_OUT (out_addr, g_strdup (inet_ntop (addr_family, &addrbin, addrstr_buf, sizeof (addrstr_buf))));
 	return TRUE;
@@ -509,6 +533,7 @@ nm_utils_parse_inaddr (int addr_family,
 gboolean
 nm_utils_parse_inaddr_prefix_bin (int addr_family,
                                   const char *text,
+                                  int *out_addr_family,
                                   gpointer out_addr,
                                   int *out_prefix)
 {
@@ -517,19 +542,14 @@ nm_utils_parse_inaddr_prefix_bin (int addr_family,
 	const char *slash;
 	const char *addrstr;
 	NMIPAddr addrbin;
-	int addr_len;
 
 	g_return_val_if_fail (text, FALSE);
 
-	if (addr_family == AF_UNSPEC)
+	if (addr_family == AF_UNSPEC) {
+		g_return_val_if_fail (!out_addr || out_addr_family, FALSE);
 		addr_family = strchr (text, ':') ? AF_INET6 : AF_INET;
-
-	if (addr_family == AF_INET)
-		addr_len = sizeof (in_addr_t);
-	else if (addr_family == AF_INET6)
-		addr_len = sizeof (struct in6_addr);
-	else
-		g_return_val_if_reached (FALSE);
+	} else
+		g_return_val_if_fail (NM_IN_SET (addr_family, AF_INET, AF_INET6), FALSE);
 
 	slash = strchr (text, '/');
 	if (slash)
@@ -549,8 +569,9 @@ nm_utils_parse_inaddr_prefix_bin (int addr_family,
 			return FALSE;
 	}
 
+	NM_SET_OUT (out_addr_family, addr_family);
 	if (out_addr)
-		memcpy (out_addr, &addrbin, addr_len);
+		nm_ip_addr_set (addr_family, out_addr, &addrbin);
 	NM_SET_OUT (out_prefix, prefix);
 	return TRUE;
 }
@@ -564,7 +585,7 @@ nm_utils_parse_inaddr_prefix (int addr_family,
 	NMIPAddr addrbin;
 	char addrstr_buf[MAX (INET_ADDRSTRLEN, INET6_ADDRSTRLEN)];
 
-	if (!nm_utils_parse_inaddr_prefix_bin (addr_family, text, &addrbin, out_prefix))
+	if (!nm_utils_parse_inaddr_prefix_bin (addr_family, text, &addr_family, &addrbin, out_prefix))
 		return FALSE;
 	NM_SET_OUT (out_addr, g_strdup (inet_ntop (addr_family, &addrbin, addrstr_buf, sizeof (addrstr_buf))));
 	return TRUE;
@@ -1081,11 +1102,24 @@ nm_utils_error_is_cancelled (GError *error,
                              gboolean consider_is_disposing)
 {
 	if (error) {
-		if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-			return TRUE;
-		if (   consider_is_disposing
-		    && g_error_matches (error, NM_UTILS_ERROR, NM_UTILS_ERROR_CANCELLED_DISPOSING))
-			return TRUE;
+		if (error->domain == G_IO_ERROR)
+			return NM_IN_SET (error->code, G_IO_ERROR_CANCELLED);
+		if (consider_is_disposing) {
+			if (error->domain == NM_UTILS_ERROR)
+				return NM_IN_SET (error->code, NM_UTILS_ERROR_CANCELLED_DISPOSING);
+		}
+	}
+	return FALSE;
+}
+
+gboolean
+nm_utils_error_is_notfound (GError *error)
+{
+	if (error) {
+		if (error->domain == G_IO_ERROR)
+			return NM_IN_SET (error->code, G_IO_ERROR_NOT_FOUND);
+		if (error->domain == G_FILE_ERROR)
+			return NM_IN_SET (error->code, G_FILE_ERROR_NOENT);
 	}
 	return FALSE;
 }
@@ -1109,7 +1143,7 @@ nm_utils_error_is_cancelled (GError *error,
  */
 gboolean
 nm_g_object_set_property (GObject *object,
-                          const char   *property_name,
+                          const char *property_name,
                           const GValue *value,
                           GError **error)
 {
@@ -1182,30 +1216,136 @@ nm_g_object_set_property (GObject *object,
 	return TRUE;
 }
 
+#define _set_property(object, property_name, gtype, gtype_set, value, error) \
+	G_STMT_START { \
+		nm_auto_unset_gvalue GValue gvalue = { 0 }; \
+		\
+		g_value_init (&gvalue, gtype); \
+		gtype_set (&gvalue, (value)); \
+		return nm_g_object_set_property ((object), (property_name), &gvalue, (error)); \
+	} G_STMT_END
+
+gboolean
+nm_g_object_set_property_string (GObject *object,
+                                 const char *property_name,
+                                 const char *value,
+                                 GError **error)
+{
+	_set_property (object, property_name, G_TYPE_STRING, g_value_set_string, value, error);
+}
+
+gboolean
+nm_g_object_set_property_string_static (GObject *object,
+                                        const char *property_name,
+                                        const char *value,
+                                        GError **error)
+{
+	_set_property (object, property_name, G_TYPE_STRING, g_value_set_static_string, value, error);
+}
+
+gboolean
+nm_g_object_set_property_string_take (GObject *object,
+                                      const char *property_name,
+                                      char *value,
+                                      GError **error)
+{
+	_set_property (object, property_name, G_TYPE_STRING, g_value_take_string, value, error);
+}
+
 gboolean
 nm_g_object_set_property_boolean (GObject *object,
-                                  const char   *property_name,
+                                  const char *property_name,
                                   gboolean value,
                                   GError **error)
 {
-	nm_auto_unset_gvalue GValue gvalue = { 0 };
+	_set_property (object, property_name, G_TYPE_BOOLEAN, g_value_set_boolean, !!value, error);
+}
 
-	g_value_init (&gvalue, G_TYPE_BOOLEAN);
-	g_value_set_boolean (&gvalue, !!value);
-	return nm_g_object_set_property (object, property_name, &gvalue, error);
+gboolean
+nm_g_object_set_property_char (GObject *object,
+                               const char *property_name,
+                               gint8 value,
+                               GError **error)
+{
+	/* glib says about G_TYPE_CHAR:
+	 *
+	 * The type designated by G_TYPE_CHAR is unconditionally an 8-bit signed integer.
+	 *
+	 * This is always a (signed!) char. */
+	_set_property (object, property_name, G_TYPE_CHAR, g_value_set_schar, value, error);
+}
+
+gboolean
+nm_g_object_set_property_uchar (GObject *object,
+                                const char *property_name,
+                                guint8 value,
+                                GError **error)
+{
+	_set_property (object, property_name, G_TYPE_UCHAR, g_value_set_uchar, value, error);
+}
+
+gboolean
+nm_g_object_set_property_int (GObject *object,
+                              const char *property_name,
+                              int value,
+                              GError **error)
+{
+	_set_property (object, property_name, G_TYPE_INT, g_value_set_int, value, error);
+}
+
+gboolean
+nm_g_object_set_property_int64 (GObject *object,
+                                const char *property_name,
+                                gint64 value,
+                                GError **error)
+{
+	_set_property (object, property_name, G_TYPE_INT64, g_value_set_int64, value, error);
 }
 
 gboolean
 nm_g_object_set_property_uint (GObject *object,
-                               const char   *property_name,
+                               const char *property_name,
                                guint value,
                                GError **error)
 {
-	nm_auto_unset_gvalue GValue gvalue = { 0 };
+	_set_property (object, property_name, G_TYPE_UINT, g_value_set_uint, value, error);
+}
 
-	g_value_init (&gvalue, G_TYPE_UINT);
-	g_value_set_uint (&gvalue, value);
-	return nm_g_object_set_property (object, property_name, &gvalue, error);
+gboolean
+nm_g_object_set_property_uint64 (GObject *object,
+                                 const char *property_name,
+                                 guint64 value,
+                                 GError **error)
+{
+	_set_property (object, property_name, G_TYPE_UINT64, g_value_set_uint64, value, error);
+}
+
+gboolean
+nm_g_object_set_property_flags (GObject *object,
+                                const char *property_name,
+                                GType gtype,
+                                guint value,
+                                GError **error)
+{
+	nm_assert (({
+	                nm_auto_unref_gtypeclass GTypeClass *gtypeclass = g_type_class_ref (gtype);
+	                G_IS_FLAGS_CLASS (gtypeclass);
+	           }));
+	_set_property (object, property_name, gtype, g_value_set_flags, value, error);
+}
+
+gboolean
+nm_g_object_set_property_enum (GObject *object,
+                               const char *property_name,
+                               GType gtype,
+                               int value,
+                               GError **error)
+{
+	nm_assert (({
+	                nm_auto_unref_gtypeclass GTypeClass *gtypeclass = g_type_class_ref (gtype);
+	                G_IS_ENUM_CLASS (gtypeclass);
+	           }));
+	_set_property (object, property_name, gtype, g_value_set_enum, value, error);
 }
 
 GParamSpec *
@@ -2113,3 +2253,125 @@ _nm_utils_unescape_spaces (char *str)
 }
 
 #undef IS_SPACE
+
+/*****************************************************************************/
+
+typedef struct {
+	gpointer callback_user_data;
+	GCancellable *cancellable;
+	NMUtilsInvokeOnIdleCallback callback;
+	gulong cancelled_id;
+	guint idle_id;
+} InvokeOnIdleData;
+
+static gboolean
+_nm_utils_invoke_on_idle_cb_idle (gpointer user_data)
+{
+	InvokeOnIdleData *data = user_data;
+
+	data->idle_id = 0;
+	nm_clear_g_signal_handler (data->cancellable, &data->cancelled_id);
+
+	data->callback (data->callback_user_data, data->cancellable);
+	nm_g_object_unref (data->cancellable);
+	g_slice_free (InvokeOnIdleData, data);
+	return G_SOURCE_REMOVE;
+}
+
+static void
+_nm_utils_invoke_on_idle_cb_cancelled (GCancellable *cancellable,
+                                       InvokeOnIdleData *data)
+{
+	/* on cancellation, we invoke the callback synchronously. */
+	nm_clear_g_signal_handler (data->cancellable, &data->cancelled_id);
+	nm_clear_g_source (&data->idle_id);
+	data->callback (data->callback_user_data, data->cancellable);
+	nm_g_object_unref (data->cancellable);
+	g_slice_free (InvokeOnIdleData, data);
+}
+
+void
+nm_utils_invoke_on_idle (NMUtilsInvokeOnIdleCallback callback,
+                         gpointer callback_user_data,
+                         GCancellable *cancellable)
+{
+	InvokeOnIdleData *data;
+
+	g_return_if_fail (callback);
+
+	data = g_slice_new (InvokeOnIdleData);
+	data->callback = callback;
+	data->callback_user_data = callback_user_data;
+	data->cancellable = nm_g_object_ref (cancellable);
+	if (   cancellable
+	    && !g_cancellable_is_cancelled (cancellable)) {
+		/* if we are passed a non-cancelled cancellable, we register to the "cancelled"
+		 * signal an invoke the callback synchronously (from the signal handler).
+		 *
+		 * We don't do that,
+		 *  - if the cancellable is already cancelled (because we don't want to invoke
+		 *    the callback synchronously from the caller).
+		 *  - if we have no cancellable at hand. */
+		data->cancelled_id = g_signal_connect (cancellable,
+		                                       "cancelled",
+		                                       G_CALLBACK (_nm_utils_invoke_on_idle_cb_cancelled),
+		                                       data);
+	} else
+		data->cancelled_id = 0;
+	data->idle_id = g_idle_add (_nm_utils_invoke_on_idle_cb_idle, data);
+}
+
+/*****************************************************************************/
+
+int
+nm_utils_getpagesize (void)
+{
+	static volatile int val = 0;
+	long l;
+	int v;
+
+	v = g_atomic_int_get (&val);
+
+	if (G_UNLIKELY (v == 0)) {
+		l = sysconf (_SC_PAGESIZE);
+
+		g_return_val_if_fail (l > 0 && l < G_MAXINT, 4*1024);
+
+		v = (int) l;
+		if (!g_atomic_int_compare_and_exchange (&val, 0, v)) {
+			v = g_atomic_int_get (&val);
+			g_return_val_if_fail (v > 0, 4*1024);
+		}
+	}
+
+	nm_assert (v > 0);
+#if NM_MORE_ASSERTS > 5
+	nm_assert (v == getpagesize ());
+	nm_assert (v == sysconf (_SC_PAGESIZE));
+#endif
+
+	return v;
+}
+
+gboolean
+nm_utils_memeqzero (gconstpointer data, gsize length)
+{
+	const unsigned char *p = data;
+	int len;
+
+	/* Taken from https://github.com/rustyrussell/ccan/blob/9d2d2c49f053018724bcc6e37029da10b7c3d60d/ccan/mem/mem.c#L92,
+	 * CC-0 licensed. */
+
+	/* Check first 16 bytes manually */
+	for (len = 0; len < 16; len++) {
+		if (!length)
+			return TRUE;
+		if (*p)
+			return FALSE;
+		p++;
+		length--;
+	}
+
+	/* Now we know that's zero, memcmp with self. */
+	return memcmp (data, p, length) == 0;
+}

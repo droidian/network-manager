@@ -27,6 +27,7 @@
 #include <linux/if.h>
 #include <linux/ip.h>
 #include <linux/if_tunnel.h>
+#include <linux/ip6_tunnel.h>
 
 #include "nm-device-private.h"
 #include "nm-manager.h"
@@ -328,28 +329,28 @@ clear:
 		if (!address_equal_pn (AF_INET, priv->local, &local4)) {
 			g_clear_pointer (&priv->local, g_free);
 			if (local4)
-				priv->local = g_strdup (nm_utils_inet4_ntop (local4, NULL));
+				priv->local = nm_utils_inet4_ntop_dup (local4);
 			_notify (self, PROP_LOCAL);
 		}
 
 		if (!address_equal_pn (AF_INET, priv->remote, &remote4)) {
 			g_clear_pointer (&priv->remote, g_free);
 			if (remote4)
-				priv->remote = g_strdup (nm_utils_inet4_ntop (remote4, NULL));
+				priv->remote = nm_utils_inet4_ntop_dup (remote4);
 			_notify (self, PROP_REMOTE);
 		}
 	} else {
 		if (!address_equal_pn (AF_INET6, priv->local, &local6)) {
 			g_clear_pointer (&priv->local, g_free);
 			if (memcmp (&local6, &in6addr_any, sizeof (in6addr_any)))
-				priv->local = g_strdup (nm_utils_inet6_ntop (&local6, NULL));
+				priv->local = nm_utils_inet6_ntop_dup (&local6);
 			_notify (self, PROP_LOCAL);
 		}
 
 		if (!address_equal_pn (AF_INET6, priv->remote, &remote6)) {
 			g_clear_pointer (&priv->remote, g_free);
 			if (memcmp (&remote6, &in6addr_any, sizeof (in6addr_any)))
-				priv->remote = g_strdup (nm_utils_inet6_ntop (&remote6, NULL));
+				priv->remote = nm_utils_inet6_ntop_dup (&remote6);
 			_notify (self, PROP_REMOTE);
 		}
 	}
@@ -659,7 +660,6 @@ create_and_realize (NMDevice *device,
 {
 	const char *iface = nm_device_get_iface (device);
 	NMSettingIPTunnel *s_ip_tunnel;
-	NMPlatformError plerr;
 	NMPlatformLnkGre lnk_gre = { };
 	NMPlatformLnkSit lnk_sit = { };
 	NMPlatformLnkIpIp lnk_ipip = { };
@@ -667,6 +667,7 @@ create_and_realize (NMDevice *device,
 	const char *str;
 	gint64 val;
 	NMIPTunnelMode mode;
+	int r;
 
 	s_ip_tunnel = nm_connection_get_setting_ip_tunnel (connection);
 	g_assert (s_ip_tunnel);
@@ -712,13 +713,13 @@ create_and_realize (NMDevice *device,
 			lnk_gre.output_flags = NM_GRE_KEY;
 		}
 
-		plerr = nm_platform_link_gre_add (nm_device_get_platform (device), iface, &lnk_gre, out_plink);
-		if (plerr != NM_PLATFORM_ERROR_SUCCESS) {
+		r = nm_platform_link_gre_add (nm_device_get_platform (device), iface, &lnk_gre, out_plink);
+		if (r < 0) {
 			g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
 			             "Failed to create GRE interface '%s' for '%s': %s",
 			             iface,
 			             nm_connection_get_id (connection),
-			             nm_platform_error_to_string_a (plerr));
+			             nm_strerror (r));
 			return FALSE;
 		}
 		break;
@@ -738,13 +739,13 @@ create_and_realize (NMDevice *device,
 		lnk_sit.tos = nm_setting_ip_tunnel_get_tos (s_ip_tunnel);
 		lnk_sit.path_mtu_discovery = nm_setting_ip_tunnel_get_path_mtu_discovery (s_ip_tunnel);
 
-		plerr = nm_platform_link_sit_add (nm_device_get_platform (device), iface, &lnk_sit, out_plink);
-		if (plerr != NM_PLATFORM_ERROR_SUCCESS) {
+		r = nm_platform_link_sit_add (nm_device_get_platform (device), iface, &lnk_sit, out_plink);
+		if (r < 0) {
 			g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
 			             "Failed to create SIT interface '%s' for '%s': %s",
 			             iface,
 			             nm_connection_get_id (connection),
-			             nm_platform_error_to_string_a (plerr));
+			             nm_strerror (r));
 			return FALSE;
 		}
 		break;
@@ -764,13 +765,13 @@ create_and_realize (NMDevice *device,
 		lnk_ipip.tos = nm_setting_ip_tunnel_get_tos (s_ip_tunnel);
 		lnk_ipip.path_mtu_discovery = nm_setting_ip_tunnel_get_path_mtu_discovery (s_ip_tunnel);
 
-		plerr = nm_platform_link_ipip_add (nm_device_get_platform (device), iface, &lnk_ipip, out_plink);
-		if (plerr != NM_PLATFORM_ERROR_SUCCESS) {
+		r = nm_platform_link_ipip_add (nm_device_get_platform (device), iface, &lnk_ipip, out_plink);
+		if (r < 0) {
 			g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
 			             "Failed to create IPIP interface '%s' for '%s': %s",
 			             iface,
 			             nm_connection_get_id (connection),
-			             nm_platform_error_to_string_a (plerr));
+			             nm_strerror (r));
 			return FALSE;
 		}
 		break;
@@ -819,21 +820,21 @@ create_and_realize (NMDevice *device,
 			lnk_ip6tnl.is_gre = TRUE;
 			lnk_ip6tnl.is_tap = (mode == NM_IP_TUNNEL_MODE_IP6GRETAP);
 
-			plerr = nm_platform_link_ip6gre_add (nm_device_get_platform (device),
-			                                     iface, &lnk_ip6tnl, out_plink);
+			r = nm_platform_link_ip6gre_add (nm_device_get_platform (device),
+			                                 iface, &lnk_ip6tnl, out_plink);
 		} else {
 			lnk_ip6tnl.proto = nm_setting_ip_tunnel_get_mode (s_ip_tunnel) == NM_IP_TUNNEL_MODE_IPIP6
 			                       ? IPPROTO_IPIP
 			                       : IPPROTO_IPV6;
-			plerr = nm_platform_link_ip6tnl_add (nm_device_get_platform (device),
-			                                     iface, &lnk_ip6tnl, out_plink);
+			r = nm_platform_link_ip6tnl_add (nm_device_get_platform (device),
+			                                 iface, &lnk_ip6tnl, out_plink);
 		}
-		if (plerr != NM_PLATFORM_ERROR_SUCCESS) {
+		if (r < 0) {
 			g_set_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_CREATION_FAILED,
 			             "Failed to create IPv6 tunnel interface '%s' for '%s': %s",
 			             iface,
 			             nm_connection_get_id (connection),
-			             nm_platform_error_to_string_a (plerr));
+			             nm_strerror (r));
 			return FALSE;
 		}
 		break;

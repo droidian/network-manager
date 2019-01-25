@@ -48,7 +48,7 @@ nm_keyfile_plugin_get_alias_for_setting_name (const char *setting_name)
 	g_return_val_if_fail (setting_name != NULL, NULL);
 
 	for (i = 0; i < G_N_ELEMENTS (alias_list); i++) {
-		if (strcmp (setting_name, alias_list[i].setting) == 0)
+		if (nm_streq (setting_name, alias_list[i].setting))
 			return alias_list[i].alias;
 	}
 	return NULL;
@@ -62,7 +62,7 @@ nm_keyfile_plugin_get_setting_name_for_alias (const char *alias)
 	g_return_val_if_fail (alias != NULL, NULL);
 
 	for (i = 0; i < G_N_ELEMENTS (alias_list); i++) {
-		if (strcmp (alias, alias_list[i].alias) == 0)
+		if (nm_streq (alias, alias_list[i].alias))
 			return alias_list[i].setting;
 	}
 	return NULL;
@@ -82,17 +82,22 @@ nm_keyfile_plugin_kf_get_##stype##_list (GKeyFile *kf, \
 	get_ctype list; \
 	const char *alias; \
 	GError *local = NULL; \
+	gsize l; \
  \
-	list = g_key_file_get_##stype##_list (kf, group, key, out_length, &local); \
+	list = g_key_file_get_##stype##_list (kf, group, key, &l, &local); \
 	if (g_error_matches (local, G_KEY_FILE_ERROR, G_KEY_FILE_ERROR_GROUP_NOT_FOUND)) { \
 		alias = nm_keyfile_plugin_get_alias_for_setting_name (group); \
 		if (alias) { \
 			g_clear_error (&local); \
-			list = g_key_file_get_##stype##_list (kf, alias, key, out_length, &local); \
+			list = g_key_file_get_##stype##_list (kf, alias, key, &l, &local); \
 		} \
 	} \
+	nm_assert ((!local) != (!list)); \
 	if (local) \
 		g_propagate_error (error, local); \
+	if (!list) \
+		l = 0; \
+	NM_SET_OUT (out_length, l); \
 	return list; \
 } \
  \
@@ -174,10 +179,40 @@ nm_keyfile_plugin_kf_set_##stype (GKeyFile *kf, \
 }
 
 DEFINE_KF_WRAPPER(string, char*, const char*);
-DEFINE_KF_WRAPPER(integer, int, int);
-DEFINE_KF_WRAPPER(uint64, guint64, guint64);
 DEFINE_KF_WRAPPER(boolean, gboolean, gboolean);
 DEFINE_KF_WRAPPER(value, char*, const char*);
+
+gint64
+nm_keyfile_plugin_kf_get_int64 (GKeyFile *kf,
+                                const char *group,
+                                const char *key,
+                                guint base,
+                                gint64 min,
+                                gint64 max,
+                                gint64 fallback,
+                                GError **error)
+{
+	gs_free char *s = NULL;
+	int errsv;
+	gint64 v;
+
+	s = nm_keyfile_plugin_kf_get_value (kf, group, key, error);
+	if (!s) {
+		errno = ENODATA;
+		return fallback;
+	}
+
+	v = _nm_utils_ascii_str_to_int64 (s, base, min, max, fallback);
+	errsv = errno;
+	if (   errsv != 0
+	    && error) {
+		g_set_error (error, G_KEY_FILE_ERROR, G_KEY_FILE_ERROR_INVALID_VALUE,
+		             _("value is not an integer in range [%lld, %lld]"),
+		             (long long) min, (long long) max);
+		errno = errsv;
+	}
+	return v;
+}
 
 char **
 nm_keyfile_plugin_kf_get_keys (GKeyFile *kf,
@@ -188,15 +223,21 @@ nm_keyfile_plugin_kf_get_keys (GKeyFile *kf,
 	char **keys;
 	const char *alias;
 	GError *local = NULL;
+	gsize l;
 
-	keys = g_key_file_get_keys (kf, group, out_length, &local);
+	keys = g_key_file_get_keys (kf, group, &l, &local);
 	if (g_error_matches (local, G_KEY_FILE_ERROR, G_KEY_FILE_ERROR_GROUP_NOT_FOUND)) {
 		alias = nm_keyfile_plugin_get_alias_for_setting_name (group);
 		if (alias) {
 			g_clear_error (&local);
-			keys = g_key_file_get_keys (kf, alias, out_length, error ? &local : NULL);
+			keys = g_key_file_get_keys (kf, alias, &l, error ? &local : NULL);
 		}
 	}
+	nm_assert ((!local) != (!keys));
+	if (!keys)
+		l = 0;
+	nm_assert (l == NM_PTRARRAY_LEN (keys));
+	NM_SET_OUT (out_length, l);
 	if (local)
 		g_propagate_error (error, local);
 	return keys;

@@ -307,7 +307,8 @@ nmc_setting_connection_connect_handlers (NMSettingConnection *setting, NMConnect
 /*****************************************************************************/
 
 static gboolean
-_set_fcn_precheck_connection_secondaries (const char *value,
+_set_fcn_precheck_connection_secondaries (NMClient *client,
+                                          const char *value,
                                           char **value_coerced,
                                           GError **error)
 {
@@ -322,7 +323,7 @@ _set_fcn_precheck_connection_secondaries (const char *value,
 	if (!strv0)
 		return TRUE;
 
-	connections = nm_client_get_connections (nm_cli.client);
+	connections = nm_client_get_connections (client);
 
 	strv = g_strdupv ((char **) strv0);
 	for (iter = strv; *iter; iter++) {
@@ -332,7 +333,7 @@ _set_fcn_precheck_connection_secondaries (const char *value,
 				g_print (_("Warning: %s is not an UUID of any existing connection profile\n"),
 				         *iter);
 			} else {
-				/* Currenly NM only supports VPN connections as secondaries */
+				/* Currently NM only supports VPN connections as secondaries */
 				if (!nm_connection_is_type (con, NM_SETTING_VPN_SETTING_NAME)) {
 					g_set_error (error, 1, 0, _("'%s' is not a VPN connection profile"), *iter);
 					return FALSE;
@@ -345,7 +346,7 @@ _set_fcn_precheck_connection_secondaries (const char *value,
 				return FALSE;
 			}
 
-			/* Currenly NM only supports VPN connections as secondaries */
+			/* Currently NM only supports VPN connections as secondaries */
 			if (!nm_connection_is_type (con, NM_SETTING_VPN_SETTING_NAME)) {
 				g_set_error (error, 1, 0, _("'%s' is not a VPN connection profile"), *iter);
 				return FALSE;
@@ -531,7 +532,7 @@ _set_fcn_call (const NMMetaPropertyInfo *property_info,
  * Returns: TRUE on success; FALSE on failure and sets error
  */
 gboolean
-nmc_setting_set_property (NMSetting *setting, const char *prop, const char *value, GError **error)
+nmc_setting_set_property (NMClient *client, NMSetting *setting, const char *prop, const char *value, GError **error)
 {
 	const NMMetaPropertyInfo *property_info;
 
@@ -552,7 +553,7 @@ nmc_setting_set_property (NMSetting *setting, const char *prop, const char *valu
 				if (nm_streq (property_info->property_name, NM_SETTING_CONNECTION_SECONDARIES)) {
 					gs_free char *value_coerced = NULL;
 
-					if (!_set_fcn_precheck_connection_secondaries (value, &value_coerced, error))
+					if (!_set_fcn_precheck_connection_secondaries (client, value, &value_coerced, error))
 						return FALSE;
 
 					return _set_fcn_call (property_info,
@@ -590,11 +591,11 @@ nmc_property_set_default_value (NMSetting *setting, const char *prop)
 }
 
 /*
- * Generic function for reseting (single value) properties.
+ * Generic function for resetting (single value) properties.
  *
  * The function resets the property value to the default one. It respects
  * nmcli restrictions for changing properties. So if 'set_func' is NULL,
- * reseting the value is denied.
+ * resetting the value is denied.
  *
  * Returns: TRUE on success; FALSE on failure and sets error
  */

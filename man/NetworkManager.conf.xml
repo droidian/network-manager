@@ -166,6 +166,15 @@ plugins-=remove-me
         In some situations, NetworkManager might first delete and add the
         connection anew, instead of updating the existing one. Also, NetworkManager
         might pick up incomplete settings while the user is still editing the files.
+        </para><para>
+        Note that neither this setting nor restarting the NetworkManager daemon
+        is the advised way to reload connection profiles from disk. Instead, after
+        modifying the files reload them with <command>nmcli connection reload</command>
+        or <command>nmcli connection load "$FILENAME"</command>. Even better,
+        instead of modifying files directly, use NetworkManager tools like
+        <command>nmcli</command>, <command>nmtui</command> or the GUI.
+        </para><para>
+        This setting is deprecated and will have no effect in the future.
         </para></listitem>
       </varlistentry>
       <varlistentry>
@@ -204,7 +213,7 @@ plugins-=remove-me
         <para>When the default wired connection is deleted or saved
         to a new persistent connection by a plugin, the device is
         added to a list in the file
-        <filename>/run/NetworkManager/no-auto-default.state</filename>
+        <filename>&nmstatedir;/no-auto-default.state</filename>
         to prevent creating the default connection for that device
         again.</para>
         <para>See <xref linkend="device-spec"/> for the syntax how to
@@ -262,7 +271,7 @@ no-auto-default=*
             environments where network setup is more or less static or it is
             desirable to save process time but still handle some dynamic
             configurations.  When this option is <literal>true</literal>,
-            network configuration for WiFi, WWAN, Bluetooth, ADSL, and PPPoE
+            network configuration for Wi-Fi, WWAN, Bluetooth, ADSL, and PPPoE
             interfaces cannot be preserved due to their use of external
             services, and these devices will be deconfigured when NetworkManager
             quits even though other interface's configuration may be preserved.
@@ -306,8 +315,8 @@ no-auto-default=*
       </varlistentry>
       <varlistentry>
         <term><varname>dns</varname></term>
-        <listitem><para>Set the DNS (<filename>resolv.conf</filename>) processing mode.
-        If the key is unspecified, <literal>default</literal> is used,
+        <listitem><para>Set the DNS processing mode.</para>
+        <para>If the key is unspecified, <literal>default</literal> is used,
         unless <filename>/etc/resolv.conf</filename> is a symlink to
         <filename>/run/systemd/resolve/stub-resolv.conf</filename>,
         <filename>/run/systemd/resolve/resolv.conf</filename>,
@@ -331,15 +340,23 @@ no-auto-default=*
         after some time. This behavior can be modified passing the
         'all-servers' or 'strict-order' options to dnsmasq (see the
         manual page for more details).</para>
+        <para><literal>systemd-resolved</literal>: NetworkManager will
+        push the DNS configuration to systemd-resolved</para>
         <para><literal>unbound</literal>: NetworkManager will talk
         to unbound and dnssec-triggerd, providing a "split DNS"
         configuration with DNSSEC support. <filename>/etc/resolv.conf</filename>
         will be managed by dnssec-trigger daemon.</para>
-        <para><literal>systemd-resolved</literal>: NetworkManager will
-        push the DNS configuration to systemd-resolved</para>
         <para><literal>none</literal>: NetworkManager will not
         modify resolv.conf. This implies
         <literal>rc-manager</literal>&nbsp;<literal>unmanaged</literal></para>
+
+        <para>Note that the plugins <literal>dnsmasq</literal>, <literal>systemd-resolved</literal>
+        and <literal>unbound</literal> are caching local nameservers.
+        Hence, when NetworkManager writes <filename>&nmrundir;/resolv.conf</filename>
+        and <filename>/etc/resolv.conf</filename> (according to <literal>rc-manager</literal>
+        setting below), the name server there will be localhost only.
+        NetworkManager also writes a file <filename>&nmrundir;/no-stub-resolv.conf</filename>
+        that contains the original name servers pushed to the DNS plugin.</para>
         </listitem>
       </varlistentry>
 
@@ -376,6 +393,22 @@ no-auto-default=*
         <filename>/etc/resolv.conf</filename>.</para>
         <para><literal>none</literal>: deprecated alias for
         <literal>symlink</literal>.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><varname>systemd-resolved</varname></term>
+        <listitem><para>Send the connection DNS configuration to
+        <literal>systemd-resolved</literal>. Defaults to "<literal>true</literal>".
+        </para>
+        <para>Note that this setting is complementary to the
+        <varname>dns</varname> setting. You can keep this enabled while using
+        <varname>dns</varname> set to another DNS plugin alongside
+        <literal>systemd-resolved</literal>, or <varname>dns</varname> set to
+        <literal>systemd-resolved</literal> to configure the system resolver to use
+        <literal>systemd-resolved</literal>.</para>
+        <para>If systemd-resolved is enabled, the connectivity check resolves the
+        hostname per-device.</para>
         </listitem>
       </varlistentry>
 
@@ -641,7 +674,15 @@ ipv6.ip6-privacy=0
       (see <link linkend='nm-settings'><citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry></link> for details).
       A default value is only consulted if the corresponding per-connection value
       explicitly allows for that.
+      <!-- The following comment is used by check-config-options.sh, don't remove it. -->
+      <!-- start connection defaults -->
       <variablelist>
+        <varlistentry>
+          <term><varname>802-1x.auth-timeout</varname></term>
+        </varlistentry>
+        <varlistentry>
+          <term><varname>cdma.mtu</varname></term>
+        </varlistentry>
         <varlistentry>
           <term><varname>connection.auth-retries</varname></term>
           <listitem><para>If left unspecified, the default value is 3 tries before failing the connection.
@@ -677,6 +718,9 @@ ipv6.ip6-privacy=0
           <term><varname>ethernet.wake-on-lan</varname></term>
         </varlistentry>
         <varlistentry>
+          <term><varname>gsm.mtu</varname></term>
+        </varlistentry>
+        <varlistentry>
           <term><varname>infiniband.mtu</varname></term>
           <listitem><para>If configured explicitly to 0, the MTU is not reconfigured during device activation unless it is required due to IPv6 constraints. If left unspecified, a DHCP/IPv6 SLAAC provided value is used or the MTU is left unspecified on activation.</para></listitem>
         </varlistentry>
@@ -696,6 +740,11 @@ ipv6.ip6-privacy=0
            the interface type is used.</para></listitem>
         </varlistentry>
         <varlistentry>
+          <term><varname>ipv4.dns-priority</varname></term>
+          <listitem><para>If unspecified or zero, use 50 for VPN profiles
+           and 100 for other profiles.</para></listitem>
+        </varlistentry>
+        <varlistentry>
           <term><varname>ipv4.route-metric</varname></term>
         </varlistentry>
         <varlistentry>
@@ -713,6 +762,11 @@ ipv6.ip6-privacy=0
           <term><varname>ipv6.dhcp-timeout</varname></term>
           <listitem><para>If left unspecified, the default value for
            the interface type is used.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><varname>ipv6.dns-priority</varname></term>
+          <listitem><para>If unspecified or zero, use 50 for VPN profiles
+           and 100 for other profiles.</para></listitem>
         </varlistentry>
         <varlistentry>
           <term><varname>ipv6.ip6-privacy</varname></term>
@@ -770,7 +824,12 @@ ipv6.ip6-privacy=0
           <listitem><para>If left unspecified, the default value
           "<literal>optional</literal>" will be used.</para></listitem>
         </varlistentry>
+        <varlistentry>
+          <term><varname>wifi.wake-on-wlan</varname></term>
+        </varlistentry>
       </variablelist>
+      <!-- The following comment is used by check-config-options.sh, don't remove it. -->
+      <!-- end connection defaults -->
     </para>
     </refsect2>
 
@@ -1158,6 +1217,8 @@ enable=env:TAG1
               be used to negate the match. Note that if one except-predicate
               matches, the entire configuration will be disabled.
               In other words, a except predicate always wins over other predicates.
+              If the setting only consists of "except:" matches and none of the
+              negative conditions are satisfied, the configuration is still enabled.
 <programlisting>
 # enable the configuration either when the environment variable
 # is present or the version is at least 1.2.0.
@@ -1344,10 +1405,19 @@ enable=nm-version-min:1.3,nm-version-min:1.2.6,nm-version-min:1.0.16
           </para></listitem>
         </varlistentry>
         <varlistentry>
+          <term>dhcp-plugin:DHCP</term>
+          <listitem><para>Match the configured DHCP plugin "<literal>main.dhcp</literal>".
+          </para></listitem>
+        </varlistentry>
+        <varlistentry>
           <term>except:SPEC</term>
           <listitem><para>Negative match of a device. <literal>SPEC</literal> must be explicitly qualified with
              a prefix such as <literal>interface-name:</literal>. A negative match has higher priority then the positive
-             matches above.</para></listitem>
+             matches above.</para>
+             <para>If there is a list consisting only of negative matches, the behavior is the same as if there
+             is also match-all. That means, if none of all the negative matches is satisfied, the overall result is
+             still a positive match. That means, <literal>"except:interface-name:eth0"</literal> is the same as
+             <literal>"*,except:interface-name:eth0"</literal>.</para></listitem>
         </varlistentry>
         <varlistentry>
           <term>SPEC[,;]SPEC</term>

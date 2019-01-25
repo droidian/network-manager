@@ -8,7 +8,7 @@
 <link rel="up" href="ref-dbus-manager.html" title="The /org/freedesktop/NetworkManager object">
 <link rel="prev" href="ref-dbus-manager.html" title="The /org/freedesktop/NetworkManager object">
 <link rel="next" href="ref-dbus-agent-manager.html" title="The /org/freedesktop/NetworkManager/AgentManager object">
-<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -50,6 +50,13 @@
                                  IN  o         specific_object,
                                  OUT o         path,
                                  OUT o         active_connection);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection2" title="The AddAndActivateConnection2() method">AddAndActivateConnection2</a>       (IN  a{sa{sv}} connection,
+                                 IN  o         device,
+                                 IN  o         specific_object,
+                                 IN  a{sv}     options,
+                                 OUT o         path,
+                                 OUT o         active_connection,
+                                 OUT a{sv}     result);
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.DeactivateConnection" title="The DeactivateConnection() method">DeactivateConnection</a>            (IN  o         active_connection);
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.Sleep" title="The Sleep() method">Sleep</a>                           (IN  b         sleep);
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.Enable" title="The Enable() method">Enable</a>                          (IN  b         enable);
@@ -245,7 +252,7 @@ ActivateConnection (IN  o connection,
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">IN o <em class="parameter"><code>specific_object</code></em></code>:</span></p></td>
-<td><p>The path of a connection-type-specific object this activation should use. This parameter is currently ignored for wired and mobile broadband connections, and the value of "/" should be used (ie, no specific object). For WiFi connections, pass the object path of a specific AP from the card's scan list, or "/" to pick an AP automatically. For VPN connections, pass the object path of an ActiveConnection object that should serve as the "base" connection (to which the VPN connections lifetime will be tied), or pass "/" and NM will automatically use the current default device.</p></td>
+<td><p>The path of a connection-type-specific object this activation should use. This parameter is currently ignored for wired and mobile broadband connections, and the value of "/" should be used (ie, no specific object). For Wi-Fi connections, pass the object path of a specific AP from the card's scan list, or "/" to pick an AP automatically. For VPN connections, pass the object path of an ActiveConnection object that should serve as the "base" connection (to which the VPN connections lifetime will be tied), or pass "/" and NM will automatically use the current default device.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT o <em class="parameter"><code>active_connection</code></em></code>:</span></p></td>
@@ -269,6 +276,8 @@ AddAndActivateConnection (IN  a{sa{sv}} connection,
         given device and specific object), then activate the new connection.
         Cannot be used for VPN connections at this time.
 </p>
+<p>        See also AddAndActivateConnection2.
+</p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
 <col align="left" valign="top">
@@ -285,7 +294,7 @@ AddAndActivateConnection (IN  a{sa{sv}} connection,
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">IN o <em class="parameter"><code>specific_object</code></em></code>:</span></p></td>
-<td><p>The path of a connection-type-specific object this activation should use. This parameter is currently ignored for wired and mobile broadband connections, and the value of "/" should be used (ie, no specific object). For WiFi connections, pass the object path of a specific AP from the card's scan list, which will be used to complete the details of the newly added connection.</p></td>
+<td><p>The path of a connection-type-specific object this activation should use. This parameter is currently ignored for wired and mobile broadband connections, and the value of "/" should be used (ie, no specific object). For Wi-Fi connections, pass the object path of a specific AP from the card's scan list, which will be used to complete the details of the newly added connection.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT o <em class="parameter"><code>path</code></em></code>:</span></p></td>
@@ -294,6 +303,68 @@ AddAndActivateConnection (IN  a{sa{sv}} connection,
 <tr>
 <td><p><span class="term"><code class="literal">OUT o <em class="parameter"><code>active_connection</code></em></code>:</span></p></td>
 <td><p>The path of the active connection object representing this active connection.</p></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-method-org-freedesktop-NetworkManager.AddAndActivateConnection2"></a><h3>The AddAndActivateConnection2() method</h3>
+<pre class="programlisting">
+AddAndActivateConnection2 (IN  a{sa{sv}} connection,
+                           IN  o         device,
+                           IN  o         specific_object,
+                           IN  a{sv}     options,
+                           OUT o         path,
+                           OUT o         active_connection,
+                           OUT a{sv}     result);
+</pre>
+<p>          output arguments are supported.
+</p>
+<p>        Adds a new connection using the given details (if any) as a template
+        (automatically filling in missing settings with the capabilities of the
+        given device and specific object), then activate the new connection.
+        Cannot be used for VPN connections at this time.
+</p>
+<p>        This method extends AddAndActivateConnection to allow passing further
+        parameters. At this time the following options are supported:
+</p>
+<p>         * persist: A string value of either "disk" (default), "memory" or "volatile". If "memory" is passed, the connection will not be saved to disk. If "volatile" is passed, the connection will not be saved to disk and will be destroyed when disconnected.
+         * bind-activation: Bind the activation lifetime. Set to "dbus-name" to automatically disconnect when the requesting process disappears from the bus. The default of "none" means the connection is kept activated normally.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="literal">IN a{sa{sv}} <em class="parameter"><code>connection</code></em></code>:</span></p></td>
+<td><p>Connection settings and properties; if incomplete missing settings will be automatically completed using the given device and specific object.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">IN o <em class="parameter"><code>device</code></em></code>:</span></p></td>
+<td><p>The object path of device to be activated using the given connection.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">IN o <em class="parameter"><code>specific_object</code></em></code>:</span></p></td>
+<td><p>The path of a connection-type-specific object this activation should use. This parameter is currently ignored for wired and mobile broadband connections, and the value of "/" should be used (ie, no specific object). For Wi-Fi connections, pass the object path of a specific AP from the card's scan list, which will be used to complete the details of the newly added connection.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></p></td>
+<td><p>Further options for the method call.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">OUT o <em class="parameter"><code>path</code></em></code>:</span></p></td>
+<td><p>Object path of the new connection that was just added.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">OUT o <em class="parameter"><code>active_connection</code></em></code>:</span></p></td>
+<td><p>The path of the active connection object representing this active connection.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>result</code></em></code>:</span></p></td>
+<td><p>a dictionary of additional output arguments for future extension. Currently not additional</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -370,7 +441,7 @@ GetPermissions (OUT a{ss} permissions);
 </pre>
 <p>        Returns the permissions a caller has for various authenticated operations
         that NetworkManager provides, like Enable/Disable networking, changing
-        WiFi, WWAN, and WiMAX state, etc.
+        Wi-Fi, WWAN, and WiMAX state, etc.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -957,6 +1028,6 @@ GlobalDnsConfiguration  readwrite  a{sv}
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29.1</div>
+<hr>Generated by GTK-Doc V1.29</div>
 </body>
 </html>

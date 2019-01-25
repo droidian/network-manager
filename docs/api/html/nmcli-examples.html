@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nmcli.html" title="nmcli">
 <link rel="next" href="nmtui.html" title="nmtui">
-<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -173,7 +173,22 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.7"></a><p class="title"><b>Example 6. Adding a bonding master and two slave connection profiles</b></p>
+<a name="id-1.2.5.6.7"></a><p class="title"><b>Example 6. Activating a VPN connection profile requiring interactive password input</b></p>
+<div class="example-contents">
+<pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli --ask con up my-vpn-con</code></strong></pre>
+<p>
+        This command activates a VPN connection profile enabling nmcli to interact with the user
+        ('--ask'): this will allow nmcli to prompt for the VPN password on the command line when
+        the <span class="emphasis"><em>password-flags</em></span> are set to '0x02' ('always ask', see
+        <a class="link" href="nm-settings.html" title="nm-settings"><span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span></a>
+        ).
+        This is particularly useful for OTP based VPNs, as the user needs to be prompted for the
+        password each time the connection is activated.
+      </p>
+</div>
+</div>
+<br class="example-break"><div class="example">
+<a name="id-1.2.5.6.8"></a><p class="title"><b>Example 7. Adding a bonding master and two slave connection profiles</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type bond ifname mybond0 mode active-backup</code></strong>
 <code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet ifname eth1 master mybond0</code></strong>
@@ -189,7 +204,7 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.8"></a><p class="title"><b>Example 7. Adding a team master and two slave connection profiles</b></p>
+<a name="id-1.2.5.6.9"></a><p class="title"><b>Example 8. Adding a team master and two slave connection profiles</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type team con-name Team1 ifname Team1 config team1-master-json.conf</code></strong>
 <code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name Team1-slave1 ifname em1 master Team1</code></strong>
@@ -217,7 +232,7 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.9"></a><p class="title"><b>Example 8. Adding a bridge and two slave profiles</b></p>
+<a name="id-1.2.5.6.10"></a><p class="title"><b>Example 9. Adding a bridge and two slave profiles</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type bridge con-name TowerBridge ifname TowerBridge</code></strong>
 <code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name br-slave-1 ifname ens3 master TowerBridge</code></strong>
@@ -236,7 +251,7 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.10"></a><p class="title"><b>Example 9. Adding an ethernet connection profile with manual IP configuration</b></p>
+<a name="id-1.2.5.6.11"></a><p class="title"><b>Example 10. Adding an ethernet connection profile with manual IP configuration</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add con-name my-con-em1 ifname em1 type ethernet \
   ip4 192.168.100.100/24 gw4 192.168.100.1 ip4 1.2.3.4 ip6 abbe::cafe</code></strong>
@@ -259,7 +274,7 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.11"></a><p class="title"><b>Example 10. Convenient field values retrieval for scripting</b></p>
+<a name="id-1.2.5.6.12"></a><p class="title"><b>Example 11. Convenient field values retrieval for scripting</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli -g ip4.address connection show my-con-eth0</code></strong>
 192.168.1.12/24</pre>
@@ -279,7 +294,27 @@ IP4:192.168.1.12/24:192.168.1.1::192.168.1.1::</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.12"></a><p class="title"><b>Example 11. Escaping colon characters in tabular mode</b></p>
+<a name="id-1.2.5.6.13"></a><p class="title"><b>Example 12. Adding an Ethernet connection and configuring SR-IOV VFs</b></p>
+<div class="example-contents">
+<pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name EthernetPF ifname em1</code></strong>
+<code class="prompt">$ </code><strong class="userinput"><code>nmcli con modify EthernetPF sriov.total-vfs 3 sriov.autoprobe-drivers false</code></strong>
+<code class="prompt">$ </code><strong class="userinput"><code>nmcli con modify EthernetPF sriov.vfs '0 mac=00:11:22:33:44:55 vlans=10, 1 trust=true spoof-check=false'</code></strong>
+<code class="prompt">$ </code><strong class="userinput"><code>nmcli con modify EthernetPF +sriov.vfs '2 max-tx-rate=20'</code></strong></pre>
+<p>
+        This example demonstrates adding an Ethernet connection for
+        physical function (PF) <span class="emphasis"><em>ens4</em></span> and
+        configuring 3 SR-IOV virtual functions (VFs) on it. The first
+        VF is configured with MAC address 00:11:22:33:44:55 and VLAN
+        10, the second one has the <span class="emphasis"><em>trust</em></span> and
+        <span class="emphasis"><em>spoof-check</em></span> features respectively enabled
+        and disabled. VF number 2 has a maximux transmission rate of
+        20Mbps. The kernel is instructed to not automatically
+        instantiate a network interface for the VFs.
+      </p>
+</div>
+</div>
+<br class="example-break"><div class="example">
+<a name="id-1.2.5.6.14"></a><p class="title"><b>Example 13. Escaping colon characters in tabular mode</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli -t -f general -e yes -m tab dev show eth0</code></strong>
 GENERAL:eth0:ethernet:Intel Corporation:82567LM Gigabit Network Connection:
@@ -294,7 +329,7 @@ nager/ActiveConnection/9</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.13"></a><p class="title"><b>Example 12. nmcli usage in a NetworkManager dispatcher script to make Ethernet and Wi-Fi mutually exclusive</b></p>
+<a name="id-1.2.5.6.15"></a><p class="title"><b>Example 14. nmcli usage in a NetworkManager dispatcher script to make Ethernet and Wi-Fi mutually exclusive</b></p>
 <div class="example-contents">
 <pre class="programlisting">
 #!/bin/bash
@@ -332,7 +367,7 @@ fi
 </div>
 <br class="example-break"><p><span class="bold"><strong>Example sessions of interactive connection editor</strong></span></p>
 <div class="example">
-<a name="id-1.2.5.6.15"></a><p class="title"><b>Example 13. Adding an ethernet connection profile in interactive editor (a)</b></p>
+<a name="id-1.2.5.6.17"></a><p class="title"><b>Example 15. Adding an ethernet connection profile in interactive editor (a)</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli connection edit type ethernet</code></strong>
 
@@ -583,6 +618,6 @@ Connection 'ethernet-4' (de89cdeb-a3e1-4d53-8fa0-c22546c775f4) successfully
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29.1</div>
+<hr>Generated by GTK-Doc V1.29</div>
 </body>
 </html>

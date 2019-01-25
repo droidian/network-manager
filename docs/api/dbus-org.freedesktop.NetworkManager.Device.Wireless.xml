@@ -80,7 +80,7 @@ GetAllAccessPoints (OUT ao access_points);
 <programlisting>
 RequestScan (IN  a{sv} options);
 </programlisting>
-<para>        Request the device to scan
+<para>        Request the device to scan. To know when the scan is finished, use the "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" to listen to changes to the "LastScan" property.
 </para>
 <variablelist role="params">
 <varlistentry>

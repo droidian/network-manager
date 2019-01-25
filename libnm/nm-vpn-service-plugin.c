@@ -787,9 +787,12 @@ nm_vpn_service_plugin_read_vpn_details (int fd,
 	gs_unref_hashtable GHashTable *data = NULL;
 	gs_unref_hashtable GHashTable *secrets = NULL;
 	gboolean success = FALSE;
-	char *key = NULL, *val = NULL;
+	GHashTable *hash = NULL;
+	GString *key = NULL, *val = NULL;
 	nm_auto_free_gstring GString *line = NULL;
 	char c;
+
+	GString *str = NULL;
 
 	if (out_data)
 		g_return_val_if_fail (*out_data == NULL, FALSE);
@@ -804,49 +807,80 @@ nm_vpn_service_plugin_read_vpn_details (int fd,
 	/* Read stdin for data and secret items until we get a DONE */
 	while (1) {
 		ssize_t nr;
-		GHashTable *hash = NULL;
 
 		errno = 0;
 		nr = read (fd, &c, 1);
-		if (nr == -1) {
+		if (nr < 0) {
 			if (errno == EAGAIN) {
 				g_usleep (100);
 				continue;
 			}
 			break;
 		}
-
-		if (c != '\n') {
+		if (nr > 0 && c != '\n') {
 			g_string_append_c (line, c);
 			continue;
 		}
 
-		/* Check for the finish marker */
-		if (strcmp (line->str, "DONE") == 0)
-			break;
-
-		/* Otherwise it's a data/secret item */
-		if (strncmp (line->str, DATA_KEY_TAG, strlen (DATA_KEY_TAG)) == 0) {
-			hash = data;
-			key = g_strdup (line->str + strlen (DATA_KEY_TAG));
-		} else if (strncmp (line->str, DATA_VAL_TAG, strlen (DATA_VAL_TAG)) == 0) {
-			hash = data;
-			val = g_strdup (line->str + strlen (DATA_VAL_TAG));
-		} else if (strncmp (line->str, SECRET_KEY_TAG, strlen (SECRET_KEY_TAG)) == 0) {
-			hash = secrets;
-			key = g_strdup (line->str + strlen (SECRET_KEY_TAG));
-		} else if (strncmp (line->str, SECRET_VAL_TAG, strlen (SECRET_VAL_TAG)) == 0) {
-			hash = secrets;
-			val = g_strdup (line->str + strlen (SECRET_VAL_TAG));
-		}
-		g_string_truncate (line, 0);
-
-		if (key && val && hash) {
-			g_hash_table_insert (hash, key, val);
+		if (str && *line->str == '=') {
+			/* continuation */
+			g_string_append_c (str, '\n');
+			g_string_append (str, line->str + 1);
+		} else if (key && val) {
+			/* done a line */
+			g_return_val_if_fail (hash, FALSE);
+			g_hash_table_insert (hash,
+					     g_string_free (key, FALSE),
+					     g_string_free (val, FALSE));
 			key = NULL;
 			val = NULL;
+			hash = NULL;
 			success = TRUE;  /* Got at least one value */
 		}
+
+		if (strcmp (line->str, "DONE") == 0) {
+			 /* finish marker */
+			break;
+		} else if (strncmp (line->str, DATA_KEY_TAG, strlen (DATA_KEY_TAG)) == 0) {
+			if (key != NULL) {
+				g_warning ("a value expected");
+				g_string_free (key, TRUE);
+			}
+			key = g_string_new (line->str + strlen (DATA_KEY_TAG));
+			str = key;
+			hash = data;
+		} else if (strncmp (line->str, DATA_VAL_TAG, strlen (DATA_VAL_TAG)) == 0) {
+			if (val != NULL)
+				g_string_free (val, TRUE);
+			if (val || !key || hash != data) {
+				g_warning ("%s not preceded by %s", DATA_VAL_TAG, DATA_KEY_TAG);
+				break;
+			}
+			val = g_string_new (line->str + strlen (DATA_VAL_TAG));
+			str = val;
+		} else if (strncmp (line->str, SECRET_KEY_TAG, strlen (SECRET_KEY_TAG)) == 0) {
+			if (key != NULL) {
+				g_warning ("a value expected");
+				g_string_free (key, TRUE);
+			}
+			key = g_string_new (line->str + strlen (SECRET_KEY_TAG));
+			str = key;
+			hash = secrets;
+		} else if (strncmp (line->str, SECRET_VAL_TAG, strlen (SECRET_VAL_TAG)) == 0) {
+			if (val != NULL)
+				g_string_free (val, TRUE);
+			if (val || !key || hash != secrets) {
+				g_warning ("%s not preceded by %s", SECRET_VAL_TAG, SECRET_KEY_TAG);
+				break;
+			}
+			val = g_string_new (line->str + strlen (SECRET_VAL_TAG));
+			str = val;
+		}
+
+		g_string_truncate (line, 0);
+
+		if (nr == 0)
+			break;
 	}
 
 	if (success) {
@@ -1325,7 +1359,7 @@ nm_vpn_service_plugin_initable_iface_init (GInitableIface *iface)
 /*****************************************************************************/
 
 /* this header is intended to be copied to users of nm_vpn_editor_plugin_call(),
- * to simplify invocation of generic functions. Include it here, to complile
+ * to simplify invocation of generic functions. Include it here, to compile
  * the code. */
 #include "nm-utils/nm-vpn-editor-plugin-call.h"
 

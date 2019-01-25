@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="NetworkManager.conf.html" title="NetworkManager.conf">
 <link rel="next" href="nmcli-examples.html" title="nmcli-examples">
-<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -39,7 +39,9 @@
     replacement for <span class="command"><strong>nm-applet</strong></span> or other graphical clients.
     <span class="command"><strong>nmcli</strong></span> is used to create, display, edit, delete, activate,
     and deactivate network connections, as well as control and display network
-    device status.</p>
+    device status. See
+    <a class="link" href="nmcli-examples.html" title="nmcli-examples"><span class="citerefentry"><span class="refentrytitle">nmcli-examples</span>(7)</span></a>
+    for ready to run nmcli examples.</p>
 <p>Typical uses include:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>Scripts: Utilize NetworkManager via <span class="command"><strong>nmcli</strong></span> instead of
@@ -63,15 +65,71 @@
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term">  <code class="option">-t</code>  |   <code class="option">--terse</code>  </span></p></td>
-<td><p>Output is terse. This mode is designed and suitable for computer (script)
-          processing.</p></td>
+<td><p><span class="term">  <code class="option">-a</code>  |   <code class="option">--ask</code>  </span></p></td>
+<td><p>When using this option <span class="command"><strong>nmcli</strong></span> will stop and ask for any
+          missing required arguments, so do not use this option for non-interactive
+          purposes like scripts. This option controls, for example, whether you will be
+          prompted for a password if it is required for connecting to a network.</p></td>
 </tr>
 <tr>
-<td><p><span class="term">  <code class="option">-p</code>  |   <code class="option">--pretty</code>  </span></p></td>
-<td><p>Output is pretty. This causes <span class="command"><strong>nmcli</strong></span> to produce easily
-          readable outputs for humans, i.e. values are aligned, headers are printed,
-          etc.</p></td>
+<td><p><span class="term">  <code class="option">-c</code>  |   <code class="option">--colors</code>  { yes  |   no  |   auto } </span></p></td>
+<td>
+<p>This option controls color output (using terminal escape sequences).
+          <code class="literal">yes</code> enables colors, <code class="literal">no</code> disables them,
+          <code class="literal">auto</code> only produces colors when standard output is directed
+          to a terminal. The default value is <code class="literal">auto</code>.</p>
+<p>The actual colors used are configured as described in
+          <span class="citerefentry"><span class="refentrytitle">terminal-colors.d</span>(5)</span>.
+          Please refer to the <a class="link" href="nmcli.html#colors" title="Colors">Colors</a> section for a
+          list of color names supported by <span class="command"><strong>nmcli</strong></span>.</p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term">  <code class="option">--complete-args</code>  </span></p></td>
+<td>
+<p>Instead of conducting the desired action, <span class="command"><strong>nmcli</strong></span>
+          will list possible completions for the last argument. This is useful to implement
+          argument completion in shell.</p>
+<p>The <a class="link" href="nmcli.html#exit_status" title="Exit Status">exit status</a> will indicate success
+          or return a code 65 to indicate the last argument is a file name.</p>
+<p>NetworkManager ships with command completion support for GNU Bash.</p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term">  <code class="option">-e</code>  |   <code class="option">--escape</code>  { yes  |   no } </span></p></td>
+<td>
+<p>Whether to escape <code class="literal">:</code> and <code class="literal">\</code> characters in terse tabular mode. The
+          escape character is <code class="literal">\</code>.</p>
+<p>If omitted, default is <code class="literal">yes</code>.</p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term">  <code class="option">-f</code>  |   <code class="option">--fields</code>  { <em class="replaceable"><code>field1</code></em>,<em class="replaceable"><code>field2</code></em>...  |   all  |   common } </span></p></td>
+<td>
+<p>This option is used to specify what fields (column names) should be
+          printed. Valid field names differ for specific commands. List available fields
+          by providing an invalid value to the <code class="option">--fields</code> option.
+          <code class="literal">all</code> is used to print all valid field values of the
+          command. <code class="literal">common</code> is used to print common field values of
+          the command.</p>
+<p>If omitted, default is <code class="literal">common</code>.</p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term">  <code class="option">-g</code>  |   <code class="option">--get-values</code>  { <em class="replaceable"><code>field1</code></em>,<em class="replaceable"><code>field2</code></em>...  |   all  |   common } </span></p></td>
+<td>
+<p>This option is used to print values from specific fields. It is basically
+          a shortcut for <code class="literal">--mode tabular --terse --fields</code> and is a convenient
+          way to retrieve values for particular fields. The values are printed one per line
+          without headers.</p>
+<p>If a section is specified instead of a field, the section name will be printed
+          followed by colon separated values of the fields belonging to that section, all on
+          the same line.</p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term">  <code class="option">-h</code>  |   <code class="option">--help</code>  </span></p></td>
+<td><p>Print help information.</p></td>
 </tr>
 <tr>
 <td><p><span class="term">  <code class="option">-m</code>  |   <code class="option">--mode</code>  { tabular  |   multiline } </span></p></td>
@@ -106,62 +164,25 @@
 </td>
 </tr>
 <tr>
-<td><p><span class="term">  <code class="option">-c</code>  |   <code class="option">--colors</code>  { yes  |   no  |   auto } </span></p></td>
-<td>
-<p>This option controls color output (using terminal escape sequences).
-          <code class="literal">yes</code> enables colors, <code class="literal">no</code> disables them,
-          <code class="literal">auto</code> only produces colors when standard output is directed
-          to a terminal. The default value is <code class="literal">auto</code>.</p>
-<p>The actual colors used are configured as described in
-          <span class="citerefentry"><span class="refentrytitle">terminal-colors.d</span>(5)</span>.
-          Please refer to the <a class="link" href="nmcli.html#colors" title="Colors">Colors</a> section for a
-          list of color names supported by <span class="command"><strong>nmcli</strong></span>.</p>
-</td>
-</tr>
-<tr>
-<td><p><span class="term">  <code class="option">-f</code>  |   <code class="option">--fields</code>  { <em class="replaceable"><code>field1</code></em>,<em class="replaceable"><code>field2</code></em>...  |   all  |   common } </span></p></td>
-<td>
-<p>This option is used to specify what fields (column names) should be
-          printed. Valid field names differ for specific commands. List available fields
-          by providing an invalid value to the <code class="option">--fields</code> option.
-          <code class="literal">all</code> is used to print all valid field values of the
-          command. <code class="literal">common</code> is used to print common field values of
-          the command.</p>
-<p>If omitted, default is <code class="literal">common</code>.</p>
-</td>
-</tr>
-<tr>
-<td><p><span class="term">  <code class="option">-g</code>  |   <code class="option">--get-values</code>  { <em class="replaceable"><code>field1</code></em>,<em class="replaceable"><code>field2</code></em>...  |   all  |   common } </span></p></td>
-<td>
-<p>This option is used to print values from specific fields. It is basically
-          a shortcut for <code class="literal">--mode tabular --terse --fields</code> and is a convenient
-          way to retrieve values for particular fields. The values are printed one per line
-          without headers.</p>
-<p>If a section is specified instead of a field, the section name will be printed
-          followed by colon separated values of the fields belonging to that section, all on
-          the same line.</p>
-</td>
-</tr>
-<tr>
-<td><p><span class="term">  <code class="option">-e</code>  |   <code class="option">--escape</code>  { yes  |   no } </span></p></td>
-<td>
-<p>Whether to escape <code class="literal">:</code> and <code class="literal">\</code> characters in terse tabular mode. The
-          escape character is <code class="literal">\</code>.</p>
-<p>If omitted, default is <code class="literal">yes</code>.</p>
-</td>
-</tr>
-<tr>
-<td><p><span class="term">  <code class="option">-a</code>  |   <code class="option">--ask</code>  </span></p></td>
-<td><p>When using this option <span class="command"><strong>nmcli</strong></span> will stop and ask for any
-          missing required arguments, so do not use this option for non-interactive
-          purposes like scripts. This option controls, for example, whether you will be
-          prompted for a password if it is required for connecting to a network.</p></td>
+<td><p><span class="term">  <code class="option">-p</code>  |   <code class="option">--pretty</code>  </span></p></td>
+<td><p>Output is pretty. This causes <span class="command"><strong>nmcli</strong></span> to produce easily
+          readable outputs for humans, i.e. values are aligned, headers are printed,
+          etc.</p></td>
 </tr>
 <tr>
 <td><p><span class="term">  <code class="option">-s</code>  |   <code class="option">--show-secrets</code>  </span></p></td>
 <td><p>When using this option <span class="command"><strong>nmcli</strong></span> will display passwords
           and secrets that might be present in an output of an operation. This option
           also influences echoing passwords typed by user as an input.</p></td>
+</tr>
+<tr>
+<td><p><span class="term">  <code class="option">-t</code>  |   <code class="option">--terse</code>  </span></p></td>
+<td><p>Output is terse. This mode is designed and suitable for computer (script)
+          processing.</p></td>
+</tr>
+<tr>
+<td><p><span class="term">  <code class="option">-v</code>  |   <code class="option">--version</code>  </span></p></td>
+<td><p>Show <span class="command"><strong>nmcli</strong></span> version.</p></td>
 </tr>
 <tr>
 <td><p><span class="term">  <code class="option">-w</code>  |   <code class="option">--wait</code>  
@@ -176,25 +197,6 @@
           <span class="command"><strong>nmcli</strong></span> not to wait but to exit immediately with a status of
           success. The default value depends on the executed command.</p>
 </td>
-</tr>
-<tr>
-<td><p><span class="term">  <code class="option">--complete-args</code>  </span></p></td>
-<td>
-<p>Instead of conducting the desired action, <span class="command"><strong>nmcli</strong></span>
-          will list possible completions for the last argument. This is useful to implement
-          argument completion in shell.</p>
-<p>The <a class="link" href="nmcli.html#exit_status" title="Exit Status">exit status</a> will indicate success
-          or return a code 65 to indicate the last argument is a file name.</p>
-<p>NetworkManager ships with command completion support for GNU Bash.</p>
-</td>
-</tr>
-<tr>
-<td><p><span class="term">  <code class="option">-v</code>  |   <code class="option">--version</code>  </span></p></td>
-<td><p>Show <span class="command"><strong>nmcli</strong></span> version.</p></td>
-</tr>
-<tr>
-<td><p><span class="term">  <code class="option">-h</code>  |   <code class="option">--help</code>  </span></p></td>
-<td><p>Print help information.</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -572,9 +574,10 @@
 <p>Be aware that this command deactivates the specified active connection,
           but the device on which the connection was active, is still ready to connect
           and will perform auto-activation by looking for a suitable connection that has
-          the 'autoconnect' flag set. This includes the just deactivated connection. So
-          if the connection is set to auto-connect, it will be automatically started on
-          the disconnected device again.</p>
+          the 'autoconnect' flag set. Note that the deactivating connection profile is
+          internally blocked from autoconnecting again. Hence it will not autoconnect
+          until reboot or until the user performs an action that unblocks autoconnect,
+          like modifying the profile or explicitly activating it.</p>
 <p>In most cases you may want to use <span class="command"><strong>device disconnect</strong></span>
           command instead.</p>
 <p>The connection is identified by its name, UUID or D-Bus path. If
@@ -1024,14 +1027,13 @@
         </span></p></td>
 <td>
 <p>Connect to a Wi-Fi network specified by SSID or BSSID. The command
-          creates a new connection and then activates it on a device. This is a
-          command-line counterpart of clicking an SSID in a GUI client. The command
-          always creates a new connection and thus it is mainly useful for connecting to
-          new Wi-Fi networks. If a connection for the network already exists, it is
-          better to bring up (activate) the existing connection as follows:
+          finds a matching connnection or creates one and then activates it on a device.
+          This is a command-line counterpart of clicking an SSID in a GUI client. If
+          a connection for the network already exists, it is possible to bring up
+          (activate) the existing profile as follows:
           <span class="command"><strong>nmcli con up id <em class="replaceable"><code>name</code></em></strong></span>. Note that
-          only open, WEP and WPA-PSK networks are supported at the moment. It is also
-          supposed that IP configuration is obtained via DHCP.</p>
+          only open, WEP and WPA-PSK networks are supported if no previous connection
+          exists. It is also assumed that IP configuration is obtained via DHCP.</p>
 <p>If <code class="option">--wait</code> option is not specified, the default timeout will be 90
           seconds.</p>
 <p>Available options are:</p>
@@ -2386,8 +2388,8 @@ It's equivalent to the <code class="literal">+bond.options 'option=value'</code>
 <td><p>shows details for "My default em1" connection profile.</p></td>
 </tr>
 <tr>
-<td><p><span class="term"><strong class="userinput"><code>nmcli --show-secrets connection show "My Home WiFi"</code></strong></span></p></td>
-<td><p>shows details for "My Home WiFi" connection profile with all passwords.
+<td><p><span class="term"><strong class="userinput"><code>nmcli --show-secrets connection show "My Home Wi-Fi"</code></strong></span></p></td>
+<td><p>shows details for "My Home Wi-Fi" connection profile with all passwords.
           Without <code class="option">--show-secrets</code> option, secrets would not be
           displayed.</p></td>
 </tr>
@@ -2545,6 +2547,6 @@ It's equivalent to the <code class="literal">+bond.options 'option=value'</code>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29.1</div>
+<hr>Generated by GTK-Doc V1.29</div>
 </body>
 </html>
