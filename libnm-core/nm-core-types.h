@@ -15,7 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2014 - 2017 Red Hat, Inc.
+ * Copyright 2014 - 2018 Red Hat, Inc.
  */
 
 #ifndef __NM_CORE_TYPES_H__
@@ -29,6 +29,7 @@
 
 typedef struct _NMConnection              NMConnection;
 typedef struct _NMSetting                 NMSetting;
+typedef struct _NMSetting6Lowpan          NMSetting6Lowpan;
 typedef struct _NMSetting8021x            NMSetting8021x;
 typedef struct _NMSettingAdsl             NMSettingAdsl;
 typedef struct _NMSettingBluetooth        NMSettingBluetooth;
@@ -39,6 +40,7 @@ typedef struct _NMSettingCdma             NMSettingCdma;
 typedef struct _NMSettingConnection       NMSettingConnection;
 typedef struct _NMSettingDcb              NMSettingDcb;
 typedef struct _NMSettingDummy            NMSettingDummy;
+typedef struct _NMSettingEthtool          NMSettingEthtool;
 typedef struct _NMSettingGeneric          NMSettingGeneric;
 typedef struct _NMSettingGsm              NMSettingGsm;
 typedef struct _NMSettingInfiniband       NMSettingInfiniband;
@@ -49,6 +51,7 @@ typedef struct _NMSettingIP4Config        NMSettingIP4Config;
 typedef struct _NMSettingIP6Config        NMSettingIP6Config;
 typedef struct _NMSettingMacsec           NMSettingMacsec;
 typedef struct _NMSettingMacvlan          NMSettingMacvlan;
+typedef struct _NMSettingMatch            NMSettingMatch;
 typedef struct _NMSettingOlpcMesh         NMSettingOlpcMesh;
 typedef struct _NMSettingOvsBridge        NMSettingOvsBridge;
 typedef struct _NMSettingOvsInterface     NMSettingOvsInterface;
@@ -57,6 +60,7 @@ typedef struct _NMSettingOvsPort          NMSettingOvsPort;
 typedef struct _NMSettingPpp              NMSettingPpp;
 typedef struct _NMSettingPppoe            NMSettingPppoe;
 typedef struct _NMSettingSerial           NMSettingSerial;
+typedef struct _NMSettingSriov            NMSettingSriov;
 typedef struct _NMSettingTCConfig         NMSettingTCConfig;
 typedef struct _NMSettingTeam             NMSettingTeam;
 typedef struct _NMSettingTeamPort         NMSettingTeamPort;
@@ -69,6 +73,7 @@ typedef struct _NMSettingWimax            NMSettingWimax;
 typedef struct _NMSettingWired            NMSettingWired;
 typedef struct _NMSettingWireless         NMSettingWireless;
 typedef struct _NMSettingWirelessSecurity NMSettingWirelessSecurity;
+typedef struct _NMSettingWpan             NMSettingWpan;
 typedef struct _NMSimpleConnection        NMSimpleConnection;
 
 #endif  /* __NM_CORE_TYPES_H__ */

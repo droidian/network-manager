@@ -8,7 +8,7 @@
 <link rel="up" href="dbus-types.html" title="Types">
 <link rel="prev" href="dbus-types.html" title="Types">
 <link rel="next" href="secret-agents.html" title="Part IV. Secret Agent D-Bus API Reference">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -708,6 +708,51 @@
 </td>
 <td class="enum_member_description">
 <p>a Open vSwitch bridge</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_TYPE_WPAN</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">27</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>a IEEE 802.15.4 (WPAN) MAC Layer Device</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_TYPE_6LOWPAN</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">28</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>6LoWPAN interface</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_TYPE_WIREGUARD</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">29</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>a WireGuard interface</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -2821,6 +2866,21 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">66</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>configuration of SR-IOV parameters failed</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -2921,11 +2981,90 @@
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMConnectionMultiConnect"></a><h3>enum NMConnectionMultiConnect</h3>
+<p>Since: 1.14</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.16.2.18.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_CONNECTION_MULTI_CONNECT_DEFAULT</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>indicates that the per-connection setting is unspecified. In this case, it will fallback to the default value, which is @NM_CONNECTION_MULTI_CONNECT_SINGLE.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CONNECTION_MULTI_CONNECT_SINGLE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">1</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the connection profile can only be active once at each moment. Activating a profile that is already active, will first deactivate it.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CONNECTION_MULTI_CONNECT_MANUAL_MULTIPLE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">2</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the profile can be manually activated multiple times on different devices. However, regarding autoconnect, the profile will autoconnect only if it is currently not connected otherwise.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CONNECTION_MULTI_CONNECT_MULTIPLE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">3</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the profile can autoactivate and be manually activated multiple times together.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMActiveConnectionState"></a><h3>enum NMActiveConnectionState</h3>
 <p><a class="link" href="nm-dbus-types.html#NMActiveConnectionState" title="enum NMActiveConnectionState">NMActiveConnectionState</a> values indicate the state of a connection to a specific network while it is starting, connected, or disconnecting from that network.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.18.4"></a><h4>Values</h4>
+<a name="id-1.4.16.2.19.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3020,7 +3159,7 @@
 <p>Since: 1.8</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.19.4"></a><h4>Values</h4>
+<a name="id-1.4.16.2.20.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3264,7 +3403,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMSecretAgentGetSecretsFlags" title="enum NMSecretAgentGetSecretsFlags">NMSecretAgentGetSecretsFlags</a> values modify the behavior of a GetSecrets request.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.20.4"></a><h4>Values</h4>
+<a name="id-1.4.16.2.21.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3388,7 +3527,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMSecretAgentCapabilities" title="enum NMSecretAgentCapabilities">NMSecretAgentCapabilities</a> indicate various capabilities of the agent.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.21.4"></a><h4>Values</h4>
+<a name="id-1.4.16.2.22.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3438,7 +3577,7 @@
 <p>Since: 1.2</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.22.4"></a><h4>Values</h4>
+<a name="id-1.4.16.2.23.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3597,6 +3736,36 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_IP_TUNNEL_MODE_GRETAP</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">10</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>GRETAP tunnel</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_IP_TUNNEL_MODE_IP6GRETAP</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">11</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>IPv6 GRETAP tunnel</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -3608,7 +3777,7 @@
 <p>Since: 1.4 (gi flags generated since 1.12)</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.23.4"></a><h4>Values</h4>
+<a name="id-1.4.16.2.24.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3703,7 +3872,7 @@
 <p>Since: 1.4</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.24.4"></a><h4>Values</h4>
+<a name="id-1.4.16.2.25.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3783,7 +3952,7 @@
 <p>Since: 1.12</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.25.4"></a><h4>Values</h4>
+<a name="id-1.4.16.2.26.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3863,7 +4032,7 @@
 <p>Since: 1.10</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.26.4"></a><h4>Values</h4>
+<a name="id-1.4.16.2.27.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3987,7 +4156,7 @@
 <p>Since: 1.12</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.27.4"></a><h4>Values</h4>
+<a name="id-1.4.16.2.28.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4105,8 +4274,73 @@
 </table></div>
 </div>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMTernary"></a><h3>enum NMTernary</h3>
+<p>An boolean value that can be overridden by a default.</p>
+<p>Since: 1.14</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.16.2.29.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_TERNARY_DEFAULT</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">-1</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>use the globally-configured default value.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_TERNARY_FALSE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the option is disabled.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_TERNARY_TRUE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">1</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the option is enabled.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.29.1</div>
 </body>
 </html>

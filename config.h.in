@@ -1,22 +1,22 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define if building universal (internal helper macro) */
-#undef AC_APPLE_UNIVERSAL_BUILD
-
 /* Whether NM is built with address sanitizer */
 #undef ASAN_BUILD
 
-/* Path to ConsoleKit database */
-#undef CKDB_PATH
+/* Define path to dhclient */
+#undef DHCLIENT_PATH
 
-/* Define if dhcpcd supports IPv6 (6.x+) */
-#undef DHCPCD_SUPPORTS_IPV6
+/* Define path to dhcpcanon */
+#undef DHCPCANON_PATH
+
+/* Define path to dhcpcd */
+#undef DHCPCD_PATH
 
 /* Define to path of dnsmasq binary */
 #undef DNSMASQ_PATH
 
 /* Define to path of unbound dnssec-trigger-script */
-#undef DNSSEC_TRIGGER_SCRIPT
+#undef DNSSEC_TRIGGER_PATH
 
 /* Define to 1 if translation of program messages to the user's native
    language is requested. */
@@ -309,14 +309,8 @@
 /* Define if you have libpsl */
 #undef WITH_LIBPSL
 
-/* Define if you have ModemManager1 support */
-#undef WITH_MODEM_MANAGER_1
-
 /* Define if you have oFono support (experimental) */
 #undef WITH_OFONO
-
-/* Define if you have OpenVSwitch support */
-#undef WITH_OPENVSWITCH
 
 /* Define if you have polkit agent */
 #undef WITH_POLKIT_AGENT
@@ -327,23 +321,8 @@
 /* Whether compilation of ibft setting plugin is enabled */
 #undef WITH_SETTINGS_PLUGIN_IBFT
 
-/* Define if you have Teamd control support */
-#undef WITH_TEAMDCTL
-
 /* Define if you have Wi-Fi support */
 #undef WITH_WIFI
-
-/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
-   significant byte first (like Motorola and SPARC, unlike Intel). */
-#if defined AC_APPLE_UNIVERSAL_BUILD
-# if defined __BIG_ENDIAN__
-#  define WORDS_BIGENDIAN 1
-# endif
-#else
-# ifndef WORDS_BIGENDIAN
-#  undef WORDS_BIGENDIAN
-# endif
-#endif
 
 /* Define to 1 if on MINIX. */
 #undef _MINIX

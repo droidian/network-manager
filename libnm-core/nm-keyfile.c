@@ -33,6 +33,7 @@
 #include <string.h>
 #include <linux/pkt_sched.h>
 
+#include "nm-utils/nm-secret-utils.h"
 #include "nm-common-macros.h"
 #include "nm-core-internal.h"
 #include "nm-keyfile-utils.h"
@@ -116,6 +117,49 @@ setting_alias_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *k
 		              NULL);
 		g_free (s);
 	}
+}
+
+static void
+sriov_vfs_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key)
+{
+	const char *setting_name = nm_setting_get_name (setting);
+	gs_unref_ptrarray GPtrArray *vfs = NULL;
+	gs_strfreev char **keys = NULL;
+	gsize n_keys = 0;
+	int i;
+
+	keys = nm_keyfile_plugin_kf_get_keys (info->keyfile, setting_name, &n_keys, NULL);
+	if (!keys || n_keys == 0)
+		return;
+
+	vfs = g_ptr_array_new_with_free_func ((GDestroyNotify) nm_sriov_vf_unref);
+
+	for (i = 0; i < n_keys; i++) {
+		gs_free char *value = NULL;
+		NMSriovVF *vf;
+		const char *rest;
+
+		if (!g_str_has_prefix (keys[i], "vf."))
+			continue;
+
+		rest = &keys[i][3];
+
+		if (!NM_STRCHAR_ALL (rest, ch, g_ascii_isdigit (ch)))
+			continue;
+
+		value = nm_keyfile_plugin_kf_get_string (info->keyfile,
+		                                         setting_name,
+		                                         keys[i],
+		                                         NULL);
+
+		vf = _nm_utils_sriov_vf_from_strparts (rest, value, NULL);
+		if (vf)
+			g_ptr_array_add (vfs, vf);
+	}
+
+	g_object_set (G_OBJECT (setting),
+	              key, vfs,
+	              NULL);
 }
 
 static void
@@ -731,7 +775,7 @@ ip6_addr_gen_mode_parser (KeyfileReaderInfo *info, NMSetting *setting, const cha
 	} else
 		addr_gen_mode = NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64;
 
-	g_object_set (G_OBJECT (setting), key, (gint) addr_gen_mode, NULL);
+	g_object_set (G_OBJECT (setting), key, (int) addr_gen_mode, NULL);
 }
 
 static void
@@ -896,7 +940,7 @@ unescape_semicolons (char *str)
 			i++;
 		str[j++] = str[i++];;
 	}
-	str[j] = '\0';
+	nm_explicit_bzero (&str[j], i - j);
 	return j;
 }
 
@@ -907,9 +951,10 @@ get_bytes (KeyfileReaderInfo *info,
            gboolean zero_terminate,
            gboolean unescape_semicolon)
 {
-	gs_free char *tmp_string = NULL;
+	nm_auto_free_secret char *tmp_string = NULL;
 	gboolean may_be_int_list = TRUE;
 	gsize length;
+	GBytes *result;
 
 	/* New format: just a string
 	 * Old format: integer list; e.g. 11;25;38;
@@ -943,12 +988,11 @@ get_bytes (KeyfileReaderInfo *info,
 
 	/* Try to parse the string as a integer list. */
 	if (may_be_int_list && length > 0) {
-		gs_free guint8 *bin_data = NULL;
+		nm_auto_free_secret_buf NMSecretBuf *bin = NULL;
 		const char *const s = tmp_string;
 		gsize i, d;
-		const gsize BIN_DATA_LEN = (length / 2 + 3);
 
-		bin_data = g_malloc (BIN_DATA_LEN);
+		bin = nm_secret_buf_new (length / 2 + 3);
 
 #define DIGIT(c) ((c) - '0')
 		i = 0;
@@ -981,8 +1025,8 @@ get_bytes (KeyfileReaderInfo *info,
 				break;
 			}
 
-			bin_data[d++] = n;
-			nm_assert (d < BIN_DATA_LEN);
+			nm_assert (d < bin->len);
+			bin->bin[d++] = n;
 
 			/* allow whitespace after the digit. */
 			while (g_ascii_isspace (s[i]))
@@ -1000,16 +1044,23 @@ get_bytes (KeyfileReaderInfo *info,
 		 * string format before. We expect that this conversion cannot fail. */
 		if (d > 0) {
 			/* note that @zero_terminate does not add a terminating '\0' to
-			 * binary data as an integer list.
+			 * binary data as an integer list. If the bytes are expressed as
+			 * an integer list, all potential NUL characters are supposed to
+			 * be included there explicitly.
 			 *
-			 * But we add a '\0' to the bin_data pointer, just to avoid somebody
-			 * (erronously!) reading the binary data as C-string.
-			 *
-			 * @d itself does not entail the '\0'. */
-			nm_assert (d + 1 <= BIN_DATA_LEN);
-			bin_data = g_realloc (bin_data, d + 1);
-			bin_data[d] = '\0';
-			return g_bytes_new_take (g_steal_pointer (&bin_data), d);
+			 * However, in the spirit of defensive programming, we do append a
+			 * NUL character to the buffer, although this character is hidden
+			 * and only a mitigation for bugs. */
+
+			if (d + 10 < bin->len) {
+				/* hm, too much unused memory. Copy the memory to a suitable
+				 * sized buffer. */
+				return nm_secret_copy_to_gbytes (bin->bin, d);
+			}
+
+			nm_assert (d < bin->len);
+			bin->bin[d] = '\0';
+			return nm_secret_buf_to_gbytes_take (g_steal_pointer (&bin), d);
 		}
 	}
 
@@ -1020,8 +1071,13 @@ get_bytes (KeyfileReaderInfo *info,
 		length++;
 	if (length == 0)
 		return NULL;
-	tmp_string = g_realloc (tmp_string, length + (zero_terminate ? 0 : 1));
-	return g_bytes_new_take (g_steal_pointer (&tmp_string), length);
+
+	result = g_bytes_new_with_free_func (tmp_string,
+	                                     length,
+	                                     (GDestroyNotify) nm_free_secret,
+	                                     tmp_string);
+	tmp_string = NULL;
+	return result;
 }
 
 static void
@@ -1065,12 +1121,12 @@ get_cert_path (const char *base_dir, const guint8 *cert_path, gsize cert_path_le
 	g_return_val_if_fail (base_dir != NULL, NULL);
 	g_return_val_if_fail (cert_path != NULL, NULL);
 
-	base = path = g_malloc0 (cert_path_len + 1);
-	memcpy (path, cert_path, cert_path_len);
+	path = g_strndup ((char *) cert_path, cert_path_len);
 
 	if (path[0] == '/')
 		return path;
 
+	base = path;
 	p = strrchr (path, '/');
 	if (p)
 		base = p + 1;
@@ -1104,8 +1160,9 @@ nm_keyfile_detect_unqualified_path_scheme (const char *base_dir,
 	const char *data = pdata;
 	gboolean exists = FALSE;
 	gsize validate_len;
+	gsize path_len, pathuri_len;
 	gs_free char *path = NULL;
-	GByteArray *tmp;
+	gs_free char *pathuri = NULL;
 
 	g_return_val_if_fail (base_dir && base_dir[0] == '/', NULL);
 
@@ -1148,18 +1205,16 @@ nm_keyfile_detect_unqualified_path_scheme (const char *base_dir,
 	 * When returning TRUE, we must also be sure that @data_len does not look like
 	 * the deprecated format of list of integers. With this implementation that is the
 	 * case, as long as @consider_exists is FALSE. */
-	tmp = g_byte_array_sized_new (strlen (NM_KEYFILE_CERT_SCHEME_PREFIX_PATH) + strlen (path) + 1);
-	g_byte_array_append (tmp, (const guint8 *) NM_KEYFILE_CERT_SCHEME_PREFIX_PATH, strlen (NM_KEYFILE_CERT_SCHEME_PREFIX_PATH));
-	g_byte_array_append (tmp, (const guint8 *) path, strlen (path) + 1);
-	if (nm_setting_802_1x_check_cert_scheme (tmp->data, tmp->len, NULL) != NM_SETTING_802_1X_CK_SCHEME_PATH) {
-		g_byte_array_unref (tmp);
+	path_len = strlen (path);
+	pathuri_len = (NM_STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_PATH) + 1) + path_len;
+	pathuri = g_new (char, pathuri_len);
+	memcpy (pathuri, NM_KEYFILE_CERT_SCHEME_PREFIX_PATH, NM_STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_PATH));
+	memcpy (&pathuri[NM_STRLEN (NM_KEYFILE_CERT_SCHEME_PREFIX_PATH)], path, path_len + 1);
+	if (nm_setting_802_1x_check_cert_scheme (pathuri, pathuri_len, NULL) != NM_SETTING_802_1X_CK_SCHEME_PATH)
 		return NULL;
-	}
-	g_free (path);
-	path = (char *) g_byte_array_free (tmp, FALSE);
 
 	NM_SET_OUT (out_exists, exists);
-	return g_steal_pointer (&path);
+	return g_steal_pointer (&pathuri);
 }
 
 #define HAS_SCHEME_PREFIX(bin, bin_len, scheme) \
@@ -1393,7 +1448,7 @@ qdisc_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key)
 {
 	const char *setting_name = nm_setting_get_name (setting);
 	GPtrArray *qdiscs;
-	gs_strfreev gchar **keys = NULL;
+	gs_strfreev char **keys = NULL;
 	gsize n_keys = 0;
 	int i;
 
@@ -1441,7 +1496,7 @@ tfilter_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key)
 {
 	const char *setting_name = nm_setting_get_name (setting);
 	GPtrArray *tfilters;
-	gs_strfreev gchar **keys = NULL;
+	gs_strfreev char **keys = NULL;
 	gsize n_keys = 0;
 	int i;
 
@@ -1510,6 +1565,37 @@ setting_alias_writer (KeyfileWriterInfo *info,
 }
 
 static void
+sriov_vfs_writer (KeyfileWriterInfo *info,
+                  NMSetting *setting,
+                  const char *key,
+                  const GValue *value)
+{
+	GPtrArray *vfs;
+	guint i;
+
+	vfs = g_value_get_boxed (value);
+	if (!vfs)
+		return;
+
+	for (i = 0; i < vfs->len; i++) {
+		const NMSriovVF *vf = vfs->pdata[i];
+		gs_free char *kf_value = NULL;
+		char kf_key[32];
+
+		kf_value = nm_utils_sriov_vf_to_str (vf, TRUE, NULL);
+		if (!kf_value)
+			continue;
+
+		nm_sprintf_buf (kf_key, "vf.%u", nm_sriov_vf_get_index (vf));
+
+		nm_keyfile_plugin_kf_set_string (info->keyfile,
+		                                 nm_setting_get_name (setting),
+		                                 kf_key,
+		                                 kf_value);
+	}
+}
+
+static void
 write_array_of_uint (GKeyFile *file,
                      NMSetting *setting,
                      const char *key,
@@ -1525,7 +1611,7 @@ write_array_of_uint (GKeyFile *file,
 
 	g_return_if_fail (g_array_get_element_size (array) == sizeof (guint));
 
-	tmp_array = g_new (gint, array->len);
+	tmp_array = g_new (int, array->len);
 	for (i = 0; i < array->len; i++) {
 		guint v = g_array_index (array, guint, i);
 
@@ -2022,18 +2108,16 @@ typedef struct {
 	})
 
 typedef struct {
-	const char *setting_name;
 	const ParseInfoProperty*const*properties;
 } ParseInfoSetting;
 
-#define PARSE_INFO_SETTING(_setting_name, ...) \
-	{ \
-		.setting_name = _setting_name, \
+#define PARSE_INFO_SETTING(setting_type, ...) \
+	[setting_type] = (&((const ParseInfoSetting) { \
 		__VA_ARGS__ \
-	}
+	}))
 
-static const ParseInfoSetting parse_infos[] = {
-	PARSE_INFO_SETTING (NM_SETTING_WIRELESS_SETTING_NAME,
+static const ParseInfoSetting *const parse_infos[_NM_META_SETTING_TYPE_NUM] = {
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_WIRELESS,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_WIRELESS_BSSID,
 				.parser        = mac_address_parser_ETHER,
@@ -2050,7 +2134,7 @@ static const ParseInfoSetting parse_infos[] = {
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_802_1X_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_802_1X,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_802_1X_CA_CERT,
 				.parser        = cert_parser,
@@ -2082,7 +2166,7 @@ static const ParseInfoSetting parse_infos[] = {
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_WIRED_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_WIRED,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_WIRED_CLONED_MAC_ADDRESS,
 				.parser        = mac_address_parser_ETHER_cloned,
@@ -2092,28 +2176,28 @@ static const ParseInfoSetting parse_infos[] = {
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_BLUETOOTH_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_BLUETOOTH,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_BLUETOOTH_BDADDR,
 				.parser        = mac_address_parser_ETHER,
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_BOND_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_BOND,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_BOND_OPTIONS,
 				.parser_no_check_key = TRUE,
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_BRIDGE_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_BRIDGE,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_BRIDGE_MAC_ADDRESS,
 				.parser        = mac_address_parser_ETHER,
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_CONNECTION_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_CONNECTION,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_CONNECTION_READ_ONLY,
 				.parser_skip   = TRUE,
@@ -2125,14 +2209,14 @@ static const ParseInfoSetting parse_infos[] = {
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_INFINIBAND_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_INFINIBAND,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_INFINIBAND_MAC_ADDRESS,
 				.parser        = mac_address_parser_INFINIBAND,
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_IP4_CONFIG_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_IP4_CONFIG,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_IP_CONFIG_ADDRESSES,
 				.parser_no_check_key = TRUE,
@@ -2154,7 +2238,7 @@ static const ParseInfoSetting parse_infos[] = {
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_IP6_CONFIG_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_IP6_CONFIG,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE,
 				.parser_no_check_key = TRUE,
@@ -2182,14 +2266,23 @@ static const ParseInfoSetting parse_infos[] = {
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_SERIAL_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_SERIAL,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_SERIAL_PARITY,
 				.parser        = parity_parser,
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_TC_CONFIG_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_SRIOV,
+		PARSE_INFO_PROPERTIES (
+			PARSE_INFO_PROPERTY (NM_SETTING_SRIOV_VFS,
+				.parser_no_check_key = TRUE,
+				.parser        = sriov_vfs_parser,
+				.writer        = sriov_vfs_writer,
+			),
+		),
+	),
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_TC_CONFIG,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_TC_CONFIG_QDISCS,
 				.parser_no_check_key = TRUE,
@@ -2203,7 +2296,7 @@ static const ParseInfoSetting parse_infos[] = {
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_TEAM_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_TEAM,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_TEAM_CONFIG,
 				.parser        = team_config_parser,
@@ -2270,7 +2363,7 @@ static const ParseInfoSetting parse_infos[] = {
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_TEAM_PORT_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_TEAM_PORT,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_TEAM_CONFIG,
 				.parser        = team_config_parser,
@@ -2301,21 +2394,21 @@ static const ParseInfoSetting parse_infos[] = {
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_USER_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_USER,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_USER_DATA,
 				.parser_no_check_key = TRUE,
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_VLAN_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_VLAN,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_VLAN_FLAGS,
 				.writer_persist_default = TRUE,
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_VPN_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_VPN,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_VPN_DATA,
 				.parser_no_check_key = TRUE,
@@ -2337,7 +2430,7 @@ static const ParseInfoSetting parse_infos[] = {
 			),
 		),
 	),
-	PARSE_INFO_SETTING (NM_SETTING_WIMAX_SETTING_NAME,
+	PARSE_INFO_SETTING (NM_META_SETTING_TYPE_WIMAX,
 		PARSE_INFO_PROPERTIES (
 			PARSE_INFO_PROPERTY (NM_SETTING_WIMAX_MAC_ADDRESS,
 				.parser        = mac_address_parser_ETHER,
@@ -2347,21 +2440,24 @@ static const ParseInfoSetting parse_infos[] = {
 };
 
 static const ParseInfoProperty *
-_parse_info_find (const char *setting_name, const char *property_name)
+_parse_info_find (NMSetting *setting,
+                  const char *property_name,
+                  const char **out_setting_name)
 {
+	const NMMetaSettingInfo *setting_info;
+	const ParseInfoSetting *pis;
 	gssize idx;
 
-#if NM_MORE_ASSERTS > 5
+#if NM_MORE_ASSERTS > 10
 	{
 		guint i, j;
 
 		for (i = 0; i < G_N_ELEMENTS (parse_infos); i++) {
-			const ParseInfoSetting *pis = &parse_infos[i];
+			pis = parse_infos[i];
 
-			g_assert (pis->setting_name);
-			if (   i > 0
-				&& strcmp (pis[-1].setting_name, pis->setting_name) >= 0)
-				g_error ("Wrong order at index #%d: \"%s\" before \"%s\"", i - 1, pis[-1].setting_name, pis->setting_name);
+			if (!pis)
+				continue;
+
 			g_assert (pis->properties);
 			g_assert (pis->properties[0]);
 			for (j = 0; pis->properties[j]; j++) {
@@ -2371,31 +2467,35 @@ _parse_info_find (const char *setting_name, const char *property_name)
 				g_assert (pip->property_name);
 				if (   j > 0
 				    && (pip0 = pis->properties[j - 1])
-				    && strcmp (pip0->property_name, pip->property_name) >= 0)
-					g_error ("Wrong order at index #%d.%d: \"%s.%s\" before \"%s.%s\"", i, j - 1, pis->setting_name, pip0->property_name, pis->setting_name, pip->property_name);
+				    && strcmp (pip0->property_name, pip->property_name) >= 0) {
+					g_error ("Wrong order at index #%d.%d: \"%s.%s\" before \"%s.%s\"",
+					         i, j - 1,
+					         nm_meta_setting_infos[i].setting_name, pip0->property_name,
+					         nm_meta_setting_infos[i].setting_name, pip->property_name);
+				}
 			}
 		}
 	}
 #endif
 
-	G_STATIC_ASSERT_EXPR (G_STRUCT_OFFSET (ParseInfoSetting, setting_name) == 0);
-	idx = _nm_utils_array_find_binary_search (parse_infos,
-	                                          sizeof (ParseInfoSetting),
-	                                          G_N_ELEMENTS (parse_infos),
-	                                          &setting_name,
-	                                          nm_strcmp_p_with_data,
-	                                          NULL);
-	if (idx >= 0) {
-		const ParseInfoSetting *pis = &parse_infos[idx];
+	if (   !NM_IS_SETTING (setting)
+	    || !(setting_info = NM_SETTING_GET_CLASS (setting)->setting_info)) {
+		/* handle invalid setting objects gracefully. */
+		*out_setting_name = NULL;
+		return NULL;
+	}
 
-		nm_assert (nm_streq (pis->setting_name, setting_name));
-		idx = _nm_utils_ptrarray_find_binary_search ((gconstpointer *) pis->properties,
-		                                             NM_PTRARRAY_LEN (pis->properties),
-		                                             &property_name,
-		                                             nm_strcmp_p_with_data,
-		                                             NULL,
-		                                             NULL,
-		                                             NULL);
+	*out_setting_name = setting_info->setting_name;
+
+	if ((pis = parse_infos[setting_info->meta_type])) {
+		G_STATIC_ASSERT_EXPR (G_STRUCT_OFFSET (ParseInfoProperty, property_name) == 0);
+		idx = nm_utils_ptrarray_find_binary_search ((gconstpointer *) pis->properties,
+		                                            NM_PTRARRAY_LEN (pis->properties),
+		                                            &property_name,
+		                                            nm_strcmp_p_with_data,
+		                                            NULL,
+		                                            NULL,
+		                                            NULL);
 		if (idx >= 0)
 			return pis->properties[idx];
 	}
@@ -2426,9 +2526,9 @@ read_one_setting_value (NMSetting *setting,
 	if (!(flags & G_PARAM_WRITABLE))
 		return;
 
-	setting_name = nm_setting_get_name (setting);
+	pip = _parse_info_find (setting, key, &setting_name);
 
-	pip = _parse_info_find (setting_name, key);
+	nm_assert (setting_name);
 
 	if (   !pip
 	    && nm_streq (key, NM_SETTING_NAME))
@@ -2521,7 +2621,7 @@ read_one_setting_value (NMSetting *setting,
 		} else
 			g_object_set (setting, key, int_val, NULL);
 	} else if (type == G_TYPE_BYTES) {
-		gint *tmp;
+		int *tmp;
 		GByteArray *array;
 		GBytes *bytes;
 		gsize length;
@@ -2554,7 +2654,7 @@ read_one_setting_value (NMSetting *setting,
 		g_bytes_unref (bytes);
 		g_free (tmp);
 	} else if (type == G_TYPE_STRV) {
-		gchar **sa;
+		char **sa;
 		gsize length;
 
 		sa = nm_keyfile_plugin_kf_get_string_list (keyfile, setting_name, key, &length, NULL);
@@ -2580,11 +2680,11 @@ read_one_setting_value (NMSetting *setting,
 			}
 		}
 	} else if (G_VALUE_HOLDS_ENUM (value)) {
-		gint int_val;
+		int int_val;
 
 		int_val = nm_keyfile_plugin_kf_get_integer (keyfile, setting_name, key, &err);
 		if (!err)
-			g_object_set (setting, key, (gint) int_val, NULL);
+			g_object_set (setting, key, (int) int_val, NULL);
 	} else {
 		if (!handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
 		                 _("unhandled setting property type '%s'"),
@@ -2596,6 +2696,8 @@ read_one_setting_value (NMSetting *setting,
 static NMSetting *
 read_setting (KeyfileReaderInfo *info)
 {
+	const NMSettInfoSetting *sett_info;
+	gs_unref_object NMSetting *setting = NULL;
 	const char *alias;
 	GType type;
 
@@ -2604,22 +2706,92 @@ read_setting (KeyfileReaderInfo *info)
 		alias = info->group;
 
 	type = nm_setting_lookup_type (alias);
-	if (type) {
-		NMSetting *setting = g_object_new (type, NULL);
-
-		info->setting = setting;
-		nm_setting_enumerate_values (setting, read_one_setting_value, info);
-		info->setting = NULL;
-		if (!info->error)
-			return setting;
-
-		g_object_unref (setting);
-	} else {
+	if (!type) {
 		handle_warn (info, NULL, NM_KEYFILE_WARN_SEVERITY_WARN,
 		             _("invalid setting name '%s'"), info->group);
+		return NULL;
 	}
 
-	return NULL;
+	setting = g_object_new (type, NULL);
+
+	info->setting = setting;
+
+	sett_info = _nm_sett_info_setting_get (NM_SETTING_GET_CLASS (setting));
+
+	if (sett_info->detail.gendata_info) {
+		gs_free char **keys = NULL;
+		gsize i, n_keys;
+
+		keys = g_key_file_get_keys (info->keyfile, info->group, &n_keys, NULL);
+		if (n_keys > 0) {
+			GHashTable *h = _nm_setting_gendata_hash (setting, TRUE);
+
+			nm_utils_strv_sort (keys, n_keys);
+			for (i = 0; i < n_keys; i++) {
+				gs_free char *key = keys[i];
+				gs_free_error GError *local = NULL;
+				const GVariantType *variant_type;
+				GVariant *variant;
+
+				/* a GKeyfile can return duplicate keys, there is just no API to make sense
+				 * of them. Skip them. */
+				if (   i + 1 < n_keys
+				    && nm_streq (key, keys[i + 1]))
+					continue;
+
+				/* currently, the API is very simple. The setting class just returns
+				 * the desired variant type, and keyfile reader will try to parse
+				 * it accordingly. Note, that this does currently not allow, that
+				 * a particular key can contain different variant types, nor is it
+				 * very flexible in general.
+				 *
+				 * We add flexibility when we need it. Keep it simple for now. */
+				variant_type = sett_info->detail.gendata_info->get_variant_type (sett_info,
+				                                                                 key,
+				                                                                 &local);
+				if (!variant_type) {
+					if (!handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
+					                  _("invalid key '%s.%s'"),
+					                  info->group, key))
+						break;
+					continue;
+				}
+
+				if (g_variant_type_equal (variant_type, G_VARIANT_TYPE_BOOLEAN)) {
+					gboolean v;
+
+					v = g_key_file_get_boolean (info->keyfile,
+					                            info->group,
+					                            key,
+					                            &local);
+					if (local) {
+						if (!handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
+						                  _("key '%s.%s' is not boolean"),
+						                  info->group, key))
+							break;
+						continue;
+					}
+					variant = g_variant_new_boolean (v);
+				} else {
+					nm_assert_not_reached ();
+					continue;
+				}
+
+				g_hash_table_insert (h,
+				                     g_steal_pointer (&key),
+				                     g_variant_take_ref (variant));
+			}
+			for (; i < n_keys; i++)
+				g_free (keys[i]);
+		}
+	} else
+		nm_setting_enumerate_values (setting, read_one_setting_value, info);
+
+	info->setting = NULL;
+
+	if (info->error)
+		return NULL;
+	return g_steal_pointer (&setting);
 }
 
 static void
@@ -2640,20 +2812,52 @@ read_vpn_secrets (KeyfileReaderInfo *info, NMSettingVpn *s_vpn)
 	}
 }
 
+gboolean
+nm_keyfile_read_ensure_id (NMConnection *connection,
+                           const char *fallback_id)
+{
+	NMSettingConnection *s_con;
+
+	g_return_val_if_fail (NM_IS_CONNECTION (connection), FALSE);
+	g_return_val_if_fail (fallback_id, FALSE);
+
+	s_con = nm_connection_get_setting_connection (connection);
+	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (s_con), FALSE);
+
+	if (nm_setting_connection_get_id (s_con))
+		return FALSE;
+
+	g_object_set (s_con, NM_SETTING_CONNECTION_ID, fallback_id, NULL);
+	return TRUE;
+}
+
+gboolean
+nm_keyfile_read_ensure_uuid (NMConnection *connection,
+                             const char *fallback_uuid_seed)
+{
+	NMSettingConnection *s_con;
+	gs_free char *hashed_uuid = NULL;
+
+	g_return_val_if_fail (NM_IS_CONNECTION (connection), FALSE);
+	g_return_val_if_fail (fallback_uuid_seed, FALSE);
+
+	s_con = nm_connection_get_setting_connection (connection);
+	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (s_con), FALSE);
+
+	if (nm_setting_connection_get_uuid (s_con))
+		return FALSE;
+
+	hashed_uuid = _nm_utils_uuid_generate_from_strings ("keyfile", fallback_uuid_seed, NULL);
+	g_object_set (s_con, NM_SETTING_CONNECTION_UUID, hashed_uuid, NULL);
+	return TRUE;
+}
+
 /**
  * nm_keyfile_read:
  * @keyfile: the keyfile from which to create the connection
- * @keyfile_name: keyfile allows missing connection id and uuid
- *   and NetworkManager will create those when reading a connection
- *   from file. By providing a filename you can reproduce that behavior,
- *   but of course, it can only recreate the same UUID if you provide the
- *   same filename as NetworkManager core daemon would.
- *   @keyfile_name has only a relevance for setting the id or uuid if it
- *   is missing and as fallback for @base_dir.
  * @base_dir: when reading certificates from files with relative name,
- *   the relative path is made absolute using @base_dir.
- *   If @base_dir is missing, first try to get the pathname from @keyfile_name
- *   (if it is given as absolute path). As last, fallback to the current path.
+ *   the relative path is made absolute using @base_dir. This must
+ *   be an absolute path.
  * @handler: read handler
  * @user_data: user data for read handler
  * @error: error
@@ -2665,7 +2869,6 @@ read_vpn_secrets (KeyfileReaderInfo *info, NMSettingVpn *s_vpn)
  */
 NMConnection *
 nm_keyfile_read (GKeyFile *keyfile,
-                 const char *keyfile_name,
                  const char *base_dir,
                  NMKeyfileReadHandler handler,
                  void *user_data,
@@ -2674,27 +2877,15 @@ nm_keyfile_read (GKeyFile *keyfile,
 	gs_unref_object NMConnection *connection = NULL;
 	NMSettingConnection *s_con;
 	NMSetting *setting;
-	gchar **groups;
+	char **groups;
 	gsize length;
-	int i;
+	gsize i;
 	gboolean vpn_secrets = FALSE;
 	KeyfileReaderInfo info = { 0 };
-	gs_free char *base_dir_free = NULL;
 
 	g_return_val_if_fail (keyfile, NULL);
 	g_return_val_if_fail (!error || !*error, NULL);
-
-	if (!base_dir) {
-		/* basedir is not given. Prefer it from the keyfile_name */
-		if (keyfile_name && keyfile_name[0] == '/') {
-			base_dir = base_dir_free = g_path_get_dirname (keyfile_name);
-		} else {
-			/* if keyfile is not given or not an absolute path, fallback
-			 * to current working directory. */
-			base_dir = base_dir_free = g_get_current_dir ();
-		}
-	} else
-		g_return_val_if_fail ("/", NULL);
+	g_return_val_if_fail (base_dir && base_dir[0] == '/', NULL);
 
 	connection = nm_simple_connection_new ();
 
@@ -2728,24 +2919,6 @@ nm_keyfile_read (GKeyFile *keyfile,
 	if (!s_con) {
 		s_con = NM_SETTING_CONNECTION (nm_setting_connection_new ());
 		nm_connection_add_setting (connection, NM_SETTING (s_con));
-	}
-
-	/* Make sure that we have 'id' even if not explictly specified in the keyfile */
-	if (   keyfile_name
-	    && !nm_setting_connection_get_id (s_con)) {
-		gs_free char *base_name = NULL;
-
-		base_name = g_path_get_basename (keyfile_name);
-		g_object_set (s_con, NM_SETTING_CONNECTION_ID, base_name, NULL);
-	}
-
-	/* Make sure that we have 'uuid' even if not explictly specified in the keyfile */
-	if (   keyfile_name
-	    && !nm_setting_connection_get_uuid (s_con)) {
-		gs_free char *hashed_uuid = NULL;
-
-		hashed_uuid = _nm_utils_uuid_generate_from_strings ("keyfile", keyfile_name, NULL);
-		g_object_set (s_con, NM_SETTING_CONNECTION_UUID, hashed_uuid, NULL);
 	}
 
 	/* Make sure that we have 'interface-name' even if it was specified in the
@@ -2800,12 +2973,22 @@ write_setting_value (NMSetting *setting,
 	if (info->error)
 		return;
 
-	setting_name = nm_setting_get_name (setting);
-
 	pspec = g_object_class_find_property (G_OBJECT_GET_CLASS (setting), key);
 	nm_assert (pspec);
 
-	pip = _parse_info_find (setting_name, key);
+	pip = _parse_info_find (setting, key, &setting_name);
+
+	if (!setting_name) {
+		/* the setting type is unknown. That is highly unexpected
+		 * (and as this is currently only called from NetworkManager
+		 * daemon, not possible).
+		 *
+		 * Still, handle it gracefully, because later keyfile writer will become
+		 * public API of libnm, where @setting is (untrusted) user input.
+		 *
+		 * Gracefully here just means: ignore the setting. */
+		return;
+	}
 
 	if (   !pip
 	    && nm_streq (key, NM_SETTING_NAME))
@@ -2879,7 +3062,7 @@ write_setting_value (NMSetting *setting,
 		char **array;
 
 		array = (char **) g_value_get_boxed (value);
-		nm_keyfile_plugin_kf_set_string_list (info->keyfile, setting_name, key, (const gchar **const) array, g_strv_length (array));
+		nm_keyfile_plugin_kf_set_string_list (info->keyfile, setting_name, key, (const char **const) array, g_strv_length (array));
 	} else if (type == G_TYPE_HASH_TABLE) {
 		write_hash_of_string (info->keyfile, setting, key, value);
 	} else if (type == G_TYPE_ARRAY) {
@@ -2888,7 +3071,7 @@ write_setting_value (NMSetting *setting,
 		/* Flags are guint but GKeyFile has no uint reader, just uint64 */
 		nm_keyfile_plugin_kf_set_uint64 (info->keyfile, setting_name, key, (guint64) g_value_get_flags (value));
 	} else if (G_VALUE_HOLDS_ENUM (value))
-		nm_keyfile_plugin_kf_set_integer (info->keyfile, setting_name, key, (gint) g_value_get_enum (value));
+		nm_keyfile_plugin_kf_set_integer (info->keyfile, setting_name, key, (int) g_value_get_enum (value));
 	else
 		g_warn_if_reached ();
 }
@@ -2900,6 +3083,8 @@ nm_keyfile_write (NMConnection *connection,
                   GError **error)
 {
 	KeyfileWriterInfo info = { 0 };
+	gs_free NMSetting **settings = NULL;
+	guint i, length = 0;
 
 	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
 	g_return_val_if_fail (!error || !*error, NULL);
@@ -2912,12 +3097,59 @@ nm_keyfile_write (NMConnection *connection,
 	info.error = NULL;
 	info.handler = handler;
 	info.user_data = user_data;
-	nm_connection_for_each_setting_value (connection, write_setting_value, &info);
+
+	settings = nm_connection_get_settings (connection, &length);
+	for (i = 0; i < length; i++) {
+		const NMSettInfoSetting *sett_info;
+		NMSetting *setting = settings[i];
+
+		sett_info = _nm_sett_info_setting_get (NM_SETTING_GET_CLASS (setting));
+
+		if (sett_info->detail.gendata_info) {
+			guint k, n_keys;
+			const char *const*keys;
+
+			nm_assert (!nm_keyfile_plugin_get_alias_for_setting_name (sett_info->setting_class->setting_info->setting_name));
+
+			n_keys = _nm_setting_gendata_get_all (setting, &keys, NULL);
+
+			if (n_keys > 0) {
+				const char *setting_name = sett_info->setting_class->setting_info->setting_name;
+				GHashTable *h = _nm_setting_gendata_hash (setting, FALSE);
+
+				for (k = 0; k < n_keys; k++) {
+					const char *key = keys[k];
+					GVariant *v;
+
+					v = g_hash_table_lookup (h, key);
+
+					if (g_variant_is_of_type (v, G_VARIANT_TYPE_BOOLEAN)) {
+						g_key_file_set_boolean (info.keyfile,
+						                        setting_name,
+						                        key,
+						                        g_variant_get_boolean (v));
+					} else {
+						/* BUG: The variant type is not implemented. Since the connection
+						 * verifies, this can only mean we either wrongly didn't reject
+						 * the connection as invalid, or we didn't properly implement the
+						 * variant type. */
+						nm_assert_not_reached ();
+						continue;
+					}
+				}
+			}
+		} else
+			nm_setting_enumerate_values (setting, write_setting_value, &info);
+
+		if (info.error)
+			break;
+	}
 
 	if (info.error) {
 		g_propagate_error (error, info.error);
 		g_key_file_unref (info.keyfile);
 		return NULL;
 	}
+
 	return info.keyfile;
 }

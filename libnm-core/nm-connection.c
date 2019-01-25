@@ -16,7 +16,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright 2007 - 2017 Red Hat, Inc.
+ * Copyright 2007 - 2018 Red Hat, Inc.
  * Copyright 2007 - 2008 Novell, Inc.
  */
 
@@ -224,6 +224,40 @@ nm_connection_get_setting_by_name (NMConnection *connection, const char *name)
 	type = nm_setting_lookup_type (name);
 	return type ? _connection_get_setting (connection, type) : NULL;
 }
+
+/*****************************************************************************/
+
+gpointer /* (NMSetting *) */
+_nm_connection_check_main_setting (NMConnection *connection,
+                                   const char *setting_name,
+                                   GError **error)
+{
+	NMSetting *setting;
+
+	nm_assert (NM_IS_CONNECTION (connection));
+	nm_assert (setting_name);
+
+	if (!nm_connection_is_type (connection, setting_name)) {
+		nm_utils_error_set (error,
+		                    NM_UTILS_ERROR_CONNECTION_AVAILABLE_INCOMPATIBLE,
+		                    "connection type is not \"%s\"",
+		                    setting_name);
+		return NULL;
+	}
+
+	setting = nm_connection_get_setting_by_name (connection, setting_name);
+	if (!setting) {
+		nm_utils_error_set (error,
+		                    NM_UTILS_ERROR_CONNECTION_AVAILABLE_INCOMPATIBLE,
+		                    "connection misses \"%s\" settings",
+		                    setting_name);
+		return NULL;
+	}
+
+	return setting;
+}
+
+/*****************************************************************************/
 
 static gboolean
 validate_permissions_type (GVariant *variant, GError **error)
@@ -809,16 +843,34 @@ _normalize_ethernet_link_neg (NMConnection *self)
 	return FALSE;
 }
 
+/**
+ * _supports_addr_family:
+ * @self: a #NMConnection
+ * @family: AF_*
+ *
+ * Check whether the connection supports certain L3 address family,
+ * in order to be able to tell whether is should have the corresponding
+ * setting ("ipv4" for AF_INET and "ipv6" for AF_INET6).
+ *
+ * If AF_UNSPEC is given, then the function checks whether the connection
+ * supports any L3 configuration at all.
+ *
+ * Returns: %TRUE if the AF is supported, %FALSE otherwise
+ **/
 static gboolean
-_without_ip_config (NMConnection *self)
+_supports_addr_family (NMConnection *self, int family)
 {
 	const char *connection_type = nm_connection_get_connection_type (self);
 
-	g_return_val_if_fail (connection_type, FALSE);
+	g_return_val_if_fail (connection_type, TRUE);
 	if (strcmp (connection_type, NM_SETTING_OVS_INTERFACE_SETTING_NAME) == 0)
+		return TRUE;
+	if (strcmp (connection_type, NM_SETTING_WPAN_SETTING_NAME) == 0)
 		return FALSE;
+	if (strcmp (connection_type, NM_SETTING_6LOWPAN_SETTING_NAME) == 0)
+		return family == AF_INET6 || family == AF_UNSPEC;
 
-	return !!nm_setting_connection_get_master (nm_connection_get_setting_connection (self));
+	return !nm_setting_connection_get_master (nm_connection_get_setting_connection (self));
 }
 
 static gboolean
@@ -841,32 +893,18 @@ _normalize_ip_config (NMConnection *self, GHashTable *parameters)
 	s_ip6 = nm_connection_get_setting_ip6_config (self);
 	s_proxy = nm_connection_get_setting_proxy (self);
 
-	if (_without_ip_config (self)) {
-		/* Slave connections don't have IP configuration. */
-
-		if (s_ip4)
-			nm_connection_remove_setting (self, NM_TYPE_SETTING_IP4_CONFIG);
-
-		if (s_ip6)
-			nm_connection_remove_setting (self, NM_TYPE_SETTING_IP6_CONFIG);
-
-		if (s_proxy)
-			nm_connection_remove_setting (self, NM_TYPE_SETTING_PROXY);
-
-		return s_ip4 || s_ip6 || s_proxy;
-	} else {
-		/* Ensure all non-slave connections have IP4 and IP6 settings objects. If no
-		 * IP6 setting was specified, then assume that means IP6 config is allowed
-		 * to fail. But if no IP4 setting was specified, assume the caller was just
-		 * being lazy.
-		 */
+	if (_supports_addr_family (self, AF_INET)) {
 		if (!s_ip4) {
+			 /* But if no IP4 setting was specified, assume the caller was just
+			  * being lazy and use the default method.
+			  */
 			setting = nm_setting_ip4_config_new ();
 
 			g_object_set (setting,
 			              NM_SETTING_IP_CONFIG_METHOD, default_ip4_method,
 			              NULL);
 			nm_connection_add_setting (self, setting);
+			changed = TRUE;
 		} else {
 			if (   nm_setting_ip_config_get_gateway (s_ip4)
 			    && nm_setting_ip_config_get_never_default (s_ip4)) {
@@ -890,7 +928,18 @@ _normalize_ip_config (NMConnection *self, GHashTable *parameters)
 				changed = TRUE;
 			}
 		}
+	} else {
+		if (s_ip4) {
+			nm_connection_remove_setting (self, NM_TYPE_SETTING_IP4_CONFIG);
+			changed = TRUE;
+		}
+	}
+
+	if (_supports_addr_family (self, AF_INET6)) {
 		if (!s_ip6) {
+			/* If no IP6 setting was specified, then assume that means IP6 config is
+			 * allowed to fail.
+			 */
 			setting = nm_setting_ip6_config_new ();
 
 			g_object_set (setting,
@@ -898,6 +947,7 @@ _normalize_ip_config (NMConnection *self, GHashTable *parameters)
 			              NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE,
 			              NULL);
 			nm_connection_add_setting (self, setting);
+			changed = TRUE;
 		} else {
 			const char *token;
 
@@ -930,14 +980,27 @@ _normalize_ip_config (NMConnection *self, GHashTable *parameters)
 				changed = TRUE;
 			}
 		}
+	} else {
+		if (s_ip6) {
+			nm_connection_remove_setting (self, NM_TYPE_SETTING_IP6_CONFIG);
+			changed = TRUE;
+		}
+	}
 
+	if (_supports_addr_family (self, AF_UNSPEC)) {
 		if (!s_proxy) {
 			setting = nm_setting_proxy_new ();
 			nm_connection_add_setting (self, setting);
+			changed = TRUE;
 		}
-
-		return !s_ip4 || !s_ip6 || !s_proxy || changed;
+	} else {
+		if (s_proxy) {
+			nm_connection_remove_setting (self, NM_TYPE_SETTING_PROXY);
+			changed = TRUE;
+		}
 	}
+
+	return changed;
 }
 
 static gboolean
@@ -1129,6 +1192,38 @@ _normalize_ovs_interface_type (NMConnection *self, GHashTable *parameters)
 }
 
 static gboolean
+_normalize_ip_tunnel_wired_setting (NMConnection *self, GHashTable *parameters)
+{
+	NMSettingIPTunnel *s_ip_tunnel;
+
+	s_ip_tunnel = nm_connection_get_setting_ip_tunnel (self);
+	if (!s_ip_tunnel)
+		return FALSE;
+
+	if (   nm_connection_get_setting_wired (self)
+	    && !NM_IN_SET (nm_setting_ip_tunnel_get_mode (s_ip_tunnel),
+	                   NM_IP_TUNNEL_MODE_GRETAP,
+	                   NM_IP_TUNNEL_MODE_IP6GRETAP)) {
+		nm_connection_remove_setting (self, NM_TYPE_SETTING_WIRED);
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+static gboolean
+_normalize_sriov_vf_order (NMConnection *self, GHashTable *parameters)
+{
+	NMSettingSriov *s_sriov;
+
+	s_sriov = NM_SETTING_SRIOV (nm_connection_get_setting (self, NM_TYPE_SETTING_SRIOV));
+	if (!s_sriov)
+		return FALSE;
+
+	return _nm_setting_sriov_sort_vfs (s_sriov);
+}
+
+static gboolean
 _normalize_required_settings (NMConnection *self, GHashTable *parameters)
 {
 	NMSettingBluetooth *s_bt = nm_connection_get_setting_bluetooth (self);
@@ -1288,38 +1383,78 @@ _nm_connection_verify (NMConnection *connection, GError **error)
 	nm_assert (normalizable_error_type != NM_SETTING_VERIFY_ERROR);
 	if (NM_IN_SET (normalizable_error_type, NM_SETTING_VERIFY_SUCCESS,
 	                                        NM_SETTING_VERIFY_NORMALIZABLE)) {
-		if (_without_ip_config (connection)) {
-			if (s_ip4 || s_ip6 || s_proxy) {
+		if (_supports_addr_family (connection, AF_INET)) {
+			if (!s_ip4 && normalizable_error_type == NM_SETTING_VERIFY_SUCCESS) {
+				g_set_error_literal (&normalizable_error,
+				                     NM_CONNECTION_ERROR,
+				                     NM_CONNECTION_ERROR_MISSING_SETTING,
+				                     _("setting is required for non-slave connections"));
+				g_prefix_error (&normalizable_error, "%s: ", NM_SETTING_IP4_CONFIG_SETTING_NAME);
+
+				/* having a master without IP config was not a verify() error, accept
+				 * it for backward compatibility. */
+				normalizable_error_type = NM_SETTING_VERIFY_NORMALIZABLE;
+			}
+		} else {
+			if (s_ip4) {
 				g_clear_error (&normalizable_error);
 				g_set_error_literal (&normalizable_error,
 				                     NM_CONNECTION_ERROR,
 				                     NM_CONNECTION_ERROR_INVALID_SETTING,
 				                     _("setting not allowed in slave connection"));
-				g_prefix_error (&normalizable_error, "%s: ",
-				                s_ip4
-				                ? NM_SETTING_IP4_CONFIG_SETTING_NAME
-				                : (s_ip6
-				                   ? NM_SETTING_IP6_CONFIG_SETTING_NAME
-				                   : NM_SETTING_PROXY_SETTING_NAME));
+				g_prefix_error (&normalizable_error, "%s: ", NM_SETTING_IP4_CONFIG_SETTING_NAME);
 				/* having a slave with IP config *was* and is a verify() error. */
 				normalizable_error_type = NM_SETTING_VERIFY_NORMALIZABLE_ERROR;
 			}
-		} else {
-			if (   normalizable_error_type == NM_SETTING_VERIFY_SUCCESS
-			    && (!s_ip4 || !s_ip6 || !s_proxy)) {
+		}
+
+		if (_supports_addr_family (connection, AF_INET6)) {
+			if (!s_ip6 && normalizable_error_type == NM_SETTING_VERIFY_SUCCESS) {
 				g_set_error_literal (&normalizable_error,
 				                     NM_CONNECTION_ERROR,
 				                     NM_CONNECTION_ERROR_MISSING_SETTING,
 				                     _("setting is required for non-slave connections"));
-				g_prefix_error (&normalizable_error, "%s: ",
-				                !s_ip4
-				                ? NM_SETTING_IP4_CONFIG_SETTING_NAME
-				                : (!s_ip6
-				                   ? NM_SETTING_IP6_CONFIG_SETTING_NAME
-				                   : NM_SETTING_PROXY_SETTING_NAME));
+				g_prefix_error (&normalizable_error, "%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME);
+
 				/* having a master without IP config was not a verify() error, accept
 				 * it for backward compatibility. */
 				normalizable_error_type = NM_SETTING_VERIFY_NORMALIZABLE;
+			}
+		} else {
+			if (s_ip6) {
+				g_clear_error (&normalizable_error);
+				g_set_error_literal (&normalizable_error,
+				                     NM_CONNECTION_ERROR,
+				                     NM_CONNECTION_ERROR_INVALID_SETTING,
+				                     _("setting not allowed in slave connection"));
+				g_prefix_error (&normalizable_error, "%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME);
+				/* having a slave with IP config *was* and is a verify() error. */
+				normalizable_error_type = NM_SETTING_VERIFY_NORMALIZABLE_ERROR;
+			}
+		}
+
+		if (_supports_addr_family (connection, AF_UNSPEC)) {
+			if (!s_proxy && normalizable_error_type == NM_SETTING_VERIFY_SUCCESS) {
+				g_set_error_literal (&normalizable_error,
+				                     NM_CONNECTION_ERROR,
+				                     NM_CONNECTION_ERROR_MISSING_SETTING,
+				                     _("setting is required for non-slave connections"));
+				g_prefix_error (&normalizable_error, "%s: ", NM_SETTING_PROXY_SETTING_NAME);
+
+				/* having a master without proxy config was not a verify() error, accept
+				 * it for backward compatibility. */
+				normalizable_error_type = NM_SETTING_VERIFY_NORMALIZABLE;
+			}
+		} else {
+			if (s_proxy) {
+				g_clear_error (&normalizable_error);
+				g_set_error_literal (&normalizable_error,
+				                     NM_CONNECTION_ERROR,
+				                     NM_CONNECTION_ERROR_INVALID_SETTING,
+				                     _("setting not allowed in slave connection"));
+				g_prefix_error (&normalizable_error, "%s: ", NM_SETTING_PROXY_SETTING_NAME);
+				/* having a slave with proxy config *was* and is a verify() error. */
+				normalizable_error_type = NM_SETTING_VERIFY_NORMALIZABLE_ERROR;
 			}
 		}
 	}
@@ -1433,6 +1568,8 @@ nm_connection_normalize (NMConnection *connection,
 	was_modified |= _normalize_team_port_config (connection, parameters);
 	was_modified |= _normalize_bluetooth_type (connection, parameters);
 	was_modified |= _normalize_ovs_interface_type (connection, parameters);
+	was_modified |= _normalize_ip_tunnel_wired_setting (connection, parameters);
+	was_modified |= _normalize_sriov_vf_order (connection, parameters);
 
 	/* Verify anew. */
 	success = _nm_connection_verify (connection, error);
@@ -1858,9 +1995,10 @@ nm_connection_for_each_setting_value (NMConnection *connection,
  * nm_connection_dump:
  * @connection: the #NMConnection
  *
- * Print the connection to stdout.  For debugging purposes ONLY, should NOT
- * be used for serialization of the connection or machine-parsed in any way. The
- * output format is not guaranteed to be stable and may change at any time.
+ * Print the connection (including secrets!) to stdout. For debugging
+ * purposes ONLY, should NOT be used for serialization of the setting,
+ * or machine-parsed in any way. The output format is not guaranteed to
+ * be stable and may change at any time.
  **/
 void
 nm_connection_dump (NMConnection *connection)
@@ -1941,6 +2079,32 @@ nm_connection_get_interface_name (NMConnection *connection)
 
 	s_con = nm_connection_get_setting_connection (connection);
 	return s_con ? nm_setting_connection_get_interface_name (s_con) : NULL;
+}
+
+NMConnectionMultiConnect
+_nm_connection_get_multi_connect (NMConnection *connection)
+{
+	NMSettingConnection *s_con;
+	NMConnectionMultiConnect multi_connect;
+	const NMConnectionMultiConnect DEFAULT = NM_CONNECTION_MULTI_CONNECT_SINGLE;
+
+	/* connection.multi_connect property cannot be specified via regular
+	 * connection defaults in NetworkManager.conf, because those are per-device,
+	 * and we need to determine the multi_connect independent of a particular
+	 * device.
+	 *
+	 * There is however still a default-value, so theoretically, the default
+	 * value could be specified in NetworkManager.conf. Just not as [connection*]
+	 * and indepdented of a device. */
+
+	s_con = nm_connection_get_setting_connection (connection);
+	if (!s_con)
+		return DEFAULT;
+
+	multi_connect = nm_setting_connection_get_multi_connect (s_con);
+	return multi_connect == NM_CONNECTION_MULTI_CONNECT_DEFAULT
+	       ? DEFAULT
+	       : multi_connect;
 }
 
 gboolean
@@ -2033,7 +2197,8 @@ nm_connection_is_virtual (NMConnection *connection)
 	if (!type)
 		return FALSE;
 
-	if (   !strcmp (type, NM_SETTING_BOND_SETTING_NAME)
+	if (   !strcmp (type, NM_SETTING_6LOWPAN_SETTING_NAME)
+	    || !strcmp (type, NM_SETTING_BOND_SETTING_NAME)
 	    || !strcmp (type, NM_SETTING_DUMMY_SETTING_NAME)
 	    || !strcmp (type, NM_SETTING_TEAM_SETTING_NAME)
 	    || !strcmp (type, NM_SETTING_BRIDGE_SETTING_NAME)

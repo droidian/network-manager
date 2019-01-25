@@ -33,6 +33,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#include "nm-utils/nm-secret-utils.h"
 #include "nm-connection.h"
 #include "nm-dbus-interface.h"
 #include "nm-setting-connection.h"
@@ -41,6 +42,7 @@
 #include "nm-setting-ip6-config.h"
 #include "nm-setting-wired.h"
 #include "nm-setting-wireless.h"
+#include "nm-setting-ethtool.h"
 #include "nm-setting-8021x.h"
 #include "nm-setting-bond.h"
 #include "nm-setting-team.h"
@@ -53,6 +55,7 @@
 #include "nm-setting-generic.h"
 #include "nm-core-internal.h"
 #include "nm-utils.h"
+#include "nm-ethtool-utils.h"
 
 #include "platform/nm-platform.h"
 #include "NetworkManagerUtils.h"
@@ -74,6 +77,210 @@
     } G_STMT_END
 
 #define PARSE_WARNING(...) _LOGW ("%s" _NM_UTILS_MACRO_FIRST(__VA_ARGS__), "    " _NM_UTILS_MACRO_REST(__VA_ARGS__))
+
+/*****************************************************************************/
+
+static char *
+get_full_file_path (const char *ifcfg_path, const char *file_path)
+{
+	const char *base = file_path;
+	char *p, *ret, *dirname;
+
+	g_return_val_if_fail (ifcfg_path != NULL, NULL);
+	g_return_val_if_fail (file_path != NULL, NULL);
+
+	if (file_path[0] == '/')
+		return g_strdup (file_path);
+
+	p = strrchr (file_path, '/');
+	if (p)
+		base = p + 1;
+
+	dirname = g_path_get_dirname (ifcfg_path);
+	ret = g_build_path ("/", dirname, base, NULL);
+	g_free (dirname);
+	return ret;
+}
+
+/*****************************************************************************/
+
+static NMSettingSecretFlags
+_secret_read_ifcfg_flags (shvarFile *ifcfg, const char *flags_key)
+{
+	NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
+	gs_free char *val_free = NULL;
+	const char *val;
+
+	nm_assert (flags_key);
+	nm_assert (g_str_has_suffix (flags_key, "_FLAGS"));
+
+	val = svGetValueStr (ifcfg, flags_key, &val_free);
+	if (val) {
+		if (strstr (val, SECRET_FLAG_AGENT))
+			flags |= NM_SETTING_SECRET_FLAG_AGENT_OWNED;
+		if (strstr (val, SECRET_FLAG_NOT_SAVED))
+			flags |= NM_SETTING_SECRET_FLAG_NOT_SAVED;
+		if (strstr (val, SECRET_FLAG_NOT_REQUIRED))
+			flags |= NM_SETTING_SECRET_FLAG_NOT_REQUIRED;
+	}
+	return flags;
+}
+
+static void
+_secret_read_ifcfg (shvarFile *ifcfg,
+                    shvarFile *keys_ifcfg,
+                    const char *name,
+                    char **value,
+                    NMSettingSecretFlags *flags)
+{
+	char flags_key[250];
+
+	nm_sprintf_buf (flags_key, "%s_FLAGS", name);
+
+	*flags = _secret_read_ifcfg_flags (ifcfg, flags_key);
+
+	if (*flags != NM_SETTING_SECRET_FLAG_NONE)
+		*value = NULL;
+	else {
+		*value = svGetValue_cp (ifcfg, name);
+		if (!*value && keys_ifcfg)
+			*value = svGetValue_cp (keys_ifcfg, name);
+	}
+}
+
+static void
+_secret_set_from_ifcfg (gpointer setting,
+                        shvarFile *ifcfg,
+                        shvarFile *keys_ifcfg,
+                        const char *ifcfg_key,
+                        const char *property_name)
+{
+	nm_auto_free_secret char *secret = NULL;
+	NMSettingSecretFlags flags;
+	char flags_key[250];
+
+	nm_assert (NM_IS_SETTING (setting));
+
+	_secret_read_ifcfg (ifcfg, keys_ifcfg, ifcfg_key, &secret, &flags);
+
+	g_object_set (setting,
+	              property_name,
+	              secret,
+	              nm_sprintf_buf (flags_key, "%s-flags", property_name),
+	              flags,
+	              NULL);
+}
+
+static gboolean
+_secret_password_raw_to_bytes (const char *ifcfg_key,
+                               const char *password_raw,
+                               GBytes **out_bytes,
+                               GError **error)
+{
+	nm_auto_free_secret_buf NMSecretBuf *secret = NULL;
+	gsize len;
+
+	if (!password_raw) {
+		NM_SET_OUT (out_bytes, NULL);
+		return TRUE;
+	}
+
+	if (password_raw[0] == '0' && password_raw[1] == 'x')
+		password_raw += 2;
+
+	secret = nm_secret_buf_new (strlen (password_raw) / 2 + 3);
+	if (!_nm_utils_str2bin_full (password_raw, FALSE, ":", secret->bin, secret->len, &len)) {
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
+		             "Invalid hex password in %s",
+		             ifcfg_key);
+		return FALSE;
+	}
+
+	NM_SET_OUT (out_bytes, nm_secret_buf_to_gbytes_take (g_steal_pointer (&secret), len));
+	return TRUE;
+}
+
+/*****************************************************************************/
+
+static GBytes *
+_cert_get_cert_bytes (const char *ifcfg_path,
+                      const char *value,
+                      GError **error)
+{
+	gs_free char *path = NULL;
+
+	if (g_str_has_prefix (value, "pkcs11:"))
+		return _nm_setting_802_1x_cert_value_to_bytes (NM_SETTING_802_1X_CK_SCHEME_PKCS11, (guint8 *) value, -1, error);
+
+	path = get_full_file_path (ifcfg_path, value);
+	return _nm_setting_802_1x_cert_value_to_bytes (NM_SETTING_802_1X_CK_SCHEME_PATH, (guint8 *) path, -1, error);
+}
+
+static gboolean
+_cert_get_cert (shvarFile *ifcfg,
+                const char *ifcfg_key,
+                GBytes **out_cert,
+                NMSetting8021xCKScheme *out_scheme,
+                GError **error)
+{
+	nm_auto_free_secret char *val_free = NULL;
+	const char *val;
+	gs_unref_bytes GBytes *cert = NULL;
+	GError *local = NULL;
+	NMSetting8021xCKScheme scheme;
+
+	val = svGetValueStr (ifcfg, ifcfg_key, &val_free);
+	if (!val) {
+		NM_SET_OUT (out_cert, NULL);
+		NM_SET_OUT (out_scheme, NM_SETTING_802_1X_CK_SCHEME_UNKNOWN);
+		return TRUE;
+	}
+
+	cert = _cert_get_cert_bytes (svFileGetName (ifcfg), val, &local);
+	if (!cert)
+		goto err;
+
+	scheme = _nm_setting_802_1x_cert_get_scheme (cert, &local);
+	if (scheme == NM_SETTING_802_1X_CK_SCHEME_UNKNOWN)
+		goto err;
+
+	NM_SET_OUT (out_cert, g_steal_pointer (&cert));
+	NM_SET_OUT (out_scheme, scheme);
+	return TRUE;
+
+err:
+	g_set_error (error,
+	             NM_SETTINGS_ERROR,
+	             NM_SETTINGS_ERROR_INVALID_CONNECTION,
+	             "invalid certificate %s: %s",
+	             ifcfg_key,
+	             local->message);
+	g_error_free (local);
+	return FALSE;
+}
+
+static gboolean
+_cert_set_from_ifcfg (gpointer setting,
+                      shvarFile *ifcfg,
+                      const char *ifcfg_key,
+                      const char *property_name,
+                      GBytes **out_cert,
+                      GError **error)
+{
+	gs_unref_bytes GBytes *cert = NULL;
+
+	if (!_cert_get_cert (ifcfg,
+	                     ifcfg_key,
+	                     &cert,
+	                     NULL,
+	                     error))
+		return FALSE;
+
+	g_object_set (setting, property_name, cert, NULL);
+
+	NM_SET_OUT (out_cert, g_steal_pointer (&cert));
+	return TRUE;
+}
 
 /*****************************************************************************/
 
@@ -232,13 +439,16 @@ make_connection_setting (const char *file,
 	              NM_SETTING_CONNECTION_AUTOCONNECT,
 	              svGetValueBoolean (ifcfg, "ONBOOT", TRUE),
 	              NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY,
-	              (gint) svGetValueInt64 (ifcfg, "AUTOCONNECT_PRIORITY", 10,
+	              (int) svGetValueInt64 (ifcfg, "AUTOCONNECT_PRIORITY", 10,
 	                                      NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY_MIN,
 	                                      NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY_MAX,
 	                                      NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY_DEFAULT),
 	              NM_SETTING_CONNECTION_AUTOCONNECT_RETRIES,
-	              (gint) svGetValueInt64 (ifcfg, "AUTOCONNECT_RETRIES", 10,
+	              (int) svGetValueInt64 (ifcfg, "AUTOCONNECT_RETRIES", 10,
 	                                      -1, G_MAXINT32, -1),
+	              NM_SETTING_CONNECTION_MULTI_CONNECT,
+	              (gint) svGetValueInt64 (ifcfg, "MULTI_CONNECT", 10,
+	                                      G_MININT32, G_MAXINT32, NM_CONNECTION_MULTI_CONNECT_DEFAULT),
 	              NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES,
 	              svGetValueBoolean (ifcfg, "AUTOCONNECT_SLAVES", NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES_DEFAULT),
 	              NM_SETTING_CONNECTION_LLDP, lldp,
@@ -249,7 +459,7 @@ make_connection_setting (const char *file,
 	if (v) {
 		gs_free const char **items = NULL;
 
-		items = nm_utils_strsplit_set (v, " ");
+		items = nm_utils_strsplit_set (v, " ", FALSE);
 		for (iter = items; iter && *iter; iter++) {
 			if (!nm_setting_connection_add_permission (s_con, "user", *iter, NULL))
 				PARSE_WARNING ("invalid USERS item '%s'", *iter);
@@ -265,7 +475,7 @@ make_connection_setting (const char *file,
 	if (v) {
 		gs_free const char **items = NULL;
 
-		items = nm_utils_strsplit_set (v, " \t");
+		items = nm_utils_strsplit_set (v, " \t", FALSE);
 		for (iter = items; iter && *iter; iter++) {
 			if (!nm_setting_connection_add_secondary (s_con, *iter))
 				PARSE_WARNING ("secondary connection UUID '%s' already added", *iter);
@@ -335,7 +545,7 @@ make_connection_setting (const char *file,
 	}
 
 	vint64 = svGetValueInt64 (ifcfg, "AUTH_RETRIES", 10, -1, G_MAXINT32, -1);
-	g_object_set (s_con, NM_SETTING_CONNECTION_AUTH_RETRIES, (gint) vint64, NULL);
+	g_object_set (s_con, NM_SETTING_CONNECTION_AUTH_RETRIES, (int) vint64, NULL);
 
 	i_val = NM_SETTING_CONNECTION_MDNS_DEFAULT;
 	if (!svGetValueEnum (ifcfg, "MDNS",
@@ -343,6 +553,13 @@ make_connection_setting (const char *file,
 	                     &i_val, NULL))
 		PARSE_WARNING ("invalid MDNS setting");
 	g_object_set (s_con, NM_SETTING_CONNECTION_MDNS, i_val, NULL);
+
+	i_val = NM_SETTING_CONNECTION_LLMNR_DEFAULT;
+	if (!svGetValueEnum (ifcfg, "LLMNR",
+	                     nm_setting_connection_llmnr_get_type (),
+	                     &i_val, NULL))
+		PARSE_WARNING ("invalid LLMNR setting");
+	g_object_set (s_con, NM_SETTING_CONNECTION_LLMNR, i_val, NULL);
 
 	return NM_SETTING (s_con);
 }
@@ -674,7 +891,7 @@ parse_route_line (const char *line,
 	 * Maybe later we want to support some form of quotation here.
 	 * Which of course, would be incompatible with initscripts.
 	 */
-	words_free = nm_utils_strsplit_set (line, " \t\n");
+	words_free = nm_utils_strsplit_set (line, " \t\n", FALSE);
 
 	words = words_free ?: NM_PTRARRAY_EMPTY (const char *);
 
@@ -1110,7 +1327,7 @@ parse_dns_options (NMSettingIPConfig *ip_config, const char *value)
 	if (!nm_setting_ip_config_has_dns_options (ip_config))
 		nm_setting_ip_config_clear_dns_options (ip_config, TRUE);
 
-	options = nm_utils_strsplit_set (value, " ");
+	options = nm_utils_strsplit_set (value, " ", FALSE);
 	if (options) {
 		for (item = options; *item; item++) {
 			if (!nm_setting_ip_config_add_dns_option (ip_config, *item))
@@ -1178,7 +1395,7 @@ make_user_setting (shvarFile *ifcfg)
 	const char *key;
 	nm_auto_free_gstring GString *str = NULL;
 
-	keys = svGetKeys (ifcfg);
+	keys = svGetKeys (ifcfg, SV_KEY_TYPE_USER);
 	if (!keys)
 		return NULL;
 
@@ -1186,9 +1403,6 @@ make_user_setting (shvarFile *ifcfg)
 	while (g_hash_table_iter_next (&iter, (gpointer *) &key, NULL)) {
 		const char *value;
 		gs_free char *value_to_free = NULL;
-
-		if (!g_str_has_prefix (key, "NM_USER_"))
-			continue;
 
 		value = svGetValue (ifcfg, key, &value_to_free);
 
@@ -1214,6 +1428,32 @@ make_user_setting (shvarFile *ifcfg)
 	return has_user_data
 	       ? g_steal_pointer (&s_user)
 	       : NULL;
+}
+
+static NMSetting *
+make_match_setting (shvarFile *ifcfg)
+{
+	NMSettingMatch *s_match = NULL;
+	gs_free const char **strv = NULL;
+	gs_free char *value = NULL;
+	const char *v;
+	gsize i;
+
+	v = svGetValueStr (ifcfg, "MATCH_INTERFACE_NAME", &value);
+	if (!v)
+		return NULL;
+
+	strv = nm_utils_strsplit_set (v, " \t", TRUE);
+	if (strv) {
+		for (i = 0; strv[i]; i++) {
+			if (!s_match)
+				s_match = (NMSettingMatch *) nm_setting_match_new ();
+			nm_setting_match_add_interface_name (s_match,
+			                                     _nm_utils_unescape_spaces ((char *) strv[i]));
+		}
+	}
+
+	return (NMSetting *) s_match;
 }
 
 static NMSetting *
@@ -1286,7 +1526,7 @@ make_ip4_setting (shvarFile *ifcfg,
 	shvarFile *route_ifcfg;
 	gboolean never_default;
 	gint64 timeout;
-	gint priority;
+	int priority;
 	char inet_buf[NM_UTILS_INET_ADDRSTRLEN];
 	const char *const *item;
 	guint32 route_table;
@@ -1483,7 +1723,7 @@ make_ip4_setting (shvarFile *ifcfg,
 		if (v) {
 			gs_free const char **searches = NULL;
 
-			searches = nm_utils_strsplit_set (v, " ");
+			searches = nm_utils_strsplit_set (v, " ", FALSE);
 			if (searches) {
 				for (item = searches; *item; item++) {
 					if (!nm_setting_ip_config_add_dns_search (s_ip4, *item))
@@ -1544,7 +1784,7 @@ make_ip4_setting (shvarFile *ifcfg,
 		if (v) {
 			gs_free const char **searches = NULL;
 
-			searches = nm_utils_strsplit_set (v, " ");
+			searches = nm_utils_strsplit_set (v, " ", FALSE);
 			if (searches) {
 				for (item = searches; *item; item++) {
 					if (!nm_setting_ip_config_add_dns_search (s_ip4, *item))
@@ -1561,7 +1801,7 @@ make_ip4_setting (shvarFile *ifcfg,
 		if (timeout > 0)
 			timeout *= 1000;
 	}
-	g_object_set (s_ip4, NM_SETTING_IP_CONFIG_DAD_TIMEOUT, (gint) timeout, NULL);
+	g_object_set (s_ip4, NM_SETTING_IP_CONFIG_DAD_TIMEOUT, (int) timeout, NULL);
 
 	return g_steal_pointer (&s_ip4);
 }
@@ -1697,7 +1937,7 @@ make_ip6_setting (shvarFile *ifcfg,
 	guint32 i;
 	int i_val;
 	GError *local = NULL;
-	gint priority;
+	int priority;
 	gboolean never_default = FALSE;
 	gboolean ip6_privacy = FALSE, ip6_privacy_prefer_public_ip;
 	NMSettingIP6ConfigPrivacy ip6_privacy_val;
@@ -1860,7 +2100,7 @@ make_ip6_setting (shvarFile *ifcfg,
 	                   ipv6addr_secondaries ?: "",
 	                   NULL);
 
-	list = nm_utils_strsplit_set (value, " ");
+	list = nm_utils_strsplit_set (value, " ", FALSE);
 	for (iter = list, i = 0; iter && *iter; iter++, i++) {
 		NMIPAddress *addr = NULL;
 
@@ -1953,7 +2193,7 @@ make_ip6_setting (shvarFile *ifcfg,
 	if (v) {
 		gs_free const char **searches = NULL;
 
-		searches = nm_utils_strsplit_set (v, " ");
+		searches = nm_utils_strsplit_set (v, " ", FALSE);
 		if (searches) {
 			for (iter = searches; *iter; iter++) {
 				if (!nm_setting_ip_config_add_dns_search (s_ip6, *iter))
@@ -1979,6 +2219,68 @@ error:
 	g_free (route6_path);
 	g_object_unref (s_ip6);
 	return NULL;
+}
+
+static NMSetting *
+make_sriov_setting (shvarFile *ifcfg)
+{
+	gs_unref_hashtable GHashTable *keys = NULL;
+	gs_unref_ptrarray GPtrArray *vfs = NULL;
+	NMTernary autoprobe_drivers;
+	NMSettingSriov *s_sriov;
+	int total_vfs;
+
+	total_vfs = svGetValueInt64 (ifcfg, "SRIOV_TOTAL_VFS", 10, 0, G_MAXINT32, 0);
+	if (!total_vfs)
+		return NULL;
+
+	autoprobe_drivers = svGetValueInt64 (ifcfg,
+	                                     "SRIOV_AUTOPROBE_DRIVERS",
+	                                     10,
+	                                     NM_TERNARY_FALSE,
+	                                     NM_TERNARY_TRUE,
+	                                     NM_TERNARY_DEFAULT);
+
+	keys = svGetKeys (ifcfg, SV_KEY_TYPE_SRIOV_VF);
+	if (keys) {
+		GHashTableIter iter;
+		const char *key;
+
+		g_hash_table_iter_init (&iter, keys);
+		while (g_hash_table_iter_next (&iter, (gpointer *) &key, NULL)) {
+			gs_free_error GError *error = NULL;
+			gs_free char *value_to_free = NULL;
+			const char *value;
+			NMSriovVF *vf;
+
+			nm_assert (g_str_has_prefix (key, "SRIOV_VF"));
+
+			value = svGetValue (ifcfg, key, &value_to_free);
+			if (!value)
+				continue;
+
+			key += NM_STRLEN ("SRIOV_VF");
+
+			vf = _nm_utils_sriov_vf_from_strparts (key, value, &error);
+			if (!vf) {
+				PARSE_WARNING ("ignoring invalid SR-IOV VF '%s %s': %s",
+				               key, value, error->message);
+				continue;
+			}
+			if (!vfs)
+				vfs = g_ptr_array_new_with_free_func ((GDestroyNotify) nm_sriov_vf_unref);
+			g_ptr_array_add (vfs, vf);
+		}
+	}
+
+	s_sriov = (NMSettingSriov *) nm_setting_sriov_new ();
+	g_object_set (s_sriov,
+	              NM_SETTING_SRIOV_TOTAL_VFS, total_vfs,
+	              NM_SETTING_SRIOV_VFS, vfs,
+	              NM_SETTING_SRIOV_AUTOPROBE_DRIVERS, (int) autoprobe_drivers,
+	              NULL);
+
+	return (NMSetting *) s_sriov;
 }
 
 static NMSetting *
@@ -2241,7 +2543,7 @@ read_dcb_percent_array (shvarFile *ifcfg,
 		return TRUE;
 	}
 
-	split = nm_utils_strsplit_set (val, ",");
+	split = nm_utils_strsplit_set (val, ",", FALSE);
 	if (NM_PTRARRAY_LEN (split) != 8) {
 		PARSE_WARNING ("invalid %s percentage list value '%s'", prop, val);
 		g_set_error_literal (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
@@ -2518,30 +2820,6 @@ read_wep_keys (shvarFile *ifcfg,
 	return TRUE;
 }
 
-static NMSettingSecretFlags
-read_secret_flags (shvarFile *ifcfg, const char *flags_key)
-{
-	NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
-	char *val;
-
-	g_return_val_if_fail (flags_key != NULL, NM_SETTING_SECRET_FLAG_NONE);
-	g_return_val_if_fail (flags_key[0] != '\0', NM_SETTING_SECRET_FLAG_NONE);
-	g_return_val_if_fail (g_str_has_suffix (flags_key, "_FLAGS"), NM_SETTING_SECRET_FLAG_NONE);
-
-	val = svGetValueStr_cp (ifcfg, flags_key);
-	if (val) {
-		if (strstr (val, SECRET_FLAG_AGENT))
-			flags |= NM_SETTING_SECRET_FLAG_AGENT_OWNED;
-		if (strstr (val, SECRET_FLAG_NOT_SAVED))
-			flags |= NM_SETTING_SECRET_FLAG_NOT_SAVED;
-		if (strstr (val, SECRET_FLAG_NOT_REQUIRED))
-			flags |= NM_SETTING_SECRET_FLAG_NOT_REQUIRED;
-
-		g_free (val);
-	}
-	return flags;
-}
-
 static NMSetting *
 make_wep_setting (shvarFile *ifcfg,
                   const char *file,
@@ -2573,7 +2851,7 @@ make_wep_setting (shvarFile *ifcfg,
 	}
 
 	/* Read WEP key flags */
-	key_flags = read_secret_flags (ifcfg, "WEP_KEY_FLAGS");
+	key_flags = _secret_read_ifcfg_flags (ifcfg, "WEP_KEY_FLAGS");
 	g_object_set (s_wsec, NM_SETTING_WIRELESS_SECURITY_WEP_KEY_FLAGS, key_flags, NULL);
 
 	/* Read keys in the ifcfg file if they are system-owned */
@@ -2677,7 +2955,7 @@ fill_wpa_ciphers (shvarFile *ifcfg,
 	if (!p)
 		return TRUE;
 
-	list = nm_utils_strsplit_set (p, " ");
+	list = nm_utils_strsplit_set (p, " ", FALSE);
 	for (iter = list; iter && *iter; iter++, i++) {
 		/* Ad-Hoc configurations cannot have pairwise ciphers, and can only
 		 * have one group cipher.  Ignore any additional group ciphers and
@@ -2772,254 +3050,118 @@ parse_wpa_psk (shvarFile *ifcfg,
 	return g_steal_pointer (&psk);
 }
 
-static void
-read_8021x_password (shvarFile *ifcfg, shvarFile *keys_ifcfg, const char *name,
-                     char **value, NMSettingSecretFlags *flags)
-{
-	gs_free char *flags_key = NULL;
-
-	*value = NULL;
-	flags_key = g_strdup_printf ("%s_FLAGS", name);
-	*flags = read_secret_flags (ifcfg, flags_key);
-
-	if (*flags == NM_SETTING_SECRET_FLAG_NONE) {
-		*value = svGetValueStr_cp (ifcfg, name);
-		if (!*value && keys_ifcfg)
-			*value = svGetValueStr_cp (keys_ifcfg, name);
-	}
-}
-
 static gboolean
 eap_simple_reader (const char *eap_method,
                    shvarFile *ifcfg,
-                   shvarFile *keys,
+                   shvarFile *keys_ifcfg,
                    NMSetting8021x *s_8021x,
                    gboolean phase2,
                    GError **error)
 {
 	NMSettingSecretFlags flags;
-	GBytes *bytes;
-	char *value;
+	gs_free char *identity_free = NULL;
+	nm_auto_free_secret char *password_raw_str = NULL;
+	gs_unref_bytes GBytes *password_raw_bytes = NULL;
 
-	value = svGetValueStr_cp (ifcfg, "IEEE_8021X_IDENTITY");
-	if (!value) {
-		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
-		             "Missing IEEE_8021X_IDENTITY for EAP method '%s'.",
-		             eap_method);
+	g_object_set (s_8021x,
+	              NM_SETTING_802_1X_IDENTITY,
+	              svGetValueStr (ifcfg, "IEEE_8021X_IDENTITY", &identity_free),
+	              NULL);
+
+	_secret_set_from_ifcfg (s_8021x,
+	                        ifcfg,
+	                        keys_ifcfg,
+	                        "IEEE_8021X_PASSWORD",
+	                        NM_SETTING_802_1X_PASSWORD);
+
+	_secret_read_ifcfg (ifcfg, keys_ifcfg, "IEEE_8021X_PASSWORD_RAW", &password_raw_str, &flags);
+	if (!_secret_password_raw_to_bytes ("IEEE_8021X_PASSWORD_RAW",
+	                                    password_raw_str,
+	                                    &password_raw_bytes,
+	                                    error))
 		return FALSE;
-	}
-	g_object_set (s_8021x, NM_SETTING_802_1X_IDENTITY, value, NULL);
-	nm_clear_g_free (&value);
 
-	read_8021x_password (ifcfg, keys, "IEEE_8021X_PASSWORD", &value, &flags);
-	g_object_set (s_8021x, NM_SETTING_802_1X_PASSWORD_FLAGS, flags, NULL);
-	if (value) {
-		g_object_set (s_8021x, NM_SETTING_802_1X_PASSWORD, value, NULL);
-		nm_clear_g_free (&value);
-	}
-
-	read_8021x_password (ifcfg, keys, "IEEE_8021X_PASSWORD_RAW", &value, &flags);
-	g_object_set (s_8021x, NM_SETTING_802_1X_PASSWORD_RAW_FLAGS, flags, NULL);
-	if (value) {
-		bytes = nm_utils_hexstr2bin (value);
-		if (!bytes) {
-			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
-			             "Invalid hex string '%s' in IEEE_8021X_PASSWORD_RAW.",
-			             value);
-			g_free (value);
-			return FALSE;
-		}
-		g_object_set (s_8021x, NM_SETTING_802_1X_PASSWORD_RAW, bytes, NULL);
-		g_bytes_unref (bytes);
-		nm_clear_g_free (&value);
-	}
+	g_object_set (s_8021x,
+	              NM_SETTING_802_1X_PASSWORD_RAW_FLAGS,
+	              flags,
+	              NM_SETTING_802_1X_PASSWORD_RAW,
+	              password_raw_bytes,
+	              NULL);
 
 	return TRUE;
-}
-
-static char *
-get_full_file_path (const char *ifcfg_path, const char *file_path)
-{
-	const char *base = file_path;
-	char *p, *ret, *dirname;
-
-	g_return_val_if_fail (ifcfg_path != NULL, NULL);
-	g_return_val_if_fail (file_path != NULL, NULL);
-
-	if (file_path[0] == '/')
-		return g_strdup (file_path);
-
-	p = strrchr (file_path, '/');
-	if (p)
-		base = p + 1;
-
-	dirname = g_path_get_dirname (ifcfg_path);
-	ret = g_build_path ("/", dirname, base, NULL);
-	g_free (dirname);
-	return ret;
-}
-
-static char *
-get_cert_value (const char *ifcfg_path, const char *value,
-                NMSetting8021xCKScheme *out_scheme)
-{
-	if (strncmp (value, "pkcs11:", 7) == 0) {
-		*out_scheme = NM_SETTING_802_1X_CK_SCHEME_PKCS11;
-		return g_strdup (value);
-	}
-
-	*out_scheme = NM_SETTING_802_1X_CK_SCHEME_PATH;
-	return get_full_file_path (ifcfg_path, value);
 }
 
 static gboolean
 eap_tls_reader (const char *eap_method,
                 shvarFile *ifcfg,
-                shvarFile *keys,
+                shvarFile *keys_ifcfg,
                 NMSetting8021x *s_8021x,
                 gboolean phase2,
                 GError **error)
 {
-	gs_free char *ca_cert = NULL;
-	gs_free char *privkey = NULL;
-	gs_free char *privkey_password = NULL;
-	char *value;
-	char *ca_cert_password = NULL;
-	char *client_cert_password = NULL;
-	NMSetting8021xCKFormat privkey_format = NM_SETTING_802_1X_CK_FORMAT_UNKNOWN;
-	const char *ca_cert_key = phase2 ? "IEEE_8021X_INNER_CA_CERT" : "IEEE_8021X_CA_CERT";
-	const char *ca_cert_pw_key = phase2 ? "IEEE_8021X_INNER_CA_CERT_PASSWORD" : "IEEE_8021X_CA_CERT_PASSWORD";
-	const char *ca_cert_pw_prop = phase2 ? NM_SETTING_802_1X_PHASE2_CA_CERT_PASSWORD : NM_SETTING_802_1X_CA_CERT_PASSWORD;
-	const char *ca_cert_pw_flags_key = phase2 ? "IEEE_8021X_INNER_CA_CERT_PASSWORD_FLAGS" : "IEEE_8021X_CA_CERT_PASSWORD_FLAGS";
-	const char *ca_cert_pw_flags_prop = phase2 ? NM_SETTING_802_1X_PHASE2_CA_CERT_PASSWORD_FLAGS : NM_SETTING_802_1X_CA_CERT_PASSWORD_FLAGS;
-	const char *cli_cert_key = phase2 ? "IEEE_8021X_INNER_CLIENT_CERT" : "IEEE_8021X_CLIENT_CERT";
-	const char *cli_cert_pw_key = phase2 ? "IEEE_8021X_INNER_CLIENT_CERT_PASSWORD" : "IEEE_8021X_CLIENT_CERT_PASSWORD";
-	const char *cli_cert_pw_prop = phase2 ? NM_SETTING_802_1X_PHASE2_CLIENT_CERT_PASSWORD : NM_SETTING_802_1X_CLIENT_CERT_PASSWORD;
-	const char *cli_cert_pw_flags_key = phase2 ? "IEEE_8021X_INNER_CLIENT_CERT_PASSWORD_FLAGS" : "IEEE_8021X_CLIENT_CERT_PASSWORD_FLAGS";
-	const char *cli_cert_pw_flags_prop = phase2 ? NM_SETTING_802_1X_PHASE2_CLIENT_CERT_PASSWORD_FLAGS : NM_SETTING_802_1X_CLIENT_CERT_PASSWORD_FLAGS;
-	const char *pk_key = phase2 ? "IEEE_8021X_INNER_PRIVATE_KEY" : "IEEE_8021X_PRIVATE_KEY";
-	const char *pk_pw_key = phase2 ? "IEEE_8021X_INNER_PRIVATE_KEY_PASSWORD": "IEEE_8021X_PRIVATE_KEY_PASSWORD";
-	const char *pk_pw_flags_key = phase2 ? "IEEE_8021X_INNER_PRIVATE_KEY_PASSWORD_FLAGS" : "IEEE_8021X_PRIVATE_KEY_PASSWORD_FLAGS";
-	const char *pk_pw_flags_prop = phase2 ? NM_SETTING_802_1X_PHASE2_PRIVATE_KEY_PASSWORD_FLAGS : NM_SETTING_802_1X_PRIVATE_KEY_PASSWORD_FLAGS;
-	NMSettingSecretFlags flags;
-	NMSetting8021xCKScheme scheme;
+	gs_unref_bytes GBytes *privkey = NULL;
+	gs_unref_bytes GBytes *client_cert = NULL;
+	gs_free char *identity_free = NULL;
 
-	value = svGetValueStr_cp (ifcfg, "IEEE_8021X_IDENTITY");
-	if (value) {
-		g_object_set (s_8021x, NM_SETTING_802_1X_IDENTITY, value, NULL);
-		g_free (value);
-	}
+	g_object_set (s_8021x,
+	              NM_SETTING_802_1X_IDENTITY,
+	              svGetValueStr (ifcfg, "IEEE_8021X_IDENTITY", &identity_free),
+	              NULL);
 
-	ca_cert = svGetValueStr_cp (ifcfg, ca_cert_key);
-	if (ca_cert) {
-		gs_free char *real_cert_value = NULL;
+	if (!_cert_set_from_ifcfg (s_8021x,
+	                           ifcfg,
+	                           phase2 ? "IEEE_8021X_INNER_CA_CERT" : "IEEE_8021X_CA_CERT",
+	                           phase2 ? NM_SETTING_802_1X_PHASE2_CA_CERT : NM_SETTING_802_1X_CA_CERT,
+	                           NULL,
+	                           error))
+		return FALSE;
+	_secret_set_from_ifcfg (s_8021x,
+	                        ifcfg,
+	                        keys_ifcfg,
+	                        phase2 ? "IEEE_8021X_INNER_CA_CERT_PASSWORD" : "IEEE_8021X_CA_CERT_PASSWORD",
+	                        phase2 ? NM_SETTING_802_1X_PHASE2_CA_CERT_PASSWORD : NM_SETTING_802_1X_CA_CERT_PASSWORD);
 
-		real_cert_value = get_cert_value (svFileGetName (ifcfg), ca_cert, &scheme);
-		if (phase2) {
-			if (!nm_setting_802_1x_set_phase2_ca_cert (s_8021x, real_cert_value, scheme, NULL, error))
-				return FALSE;
-		} else {
-			if (!nm_setting_802_1x_set_ca_cert (s_8021x, real_cert_value, scheme, NULL, error))
-				return FALSE;
-		}
-
-		if (scheme == NM_SETTING_802_1X_CK_SCHEME_PKCS11) {
-			flags = read_secret_flags (ifcfg, ca_cert_pw_flags_key);
-			g_object_set (s_8021x, ca_cert_pw_flags_prop, flags, NULL);
-
-			if (flags == NM_SETTING_SECRET_FLAG_NONE) {
-				ca_cert_password = svGetValueStr_cp (ifcfg, ca_cert_pw_key);
-				g_object_set (s_8021x, ca_cert_pw_prop, ca_cert_password, NULL);
-			}
-		}
-	} else {
-		PARSE_WARNING ("missing %s for EAP method '%s'; this is insecure!",
-		               ca_cert_key, eap_method);
-	}
-
-	/* Read and set private key password flags */
-	flags = read_secret_flags (ifcfg, pk_pw_flags_key);
-	g_object_set (s_8021x, pk_pw_flags_prop, flags, NULL);
-
-	/* Read the private key password if it's system-owned */
-	if (flags == NM_SETTING_SECRET_FLAG_NONE) {
-		/* Private key password */
-		privkey_password = svGetValueStr_cp (ifcfg, pk_pw_key);
-		if (!privkey_password && keys) {
-			/* Try the lookaside keys file */
-			privkey_password = svGetValueStr_cp (keys, pk_pw_key);
-		}
-	}
-
-	/* The private key itself */
-	privkey = svGetValueStr_cp (ifcfg, pk_key);
+	if (!_cert_set_from_ifcfg (s_8021x,
+	                           ifcfg,
+	                           phase2 ? "IEEE_8021X_INNER_PRIVATE_KEY" : "IEEE_8021X_PRIVATE_KEY",
+	                           phase2 ? NM_SETTING_802_1X_PHASE2_PRIVATE_KEY : NM_SETTING_802_1X_PRIVATE_KEY,
+	                           &privkey,
+	                           error))
+		return FALSE;
+	_secret_set_from_ifcfg (s_8021x,
+	                        ifcfg,
+	                        keys_ifcfg,
+	                        phase2 ? "IEEE_8021X_INNER_PRIVATE_KEY_PASSWORD" : "IEEE_8021X_PRIVATE_KEY_PASSWORD",
+	                        phase2 ? NM_SETTING_802_1X_PHASE2_PRIVATE_KEY_PASSWORD : NM_SETTING_802_1X_PRIVATE_KEY_PASSWORD);
 	if (!privkey) {
 		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 		             "Missing %s for EAP method '%s'.",
-		             pk_key,
+		             phase2 ? "IEEE_8021X_INNER_PRIVATE_KEY" : "IEEE_8021X_PRIVATE_KEY",
 		             eap_method);
 		return FALSE;
 	}
 
-	{
-		gs_free char *real_cert_value = NULL;
-
-		real_cert_value = get_cert_value (svFileGetName (ifcfg), privkey, &scheme);
-		if (phase2) {
-			if (!nm_setting_802_1x_set_phase2_private_key (s_8021x,
-			                                               real_cert_value,
-			                                               privkey_password,
-			                                               scheme,
-			                                               &privkey_format,
-			                                               error))
-				return FALSE;
-		} else {
-			if (!nm_setting_802_1x_set_private_key (s_8021x,
-			                                        real_cert_value,
-			                                        privkey_password,
-			                                        scheme,
-			                                        &privkey_format,
-			                                        error))
-				return FALSE;
-		}
-	}
-
-	/* Only set the client certificate if the private key is not PKCS#12 format,
-	 * as NM (due to supplicant restrictions) requires.  If the key was PKCS#12,
-	 * then nm_setting_802_1x_set_private_key() already set the client certificate
-	 * to the same value as the private key.
-	 */
-	if (privkey_format != NM_SETTING_802_1X_CK_FORMAT_PKCS12) {
-		gs_free char *real_cert_value = NULL;
-		gs_free char *client_cert = NULL;
-
-		client_cert = svGetValueStr_cp (ifcfg, cli_cert_key);
-		if (!client_cert) {
-			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
-			             "Missing %s for EAP method '%s'.",
-			             cli_cert_key,
-			             eap_method);
-			return FALSE;
-		}
-
-		real_cert_value = get_cert_value (svFileGetName (ifcfg), client_cert, &scheme);
-		if (phase2) {
-			if (!nm_setting_802_1x_set_phase2_client_cert (s_8021x, real_cert_value, scheme, NULL, error))
-				return FALSE;
-		} else {
-			if (!nm_setting_802_1x_set_client_cert (s_8021x, real_cert_value, scheme, NULL, error))
-				return FALSE;
-		}
-
-		if (scheme == NM_SETTING_802_1X_CK_SCHEME_PKCS11) {
-			flags = read_secret_flags (ifcfg, cli_cert_pw_flags_key);
-			g_object_set (s_8021x, cli_cert_pw_flags_prop, flags, NULL);
-
-			if (flags == NM_SETTING_SECRET_FLAG_NONE) {
-				client_cert_password = svGetValueStr_cp (ifcfg, cli_cert_pw_key);
-				g_object_set (s_8021x, cli_cert_pw_prop, client_cert_password, NULL);
-			}
-		}
+	if (!_cert_set_from_ifcfg (s_8021x,
+	                           ifcfg,
+	                           phase2 ? "IEEE_8021X_INNER_CLIENT_CERT" : "IEEE_8021X_CLIENT_CERT",
+	                           phase2 ? NM_SETTING_802_1X_PHASE2_CLIENT_CERT : NM_SETTING_802_1X_CLIENT_CERT,
+	                           &client_cert,
+	                           error))
+		return FALSE;
+	/* FIXME: writer does not actually write IEEE_8021X_CLIENT_CERT_PASSWORD and other
+	 * certificate related passwords. It should, because otherwise persisting such profiles
+	 * to ifcfg looses information. As this currently only matters for PKCS11 URIs, it seems
+	 * a seldomly used feature so that it is not fixed yet. */
+	_secret_set_from_ifcfg (s_8021x,
+	                        ifcfg,
+	                        keys_ifcfg,
+	                        phase2 ? "IEEE_8021X_INNER_CLIENT_CERT_PASSWORD" : "IEEE_8021X_CLIENT_CERT_PASSWORD",
+	                        phase2 ? NM_SETTING_802_1X_PHASE2_CLIENT_CERT_PASSWORD : NM_SETTING_802_1X_CLIENT_CERT_PASSWORD);
+	if (!client_cert) {
+		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
+		             "Missing certificate for EAP method '%s'.",
+		             eap_method);
+		return FALSE;
 	}
 
 	return TRUE;
@@ -3028,7 +3170,7 @@ eap_tls_reader (const char *eap_method,
 static gboolean
 eap_peap_reader (const char *eap_method,
                  shvarFile *ifcfg,
-                 shvarFile *keys,
+                 shvarFile *keys_ifcfg,
                  NMSetting8021x *s_8021x,
                  gboolean phase2,
                  GError **error)
@@ -3037,19 +3179,19 @@ eap_peap_reader (const char *eap_method,
 	const char *v;
 	gs_free const char **list = NULL;
 	const char *const *iter;
-	NMSetting8021xCKScheme scheme;
 
-	v = svGetValueStr (ifcfg, "IEEE_8021X_CA_CERT", &value);
-	if (v) {
-		gs_free char *real_cert_value = NULL;
-
-		real_cert_value = get_cert_value (svFileGetName (ifcfg), v, &scheme);
-		if (!nm_setting_802_1x_set_ca_cert (s_8021x, real_cert_value, scheme, NULL, error))
-			return FALSE;
-	} else {
-		PARSE_WARNING ("missing IEEE_8021X_CA_CERT for EAP method '%s'; this is insecure!",
-		               eap_method);
-	}
+	if (!_cert_set_from_ifcfg (s_8021x,
+	                           ifcfg,
+	                           "IEEE_8021X_CA_CERT",
+	                           NM_SETTING_802_1X_CA_CERT,
+	                           NULL,
+	                           error))
+		return FALSE;
+	_secret_set_from_ifcfg (s_8021x,
+	                        ifcfg,
+	                        keys_ifcfg,
+	                        "IEEE_8021X_CA_CERT_PASSWORD",
+	                        NM_SETTING_802_1X_CA_CERT_PASSWORD);
 
 	nm_clear_g_free (&value);
 	v = svGetValueStr (ifcfg, "IEEE_8021X_PEAP_VERSION", &value);
@@ -3083,16 +3225,16 @@ eap_peap_reader (const char *eap_method,
 	}
 
 	/* Handle options for the inner auth method */
-	list = nm_utils_strsplit_set (v, " ");
+	list = nm_utils_strsplit_set (v, " ", FALSE);
 	iter = list;
 	if (iter) {
 		if (NM_IN_STRSET (*iter, "MSCHAPV2",
 		                         "MD5",
 		                         "GTC")) {
-			if (!eap_simple_reader (*iter, ifcfg, keys, s_8021x, TRUE, error))
+			if (!eap_simple_reader (*iter, ifcfg, keys_ifcfg, s_8021x, TRUE, error))
 				return FALSE;
 		} else if (nm_streq (*iter, "TLS")) {
-			if (!eap_tls_reader (*iter, ifcfg, keys, s_8021x, TRUE, error))
+			if (!eap_tls_reader (*iter, ifcfg, keys_ifcfg, s_8021x, TRUE, error))
 				return FALSE;
 		} else {
 			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
@@ -3121,7 +3263,7 @@ eap_peap_reader (const char *eap_method,
 static gboolean
 eap_ttls_reader (const char *eap_method,
                  shvarFile *ifcfg,
-                 shvarFile *keys,
+                 shvarFile *keys_ifcfg,
                  NMSetting8021x *s_8021x,
                  gboolean phase2,
                  GError **error)
@@ -3131,19 +3273,19 @@ eap_ttls_reader (const char *eap_method,
 	const char *v;
 	gs_free const char **list = NULL;
 	const char *const *iter;
-	NMSetting8021xCKScheme scheme;
 
-	v = svGetValueStr (ifcfg, "IEEE_8021X_CA_CERT", &value);
-	if (v) {
-		gs_free char *real_cert_value = NULL;
-
-		real_cert_value = get_cert_value (svFileGetName (ifcfg), v, &scheme);
-		if (!nm_setting_802_1x_set_ca_cert (s_8021x, real_cert_value, scheme, NULL, error))
-			return FALSE;
-	} else {
-		PARSE_WARNING ("missing IEEE_8021X_CA_CERT for EAP method '%s'; this is insecure!",
-		               eap_method);
-	}
+	if (!_cert_set_from_ifcfg (s_8021x,
+	                           ifcfg,
+	                           "IEEE_8021X_CA_CERT",
+	                           NM_SETTING_802_1X_CA_CERT,
+	                           NULL,
+	                           error))
+		return FALSE;
+	_secret_set_from_ifcfg (s_8021x,
+	                        ifcfg,
+	                        keys_ifcfg,
+	                        "IEEE_8021X_CA_CERT_PASSWORD",
+	                        NM_SETTING_802_1X_CA_CERT_PASSWORD);
 
 	nm_clear_g_free (&value);
 	v = svGetValueStr (ifcfg, "IEEE_8021X_ANON_IDENTITY", &value);
@@ -3161,24 +3303,24 @@ eap_ttls_reader (const char *eap_method,
 	inner_auth = g_ascii_strdown (v, -1);
 
 	/* Handle options for the inner auth method */
-	list = nm_utils_strsplit_set (inner_auth, " ");
+	list = nm_utils_strsplit_set (inner_auth, " ", FALSE);
 	iter = list;
 	if (iter) {
 		if (NM_IN_STRSET (*iter, "mschapv2",
 		                         "mschap",
 		                         "pap",
 		                         "chap")) {
-			if (!eap_simple_reader (*iter, ifcfg, keys, s_8021x, TRUE, error))
+			if (!eap_simple_reader (*iter, ifcfg, keys_ifcfg, s_8021x, TRUE, error))
 				return FALSE;
 			g_object_set (s_8021x, NM_SETTING_802_1X_PHASE2_AUTH, *iter, NULL);
 		} else if (nm_streq (*iter, "eap-tls")) {
-			if (!eap_tls_reader (*iter, ifcfg, keys, s_8021x, TRUE, error))
+			if (!eap_tls_reader (*iter, ifcfg, keys_ifcfg, s_8021x, TRUE, error))
 				return FALSE;
 			g_object_set (s_8021x, NM_SETTING_802_1X_PHASE2_AUTHEAP, "tls", NULL);
 		} else if (NM_IN_STRSET (*iter, "eap-mschapv2",
 		                                "eap-md5",
 		                                "eap-gtc")) {
-			if (!eap_simple_reader (*iter, ifcfg, keys, s_8021x, TRUE, error))
+			if (!eap_simple_reader (*iter, ifcfg, keys_ifcfg, s_8021x, TRUE, error))
 				return FALSE;
 			g_object_set (s_8021x, NM_SETTING_802_1X_PHASE2_AUTHEAP, (*iter + NM_STRLEN ("eap-")), NULL);
 		} else {
@@ -3195,7 +3337,7 @@ eap_ttls_reader (const char *eap_method,
 static gboolean
 eap_fast_reader (const char *eap_method,
                  shvarFile *ifcfg,
-                 shvarFile *keys,
+                 shvarFile *keys_ifcfg,
                  NMSetting8021x *s_8021x,
                  gboolean phase2,
                  GError **error)
@@ -3222,7 +3364,7 @@ eap_fast_reader (const char *eap_method,
 	if (fast_provisioning) {
 		gs_free const char **list1 = NULL;
 
-		list1 = nm_utils_strsplit_set (fast_provisioning, " \t");
+		list1 = nm_utils_strsplit_set (fast_provisioning, " \t", FALSE);
 		for (iter = list1; iter && *iter; iter++) {
 			if (strcmp (*iter, "allow-unauth") == 0)
 				allow_unauth = TRUE;
@@ -3256,12 +3398,12 @@ eap_fast_reader (const char *eap_method,
 	}
 
 	/* Handle options for the inner auth method */
-	list = nm_utils_strsplit_set (inner_auth, " ");
+	list = nm_utils_strsplit_set (inner_auth, " ", FALSE);
 	iter = list;
 	if (iter) {
 		if (   !strcmp (*iter, "MSCHAPV2")
 		    || !strcmp (*iter, "GTC")) {
-			if (!eap_simple_reader (*iter, ifcfg, keys, s_8021x, TRUE, error))
+			if (!eap_simple_reader (*iter, ifcfg, keys_ifcfg, s_8021x, TRUE, error))
 				goto done;
 		} else {
 			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
@@ -3296,7 +3438,7 @@ typedef struct {
 	const char *method;
 	gboolean (*reader) (const char *eap_method,
 	                    shvarFile *ifcfg,
-	                    shvarFile *keys,
+	                    shvarFile *keys_ifcfg,
 	                    NMSetting8021x *s_8021x,
 	                    gboolean phase2,
 	                    GError **error);
@@ -3336,7 +3478,7 @@ read_8021x_list_value (shvarFile *ifcfg,
 	if (!v)
 		return;
 
-	strv = nm_utils_strsplit_set (v, " \t");
+	strv = nm_utils_strsplit_set (v, " \t", FALSE);
 	if (strv)
 		g_object_set (setting, prop_name, strv, NULL);
 }
@@ -3348,7 +3490,7 @@ fill_8021x (shvarFile *ifcfg,
             gboolean wifi,
             GError **error)
 {
-	nm_auto_shvar_file_close shvarFile *keys = NULL;
+	nm_auto_shvar_file_close shvarFile *keys_ifcfg = NULL;
 	gs_unref_object NMSetting8021x *s_8021x = NULL;
 	gs_free char *value = NULL;
 	const char *v;
@@ -3365,12 +3507,12 @@ fill_8021x (shvarFile *ifcfg,
 		return NULL;
 	}
 
-	list = nm_utils_strsplit_set (v, " ");
+	list = nm_utils_strsplit_set (v, " ", FALSE);
 
 	s_8021x = (NMSetting8021x *) nm_setting_802_1x_new ();
 
-	/* Read in the lookaside keys file, if present */
-	keys = utils_get_keys_ifcfg (file, FALSE);
+	/* Read in the lookaside keys_ifcfg file, if present */
+	keys_ifcfg = utils_get_keys_ifcfg (file, FALSE);
 
 	/* Validate and handle each EAP method */
 	for (iter = list; iter && *iter; iter++) {
@@ -3394,7 +3536,7 @@ fill_8021x (shvarFile *ifcfg,
 			}
 
 			/* Parse EAP method specific options */
-			if (!(*eap->reader)(lower, ifcfg, keys, s_8021x, FALSE, error))
+			if (!(*eap->reader)(lower, ifcfg, keys_ifcfg, s_8021x, FALSE, error))
 				return NULL;
 
 			nm_setting_802_1x_add_eap_method (s_8021x, lower);
@@ -3444,7 +3586,7 @@ next:
 	g_object_set (s_8021x, NM_SETTING_802_1X_PHASE2_DOMAIN_SUFFIX_MATCH, v, NULL);
 
 	timeout = svGetValueInt64 (ifcfg, "IEEE_8021X_AUTH_TIMEOUT", 10, 0, G_MAXINT32, 0);
-	g_object_set (s_8021x, NM_SETTING_802_1X_AUTH_TIMEOUT, (gint) timeout, NULL);
+	g_object_set (s_8021x, NM_SETTING_802_1X_AUTH_TIMEOUT, (int) timeout, NULL);
 
 	return g_steal_pointer (&s_8021x);
 }
@@ -3510,7 +3652,7 @@ make_wpa_setting (shvarFile *ifcfg,
 	if (wpa_psk) {
 		NMSettingSecretFlags psk_flags;
 
-		psk_flags = read_secret_flags (ifcfg, "WPA_PSK_FLAGS");
+		psk_flags = _secret_read_ifcfg_flags (ifcfg, "WPA_PSK_FLAGS");
 		g_object_set (wsec, NM_SETTING_WIRELESS_SECURITY_PSK_FLAGS, psk_flags, NULL);
 
 		/* Read PSK if it's system-owned */
@@ -3597,7 +3739,7 @@ make_leap_setting (shvarFile *ifcfg,
 		return NULL; /* Not LEAP */
 	nm_clear_g_free (&value);
 
-	flags = read_secret_flags (ifcfg, "IEEE_8021X_PASSWORD_FLAGS");
+	flags = _secret_read_ifcfg_flags (ifcfg, "IEEE_8021X_PASSWORD_FLAGS");
 	g_object_set (wsec, NM_SETTING_WIRELESS_SECURITY_LEAP_PASSWORD_FLAGS, flags, NULL);
 
 	/* Read LEAP password if it's system-owned */
@@ -3674,7 +3816,7 @@ transform_hwaddr_blacklist (const char *blacklist)
 	const char **strv;
 	gsize i, j;
 
-	strv = nm_utils_strsplit_set (blacklist, " \t");
+	strv = nm_utils_strsplit_set (blacklist, " \t", FALSE);
 	if (!strv)
 		return NULL;
 	for (i = 0, j = 0; strv[j]; j++) {
@@ -3923,7 +4065,7 @@ wireless_connection_from_ifcfg (const char *file,
 	NMSetting8021x *s_8021x = NULL;
 	GBytes *ssid;
 	NMSetting *security_setting = NULL;
-	char *printable_ssid = NULL;
+	gs_free char *ssid_utf8 = NULL;
 	const char *mode;
 	gboolean adhoc = FALSE;
 	GError *local = NULL;
@@ -3943,12 +4085,6 @@ wireless_connection_from_ifcfg (const char *file,
 	nm_connection_add_setting (connection, wireless_setting);
 
 	ssid = nm_setting_wireless_get_ssid (NM_SETTING_WIRELESS (wireless_setting));
-	if (ssid) {
-		printable_ssid = nm_utils_ssid_to_utf8 (g_bytes_get_data (ssid, NULL),
-		                                        g_bytes_get_size (ssid));
-	} else
-		printable_ssid = g_strdup ("unmanaged");
-
 	mode = nm_setting_wireless_get_mode (NM_SETTING_WIRELESS (wireless_setting));
 	if (mode && !strcmp (mode, "adhoc"))
 		adhoc = TRUE;
@@ -3956,7 +4092,6 @@ wireless_connection_from_ifcfg (const char *file,
 	/* Wireless security */
 	security_setting = make_wireless_security_setting (ifcfg, file, ssid, adhoc, &s_8021x, &local);
 	if (local) {
-		g_free (printable_ssid);
 		g_object_unref (connection);
 		g_propagate_error (error, local);
 		return NULL;
@@ -3967,11 +4102,16 @@ wireless_connection_from_ifcfg (const char *file,
 			nm_connection_add_setting (connection, NM_SETTING (s_8021x));
 	}
 
+	if (ssid)
+		ssid_utf8 = _nm_utils_ssid_to_utf8 (ssid);
+
 	/* Connection */
-	con_setting = make_connection_setting (file, ifcfg,
+	con_setting = make_connection_setting (file,
+	                                       ifcfg,
 	                                       NM_SETTING_WIRELESS_SETTING_NAME,
-	                                       printable_ssid, NULL);
-	g_free (printable_ssid);
+	                                       nm_str_not_empty (ssid_utf8) ?: "unmanaged",
+	                                       NULL);
+
 	if (!con_setting) {
 		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 		             "Failed to create connection setting.");
@@ -3984,199 +4124,253 @@ wireless_connection_from_ifcfg (const char *file,
 }
 
 static void
-parse_ethtool_option_autoneg (const char *value, gboolean *out_autoneg)
-{
-	if (!value) {
-		PARSE_WARNING ("Auto-negotiation option missing");
-		return;
-	}
-
-	if (g_str_equal (value, "off"))
-		*out_autoneg = FALSE;
-	else if (g_str_equal (value, "on"))
-		*out_autoneg = TRUE;
-	else
-		PARSE_WARNING ("Auto-negotiation unknown value: %s", value);
-}
-
-static void
-parse_ethtool_option_speed (const char *value, guint32 *out_speed)
-{
-	if (!value) {
-		PARSE_WARNING ("Speed option missing");
-		return;
-	}
-
-	*out_speed =  _nm_utils_ascii_str_to_int64 (value, 10, 0, G_MAXUINT32, 0);
-	if (errno)
-		PARSE_WARNING ("Speed value '%s' is invalid", value);
-}
-
-static void
-parse_ethtool_option_duplex (const char *value, const char **out_duplex)
-{
-	if (!value) {
-		PARSE_WARNING ("Duplex option missing");
-		return;
-	}
-
-	if (g_str_equal (value, "half"))
-		*out_duplex = "half";
-	else if (g_str_equal (value, "full"))
-		*out_duplex = "full";
-	else
-		PARSE_WARNING ("Duplex unknown value: %s", value);
-
-}
-
-static void
-parse_ethtool_option_wol (const char *value, NMSettingWiredWakeOnLan *out_flags)
-{
-	NMSettingWiredWakeOnLan wol_flags = NM_SETTING_WIRED_WAKE_ON_LAN_NONE;
-
-	if (!value) {
-		PARSE_WARNING ("Wake-on-LAN options missing");
-		return;
-	}
-
-	for (; *value; value++) {
-		switch (*value) {
-		case 'p':
-			wol_flags |= NM_SETTING_WIRED_WAKE_ON_LAN_PHY;
-			break;
-		case 'u':
-			wol_flags |= NM_SETTING_WIRED_WAKE_ON_LAN_UNICAST;
-			break;
-		case 'm':
-			wol_flags |= NM_SETTING_WIRED_WAKE_ON_LAN_MULTICAST;
-			break;
-		case 'b':
-			wol_flags |= NM_SETTING_WIRED_WAKE_ON_LAN_BROADCAST;
-			break;
-		case 'a':
-			wol_flags |= NM_SETTING_WIRED_WAKE_ON_LAN_ARP;
-			break;
-		case 'g':
-			wol_flags |= NM_SETTING_WIRED_WAKE_ON_LAN_MAGIC;
-			break;
-		case 's':
-			break;
-		case 'd':
-			wol_flags = NM_SETTING_WIRED_WAKE_ON_LAN_NONE;
-			break;
-		default:
-			PARSE_WARNING ("unrecognized Wake-on-LAN option '%c'", *value);
-		}
-	}
-
-	*out_flags = wol_flags;
-}
-
-static void parse_ethtool_option_sopass (const char *value, char **out_password)
-{
-	if (!value) {
-		PARSE_WARNING ("Wake-on-LAN password missing");
-		return;
-	}
-
-	g_clear_pointer (out_password, g_free);
-	if (!nm_utils_hwaddr_valid (value, ETH_ALEN)) {
-		PARSE_WARNING ("Wake-on-LAN password '%s' is invalid", value);
-		return;
-	}
-
-	*out_password = g_strdup (value);
-}
-
-static void
 parse_ethtool_option (const char *value,
                       NMSettingWiredWakeOnLan *out_flags,
                       char **out_password,
                       gboolean *out_autoneg,
                       guint32 *out_speed,
-                      const char **out_duplex)
+                      const char **out_duplex,
+                      NMSettingEthtool **out_s_ethtool)
 {
 	gs_free const char **words = NULL;
-	const char *const *iter;
-	const char *opt_val, *opt;
+	guint i;
 
-	words = nm_utils_strsplit_set (value, "\t ");
+	words = nm_utils_strsplit_set (value, NULL, FALSE);
 	if (!words)
 		return;
 
-	iter = words;
+	if (words[0] && words[0][0] == '-') {
+		/* /sbin/ethtool $opts */
+		if (NM_IN_STRSET (words[0], "-K", "--features", "--offload")) {
+			if (!words[1]) {
+				/* first argument must be the interface name. This is invalid. */
+				return;
+			}
 
-	while (iter[0]) {
-		opt = iter++[0];
-		opt_val = iter[0];
+			if (!*out_s_ethtool)
+				*out_s_ethtool = NM_SETTING_ETHTOOL (nm_setting_ethtool_new ());
 
-		if (nm_streq (opt, "autoneg"))
-			parse_ethtool_option_autoneg (opt_val, out_autoneg);
-		else if (nm_streq (opt, "speed"))
-			parse_ethtool_option_speed (opt_val, out_speed);
-		else if (nm_streq (opt, "duplex"))
-			parse_ethtool_option_duplex (opt_val, out_duplex);
-		else if (nm_streq (opt, "wol"))
-			parse_ethtool_option_wol (opt_val, out_flags);
-		else if (nm_streq (opt, "sopass"))
-			parse_ethtool_option_sopass (opt_val, out_password);
-		else {
-			/* Silently skip unknown options */
+			for (i = 2; words[i]; ) {
+				const char *opt = words[i];
+				const char *opt_val = words[++i];
+				const NMEthtoolData *d = NULL;
+				NMTernary onoff = NM_TERNARY_DEFAULT;
+
+				if (nm_streq0 (opt_val, "on"))
+					onoff = NM_TERNARY_TRUE;
+				else if (nm_streq0 (opt_val, "off"))
+					onoff = NM_TERNARY_FALSE;
+
+				d = nms_ifcfg_rh_utils_get_ethtool_by_name (opt);
+
+				if (!d) {
+					if (onoff != NM_TERNARY_DEFAULT) {
+						/* the next value is just the on/off argument. Skip it too. */
+						i++;
+					}
+
+					/* silently ignore unsupported offloading features. */
+					continue;
+				}
+
+				i++;
+
+				if (onoff == NM_TERNARY_DEFAULT) {
+					PARSE_WARNING ("Expects on/off argument for feature '%s'", opt);
+					continue;
+				}
+
+				nm_setting_ethtool_set_feature (*out_s_ethtool,
+				                                d->optname,
+				                                onoff);
+			}
+		}
+		return;
+	}
+
+	/* /sbin/ethtool -s ${REALDEVICE} $opts */
+	for (i = 0; words[i]; ) {
+		const char *opt = words[i];
+		const char *opt_val = words[++i];
+
+		if (nm_streq (opt, "autoneg")) {
+			if (!opt_val) {
+				PARSE_WARNING ("Auto-negotiation option missing");
+				break;
+			}
+			i++;
+
+			if (nm_streq (opt_val, "off"))
+				*out_autoneg = FALSE;
+			else if (nm_streq (opt_val, "on"))
+				*out_autoneg = TRUE;
+			else
+				PARSE_WARNING ("Auto-negotiation unknown value: %s", opt_val);
 			continue;
 		}
 
-		if (iter[0])
-			iter++;
+		if (nm_streq (opt, "speed")) {
+			guint32 speed;
+
+			if (!opt_val) {
+				PARSE_WARNING ("Speed option missing");
+				break;
+			}
+			i++;
+
+			speed =  _nm_utils_ascii_str_to_int64 (opt_val, 10, 0, G_MAXUINT32, 0);
+			if (errno == 0)
+				*out_speed = speed;
+			else
+				PARSE_WARNING ("Speed value '%s' is invalid", opt_val);
+			continue;
+		}
+
+		if (nm_streq (opt, "duplex")) {
+			if (!opt_val) {
+				PARSE_WARNING ("Duplex option missing");
+				break;
+			}
+			i++;
+
+			if (nm_streq (opt_val, "half"))
+				*out_duplex = "half";
+			else if (nm_streq (opt_val, "full"))
+				*out_duplex = "full";
+			else
+				PARSE_WARNING ("Duplex unknown value: %s", opt_val);
+			continue;
+		}
+
+		if (nm_streq (opt, "wol")) {
+			NMSettingWiredWakeOnLan wol_flags = NM_SETTING_WIRED_WAKE_ON_LAN_NONE;
+
+			if (!opt_val) {
+				PARSE_WARNING ("Wake-on-LAN options missing");
+				break;
+			}
+			i++;
+
+			for (; *opt_val; opt_val++) {
+				switch (*opt_val) {
+				case 'p':
+					wol_flags |= NM_SETTING_WIRED_WAKE_ON_LAN_PHY;
+					break;
+				case 'u':
+					wol_flags |= NM_SETTING_WIRED_WAKE_ON_LAN_UNICAST;
+					break;
+				case 'm':
+					wol_flags |= NM_SETTING_WIRED_WAKE_ON_LAN_MULTICAST;
+					break;
+				case 'b':
+					wol_flags |= NM_SETTING_WIRED_WAKE_ON_LAN_BROADCAST;
+					break;
+				case 'a':
+					wol_flags |= NM_SETTING_WIRED_WAKE_ON_LAN_ARP;
+					break;
+				case 'g':
+					wol_flags |= NM_SETTING_WIRED_WAKE_ON_LAN_MAGIC;
+					break;
+				case 's':
+					break;
+				case 'd':
+					wol_flags = NM_SETTING_WIRED_WAKE_ON_LAN_NONE;
+					break;
+				default:
+					PARSE_WARNING ("unrecognized Wake-on-LAN option '%c'", *opt_val);
+				}
+			}
+
+			*out_flags = wol_flags;
+			continue;
+		}
+
+		if (nm_streq (opt, "sopass")) {
+			if (!opt_val) {
+				PARSE_WARNING ("Wake-on-LAN password missing");
+				break;
+			}
+			i++;
+
+			if (nm_utils_hwaddr_valid (opt_val, ETH_ALEN)) {
+				g_clear_pointer (out_password, g_free);
+				*out_password = g_strdup (opt_val);
+			} else
+				PARSE_WARNING ("Wake-on-LAN password '%s' is invalid", opt_val);
+			continue;
+		}
+
+		/* Silently skip unknown options */
 	}
 }
 
 static void
-parse_ethtool_options (shvarFile *ifcfg, NMSettingWired *s_wired, const char *value)
+parse_ethtool_options (shvarFile *ifcfg, NMConnection *connection)
 {
+	NMSettingWired *s_wired;
+	gs_unref_object NMSettingEthtool *s_ethtool = NULL;
 	NMSettingWiredWakeOnLan wol_flags = NM_SETTING_WIRED_WAKE_ON_LAN_DEFAULT;
-	gs_free char *wol_password = NULL, *wol_value = NULL;
-	gboolean ignore_wol_password = FALSE, autoneg = FALSE;
+	gs_free char *ethtool_opts_free = NULL;
+	const char *ethtool_opts;
+	gs_free char *wol_password = NULL;
+	gs_free char *wol_value_free = NULL;
+	const char *tmp;
+	gboolean autoneg = FALSE;
 	guint32 speed = 0;
 	const char *duplex = NULL;
 
-	if (value) {
-		gs_free const char **opts = NULL;
-		const char *const *iter;
-
+	ethtool_opts = svGetValue (ifcfg, "ETHTOOL_OPTS", &ethtool_opts_free);
+	if (ethtool_opts) {
 		/* WAKE_ON_LAN_IGNORE is inferred from a specified but empty ETHTOOL_OPTS */
-		if (!value[0])
+		if (!ethtool_opts[0])
 			wol_flags = NM_SETTING_WIRED_WAKE_ON_LAN_IGNORE;
+		else {
+			gs_free const char **opts = NULL;
+			const char *const *iter;
 
-		opts = nm_utils_strsplit_set (value, ";");
-		for (iter = opts; iter && iter[0]; iter++) {
-			/* in case of repeated wol_passwords, parse_ethtool_option()
-			 * will do the right thing and clear wol_password before resetting. */
-			parse_ethtool_option (iter[0], &wol_flags, &wol_password, &autoneg, &speed, &duplex);
+			opts = nm_utils_strsplit_set (ethtool_opts, ";", FALSE);
+			for (iter = opts; iter && iter[0]; iter++) {
+				/* in case of repeated wol_passwords, parse_ethtool_option()
+				 * will do the right thing and clear wol_password before resetting. */
+				parse_ethtool_option (iter[0],
+				                      &wol_flags,
+				                      &wol_password,
+				                      &autoneg,
+				                      &speed,
+				                      &duplex,
+				                      &s_ethtool);
+			}
 		}
 	}
 
 	/* ETHTOOL_WAKE_ON_LAN = ignore overrides WoL settings in ETHTOOL_OPTS */
-	wol_value = svGetValueStr_cp (ifcfg, "ETHTOOL_WAKE_ON_LAN");
-	if (wol_value) {
-		if (strcmp (wol_value, "ignore") == 0)
-			wol_flags = NM_SETTING_WIRED_WAKE_ON_LAN_IGNORE;
-		else
-			PARSE_WARNING ("invalid ETHTOOL_WAKE_ON_LAN value '%s'", wol_value);
-	}
+	tmp = svGetValueStr (ifcfg, "ETHTOOL_WAKE_ON_LAN", &wol_value_free);
+	if (nm_streq0 (tmp, "ignore"))
+		wol_flags = NM_SETTING_WIRED_WAKE_ON_LAN_IGNORE;
+	else if (tmp)
+		PARSE_WARNING ("invalid ETHTOOL_WAKE_ON_LAN value '%s'", tmp);
 
 	if (   wol_password
 	    && !NM_FLAGS_HAS (wol_flags, NM_SETTING_WIRED_WAKE_ON_LAN_MAGIC)) {
 		PARSE_WARNING ("Wake-on-LAN password not expected");
-		ignore_wol_password = TRUE;
+		nm_clear_g_free (&wol_password);
 	}
 
-	g_object_set (s_wired,
-	              NM_SETTING_WIRED_WAKE_ON_LAN, wol_flags,
-	              NM_SETTING_WIRED_WAKE_ON_LAN_PASSWORD, ignore_wol_password ? NULL : wol_password,
-	              NM_SETTING_WIRED_AUTO_NEGOTIATE, autoneg,
-	              NM_SETTING_WIRED_SPEED, speed,
-	              NM_SETTING_WIRED_DUPLEX, duplex,
-	              NULL);
+	s_wired = nm_connection_get_setting_wired (connection);
+	if (s_wired) {
+		g_object_set (s_wired,
+		              NM_SETTING_WIRED_WAKE_ON_LAN, wol_flags,
+		              NM_SETTING_WIRED_WAKE_ON_LAN_PASSWORD, wol_password,
+		              NM_SETTING_WIRED_AUTO_NEGOTIATE, autoneg,
+		              NM_SETTING_WIRED_SPEED, speed,
+		              NM_SETTING_WIRED_DUPLEX, duplex,
+		              NULL);
+	}
+
+	if (s_ethtool) {
+		nm_connection_add_setting (connection,
+		                           NM_SETTING (g_steal_pointer (&s_ethtool)));
+	}
 }
 
 static NMSetting *
@@ -4230,7 +4424,7 @@ make_wired_setting (shvarFile *ifcfg,
 			gs_free const char **chans = NULL;
 			guint32 num_chans;
 
-			chans = nm_utils_strsplit_set (value, ",");
+			chans = nm_utils_strsplit_set (value, ",", FALSE);
 			num_chans = NM_PTRARRAY_LEN (chans);
 			if (num_chans < 2 || num_chans > 3) {
 				PARSE_WARNING ("invalid SUBCHANNELS '%s' (%u channels, 2 or 3 expected)",
@@ -4317,10 +4511,6 @@ make_wired_setting (shvarFile *ifcfg,
 		}
 		nm_clear_g_free (&value);
 	}
-
-	parse_ethtool_options (ifcfg, s_wired,
-	                       svGetValue (ifcfg, "ETHTOOL_OPTS", &value));
-	nm_clear_g_free (&value);
 
 	return (NMSetting *) g_steal_pointer (&s_wired);
 }
@@ -4557,7 +4747,7 @@ make_bond_setting (shvarFile *ifcfg,
 		gs_free const char **items = NULL;
 		const char *const *iter;
 
-		items = nm_utils_strsplit_set (v, " ");
+		items = nm_utils_strsplit_set (v, " ", FALSE);
 		for (iter = items; iter && *iter; iter++) {
 			gs_strfreev char **keys = NULL;
 			const char *key, *val;
@@ -4835,7 +5025,7 @@ handle_bridging_opts (NMSetting *setting,
 	gs_free const char **items = NULL;
 	const char *const *iter;
 
-	items = nm_utils_strsplit_set (value, " ");
+	items = nm_utils_strsplit_set (value, " ", FALSE);
 	for (iter = items; iter && *iter; iter++) {
 		gs_strfreev char **keys = NULL;
 		const char *key, *val;
@@ -5055,7 +5245,7 @@ parse_prio_map_list (NMSettingVlan *s_vlan,
 	v = svGetValueStr (ifcfg, key, &value);
 	if (!v)
 		return;
-	list = nm_utils_strsplit_set (v, ",");
+	list = nm_utils_strsplit_set (v, ",", FALSE);
 
 	for (iter = list; iter && *iter; iter++) {
 		if (!strchr (*iter, ':'))
@@ -5077,7 +5267,7 @@ make_vlan_setting (shvarFile *ifcfg,
 	const char *v = NULL;
 	int vlan_id = -1;
 	guint32 vlan_flags = 0;
-	gint gvrp, reorder_hdr;
+	int gvrp, reorder_hdr;
 
 	v = svGetValueStr (ifcfg, "VLAN_ID", &value);
 	if (v) {
@@ -5160,7 +5350,7 @@ make_vlan_setting (shvarFile *ifcfg,
 		gs_free const char **strv = NULL;
 		const char *const *ptr;
 
-		strv = nm_utils_strsplit_set (v, ", ");
+		strv = nm_utils_strsplit_set (v, ", ", FALSE);
 		for (ptr = strv; ptr && *ptr; ptr++) {
 			if (nm_streq (*ptr, "GVRP") && gvrp == -1)
 				vlan_flags |= NM_VLAN_FLAG_GVRP;
@@ -5302,7 +5492,7 @@ check_dns_search_domains (shvarFile *ifcfg, NMSetting *s_ip4, NMSetting *s_ip6)
 			gs_free const char **searches = NULL;
 			const char *const *item;
 
-			searches = nm_utils_strsplit_set (v, " ");
+			searches = nm_utils_strsplit_set (v, " ", FALSE);
 			if (searches) {
 				for (item = searches; *item; item++) {
 					if (!nm_setting_ip_config_add_dns_search (NM_SETTING_IP_CONFIG (s_ip6), *item))
@@ -5321,12 +5511,13 @@ connection_from_file_full (const char *filename,
                            GError **error,
                            gboolean *out_ignore_error)
 {
-	nm_auto_shvar_file_close shvarFile *parsed = NULL;
+	nm_auto_shvar_file_close shvarFile *main_ifcfg = NULL;
 	nm_auto_shvar_file_close shvarFile *network_ifcfg = NULL;
 	gs_unref_object NMConnection *connection = NULL;
 	gs_free char *type = NULL;
 	char *devtype, *bootproto;
 	NMSetting *s_ip4, *s_ip6, *s_tc, *s_proxy, *s_port, *s_dcb = NULL, *s_user;
+	NMSetting *s_sriov, *s_match;
 	const char *ifcfg_name = NULL;
 	gboolean has_ip4_defroute = FALSE;
 	gboolean has_complex_routes_v4;
@@ -5348,14 +5539,14 @@ connection_from_file_full (const char *filename,
 		return NULL;
 	}
 
-	parsed = svOpenFile (filename, error);
-	if (!parsed)
+	main_ifcfg = svOpenFile (filename, error);
+	if (!main_ifcfg)
 		return NULL;
 
 	network_ifcfg = svOpenFile (network_file, NULL);
 
-	if (!svGetValueBoolean (parsed, "NM_CONTROLLED", TRUE)) {
-		connection = create_unhandled_connection (filename, parsed, "unmanaged", out_unhandled);
+	if (!svGetValueBoolean (main_ifcfg, "NM_CONTROLLED", TRUE)) {
+		connection = create_unhandled_connection (filename, main_ifcfg, "unmanaged", out_unhandled);
 		if (!connection) {
 			NM_SET_OUT (out_ignore_error, TRUE);
 			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_FAILED,
@@ -5365,7 +5556,7 @@ connection_from_file_full (const char *filename,
 	}
 
 	/* iBFT is handled by the iBFT settings plugin */
-	bootproto = svGetValueStr_cp (parsed, "BOOTPROTO");
+	bootproto = svGetValueStr_cp (main_ifcfg, "BOOTPROTO");
 	if (bootproto && !g_ascii_strcasecmp (bootproto, "ibft")) {
 		NM_SET_OUT (out_ignore_error, TRUE);
 		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
@@ -5375,19 +5566,19 @@ connection_from_file_full (const char *filename,
 	}
 	g_free (bootproto);
 
-	devtype = svGetValueStr_cp (parsed, "DEVICETYPE");
+	devtype = svGetValueStr_cp (main_ifcfg, "DEVICETYPE");
 	if (devtype) {
 		if (!strcasecmp (devtype, TYPE_TEAM))
 			type = g_strdup (TYPE_TEAM);
 		else if (!strcasecmp (devtype, TYPE_TEAM_PORT)) {
 			gs_free char *device = NULL;
 
-			type = svGetValueStr_cp (parsed, "TYPE");
-			device = svGetValueStr_cp (parsed, "DEVICE");
+			type = svGetValueStr_cp (main_ifcfg, "TYPE");
+			device = svGetValueStr_cp (main_ifcfg, "DEVICE");
 
 			if (type) {
 				/* nothing to do */
-			} else if (device && is_vlan_device (device, parsed))
+			} else if (device && is_vlan_device (device, main_ifcfg))
 				type = g_strdup (TYPE_VLAN);
 			else
 				type = g_strdup (TYPE_ETHERNET);
@@ -5400,26 +5591,26 @@ connection_from_file_full (const char *filename,
 		/* Team and TeamPort types are also accepted by the mere
 		 * presence of TEAM_CONFIG/TEAM_MASTER. They don't require
 		 * DEVICETYPE. */
-		t = svGetValueStr_cp (parsed, "TEAM_CONFIG");
+		t = svGetValueStr_cp (main_ifcfg, "TEAM_CONFIG");
 		if (t)
 			type = g_strdup (TYPE_TEAM);
 	}
 
 	if (!type)
-		type = svGetValueStr_cp (parsed, "TYPE");
+		type = svGetValueStr_cp (main_ifcfg, "TYPE");
 
 	if (!type) {
 		gs_free char *tmp = NULL;
 		char *device;
 
-		if ((tmp = svGetValueStr_cp (parsed, "IPV6TUNNELIPV4"))) {
+		if ((tmp = svGetValueStr_cp (main_ifcfg, "IPV6TUNNELIPV4"))) {
 			NM_SET_OUT (out_ignore_error, TRUE);
 			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			             "Ignoring unsupported connection due to IPV6TUNNELIPV4");
 			return NULL;
 		}
 
-		device = svGetValueStr_cp (parsed, "DEVICE");
+		device = svGetValueStr_cp (main_ifcfg, "DEVICE");
 		if (!device) {
 			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 			             "File '%s' had neither TYPE nor DEVICE keys.", filename);
@@ -5435,11 +5626,11 @@ connection_from_file_full (const char *filename,
 		}
 
 		if (!test_type) {
-			if (is_bond_device (device, parsed))
+			if (is_bond_device (device, main_ifcfg))
 				type = g_strdup (TYPE_BOND);
-			else if (is_vlan_device (device, parsed))
+			else if (is_vlan_device (device, main_ifcfg))
 				type = g_strdup (TYPE_VLAN);
-			else if (is_wifi_device (device, parsed))
+			else if (is_wifi_device (device, main_ifcfg))
 				type = g_strdup (TYPE_WIRELESS);
 			else {
 				gs_free char *p_path = NULL;
@@ -5505,14 +5696,14 @@ connection_from_file_full (const char *filename,
 	if (nm_streq0 (type, TYPE_ETHERNET)) {
 		gs_free char *bond_options = NULL;
 
-		if (svGetValueStr (parsed, "BONDING_OPTS", &bond_options)) {
+		if (svGetValueStr (main_ifcfg, "BONDING_OPTS", &bond_options)) {
 			/* initscripts consider these as bond masters */
 			g_free (type);
 			type = g_strdup (TYPE_BOND);
 		}
 	}
 
-	if (svGetValueBoolean (parsed, "BONDING_MASTER", FALSE) &&
+	if (svGetValueBoolean (main_ifcfg, "BONDING_MASTER", FALSE) &&
 	    strcasecmp (type, TYPE_BOND)) {
 		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 		             "BONDING_MASTER=yes key only allowed in TYPE=bond connections");
@@ -5521,21 +5712,21 @@ connection_from_file_full (const char *filename,
 
 	/* Construct the connection */
 	if (!strcasecmp (type, TYPE_ETHERNET))
-		connection = wired_connection_from_ifcfg (filename, parsed, error);
+		connection = wired_connection_from_ifcfg (filename, main_ifcfg, error);
 	else if (!strcasecmp (type, TYPE_WIRELESS))
-		connection = wireless_connection_from_ifcfg (filename, parsed, error);
+		connection = wireless_connection_from_ifcfg (filename, main_ifcfg, error);
 	else if (!strcasecmp (type, TYPE_INFINIBAND))
-		connection = infiniband_connection_from_ifcfg (filename, parsed, error);
+		connection = infiniband_connection_from_ifcfg (filename, main_ifcfg, error);
 	else if (!strcasecmp (type, TYPE_BOND))
-		connection = bond_connection_from_ifcfg (filename, parsed, error);
+		connection = bond_connection_from_ifcfg (filename, main_ifcfg, error);
 	else if (!strcasecmp (type, TYPE_TEAM))
-		connection = team_connection_from_ifcfg (filename, parsed, error);
+		connection = team_connection_from_ifcfg (filename, main_ifcfg, error);
 	else if (!strcasecmp (type, TYPE_VLAN))
-		connection = vlan_connection_from_ifcfg (filename, parsed, error);
+		connection = vlan_connection_from_ifcfg (filename, main_ifcfg, error);
 	else if (!strcasecmp (type, TYPE_BRIDGE))
-		connection = bridge_connection_from_ifcfg (filename, parsed, error);
+		connection = bridge_connection_from_ifcfg (filename, main_ifcfg, error);
 	else {
-		connection = create_unhandled_connection (filename, parsed, "unrecognized", out_unhandled);
+		connection = create_unhandled_connection (filename, main_ifcfg, "unrecognized", out_unhandled);
 		if (!connection) {
 			PARSE_WARNING ("connection type was unrecognized but device was not uniquely identified; device may be managed");
 			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
@@ -5546,6 +5737,8 @@ connection_from_file_full (const char *filename,
 
 	if (!connection)
 		return NULL;
+
+	parse_ethtool_options (main_ifcfg, connection);
 
 	has_complex_routes_v4 = utils_has_complex_routes (filename, AF_INET);
 	has_complex_routes_v6 = utils_has_complex_routes (filename, AF_INET6);
@@ -5559,7 +5752,7 @@ connection_from_file_full (const char *filename,
 			PARSE_WARNING ("'rule-' and 'rule6-' files are present; you will need to use a dispatcher script to apply these routes");
 	}
 
-	s_ip6 = make_ip6_setting (parsed,
+	s_ip6 = make_ip6_setting (main_ifcfg,
 	                          network_ifcfg,
 	                          !has_complex_routes_v4 && !has_complex_routes_v6,
 	                          error);
@@ -5568,7 +5761,7 @@ connection_from_file_full (const char *filename,
 	else
 		nm_connection_add_setting (connection, s_ip6);
 
-	s_ip4 = make_ip4_setting (parsed,
+	s_ip4 = make_ip4_setting (main_ifcfg,
 	                          network_ifcfg,
 	                          !has_complex_routes_v4 && !has_complex_routes_v6,
 	                          &has_ip4_defroute,
@@ -5582,7 +5775,11 @@ connection_from_file_full (const char *filename,
 		nm_connection_add_setting (connection, s_ip4);
 	}
 
-	s_tc = make_tc_setting (parsed);
+	s_sriov = make_sriov_setting (main_ifcfg);
+	if (s_sriov)
+		nm_connection_add_setting (connection, s_sriov);
+
+	s_tc = make_tc_setting (main_ifcfg);
 	if (s_tc)
 		nm_connection_add_setting (connection, s_tc);
 
@@ -5590,27 +5787,31 @@ connection_from_file_full (const char *filename,
 	 * config fails for some reason, we read DOMAIN and put the
 	 * values into IPv6 config instead of IPv4.
 	 */
-	check_dns_search_domains (parsed, s_ip4, s_ip6);
+	check_dns_search_domains (main_ifcfg, s_ip4, s_ip6);
 
-	s_proxy = make_proxy_setting (parsed);
+	s_proxy = make_proxy_setting (main_ifcfg);
 	if (s_proxy)
 		nm_connection_add_setting (connection, s_proxy);
 
-	s_user = make_user_setting (parsed);
+	s_user = make_user_setting (main_ifcfg);
 	if (s_user)
 		nm_connection_add_setting (connection, s_user);
 
+	s_match = make_match_setting (main_ifcfg);
+	if (s_match)
+		nm_connection_add_setting (connection, s_match);
+
 	/* Bridge port? */
-	s_port = make_bridge_port_setting (parsed);
+	s_port = make_bridge_port_setting (main_ifcfg);
 	if (s_port)
 		nm_connection_add_setting (connection, s_port);
 
 	/* Team port? */
-	s_port = make_team_port_setting (parsed);
+	s_port = make_team_port_setting (main_ifcfg);
 	if (s_port)
 		nm_connection_add_setting (connection, s_port);
 
-	if (!make_dcb_setting (parsed, &s_dcb, error))
+	if (!make_dcb_setting (main_ifcfg, &s_dcb, error))
 		return NULL;
 	if (s_dcb)
 		nm_connection_add_setting (connection, s_dcb);

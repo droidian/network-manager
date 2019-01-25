@@ -52,6 +52,7 @@ G_BEGIN_DECLS
 #define NM_SETTING_CONNECTION_AUTOCONNECT    "autoconnect"
 #define NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY "autoconnect-priority"
 #define NM_SETTING_CONNECTION_AUTOCONNECT_RETRIES "autoconnect-retries"
+#define NM_SETTING_CONNECTION_MULTI_CONNECT  "multi-connect"
 #define NM_SETTING_CONNECTION_TIMESTAMP      "timestamp"
 #define NM_SETTING_CONNECTION_READ_ONLY      "read-only"
 #define NM_SETTING_CONNECTION_PERMISSIONS    "permissions"
@@ -65,6 +66,7 @@ G_BEGIN_DECLS
 #define NM_SETTING_CONNECTION_LLDP           "lldp"
 #define NM_SETTING_CONNECTION_AUTH_RETRIES   "auth-retries"
 #define NM_SETTING_CONNECTION_MDNS           "mdns"
+#define NM_SETTING_CONNECTION_LLMNR          "llmnr"
 
 /* Types for property values */
 /**
@@ -117,6 +119,24 @@ typedef enum {
 } NMSettingConnectionMdns;
 
 /**
+ * NMSettingConnectionLlmnr:
+ * @NM_SETTING_CONNECTION_LLMNR_DEFAULT: default value
+ * @NM_SETTING_CONNECTION_LLMNR_NO: disable LLMNR
+ * @NM_SETTING_CONNECTION_LLMNR_RESOLVE: support only resolving, do not register hostname
+ * @NM_SETTING_CONNECTION_LLMNR_YES: enable LLMNR
+ *
+ * #NMSettingConnectionLlmnr values indicate whether LLMNR should be enabled.
+ *
+ * Since: 1.14
+ */
+typedef enum {
+	NM_SETTING_CONNECTION_LLMNR_DEFAULT      = -1,
+	NM_SETTING_CONNECTION_LLMNR_NO           = 0,
+	NM_SETTING_CONNECTION_LLMNR_RESOLVE      = 1,
+	NM_SETTING_CONNECTION_LLMNR_YES          = 2,
+} NMSettingConnectionLlmnr;
+
+/**
  * NMSettingConnection:
  *
  * General Connection Profile Settings
@@ -142,9 +162,11 @@ const char *nm_setting_connection_get_stable_id        (NMSettingConnection *set
 const char *nm_setting_connection_get_interface_name   (NMSettingConnection *setting);
 const char *nm_setting_connection_get_connection_type  (NMSettingConnection *setting);
 gboolean    nm_setting_connection_get_autoconnect      (NMSettingConnection *setting);
-gint        nm_setting_connection_get_autoconnect_priority (NMSettingConnection *setting);
+int         nm_setting_connection_get_autoconnect_priority (NMSettingConnection *setting);
 NM_AVAILABLE_IN_1_6
-gint        nm_setting_connection_get_autoconnect_retries (NMSettingConnection *setting);
+int         nm_setting_connection_get_autoconnect_retries (NMSettingConnection *setting);
+NM_AVAILABLE_IN_1_14
+NMConnectionMultiConnect nm_setting_connection_get_multi_connect (NMSettingConnection *setting);
 guint64     nm_setting_connection_get_timestamp        (NMSettingConnection *setting);
 gboolean    nm_setting_connection_get_read_only        (NMSettingConnection *setting);
 
@@ -187,10 +209,13 @@ NM_AVAILABLE_IN_1_2
 NMSettingConnectionLldp nm_setting_connection_get_lldp (NMSettingConnection *setting);
 
 NM_AVAILABLE_IN_1_10
-gint        nm_setting_connection_get_auth_retries     (NMSettingConnection *setting);
+int         nm_setting_connection_get_auth_retries     (NMSettingConnection *setting);
 
 NM_AVAILABLE_IN_1_12
 NMSettingConnectionMdns   nm_setting_connection_get_mdns (NMSettingConnection *setting);
+NM_AVAILABLE_IN_1_14
+NMSettingConnectionLlmnr  nm_setting_connection_get_llmnr (NMSettingConnection *setting);
+
 G_END_DECLS
 
 #endif /* __NM_SETTING_CONNECTION_H__ */

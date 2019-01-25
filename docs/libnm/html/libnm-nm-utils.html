@@ -8,7 +8,7 @@
 <link rel="up" href="ch05.html" title="Utility API Reference">
 <link rel="prev" href="ch05.html" title="Utility API Reference">
 <link rel="next" href="libnm-nm-version.html" title="nm-version">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -605,6 +605,22 @@
 </td>
 <td class="function_name">
 <a class="link" href="libnm-nm-utils.html#nm-utils-tc-tfilter-to-str" title="nm_utils_tc_tfilter_to_str ()">nm_utils_tc_tfilter_to_str</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libnm-nm-utils.html#nm-utils-sriov-vf-to-str" title="nm_utils_sriov_vf_to_str ()">nm_utils_sriov_vf_to_str</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="NMSettingSriov.html#NMSriovVF"><span class="returnvalue">NMSriovVF</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libnm-nm-utils.html#nm-utils-sriov-vf-from-str" title="nm_utils_sriov_vf_from_str ()">nm_utils_sriov_vf_from_str</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -2920,8 +2936,8 @@ containing the unrecognized token in <em class="parameter"><code>err_token</code
 <a name="nm-utils-enum-get-values"></a><h3>nm_utils_enum_get_values ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> **
 nm_utils_enum_get_values (<em class="parameter"><code><a href="https://developer.gnome.org/gobject/unstable/gobject-Type-Information.html#GType"><span class="type">GType</span></a> type</code></em>,
-                          <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a> from</code></em>,
-                          <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a> to</code></em>);</pre>
+                          <em class="parameter"><code><span class="type">int</span> from</code></em>,
+                          <em class="parameter"><code><span class="type">int</span> to</code></em>);</pre>
 <p>Returns the list of possible values for a given enum.</p>
 <div class="refsect3">
 <a name="nm-utils-enum-get-values.parameters"></a><h4>Parameters</h4>
@@ -3259,6 +3275,83 @@ discipline.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-utils-sriov-vf-to-str"></a><h3>nm_utils_sriov_vf_to_str ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+nm_utils_sriov_vf_to_str (<em class="parameter"><code>const <a class="link" href="NMSettingSriov.html#NMSriovVF"><span class="type">NMSriovVF</span></a> *vf</code></em>,
+                          <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> omit_index</code></em>,
+                          <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>Converts a SR-IOV virtual function object to its string representation.</p>
+<div class="refsect3">
+<a name="nm-utils-sriov-vf-to-str.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>vf</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingSriov.html#NMSriovVF"><code class="literal">NMSriovVF</code></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>omit_index</p></td>
+<td class="parameter_description"><p>if <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, the VF index will be omitted from output string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>location to store the error on failure. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-utils-sriov-vf-to-str.returns"></a><h4>Returns</h4>
+<p> a newly allocated string or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error</p>
+</div>
+<p class="since">Since: 1.14</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-utils-sriov-vf-from-str"></a><h3>nm_utils_sriov_vf_from_str ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingSriov.html#NMSriovVF"><span class="returnvalue">NMSriovVF</span></a> *
+nm_utils_sriov_vf_from_str (<em class="parameter"><code>const <span class="type">char</span> *str</code></em>,
+                            <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>Converts a string to a SR-IOV virtual function object.</p>
+<div class="refsect3">
+<a name="nm-utils-sriov-vf-from-str.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>the input string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>location to store the error on failure. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-utils-sriov-vf-from-str.returns"></a><h4>Returns</h4>
+<p>the virtual function object. </p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.14</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-utils-get-timestamp-msec"></a><h3>nm_utils_get_timestamp_msec ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
 nm_utils_get_timestamp_msec (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
@@ -3379,6 +3472,6 @@ for both <a class="link" href="libnm-nm-utils.html#nm-utils-inet4-ntop" title="n
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.29.1</div>
 </body>
 </html>

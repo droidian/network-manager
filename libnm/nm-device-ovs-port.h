@@ -42,7 +42,7 @@ typedef struct _NMDeviceOvsPortClass NMDeviceOvsPortClass;
 NM_AVAILABLE_IN_1_10
 GType nm_device_ovs_port_get_type (void);
 
-NM_AVAILABLE_IN_1_12_2
+NM_AVAILABLE_IN_1_14
 const GPtrArray *nm_device_ovs_port_get_slaves (NMDeviceOvsPort *device);
 
 G_END_DECLS

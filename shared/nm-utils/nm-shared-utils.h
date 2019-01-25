@@ -26,6 +26,52 @@
 
 /*****************************************************************************/
 
+static inline gboolean
+_NM_INT_NOT_NEGATIVE (gssize val)
+{
+	/* whether an enum (without negative values) is a signed int, depends on compiler options
+	 * and compiler implementation.
+	 *
+	 * When using such an enum for accessing an array, one naturally wants to check
+	 * that the enum is not negative. However, the compiler doesn't like a plain
+	 * comparison "enum_val >= 0", because (if the enum is unsigned), it will warn
+	 * that the expression is always true *duh*. Not even a cast to a signed
+	 * type helps to avoid the compiler warning in any case.
+	 *
+	 * The sole purpose of this function is to avoid a compiler warning, when checking
+	 * that an enum is not negative. */
+	return val >= 0;
+}
+
+/* check whether the integer value is smaller than G_MAXINT32. This macro exists
+ * for the sole purpose, that a plain "((int) value <= G_MAXINT32)" comparison
+ * may cause the compiler or coverity that this check is always TRUE. But the
+ * check depends on compile time and the size of C type "int".  Of course, most
+ * of the time in is gint32 and an int value is always <= G_MAXINT32.  The check
+ * exists to catch cases where that is not true.
+ *
+ * Together with the G_STATIC_ASSERT(), we make sure that this is always satisfied. */
+G_STATIC_ASSERT (sizeof (int) == sizeof (gint32));
+#if _NM_CC_SUPPORT_GENERIC
+#define _NM_INT_LE_MAXINT32(value) \
+	({ \
+		_nm_unused typeof (value) _value = (value); \
+		\
+		_Generic((value), \
+		         int: TRUE \
+		); \
+	})
+#else
+#define _NM_INT_LE_MAXINT32(value) ({ \
+		_nm_unused typeof (value) _value = (value); \
+		_nm_unused const int *_p_value = &_value; \
+		\
+		TRUE; \
+	})
+#endif
+
+/*****************************************************************************/
+
 static inline char
 nm_utils_addr_family_to_char (int addr_family)
 {
@@ -171,6 +217,84 @@ nm_ip_addr_set (int addr_family, gpointer dst, const NMIPAddr *src)
 
 /*****************************************************************************/
 
+static inline gboolean
+nm_utils_mem_all_zero (gconstpointer mem, gsize len)
+{
+	const guint8 *p;
+
+	for (p = mem; len-- > 0; p++) {
+		if (*p != 0)
+			return FALSE;
+	}
+
+	/* incidentally, a buffer with len==0, is also *all-zero*. */
+	return TRUE;
+}
+
+/*****************************************************************************/
+
+/* like g_memdup(). The difference is that the @size argument is of type
+ * gsize, while g_memdup() has type guint. Since, the size of container types
+ * like GArray is guint as well, this means trying to g_memdup() an
+ * array,
+ *    g_memdup (array->data, array->len * sizeof (ElementType))
+ * will lead to integer overflow, if there are more than G_MAXUINT/sizeof(ElementType)
+ * bytes. That seems unnecessarily dangerous to me.
+ * nm_memdup() avoids that, because its size argument is always large enough
+ * to contain all data that a GArray can hold.
+ *
+ * Another minor difference to g_memdup() is that the glib version also
+ * returns %NULL if @data is %NULL. E.g. g_memdup(NULL, 1)
+ * gives %NULL, but nm_memdup(NULL, 1) crashes. I think that
+ * is desirable, because @size MUST be correct at all times. @size
+ * may be zero, but one must not claim to have non-zero bytes when
+ * passing a %NULL @data pointer.
+ */
+static inline gpointer
+nm_memdup (gconstpointer data, gsize size)
+{
+	gpointer p;
+
+	if (size == 0)
+		return NULL;
+	p = g_malloc (size);
+	memcpy (p, data, size);
+	return p;
+}
+
+/* Similar to g_strndup(), however, if the string (including the terminating
+ * NUL char) fits into alloca_maxlen, this will alloca() the memory.
+ *
+ * It's a mix of strndup() and strndupa(), but deciding based on @alloca_maxlen
+ * which one to use.
+ *
+ * In case malloc() is necessary, @out_str_free will be set (this string
+ * must be freed afterwards). It is permissible to pass %NULL as @out_str_free,
+ * if you ensure that len < alloca_maxlen. */
+#define nm_strndup_a(alloca_maxlen, str, len, out_str_free) \
+	({ \
+		const gsize _alloca_maxlen = (alloca_maxlen); \
+		const char *const _str = (str); \
+		const gsize _len = (len); \
+		char **const _out_str_free = (out_str_free); \
+		char *_s; \
+		\
+		if (   _out_str_free \
+		    && _len >= _alloca_maxlen) { \
+			_s = g_malloc (_len + 1); \
+			*_out_str_free = _s; \
+		} else { \
+			g_assert (_len < _alloca_maxlen); \
+			_s = g_alloca (_len + 1); \
+		} \
+		if (_len > 0) \
+			strncpy (_s, _str, _len); \
+		_s[_len] = '\0'; \
+		_s; \
+	})
+
+/*****************************************************************************/
+
 extern const void *const _NM_PTRARRAY_EMPTY[1];
 
 #define NM_PTRARRAY_EMPTY(type) ((type const*) _NM_PTRARRAY_EMPTY)
@@ -191,6 +315,7 @@ _nm_utils_strbuf_init (char *buf, gsize len, char **p_buf_ptr, gsize *p_buf_len)
 void nm_utils_strbuf_append (char **buf, gsize *len, const char *format, ...) _nm_printf (3, 4);
 void nm_utils_strbuf_append_c (char **buf, gsize *len, char c);
 void nm_utils_strbuf_append_str (char **buf, gsize *len, const char *str);
+void nm_utils_strbuf_seek_end (char **buf, gsize *len);
 
 const char *nm_strquote (char *buf, gsize buf_len, const char *str);
 
@@ -202,13 +327,48 @@ nm_utils_is_separator (const char c)
 
 /*****************************************************************************/
 
+static inline gboolean
+nm_gbytes_equal0 (GBytes *a, GBytes *b)
+{
+	return a == b || (a && b && g_bytes_equal (a, b));
+}
+
+gboolean nm_utils_gbytes_equal_mem (GBytes *bytes,
+                                    gconstpointer mem_data,
+                                    gsize mem_len);
+
+GVariant *nm_utils_gbytes_to_variant_ay (GBytes *bytes);
+
+/*****************************************************************************/
+
+static inline int
+nm_utils_hexchar_to_int (char ch)
+{
+	G_STATIC_ASSERT_EXPR ('0' < 'A');
+	G_STATIC_ASSERT_EXPR ('A' < 'a');
+
+	if (ch >= '0') {
+		if (ch <= '9')
+			return ch - '0';
+		if (ch >= 'A') {
+			if (ch <= 'F')
+				return ((int) ch) + (10 - (int) 'A');
+			if (ch >= 'a' && ch <= 'f')
+				return ((int) ch) + (10 - (int) 'a');
+		}
+	}
+	return -1;
+}
+
+/*****************************************************************************/
+
 const char *nm_utils_dbus_path_get_last_component (const char *dbus_path);
 
 int nm_utils_dbus_path_cmp (const char *dbus_path_a, const char *dbus_path_b);
 
 /*****************************************************************************/
 
-const char **nm_utils_strsplit_set (const char *str, const char *delimiters);
+const char **nm_utils_strsplit_set (const char *str, const char *delimiters, gboolean allow_escaping);
 
 gssize nm_utils_strv_find_first (char **list, gssize len, const char *needle);
 
@@ -248,8 +408,8 @@ gboolean nm_utils_parse_inaddr_prefix (int addr_family,
 gint64  _nm_utils_ascii_str_to_int64  (const char *str, guint base, gint64  min, gint64  max, gint64  fallback);
 guint64 _nm_utils_ascii_str_to_uint64 (const char *str, guint base, guint64 min, guint64 max, guint64 fallback);
 
-gint _nm_utils_ascii_str_to_bool (const char *str,
-                                  gint default_value);
+int _nm_utils_ascii_str_to_bool (const char *str,
+                                  int default_value);
 
 /*****************************************************************************/
 
@@ -379,6 +539,19 @@ _nm_g_slice_free_fcn_define (16)
 
 /*****************************************************************************/
 
+static inline int
+nm_errno (int errsv)
+{
+	/* several API returns negative errno values as errors. Normalize
+	 * negative values to positive values.
+	 *
+	 * As a special case, map G_MININT to G_MAXINT. If you care about the
+	 * distinction, then check for G_MININT before. */
+	return errsv >= 0
+	       ? errsv
+	       : ((errsv == G_MININT) ? G_MAXINT : -errsv);
+}
+
 /**
  * NMUtilsError:
  * @NM_UTILS_ERROR_UNKNOWN: unknown or unclassified error
@@ -387,12 +560,40 @@ _nm_g_slice_free_fcn_define (16)
  *   error reason. Depending on the usage, this might indicate a bug because
  *   usually the target object should stay alive as long as there are pending
  *   operations.
+ *
+ * @NM_UTILS_ERROR_CONNECTION_AVAILABLE_INCOMPATIBLE: used for a very particular
+ *   purpose during nm_device_check_connection_compatible() to indicate that
+ *   the profile does not match the device already because their type differs.
+ *   That is, there is a fundamental reason of trying to check a profile that
+ *   cannot possibly match on this device.
+ * @NM_UTILS_ERROR_CONNECTION_AVAILABLE_UNMANAGED_DEVICE: used for a very particular
+ *   purpose during nm_device_check_connection_available(), to indicate that the
+ *   device is not available because it is unmanaged.
+ * @NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY: the profile is currently not
+ *   available/compatible with the device, but this may be only temporary.
+ *
  * @NM_UTILS_ERROR_INVALID_ARGUMENT: invalid argument.
  */
 typedef enum {
 	NM_UTILS_ERROR_UNKNOWN = 0,                 /*< nick=Unknown >*/
 	NM_UTILS_ERROR_CANCELLED_DISPOSING,         /*< nick=CancelledDisposing >*/
 	NM_UTILS_ERROR_INVALID_ARGUMENT,            /*< nick=InvalidArgument >*/
+
+	/* the following codes have a special meaning and are exactly used for
+	 * nm_device_check_connection_compatible() and nm_device_check_connection_available().
+	 *
+	 * Actually, their meaning is not very important (so, don't think too
+	 * hard about the name of these error codes). What is important, is their
+	 * relative order (i.e. the integer value of the codes). When manager
+	 * searches for a suitable device, it will check all devices whether
+	 * a profile can be activated. If they all fail, it will pick the error
+	 * message from the device that returned the *highest* error code,
+	 * in the hope that this message makes the most sense for the caller.
+	 * */
+	NM_UTILS_ERROR_CONNECTION_AVAILABLE_INCOMPATIBLE,
+	NM_UTILS_ERROR_CONNECTION_AVAILABLE_UNMANAGED_DEVICE,
+	NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY,
+
 } NMUtilsError;
 
 #define NM_UTILS_ERROR (nm_utils_error_quark ())
@@ -404,20 +605,37 @@ void nm_utils_error_set_cancelled (GError **error,
 gboolean nm_utils_error_is_cancelled (GError *error,
                                       gboolean consider_is_disposing);
 
+static inline void
+nm_utils_error_set_literal (GError **error, int error_code, const char *literal)
+{
+	g_set_error_literal (error, NM_UTILS_ERROR, error_code, literal);
+}
+
+#define nm_utils_error_set(error, error_code, ...) \
+	g_set_error ((error), NM_UTILS_ERROR, error_code, __VA_ARGS__)
+
+#define nm_utils_error_set_errno(error, errsv, fmt, ...) \
+	g_set_error ((error), \
+	             NM_UTILS_ERROR, \
+	             NM_UTILS_ERROR_UNKNOWN, \
+	             fmt, \
+	             ##__VA_ARGS__, \
+	             g_strerror (nm_errno (errsv)))
+
 /*****************************************************************************/
 
 gboolean nm_g_object_set_property (GObject *object,
-                                   const gchar  *property_name,
+                                   const char   *property_name,
                                    const GValue *value,
                                    GError **error);
 
 gboolean nm_g_object_set_property_boolean (GObject *object,
-                                           const gchar  *property_name,
+                                           const char   *property_name,
                                            gboolean value,
                                            GError **error);
 
 gboolean nm_g_object_set_property_uint (GObject *object,
-                                        const gchar  *property_name,
+                                        const char   *property_name,
                                         guint value,
                                         GError **error);
 
@@ -431,6 +649,10 @@ typedef enum {
 	NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL         = 0x0001,
 	NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII    = 0x0002,
 } NMUtilsStrUtf8SafeFlags;
+
+const char *nm_utils_buf_utf8safe_escape (gconstpointer buf, gssize buflen, NMUtilsStrUtf8SafeFlags flags, char **to_free);
+const char *nm_utils_buf_utf8safe_escape_bytes (GBytes *bytes, NMUtilsStrUtf8SafeFlags flags, char **to_free);
+gconstpointer nm_utils_buf_utf8safe_unescape (const char *str, gsize *out_len, gpointer *to_free);
 
 const char *nm_utils_str_utf8safe_escape   (const char *str, NMUtilsStrUtf8SafeFlags flags, char **to_free);
 const char *nm_utils_str_utf8safe_unescape (const char *str, char **to_free);
@@ -518,6 +740,35 @@ nm_utils_strv_make_deep_copied_nonnull (const char **strv)
 {
 	return nm_utils_strv_make_deep_copied (strv) ?: g_new0 (char *, 1);
 }
+
+/*****************************************************************************/
+
+gssize nm_utils_ptrarray_find_binary_search (gconstpointer *list,
+                                             gsize len,
+                                             gconstpointer needle,
+                                             GCompareDataFunc cmpfcn,
+                                             gpointer user_data,
+                                             gssize *out_idx_first,
+                                             gssize *out_idx_last);
+
+gssize nm_utils_array_find_binary_search (gconstpointer list,
+                                          gsize elem_size,
+                                          gsize len,
+                                          gconstpointer needle,
+                                          GCompareDataFunc cmpfcn,
+                                          gpointer user_data);
+
+/*****************************************************************************/
+
+typedef gboolean (*NMUtilsHashTableEqualFunc) (gconstpointer a,
+                                               gconstpointer b);
+
+gboolean nm_utils_hash_table_equal (const GHashTable *a,
+                                    const GHashTable *b,
+                                    gboolean treat_null_as_empty,
+                                    NMUtilsHashTableEqualFunc equal_func);
+
+/*****************************************************************************/
 
 void _nm_utils_strv_sort (const char **strv, gssize len);
 #define nm_utils_strv_sort(strv, len) _nm_utils_strv_sort (NM_CAST_STRV_MC (strv), len)
@@ -652,5 +903,8 @@ void _nm_utils_user_data_unpack (gpointer user_data, int nargs, ...);
 	_nm_utils_user_data_unpack(user_data, NM_NARG (__VA_ARGS__), __VA_ARGS__)
 
 /*****************************************************************************/
+
+const char *_nm_utils_escape_spaces (const char *str, char **to_free);
+char *_nm_utils_unescape_spaces (char *str);
 
 #endif /* __NM_SHARED_UTILS_H__ */

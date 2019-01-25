@@ -45,9 +45,7 @@
  * a #NMSettingConnection setting.
  **/
 
-G_DEFINE_TYPE_WITH_CODE (NMSettingConnection, nm_setting_connection, NM_TYPE_SETTING,
-                         _nm_register_setting (CONNECTION, NM_SETTING_PRIORITY_CONNECTION))
-NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_CONNECTION)
+G_DEFINE_TYPE (NMSettingConnection, nm_setting_connection, NM_TYPE_SETTING)
 
 #define NM_SETTING_CONNECTION_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_CONNECTION, NMSettingConnectionPrivate))
 
@@ -71,8 +69,9 @@ typedef struct {
 	NMSettingConnectionAutoconnectSlaves autoconnect_slaves;
 	GSList *permissions; /* list of Permission structs */
 	gboolean autoconnect;
-	gint autoconnect_priority;
-	gint autoconnect_retries;
+	int autoconnect_priority;
+	int autoconnect_retries;
+	int multi_connect;
 	guint64 timestamp;
 	gboolean read_only;
 	char *zone;
@@ -80,8 +79,9 @@ typedef struct {
 	guint gateway_ping_timeout;
 	NMMetered metered;
 	NMSettingConnectionLldp lldp;
-	gint auth_retries;
+	int auth_retries;
 	int mdns;
+	int llmnr;
 } NMSettingConnectionPrivate;
 
 enum {
@@ -94,6 +94,7 @@ enum {
 	PROP_AUTOCONNECT,
 	PROP_AUTOCONNECT_PRIORITY,
 	PROP_AUTOCONNECT_RETRIES,
+	PROP_MULTI_CONNECT,
 	PROP_TIMESTAMP,
 	PROP_READ_ONLY,
 	PROP_ZONE,
@@ -105,6 +106,7 @@ enum {
 	PROP_METERED,
 	PROP_LLDP,
 	PROP_MDNS,
+	PROP_LLMNR,
 	PROP_STABLE_ID,
 	PROP_AUTH_RETRIES,
 
@@ -528,7 +530,7 @@ nm_setting_connection_get_autoconnect (NMSettingConnection *setting)
  *
  * Returns: the connection's autoconnect priority
  **/
-gint
+int
 nm_setting_connection_get_autoconnect_priority (NMSettingConnection *setting)
 {
 	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), 0);
@@ -547,12 +549,28 @@ nm_setting_connection_get_autoconnect_priority (NMSettingConnection *setting)
  *
  * Since: 1.6
  **/
-gint
+int
 nm_setting_connection_get_autoconnect_retries (NMSettingConnection *setting)
 {
 	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), -1);
 
 	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->autoconnect_retries;
+}
+
+/**
+ * nm_setting_connection_get_multi_connect:
+ * @setting: the #NMSettingConnection
+ *
+ * Returns: the #NMSettingConnection:multi-connect property of the connection.
+ *
+ * Since: 1.14
+ **/
+NMConnectionMultiConnect
+nm_setting_connection_get_multi_connect (NMSettingConnection *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), -1);
+
+	return (NMConnectionMultiConnect) NM_SETTING_CONNECTION_GET_PRIVATE (setting)->multi_connect;
 }
 
 /**
@@ -566,7 +584,7 @@ nm_setting_connection_get_autoconnect_retries (NMSettingConnection *setting)
  *
  * Since: 1.10
  **/
-gint
+int
 nm_setting_connection_get_auth_retries (NMSettingConnection *setting)
 {
 	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), -1);
@@ -880,6 +898,23 @@ nm_setting_connection_get_mdns (NMSettingConnection *setting)
 	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->mdns;
 }
 
+/**
+ * nm_setting_connection_get_llmnr:
+ * @setting: the #NMSettingConnection
+ *
+ * Returns: the #NMSettingConnection:llmnr property of the setting.
+ *
+ * Since: 1.14
+ **/
+NMSettingConnectionLlmnr
+nm_setting_connection_get_llmnr (NMSettingConnection *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting),
+	                      NM_SETTING_CONNECTION_LLMNR_DEFAULT);
+
+	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->llmnr;
+}
+
 static void
 _set_error_missing_base_setting (GError **error, const char *type)
 {
@@ -1077,14 +1112,38 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		return FALSE;
 	}
 
-	if (   priv->mdns < NM_SETTING_CONNECTION_MDNS_DEFAULT
-	    || priv->mdns > NM_SETTING_CONNECTION_MDNS_YES) {
+	if (   priv->mdns < (int) NM_SETTING_CONNECTION_MDNS_DEFAULT
+	    || priv->mdns > (int) NM_SETTING_CONNECTION_MDNS_YES) {
 		g_set_error (error,
 		             NM_CONNECTION_ERROR,
 		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-		             _("mdns value %d is not valid"), priv->mdns);
+		             _("value %d is not valid"), priv->mdns);
 		g_prefix_error (error, "%s.%s: ", NM_SETTING_CONNECTION_SETTING_NAME,
 		                NM_SETTING_CONNECTION_MDNS);
+		return FALSE;
+	}
+
+	if (   priv->llmnr < (int) NM_SETTING_CONNECTION_LLMNR_DEFAULT
+	    || priv->llmnr > (int) NM_SETTING_CONNECTION_LLMNR_YES) {
+		g_set_error (error,
+		             NM_CONNECTION_ERROR,
+		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		             _("value %d is not valid"), priv->llmnr);
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_CONNECTION_SETTING_NAME,
+		                NM_SETTING_CONNECTION_LLMNR);
+		return FALSE;
+	}
+
+	if (!NM_IN_SET (priv->multi_connect, (int) NM_CONNECTION_MULTI_CONNECT_DEFAULT,
+	                                     (int) NM_CONNECTION_MULTI_CONNECT_SINGLE,
+	                                     (int) NM_CONNECTION_MULTI_CONNECT_MANUAL_MULTIPLE,
+	                                     (int) NM_CONNECTION_MULTI_CONNECT_MULTIPLE)) {
+		g_set_error (error,
+		             NM_CONNECTION_ERROR,
+		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		             _("value %d is not valid"), priv->multi_connect);
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_CONNECTION_SETTING_NAME,
+		                NM_SETTING_CONNECTION_MULTI_CONNECT);
 		return FALSE;
 	}
 
@@ -1238,7 +1297,6 @@ compare_property (NMSetting *setting,
 	    && g_strcmp0 (prop_spec->name, NM_SETTING_CONNECTION_TIMESTAMP) == 0)
 		return TRUE;
 
-	/* Otherwise chain up to parent to handle generic compare */
 	return NM_SETTING_CLASS (nm_setting_connection_parent_class)->compare_property (setting, other, prop_spec, flags);
 }
 
@@ -1248,6 +1306,7 @@ nm_setting_connection_init (NMSettingConnection *setting)
 	NMSettingConnectionPrivate *priv = NM_SETTING_CONNECTION_GET_PRIVATE (setting);
 
 	priv->mdns = NM_SETTING_CONNECTION_MDNS_DEFAULT;
+	priv->llmnr = NM_SETTING_CONNECTION_LLMNR_DEFAULT;
 }
 
 static void
@@ -1329,6 +1388,9 @@ set_property (GObject *object, guint prop_id,
 	case PROP_AUTOCONNECT_RETRIES:
 		priv->autoconnect_retries = g_value_get_int (value);
 		break;
+	case PROP_MULTI_CONNECT:
+		priv->multi_connect = g_value_get_int (value);
+		break;
 	case PROP_TIMESTAMP:
 		priv->timestamp = g_value_get_uint64 (value);
 		break;
@@ -1368,6 +1430,9 @@ set_property (GObject *object, guint prop_id,
 		break;
 	case PROP_MDNS:
 		priv->mdns = g_value_get_int (value);
+		break;
+	case PROP_LLMNR:
+		priv->llmnr = g_value_get_int (value);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1424,6 +1489,9 @@ get_property (GObject *object, guint prop_id,
 	case PROP_AUTOCONNECT_RETRIES:
 		g_value_set_int (value, nm_setting_connection_get_autoconnect_retries (setting));
 		break;
+	case PROP_MULTI_CONNECT:
+		g_value_set_int (value, priv->multi_connect);
+		break;
 	case PROP_TIMESTAMP:
 		g_value_set_uint64 (value, nm_setting_connection_get_timestamp (setting));
 		break;
@@ -1460,6 +1528,9 @@ get_property (GObject *object, guint prop_id,
 	case PROP_MDNS:
 		g_value_set_int (value, priv->mdns);
 		break;
+	case PROP_LLMNR:
+		g_value_set_int (value, priv->llmnr);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -1467,21 +1538,20 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
-nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
+nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (setting_class);
-	NMSettingClass *parent_class = NM_SETTING_CLASS (setting_class);
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	NMSettingClass *setting_class = NM_SETTING_CLASS (klass);
+	GArray *properties_override = _nm_sett_info_property_override_create_array ();
 
-	g_type_class_add_private (setting_class, sizeof (NMSettingConnectionPrivate));
+	g_type_class_add_private (klass, sizeof (NMSettingConnectionPrivate));
 
-	/* virtual methods */
 	object_class->set_property = set_property;
 	object_class->get_property = get_property;
 	object_class->finalize     = finalize;
-	parent_class->verify       = verify;
-	parent_class->compare_property = compare_property;
 
-	/* Properties */
+	setting_class->verify           = verify;
+	setting_class->compare_property = compare_property;
 
 	/**
 	 * NMSettingConnection:id:
@@ -1618,11 +1688,14 @@ nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
 		                      G_PARAM_READWRITE |
 		                      NM_SETTING_PARAM_INFERRABLE |
 		                      G_PARAM_STATIC_STRINGS));
-	_nm_setting_class_override_property (parent_class, NM_SETTING_CONNECTION_INTERFACE_NAME,
-	                                     G_VARIANT_TYPE_STRING,
-	                                     NULL,
-	                                     nm_setting_connection_set_interface_name,
-	                                     nm_setting_connection_no_interface_name);
+
+	_properties_override_add_override (properties_override,
+	                                   g_object_class_find_property (G_OBJECT_CLASS (setting_class),
+	                                                                 NM_SETTING_CONNECTION_INTERFACE_NAME),
+	                                   G_VARIANT_TYPE_STRING,
+	                                   NULL,
+	                                   nm_setting_connection_set_interface_name,
+	                                   nm_setting_connection_no_interface_name);
 
 	/**
 	 * NMSettingConnection:type:
@@ -1762,6 +1835,30 @@ nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
 	                       -1, G_MAXINT32, -1,
 	                       G_PARAM_READWRITE |
 	                       G_PARAM_CONSTRUCT |
+	                       NM_SETTING_PARAM_FUZZY_IGNORE |
+	                       G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMSettingConnection:multi-connect:
+	 *
+	 * Specifies whether the profile can be active multiple times at a particular
+	 * moment. The value is of type #NMConnectionMultiConnect.
+	 *
+	 * Since: 1.14
+	 */
+	/* ---ifcfg-rh---
+	 * property: multi-connect
+	 * variable: MULTI_CONNECT(+)
+	 * description: whether the profile can be active on multiple devices at a given
+	 *   moment. The values are numbers corresponding to #NMConnectionMultiConnect enum.
+	 * example: ZONE=3
+	 * ---end---
+	 */
+	g_object_class_install_property
+	    (object_class, PROP_MULTI_CONNECT,
+	     g_param_spec_int (NM_SETTING_CONNECTION_MULTI_CONNECT, "", "",
+	                       G_MININT32, G_MAXINT32, NM_CONNECTION_MULTI_CONNECT_DEFAULT,
+	                       G_PARAM_READWRITE |
 	                       NM_SETTING_PARAM_FUZZY_IGNORE |
 	                       G_PARAM_STATIC_STRINGS));
 
@@ -2066,4 +2163,41 @@ nm_setting_connection_class_init (NMSettingConnectionClass *setting_class)
 		                   NM_SETTING_CONNECTION_MDNS_DEFAULT,
 		                   G_PARAM_READWRITE |
 		                   G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * NMSettingConnection:llmnr:
+	 *
+	 * Whether Link-Local Multicast Name Resolution (LLMNR) is enabled
+	 * for the connection. LLMNR is a protocol based on the Domain Name
+	 * System (DNS) packet format that allows both IPv4 and IPv6 hosts
+	 * to perform name resolution for hosts on the same local link.
+	 *
+	 * The permitted values are: yes: register hostname and resolving
+	 * for the connection, no: disable LLMNR for the interface, resolve:
+	 * do not register hostname but allow resolving of LLMNR host names.
+	 *
+	 * This feature requires a plugin which supports LLMNR. One such
+	 * plugin is dns-systemd-resolved.
+	 *
+	 * Since: 1.14
+	 **/
+	/* ---ifcfg-rh---
+	 * property: llmnr
+	 * variable: LLMNR(+)
+	 * values: yes,no,resolve
+	 * default: missing variable means global default
+	 * description: Whether or not LLMNR is enabled for the connection
+	 * example: LLMNR=yes
+	 * ---end---
+	 */
+	g_object_class_install_property
+		(object_class, PROP_LLMNR,
+		 g_param_spec_int (NM_SETTING_CONNECTION_LLMNR, "", "",
+		                   G_MININT32, G_MAXINT32,
+		                   NM_SETTING_CONNECTION_LLMNR_DEFAULT,
+		                   G_PARAM_READWRITE |
+		                   G_PARAM_STATIC_STRINGS));
+
+	_nm_setting_class_commit_full (setting_class, NM_META_SETTING_TYPE_CONNECTION,
+	                               NULL, properties_override);
 }

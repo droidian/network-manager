@@ -16,6 +16,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
+ * (C) Copyright 2012 Colin Walters <walters@verbum.org>.
  * (C) Copyright 2014 Red Hat, Inc.
  */
 
@@ -25,6 +26,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
+
+#include <gio/gio.h>
+
+/*****************************************************************************/
 
 #define _nm_packed           __attribute__ ((packed))
 #define _nm_unused           __attribute__ ((unused))
@@ -34,6 +40,8 @@
 #define _nm_align(s)         __attribute__ ((aligned (s)))
 #define _nm_alignof(type)    __alignof (type)
 #define _nm_alignas(type)    _nm_align (_nm_alignof (type))
+#define nm_auto(fcn)         __attribute__ ((cleanup(fcn)))
+
 
 #if __GNUC__ >= 7
 #define _nm_fallthrough      __attribute__ ((fallthrough))
@@ -57,13 +65,146 @@
 
 /*****************************************************************************/
 
+#define NM_AUTO_DEFINE_FCN_VOID(CastType, name, func) \
+static inline void name (void *v) \
+{ \
+	func (*((CastType *) v)); \
+}
+
+#define NM_AUTO_DEFINE_FCN_VOID0(CastType, name, func) \
+static inline void name (void *v) \
+{ \
+	if (*((CastType *) v)) \
+		func (*((CastType *) v)); \
+}
+
+#define NM_AUTO_DEFINE_FCN(Type, name, func) \
+static inline void name (Type *v) \
+{ \
+	func (*v); \
+}
+
+#define NM_AUTO_DEFINE_FCN0(Type, name, func) \
+static inline void name (Type *v) \
+{ \
+	if (*v) \
+		func (*v); \
+}
+
+/*****************************************************************************/
+
+/**
+ * gs_free:
+ *
+ * Call g_free() on a variable location when it goes out of scope.
+ */
+#define gs_free nm_auto(gs_local_free)
+NM_AUTO_DEFINE_FCN_VOID (void *, gs_local_free, g_free)
+
+/**
+ * gs_unref_object:
+ *
+ * Call g_object_unref() on a variable location when it goes out of
+ * scope.  Note that unlike g_object_unref(), the variable may be
+ * %NULL.
+ */
+#define gs_unref_object nm_auto(gs_local_obj_unref)
+NM_AUTO_DEFINE_FCN_VOID0 (GObject *, gs_local_obj_unref, g_object_unref)
+
+/**
+ * gs_unref_variant:
+ *
+ * Call g_variant_unref() on a variable location when it goes out of
+ * scope.  Note that unlike g_variant_unref(), the variable may be
+ * %NULL.
+ */
+#define gs_unref_variant nm_auto(gs_local_variant_unref)
+NM_AUTO_DEFINE_FCN0 (GVariant *, gs_local_variant_unref, g_variant_unref)
+
+/**
+ * gs_unref_array:
+ *
+ * Call g_array_unref() on a variable location when it goes out of
+ * scope.  Note that unlike g_array_unref(), the variable may be
+ * %NULL.
+
+ */
+#define gs_unref_array nm_auto(gs_local_array_unref)
+NM_AUTO_DEFINE_FCN0 (GArray *, gs_local_array_unref, g_array_unref)
+
+/**
+ * gs_unref_ptrarray:
+ *
+ * Call g_ptr_array_unref() on a variable location when it goes out of
+ * scope.  Note that unlike g_ptr_array_unref(), the variable may be
+ * %NULL.
+
+ */
+#define gs_unref_ptrarray nm_auto(gs_local_ptrarray_unref)
+NM_AUTO_DEFINE_FCN0 (GPtrArray *, gs_local_ptrarray_unref, g_ptr_array_unref)
+
+/**
+ * gs_unref_hashtable:
+ *
+ * Call g_hash_table_unref() on a variable location when it goes out
+ * of scope.  Note that unlike g_hash_table_unref(), the variable may
+ * be %NULL.
+ */
+#define gs_unref_hashtable nm_auto(gs_local_hashtable_unref)
+NM_AUTO_DEFINE_FCN0 (GHashTable *, gs_local_hashtable_unref, g_hash_table_unref)
+
+/**
+ * gs_free_slist:
+ *
+ * Call g_slist_free() on a variable location when it goes out
+ * of scope.
+ */
+#define gs_free_slist nm_auto(gs_local_free_slist)
+NM_AUTO_DEFINE_FCN (GSList *, gs_local_free_slist, g_slist_free)
+
+/**
+ * gs_unref_bytes:
+ *
+ * Call g_bytes_unref() on a variable location when it goes out
+ * of scope.  Note that unlike g_bytes_unref(), the variable may
+ * be %NULL.
+ */
+#define gs_unref_bytes nm_auto(gs_local_bytes_unref)
+NM_AUTO_DEFINE_FCN0 (GBytes *, gs_local_bytes_unref, g_bytes_unref)
+
+/**
+ * gs_strfreev:
+ *
+ * Call g_strfreev() on a variable location when it goes out of scope.
+ */
+#define gs_strfreev nm_auto(gs_local_strfreev)
+NM_AUTO_DEFINE_FCN (char **, gs_local_strfreev, g_strfreev)
+
+/**
+ * gs_free_error:
+ *
+ * Call g_error_free() on a variable location when it goes out of scope.
+ */
+#define gs_free_error nm_auto(gs_local_free_error)
+NM_AUTO_DEFINE_FCN0 (GError *, gs_local_free_error, g_error_free)
+
+/**
+ * gs_unref_keyfile:
+ *
+ * Call g_key_file_unref() on a variable location when it goes out of scope.
+ */
+#define gs_unref_keyfile nm_auto(gs_local_keyfile_unref)
+NM_AUTO_DEFINE_FCN0 (GKeyFile *, gs_local_keyfile_unref, g_key_file_unref)
+
+/*****************************************************************************/
+
 #include "nm-glib.h"
 
 /*****************************************************************************/
 
 #define nm_offsetofend(t,m) (G_STRUCT_OFFSET (t,m) + sizeof (((t *) NULL)->m))
 
-#define nm_auto(fcn) __attribute__ ((cleanup(fcn)))
+/*****************************************************************************/
 
 static inline int nm_close (int fd);
 
@@ -71,59 +212,49 @@ static inline int nm_close (int fd);
  * nm_auto_free:
  *
  * Call free() on a variable location when it goes out of scope.
- */
-#define nm_auto_free nm_auto(_nm_auto_free_impl)
-GS_DEFINE_CLEANUP_FUNCTION(void*, _nm_auto_free_impl, free)
-
-static inline void
-nm_free_secret (char *secret)
-{
-	if (secret) {
-		memset (secret, 0, strlen (secret));
-		g_free (secret);
-	}
-}
-
-static inline void
-_nm_auto_free_secret_impl (char **v)
-{
-	nm_free_secret (*v);
-}
-
-/**
- * nm_auto_free_secret:
+ * This is for pointers that are allocated with malloc() instead of
+ * g_malloc().
  *
- * Call g_free() on a variable location when it goes out of scope.
- * Also, previously, calls memset(loc, 0, strlen(loc)) to clear out
- * the secret.
+ * In practice, since glib 2.45, g_malloc()/g_free() always wraps malloc()/free().
+ * See bgo#751592. In that case, it would be safe to free pointers allocated with
+ * malloc() with gs_free or g_free().
+ *
+ * However, let's never mix them. To free malloc'ed memory, always use
+ * free() or nm_auto_free.
  */
-#define nm_auto_free_secret nm_auto(_nm_auto_free_secret_impl)
+NM_AUTO_DEFINE_FCN_VOID (void *, _nm_auto_free_impl, free)
+#define nm_auto_free nm_auto(_nm_auto_free_impl)
 
-static inline void
-_nm_auto_unset_gvalue_impl (GValue *v)
-{
-	g_value_unset (v);
-}
-#define nm_auto_unset_gvalue nm_auto(_nm_auto_unset_gvalue_impl)
+NM_AUTO_DEFINE_FCN0 (GVariantIter *, _nm_auto_free_variant_iter, g_variant_iter_free)
+#define nm_auto_free_variant_iter nm_auto(_nm_auto_free_variant_iter)
 
-static inline void
-_nm_auto_unref_gtypeclass (gpointer v)
-{
-	if (v && *((gpointer *) v))
-		g_type_class_unref (*((gpointer *) v));
-}
+NM_AUTO_DEFINE_FCN0 (GVariantBuilder *, _nm_auto_unref_variant_builder, g_variant_builder_unref)
+#define nm_auto_unref_variant_builder nm_auto(_nm_auto_unref_variant_builder)
+
+NM_AUTO_DEFINE_FCN (GList *, _nm_auto_free_list, g_list_free)
+#define nm_auto_free_list nm_auto(_nm_auto_free_list)
+
+NM_AUTO_DEFINE_FCN0 (GChecksum *, _nm_auto_checksum_free, g_checksum_free)
+#define nm_auto_free_checksum nm_auto(_nm_auto_checksum_free)
+
+#define nm_auto_unset_gvalue nm_auto(g_value_unset)
+
+NM_AUTO_DEFINE_FCN_VOID0 (void *, _nm_auto_unref_gtypeclass, g_type_class_unref)
 #define nm_auto_unref_gtypeclass nm_auto(_nm_auto_unref_gtypeclass)
 
+NM_AUTO_DEFINE_FCN0 (GByteArray *, _nm_auto_unref_bytearray, g_byte_array_unref)
+#define nm_auto_unref_bytearray nm_auto(_nm_auto_unref_bytearray)
+
 static inline void
-_nm_auto_free_gstring_impl (GString **str)
+_nm_auto_free_gstring (GString **str)
 {
 	if (*str)
 		g_string_free (*str, TRUE);
 }
-#define nm_auto_free_gstring nm_auto(_nm_auto_free_gstring_impl)
+#define nm_auto_free_gstring nm_auto(_nm_auto_free_gstring)
 
 static inline void
-_nm_auto_close_impl (int *pfd)
+_nm_auto_close (int *pfd)
 {
 	if (*pfd >= 0) {
 		int errsv = errno;
@@ -132,10 +263,10 @@ _nm_auto_close_impl (int *pfd)
 		errno = errsv;
 	}
 }
-#define nm_auto_close nm_auto(_nm_auto_close_impl)
+#define nm_auto_close nm_auto(_nm_auto_close)
 
 static inline void
-_nm_auto_fclose_impl (FILE **pfd)
+_nm_auto_fclose (FILE **pfd)
 {
 	if (*pfd) {
 		int errsv = errno;
@@ -144,7 +275,7 @@ _nm_auto_fclose_impl (FILE **pfd)
 		errno = errsv;
 	}
 }
-#define nm_auto_fclose nm_auto(_nm_auto_fclose_impl)
+#define nm_auto_fclose nm_auto(_nm_auto_fclose)
 
 static inline void
 _nm_auto_protect_errno (int *p_saved_errno)
@@ -153,13 +284,25 @@ _nm_auto_protect_errno (int *p_saved_errno)
 }
 #define NM_AUTO_PROTECT_ERRNO(errsv_saved) nm_auto(_nm_auto_protect_errno) _nm_unused const int errsv_saved = (errno)
 
-static inline void
-_nm_auto_unref_gsource (GSource **ptr)
-{
-	if (*ptr)
-		g_source_unref (g_steal_pointer (ptr));
-}
+NM_AUTO_DEFINE_FCN0 (GSource *, _nm_auto_unref_gsource, g_source_unref);
 #define nm_auto_unref_gsource nm_auto(_nm_auto_unref_gsource)
+
+static inline void
+_nm_auto_freev (gpointer ptr)
+{
+	gpointer **p = ptr;
+	gpointer *_ptr;
+
+	if (*p) {
+		for (_ptr = *p; *_ptr; _ptr++)
+			g_free (*_ptr);
+		g_free (*p);
+	}
+}
+/* g_free a NULL terminated array of pointers, with also freeing each
+ * pointer with g_free(). It essentially does the same as
+ * gs_strfreev / g_strfreev(), but not restricted to strv arrays. */
+#define nm_auto_freev nm_auto(_nm_auto_freev)
 
 /*****************************************************************************/
 
@@ -184,13 +327,16 @@ _nm_auto_unref_gsource (GSource **ptr)
 
 /*****************************************************************************/
 
-/* http://stackoverflow.com/a/2124385/354393 */
+/* http://stackoverflow.com/a/2124385/354393
+ * https://stackoverflow.com/questions/11317474/macro-to-count-number-of-arguments
+ */
 
 #define NM_NARG(...) \
-         _NM_NARG(__VA_ARGS__,_NM_NARG_RSEQ_N())
+         _NM_NARG(, ##__VA_ARGS__, _NM_NARG_RSEQ_N())
 #define _NM_NARG(...) \
          _NM_NARG_ARG_N(__VA_ARGS__)
 #define _NM_NARG_ARG_N( \
+          _0, \
           _1, _2, _3, _4, _5, _6, _7, _8, _9,_10, \
          _11,_12,_13,_14,_15,_16,_17,_18,_19,_20, \
          _21,_22,_23,_24,_25,_26,_27,_28,_29,_30, \
@@ -261,7 +407,7 @@ _nm_auto_unref_gsource (GSource **ptr)
 static inline const char *
 NM_G_ERROR_MSG (GError *error)
 {
-	return error ? (error->message ? : "(null)") : "(no-error)"; \
+	return error ? (error->message ?: "(null)") : "(no-error)"; \
 }
 
 /*****************************************************************************/
@@ -754,7 +900,7 @@ nm_str_realloc (char *str)
 
 #define NM_GOBJECT_PROPERTIES_DEFINE_BASE(...) \
 typedef enum { \
-	_PROPERTY_ENUMS_0, \
+	PROP_0, \
 	__VA_ARGS__ \
 	_PROPERTY_ENUMS_LAST, \
 } _PropertyEnums; \
@@ -763,12 +909,39 @@ static GParamSpec *obj_properties[_PROPERTY_ENUMS_LAST] = { NULL, }
 #define NM_GOBJECT_PROPERTIES_DEFINE(obj_type, ...) \
 NM_GOBJECT_PROPERTIES_DEFINE_BASE (__VA_ARGS__); \
 static inline void \
+_nm_gobject_notify_together_impl (obj_type *obj, guint n, const _PropertyEnums *props) \
+{ \
+	const gboolean freeze_thaw = (n > 1); \
+	\
+	nm_assert (G_IS_OBJECT (obj)); \
+	nm_assert (n > 0); \
+	\
+	if (freeze_thaw) \
+		g_object_freeze_notify ((GObject *) obj); \
+	while (n-- > 0) { \
+		const _PropertyEnums prop = *props++; \
+		\
+		if (prop != PROP_0) { \
+			nm_assert ((gsize) prop < G_N_ELEMENTS (obj_properties)); \
+			nm_assert (obj_properties[prop]); \
+			g_object_notify_by_pspec ((GObject *) obj, obj_properties[prop]); \
+		} \
+	} \
+	if (freeze_thaw) \
+		g_object_thaw_notify ((GObject *) obj); \
+} \
+\
+static inline void \
 _notify (obj_type *obj, _PropertyEnums prop) \
 { \
-	nm_assert (G_IS_OBJECT (obj)); \
-	nm_assert ((gsize) prop < G_N_ELEMENTS (obj_properties)); \
-	g_object_notify_by_pspec ((GObject *) obj, obj_properties[prop]); \
-}
+	_nm_gobject_notify_together_impl (obj, 1, &prop); \
+} \
+
+/* invokes _notify() for all arguments (of type _PropertyEnums). Note, that if
+ * there are more than one prop arguments, this will involve a freeze/thaw
+ * of GObject property notifications. */
+#define nm_gobject_notify_together(obj, ...) \
+	_nm_gobject_notify_together_impl (obj, NM_NARG (__VA_ARGS__), (const _PropertyEnums[]) { __VA_ARGS__ })
 
 /*****************************************************************************/
 
@@ -941,6 +1114,14 @@ nm_clear_g_cancellable (GCancellable **cancellable)
 		\
 		(    (__x > ((typeof(__x)) 0)) \
 		 && ((__x & (__x - (((typeof(__x)) 1)))) == ((typeof(__x)) 0))); \
+	})
+
+#define NM_DIV_ROUND_UP(x, y) \
+	({ \
+		const typeof(x) _x = (x); \
+		const typeof(y) _y = (y); \
+		\
+		(_x / _y + !!(_x % _y)); \
 	})
 
 /*****************************************************************************/
@@ -1261,7 +1442,7 @@ nm_decode_version (guint version, guint *major, guint *minor, guint *micro)
  * Using _Bool has advantages over gboolean:
  *
  * - commonly _Bool is one byte large, instead of gboolean's 4 bytes (because gboolean
- *   is a typedef for gint). Especially when having boolean fields in a struct, we can
+ *   is a typedef for int). Especially when having boolean fields in a struct, we can
  *   thereby easily save some space.
  *
  * - _Bool type guarantees that two "true" expressions compare equal. E.g. the follwing

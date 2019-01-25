@@ -15,7 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright (C) 2015 - 2017 Red Hat, Inc.
+ * Copyright (C) 2015 - 2018 Red Hat, Inc.
  */
 
 #ifndef __NMP_OBJECT_H__
@@ -26,6 +26,36 @@
 #include "nm-platform.h"
 
 struct udev_device;
+
+/*****************************************************************************/
+
+typedef struct {
+	NMIPAddr addr;
+	guint8 family;
+	guint8 mask;
+} NMPWireGuardAllowedIP;
+
+typedef struct _NMPWireGuardPeer {
+	NMIPAddr endpoint_addr;
+	struct timespec last_handshake_time;
+	guint64 rx_bytes;
+	guint64 tx_bytes;
+	union {
+		const NMPWireGuardAllowedIP *allowed_ips;
+		guint _construct_idx_start;
+	};
+	union {
+		guint allowed_ips_len;
+		guint _construct_idx_end;
+	};
+	guint16 persistent_keepalive_interval;
+	guint16 endpoint_port;
+	guint8 public_key[NMP_WIREGUARD_PUBLIC_KEY_LEN];
+	guint8 preshared_key[NMP_WIREGUARD_SYMMETRIC_KEY_LEN];
+	guint8 endpoint_family;
+} NMPWireGuardPeer;
+
+/*****************************************************************************/
 
 typedef enum { /*< skip >*/
 	NMP_OBJECT_TO_STRING_ID,
@@ -164,6 +194,14 @@ typedef struct {
 		 */
 		struct udev_device *device;
 	} udev;
+
+	/* Auxiliary data object for Wi-Fi and WPAN */
+	GObject *ext_data;
+
+	/* FIXME: not every NMPObjectLink should pay the price for tracking
+	 * the wireguard family id. This should be tracked via ext_data, which
+	 * would be exactly the right place. */
+	int wireguard_family_id;
 } NMPObjectLink;
 
 typedef struct {
@@ -212,6 +250,14 @@ typedef struct {
 typedef struct {
 	NMPlatformLnkVxlan _public;
 } NMPObjectLnkVxlan;
+
+typedef struct {
+	NMPlatformLnkWireGuard _public;
+	const NMPWireGuardPeer *peers;
+	const NMPWireGuardAllowedIP *_allowed_ips_buf;
+	guint peers_len;
+	guint _allowed_ips_buf_len;
+} NMPObjectLnkWireGuard;
 
 typedef struct {
 	NMPlatformIP4Address _public;
@@ -277,6 +323,9 @@ struct _NMPObject {
 
 		NMPlatformLnkVxlan      lnk_vxlan;
 		NMPObjectLnkVxlan       _lnk_vxlan;
+
+		NMPlatformLnkWireGuard  lnk_wireguard;
+		NMPObjectLnkWireGuard   _lnk_wireguard;
 
 		NMPlatformIPAddress     ip_address;
 		NMPlatformIPXAddress    ipx_address;

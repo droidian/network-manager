@@ -465,12 +465,8 @@ int dhcp6_option_parse_ia(DHCP6Option *iaoption, DHCP6IA *ia) {
 
                 case SD_DHCP6_OPTION_STATUS_CODE:
 
-                        status = dhcp6_option_parse_status(option, optlen + sizeof(DHCP6Option));
-                        if (status < 0) {
-                                r = status;
-                                goto error;
-                        }
-                        if (status > 0) {
+                        status = dhcp6_option_parse_status(option, optlen);
+                        if (status) {
                                 log_dhcp6_client(client, "IA status %d",
                                                  status);
 
@@ -563,22 +559,36 @@ int dhcp6_option_parse_domainname(const uint8_t *optval, uint16_t optlen, char *
                         if (c == 0)
                                 /* End of name */
                                 break;
-                        if (c > 63)
-                                return -EBADMSG;
+                        else if (c <= 63) {
+                                const char *label;
 
-                        /* Literal label */
-                        label = (const char *)&optval[pos];
-                        pos += c;
-                        if (pos >= optlen)
-                                return -EMSGSIZE;
+                                /* Literal label */
+                                label = (const char *)&optval[pos];
+                                pos += c;
+                                if (pos >= optlen)
+                                        return -EMSGSIZE;
 
-                        if (!GREEDY_REALLOC(ret, allocated, n + !first + DNS_LABEL_ESCAPED_MAX))
-                                return -ENOMEM;
+                                if (!GREEDY_REALLOC(ret, allocated, n + !first + DNS_LABEL_ESCAPED_MAX)) {
+                                        r = -ENOMEM;
+                                        goto fail;
+                                }
 
-                        if (first)
-                                first = false;
-                        else
-                                ret[n++] = '.';
+                                if (first)
+                                        first = false;
+                                else
+                                        ret[n++] = '.';
+
+                                r = dns_label_escape(label, c, ret + n, DNS_LABEL_ESCAPED_MAX);
+                                if (r < 0)
+                                        goto fail;
+
+                                n += r;
+                                continue;
+                        } else {
+                                r = -EBADMSG;
+                                goto fail;
+                        }
+                }
 
                         r = dns_label_escape(label, c, ret + n, DNS_LABEL_ESCAPED_MAX);
                         if (r < 0)

@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <linux/if_tun.h>
 
+#include "nm-utils/nm-io-utils.h"
 #include "platform/nmp-object.h"
 #include "platform/nmp-netns.h"
 #include "platform/nm-platform-utils.h"
@@ -699,6 +700,7 @@ test_software_detect (gconstpointer user_data)
 	guint i_step;
 	const gboolean ext = test_data->external_command;
 	NMPlatformLnkTun lnk_tun;
+	NMPlatformLnkGre lnk_gre = { };
 	nm_auto_close int tun_fd = -1;
 
 	nmtstp_run_command_check ("ip link add %s type dummy", PARENT_NAME);
@@ -706,7 +708,6 @@ test_software_detect (gconstpointer user_data)
 
 	switch (test_data->link_type) {
 	case NM_LINK_TYPE_GRE: {
-		NMPlatformLnkGre lnk_gre = { };
 		gboolean gracefully_skip = FALSE;
 
 		lnk_gre.local = nmtst_inet4_from_string ("192.168.233.204");
@@ -727,6 +728,31 @@ test_software_detect (gconstpointer user_data)
 				goto out_delete_parent;
 			}
 			g_error ("Failed adding GRE tunnel");
+		}
+		break;
+	}
+	case NM_LINK_TYPE_GRETAP: {
+		gboolean gracefully_skip = FALSE;
+
+		lnk_gre.local = nmtst_inet4_from_string ("192.168.1.133");
+		lnk_gre.remote = nmtst_inet4_from_string ("172.168.101.2");
+		lnk_gre.parent_ifindex = ifindex_parent;
+		lnk_gre.ttl = 39;
+		lnk_gre.tos = 12;
+		lnk_gre.path_mtu_discovery = FALSE;
+		lnk_gre.is_tap = TRUE;
+
+		if (!nm_platform_link_get_by_ifname (NM_PLATFORM_GET, "gretap0")) {
+			/* Seems that the ip_gre module is not loaded... try to load it. */
+			gracefully_skip = nm_utils_modprobe (NULL, TRUE, "ip_gre", NULL) != 0;
+		}
+
+		if (!nmtstp_link_gre_add (NULL, ext, DEVICE_NAME, &lnk_gre)) {
+			if (gracefully_skip) {
+				g_test_skip ("Cannot create gretap tunnel because of missing ip_gre module (modprobe ip_gre)");
+				goto out_delete_parent;
+			}
+			g_error ("Failed adding GRETAP tunnel");
 		}
 		break;
 	}
@@ -791,6 +817,58 @@ test_software_detect (gconstpointer user_data)
 				goto out_delete_parent;
 			}
 			g_error ("Failed adding IP6TNL tunnel");
+		}
+		break;
+	}
+	case NM_LINK_TYPE_IP6GRE: {
+		NMPlatformLnkIp6Tnl lnk_ip6tnl = { };
+		gboolean gracefully_skip = FALSE;
+
+		if (!nm_platform_link_get_by_ifname (NM_PLATFORM_GET, "ip6gre0")) {
+			/* Seems that the ip6_tunnel module is not loaded... try to load it. */
+			gracefully_skip = nm_utils_modprobe (NULL, TRUE, "ip6_gre", NULL) != 0;
+		}
+
+		lnk_ip6tnl.local = *nmtst_inet6_from_string ("fd01::42");
+		lnk_ip6tnl.remote = *nmtst_inet6_from_string ("fd01::aaaa");
+		lnk_ip6tnl.parent_ifindex = ifindex_parent;
+		lnk_ip6tnl.tclass = 21;
+		lnk_ip6tnl.flow_label = 1338;
+		lnk_ip6tnl.is_gre = TRUE;
+
+		if (!nmtstp_link_ip6gre_add (NULL, ext, DEVICE_NAME, &lnk_ip6tnl)) {
+			if (gracefully_skip) {
+				g_test_skip ("Cannot create ip6gre tunnel because of missing ip6_gre module (modprobe ip6_gre)");
+				goto out_delete_parent;
+			}
+			g_error ("Failed adding IP6GRE tunnel");
+		}
+		break;
+	}
+	case NM_LINK_TYPE_IP6GRETAP: {
+		NMPlatformLnkIp6Tnl lnk_ip6tnl = { };
+		gboolean gracefully_skip = FALSE;
+
+		if (!nm_platform_link_get_by_ifname (NM_PLATFORM_GET, "ip6gre0")) {
+			/* Seems that the ip6_tunnel module is not loaded... try to load it. */
+			gracefully_skip = nm_utils_modprobe (NULL, TRUE, "ip6_gre", NULL) != 0;
+		}
+
+		lnk_ip6tnl.local = *nmtst_inet6_from_string ("fe80::abcd");
+		lnk_ip6tnl.remote = *nmtst_inet6_from_string ("fc01::bbbb");
+		lnk_ip6tnl.parent_ifindex = ifindex_parent;
+		lnk_ip6tnl.ttl = 10;
+		lnk_ip6tnl.tclass = 22;
+		lnk_ip6tnl.flow_label = 1339;
+		lnk_ip6tnl.is_gre = TRUE;
+		lnk_ip6tnl.is_tap = TRUE;
+
+		if (!nmtstp_link_ip6gre_add (NULL, ext, DEVICE_NAME, &lnk_ip6tnl)) {
+			if (gracefully_skip) {
+				g_test_skip ("Cannot create ip6gretap tunnel because of missing ip6_gre module (modprobe ip6_gre)");
+				goto out_delete_parent;
+			}
+			g_error ("Failed adding IP6GRETAP tunnel");
 		}
 		break;
 	}
@@ -970,16 +1048,15 @@ test_software_detect (gconstpointer user_data)
 			const NMPlatformLnkGre *plnk = &lnk->lnk_gre;
 
 			g_assert (plnk == nm_platform_link_get_lnk_gre (NM_PLATFORM_GET, ifindex, NULL));
-			g_assert_cmpint (plnk->parent_ifindex, ==, ifindex_parent);
-			g_assert_cmpint (plnk->input_flags, ==, 0);
-			g_assert_cmpint (plnk->output_flags, ==, 0);
-			g_assert_cmpint (plnk->input_key, ==, 0);
-			g_assert_cmpint (plnk->output_key, ==, 0);
-			nmtst_assert_ip4_address (plnk->local, "192.168.233.204");
-			nmtst_assert_ip4_address (plnk->remote, "172.168.10.25");
-			g_assert_cmpint (plnk->ttl, ==, 174);
-			g_assert_cmpint (plnk->tos, ==, 37);
-			g_assert_cmpint (plnk->path_mtu_discovery, ==, TRUE);
+			g_assert (nm_platform_lnk_gre_cmp (plnk, &lnk_gre) == 0);
+
+			break;
+		}
+		case NM_LINK_TYPE_GRETAP: {
+			const NMPlatformLnkGre *plnk = &lnk->lnk_gre;
+
+			g_assert (plnk == nm_platform_link_get_lnk_gretap (NM_PLATFORM_GET, ifindex, NULL));
+			g_assert (nm_platform_lnk_gre_cmp (plnk, &lnk_gre) == 0);
 			break;
 		}
 		case NM_LINK_TYPE_IP6TNL: {
@@ -1010,6 +1087,33 @@ test_software_detect (gconstpointer user_data)
 				                 IP6_TNL_F_IGN_ENCAP_LIMIT | IP6_TNL_F_USE_ORIG_TCLASS);
 				break;
 			}
+			break;
+		}
+		case NM_LINK_TYPE_IP6GRE: {
+			const NMPlatformLnkIp6Tnl *plnk = &lnk->lnk_ip6tnl;
+
+			g_assert (plnk == nm_platform_link_get_lnk_ip6gre (NM_PLATFORM_GET, ifindex, NULL));
+			g_assert_cmpint (plnk->parent_ifindex, ==, ifindex_parent);
+			nmtst_assert_ip6_address (&plnk->local, "fd01::42");
+			nmtst_assert_ip6_address (&plnk->remote, "fd01::aaaa");
+			g_assert_cmpint (plnk->tclass, ==, 21);
+			g_assert_cmpint (plnk->flow_label, ==, 1338);
+			g_assert_cmpint (plnk->is_gre, ==, TRUE);
+			g_assert_cmpint (plnk->is_tap, ==, FALSE);
+			break;
+		}
+		case NM_LINK_TYPE_IP6GRETAP: {
+			const NMPlatformLnkIp6Tnl *plnk = &lnk->lnk_ip6tnl;
+
+			g_assert (plnk == nm_platform_link_get_lnk_ip6gretap (NM_PLATFORM_GET, ifindex, NULL));
+			g_assert_cmpint (plnk->parent_ifindex, ==, ifindex_parent);
+			nmtst_assert_ip6_address (&plnk->local, "fe80::abcd");
+			nmtst_assert_ip6_address (&plnk->remote, "fc01::bbbb");
+			g_assert_cmpint (plnk->ttl, ==, 10);
+			g_assert_cmpint (plnk->tclass, ==, 22);
+			g_assert_cmpint (plnk->flow_label, ==, 1339);
+			g_assert_cmpint (plnk->is_gre, ==, TRUE);
+			g_assert_cmpint (plnk->is_tap, ==, TRUE);
 			break;
 		}
 		case NM_LINK_TYPE_IPIP: {
@@ -1732,7 +1836,7 @@ test_create_many_links_do (guint n_devices)
 	char name[64];
 	const NMPlatformLink *pllink;
 	gs_unref_array GArray *ifindexes = g_array_sized_new (FALSE, FALSE, sizeof (int), n_devices);
-	const gint EX = ((int) (nmtst_get_rand_int () % 4)) - 1;
+	const int EX = ((int) (nmtst_get_rand_int () % 4)) - 1;
 
 	g_assert (EX >= -1 && EX <= 2);
 
@@ -2519,7 +2623,9 @@ test_sysctl_rename (void)
 	case 0: {
 		gs_free char *c = NULL;
 
-		if (nm_utils_file_get_contents (dirfd, "ifindex", 1*1024*1024, &c, NULL, NULL) < 0)
+		if (nm_utils_file_get_contents (dirfd, "ifindex", 1*1024*1024,
+		                                NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
+		                                &c, NULL, NULL) < 0)
 			g_assert_not_reached();
 		g_assert_cmpint (ifindex[0], ==, (int) _nm_utils_ascii_str_to_int64 (c, 10, 0, G_MAXINT, -1));
 		break;
@@ -2583,7 +2689,9 @@ test_sysctl_netns_switch (void)
 	{
 		gs_free char *c = NULL;
 
-		if (nm_utils_file_get_contents (dirfd, "ifindex", 0, &c, NULL, NULL) < 0)
+		if (nm_utils_file_get_contents (dirfd, "ifindex", 0,
+		                                NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
+		                                &c, NULL, NULL) < 0)
 			g_assert_not_reached();
 		g_assert_cmpint (ifindex, ==, (int) _nm_utils_ascii_str_to_int64 (c, 10, 0, G_MAXINT, -1));
 	}
@@ -2595,7 +2703,11 @@ test_sysctl_netns_switch (void)
 	{
 		gs_free char *c = NULL;
 
-		if (nm_utils_file_get_contents (-1, nm_sprintf_bufa (100, "/sys/class/net/%s/ifindex", IFNAME), 0, &c, NULL, NULL) < 0)
+		if (nm_utils_file_get_contents (-1,
+		                                nm_sprintf_bufa (100, "/sys/class/net/%s/ifindex", IFNAME),
+		                                0,
+		                                NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
+		                                &c, NULL, NULL) < 0)
 			ifindex_tmp = -1;
 		else
 			ifindex_tmp = _nm_utils_ascii_str_to_int64 (c, 10, 0, G_MAXINT, -2);
@@ -2606,6 +2718,102 @@ test_sysctl_netns_switch (void)
 		g_assert_cmpint (ifindex_tmp, ==, -1);
 
 	nmtstp_link_del (PL, FALSE, ifindex, NULL);
+}
+
+/*****************************************************************************/
+
+static void
+ethtool_features_dump (const NMEthtoolFeatureStates *features)
+{
+	guint i, j;
+
+	g_assert (features);
+
+	_LOGT (">>> %u features (%u ss-features)", features->n_states, features->n_ss_features);
+
+	for (i = 0; i < features->n_states; i++) {
+		const NMEthtoolFeatureState *s = &features->states_list[i];
+
+		_LOGT (">>> feature-list[%3u]: %3d = %-32s (%3u) | %s %s %s %s",
+		       i,
+		       (int) s->info->ethtool_id,
+		       s->info->kernel_names[s->idx_kernel_name],
+		       s->idx_ss_features,
+		       s->active ? "ACT" : "act",
+		       s->available ? "AVA" : "ava",
+		       s->never_changed ? "NCH" : "nch",
+		       s->requested ? "REQ" : "req");
+	}
+	for (i = 0; i < _NM_ETHTOOL_ID_FEATURE_NUM; i++) {
+		_LOGT (">>> feature-idx [%3u]: %-32s = %u features",
+		       i + (guint) _NM_ETHTOOL_ID_FEATURE_FIRST,
+		       nm_ethtool_data[i + _NM_ETHTOOL_ID_FEATURE_FIRST]->optname,
+		       (guint) NM_PTRARRAY_LEN (features->states_indexed[i]));
+		for (j = 0; features->states_indexed[i] && features->states_indexed[i][j]; j++) {
+			const NMEthtoolFeatureState *s = features->states_indexed[i][j];
+
+			_LOGT (">>>  %3u: %-32s | %s %s %s %s",
+			       j,
+			       s->info->kernel_names[s->idx_kernel_name],
+			       s->active ? "ACT" : "act",
+			       s->available ? "AVA" : "ava",
+			       s->never_changed ? "NCH" : "nch",
+			       s->requested ? "REQ" : "req");
+		}
+	}
+}
+
+static void
+test_ethtool_features_get (void)
+{
+	gs_unref_ptrarray GPtrArray *gfree_keeper = g_ptr_array_new_with_free_func (g_free);
+	const int IFINDEX = 1;
+	guint i;
+	guint i_run;
+
+	for (i_run = 0; i_run < 5; i_run++) {
+		NMEthtoolFeatureStates *features;
+		NMTernary *requested;
+		gboolean do_set = TRUE;
+
+		requested = g_new (NMTernary, _NM_ETHTOOL_ID_FEATURE_NUM);
+		for (i = 0; i < _NM_ETHTOOL_ID_FEATURE_NUM; i++)
+			requested[i] = NM_TERNARY_DEFAULT;
+		g_ptr_array_add (gfree_keeper, requested);
+
+		if (i_run == 0) {
+			requested[NM_ETHTOOL_ID_FEATURE_RX]                    = NM_TERNARY_FALSE;
+			requested[NM_ETHTOOL_ID_FEATURE_TSO]                   = NM_TERNARY_FALSE;
+			requested[NM_ETHTOOL_ID_FEATURE_TX_TCP6_SEGMENTATION]  = NM_TERNARY_FALSE;
+		} else if (i_run == 1)
+			do_set = FALSE;
+		else if (i_run == 2) {
+			requested[NM_ETHTOOL_ID_FEATURE_TSO]                   = NM_TERNARY_FALSE;
+			requested[NM_ETHTOOL_ID_FEATURE_TX_TCP6_SEGMENTATION]  = NM_TERNARY_TRUE;
+		} else if (i_run == 3)
+			do_set = FALSE;
+
+		_LOGT (">>> ethtool-features-get RUN %u (do-set=%s", i_run, do_set ? "set" : "reset");
+
+		features = nmp_utils_ethtool_get_features (IFINDEX);
+		g_ptr_array_add (gfree_keeper, features);
+
+		ethtool_features_dump (features);
+
+		if (_LOGT_ENABLED ()) {
+			int ignore;
+
+			ignore = system ("ethtool -k lo");
+			(void) ignore;
+		}
+
+		if (!do_set) {
+			requested = gfree_keeper->pdata[i_run * 2 - 2];
+			features = gfree_keeper->pdata[i_run * 2 - 1];
+		}
+
+		nmp_utils_ethtool_set_features (IFINDEX, features, requested, do_set);
+	}
 }
 
 /*****************************************************************************/
@@ -2641,8 +2849,11 @@ _nmtstp_setup_tests (void)
 		g_test_add_func ("/link/external", test_external);
 
 		test_software_detect_add ("/link/software/detect/gre", NM_LINK_TYPE_GRE, 0);
+		test_software_detect_add ("/link/software/detect/gretap", NM_LINK_TYPE_GRETAP, 0);
 		test_software_detect_add ("/link/software/detect/ip6tnl/0", NM_LINK_TYPE_IP6TNL, 0);
 		test_software_detect_add ("/link/software/detect/ip6tnl/1", NM_LINK_TYPE_IP6TNL, 1);
+		test_software_detect_add ("/link/software/detect/ip6gre", NM_LINK_TYPE_IP6GRE, 0);
+		test_software_detect_add ("/link/software/detect/ip6gretap", NM_LINK_TYPE_IP6GRETAP, 0);
 		test_software_detect_add ("/link/software/detect/ipip", NM_LINK_TYPE_IPIP, 0);
 		test_software_detect_add ("/link/software/detect/macvlan", NM_LINK_TYPE_MACVLAN, 0);
 		test_software_detect_add ("/link/software/detect/macvtap", NM_LINK_TYPE_MACVTAP, 0);
@@ -2668,5 +2879,7 @@ _nmtstp_setup_tests (void)
 
 		g_test_add_func ("/general/sysctl/rename", test_sysctl_rename);
 		g_test_add_func ("/general/sysctl/netns-switch", test_sysctl_netns_switch);
+
+		g_test_add_func ("/link/ethtool/features/get", test_ethtool_features_get);
 	}
 }

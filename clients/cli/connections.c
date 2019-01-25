@@ -67,10 +67,10 @@ struct _OptionInfo {
 
 /* define some other prompts */
 
-#define PROMPT_CONNECTION  _("Connection (name, UUID, or path)")
-#define PROMPT_VPN_CONNECTION  _("VPN connection (name, UUID, or path)")
-#define PROMPT_CONNECTIONS _("Connection(s) (name, UUID, or path)")
-#define PROMPT_ACTIVE_CONNECTIONS _("Connection(s) (name, UUID, path or apath)")
+#define PROMPT_CONNECTION  _("Connection (name, UUID, or path): ")
+#define PROMPT_VPN_CONNECTION  _("VPN connection (name, UUID, or path): ")
+#define PROMPT_CONNECTIONS _("Connection(s) (name, UUID, or path): ")
+#define PROMPT_ACTIVE_CONNECTIONS _("Connection(s) (name, UUID, path or apath): ")
 
 #define BASE_PROMPT "nmcli> "
 
@@ -185,17 +185,24 @@ get_ac_device_string (NMActiveConnection *active)
 /* FIXME: The same or similar code for VPN info appears also in nm-applet (applet-dialogs.c),
  * and in gnome-control-center as well. It could probably be shared somehow. */
 
-static char *
+static const char *
 get_vpn_connection_type (NMConnection *connection)
 {
+	NMSettingVpn *s_vpn;
 	const char *type, *p;
+
+	s_vpn = nm_connection_get_setting_vpn (connection);
+	if (!s_vpn)
+		return NULL;
 
 	/* The service type is in form of "org.freedesktop.NetworkManager.vpnc".
 	 * Extract end part after last dot, e.g. "vpnc"
 	 */
 	type = nm_setting_vpn_get_service_type (nm_connection_get_setting_vpn (connection));
+	if (!type)
+		return NULL;
 	p = strrchr (type, '.');
-	return g_strdup (p ? p + 1 : type);
+	return p ? p + 1 : type;
 }
 
 /* VPN parameters can be found at:
@@ -206,31 +213,35 @@ get_vpn_connection_type (NMConnection *connection)
  * http://git.gnome.org/browse/network-manager-openswan/tree/src/nm-openswan-service.h
  * See also 'properties' directory in these plugins.
  */
-static const gchar *
+static const char *
 find_vpn_gateway_key (const char *vpn_type)
 {
-	if (g_strcmp0 (vpn_type, "openvpn") == 0)     return "remote";
-	if (g_strcmp0 (vpn_type, "vpnc") == 0)        return "IPSec gateway";
-	if (g_strcmp0 (vpn_type, "pptp") == 0)        return "gateway";
-	if (g_strcmp0 (vpn_type, "openconnect") == 0) return "gateway";
-	if (g_strcmp0 (vpn_type, "openswan") == 0)    return "right";
-	if (g_strcmp0 (vpn_type, "libreswan") == 0)   return "right";
-	if (g_strcmp0 (vpn_type, "ssh") == 0)         return "remote";
-	if (g_strcmp0 (vpn_type, "l2tp") == 0)        return "gateway";
-	return "";
+	if (vpn_type) {
+		if (nm_streq (vpn_type, "openvpn"))     return "remote";
+		if (nm_streq (vpn_type, "vpnc"))        return "IPSec gateway";
+		if (nm_streq (vpn_type, "pptp"))        return "gateway";
+		if (nm_streq (vpn_type, "openconnect")) return "gateway";
+		if (nm_streq (vpn_type, "openswan"))    return "right";
+		if (nm_streq (vpn_type, "libreswan"))   return "right";
+		if (nm_streq (vpn_type, "ssh"))         return "remote";
+		if (nm_streq (vpn_type, "l2tp"))        return "gateway";
+	}
+	return NULL;
 }
 
-static const gchar *
+static const char *
 find_vpn_username_key (const char *vpn_type)
 {
-	if (g_strcmp0 (vpn_type, "openvpn") == 0)     return "username";
-	if (g_strcmp0 (vpn_type, "vpnc") == 0)        return "Xauth username";
-	if (g_strcmp0 (vpn_type, "pptp") == 0)        return "user";
-	if (g_strcmp0 (vpn_type, "openconnect") == 0) return "username";
-	if (g_strcmp0 (vpn_type, "openswan") == 0)    return "leftxauthusername";
-	if (g_strcmp0 (vpn_type, "libreswan") == 0)   return "leftxauthusername";
-	if (g_strcmp0 (vpn_type, "l2tp") == 0)        return "user";
-	return "";
+	if (vpn_type) {
+		if (nm_streq (vpn_type, "openvpn"))     return "username";
+		if (nm_streq (vpn_type, "vpnc"))        return "Xauth username";
+		if (nm_streq (vpn_type, "pptp"))        return "user";
+		if (nm_streq (vpn_type, "openconnect")) return "username";
+		if (nm_streq (vpn_type, "openswan"))    return "leftxauthusername";
+		if (nm_streq (vpn_type, "libreswan"))   return "leftxauthusername";
+		if (nm_streq (vpn_type, "l2tp"))        return "user";
+	}
+	return NULL;
 }
 
 enum VpnDataItem {
@@ -238,11 +249,11 @@ enum VpnDataItem {
 	VPN_DATA_ITEM_USERNAME
 };
 
-static const gchar *
+static const char *
 get_vpn_data_item (NMConnection *connection, enum VpnDataItem vpn_data_item)
 {
-	const char *key;
-	gs_free char *type = NULL;
+	const char *type;
+	const char *key = NULL;
 
 	type = get_vpn_connection_type (connection);
 
@@ -254,10 +265,11 @@ get_vpn_data_item (NMConnection *connection, enum VpnDataItem vpn_data_item)
 		key = find_vpn_username_key (type);
 		break;
 	default:
-		key = "";
 		break;
 	}
 
+	if (!key)
+		return NULL;
 	return nm_setting_vpn_get_data_item (nm_connection_get_setting_vpn (connection), key);
 }
 
@@ -627,7 +639,102 @@ const NmcMetaGenericInfo *const metagen_con_active_general[_NMC_GENERIC_INFO_TYP
 
 /*****************************************************************************/
 
+static gconstpointer
+_metagen_con_active_vpn_get_fcn (NMC_META_GENERIC_INFO_GET_FCN_ARGS)
+{
+	NMActiveConnection *ac = target;
+	NMConnection *c;
+	NMSettingVpn *s_vpn = NULL;
+	NMVpnConnectionState vpn_state;
+	guint i;
+	const char *s;
+	char **arr = NULL;
+
+	nm_assert (NM_IS_VPN_CONNECTION (ac));
+
+	NMC_HANDLE_COLOR (NM_META_COLOR_NONE);
+
+	nm_assert (NM_IN_SET (get_type, NM_META_ACCESSOR_GET_TYPE_PRETTY, NM_META_ACCESSOR_GET_TYPE_PARSABLE));
+
+	c = NM_CONNECTION (nm_active_connection_get_connection (ac));
+	if (c)
+		s_vpn = nm_connection_get_setting_vpn (c);
+
+	switch (info->info_type) {
+	case NMC_GENERIC_INFO_TYPE_CON_VPN_TYPE:
+		return c ? get_vpn_connection_type (c) : NULL;
+	case NMC_GENERIC_INFO_TYPE_CON_VPN_USERNAME:
+		if (   s_vpn
+		    && (s = nm_setting_vpn_get_user_name (s_vpn)))
+			return s;
+		return c ? get_vpn_data_item (c, VPN_DATA_ITEM_USERNAME) : NULL;
+	case NMC_GENERIC_INFO_TYPE_CON_VPN_GATEWAY:
+		return c ? get_vpn_data_item (c, VPN_DATA_ITEM_GATEWAY) : NULL;
+	case NMC_GENERIC_INFO_TYPE_CON_VPN_BANNER:
+		s = nm_vpn_connection_get_banner (NM_VPN_CONNECTION (ac));
+		if (s)
+			return (*out_to_free = g_strescape (s, ""));
+		return NULL;
+	case NMC_GENERIC_INFO_TYPE_CON_VPN_VPN_STATE:
+		vpn_state = nm_vpn_connection_get_vpn_state (NM_VPN_CONNECTION (ac));
+		return (*out_to_free = nmc_meta_generic_get_enum_with_detail (NMC_META_GENERIC_GET_ENUM_TYPE_DASH,
+		                                                              vpn_state,
+		                                                              vpn_connection_state_to_string (vpn_state),
+		                                                              get_type));
+	case NMC_GENERIC_INFO_TYPE_CON_VPN_CFG:
+		if (!NM_FLAGS_HAS (get_flags, NM_META_ACCESSOR_GET_FLAGS_ACCEPT_STRV))
+			return NULL;
+		if (s_vpn) {
+			gs_free char **arr2 = NULL;
+			guint n;
+
+			arr2 = (char **) nm_setting_vpn_get_data_keys (s_vpn, &n);
+			if (!n)
+				goto arr_out;
+
+			nm_assert (arr2 && !arr2[n]);
+			for (i = 0; i < n; i++) {
+				const char *k = arr2[i];
+				const char *v;
+
+				nm_assert (k);
+				v = nm_setting_vpn_get_data_item (s_vpn, k);
+				/* update the arr array in-place. Previously it contained
+				 * the constant keys, now it contains the strdup'ed output text. */
+				arr2[i] = g_strdup_printf ("%s = %s", k, v);
+			}
+
+			arr = g_steal_pointer (&arr2);
+		}
+		goto arr_out;
+	default:
+		break;
+	}
+
+	g_return_val_if_reached (NULL);
+
+arr_out:
+	NM_SET_OUT (out_is_default, !arr || !arr[0]);
+	*out_flags |= NM_META_ACCESSOR_GET_OUT_FLAGS_STRV;
+	*out_to_free = arr;
+	return arr;
+}
+
+const NmcMetaGenericInfo *const metagen_con_active_vpn[_NMC_GENERIC_INFO_TYPE_CON_ACTIVE_VPN_NUM + 1] = {
+#define _METAGEN_CON_ACTIVE_VPN(type, name) \
+	[type] = NMC_META_GENERIC(name, .info_type = type, .get_fcn = _metagen_con_active_vpn_get_fcn)
+	_METAGEN_CON_ACTIVE_VPN (NMC_GENERIC_INFO_TYPE_CON_VPN_TYPE,      "TYPE"),
+	_METAGEN_CON_ACTIVE_VPN (NMC_GENERIC_INFO_TYPE_CON_VPN_USERNAME,  "USERNAME"),
+	_METAGEN_CON_ACTIVE_VPN (NMC_GENERIC_INFO_TYPE_CON_VPN_GATEWAY,   "GATEWAY"),
+	_METAGEN_CON_ACTIVE_VPN (NMC_GENERIC_INFO_TYPE_CON_VPN_BANNER,    "BANNER"),
+	_METAGEN_CON_ACTIVE_VPN (NMC_GENERIC_INFO_TYPE_CON_VPN_VPN_STATE, "VPN-STATE"),
+	_METAGEN_CON_ACTIVE_VPN (NMC_GENERIC_INFO_TYPE_CON_VPN_CFG,       "CFG"),
+};
+
+/*****************************************************************************/
+
 #define NMC_FIELDS_SETTINGS_NAMES_ALL    NM_SETTING_CONNECTION_SETTING_NAME","\
+                                         NM_SETTING_MATCH_SETTING_NAME","\
                                          NM_SETTING_WIRED_SETTING_NAME","\
                                          NM_SETTING_802_1X_SETTING_NAME","\
                                          NM_SETTING_WIRELESS_SETTING_NAME","\
@@ -660,29 +767,22 @@ const NmcMetaGenericInfo *const metagen_con_active_general[_NMC_GENERIC_INFO_TYP
                                          NM_SETTING_MACSEC_SETTING_NAME"," \
                                          NM_SETTING_MACVLAN_SETTING_NAME"," \
                                          NM_SETTING_VXLAN_SETTING_NAME"," \
+                                         NM_SETTING_WPAN_SETTING_NAME","\
+                                         NM_SETTING_6LOWPAN_SETTING_NAME","\
                                          NM_SETTING_PROXY_SETTING_NAME"," \
-                                         NM_SETTING_TC_CONFIG_SETTING_NAME
+                                         NM_SETTING_TC_CONFIG_SETTING_NAME"," \
+                                         NM_SETTING_SRIOV_SETTING_NAME"," \
+                                         NM_SETTING_ETHTOOL_SETTING_NAME
                                          // NM_SETTING_DUMMY_SETTING_NAME
                                          // NM_SETTING_WIMAX_SETTING_NAME
-
-const NmcMetaGenericInfo *const nmc_fields_con_active_details_vpn[] = {
-	NMC_META_GENERIC ("GROUP"),      /* 0 */
-	NMC_META_GENERIC ("TYPE"),       /* 1 */
-	NMC_META_GENERIC ("USERNAME"),   /* 2 */
-	NMC_META_GENERIC ("GATEWAY"),    /* 3 */
-	NMC_META_GENERIC ("BANNER"),     /* 4 */
-	NMC_META_GENERIC ("VPN-STATE"),  /* 5 */
-	NMC_META_GENERIC ("CFG"),        /* 6 */
-	NULL,
-};
 
 const NmcMetaGenericInfo *const nmc_fields_con_active_details_groups[] = {
 	NMC_META_GENERIC_WITH_NESTED ("GENERAL", metagen_con_active_general),                /* 0 */
 	NMC_META_GENERIC_WITH_NESTED ("IP4",     metagen_ip4_config),                        /* 1 */
-	NMC_META_GENERIC_WITH_NESTED ("DHCP4",   nmc_fields_dhcp_config + 1),                /* 2 */
-	NMC_META_GENERIC_WITH_NESTED ("IP6",     nmc_fields_ip6_config + 1),                 /* 3 */
-	NMC_META_GENERIC_WITH_NESTED ("DHCP6",   nmc_fields_dhcp_config + 1),                /* 4 */
-	NMC_META_GENERIC_WITH_NESTED ("VPN",     nmc_fields_con_active_details_vpn + 1),     /* 5 */
+	NMC_META_GENERIC_WITH_NESTED ("DHCP4",   metagen_dhcp_config),                       /* 2 */
+	NMC_META_GENERIC_WITH_NESTED ("IP6",     metagen_ip6_config),                        /* 3 */
+	NMC_META_GENERIC_WITH_NESTED ("DHCP6",   metagen_dhcp_config),                       /* 4 */
+	NMC_META_GENERIC_WITH_NESTED ("VPN",     metagen_con_active_vpn),                    /* 5 */
 	NULL,
 };
 
@@ -701,6 +801,7 @@ typedef struct {
 	NMConnection *connection;
 	NMSetting *setting;
 	const char *property;
+	char **words;
 } TabCompletionInfo;
 
 static TabCompletionInfo nmc_tab_completion;
@@ -890,7 +991,11 @@ usage_connection_add (void)
 	              "                  [source-port-min <0-65535>]\n"
 	              "                  [source-port-max <0-65535>]\n"
 	              "                  [destination-port <0-65535>]\n\n"
-	              "    dummy:         \n\n"
+	              "    wpan:         [short-addr <0x0000-0xffff>]\n\n"
+	              "                  [pan-id <0x0000-0xffff>]\n\n"
+	              "                  [mac <MAC address>]\n\n"
+	              "    6lowpan:      dev <parent device (connection UUID, ifname, or MAC)>\n"
+	              "    dummy:\n\n"
 	              "  SLAVE_OPTIONS:\n"
 	              "    bridge:       [priority <0-63>]\n"
 	              "                  [path-cost <1-65535>]\n"
@@ -1181,7 +1286,9 @@ nmc_connection_profile_details (NMConnection *connection, NmCli *nmc)
 		int section_idx = g_array_index (print_settings_array, int, i);
 		const char *prop_name = (const char *) g_ptr_array_index (prop_array, i);
 
-		if (nmc->nmc_config.print_output != NMC_PRINT_TERSE && !nmc->nmc_config.multiline_output && was_output)
+		if (   NM_IN_SET (nmc->nmc_config.print_output, NMC_PRINT_NORMAL, NMC_PRINT_PRETTY)
+		    && !nmc->nmc_config.multiline_output
+		    && was_output)
 			g_print ("\n"); /* Empty line */
 
 		was_output = FALSE;
@@ -1213,19 +1320,6 @@ nmc_active_connection_state_to_color (NMActiveConnectionState state)
 		return NM_META_COLOR_CONNECTION_UNKNOWN;
 }
 
-typedef struct {
-	char **array;
-	guint32 idx;
-} FillVPNDataInfo;
-
-static void
-fill_vpn_data_item (const char *key, const char *value, gpointer user_data)
-{
-        FillVPNDataInfo *info = (FillVPNDataInfo *) user_data;
-
-	info->array[info->idx++] = g_strdup_printf ("%s = %s", key, value);
-}
-
 static gboolean
 nmc_active_connection_details (NMActiveConnection *acon, NmCli *nmc)
 {
@@ -1234,8 +1328,6 @@ nmc_active_connection_details (NMActiveConnection *acon, NmCli *nmc)
 	GPtrArray *group_fields = NULL;
 	int i;
 	const char *fields_str = NULL;
-	const NMMetaAbstractInfo *const*tmpl;
-	NmcOutputField *arr;
 	const char *base_hdr = _("Activate connection details");
 	gboolean was_output = FALSE;
 
@@ -1278,7 +1370,7 @@ nmc_active_connection_details (NMActiveConnection *acon, NmCli *nmc)
 		int group_idx = g_array_index (print_groups, int, i);
 		char *group_fld = (char *) g_ptr_array_index (group_fields, i);
 
-		if (   nmc->nmc_config.print_output != NMC_PRINT_TERSE
+		if (   NM_IN_SET (nmc->nmc_config.print_output, NMC_PRINT_NORMAL, NMC_PRINT_PRETTY)
 		    && !nmc->nmc_config.multiline_output
 		    && was_output)
 			g_print ("\n");
@@ -1294,6 +1386,7 @@ nmc_active_connection_details (NMActiveConnection *acon, NmCli *nmc)
 			nmc_print (&nmc->nmc_config,
 			           (gpointer[]) { acon, NULL },
 			           NULL,
+			           NULL,
 			           NMC_META_GENERIC_GROUP ("GENERAL", metagen_con_active_general, N_("GROUP")),
 			           f,
 			           NULL);
@@ -1306,7 +1399,7 @@ nmc_active_connection_details (NMActiveConnection *acon, NmCli *nmc)
 			gboolean b1 = FALSE;
 			NMIPConfig *cfg4 = nm_active_connection_get_ip4_config (acon);
 
-			b1 = print_ip4_config (cfg4, &nmc->nmc_config, group_fld);
+			b1 = print_ip_config (cfg4, AF_INET, &nmc->nmc_config, group_fld);
 			was_output = was_output || b1;
 		}
 
@@ -1315,7 +1408,7 @@ nmc_active_connection_details (NMActiveConnection *acon, NmCli *nmc)
 			gboolean b1 = FALSE;
 			NMDhcpConfig *dhcp4 = nm_active_connection_get_dhcp4_config (acon);
 
-			b1 = print_dhcp_config (dhcp4, &nmc->nmc_config, "DHCP4", group_fld);
+			b1 = print_dhcp_config (dhcp4, AF_INET, &nmc->nmc_config, group_fld);
 			was_output = was_output || b1;
 		}
 
@@ -1324,7 +1417,7 @@ nmc_active_connection_details (NMActiveConnection *acon, NmCli *nmc)
 			gboolean b1 = FALSE;
 			NMIPConfig *cfg6 = nm_active_connection_get_ip6_config (acon);
 
-			b1 = print_ip6_config (cfg6, &nmc->nmc_config, "IP6", group_fld);
+			b1 = print_ip_config (cfg6, AF_INET6, &nmc->nmc_config, group_fld);
 			was_output = was_output || b1;
 		}
 
@@ -1333,73 +1426,22 @@ nmc_active_connection_details (NMActiveConnection *acon, NmCli *nmc)
 			gboolean b1 = FALSE;
 			NMDhcpConfig *dhcp6 = nm_active_connection_get_dhcp6_config (acon);
 
-			b1 = print_dhcp_config (dhcp6, &nmc->nmc_config, "DHCP6", group_fld);
+			b1 = print_dhcp_config (dhcp6, AF_INET6, &nmc->nmc_config, group_fld);
 			was_output = was_output || b1;
 		}
 
-		/* VPN */
-		if (NM_IS_VPN_CONNECTION (acon) &&
-		    strcasecmp (nmc_fields_con_active_details_groups[group_idx]->name,  nmc_fields_con_active_details_groups[5]->name) == 0) {
-			NMConnection *con;
-			NMSettingConnection *s_con;
-			NMSettingVpn *s_vpn;
-			NMVpnConnectionState vpn_state;
-			char *type_str, *banner_str = NULL, *vpn_state_str;
-			const char *banner;
-			const char *username = NULL;
-			char **vpn_data_array = NULL;
-			guint32 items_num;
-			NMC_OUTPUT_DATA_DEFINE_SCOPED (out);
-
-			con = NM_CONNECTION (nm_active_connection_get_connection (acon));
-
-			s_con = nm_connection_get_setting_connection (con);
-			g_assert (s_con);
-
-			tmpl = (const NMMetaAbstractInfo *const*) nmc_fields_con_active_details_vpn;
-			out_indices = parse_output_fields (group_fld,
-			                                   tmpl, FALSE, NULL, NULL);
-			arr = nmc_dup_fields_array (tmpl, NMC_OF_FLAG_FIELD_NAMES);
-			g_ptr_array_add (out.output_data, arr);
-
-			s_vpn = nm_connection_get_setting_vpn (con);
-			if (s_vpn) {
-				items_num = nm_setting_vpn_get_num_data_items (s_vpn);
-				if (items_num > 0) {
-					FillVPNDataInfo info;
-
-					vpn_data_array = g_new (char *, items_num + 1);
-					info.array = vpn_data_array;
-					info.idx = 0;
-					nm_setting_vpn_foreach_data_item (s_vpn, &fill_vpn_data_item, &info);
-					vpn_data_array[items_num] = NULL;
-				}
-				username = nm_setting_vpn_get_user_name (s_vpn);
+		if (nmc_fields_con_active_details_groups[group_idx]->nested == metagen_con_active_vpn) {
+			if (NM_IS_VPN_CONNECTION (acon)) {
+				nmc_print (&nmc->nmc_config,
+				           (gpointer[]) { acon, NULL },
+				           NULL,
+				           NULL,
+				           NMC_META_GENERIC_GROUP ("VPN", metagen_con_active_vpn, N_("NAME")),
+				           group_fld,
+				           NULL);
+				was_output = TRUE;
 			}
-
-			type_str = get_vpn_connection_type (con);
-			banner = nm_vpn_connection_get_banner (NM_VPN_CONNECTION (acon));
-			if (banner)
-				banner_str = g_strescape (banner, "");
-			vpn_state = nm_vpn_connection_get_vpn_state (NM_VPN_CONNECTION (acon));
-			vpn_state_str = g_strdup_printf ("%d - %s",
-			                                 vpn_state,
-			                                 gettext (vpn_connection_state_to_string (vpn_state)));
-
-			/* Add values */
-			arr = nmc_dup_fields_array (tmpl, NMC_OF_FLAG_SECTION_PREFIX);
-			set_val_strc (arr, 0, nmc_fields_con_active_details_groups[5]->name);
-			set_val_str  (arr, 1, type_str);
-			set_val_strc (arr, 2, username ?: get_vpn_data_item (con, VPN_DATA_ITEM_USERNAME));
-			set_val_strc (arr, 3, get_vpn_data_item (con, VPN_DATA_ITEM_GATEWAY));
-			set_val_str  (arr, 4, banner_str);
-			set_val_str  (arr, 5, vpn_state_str);
-			set_val_arr  (arr, 6, vpn_data_array);
-			g_ptr_array_add (out.output_data, arr);
-
-			print_data_prepare_width (out.output_data);
-			print_data (&nmc->nmc_config, out_indices, NULL, 0, &out);
-			was_output = TRUE;
+			continue;
 		}
 	}
 
@@ -1767,7 +1809,7 @@ parse_preferred_connection_order (const char *order, GError **error)
 	gboolean inverse, unique;
 	int i;
 
-	strv = nm_utils_strsplit_set (order, ":");
+	strv = nm_utils_strsplit_set (order, ":", FALSE);
 	if (!strv) {
 		g_set_error (error, NMCLI_ERROR, 0,
 		             _("incorrect string '%s' of '--order' option"), order);
@@ -1926,7 +1968,6 @@ do_connections_show (NmCli *nmc, int argc, char **argv)
 		 * a profile has multiple active connections, it will be listed multiple times.
 		 * If that's not the case, we filter out these duplicate lines. */
 		selection = nm_meta_selection_create_parse_list ((const NMMetaAbstractInfo *const*) metagen_con_show,
-		                                                 NULL,
 		                                                 fields_str,
 		                                                 FALSE,
 		                                                 NULL);
@@ -1951,10 +1992,11 @@ do_connections_show (NmCli *nmc, int argc, char **argv)
 		g_ptr_array_add (items, NULL);
 		if (!nmc_print (&nmc->nmc_config,
 		                items->pdata,
+		                NULL,
 		                active_only
 		                  ? _("NetworkManager active profiles")
 		                  : _("NetworkManager connection profiles"),
-		               (const NMMetaAbstractInfo *const*) metagen_con_show,
+		                (const NMMetaAbstractInfo *const*) metagen_con_show,
 		                fields_str,
 		                &err))
 			goto finish;
@@ -2406,7 +2448,7 @@ progress_active_connection_cb (gpointer user_data)
 	}
 
 	str =   device
-	      ? nmc_device_state_to_string (nm_device_get_state (device))
+	      ? gettext (nmc_device_state_to_string (nm_device_get_state (device)))
 	      : active_connection_state_to_string (ac_state);
 
 	nmc_terminal_show_progress (str);
@@ -2533,7 +2575,7 @@ parse_passwords (const char *passwd_file, GError **error)
 		return NULL;
 	}
 
-	strv = nm_utils_strsplit_set (contents, "\r\n");
+	strv = nm_utils_strsplit_set (contents, "\r\n", FALSE);
 	for (iter = strv; *iter; iter++) {
 		gs_free char *iter_s = g_strdup (*iter);
 
@@ -2689,7 +2731,7 @@ do_connection_up (NmCli *nmc, int argc, char **argv)
 		/* nmc_do_cmd() should not call this with argc=0. */
 		g_assert (!nmc->complete);
 
-		line = nmc_readline ("%s: ", PROMPT_CONNECTION);
+		line = nmc_readline (PROMPT_CONNECTION);
 		nmc_string_to_arg_array (line, NULL, TRUE, &arg_arr, &arg_num);
 		g_free (line);
 		argv_ptr = &arg_arr;
@@ -3189,7 +3231,7 @@ get_valid_properties_string (const NMMetaSettingValidPartItem *const*array,
 
 			/* Search the array with the arguments of the current property */
 			for (j = 0; j < setting_info->properties_num; j++) {
-				gchar *new;
+				char *new;
 				const char *arg_name;
 
 				arg_name = setting_info->properties[j]->property_name;
@@ -3644,6 +3686,18 @@ _meta_abstract_complete (const NMMetaAbstractInfo *abstract_info, const char *te
 	return NULL;
 }
 
+static char *
+_meta_abstract_generator (const char *text, int state)
+{
+	if (nmc_tab_completion.words) {
+		return nmc_rl_gen_func_basic (text,
+		                              state,
+		                              (const char *const *) nmc_tab_completion.words);
+	}
+
+	return NULL;
+}
+
 static void
 _meta_abstract_get (const NMMetaAbstractInfo *abstract_info,
                     const NMMetaSettingInfoEditor **out_setting_info,
@@ -3673,7 +3727,7 @@ static const OptionInfo *_meta_abstract_get_option_info (const NMMetaAbstractInf
  * The questionnaire (for --ask) will ask for them.
  */
 static void
-enable_options (const gchar *setting_name, const gchar *property, const gchar * const *opts)
+enable_options (const char *setting_name, const char *property, const char * const *opts)
 {
 	const NMMetaPropertyInfo *property_info;
 
@@ -3711,7 +3765,7 @@ enable_options (const gchar *setting_name, const gchar *property, const gchar * 
  * The questionnaire (for --ask) will not ask for them.
  */
 static void
-disable_options (const gchar *setting_name, const gchar *property)
+disable_options (const char *setting_name, const char *property)
 {
 	const NMMetaPropertyInfo *property_infos_local[2];
 	const NMMetaPropertyInfo *const*property_infos;
@@ -3869,7 +3923,7 @@ set_property (NMConnection *connection,
 }
 
 static gboolean
-set_option (NmCli *nmc, NMConnection *connection, const NMMetaAbstractInfo *abstract_info, const gchar *value, GError **error)
+set_option (NmCli *nmc, NMConnection *connection, const NMMetaAbstractInfo *abstract_info, const char *value, GError **error)
 {
 	const char *setting_name, *property_name, *option_name;
 	NMMetaPropertyInfFlags inf_flags;
@@ -3993,7 +4047,7 @@ set_connection_type (NmCli *nmc, NMConnection *con, const OptionInfo *option, co
 	const NMMetaSettingValidPartItem *const*type_settings;
 	const NMMetaSettingValidPartItem *const*slv_settings;
 	GError *local = NULL;
-	const gchar *master[] = { "master", NULL };
+	const char *master[] = { "master", NULL };
 	const char *slave_type = NULL;
 
 	value = check_valid_name_toplevel (value, &slave_type, &local);
@@ -4101,7 +4155,7 @@ set_bond_option (NmCli *nmc, NMConnection *con, const OptionInfo *option, const 
 			return FALSE;
 
 		if (g_strcmp0 (value, "active-backup") == 0) {
-			const gchar *primary[] = { "primary", NULL };
+			const char *primary[] = { "primary", NULL };
 			enable_options (NM_SETTING_BOND_SETTING_NAME, NM_SETTING_BOND_OPTIONS, primary);
 		}
 
@@ -4136,9 +4190,9 @@ static gboolean
 set_bond_monitoring_mode (NmCli *nmc, NMConnection *con, const OptionInfo *option, const char *value, GError **error)
 {
 	NMSettingBond *s_bond;
-	gs_free gchar *monitor_mode = NULL;
-	const gchar *miimon_opts[] = { "miimon", "downdelay", "updelay", NULL };
-	const gchar *arp_opts[] = { "arp-interval", "arp-ip-target", NULL };
+	gs_free char *monitor_mode = NULL;
+	const char *miimon_opts[] = { "miimon", "downdelay", "updelay", NULL };
+	const char *arp_opts[] = { "arp-interval", "arp-ip-target", NULL };
 
 	s_bond = nm_connection_get_setting_bond (con);
 	g_return_val_if_fail (s_bond, FALSE);
@@ -4307,8 +4361,8 @@ option_relevant (NMConnection *connection, const NMMetaAbstractInfo *abstract_in
 static void
 complete_property_name (NmCli *nmc, NMConnection *connection,
                         char modifier,
-                        const gchar *prefix,
-                        const gchar *postfix)
+                        const char *prefix,
+                        const char *postfix)
 {
 	NMSettingConnection *s_con;
 	const NMMetaSettingValidPartItem *const*valid_settings_main;
@@ -4383,7 +4437,7 @@ run_rl_generator (rl_compentry_func_t *generator_func, const char *prefix)
 }
 
 static gboolean
-complete_option (const NMMetaAbstractInfo *abstract_info, const gchar *prefix, NMConnection *context_connection)
+complete_option (const NMMetaAbstractInfo *abstract_info, const char *prefix, NMConnection *context_connection)
 {
 	const OptionInfo *candidate;
 	const char *const*values;
@@ -4414,7 +4468,7 @@ complete_option (const NMMetaAbstractInfo *abstract_info, const gchar *prefix, N
 }
 
 static void
-complete_property (const gchar *setting_name, const gchar *property, const gchar *prefix, NMConnection *connection)
+complete_property (const char *setting_name, const char *property, const char *prefix, NMConnection *connection)
 {
 	const NMMetaPropertyInfo *property_info;
 
@@ -4468,7 +4522,7 @@ nmc_read_connection_properties (NmCli *nmc,
 	/* Go through arguments and set properties */
 	do {
 		const NMMetaAbstractInfo *chosen = NULL;
-		gs_strfreev gchar **strv = NULL;
+		gs_strfreev char **strv = NULL;
 		const NMMetaSettingValidPartItem *const*type_settings;
 		const NMMetaSettingValidPartItem *const*slv_settings;
 		char modifier = '\0';
@@ -4711,6 +4765,7 @@ nmcli_con_add_tab_completion (const char *text, int start, int end)
 	rl_compentry_func_t *generator_func = NULL;
 	gs_free char *no = g_strdup_printf ("[%s]: ", _("no"));
 	gs_free char *yes = g_strdup_printf ("[%s]: ", _("yes"));
+	const NMMetaAbstractInfo *info;
 
 	/* Disable readline's default filename completion */
 	rl_attempted_completion_over = 1;
@@ -4745,12 +4800,13 @@ nmcli_con_add_tab_completion (const char *text, int start, int end)
 			} else {
 				if (   property_info->prompt
 				    && g_str_has_prefix (rl_prompt, property_info->prompt)) {
-					char **values;
-
-					values = _meta_abstract_complete ((const NMMetaAbstractInfo *) property_info, text);
-					if (values)
-						return values;
-					goto next;
+					info = (const NMMetaAbstractInfo *) property_info;
+					nmc_tab_completion.words = _meta_abstract_complete (info, text);
+					if (nmc_tab_completion.words) {
+						match_array = rl_completion_matches (text, _meta_abstract_generator);
+						nm_clear_pointer (&nmc_tab_completion.words, g_strfreev);
+					}
+					return match_array;
 				}
 			}
 		}
@@ -4776,9 +4832,9 @@ next:
 static void
 ask_option (NmCli *nmc, NMConnection *connection, const NMMetaAbstractInfo *abstract_info)
 {
-	gchar *value;
+	char *value;
 	GError *error = NULL;
-	gs_free gchar *prompt = NULL;
+	gs_free char *prompt = NULL;
 	gboolean multi;
 	const char *opt_prompt, *opt_def_hint;
 	NMMetaPropertyInfFlags inf_flags;
@@ -6534,7 +6590,7 @@ progress_activation_editor_cb (gpointer user_data)
 	ac_state = nm_active_connection_get_state (ac);
 	dev_state = nm_device_get_state (device);
 
-	nmc_terminal_show_progress (nmc_device_state_to_string (dev_state));
+	nmc_terminal_show_progress (gettext (nmc_device_state_to_string (dev_state)));
 
 	if (   ac_state == NM_ACTIVE_CONNECTION_STATE_ACTIVATED
 	    || dev_state == NM_DEVICE_STATE_ACTIVATED) {
@@ -8114,6 +8170,8 @@ do_connection_edit (NmCli *nmc, int argc, char **argv)
 	g_print ("\n\n");
 	g_print (_("Type 'help' or '?' for available commands."));
 	g_print ("\n");
+	g_print (_("Type 'print' to show all the connection properties."));
+	g_print ("\n");
 	g_print (_("Type 'describe [<setting>.<prop>]' for detailed property description."));
 	g_print ("\n\n");
 
@@ -8270,7 +8328,7 @@ do_connection_clone (NmCli *nmc, int argc, char **argv)
 		/* nmc_do_cmd() should not call this with argc=0. */
 		g_assert (!nmc->complete);
 
-		line = nmc_readline ("%s: ", PROMPT_CONNECTION);
+		line = nmc_readline (PROMPT_CONNECTION);
 		nmc_string_to_arg_array (line, NULL, TRUE, &arg_arr, &arg_num);
 		g_free (line);
 		argv_ptr = &arg_arr;
@@ -8380,7 +8438,7 @@ do_connection_delete (NmCli *nmc, int argc, char **argv)
 			/* nmc_do_cmd() should not call this with argc=0. */
 			g_assert (!nmc->complete);
 
-			line = nmc_readline ("%s: ", PROMPT_CONNECTIONS);
+			line = nmc_readline (PROMPT_CONNECTIONS);
 			nmc_string_to_arg_array (line, NULL, TRUE, &arg_arr, &arg_num);
 			g_free (line);
 			arg_ptr = arg_arr;
@@ -8631,7 +8689,7 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 		g_assert (!nmc->complete);
 
 		if (nmc->ask) {
-			type_ask = nmc_readline (gettext (NM_META_TEXT_PROMPT_VPN_TYPE));
+			type_ask = nmc_readline ("%s: ", gettext (NM_META_TEXT_PROMPT_VPN_TYPE));
 			filename_ask = nmc_readline (gettext (PROMPT_IMPORT_FILE));
 			type = type_ask = type_ask ? g_strstrip (type_ask) : NULL;
 			filename = filename_ask = filename_ask ? g_strstrip (filename_ask) : NULL;
@@ -8756,7 +8814,7 @@ do_connection_export (NmCli *nmc, int argc, char **argv)
 		/* nmc_do_cmd() should not call this with argc=0. */
 		g_assert (!nmc->complete);
 
-		line = nmc_readline ("%s: ", PROMPT_VPN_CONNECTION);
+		line = nmc_readline (PROMPT_VPN_CONNECTION);
 		nmc_string_to_arg_array (line, NULL, TRUE, &arg_arr, &arg_num);
 		g_free (line);
 		argv_ptr = &arg_arr;
@@ -8896,6 +8954,7 @@ nmcli_con_tab_completion (const char *text, int start, int end)
 {
 	char **match_array = NULL;
 	rl_compentry_func_t *generator_func = NULL;
+	const NMMetaAbstractInfo *info;
 
 	/* Disable readline's default filename completion */
 	rl_attempted_completion_over = 1;
@@ -8912,8 +8971,10 @@ nmcli_con_tab_completion (const char *text, int start, int end)
 		generator_func = gen_func_connection_names;
 	} else if (g_strcmp0 (rl_prompt, PROMPT_ACTIVE_CONNECTIONS) == 0) {
 		generator_func = gen_func_active_connection_names;
-	} else if (g_strcmp0 (rl_prompt, NM_META_TEXT_PROMPT_VPN_TYPE) == 0) {
-		return _meta_abstract_complete ((const NMMetaAbstractInfo *) nm_meta_property_info_vpn_service_type, text);
+	} else if (rl_prompt && g_str_has_prefix (rl_prompt, NM_META_TEXT_PROMPT_VPN_TYPE)) {
+		info = (const NMMetaAbstractInfo *) nm_meta_property_info_vpn_service_type;
+		nmc_tab_completion.words = _meta_abstract_complete (info, text);
+		generator_func = _meta_abstract_generator;
 	} else if (g_strcmp0 (rl_prompt, PROMPT_IMPORT_FILE) == 0) {
 		rl_attempted_completion_over = 0;
 		rl_complete_with_tilde_expansion = 1;
@@ -8924,6 +8985,7 @@ nmcli_con_tab_completion (const char *text, int start, int end)
 	if (generator_func)
 		match_array = rl_completion_matches (text, generator_func);
 
+	g_clear_pointer (&nmc_tab_completion.words, g_strfreev);
 	return match_array;
 }
 

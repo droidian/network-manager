@@ -15,7 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2011 - 2016 Red Hat, Inc.
+ * Copyright 2011 - 2018 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -53,23 +53,6 @@ static NMDeviceCapabilities
 get_generic_capabilities (NMDevice *dev)
 {
 	return NM_DEVICE_CAP_CARRIER_DETECT | NM_DEVICE_CAP_IS_SOFTWARE;
-}
-
-static gboolean
-check_connection_compatible (NMDevice *device, NMConnection *connection)
-{
-	NMSettingBond *s_bond;
-
-	if (!NM_DEVICE_CLASS (nm_device_bond_parent_class)->check_connection_compatible (device, connection))
-		return FALSE;
-
-	s_bond = nm_connection_get_setting_bond (connection);
-	if (!s_bond || !nm_connection_is_type (connection, NM_SETTING_BOND_SETTING_NAME))
-		return FALSE;
-
-	/* FIXME: match bond properties like mode, etc? */
-
-	return TRUE;
 }
 
 static gboolean
@@ -363,7 +346,6 @@ static NMActStageReturn
 act_stage1_prepare (NMDevice *dev, NMDeviceStateReason *out_failure_reason)
 {
 	NMActStageReturn ret = NM_ACT_STAGE_RETURN_SUCCESS;
-	gboolean no_firmware = FALSE;
 
 	ret = NM_DEVICE_CLASS (nm_device_bond_parent_class)->act_stage1_prepare (dev, out_failure_reason);
 	if (ret != NM_ACT_STAGE_RETURN_SUCCESS)
@@ -374,7 +356,7 @@ act_stage1_prepare (NMDevice *dev, NMDeviceStateReason *out_failure_reason)
 	ret = apply_bonding_config (dev);
 	if (ret != NM_ACT_STAGE_RETURN_FAILURE)
 		ret = nm_device_hw_addr_set_cloned (dev, nm_device_get_applied_connection (dev), FALSE);
-	nm_device_bring_up (dev, TRUE, &no_firmware);
+	nm_device_bring_up (dev, TRUE, NULL);
 
 	return ret;
 }
@@ -386,7 +368,7 @@ enslave_slave (NMDevice *device,
                gboolean configure)
 {
 	NMDeviceBond *self = NM_DEVICE_BOND (device);
-	gboolean success = TRUE, no_firmware = FALSE;
+	gboolean success = TRUE;
 	const char *slave_iface = nm_device_get_ip_iface (slave);
 	NMConnection *master_con;
 
@@ -397,7 +379,7 @@ enslave_slave (NMDevice *device,
 		success = nm_platform_link_enslave (nm_device_get_platform (device),
 		                                    nm_device_get_ip_ifindex (device),
 		                                    nm_device_get_ip_ifindex (slave));
-		nm_device_bring_up (slave, TRUE, &no_firmware);
+		nm_device_bring_up (slave, TRUE, NULL);
 
 		if (!success)
 			return FALSE;
@@ -434,7 +416,7 @@ release_slave (NMDevice *device,
                gboolean configure)
 {
 	NMDeviceBond *self = NM_DEVICE_BOND (device);
-	gboolean success, no_firmware = FALSE;
+	gboolean success;
 	gs_free char *address = NULL;
 
 	if (configure) {
@@ -463,7 +445,7 @@ release_slave (NMDevice *device,
 		 * IFF_UP), so we must bring it back up here to ensure carrier changes and
 		 * other state is noticed by the now-released slave.
 		 */
-		if (!nm_device_bring_up (slave, TRUE, &no_firmware))
+		if (!nm_device_bring_up (slave, TRUE, NULL))
 			_LOGW (LOGD_BOND, "released bond slave could not be brought up.");
 	} else {
 		_LOGI (LOGD_BOND, "bond slave %s was released",
@@ -632,27 +614,28 @@ static void
 nm_device_bond_class_init (NMDeviceBondClass *klass)
 {
 	NMDBusObjectClass *dbus_object_class = NM_DBUS_OBJECT_CLASS (klass);
-	NMDeviceClass *parent_class = NM_DEVICE_CLASS (klass);
-
-	NM_DEVICE_CLASS_DECLARE_TYPES (klass, NM_SETTING_BOND_SETTING_NAME, NM_LINK_TYPE_BOND)
+	NMDeviceClass *device_class = NM_DEVICE_CLASS (klass);
 
 	dbus_object_class->interface_infos = NM_DBUS_INTERFACE_INFOS (&interface_info_device_bond);
 
-	parent_class->is_master = TRUE;
-	parent_class->get_generic_capabilities = get_generic_capabilities;
-	parent_class->check_connection_compatible = check_connection_compatible;
-	parent_class->complete_connection = complete_connection;
+	device_class->connection_type_supported = NM_SETTING_BOND_SETTING_NAME;
+	device_class->connection_type_check_compatible = NM_SETTING_BOND_SETTING_NAME;
+	device_class->link_types = NM_DEVICE_DEFINE_LINK_TYPES (NM_LINK_TYPE_BOND);
 
-	parent_class->update_connection = update_connection;
-	parent_class->master_update_slave_connection = master_update_slave_connection;
+	device_class->is_master = TRUE;
+	device_class->get_generic_capabilities = get_generic_capabilities;
+	device_class->complete_connection = complete_connection;
 
-	parent_class->create_and_realize = create_and_realize;
-	parent_class->act_stage1_prepare = act_stage1_prepare;
-	parent_class->get_configured_mtu = nm_device_get_configured_mtu_for_wired;
-	parent_class->enslave_slave = enslave_slave;
-	parent_class->release_slave = release_slave;
-	parent_class->can_reapply_change = can_reapply_change;
-	parent_class->reapply_connection = reapply_connection;
+	device_class->update_connection = update_connection;
+	device_class->master_update_slave_connection = master_update_slave_connection;
+
+	device_class->create_and_realize = create_and_realize;
+	device_class->act_stage1_prepare = act_stage1_prepare;
+	device_class->get_configured_mtu = nm_device_get_configured_mtu_for_wired;
+	device_class->enslave_slave = enslave_slave;
+	device_class->release_slave = release_slave;
+	device_class->can_reapply_change = can_reapply_change;
+	device_class->reapply_connection = reapply_connection;
 }
 
 /*****************************************************************************/

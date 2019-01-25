@@ -183,11 +183,11 @@ nm_config_data_has_value (const NMConfigData *self, const char *group, const cha
 	return !!value;
 }
 
-gint
-nm_config_data_get_value_boolean (const NMConfigData *self, const char *group, const char *key, gint default_value)
+int
+nm_config_data_get_value_boolean (const NMConfigData *self, const char *group, const char *key, int default_value)
 {
 	char *str;
-	gint value = default_value;
+	int value = default_value;
 
 	g_return_val_if_fail (NM_IS_CONFIG_DATA (self), default_value);
 	g_return_val_if_fail (group && *group, default_value);
@@ -655,12 +655,12 @@ nm_config_data_log (const NMConfigData *self,
 			const char *group = default_values[g].group;
 			gssize idx;
 
-			idx = _nm_utils_array_find_binary_search ((gconstpointer *) groups_full->pdata,
-			                                          sizeof (char *),
-			                                          groups_full->len,
-			                                          &group,
-			                                          (GCompareDataFunc) _nm_config_data_log_sort,
-			                                          NULL);
+			idx = nm_utils_array_find_binary_search ((gconstpointer *) groups_full->pdata,
+			                                         sizeof (char *),
+			                                         groups_full->len,
+			                                         &group,
+			                                         (GCompareDataFunc) _nm_config_data_log_sort,
+			                                         NULL);
 			if (idx < 0)
 				g_ptr_array_insert (groups_full, (~idx), (gpointer) group);
 		}
@@ -1335,8 +1335,8 @@ gboolean
 nm_config_data_get_device_config_boolean (const NMConfigData *self,
                                           const char *property,
                                           NMDevice *device,
-                                          gint val_no_match,
-                                          gint val_invalid)
+                                          int val_no_match,
+                                          int val_invalid)
 {
 	gs_free char *value = NULL;
 	gboolean has_match;
@@ -1369,6 +1369,20 @@ nm_config_data_get_connection_default (const NMConfigData *self,
 	                             NULL,
 	                             &value);
 	return value;
+}
+
+gint64
+nm_config_data_get_connection_default_int64 (const NMConfigData *self,
+                                             const char *property,
+                                             NMDevice *device,
+                                             gint64 min,
+                                             gint64 max,
+                                             gint64 fallback)
+{
+	gs_free char *value = NULL;
+
+	value = nm_config_data_get_connection_default (self, property, device);
+	return _nm_utils_ascii_str_to_int64 (value, 10, min, max, fallback);
 }
 
 static void

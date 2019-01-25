@@ -80,7 +80,7 @@ typedef struct {
 	gulong handler_id;
 	const char *name;
 	NMPlatformSignalChangeType change_type;
-	gint received_count;
+	int received_count;
 	GMainLoop *loop;
 	int ifindex;
 	const char *ifname;
@@ -294,6 +294,10 @@ const NMPlatformLink *nmtstp_link_gre_add (NMPlatform *platform,
                                            const char *name,
                                            const NMPlatformLnkGre *lnk);
 const NMPlatformLink *nmtstp_link_ip6tnl_add (NMPlatform *platform,
+                                              gboolean external_command,
+                                              const char *name,
+                                              const NMPlatformLnkIp6Tnl *lnk);
+const NMPlatformLink *nmtstp_link_ip6gre_add (NMPlatform *platform,
                                               gboolean external_command,
                                               const char *name,
                                               const NMPlatformLnkIp6Tnl *lnk);

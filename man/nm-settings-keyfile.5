@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-keyfile
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 12/01/2018
+.\"      Date: 10/24/2018
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.12.6
+.\"    Source: NetworkManager 1.14.4
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-KEYFILE" "5" "" "NetworkManager 1\&.12\&.6" "Configuration"
+.TH "NM\-SETTINGS\-KEYFILE" "5" "" "NetworkManager 1\&.14\&.4" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -623,6 +623,37 @@ T}:T{
 MAC address blacklist\&.\fB
 
 Example: \fRmac\-address\-blacklist= 00:22:68:12:79:A6;00:22:68:12:79:78
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&9.\ \&wpan setting (section)
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Keyfile Variable
+T}:T{
+Format
+T}:T{
+Description
+T}
+.T&
+l l l l.
+T{
+mac\-address
+T}:T{
+mac\-address
+T}:T{
+usual hex\-digits\-and\-colons notation
+T}:T{
+MAC address in hex\-digits\-and\-colons notation (e\&.g\&. 76:d8:9b:87:66:60:84:ee)\&.
 T}
 .TE
 .sp 1

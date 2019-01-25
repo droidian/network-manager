@@ -15,7 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2004 - 2014 Red Hat, Inc.
+ * Copyright 2004 - 2018 Red Hat, Inc.
  * Copyright 2005 - 2008 Novell, Inc.
  */
 
@@ -25,6 +25,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <fnmatch.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -37,6 +38,7 @@
 #include <net/ethernet.h>
 
 #include "nm-utils/nm-random-utils.h"
+#include "nm-utils/nm-io-utils.h"
 #include "nm-utils.h"
 #include "nm-core-internal.h"
 #include "nm-setting-connection.h"
@@ -44,15 +46,6 @@
 #include "nm-setting-ip6-config.h"
 #include "nm-setting-wireless.h"
 #include "nm-setting-wireless-security.h"
-
-/*
- * Some toolchains (E.G. uClibc 0.9.33 and earlier) don't export
- * CLOCK_BOOTTIME even though the kernel supports it, so provide a
- * local definition
- */
-#ifndef CLOCK_BOOTTIME
-#define CLOCK_BOOTTIME 7
-#endif
 
 G_STATIC_ASSERT (sizeof (NMUtilsTestFlags) <= sizeof (int));
 static int _nm_utils_testing = 0;
@@ -532,7 +525,7 @@ _kc_waited_to_string (char *buf, gint64 wait_start_us)
 }
 
 static void
-_kc_cb_watch_child (GPid pid, gint status, gpointer user_data)
+_kc_cb_watch_child (GPid pid, int status, gpointer user_data)
 {
 	KillChildAsyncData *data = user_data;
 	char buf_exit[KC_EXIT_TO_STRING_BUF_SIZE], buf_wait[KC_WAITED_TO_STRING];
@@ -1455,7 +1448,7 @@ match_config_eval (const char *str, const char *tag, guint cur_nm_version)
 {
 	gs_free char *s_ver = NULL;
 	gs_strfreev char **s_ver_tokens = NULL;
-	gint v_maj = -1, v_min = -1, v_mic = -1;
+	int v_maj = -1, v_min = -1, v_mic = -1;
 	guint c_maj = -1, c_min = -1, c_mic = -1;
 	guint n_tokens;
 
@@ -1587,9 +1580,9 @@ nm_match_spec_split (const char *value)
 	/* Copied from glibs g_key_file_parse_value_as_string() function
 	 * and adjusted. */
 
-	string_value = g_new (gchar, strlen (value) + 1);
+	string_value = g_new (char, strlen (value) + 1);
 
-	p = (gchar *) value;
+	p = (char *) value;
 
 	/* skip over leading whitespace */
 	while (g_ascii_isspace (*p))
@@ -1737,6 +1730,33 @@ nm_match_spec_join (GSList *specs)
 	}
 
 	return g_string_free (str, FALSE);
+}
+
+gboolean
+nm_wildcard_match_check (const char *str,
+                         const char *const *patterns,
+                         guint num_patterns)
+{
+	guint i, neg = 0;
+
+	for (i = 0; i < num_patterns; i++) {
+		if (patterns[i][0] == '!') {
+			neg++;
+			if (!fnmatch (patterns[i] + 1, str, 0))
+				return FALSE;
+		}
+	}
+
+	if (neg == num_patterns)
+		return TRUE;
+
+	for (i = 0; i < num_patterns; i++) {
+		if (   patterns[i][0] != '!'
+		    && !fnmatch (patterns[i], str, 0))
+			return TRUE;
+	}
+
+	return FALSE;
 }
 
 /*****************************************************************************/
@@ -2036,7 +2056,7 @@ typedef struct
 	NMSettingDiffResult diff_result;
 } LogConnectionSettingItem;
 
-static gint
+static int
 _log_connection_sort_hashes_fcn (gconstpointer a, gconstpointer b)
 {
 	const LogConnectionSettingData *v1 = a;
@@ -2079,7 +2099,7 @@ _log_connection_sort_hashes (NMConnection *connection, NMConnection *diff_base, 
 	return sorted_hashes;
 }
 
-static gint
+static int
 _log_connection_sort_names_fcn (gconstpointer a, gconstpointer b)
 {
 	const LogConnectionSettingItem *v1 = a;
@@ -2541,262 +2561,6 @@ nm_utils_machine_id_read (void)
 
 /*****************************************************************************/
 
-_nm_printf (3, 4)
-static int
-_get_contents_error (GError **error, int errsv, const char *format, ...)
-{
-	if (errsv < 0)
-		errsv = -errsv;
-	else if (!errsv)
-		errsv = errno;
-
-	if (error) {
-		char *msg;
-		va_list args;
-
-		va_start (args, format);
-		msg = g_strdup_vprintf (format, args);
-		va_end (args);
-		g_set_error (error,
-		             G_FILE_ERROR,
-		             g_file_error_from_errno (errsv),
-		             "%s: %s",
-		             msg, g_strerror (errsv));
-		g_free (msg);
-	}
-	return -errsv;
-}
-
-/**
- * nm_utils_fd_get_contents:
- * @fd: open file descriptor to read. The fd will not be closed,
- *   but don't rely on its state afterwards.
- * @close_fd: if %TRUE, @fd will be closed by the function.
- *  Passing %TRUE here might safe a syscall for dup().
- * @max_length: allocate at most @max_length bytes. If the
- *   file is larger, reading will fail. Set to zero to use
- *   a very large default.
- *
- *   WARNING: @max_length is here to avoid a crash for huge/unlimited files.
- *   For example, stat(/sys/class/net/enp0s25/ifindex) gives a filesize of
- *   4K, although the actual real is small. @max_length is the memory
- *   allocated in the process of reading the file, thus it must be at least
- *   the size reported by fstat.
- *   If you set it to 1K, read will fail because fstat() claims the
- *   file is larger.
- *
- * @contents: the output buffer with the file read. It is always
- *   NUL terminated. The buffer is at most @max_length long, including
- *  the NUL byte. That is, it reads only files up to a length of
- *  @max_length - 1 bytes.
- * @length: optional output argument of the read file size.
- *
- * A reimplementation of g_file_get_contents() with a few differences:
- *   - accepts an open fd, instead of a path name. This allows you to
- *     use openat().
- *   - limits the maxium filesize to max_length.
- *
- * Returns: a negative error code on failure.
- */
-int
-nm_utils_fd_get_contents (int fd,
-                          gboolean close_fd,
-                          gsize max_length,
-                          char **contents,
-                          gsize *length,
-                          GError **error)
-{
-	nm_auto_close int fd_keeper = close_fd ? fd : -1;
-	struct stat stat_buf;
-	gs_free char *str = NULL;
-
-	g_return_val_if_fail (fd >= 0, -EINVAL);
-	g_return_val_if_fail (contents, -EINVAL);
-	g_return_val_if_fail (!error || !*error, -EINVAL);
-
-	if (fstat (fd, &stat_buf) < 0)
-		return _get_contents_error (error, 0, "failure during fstat");
-
-	if (!max_length) {
-		/* default to a very large size, but not extreme */
-		max_length = 2 * 1024 * 1024;
-	}
-
-	if (   stat_buf.st_size > 0
-	    && S_ISREG (stat_buf.st_mode)) {
-		const gsize n_stat = stat_buf.st_size;
-		ssize_t n_read;
-
-		if (n_stat > max_length - 1)
-			return _get_contents_error (error, EMSGSIZE, "file too large (%zu+1 bytes with maximum %zu bytes)", n_stat, max_length);
-
-		str = g_try_malloc (n_stat + 1);
-		if (!str)
-			return _get_contents_error (error, ENOMEM, "failure to allocate buffer of %zu+1 bytes", n_stat);
-
-		n_read = nm_utils_fd_read_loop (fd, str, n_stat, TRUE);
-		if (n_read < 0)
-			return _get_contents_error (error, n_read, "error reading %zu bytes from file descriptor", n_stat);
-		str[n_read] = '\0';
-
-		if (n_read < n_stat) {
-			char *tmp;
-
-			tmp = g_try_realloc (str, n_read + 1);
-			if (!tmp)
-				return _get_contents_error (error, ENOMEM, "failure to reallocate buffer with %zu bytes", n_read + 1);
-			str = tmp;
-		}
-		NM_SET_OUT (length, n_read);
-	} else {
-		nm_auto_fclose FILE *f = NULL;
-		char buf[4096];
-		gsize n_have, n_alloc;
-		int fd2;
-
-		if (fd_keeper >= 0)
-			fd2 = nm_steal_fd (&fd_keeper);
-		else {
-			fd2 = fcntl (fd, F_DUPFD_CLOEXEC, 0);
-			if (fd2 < 0)
-				return _get_contents_error (error, 0, "error during dup");
-		}
-
-		if (!(f = fdopen (fd2, "r"))) {
-			nm_close (fd2);
-			return _get_contents_error (error, 0, "failure during fdopen");
-		}
-
-		n_have = 0;
-		n_alloc = 0;
-
-		while (!feof (f)) {
-			int errsv;
-			gsize n_read;
-
-			n_read = fread (buf, 1, sizeof (buf), f);
-			errsv = errno;
-			if (ferror (f))
-				return _get_contents_error (error, errsv, "error during fread");
-
-			if (   n_have > G_MAXSIZE - 1 - n_read
-			    || n_have + n_read + 1 > max_length) {
-				return _get_contents_error (error, EMSGSIZE, "file stream too large (%zu+1 bytes with maximum %zu bytes)",
-				                            (n_have > G_MAXSIZE - 1 - n_read) ? G_MAXSIZE : n_have + n_read,
-				                            max_length);
-			}
-
-			if (n_have + n_read + 1 >= n_alloc) {
-				char *tmp;
-
-				if (str) {
-					if (n_alloc >= max_length / 2)
-						n_alloc = max_length;
-					else
-						n_alloc *= 2;
-				} else
-					n_alloc = NM_MIN (n_read + 1, sizeof (buf));
-
-				tmp = g_try_realloc (str, n_alloc);
-				if (!tmp)
-					return _get_contents_error (error, ENOMEM, "failure to allocate buffer of %zu bytes", n_alloc);
-				str = tmp;
-			}
-
-			memcpy (str + n_have, buf, n_read);
-			n_have += n_read;
-		}
-
-		if (n_alloc == 0)
-			str = g_new0 (gchar, 1);
-		else {
-			str[n_have] = '\0';
-			if (n_have + 1 < n_alloc) {
-				char *tmp;
-
-				tmp = g_try_realloc (str, n_have + 1);
-				if (!tmp)
-					return _get_contents_error (error, ENOMEM, "failure to truncate buffer to %zu bytes", n_have + 1);
-				str = tmp;
-			}
-		}
-
-		NM_SET_OUT (length, n_have);
-	}
-
-	*contents = g_steal_pointer (&str);
-	return 0;
-}
-
-/**
- * nm_utils_file_get_contents:
- * @dirfd: optional file descriptor to use openat(). If negative, use plain open().
- * @filename: the filename to open. Possibly relative to @dirfd.
- * @max_length: allocate at most @max_length bytes.
- *   WARNING: see nm_utils_fd_get_contents() hint about @max_length.
- * @contents: the output buffer with the file read. It is always
- *   NUL terminated. The buffer is at most @max_length long, including
- *  the NUL byte. That is, it reads only files up to a length of
- *  @max_length - 1 bytes.
- * @length: optional output argument of the read file size.
- *
- * A reimplementation of g_file_get_contents() with a few differences:
- *   - accepts an @dirfd to open @filename relative to that path via openat().
- *   - limits the maxium filesize to max_length.
- *   - uses O_CLOEXEC on internal file descriptor
- *
- * Returns: a negative error code on failure.
- */
-int
-nm_utils_file_get_contents (int dirfd,
-                            const char *filename,
-                            gsize max_length,
-                            char **contents,
-                            gsize *length,
-                            GError **error)
-{
-	int fd;
-	int errsv;
-
-	g_return_val_if_fail (filename && filename[0], -EINVAL);
-
-	if (dirfd >= 0) {
-		fd = openat (dirfd, filename, O_RDONLY | O_CLOEXEC);
-		if (fd < 0) {
-			errsv = errno;
-
-			g_set_error (error,
-			             G_FILE_ERROR,
-			             g_file_error_from_errno (errsv),
-			             "Failed to open file \"%s\" with openat: %s",
-			             filename,
-			             g_strerror (errsv));
-			return -errsv;
-		}
-	} else {
-		fd = open (filename, O_RDONLY | O_CLOEXEC);
-		if (fd < 0) {
-			errsv = errno;
-
-			g_set_error (error,
-			             G_FILE_ERROR,
-			             g_file_error_from_errno (errsv),
-			             "Failed to open file \"%s\": %s",
-			             filename,
-			             g_strerror (errsv));
-			return -errsv;
-		}
-	}
-	return nm_utils_fd_get_contents (fd,
-	                                 TRUE,
-	                                 max_length,
-	                                 contents,
-	                                 length,
-	                                 error);
-}
-
-/*****************************************************************************/
-
 static gboolean
 _secret_key_read (guint8 **out_secret_key,
                   gsize *out_key_len)
@@ -2923,6 +2687,7 @@ nm_utils_get_boot_id (void)
 		gs_free char *contents = NULL;
 
 		nm_utils_file_get_contents (-1, "/proc/sys/kernel/random/boot_id", 0,
+		                            NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
 		                            &contents, NULL, NULL);
 		if (contents) {
 			g_strstrip (contents);
@@ -3017,7 +2782,6 @@ nm_utils_get_ipv6_interface_identifier (NMLinkType link_type,
 		out_iid->id_u8[0] |= 0x02;
 		return TRUE;
 	case NM_LINK_TYPE_GRE:
-	case NM_LINK_TYPE_GRETAP:
 		/* Hardware address is the network-endian IPv4 address */
 		g_return_val_if_fail (hwaddr_len == 4, FALSE);
 		addr = * (guint32 *) hwaddr;
@@ -3026,6 +2790,11 @@ nm_utils_get_ipv6_interface_identifier (NMLinkType link_type,
 		out_iid->id_u8[2] = 0x5E;
 		out_iid->id_u8[3] = 0xFE;
 		memcpy (out_iid->id_u8 + 4, &addr, 4);
+		return TRUE;
+	case NM_LINK_TYPE_6LOWPAN:
+		/* The hardware address is already 64-bit. This is the case for
+		* IEEE 802.15.4 networks. */
+		memcpy (out_iid->id_u8, hwaddr, sizeof (out_iid->id_u8));
 		return TRUE;
 	default:
 		if (hwaddr_len == ETH_ALEN) {
@@ -3661,8 +3430,8 @@ nm_utils_g_value_set_strv (GValue *value, GPtrArray *strings)
 /*****************************************************************************/
 
 static gboolean
-debug_key_matches (const gchar *key,
-                   const gchar *token,
+debug_key_matches (const char *key,
+                   const char *token,
                    guint        length)
 {
 	/* may not call GLib functions: see note in g_parse_debug_string() */
@@ -3964,116 +3733,12 @@ nm_utils_get_reverse_dns_domains_ip6 (const struct in6_addr *ip, guint8 plen, GP
 #undef N_SHIFT
 }
 
-/**
- * Copied from GLib's g_file_set_contents() et al., but allows
- * specifying a mode for the new file.
- */
-gboolean
-nm_utils_file_set_contents (const gchar *filename,
-                            const gchar *contents,
-                            gssize length,
-                            mode_t mode,
-                            GError **error)
-{
-	gs_free char *tmp_name = NULL;
-	struct stat statbuf;
-	int errsv;
-	gssize s;
-	int fd;
-
-	g_return_val_if_fail (filename, FALSE);
-	g_return_val_if_fail (contents || !length, FALSE);
-	g_return_val_if_fail (!error || !*error, FALSE);
-	g_return_val_if_fail (length >= -1, FALSE);
-
-	if (length == -1)
-		length = strlen (contents);
-
-	tmp_name = g_strdup_printf ("%s.XXXXXX", filename);
-	fd = g_mkstemp_full (tmp_name, O_RDWR, mode);
-	if (fd < 0) {
-		errsv = errno;
-		g_set_error (error,
-		             G_FILE_ERROR,
-		             g_file_error_from_errno (errsv),
-		             "failed to create file %s: %s",
-		             tmp_name,
-		             g_strerror (errsv));
-		return FALSE;
-	}
-
-	while (length > 0) {
-		s = write (fd, contents, length);
-		if (s < 0) {
-			errsv = errno;
-			if (errsv == EINTR)
-				continue;
-
-			nm_close (fd);
-			unlink (tmp_name);
-
-			g_set_error (error,
-			             G_FILE_ERROR,
-			             g_file_error_from_errno (errsv),
-			             "failed to write to file %s: %s",
-			             tmp_name,
-			             g_strerror (errsv));
-			return FALSE;
-		}
-
-		g_assert (s <= length);
-
-		contents += s;
-		length -= s;
-	}
-
-	/* If the final destination exists and is > 0 bytes, we want to sync the
-	 * newly written file to ensure the data is on disk when we rename over
-	 * the destination. Otherwise if we get a system crash we can lose both
-	 * the new and the old file on some filesystems. (I.E. those that don't
-	 * guarantee the data is written to the disk before the metadata.)
-	 */
-	if (   lstat (filename, &statbuf) == 0
-	    && statbuf.st_size > 0
-	    && fsync (fd) != 0) {
-		errsv = errno;
-
-		nm_close (fd);
-		unlink (tmp_name);
-
-		g_set_error (error,
-		             G_FILE_ERROR,
-		             g_file_error_from_errno (errsv),
-		             "failed to fsync %s: %s",
-		             tmp_name,
-		             g_strerror (errsv));
-		return FALSE;
-	}
-
-	nm_close (fd);
-
-	if (rename (tmp_name, filename)) {
-		errsv = errno;
-		unlink (tmp_name);
-		g_set_error (error,
-		             G_FILE_ERROR,
-		             g_file_error_from_errno (errsv),
-		             "failed to rename %s to %s: %s",
-		             tmp_name,
-		             filename,
-		             g_strerror (errsv));
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
 struct plugin_info {
 	char *path;
 	struct stat st;
 };
 
-static gint
+static int
 read_device_factory_paths_sort_fcn (gconstpointer a, gconstpointer b)
 {
 	const struct plugin_info *da = a;

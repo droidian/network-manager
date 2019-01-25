@@ -23,24 +23,32 @@
 
 /*****************************************************************************/
 
+static const NMMetaSettingInfoEditor *
+_get_meta_setting_info_editor_from_msi (const NMMetaSettingInfo *meta_setting_info)
+{
+	const NMMetaSettingInfoEditor *setting_info;
+
+	if (!meta_setting_info)
+		return NULL;
+
+	nm_assert (meta_setting_info->get_setting_gtype);
+	nm_assert (meta_setting_info->meta_type < G_N_ELEMENTS (nm_meta_setting_infos_editor));
+
+	setting_info = &nm_meta_setting_infos_editor[meta_setting_info->meta_type];
+
+	nm_assert (setting_info->general == meta_setting_info);
+	return setting_info;
+}
+
 const NMMetaSettingInfoEditor *
 nm_meta_setting_info_editor_find_by_name (const char *setting_name, gboolean use_alias)
 {
-	const NMMetaSettingInfo *meta_setting_info;
 	const NMMetaSettingInfoEditor *setting_info;
 	guint i;
 
 	g_return_val_if_fail (setting_name, NULL);
 
-	meta_setting_info = nm_meta_setting_infos_by_name (setting_name);
-	setting_info = NULL;
-	if (meta_setting_info) {
-		nm_assert (nm_streq0 (meta_setting_info->setting_name, setting_name));
-		if (meta_setting_info->meta_type < G_N_ELEMENTS (nm_meta_setting_infos_editor)) {
-			setting_info = &nm_meta_setting_infos_editor[meta_setting_info->meta_type];
-			nm_assert (setting_info->general == meta_setting_info);
-		}
-	}
+	setting_info = _get_meta_setting_info_editor_from_msi (nm_meta_setting_infos_by_name (setting_name));
 	if (!setting_info && use_alias) {
 		for (i = 0; i < _NM_META_SETTING_TYPE_NUM; i++) {
 			if (nm_streq0 (nm_meta_setting_infos_editor[i].alias, setting_name)) {
@@ -56,25 +64,7 @@ nm_meta_setting_info_editor_find_by_name (const char *setting_name, gboolean use
 const NMMetaSettingInfoEditor *
 nm_meta_setting_info_editor_find_by_gtype (GType gtype)
 {
-	const NMMetaSettingInfo *meta_setting_info;
-	const NMMetaSettingInfoEditor *setting_info;
-
-	meta_setting_info = nm_meta_setting_infos_by_gtype (gtype);
-
-	if (!meta_setting_info)
-		return NULL;
-
-	g_return_val_if_fail (meta_setting_info->get_setting_gtype, NULL);
-	g_return_val_if_fail (meta_setting_info->get_setting_gtype () == gtype, NULL);
-
-	if (meta_setting_info->meta_type >= G_N_ELEMENTS (nm_meta_setting_infos_editor))
-		return NULL;
-
-	setting_info = &nm_meta_setting_infos_editor[meta_setting_info->meta_type];
-
-	g_return_val_if_fail (setting_info->general == meta_setting_info, NULL);
-
-	return setting_info;
+	return _get_meta_setting_info_editor_from_msi (nm_meta_setting_infos_by_gtype (gtype));
 }
 
 const NMMetaSettingInfoEditor *
@@ -86,11 +76,12 @@ nm_meta_setting_info_editor_find_by_setting (NMSetting *setting)
 
 	setting_info = nm_meta_setting_info_editor_find_by_gtype (G_OBJECT_TYPE (setting));
 
-	nm_assert (setting_info == nm_meta_setting_info_editor_find_by_name (nm_setting_get_name (setting), FALSE));
-	nm_assert (!setting_info || G_TYPE_CHECK_INSTANCE_TYPE (setting, setting_info->general->get_setting_gtype ()));
-
+	nm_assert (setting_info);
+	nm_assert (G_TYPE_CHECK_INSTANCE_TYPE (setting, setting_info->general->get_setting_gtype ()));
 	return setting_info;
 }
+
+/*****************************************************************************/
 
 const NMMetaPropertyInfo *
 nm_meta_setting_info_editor_get_property_info (const NMMetaSettingInfoEditor *setting_info, const char *property_name)
@@ -213,7 +204,8 @@ nm_meta_abstract_info_get_nested (const NMMetaAbstractInfo *abstract_info,
 
 	if (abstract_info->meta_type->get_nested) {
 		nested = abstract_info->meta_type->get_nested (abstract_info, &l, &f);
-		nm_assert ((nested ? g_strv_length ((char **) nested) : 0) == l);
+		nm_assert (NM_PTRARRAY_LEN (nested) == l);
+		nm_assert (!f || nested == f);
 		if (nested && nested[0]) {
 			NM_SET_OUT (out_len, l);
 			*nested_to_free = g_steal_pointer (&f);
@@ -229,6 +221,7 @@ nm_meta_abstract_info_get (const NMMetaAbstractInfo *abstract_info,
                            const NMMetaEnvironment *environment,
                            gpointer environment_user_data,
                            gpointer target,
+                           gpointer target_data,
                            NMMetaAccessorGetType get_type,
                            NMMetaAccessorGetFlags get_flags,
                            NMMetaAccessorGetOutFlags *out_flags,
@@ -250,6 +243,7 @@ nm_meta_abstract_info_get (const NMMetaAbstractInfo *abstract_info,
 	                                          environment,
 	                                          environment_user_data,
 	                                          target,
+	                                          target_data,
 	                                          get_type,
 	                                          get_flags,
 	                                          out_flags,
@@ -351,44 +345,38 @@ char *
 nm_meta_abstract_info_get_nested_names_str (const NMMetaAbstractInfo *abstract_info, const char *name_prefix)
 {
 	gs_free gpointer nested_to_free = NULL;
-	guint i;
 	const NMMetaAbstractInfo *const*nested;
-	GString *allowed_fields;
 
 	nested = nm_meta_abstract_info_get_nested (abstract_info, NULL, &nested_to_free);
 	if (!nested)
 		return NULL;
 
-	allowed_fields = g_string_sized_new (256);
-
 	if (!name_prefix)
 		name_prefix = nm_meta_abstract_info_get_name (abstract_info, FALSE);
 
-	for (i = 0; nested[i]; i++) {
-		g_string_append_printf (allowed_fields, "%s.%s,",
-		                        name_prefix, nm_meta_abstract_info_get_name (nested[i], FALSE));
-	}
-	g_string_truncate (allowed_fields, allowed_fields->len - 1);
-	return g_string_free (allowed_fields, FALSE);
+	return nm_meta_abstract_infos_get_names_str (nested, name_prefix);
 }
 
 char *
 nm_meta_abstract_infos_get_names_str (const NMMetaAbstractInfo *const*fields_array, const char *name_prefix)
 {
-	GString *allowed_fields;
+	GString *str;
 	guint i;
 
 	if (!fields_array || !fields_array[0])
 		return NULL;
 
-	allowed_fields = g_string_sized_new (256);
+	str = g_string_sized_new (128);
 	for (i = 0; fields_array[i]; i++) {
-		if (name_prefix)
-			g_string_append_printf (allowed_fields, "%s.", name_prefix);
-		g_string_append_printf (allowed_fields, "%s,", nm_meta_abstract_info_get_name (fields_array[i], FALSE));
+		if (str->len > 0)
+			g_string_append_c (str, ',');
+		if (name_prefix) {
+			g_string_append (str, name_prefix);
+			g_string_append_c (str, '.');
+		}
+		g_string_append (str, nm_meta_abstract_info_get_name (fields_array[i], FALSE));
 	}
-	g_string_truncate (allowed_fields, allowed_fields->len - 1);
-	return g_string_free (allowed_fields, FALSE);
+	return g_string_free (str, FALSE);
 }
 
 /*****************************************************************************/
@@ -601,7 +589,6 @@ nm_meta_selection_create_parse_one (const NMMetaAbstractInfo *const* fields_arra
 
 NMMetaSelectionResultList *
 nm_meta_selection_create_parse_list (const NMMetaAbstractInfo *const* fields_array,
-                                     const char *fields_prefix,
                                      const char *fields_str, /* a comma separated list of selectors */
                                      gboolean validate_nested,
                                      GError **error)
@@ -628,7 +615,7 @@ nm_meta_selection_create_parse_list (const NMMetaAbstractInfo *const* fields_arr
 		if (!fields_str_cur[0])
 			continue;
 		if (!_output_selection_select_one (fields_array,
-		                                   fields_prefix,
+		                                   NULL,
 		                                   fields_str_cur,
 		                                   validate_nested,
 		                                   &array,

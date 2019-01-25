@@ -316,6 +316,7 @@ nm_dhcp_dhclient_create_config (const char *interface,
 
 	if (orig_contents) {
 		char **lines, **line;
+		int nest = 0;
 		gboolean in_alsoreq = FALSE;
 		gboolean in_req = FALSE;
 		char intf[IFNAMSIZ];
@@ -330,17 +331,23 @@ nm_dhcp_dhclient_create_config (const char *interface,
 			if (!strlen (g_strstrip (p)))
 				continue;
 
-			if (   !intf[0]
-			    && g_str_has_prefix (p, "interface")
-			    && !in_req) {
-				if (read_interface (p, intf, sizeof (intf)))
-					continue;
-			}
-
-			if (intf[0] && strchr (p, '}')) {
+			if (in_req) {
+				/* pass */
+			} else if (strchr (p, '{')) {
+				nest++;
+				if (   !intf[0]
+				    && g_str_has_prefix (p, "interface"))
+					if (read_interface (p, intf, sizeof (intf)))
+						continue;
+			} else if (strchr (p, '}')) {
+				if (nest)
+					nest--;
 				intf[0] = '\0';
 				continue;
 			}
+
+			if (nest && !intf[0])
+				continue;
 
 			if (intf[0] && !nm_streq (intf, interface))
 				continue;
@@ -437,6 +444,7 @@ nm_dhcp_dhclient_create_config (const char *interface,
 		add_request (reqs, "static-routes");
 		add_request (reqs, "wpad");
 		add_request (reqs, "ntp-servers");
+		add_request (reqs, "root-path");
 	} else {
 		add_hostname6 (new_contents, hostname);
 		add_request (reqs, "dhcp6.name-servers");
@@ -523,6 +531,10 @@ nm_dhcp_dhclient_unescape_duid (const char *duid)
 	guint i, len;
 	guint8 octal;
 
+	/* FIXME: it's wrong to have an "unescape-duid" function. dhclient
+	 * defines a file format with escaping. So we need a general unescape
+	 * function that can handle dhclient syntax. */
+
 	len = strlen (duid);
 	unescaped = g_byte_array_sized_new (len);
 	for (i = 0; i < len; i++) {
@@ -536,6 +548,9 @@ nm_dhcp_dhclient_unescape_duid (const char *duid)
 				g_byte_array_append (unescaped, &octal, 1);
 				i += 2;
 			} else {
+				/* FIXME: don't warn on untrusted data. Either signal an error, or accept
+				 * it silently. */
+
 				/* One of ", ', $, `, \, |, or & */
 				g_warn_if_fail (p[i] == '"' || p[i] == '\'' || p[i] == '$' ||
 				                p[i] == '`' || p[i] == '\\' || p[i] == '|' ||

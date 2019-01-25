@@ -16,7 +16,7 @@
  * Boston, MA 02110-1301 USA.
  *
  * Copyright 2007 - 2008 Novell, Inc.
- * Copyright 2007 - 2014 Red Hat, Inc.
+ * Copyright 2007 - 2018 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -51,6 +51,7 @@
 #include "nm-access-point.h"
 #include "nm-active-connection.h"
 #include "nm-checkpoint.h"
+#include "nm-device-6lowpan.h"
 #include "nm-device-adsl.h"
 #include "nm-device-bond.h"
 #include "nm-device-bridge.h"
@@ -74,6 +75,8 @@
 #include "nm-device-vxlan.h"
 #include "nm-device-wifi.h"
 #include "nm-device-wimax.h"
+#include "nm-device-wireguard.h"
+#include "nm-device-wpan.h"
 #include "nm-dhcp4-config.h"
 #include "nm-dhcp6-config.h"
 #include "nm-dhcp-config.h"
@@ -2463,8 +2466,8 @@ nm_client_checkpoint_adjust_rollback_timeout_finish (NMClient *client,
 
 static GType
 proxy_type (GDBusObjectManagerClient *manager,
-            const gchar *object_path,
-            const gchar *interface_name,
+            const char *object_path,
+            const char *interface_name,
             gpointer user_data)
 {
 	/* ObjectManager asks us for an object proxy. Unfortunatelly, we can't
@@ -2523,6 +2526,8 @@ obj_nm_for_gdbus_object (NMClient *self, GDBusObject *object, GDBusObjectManager
 			type = NM_TYPE_ACCESS_POINT;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_ACTIVE_CONNECTION) == 0 && type != NM_TYPE_VPN_CONNECTION)
 			type = NM_TYPE_ACTIVE_CONNECTION;
+		else if (strcmp (ifname, NM_DBUS_INTERFACE_DEVICE_6LOWPAN) == 0)
+			type = NM_TYPE_DEVICE_6LOWPAN;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_DEVICE_ADSL) == 0)
 			type = NM_TYPE_DEVICE_ADSL;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_DEVICE_BOND) == 0)
@@ -2563,12 +2568,16 @@ obj_nm_for_gdbus_object (NMClient *self, GDBusObject *object, GDBusObjectManager
 			type = NM_TYPE_DEVICE_TUN;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_DEVICE_VLAN) == 0)
 			type = NM_TYPE_DEVICE_VLAN;
+		else if (strcmp (ifname, NM_DBUS_INTERFACE_DEVICE_WPAN) == 0)
+			type = NM_TYPE_DEVICE_WPAN;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_DEVICE_VXLAN) == 0)
 			type = NM_TYPE_DEVICE_VXLAN;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_DEVICE_WIRELESS) == 0)
 			type = NM_TYPE_DEVICE_WIFI;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_DEVICE_WIMAX) == 0)
 			type = NM_TYPE_DEVICE_WIMAX;
+		else if (strcmp (ifname, NM_DBUS_INTERFACE_DEVICE_WIREGUARD) == 0)
+			type = NM_TYPE_DEVICE_WIREGUARD;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_DHCP4_CONFIG) == 0)
 			type = NM_TYPE_DHCP4_CONFIG;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_DHCP6_CONFIG) == 0)
@@ -3792,7 +3801,7 @@ NM_BACKPORT_SYMBOL (libnm_1_0_6, gboolean, nm_utils_enum_from_str,
                     (GType type, const char *str, int *out_value, char **err_token),
                     (type, str, out_value, err_token));
 
-NM_BACKPORT_SYMBOL (libnm_1_2_4, gint, nm_setting_ip_config_get_dns_priority, (NMSettingIPConfig *setting), (setting));
+NM_BACKPORT_SYMBOL (libnm_1_2_4, int, nm_setting_ip_config_get_dns_priority, (NMSettingIPConfig *setting), (setting));
 
 NM_BACKPORT_SYMBOL (libnm_1_10_14, NMSettingConnectionMdns, nm_setting_connection_get_mdns,
                     (NMSettingConnection *setting), (setting));

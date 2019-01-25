@@ -138,16 +138,18 @@ typedef struct _NMIP4ConfigClass NMIP4ConfigClass;
 #define NM_IP4_CONFIG_ADDRESS_DATA "address-data"
 #define NM_IP4_CONFIG_ROUTE_DATA "route-data"
 #define NM_IP4_CONFIG_GATEWAY "gateway"
-#define NM_IP4_CONFIG_NAMESERVERS "nameservers"
+#define NM_IP4_CONFIG_NAMESERVER_DATA "nameserver-data"
 #define NM_IP4_CONFIG_DOMAINS "domains"
 #define NM_IP4_CONFIG_SEARCHES "searches"
 #define NM_IP4_CONFIG_DNS_OPTIONS "dns-options"
 #define NM_IP4_CONFIG_DNS_PRIORITY "dns-priority"
-#define NM_IP4_CONFIG_WINS_SERVERS "wins-servers"
+#define NM_IP4_CONFIG_WINS_SERVER_DATA "wins-server-data"
 
 /* deprecated */
 #define NM_IP4_CONFIG_ADDRESSES "addresses"
 #define NM_IP4_CONFIG_ROUTES "routes"
+#define NM_IP4_CONFIG_NAMESERVERS "nameservers"
+#define NM_IP4_CONFIG_WINS_SERVERS "wins-servers"
 
 GType nm_ip4_config_get_type (void);
 
@@ -173,6 +175,7 @@ gboolean nm_ip4_config_commit (const NMIP4Config *self,
 void nm_ip4_config_merge_setting (NMIP4Config *self,
                                   NMSettingIPConfig *setting,
                                   NMSettingConnectionMdns mdns,
+                                  NMSettingConnectionLlmnr llmnr,
                                   guint32 route_table,
                                   guint32 route_metric);
 NMSetting *nm_ip4_config_create_setting (const NMIP4Config *self);
@@ -186,12 +189,13 @@ void nm_ip4_config_subtract (NMIP4Config *dst,
                              guint32 default_route_metric_penalty);
 void nm_ip4_config_intersect (NMIP4Config *dst,
                               const NMIP4Config *src,
+                              gboolean intersect_routes,
                               guint32 default_route_metric_penalty);
 NMIP4Config *nm_ip4_config_intersect_alloc (const NMIP4Config *a,
                                             const NMIP4Config *b,
+                                            gboolean intersect_routes,
                                             guint32 default_route_metric_penalty);
 gboolean nm_ip4_config_replace (NMIP4Config *dst, const NMIP4Config *src, gboolean *relevant_changes);
-void nm_ip4_config_dump (const NMIP4Config *self, const char *detail);
 
 const NMPObject *nm_ip4_config_best_default_route_get (const NMIP4Config *self);
 const NMPObject *_nm_ip4_config_best_default_route_find (const NMIP4Config *self);
@@ -201,6 +205,9 @@ in_addr_t nmtst_ip4_config_get_gateway (NMIP4Config *config);
 NMSettingConnectionMdns nm_ip4_config_mdns_get (const NMIP4Config *self);
 void                    nm_ip4_config_mdns_set (NMIP4Config *self,
                                                 NMSettingConnectionMdns mdns);
+NMSettingConnectionLlmnr nm_ip4_config_llmnr_get (const NMIP4Config *self);
+void                     nm_ip4_config_llmnr_set (NMIP4Config *self,
+                                                  NMSettingConnectionLlmnr llmnr);
 
 const NMDedupMultiHeadEntry *nm_ip4_config_lookup_addresses (const NMIP4Config *self);
 void nm_ip4_config_reset_addresses (NMIP4Config *self);
@@ -257,8 +264,8 @@ void nm_ip4_config_del_dns_option (NMIP4Config *self, guint i);
 guint nm_ip4_config_get_num_dns_options (const NMIP4Config *self);
 const char * nm_ip4_config_get_dns_option (const NMIP4Config *self, guint i);
 
-void nm_ip4_config_set_dns_priority (NMIP4Config *self, gint priority);
-gint nm_ip4_config_get_dns_priority (const NMIP4Config *self);
+void nm_ip4_config_set_dns_priority (NMIP4Config *self, int priority);
+int nm_ip4_config_get_dns_priority (const NMIP4Config *self);
 
 void nm_ip4_config_reset_nis_servers (NMIP4Config *self);
 void nm_ip4_config_add_nis_server (NMIP4Config *self, guint32 nis);
@@ -290,6 +297,11 @@ void nm_ip4_config_hash (const NMIP4Config *self, GChecksum *sum, gboolean dns_o
 gboolean nm_ip4_config_equal (const NMIP4Config *a, const NMIP4Config *b);
 
 gboolean _nm_ip_config_check_and_add_domain (GPtrArray *array, const char *domain);
+
+void nm_ip_config_dump (const NMIPConfig *self,
+                        const char *detail,
+                        NMLogLevel level,
+                        NMLogDomain domain);
 
 /*****************************************************************************/
 
@@ -431,7 +443,7 @@ nm_ip_config_get_dns_priority (const NMIPConfig *self)
 }
 
 static inline void
-nm_ip_config_set_dns_priority (NMIPConfig *self, gint priority)
+nm_ip_config_set_dns_priority (NMIPConfig *self, int priority)
 {
 	_NM_IP_CONFIG_DISPATCH_VOID (self, nm_ip4_config_set_dns_priority, nm_ip6_config_set_dns_priority, priority);
 }
@@ -531,11 +543,13 @@ nm_ip_config_best_default_route_get (const NMIPConfig *self)
 static inline void
 nm_ip_config_intersect (NMIPConfig *dst,
                         const NMIPConfig *src,
+                        gboolean intersect_routes,
                         guint32 default_route_metric_penalty)
 {
 	_NM_IP_CONFIG_DISPATCH_SET_OP (, dst, src,
 	                               nm_ip4_config_intersect,
 	                               nm_ip6_config_intersect,
+	                               intersect_routes,
 	                               default_route_metric_penalty);
 }
 
@@ -577,18 +591,21 @@ nm_ip_config_replace (NMIPConfig *dst,
 static inline NMIPConfig *
 nm_ip_config_intersect_alloc (const NMIPConfig *a,
                               const NMIPConfig *b,
+                              gboolean intersect_routes,
                               guint32 default_route_metric_penalty)
 {
 	if (NM_IS_IP4_CONFIG (a)) {
 		nm_assert (NM_IS_IP4_CONFIG (b));
 		return (NMIPConfig *) nm_ip4_config_intersect_alloc ((const NMIP4Config *) a,
 		                                                     (const NMIP4Config *) b,
+		                                                     intersect_routes,
 		                                                     default_route_metric_penalty);
 	} else {
 		nm_assert (NM_IS_IP6_CONFIG (a));
 		nm_assert (NM_IS_IP6_CONFIG (b));
 		return (NMIPConfig *) nm_ip6_config_intersect_alloc ((const NMIP6Config *) a,
 		                                                     (const NMIP6Config *) b,
+		                                                     intersect_routes,
 		                                                     default_route_metric_penalty);
 	}
 }

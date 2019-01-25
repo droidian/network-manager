@@ -3,7 +3,9 @@
 ]>
 
 <nm-dbus-docs>
-  <setting name="802-1x">
+  <setting name="6lowpan">
+</setting>
+<setting name="802-1x">
 </setting>
 <setting name="adsl">
 </setting>
@@ -28,6 +30,8 @@ bridge&apos;s interface name."/>
 <setting name="dcb">
 </setting>
 <setting name="dummy">
+</setting>
+<setting name="ethtool">
 </setting>
 <setting name="generic">
 </setting>
@@ -112,6 +116,8 @@ also exist on some routes."/>
 </setting>
 <setting name="macvlan">
 </setting>
+<setting name="match">
+</setting>
 <setting name="802-11-olpc-mesh">
 </setting>
 <setting name="ovs-bridge">
@@ -131,6 +137,8 @@ also exist on some routes."/>
 <setting name="serial">
 <property name="parity" variable="parity" format="byte" values="" default="" example="" description="The connection parity: 69 (ASCII &apos;E&apos;) for even parity,
 111 (ASCII &apos;o&apos;) for odd, 110 (ASCII &apos;n&apos;) for none."/>
+</setting>
+<setting name="sriov">
 </setting>
 <setting name="tc">
 </setting>
@@ -185,5 +193,7 @@ only exists in D-Bus API. libnm and nmcli continue to call this property
 &apos;802-11-wireless-security&apos; when a wireless security setting is also
 present in the connection dictionary, for compatibility with very old
 NetworkManager daemons."/>
+</setting>
+<setting name="wpan">
 </setting>
 </nm-dbus-docs>

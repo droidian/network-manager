@@ -23,9 +23,12 @@
 #include <string.h>
 
 #include "nm-utils.h"
+#include "nm-utils-private.h"
+#include "nm-core-internal.h"
 #include "nm-setting-8021x.h"
 #include "nm-setting-bond.h"
 #include "nm-setting-dcb.h"
+#include "nm-setting-ethtool.h"
 #include "nm-setting-team.h"
 #include "nm-setting-team-port.h"
 #include "nm-setting-tc-config.h"
@@ -34,6 +37,7 @@
 #include "nm-simple-connection.h"
 #include "nm-setting-connection.h"
 #include "nm-errors.h"
+#include "nm-keyfile-internal.h"
 
 #include "nm-utils/nm-test-utils.h"
 
@@ -46,7 +50,7 @@ compare_blob_data (const char *test,
                    const char *key_path,
                    GBytes *key)
 {
-	char *contents = NULL;
+	gs_free char *contents = NULL;
 	gsize len = 0;
 	GError *error = NULL;
 	gboolean success;
@@ -57,18 +61,18 @@ compare_blob_data (const char *test,
 	nmtst_assert_success (success, error);
 
 	g_assert_cmpmem (contents, len, g_bytes_get_data (key, NULL), g_bytes_get_size (key));
-
-	g_free (contents);
 }
 
 static void
 check_scheme_path (GBytes *value, const char *path)
 {
 	const guint8 *p;
+	gsize l;
 
 	g_assert (value);
 
-	p = g_bytes_get_data (value, NULL);
+	p = g_bytes_get_data (value, &l);
+	g_assert_cmpint (l, ==, strlen (path) + NM_STRLEN (NM_SETTING_802_1X_CERT_SCHEME_PREFIX_PATH) + 1);
 	g_assert (memcmp (p, NM_SETTING_802_1X_CERT_SCHEME_PREFIX_PATH, strlen (NM_SETTING_802_1X_CERT_SCHEME_PREFIX_PATH)) == 0);
 	p += strlen (NM_SETTING_802_1X_CERT_SCHEME_PREFIX_PATH);
 	g_assert (memcmp (p, path, strlen (path)) == 0);
@@ -998,7 +1002,7 @@ test_runner_loadbalance_sync_from_config (void)
 {
 	gs_unref_ptrarray GPtrArray *tx_hash = NULL;
 
-	tx_hash = g_ptr_array_new_with_free_func ((GDestroyNotify) g_free);
+	tx_hash = g_ptr_array_new_with_free_func (g_free);
 	g_ptr_array_add (tx_hash, g_strdup ("eth"));
 	g_ptr_array_add (tx_hash, g_strdup ("ipv4"));
 	g_ptr_array_add (tx_hash, g_strdup ("ipv6"));
@@ -1035,7 +1039,7 @@ test_runner_lacp_sync_from_config (void)
 {
 	gs_unref_ptrarray GPtrArray *tx_hash = NULL;
 
-	tx_hash = g_ptr_array_new_with_free_func ((GDestroyNotify) g_free);
+	tx_hash = g_ptr_array_new_with_free_func (g_free);
 	g_ptr_array_add (tx_hash, g_strdup ("eth"));
 	g_ptr_array_add (tx_hash, g_strdup ("ipv4"));
 	g_ptr_array_add (tx_hash, g_strdup ("ipv6"));
@@ -1259,6 +1263,309 @@ test_team_port_full_config (void)
 	                             10, 20, true, 30, 40, NULL);
 }
 #endif
+
+/*****************************************************************************/
+
+static void
+test_ethtool_1 (void)
+{
+	gs_unref_object NMConnection *con = NULL;
+	gs_unref_object NMConnection *con2 = NULL;
+	gs_unref_object NMConnection *con3 = NULL;
+	gs_unref_variant GVariant *variant = NULL;
+	gs_free_error GError *error = NULL;
+	gs_unref_keyfile GKeyFile *keyfile = NULL;
+	NMSettingConnection *s_con;
+	NMSettingEthtool *s_ethtool;
+	NMSettingEthtool *s_ethtool2;
+	NMSettingEthtool *s_ethtool3;
+
+	con = nmtst_create_minimal_connection ("ethtool-1",
+	                                        NULL,
+	                                        NM_SETTING_WIRED_SETTING_NAME,
+	                                        &s_con);
+	s_ethtool = NM_SETTING_ETHTOOL (nm_setting_ethtool_new ());
+	nm_connection_add_setting (con, NM_SETTING (s_ethtool));
+
+	nm_setting_ethtool_set_feature (s_ethtool,
+	                                NM_ETHTOOL_OPTNAME_FEATURE_RX,
+	                                NM_TERNARY_TRUE);
+	nm_setting_ethtool_set_feature (s_ethtool,
+	                                NM_ETHTOOL_OPTNAME_FEATURE_LRO,
+	                                NM_TERNARY_FALSE);
+
+	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool, NM_ETHTOOL_OPTNAME_FEATURE_RX), ==, NM_TERNARY_TRUE);
+	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool, NM_ETHTOOL_OPTNAME_FEATURE_LRO), ==, NM_TERNARY_FALSE);
+	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool, NM_ETHTOOL_OPTNAME_FEATURE_SG),  ==, NM_TERNARY_DEFAULT);
+
+	nmtst_connection_normalize (con);
+
+	variant = nm_connection_to_dbus (con, NM_CONNECTION_SERIALIZE_ALL);
+
+	con2 = nm_simple_connection_new_from_dbus (variant, &error);
+	nmtst_assert_success (con2, error);
+
+	s_ethtool2 = NM_SETTING_ETHTOOL (nm_connection_get_setting (con2, NM_TYPE_SETTING_ETHTOOL));
+
+	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool2, NM_ETHTOOL_OPTNAME_FEATURE_RX),  ==, NM_TERNARY_TRUE);
+	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool2, NM_ETHTOOL_OPTNAME_FEATURE_LRO), ==, NM_TERNARY_FALSE);
+	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool2, NM_ETHTOOL_OPTNAME_FEATURE_SG),  ==, NM_TERNARY_DEFAULT);
+
+	nmtst_assert_connection_verifies_without_normalization (con2);
+
+	nmtst_assert_connection_equals (con, FALSE, con2, FALSE);
+
+	keyfile = nm_keyfile_write (con, NULL, NULL, &error);
+	nmtst_assert_success (keyfile, error);
+
+	con3 = nm_keyfile_read (keyfile,
+	                        "/ignored/current/working/directory/for/loading/relative/paths",
+	                        NULL,
+	                        NULL,
+	                        &error);
+	nmtst_assert_success (con3, error);
+
+	nm_keyfile_read_ensure_id (con3, "unused-because-already-has-id");
+	nm_keyfile_read_ensure_uuid (con3, "unused-because-already-has-uuid");
+
+	nmtst_connection_normalize (con3);
+
+	nmtst_assert_connection_equals (con, FALSE, con3, FALSE);
+
+	s_ethtool3 = NM_SETTING_ETHTOOL (nm_connection_get_setting (con3, NM_TYPE_SETTING_ETHTOOL));
+
+	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool3, NM_ETHTOOL_OPTNAME_FEATURE_RX),  ==, NM_TERNARY_TRUE);
+	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool3, NM_ETHTOOL_OPTNAME_FEATURE_LRO), ==, NM_TERNARY_FALSE);
+	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool3, NM_ETHTOOL_OPTNAME_FEATURE_SG),  ==, NM_TERNARY_DEFAULT);
+}
+
+/*****************************************************************************/
+
+static void
+test_sriov_vf (void)
+{
+	NMSriovVF *vf1, *vf2;
+	GError *error = NULL;
+	char *str;
+
+	vf1 = nm_sriov_vf_new (1);
+	nm_sriov_vf_set_attribute (vf1, NM_SRIOV_VF_ATTRIBUTE_MAC, g_variant_new_string ("00:11:22:33:44:55"));
+	nm_sriov_vf_set_attribute (vf1, NM_SRIOV_VF_ATTRIBUTE_SPOOF_CHECK, g_variant_new_boolean (TRUE));
+	nm_sriov_vf_set_attribute (vf1, NM_SRIOV_VF_ATTRIBUTE_TRUST, g_variant_new_boolean (FALSE));
+	nm_sriov_vf_set_attribute (vf1, NM_SRIOV_VF_ATTRIBUTE_MIN_TX_RATE, g_variant_new_uint32 (100));
+	nm_sriov_vf_set_attribute (vf1, NM_SRIOV_VF_ATTRIBUTE_MAX_TX_RATE, g_variant_new_uint32 (500));
+
+	str = nm_utils_sriov_vf_to_str (vf1, FALSE, &error);
+	g_assert_no_error (error);
+	g_assert_cmpstr (str, ==, "1 mac=00:11:22:33:44:55 max-tx-rate=500 min-tx-rate=100 spoof-check=true trust=false");
+	g_free (str);
+
+	vf2 = nm_utils_sriov_vf_from_str (" 1  mac=00:11:22:33:44:55  max-tx-rate=500 min-tx-rate=100", &error);
+	nmtst_assert_success (vf2, error);
+	nm_sriov_vf_set_attribute (vf2, NM_SRIOV_VF_ATTRIBUTE_SPOOF_CHECK, g_variant_new_boolean (FALSE));
+	nm_sriov_vf_set_attribute (vf2, NM_SRIOV_VF_ATTRIBUTE_SPOOF_CHECK, g_variant_new_boolean (TRUE));
+	nm_sriov_vf_set_attribute (vf2, NM_SRIOV_VF_ATTRIBUTE_TRUST, g_variant_new_boolean (TRUE));
+	nm_sriov_vf_set_attribute (vf2, NM_SRIOV_VF_ATTRIBUTE_TRUST, NULL);
+	nm_sriov_vf_set_attribute (vf2, NM_SRIOV_VF_ATTRIBUTE_TRUST, g_variant_new_boolean (FALSE));
+
+	g_assert (nm_sriov_vf_equal (vf1, vf2));
+
+	nm_sriov_vf_unref (vf1);
+	nm_sriov_vf_unref (vf2);
+}
+
+static void
+test_sriov_vf_dup (void)
+{
+	NMSriovVF *vf1, *vf2;
+
+	vf1 = nm_sriov_vf_new (1);
+	nm_sriov_vf_set_attribute (vf1, NM_SRIOV_VF_ATTRIBUTE_MAC, g_variant_new_string ("foobar"));
+	nm_sriov_vf_set_attribute (vf1, NM_SRIOV_VF_ATTRIBUTE_TRUST, g_variant_new_boolean (FALSE));
+	nm_sriov_vf_set_attribute (vf1, NM_SRIOV_VF_ATTRIBUTE_MIN_TX_RATE, g_variant_new_uint32 (10));
+	nm_sriov_vf_set_attribute (vf1, NM_SRIOV_VF_ATTRIBUTE_MAX_TX_RATE, g_variant_new_uint32 (1000));
+	nm_sriov_vf_add_vlan (vf1, 80);
+	nm_sriov_vf_set_vlan_qos (vf1, 80, NM_SRIOV_VF_VLAN_PROTOCOL_802_1AD);
+
+	vf2 = nm_sriov_vf_dup (vf1);
+	g_assert (nm_sriov_vf_equal (vf1, vf2));
+
+	nm_sriov_vf_unref (vf1);
+	nm_sriov_vf_unref (vf2);
+}
+
+static void
+test_sriov_vf_vlan (void)
+{
+	NMSriovVF *vf;
+	const guint *vlan_ids;
+	guint num;
+	GError *error = NULL;
+	gs_free char *str = NULL;
+
+	vf = nm_sriov_vf_new (19);
+	nm_sriov_vf_set_attribute (vf, NM_SRIOV_VF_ATTRIBUTE_MAC, g_variant_new_string ("00:11:22"));
+	g_assert (nm_sriov_vf_add_vlan (vf, 80));
+	g_assert (!nm_sriov_vf_add_vlan (vf, 80));
+	g_assert (nm_sriov_vf_add_vlan (vf, 82));
+	g_assert (nm_sriov_vf_add_vlan (vf, 83));
+	g_assert (nm_sriov_vf_add_vlan (vf, 81));
+	g_assert (!nm_sriov_vf_remove_vlan (vf, 100));
+	g_assert (nm_sriov_vf_remove_vlan (vf, 82));
+	nm_sriov_vf_set_vlan_qos (vf, 81, 0xabba);
+	nm_sriov_vf_set_vlan_protocol (vf, 81, NM_SRIOV_VF_VLAN_PROTOCOL_802_1AD);
+
+	vlan_ids = nm_sriov_vf_get_vlan_ids (vf, &num);
+	g_assert (vlan_ids);
+	g_assert_cmpint (num, ==, 3);
+	g_assert_cmpint (vlan_ids[0], ==, 80);
+	g_assert_cmpint (vlan_ids[1], ==, 81);
+	g_assert_cmpint (vlan_ids[2], ==, 83);
+	g_assert_cmpint (nm_sriov_vf_get_vlan_qos (vf, 80), ==, 0x0);
+	g_assert_cmpint (nm_sriov_vf_get_vlan_protocol (vf, 80), ==, NM_SRIOV_VF_VLAN_PROTOCOL_802_1Q);
+	g_assert_cmpint (nm_sriov_vf_get_vlan_qos (vf, 81), ==, 0xabba);
+	g_assert_cmpint (nm_sriov_vf_get_vlan_protocol (vf, 81), ==, NM_SRIOV_VF_VLAN_PROTOCOL_802_1AD);
+
+	nm_sriov_vf_unref (vf);
+
+	vf = nm_utils_sriov_vf_from_str ("20 spoof-check=false vlans=85.0.q;4000.0x20.ad;81.10;83", &error);
+	nmtst_assert_success (vf, error);
+	vlan_ids = nm_sriov_vf_get_vlan_ids (vf, &num);
+	g_assert (vlan_ids);
+	g_assert_cmpint (num, ==, 4);
+	g_assert_cmpint (vlan_ids[0], ==, 81);
+	g_assert_cmpint (nm_sriov_vf_get_vlan_qos (vf, 81), ==, 10);
+	g_assert_cmpint (nm_sriov_vf_get_vlan_protocol (vf, 81), ==, NM_SRIOV_VF_VLAN_PROTOCOL_802_1Q);
+	g_assert_cmpint (vlan_ids[1], ==, 83);
+	g_assert_cmpint (nm_sriov_vf_get_vlan_qos (vf, 83), ==, 0);
+	g_assert_cmpint (nm_sriov_vf_get_vlan_protocol (vf, 83), ==, NM_SRIOV_VF_VLAN_PROTOCOL_802_1Q);
+	g_assert_cmpint (vlan_ids[2], ==, 85);
+	g_assert_cmpint (nm_sriov_vf_get_vlan_qos (vf, 85), ==, 0);
+	g_assert_cmpint (nm_sriov_vf_get_vlan_protocol (vf, 85), ==, NM_SRIOV_VF_VLAN_PROTOCOL_802_1Q);
+	g_assert_cmpint (vlan_ids[3], ==, 4000);
+	g_assert_cmpint (nm_sriov_vf_get_vlan_qos (vf, 4000), ==, 0x20);
+	g_assert_cmpint (nm_sriov_vf_get_vlan_protocol (vf, 4000), ==, NM_SRIOV_VF_VLAN_PROTOCOL_802_1AD);
+
+	str = nm_utils_sriov_vf_to_str (vf, FALSE, &error);
+	nmtst_assert_success (str, error);
+	g_assert_cmpstr (str, ==, "20 spoof-check=false vlans=81.10;83;85;4000.32.ad");
+
+	nm_sriov_vf_unref (vf);
+}
+
+static void
+test_sriov_setting (void)
+{
+	gs_unref_object NMConnection *con = NULL;
+	NMSettingConnection *s_con;
+	NMSettingSriov *s_sriov = NULL;
+	NMSriovVF *vf1, *vf2, *vf3;
+	GError *error = NULL;
+	gboolean success;
+
+	con = nm_simple_connection_new ();
+
+	s_con = (NMSettingConnection *) nm_setting_connection_new ();
+	nm_connection_add_setting (con, NM_SETTING (s_con));
+
+	g_object_set (s_con,
+	              NM_SETTING_CONNECTION_ID, "Test SR-IOV connection",
+	              NM_SETTING_CONNECTION_UUID, nm_utils_uuid_generate_a (),
+	              NM_SETTING_CONNECTION_AUTOCONNECT, TRUE,
+	              NM_SETTING_CONNECTION_INTERFACE_NAME, "eth0",
+	              NM_SETTING_CONNECTION_TYPE, NM_SETTING_WIRED_SETTING_NAME,
+	              NULL);
+
+	nm_connection_add_setting (con, nm_setting_wired_new ());
+
+	s_sriov = (NMSettingSriov *) nm_setting_sriov_new ();
+	nm_connection_add_setting (con, NM_SETTING (s_sriov));
+
+	g_object_set (s_sriov, NM_SETTING_SRIOV_TOTAL_VFS, 16, NULL);
+	nm_setting_sriov_add_vf (s_sriov, (vf1 = nm_sriov_vf_new (0)));
+	nm_setting_sriov_add_vf (s_sriov, (vf2 = nm_sriov_vf_new (4)));
+	nm_setting_sriov_add_vf (s_sriov, (vf3 = nm_sriov_vf_new (10)));
+	g_assert (nm_setting_sriov_remove_vf_by_index (s_sriov, 4));
+	nm_sriov_vf_unref (vf2);
+	nm_setting_sriov_add_vf (s_sriov, (vf2 = nm_sriov_vf_new (2)));
+
+	nmtst_assert_connection_verifies_and_normalizable (con);
+	nmtst_connection_normalize (con);
+	success = nm_setting_verify ((NMSetting *) s_sriov, con, &error);
+	nmtst_assert_success (success, error);
+
+	g_assert_cmpint (nm_setting_sriov_get_num_vfs (s_sriov), ==, 3);
+	g_assert_cmpint (nm_sriov_vf_get_index (nm_setting_sriov_get_vf (s_sriov, 0)), ==, 0);
+	g_assert_cmpint (nm_sriov_vf_get_index (nm_setting_sriov_get_vf (s_sriov, 1)), ==, 2);
+	g_assert_cmpint (nm_sriov_vf_get_index (nm_setting_sriov_get_vf (s_sriov, 2)), ==, 10);
+
+	nm_sriov_vf_unref (vf1);
+	nm_sriov_vf_unref (vf2);
+	nm_sriov_vf_unref (vf3);
+}
+
+typedef struct {
+	guint id;
+	guint qos;
+	bool  proto_ad;
+} VlanData;
+
+static void
+_test_sriov_parse_vlan_one (const char *string, gboolean exp_res, VlanData *data, guint data_length)
+{
+	NMSriovVF *vf;
+	gboolean res;
+	guint i, num_vlans;
+	const guint *vlan_ids;
+
+	vf = nm_sriov_vf_new (1);
+	g_assert (vf);
+
+	res = _nm_sriov_vf_parse_vlans (vf, string, NULL);
+	g_assert_cmpint (res, ==, exp_res);
+
+	if (exp_res) {
+		vlan_ids = nm_sriov_vf_get_vlan_ids (vf, &num_vlans);
+		g_assert_cmpint (num_vlans, ==, data_length);
+		for (i = 0; i < num_vlans; i++) {
+			g_assert_cmpint (vlan_ids[i], ==, data[i].id);
+			g_assert_cmpint (nm_sriov_vf_get_vlan_qos (vf, vlan_ids[i]), ==, data[i].qos);
+			g_assert_cmpint (nm_sriov_vf_get_vlan_protocol (vf, vlan_ids[i]),
+			                 ==,
+			                 data[i].proto_ad ? NM_SRIOV_VF_VLAN_PROTOCOL_802_1AD: NM_SRIOV_VF_VLAN_PROTOCOL_802_1Q);
+		}
+	}
+
+	nm_sriov_vf_unref (vf);
+}
+
+#define test_sriov_parse_vlan_one(string, result, ...) \
+	{ \
+		VlanData _data[] = { __VA_ARGS__ }; \
+		guint _length = G_N_ELEMENTS (_data); \
+		\
+		_test_sriov_parse_vlan_one (string, result, _data, _length); \
+	}
+
+static void
+test_sriov_parse_vlans (void)
+{
+	test_sriov_parse_vlan_one ("",  FALSE, {});
+	test_sriov_parse_vlan_one ("1", TRUE, {1, 0, 0});
+	test_sriov_parse_vlan_one ("1;2", TRUE, {1, 0, 0}, {2, 0, 0});
+	test_sriov_parse_vlan_one ("4095;;2", TRUE, {2, 0, 0}, {4095, 0, 0});
+	test_sriov_parse_vlan_one ("1 2", FALSE, {});
+	test_sriov_parse_vlan_one ("4096", FALSE, {});
+	test_sriov_parse_vlan_one ("1.10", TRUE, {1, 10, 0});
+	test_sriov_parse_vlan_one ("1.20.ad", TRUE, {1, 20, 1});
+	test_sriov_parse_vlan_one ("1.21.q", TRUE, {1, 21, 0});
+	test_sriov_parse_vlan_one ("9.20.foo", FALSE, {});
+	test_sriov_parse_vlan_one ("1.20.ad.12", FALSE, {});
+	test_sriov_parse_vlan_one ("1;1.10", FALSE, {});
+	test_sriov_parse_vlan_one ("1..1;2", FALSE, {});
+	test_sriov_parse_vlan_one ("1..ad;2", FALSE, {});
+	test_sriov_parse_vlan_one ("1.2.ad;2.0.q;5;3", TRUE, {1, 2, 1}, {2, 0, 0}, {3, 0, 0}, {5, 0, 0});
+}
 
 /*****************************************************************************/
 
@@ -1668,6 +1975,14 @@ main (int argc, char **argv)
 	g_test_add_func ("/libnm/settings/dcb/app-priorities", test_dcb_app_priorities);
 	g_test_add_func ("/libnm/settings/dcb/priorities", test_dcb_priorities_valid);
 	g_test_add_func ("/libnm/settings/dcb/bandwidth-sums", test_dcb_bandwidth_sums);
+
+	g_test_add_func ("/libnm/settings/ethtool/1", test_ethtool_1);
+
+	g_test_add_func ("/libnm/settings/sriov/vf", test_sriov_vf);
+	g_test_add_func ("/libnm/settings/sriov/vf-dup", test_sriov_vf_dup);
+	g_test_add_func ("/libnm/settings/sriov/vf-vlan", test_sriov_vf_vlan);
+	g_test_add_func ("/libnm/settings/sriov/setting", test_sriov_setting);
+	g_test_add_func ("/libnm/settings/sriov/vlans", test_sriov_parse_vlans);
 
 	g_test_add_func ("/libnm/settings/tc_config/qdisc", test_tc_config_qdisc);
 	g_test_add_func ("/libnm/settings/tc_config/action", test_tc_config_action);

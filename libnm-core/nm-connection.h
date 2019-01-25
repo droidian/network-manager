@@ -16,7 +16,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright 2007 - 2017 Red Hat, Inc.
+ * Copyright 2007 - 2018 Red Hat, Inc.
  * Copyright 2007 - 2008 Novell, Inc.
  */
 
@@ -231,6 +231,7 @@ NMSettingProxy *           nm_connection_get_setting_proxy             (NMConnec
 NMSettingSerial *          nm_connection_get_setting_serial            (NMConnection *connection);
 NM_AVAILABLE_IN_1_12
 NMSettingTCConfig *        nm_connection_get_setting_tc_config         (NMConnection *connection);
+NM_AVAILABLE_IN_1_2
 NMSettingTun *             nm_connection_get_setting_tun               (NMConnection *connection);
 NMSettingVpn *             nm_connection_get_setting_vpn               (NMConnection *connection);
 NMSettingWimax *           nm_connection_get_setting_wimax             (NMConnection *connection);

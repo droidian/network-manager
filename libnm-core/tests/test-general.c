@@ -15,7 +15,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2008 - 2011 Red Hat, Inc.
+ * Copyright 2008 - 2018 Red Hat, Inc.
  *
  */
 
@@ -43,6 +43,7 @@
 #include "nm-setting-bridge-port.h"
 #include "nm-setting-cdma.h"
 #include "nm-setting-connection.h"
+#include "nm-setting-ethtool.h"
 #include "nm-setting-generic.h"
 #include "nm-setting-gsm.h"
 #include "nm-setting-infiniband.h"
@@ -61,9 +62,11 @@
 #include "nm-setting-wired.h"
 #include "nm-setting-wireless.h"
 #include "nm-setting-wireless-security.h"
+#include "nm-setting-wpan.h"
 #include "nm-simple-connection.h"
 #include "nm-keyfile-internal.h"
 #include "nm-utils/nm-dedup-multi.h"
+#include "nm-ethtool-utils.h"
 
 #include "test-general-enums.h"
 
@@ -222,8 +225,8 @@ test_nm_g_slice_free_fcn (void)
 	p = g_slice_new (gint32);
 	(nm_g_slice_free_fcn (gint32)) (p);
 
-	p = g_slice_new (gint);
-	(nm_g_slice_free_fcn (gint)) (p);
+	p = g_slice_new (int);
+	(nm_g_slice_free_fcn (int)) (p);
 
 	p = g_slice_new (gint64);
 	nm_g_slice_free_fcn_gint64 (p);
@@ -235,7 +238,7 @@ test_nm_g_slice_free_fcn (void)
 /*****************************************************************************/
 
 static void
-_do_test_nm_utils_strsplit_set (const char *str, ...)
+_do_test_nm_utils_strsplit_set (gboolean escape, const char *str, ...)
 {
 	gs_unref_ptrarray GPtrArray *args_array = g_ptr_array_new ();
 	const char *const*args;
@@ -252,7 +255,7 @@ _do_test_nm_utils_strsplit_set (const char *str, ...)
 
 	args = (const char *const*) args_array->pdata;
 
-	words = nm_utils_strsplit_set (str, " \t\n");
+	words = nm_utils_strsplit_set (str, " \t\n", escape);
 
 	if (!args[0]) {
 		g_assert (!words);
@@ -265,7 +268,7 @@ _do_test_nm_utils_strsplit_set (const char *str, ...)
 		g_assert (args[i]);
 		g_assert (words[i]);
 		g_assert (args[i][0]);
-		g_assert (NM_STRCHAR_ALL (args[i], ch, !NM_IN_SET (ch, ' ', '\t', '\n')));
+		g_assert (escape || NM_STRCHAR_ALL (args[i], ch, !NM_IN_SET (ch, ' ', '\t', '\n')));
 		g_assert_cmpstr (args[i], ==, words[i]);
 	}
 }
@@ -276,21 +279,29 @@ _do_test_nm_utils_strsplit_set (const char *str, ...)
 static void
 test_nm_utils_strsplit_set (void)
 {
-	do_test_nm_utils_strsplit_set (NULL);
-	do_test_nm_utils_strsplit_set ("");
-	do_test_nm_utils_strsplit_set ("\t");
-	do_test_nm_utils_strsplit_set (" \t\n");
-	do_test_nm_utils_strsplit_set ("a", "a");
-	do_test_nm_utils_strsplit_set ("a b", "a", "b");
-	do_test_nm_utils_strsplit_set ("a\rb", "a\rb");
-	do_test_nm_utils_strsplit_set ("  a\rb  ", "a\rb");
-	do_test_nm_utils_strsplit_set ("  a bbbd afds ere", "a", "bbbd", "afds", "ere");
-	do_test_nm_utils_strsplit_set ("1 2 3 4 5 6 7 8 9 0 "
+	do_test_nm_utils_strsplit_set (FALSE, NULL);
+	do_test_nm_utils_strsplit_set (FALSE, "");
+	do_test_nm_utils_strsplit_set (FALSE, "\t");
+	do_test_nm_utils_strsplit_set (FALSE, " \t\n");
+	do_test_nm_utils_strsplit_set (FALSE, "a", "a");
+	do_test_nm_utils_strsplit_set (FALSE, "a b", "a", "b");
+	do_test_nm_utils_strsplit_set (FALSE, "a\rb", "a\rb");
+	do_test_nm_utils_strsplit_set (FALSE, "  a\rb  ", "a\rb");
+	do_test_nm_utils_strsplit_set (FALSE, "  a bbbd afds ere", "a", "bbbd", "afds", "ere");
+	do_test_nm_utils_strsplit_set (FALSE,
+	                               "1 2 3 4 5 6 7 8 9 0 "
 	                               "1 2 3 4 5 6 7 8 9 0 "
 	                               "1 2 3 4 5 6 7 8 9 0",
 	                               "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
 	                               "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
 	                               "1", "2", "3", "4", "5", "6", "7", "8", "9", "0");
+	do_test_nm_utils_strsplit_set (TRUE, "\\", "\\");
+	do_test_nm_utils_strsplit_set (TRUE, "\\ ", "\\ ");
+	do_test_nm_utils_strsplit_set (TRUE, "\\\\", "\\\\");
+	do_test_nm_utils_strsplit_set (TRUE, "\\\t", "\\\t");
+	do_test_nm_utils_strsplit_set (TRUE, "foo\\", "foo\\");
+	do_test_nm_utils_strsplit_set (TRUE, "bar foo\\", "bar", "foo\\");
+	do_test_nm_utils_strsplit_set (TRUE, "\\ a b\\ \\  c", "\\ a", "b\\ \\ ", "c");
 }
 
 /*****************************************************************************/
@@ -2594,6 +2605,7 @@ test_connection_diff_a_only (void)
 			{ NM_SETTING_CONNECTION_AUTOCONNECT,          NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY, NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_CONNECTION_AUTOCONNECT_RETRIES,  NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_CONNECTION_MULTI_CONNECT,        NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_CONNECTION_READ_ONLY,            NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_CONNECTION_PERMISSIONS,          NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_CONNECTION_ZONE,                 NM_SETTING_DIFF_RESULT_IN_A },
@@ -2606,6 +2618,7 @@ test_connection_diff_a_only (void)
 			{ NM_SETTING_CONNECTION_LLDP,                 NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_CONNECTION_AUTH_RETRIES,         NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_CONNECTION_MDNS,                 NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_CONNECTION_LLMNR,                NM_SETTING_DIFF_RESULT_IN_A },
 			{ NULL, NM_SETTING_DIFF_RESULT_UNKNOWN }
 		} },
 		{ NM_SETTING_WIRED_SETTING_NAME, {
@@ -5328,18 +5341,17 @@ test_hexstr2bin (void)
 		{ "aab:ccc:ddd" },
 		{ "aab::ccc:ddd" },
 	};
-	GBytes *b;
 	guint i;
 
 	for (i = 0; i < G_N_ELEMENTS (items); i++) {
+		gs_unref_bytes GBytes *b = NULL;
+
 		b = nm_utils_hexstr2bin (items[i].str);
-		if (items[i].expected_len) {
+		if (items[i].expected_len)
 			g_assert (b);
-			g_assert_cmpint (g_bytes_get_size (b), ==, items[i].expected_len);
-			g_assert (memcmp (g_bytes_get_data (b, NULL), items[i].expected, g_bytes_get_size (b)) == 0);
-			g_bytes_unref (b);
-		} else
-			g_assert (b == NULL);
+		else
+			g_assert (!b);
+		g_assert (nm_utils_gbytes_equal_mem (b, items[i].expected, items[i].expected_len));
 	}
 }
 
@@ -6033,7 +6045,7 @@ static void
 test_nm_utils_is_power_of_two (void)
 {
 	guint64 xyes, xno;
-	gint i, j;
+	int i, j;
 	GRand *rand = nmtst_get_rand ();
 	int numbits;
 
@@ -6124,7 +6136,7 @@ _test_find_binary_search_do (const int *array, gsize len)
 
 	expected_result = _nm_utils_ptrarray_find_first (parray, len, pneedle);
 
-	idx = _nm_utils_ptrarray_find_binary_search (parray, len, pneedle, _test_find_binary_search_cmp, NULL, &idx_first, &idx_last);
+	idx = nm_utils_ptrarray_find_binary_search (parray, len, pneedle, _test_find_binary_search_cmp, NULL, &idx_first, &idx_last);
 	if (expected_result >= 0) {
 		g_assert_cmpint (expected_result, ==, idx);
 	} else {
@@ -6186,12 +6198,12 @@ _test_find_binary_search_do_uint32 (const int *int_array, gsize len)
 			expected_result = idx;
 	}
 
-	idx = _nm_utils_array_find_binary_search (array,
-	                                          sizeof (guint32),
-	                                          len,
-	                                          &NEEDLE,
-	                                          nm_cmp_uint32_p_with_data,
-	                                          NULL);
+	idx = nm_utils_array_find_binary_search (array,
+	                                         sizeof (guint32),
+	                                         len,
+	                                         &NEEDLE,
+	                                         nm_cmp_uint32_p_with_data,
+	                                         NULL);
 	if (expected_result >= 0)
 		g_assert_cmpint (expected_result, ==, idx);
 	else {
@@ -6291,11 +6303,11 @@ test_nm_utils_ptrarray_find_binary_search_with_duplicates (void)
 			for (i = 0; i < i_len + BIN_SEARCH_W_DUPS_JITTER; i++) {
 				gconstpointer p = GINT_TO_POINTER (i);
 
-				idx = _nm_utils_ptrarray_find_binary_search (arr, i_len, p, _test_bin_search2_cmp, NULL, &idx_first, &idx_last);
+				idx = nm_utils_ptrarray_find_binary_search (arr, i_len, p, _test_bin_search2_cmp, NULL, &idx_first, &idx_last);
 
 				idx_first2 = _nm_utils_ptrarray_find_first (arr, i_len, p);
 
-				idx2 = _nm_utils_array_find_binary_search (arr, sizeof (gpointer), i_len, &p, _test_bin_search2_cmp_p, NULL);
+				idx2 = nm_utils_array_find_binary_search (arr, sizeof (gpointer), i_len, &p, _test_bin_search2_cmp_p, NULL);
 				g_assert_cmpint (idx, ==, idx2);
 
 				if (idx_first2 < 0) {
@@ -6547,74 +6559,160 @@ test_nm_utils_enum (void)
 /*****************************************************************************/
 
 static void
-do_test_utils_str_utf8safe (const char *str, const char *expected, NMUtilsStrUtf8SafeFlags flags)
+_do_test_utils_str_utf8safe_unescape (const char *str, const char *expected, gsize expected_len)
 {
-	const char *str_safe, *s;
-	gs_free char *str2 = NULL;
-	gs_free char *str3 = NULL;
+	gsize l;
+	const char *s;
+	gs_free gpointer buf_free_1 = NULL;
+	gs_free char *str_free_1 = NULL;
 
-	str_safe = nm_utils_str_utf8safe_escape (str, flags, &str2);
+	s = nm_utils_buf_utf8safe_unescape (str, &l, &buf_free_1);
+	g_assert_cmpint (expected_len, ==, l);
+	g_assert_cmpstr (s, ==, expected);
 
-	str3 = nm_utils_str_utf8safe_escape_cp (str, flags);
-	g_assert_cmpstr (str3, ==, str_safe);
-	g_assert ((!str && !str3) || (str != str3));
-	g_clear_pointer (&str3, g_free);
+	if (str == NULL) {
+		g_assert (!s);
+		g_assert (!buf_free_1);
+		g_assert_cmpint (l, ==, 0);
+	} else {
+		g_assert (s);
+		if (!strchr (str, '\\')) {
+			g_assert (!buf_free_1);
+			g_assert (s == str);
+			g_assert_cmpint (l, ==, strlen (str));
+		} else {
+			g_assert (buf_free_1);
+			g_assert (s == buf_free_1);
+			g_assert (memcmp (s, expected, expected_len) == 0);
+		}
+	}
+
+	if (   expected
+	    && l == strlen (expected)) {
+		/* there are no embeeded NULs. Check that nm_utils_str_utf8safe_unescape() yields the same result. */
+		s = nm_utils_str_utf8safe_unescape (str, &str_free_1);
+		g_assert_cmpstr (s, ==, expected);
+		if (strchr (str, '\\')) {
+			g_assert (str_free_1 != str);
+			g_assert (s == str_free_1);
+		} else
+			g_assert (s == str);
+	}
+}
+
+#define do_test_utils_str_utf8safe_unescape(str, expected) \
+	_do_test_utils_str_utf8safe_unescape (""str"", expected, NM_STRLEN (expected))
+
+static void
+_do_test_utils_str_utf8safe (const char *str, gsize str_len, const char *expected, NMUtilsStrUtf8SafeFlags flags)
+{
+	const char *str_safe;
+	const char *buf_safe;
+	const char *s;
+	gs_free char *str_free_1 = NULL;
+	gs_free char *str_free_2 = NULL;
+	gs_free char *str_free_3 = NULL;
+	gs_free char *str_free_4 = NULL;
+	gs_free char *str_free_5 = NULL;
+	gs_free char *str_free_6 = NULL;
+	gs_free char *str_free_7 = NULL;
+	gs_free char *str_free_8 = NULL;
+	gboolean str_has_nul = FALSE;
+
+	buf_safe = nm_utils_buf_utf8safe_escape (str, str_len, flags, &str_free_1);
+
+	str_safe = nm_utils_str_utf8safe_escape (str, flags, &str_free_2);
+
+	if (str_len == 0) {
+		g_assert (buf_safe == NULL);
+		g_assert (str_free_1 == NULL);
+		g_assert (str_safe == str);
+		g_assert (str == NULL || str[0] == '\0');
+		g_assert (str_free_2 == NULL);
+	} else if (str_len == strlen (str)) {
+		g_assert (buf_safe);
+		g_assert_cmpstr (buf_safe, ==, str_safe);
+
+		/* nm_utils_buf_utf8safe_escape() can only return a pointer equal to the input string,
+		 * if and only if str_len is negative. Otherwise, the input str won't be NUL terminated
+		 * and cannot be returned. */
+		g_assert (buf_safe != str);
+		g_assert (buf_safe == str_free_1);
+	} else
+		str_has_nul = TRUE;
+
+	str_free_3 = nm_utils_str_utf8safe_escape_cp (str, flags);
+	g_assert_cmpstr (str_free_3, ==, str_safe);
+	g_assert ((!str && !str_free_3) || (str != str_free_3));
+
+	if (str_len > 0)
+		_do_test_utils_str_utf8safe_unescape (buf_safe, str, str_len);
 
 	if (expected == NULL) {
+		g_assert (!str_has_nul);
+
 		g_assert (str_safe == str);
-		g_assert (!str2);
+		g_assert (!str_free_2);
 		if (str) {
 			g_assert (!strchr (str, '\\'));
 			g_assert (g_utf8_validate (str, -1, NULL));
 		}
 
-		g_assert (str == nm_utils_str_utf8safe_unescape (str_safe, &str3));
-		g_assert (!str3);
+		g_assert (str == nm_utils_str_utf8safe_unescape (str_safe, &str_free_4));
+		g_assert (!str_free_4);
 
-		str3 = nm_utils_str_utf8safe_unescape_cp (str_safe);
+		str_free_5 = nm_utils_str_utf8safe_unescape_cp (str_safe);
 		if (str) {
-			g_assert (str3 != str);
-			g_assert_cmpstr (str3, ==, str);
+			g_assert (str_free_5 != str);
+			g_assert_cmpstr (str_free_5, ==, str);
 		} else
-			g_assert (!str3);
-		g_clear_pointer (&str3, g_free);
+			g_assert (!str_free_5);
 		return;
 	}
 
-	g_assert (str);
-	g_assert (str_safe != str);
-	g_assert (str_safe == str2);
-	g_assert (   strchr (str, '\\')
-	          || !g_utf8_validate (str, -1, NULL)
-	          || (   NM_FLAGS_HAS (flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII)
-	              && NM_STRCHAR_ANY (str, ch, (guchar) ch >= 127))
-	          || (   NM_FLAGS_HAS (flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL)
-	              && NM_STRCHAR_ANY (str, ch, (guchar) ch < ' ')));
-	g_assert (g_utf8_validate (str_safe, -1, NULL));
+	if (!str_has_nul) {
+		g_assert (str);
+		g_assert (str_safe != str);
+		g_assert (str_safe == str_free_2);
+		g_assert (   strchr (str, '\\')
+		          || !g_utf8_validate (str, -1, NULL)
+		          || (   NM_FLAGS_HAS (flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII)
+		              && NM_STRCHAR_ANY (str, ch, (guchar) ch >= 127))
+		          || (   NM_FLAGS_HAS (flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL)
+		              && NM_STRCHAR_ANY (str, ch, (guchar) ch < ' ')));
+		g_assert (g_utf8_validate (str_safe, -1, NULL));
 
-	str3 = g_strcompress (str_safe);
-	g_assert_cmpstr (str, ==, str3);
-	g_clear_pointer (&str3, g_free);
+		str_free_6 = g_strcompress (str_safe);
+		g_assert_cmpstr (str, ==, str_free_6);
 
-	str3 = nm_utils_str_utf8safe_unescape_cp (str_safe);
-	g_assert (str3 != str);
-	g_assert_cmpstr (str3, ==, str);
-	g_clear_pointer (&str3, g_free);
+		str_free_7 = nm_utils_str_utf8safe_unescape_cp (str_safe);
+		g_assert (str_free_7 != str);
+		g_assert_cmpstr (str_free_7, ==, str);
 
-	s = nm_utils_str_utf8safe_unescape (str_safe, &str3);
-	g_assert (str3 != str);
-	g_assert (s == str3);
-	g_assert_cmpstr (str3, ==, str);
-	g_clear_pointer (&str3, g_free);
+		s = nm_utils_str_utf8safe_unescape (str_safe, &str_free_8);
+		g_assert (str_free_8 != str);
+		g_assert (s == str_free_8);
+		g_assert_cmpstr (str_free_8, ==, str);
 
-	g_assert_cmpstr (str_safe, ==, expected);
+		g_assert_cmpstr (str_safe, ==, expected);
+
+		return;
+	}
+
+	g_assert_cmpstr (buf_safe, ==, expected);
+
 }
+#define do_test_utils_str_utf8safe(str, expected, flags) \
+	_do_test_utils_str_utf8safe (""str"", NM_STRLEN (str), expected, flags)
 
 static void
 test_utils_str_utf8safe (void)
 {
-	do_test_utils_str_utf8safe (NULL, NULL,                                       NM_UTILS_STR_UTF8_SAFE_FLAG_NONE);
+	_do_test_utils_str_utf8safe (NULL, 0, NULL,                                   NM_UTILS_STR_UTF8_SAFE_FLAG_NONE);
+
 	do_test_utils_str_utf8safe ("", NULL,                                         NM_UTILS_STR_UTF8_SAFE_FLAG_NONE);
+	do_test_utils_str_utf8safe ("\\", "\\\\",                                     NM_UTILS_STR_UTF8_SAFE_FLAG_NONE);
+	do_test_utils_str_utf8safe ("\\a", "\\\\a",                                   NM_UTILS_STR_UTF8_SAFE_FLAG_NONE);
 	do_test_utils_str_utf8safe ("\314", "\\314",                                  NM_UTILS_STR_UTF8_SAFE_FLAG_NONE);
 	do_test_utils_str_utf8safe ("\314\315x\315\315x", "\\314\\315x\\315\\315x",   NM_UTILS_STR_UTF8_SAFE_FLAG_NONE);
 	do_test_utils_str_utf8safe ("\314\315xx", "\\314\\315xx",                     NM_UTILS_STR_UTF8_SAFE_FLAG_NONE);
@@ -6636,6 +6734,18 @@ test_utils_str_utf8safe (void)
 	do_test_utils_str_utf8safe ("㈞abä㈞b", NULL,                                 NM_UTILS_STR_UTF8_SAFE_FLAG_NONE);
 	do_test_utils_str_utf8safe ("abäb", "ab\\303\\244b",                          NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII);
 	do_test_utils_str_utf8safe ("ab\ab", "ab\\007b",                              NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL);
+
+	do_test_utils_str_utf8safe ("\0", "\\000",                                    NM_UTILS_STR_UTF8_SAFE_FLAG_NONE);
+	do_test_utils_str_utf8safe ("\0a\0", "\\000a\\000",                           NM_UTILS_STR_UTF8_SAFE_FLAG_NONE);
+	do_test_utils_str_utf8safe ("\\\0", "\\\\\\000",                              NM_UTILS_STR_UTF8_SAFE_FLAG_NONE);
+	do_test_utils_str_utf8safe ("\n\0", "\n\\000",                                NM_UTILS_STR_UTF8_SAFE_FLAG_NONE);
+	do_test_utils_str_utf8safe ("\n\0", "\\012\\000",                             NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL);
+
+	do_test_utils_str_utf8safe_unescape ("\n\\0", "\n\0");
+	do_test_utils_str_utf8safe_unescape ("\n\\01", "\n\01");
+	do_test_utils_str_utf8safe_unescape ("\n\\012", "\n\012");
+	do_test_utils_str_utf8safe_unescape ("\n\\.", "\n.");
+	do_test_utils_str_utf8safe_unescape ("\\n\\.3\\r", "\n.3\r");
 }
 
 /*****************************************************************************/
@@ -6951,7 +7061,7 @@ test_route_attributes_format (void)
 /*****************************************************************************/
 
 static gboolean
-do_test_nm_set_out_called (gint *call_count)
+do_test_nm_set_out_called (int *call_count)
 {
 	(*call_count)++;
 	return TRUE;
@@ -7001,6 +7111,120 @@ test_get_start_time_for_pid (void)
 	g_assert (x_start_time > 0);
 	g_assert (x_ppid == getppid ());
 	g_assert (!NM_IN_SET (x_state, '\0', ' '));
+}
+
+/*****************************************************************************/
+
+static void
+test_nm_va_args_macros (void)
+{
+#define GET_NARG_1(...) \
+	NM_NARG (__VA_ARGS__)
+
+	g_assert_cmpint ( 0, ==, GET_NARG_1 ());
+	g_assert_cmpint ( 1, ==, GET_NARG_1 (x));
+	g_assert_cmpint ( 2, ==, GET_NARG_1 ( ,  ));
+	g_assert_cmpint ( 2, ==, GET_NARG_1 ( , x));
+	g_assert_cmpint ( 2, ==, GET_NARG_1 (x,  ));
+	g_assert_cmpint ( 2, ==, GET_NARG_1 (x, x));
+	g_assert_cmpint ( 3, ==, GET_NARG_1 ( ,  ,  ));
+	g_assert_cmpint ( 3, ==, GET_NARG_1 ( ,  , x));
+	g_assert_cmpint ( 3, ==, GET_NARG_1 ( , x,  ));
+	g_assert_cmpint ( 3, ==, GET_NARG_1 ( , x, x));
+	g_assert_cmpint ( 3, ==, GET_NARG_1 (x,  ,  ));
+	g_assert_cmpint ( 3, ==, GET_NARG_1 (x,  , x));
+	g_assert_cmpint ( 3, ==, GET_NARG_1 (x, x,  ));
+	g_assert_cmpint ( 3, ==, GET_NARG_1 (x, x, x));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 ( ,  ,  ,  ));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 ( ,  ,  , x));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 ( ,  , x,  ));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 ( ,  , x, x));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 ( , x,  ,  ));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 ( , x,  , x));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 ( , x, x,  ));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 ( , x, x, x));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 (x,  ,  ,  ));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 (x,  ,  , x));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 (x,  , x,  ));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 (x,  , x, x));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 (x, x,  ,  ));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 (x, x,  , x));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 (x, x, x,  ));
+	g_assert_cmpint ( 4, ==, GET_NARG_1 (x, x, x, x));
+
+	g_assert_cmpint ( 5, ==, GET_NARG_1 (x, x, x, x, x));
+	g_assert_cmpint ( 6, ==, GET_NARG_1 (x, x, x, x, x, x));
+	g_assert_cmpint ( 7, ==, GET_NARG_1 (x, x, x, x, x, x, x));
+	g_assert_cmpint ( 8, ==, GET_NARG_1 (x, x, x, x, x, x, x, x));
+	g_assert_cmpint ( 9, ==, GET_NARG_1 (x, x, x, x, x, x, x, x, x));
+	g_assert_cmpint (10, ==, GET_NARG_1 (x, x, x, x, x, x, x, x, x, x));
+
+	G_STATIC_ASSERT_EXPR (0 == GET_NARG_1 ());
+	G_STATIC_ASSERT_EXPR (1 == GET_NARG_1 (x));
+	G_STATIC_ASSERT_EXPR (2 == GET_NARG_1 (x, x));
+}
+
+/*****************************************************************************/
+
+static void
+test_ethtool_offload (void)
+{
+	const NMEthtoolData *d;
+
+	g_assert_cmpint (nm_ethtool_id_get_by_name ("invalid"),    ==, NM_ETHTOOL_ID_UNKNOWN);
+	g_assert_cmpint (nm_ethtool_id_get_by_name ("feature-rx"), ==, NM_ETHTOOL_ID_FEATURE_RX);
+
+	d = nm_ethtool_data_get_by_optname (NM_ETHTOOL_OPTNAME_FEATURE_RXHASH);
+	g_assert (d);
+	g_assert_cmpint (d->id, ==, NM_ETHTOOL_ID_FEATURE_RXHASH);
+	g_assert_cmpstr (d->optname, ==, NM_ETHTOOL_OPTNAME_FEATURE_RXHASH);
+}
+
+static void
+test_nm_utils_escape_spaces (void)
+{
+	char *to_free;
+
+	g_assert_cmpstr (_nm_utils_escape_spaces (NULL, &to_free), ==, NULL);
+	g_free (to_free);
+
+	g_assert_cmpstr (_nm_utils_escape_spaces ("", &to_free), ==, "");
+	g_free (to_free);
+
+	g_assert_cmpstr (_nm_utils_escape_spaces (" ", &to_free), ==, "\\ ");
+	g_free (to_free);
+
+	g_assert_cmpstr (_nm_utils_escape_spaces ("\t ", &to_free), ==, "\\\t\\ ");
+	g_free (to_free);
+
+	g_assert_cmpstr (_nm_utils_escape_spaces ("abc", &to_free), ==, "abc");
+	g_free (to_free);
+
+	g_assert_cmpstr (_nm_utils_escape_spaces ("abc def", &to_free), ==, "abc\\ def");
+	g_free (to_free);
+
+	g_assert_cmpstr (_nm_utils_escape_spaces ("abc\tdef", &to_free), ==, "abc\\\tdef");
+	g_free (to_free);
+}
+
+static void
+test_nm_utils_unescape_spaces (void)
+{
+#define CHECK_STR(in, out) \
+	G_STMT_START { \
+		gs_free char *str = g_strdup (in); \
+		\
+		g_assert_cmpstr (_nm_utils_unescape_spaces (str), ==, out); \
+	} G_STMT_END
+
+	CHECK_STR ("\\a", "\\a");
+	CHECK_STR ("foobar", "foobar");
+	CHECK_STR ("foo bar", "foo bar");
+	CHECK_STR ("foo\\ bar", "foo bar");
+	CHECK_STR ("foo\\", "foo\\");
+	CHECK_STR ("\\\\\t", "\\\t");
+
+#undef CHECK_STR
 }
 
 /*****************************************************************************/
@@ -7144,8 +7368,8 @@ int main (int argc, char **argv)
 
 	g_test_add_func ("/core/general/_nm_utils_ascii_str_to_int64", test_nm_utils_ascii_str_to_int64);
 	g_test_add_func ("/core/general/nm_utils_is_power_of_two", test_nm_utils_is_power_of_two);
-	g_test_add_func ("/core/general/_nm_utils_ptrarray_find_binary_search", test_nm_utils_ptrarray_find_binary_search);
-	g_test_add_func ("/core/general/_nm_utils_ptrarray_find_binary_search_with_duplicates", test_nm_utils_ptrarray_find_binary_search_with_duplicates);
+	g_test_add_func ("/core/general/nm_utils_ptrarray_find_binary_search", test_nm_utils_ptrarray_find_binary_search);
+	g_test_add_func ("/core/general/nm_utils_ptrarray_find_binary_search_with_duplicates", test_nm_utils_ptrarray_find_binary_search_with_duplicates);
 	g_test_add_func ("/core/general/_nm_utils_strstrdictkey", test_nm_utils_strstrdictkey);
 	g_test_add_func ("/core/general/nm_ptrarray_len", test_nm_ptrarray_len);
 
@@ -7153,12 +7377,16 @@ int main (int argc, char **argv)
 	g_test_add_func ("/core/general/_nm_utils_dns_option_find_idx", test_nm_utils_dns_option_find_idx);
 	g_test_add_func ("/core/general/_nm_utils_validate_json", test_nm_utils_check_valid_json);
 	g_test_add_func ("/core/general/_nm_utils_team_config_equal", test_nm_utils_team_config_equal);
+	g_test_add_func ("/core/general/_nm_utils_escape_spaces", test_nm_utils_escape_spaces);
+	g_test_add_func ("/core/general/_nm_utils_unescape_spaces", test_nm_utils_unescape_spaces);
 	g_test_add_func ("/core/general/test_nm_utils_enum", test_nm_utils_enum);
 	g_test_add_func ("/core/general/nm-set-out", test_nm_set_out);
 	g_test_add_func ("/core/general/route_attributes/parse", test_route_attributes_parse);
 	g_test_add_func ("/core/general/route_attributes/format", test_route_attributes_format);
 
 	g_test_add_func ("/core/general/get_start_time_for_pid", test_get_start_time_for_pid);
+	g_test_add_func ("/core/general/test_nm_va_args_macros", test_nm_va_args_macros);
+	g_test_add_func ("/core/general/test_ethtool_offload", test_ethtool_offload);
 
 	return g_test_run ();
 }

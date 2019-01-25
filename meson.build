@@ -4,7 +4,7 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "shared/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.12.6',
+  version: '1.14.4',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -50,14 +50,9 @@ nm_pkgdatadir = join_paths(nm_datadir, nm_name)
 nm_pkgincludedir = join_paths(nm_includedir, nm_name)
 nm_pkglibdir = join_paths(nm_prefix, 'lib', nm_name)
 nm_pkgrundir = join_paths(nm_runstatedir, nm_name)
-nm_pkgstatedir = join_paths(nm_localstatedir, nm_name)
+nm_pkgstatedir = join_paths(nm_localstatedir, 'lib', nm_name)
 nm_vpndir = join_paths(nm_libdir, nm_name)
 nm_plugindir = join_paths(nm_libdir, nm_name, dist_version)
-
-nm_build_cflags = [
-  '-DNM_BUILD_SRCDIR="@0@"'.format(meson.source_root()),
-  '-DNM_BUILD_BUILDDIR="@0@"'.format(meson.build_root()),
-]
 
 libnm_name = 'libnm'
 
@@ -215,6 +210,8 @@ if jansson_dep.found()
 endif
 
 libsystemd_dep = dependency('libsystemd', version: '>= 209', required: false)
+libsystemd_login_dep = dependency('libsystemd-login', version: '>= 183', required: false)
+
 config_h.set10('HAVE_LIBSYSTEMD', libsystemd_dep.found())
 
 systemd_dep = dependency('systemd', required: false)
@@ -247,7 +244,7 @@ endif
 
 enable_ifcfg_rh = get_option('ifcfg_rh') or (distro == 'redhat')
 enable_ifupdown = get_option('ifupdown') or (distro == 'debian')
-enable_ibft = get_option('ibft') or enable_ifcfg_rh
+enable_ibft = get_option('ibft')
 
 config_h.set10('WITH_SETTINGS_PLUGIN_IBFT', enable_ibft)
 
@@ -352,63 +349,70 @@ config_h.set_quoted('NM_CONFIG_DEFAULT_LOGGING_BACKEND', config_logging_backend_
 
 session_tracking = get_option('session_tracking')
 session_trackers = []
-enable_session_tracking = (session_tracking != 'no')
 
-enable_consolekit = get_option('consolekit')
-
-if enable_session_tracking
-  if session_tracking == 'systemd'
-    logind_dep = libsystemd_dep
-    if not logind_dep.found()
-      logind_dep = dependency('libsystemd-login', required: false)
-      assert(logind_dep.found(), 'You must have libsystemd or libsystemd-login installed to build with systemd-logind support')
-    endif
-    session_trackers += 'systemd-logind'
-    config_h.set('SESSION_TRACKING_SYSTEMD', true)
-  else
-    logind_dep = libelogind_dep
-    assert(logind_dep.found() and libelogind_dep.version().version_compare('>= 229'), 'You must have libelogind installed to build with elogind support.')
-    session_trackers += 'elogind'
-    config_h.set('SESSION_TRACKING_ELOGIND', true)
+if session_tracking == 'systemd'
+  logind_dep = libsystemd_dep
+  if not logind_dep.found()
+    logind_dep = dependency('libsystemd-login', required: false)
+    assert(logind_dep.found(), 'You must have libsystemd or libsystemd-login installed to build with systemd-logind support')
   endif
-
-  if enable_consolekit
-    session_trackers += 'consolekit'
-    config_h.set_quoted('CKDB_PATH', '/var/run/ConsoleKit/database')
-    config_h.set('SESSION_TRACKING_CONSOLEKIT', enable_consolekit)
-  endif
+  session_trackers += 'systemd-logind'
+  config_h.set10('SESSION_TRACKING_SYSTEMD', true)
+  config_h.set10('SESSION_TRACKING_ELOGIND', false)
+elif session_tracking == 'elogind'
+  logind_dep = libelogind_dep
+  assert(logind_dep.found() and libelogind_dep.version().version_compare('>= 229'), 'You must have libelogind installed to build with elogind support.')
+  session_trackers += 'elogind'
+  config_h.set10('SESSION_TRACKING_SYSTEMD', false)
+  config_h.set10('SESSION_TRACKING_ELOGIND', true)
+else
+  logind_dep = dependency('', required:false)
 endif
+
+session_tracking_consolekit = get_option('session_tracking_consolekit')
+if session_tracking_consolekit
+  session_trackers += 'consolekit'
+endif
+config_h.set10('SESSION_TRACKING_CONSOLEKIT', session_tracking_consolekit)
 
 hostname_persist = get_option('hostname_persist')
 config_h.set('HOSTNAME_PERSIST_SUSE', (hostname_persist == 'suse'))
 config_h.set('HOSTNAME_PERSIST_GENTOO', (hostname_persist == 'gentoo'))
 config_h.set('HOSTNAME_PERSIST_SLACKWARE', (hostname_persist == 'slackware'))
 
-enable_suspend_resume = get_option('suspend_resume')
-suspend_resume = ''
+suspend_resume = get_option('suspend_resume')
 
-if enable_suspend_resume
+if suspend_resume == 'auto'
+  if libsystemd_dep.found() or libsystemd_login_dep.found()
+    suspend_resume = 'systemd'
+  elif libelogind_dep.found()
+    suspend_resume = 'elogind'
+  elif session_tracking_consolekit
+    suspend_resume = 'consolekit'
+  else
+    suspend_resume = 'upower'
+  endif
+endif
+
+if suspend_resume == 'systemd'
   if libsystemd_dep.found()
     system_inhibit_dep = libsystemd_dep
-    suspend_resume = 'systemd'
-    config_h.set('SUSPEND_RESUME_SYSTEMD', true)
+  elif libsystemd_login_dep.found()
+    system_inhibit_dep = libsystemd_login_dep
   else
-    system_inhibit_dep = dependency('libsystemd-login', version: '>= 183', required: false)
-    if system_inhibit_dep.found()
-      suspend_resume = 'systemd'
-      config_h.set('SUSPEND_RESUME_SYSTEMD', true)
-    elif libelogind_dep.found()
-      system_inhibit_dep = libelogind_dep
-      suspend_resume = 'elogind'
-      config_h.set('SUSPEND_RESUME_ELOGIND', true)
-    elif enable_consolekit
-      suspend_resume = 'consolekit'
-      config_h.set('SUSPEND_RESUME_CONSOLEKIT', true)
-    else
-      suspend_resume = 'upower'
-      config_h.set('SUSPEND_RESUME_UPOWER', true)
-    endif
+    error('Need libsystemd for suspend_resume=systemd')
   endif
+  config_h.set('SUSPEND_RESUME_SYSTEMD', true)
+elif suspend_resume == 'elogind'
+  assert(libelogind_dep.found(), 'Need libelogind for suspend_resume=elogind')
+  system_inhibit_dep = libelogind_dep
+  config_h.set('SUSPEND_RESUME_ELOGIND', true)
+elif suspend_resume == 'consolekit'
+  config_h.set('SUSPEND_RESUME_CONSOLEKIT', true)
+elif suspend_resume == 'upower'
+  config_h.set('SUSPEND_RESUME_UPOWER', true)
+else
+  error('bug')
 endif
 
 # SELinux support
@@ -466,12 +470,16 @@ if enable_polkit_agent
 endif
 config_h.set10('WITH_POLKIT_AGENT', enable_polkit_agent)
 
-# crypto
+crypto_gnutls_dep = dependency('gnutls', version: '>= 2.12', required: false)
+crypto_nss_dep = dependency('nss', required: false)
+
 crypto = get_option('crypto')
 if crypto == 'nss'
-  crypto_dep = dependency('nss')
+  assert(crypto_nss_dep.found(), 'Requires gnutls crypto support')
+elif crypto == 'gnutls'
+  assert(crypto_gnutls_dep.found(), 'Requires gnutls crypto support')
 else
-  crypto_dep = dependency('gnutls', version: '>= 2.12')
+  error('bug')
 endif
 
 dbus_conf_dir = get_option('dbus_conf_dir')
@@ -497,11 +505,14 @@ enable_ppp = get_option('ppp')
 if enable_ppp
   assert(cc.has_header('pppd/pppd.h'), 'couldn\'t find pppd.h. pppd development headers are required')
 
-  locations = get_option('pppd')
-  pppd = find_program(locations, required: false)
-  assert(pppd.found(), 'pppd required but not found, please provide a valid pppd path or use -Dppp=false to disable it')
+  pppd_path = get_option('pppd')
+  if pppd_path == ''
+    pppd = find_program('pppd', '/sbin/pppd', '/usr/sbin/pppd', required: false)
+    assert(pppd.found(), 'pppd required but not found, please provide a valid pppd path or use -Dppp=false to disable it')
+    pppd_path = pppd.path()
+  endif
 
-  config_h.set_quoted('PPPD_PATH', pppd.path())
+  config_h.set_quoted('PPPD_PATH', pppd_path)
 
   pppd_plugin_dir = get_option('pppd_plugin_dir')
   if pppd_plugin_dir == ''
@@ -528,81 +539,39 @@ config_h.set10('WITH_BLUEZ5_DUN', enable_bluez5_dun)
 enable_ofono = get_option('ofono')
 config_h.set10('WITH_OFONO', enable_ofono)
 
-# DHCP client support with dhcpcanon
-locations = get_option('dhcpcanon')
-enable_dhcpcanon = (locations != ['no'])
-if enable_dhcpcanon
-  dhcpcanon = find_program(locations, required: false)
-  enable_dhcpcanon = dhcpcanon.found()
-
-  if enable_dhcpcanon
-    config_h.set_quoted('DHCPCANON_PATH', dhcpcanon.path())
-  endif
-endif
-config_h.set10('WITH_DHCPCANON', enable_dhcpcanon)
-
 # DHCP client support
-locations = get_option('dhclient')
-enable_dhclient = (locations != ['no'])
-if enable_dhclient
-  dhclient = find_program(locations, required: false)
-  enable_dhclient = dhclient.found()
-
-  if enable_dhclient
-    res = run_command(dhclient, '--version')
-    # FIXME: dhcp outputs the version string through stderr!?
-    if not res.stderr().strip().contains('isc-dhclient-4.')
-      message('Seems version of dhclient ' + dhclient.path() + ' is too old, version 4.x or newer is required')
-    endif
-    config_h.set_quoted('DHCLIENT_PATH', dhclient.path())
-  endif
-endif
-config_h.set10('WITH_DHCLIENT', enable_dhclient)
-
-locations = get_option('dhcpcd')
-enable_dhcpcd = (locations != ['no'])
-enable_dhcpcd_supports_ipv6 = false
-if enable_dhcpcd
-  dhcpcd = find_program(locations, required: false)
-  enable_dhcpcd = dhcpcd.found()
-
-  if enable_dhcpcd
-    res = run_command(dhcpcd, '--version').stdout().strip()
-    dhcpcd_version = res.split(' ')[1]
-    if not dhcpcd_version.version_compare('> 4')
-      message('Seems version of dhcpcd ' + dhcpcd.path() + ' is too old, version 4.x or newer is required')
-    endif
-
-    enable_dhcpcd_supports_ipv6 = get_option('dhcpcd_supports_ipv6')
-    if dhcpcd_version.version_compare('> 6')
-      if not enable_dhcpcd_supports_ipv6
-        message('Seems version of dhcpcd ' + dhcpcd.path() + ' supports IPv6, but compiling without IPv6 support.')
-      endif
-    else
-      if enable_dhcpcd_supports_ipv6
-        message('Seems version of dhcpcd ' + dhcpcd.path() +'  does not support IPv6, but compiling with IPv6 support.')
-      endif
-    endif
-    config_h.set('DHCPCD_SUPPORTS_IPV6', enable_dhcpcd_supports_ipv6)
-    config_h.set_quoted('DHCPCD_PATH', dhcpcd.path())
-  endif
-endif
-config_h.set10('WITH_DHCPCD', enable_dhcpcd)
-
 config_dhcp_default = get_option('config_dhcp_default')
-if config_dhcp_default == 'dhcpcanon' and not enable_dhcpcanon
-  error(config_dhcp_default + ' has not been enabled. Please don\'t disable it or use another configuration option for main.dhcp setting')
-endif
-
-if config_dhcp_default == 'dhclient' and not enable_dhclient
-  error(config_dhcp_default + ' has not been enabled. Please don\'t disable it or use another configuration option for main.dhcp setting')
-endif
-
-if config_dhcp_default == 'dhcpcd' and not enable_dhcpcd
-  error(config_dhcp_default + ' has not been enabled. Please don\'t disable it or use another configuration option for main.dhcp setting')
-endif
-
 config_h.set_quoted('NM_CONFIG_DEFAULT_MAIN_DHCP', config_dhcp_default)
+dhcp_summary = ''
+foreach client : [ 'dhclient', 'dhcpcd', 'dhcpcanon' ]
+  client_path = get_option(client)
+  client_enable = (client_path != 'no')
+  if client_enable
+    if client_path == ''
+      client_prog = find_program(client,
+                                 '/sbin/' + client,
+                                 '/usr/sbin/pppd/' + client,
+                                 '/usr/local/sbin/' + client,
+                                 required : false)
+      if client_prog.found()
+        client_path = client_prog.path()
+      else
+        client_path = '/usr/sbin/' + client
+        message('@0@ not found, assume path @1@'.format(client, client_path))
+      endif
+    endif
+    config_h.set_quoted(client.to_upper() + '_PATH', client_path)
+  endif
+  if config_dhcp_default == client and not client_enable
+    error(client + ' has not been enabled. Please don\'t disable it or use another configuration option for main.dhcp setting')
+  endif
+  config_h.set10('WITH_' + client.to_upper(), client_enable)
+  dhcp_summary += ('  ' + client + ': ' + client_enable.to_string())
+  if (client_enable)
+    dhcp_summary += (' ' + client_path)
+  endif
+  dhcp_summary += '\n'
+endforeach
 
 # OpenVSwitch integration
 enable_ovs = get_option('ovs')
@@ -610,53 +579,70 @@ if enable_ovs
   assert(jansson_dep.found(), 'jansson is needed for OpenVSwitch integration. Use -Dovs=false to disable it')
 endif
 
-# resolvconf and netconfig support
-locations = get_option('resolvconf')
-enable_resolvconf = (locations != ['no'])
-if enable_resolvconf
-  resolvconf = find_program(locations, required: false)
-  enable_resolvconf = resolvconf.found()
-
-  if enable_resolvconf
-    config_h.set_quoted('RESOLVCONF_PATH', resolvconf.path())
-  endif
-endif
-
-locations = get_option('netconfig')
-enable_netconfig = (locations != ['no'])
-if enable_netconfig
-  netconfig = find_program(locations, required: false)
-  enable_netconfig = netconfig.found()
-
-  if enable_netconfig
-    config_h.set_quoted('NETCONFIG_PATH', netconfig.path())
-  endif
-endif
-
+# DNS resolv.conf managers
 config_dns_rc_manager_default = get_option('config_dns_rc_manager_default')
-if config_dns_rc_manager_default == 'resolvconf' and not enable_resolvconf
-  error(config_dns_rc_manager_default + ' has not been enabled. Please don\'t disable it or use another configuration option for main.rc-manager setting')
-endif
-
-if config_dns_rc_manager_default == 'netconfig' and not enable_netconfig
-  error(config_dns_rc_manager_default + ' has not been enabled. Please don\'t disable it or use another configuration option for main.rc-manager setting')
-endif
-
 config_h.set_quoted('NM_CONFIG_DEFAULT_MAIN_RC_MANAGER', config_dns_rc_manager_default)
+resolv_conf_summary = ''
+foreach prog_name : ['resolvconf', 'netconfig']
+  prog_path = get_option(prog_name)
+  prog_enable = (prog_path != 'no')
 
-# iptables path
-config_h.set_quoted('IPTABLES_PATH', find_program(get_option('iptables')).path())
+  if prog_enable
+    if prog_path == ''
+      prog = find_program(prog_name,
+                          '/usr/' + prog_name,
+                          '/usr/sbin/' + prog_name,
+                          '/usr/local/sbin' + prog_name,
+                          required : false)
+      if prog.found()
+        prog_path = prog.path()
+      else
+        prog_enable = false
+      endif
+    endif
+  endif
 
-# dnsmasq path
-config_h.set_quoted('DNSMASQ_PATH', find_program(get_option('dnsmasq')).path())
+  if prog_enable
+    config_h.set_quoted(prog_name.to_upper() + '_PATH', prog_path)
+  elif config_dns_rc_manager_default == prog_name
+    error(prog_name + ' has not been enabled. Please don\'t disable it or use another configuration option for main.rc-manager setting')
+  endif
 
-# dnssec-trigger-script path
-dnssec_trigger_script = find_program(get_option('dnssec_trigger'), required: false)
-if dnssec_trigger_script.found()
-  config_h.set_quoted('DNSSEC_TRIGGER_SCRIPT', dnssec_trigger_script.path())
-else
-  config_h.set_quoted('DNSSEC_TRIGGER_SCRIPT', join_paths(nm_libexecdir, 'dnssec-trigger-script'))
-endif
+  resolv_conf_summary += '  ' + prog_name + ': ' + prog_enable.to_string()
+  if prog_enable
+    resolv_conf_summary += ' ' + prog_path
+  endif
+  resolv_conf_summary += '\n'
+endforeach
+
+# external misc tools paths
+default_paths = ['/sbin', '/usr/sbin']
+dnssec_ts_paths = ['/usr/local/libexec',
+                   '/usr/local/lib',
+                   '/usr/local/lib/dnssec-trigger',
+                   '/usr/libexec',
+                   '/usr/lib',
+                   '/usr/lib/dnssec-trigger']
+
+# 0: cmdline option, 1: paths, 2: fallback
+progs = [['iptables',       default_paths,   '/sbin/iptables'],
+         ['dnsmasq',        default_paths,   ''],
+         ['dnssec_trigger', dnssec_ts_paths, join_paths(nm_libexecdir, 'dnssec-trigger-script') ],
+        ]
+
+foreach prog : progs
+  path = get_option(prog[0])
+  if path == ''
+    search_paths = [ prog[0] ]
+    foreach path : prog[1]
+      search_paths += (path + '/' + prog[0])
+    endforeach
+    exe = find_program(search_paths, required : false)
+    path = exe.found() ? exe.path() : prog[2]
+  endif
+  name = prog[0].to_upper() + '_PATH'
+  config_h.set_quoted(name, path)
+endforeach
 
 # system CA certificates path
 system_ca_path = get_option('system_ca_path')
@@ -725,11 +711,27 @@ auto_support_src = 'int main() { int a = 0; __auto_type b = a; return b + a; };'
 config_h.set10('_NM_CC_SUPPORT_AUTO_TYPE', cc.compiles(auto_support_src))
 
 # Vala bindings
-enable_vapi = get_option('vapi')
-if enable_vapi
+vapi_opt = get_option('vapi')
+if vapi_opt == 'false'
+  enable_vapi = false
+else
   vala_req_version = '>= 0.17.1.24'
-  assert(add_languages('vala', required: false), 'vala is required to build. Use -Dvapi=false to disable it')
-  assert(meson.get_compiler('vala').version().version_compare(vala_req_version), 'vala ' + vala_req_version + ' is required to build. Use -Dvapi=false to disable it')
+  enable_vapi = true
+
+  if not enable_introspection
+    assert(vapi_opt != 'true', 'vala api require GObject introspection. Use -Dvapi=false to disable it')
+    enable_vapi = false
+  endif
+
+  if enable_vapi and not add_languages('vala', required: false)
+    assert(vapi_opt != 'true', 'vala is required to build. Use -Dvapi=false to disable it')
+    enable_vapi = false
+  endif
+
+  if enable_vapi and not meson.get_compiler('vala').version().version_compare(vala_req_version)
+    assert(vapi_opt != 'true', 'vala ' + vala_req_version + ' is required to build. Use -Dvapi=false to disable it')
+    enable_vapi = false
+  endif
 endif
 
 # Tests, utilities and documentation
@@ -815,7 +817,7 @@ intltool_xml_cmd = [intltool_merge, '-x', '-u', '-c', intltool_cache, po_dir, '@
 perl = find_program('perl')
 xsltproc = find_program('xsltproc')
 
-check_exports = join_paths(meson.source_root(), 'tools', 'check-exports.sh')
+check_exports = find_program(join_paths(meson.source_root(), 'tools', 'check-exports.sh'))
 
 content_files = []
 
@@ -862,11 +864,11 @@ if enable_qt
 endif
 
 enable_docs = get_option('docs')
+
 if enable_docs
+  assert(enable_introspection, '-Ddocs=true requires -Dintrospection=true')
+  assert(meson.version().version_compare('>= 0.46.0'), '-Ddocs requires meson >= 0.46')
   subdir('man')
-
-  #assert(enable_introspection, '-Dgtk_doc=true requires -Dintrospection=true')
-
   subdir('docs')
 endif
 
@@ -878,13 +880,43 @@ configure_file(
   configuration: config_h
 )
 
+config_extra_h = configuration_data()
+
+config_extra_h.set_quoted('BINDIR',            nm_bindir)
+config_extra_h.set_quoted('DATADIR',           nm_datadir)
+config_extra_h.set_quoted('LIBEXECDIR',        nm_libexecdir)
+config_extra_h.set_quoted('LOCALSTATEDIR',     nm_localstatedir)
+config_extra_h.set_quoted('NMCONFDIR',         nm_pkgconfdir)
+config_extra_h.set_quoted('NMLIBDIR',          nm_pkglibdir)
+config_extra_h.set_quoted('NMLIBDIR',          nm_pkglibdir)
+config_extra_h.set_quoted('NMLOCALEDIR',       nm_localedir)
+config_extra_h.set_quoted('NMPLUGINDIR',       nm_plugindir)
+config_extra_h.set_quoted('NMRUNDIR',          nm_pkgrundir)
+config_extra_h.set_quoted('NMSTATEDIR',        nm_pkgstatedir)
+config_extra_h.set_quoted('NMVPNDIR',          nm_vpndir)
+config_extra_h.set_quoted('NM_BUILD_BUILDDIR', meson.build_root())
+config_extra_h.set_quoted('NM_BUILD_SRCDIR',   meson.source_root())
+if enable_ppp
+    config_extra_h.set_quoted('PPPD_PLUGIN_DIR',   pppd_plugin_dir)
+endif
+config_extra_h.set_quoted('PREFIX',            nm_prefix)
+config_extra_h.set_quoted('RUNDIR',            nm_pkgrundir)
+config_extra_h.set_quoted('RUNSTATEDIR',       nm_runstatedir)
+config_extra_h.set_quoted('SYSCONFDIR',        nm_sysconfdir)
+
+configure_file(
+  input: 'config-extra.h.meson',
+  output: 'config-extra.h',
+  configuration: config_extra_h
+)
+
 meson.add_install_script(
-  'meson_post_install.py',
+  join_paths('tools', 'meson-post-install.sh'),
   nm_datadir,
   nm_bindir,
   nm_pkgconfdir,
   nm_pkglibdir,
-  nm_localstatedir,
+  nm_pkgstatedir,
   enable_docs ? 'install_docs' : '',
   nm_mandir
 )
@@ -921,7 +953,7 @@ output += '  wifi: ' + enable_wifi.to_string() + '\n'
 output += '  iwd:  ' + enable_iwd.to_string() + '\n'
 output += '  pppd: ' + enable_ppp.to_string()
 if enable_ppp
-  output += ' ' + pppd.path()
+  output += ' ' + pppd_path + ' plugins:' + pppd_plugin_dir
 endif
 output += '\n'
 output += '  modemmanager-1: ' + enable_modem_manager.to_string() + '\n'
@@ -936,35 +968,11 @@ output += '\nConfiguration_plugins (main.plugins=' + config_plugins_default + ')
 output += '  ibft: ' + enable_ibft.to_string() + '\n'
 output += '  ifcfg-rh: ' + enable_ifcfg_rh.to_string() + '\n'
 output += '  ifupdown: ' + enable_ifupdown.to_string() + '\n'
-output += '\nHandlers for /etc/resolv.conf:\n'
-output += '  resolvconf: ' + enable_resolvconf.to_string()
-if enable_resolvconf
-  output += ' ' + resolvconf.path()
-endif
-output += '\n'
-output += '  netconfig: ' + enable_netconfig.to_string()
-if enable_netconfig
-  output += ' ' + netconfig.path()
-endif
+output += '\nHandlers for /etc/resolv.conf:\n' + resolv_conf_summary
 output += '\n'
 output += '  config-dns-rc-manager-default: ' + config_dns_rc_manager_default + '\n'
-output += '\nDHCP clients (default ' + config_dhcp_default + '):\n'
-output += '  dhcpcanon: ' + enable_dhcpcanon.to_string()
-if enable_dhcpcanon
-  output += ' ' + dhcpcanon.path()
-endif
+output += '\nDHCP clients (default ' + config_dhcp_default + '):\n' + dhcp_summary
 output += '\n'
-output += '  dhclient: ' + enable_dhclient.to_string()
-if enable_dhclient
-  output += ' ' + dhclient.path()
-endif
-output += '\n'
-output += '  dhcpcd: ' + enable_dhcpcd.to_string()
-if enable_dhcpcd
-  output += ' ' + dhcpcd.path()
-endif
-output += '\n'
-output += '  dhcpcd-supports-ipv6: ' + enable_dhcpcd_supports_ipv6.to_string() + '\n'
 output += '\nMiscellaneous:\n'
 output += '  have introspection: ' + enable_introspection.to_string() + '\n'
 output += '  build documentation and manpages: ' + enable_docs.to_string() + '\n'
@@ -982,7 +990,9 @@ output += '\n'
 output += '  code coverage: ' + get_option('b_coverage').to_string() + '\n'
 output += '  LTO: ' + get_option('b_lto').to_string() + '\n'
 output += '  Linker garbage collection: ' + enable_ld_gc.to_string() + '\n'
-output += '  JSON validation for libnm: ' + enable_json_validation.to_string () + '\n'
+output += '  JSON validation for libnm: ' + enable_json_validation.to_string() + '\n'
+output += '  crypto: ' + crypto + ' (have-gnutls: ' + crypto_gnutls_dep.found().to_string() + ', have-nss: ' + crypto_nss_dep.found().to_string() + ')\n'
 output += '  sanitizers: ' + get_option('b_sanitize') + '\n'
 output += '  Mozilla Public Suffix List: ' + enable_libpsl.to_string() + '\n'
+output += '  vapi: ' + enable_vapi.to_string() + '\n'
 message(output)

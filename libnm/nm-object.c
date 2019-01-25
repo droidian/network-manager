@@ -197,7 +197,7 @@ deferred_notify_cb (gpointer data)
 	c_list_for_each (iter, &props) {
 		NotifyItem *item = c_list_entry (iter, NotifyItem, lst);
 		char buf[50];
-		gint ret = 0;
+		int ret = 0;
 
 		switch (item->pending) {
 		case NOTIFY_SIGNAL_PENDING_ADDED:
@@ -844,16 +844,12 @@ demarshal_generic (NMObject *object,
 			g_free (newval);
 	} else if (pspec->value_type == G_TYPE_BYTES) {
 		GBytes **param = (GBytes **)field;
-		gconstpointer val, old_val = NULL;
-		gsize length, old_length = 0;
+		gconstpointer val;
+		gsize length = 0;
 
 		val = g_variant_get_fixed_array (value, &length, 1);
 
-		if (*param)
-			old_val = g_bytes_get_data (*param, &old_length);
-		different =    old_length != length
-		            || (   length > 0
-		                && memcmp (old_val, val, length) != 0);
+		different = !nm_utils_gbytes_equal_mem (*param, val, length);
 		if (different) {
 			if (*param)
 				g_bytes_unref (*param);
@@ -893,10 +889,10 @@ demarshal_generic (NMObject *object,
 		HANDLE_TYPE (G_VARIANT_TYPE_BYTE, guchar, g_variant_get_byte);
 	else if (pspec->value_type == G_TYPE_DOUBLE) {
 		NM_PRAGMA_WARNING_DISABLE("-Wfloat-equal")
-		HANDLE_TYPE (G_VARIANT_TYPE_DOUBLE, gdouble, g_variant_get_double);
+		HANDLE_TYPE (G_VARIANT_TYPE_DOUBLE, double, g_variant_get_double);
 		NM_PRAGMA_WARNING_REENABLE
 	} else if (pspec->value_type == G_TYPE_INT)
-		HANDLE_TYPE (G_VARIANT_TYPE_INT32, gint, g_variant_get_int32);
+		HANDLE_TYPE (G_VARIANT_TYPE_INT32, int, g_variant_get_int32);
 	else if (pspec->value_type == G_TYPE_UINT)
 		HANDLE_TYPE (G_VARIANT_TYPE_UINT32, guint, g_variant_get_uint32);
 	else if (pspec->value_type == G_TYPE_INT64)
@@ -904,7 +900,7 @@ demarshal_generic (NMObject *object,
 	else if (pspec->value_type == G_TYPE_UINT64)
 		HANDLE_TYPE (G_VARIANT_TYPE_UINT64, guint64, g_variant_get_uint64);
 	else if (pspec->value_type == G_TYPE_LONG)
-		HANDLE_TYPE (G_VARIANT_TYPE_INT64, glong, g_variant_get_int64);
+		HANDLE_TYPE (G_VARIANT_TYPE_INT64, long, g_variant_get_int64);
 	else if (pspec->value_type == G_TYPE_ULONG)
 		HANDLE_TYPE (G_VARIANT_TYPE_UINT64, gulong, g_variant_get_uint64);
 	else {
@@ -1037,10 +1033,10 @@ init_dbus (NMObject *object)
 static void
 init_if (GDBusProxy *proxy, NMObject *self)
 {
-	gchar **props;
+	char **props;
 	char **prop;
 	GVariant *val;
-	gchar *str;
+	char *str;
 
 	nm_assert (G_IS_DBUS_PROXY (proxy));
 	nm_assert (NM_IS_OBJECT (self));

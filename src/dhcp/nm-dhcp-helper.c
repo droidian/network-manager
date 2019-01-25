@@ -31,7 +31,7 @@
 
 /*****************************************************************************/
 
-#ifdef NM_MORE_LOGGING
+#if NM_MORE_LOGGING
 #define _NMLOG_ENABLED(level) TRUE
 #else
 #define _NMLOG_ENABLED(level) ((level) <= LOG_ERR)
@@ -118,7 +118,7 @@ kill_pid (void)
 	if (pid_str)
 		pid = strtol (pid_str, NULL, 10);
 	if (pid) {
-		_LOGI ("a fatal error occured, kill dhclient instance with pid %d\n", pid);
+		_LOGI ("a fatal error occurred, kill dhclient instance with pid %d", pid);
 		kill (pid, SIGTERM);
 	}
 }

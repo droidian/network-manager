@@ -7,7 +7,7 @@
 <meta name="description" content="This manual is the reference documentation for NetworkManager, the standard Linux network management service. It is intended for system administrators and integrators who need to understand the capabilities of NetworkManager, its configuration options, command line tools and the D-Bus API for programmatic control of the service. The end users NetworkManager should instead refer to respective documentation of their desktop environment of choice. The application developers who prefer not to use the D-Bus API directly can use the libnm library shipped with NetworkManager or its bindings to a higher level language such as Python, Ruby or Vala via GObject introspection.">
 <link rel="home" href="index.html" title="NetworkManager Reference Manual">
 <link rel="next" href="manpages.html" title="Part I. Manual Pages">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -16,12 +16,12 @@
 <div>
 <div><table class="navigation" id="top" width="100%" cellpadding="2" cellspacing="0"><tr><th valign="middle"><p class="title">NetworkManager Reference Manual</p></th></tr></table></div>
 <div><p class="releaseinfo">
-      for NetworkManager 1.12.6
+      for NetworkManager 1.14.4
 
       The latest version of this documentation can be found on-line at
       <a class="ulink" href="https://developer.gnome.org/NetworkManager/stable/" target="_top">https://developer.gnome.org/NetworkManager/stable/</a>.
     </p></div>
-<div><p class="copyright">Copyright © 2012, 2013, 2014, 2015, 2016, 2017 The NetworkManager Authors</p></div>
+<div><p class="copyright">Copyright © 2012, 2013, 2014, 2015, 2016, 2017, 2018 The NetworkManager Authors</p></div>
 <div><div class="legalnotice">
 <a name="id-1.1.4"></a><p>
 	Permission is granted to copy, distribute and/or modify this
@@ -98,6 +98,9 @@
 <span class="refentrytitle"><a href="nm-online.html">nm-online</a></span><span class="refpurpose"> — ask NetworkManager whether the network is connected</span>
 </dt>
 <dt>
+<span class="refentrytitle"><a href="nm-initrd-generator.html">nm-initrd-generator</a></span><span class="refpurpose"> — early boot NetworkManager configuration generator</span>
+</dt>
+<dt>
 <span class="refentrytitle"><a href="nm-openvswitch.html">nm-openvswitch</a></span><span class="refpurpose"> — overview of NetworkManager OpenVSwitch support</span>
 </dt>
 </dl></dd>
@@ -107,6 +110,9 @@
 <dd><dl>
 <dt>
 <span class="refentrytitle"><a href="settings-connection.html">connection</a></span><span class="refpurpose"> — General Connection Profile Settings</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="settings-6lowpan.html">6lowpan</a></span><span class="refpurpose"> — 6LoWPAN Settings</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="settings-802-1x.html">802-1x</a></span><span class="refpurpose"> — IEEE 802.1x Authentication Settings</span>
@@ -136,6 +142,9 @@
 <span class="refentrytitle"><a href="settings-dummy.html">dummy</a></span><span class="refpurpose"> — Dummy Link Settings</span>
 </dt>
 <dt>
+<span class="refentrytitle"><a href="settings-ethtool.html">ethtool</a></span><span class="refpurpose"> — Ethtool Ethernet Settings</span>
+</dt>
+<dt>
 <span class="refentrytitle"><a href="settings-generic.html">generic</a></span><span class="refpurpose"> — Generic Link Settings</span>
 </dt>
 <dt>
@@ -158,6 +167,9 @@
 </dt>
 <dt>
 <span class="refentrytitle"><a href="settings-macvlan.html">macvlan</a></span><span class="refpurpose"> — MAC VLAN Settings</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="settings-match.html">match</a></span><span class="refpurpose"> — Match settings.</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="settings-802-11-olpc-mesh.html">802-11-olpc-mesh</a></span><span class="refpurpose"> — OLPC Wireless Mesh Settings</span>
@@ -187,7 +199,10 @@
 <span class="refentrytitle"><a href="settings-serial.html">serial</a></span><span class="refpurpose"> — Serial Link Settings</span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="settings-tc.html">tc</a></span><span class="refpurpose"> — Linux Traffic Contril Settings.</span>
+<span class="refentrytitle"><a href="settings-sriov.html">sriov</a></span><span class="refpurpose"> — SR-IOV settings.</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="settings-tc.html">tc</a></span><span class="refpurpose"> — Linux Traffic Control Settings.</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="settings-team.html">team</a></span><span class="refpurpose"> — Teaming Settings</span>
@@ -221,6 +236,9 @@
 </dt>
 <dt>
 <span class="refentrytitle"><a href="settings-802-11-wireless-security.html">802-11-wireless-security</a></span><span class="refpurpose"> — Wi-Fi Security Settings</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="settings-wpan.html">wpan</a></span><span class="refpurpose"> — IEEE 802.15.4 (WPAN) MAC Settings</span>
 </dt>
 </dl></dd>
 <dt><span class="chapter"><a href="secrets-flags.html">Secret flag types</a></span></dt>
@@ -283,6 +301,9 @@
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html">org.freedesktop.NetworkManager.Device.IPTunnel</a></span><span class="refpurpose"> — IP Tunneling Device</span>
 </dt>
 <dt>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Lowpan.html">org.freedesktop.NetworkManager.Device.Lowpan</a></span><span class="refpurpose"> — 6LoWPAN Device</span>
+</dt>
+<dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Macsec.html">org.freedesktop.NetworkManager.Device.Macsec</a></span><span class="refpurpose"> — MACSec Device</span>
 </dt>
 <dt>
@@ -322,7 +343,13 @@
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Vxlan.html">org.freedesktop.NetworkManager.Device.Vxlan</a></span><span class="refpurpose"> — VXLAN Device</span>
 </dt>
 <dt>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.WireGuard.html">org.freedesktop.NetworkManager.Device.WireGuard</a></span><span class="refpurpose"> — WireGuard Device</span>
+</dt>
+<dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html">org.freedesktop.NetworkManager.Device.Wireless</a></span><span class="refpurpose"> — Wi-Fi Device</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Wpan.html">org.freedesktop.NetworkManager.Device.Wpan</a></span><span class="refpurpose"> — IEEE 802.15.4 (WPAN) MAC Layer Device</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.PPP.html">org.freedesktop.NetworkManager.PPP</a></span><span class="refpurpose"> — Helper interface for a PPP plugin</span>
@@ -389,6 +416,6 @@
 </dl></div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.29.1</div>
 </body>
 </html>

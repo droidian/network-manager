@@ -75,7 +75,7 @@ typedef enum {
 static inline NMMetaAccessorGetType
 nmc_print_output_to_accessor_get_type (NMCPrintOutput print_output)
 {
-	return   (print_output != NMC_PRINT_TERSE)
+	return   NM_IN_SET (print_output, NMC_PRINT_NORMAL, NMC_PRINT_PRETTY)
 	       ? NM_META_ACCESSOR_GET_TYPE_PRETTY
 	       : NM_META_ACCESSOR_GET_TYPE_PARSABLE;
 }
@@ -106,7 +106,7 @@ struct _NmcOutputField {
 
 typedef struct _NmcConfig {
 	NMCPrintOutput print_output;                      /* Output mode */
-	gboolean use_colors;                              /* Whether to use colors for output: option '--color' */
+	bool use_colors;                                  /* Whether to use colors for output: option '--color' */
 	bool multiline_output;                            /* Multiline output instead of default tabular */
 	bool escape_values;                               /* Whether to escape ':' and '\' in terse tabular mode */
 	bool in_editor;                                   /* Whether running the editor - nmcli con edit' */

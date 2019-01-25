@@ -3,7 +3,9 @@
 ]>
 
 <nm-keyfile-docs>
-  <setting name="802-1x">
+  <setting name="6lowpan">
+</setting>
+<setting name="802-1x">
 </setting>
 <setting name="adsl">
 </setting>
@@ -25,6 +27,8 @@ or semicolon separated list of 6 decimal bytes (obsolete)"/>
 <setting name="dcb">
 </setting>
 <setting name="dummy">
+</setting>
+<setting name="ethtool">
 </setting>
 <setting name="generic">
 </setting>
@@ -53,6 +57,8 @@ route2=7.7.0.0/16" description="List of IP routes."/>
 </setting>
 <setting name="macvlan">
 </setting>
+<setting name="match">
+</setting>
 <setting name="802-11-olpc-mesh">
 </setting>
 <setting name="ovs-bridge">
@@ -73,6 +79,8 @@ route2=7.7.0.0/16" description="List of IP routes."/>
 <property name="parity" variable="parity" format="&apos;e&apos;, &apos;o&apos;, or &apos;n&apos;" values="" default="" example="parity=n" description="The connection parity; even, odd, or none. Note that older
 versions of NetworkManager stored this as an integer: 69 (&apos;E&apos;) for even,
 111 (&apos;o&apos;) for odd, or 110 (&apos;n&apos;) for none."/>
+</setting>
+<setting name="sriov">
 </setting>
 <setting name="tc">
 </setting>
@@ -116,5 +124,9 @@ under [vpn-secrets] section."/>
 (e.g. 00:22:68:12:79:B2), or semicolon separated list of 6 bytes (obsolete)
 (e.g. 0;34;104;18;121;178)."/>
 <property name="mac-address-blacklist" variable="mac-address-blacklist" format="list of MACs (separated with semicolons)" values="" default="" example="mac-address-blacklist= 00:22:68:12:79:A6;00:22:68:12:79:78" description="MAC address blacklist."/>
+</setting>
+<setting name="wpan">
+<property name="mac-address" variable="mac-address" format="usual hex-digits-and-colons notation" values="" default="" example="" description="MAC address in hex-digits-and-colons notation
+(e.g. 76:d8:9b:87:66:60:84:ee)."/>
 </setting>
 </nm-keyfile-docs>
