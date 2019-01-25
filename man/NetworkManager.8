@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 12/01/2018
+.\"      Date: 10/24/2018
 .\"    Manual: Network management daemons
-.\"    Source: NetworkManager 1.12.6
+.\"    Source: NetworkManager 1.14.4
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.12\&.6" "Network management daemons"
+.TH "NETWORKMANAGER" "8" "" "NetworkManager 1\&.14\&.4" "Network management daemons"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -258,6 +258,13 @@ Specify configuration file to set up various settings for NetworkManager\&. If n
 is used with a fallback to the older \*(Aqnm\-system\-settings\&.conf\*(Aq if located in the same directory\&. See
 \fBNetworkManager.conf\fR(5)
 for more information on configuration file\&.
+.RE
+.PP
+\fB\-\-configure\-and\-quit\fR [initrd]
+.RS 4
+Quit after all devices reach a stable state\&. The optional
+initrd
+parameter enables mode, where no processes are left running after NetworkManager stops, which is useful for running from an initial ramdisk on rearly boot\&.
 .RE
 .PP
 \fB\-\-plugins\fR

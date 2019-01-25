@@ -16,7 +16,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright 2007 - 2011 Red Hat, Inc.
+ * Copyright 2007 - 2018 Red Hat, Inc.
  * Copyright 2007 - 2008 Novell, Inc.
  */
 
@@ -37,9 +37,7 @@
  * such as mobile broadband or analog telephone connections.
  **/
 
-G_DEFINE_TYPE_WITH_CODE (NMSettingSerial, nm_setting_serial, NM_TYPE_SETTING,
-                         _nm_register_setting (SERIAL, NM_SETTING_PRIORITY_HW_AUX))
-NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_SERIAL)
+G_DEFINE_TYPE (NMSettingSerial, nm_setting_serial, NM_TYPE_SETTING)
 
 #define NM_SETTING_SERIAL_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_SERIAL, NMSettingSerialPrivate))
 
@@ -145,12 +143,6 @@ nm_setting_serial_get_send_delay (NMSettingSerial *setting)
 	return NM_SETTING_SERIAL_GET_PRIVATE (setting)->send_delay;
 }
 
-static gboolean
-verify (NMSetting *setting, NMConnection *connection, GError **error)
-{
-	return TRUE;
-}
-
 static void
 nm_setting_serial_init (NMSettingSerial *setting)
 {
@@ -244,19 +236,16 @@ get_property (GObject *object, guint prop_id,
 }
 
 static void
-nm_setting_serial_class_init (NMSettingSerialClass *setting_class)
+nm_setting_serial_class_init (NMSettingSerialClass *klass)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (setting_class);
-	NMSettingClass *parent_class = NM_SETTING_CLASS (setting_class);
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	NMSettingClass *setting_class = NM_SETTING_CLASS (klass);
+	GArray *properties_override = _nm_sett_info_property_override_create_array ();
 
-	g_type_class_add_private (setting_class, sizeof (NMSettingSerialPrivate));
+	g_type_class_add_private (klass, sizeof (NMSettingSerialPrivate));
 
-	/* virtual methods */
 	object_class->set_property = set_property;
 	object_class->get_property = get_property;
-	parent_class->verify       = verify;
-
-	/* Properties */
 
 	/**
 	 * NMSettingSerial:baud:
@@ -314,11 +303,13 @@ nm_setting_serial_class_init (NMSettingSerialClass *setting_class)
 		                    G_PARAM_READWRITE |
 		                    G_PARAM_CONSTRUCT |
 		                    G_PARAM_STATIC_STRINGS));
-	_nm_setting_class_transform_property (parent_class,
-	                                      NM_SETTING_SERIAL_PARITY,
-	                                      G_VARIANT_TYPE_BYTE,
-	                                      parity_to_dbus,
-	                                      parity_from_dbus);
+
+	_properties_override_add_transform (properties_override,
+	                                    g_object_class_find_property (G_OBJECT_CLASS (setting_class),
+	                                                                  NM_SETTING_SERIAL_PARITY),
+	                                    G_VARIANT_TYPE_BYTE,
+	                                    parity_to_dbus,
+	                                    parity_from_dbus);
 
 	/**
 	 * NMSettingSerial:stopbits:
@@ -346,4 +337,7 @@ nm_setting_serial_class_init (NMSettingSerialClass *setting_class)
 		                      G_PARAM_READWRITE |
 		                      G_PARAM_CONSTRUCT |
 		                      G_PARAM_STATIC_STRINGS));
+
+	_nm_setting_class_commit_full (setting_class, NM_META_SETTING_TYPE_SERIAL,
+	                               NULL, properties_override);
 }

@@ -108,7 +108,9 @@ class Util:
         return (Util.ip_addr_ntop(a, family), family)
 
     @staticmethod
-    def ip4_addr_ne32(addr):
+    def ip4_addr_be32(addr):
+        # return the IPv4 address as 32 bit integer in network byte order
+        # (big endian).
         a, family = Util.ip_addr_pton(addr, socket.AF_INET)
         n = 0
         for i in range(4):
@@ -279,6 +281,8 @@ class Util:
             return GLib.Variant('s', str(val))
         if isinstance(val, dbus.UInt32):
             return GLib.Variant('u', int(val))
+        if isinstance(val, dbus.UInt64):
+            return GLib.Variant('t', int(val))
         if isinstance(val, dbus.Boolean):
             return GLib.Variant('b', bool(val))
         if isinstance(val, dbus.Byte):
@@ -479,11 +483,12 @@ class NmUtil:
         if not do_verify_strict:
             return;
         t = s_con[NM.SETTING_CONNECTION_TYPE]
-        if t not in [ NM.SETTING_WIRED_SETTING_NAME,
-                      NM.SETTING_WIRELESS_SETTING_NAME,
+        if t not in [ NM.SETTING_GSM_SETTING_NAME,
                       NM.SETTING_VLAN_SETTING_NAME,
+                      NM.SETTING_VPN_SETTING_NAME,
                       NM.SETTING_WIMAX_SETTING_NAME,
-                      NM.SETTING_VPN_SETTING_NAME ]:
+                      NM.SETTING_WIRED_SETTING_NAME,
+                      NM.SETTING_WIRELESS_SETTING_NAME ]:
             raise BusErr.InvalidPropertyException('connection.type: unsupported connection type "%s"' % (t))
 
         try:
@@ -645,7 +650,7 @@ class ExportedObj(dbus.service.Object):
         # compatibility reasons. Note that this stub server implementation gets this wrong,
         # for example, it emits PropertiesChanged signal on org.freedesktop.NetworkManager.Device,
         # which NetworkManager never did.
-        # See https://cgit.freedesktop.org/NetworkManager/NetworkManager/tree/src/nm-dbus-manager.c?id=db80d5f62a1edf39c5970887ef7b9ec62dd4163f#n1274
+        # See https://gitlab.freedesktop.org/NetworkManager/NetworkManager/blob/db80d5f62a1edf39c5970887ef7b9ec62dd4163f/src/nm-dbus-manager.c#L1274
         if dbus_interface.legacy_prop_changed_func is not None:
             dbus_interface.legacy_prop_changed_func(self, prop)
 
@@ -1852,9 +1857,9 @@ class IP4Config(ExportedObj):
 
         return {
             PRP_IP4_CONFIG_ADDRESSES:   dbus.Array([
-                                                [ Util.ip4_addr_ne32(a['addr']),
+                                                [ Util.ip4_addr_be32(a['addr']),
                                                   a['prefix'],
-                                                  Util.ip4_addr_ne32(a['gateway']) if a['gateway'] else 0
+                                                  Util.ip4_addr_be32(a['gateway']) if a['gateway'] else 0
                                                 ] for a in addrs
                                             ],
                                             'au'),
@@ -1868,9 +1873,9 @@ class IP4Config(ExportedObj):
                                             'a{sv}'),
             PRP_IP4_CONFIG_GATEWAY:     dbus.String(gateway) if gateway else "",
             PRP_IP4_CONFIG_ROUTES:      dbus.Array([
-                                                [ Util.ip4_addr_ne32(a['dest']),
+                                                [ Util.ip4_addr_be32(a['dest']),
                                                   a['prefix'],
-                                                  Util.ip4_addr_ne32(a['next-hop'] or '0.0.0.0'),
+                                                  Util.ip4_addr_be32(a['next-hop'] or '0.0.0.0'),
                                                   max(a['metric'], 0)
                                                 ] for a in routes
                                             ],
@@ -1884,12 +1889,12 @@ class IP4Config(ExportedObj):
                                                 for a in routes
                                             ],
                                             'a{sv}'),
-            PRP_IP4_CONFIG_NAMESERVERS: dbus.Array([dbus.UInt32(Util.ip4_addr_ne32(n)) for n in nameservers], 'u'),
+            PRP_IP4_CONFIG_NAMESERVERS: dbus.Array([dbus.UInt32(Util.ip4_addr_be32(n)) for n in nameservers], 'u'),
             PRP_IP4_CONFIG_DOMAINS:     dbus.Array(domains, 's'),
             PRP_IP4_CONFIG_SEARCHES:    dbus.Array(searches, 's'),
             PRP_IP4_CONFIG_DNSOPTIONS:  dbus.Array(dnsoptions, 's'),
             PRP_IP4_CONFIG_DNSPRIORITY: dbus.Int32(dnspriority),
-            PRP_IP4_CONFIG_WINSSERVERS: dbus.Array([dbus.UInt32(Util.ip4_addr_ne32(n)) for n in winsservers], 'u'),
+            PRP_IP4_CONFIG_WINSSERVERS: dbus.Array([dbus.UInt32(Util.ip4_addr_be32(n)) for n in winsservers], 'u'),
         }
 
     def props_regenerate(self, generate_seed):

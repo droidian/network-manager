@@ -1,0 +1,60 @@
+From: Yu Watanabe <watanabe.yu+github@gmail.com>
+Date: Fri, 19 Oct 2018 03:44:56 +0900
+Subject: sd-dhcp6: fix argument and error handling of
+ dhcp6_option_parse_status()
+
+(cherry picked from commit 91c43f3978fa7c8341550b9ca279e460ba7e74e6)
+(cherry picked from commit 373cbfc8c6e9591b3c8cc12d58c4b31ac35ab24f)
+(cherry picked from commit 0e93fd895daa6f0f578ffa8fc4ed3e0ea85c62e8)
+---
+ src/systemd/src/libsystemd-network/dhcp6-option.c    | 10 ++++++----
+ src/systemd/src/libsystemd-network/sd-dhcp6-client.c |  9 +++++----
+ 2 files changed, 11 insertions(+), 8 deletions(-)
+
+diff --git a/src/systemd/src/libsystemd-network/dhcp6-option.c b/src/systemd/src/libsystemd-network/dhcp6-option.c
+index ff1cbf1..cfddefc 100644
+--- a/src/systemd/src/libsystemd-network/dhcp6-option.c
++++ b/src/systemd/src/libsystemd-network/dhcp6-option.c
+@@ -465,13 +465,15 @@ int dhcp6_option_parse_ia(DHCP6Option *iaoption, DHCP6IA *ia) {
+ 
+                 case SD_DHCP6_OPTION_STATUS_CODE:
+ 
+-                        status = dhcp6_option_parse_status(option, optlen);
+-                        if (status) {
++                        status = dhcp6_option_parse_status(option, optlen + sizeof(DHCP6Option));
++                        if (status < 0) {
++                                r = status;
++                                goto error;
++                        }
++                        if (status > 0) {
+                                 log_dhcp6_client(client, "IA status %d",
+                                                  status);
+ 
+-                                dhcp6_lease_free_ia(ia);
+-
+                                 r = -EINVAL;
+                                 goto error;
+                         }
+diff --git a/src/systemd/src/libsystemd-network/sd-dhcp6-client.c b/src/systemd/src/libsystemd-network/sd-dhcp6-client.c
+index 0b261a2..b694786 100644
+--- a/src/systemd/src/libsystemd-network/sd-dhcp6-client.c
++++ b/src/systemd/src/libsystemd-network/sd-dhcp6-client.c
+@@ -870,13 +870,14 @@ static int client_parse_message(
+                         break;
+ 
+                 case SD_DHCP6_OPTION_STATUS_CODE:
+-                        status = dhcp6_option_parse_status(option, optlen);
+-                        if (status) {
++                        status = dhcp6_option_parse_status(option, optlen + sizeof(DHCP6Option));
++                        if (status < 0)
++                                return status;
++
++                        if (status > 0) {
+                                 log_dhcp6_client(client, "%s Status %s",
+                                                  dhcp6_message_type_to_string(message->type),
+                                                  dhcp6_message_status_to_string(status));
+-                                dhcp6_lease_free_ia(&lease->ia);
+-                                dhcp6_lease_free_ia(&lease->pd);
+ 
+                                 return -EINVAL;
+                         }

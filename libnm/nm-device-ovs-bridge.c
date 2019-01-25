@@ -61,7 +61,7 @@ G_DEFINE_TYPE (NMDeviceOvsBridge, nm_device_ovs_bridge, NM_TYPE_DEVICE)
  * #NMDevices that are slaves of @device. This is the internal
  * copy used by the device, and must not be modified.
  *
- * Since: 1.12.2
+ * Since: 1.14
  **/
 const GPtrArray *
 nm_device_ovs_bridge_get_slaves (NMDeviceOvsBridge *device)

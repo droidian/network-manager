@@ -61,9 +61,7 @@ struct _NMSettingOvsBridgeClass {
 	NMSettingClass parent;
 };
 
-G_DEFINE_TYPE_WITH_CODE (NMSettingOvsBridge, nm_setting_ovs_bridge, NM_TYPE_SETTING,
-                         _nm_register_setting (OVS_BRIDGE, NM_SETTING_PRIORITY_HW_BASE))
-NM_SETTING_REGISTER_TYPE (NM_TYPE_SETTING_OVS_BRIDGE)
+G_DEFINE_TYPE (NMSettingOvsBridge, nm_setting_ovs_bridge, NM_TYPE_SETTING)
 
 /*****************************************************************************/
 
@@ -264,15 +262,16 @@ finalize (GObject *object)
 }
 
 static void
-nm_setting_ovs_bridge_class_init (NMSettingOvsBridgeClass *setting_class)
+nm_setting_ovs_bridge_class_init (NMSettingOvsBridgeClass *klass)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (setting_class);
-	NMSettingClass *parent_class = NM_SETTING_CLASS (setting_class);
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	NMSettingClass *setting_class = NM_SETTING_CLASS (klass);
 
 	object_class->set_property = set_property;
 	object_class->get_property = get_property;
-	object_class->finalize = finalize;
-	parent_class->verify = verify;
+	object_class->finalize     = finalize;
+
+	setting_class->verify = verify;
 
 	/**
 	 * NMSettingOvsBridge:fail-mode:
@@ -334,4 +333,6 @@ nm_setting_ovs_bridge_class_init (NMSettingOvsBridgeClass *setting_class)
 	                               G_PARAM_READWRITE |
 	                               G_PARAM_CONSTRUCT |
 	                               G_PARAM_STATIC_STRINGS));
+
+	_nm_setting_class_commit (setting_class, NM_META_SETTING_TYPE_OVS_BRIDGE);
 }

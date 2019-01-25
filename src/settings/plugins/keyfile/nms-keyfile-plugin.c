@@ -56,19 +56,15 @@ typedef struct {
 } NMSKeyfilePluginPrivate;
 
 struct _NMSKeyfilePlugin {
-	GObject parent;
+	NMSettingsPlugin parent;
 	NMSKeyfilePluginPrivate _priv;
 };
 
 struct _NMSKeyfilePluginClass {
-	GObjectClass parent;
+	NMSettingsPluginClass parent;
 };
 
-static void settings_plugin_interface_init (NMSettingsPluginInterface *plugin_iface);
-
-G_DEFINE_TYPE_EXTENDED (NMSKeyfilePlugin, nms_keyfile_plugin, G_TYPE_OBJECT, 0,
-                        G_IMPLEMENT_INTERFACE (NM_TYPE_SETTINGS_PLUGIN,
-                                               settings_plugin_interface_init))
+G_DEFINE_TYPE (NMSKeyfilePlugin, nms_keyfile_plugin, NM_TYPE_SETTINGS_PLUGIN)
 
 #define NMS_KEYFILE_PLUGIN_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMSKeyfilePlugin, NMS_IS_KEYFILE_PLUGIN)
 
@@ -85,10 +81,10 @@ G_DEFINE_TYPE_EXTENDED (NMSKeyfilePlugin, nms_keyfile_plugin, G_TYPE_OBJECT, 0,
 /*****************************************************************************/
 
 static void
-connection_removed_cb (NMSettingsConnection *obj, gpointer user_data)
+connection_removed_cb (NMSettingsConnection *sett_conn, NMSKeyfilePlugin *self)
 {
-	g_hash_table_remove (NMS_KEYFILE_PLUGIN_GET_PRIVATE ((NMSKeyfilePlugin *) user_data)->connections,
-	                     nm_connection_get_uuid (NM_CONNECTION (obj)));
+	g_hash_table_remove (NMS_KEYFILE_PLUGIN_GET_PRIVATE (self)->connections,
+	                     nm_settings_connection_get_uuid (sett_conn));
 }
 
 /* Monitoring */
@@ -106,7 +102,7 @@ remove_connection (NMSKeyfilePlugin *self, NMSKeyfileConnection *connection)
 	g_object_ref (connection);
 	g_signal_handlers_disconnect_by_func (connection, connection_removed_cb, self);
 	removed = g_hash_table_remove (NMS_KEYFILE_PLUGIN_GET_PRIVATE (self)->connections,
-	                               nm_connection_get_uuid (NM_CONNECTION (connection)));
+	                               nm_settings_connection_get_uuid (NM_SETTINGS_CONNECTION (connection)));
 	nm_settings_connection_signal_remove (NM_SETTINGS_CONNECTION (connection));
 	g_object_unref (connection);
 
@@ -175,6 +171,7 @@ update_connection (NMSKeyfilePlugin *self,
 	NMSKeyfileConnection *connection_by_uuid;
 	GError *local = NULL;
 	const char *uuid;
+	int dir_len;
 
 	g_return_val_if_fail (!source || NM_IS_CONNECTION (source), NULL);
 	g_return_val_if_fail (full_path || source, NULL);
@@ -182,7 +179,23 @@ update_connection (NMSKeyfilePlugin *self,
 	if (full_path)
 		_LOGD ("loading from file \"%s\"...", full_path);
 
-	connection_new = nms_keyfile_connection_new (source, full_path, &local);
+	if (g_str_has_prefix (full_path, nms_keyfile_utils_get_path ())) {
+		dir_len = strlen (nms_keyfile_utils_get_path ());
+	} else if (g_str_has_prefix (full_path, NM_CONFIG_KEYFILE_PATH_IN_MEMORY)) {
+		dir_len = NM_STRLEN (NM_CONFIG_KEYFILE_PATH_IN_MEMORY);
+	} else {
+		/* Just make sure the file name is not going go pass the following check. */
+		dir_len = strlen (full_path);
+	}
+
+	if (   full_path[dir_len] != '/'
+	    || strchr (full_path + dir_len + 1, '/') != NULL) {
+		g_set_error_literal (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_FAILED,
+		                     "File not in recognized system-connections directory");
+		return FALSE;
+	}
+
+	connection_new = nms_keyfile_connection_new (source, full_path, nms_keyfile_utils_get_path (), &local);
 	if (!connection_new) {
 		/* Error; remove the connection */
 		if (source)
@@ -197,7 +210,7 @@ update_connection (NMSKeyfilePlugin *self,
 		return NULL;
 	}
 
-	uuid = nm_connection_get_uuid (NM_CONNECTION (connection_new));
+	uuid = nm_settings_connection_get_uuid (NM_SETTINGS_CONNECTION (connection_new));
 	connection_by_uuid = g_hash_table_lookup (priv->connections, uuid);
 
 	if (   connection
@@ -240,8 +253,8 @@ update_connection (NMSKeyfilePlugin *self,
 
 		old_path = nm_settings_connection_get_filename (NM_SETTINGS_CONNECTION (connection_by_uuid));
 
-		if (nm_connection_compare (NM_CONNECTION (connection_by_uuid),
-		                           NM_CONNECTION (connection_new),
+		if (nm_connection_compare (nm_settings_connection_get_connection (NM_SETTINGS_CONNECTION (connection_by_uuid)),
+		                           nm_settings_connection_get_connection (NM_SETTINGS_CONNECTION (connection_new)),
 		                           NM_SETTING_COMPARE_FLAG_IGNORE_AGENT_OWNED_SECRETS |
 		                           NM_SETTING_COMPARE_FLAG_IGNORE_NOT_SAVED_SECRETS)) {
 			/* Nothing to do... except updating the path. */
@@ -259,7 +272,7 @@ update_connection (NMSKeyfilePlugin *self,
 				_LOGI ("update and persist "NMS_KEYFILE_CONNECTION_LOG_FMT, NMS_KEYFILE_CONNECTION_LOG_ARG (connection_new));
 
 			if (!nm_settings_connection_update (NM_SETTINGS_CONNECTION (connection_by_uuid),
-			                                    NM_CONNECTION (connection_new),
+			                                    nm_settings_connection_get_connection (NM_SETTINGS_CONNECTION (connection_new)),
 			                                    NM_SETTINGS_CONNECTION_PERSIST_MODE_KEEP_SAVED,
 			                                    NM_SETTINGS_CONNECTION_COMMIT_REASON_NONE,
 			                                    "keyfile-update",
@@ -287,8 +300,10 @@ update_connection (NMSKeyfilePlugin *self,
 		if (!source) {
 			/* Only raise the signal if we were called without source, i.e. if we read the connection from file.
 			 * Otherwise, we were called by add_connection() which does not expect the signal. */
-			g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_CONNECTION_ADDED, connection_new);
+			_nm_settings_plugin_emit_signal_connection_added (NM_SETTINGS_PLUGIN (self),
+			                                                  NM_SETTINGS_CONNECTION (connection_new));
 		}
+
 		return connection_new;
 	}
 }
@@ -307,7 +322,7 @@ dir_changed (GFileMonitor *monitor,
 	gboolean exists;
 
 	full_path = g_file_get_path (file);
-	if (nms_keyfile_utils_should_ignore_file (full_path)) {
+	if (nms_keyfile_utils_should_ignore_file (full_path, FALSE)) {
 		g_free (full_path);
 		return;
 	}
@@ -341,13 +356,14 @@ config_changed_cb (NMConfig *config,
                    NMConfigData *old_data,
                    NMSKeyfilePlugin *self)
 {
-	gs_free char *old_value = NULL, *new_value = NULL;
+	gs_free char *old_value = NULL;
+	gs_free char *new_value = NULL;
 
 	old_value = nm_config_data_get_value (old_data, NM_CONFIG_KEYFILE_GROUP_KEYFILE, NM_CONFIG_KEYFILE_KEY_KEYFILE_UNMANAGED_DEVICES, NM_CONFIG_GET_VALUE_TYPE_SPEC);
 	new_value = nm_config_data_get_value (config_data, NM_CONFIG_KEYFILE_GROUP_KEYFILE, NM_CONFIG_KEYFILE_KEY_KEYFILE_UNMANAGED_DEVICES, NM_CONFIG_GET_VALUE_TYPE_SPEC);
 
-	if (g_strcmp0 (old_value, new_value) != 0)
-		g_signal_emit_by_name (self, NM_SETTINGS_PLUGIN_UNMANAGED_SPECS_CHANGED);
+	if (!nm_streq0 (old_value, new_value))
+		_nm_settings_plugin_emit_signal_unmanaged_specs_changed (NM_SETTINGS_PLUGIN (self));
 }
 
 static void
@@ -412,13 +428,35 @@ _sort_paths (const char **f1, const char **f2, GHashTable *paths)
 }
 
 static void
+_read_dir (GPtrArray *filenames,
+           const char *path,
+           gboolean require_extension)
+{
+	GDir *dir;
+	const char *item;
+	GError *error = NULL;
+
+	dir = g_dir_open (path, 0, &error);
+	if (!dir) {
+		_LOGD ("cannot read directory '%s': %s", path, error->message);
+		g_clear_error (&error);
+		return;
+	}
+
+	while ((item = g_dir_read_name (dir))) {
+		if (nms_keyfile_utils_should_ignore_file (item, require_extension))
+			continue;
+		g_ptr_array_add (filenames, g_build_filename (path, item, NULL));
+	}
+	g_dir_close (dir);
+}
+
+
+static void
 read_connections (NMSettingsPlugin *config)
 {
 	NMSKeyfilePlugin *self = NMS_KEYFILE_PLUGIN (config);
 	NMSKeyfilePluginPrivate *priv = NMS_KEYFILE_PLUGIN_GET_PRIVATE (self);
-	GDir *dir;
-	GError *error = NULL;
-	const char *item;
 	GHashTable *alive_connections;
 	GHashTableIter iter;
 	NMSKeyfileConnection *connection;
@@ -427,24 +465,12 @@ read_connections (NMSettingsPlugin *config)
 	GPtrArray *filenames;
 	GHashTable *paths;
 
-	dir = g_dir_open (nms_keyfile_utils_get_path (), 0, &error);
-	if (!dir) {
-		_LOGW ("cannot read directory '%s': %s",
-		             nms_keyfile_utils_get_path (),
-		             error->message);
-		g_clear_error (&error);
-		return;
-	}
+	filenames = g_ptr_array_new_with_free_func (g_free);
+
+	_read_dir (filenames, NM_CONFIG_KEYFILE_PATH_IN_MEMORY, TRUE);
+	_read_dir (filenames, nms_keyfile_utils_get_path (), FALSE);
 
 	alive_connections = g_hash_table_new (nm_direct_hash, NULL);
-
-	filenames = g_ptr_array_new_with_free_func (g_free);
-	while ((item = g_dir_read_name (dir))) {
-		if (nms_keyfile_utils_should_ignore_file (item))
-			continue;
-		g_ptr_array_add (filenames, g_build_filename (nms_keyfile_utils_get_path (), item, NULL));
-	}
-	g_dir_close (dir);
 
 	/* While reloading, we don't replace connections that we already loaded while
 	 * iterating over the files.
@@ -497,19 +523,61 @@ get_connections (NMSettingsPlugin *config)
 }
 
 static gboolean
+_file_is_in_path (const char *abs_filename,
+                  const char *abs_path)
+{
+	gsize l;
+
+	/* FIXME: ensure that both paths are at least normalized (coalescing ".",
+	 * duplicate '/', and trailing '/'). */
+
+	nm_assert (abs_filename && abs_filename[0] == '/');
+	nm_assert (abs_path && abs_path[0] == '/');
+
+	l = strlen (abs_path);
+	if (strncmp (abs_filename, abs_path, l) != 0)
+		return FALSE;
+
+	abs_filename += l;
+	while (abs_filename[0] == '/')
+		abs_filename++;
+
+	if (!abs_filename[0])
+		return FALSE;
+
+	if (strchr (abs_filename, '/'))
+		return FALSE;
+
+	return TRUE;
+}
+
+static gboolean
 load_connection (NMSettingsPlugin *config,
                  const char *filename)
 {
 	NMSKeyfilePlugin *self = NMS_KEYFILE_PLUGIN ((NMSKeyfilePlugin *) config);
 	NMSKeyfileConnection *connection;
-	int dir_len = strlen (nms_keyfile_utils_get_path ());
+	gboolean require_extension;
 
-	if (   strncmp (filename, nms_keyfile_utils_get_path (), dir_len) != 0
-	    || filename[dir_len] != '/'
-	    || strchr (filename + dir_len + 1, '/') != NULL)
+	/* the test whether to require a file extension tries to figure out whether
+	 * the provided filename is inside /etc or /run.
+	 *
+	 * However, on Posix a filename just resolves to an Inode, and there can
+	 * be any kind of paths that point to the same Inode. It's not generally possible
+	 * to check for that (unless, we would stat all files in the target directory
+	 * and see whether their inode matches).
+	 *
+	 * So, when loading the file do something simpler: require that the path
+	 * starts with the well-known prefix. This rejects symlinks or hard links
+	 * which would actually also point to the same file. */
+	if (_file_is_in_path (filename, nms_keyfile_utils_get_path ()))
+		require_extension = FALSE;
+	else if (_file_is_in_path (filename, NM_CONFIG_KEYFILE_PATH_IN_MEMORY))
+		require_extension = TRUE;
+	else
 		return FALSE;
 
-	if (nms_keyfile_utils_should_ignore_file (filename + dir_len + 1))
+	if (nms_keyfile_utils_should_ignore_file (filename, require_extension))
 		return FALSE;
 
 	connection = update_connection (self, NULL, filename, find_by_path (self, filename), TRUE, NULL, NULL);
@@ -533,16 +601,16 @@ add_connection (NMSettingsPlugin *config,
 	gs_free char *path = NULL;
 	gs_unref_object NMConnection *reread = NULL;
 
-	if (save_to_disk) {
-		if (!nms_keyfile_writer_connection (connection,
-		                                    NULL,
-		                                    FALSE,
-		                                    &path,
-		                                    &reread,
-		                                    NULL,
-		                                    error))
-			return NULL;
-	}
+	if (!nms_keyfile_writer_connection (connection,
+	                                    save_to_disk,
+	                                    NULL,
+	                                    FALSE,
+	                                    &path,
+	                                    &reread,
+	                                    NULL,
+	                                    error))
+		return NULL;
+
 	return NM_SETTINGS_CONNECTION (update_connection (self, reread ?: connection, path, NULL, FALSE, NULL, error));
 }
 
@@ -616,20 +684,17 @@ dispose (GObject *object)
 }
 
 static void
-nms_keyfile_plugin_class_init (NMSKeyfilePluginClass *req_class)
+nms_keyfile_plugin_class_init (NMSKeyfilePluginClass *klass)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (req_class);
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	NMSettingsPluginClass *plugin_class = NM_SETTINGS_PLUGIN_CLASS (klass);
 
 	object_class->constructed = constructed;
-	object_class->dispose = dispose;
-}
+	object_class->dispose     = dispose;
 
-static void
-settings_plugin_interface_init (NMSettingsPluginInterface *plugin_iface)
-{
-	plugin_iface->get_connections = get_connections;
-	plugin_iface->load_connection = load_connection;
-	plugin_iface->reload_connections = reload_connections;
-	plugin_iface->add_connection = add_connection;
-	plugin_iface->get_unmanaged_specs = get_unmanaged_specs;
+	plugin_class->get_connections     = get_connections;
+	plugin_class->load_connection     = load_connection;
+	plugin_class->reload_connections  = reload_connections;
+	plugin_class->add_connection      = add_connection;
+	plugin_class->get_unmanaged_specs = get_unmanaged_specs;
 }

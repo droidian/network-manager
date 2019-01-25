@@ -86,7 +86,7 @@ test_config (const char *orig,
 	if (expected_new_client_id) {
 		g_assert (new_client_id);
 		g_assert (g_bytes_equal (new_client_id, expected_new_client_id));
-	 } else
+	} else
 		g_assert (new_client_id == NULL);
 }
 
@@ -104,6 +104,7 @@ static const char *orig_missing_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -132,6 +133,7 @@ static const char *override_client_id_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -161,6 +163,7 @@ static const char *quote_client_id_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -190,6 +193,7 @@ static const char *quote_client_id_expected_2 = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -219,6 +223,7 @@ static const char *hex_zero_client_id_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -248,6 +253,7 @@ static const char *ascii_client_id_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -277,6 +283,7 @@ static const char *hex_single_client_id_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -310,6 +317,7 @@ static const char *existing_hex_client_id_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -347,6 +355,7 @@ static const char *existing_escaped_client_id_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -385,6 +394,7 @@ static const char *existing_ascii_client_id_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -419,7 +429,8 @@ static const char *fqdn_expected = \
 	"also request ms-classless-static-routes;\n"
 	"also request static-routes;\n"
 	"also request wpad;\n"
-	"also request ntp-servers;\n\n";
+	"also request ntp-servers;\n"
+	"also request root-path;\n\n";
 
 static void
 test_fqdn (void)
@@ -455,6 +466,7 @@ static const char *fqdn_options_override_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n"
 	"# FQDN options from /path/to/dhclient.conf\n"
 	"send fqdn.encoded off;\n"
@@ -492,6 +504,7 @@ static const char *override_hostname_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -580,6 +593,7 @@ static const char *existing_alsoreq_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -618,6 +632,7 @@ static const char *existing_req_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -657,6 +672,7 @@ static const char *existing_multiline_alsoreq_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -675,27 +691,18 @@ test_existing_multiline_alsoreq (void)
 static void
 test_one_duid (const char *escaped, const guint8 *unescaped, guint len)
 {
-	GBytes *t;
-	char *w;
-	gsize t_len;
-	gconstpointer t_arr;
+	gs_unref_bytes GBytes *t1 = NULL;
+	gs_unref_bytes GBytes *t2 = NULL;
+	gs_free char *w = NULL;
 
-	t = nm_dhcp_dhclient_unescape_duid (escaped);
-	g_assert (t);
-	t_arr = g_bytes_get_data (t, &t_len);
-	g_assert (t_arr);
-	g_assert_cmpint (t_len, ==, len);
-	g_assert_cmpint (memcmp (t_arr, unescaped, len), ==, 0);
-	g_bytes_unref (t);
+	t1 = nm_dhcp_dhclient_unescape_duid (escaped);
+	g_assert (t1);
+	g_assert (nm_utils_gbytes_equal_mem (t1, unescaped, len));
 
-	t = g_bytes_new_static (unescaped, len);
-	w = nm_dhcp_dhclient_escape_duid (t);
+	t2 = g_bytes_new (unescaped, len);
+	w = nm_dhcp_dhclient_escape_duid (t2);
 	g_assert (w);
-	g_assert_cmpint (strlen (escaped), ==, strlen (w));
 	g_assert_cmpstr (escaped, ==, w);
-
-	g_bytes_unref (t);
-	g_free (w);
 }
 
 static void
@@ -735,15 +742,11 @@ test_read_duid_from_leasefile (void)
 	                            0x13, 0x60, 0x67, 0x20, 0xec, 0x4c, 0x70 };
 	gs_unref_bytes GBytes *duid = NULL;
 	GError *error = NULL;
-	gconstpointer duid_arr;
-	gsize duid_len;
 
 	duid = nm_dhcp_dhclient_read_duid (TEST_DIR"/test-dhclient-duid.leases", &error);
-	g_assert_no_error (error);
-	g_assert (duid);
-	duid_arr = g_bytes_get_data (duid, &duid_len);
-	g_assert_cmpint (duid_len, ==, sizeof (expected));
-	g_assert_cmpint (memcmp (duid_arr, expected, duid_len), ==, 0);
+	nmtst_assert_success (duid, error);
+
+	g_assert (nm_utils_gbytes_equal_mem (duid, expected, G_N_ELEMENTS (expected)));
 }
 
 static void
@@ -903,6 +906,7 @@ static const char *interface1_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -948,6 +952,7 @@ static const char *interface2_expected = \
 	"also request static-routes;\n"
 	"also request wpad;\n"
 	"also request ntp-servers;\n"
+	"also request root-path;\n"
 	"\n";
 
 static void
@@ -958,6 +963,100 @@ test_interface2 (void)
 	             NULL,
 	             NULL,
 	             "eth1",
+	             NULL);
+}
+
+static void
+test_structured (void)
+{
+	gs_unref_bytes GBytes *new_client_id = NULL;
+	const guint8 bytes[] = "sad-and-useless";
+
+	static const char *const orig = \
+		"interface \"eth0\"   {  \n"
+		"    send host-name \"useless.example.com\";\n"
+		"    hardware ethernet de:ad:80:86:ba:be;\n"
+		"    send dhcp-client-identifier \"sad-and-useless\";\n"
+		"    script \"/bin/useless\";\n"
+		"    send dhcp-lease-time 8086;\n"
+		"    request subnet-mask, broadcast-address, time-offset, routers,\n"
+		"        domain-search, domain-name, host-name;\n"
+		"    require subnet-mask;\n"
+		"}  \n"
+		"\n"
+		"    interface \"eth1\"   {  \n"
+		"    send host-name \"sad.example.com\";\n"
+		"    hardware ethernet de:ca:f6:66:ca:fe;\n"
+		"    send dhcp-client-identifier \"useless-and-miserable\";\n"
+		"    script \"/bin/miserable\";\n"
+		"    send dhcp-lease-time 1337;\n"
+		"    request subnet-mask, broadcast-address, time-offset, routers,\n"
+		"        domain-search, domain-name, domain-name-servers, host-name;\n"
+		"    require subnet-mask, domain-name-servers;\n"
+		"    }  \n"
+		"\n"
+		"pseudo \"secondary\" \"eth0\"   {  \n"
+		"    send dhcp-client-identifier \"sad-useless-and-secondary\";\n"
+		"    script \"/bin/secondary\";\n"
+		"    send host-name \"secondary.useless.example.com\";\n"
+		"    send dhcp-lease-time 666;\n"
+		"    request routers;\n"
+		"    require routers;\n"
+		"    }  \n"
+		"\n"
+		"    pseudo \"tertiary\" \"eth0\"   {  \n"
+		"   send dhcp-client-identifier \"sad-useless-and-tertiary\";\n"
+		"  script \"/bin/tertiary\";\n"
+		" send host-name \"tertiary.useless.example.com\";\n"
+		"}  \n"
+		"\n"
+		"  alias{  \n"
+		"    interface \"eth0\";\n"
+		"    fixed-address 192.0.2.1;\n"
+		"    option subnet-mask 255.255.255.0;\n"
+		"  }  \n"
+		"  lease   {  \n"
+		"    interface \"eth0\";\n"
+		"    fixed-address 192.0.2.2;\n"
+		"    option subnet-mask 255.255.255.0;\n"
+		"  }  \n";
+
+	static const char *const expected = \
+		"# Created by NetworkManager\n"
+		"# Merged from /path/to/dhclient.conf\n"
+		"\n"
+		"send host-name \"useless.example.com\";\n"
+		"hardware ethernet de:ad:80:86:ba:be;\n"
+		"send dhcp-client-identifier \"sad-and-useless\";\n"
+		"send dhcp-lease-time 8086;\n"
+		"require subnet-mask;\n"
+		"\n"
+		"option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;\n"
+		"option ms-classless-static-routes code 249 = array of unsigned integer 8;\n"
+		"option wpad code 252 = string;\n"
+		"\n"
+		"request; # override dhclient defaults\n"
+		"also request subnet-mask;\n"
+		"also request broadcast-address;\n"
+		"also request time-offset;\n"
+		"also request routers;\n"
+		"also request domain-search;\n"
+		"also request domain-name;\n"
+		"also request host-name;\n"
+		"also request rfc3442-classless-static-routes;\n"
+		"also request ms-classless-static-routes;\n"
+		"also request static-routes;\n"
+		"also request wpad;\n"
+		"also request ntp-servers;\n"
+		"also request root-path;\n"
+		"\n";
+
+	new_client_id = g_bytes_new (bytes, sizeof (bytes) - 1);
+	test_config (orig, expected,
+	             AF_INET, NULL, 0, FALSE,
+	             NULL,
+	             new_client_id,
+	             "eth0",
 	             NULL);
 }
 
@@ -1005,6 +1104,7 @@ test_config_req_intf (void)
 		"also request ms-classless-static-routes;\n"
 		"also request static-routes;\n"
 		"also request wpad;\n"
+		"also request root-path;\n"
 		"\n";
 
 	test_config (orig, expected,
@@ -1046,6 +1146,7 @@ main (int argc, char **argv)
 	g_test_add_func ("/dhcp/dhclient/interface/1", test_interface1);
 	g_test_add_func ("/dhcp/dhclient/interface/2", test_interface2);
 	g_test_add_func ("/dhcp/dhclient/config/req_intf", test_config_req_intf);
+	g_test_add_func ("/dhcp/dhclient/structured", test_structured);
 
 	g_test_add_func ("/dhcp/dhclient/read_duid_from_leasefile", test_read_duid_from_leasefile);
 	g_test_add_func ("/dhcp/dhclient/read_commented_duid_from_leasefile", test_read_commented_duid_from_leasefile);

@@ -43,7 +43,7 @@
 #include "nm-common-macros.h"
 #include "nm-utils-private.h"
 #include "nm-setting-private.h"
-#include "crypto.h"
+#include "nm-crypto.h"
 #include "nm-setting-bond.h"
 #include "nm-setting-bridge.h"
 #include "nm-setting-infiniband.h"
@@ -230,30 +230,32 @@ get_system_encodings (void)
 	return cached_encodings;
 }
 
-/* init libnm */
-
-static gboolean initialized = FALSE;
+/*****************************************************************************/
 
 static void __attribute__((constructor))
 _nm_utils_init (void)
 {
-	GModule *self;
-	gpointer func;
+	static int initialized = 0;
 
-	if (initialized)
+	if (g_atomic_int_get (&initialized) != 0)
 		return;
-	initialized = TRUE;
 
-	self = g_module_open (NULL, 0);
-	if (g_module_symbol (self, "nm_util_get_private", &func))
-		g_error ("libnm-util symbols detected; Mixing libnm with libnm-util/libnm-glib is not supported");
-	g_module_close (self);
+	/* we don't expect this code to run multiple times, nor on multiple threads.
+	 *
+	 * In practice, it would not be a problem if two threads concurrently try to
+	 * run the initialization code below, all code below itself is thread-safe,
+	 * Hence, a poor-man guard "initialized" above is more than sufficient,
+	 * although it does not guarantee that the code is not run concurrently. */
 
 	bindtextdomain (GETTEXT_PACKAGE, NMLOCALEDIR);
 	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 
 	_nm_dbus_errors_init ();
+
+	g_atomic_int_set (&initialized, 1);
 }
+
+/*****************************************************************************/
 
 gboolean _nm_utils_is_manager_process;
 
@@ -300,19 +302,19 @@ nm_utils_ssid_to_utf8 (const guint8 *ssid, gsize len)
 
 	g_return_val_if_fail (ssid != NULL, NULL);
 
-	if (g_utf8_validate ((const gchar *) ssid, len, NULL))
-		return g_strndup ((const gchar *) ssid, len);
+	if (g_utf8_validate ((const char *) ssid, len, NULL))
+		return g_strndup ((const char *) ssid, len);
 
 	encodings = get_system_encodings ();
 
 	for (e = encodings; *e; e++) {
-		converted = g_convert ((const gchar *) ssid, len, "UTF-8", *e, NULL, NULL, NULL);
+		converted = g_convert ((const char *) ssid, len, "UTF-8", *e, NULL, NULL, NULL);
 		if (converted)
 			break;
 	}
 
 	if (!converted) {
-		converted = g_convert_with_fallback ((const gchar *) ssid, len,
+		converted = g_convert_with_fallback ((const char *) ssid, len,
 		                                     "UTF-8", encodings[0], "?", NULL, NULL, NULL);
 	}
 
@@ -323,7 +325,7 @@ nm_utils_ssid_to_utf8 (const guint8 *ssid, gsize len)
 		 */
 
 		/* Use the printable range of 0x20-0x7E */
-		gchar *valid_chars = " !\"#$%&'()*+,-./0123456789:;<=>?@"
+		char *valid_chars = " !\"#$%&'()*+,-./0123456789:;<=>?@"
 		                     "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`"
 		                     "abcdefghijklmnopqrstuvwxyz{|}~";
 
@@ -332,6 +334,18 @@ nm_utils_ssid_to_utf8 (const guint8 *ssid, gsize len)
 	}
 
 	return converted;
+}
+
+char *
+_nm_utils_ssid_to_utf8 (GBytes *ssid)
+{
+	const guint8 *p;
+	gsize l;
+
+	g_return_val_if_fail (ssid, NULL);
+
+	p = g_bytes_get_data (ssid, &l);
+	return nm_utils_ssid_to_utf8 (p, l);
 }
 
 /* Shamelessly ripped from the Linux kernel ieee80211 stack */
@@ -359,6 +373,18 @@ nm_utils_is_empty_ssid (const guint8 *ssid, gsize len)
 			return FALSE;
 	}
 	return TRUE;
+}
+
+gboolean
+_nm_utils_is_empty_ssid (GBytes *ssid)
+{
+	const guint8 *p;
+	gsize l;
+
+	g_return_val_if_fail (ssid, FALSE);
+
+	p = g_bytes_get_data (ssid, &l);
+	return nm_utils_is_empty_ssid (p, l);
 }
 
 #define ESSID_MAX_SIZE 32
@@ -400,6 +426,37 @@ nm_utils_escape_ssid (const guint8 *ssid, gsize len)
 	}
 	*d = '\0';
 	return escaped;
+}
+
+char *
+_nm_utils_ssid_to_string_arr (const guint8 *ssid, gsize len)
+{
+	gs_free char *s_copy = NULL;
+	const char *s_cnst;
+
+	if (len == 0)
+		return g_strdup ("(empty)");
+
+	s_cnst = nm_utils_buf_utf8safe_escape (ssid, len, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL, &s_copy);
+	nm_assert (s_cnst);
+
+	if (nm_utils_is_empty_ssid (ssid, len))
+		return g_strdup_printf ("\"%s\" (hidden)", s_cnst);
+
+	return g_strdup_printf ("\"%s\"", s_cnst);
+}
+
+char *
+_nm_utils_ssid_to_string (GBytes *ssid)
+{
+	gconstpointer p;
+	gsize l;
+
+	if (!ssid)
+		return g_strdup ("(none)");
+
+	p = g_bytes_get_data (ssid, &l);
+	return _nm_utils_ssid_to_string_arr (p, l);
 }
 
 /**
@@ -566,39 +623,6 @@ _nm_utils_copy_strdict (GHashTable *strdict)
 }
 
 GPtrArray *
-_nm_utils_copy_slist_to_array (const GSList *list,
-                               NMUtilsCopyFunc copy_func,
-                               GDestroyNotify unref_func)
-{
-	const GSList *iter;
-	GPtrArray *array;
-
-	array = g_ptr_array_new_with_free_func (unref_func);
-	for (iter = list; iter; iter = iter->next)
-		g_ptr_array_add (array, copy_func ? copy_func (iter->data) : iter->data);
-	return array;
-}
-
-GSList *
-_nm_utils_copy_array_to_slist (const GPtrArray *array,
-                               NMUtilsCopyFunc copy_func)
-{
-	GSList *slist = NULL;
-	gpointer item;
-	int i;
-
-	if (!array)
-		return NULL;
-
-	for (i = 0; i < array->len; i++) {
-		item = array->pdata[i];
-		slist = g_slist_prepend (slist, copy_func (item));
-	}
-
-	return g_slist_reverse (slist);
-}
-
-GPtrArray *
 _nm_utils_copy_array (const GPtrArray *array,
                       NMUtilsCopyFunc copy_func,
                       GDestroyNotify free_func)
@@ -643,136 +667,6 @@ _nm_utils_ptrarray_find_first (gconstpointer *list, gssize len, gconstpointer ne
 		}
 	}
 	return -1;
-}
-
-gssize
-_nm_utils_ptrarray_find_binary_search (gconstpointer *list,
-                                       gsize len,
-                                       gconstpointer needle,
-                                       GCompareDataFunc cmpfcn,
-                                       gpointer user_data,
-                                       gssize *out_idx_first,
-                                       gssize *out_idx_last)
-{
-	gssize imin, imax, imid, i2min, i2max, i2mid;
-	int cmp;
-
-	g_return_val_if_fail (list || !len, ~((gssize) 0));
-	g_return_val_if_fail (cmpfcn, ~((gssize) 0));
-
-	imin = 0;
-	if (len > 0) {
-		imax = len - 1;
-
-		while (imin <= imax) {
-			imid = imin + (imax - imin) / 2;
-
-			cmp = cmpfcn (list[imid], needle, user_data);
-			if (cmp == 0) {
-				/* we found a matching entry at index imid.
-				 *
-				 * Does the caller request the first/last index as well (in case that
-				 * there are multiple entries which compare equal). */
-
-				if (out_idx_first) {
-					i2min = imin;
-					i2max = imid + 1;
-					while (i2min <= i2max) {
-						i2mid = i2min + (i2max - i2min) / 2;
-
-						cmp = cmpfcn (list[i2mid], needle, user_data);
-						if (cmp == 0)
-							i2max = i2mid -1;
-						else {
-							nm_assert (cmp < 0);
-							i2min = i2mid + 1;
-						}
-					}
-					*out_idx_first = i2min;
-				}
-				if (out_idx_last) {
-					i2min = imid + 1;
-					i2max = imax;
-					while (i2min <= i2max) {
-						i2mid = i2min + (i2max - i2min) / 2;
-
-						cmp = cmpfcn (list[i2mid], needle, user_data);
-						if (cmp == 0)
-							i2min = i2mid + 1;
-						else {
-							nm_assert (cmp > 0);
-							i2max = i2mid - 1;
-						}
-					}
-					*out_idx_last = i2min - 1;
-				}
-				return imid;
-			}
-
-			if (cmp < 0)
-				imin = imid + 1;
-			else
-				imax = imid - 1;
-		}
-	}
-
-	/* return the inverse of @imin. This is a negative number, but
-	 * also is ~imin the position where the value should be inserted. */
-	imin = ~imin;
-	NM_SET_OUT (out_idx_first, imin);
-	NM_SET_OUT (out_idx_last, imin);
-	return imin;
-}
-
-gssize
-_nm_utils_array_find_binary_search (gconstpointer list, gsize elem_size, gsize len, gconstpointer needle, GCompareDataFunc cmpfcn, gpointer user_data)
-{
-	gssize imin, imax, imid;
-	int cmp;
-
-	g_return_val_if_fail (list || !len, ~((gssize) 0));
-	g_return_val_if_fail (cmpfcn, ~((gssize) 0));
-	g_return_val_if_fail (elem_size > 0, ~((gssize) 0));
-
-	imin = 0;
-	if (len == 0)
-		return ~imin;
-
-	imax = len - 1;
-
-	while (imin <= imax) {
-		imid = imin + (imax - imin) / 2;
-
-		cmp = cmpfcn (&((const char *) list)[elem_size * imid], needle, user_data);
-		if (cmp == 0)
-			return imid;
-
-		if (cmp < 0)
-			imin = imid + 1;
-		else
-			imax = imid - 1;
-	}
-
-	/* return the inverse of @imin. This is a negative number, but
-	 * also is ~imin the position where the value should be inserted. */
-	return ~imin;
-}
-
-GVariant *
-_nm_utils_bytes_to_dbus (const GValue *prop_value)
-{
-	GBytes *bytes = g_value_get_boxed (prop_value);
-
-	if (bytes) {
-		return g_variant_new_fixed_array (G_VARIANT_TYPE_BYTE,
-		                                  g_bytes_get_data (bytes, NULL),
-		                                  g_bytes_get_size (bytes),
-		                                  1);
-	} else {
-		return g_variant_new_fixed_array (G_VARIANT_TYPE_BYTE,
-		                                  NULL, 0,
-		                                  1);
-	}
 }
 
 void
@@ -2247,10 +2141,10 @@ _tc_read_common_opts (const char *str,
 	gs_unref_hashtable GHashTable *ht = NULL;
 	GVariant *variant;
 
-        ht = nm_utils_parse_variant_attributes (str,
-                                                ' ', ' ', FALSE,
-                                                tc_object_attribute_spec,
-                                                error);
+	ht = nm_utils_parse_variant_attributes (str,
+	                                        ' ', ' ', FALSE,
+	                                        tc_object_attribute_spec,
+	                                        error);
 	if (!ht)
 		return FALSE;
 
@@ -2610,10 +2504,10 @@ nm_utils_tc_tfilter_from_str (const char *str, GError **error)
 		return NULL;
 
 	if (rest) {
-	        ht = nm_utils_parse_variant_attributes (rest,
-	                                                ' ', ' ', FALSE,
-	                                                tc_tfilter_attribute_spec,
-	                                                error);
+		ht = nm_utils_parse_variant_attributes (rest,
+		                                        ' ', ' ', FALSE,
+		                                        tc_tfilter_attribute_spec,
+		                                        error);
 		if (!ht)
 			return NULL;
 
@@ -2644,6 +2538,249 @@ nm_utils_tc_tfilter_from_str (const char *str, GError **error)
 	}
 
 	return tfilter;
+}
+
+/*****************************************************************************/
+
+extern const NMVariantAttributeSpec *const _nm_sriov_vf_attribute_spec[];
+
+/**
+ * nm_utils_sriov_vf_to_str:
+ * @vf: the %NMSriovVF
+ * @omit_index: if %TRUE, the VF index will be omitted from output string
+ * @error: (out) (allow-none): location to store the error on failure
+ *
+ * Converts a SR-IOV virtual function object to its string representation.
+ *
+ * Returns: a newly allocated string or %NULL on error
+ *
+ * Since: 1.14
+ */
+char *
+nm_utils_sriov_vf_to_str (const NMSriovVF *vf, gboolean omit_index, GError **error)
+{
+	gs_free NMUtilsNamedValue *values = NULL;
+	gs_free const char **names = NULL;
+	const guint *vlan_ids;
+	guint num_vlans, num_attrs;
+	guint i;
+	GString *str;
+
+	str = g_string_new ("");
+	if (!omit_index)
+		g_string_append_printf (str, "%u", nm_sriov_vf_get_index (vf));
+
+	names = nm_sriov_vf_get_attribute_names (vf);
+	num_attrs = names ? g_strv_length ((char **) names) : 0;
+	values = g_new0 (NMUtilsNamedValue, num_attrs);
+
+	for (i = 0; i < num_attrs; i++) {
+		values[i].name = names[i];
+		values[i].value_ptr = nm_sriov_vf_get_attribute (vf, names[i]);
+	}
+
+	if (num_attrs > 0) {
+		if (!omit_index)
+			g_string_append_c (str, ' ');
+		_nm_utils_format_variant_attributes_full (str, values, num_attrs, ' ', '=');
+	}
+
+	vlan_ids = nm_sriov_vf_get_vlan_ids (vf, &num_vlans);
+	if (num_vlans != 0) {
+		g_string_append (str, " vlans");
+		for (i = 0; i < num_vlans; i++) {
+			guint32 qos;
+			NMSriovVFVlanProtocol protocol;
+
+			qos = nm_sriov_vf_get_vlan_qos (vf, vlan_ids[i]);
+			protocol = nm_sriov_vf_get_vlan_protocol (vf, vlan_ids[i]);
+
+			g_string_append_c (str, i == 0 ? '=' : ';');
+
+			g_string_append_printf (str, "%u", vlan_ids[i]);
+
+			if (   qos != 0
+			    || protocol != NM_SRIOV_VF_VLAN_PROTOCOL_802_1Q) {
+				g_string_append_printf (str,
+				                        ".%u%s",
+				                        (unsigned) qos,
+				                        protocol == NM_SRIOV_VF_VLAN_PROTOCOL_802_1Q ? "" : ".ad");
+			}
+		}
+	}
+
+	return g_string_free (str, FALSE);
+}
+
+gboolean
+_nm_sriov_vf_parse_vlans (NMSriovVF *vf, const char *str, GError **error)
+{
+	gs_free const char **vlans = NULL;
+	guint i;
+
+	vlans = nm_utils_strsplit_set (str, ";", FALSE);
+	if (!vlans) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_FAILED,
+		                     "empty VF VLAN");
+		return FALSE;
+	}
+
+	for (i = 0; vlans[i]; i++) {
+		gs_strfreev char **params = NULL;
+		guint id = G_MAXUINT;
+		gint64 qos = -1;
+
+		/* we accept leading/trailing whitespace around vlans[1]. Hence
+		 * the nm_str_skip_leading_spaces() and g_strchomp() below.
+		 *
+		 * However, we don't accept any whitespace inside the specifier.
+		 * Hence the NM_STRCHAR_ALL() checks. */
+
+		params = g_strsplit (nm_str_skip_leading_spaces (vlans[i]), ".", 3);
+		if (!params || !params[0] || *params[0] == '\0') {
+			g_set_error_literal (error,
+			                     NM_CONNECTION_ERROR,
+			                     NM_CONNECTION_ERROR_FAILED,
+			                     "empty VF VLAN");
+			return FALSE;
+		}
+
+		if (!params[1])
+			g_strchomp (params[0]);
+		if (NM_STRCHAR_ALL (params[0], ch, ch == 'x' || g_ascii_isdigit (ch)))
+			id = _nm_utils_ascii_str_to_int64 (params[0], 0, 0, 4095, G_MAXUINT);
+		if (id == G_MAXUINT) {
+			g_set_error (error,
+			             NM_CONNECTION_ERROR,
+			             NM_CONNECTION_ERROR_FAILED,
+			             "invalid VF VLAN id '%s'",
+			             params[0]);
+			return FALSE;
+		}
+		if (!nm_sriov_vf_add_vlan (vf, id)) {
+			g_set_error (error,
+			             NM_CONNECTION_ERROR,
+			             NM_CONNECTION_ERROR_FAILED,
+			             "duplicate VLAN id %u",
+			             id);
+			return FALSE;
+		}
+
+		if (!params[1])
+			continue;
+
+		if (!params[2])
+			g_strchomp (params[1]);
+		if (NM_STRCHAR_ALL (params[1], ch, ch == 'x' || g_ascii_isdigit (ch)))
+			qos = _nm_utils_ascii_str_to_int64 (params[1], 0, 0, G_MAXUINT32, -1);
+		if (qos == -1) {
+			g_set_error (error,
+			             NM_CONNECTION_ERROR,
+			             NM_CONNECTION_ERROR_FAILED,
+			             "invalid VF VLAN QoS '%s'",
+			             params[1]);
+			return FALSE;
+		}
+		nm_sriov_vf_set_vlan_qos (vf, id, qos);
+
+		if (!params[2])
+			continue;
+
+		g_strchomp (params[2]);
+
+		if (nm_streq (params[2], "ad"))
+			nm_sriov_vf_set_vlan_protocol (vf, id, NM_SRIOV_VF_VLAN_PROTOCOL_802_1AD);
+		else if (nm_streq (params[2], "q"))
+			nm_sriov_vf_set_vlan_protocol (vf, id, NM_SRIOV_VF_VLAN_PROTOCOL_802_1Q);
+		else {
+			g_set_error (error,
+			             NM_CONNECTION_ERROR,
+			             NM_CONNECTION_ERROR_FAILED,
+			             "invalid VF VLAN protocol '%s'",
+			             params[2]);
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+/**
+ * nm_utils_sriov_vf_from_str:
+ * @str: the input string
+ * @error: (out) (allow-none): location to store the error on failure
+ *
+ * Converts a string to a SR-IOV virtual function object.
+ *
+ * Returns: (transfer full): the virtual function object
+ *
+ * Since: 1.14
+ */
+NMSriovVF *
+nm_utils_sriov_vf_from_str (const char *str, GError **error)
+{
+	gs_free char *index_free = NULL;
+	const char *detail;
+
+	g_return_val_if_fail (str, NULL);
+	g_return_val_if_fail (!error || !*error, NULL);
+
+	while (*str == ' ')
+		str++;
+
+	detail = strchr (str, ' ');
+	if (detail) {
+		index_free = g_strndup (str, detail - str);
+		str = index_free;
+		detail++;
+	}
+
+	return _nm_utils_sriov_vf_from_strparts (str, detail, error);
+}
+
+NMSriovVF *
+_nm_utils_sriov_vf_from_strparts (const char *index, const char *detail, GError **error)
+{
+	NMSriovVF *vf;
+	guint32 n_index;
+	GHashTableIter iter;
+	char *key;
+	GVariant *variant;
+	gs_unref_hashtable GHashTable *ht = NULL;
+
+	n_index = _nm_utils_ascii_str_to_int64 (index, 10, 0, G_MAXUINT32, 0);
+	if (errno) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_FAILED,
+		                     "invalid index");
+		return NULL;
+	}
+
+	vf = nm_sriov_vf_new (n_index);
+	if (detail) {
+		ht = nm_utils_parse_variant_attributes (detail, ' ', '=', TRUE, _nm_sriov_vf_attribute_spec, error);
+		if (!ht) {
+			nm_sriov_vf_unref (vf);
+			return NULL;
+		}
+
+		if ((variant = g_hash_table_lookup (ht, "vlans"))) {
+			if (!_nm_sriov_vf_parse_vlans (vf, g_variant_get_string (variant, NULL), error)) {
+				nm_sriov_vf_unref (vf);
+				return NULL;
+			}
+			g_hash_table_remove (ht, "vlans");
+		}
+
+		g_hash_table_iter_init (&iter, ht);
+		while (g_hash_table_iter_next (&iter, (gpointer *) &key, (gpointer *) &variant))
+			nm_sriov_vf_set_attribute (vf, key, g_variant_ref_sink (variant));
+	}
+
+	return vf;
 }
 
 /*****************************************************************************/
@@ -2701,9 +2838,17 @@ nm_utils_uuid_generate_from_string (const char *s, gssize slen, int uuid_type, g
 	g_return_val_if_fail (uuid_type == NM_UTILS_UUID_TYPE_LEGACY || uuid_type == NM_UTILS_UUID_TYPE_VARIANT3, NULL);
 	g_return_val_if_fail (!type_args || uuid_type == NM_UTILS_UUID_TYPE_VARIANT3, NULL);
 
+	if (slen < 0)
+		slen = s ? strlen (s) : 0;
+
 	switch (uuid_type) {
 	case NM_UTILS_UUID_TYPE_LEGACY:
-		crypto_md5_hash (NULL, 0, s, slen, (char *) uuid, sizeof (uuid));
+		nm_crypto_md5_hash (NULL,
+		                    0,
+		                    (guint8 *) s,
+		                    slen,
+		                    (guint8 *) uuid,
+		                    sizeof (uuid));
 		break;
 	case NM_UTILS_UUID_TYPE_VARIANT3: {
 		uuid_t ns_uuid = { 0 };
@@ -2714,7 +2859,12 @@ nm_utils_uuid_generate_from_string (const char *s, gssize slen, int uuid_type, g
 				g_return_val_if_reached (NULL);
 		}
 
-		crypto_md5_hash (s, slen, (char *) ns_uuid, sizeof (ns_uuid), (char *) uuid, sizeof (uuid));
+		nm_crypto_md5_hash ((guint8 *) s,
+		                    slen,
+		                    (guint8 *) ns_uuid,
+		                    sizeof (ns_uuid),
+		                    (guint8 *) uuid,
+		                    sizeof (uuid));
 
 		uuid[6] = (uuid[6] & 0x0F) | 0x30;
 		uuid[8] = (uuid[8] & 0x3F) | 0x80;
@@ -2774,110 +2924,6 @@ _nm_utils_uuid_generate_from_strings (const char *string1, ...)
 
 /*****************************************************************************/
 
-/**
- * nm_utils_rsa_key_encrypt:
- * @data: (array length=len): RSA private key data to be encrypted
- * @len: length of @data
- * @in_password: (allow-none): existing password to use, if any
- * @out_password: (out) (allow-none): if @in_password was %NULL, a random
- *  password will be generated and returned in this argument
- * @error: detailed error information on return, if an error occurred
- *
- * Encrypts the given RSA private key data with the given password (or generates
- * a password if no password was given) and converts the data to PEM format
- * suitable for writing to a file. It uses Triple DES cipher for the encryption.
- *
- * Returns: (transfer full): on success, PEM-formatted data suitable for writing
- * to a PEM-formatted certificate/private key file.
- **/
-GByteArray *
-nm_utils_rsa_key_encrypt (const guint8 *data,
-                          gsize len,
-                          const char *in_password,
-                          char **out_password,
-                          GError **error)
-{
-	char salt[16];
-	int salt_len;
-	char *key = NULL, *enc = NULL, *pw_buf[32];
-	gsize key_len = 0, enc_len = 0;
-	GString *pem = NULL;
-	char *tmp, *tmp_password = NULL;
-	int left;
-	const char *p;
-	GByteArray *ret = NULL;
-
-	g_return_val_if_fail (data != NULL, NULL);
-	g_return_val_if_fail (len > 0, NULL);
-	if (out_password)
-		g_return_val_if_fail (*out_password == NULL, NULL);
-
-	/* Make the password if needed */
-	if (!in_password) {
-		if (!crypto_randomize (pw_buf, sizeof (pw_buf), error))
-			return NULL;
-		in_password = tmp_password = nm_utils_bin2hexstr (pw_buf, sizeof (pw_buf), -1);
-	}
-
-	salt_len = 8;
-	if (!crypto_randomize (salt, salt_len, error))
-		goto out;
-
-	key = crypto_make_des_aes_key (CIPHER_DES_EDE3_CBC, &salt[0], salt_len, in_password, &key_len, NULL);
-	if (!key)
-		g_return_val_if_reached (NULL);
-
-	enc = crypto_encrypt (CIPHER_DES_EDE3_CBC, data, len, salt, salt_len, key, key_len, &enc_len, error);
-	if (!enc)
-		goto out;
-
-	pem = g_string_sized_new (enc_len * 2 + 100);
-	g_string_append (pem, "-----BEGIN RSA PRIVATE KEY-----\n");
-	g_string_append (pem, "Proc-Type: 4,ENCRYPTED\n");
-
-	/* Convert the salt to a hex string */
-	tmp = nm_utils_bin2hexstr (salt, salt_len, salt_len * 2);
-	g_string_append_printf (pem, "DEK-Info: %s,%s\n\n", CIPHER_DES_EDE3_CBC, tmp);
-	g_free (tmp);
-
-	/* Convert the encrypted key to a base64 string */
-	p = tmp = g_base64_encode ((const guchar *) enc, enc_len);
-	left = strlen (tmp);
-	while (left > 0) {
-		g_string_append_len (pem, p, (left < 64) ? left : 64);
-		g_string_append_c (pem, '\n');
-		left -= 64;
-		p += 64;
-	}
-	g_free (tmp);
-
-	g_string_append (pem, "-----END RSA PRIVATE KEY-----\n");
-
-	ret = g_byte_array_sized_new (pem->len);
-	g_byte_array_append (ret, (const unsigned char *) pem->str, pem->len);
-	if (tmp_password && out_password)
-		*out_password = g_strdup (tmp_password);
-
-out:
-	if (key) {
-		memset (key, 0, key_len);
-		g_free (key);
-	}
-	if (enc) {
-		memset (enc, 0, enc_len);
-		g_free (enc);
-	}
-	if (pem)
-		g_string_free (pem, TRUE);
-
-	if (tmp_password) {
-		memset (tmp_password, 0, strlen (tmp_password));
-		g_free (tmp_password);
-	}
-
-	return ret;
-}
-
 static gboolean
 file_has_extension (const char *filename, const char *extensions[])
 {
@@ -2910,18 +2956,15 @@ gboolean
 nm_utils_file_is_certificate (const char *filename)
 {
 	const char *extensions[] = { ".der", ".pem", ".crt", ".cer", NULL };
-	NMCryptoFileFormat file_format = NM_CRYPTO_FILE_FORMAT_UNKNOWN;
-	GByteArray *cert;
+	NMCryptoFileFormat file_format;
 
 	g_return_val_if_fail (filename != NULL, FALSE);
 
 	if (!file_has_extension (filename, extensions))
 		return FALSE;
 
-	cert = crypto_load_and_verify_certificate (filename, &file_format, NULL);
-	if (cert)
-		g_byte_array_unref (cert);
-
+	if (!nm_crypto_load_and_verify_certificate (filename, &file_format, NULL, NULL))
+		return FALSE;
 	return file_format = NM_CRYPTO_FILE_FORMAT_X509;
 }
 
@@ -2947,7 +2990,7 @@ nm_utils_file_is_private_key (const char *filename, gboolean *out_encrypted)
 	if (!file_has_extension (filename, extensions))
 		return FALSE;
 
-	return crypto_verify_private_key (filename, NULL, out_encrypted, NULL) != NM_CRYPTO_FILE_FORMAT_UNKNOWN;
+	return nm_crypto_verify_private_key (filename, NULL, out_encrypted, NULL) != NM_CRYPTO_FILE_FORMAT_UNKNOWN;
 }
 
 /**
@@ -2963,7 +3006,7 @@ nm_utils_file_is_pkcs12 (const char *filename)
 {
 	g_return_val_if_fail (filename != NULL, FALSE);
 
-	return crypto_is_pkcs12_file (filename, NULL);
+	return nm_crypto_is_pkcs12_file (filename, NULL);
 }
 
 /*****************************************************************************/
@@ -3483,13 +3526,13 @@ nm_utils_hwaddr_len (int type)
 	g_return_val_if_reached (0);
 }
 
-static guint8 *
-_str2bin (const char *asc,
-          gboolean delimiter_required,
-          const char *delimiter_candidates,
-          guint8 *buffer,
-          gsize buffer_length,
-          gsize *out_len)
+guint8 *
+_nm_utils_str2bin_full (const char *asc,
+                        gboolean delimiter_required,
+                        const char *delimiter_candidates,
+                        guint8 *buffer,
+                        gsize buffer_length,
+                        gsize *out_len)
 {
 	const char *in = asc;
 	guint8 *out = buffer;
@@ -3559,7 +3602,7 @@ _str2bin (const char *asc,
 	return buffer;
 }
 
-#define hwaddr_aton(asc, buffer, buffer_length, out_len) _str2bin ((asc), TRUE, ":-", (buffer), (buffer_length), (out_len))
+#define hwaddr_aton(asc, buffer, buffer_length, out_len) _nm_utils_str2bin_full ((asc), TRUE, ":-", (buffer), (buffer_length), (out_len))
 
 /**
  * nm_utils_hexstr2bin:
@@ -3585,7 +3628,7 @@ nm_utils_hexstr2bin (const char *hex)
 
 	buffer_length = strlen (hex) / 2 + 3;
 	buffer = g_malloc (buffer_length);
-	if (!_str2bin (hex, FALSE, ":", buffer, buffer_length, &len)) {
+	if (!_nm_utils_str2bin_full (hex, FALSE, ":", buffer, buffer_length, &len)) {
 		g_free (buffer);
 		return NULL;
 	}
@@ -4290,6 +4333,8 @@ nm_utils_is_uuid (const char *str)
 	const char *p = str;
 	int num_dashes = 0;
 
+	g_return_val_if_fail (str, FALSE);
+
 	while (*p) {
 		if (*p == '-')
 			num_dashes++;
@@ -4465,7 +4510,7 @@ _nm_utils_dhcp_duid_valid (const char *duid, GBytes **out_duid_bin)
 		return TRUE;
 	}
 
-	if (_str2bin (duid, FALSE, ":", duid_arr, sizeof (duid_arr), &duid_len)) {
+	if (_nm_utils_str2bin_full (duid, FALSE, ":", duid_arr, sizeof (duid_arr), &duid_len)) {
 		/* MAX DUID length is 128 octects + the type code (2 octects). */
 		if (   duid_len > 2
 		    && duid_len <= (128 + 2)) {
@@ -4886,7 +4931,7 @@ nm_utils_enum_from_str (GType type, const char *str,
  *
  * Since: 1.2
  */
-const char **nm_utils_enum_get_values (GType type, gint from, gint to)
+const char **nm_utils_enum_get_values (GType type, int from, int to)
 {
 	return _nm_utils_enum_get_values (type, from, to);
 }
@@ -4896,18 +4941,18 @@ const char **nm_utils_enum_get_values (GType type, gint from, gint to)
 static gboolean
 _nm_utils_is_json_object_no_validation (const char *str, GError **error)
 {
-	if (str) {
-		/* libjansson also requires only utf-8 encoding. */
-		if (!g_utf8_validate (str, -1, NULL)) {
-			g_set_error_literal (error,
-			                     NM_CONNECTION_ERROR,
-			                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
-			                     _("not valid utf-8"));
-			return FALSE;
-		}
-		while (g_ascii_isspace (str[0]))
-			str++;
+	nm_assert (str);
+
+	/* libjansson also requires only utf-8 encoding. */
+	if (!g_utf8_validate (str, -1, NULL)) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("not valid utf-8"));
+		return FALSE;
 	}
+	while (g_ascii_isspace (str[0]))
+		str++;
 
 	/* do some very basic validation to see if this might be a JSON object. */
 	if (str[0] == '{') {
@@ -5539,7 +5584,7 @@ _nm_utils_team_config_get (const char *conf,
 				g_ptr_array_free (data, TRUE);
 
 		} else if (json_is_array (json_element)) {
-			GPtrArray *data = g_ptr_array_new_with_free_func ((GDestroyNotify) g_free);
+			GPtrArray *data = g_ptr_array_new_with_free_func (g_free);
 			json_t *str_element;
 			int index;
 
@@ -6149,44 +6194,21 @@ next:
 	return g_steal_pointer (&ht);
 }
 
-/*
- * nm_utils_format_variant_attributes:
- * @attributes: (element-type utf8 GVariant): a #GHashTable mapping attribute names to #GVariant values
- * @attr_separator: the attribute separator character
- * @key_value_separator: character separating key and values
- *
- * Format attributes to a string.
- *
- * Returns: (transfer full): the string representing attributes, or %NULL
- *    in case there are no attributes
- *
- * Since: 1.8
- */
-char *
-nm_utils_format_variant_attributes (GHashTable *attributes,
-                                    char attr_separator,
-                                    char key_value_separator)
+void
+_nm_utils_format_variant_attributes_full (GString *str,
+                                          const NMUtilsNamedValue *values,
+                                          guint num_values,
+                                          char attr_separator,
+                                          char key_value_separator)
 {
-	GString *str = NULL;
-	GVariant *variant;
-	char sep = 0;
 	const char *name, *value;
+	GVariant *variant;
 	char *escaped;
 	char buf[64];
-	gs_free NMUtilsNamedValue *values = NULL;
-	guint i, len;
+	char sep = 0;
+	guint i;
 
-	g_return_val_if_fail (attr_separator, NULL);
-	g_return_val_if_fail (key_value_separator, NULL);
-
-	if (!attributes || !g_hash_table_size (attributes))
-		return NULL;
-
-	values = nm_utils_named_values_from_str_dict (attributes, &len);
-
-	str = g_string_new ("");
-
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < num_values; i++) {
 		name = values[i].name;
 		variant = (GVariant *) values[i].value_ptr;
 		value = NULL;
@@ -6219,7 +6241,44 @@ nm_utils_format_variant_attributes (GHashTable *attributes,
 
 		sep = attr_separator;
 	}
+}
 
+/*
+ * nm_utils_format_variant_attributes:
+ * @attributes: (element-type utf8 GVariant): a #GHashTable mapping attribute names to #GVariant values
+ * @attr_separator: the attribute separator character
+ * @key_value_separator: character separating key and values
+ *
+ * Format attributes to a string.
+ *
+ * Returns: (transfer full): the string representing attributes, or %NULL
+ *    in case there are no attributes
+ *
+ * Since: 1.8
+ */
+char *
+nm_utils_format_variant_attributes (GHashTable *attributes,
+                                    char attr_separator,
+                                    char key_value_separator)
+{
+	GString *str = NULL;
+	gs_free NMUtilsNamedValue *values = NULL;
+	guint len;
+
+	g_return_val_if_fail (attr_separator, NULL);
+	g_return_val_if_fail (key_value_separator, NULL);
+
+	if (!attributes || !g_hash_table_size (attributes))
+		return NULL;
+
+	values = nm_utils_named_values_from_str_dict (attributes, &len);
+
+	str = g_string_new ("");
+	_nm_utils_format_variant_attributes_full (str,
+	                                          values,
+	                                          len,
+	                                          attr_separator,
+	                                          key_value_separator);
 	return g_string_free (str, FALSE);
 }
 

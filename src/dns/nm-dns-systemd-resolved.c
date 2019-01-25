@@ -65,7 +65,6 @@ typedef struct {
 	GDBusProxy *resolve;
 	GCancellable *init_cancellable;
 	GCancellable *update_cancellable;
-	GCancellable *mdns_cancellable;
 	CList request_queue_lst_head;
 } NMDnsSystemdResolvedPrivate;
 
@@ -130,7 +129,7 @@ call_done (GObject *source, GAsyncResult *r, gpointer user_data)
 	if (!v) {
 		if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
 			return;
-		_LOGW ("Failed: %s\n", error->message);
+		_LOGW ("Failed: %s", error->message);
 		g_error_free (error);
 	}
 }
@@ -192,7 +191,8 @@ prepare_one_interface (NMDnsSystemdResolved *self, InterfaceConfig *ic)
 	GVariantBuilder dns, domains;
 	NMCListElem *elem;
 	NMSettingConnectionMdns mdns = NM_SETTING_CONNECTION_MDNS_DEFAULT;
-	const char *mdns_arg = NULL;
+	NMSettingConnectionLlmnr llmnr = NM_SETTING_CONNECTION_LLMNR_DEFAULT;
+	const char *mdns_arg = NULL, *llmnr_arg = NULL;
 
 	g_variant_builder_init (&dns, G_VARIANT_TYPE ("(ia(iay))"));
 	g_variant_builder_add (&dns, "i", ic->ifindex);
@@ -208,8 +208,10 @@ prepare_one_interface (NMDnsSystemdResolved *self, InterfaceConfig *ic)
 
 		update_add_ip_config (self, &dns, &domains, data);
 
-		if (NM_IS_IP4_CONFIG (ip_config))
+		if (NM_IS_IP4_CONFIG (ip_config)) {
 			mdns = NM_MAX (mdns, nm_ip4_config_mdns_get (NM_IP4_CONFIG (ip_config)));
+			llmnr = NM_MAX (llmnr, nm_ip4_config_llmnr_get (NM_IP4_CONFIG (ip_config)));
+		}
 	}
 
 	g_variant_builder_close (&dns);
@@ -231,6 +233,22 @@ prepare_one_interface (NMDnsSystemdResolved *self, InterfaceConfig *ic)
 	}
 	nm_assert (mdns_arg);
 
+	switch (llmnr) {
+	case NM_SETTING_CONNECTION_LLMNR_NO:
+		llmnr_arg = "no";
+		break;
+	case NM_SETTING_CONNECTION_LLMNR_RESOLVE:
+		llmnr_arg = "resolve";
+		break;
+	case NM_SETTING_CONNECTION_LLMNR_YES:
+		llmnr_arg = "yes";
+		break;
+	case NM_SETTING_CONNECTION_LLMNR_DEFAULT:
+		llmnr_arg = "";
+		break;
+	}
+	nm_assert (llmnr_arg);
+
 	_request_item_append (&priv->request_queue_lst_head,
 	                      "SetLinkDNS",
 	                      g_variant_builder_end (&dns));
@@ -240,6 +258,9 @@ prepare_one_interface (NMDnsSystemdResolved *self, InterfaceConfig *ic)
 	_request_item_append (&priv->request_queue_lst_head,
 	                      "SetLinkMulticastDNS",
 	                      g_variant_new ("(is)", ic->ifindex, mdns_arg ?: ""));
+	_request_item_append (&priv->request_queue_lst_head,
+	                      "SetLinkLLMNR",
+	                      g_variant_new ("(is)", ic->ifindex, llmnr_arg ?: ""));
 }
 
 static void
@@ -370,28 +391,20 @@ static void
 nm_dns_systemd_resolved_init (NMDnsSystemdResolved *self)
 {
 	NMDnsSystemdResolvedPrivate *priv = NM_DNS_SYSTEMD_RESOLVED_GET_PRIVATE (self);
-	NMDBusManager *dbus_mgr;
-	GDBusConnection *connection;
 
 	c_list_init (&priv->request_queue_lst_head);
 
-	dbus_mgr = nm_dbus_manager_get ();
-	g_return_if_fail (dbus_mgr);
-
-	connection = nm_dbus_manager_get_connection (dbus_mgr);
-	g_return_if_fail (connection);
-
 	priv->init_cancellable = g_cancellable_new ();
-	g_dbus_proxy_new (connection,
-	                  G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES |
-	                  G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
-	                  NULL,
-	                  SYSTEMD_RESOLVED_DBUS_SERVICE,
-	                  SYSTEMD_RESOLVED_DBUS_PATH,
-	                  SYSTEMD_RESOLVED_DBUS_SERVICE ".Manager",
-	                  priv->init_cancellable,
-	                  resolved_proxy_created,
-	                  self);
+	g_dbus_proxy_new_for_bus (G_BUS_TYPE_SYSTEM,
+	                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES |
+	                          G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
+	                          NULL,
+	                          SYSTEMD_RESOLVED_DBUS_SERVICE,
+	                          SYSTEMD_RESOLVED_DBUS_PATH,
+	                          SYSTEMD_RESOLVED_DBUS_SERVICE ".Manager",
+	                          priv->init_cancellable,
+	                          resolved_proxy_created,
+	                          self);
 }
 
 NMDnsPlugin *
@@ -410,7 +423,6 @@ dispose (GObject *object)
 	g_clear_object (&priv->resolve);
 	nm_clear_g_cancellable (&priv->init_cancellable);
 	nm_clear_g_cancellable (&priv->update_cancellable);
-	nm_clear_g_cancellable (&priv->mdns_cancellable);
 
 	G_OBJECT_CLASS (nm_dns_systemd_resolved_parent_class)->dispose (object);
 }

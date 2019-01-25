@@ -1,14 +1,14 @@
 test_units = [
-  ['test-general',                [libnm_utils, libnm_core]],
-  ['test-nm-client',              []],
-  ['test-remote-settings-client', []],
-  ['test-secret-agent',           []],
+  ['test-general',                [libnm_utils, libnm_core], 30],
+  ['test-nm-client',              [],                        90],
+  ['test-remote-settings-client', [],                        90],
+  ['test-secret-agent',           [],                        90],
 ]
 
 cflags = [
   '-DNETWORKMANAGER_COMPILATION_TEST',
   '-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_LIBNM',
-] + nm_build_cflags
+]
 
 foreach test_unit: test_units
   exe = executable(
@@ -28,6 +28,7 @@ foreach test_unit: test_units
   test(
     'libnm/' + test_unit[0],
     test_script,
+    timeout: test_unit[2],
     args: test_args + [exe.full_path()]
   )
 endforeach

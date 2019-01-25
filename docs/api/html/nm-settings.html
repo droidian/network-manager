@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nmtui.html" title="nmtui">
 <link rel="next" href="nm-settings-keyfile.html" title="nm-settings-keyfile">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -175,6 +175,13 @@
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings.property.connection.llmnr"></a>llmnr</td>
+<td align="left">int32</td>
+<td align="left">-1</td>
+<td>Whether Link-Local Multicast Name Resolution (LLMNR) is enabled for the connection. LLMNR is a protocol based on the Domain Name System (DNS) packet format that allows both IPv4 and IPv6 hosts to perform name resolution for hosts on the same local link. The permitted values are: yes: register hostname and resolving for the connection, no: disable LLMNR for the interface, resolve: do not register hostname but allow resolving of LLMNR host names. This feature requires a plugin which supports LLMNR. One such plugin is dns-systemd-resolved.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings.property.connection.master"></a>master</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -196,10 +203,10 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.connection.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">connection</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
+<a name="nm-settings.property.connection.multi-connect"></a>multi-connect</td>
+<td align="left">int32</td>
+<td align="left">0</td>
+<td>Specifies whether the profile can be active multiple times at a particular moment. The value is of type NMConnectionMultiConnect.</td>
 </tr>
 <tr>
 <td align="left">
@@ -269,7 +276,33 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.4"></a><h3>802-1x setting</h3>
+<a name="id-1.2.7.4.4"></a><h3>6lowpan setting</h3>
+<p>6LoWPAN Settings.</p>
+<div class="informaltable"><table class="informaltable" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Key Name</th>
+<th>Value Type</th>
+<th>Default Value</th>
+<th>Value Description</th>
+</tr></thead>
+<tbody><tr>
+<td align="left">
+<a name="nm-settings.property.6lowpan.parent"></a>parent</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>If given, specifies the parent interface name or parent connection UUID from which this 6LowPAN interface should be created.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="id-1.2.7.4.5"></a><h3>802-1x setting</h3>
 <p>IEEE 802.1x Authentication Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -375,13 +408,6 @@
 <td align="left">string</td>
 <td align="left"> </td>
 <td>Identity string for EAP authentication methods.  Often the user's user or login name.</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings.property.802-1x.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">802-1x</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
 </tr>
 <tr>
 <td align="left">
@@ -605,7 +631,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.5"></a><h3>adsl setting</h3>
+<a name="id-1.2.7.4.6"></a><h3>adsl setting</h3>
 <p>ADSL Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -627,13 +653,6 @@
 <td align="left">string</td>
 <td align="left"> </td>
 <td>Encapsulation of ADSL connection.  Can be "vcmux" or "llc".</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings.property.adsl.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">adsl</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
 </tr>
 <tr>
 <td align="left">
@@ -682,7 +701,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.6"></a><h3>bluetooth setting</h3>
+<a name="id-1.2.7.4.7"></a><h3>bluetooth setting</h3>
 <p>Bluetooth Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -707,13 +726,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.bluetooth.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">bluetooth</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.bluetooth.type"></a>type</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -724,7 +736,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.7"></a><h3>bond setting</h3>
+<a name="id-1.2.7.4.8"></a><h3>bond setting</h3>
 <p>Bonding Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -749,13 +761,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.bond.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">bond</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.bond.options"></a>options</td>
 <td align="left">dict of string to string</td>
 <td align="left">{'mode': 'balance-rr'}</td>
@@ -766,7 +771,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.8"></a><h3>bridge setting</h3>
+<a name="id-1.2.7.4.9"></a><h3>bridge setting</h3>
 <p>Bridging Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -840,13 +845,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.bridge.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">bridge</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.bridge.priority"></a>priority</td>
 <td align="left">uint32</td>
 <td align="left">32768</td>
@@ -864,7 +862,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.9"></a><h3>bridge-port setting</h3>
+<a name="id-1.2.7.4.10"></a><h3>bridge-port setting</h3>
 <p>Bridge Port Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -889,13 +887,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.bridge-port.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">bridge-port</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.bridge-port.path-cost"></a>path-cost</td>
 <td align="left">uint32</td>
 <td align="left">100</td>
@@ -913,7 +904,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.10"></a><h3>cdma setting</h3>
+<a name="id-1.2.7.4.11"></a><h3>cdma setting</h3>
 <p>CDMA-based Mobile Broadband Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -935,13 +926,6 @@
 <td align="left">uint32</td>
 <td align="left">0</td>
 <td>If non-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple frames.</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings.property.cdma.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">cdma</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
 </tr>
 <tr>
 <td align="left">
@@ -976,7 +960,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.11"></a><h3>dcb setting</h3>
+<a name="id-1.2.7.4.12"></a><h3>dcb setting</h3>
 <p>Data Center Bridging Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -1043,13 +1027,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.dcb.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">dcb</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.dcb.priority-bandwidth"></a>priority-bandwidth</td>
 <td align="left">array of uint32</td>
 <td align="left">[0, 0, 0, 0, 0, 0, 0, 0]</td>
@@ -1109,7 +1086,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.12"></a><h3>dummy setting</h3>
+<a name="id-1.2.7.4.13"></a><h3>dummy setting</h3>
 <p>Dummy Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -1124,18 +1101,32 @@
 <th>Default Value</th>
 <th>Value Description</th>
 </tr></thead>
-<tbody><tr>
-<td align="left">
-<a name="nm-settings.property.dummy.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">dummy</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr></tbody>
+<tbody></tbody>
 </table></div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.13"></a><h3>generic setting</h3>
+<a name="id-1.2.7.4.14"></a><h3>ethtool setting</h3>
+<p>Ethtool Ethernet Settings.</p>
+<div class="informaltable"><table class="informaltable" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Key Name</th>
+<th>Value Type</th>
+<th>Default Value</th>
+<th>Value Description</th>
+</tr></thead>
+<tbody></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="id-1.2.7.4.15"></a><h3>generic setting</h3>
 <p>Generic Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -1150,18 +1141,12 @@
 <th>Default Value</th>
 <th>Value Description</th>
 </tr></thead>
-<tbody><tr>
-<td align="left">
-<a name="nm-settings.property.generic.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">generic</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr></tbody>
+<tbody></tbody>
 </table></div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.14"></a><h3>gsm setting</h3>
+<a name="id-1.2.7.4.16"></a><h3>gsm setting</h3>
 <p>GSM-based Mobile Broadband Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -1204,13 +1189,6 @@
 <td align="left">uint32</td>
 <td align="left">0</td>
 <td>If non-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple frames.</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings.property.gsm.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">gsm</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
 </tr>
 <tr>
 <td align="left">
@@ -1280,7 +1258,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.15"></a><h3>infiniband setting</h3>
+<a name="id-1.2.7.4.17"></a><h3>infiniband setting</h3>
 <p>Infiniband Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -1312,13 +1290,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.infiniband.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">infiniband</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.infiniband.p-key"></a>p-key</td>
 <td align="left">int32</td>
 <td align="left">-1</td>
@@ -1343,7 +1314,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.16"></a><h3>ipv4 setting</h3>
+<a name="id-1.2.7.4.18"></a><h3>ipv4 setting</h3>
 <p>IPv4 Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -1476,14 +1447,7 @@
 <a name="nm-settings.property.ipv4.method"></a>method</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>IP configuration method. NMSettingIP4Config and NMSettingIP6Config both support "auto", "manual", and "link-local". See the subclass-specific documentation for other values. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration.  The "ignore-auto-routes" and "ignore-auto-dns" properties modify this behavior. For methods that imply no upstream network, such as "shared" or "link-local", these properties must be empty. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10.42.x.0/24 is chosen.</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings.property.ipv4.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">ipv4</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
+<td>IP configuration method. NMSettingIP4Config and NMSettingIP6Config both support "auto", "manual", and "link-local". See the subclass-specific documentation for other values. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration.  The "ignore-auto-routes" and "ignore-auto-dns" properties modify this behavior. For methods that imply no upstream network, such as "shared" or "link-local", these properties must be empty. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10.42.x.0/24 is chosen. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1525,7 +1489,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.17"></a><h3>ipv6 setting</h3>
+<a name="id-1.2.7.4.19"></a><h3>ipv6 setting</h3>
 <p>IPv6 Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -1665,14 +1629,7 @@
 <a name="nm-settings.property.ipv6.method"></a>method</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>IP configuration method. NMSettingIP4Config and NMSettingIP6Config both support "auto", "manual", and "link-local". See the subclass-specific documentation for other values. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration.  The "ignore-auto-routes" and "ignore-auto-dns" properties modify this behavior. For methods that imply no upstream network, such as "shared" or "link-local", these properties must be empty. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10.42.x.0/24 is chosen.</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings.property.ipv6.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">ipv6</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
+<td>IP configuration method. NMSettingIP4Config and NMSettingIP6Config both support "auto", "manual", and "link-local". See the subclass-specific documentation for other values. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration.  The "ignore-auto-routes" and "ignore-auto-dns" properties modify this behavior. For methods that imply no upstream network, such as "shared" or "link-local", these properties must be empty. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10.42.x.0/24 is chosen. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1721,7 +1678,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.18"></a><h3>ip-tunnel setting</h3>
+<a name="id-1.2.7.4.20"></a><h3>ip-tunnel setting</h3>
 <p>IP Tunneling Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -1788,13 +1745,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.ip-tunnel.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">ip-tunnel</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.ip-tunnel.output-key"></a>output-key</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -1840,7 +1790,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.19"></a><h3>macsec setting</h3>
+<a name="id-1.2.7.4.21"></a><h3>macsec setting</h3>
 <p>MACSec Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -1893,13 +1843,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.macsec.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">macsec</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.macsec.parent"></a>parent</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -1931,7 +1874,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.20"></a><h3>macvlan setting</h3>
+<a name="id-1.2.7.4.22"></a><h3>macvlan setting</h3>
 <p>MAC VLAN Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -1953,13 +1896,6 @@
 <td align="left">uint32</td>
 <td align="left">0</td>
 <td>The macvlan mode, which specifies the communication mechanism between multiple macvlans on the same lower device.</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings.property.macvlan.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">macvlan</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
 </tr>
 <tr>
 <td align="left">
@@ -1987,7 +1923,33 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.21"></a><h3>802-11-olpc-mesh setting</h3>
+<a name="id-1.2.7.4.23"></a><h3>match setting</h3>
+<p>Match settings..</p>
+<div class="informaltable"><table class="informaltable" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Key Name</th>
+<th>Value Type</th>
+<th>Default Value</th>
+<th>Value Description</th>
+</tr></thead>
+<tbody><tr>
+<td align="left">
+<a name="nm-settings.property.match.interface-name"></a>interface-name</td>
+<td align="left">array of string</td>
+<td align="left">[]</td>
+<td>A list of interface names to match. Each element is a shell wildcard pattern.  When an element is prefixed with exclamation mark (!) the condition is inverted. A candidate interface name is considered matching when both these conditions are satisfied: (a) any of the elements not prefixed with '!' matches or there aren't such elements; (b) none of the elements prefixed with '!' match.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="id-1.2.7.4.24"></a><h3>802-11-olpc-mesh setting</h3>
 <p>OLPC Wireless Mesh Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2019,13 +1981,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.802-11-olpc-mesh.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">802-11-olpc-mesh</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.802-11-olpc-mesh.ssid"></a>ssid</td>
 <td align="left">byte array</td>
 <td align="left"> </td>
@@ -2036,7 +1991,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.22"></a><h3>ovs-bridge setting</h3>
+<a name="id-1.2.7.4.25"></a><h3>ovs-bridge setting</h3>
 <p>OvsBridge Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2068,13 +2023,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.ovs-bridge.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">ovs-bridge</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.ovs-bridge.rstp-enable"></a>rstp-enable</td>
 <td align="left">boolean</td>
 <td align="left">FALSE</td>
@@ -2092,7 +2040,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.23"></a><h3>ovs-interface setting</h3>
+<a name="id-1.2.7.4.26"></a><h3>ovs-interface setting</h3>
 <p>Open vSwitch Interface Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2107,27 +2055,18 @@
 <th>Default Value</th>
 <th>Value Description</th>
 </tr></thead>
-<tbody>
-<tr>
-<td align="left">
-<a name="nm-settings.property.ovs-interface.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">ovs-interface</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
+<tbody><tr>
 <td align="left">
 <a name="nm-settings.property.ovs-interface.type"></a>type</td>
 <td align="left">string</td>
 <td align="left"> </td>
 <td>The interface type. Either "internal", or empty.</td>
-</tr>
-</tbody>
+</tr></tbody>
 </table></div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.24"></a><h3>ovs-patch setting</h3>
+<a name="id-1.2.7.4.27"></a><h3>ovs-patch setting</h3>
 <p>OvsPatch Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2142,27 +2081,18 @@
 <th>Default Value</th>
 <th>Value Description</th>
 </tr></thead>
-<tbody>
-<tr>
-<td align="left">
-<a name="nm-settings.property.ovs-patch.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">ovs-patch</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
+<tbody><tr>
 <td align="left">
 <a name="nm-settings.property.ovs-patch.peer"></a>peer</td>
 <td align="left">string</td>
 <td align="left"> </td>
 <td>Specifies the unicast destination IP address of a remote Open vSwitch bridge port to connect to.</td>
-</tr>
-</tbody>
+</tr></tbody>
 </table></div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.25"></a><h3>ovs-port setting</h3>
+<a name="id-1.2.7.4.28"></a><h3>ovs-port setting</h3>
 <p>OvsPort Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2208,13 +2138,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.ovs-port.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">ovs-port</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.ovs-port.tag"></a>tag</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
@@ -2232,7 +2155,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.26"></a><h3>ppp setting</h3>
+<a name="id-1.2.7.4.29"></a><h3>ppp setting</h3>
 <p>Point-to-Point Protocol Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2296,13 +2219,6 @@
 <td align="left">uint32</td>
 <td align="left">0</td>
 <td>If non-zero, instruct pppd to send packets no larger than the specified size.</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings.property.ppp.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">ppp</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
 </tr>
 <tr>
 <td align="left">
@@ -2386,7 +2302,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.27"></a><h3>pppoe setting</h3>
+<a name="id-1.2.7.4.30"></a><h3>pppoe setting</h3>
 <p>PPP-over-Ethernet Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2402,13 +2318,6 @@
 <th>Value Description</th>
 </tr></thead>
 <tbody>
-<tr>
-<td align="left">
-<a name="nm-settings.property.pppoe.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">pppoe</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.pppoe.parent"></a>parent</td>
@@ -2449,7 +2358,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.28"></a><h3>proxy setting</h3>
+<a name="id-1.2.7.4.31"></a><h3>proxy setting</h3>
 <p>WWW Proxy Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2481,13 +2390,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.proxy.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">proxy</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.proxy.pac-script"></a>pac-script</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -2505,7 +2407,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.29"></a><h3>serial setting</h3>
+<a name="id-1.2.7.4.32"></a><h3>serial setting</h3>
 <p>Serial Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2537,13 +2439,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.serial.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">serial</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.serial.parity"></a>parity</td>
 <td align="left">byte</td>
 <td align="left"> </td>
@@ -2568,8 +2463,8 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.30"></a><h3>tc setting</h3>
-<p>Linux Traffic Contril Settings..</p>
+<a name="id-1.2.7.4.33"></a><h3>sriov setting</h3>
+<p>SR-IOV settings..</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
 <col>
@@ -2586,17 +2481,52 @@
 <tbody>
 <tr>
 <td align="left">
-<a name="nm-settings.property.tc.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">tc</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
+<a name="nm-settings.property.sriov.autoprobe-drivers"></a>autoprobe-drivers</td>
+<td align="left">NMTernary (int32)</td>
+<td align="left"> </td>
+<td>Whether to autoprobe virtual functions by a compatible driver. If set to NM_TERNARY_TRUE (1), the kernel will try to bind VFs to a compatible driver and if this succeeds a new network interface will be instantiated for each VF. If set to NM_TERNARY_FALSE (0), VFs will not be claimed and no network interfaces will be created for them. When set to NM_TERNARY_DEFAULT (-1), the global default is used; in case the global default is unspecified it is assumed to be NM_TERNARY_TRUE (1).</td>
 </tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.sriov.total-vfs"></a>total-vfs</td>
+<td align="left">uint32</td>
+<td align="left">0</td>
+<td>The total number of virtual functions to create.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.sriov.vfs"></a>vfs</td>
+<td align="left">array of vardict</td>
+<td align="left">[]</td>
+<td>Array of virtual function descriptors. Each VF descriptor is a dictionary mapping attribute names to GVariant values. The 'index' entry is mandatory for each VF. When represented as string a VF is in the form: "INDEX [ATTR=VALUE[ ATTR=VALUE]...]". for example: "2 mac=00:11:22:33:44:55 spoof-check=true". The "vlans" attribute is represented as a semicolor-separated list of VLAN descriptors, where each descriptor has the form "ID[.PRIORITY[.PROTO]]". PROTO can be either 'q' for 802.1Q (the default) or 'ad' for 802.1ad.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="id-1.2.7.4.34"></a><h3>tc setting</h3>
+<p>Linux Traffic Control Settings..</p>
+<div class="informaltable"><table class="informaltable" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Key Name</th>
+<th>Value Type</th>
+<th>Default Value</th>
+<th>Value Description</th>
+</tr></thead>
+<tbody>
 <tr>
 <td align="left">
 <a name="nm-settings.property.tc.qdiscs"></a>qdiscs</td>
 <td align="left">array of vardict</td>
 <td align="left">[]</td>
-<td>Array of TC queuening disciplines.</td>
+<td>Array of TC queueing disciplines.</td>
 </tr>
 <tr>
 <td align="left">
@@ -2610,7 +2540,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.31"></a><h3>team setting</h3>
+<a name="id-1.2.7.4.35"></a><h3>team setting</h3>
 <p>Teaming Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2660,13 +2590,6 @@
 <td align="left">int32</td>
 <td align="left">0</td>
 <td>Corresponds to the teamd mcast_rejoin.interval.</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings.property.team.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">team</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
 </tr>
 <tr>
 <td align="left">
@@ -2757,7 +2680,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.32"></a><h3>team-port setting</h3>
+<a name="id-1.2.7.4.36"></a><h3>team-port setting</h3>
 <p>Team Port Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2803,13 +2726,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.team-port.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">team-port</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.team-port.prio"></a>prio</td>
 <td align="left">int32</td>
 <td align="left">0</td>
@@ -2834,7 +2750,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.33"></a><h3>tun setting</h3>
+<a name="id-1.2.7.4.37"></a><h3>tun setting</h3>
 <p>Tunnel Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2873,13 +2789,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.tun.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">tun</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.tun.owner"></a>owner</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -2904,7 +2813,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.34"></a><h3>user setting</h3>
+<a name="id-1.2.7.4.38"></a><h3>user setting</h3>
 <p>General User Profile Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2919,27 +2828,18 @@
 <th>Default Value</th>
 <th>Value Description</th>
 </tr></thead>
-<tbody>
-<tr>
+<tbody><tr>
 <td align="left">
 <a name="nm-settings.property.user.data"></a>data</td>
 <td align="left">dict of string to string</td>
 <td align="left">{}</td>
 <td>A dictionary of key/value pairs with user data. This data is ignored by NetworkManager and can be used at the users discretion. The keys only support a strict ascii format, but the values can be arbitrary UTF8 strings up to a certain length.</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings.property.user.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">user</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-</tbody>
+</tr></tbody>
 </table></div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.35"></a><h3>vlan setting</h3>
+<a name="id-1.2.7.4.39"></a><h3>vlan setting</h3>
 <p>VLAN Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2992,13 +2892,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.vlan.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">vlan</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.vlan.parent"></a>parent</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -3009,7 +2902,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.36"></a><h3>vpn setting</h3>
+<a name="id-1.2.7.4.40"></a><h3>vpn setting</h3>
 <p>VPN Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3031,13 +2924,6 @@
 <td align="left">dict of string to string</td>
 <td align="left">{}</td>
 <td>Dictionary of key/value pairs of VPN plugin specific data.  Both keys and values must be strings.</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings.property.vpn.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">vpn</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
 </tr>
 <tr>
 <td align="left">
@@ -3079,7 +2965,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.37"></a><h3>vxlan setting</h3>
+<a name="id-1.2.7.4.41"></a><h3>vxlan setting</h3>
 <p>VXLAN Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3153,13 +3039,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.vxlan.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">vxlan</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.vxlan.parent"></a>parent</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -3219,7 +3098,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.38"></a><h3>wimax setting</h3>
+<a name="id-1.2.7.4.42"></a><h3>wimax setting</h3>
 <p>WiMax Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3244,13 +3123,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.wimax.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">wimax</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.wimax.network-name"></a>network-name</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -3261,7 +3133,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.39"></a><h3>802-3-ethernet setting</h3>
+<a name="id-1.2.7.4.43"></a><h3>802-3-ethernet setting</h3>
 <p>Wired Ethernet Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3335,13 +3207,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.802-3-ethernet.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">802-3-ethernet</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.802-3-ethernet.port"></a>port</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -3394,7 +3259,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.40"></a><h3>802-11-wireless setting</h3>
+<a name="id-1.2.7.4.44"></a><h3>802-11-wireless setting</h3>
 <p>Wi-Fi Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3496,13 +3361,6 @@
 </tr>
 <tr>
 <td align="left">
-<a name="nm-settings.property.802-11-wireless.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">802-11-wireless</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
-</tr>
-<tr>
-<td align="left">
 <a name="nm-settings.property.802-11-wireless.powersave"></a>powersave</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
@@ -3555,7 +3413,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.41"></a><h3>802-11-wireless-security setting</h3>
+<a name="id-1.2.7.4.45"></a><h3>802-11-wireless-security setting</h3>
 <p>Wi-Fi Security Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3619,13 +3477,6 @@
 <td align="left">string</td>
 <td align="left"> </td>
 <td>The login username for legacy LEAP connections (ie, key-mgmt = "ieee8021x" and auth-alg = "leap").</td>
-</tr>
-<tr>
-<td align="left">
-<a name="nm-settings.property.802-11-wireless-security.name"></a>name</td>
-<td align="left">string</td>
-<td align="left">802-11-wireless-security</td>
-<td>The setting's name, which uniquely identifies the setting within the connection.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired".</td>
 </tr>
 <tr>
 <td align="left">
@@ -3723,6 +3574,48 @@
 </div>
 <hr>
 <div class="refsect2">
+<a name="id-1.2.7.4.46"></a><h3>wpan setting</h3>
+<p>IEEE 802.15.4 (WPAN) MAC Settings.</p>
+<div class="informaltable"><table class="informaltable" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Key Name</th>
+<th>Value Type</th>
+<th>Default Value</th>
+<th>Value Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wpan.mac-address"></a>mac-address</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>If specified, this connection will only apply to the IEEE 802.15.4 (WPAN) MAC layer device whose permanent MAC address matches.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wpan.pan-id"></a>pan-id</td>
+<td align="left">uint32</td>
+<td align="left">65535</td>
+<td>IEEE 802.15.4 Personal Area Network (PAN) identifier.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wpan.short-address"></a>short-address</td>
+<td align="left">uint32</td>
+<td align="left">65535</td>
+<td>Short IEEE 802.15.4 address to be used within a restricted environment.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="secrets-flags"></a><h3>Secret flag types:</h3>
 <p>
             Each password or secret property in a setting has an associated <span class="emphasis"><em>flags</em></span> property
@@ -3759,6 +3652,6 @@
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.29.1</div>
 </body>
 </html>

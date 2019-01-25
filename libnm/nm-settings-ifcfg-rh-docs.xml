@@ -3,7 +3,9 @@
 ]>
 
 <nm-ifcfg-rh-docs>
-  <setting name="802-1x">
+  <setting name="6lowpan">
+</setting>
+<setting name="802-1x">
 <property name="eap" variable="IEEE_8021X_EAP_METHODS(+)" format="" values="&quot;LEAP&quot;, &quot;PWD&quot;, &quot;TLS&quot;, &quot;PEAP&quot;, &quot;TTLS&quot;, &quot;FAST&quot;" default="" example="IEEE_8021X_EAP_METHODS=PEAP" description="EAP method for 802.1X authentication."/>
 <property name="identity" variable="IEEE_8021X_IDENTITY(+)" format="" values="" default="" example="IEEE_8021X_IDENTITY=itsme" description="Identity for EAP authentication methods."/>
 <property name="anonymous-identity" variable="IEEE_8021X_ANON_IDENTITY(+)" format="" values="" default="" example="" description="Anonymous identity for EAP authentication methods."/>
@@ -89,6 +91,8 @@ specified users is logged into an active session."/>
 higher numbers are preferred when selecting profiles for automatic activation."/>
 <property name="autoconnect-retries" variable="AUTOCONNECT_RETRIES(+)" format="" values="-1 (use global default), 0 (forever) or a positive value" default="" example="AUTOCONNECT_RETRIES=1" description="The number of times a connection should be autoactivated
 before giving up and switching to the next one."/>
+<property name="multi-connect" variable="MULTI_CONNECT(+)" format="" values="" default="" example="ZONE=3" description="whether the profile can be active on multiple devices at a given
+moment. The values are numbers corresponding to #NMConnectionMultiConnect enum."/>
 <property name="zone" variable="ZONE(+)" format="" values="" default="" example="ZONE=Work" description="Trust level of this connection. The string is usually used
 for a firewall."/>
 <property name="master" variable="MASTER, MASTER_UUID, TEAM_MASTER, TEAM_MASTER_UUID, BRIDGE, BRIDGE_UUID" format="" values="" default="" example="" description="Reference to master connection. The variable used depends on
@@ -110,6 +114,7 @@ pinging the gateway and waiting for the specified timeout (in seconds)."/>
 <property name="lldp" variable="LLDP(+)" format="" values="boolean value or &apos;rx&apos;" default="missing variable means global default" example="LLDP=no" description="whether LLDP is enabled for the connection"/>
 <property name="auth-retries" variable="AUTH_RETRIES(+)" format="" values="" default="0" example="" description="Number of retries for authentication."/>
 <property name="mdns" variable="MDNS(+)" format="" values="yes,no,resolve" default="missing variable means global default" example="MDNS=yes" description="Whether or not mDNS is enabled for the connection"/>
+<property name="llmnr" variable="LLMNR(+)" format="" values="yes,no,resolve" default="missing variable means global default" example="LLMNR=yes" description="Whether or not LLMNR is enabled for the connection"/>
 </setting>
 <setting name="dcb">
 <property name="app-fcoe-flags" variable="DCB_APP_FCOE_ENABLE, DCB_APP_FCOE_ADVERTISE, DCB_APP_FCOE_WILLING" format="" values="" default="no" example="DCB_APP_FCOE_ENABLE=yes DCB_APP_FCOE_ADVERTISE=yes" description="FCOE flags."/>
@@ -133,6 +138,8 @@ The sum of the numbers must be 100."/>
 <property name="priority-traffic-class" variable="DCB_PG_UP2TC" format="" values="" default="" example="DCB_PG_UP2TC=01623701" description="Priority values. String of eight trafic class values (0 - 7)."/>
 </setting>
 <setting name="dummy">
+</setting>
+<setting name="ethtool">
 </setting>
 <setting name="generic">
 </setting>
@@ -181,7 +188,7 @@ If zero, the default value will be used (50 for VPNs, 100 for other connections)
 A negative value prevents DNS from other connections with greater values to be used."/>
 <property name="dhcp-client-id" variable="DHCP_CLIENT_ID(+)" format="" values="" default="" example="DHCP_CLIENT_ID=ax-srv-1; DHCP_CLIENT_ID=01:44:44:44:44:44:44" description="A string sent to the DHCP server to identify the local machine.
 A binary value can be specified using hex notation (&apos;aa:bb:cc&apos;)."/>
-<property name="dad-timeout" variable="ACD_TIMEOUT, ARPING_WAIT" format="" values="" default="missing variable means global default (config override or zero)" example="ACD_TIMEOUT=2000 or ARPING_WAIT=2" description="Timeout (in milliseconds for ACD_TIMEOUT or in seconds
+<property name="dad-timeout" variable="ACD_TIMEOUT(+), ARPING_WAIT" format="" values="" default="missing variable means global default (config override or zero)" example="ACD_TIMEOUT=2000 or ARPING_WAIT=2" description="Timeout (in milliseconds for ACD_TIMEOUT or in seconds
 for ARPING_WAIT) for address conflict detection before configuring
 IPv4 addresses. 0 turns off the ACD completely, -1 means default value."/>
 <property name="dhcp-timeout" variable="IPV4_DHCP_TIMEOUT(+)" format="" values="" default="" example="IPV4_DHCP_TIMEOUT=10" description="A timeout after which the DHCP transaction fails in case of no response."/>
@@ -193,7 +200,7 @@ DHCP_FQDN are specified only the latter is used."/>
 ignore ~ IPV6INIT=no; auto ~ IPV6_AUTOCONF=yes; dhcp ~ IPV6_AUTOCONF=no and DHCPV6C=yes"/>
 <property name="dns" variable="DNS1, DNS2, ..." format="string" values="" default="" example="" description="List of DNS servers. NetworkManager uses the variables both
 for IPv4 and IPv6."/>
-<property name="dns-search" variable="IPV6_DOMAIN" format="string (space-separated domains)" values="" default="" example="" description="List of DNS search domains."/>
+<property name="dns-search" variable="IPV6_DOMAIN(+)" format="string (space-separated domains)" values="" default="" example="" description="List of DNS search domains."/>
 <property name="addresses" variable="IPV6ADDR, IPV6ADDR_SECONDARIES" format="" values="" default="" example="IPV6ADDR=ab12:9876::1
 IPV6ADDR_SECONDARIES=&quot;ab12:9876::2 ab12:9876::3&quot;" description="List of static IP addresses."/>
 <property name="gateway" variable="IPV6_DEFAULTGW" format="" values="" default="" example="IPV6_DEFAULTGW=abbe::1" description="Gateway IP address."/>
@@ -226,6 +233,8 @@ each octet is separated by a colon is also accepted."/>
 </setting>
 <setting name="macvlan">
 </setting>
+<setting name="match">
+</setting>
 <setting name="802-11-olpc-mesh">
 </setting>
 <setting name="ovs-bridge">
@@ -249,9 +258,14 @@ proxy configuration, or set the PAC file via PAC_URL or PAC_SCRIPT."/>
 </setting>
 <setting name="serial">
 </setting>
+<setting name="sriov">
+<property name="total-vfs" variable="SRIOV_TOTAL_VFS(+)" format="" values="" default="" example="SRIOV_TOTAL_VFS=16" description="The total number of virtual functions to create"/>
+<property name="vfs" variable="SRIOV_VF1(+), SRIOV_VF2(+), ..." format="" values="" default="" example="SRIOV_VF10=&quot;mac=00:11:22:33:44:55&quot;, ..." description="SR-IOV virtual function descriptors"/>
+<property name="autoprobe-drivers" variable="SRIOV_AUTOPROBE_DRIVERS(+)" format="" values="" default="missing variable means global default" example="SRIOV_AUTOPROBE_DRIVERS=0,1" description="Whether to autoprobe virtual functions by a compatible driver"/>
+</setting>
 <setting name="tc">
-<property name="qdiscs" variable="QDISC1, QDISC2, ..." format="" values="" default="" example="QDISC1=ingress, QDISC2=&quot;root handle 1234: fq_codel&quot;" description="Queueing disciplines"/>
-<property name="qdiscs" variable="FILTER1, FILTER2, ..." format="" values="" default="" example="FILTER1=&quot;parent ffff: matchall action simple sdata Input&quot;, ..." description="Traffic filters"/>
+<property name="qdiscs" variable="QDISC1(+), QDISC2(+), ..." format="" values="" default="" example="QDISC1=ingress, QDISC2=&quot;root handle 1234: fq_codel&quot;" description="Queueing disciplines"/>
+<property name="qdiscs" variable="FILTER1(+), FILTER2(+), ..." format="" values="" default="" example="FILTER1=&quot;parent ffff: matchall action simple sdata Input&quot;, ..." description="Traffic filters"/>
 </setting>
 <setting name="team-port">
 <property name="config" variable="TEAM_PORT_CONFIG" format="" values="" default="" example="" description="Team port configuration in JSON. See man teamd.conf for details."/>
@@ -369,5 +383,7 @@ is listed."/>
 <property name="powersave" variable="POWERSAVE(+)" format="" values="default, ignore, enable, disable" default="" example="POWERSAVE=enable" description="Enables or disables Wi-Fi power saving."/>
 <property name="mac-address-randomization" variable="MAC_ADDRESS_RANDOMIZATION(+)" format="" values="default, never, always" default="" example="MAC_ADDRESS_RANDOMIZATION=always" description="Enables or disables Wi-Fi MAC address randomization."/>
 <property name="security" variable="(none)" format="" values="" default="" example="" description="This property is deprecated and not handled by ifcfg-rh-plugin."/>
+</setting>
+<setting name="wpan">
 </setting>
 </nm-ifcfg-rh-docs>

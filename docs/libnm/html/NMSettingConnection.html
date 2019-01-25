@@ -7,8 +7,8 @@
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSetting.html" title="NMSetting">
-<link rel="next" href="NMSetting8021x.html" title="NMSetting8021x">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<link rel="next" href="NMSetting6Lowpan.html" title="NMSetting6Lowpan">
+<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -22,7 +22,7 @@
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
 <td><a accesskey="p" href="NMSetting.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="NMSetting8021x.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="NMSetting6Lowpan.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="NMSettingConnection"></a><div class="titlepage"></div>
@@ -94,7 +94,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
+<span class="returnvalue">int</span>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingConnection.html#nm-setting-connection-get-autoconnect-priority" title="nm_setting_connection_get_autoconnect_priority ()">nm_setting_connection_get_autoconnect_priority</a> <span class="c_punctuation">()</span>
@@ -102,10 +102,18 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
+<span class="returnvalue">int</span>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingConnection.html#nm-setting-connection-get-autoconnect-retries" title="nm_setting_connection_get_autoconnect_retries ()">nm_setting_connection_get_autoconnect_retries</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="libnm-nm-dbus-interface.html#NMConnectionMultiConnect" title="enum NMConnectionMultiConnect"><span class="returnvalue">NMConnectionMultiConnect</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingConnection.html#nm-setting-connection-get-multi-connect" title="nm_setting_connection_get_multi_connect ()">nm_setting_connection_get_multi_connect</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -274,7 +282,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
+<span class="returnvalue">int</span>
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingConnection.html#nm-setting-connection-get-auth-retries" title="nm_setting_connection_get_auth_retries ()">nm_setting_connection_get_auth_retries</a> <span class="c_punctuation">()</span>
@@ -286,6 +294,14 @@
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingConnection.html#nm-setting-connection-get-mdns" title="nm_setting_connection_get_mdns ()">nm_setting_connection_get_mdns</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="NMSettingConnection.html#NMSettingConnectionLlmnr" title="enum NMSettingConnectionLlmnr"><span class="returnvalue">NMSettingConnectionLlmnr</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingConnection.html#nm-setting-connection-get-llmnr" title="nm_setting_connection_get_llmnr ()">nm_setting_connection_get_llmnr</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 </tbody>
@@ -348,6 +364,11 @@
 <td class="property_flags">Read / Write / Construct</td>
 </tr>
 <tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
+<td class="property_name"><a class="link" href="NMSettingConnection.html#NMSettingConnection--llmnr" title="The “llmnr” property">llmnr</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
 <td class="property_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingConnection.html#NMSettingConnection--master" title="The “master” property">master</a></td>
@@ -361,6 +382,11 @@
 <tr>
 <td class="property_type"><a class="link" href="libnm-nm-dbus-interface.html#NMMetered" title="enum NMMetered"><span class="type">NMMetered</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingConnection.html#NMSettingConnection--metered" title="The “metered” property">metered</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
+<td class="property_name"><a class="link" href="NMSettingConnection.html#NMSettingConnection--multi-connect" title="The “multi-connect” property">multi-connect</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
@@ -474,6 +500,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-MULTI-CONNECT:CAPS" title="NM_SETTING_CONNECTION_MULTI_CONNECT">NM_SETTING_CONNECTION_MULTI_CONNECT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-TIMESTAMP:CAPS" title="NM_SETTING_CONNECTION_TIMESTAMP">NM_SETTING_CONNECTION_TIMESTAMP</a></td>
 </tr>
 <tr>
@@ -525,6 +555,10 @@
 <td class="function_name"><a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-MDNS:CAPS" title="NM_SETTING_CONNECTION_MDNS">NM_SETTING_CONNECTION_MDNS</a></td>
 </tr>
 <tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-LLMNR:CAPS" title="NM_SETTING_CONNECTION_LLMNR">NM_SETTING_CONNECTION_LLMNR</a></td>
+</tr>
+<tr>
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="NMSettingConnection.html#NMSettingConnectionAutoconnectSlaves" title="enum NMSettingConnectionAutoconnectSlaves">NMSettingConnectionAutoconnectSlaves</a></td>
 </tr>
@@ -535,6 +569,10 @@
 <tr>
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="NMSettingConnection.html#NMSettingConnectionMdns" title="enum NMSettingConnectionMdns">NMSettingConnectionMdns</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="NMSettingConnection.html#NMSettingConnectionLlmnr" title="enum NMSettingConnectionLlmnr">NMSettingConnectionLlmnr</a></td>
 </tr>
 <tr>
 <td class="datatype_keyword"> </td>
@@ -548,6 +586,7 @@
 <pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">├──</span> NMSettingConnectionAutoconnectSlaves
     <span class="lineart">├──</span> NMSettingConnectionLldp
+    <span class="lineart">├──</span> NMSettingConnectionLlmnr
     <span class="lineart">╰──</span> NMSettingConnectionMdns
     <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
@@ -735,7 +774,7 @@ nm_setting_connection_get_autoconnect (<em class="parameter"><code><a class="lin
 <hr>
 <div class="refsect2">
 <a name="nm-setting-connection-get-autoconnect-priority"></a><h3>nm_setting_connection_get_autoconnect_priority ()</h3>
-<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
+<pre class="programlisting"><span class="returnvalue">int</span>
 nm_setting_connection_get_autoconnect_priority
                                (<em class="parameter"><code><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingConnection.html#NMSettingConnection--autoconnect-priority" title="The “autoconnect-priority” property"><span class="type">“autoconnect-priority”</span></a> property of the connection.
@@ -763,7 +802,7 @@ The higher number, the higher priority.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-connection-get-autoconnect-retries"></a><h3>nm_setting_connection_get_autoconnect_retries ()</h3>
-<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
+<pre class="programlisting"><span class="returnvalue">int</span>
 nm_setting_connection_get_autoconnect_retries
                                (<em class="parameter"><code><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> *setting</code></em>);</pre>
 <p>Returns the <a class="link" href="NMSettingConnection.html#NMSettingConnection--autoconnect-retries" title="The “autoconnect-retries” property"><span class="type">“autoconnect-retries”</span></a> property of the connection.
@@ -788,6 +827,33 @@ Zero means infinite, -1 means the global default value.</p>
 <p> the connection's autoconnect retries</p>
 </div>
 <p class="since">Since: 1.6</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-connection-get-multi-connect"></a><h3>nm_setting_connection_get_multi_connect ()</h3>
+<pre class="programlisting"><a class="link" href="libnm-nm-dbus-interface.html#NMConnectionMultiConnect" title="enum NMConnectionMultiConnect"><span class="returnvalue">NMConnectionMultiConnect</span></a>
+nm_setting_connection_get_multi_connect
+                               (<em class="parameter"><code><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-connection-get-multi-connect.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-connection-get-multi-connect.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="NMSettingConnection.html#NMSettingConnection--multi-connect" title="The “multi-connect” property"><span class="type">“multi-connect”</span></a> property of the connection.</p>
+</div>
+<p class="since">Since: 1.14</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1489,7 +1555,7 @@ enabled for the connection.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-connection-get-auth-retries"></a><h3>nm_setting_connection_get_auth_retries ()</h3>
-<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>
+<pre class="programlisting"><span class="returnvalue">int</span>
 nm_setting_connection_get_auth_retries
                                (<em class="parameter"><code><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> *setting</code></em>);</pre>
 <p>Returns the value contained in the <a class="link" href="NMSettingConnection.html#NMSettingConnection--auth-retries" title="The “auth-retries” property"><span class="type">“auth-retries”</span></a> property.</p>
@@ -1540,6 +1606,32 @@ nm_setting_connection_get_mdns (<em class="parameter"><code><a class="link" href
 <p> the <a class="link" href="NMSettingConnection.html#NMSettingConnection--mdns" title="The “mdns” property"><span class="type">“mdns”</span></a> property of the setting.</p>
 </div>
 <p class="since">Since: 1.12</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-connection-get-llmnr"></a><h3>nm_setting_connection_get_llmnr ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingConnection.html#NMSettingConnectionLlmnr" title="enum NMSettingConnectionLlmnr"><span class="returnvalue">NMSettingConnectionLlmnr</span></a>
+nm_setting_connection_get_llmnr (<em class="parameter"><code><a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-connection-get-llmnr.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-connection-get-llmnr.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="NMSettingConnection.html#NMSettingConnection--llmnr" title="The “llmnr” property"><span class="type">“llmnr”</span></a> property of the setting.</p>
+</div>
+<p class="since">Since: 1.14</p>
 </div>
 </div>
 <div class="refsect1">
@@ -1613,6 +1705,12 @@ nm_setting_connection_get_mdns (<em class="parameter"><code><a class="link" href
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-AUTOCONNECT-RETRIES:CAPS"></a><h3>NM_SETTING_CONNECTION_AUTOCONNECT_RETRIES</h3>
 <pre class="programlisting">#define NM_SETTING_CONNECTION_AUTOCONNECT_RETRIES "autoconnect-retries"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-CONNECTION-MULTI-CONNECT:CAPS"></a><h3>NM_SETTING_CONNECTION_MULTI_CONNECT</h3>
+<pre class="programlisting">#define NM_SETTING_CONNECTION_MULTI_CONNECT  "multi-connect"
 </pre>
 </div>
 <hr>
@@ -1691,6 +1789,12 @@ nm_setting_connection_get_mdns (<em class="parameter"><code><a class="link" href
 <div class="refsect2">
 <a name="NM-SETTING-CONNECTION-MDNS:CAPS"></a><h3>NM_SETTING_CONNECTION_MDNS</h3>
 <pre class="programlisting">#define NM_SETTING_CONNECTION_MDNS           "mdns"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-CONNECTION-LLMNR:CAPS"></a><h3>NM_SETTING_CONNECTION_LLMNR</h3>
+<pre class="programlisting">#define NM_SETTING_CONNECTION_LLMNR          "llmnr"
 </pre>
 </div>
 <hr>
@@ -1820,6 +1924,52 @@ should be activated when master is activated.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMSettingConnectionLlmnr"></a><h3>enum NMSettingConnectionLlmnr</h3>
+<p><a class="link" href="NMSettingConnection.html#NMSettingConnectionLlmnr" title="enum NMSettingConnectionLlmnr"><span class="type">NMSettingConnectionLlmnr</span></a> values indicate whether LLMNR should be enabled.</p>
+<div class="refsect3">
+<a name="NMSettingConnectionLlmnr.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTING-CONNECTION-LLMNR-DEFAULT:CAPS"></a>NM_SETTING_CONNECTION_LLMNR_DEFAULT</p></td>
+<td class="enum_member_description">
+<p>default value</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTING-CONNECTION-LLMNR-NO:CAPS"></a>NM_SETTING_CONNECTION_LLMNR_NO</p></td>
+<td class="enum_member_description">
+<p>disable LLMNR</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTING-CONNECTION-LLMNR-RESOLVE:CAPS"></a>NM_SETTING_CONNECTION_LLMNR_RESOLVE</p></td>
+<td class="enum_member_description">
+<p>support only resolving, do not register hostname</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTING-CONNECTION-LLMNR-YES:CAPS"></a>NM_SETTING_CONNECTION_LLMNR_YES</p></td>
+<td class="enum_member_description">
+<p>enable LLMNR</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.14</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMSettingConnection-struct"></a><h3>NMSettingConnection</h3>
 <pre class="programlisting">typedef struct _NMSettingConnection NMSettingConnection;</pre>
 <p>General Connection Profile Settings</p>
@@ -1940,6 +2090,23 @@ connection may be applied to the wrong interface.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMSettingConnection--llmnr"></a><h3>The <code class="literal">“llmnr”</code> property</h3>
+<pre class="programlisting">  “llmnr”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
+<p>Whether Link-Local Multicast Name Resolution (LLMNR) is enabled
+for the connection. LLMNR is a protocol based on the Domain Name
+System (DNS) packet format that allows both IPv4 and IPv6 hosts
+to perform name resolution for hosts on the same local link.</p>
+<p>The permitted values are: yes: register hostname and resolving
+for the connection, no: disable LLMNR for the interface, resolve:
+do not register hostname but allow resolving of LLMNR host names.</p>
+<p>This feature requires a plugin which supports LLMNR. One such
+plugin is dns-systemd-resolved.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: -1</p>
+<p class="since">Since: 1.14</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMSettingConnection--master"></a><h3>The <code class="literal">“master”</code> property</h3>
 <pre class="programlisting">  “master”                   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Interface name of the master device or UUID of the master connection.</p>
@@ -1970,6 +2137,16 @@ the change takes effect immediately.</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NM_METERED_UNKNOWN</p>
 <p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingConnection--multi-connect"></a><h3>The <code class="literal">“multi-connect”</code> property</h3>
+<pre class="programlisting">  “multi-connect”            <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
+<p>Specifies whether the profile can be active multiple times at a particular
+moment. The value is of type <a class="link" href="libnm-nm-dbus-interface.html#NMConnectionMultiConnect" title="enum NMConnectionMultiConnect"><span class="type">NMConnectionMultiConnect</span></a>.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.14</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -2094,7 +2271,7 @@ provider, or <a class="link" href="NMSettingConnection.html#NMSettingConnection-
 <p>The UUID must be in the format "2815492f-7e56-435e-b2e9-246bd7cdc664"
 (ie, contains only hexadecimal characters and "-").  A suitable UUID may
 be generated by <a class="link" href="libnm-nm-utils.html#nm-utils-uuid-generate" title="nm_utils_uuid_generate ()"><code class="function">nm_utils_uuid_generate()</code></a> or
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-nm-utils.html#nm-utils-uuid-generate-from-string"><code class="function">nm_utils_uuid_generate_from_string()</code></a>.</p>
+<code class="function">nm_utils_uuid_generate_from_string()</code>.</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -2114,6 +2291,6 @@ the change takes effect immediately.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.29.1</div>
 </body>
 </html>

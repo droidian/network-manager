@@ -3,9 +3,11 @@ libnm.so.0 libnm0 #MINVER#
  libnm_1_0_4@libnm_1_0_4 1.0.4
  libnm_1_0_6@libnm_1_0_6 1.0.6
  libnm_1_10_0@libnm_1_10_0 1.9.90
+ libnm_1_10_14@libnm_1_10_14 1.14.4
  libnm_1_10_2@libnm_1_10_2 1.10.2
  libnm_1_12_0@libnm_1_12_0 1.11.3
  libnm_1_12_2@libnm_1_12_2 1.12.2
+ libnm_1_14_0@libnm_1_14_0 1.13.90
  libnm_1_2_0@libnm_1_2_0 1.1.90
  libnm_1_2_4@libnm_1_2_4 1.2.4
  libnm_1_4_0@libnm_1_4_0 1.4.0
@@ -192,6 +194,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_connection_get_virtual_device_description@libnm_1_0_0 1.0.0
  nm_connection_is_type@libnm_1_0_0 1.0.0
  nm_connection_is_virtual@libnm_1_0_0 1.0.0
+ nm_connection_multi_connect_get_type@libnm_1_14_0 1.13.90
  nm_connection_need_secrets@libnm_1_0_0 1.0.0
  nm_connection_normalize@libnm_1_0_0 1.0.0
  nm_connection_remove_setting@libnm_1_0_0 1.0.0
@@ -206,6 +209,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_connectivity_state_get_type@libnm_1_0_0 1.0.0
  nm_crypto_error_get_type@libnm_1_0_0 1.0.0
  nm_crypto_error_quark@libnm_1_0_0 1.0.0
+ nm_device_6lowpan_get_type@libnm_1_14_0 1.13.90
  nm_device_adsl_get_carrier@libnm_1_0_0 1.0.0
  nm_device_adsl_get_type@libnm_1_0_0 1.0.0
  nm_device_bond_get_carrier@libnm_1_0_0 1.0.0
@@ -401,6 +405,11 @@ libnm.so.0 libnm0 #MINVER#
  nm_device_wimax_get_rssi@libnm_1_0_0 1.0.0
  nm_device_wimax_get_tx_power@libnm_1_0_0 1.0.0
  nm_device_wimax_get_type@libnm_1_0_0 1.0.0
+ nm_device_wireguard_get_fwmark@libnm_1_14_0 1.13.90
+ nm_device_wireguard_get_listen_port@libnm_1_14_0 1.13.90
+ nm_device_wireguard_get_public_key@libnm_1_14_0 1.13.90
+ nm_device_wireguard_get_type@libnm_1_14_0 1.13.90
+ nm_device_wpan_get_type@libnm_1_14_0 1.13.90
  nm_dhcp_config_get_family@libnm_1_0_0 1.0.0
  nm_dhcp_config_get_one_option@libnm_1_0_0 1.0.0
  nm_dhcp_config_get_options@libnm_1_0_0 1.0.0
@@ -512,6 +521,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_secret_agent_old_unregister@libnm_1_0_0 1.0.0
  nm_secret_agent_old_unregister_async@libnm_1_0_0 1.0.0
  nm_secret_agent_old_unregister_finish@libnm_1_0_0 1.0.0
+ nm_setting_6lowpan_get_type@libnm_1_14_0 1.13.90
  nm_setting_802_1x_add_altsubject_match@libnm_1_0_0 1.0.0
  nm_setting_802_1x_add_eap_method@libnm_1_0_0 1.0.0
  nm_setting_802_1x_add_phase2_altsubject_match@libnm_1_0_0 1.0.0
@@ -666,10 +676,13 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_connection_get_id@libnm_1_0_0 1.0.0
  nm_setting_connection_get_interface_name@libnm_1_0_0 1.0.0
  nm_setting_connection_get_lldp@libnm_1_2_0 1.1.90
+ nm_setting_connection_get_llmnr@libnm_1_14_0 1.13.90
  nm_setting_connection_get_master@libnm_1_0_0 1.0.0
+ nm_setting_connection_get_mdns@libnm_1_10_14 1.14.4
  nm_setting_connection_get_mdns@libnm_1_12_0 1.11.3
  nm_setting_connection_get_metered@libnm_1_0_6 1.0.6
  nm_setting_connection_get_metered@libnm_1_2_0 1.1.90
+ nm_setting_connection_get_multi_connect@libnm_1_14_0 1.13.90
  nm_setting_connection_get_num_permissions@libnm_1_0_0 1.0.0
  nm_setting_connection_get_num_secondaries@libnm_1_0_0 1.0.0
  nm_setting_connection_get_permission@libnm_1_0_0 1.0.0
@@ -683,6 +696,8 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_connection_get_zone@libnm_1_0_0 1.0.0
  nm_setting_connection_is_slave_type@libnm_1_0_0 1.0.0
  nm_setting_connection_lldp_get_type@libnm_1_2_0 1.1.90
+ nm_setting_connection_llmnr_get_type@libnm_1_14_0 1.13.90
+ nm_setting_connection_mdns_get_type@libnm_1_10_14 1.14.4
  nm_setting_connection_mdns_get_type@libnm_1_12_0 1.11.3
  nm_setting_connection_new@libnm_1_0_0 1.0.0
  nm_setting_connection_permissions_user_allowed@libnm_1_0_0 1.0.0
@@ -720,6 +735,11 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_dummy_new@libnm_1_8_0 1.8.0
  nm_setting_duplicate@libnm_1_0_0 1.0.0
  nm_setting_enumerate_values@libnm_1_0_0 1.0.0
+ nm_setting_ethtool_clear_features@libnm_1_14_0 1.13.90
+ nm_setting_ethtool_get_feature@libnm_1_14_0 1.13.90
+ nm_setting_ethtool_get_type@libnm_1_14_0 1.13.90
+ nm_setting_ethtool_new@libnm_1_14_0 1.13.90
+ nm_setting_ethtool_set_feature@libnm_1_14_0 1.13.90
  nm_setting_generic_get_type@libnm_1_0_0 1.0.0
  nm_setting_generic_new@libnm_1_0_0 1.0.0
  nm_setting_get_dbus_property_type@libnm_1_0_0 1.0.0
@@ -842,6 +862,14 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_macvlan_get_type@libnm_1_2_0 1.1.90
  nm_setting_macvlan_mode_get_type@libnm_1_2_0 1.1.90
  nm_setting_macvlan_new@libnm_1_2_0 1.1.90
+ nm_setting_match_add_interface_name@libnm_1_14_0 1.13.90
+ nm_setting_match_clear_interface_names@libnm_1_14_0 1.13.90
+ nm_setting_match_get_interface_name@libnm_1_14_0 1.13.90
+ nm_setting_match_get_interface_names@libnm_1_14_0 1.13.90
+ nm_setting_match_get_num_interface_names@libnm_1_14_0 1.13.90
+ nm_setting_match_get_type@libnm_1_14_0 1.13.90
+ nm_setting_match_remove_interface_name@libnm_1_14_0 1.13.90
+ nm_setting_match_remove_interface_name_by_value@libnm_1_14_0 1.13.90
  nm_setting_olpc_mesh_get_channel@libnm_1_0_0 1.0.0
  nm_setting_olpc_mesh_get_dhcp_anycast_address@libnm_1_0_0 1.0.0
  nm_setting_olpc_mesh_get_ssid@libnm_1_0_0 1.0.0
@@ -911,6 +939,16 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_serial_new@libnm_1_0_0 1.0.0
  nm_setting_serial_parity_get_type@libnm_1_0_0 1.0.0
  nm_setting_set_secret_flags@libnm_1_0_0 1.0.0
+ nm_setting_sriov_add_vf@libnm_1_14_0 1.13.90
+ nm_setting_sriov_clear_vfs@libnm_1_14_0 1.13.90
+ nm_setting_sriov_get_autoprobe_drivers@libnm_1_14_0 1.13.90
+ nm_setting_sriov_get_num_vfs@libnm_1_14_0 1.13.90
+ nm_setting_sriov_get_total_vfs@libnm_1_14_0 1.13.90
+ nm_setting_sriov_get_type@libnm_1_14_0 1.13.90
+ nm_setting_sriov_get_vf@libnm_1_14_0 1.13.90
+ nm_setting_sriov_new@libnm_1_14_0 1.13.90
+ nm_setting_sriov_remove_vf@libnm_1_14_0 1.13.90
+ nm_setting_sriov_remove_vf_by_index@libnm_1_14_0 1.13.90
  nm_setting_tc_config_add_qdisc@libnm_1_10_2 1.10.2
  nm_setting_tc_config_add_tfilter@libnm_1_10_2 1.10.2
  nm_setting_tc_config_clear_qdiscs@libnm_1_10_2 1.10.2
@@ -1136,6 +1174,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_wireless_security_set_wep_key@libnm_1_0_0 1.0.0
  nm_setting_wireless_security_wps_method_get_type@libnm_1_10_0 1.9.90
  nm_setting_wireless_wake_on_wlan_get_type@libnm_1_12_0 1.11.90
+ nm_setting_wpan_get_type@libnm_1_14_0 1.13.90
  nm_settings_connection_flags_get_type@libnm_1_12_0 1.11.3
  nm_settings_error_get_type@libnm_1_0_0 1.0.0
  nm_settings_error_quark@libnm_1_0_0 1.0.0
@@ -1144,6 +1183,24 @@ libnm.so.0 libnm0 #MINVER#
  nm_simple_connection_new@libnm_1_0_0 1.0.0
  nm_simple_connection_new_clone@libnm_1_0_0 1.0.0
  nm_simple_connection_new_from_dbus@libnm_1_0_0 1.0.0
+ nm_sriov_vf_add_vlan@libnm_1_14_0 1.13.90
+ nm_sriov_vf_dup@libnm_1_14_0 1.13.90
+ nm_sriov_vf_equal@libnm_1_14_0 1.13.90
+ nm_sriov_vf_get_attribute@libnm_1_14_0 1.13.90
+ nm_sriov_vf_get_attribute_names@libnm_1_14_0 1.13.90
+ nm_sriov_vf_get_index@libnm_1_14_0 1.13.90
+ nm_sriov_vf_get_type@libnm_1_14_0 1.13.90
+ nm_sriov_vf_get_vlan_ids@libnm_1_14_0 1.13.90
+ nm_sriov_vf_get_vlan_protocol@libnm_1_14_0 1.13.90
+ nm_sriov_vf_get_vlan_qos@libnm_1_14_0 1.13.90
+ nm_sriov_vf_new@libnm_1_14_0 1.13.90
+ nm_sriov_vf_ref@libnm_1_14_0 1.13.90
+ nm_sriov_vf_remove_vlan@libnm_1_14_0 1.13.90
+ nm_sriov_vf_set_attribute@libnm_1_14_0 1.13.90
+ nm_sriov_vf_set_vlan_protocol@libnm_1_14_0 1.13.90
+ nm_sriov_vf_set_vlan_qos@libnm_1_14_0 1.13.90
+ nm_sriov_vf_unref@libnm_1_14_0 1.13.90
+ nm_sriov_vf_vlan_protocol_get_type@libnm_1_14_0 1.13.90
  nm_state_get_type@libnm_1_0_0 1.0.0
  nm_tc_action_dup@libnm_1_10_2 1.10.2
  nm_tc_action_equal@libnm_1_10_2 1.10.2
@@ -1193,6 +1250,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_team_link_watcher_new_nsna_ping@libnm_1_10_2 1.10.2
  nm_team_link_watcher_ref@libnm_1_10_2 1.10.2
  nm_team_link_watcher_unref@libnm_1_10_2 1.10.2
+ nm_ternary_get_type@libnm_1_14_0 1.13.90
  nm_utils_ap_mode_security_valid@libnm_1_0_0 1.0.0
  nm_utils_bin2hexstr@libnm_1_0_0 1.0.0
  nm_utils_bond_mode_int_to_string@libnm_1_2_0 1.1.90
@@ -1245,6 +1303,8 @@ libnm.so.0 libnm0 #MINVER#
  nm_utils_same_ssid@libnm_1_0_0 1.0.0
  nm_utils_security_type_get_type@libnm_1_0_0 1.0.0
  nm_utils_security_valid@libnm_1_0_0 1.0.0
+ nm_utils_sriov_vf_from_str@libnm_1_14_0 1.13.90
+ nm_utils_sriov_vf_to_str@libnm_1_14_0 1.13.90
  nm_utils_ssid_to_utf8@libnm_1_0_0 1.0.0
  nm_utils_tc_action_from_str@libnm_1_10_2 1.10.2
  nm_utils_tc_action_to_str@libnm_1_10_2 1.10.2

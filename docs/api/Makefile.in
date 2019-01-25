@@ -112,7 +112,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 @BUILD_DOCS_TRUE@am__append_1 = settings-spec.xml
-@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_2 = $(top_builddir)/man/nm-settings-ifcfg-rh.xml
+@WITH_OPENVSWITCH_TRUE@am__append_2 = $(top_builddir)/man/nm-openvswitch.xml
+@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_3 = $(top_builddir)/man/nm-settings-ifcfg-rh.xml
 subdir = docs/api
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/attributes.m4 \
@@ -189,14 +190,11 @@ DBUS_LIBS = @DBUS_LIBS@
 DBUS_SYS_DIR = @DBUS_SYS_DIR@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
-DHCLIENT_PATH = @DHCLIENT_PATH@
-DHCPCANON_PATH = @DHCPCANON_PATH@
-DHCPCD_PATH = @DHCPCD_PATH@
 DISTRO_NETWORK_SERVICE = @DISTRO_NETWORK_SERVICE@
 DLLTOOL = @DLLTOOL@
 DL_LIBS = @DL_LIBS@
 DNSMASQ_PATH = @DNSMASQ_PATH@
-DNSSEC_TRIGGER_SCRIPT = @DNSSEC_TRIGGER_SCRIPT@
+DNSSEC_TRIGGER_PATH = @DNSSEC_TRIGGER_PATH@
 DSYMUTIL = @DSYMUTIL@
 DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
@@ -508,6 +506,7 @@ content_files = $(GENERATED_FILES) \
 	dbus-org.freedesktop.NetworkManager.Device.Veth.xml \
 	dbus-org.freedesktop.NetworkManager.Settings.xml \
 	dbus-org.freedesktop.NetworkManager.Device.Wired.xml \
+	dbus-org.freedesktop.NetworkManager.Device.WireGuard.xml \
 	dbus-org.freedesktop.NetworkManager.IP4Config.xml \
 	dbus-org.freedesktop.NetworkManager.Device.Statistics.xml \
 	dbus-org.freedesktop.NetworkManager.DnsManager.xml \
@@ -515,13 +514,13 @@ content_files = $(GENERATED_FILES) \
 	$(top_builddir)/libnm-core/nm-vpn-dbus-types.xml \
 	$(top_builddir)/man/nmcli.xml $(top_builddir)/man/nmtui.xml \
 	$(top_builddir)/man/nm-online.xml \
+	$(top_builddir)/man/nm-initrd-generator.xml \
 	$(top_builddir)/man/NetworkManager.xml \
 	$(top_builddir)/man/NetworkManager.conf.xml \
 	$(top_builddir)/man/nmcli-examples.xml \
 	$(top_builddir)/man/nm-settings.xml \
-	$(top_builddir)/man/nm-settings-keyfile.xml \
-	$(top_builddir)/man/nm-openvswitch.xml version.xml \
-	../../COPYING $(NULL) $(am__append_2)
+	$(top_builddir)/man/nm-settings-keyfile.xml version.xml \
+	../../COPYING $(NULL) $(am__append_2) $(am__append_3)
 @GTK_DOC_USE_LIBTOOL_FALSE@GTKDOC_CC = $(CC) $(INCLUDES) $(GTKDOC_DEPS_CFLAGS) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 @GTK_DOC_USE_LIBTOOL_TRUE@GTKDOC_CC = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(INCLUDES) $(GTKDOC_DEPS_CFLAGS) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 @GTK_DOC_USE_LIBTOOL_FALSE@GTKDOC_LD = $(CC) $(GTKDOC_DEPS_LIBS) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS)

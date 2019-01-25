@@ -270,7 +270,7 @@ _nm_setting_lookup_setting_type_by_quark (GQuark error_quark)
 	return G_TYPE_INVALID;
 }
 
-gint
+int
 _nm_setting_compare_priority (gconstpointer a, gconstpointer b)
 {
 	guint32 prio_a, prio_b;
@@ -321,7 +321,7 @@ nm_setting_to_hash (NMSetting *setting, NMSettingHashFlags flags)
 	property_specs = g_object_class_list_properties (G_OBJECT_GET_CLASS (setting), &n_property_specs);
 
 	hash = g_hash_table_new_full (g_str_hash, g_str_equal,
-	                              (GDestroyNotify) g_free, destroy_gvalue);
+	                              g_free, destroy_gvalue);
 
 	for (i = 0; i < n_property_specs; i++) {
 		GParamSpec *prop_spec = property_specs[i];
@@ -466,7 +466,7 @@ nm_setting_duplicate (NMSetting *setting)
 	return NM_SETTING (dup);
 }
 
-static gint
+static int
 find_setting_by_name (gconstpointer a, gconstpointer b)
 {
 	NMSetting *setting = NM_SETTING (a);
@@ -616,7 +616,7 @@ nm_setting_compare (NMSetting *a,
 {
 	GParamSpec **property_specs;
 	guint n_property_specs;
-	gint same = TRUE;
+	int same = TRUE;
 	guint i;
 
 	g_return_val_if_fail (NM_IS_SETTING (a), FALSE);
@@ -1335,8 +1335,8 @@ _nm_setting_verify_deprecated_virtual_iface_name (const char *interface_name,
                                                   const char *setting_name,
                                                   const char *setting_property,
                                                   GQuark error_quark,
-                                                  gint e_invalid_property,
-                                                  gint e_missing_property,
+                                                  int e_invalid_property,
+                                                  int e_missing_property,
                                                   GSList *all_settings,
                                                   GError **error)
 {

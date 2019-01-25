@@ -292,6 +292,21 @@
               <entry role="enum_member_value"><para>= <literal>26</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>a Open vSwitch bridge</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_WPAN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>27</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a IEEE 802.15.4 (WPAN) MAC Layer Device</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_6LOWPAN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>28</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>6LoWPAN interface</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_WIREGUARD</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>29</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>a WireGuard interface</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -1132,6 +1147,11 @@
               <entry role="enum_member_value"><para>= <literal>65</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>The selected IP method is not supported</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>66</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>configuration of SR-IOV parameters failed</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -1176,6 +1196,46 @@
               <entry role="enum_member_name"><para>NM_METERED_GUESS_NO</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>4</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>Not metered, the value was guessed</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMConnectionMultiConnect" role="enum">
+    <title>enum NMConnectionMultiConnect</title>
+    <indexterm zone="NMConnectionMultiConnect">
+      <primary>NMConnectionMultiConnect</primary>
+    </indexterm>
+    <para><para>Since: 1.14</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CONNECTION_MULTI_CONNECT_DEFAULT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>indicates that the per-connection setting is unspecified. In this case, it will fallback to the default value, which is @NM_CONNECTION_MULTI_CONNECT_SINGLE.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CONNECTION_MULTI_CONNECT_SINGLE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the connection profile can only be active once at each moment. Activating a profile that is already active, will first deactivate it.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CONNECTION_MULTI_CONNECT_MANUAL_MULTIPLE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the profile can be manually activated multiple times on different devices. However, regarding autoconnect, the profile will autoconnect only if it is currently not connected otherwise.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CONNECTION_MULTI_CONNECT_MULTIPLE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the profile can autoactivate and be manually activated multiple times together.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -1472,6 +1532,16 @@
               <entry role="enum_member_value"><para>= <literal>9</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>IPv6 VTI tunnel</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_IP_TUNNEL_MODE_GRETAP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>10</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>GRETAP tunnel</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_IP_TUNNEL_MODE_IP6GRETAP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>11</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>IPv6 GRETAP tunnel</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -1706,6 +1776,41 @@
               <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>usually, when the connection has autoconnect enabled and is modified, it becomes elegible to autoconnect right away. Setting this flag, disables autoconnect until the connection is manually activated.</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMTernary" role="enum">
+    <title>enum NMTernary</title>
+    <indexterm zone="NMTernary">
+      <primary>NMTernary</primary>
+    </indexterm>
+    <para><para>An boolean value that can be overridden by a default.</para><para>Since: 1.14</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_TERNARY_DEFAULT</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>-1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>use the globally-configured default value.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_TERNARY_FALSE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the option is disabled.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_TERNARY_TRUE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the option is enabled.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>

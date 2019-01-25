@@ -2,12 +2,12 @@
 .\"     Title: nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 12/01/2018
+.\"      Date: 10/24/2018
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.12.6
+.\"    Source: NetworkManager 1.14.4
 .\"  Language: English
 .\"
-.TH "NMCLI" "1" "" "NetworkManager 1\&.12\&.6" "General Commands Manual"
+.TH "NMCLI" "1" "" "NetworkManager 1\&.14\&.4" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1085,6 +1085,11 @@ Set device properties\&.
 \fBconnect\fR \fIifname\fR
 .RS 4
 Connect the device\&. NetworkManager will try to find a suitable connection that will be activated\&. It will also consider connections that are not set to auto connect\&.
+.sp
+If no compatible connection exists, a new profile with default settings will be created and activated\&. This differentiates
+\fBnmcli connection up ifname "$DEVICE"\fR
+from
+\fBnmcli device connect "$DEVICE"\fR
 .sp
 If
 \fB\-\-wait\fR
@@ -2294,7 +2299,65 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&23.\ \&IPv4 options
+.B Table\ \&23.\ \&WPAN options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l
+l l
+l l.
+T{
+mac
+T}:T{
+wpan\&.mac
+T}
+T{
+short\-addr
+T}:T{
+wpan\&.short\-addr
+T}
+T{
+pan\-id
+T}:T{
+wpan\&.pan\-id
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&24.\ \&6LoWPAN options
+.TS
+allbox tab(:);
+lB lB.
+T{
+Alias
+T}:T{
+Property
+T}
+.T&
+l l.
+T{
+dev
+T}:T{
+6lowpan\&.parent
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&25.\ \&IPv4 options
 .TS
 allbox tab(:);
 lB lB lB.
@@ -2329,7 +2392,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&24.\ \&IPv6 options
+.B Table\ \&26.\ \&IPv6 options
 .TS
 allbox tab(:);
 lB lB lB.
@@ -2364,7 +2427,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&25.\ \&Proxy options
+.B Table\ \&27.\ \&Proxy options
 .TS
 allbox tab(:);
 lB lB lB.

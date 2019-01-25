@@ -16,7 +16,7 @@ Closes: #742933
  1 file changed, 5 insertions(+)
 
 diff --git a/src/nm-sleep-monitor.c b/src/nm-sleep-monitor.c
-index a7e3a7c..9931f12 100644
+index 54d7577..a4bb43f 100644
 --- a/src/nm-sleep-monitor.c
 +++ b/src/nm-sleep-monitor.c
 @@ -25,6 +25,7 @@

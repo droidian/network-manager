@@ -127,10 +127,8 @@ _assert_gbytes (GBytes *bytes, gconstpointer data, gssize len)
 
 	if (!len)
 		g_assert (!bytes);
-	else {
-		g_assert_cmpint (g_bytes_get_size (bytes), ==, len);
-		g_assert (memcmp (g_bytes_get_data (bytes, NULL), data, len) == 0);
-	}
+
+	g_assert (nm_utils_gbytes_equal_mem (bytes, data, len));
 }
 
 static GKeyFile *
@@ -169,19 +167,28 @@ _nm_keyfile_write (NMConnection *connection,
 static NMConnection *
 _nm_keyfile_read (GKeyFile *keyfile,
                   const char *keyfile_name,
-                  const char *base_dir,
                   NMKeyfileReadHandler read_handler,
                   void *read_data,
                   gboolean needs_normalization)
 {
 	GError *error = NULL;
 	NMConnection *con;
+	gs_free char *filename = NULL;
+	gs_free char *base_dir = NULL;
 
 	g_assert (keyfile);
+	g_assert (!keyfile_name || (keyfile_name[0] == '/'));
 
-	con = nm_keyfile_read (keyfile, keyfile_name, base_dir, read_handler, read_data, &error);
+	base_dir = g_path_get_dirname (keyfile_name);
+	filename = g_path_get_basename (keyfile_name);
+
+	con = nm_keyfile_read (keyfile, base_dir, read_handler, read_data, &error);
 	g_assert_no_error (error);
 	g_assert (NM_IS_CONNECTION (con));
+
+	nm_keyfile_read_ensure_id (con, filename);
+	nm_keyfile_read_ensure_uuid (con, keyfile_name);
+
 	if (needs_normalization) {
 		nmtst_assert_connection_verifies_after_normalization (con, 0, 0);
 		nmtst_connection_normalize (con);
@@ -207,7 +214,6 @@ static void
 _keyfile_convert (NMConnection **con,
                   GKeyFile **keyfile,
                   const char *keyfile_name,
-                  const char *base_dir,
                   NMKeyfileReadHandler read_handler,
                   void *read_data,
                   NMKeyfileWriteHandler write_handler,
@@ -231,7 +237,7 @@ _keyfile_convert (NMConnection **con,
 
 	if (c0) {
 		c0_k1 = _nm_keyfile_write (c0, write_handler, write_data);
-		c0_k1_c2 = _nm_keyfile_read (c0_k1, keyfile_name, base_dir, read_handler, read_data, FALSE);
+		c0_k1_c2 = _nm_keyfile_read (c0_k1, keyfile_name, read_handler, read_data, FALSE);
 		c0_k1_c2_k3 = _nm_keyfile_write (c0_k1_c2, write_handler, write_data);
 
 		g_assert (_nm_keyfile_equals (c0_k1, c0_k1_c2_k3, TRUE));
@@ -239,9 +245,9 @@ _keyfile_convert (NMConnection **con,
 	if (k0) {
 		NMSetting8021x *s1, *s2;
 
-		k0_c1 = _nm_keyfile_read (k0, keyfile_name, base_dir, read_handler, read_data, needs_normalization);
+		k0_c1 = _nm_keyfile_read (k0, keyfile_name, read_handler, read_data, needs_normalization);
 		k0_c1_k2 = _nm_keyfile_write (k0_c1, write_handler, write_data);
-		k0_c1_k2_c3 = _nm_keyfile_read (k0_c1_k2, keyfile_name, base_dir, read_handler, read_data, FALSE);
+		k0_c1_k2_c3 = _nm_keyfile_read (k0_c1_k2, keyfile_name, read_handler, read_data, FALSE);
 
 		/* It is a expeced behavior, that if @k0 contains a relative path ca-cert, @k0_c1 will
 		 * contain that path as relative. But @k0_c1_k2 and @k0_c1_k2_c3 will have absolute paths.
@@ -277,8 +283,9 @@ _keyfile_convert (NMConnection **con,
 
 				b1 = nm_setting_802_1x_get_ca_cert_blob (s1);
 				b2 = nm_setting_802_1x_get_ca_cert_blob (s2);
-				g_assert_cmpint (g_bytes_get_size (b1), ==, g_bytes_get_size (b2));
-				g_assert (memcmp (g_bytes_get_data (b1, NULL), g_bytes_get_data (b2, NULL), g_bytes_get_size (b1)) == 0);
+				g_assert (b1);
+				g_assert (b2);
+				g_assert (g_bytes_equal (b1, b2));
 				break;
 			}
 			default:
@@ -313,7 +320,7 @@ _test_8021x_cert_check (NMConnection *con,
 	NMSetting8021x *s_8021x;
 	gs_free char *kval = NULL;
 
-	_keyfile_convert (&con, &keyfile, NULL, NULL, NULL, NULL, NULL, NULL, FALSE);
+	_keyfile_convert (&con, &keyfile, "/_test_8021x_cert_check/foo", NULL, NULL, NULL, NULL, FALSE);
 
 	s_8021x = nm_connection_get_setting_802_1x (con);
 
@@ -344,8 +351,7 @@ _test_8021x_cert_check (NMConnection *con,
 		}
 
 		g_assert (blob);
-		g_assert_cmpint (g_bytes_get_size (blob), ==, val_len);
-		g_assert (!memcmp (g_bytes_get_data (blob, NULL), value, val_len));
+		g_assert (nm_utils_gbytes_equal_mem (blob, value, val_len));
 
 		kval = g_key_file_get_string (keyfile, "802-1x", "ca-cert", NULL);
 		g_assert (kval);
@@ -451,14 +457,14 @@ test_8021x_cert_read (void)
 	con = nmtst_create_connection_from_keyfile (
 	      "[connection]\n"
 	      "type=ethernet",
-	      "/test_8021x_cert_read/test0", NULL);
+	      "/test_8021x_cert_read/test0");
 	CLEAR (&con, &keyfile);
 
 	keyfile = _keyfile_load_from_data (
 	          "[connection]\n"
 	          "type=ethernet"
 	          );
-	_keyfile_convert (&con, &keyfile, "/test_8021x_cert_read/test1", NULL, NULL, NULL, NULL, NULL, TRUE);
+	_keyfile_convert (&con, &keyfile, "/test_8021x_cert_read/test1", NULL, NULL, NULL, NULL, TRUE);
 	CLEAR (&con, &keyfile);
 
 	keyfile = _keyfile_load_from_data (
@@ -473,7 +479,7 @@ test_8021x_cert_read (void)
 	          "private-key=102;105;108;101;58;47;47;47;104;111;109;101;47;100;99;98;119;47;68;101;115;107;116;111;112;47;99;101;114;116;105;110;102;114;97;47;99;108;105;101;110;116;46;112;101;109;0;\n"
 	          "private-key-password=12345testing\n"
 	          );
-	_keyfile_convert (&con, &keyfile, "/test_8021x_cert_read/test2", NULL, NULL, NULL, NULL, NULL, TRUE);
+	_keyfile_convert (&con, &keyfile, "/test_8021x_cert_read/test2", NULL, NULL, NULL, NULL, TRUE);
 	CLEAR (&con, &keyfile);
 
 	keyfile = _keyfile_load_from_data (
@@ -502,7 +508,7 @@ test_8021x_cert_read (void)
 	                      "/33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333111111\n"
 	          "private-key-password=12345testing\n"
 	          );
-	_keyfile_convert (&con, &keyfile, "/test_8021x_cert_read/test2", NULL, NULL, NULL, NULL, NULL, TRUE);
+	_keyfile_convert (&con, &keyfile, "/test_8021x_cert_read/test2", NULL, NULL, NULL, NULL, TRUE);
 	s_8021x = nm_connection_get_setting_802_1x (con);
 
 	g_assert (nm_setting_802_1x_get_ca_cert_scheme (s_8021x) == NM_SETTING_802_1X_CK_SCHEME_PATH);
@@ -530,7 +536,7 @@ test_8021x_cert_read (void)
 	          "private-key=data:;base64,aGFsbG8=\n" // hallo
 	          "private-key-password=12345testing\n"
 	          );
-	_keyfile_convert (&con, &keyfile, "/test_8021x_cert_read/test2", NULL, NULL, NULL, NULL, NULL, TRUE);
+	_keyfile_convert (&con, &keyfile, "/test_8021x_cert_read/test2", NULL, NULL, NULL, NULL, TRUE);
 	s_8021x = nm_connection_get_setting_802_1x (con);
 
 	g_assert (nm_setting_802_1x_get_ca_cert_scheme (s_8021x) == NM_SETTING_802_1X_CK_SCHEME_PATH);
@@ -555,7 +561,7 @@ test_8021x_cert_read (void)
 	          "private-key=abc.deR\n"
 	          "private-key-password=12345testing\n"
 	          );
-	_keyfile_convert (&con, &keyfile, "/test_8021x_cert_read/test2", NULL, NULL, NULL, NULL, NULL, TRUE);
+	_keyfile_convert (&con, &keyfile, "/test_8021x_cert_read/test2", NULL, NULL, NULL, NULL, TRUE);
 	s_8021x = nm_connection_get_setting_802_1x (con);
 
 	g_assert (nm_setting_802_1x_get_ca_cert_scheme (s_8021x) == NM_SETTING_802_1X_CK_SCHEME_PATH);
@@ -580,7 +586,7 @@ test_8021x_cert_read (void)
 	          "private-key=hallo\n"
 	          "private-key-password=12345testing\n"
 	          );
-	_keyfile_convert (&con, &keyfile, "/test_8021x_cert_read/test2", NULL, NULL, NULL, NULL, NULL, TRUE);
+	_keyfile_convert (&con, &keyfile, "/test_8021x_cert_read/test2", NULL, NULL, NULL, NULL, TRUE);
 	s_8021x = nm_connection_get_setting_802_1x (con);
 
 	g_assert (nm_setting_802_1x_get_ca_cert_scheme (s_8021x) == NM_SETTING_802_1X_CK_SCHEME_BLOB);
@@ -607,7 +613,7 @@ test_team_conf_read_valid (void)
 	      "interface-name=nm-team1\n"
 	      "[team]\n"
 	      "config={\"foo\":\"bar\"}",
-	      "/test_team_conf_read/valid", NULL);
+	      "/test_team_conf_read/valid");
 
 	g_assert (con);
 	s_team = nm_connection_get_setting_team (con);
@@ -631,7 +637,7 @@ test_team_conf_read_invalid (void)
 	      "interface-name=nm-team1\n"
 	      "[team]\n"
 	      "config={foobar}",
-	      "/test_team_conf_read/invalid", NULL);
+	      "/test_team_conf_read/invalid");
 
 	g_assert (con);
 	s_team = nm_connection_get_setting_team (con);
@@ -659,7 +665,7 @@ test_user_1 (void)
 	      "[user]\n"
 	      "my-value.x=value1\n"
 	      "",
-	      "/test_user_1/invalid", NULL);
+	      "/test_user_1/invalid");
 	g_assert (con);
 	s_user = NM_SETTING_USER (nm_connection_get_setting (con, NM_TYPE_SETTING_USER));
 	g_assert (s_user);
@@ -706,7 +712,7 @@ test_user_1 (void)
 	nm_connection_add_setting (con, NM_SETTING (s_user));
 	nmtst_connection_normalize (con);
 
-	_keyfile_convert (&con, &keyfile, NULL, NULL, NULL, NULL, NULL, NULL, FALSE);
+	_keyfile_convert (&con, &keyfile, "/test_user_1/foo", NULL, NULL, NULL, NULL, FALSE);
 }
 
 /*****************************************************************************/
@@ -727,7 +733,7 @@ test_vpn_1 (void)
 	      "service-type=a.b.c\n"
 	      "vpn-key-1=value1\n"
 	      "",
-	      "/test_vpn_1/invalid", NULL);
+	      "/test_vpn_1/invalid");
 	g_assert (con);
 	s_vpn = NM_SETTING_VPN (nm_connection_get_setting (con, NM_TYPE_SETTING_VPN));
 	g_assert (s_vpn);

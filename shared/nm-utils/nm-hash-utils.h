@@ -57,6 +57,11 @@ nm_hash_update (NMHashState *state, const void *ptr, gsize n)
 	nm_assert (ptr);
 	nm_assert (n > 0);
 
+	/* Note: the data passed in here might be sensitive data (secrets),
+	 * that we should nm_explicty_zero() afterwards. However, since
+	 * we are using siphash24 with a random key, that is not really
+	 * necessary. Something to keep in mind, if we ever move away from
+	 * this hash implementation. */
 	c_siphash_append (&state->_state, ptr, n);
 }
 
@@ -168,7 +173,7 @@ nm_hash_update_mem (NMHashState *state, const void *ptr, gsize n)
 	 * instead. */
 	nm_hash_update (state, &n, sizeof (n));
 	if (n > 0)
-		c_siphash_append (&state->_state, ptr, n);
+		nm_hash_update (state, ptr, n);
 }
 
 static inline void
@@ -208,6 +213,15 @@ guint nm_direct_hash (gconstpointer str);
 
 guint nm_hash_str (const char *str);
 guint nm_str_hash (gconstpointer str);
+
+#define nm_hash_val(static_seed, val) \
+	({ \
+		NMHashState _h; \
+		\
+		nm_hash_init (&_h, static_seed); \
+		nm_hash_update_val (&_h, val); \
+		nm_hash_complete (&_h); \
+	})
 
 /*****************************************************************************/
 

@@ -35,10 +35,10 @@ libnm_wwan_dep = declare_dependency(
 
 core_plugins += libnm_wwan
 
-run_target(
+test(
   'check-wwan',
-  command: [check_exports, libnm_wwan.full_path(), linker_script],
-  depends: libnm_wwan
+  check_exports,
+  args: [libnm_wwan.full_path(), linker_script],
 )
 
 sources = files(
@@ -54,7 +54,8 @@ libnm_device_plugin_wwan = shared_module(
   link_args: ldflags_linker_script_devices,
   link_depends: linker_script_devices,
   install: true,
-  install_dir: nm_plugindir
+  install_dir: nm_plugindir,
+  install_rpath: nm_plugindir
 )
 
 core_plugins += libnm_device_plugin_wwan

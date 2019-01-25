@@ -55,6 +55,7 @@ gconstpointer nm_meta_abstract_info_get (const NMMetaAbstractInfo *abstract_info
                                          const NMMetaEnvironment *environment,
                                          gpointer environment_user_data,
                                          gpointer target,
+                                         gpointer target_data,
                                          NMMetaAccessorGetType get_type,
                                          NMMetaAccessorGetFlags get_flags,
                                          NMMetaAccessorGetOutFlags *out_flags,
@@ -94,7 +95,6 @@ NMMetaSelectionResultList *nm_meta_selection_create_parse_one (const NMMetaAbstr
                                                                gboolean validate_nested,
                                                                GError **error);
 NMMetaSelectionResultList *nm_meta_selection_create_parse_list (const NMMetaAbstractInfo *const* fields_array,
-                                                                const char *fields_prefix,
                                                                 const char *fields_str,
                                                                 gboolean validate_nested,
                                                                 GError **error);

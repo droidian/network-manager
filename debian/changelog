@@ -1,3 +1,98 @@
+network-manager (1.14.4-4ubuntu1) UNRELEASED; urgency=medium
+
+  * Resynchronized with Debian
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 25 Jan 2019 11:10:07 +0100
+
+network-manager (1.14.4-4) unstable; urgency=medium
+
+  * Move D-Bus policy files to /usr/share/dbus-1/system.d/
+  * Remove obsolete D-Bus policy conffiles on upgrades
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 27 Nov 2018 01:35:50 +0100
+
+network-manager (1.14.4-3) unstable; urgency=medium
+
+  * cli: wait for all wifi scans to finish before displaying the result.
+    Otherwise devices are displayed in an inconsistent order.
+    Replaces debian/patches/Ignore-client-tests-failures.patch.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 05 Nov 2018 16:05:51 +0100
+
+network-manager (1.14.4-2) unstable; urgency=high
+
+  * dhcp6: Make sure we have enough space for the DHCP6 option header.
+    Fixes out-of-bounds heap write in systemd-networkd dhcpv6 option handling
+    which also affects the "internal" DHCP plugin of NetworkManager.
+    (CVE-2018-15688, LP: #1795921)
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 30 Oct 2018 09:34:25 +0100
+
+network-manager (1.14.4-1) unstable; urgency=medium
+
+  * New upstream version 1.14.4
+    - Fix a crash in ifupdown (Debian) configuration plugin (Closes: #911621)
+  * Switch to debhelper compat level 12 and dh_installsystemd
+  * Update symbols file for libnm0
+  * Ignore client/tests failures.
+    check-local-clients-tests-test-client appears to be flaky and prone to
+    fail on slower architectures. Ignore failures of this test until this
+    has been properly investigated.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 25 Oct 2018 00:30:39 +0200
+
+network-manager (1.14.2-2) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 21 Oct 2018 16:09:49 +0200
+
+network-manager (1.14.2-1) experimental; urgency=medium
+
+  * New upstream version 1.14.2
+  * Rebase patches
+  * Disable obsolete ibft settings plugin.
+    It has been replaced by an iBFT reader which parses /sys/firmware/ibft
+    directly instead of iscsiadm output.
+  * Drop debian/patches/Fix-iscsiadm-path.patch.
+    No longer needed.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 21 Oct 2018 02:56:25 +0200
+
+network-manager (1.14.0-2) experimental; urgency=medium
+
+  * Tighten inter-package dependencies.
+    Make sure network-manager and libnm0 are always upgraded in lockstep.
+    (Closes: #818165)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 08 Oct 2018 16:55:10 +0200
+
+network-manager (1.14.0-1) experimental; urgency=medium
+
+  * New upstream version 1.14.0
+  * Rebase patches
+  * Update symbols file for libnm0.
+    The nm_connection_get_setting_{6lowpan,sriov,wpan} API had been
+    introduced during the 1.14 development cycle but as it was duplicating
+    existing functionality it was removed again.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 15 Sep 2018 10:57:07 +0200
+
+network-manager (1.13.90-1) experimental; urgency=medium
+
+  * New upstream version 1.13.90 (1.14 rc1)
+  * Refresh patches
+  * Update symbols file for libnm0
+  * Bump Standards-Version to 4.2.1
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 08 Sep 2018 18:23:20 +0200
+
+network-manager (1.12.6-0ubuntu4) disco; urgency=medium
+
+  * No-change rebuild for readline soname change.
+
+ -- Matthias Klose <doko@ubuntu.com>  Mon, 14 Jan 2019 20:02:35 +0000
+
 network-manager (1.12.6-0ubuntu3) disco; urgency=medium
 
   * debian/tests/nm.py: Make assert_iface_down() not check the interface's

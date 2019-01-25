@@ -89,23 +89,17 @@ config_option_free (ConfigOption *opt)
 }
 
 static void
-blob_free (GByteArray *array)
-{
-	g_byte_array_free (array, TRUE);
-}
-
-static void
 nm_supplicant_config_init (NMSupplicantConfig * self)
 {
 	NMSupplicantConfigPrivate *priv = NM_SUPPLICANT_CONFIG_GET_PRIVATE (self);
 
 	priv->config = g_hash_table_new_full (nm_str_hash, g_str_equal,
-	                                      (GDestroyNotify) g_free,
+	                                      g_free,
 	                                      (GDestroyNotify) config_option_free);
 
 	priv->blobs = g_hash_table_new_full (nm_str_hash, g_str_equal,
-	                                     (GDestroyNotify) g_free,
-	                                     (GDestroyNotify) blob_free);
+	                                     g_free,
+	                                     (GDestroyNotify) g_bytes_unref);
 
 	priv->ap_scan = 1;
 	priv->dispose_has_run = FALSE;
@@ -198,7 +192,6 @@ nm_supplicant_config_add_blob (NMSupplicantConfig *self,
 	ConfigOption *old_opt;
 	ConfigOption *opt;
 	OptType type;
-	GByteArray *blob;
 	const guint8 *data;
 	gsize data_len;
 
@@ -226,9 +219,6 @@ nm_supplicant_config_add_blob (NMSupplicantConfig *self,
 		return FALSE;
 	}
 
-	blob = g_byte_array_sized_new (data_len);
-	g_byte_array_append (blob, data, data_len);
-
 	opt = g_slice_new0 (ConfigOption);
 	opt->value = g_strdup_printf ("blob://%s", blobid);
 	opt->len = strlen (opt->value);
@@ -237,7 +227,9 @@ nm_supplicant_config_add_blob (NMSupplicantConfig *self,
 	nm_log_info (LOGD_SUPPLICANT, "Config: added '%s' value '%s'", key, opt->value);
 
 	g_hash_table_insert (priv->config, g_strdup (key), opt);
-	g_hash_table_insert (priv->blobs, g_strdup (blobid), blob);
+	g_hash_table_insert (priv->blobs,
+	                     g_strdup (blobid),
+	                     g_bytes_ref (value));
 
 	return TRUE;
 }
@@ -955,7 +947,7 @@ add_pkcs11_uri_with_pin (NMSupplicantConfig *self,
                          const NMSettingSecretFlags pin_flags,
                          GError **error)
 {
-	gs_strfreev gchar **split = NULL;
+	gs_strfreev char **split = NULL;
 	gs_free char *tmp = NULL;
 	gs_free char *tmp_log = NULL;
 	gs_free char *pin_qattr = NULL;
@@ -1015,6 +1007,7 @@ nm_supplicant_config_add_setting_8021x (NMSupplicantConfig *self,
 	guint32 frag, hdrs;
 	gs_free char *frag_str = NULL;
 	NMSetting8021xAuthFlags phase1_auth_flags;
+	nm_auto_free_gstring GString *eap_str = NULL;
 
 	g_return_val_if_fail (NM_IS_SUPPLICANT_CONFIG (self), FALSE);
 	g_return_val_if_fail (setting != NULL, FALSE);
@@ -1051,19 +1044,37 @@ nm_supplicant_config_add_setting_8021x (NMSupplicantConfig *self,
 		priv->ap_scan = 0;
 	}
 
-	if (!ADD_STRING_LIST_VAL (self, setting, 802_1x, eap_method, eap_methods, "eap", ' ', TRUE, NULL, error))
-		return FALSE;
-
-	/* Check EAP method for special handling: PEAP + GTC, FAST */
+	/* Build the "eap" option string while we check for EAP methods needing
+	 * special handling: PEAP + GTC, FAST, external */
+	eap_str = g_string_new (NULL);
 	num_eap = nm_setting_802_1x_get_num_eap_methods (setting);
 	for (i = 0; i < num_eap; i++) {
 		const char *method = nm_setting_802_1x_get_eap_method (setting, i);
 
-		if (method && (strcasecmp (method, "fast") == 0)) {
+		if (nm_streq (method, "fast")) {
 			fast = TRUE;
 			priv->fast_required = TRUE;
 		}
+
+		if (nm_streq (method, "external")) {
+			if (num_eap == 1) {
+				g_set_error (error, NM_SUPPLICANT_ERROR, NM_SUPPLICANT_ERROR_CONFIG,
+				             "Connection settings managed externally to NM, connection"
+				             " cannot be used with wpa_supplicant");
+				return FALSE;
+			}
+			continue;
+		}
+
+		if (eap_str->len)
+			g_string_append_c (eap_str, ' ');
+		g_string_append (eap_str, method);
 	}
+
+	g_string_ascii_up (eap_str);
+	if (   eap_str->len
+	    && !nm_supplicant_config_add_option (self, "eap", eap_str->str, -1, NULL, error))
+		return FALSE;
 
 	/* Adjust the fragment size according to MTU, but do not set it higher than 1280-14
 	 * for better compatibility */

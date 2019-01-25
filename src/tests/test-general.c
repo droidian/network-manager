@@ -907,6 +907,79 @@ test_connection_match_ip6_routes (void)
 	g_assert (matched == copy);
 }
 
+#define do_test_wildcard_match(str, result, ...) \
+	g_assert (nm_wildcard_match_check (str, \
+	                                  (const char *const[]) { __VA_ARGS__ }, \
+	                                  NM_NARG (__VA_ARGS__)) \
+	          == result);
+
+static void
+test_wildcard_match (void)
+{
+	do_test_wildcard_match ("foobar", TRUE);
+
+	do_test_wildcard_match ("foo",    TRUE,  "foo", "bar", "baz");
+	do_test_wildcard_match ("bar",    TRUE,  "foo", "bar", "baz");
+	do_test_wildcard_match ("baz",    TRUE,  "foo", "bar", "baz");
+	do_test_wildcard_match ("aaa",    FALSE, "foo", "bar", "baz");
+	do_test_wildcard_match ("",       FALSE, "foo", "bar", "baz");
+
+	do_test_wildcard_match ("ens1",   TRUE,  "ens1*");
+	do_test_wildcard_match ("ens10",  TRUE,  "ens1*");
+	do_test_wildcard_match ("ens11",  TRUE,  "ens1*");
+	do_test_wildcard_match ("ens12",  TRUE,  "ens1*");
+	do_test_wildcard_match ("eth0",   FALSE, "ens1*");
+	do_test_wildcard_match ("ens",    FALSE, "ens1*");
+
+	do_test_wildcard_match ("ens1*",  TRUE,  "ens1\\*");
+	do_test_wildcard_match ("ens1" ,  FALSE, "ens1\\*");
+	do_test_wildcard_match ("ens10",  FALSE, "ens1\\*");
+
+	do_test_wildcard_match ("abcd",   TRUE,   "ab??");
+	do_test_wildcard_match ("ab",     FALSE,  "ab??");
+
+	do_test_wildcard_match ("ab??",   TRUE,  "ab\\?\\?");
+	do_test_wildcard_match ("abcd",   FALSE, "ab\\?\\?");
+
+	do_test_wildcard_match ("ens10",  TRUE,  "ens1*", "!ens11");
+	do_test_wildcard_match ("ens11",  FALSE, "ens1*", "!ens11");
+	do_test_wildcard_match ("ens12",  TRUE,  "ens1*", "!ens11");
+
+	do_test_wildcard_match ("a",      FALSE, "!a", "!b");
+	do_test_wildcard_match ("b",      FALSE, "!a", "!b");
+	do_test_wildcard_match ("c",      TRUE,  "!a", "!b");
+	do_test_wildcard_match ("!a",     TRUE,  "!a", "!b");
+
+	do_test_wildcard_match ("!net",   TRUE,  "\\!net");
+	do_test_wildcard_match ("net",    FALSE, "\\!net");
+	do_test_wildcard_match ("ens10",  FALSE, "\\!net");
+	do_test_wildcard_match ("\\!net", FALSE, "\\!net");
+
+	do_test_wildcard_match ("eth0",   FALSE, "*eth?", "!veth*", "!*0");
+	do_test_wildcard_match ("eth1",   TRUE,  "*eth?", "!veth*", "!*0");
+	do_test_wildcard_match ("myeth0", FALSE, "*eth?", "!veth*", "!*0");
+	do_test_wildcard_match ("myeth2", TRUE,  "*eth?", "!veth*", "!*0");
+	do_test_wildcard_match ("veth0",  FALSE, "*eth?", "!veth*", "!*0");
+	do_test_wildcard_match ("veth1",  FALSE, "*eth?", "!veth*", "!*0");
+	do_test_wildcard_match ("dummy1", FALSE, "*eth?", "!veth*", "!*0");
+
+	do_test_wildcard_match ("a",      TRUE,  "!!a");
+	do_test_wildcard_match ("b",      TRUE,  "!!a");
+	do_test_wildcard_match ("!a",     FALSE, "!!a");
+
+	do_test_wildcard_match ("\\",     TRUE,  "\\\\");
+	do_test_wildcard_match ("\\\\",   FALSE, "\\\\");
+	do_test_wildcard_match ("",       FALSE, "\\\\");
+
+	do_test_wildcard_match ("name",   FALSE, "name[123]");
+	do_test_wildcard_match ("name1",  TRUE,  "name[123]");
+	do_test_wildcard_match ("name2",  TRUE,  "name[123]");
+	do_test_wildcard_match ("name3",  TRUE,  "name[123]");
+	do_test_wildcard_match ("name4",  FALSE, "name[123]");
+
+	do_test_wildcard_match ("[a]",    TRUE,  "\\[a\\]");
+}
+
 static NMConnection *
 _create_connection_autoconnect (const char *id, gboolean autoconnect, int autoconnect_priority)
 {
@@ -1205,7 +1278,7 @@ test_match_spec_device (void)
 /*****************************************************************************/
 
 static void
-_do_test_match_spec_config (const char *file, gint line, const char *spec_str, guint version, guint v_maj, guint v_min, guint v_mic, NMMatchSpecMatchType expected)
+_do_test_match_spec_config (const char *file, int line, const char *spec_str, guint version, guint v_maj, guint v_min, guint v_mic, NMMatchSpecMatchType expected)
 {
 	GSList *specs;
 	NMMatchSpecMatchType match_result;
@@ -1372,7 +1445,7 @@ test_nm_utils_strbuf_append (void)
 			t_buf = buf;
 			t_len = buf_len;
 
-			test_mode = nmtst_get_rand_int () % 4;
+			test_mode = nmtst_get_rand_int () % 5;
 
 			switch (test_mode) {
 			case 0:
@@ -1392,6 +1465,45 @@ test_nm_utils_strbuf_append (void)
 				/* fall through */
 			case 3:
 				nm_utils_strbuf_append (&t_buf, &t_len, "%s", str);
+				break;
+			case 4:
+				g_snprintf (t_buf, t_len, "%s", str);
+				if (   t_len > 0
+				    && strlen (str) >= buf_len
+				    && (nmtst_get_rand_int () % 2)) {
+					/* the string was truncated by g_snprintf(). That means, at the last position in the
+					 * buffer is now NUL.
+					 * Replace the NUL by the actual character, and check that nm_utils_strbuf_seek_end()
+					 * does the right thing: NUL terminate the buffer and seek past the end of the buffer. */
+					g_assert_cmpmem (t_buf, t_len - 1, str, t_len - 1);
+					g_assert (t_buf[t_len - 1] == '\0');
+					g_assert (str[t_len - 1] != '\0');
+					t_buf[t_len - 1] = str[t_len - 1];
+					nm_utils_strbuf_seek_end (&t_buf, &t_len);
+					g_assert (t_len == 0);
+					g_assert (t_buf == &buf[buf_len]);
+					g_assert (t_buf[-1] == '\0');
+				} else {
+					nm_utils_strbuf_seek_end (&t_buf, &t_len);
+					if (   buf_len > 0
+					    && strlen (str) + 1 > buf_len) {
+						/* the buffer was truncated by g_snprintf() above.
+						 *
+						 * But nm_utils_strbuf_seek_end() does not recognize that and returns
+						 * a remaining length of 1.
+						 *
+						 * Note that other nm_utils_strbuf_append*() functions recognize
+						 * truncation, and properly set the remaining length to zero.
+						 * As the assertions below check for the behavior of nm_utils_strbuf_append*(),
+						 * we assert here that nm_utils_strbuf_seek_end() behaved as expected, and then
+						 * adjust t_buf/t_len according to the "is-truncated" case. */
+						g_assert (t_len == 1);
+						g_assert (t_buf == &buf[buf_len - 1]);
+						g_assert (t_buf[0] == '\0');
+						t_len = 0;
+						t_buf++;
+					}
+				}
 				break;
 			}
 
@@ -1764,6 +1876,8 @@ main (int argc, char **argv)
 	g_test_add_func ("/general/connection-match/routes/ip4/1", test_connection_match_ip4_routes1);
 	g_test_add_func ("/general/connection-match/routes/ip4/2", test_connection_match_ip4_routes2);
 	g_test_add_func ("/general/connection-match/routes/ip6", test_connection_match_ip6_routes);
+
+	g_test_add_func ("/general/wildcard-match", test_wildcard_match);
 
 	g_test_add_func ("/general/connection-sort/autoconnect-priority", test_connection_sort_autoconnect_priority);
 

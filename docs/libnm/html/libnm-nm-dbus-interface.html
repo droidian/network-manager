@@ -8,7 +8,7 @@
 <link rel="up" href="ch02.html" title="Client Object API Reference">
 <link rel="prev" href="libnm-nm-errors.html" title="nm-errors">
 <link rel="next" href="ch03.html" title="Connection and Setting API Reference">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -194,11 +194,23 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-WIREGUARD:CAPS" title="NM_DBUS_INTERFACE_DEVICE_WIREGUARD">NM_DBUS_INTERFACE_DEVICE_WIREGUARD</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-GRE:CAPS" title="NM_DBUS_INTERFACE_DEVICE_GRE">NM_DBUS_INTERFACE_DEVICE_GRE</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-IP-TUNNEL:CAPS" title="NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL">NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-WPAN:CAPS" title="NM_DBUS_INTERFACE_DEVICE_WPAN">NM_DBUS_INTERFACE_DEVICE_WPAN</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-6LOWPAN:CAPS" title="NM_DBUS_INTERFACE_DEVICE_6LOWPAN">NM_DBUS_INTERFACE_DEVICE_6LOWPAN</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -314,6 +326,10 @@
 </tr>
 <tr>
 <td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMConnectionMultiConnect" title="enum NMConnectionMultiConnect">NMConnectionMultiConnect</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMActiveConnectionState" title="enum NMActiveConnectionState">NMActiveConnectionState</a></td>
 </tr>
 <tr>
@@ -420,6 +436,10 @@
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMSettingsUpdate2Flags" title="enum NMSettingsUpdate2Flags">NMSettingsUpdate2Flags</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMTernary" title="enum NMTernary">NMTernary</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -430,6 +450,7 @@
     <span class="lineart">├──</span> NMActiveConnectionState
     <span class="lineart">├──</span> NMActiveConnectionStateReason
     <span class="lineart">├──</span> NMCapability
+    <span class="lineart">├──</span> NMConnectionMultiConnect
     <span class="lineart">├──</span> NMConnectivityState
     <span class="lineart">├──</span> NMDeviceState
     <span class="lineart">├──</span> NMDeviceStateReason
@@ -437,6 +458,7 @@
     <span class="lineart">├──</span> NMIPTunnelMode
     <span class="lineart">├──</span> NMMetered
     <span class="lineart">├──</span> NMState
+    <span class="lineart">├──</span> NMTernary
     <span class="lineart">╰──</span> NMWimaxNspNetworkType
     <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GFlags</a>
     <span class="lineart">├──</span> NM80211ApFlags
@@ -689,6 +711,12 @@
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-DBUS-INTERFACE-DEVICE-WIREGUARD:CAPS"></a><h3>NM_DBUS_INTERFACE_DEVICE_WIREGUARD</h3>
+<pre class="programlisting">#define NM_DBUS_INTERFACE_DEVICE_WIREGUARD     NM_DBUS_INTERFACE_DEVICE ".WireGuard"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-DBUS-INTERFACE-DEVICE-GRE:CAPS"></a><h3>NM_DBUS_INTERFACE_DEVICE_GRE</h3>
 <pre class="programlisting">#define NM_DBUS_INTERFACE_DEVICE_GRE           NM_DBUS_INTERFACE_DEVICE ".Gre"
 </pre>
@@ -697,6 +725,18 @@
 <div class="refsect2">
 <a name="NM-DBUS-INTERFACE-DEVICE-IP-TUNNEL:CAPS"></a><h3>NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL</h3>
 <pre class="programlisting">#define NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL     NM_DBUS_INTERFACE_DEVICE ".IPTunnel"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DBUS-INTERFACE-DEVICE-WPAN:CAPS"></a><h3>NM_DBUS_INTERFACE_DEVICE_WPAN</h3>
+<pre class="programlisting">#define NM_DBUS_INTERFACE_DEVICE_WPAN          NM_DBUS_INTERFACE_DEVICE ".Wpan"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DBUS-INTERFACE-DEVICE-6LOWPAN:CAPS"></a><h3>NM_DBUS_INTERFACE_DEVICE_6LOWPAN</h3>
+<pre class="programlisting">#define NM_DBUS_INTERFACE_DEVICE_6LOWPAN       NM_DBUS_INTERFACE_DEVICE ".Lowpan"
 </pre>
 </div>
 <hr>
@@ -1161,6 +1201,27 @@ GSM/UMTS, or LTE network access protocols</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-OVS-BRIDGE:CAPS"></a>NM_DEVICE_TYPE_OVS_BRIDGE</p></td>
 <td class="enum_member_description">
 <p>a Open vSwitch bridge</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-WPAN:CAPS"></a>NM_DEVICE_TYPE_WPAN</p></td>
+<td class="enum_member_description">
+<p>a IEEE 802.15.4 (WPAN) MAC Layer Device</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-6LOWPAN:CAPS"></a>NM_DEVICE_TYPE_6LOWPAN</p></td>
+<td class="enum_member_description">
+<p>6LoWPAN interface</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-WIREGUARD:CAPS"></a>NM_DEVICE_TYPE_WIREGUARD</p></td>
+<td class="enum_member_description">
+<p>a WireGuard interface</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2274,6 +2335,13 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-STATE-REASON-SRIOV-CONFIGURATION-FAILED:CAPS"></a>NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED</p></td>
+<td class="enum_member_description">
+<p>configuration of SR-IOV parameters failed</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -2329,6 +2397,60 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 </table></div>
 </div>
 <p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMConnectionMultiConnect"></a><h3>enum NMConnectionMultiConnect</h3>
+<div class="refsect3">
+<a name="NMConnectionMultiConnect.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CONNECTION-MULTI-CONNECT-DEFAULT:CAPS"></a>NM_CONNECTION_MULTI_CONNECT_DEFAULT</p></td>
+<td class="enum_member_description">
+<p>indicates that the per-connection
+  setting is unspecified. In this case, it will fallback to the default
+  value, which is <em class="parameter"><code>NM_CONNECTION_MULTI_CONNECT_SINGLE</code></em>
+.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CONNECTION-MULTI-CONNECT-SINGLE:CAPS"></a>NM_CONNECTION_MULTI_CONNECT_SINGLE</p></td>
+<td class="enum_member_description">
+<p>the connection profile can only
+  be active once at each moment. Activating a profile that is already active,
+  will first deactivate it.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CONNECTION-MULTI-CONNECT-MANUAL-MULTIPLE:CAPS"></a>NM_CONNECTION_MULTI_CONNECT_MANUAL_MULTIPLE</p></td>
+<td class="enum_member_description">
+<p>the profile can
+  be manually activated multiple times on different devices. However,
+  regarding autoconnect, the profile will autoconnect only if it is
+  currently not connected otherwise.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CONNECTION-MULTI-CONNECT-MULTIPLE:CAPS"></a>NM_CONNECTION_MULTI_CONNECT_MULTIPLE</p></td>
+<td class="enum_member_description">
+<p>the profile can autoactivate
+  and be manually activated multiple times together.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.14</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -2828,6 +2950,20 @@ VPN plugin authentication dialogs.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-IP-TUNNEL-MODE-GRETAP:CAPS"></a>NM_IP_TUNNEL_MODE_GRETAP</p></td>
+<td class="enum_member_description">
+<p>GRETAP tunnel</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-IP-TUNNEL-MODE-IP6GRETAP:CAPS"></a>NM_IP_TUNNEL_MODE_IP6GRETAP</p></td>
+<td class="enum_member_description">
+<p>IPv6 GRETAP tunnel</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -3160,9 +3296,48 @@ VPN plugin authentication dialogs.</p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMTernary"></a><h3>enum NMTernary</h3>
+<p>An boolean value that can be overridden by a default.</p>
+<div class="refsect3">
+<a name="NMTernary.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="NM-TERNARY-DEFAULT:CAPS"></a>NM_TERNARY_DEFAULT</p></td>
+<td class="enum_member_description">
+<p>use the globally-configured default value.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-TERNARY-FALSE:CAPS"></a>NM_TERNARY_FALSE</p></td>
+<td class="enum_member_description">
+<p>the option is disabled.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-TERNARY-TRUE:CAPS"></a>NM_TERNARY_TRUE</p></td>
+<td class="enum_member_description">
+<p>the option is enabled.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.14</p>
+</div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.29.1</div>
 </body>
 </html>

@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 12/01/2018
+.\"      Date: 10/24/2018
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.12.6
+.\"    Source: NetworkManager 1.14.4
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.12\&.6" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.14\&.4" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -336,7 +336,29 @@ are NetworkManager specific extensions not understood by traditional initscripts
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&1.\ \&802\-1x setting
+.B Table\ \&1.\ \&6lowpan setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+.
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&2.\ \&802\-1x setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -741,7 +763,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&2.\ \&bond setting
+.B Table\ \&3.\ \&bond setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -774,7 +796,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&3.\ \&bridge\-port setting
+.B Table\ \&4.\ \&bridge\-port setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -829,7 +851,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&4.\ \&bridge setting
+.B Table\ \&5.\ \&bridge setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -942,7 +964,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&5.\ \&connection setting
+.B Table\ \&6.\ \&connection setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -956,6 +978,8 @@ T}:T{
 Description
 T}
 .T&
+l l l l
+l l l l
 l l l l
 l l l l
 l l l l
@@ -1071,6 +1095,17 @@ Example: \fRAUTOCONNECT_RETRIES=1\fB
 Allowed values: \fR\-1 (use global default), 0 (forever) or a positive value
 T}
 T{
+multi\-connect
+T}:T{
+MULTI_CONNECT\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+whether the profile can be active on multiple devices at a given moment\&. The values are numbers corresponding to #NMConnectionMultiConnect enum\&.\fB
+
+Example: \fRZONE=3
+T}
+T{
 zone
 T}:T{
 ZONE\fI(+)\fR
@@ -1176,6 +1211,19 @@ Example: \fRMDNS=yes\fB
 
 Allowed values: \fRyes,no,resolve
 T}
+T{
+llmnr
+T}:T{
+LLMNR\fI(+)\fR
+T}:T{
+missing variable means global default
+T}:T{
+Whether or not LLMNR is enabled for the connection\fB
+
+Example: \fRLLMNR=yes\fB
+
+Allowed values: \fRyes,no,resolve
+T}
 .TE
 .sp 1
 .sp
@@ -1183,7 +1231,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&6.\ \&dcb setting
+.B Table\ \&7.\ \&dcb setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1378,7 +1426,29 @@ All DCB related configuration is a NetworkManager extension\&. DCB=yes must be u
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&7.\ \&infiniband setting
+.B Table\ \&8.\ \&ethtool setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+.
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&9.\ \&infiniband setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1455,7 +1525,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&8.\ \&ipv4 setting
+.B Table\ \&10.\ \&ipv4 setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1659,7 +1729,7 @@ T}
 T{
 dad\-timeout
 T}:T{
-ACD_TIMEOUT, ARPING_WAIT
+ACD_TIMEOUT\fI(+)\fR, ARPING_WAIT
 T}:T{
 missing variable means global default (config override or zero)
 T}:T{
@@ -1696,7 +1766,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&9.\ \&ipv6 setting
+.B Table\ \&11.\ \&ipv6 setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1750,7 +1820,7 @@ T}
 T{
 dns\-search
 T}:T{
-IPV6_DOMAIN
+IPV6_DOMAIN\fI(+)\fR
 T}:T{
 \ \&
 T}:T{
@@ -1927,7 +1997,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&10.\ \&ovs\-bridge setting
+.B Table\ \&12.\ \&match setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1949,7 +2019,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&11.\ \&ovs\-interface setting
+.B Table\ \&13.\ \&ovs\-bridge setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1971,7 +2041,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&12.\ \&ovs\-patch setting
+.B Table\ \&14.\ \&ovs\-interface setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1993,7 +2063,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&13.\ \&ovs\-port setting
+.B Table\ \&15.\ \&ovs\-patch setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2015,7 +2085,29 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&14.\ \&proxy setting
+.B Table\ \&16.\ \&ovs\-port setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+.
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&17.\ \&proxy setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2082,7 +2174,64 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&15.\ \&tc setting
+.B Table\ \&18.\ \&sriov setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+l l l l
+l l l l
+l l l l.
+T{
+total\-vfs
+T}:T{
+SRIOV_TOTAL_VFS\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+The total number of virtual functions to create\fB
+
+Example: \fRSRIOV_TOTAL_VFS=16
+T}
+T{
+vfs
+T}:T{
+SRIOV_VF1\fI(+)\fR, SRIOV_VF2\fI(+)\fR, \&.\&.\&.
+T}:T{
+\ \&
+T}:T{
+SR\-IOV virtual function descriptors\fB
+
+Example: \fRSRIOV_VF10="mac=00:11:22:33:44:55", \&.\&.\&.
+T}
+T{
+autoprobe\-drivers
+T}:T{
+SRIOV_AUTOPROBE_DRIVERS\fI(+)\fR
+T}:T{
+missing variable means global default
+T}:T{
+Whether to autoprobe virtual functions by a compatible driver\fB
+
+Example: \fRSRIOV_AUTOPROBE_DRIVERS=0,1
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&19.\ \&tc setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2101,7 +2250,7 @@ l l l l.
 T{
 qdiscs
 T}:T{
-QDISC1, QDISC2, \&.\&.\&.
+QDISC1\fI(+)\fR, QDISC2\fI(+)\fR, \&.\&.\&.
 T}:T{
 \ \&
 T}:T{
@@ -2112,7 +2261,7 @@ T}
 T{
 qdiscs
 T}:T{
-FILTER1, FILTER2, \&.\&.\&.
+FILTER1\fI(+)\fR, FILTER2\fI(+)\fR, \&.\&.\&.
 T}:T{
 \ \&
 T}:T{
@@ -2127,7 +2276,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&16.\ \&team\-port setting
+.B Table\ \&20.\ \&team\-port setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2158,7 +2307,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&17.\ \&team setting
+.B Table\ \&21.\ \&team setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2189,7 +2338,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&18.\ \&user setting
+.B Table\ \&22.\ \&user setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2222,7 +2371,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&19.\ \&vlan setting
+.B Table\ \&23.\ \&vlan setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2311,7 +2460,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&20.\ \&802\-3\-ethernet setting
+.B Table\ \&24.\ \&802\-3\-ethernet setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2460,7 +2609,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&21.\ \&802\-11\-wireless\-security setting
+.B Table\ \&25.\ \&802\-11\-wireless\-security setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2707,7 +2856,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&22.\ \&802\-11\-wireless setting
+.B Table\ \&26.\ \&802\-11\-wireless setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2911,6 +3060,28 @@ T}:T{
 T}:T{
 This property is deprecated and not handled by ifcfg\-rh\-plugin\&.
 T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&27.\ \&wpan setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+.
 .TE
 .sp 1
 .PP

@@ -1310,7 +1310,7 @@ nm_ip_route_attribute_validate  (const char *name,
 		return FALSE;
 	}
 
-	if (spec->type == G_VARIANT_TYPE_STRING) {
+	if (g_variant_type_equal (spec->type, G_VARIANT_TYPE_STRING)) {
 		const char *string = g_variant_get_string (value, NULL);
 		gs_free char *string_free = NULL;
 		char *sep;
@@ -1391,7 +1391,7 @@ typedef struct {
 	GPtrArray *dns;        /* array of IP address strings */
 	GPtrArray *dns_search; /* array of domain name strings */
 	GPtrArray *dns_options;/* array of DNS options */
-	gint dns_priority;
+	int dns_priority;
 	GPtrArray *addresses;  /* array of NMIPAddress */
 	GPtrArray *routes;     /* array of NMIPRoute */
 	gint64 route_metric;
@@ -1403,8 +1403,8 @@ typedef struct {
 	gboolean dhcp_send_hostname;
 	gboolean never_default;
 	gboolean may_fail;
-	gint dad_timeout;
-	gint dhcp_timeout;
+	int dad_timeout;
+	int dhcp_timeout;
 } NMSettingIPConfigPrivate;
 
 enum {
@@ -1589,8 +1589,11 @@ nm_setting_ip_config_clear_dns (NMSettingIPConfig *setting)
 	g_return_if_fail (NM_IS_SETTING_IP_CONFIG (setting));
 
 	priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (setting);
-	g_ptr_array_set_size (priv->dns, 0);
-	g_object_notify (G_OBJECT (setting), NM_SETTING_IP_CONFIG_DNS);
+
+	if (priv->dns->len != 0) {
+		g_ptr_array_set_size (priv->dns, 0);
+		g_object_notify (G_OBJECT (setting), NM_SETTING_IP_CONFIG_DNS);
+	}
 }
 
 /**
@@ -1688,8 +1691,6 @@ nm_setting_ip_config_remove_dns_search (NMSettingIPConfig *setting, int idx)
  * Removes the DNS search domain @dns_search.
  *
  * Returns: %TRUE if the DNS search domain was found and removed; %FALSE if it was not.
- *
- * Since 0.9.10
  **/
 gboolean
 nm_setting_ip_config_remove_dns_search_by_value (NMSettingIPConfig *setting,
@@ -1727,8 +1728,11 @@ nm_setting_ip_config_clear_dns_searches (NMSettingIPConfig *setting)
 	g_return_if_fail (NM_IS_SETTING_IP_CONFIG (setting));
 
 	priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (setting);
-	g_ptr_array_set_size (priv->dns_search, 0);
-	g_object_notify (G_OBJECT (setting), NM_SETTING_IP_CONFIG_DNS_SEARCH);
+
+	if (priv->dns_search->len != 0) {
+		g_ptr_array_set_size (priv->dns_search, 0);
+		g_object_notify (G_OBJECT (setting), NM_SETTING_IP_CONFIG_DNS_SEARCH);
+	}
 }
 
 /**
@@ -1804,7 +1808,7 @@ nm_setting_ip_config_get_dns_option (NMSettingIPConfig *setting, guint idx)
  *
  * Since: 1.2
  **/
-gint
+int
 nm_setting_ip_config_next_valid_dns_option (NMSettingIPConfig *setting, guint idx)
 {
 	NMSettingIPConfigPrivate *priv;
@@ -1966,7 +1970,7 @@ nm_setting_ip_config_clear_dns_options (NMSettingIPConfig *setting, gboolean is_
  *
  * Since: 1.4
  **/
-gint
+int
 nm_setting_ip_config_get_dns_priority (NMSettingIPConfig *setting)
 {
 	g_return_val_if_fail (NM_IS_SETTING_IP_CONFIG (setting), 0);
@@ -2107,8 +2111,10 @@ nm_setting_ip_config_clear_addresses (NMSettingIPConfig *setting)
 
 	g_return_if_fail (NM_IS_SETTING_IP_CONFIG (setting));
 
-	g_ptr_array_set_size (priv->addresses, 0);
-	g_object_notify (G_OBJECT (setting), NM_SETTING_IP_CONFIG_ADDRESSES);
+	if (priv->addresses->len != 0) {
+		g_ptr_array_set_size (priv->addresses, 0);
+		g_object_notify (G_OBJECT (setting), NM_SETTING_IP_CONFIG_ADDRESSES);
+	}
 }
 
 /**
@@ -2264,8 +2270,10 @@ nm_setting_ip_config_clear_routes (NMSettingIPConfig *setting)
 
 	g_return_if_fail (NM_IS_SETTING_IP_CONFIG (setting));
 
-	g_ptr_array_set_size (priv->routes, 0);
-	g_object_notify (G_OBJECT (setting), NM_SETTING_IP_CONFIG_ROUTES);
+	if (priv->routes->len != 0) {
+		g_ptr_array_set_size (priv->routes, 0);
+		g_object_notify (G_OBJECT (setting), NM_SETTING_IP_CONFIG_ROUTES);
+	}
 }
 
 /**
@@ -2421,7 +2429,7 @@ nm_setting_ip_config_get_may_fail (NMSettingIPConfig *setting)
  *
  * Since: 1.2
  **/
-gint
+int
 nm_setting_ip_config_get_dad_timeout (NMSettingIPConfig *setting)
 {
 	g_return_val_if_fail (NM_IS_SETTING_IP_CONFIG (setting), 0);
@@ -2441,7 +2449,7 @@ nm_setting_ip_config_get_dad_timeout (NMSettingIPConfig *setting)
  *
  * Since: 1.2
  **/
-gint
+int
 nm_setting_ip_config_get_dhcp_timeout (NMSettingIPConfig *setting)
 {
 	g_return_val_if_fail (NM_IS_SETTING_IP_CONFIG (setting), 0);
@@ -2611,7 +2619,7 @@ compare_property (NMSetting *setting,
                   NMSettingCompareFlags flags)
 {
 	NMSettingIPConfigPrivate *a_priv, *b_priv;
-	NMSettingClass *parent_class;
+	NMSettingClass *setting_class;
 	guint i;
 
 	if (nm_streq (prop_spec->name, NM_SETTING_IP_CONFIG_ADDRESSES)) {
@@ -2640,9 +2648,8 @@ compare_property (NMSetting *setting,
 		return TRUE;
 	}
 
-	/* Otherwise chain up to parent to handle generic compare */
-	parent_class = NM_SETTING_CLASS (nm_setting_ip_config_parent_class);
-	return parent_class->compare_property (setting, other, prop_spec, flags);
+	setting_class = NM_SETTING_CLASS (nm_setting_ip_config_parent_class);
+	return setting_class->compare_property (setting, other, prop_spec, flags);
 }
 
 /*****************************************************************************/
@@ -2869,22 +2876,37 @@ ip_gateway_set (NMSetting  *setting,
 	return TRUE;
 }
 
-static void
-nm_setting_ip_config_class_init (NMSettingIPConfigClass *setting_class)
+GArray *
+_nm_sett_info_property_override_create_array_ip_config (void)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (setting_class);
-	NMSettingClass *parent_class = NM_SETTING_CLASS (setting_class);
+	nm_auto_unref_gtypeclass NMSettingClass *setting_class = g_type_class_ref (NM_TYPE_SETTING_IP_CONFIG);
+	GArray *properties_override = _nm_sett_info_property_override_create_array ();
 
-	g_type_class_add_private (setting_class, sizeof (NMSettingIPConfigPrivate));
+	_properties_override_add_override (properties_override,
+	                                   g_object_class_find_property (G_OBJECT_CLASS (setting_class),
+	                                                                 NM_SETTING_IP_CONFIG_GATEWAY),
+	                                   G_VARIANT_TYPE_STRING,
+	                                   NULL,
+	                                   ip_gateway_set,
+	                                   NULL);
 
-	/* virtual methods */
+	return properties_override;
+}
+
+static void
+nm_setting_ip_config_class_init (NMSettingIPConfigClass *klass)
+{
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	NMSettingClass *setting_class = NM_SETTING_CLASS (klass);
+
+	g_type_class_add_private (klass, sizeof (NMSettingIPConfigPrivate));
+
 	object_class->set_property = set_property;
 	object_class->get_property = get_property;
 	object_class->finalize     = finalize;
-	parent_class->verify       = verify;
-	parent_class->compare_property = compare_property;
 
-	/* Properties */
+	setting_class->verify           = verify;
+	setting_class->compare_property = compare_property;
 
 	/**
 	 * NMSettingIPConfig:method:
@@ -2905,7 +2927,9 @@ nm_setting_ip_config_class_init (NMSettingIPConfigClass *setting_class)
 	 * "link-local", these properties must be empty.
 	 *
 	 * For IPv4 method "shared", the IP subnet can be configured by adding one
-	 * manual IPv4 address or otherwise 10.42.x.0/24 is chosen.
+	 * manual IPv4 address or otherwise 10.42.x.0/24 is chosen. Note that the
+	 * shared method must be configured on the interface which shares the internet
+	 * to a subnet, not on the uplink which is shared.
 	 **/
 	g_object_class_install_property
 		(object_class, PROP_METHOD,
@@ -3033,13 +3057,6 @@ nm_setting_ip_config_class_init (NMSettingIPConfigClass *setting_class)
 		                      G_PARAM_READWRITE |
 		                      NM_SETTING_PARAM_INFERRABLE |
 		                      G_PARAM_STATIC_STRINGS));
-
-	_nm_setting_class_override_property (parent_class,
-	                                     NM_SETTING_IP_CONFIG_GATEWAY,
-	                                     G_VARIANT_TYPE_STRING,
-	                                     NULL,
-	                                     ip_gateway_set,
-	                                     NULL);
 
 	/**
 	 * NMSettingIPConfig:routes: (type GPtrArray(NMIPRoute))

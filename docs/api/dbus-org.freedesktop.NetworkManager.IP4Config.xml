@@ -14,17 +14,19 @@
   <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
-<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Addresses">Addresses</link>    readable   aau
-<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.AddressData">AddressData</link>  readable   aa{sv}
-<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Gateway">Gateway</link>      readable   s
-<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Routes">Routes</link>       readable   aau
-<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.RouteData">RouteData</link>    readable   aa{sv}
-<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Nameservers">Nameservers</link>  readable   au
-<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Domains">Domains</link>      readable   as
-<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Searches">Searches</link>     readable   as
-<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.DnsOptions">DnsOptions</link>   readable   as
-<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.DnsPriority">DnsPriority</link>  readable   i
-<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.WinsServers">WinsServers</link>  readable   au
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Addresses">Addresses</link>       readable   aau
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.AddressData">AddressData</link>     readable   aa{sv}
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Gateway">Gateway</link>         readable   s
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Routes">Routes</link>          readable   aau
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.RouteData">RouteData</link>       readable   aa{sv}
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Nameservers">Nameservers</link>     readable   au
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.NameserverData">NameserverData</link>  readable   aa{sv}
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Domains">Domains</link>         readable   as
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Searches">Searches</link>        readable   as
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.DnsOptions">DnsOptions</link>      readable   as
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.DnsPriority">DnsPriority</link>     readable   i
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.WinsServers">WinsServers</link>     readable   au
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.WinsServerData">WinsServerData</link>  readable   as
 </synopsis>
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-IP4Config">
@@ -112,7 +114,18 @@ RouteData  readable   aa{sv}
 <programlisting>
 Nameservers  readable   au
 </programlisting>
-<para>        The nameservers in use.
+<para>        The nameservers in use. Deprecated: use NameserverData
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.NameserverData">
+  <title>The "NameserverData" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-IP4Config.NameserverData"><primary sortas=".IP4Config:NameserverData">org.freedesktop.NetworkManager.IP4Config:NameserverData</primary></indexterm>
+<programlisting>
+NameserverData  readable   aa{sv}
+</programlisting>
+<para>        The nameservers in use. Currently only the value "address"
+        is recognized (with an IP address string).
+</para><para>        Since: 1.14
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Domains">
@@ -159,7 +172,17 @@ DnsPriority  readable   i
 WinsServers  readable   au
 </programlisting>
 <para>        The Windows Internet Name Service servers associated with the connection.
-        Each address is in network byte order.
+        Each address is in network byte order. Deprecated: use WinsServerData
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.WinsServerData">
+  <title>The "WinsServerData" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-IP4Config.WinsServerData"><primary sortas=".IP4Config:WinsServerData">org.freedesktop.NetworkManager.IP4Config:WinsServerData</primary></indexterm>
+<programlisting>
+WinsServerData  readable   as
+</programlisting>
+<para>        The Windows Internet Name Service servers associated with the connection.
+</para><para>        Since: 1.14
 </para>
 </refsect2>
 </refsect1>

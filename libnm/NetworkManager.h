@@ -15,7 +15,7 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA.
  *
- * Copyright 2014 - 2017 Red Hat, Inc.
+ * Copyright 2014 - 2018 Red Hat, Inc.
  */
 
 #ifndef __NETWORKMANAGER_H__
@@ -29,6 +29,7 @@
 #include "nm-connection.h"
 #include "nm-core-enum-types.h"
 #include "nm-dbus-interface.h"
+#include "nm-device-6lowpan.h"
 #include "nm-device-adsl.h"
 #include "nm-device-bond.h"
 #include "nm-device-bridge.h"
@@ -52,12 +53,15 @@
 #include "nm-device-vxlan.h"
 #include "nm-device-wifi.h"
 #include "nm-device-wimax.h"
+#include "nm-device-wireguard.h"
+#include "nm-device-wpan.h"
 #include "nm-device.h"
 #include "nm-dhcp-config.h"
 #include "nm-enum-types.h"
 #include "nm-ip-config.h"
 #include "nm-object.h"
 #include "nm-remote-connection.h"
+#include "nm-setting-6lowpan.h"
 #include "nm-setting-8021x.h"
 #include "nm-setting-adsl.h"
 #include "nm-setting-bluetooth.h"
@@ -68,6 +72,7 @@
 #include "nm-setting-connection.h"
 #include "nm-setting-dcb.h"
 #include "nm-setting-dummy.h"
+#include "nm-setting-ethtool.h"
 #include "nm-setting-generic.h"
 #include "nm-setting-gsm.h"
 #include "nm-setting-infiniband.h"
@@ -77,6 +82,7 @@
 #include "nm-setting-ip-tunnel.h"
 #include "nm-setting-macsec.h"
 #include "nm-setting-macvlan.h"
+#include "nm-setting-match.h"
 #include "nm-setting-olpc-mesh.h"
 #include "nm-setting-ovs-bridge.h"
 #include "nm-setting-ovs-interface.h"
@@ -86,6 +92,7 @@
 #include "nm-setting-pppoe.h"
 #include "nm-setting-proxy.h"
 #include "nm-setting-serial.h"
+#include "nm-setting-sriov.h"
 #include "nm-setting-tc-config.h"
 #include "nm-setting-team.h"
 #include "nm-setting-team-port.h"
@@ -98,6 +105,7 @@
 #include "nm-setting-wired.h"
 #include "nm-setting-wireless.h"
 #include "nm-setting-wireless-security.h"
+#include "nm-setting-wpan.h"
 #include "nm-setting.h"
 #include "nm-simple-connection.h"
 #include "nm-utils.h"

@@ -2,12 +2,12 @@
 .\"     Title: nm-settings
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 12/01/2018
+.\"      Date: 10/24/2018
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.12.6
+.\"    Source: NetworkManager 1.14.4
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.12\&.6" "Configuration"
+.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.14\&.4" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -74,6 +74,7 @@ T}:T{
 Value Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -178,6 +179,15 @@ T}:T{
 Whether LLDP is enabled for the connection\&.
 T}
 T{
+llmnr
+T}:T{
+int32
+T}:T{
+\-1
+T}:T{
+Whether Link\-Local Multicast Name Resolution (LLMNR) is enabled for the connection\&. LLMNR is a protocol based on the Domain Name System (DNS) packet format that allows both IPv4 and IPv6 hosts to perform name resolution for hosts on the same local link\&. The permitted values are: yes: register hostname and resolving for the connection, no: disable LLMNR for the interface, resolve: do not register hostname but allow resolving of LLMNR host names\&. This feature requires a plugin which supports LLMNR\&. One such plugin is dns\-systemd\-resolved\&.
+T}
+T{
 master
 T}:T{
 string
@@ -205,13 +215,13 @@ T}:T{
 Whether the connection is metered\&. When updating this property on a currently activated connection, the change takes effect immediately\&.
 T}
 T{
-name
+multi\-connect
 T}:T{
-string
+int32
 T}:T{
-connection
+0
 T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+Specifies whether the profile can be active multiple times at a particular moment\&. The value is of type NMConnectionMultiConnect\&.
 T}
 T{
 permissions
@@ -296,6 +306,34 @@ The trust level of a the connection\&.  Free form case\-insensitive string (for 
 T}
 .TE
 .sp 1
+.SS "6lowpan setting"
+.PP
+6LoWPAN Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l.
+T{
+parent
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+If given, specifies the parent interface name or parent connection UUID from which this 6LowPAN interface should be created\&.
+T}
+.TE
+.sp 1
 .SS "802\-1x setting"
 .PP
 IEEE 802\&.1x Authentication Settings\&.
@@ -312,7 +350,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -473,15 +510,6 @@ T}:T{
 \ \&
 T}:T{
 Identity string for EAP authentication methods\&.  Often the user\*(Aqs user or login name\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-802\-1x
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 pac\-file
@@ -786,7 +814,6 @@ l l l l
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 encapsulation
@@ -796,15 +823,6 @@ T}:T{
 \ \&
 T}:T{
 Encapsulation of ADSL connection\&.  Can be "vcmux" or "llc"\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-adsl
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 password
@@ -879,7 +897,6 @@ Value Description
 T}
 .T&
 l l l l
-l l l l
 l l l l.
 T{
 bdaddr
@@ -889,15 +906,6 @@ T}:T{
 \ \&
 T}:T{
 The Bluetooth address of the device\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-bluetooth
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 type
@@ -927,7 +935,6 @@ Value Description
 T}
 .T&
 l l l l
-l l l l
 l l l l.
 T{
 interface\-name
@@ -937,15 +944,6 @@ T}:T{
 \ \&
 T}:T{
 Deprecated in favor of connection\&.interface\-name, but can be used for backward\-compatibility with older daemons, to set the bond\*(Aqs interface name\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-bond
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 options
@@ -974,7 +972,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -1058,15 +1055,6 @@ T}:T{
 Controls whether IGMP snooping is enabled for this bridge\&. Note that if snooping was automatically disabled due to hash collisions, the system may refuse to enable the feature until the collisions are resolved\&.
 T}
 T{
-name
-T}:T{
-string
-T}:T{
-bridge
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
-T}
-T{
 priority
 T}:T{
 uint32
@@ -1104,7 +1092,6 @@ T}
 .T&
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 hairpin\-mode
@@ -1114,15 +1101,6 @@ T}:T{
 FALSE
 T}:T{
 Enables or disables "hairpin mode" for the port, which allows frames to be sent back out through the port the frame was received on\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-bridge\-port
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 path\-cost
@@ -1164,7 +1142,6 @@ l l l l
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 mtu
@@ -1174,15 +1151,6 @@ T}:T{
 0
 T}:T{
 If non\-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple frames\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-cdma
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 number
@@ -1238,7 +1206,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -1316,15 +1283,6 @@ T}:T{
 \-1
 T}:T{
 The highest User Priority (0 \- 7) which iSCSI frames should use, or \-1 for default priority\&. Only used when the "app\-iscsi\-flags" property includes the NM_SETTING_DCB_FLAG_ENABLE (0x1) flag\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-dcb
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 priority\-bandwidth
@@ -1416,16 +1374,26 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l.
+.
+.TE
+.sp 1
+.SS "ethtool setting"
+.PP
+Ethtool Ethernet Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
 T{
-name
+Key Name
 T}:T{
-string
+Value Type
 T}:T{
-dummy
+Default Value
 T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+Value Description
 T}
+.T&
+.
 .TE
 .sp 1
 .SS "generic setting"
@@ -1444,16 +1412,7 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l.
-T{
-name
-T}:T{
-string
-T}:T{
-generic
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
-T}
+.
 .TE
 .sp 1
 .SS "gsm setting"
@@ -1472,7 +1431,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -1521,15 +1479,6 @@ T}:T{
 0
 T}:T{
 If non\-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple frames\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-gsm
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 network\-id
@@ -1634,7 +1583,6 @@ l l l l
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 mac\-address
@@ -1653,15 +1601,6 @@ T}:T{
 0
 T}:T{
 If non\-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple frames\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-infiniband
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 p\-key
@@ -1708,7 +1647,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -1882,16 +1820,7 @@ string
 T}:T{
 \ \&
 T}:T{
-IP configuration method\&. NMSettingIP4Config and NMSettingIP6Config both support "auto", "manual", and "link\-local"\&. See the subclass\-specific documentation for other values\&. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration\&.  The "ignore\-auto\-routes" and "ignore\-auto\-dns" properties modify this behavior\&. For methods that imply no upstream network, such as "shared" or "link\-local", these properties must be empty\&. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10\&.42\&.x\&.0/24 is chosen\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-ipv4
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+IP configuration method\&. NMSettingIP4Config and NMSettingIP6Config both support "auto", "manual", and "link\-local"\&. See the subclass\-specific documentation for other values\&. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration\&.  The "ignore\-auto\-routes" and "ignore\-auto\-dns" properties modify this behavior\&. For methods that imply no upstream network, such as "shared" or "link\-local", these properties must be empty\&. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10\&.42\&.x\&.0/24 is chosen\&. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared\&.
 T}
 T{
 never\-default
@@ -1956,7 +1885,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -2141,16 +2069,7 @@ string
 T}:T{
 \ \&
 T}:T{
-IP configuration method\&. NMSettingIP4Config and NMSettingIP6Config both support "auto", "manual", and "link\-local"\&. See the subclass\-specific documentation for other values\&. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration\&.  The "ignore\-auto\-routes" and "ignore\-auto\-dns" properties modify this behavior\&. For methods that imply no upstream network, such as "shared" or "link\-local", these properties must be empty\&. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10\&.42\&.x\&.0/24 is chosen\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-ipv6
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+IP configuration method\&. NMSettingIP4Config and NMSettingIP6Config both support "auto", "manual", and "link\-local"\&. See the subclass\-specific documentation for other values\&. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration\&.  The "ignore\-auto\-routes" and "ignore\-auto\-dns" properties modify this behavior\&. For methods that imply no upstream network, such as "shared" or "link\-local", these properties must be empty\&. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10\&.42\&.x\&.0/24 is chosen\&. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared\&.
 T}
 T{
 never\-default
@@ -2236,7 +2155,6 @@ l l l l
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 encapsulation\-limit
@@ -2300,15 +2218,6 @@ T}:T{
 0
 T}:T{
 If non\-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple fragments\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-ip\-tunnel
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 output\-key
@@ -2390,7 +2299,6 @@ l l l l
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 encrypt
@@ -2436,15 +2344,6 @@ T}:T{
 0
 T}:T{
 Specifies how the CAK (Connectivity Association Key) for MKA (MACsec Key Agreement) is obtained\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-macsec
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 parent
@@ -2503,7 +2402,6 @@ T}
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 mode
@@ -2513,15 +2411,6 @@ T}:T{
 0
 T}:T{
 The macvlan mode, which specifies the communication mechanism between multiple macvlans on the same lower device\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-macvlan
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 parent
@@ -2552,6 +2441,34 @@ Whether the interface should be a MACVTAP\&.
 T}
 .TE
 .sp 1
+.SS "match setting"
+.PP
+Match settings\&.\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l.
+T{
+interface\-name
+T}:T{
+array of string
+T}:T{
+[]
+T}:T{
+A list of interface names to match\&. Each element is a shell wildcard pattern\&.  When an element is prefixed with exclamation mark (!) the condition is inverted\&. A candidate interface name is considered matching when both these conditions are satisfied: (a) any of the elements not prefixed with \*(Aq!\*(Aq matches or there aren\*(Aqt such elements; (b) none of the elements prefixed with \*(Aq!\*(Aq match\&.
+T}
+.TE
+.sp 1
 .SS "802\-11\-olpc\-mesh setting"
 .PP
 OLPC Wireless Mesh Settings\&.
@@ -2568,7 +2485,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l.
@@ -2589,15 +2505,6 @@ T}:T{
 \ \&
 T}:T{
 Anycast DHCP MAC address used when requesting an IP address via DHCP\&. The specific anycast address used determines which DHCP server class answers the request\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-802\-11\-olpc\-mesh
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 ssid
@@ -2629,7 +2536,6 @@ T}
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 fail\-mode
@@ -2648,15 +2554,6 @@ T}:T{
 FALSE
 T}:T{
 Enable or disable multicast snooping\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-ovs\-bridge
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 rstp\-enable
@@ -2694,17 +2591,7 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l.
-T{
-name
-T}:T{
-string
-T}:T{
-ovs\-interface
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
-T}
 T{
 type
 T}:T{
@@ -2732,17 +2619,7 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l.
-T{
-name
-T}:T{
-string
-T}:T{
-ovs\-patch
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
-T}
 T{
 peer
 T}:T{
@@ -2770,7 +2647,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -2814,15 +2690,6 @@ T}:T{
 LACP mode\&. One of "active", "off", or "passive"\&.
 T}
 T{
-name
-T}:T{
-string
-T}:T{
-ovs\-port
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
-T}
-T{
 tag
 T}:T{
 uint32
@@ -2858,7 +2725,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -2939,15 +2805,6 @@ T}:T{
 0
 T}:T{
 If non\-zero, instruct pppd to send packets no larger than the specified size\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-ppp
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 no\-vj\-comp
@@ -3070,17 +2927,7 @@ l l l l
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
-T{
-name
-T}:T{
-string
-T}:T{
-pppoe
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
-T}
 T{
 parent
 T}:T{
@@ -3147,7 +2994,6 @@ T}
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 browser\-only
@@ -3166,15 +3012,6 @@ T}:T{
 0
 T}:T{
 Method for proxy configuration, Default is NM_SETTING_PROXY_METHOD_NONE (0)
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-proxy
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 pac\-script
@@ -3216,7 +3053,6 @@ l l l l
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 baud
@@ -3235,15 +3071,6 @@ T}:T{
 8
 T}:T{
 Byte\-width of the serial communication\&. The 8 in "8n1" for example\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-serial
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 parity
@@ -3274,9 +3101,9 @@ Number of stop bits for communication on the serial port\&.  Either 1 or 2\&. Th
 T}
 .TE
 .sp 1
-.SS "tc setting"
+.SS "sriov setting"
 .PP
-Linux Traffic Contril Settings\&.\&.
+SR\-IOV settings\&.\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3294,14 +3121,52 @@ l l l l
 l l l l
 l l l l.
 T{
-name
+autoprobe\-drivers
 T}:T{
-string
+NMTernary (int32)
 T}:T{
-tc
+\ \&
 T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
+Whether to autoprobe virtual functions by a compatible driver\&. If set to NM_TERNARY_TRUE (1), the kernel will try to bind VFs to a compatible driver and if this succeeds a new network interface will be instantiated for each VF\&. If set to NM_TERNARY_FALSE (0), VFs will not be claimed and no network interfaces will be created for them\&. When set to NM_TERNARY_DEFAULT (\-1), the global default is used; in case the global default is unspecified it is assumed to be NM_TERNARY_TRUE (1)\&.
 T}
+T{
+total\-vfs
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+The total number of virtual functions to create\&.
+T}
+T{
+vfs
+T}:T{
+array of vardict
+T}:T{
+[]
+T}:T{
+Array of virtual function descriptors\&. Each VF descriptor is a dictionary mapping attribute names to GVariant values\&. The \*(Aqindex\*(Aq entry is mandatory for each VF\&. When represented as string a VF is in the form: "INDEX [ATTR=VALUE[ ATTR=VALUE]\&.\&.\&.]"\&. for example: "2 mac=00:11:22:33:44:55 spoof\-check=true"\&. The "vlans" attribute is represented as a semicolor\-separated list of VLAN descriptors, where each descriptor has the form "ID[\&.PRIORITY[\&.PROTO]]"\&. PROTO can be either \*(Aqq\*(Aq for 802\&.1Q (the default) or \*(Aqad\*(Aq for 802\&.1ad\&.
+T}
+.TE
+.sp 1
+.SS "tc setting"
+.PP
+Linux Traffic Control Settings\&.\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l.
 T{
 qdiscs
 T}:T{
@@ -3309,7 +3174,7 @@ array of vardict
 T}:T{
 []
 T}:T{
-Array of TC queuening disciplines\&.
+Array of TC queueing disciplines\&.
 T}
 T{
 tfilters
@@ -3338,7 +3203,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -3400,15 +3264,6 @@ T}:T{
 0
 T}:T{
 Corresponds to the teamd mcast_rejoin\&.interval\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-team
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 notify\-peers\-count
@@ -3542,7 +3397,6 @@ l l l l
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 config
@@ -3579,15 +3433,6 @@ T}:T{
 []
 T}:T{
 Link watchers configuration for the connection: each link watcher is defined by a dictionary, whose keys depend upon the selected link watcher\&. Available link watchers are \*(Aqethtool\*(Aq, \*(Aqnsna_ping\*(Aq and \*(Aqarp_ping\*(Aq and it is specified in the dictionary with the key \*(Aqname\*(Aq\&. Available keys are:   ethtool: \*(Aqdelay\-up\*(Aq, \*(Aqdelay\-down\*(Aq, \*(Aqinit\-wait\*(Aq; nsna_ping: \*(Aqinit\-wait\*(Aq, \*(Aqinterval\*(Aq, \*(Aqmissed\-max\*(Aq, \*(Aqtarget\-host\*(Aq; arp_ping: all the ones in nsna_ping and \*(Aqsource\-host\*(Aq, \*(Aqvalidate\-active\*(Aq, \*(Aqvalidate\-incative\*(Aq, \*(Aqsend\-always\*(Aq\&. See teamd\&.conf man for more details\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-team\-port
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 prio
@@ -3639,7 +3484,6 @@ l l l l
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 group
@@ -3667,15 +3511,6 @@ T}:T{
 FALSE
 T}:T{
 If the property is set to TRUE, the interface will support multiple file descriptors (queues) to parallelize packet sending or receiving\&. Otherwise, the interface will only support a single queue\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-tun
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 owner
@@ -3722,7 +3557,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l.
 T{
 data
@@ -3732,15 +3566,6 @@ T}:T{
 {}
 T}:T{
 A dictionary of key/value pairs with user data\&. This data is ignored by NetworkManager and can be used at the users discretion\&. The keys only support a strict ascii format, but the values can be arbitrary UTF8 strings up to a certain length\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-user
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 .TE
 .sp 1
@@ -3760,7 +3585,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -3813,15 +3637,6 @@ T}:T{
 Deprecated in favor of connection\&.interface\-name, but can be used for backward\-compatibility with older daemons, to set the vlan\*(Aqs interface name\&.
 T}
 T{
-name
-T}:T{
-string
-T}:T{
-vlan
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
-T}
-T{
 parent
 T}:T{
 string
@@ -3853,7 +3668,6 @@ l l l l
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 data
@@ -3863,15 +3677,6 @@ T}:T{
 {}
 T}:T{
 Dictionary of key/value pairs of VPN plugin specific data\&.  Both keys and values must be strings\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-vpn
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 persistent
@@ -3936,7 +3741,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -4024,15 +3828,6 @@ T}:T{
 \ \&
 T}:T{
 If given, specifies the source IP address to use in outgoing packets\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-vxlan
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 parent
@@ -4125,7 +3920,6 @@ Value Description
 T}
 .T&
 l l l l
-l l l l
 l l l l.
 T{
 mac\-address
@@ -4135,15 +3929,6 @@ T}:T{
 \ \&
 T}:T{
 If specified, this connection will only apply to the WiMAX device whose MAC address matches\&. This property does not change the MAC address of the device (known as MAC spoofing)\&. Deprecated: 1
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-wimax
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 network\-name
@@ -4172,7 +3957,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -4261,15 +4045,6 @@ T}:T{
 If non\-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple Ethernet frames\&.
 T}
 T{
-name
-T}:T{
-string
-T}:T{
-802\-3\-ethernet
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
-T}
-T{
 port
 T}:T{
 string
@@ -4350,7 +4125,6 @@ T}:T{
 Value Description
 T}
 .T&
-l l l l
 l l l l
 l l l l
 l l l l
@@ -4479,15 +4253,6 @@ T}:T{
 If non\-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple Ethernet frames\&.
 T}
 T{
-name
-T}:T{
-string
-T}:T{
-802\-11\-wireless
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
-T}
-T{
 powersave
 T}:T{
 uint32
@@ -4587,7 +4352,6 @@ l l l l
 l l l l
 l l l l
 l l l l
-l l l l
 l l l l.
 T{
 auth\-alg
@@ -4651,15 +4415,6 @@ T}:T{
 \ \&
 T}:T{
 The login username for legacy LEAP connections (ie, key\-mgmt = "ieee8021x" and auth\-alg = "leap")\&.
-T}
-T{
-name
-T}:T{
-string
-T}:T{
-802\-11\-wireless\-security
-T}:T{
-The setting\*(Aqs name, which uniquely identifies the setting within the connection\&.  Each setting type has a name unique to that type, for example "ppp" or "wireless" or "wired"\&.
 T}
 T{
 pairwise
@@ -4777,6 +4532,54 @@ T}:T{
 0
 T}:T{
 Flags indicating which mode of WPS is to be used if any\&. There\*(Aqs little point in changing the default setting as NetworkManager will automatically determine whether it\*(Aqs feasible to start WPS enrollment from the Access Point capabilities\&. WPS can be disabled by setting this property to a value of 1\&.
+T}
+.TE
+.sp 1
+.SS "wpan setting"
+.PP
+IEEE 802\&.15\&.4 (WPAN) MAC Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l
+l l l l.
+T{
+mac\-address
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+If specified, this connection will only apply to the IEEE 802\&.15\&.4 (WPAN) MAC layer device whose permanent MAC address matches\&.
+T}
+T{
+pan\-id
+T}:T{
+uint32
+T}:T{
+65535
+T}:T{
+IEEE 802\&.15\&.4 Personal Area Network (PAN) identifier\&.
+T}
+T{
+short\-address
+T}:T{
+uint32
+T}:T{
+65535
+T}:T{
+Short IEEE 802\&.15\&.4 address to be used within a restricted environment\&.
 T}
 .TE
 .sp 1

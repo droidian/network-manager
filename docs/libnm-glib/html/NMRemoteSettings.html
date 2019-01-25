@@ -8,7 +8,7 @@
 <link rel="up" href="ch02.html" title="libnm-glib API Reference">
 <link rel="prev" href="NMRemoteConnection.html" title="NMRemoteConnection">
 <link rel="next" href="libnm-glib-nm-types.html" title="nm-types">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -284,13 +284,13 @@
 which stores network configuration and allows authenticated clients to
 add, delete, and modify that configuration.  The data required to connect
 to a specific network is called a "connection" and encapsulated by the
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> object.  Once a connection is known to NetworkManager, having
+<span class="type">NMConnection</span> object.  Once a connection is known to NetworkManager, having
 either been added by a user or read from on-disk storage, the
 <a class="link" href="NMRemoteSettings.html" title="NMRemoteSettings"><span class="type">NMRemoteSettings</span></a> object creates a <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> object which
 represents this stored connection.  Use the <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> object to
 perform any operations like modification or deletion.</p>
 <p>To add a new network connection to the NetworkManager settings service, first
-build up a template <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> object.  Since this connection is not yet
+build up a template <span class="type">NMConnection</span> object.  Since this connection is not yet
 added to NetworkManager, it is known only to your program and is not yet
 an <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a>.  Then ask <a class="link" href="NMRemoteSettings.html" title="NMRemoteSettings"><span class="type">NMRemoteSettings</span></a> to add your connection.
 When the connection is added successfully, the supplied callback is called
@@ -368,7 +368,7 @@ the stored object known to NetworkManager.</p>
 <span class="normal">   </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">error</span><span class="symbol">)</span>
 <span class="normal">       </span><span class="function"><a href="https://developer.gnome.org/glib/unstable/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Error adding connection: %s"</span><span class="symbol">,</span><span class="normal"> error</span><span class="symbol">-&gt;</span><span class="normal">message</span><span class="symbol">);</span>
 <span class="normal">   </span><span class="keyword">else</span><span class="normal"> </span><span class="cbracket">{</span>
-<span class="normal">       </span><span class="function"><a href="https://developer.gnome.org/glib/unstable/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Added: %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#nm-connection-get-path">nm_connection_get_path</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">NM_CONNECTION</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">remote</span><span class="symbol">)));</span>
+<span class="normal">       </span><span class="function"><a href="https://developer.gnome.org/glib/unstable/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Added: %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm/NMConnection.html#nm-connection-get-path">nm_connection_get_path</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">NM_CONNECTION</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">remote</span><span class="symbol">)));</span>
 <span class="normal">       </span><span class="comment">/* Use 'remote' with nm_remote_connection_commit_changes() to save</span>
 <span class="comment">        * changes and nm_remote_connection_delete() to delete the connection */</span>
 <span class="normal">   </span><span class="cbracket">}</span>
@@ -383,28 +383,28 @@ the stored object known to NetworkManager.</p>
 <span class="normal">   </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">uuid</span><span class="symbol">;</span>
 <span class="normal">   </span><span class="usertype">gboolean</span><span class="normal"> success</span><span class="symbol">;</span>
 
-<span class="normal">   connection </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#nm-connection-new">nm_connection_new</a></span><span class="normal"> </span><span class="symbol">();</span>
+<span class="normal">   connection </span><span class="symbol">=</span><span class="normal"> </span><span class="function">nm_connection_new</span><span class="normal"> </span><span class="symbol">();</span>
 
 <span class="normal">   </span><span class="comment">/* Build up the 'connection' setting */</span>
-<span class="normal">   s_con </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="/usr/share/gtk-doc/html/libnm-util/NMSettingConnection.html#NMSettingConnection-struct">NMSettingConnection</a> </span><span class="symbol">*)</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm-util/NMSettingConnection.html#nm-setting-connection-new">nm_setting_connection_new</a></span><span class="normal"> </span><span class="symbol">();</span>
-<span class="normal">   uuid </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-nm-utils.html#nm-utils-uuid-generate">nm_utils_uuid_generate</a></span><span class="normal"> </span><span class="symbol">();</span>
+<span class="normal">   s_con </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="/usr/share/gtk-doc/html/libnm/NMSettingConnection.html#NMSettingConnection-struct">NMSettingConnection</a> </span><span class="symbol">*)</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm/NMSettingConnection.html#nm-setting-connection-new">nm_setting_connection_new</a></span><span class="normal"> </span><span class="symbol">();</span>
+<span class="normal">   uuid </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm/libnm-nm-utils.html#nm-utils-uuid-generate">nm_utils_uuid_generate</a></span><span class="normal"> </span><span class="symbol">();</span>
 <span class="normal">   </span><span class="function"><a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#g-object-set">g_object_set</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#G-OBJECT:CAPS">G_OBJECT</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">s_con</span><span class="symbol">),</span>
-<span class="normal">                 <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingConnection.html#NM-SETTING-CONNECTION-UUID:CAPS">NM_SETTING_CONNECTION_UUID</a></span><span class="symbol">,</span><span class="normal"> uuid</span><span class="symbol">,</span>
-<span class="normal">                 <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingConnection.html#NM-SETTING-CONNECTION-ID:CAPS">NM_SETTING_CONNECTION_ID</a></span><span class="symbol">,</span><span class="normal"> human_name</span><span class="symbol">,</span>
-<span class="normal">                 <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingConnection.html#NM-SETTING-CONNECTION-TYPE:CAPS">NM_SETTING_CONNECTION_TYPE</a></span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingWired.html#NM-SETTING-WIRED-SETTING-NAME:CAPS">NM_SETTING_WIRED_SETTING_NAME</a></span><span class="symbol">,</span>
+<span class="normal">                 <a href="/usr/share/gtk-doc/html/libnm/NMSettingConnection.html#NM-SETTING-CONNECTION-UUID:CAPS">NM_SETTING_CONNECTION_UUID</a></span><span class="symbol">,</span><span class="normal"> uuid</span><span class="symbol">,</span>
+<span class="normal">                 <a href="/usr/share/gtk-doc/html/libnm/NMSettingConnection.html#NM-SETTING-CONNECTION-ID:CAPS">NM_SETTING_CONNECTION_ID</a></span><span class="symbol">,</span><span class="normal"> human_name</span><span class="symbol">,</span>
+<span class="normal">                 <a href="/usr/share/gtk-doc/html/libnm/NMSettingConnection.html#NM-SETTING-CONNECTION-TYPE:CAPS">NM_SETTING_CONNECTION_TYPE</a></span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/libnm/NMSettingWired.html#NM-SETTING-WIRED-SETTING-NAME:CAPS">NM_SETTING_WIRED_SETTING_NAME</a></span><span class="symbol">,</span>
 <span class="normal">                 <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 <span class="normal">   </span><span class="function"><a href="https://developer.gnome.org/glib/unstable/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">uuid</span><span class="symbol">);</span>
-<span class="normal">   </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#nm-connection-add-setting">nm_connection_add_setting</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">connection</span><span class="symbol">,</span><span class="normal"> </span><span class="function">NM_SETTING</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">s_con</span><span class="symbol">));</span>
+<span class="normal">   </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm/NMConnection.html#nm-connection-add-setting">nm_connection_add_setting</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">connection</span><span class="symbol">,</span><span class="normal"> </span><span class="function">NM_SETTING</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">s_con</span><span class="symbol">));</span>
 
 <span class="normal">   </span><span class="comment">/* Add the required 'wired' setting as this is a wired connection */</span>
-<span class="normal">   </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#nm-connection-add-setting">nm_connection_add_setting</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">connection</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm-util/NMSettingWired.html#nm-setting-wired-new">nm_setting_wired_new</a></span><span class="normal"> </span><span class="symbol">());</span>
+<span class="normal">   </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm/NMConnection.html#nm-connection-add-setting">nm_connection_add_setting</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">connection</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm/NMSettingWired.html#nm-setting-wired-new">nm_setting_wired_new</a></span><span class="normal"> </span><span class="symbol">());</span>
 
 <span class="normal">   </span><span class="comment">/* Add an 'ipv4' setting using AUTO configuration (eg DHCP) */</span>
-<span class="normal">   s_ip4 </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="/usr/share/gtk-doc/html/libnm/NMSettingIP4Config.html#NMSettingIP4Config-struct">NMSettingIP4Config</a> </span><span class="symbol">*)</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm-util/NMSettingIP4Config.html#nm-setting-ip4-config-new">nm_setting_ip4_config_new</a></span><span class="normal"> </span><span class="symbol">();</span>
+<span class="normal">   s_ip4 </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="/usr/share/gtk-doc/html/libnm/NMSettingIP4Config.html#NMSettingIP4Config-struct">NMSettingIP4Config</a> </span><span class="symbol">*)</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm/NMSettingIP4Config.html#nm-setting-ip4-config-new">nm_setting_ip4_config_new</a></span><span class="normal"> </span><span class="symbol">();</span>
 <span class="normal">   </span><span class="function"><a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#g-object-set">g_object_set</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#G-OBJECT:CAPS">G_OBJECT</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">s_ip4</span><span class="symbol">),</span>
-<span class="normal">                 <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-METHOD:CAPS">NM_SETTING_IP4_CONFIG_METHOD</a></span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-METHOD-AUTO:CAPS">NM_SETTING_IP4_CONFIG_METHOD_AUTO</a></span><span class="symbol">,</span>
+<span class="normal">                 NM_SETTING_IP4_CONFIG_METHOD</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/libnm/NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-METHOD-AUTO:CAPS">NM_SETTING_IP4_CONFIG_METHOD_AUTO</a></span><span class="symbol">,</span>
 <span class="normal">                 <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
-<span class="normal">   </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#nm-connection-add-setting">nm_connection_add_setting</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">connection</span><span class="symbol">,</span><span class="normal"> </span><span class="function">NM_SETTING</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">s_ip4</span><span class="symbol">));</span>
+<span class="normal">   </span><span class="function"><a href="/usr/share/gtk-doc/html/libnm/NMConnection.html#nm-connection-add-setting">nm_connection_add_setting</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">connection</span><span class="symbol">,</span><span class="normal"> </span><span class="function">NM_SETTING</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">s_ip4</span><span class="symbol">));</span>
 
 <span class="normal">   </span><span class="comment">/* Ask NetworkManager to store the connection */</span>
 <span class="normal">   success </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="NMRemoteSettings.html#nm-remote-settings-add-connection">nm_remote_settings_add_connection</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">settings</span><span class="symbol">,</span><span class="normal"> connection</span><span class="symbol">,</span><span class="normal"> added_cb</span><span class="symbol">,</span><span class="normal"> loop</span><span class="symbol">);</span>
@@ -725,7 +725,7 @@ not known. </p>
 <a name="nm-remote-settings-add-connection"></a><h3>nm_remote_settings_add_connection ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_remote_settings_add_connection (<em class="parameter"><code><a class="link" href="NMRemoteSettings.html" title="NMRemoteSettings"><span class="type">NMRemoteSettings</span></a> *settings</code></em>,
-                                   <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                   <em class="parameter"><code><span class="type">NMConnection</span> *connection</code></em>,
                                    <em class="parameter"><code><a class="link" href="NMRemoteSettings.html#NMRemoteSettingsAddConnectionFunc" title="NMRemoteSettingsAddConnectionFunc ()"><span class="type">NMRemoteSettingsAddConnectionFunc</span></a> callback</code></em>,
                                    <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>Requests that the remote settings service add the given settings to a new
@@ -785,7 +785,7 @@ added, not the object itself</p></td>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_remote_settings_add_connection_unsaved
                                (<em class="parameter"><code><a class="link" href="NMRemoteSettings.html" title="NMRemoteSettings"><span class="type">NMRemoteSettings</span></a> *settings</code></em>,
-                                <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> *connection</code></em>,
+                                <em class="parameter"><code><span class="type">NMConnection</span> *connection</code></em>,
                                 <em class="parameter"><code><a class="link" href="NMRemoteSettings.html#NMRemoteSettingsAddConnectionFunc" title="NMRemoteSettingsAddConnectionFunc ()"><span class="type">NMRemoteSettingsAddConnectionFunc</span></a> callback</code></em>,
                                 <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>Requests that the remote settings service add the given settings to a new
@@ -1133,6 +1133,6 @@ user_function (<a class="link" href="NMRemoteSettings.html" title="NMRemoteSetti
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.29.1</div>
 </body>
 </html>

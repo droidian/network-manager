@@ -101,6 +101,13 @@ typedef enum {
 	NM_CONFIG_STATE_PROPERTY_WWAN_ENABLED,
 } NMConfigRunStatePropertyType;
 
+typedef enum {
+	NM_CONFIG_CONFIGURE_AND_QUIT_INVALID = -1,
+	NM_CONFIG_CONFIGURE_AND_QUIT_DISABLED = FALSE,
+	NM_CONFIG_CONFIGURE_AND_QUIT_ENABLED = TRUE,
+	NM_CONFIG_CONFIGURE_AND_QUIT_INITRD,
+} NMConfigConfigureAndQuitType;
+
 typedef struct {
 	bool net_enabled;
 	bool wifi_enabled;
@@ -127,7 +134,7 @@ NMConfigData *nm_config_get_data_orig (NMConfig *config);
 gboolean nm_config_get_monitor_connection_files (NMConfig *config);
 const char *nm_config_get_log_level (NMConfig *config);
 const char *nm_config_get_log_domains (NMConfig *config);
-gboolean nm_config_get_configure_and_quit (NMConfig *config);
+NMConfigConfigureAndQuitType nm_config_get_configure_and_quit (NMConfig *config);
 gboolean nm_config_get_is_debug (NMConfig *config);
 
 gboolean nm_config_get_first_start (NMConfig *config);
@@ -159,13 +166,13 @@ void _nm_config_state_set (NMConfig *config,
 #define nm_config_state_set(config, allow_persist, force_persist, ...) \
     _nm_config_state_set (config, allow_persist, force_persist, ##__VA_ARGS__, 0)
 
-gint nm_config_parse_boolean (const char *str, gint default_value);
+int nm_config_parse_boolean (const char *str, int default_value);
 
 GKeyFile *nm_config_create_keyfile (void);
-gint nm_config_keyfile_get_boolean (const GKeyFile *keyfile,
+int nm_config_keyfile_get_boolean (const GKeyFile *keyfile,
                                     const char *section,
                                     const char *key,
-                                    gint default_value);
+                                    int default_value);
 gint64 nm_config_keyfile_get_int64 (const GKeyFile *keyfile,
                                     const char *section,
                                     const char *key,
@@ -234,9 +241,10 @@ gboolean nm_config_device_state_write (int ifindex,
                                        NMConfigDeviceStateManagedType managed,
                                        const char *perm_hw_addr_fake,
                                        const char *connection_uuid,
-                                       gint nm_owned,
+                                       int nm_owned,
                                        guint32 route_metric_default_aspired,
-                                       guint32 route_metric_default_effective);
+                                       guint32 route_metric_default_effective,
+                                       const char *root_path);
 
 void nm_config_device_state_prune_unseen (GHashTable *seen_ifindexes);
 

@@ -204,9 +204,9 @@ typedef enum {
 
 NMMatchSpecMatchType nm_match_spec_device (const GSList *specs,
                                            const char *interface_name,
+                                           const char *device_type,
                                            const char *driver,
                                            const char *driver_version,
-                                           const char *device_type,
                                            const char *hwaddr,
                                            const char *s390_subchannels);
 NMMatchSpecMatchType nm_match_spec_config (const GSList *specs,
@@ -214,6 +214,10 @@ NMMatchSpecMatchType nm_match_spec_config (const GSList *specs,
                                            const char *env);
 GSList *nm_match_spec_split (const char *value);
 char *nm_match_spec_join (GSList *specs);
+
+gboolean nm_wildcard_match_check (const char *str,
+                                  const char *const *patterns,
+                                  guint num_patterns);
 
 /*****************************************************************************/
 
@@ -259,26 +263,6 @@ const char *nm_utils_sysctl_ip_conf_path (int addr_family, char *buf, const char
 gboolean nm_utils_sysctl_ip_conf_is_path (int addr_family, const char *path, const char *ifname, const char *property);
 
 gboolean nm_utils_is_specific_hostname (const char *name);
-
-int nm_utils_fd_get_contents (int fd,
-                              gboolean close_fd,
-                              gsize max_length,
-                              char **contents,
-                              gsize *length,
-                              GError **error);
-
-int nm_utils_file_get_contents (int dirfd,
-                                const char *filename,
-                                gsize max_length,
-                                char **contents,
-                                gsize *length,
-                                GError **error);
-
-gboolean nm_utils_file_set_contents (const gchar *filename,
-                                     const gchar *contents,
-                                     gssize length,
-                                     mode_t mode,
-                                     GError **error);
 
 char *nm_utils_machine_id_read (void);
 gboolean nm_utils_machine_id_parse (const char *id_str, /*uuid_t*/ guchar *out_uuid);

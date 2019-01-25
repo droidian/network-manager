@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 12/01/2018
+.\"      Date: 10/24/2018
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.12.6
+.\"    Source: NetworkManager 1.14.4
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.12\&.6" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.14\&.4" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -597,6 +597,10 @@ If left unspecified, the default value is 3 tries before failing the connection\
 .RS 4
 .RE
 .PP
+\fIconnection\&.llmnr\fR
+.RS 4
+.RE
+.PP
 \fIconnection\&.mdns\fR
 .RS 4
 .RE
@@ -679,6 +683,11 @@ is unset, use the content of "/proc/sys/net/ipv6/conf/default/use_tempaddr" as l
 \fIipv6\&.route\-table\fR
 .RS 4
 If left unspecified, routes are only added to the main table\&. Note that this is different from explicitly selecting the main table 254, because of how NetworkManager removes extraneous routes from the tables\&.
+.RE
+.PP
+\fIsriov\&.autoprobe\-drivers\fR
+.RS 4
+If left unspecified, drivers are autoprobed when the SR\-IOV VF gets created\&.
 .RE
 .PP
 \fIvpn\&.timeout\fR

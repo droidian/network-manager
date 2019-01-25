@@ -28,6 +28,7 @@ override_dh_auto_configure:
 		--with-dnssec-trigger=/usr/lib/dnssec-trigger/dnssec-trigger-script \
 		--with-systemdsystemunitdir=/lib/systemd/system \
 		--with-udev-dir=/lib/udev \
+		--with-dbus-sys-dir=/usr/share/dbus-1/system.d \
 		--with-crypto=gnutls \
 		--with-session-tracking=systemd \
 		--with-suspend-resume=systemd \
@@ -44,7 +45,6 @@ override_dh_auto_configure:
 		--enable-polkit-agent \
 		--enable-ppp \
 		--enable-ifupdown \
-		--enable-config-plugin-ibft \
 		--enable-introspection \
 		--enable-gtk-doc \
 		--enable-concheck \
@@ -52,6 +52,7 @@ override_dh_auto_configure:
 		--enable-json-validation \
 		--enable-bluez5-dun \
 		--enable-vala \
+		--disable-config-plugin-ibft \
 		--disable-more-warnings \
 		--disable-modify-system \
 		--disable-ovs
@@ -74,13 +75,9 @@ override_dh_installinit:
 override_dh_makeshlibs:
 	dh_makeshlibs -X/usr/lib/$(DEB_HOST_MULTIARCH)/NetworkManager/ -X/usr/lib/pppd/
 
-override_dh_systemd_start:
-	dh_link -pnetwork-manager \
-		lib/systemd/system/NetworkManager.service \
-		lib/systemd/system/network-manager.service
-	dh_systemd_start -pnetwork-manager --no-start NetworkManager-dispatcher.service
-	dh_systemd_start -pnetwork-manager --no-start NetworkManager-wait-online.service
-	dh_systemd_start -pnetwork-manager --restart-after-upgrade NetworkManager.service
+override_dh_installsystemd:
+	dh_installsystemd -pnetwork-manager --no-start NetworkManager-dispatcher.service NetworkManager-wait-online.service
+	dh_installsystemd -pnetwork-manager --no-also NetworkManager.service
 
 override_dh_ppp:
 	dh_ppp --breaks

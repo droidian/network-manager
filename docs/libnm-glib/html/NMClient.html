@@ -8,7 +8,7 @@
 <link rel="up" href="ch02.html" title="libnm-glib API Reference">
 <link rel="prev" href="ch02.html" title="libnm-glib API Reference">
 <link rel="next" href="NMActiveConnection.html" title="NMActiveConnection">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -241,7 +241,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManager.html#NMState"><span class="returnvalue">NMState</span></a>
+<a href="/usr/share/gtk-doc/html/libnm/libnm-nm-dbus-interface.html#NMState"><span class="returnvalue">NMState</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMClient.html#nm-client-get-state" title="nm_client_get_state ()">nm_client_get_state</a> <span class="c_punctuation">()</span>
@@ -304,7 +304,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManager.html#NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
+<a href="/usr/share/gtk-doc/html/libnm/libnm-nm-dbus-interface.html#NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMClient.html#nm-client-get-connectivity" title="nm_client_get_connectivity ()">nm_client_get_connectivity</a> <span class="c_punctuation">()</span>
@@ -312,7 +312,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManager.html#NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
+<a href="/usr/share/gtk-doc/html/libnm/libnm-nm-dbus-interface.html#NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMClient.html#nm-client-check-connectivity" title="nm_client_check_connectivity ()">nm_client_check_connectivity</a> <span class="c_punctuation">()</span>
@@ -328,7 +328,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManager.html#NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
+<a href="/usr/share/gtk-doc/html/libnm/libnm-nm-dbus-interface.html#NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMClient.html#nm-client-check-connectivity-finish" title="nm_client_check_connectivity_finish ()">nm_client_check_connectivity_finish</a> <span class="c_punctuation">()</span>
@@ -861,7 +861,7 @@ or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#
 <a name="nm-client-activate-connection"></a><h3>nm_client_activate_connection ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_client_activate_connection (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
-                               <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> *connection</code></em>,
+                               <em class="parameter"><code><span class="type">NMConnection</span> *connection</code></em>,
                                <em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
                                <em class="parameter"><code>const <span class="type">char</span> *specific_object</code></em>,
                                <em class="parameter"><code><a class="link" href="NMClient.html#NMClientActivateFn" title="NMClientActivateFn ()"><span class="type">NMClientActivateFn</span></a> callback</code></em>,
@@ -899,7 +899,7 @@ track the activation to its completion.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>an <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a>. </p></td>
+<td class="parameter_description"><p>an <span class="type">NMConnection</span>. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -948,7 +948,7 @@ details of the newly added connection. </p></td>
 <a name="nm-client-add-and-activate-connection"></a><h3>nm_client_add_and_activate_connection ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_client_add_and_activate_connection (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
-                                       <em class="parameter"><code><a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> *partial</code></em>,
+                                       <em class="parameter"><code><span class="type">NMConnection</span> *partial</code></em>,
                                        <em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>,
                                        <em class="parameter"><code>const <span class="type">char</span> *specific_object</code></em>,
                                        <em class="parameter"><code><a class="link" href="NMClient.html#NMClientAddActivateFn" title="NMClientAddActivateFn ()"><span class="type">NMClientAddActivateFn</span></a> callback</code></em>,
@@ -977,7 +977,7 @@ track the activation to its completion.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>partial</p></td>
-<td class="parameter_description"><p>an <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnection</span></a> to add; the connection may be
+<td class="parameter_description"><p>an <span class="type">NMConnection</span> to add; the connection may be
 partially filled (or even <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>) and will be completed by NetworkManager
 using the given <em class="parameter"><code>device</code></em>
 and <em class="parameter"><code>specific_object</code></em>
@@ -1379,7 +1379,7 @@ nm_client_get_version (<em class="parameter"><code><a class="link" href="NMClien
 <hr>
 <div class="refsect2">
 <a name="nm-client-get-state"></a><h3>nm_client_get_state ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManager.html#NMState"><span class="returnvalue">NMState</span></a>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/libnm/libnm-nm-dbus-interface.html#NMState"><span class="returnvalue">NMState</span></a>
 nm_client_get_state (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
 <p>Gets the current daemon state.</p>
 <div class="refsect3">
@@ -1399,7 +1399,7 @@ nm_client_get_state (<em class="parameter"><code><a class="link" href="NMClient.
 </div>
 <div class="refsect3">
 <a name="nm-client-get-state.returns"></a><h4>Returns</h4>
-<p> the current <a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManager.html#NMState"><code class="literal">NMState</code></a></p>
+<p> the current <a href="/usr/share/gtk-doc/html/libnm/libnm-nm-dbus-interface.html#NMState"><code class="literal">NMState</code></a></p>
 </div>
 </div>
 <hr>
@@ -1649,7 +1649,7 @@ domains separated by ",". (<a href="https://developer.gnome.org/glib/unstable/gl
 <hr>
 <div class="refsect2">
 <a name="nm-client-get-connectivity"></a><h3>nm_client_get_connectivity ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManager.html#NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/libnm/libnm-nm-dbus-interface.html#NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
 nm_client_get_connectivity (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
 <p>Gets the current network connectivity state. Contrast
 <a class="link" href="NMClient.html#nm-client-check-connectivity" title="nm_client_check_connectivity ()"><code class="function">nm_client_check_connectivity()</code></a> and
@@ -1679,7 +1679,7 @@ connectivity state first before returning any information.</p>
 <hr>
 <div class="refsect2">
 <a name="nm-client-check-connectivity"></a><h3>nm_client_check_connectivity ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManager.html#NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/libnm/libnm-nm-dbus-interface.html#NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
 nm_client_check_connectivity (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
                               <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                               <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
@@ -1772,7 +1772,7 @@ re-checking, and <a class="link" href="NMClient.html#nm-client-check-connectivit
 <hr>
 <div class="refsect2">
 <a name="nm-client-check-connectivity-finish"></a><h3>nm_client_check_connectivity_finish ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManager.html#NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/libnm/libnm-nm-dbus-interface.html#NMConnectivityState"><span class="returnvalue">NMConnectivityState</span></a>
 nm_client_check_connectivity_finish (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
                                      <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GAsyncResult.html#GAsyncResult-struct"><span class="type">GAsyncResult</span></a> *result</code></em>,
                                      <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
@@ -2562,6 +2562,6 @@ user_function (<a class="link" href="NMClient.html" title="NMClient"><span class
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.29.1</div>
 </body>
 </html>

@@ -15,6 +15,7 @@ ifaces = [
   'org.freedesktop.NetworkManager.Device.Generic',
   'org.freedesktop.NetworkManager.Device.Infiniband',
   'org.freedesktop.NetworkManager.Device.IPTunnel',
+  'org.freedesktop.NetworkManager.Device.Lowpan',
   'org.freedesktop.NetworkManager.Device.Macsec',
   'org.freedesktop.NetworkManager.Device.Macvlan',
   'org.freedesktop.NetworkManager.Device.Modem',
@@ -30,6 +31,8 @@ ifaces = [
   'org.freedesktop.NetworkManager.Device.Vlan',
   'org.freedesktop.NetworkManager.Device.Vxlan',
   'org.freedesktop.NetworkManager.Device.WiMax',
+  'org.freedesktop.NetworkManager.Device.Wpan',
+  'org.freedesktop.NetworkManager.Device.WireGuard',
   'org.freedesktop.NetworkManager.Device.Wired',
   'org.freedesktop.NetworkManager.Device.Wireless',
   'org.freedesktop.NetworkManager.Device',
@@ -50,6 +53,7 @@ ifaces = [
 
 ifaces_xmls = []
 sources = []
+introspection_files = []
 
 # FIXME?: DBUS_INTERFACE_DOCS/docbook files are generated in
 # "meson.current_build_dir()" instead of "meson.source_root()/docs/api"
@@ -57,7 +61,7 @@ foreach iface: ifaces
   iface_xml = iface + '.xml'
   ifaces_xmls += files(iface_xml)
 
-  sources += gnome.gdbus_codegen(
+  res = gnome.gdbus_codegen(
     iface,
     iface_xml,
     interface_prefix: 'org.freedesktop.NetworkManager',
@@ -65,8 +69,15 @@ foreach iface: ifaces
     docbook: 'dbus'
   )
 
-  # FIXME: gnome.gdbus_codegen should return the docbook as a target result
+  sources += res
+
   content_files += join_paths(meson.current_build_dir(), 'dbus-' + iface_xml)
+
+  # res is an array only since 0.46. Documentation won't work with
+  # older versions
+  if meson.version().version_compare('>= 0.46.0')
+    introspection_files += res[2]
+  endif
 endforeach
 
 install_data(

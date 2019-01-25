@@ -26,15 +26,16 @@ libnm_device_plugin_bluetooth = shared_module(
   link_args: ldflags_linker_script_devices,
   link_depends: linker_script_devices,
   install: true,
-  install_dir: nm_plugindir
+  install_dir: nm_plugindir,
+  install_rpath: nm_plugindir
 )
 
 core_plugins += libnm_device_plugin_bluetooth
 
-run_target(
+test(
   'check-local-devices-bluetooth',
-  command: [check_exports, libnm_device_plugin_bluetooth.full_path(), linker_script_devices],
-  depends: libnm_device_plugin_bluetooth
+  check_exports,
+  args: [libnm_device_plugin_bluetooth.full_path(), linker_script_devices],
 )
 
 # FIXME: check_so_symbols replacement

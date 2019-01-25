@@ -14,7 +14,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * Copyright 2004 - 2017 Red Hat, Inc.
+ * Copyright 2004 - 2018 Red Hat, Inc.
  */
 
 /* Definitions related to NetworkManager's D-Bus interfaces.
@@ -73,8 +73,11 @@
 #define NM_DBUS_INTERFACE_DEVICE_MACVLAN       NM_DBUS_INTERFACE_DEVICE ".Macvlan"
 #define NM_DBUS_INTERFACE_DEVICE_PPP           NM_DBUS_INTERFACE_DEVICE ".Ppp"
 #define NM_DBUS_INTERFACE_DEVICE_VXLAN         NM_DBUS_INTERFACE_DEVICE ".Vxlan"
+#define NM_DBUS_INTERFACE_DEVICE_WIREGUARD     NM_DBUS_INTERFACE_DEVICE ".WireGuard"
 #define NM_DBUS_INTERFACE_DEVICE_GRE           NM_DBUS_INTERFACE_DEVICE ".Gre"
 #define NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL     NM_DBUS_INTERFACE_DEVICE ".IPTunnel"
+#define NM_DBUS_INTERFACE_DEVICE_WPAN          NM_DBUS_INTERFACE_DEVICE ".Wpan"
+#define NM_DBUS_INTERFACE_DEVICE_6LOWPAN       NM_DBUS_INTERFACE_DEVICE ".Lowpan"
 #define NM_DBUS_INTERFACE_DEVICE_STATISTICS    NM_DBUS_INTERFACE_DEVICE ".Statistics"
 #define NM_DBUS_INTERFACE_CHECKPOINT           NM_DBUS_INTERFACE ".Checkpoint"
 
@@ -212,6 +215,9 @@ typedef enum {
  * @NM_DEVICE_TYPE_OVS_INTERFACE: a Open vSwitch interface
  * @NM_DEVICE_TYPE_OVS_PORT: a Open vSwitch port
  * @NM_DEVICE_TYPE_OVS_BRIDGE: a Open vSwitch bridge
+ * @NM_DEVICE_TYPE_WPAN: a IEEE 802.15.4 (WPAN) MAC Layer Device
+ * @NM_DEVICE_TYPE_6LOWPAN: 6LoWPAN interface
+ * @NM_DEVICE_TYPE_WIREGUARD: a WireGuard interface
  *
  * #NMDeviceType values indicate the type of hardware represented by a
  * device object.
@@ -244,6 +250,9 @@ typedef enum {
 	NM_DEVICE_TYPE_OVS_INTERFACE = 24,
 	NM_DEVICE_TYPE_OVS_PORT      = 25,
 	NM_DEVICE_TYPE_OVS_BRIDGE    = 26,
+	NM_DEVICE_TYPE_WPAN          = 27,
+	NM_DEVICE_TYPE_6LOWPAN       = 28,
+	NM_DEVICE_TYPE_WIREGUARD     = 29,
 } NMDeviceType;
 
 /**
@@ -553,6 +562,7 @@ typedef enum {
  * @NM_DEVICE_STATE_REASON_OVSDB_FAILED: problem communicating with Open vSwitch database
  * @NM_DEVICE_STATE_REASON_IP_ADDRESS_DUPLICATE: a duplicate IP address was detected
  * @NM_DEVICE_STATE_REASON_IP_METHOD_UNSUPPORTED: The selected IP method is not supported
+ * @NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED: configuration of SR-IOV parameters failed
  *
  * Device state change reason codes
  */
@@ -623,6 +633,7 @@ typedef enum {
 	NM_DEVICE_STATE_REASON_OVSDB_FAILED                   = 63,
 	NM_DEVICE_STATE_REASON_IP_ADDRESS_DUPLICATE           = 64,
 	NM_DEVICE_STATE_REASON_IP_METHOD_UNSUPPORTED          = 65,
+	NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED     = 66,
 } NMDeviceStateReason;
 
 /**
@@ -643,6 +654,30 @@ typedef enum {
 	NM_METERED_GUESS_YES  = 3,
 	NM_METERED_GUESS_NO   = 4,
 } NMMetered;
+
+/**
+ * NMConnectionMultiConnect:
+ * @NM_CONNECTION_MULTI_CONNECT_DEFAULT: indicates that the per-connection
+ *   setting is unspecified. In this case, it will fallback to the default
+ *   value, which is @NM_CONNECTION_MULTI_CONNECT_SINGLE.
+ * @NM_CONNECTION_MULTI_CONNECT_SINGLE: the connection profile can only
+ *   be active once at each moment. Activating a profile that is already active,
+ *   will first deactivate it.
+ * @NM_CONNECTION_MULTI_CONNECT_MANUAL_MULTIPLE: the profile can
+ *   be manually activated multiple times on different devices. However,
+ *   regarding autoconnect, the profile will autoconnect only if it is
+ *   currently not connected otherwise.
+ * @NM_CONNECTION_MULTI_CONNECT_MULTIPLE: the profile can autoactivate
+ *   and be manually activated multiple times together.
+ *
+ * Since: 1.14
+ */
+typedef enum {
+	NM_CONNECTION_MULTI_CONNECT_DEFAULT           = 0,
+	NM_CONNECTION_MULTI_CONNECT_SINGLE            = 1,
+	NM_CONNECTION_MULTI_CONNECT_MANUAL_MULTIPLE   = 2,
+	NM_CONNECTION_MULTI_CONNECT_MULTIPLE          = 3,
+} NMConnectionMultiConnect;
 
 /**
  * NMActiveConnectionState:
@@ -803,16 +838,18 @@ typedef enum /*< flags >*/ {
 
 /**
  * NMIPTunnelMode:
- * @NM_IP_TUNNEL_MODE_UNKNOWN: Unknown/unset tunnel mode
- * @NM_IP_TUNNEL_MODE_IPIP:    IP in IP tunnel
- * @NM_IP_TUNNEL_MODE_GRE:     GRE tunnel
- * @NM_IP_TUNNEL_MODE_SIT:     SIT tunnel
- * @NM_IP_TUNNEL_MODE_ISATAP:  ISATAP tunnel
- * @NM_IP_TUNNEL_MODE_VTI:     VTI tunnel
- * @NM_IP_TUNNEL_MODE_IP6IP6:  IPv6 in IPv6 tunnel
- * @NM_IP_TUNNEL_MODE_IPIP6:   IPv4 in IPv6 tunnel
- * @NM_IP_TUNNEL_MODE_IP6GRE:  IPv6 GRE tunnel
- * @NM_IP_TUNNEL_MODE_VTI6:    IPv6 VTI tunnel
+ * @NM_IP_TUNNEL_MODE_UNKNOWN:   Unknown/unset tunnel mode
+ * @NM_IP_TUNNEL_MODE_IPIP:      IP in IP tunnel
+ * @NM_IP_TUNNEL_MODE_GRE:       GRE tunnel
+ * @NM_IP_TUNNEL_MODE_SIT:       SIT tunnel
+ * @NM_IP_TUNNEL_MODE_ISATAP:    ISATAP tunnel
+ * @NM_IP_TUNNEL_MODE_VTI:       VTI tunnel
+ * @NM_IP_TUNNEL_MODE_IP6IP6:    IPv6 in IPv6 tunnel
+ * @NM_IP_TUNNEL_MODE_IPIP6:     IPv4 in IPv6 tunnel
+ * @NM_IP_TUNNEL_MODE_IP6GRE:    IPv6 GRE tunnel
+ * @NM_IP_TUNNEL_MODE_VTI6:      IPv6 VTI tunnel
+ * @NM_IP_TUNNEL_MODE_GRETAP:    GRETAP tunnel
+ * @NM_IP_TUNNEL_MODE_IP6GRETAP: IPv6 GRETAP tunnel
  *
  * The tunneling mode.
  *
@@ -829,6 +866,8 @@ typedef enum {
 	NM_IP_TUNNEL_MODE_IPIP6       = 7,
 	NM_IP_TUNNEL_MODE_IP6GRE      = 8,
 	NM_IP_TUNNEL_MODE_VTI6        = 9,
+	NM_IP_TUNNEL_MODE_GRETAP      = 10,
+	NM_IP_TUNNEL_MODE_IP6GRETAP   = 11,
 } NMIPTunnelMode;
 
 /**
@@ -980,5 +1019,21 @@ typedef enum { /*< flags >*/
 	NM_SETTINGS_UPDATE2_FLAG_VOLATILE                   = (1LL <<  4),
 	NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT          = (1LL <<  5),
 } NMSettingsUpdate2Flags;
+
+/**
+ * NMTernary:
+ * @NM_TERNARY_DEFAULT: use the globally-configured default value.
+ * @NM_TERNARY_FALSE: the option is disabled.
+ * @NM_TERNARY_TRUE: the option is enabled.
+ *
+ * An boolean value that can be overridden by a default.
+ *
+ * Since: 1.14
+ **/
+typedef enum {
+	NM_TERNARY_DEFAULT = -1,
+	NM_TERNARY_FALSE = 0,
+	NM_TERNARY_TRUE = 1,
+} NMTernary;
 
 #endif /* __NM_DBUS_INTERFACE_H__ */

@@ -1,0 +1,111 @@
+From: Yu Watanabe <watanabe.yu+github@gmail.com>
+Date: Fri, 19 Oct 2018 03:42:10 +0900
+Subject: sd-dhcp6: make dhcp6_option_parse_domainname() not store empty
+ domain
+
+This improves performance of fuzzer.
+C.f. oss-fuzz#11019.
+
+(cherry picked from commit 3c72b6ed4252e7ff5f7704bfe44557ec197b47fa)
+(cherry picked from commit 50403cccee28c7dcd54b138a0d3b3f69ea0204fe)
+(cherry picked from commit f11f5abb1a8b96b553d2d156f8b5cf440695c04d)
+---
+ src/systemd/src/libsystemd-network/dhcp6-option.c | 66 ++++++++++-------------
+ 1 file changed, 29 insertions(+), 37 deletions(-)
+
+diff --git a/src/systemd/src/libsystemd-network/dhcp6-option.c b/src/systemd/src/libsystemd-network/dhcp6-option.c
+index cfddefc..be5c222 100644
+--- a/src/systemd/src/libsystemd-network/dhcp6-option.c
++++ b/src/systemd/src/libsystemd-network/dhcp6-option.c
+@@ -555,6 +555,7 @@ int dhcp6_option_parse_domainname(const uint8_t *optval, uint16_t optlen, char *
+                 bool first = true;
+ 
+                 for (;;) {
++                        const char *label;
+                         uint8_t c;
+ 
+                         c = optval[pos++];
+@@ -562,47 +563,41 @@ int dhcp6_option_parse_domainname(const uint8_t *optval, uint16_t optlen, char *
+                         if (c == 0)
+                                 /* End of name */
+                                 break;
+-                        else if (c <= 63) {
+-                                const char *label;
+-
+-                                /* Literal label */
+-                                label = (const char *)&optval[pos];
+-                                pos += c;
+-                                if (pos >= optlen)
+-                                        return -EMSGSIZE;
+-
+-                                if (!GREEDY_REALLOC(ret, allocated, n + !first + DNS_LABEL_ESCAPED_MAX)) {
+-                                        r = -ENOMEM;
+-                                        goto fail;
+-                                }
+-
+-                                if (first)
+-                                        first = false;
+-                                else
+-                                        ret[n++] = '.';
+-
+-                                r = dns_label_escape(label, c, ret + n, DNS_LABEL_ESCAPED_MAX);
+-                                if (r < 0)
+-                                        goto fail;
+-
+-                                n += r;
+-                                continue;
+-                        } else {
+-                                r = -EBADMSG;
+-                                goto fail;
+-                        }
+-                }
++                        if (c > 63)
++                                return -EBADMSG;
++
++                        /* Literal label */
++                        label = (const char *)&optval[pos];
++                        pos += c;
++                        if (pos >= optlen)
++                                return -EMSGSIZE;
++
++                        if (!GREEDY_REALLOC(ret, allocated, n + !first + DNS_LABEL_ESCAPED_MAX))
++                                return -ENOMEM;
++
++                        if (first)
++                                first = false;
++                        else
++                                ret[n++] = '.';
++
++                        r = dns_label_escape(label, c, ret + n, DNS_LABEL_ESCAPED_MAX);
++                        if (r < 0)
++                                return r;
+ 
+-                if (!GREEDY_REALLOC(ret, allocated, n + 1)) {
+-                        r = -ENOMEM;
+-                        goto fail;
++                        n += r;
+                 }
+ 
++                if (n == 0)
++                        continue;
++
++                if (!GREEDY_REALLOC(ret, allocated, n + 1))
++                        return -ENOMEM;
++
+                 ret[n] = 0;
+ 
+                 r = strv_extend(&names, ret);
+                 if (r < 0)
+-                        goto fail;
++                        return r;
+ 
+                 idx++;
+         }
+@@ -610,7 +605,4 @@ int dhcp6_option_parse_domainname(const uint8_t *optval, uint16_t optlen, char *
+         *str_arr = TAKE_PTR(names);
+ 
+         return idx;
+-
+-fail:
+-        return r;
+ }

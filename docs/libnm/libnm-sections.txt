@@ -345,6 +345,7 @@ NM_TYPE_BLUETOOTH_CAPABILITIES
 NM_TYPE_CAPABILITY
 NM_TYPE_CHECKPOINT_CREATE_FLAGS
 NM_TYPE_CONNECTION_ERROR
+NM_TYPE_CONNECTION_MULTI_CONNECT
 NM_TYPE_CONNECTION_SERIALIZATION_FLAGS
 NM_TYPE_CONNECTIVITY_STATE
 NM_TYPE_CRYPTO_ERROR
@@ -370,6 +371,7 @@ NM_TYPE_SETTING_802_1X_CK_SCHEME
 NM_TYPE_SETTING_COMPARE_FLAGS
 NM_TYPE_SETTING_CONNECTION_AUTOCONNECT_SLAVES
 NM_TYPE_SETTING_CONNECTION_LLDP
+NM_TYPE_SETTING_CONNECTION_LLMNR
 NM_TYPE_SETTING_CONNECTION_MDNS
 NM_TYPE_SETTING_DCB_FLAGS
 NM_TYPE_SETTING_DIFF_RESULT
@@ -389,8 +391,10 @@ NM_TYPE_SETTING_WIRELESS_SECURITY_FILS
 NM_TYPE_SETTING_WIRELESS_SECURITY_PMF
 NM_TYPE_SETTING_WIRELESS_SECURITY_WPS_METHOD
 NM_TYPE_SETTING_WIRELESS_WAKE_ON_WLAN
+NM_TYPE_SRIOV_VF_VLAN_PROTOCOL
 NM_TYPE_STATE
 NM_TYPE_TEAM_LINK_WATCHER_ARP_PING_FLAGS
+NM_TYPE_TERNARY
 NM_TYPE_UTILS_SECURITY_TYPE
 NM_TYPE_VLAN_FLAGS
 NM_TYPE_VLAN_PRIORITY_MAP
@@ -410,6 +414,7 @@ nm_bluetooth_capabilities_get_type
 nm_capability_get_type
 nm_checkpoint_create_flags_get_type
 nm_connection_error_get_type
+nm_connection_multi_connect_get_type
 nm_connection_serialization_flags_get_type
 nm_crypto_error_get_type
 nm_device_capabilities_get_type
@@ -431,6 +436,7 @@ nm_setting_802_1x_ck_scheme_get_type
 nm_setting_compare_flags_get_type
 nm_setting_connection_autoconnect_slaves_get_type
 nm_setting_connection_lldp_get_type
+nm_setting_connection_llmnr_get_type
 nm_setting_connection_mdns_get_type
 nm_setting_dcb_flags_get_type
 nm_setting_diff_result_get_type
@@ -453,8 +459,10 @@ nm_setting_wireless_wake_on_wlan_get_type
 nm_settings_connection_flags_get_type
 nm_settings_error_get_type
 nm_settings_update2_flags_get_type
+nm_sriov_vf_vlan_protocol_get_type
 nm_state_get_type
 nm_team_link_watcher_arp_ping_flags_get_type
+nm_ternary_get_type
 nm_utils_security_type_get_type
 nm_vlan_flags_get_type
 nm_vlan_priority_map_get_type
@@ -470,6 +478,7 @@ nm_wimax_nsp_network_type_get_type
 <TITLE>NMSettingOvs</TITLE>
 NMConnection
 NMSetting
+NMSetting6Lowpan
 NMSetting8021x
 NMSettingAdsl
 NMSettingBluetooth
@@ -480,6 +489,7 @@ NMSettingCdma
 NMSettingConnection
 NMSettingDcb
 NMSettingDummy
+NMSettingEthtool
 NMSettingGeneric
 NMSettingGsm
 NMSettingIP4Config
@@ -489,6 +499,7 @@ NMSettingIPTunnel
 NMSettingInfiniband
 NMSettingMacsec
 NMSettingMacvlan
+NMSettingMatch
 NMSettingOlpcMesh
 NMSettingOvsBridge
 NMSettingOvsInterface
@@ -498,6 +509,7 @@ NMSettingPpp
 NMSettingPppoe
 NMSettingProxy
 NMSettingSerial
+NMSettingSriov
 NMSettingTCConfig
 NMSettingTeam
 NMSettingTeamPort
@@ -510,6 +522,7 @@ NMSettingWimax
 NMSettingWired
 NMSettingWireless
 NMSettingWirelessSecurity
+NMSettingWpan
 NMSimpleConnection
 </SECTION>
 
@@ -553,8 +566,11 @@ NM_DBUS_INTERFACE_DEVICE_MACSEC
 NM_DBUS_INTERFACE_DEVICE_MACVLAN
 NM_DBUS_INTERFACE_DEVICE_PPP
 NM_DBUS_INTERFACE_DEVICE_VXLAN
+NM_DBUS_INTERFACE_DEVICE_WIREGUARD
 NM_DBUS_INTERFACE_DEVICE_GRE
 NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL
+NM_DBUS_INTERFACE_DEVICE_WPAN
+NM_DBUS_INTERFACE_DEVICE_6LOWPAN
 NM_DBUS_INTERFACE_DEVICE_STATISTICS
 NM_DBUS_INTERFACE_CHECKPOINT
 NM_DBUS_INTERFACE_SETTINGS
@@ -583,6 +599,7 @@ NMWimaxNspNetworkType
 NMDeviceState
 NMDeviceStateReason
 NMMetered
+NMConnectionMultiConnect
 NMActiveConnectionState
 NMActiveConnectionStateReason
 NMSecretAgentGetSecretsFlags
@@ -610,6 +627,7 @@ NMRollbackResult
 NMSettingsConnectionFlags
 NMActivationStateFlags
 NMSettingsUpdate2Flags
+NMTernary
 </SECTION>
 
 <SECTION>
@@ -710,6 +728,21 @@ NM_IS_DEVICE
 NM_TYPE_DEVICE
 nm_device_get_type
 nm_lldp_neighbor_get_type
+</SECTION>
+
+<SECTION>
+<FILE>nm-device-6lowpan</FILE>
+NM_DEVICE_6LOWPAN_PARENT
+NM_DEVICE_6LOWPAN_HW_ADDRESS
+nm_device_6lowpan_get_parent
+nm_device_6lowpan_get_hw_address
+<SUBSECTION Standard>
+NM_DEVICE_6LOWPAN
+NM_DEVICE_6LOWPAN_CLASS
+NM_DEVICE_6LOWPAN_GET_CLASS
+NM_IS_DEVICE_6LOWPAN
+NM_TYPE_DEVICE_6LOWPAN
+nm_device_6lowpan_get_type
 </SECTION>
 
 <SECTION>
@@ -1251,6 +1284,38 @@ nm_device_wimax_get_type
 </SECTION>
 
 <SECTION>
+<FILE>nm-device-wireguard</FILE>
+<TITLE>NMDeviceWireGuard</TITLE>
+NM_DEVICE_WIREGUARD_PUBLIC_KEY
+NM_DEVICE_WIREGUARD_LISTEN_PORT
+NM_DEVICE_WIREGUARD_FWMARK
+nm_device_wireguard_get_public_key
+nm_device_wireguard_get_listen_port
+nm_device_wireguard_get_fwmark
+<SUBSECTION Standard>
+NMDeviceWireGuardClass
+NM_DEVICE_WIREGUARD
+NM_DEVICE_WIREGUARD_CLASS
+NM_DEVICE_WIREGUARD_GET_CLASS
+NM_IS_DEVICE_WIREGUARD
+NM_TYPE_DEVICE_WIREGUARD
+nm_device_wireguard_get_type
+</SECTION>
+
+<SECTION>
+<FILE>nm-device-wpan</FILE>
+NM_DEVICE_WPAN_HW_ADDRESS
+nm_device_wpan_get_hw_address
+<SUBSECTION Standard>
+NM_DEVICE_WPAN
+NM_DEVICE_WPAN_CLASS
+NM_DEVICE_WPAN_GET_CLASS
+NM_IS_DEVICE_WPAN
+NM_TYPE_DEVICE_WPAN
+nm_device_wpan_get_type
+</SECTION>
+
+<SECTION>
 <FILE>nm-dhcp-config</FILE>
 <TITLE>NMDhcpConfig</TITLE>
 NMDhcpConfig
@@ -1492,6 +1557,23 @@ NM_SETTING_CLASS
 NM_SETTING_GET_CLASS
 NM_TYPE_SETTING
 nm_setting_get_type
+</SECTION>
+
+<SECTION>
+<FILE>nm-setting-6lowpan</FILE>
+<TITLE>NMSetting6Lowpan</TITLE>
+NM_SETTING_6LOWPAN_SETTING_NAME
+NM_SETTING_6LOWPAN_PARENT
+nm_setting_6lowpan_new
+nm_setting_6lowpan_get_parent
+<SUBSECTION Standard>
+NMSetting6LowpanClass
+NM_IS_SETTING_6LOWPAN
+NM_SETTING_6LOWPAN
+NM_SETTING_6LOWPAN_CLASS
+NM_SETTING_6LOWPAN_GET_CLASS
+NM_TYPE_SETTING_6LOWPAN
+nm_setting_6lowpan_get_type
 </SECTION>
 
 <SECTION>
@@ -1852,6 +1934,7 @@ NM_SETTING_CONNECTION_TYPE
 NM_SETTING_CONNECTION_AUTOCONNECT
 NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY
 NM_SETTING_CONNECTION_AUTOCONNECT_RETRIES
+NM_SETTING_CONNECTION_MULTI_CONNECT
 NM_SETTING_CONNECTION_TIMESTAMP
 NM_SETTING_CONNECTION_READ_ONLY
 NM_SETTING_CONNECTION_PERMISSIONS
@@ -1865,9 +1948,11 @@ NM_SETTING_CONNECTION_METERED
 NM_SETTING_CONNECTION_LLDP
 NM_SETTING_CONNECTION_AUTH_RETRIES
 NM_SETTING_CONNECTION_MDNS
+NM_SETTING_CONNECTION_LLMNR
 NMSettingConnectionAutoconnectSlaves
 NMSettingConnectionLldp
 NMSettingConnectionMdns
+NMSettingConnectionLlmnr
 NMSettingConnection
 nm_setting_connection_new
 nm_setting_connection_get_id
@@ -1878,6 +1963,7 @@ nm_setting_connection_get_connection_type
 nm_setting_connection_get_autoconnect
 nm_setting_connection_get_autoconnect_priority
 nm_setting_connection_get_autoconnect_retries
+nm_setting_connection_get_multi_connect
 nm_setting_connection_get_timestamp
 nm_setting_connection_get_read_only
 nm_setting_connection_get_num_permissions
@@ -1901,6 +1987,7 @@ nm_setting_connection_get_metered
 nm_setting_connection_get_lldp
 nm_setting_connection_get_auth_retries
 nm_setting_connection_get_mdns
+nm_setting_connection_get_llmnr
 <SUBSECTION Standard>
 NMSettingConnectionClass
 NM_IS_SETTING_CONNECTION
@@ -1980,6 +2067,77 @@ NM_SETTING_DUMMY_CLASS
 NM_SETTING_DUMMY_GET_CLASS
 NM_TYPE_SETTING_DUMMY
 nm_setting_dummy_get_type
+</SECTION>
+
+<SECTION>
+<FILE>nm-setting-ethtool</FILE>
+<TITLE>NMSettingEthtool</TITLE>
+NM_ETHTOOL_OPTNAME_FEATURE_ESP_HW_OFFLOAD
+NM_ETHTOOL_OPTNAME_FEATURE_ESP_TX_CSUM_HW_OFFLOAD
+NM_ETHTOOL_OPTNAME_FEATURE_FCOE_MTU
+NM_ETHTOOL_OPTNAME_FEATURE_GRO
+NM_ETHTOOL_OPTNAME_FEATURE_GSO
+NM_ETHTOOL_OPTNAME_FEATURE_HIGHDMA
+NM_ETHTOOL_OPTNAME_FEATURE_HW_TC_OFFLOAD
+NM_ETHTOOL_OPTNAME_FEATURE_L2_FWD_OFFLOAD
+NM_ETHTOOL_OPTNAME_FEATURE_LOOPBACK
+NM_ETHTOOL_OPTNAME_FEATURE_LRO
+NM_ETHTOOL_OPTNAME_FEATURE_NTUPLE
+NM_ETHTOOL_OPTNAME_FEATURE_RX
+NM_ETHTOOL_OPTNAME_FEATURE_RXHASH
+NM_ETHTOOL_OPTNAME_FEATURE_RXVLAN
+NM_ETHTOOL_OPTNAME_FEATURE_RX_ALL
+NM_ETHTOOL_OPTNAME_FEATURE_RX_FCS
+NM_ETHTOOL_OPTNAME_FEATURE_RX_GRO_HW
+NM_ETHTOOL_OPTNAME_FEATURE_RX_UDP_TUNNEL_PORT_OFFLOAD
+NM_ETHTOOL_OPTNAME_FEATURE_RX_VLAN_FILTER
+NM_ETHTOOL_OPTNAME_FEATURE_RX_VLAN_STAG_FILTER
+NM_ETHTOOL_OPTNAME_FEATURE_RX_VLAN_STAG_HW_PARSE
+NM_ETHTOOL_OPTNAME_FEATURE_SG
+NM_ETHTOOL_OPTNAME_FEATURE_TLS_HW_RECORD
+NM_ETHTOOL_OPTNAME_FEATURE_TLS_HW_TX_OFFLOAD
+NM_ETHTOOL_OPTNAME_FEATURE_TSO
+NM_ETHTOOL_OPTNAME_FEATURE_TX
+NM_ETHTOOL_OPTNAME_FEATURE_TXVLAN
+NM_ETHTOOL_OPTNAME_FEATURE_TX_CHECKSUM_FCOE_CRC
+NM_ETHTOOL_OPTNAME_FEATURE_TX_CHECKSUM_IPV4
+NM_ETHTOOL_OPTNAME_FEATURE_TX_CHECKSUM_IPV6
+NM_ETHTOOL_OPTNAME_FEATURE_TX_CHECKSUM_IP_GENERIC
+NM_ETHTOOL_OPTNAME_FEATURE_TX_CHECKSUM_SCTP
+NM_ETHTOOL_OPTNAME_FEATURE_TX_ESP_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_FCOE_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_GRE_CSUM_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_GRE_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_GSO_PARTIAL
+NM_ETHTOOL_OPTNAME_FEATURE_TX_GSO_ROBUST
+NM_ETHTOOL_OPTNAME_FEATURE_TX_IPXIP4_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_IPXIP6_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_NOCACHE_COPY
+NM_ETHTOOL_OPTNAME_FEATURE_TX_SCATTER_GATHER
+NM_ETHTOOL_OPTNAME_FEATURE_TX_SCATTER_GATHER_FRAGLIST
+NM_ETHTOOL_OPTNAME_FEATURE_TX_SCTP_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_TCP6_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_TCP_ECN_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_TCP_MANGLEID_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_TCP_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_UDP_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_UDP_TNL_CSUM_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_UDP_TNL_SEGMENTATION
+NM_ETHTOOL_OPTNAME_FEATURE_TX_VLAN_STAG_HW_INSERT
+nm_ethtool_optname_is_feature
+NM_SETTING_ETHTOOL_SETTING_NAME
+nm_setting_ethtool_new
+nm_setting_ethtool_get_feature
+nm_setting_ethtool_set_feature
+nm_setting_ethtool_clear_features
+<SUBSECTION Standard>
+NMSettingEthtoolClass
+NM_IS_SETTING_ETHTOOL
+NM_SETTING_ETHTOOL
+NM_SETTING_ETHTOOL_CLASS
+NM_SETTING_ETHTOOL_GET_CLASS
+NM_TYPE_SETTING_ETHTOOL
+nm_setting_ethtool_get_type
 </SECTION>
 
 <SECTION>
@@ -2385,6 +2543,29 @@ nm_setting_macvlan_get_type
 </SECTION>
 
 <SECTION>
+<FILE>nm-setting-match</FILE>
+<TITLE>NMSettingMatch</TITLE>
+NM_SETTING_MATCH_SETTING_NAME
+NM_SETTING_MATCH_INTERFACE_NAME
+nm_setting_match_new
+nm_setting_match_get_num_interface_names
+nm_setting_match_get_interface_name
+nm_setting_match_remove_interface_name
+nm_setting_match_remove_interface_name_by_value
+nm_setting_match_add_interface_name
+nm_setting_match_clear_interface_names
+nm_setting_match_get_interface_names
+<SUBSECTION Standard>
+NMSettingMatchClass
+NM_IS_SETTING_MATCH
+NM_SETTING_MATCH
+NM_SETTING_MATCH_CLASS
+NM_SETTING_MATCH_GET_CLASS
+NM_TYPE_SETTING_MATCH
+nm_setting_match_get_type
+</SECTION>
+
+<SECTION>
 <FILE>nm-setting-olpc-mesh</FILE>
 <TITLE>NMSettingOlpcMesh</TITLE>
 NM_SETTING_OLPC_MESH_SETTING_NAME
@@ -2618,6 +2799,57 @@ NM_SETTING_SERIAL_CLASS
 NM_SETTING_SERIAL_GET_CLASS
 NM_TYPE_SETTING_SERIAL
 nm_setting_serial_get_type
+</SECTION>
+
+<SECTION>
+<FILE>nm-setting-sriov</FILE>
+<TITLE>NMSettingSriov</TITLE>
+NM_SETTING_SRIOV_SETTING_NAME
+NM_SETTING_SRIOV_TOTAL_VFS
+NM_SETTING_SRIOV_VFS
+NM_SETTING_SRIOV_AUTOPROBE_DRIVERS
+NM_SRIOV_VF_ATTRIBUTE_MAC
+NM_SRIOV_VF_ATTRIBUTE_SPOOF_CHECK
+NM_SRIOV_VF_ATTRIBUTE_TRUST
+NM_SRIOV_VF_ATTRIBUTE_MIN_TX_RATE
+NM_SRIOV_VF_ATTRIBUTE_MAX_TX_RATE
+NMSriovVFVlanProtocol
+nm_setting_sriov_new
+nm_setting_sriov_get_total_vfs
+nm_setting_sriov_get_num_vfs
+nm_setting_sriov_get_vf
+nm_setting_sriov_add_vf
+nm_setting_sriov_remove_vf
+nm_setting_sriov_remove_vf_by_index
+nm_setting_sriov_clear_vfs
+nm_setting_sriov_get_autoprobe_drivers
+nm_sriov_vf_add_vlan
+nm_sriov_vf_remove_vlan
+nm_sriov_vf_get_vlan_ids
+nm_sriov_vf_set_vlan_qos
+nm_sriov_vf_set_vlan_protocol
+nm_sriov_vf_get_vlan_qos
+nm_sriov_vf_get_vlan_protocol
+nm_sriov_vf_new
+nm_sriov_vf_ref
+nm_sriov_vf_unref
+nm_sriov_vf_equal
+nm_sriov_vf_dup
+nm_sriov_vf_get_index
+nm_sriov_vf_set_attribute
+nm_sriov_vf_get_attribute_names
+nm_sriov_vf_get_attribute
+nm_sriov_vf_attribute_validate
+<SUBSECTION Standard>
+NMSettingSriovClass
+NMSriovVF
+NM_IS_SETTING_SRIOV
+NM_SETTING_SRIOV
+NM_SETTING_SRIOV_CLASS
+NM_SETTING_SRIOV_GET_CLASS
+NM_TYPE_SETTING_SRIOV
+nm_setting_sriov_get_type
+nm_sriov_vf_get_type
 </SECTION>
 
 <SECTION>
@@ -3207,6 +3439,27 @@ nm_setting_wireless_security_get_type
 </SECTION>
 
 <SECTION>
+<FILE>nm-setting-wpan</FILE>
+<TITLE>NMSettingWpan</TITLE>
+NM_SETTING_WPAN_SETTING_NAME
+NM_SETTING_WPAN_MAC_ADDRESS
+NM_SETTING_WPAN_PAN_ID
+NM_SETTING_WPAN_SHORT_ADDRESS
+nm_setting_wpan_new
+nm_setting_wpan_get_mac_address
+nm_setting_wpan_get_pan_id
+nm_setting_wpan_get_short_address
+<SUBSECTION Standard>
+NMSettingWpanClass
+NM_IS_SETTING_WPAN
+NM_SETTING_WPAN
+NM_SETTING_WPAN_CLASS
+NM_SETTING_WPAN_GET_CLASS
+NM_TYPE_SETTING_WPAN
+nm_setting_wpan_get_type
+</SECTION>
+
+<SECTION>
 <FILE>nm-simple-connection</FILE>
 <TITLE>NMSimpleConnection</TITLE>
 NMSimpleConnection
@@ -3231,6 +3484,7 @@ NMActiveConnection
 NMCheckpoint
 NMClient
 NMDevice
+NMDevice6Lowpan
 NMDeviceAdsl
 NMDeviceBond
 NMDeviceBridge
@@ -3254,6 +3508,8 @@ NMDeviceVlan
 NMDeviceVxlan
 NMDeviceWifi
 NMDeviceWimax
+NMDeviceWireGuard
+NMDeviceWpan
 NMDhcpConfig
 NMIPConfig
 NMObject
@@ -3339,6 +3595,8 @@ nm_utils_tc_action_from_str
 nm_utils_tc_action_to_str
 nm_utils_tc_tfilter_from_str
 nm_utils_tc_tfilter_to_str
+nm_utils_sriov_vf_to_str
+nm_utils_sriov_vf_from_str
 nm_utils_get_timestamp_msec
 NMVariantAttributeSpec
 stat
@@ -3372,7 +3630,9 @@ NM_AVAILABLE_IN_1_10
 NM_DEPRECATED_IN_1_12
 NM_DEPRECATED_IN_1_12_FOR
 NM_AVAILABLE_IN_1_12
-NM_AVAILABLE_IN_1_12_2
+NM_DEPRECATED_IN_1_14
+NM_DEPRECATED_IN_1_14_FOR
+NM_AVAILABLE_IN_1_14
 </SECTION>
 
 <SECTION>

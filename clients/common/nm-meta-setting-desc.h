@@ -22,6 +22,7 @@
 
 #include "nm-utils/nm-obj.h"
 #include "nm-meta-setting.h"
+#include "nm-ethtool-utils.h"
 
 struct _NMDevice;
 
@@ -147,6 +148,11 @@ typedef enum {
 typedef enum {
 	NM_META_ACCESSOR_GET_OUT_FLAGS_NONE                                     = 0,
 	NM_META_ACCESSOR_GET_OUT_FLAGS_STRV                                     = (1LL <<  0),
+
+	/* the property allows to be hidden, if and only if, it's value is set to the
+	 * default. This should only be set by new properties, to preserve behavior
+	 * of old properties, which were always printed. */
+	NM_META_ACCESSOR_GET_OUT_FLAGS_HIDE                                     = (1LL <<  1),
 } NMMetaAccessorGetOutFlags;
 
 typedef enum {
@@ -163,6 +169,7 @@ typedef enum {
 	NM_META_PROPERTY_TYPE_MAC_MODE_DEFAULT,
 	NM_META_PROPERTY_TYPE_MAC_MODE_CLONED,
 	NM_META_PROPERTY_TYPE_MAC_MODE_INFINIBAND,
+	NM_META_PROPERTY_TYPE_MAC_MODE_WPAN,
 } NMMetaPropertyTypeMacMode;
 
 typedef struct _NMMetaEnvironment           NMMetaEnvironment;
@@ -267,6 +274,9 @@ struct _NMMetaPropertyTypData {
 		struct {
 			NMMetaPropertyTypeMacMode mode;
 		} mac;
+		struct {
+			NMEthtoolID ethtool_id;
+		} ethtool;
 	} subtype;
 	const char *const*values_static;
 	const NMMetaPropertyTypDataNested *nested;
@@ -363,6 +373,7 @@ struct _NMMetaType {
 	                          const NMMetaEnvironment *environment,
 	                          gpointer environment_user_data,
 	                          gpointer target,
+	                          gpointer target_data,
 	                          NMMetaAccessorGetType get_type,
 	                          NMMetaAccessorGetFlags get_flags,
 	                          NMMetaAccessorGetOutFlags *out_flags,

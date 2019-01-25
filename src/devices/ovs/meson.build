@@ -15,7 +15,6 @@ libnm_device_plugin_ovs = shared_module(
   'nm-device-plugin-ovs',
   sources: sources,
   dependencies: deps,
-  c_args: '-DRUNSTATEDIR="@0@"'.format(nm_runstatedir),
   link_args: ldflags_linker_script_devices,
   link_depends: linker_script_devices,
   install: true,
@@ -24,10 +23,10 @@ libnm_device_plugin_ovs = shared_module(
 
 core_plugins += libnm_device_plugin_ovs
 
-run_target(
+test(
   'check-local-devices-ovs',
-  command: [check_exports, libnm_device_plugin_ovs.full_path(), linker_script_devices],
-  depends: libnm_device_plugin_ovs
+  check_exports,
+  args: [libnm_device_plugin_ovs.full_path(), linker_script_devices],
 )
 
 # FIXME: check_so_symbols replacement

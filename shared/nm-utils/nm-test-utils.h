@@ -300,9 +300,9 @@ nmtst_free (void)
 }
 
 static inline void
-_nmtst_log_handler (const gchar   *log_domain,
+_nmtst_log_handler (const char    *log_domain,
                     GLogLevelFlags log_level,
-                    const gchar   *message,
+                    const char    *message,
                     gpointer       user_data)
 {
 	g_print ("%s\n", message);
@@ -344,6 +344,8 @@ __nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_
 		__nmtst_internal.orig_argv = g_strdupv (*argv);
 
 	__nmtst_internal.assert_logging = !!assert_logging;
+
+	nm_g_type_init ();
 
 	is_debug = g_test_verbose ();
 
@@ -551,8 +553,13 @@ __nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_
 		*out_set_logging = TRUE;
 #endif
 		g_assert (success);
+#if GLIB_CHECK_VERSION(2,34,0)
 		if (__nmtst_internal.no_expect_message)
 			g_log_set_always_fatal (G_LOG_FATAL_MASK);
+#else
+		/* g_test_expect_message() is a NOP, so allow any messages */
+		g_log_set_always_fatal (G_LOG_FATAL_MASK);
+#endif
 	} else if (__nmtst_internal.no_expect_message) {
 		/* We have a test that would be assert_logging, but the user specified no_expect_message.
 		 * This transforms g_test_expect_message() into a NOP, but we also have to relax
@@ -572,10 +579,15 @@ __nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_
 		}
 #endif
 	} else {
+#if GLIB_CHECK_VERSION(2,34,0)
 		/* We were called not to set logging levels. This means, that the user
 		 * expects to assert against (all) messages.
 		 * Any uncaught message on >debug level is fatal. */
 		g_log_set_always_fatal (G_LOG_LEVEL_MASK & ~G_LOG_LEVEL_DEBUG);
+#else
+		/* g_test_expect_message() is a NOP, so allow any messages */
+		g_log_set_always_fatal (G_LOG_FATAL_MASK);
+#endif
 	}
 
 	if ((!__nmtst_internal.assert_logging || (__nmtst_internal.assert_logging && __nmtst_internal.no_expect_message)) &&
@@ -642,6 +654,7 @@ nmtst_test_quick (void)
 	return __nmtst_internal.test_quick;
 }
 
+#if GLIB_CHECK_VERSION(2,34,0)
 #undef g_test_expect_message
 #define g_test_expect_message(...) \
 	G_STMT_START { \
@@ -649,7 +662,9 @@ nmtst_test_quick (void)
 		if (__nmtst_internal.assert_logging && __nmtst_internal.no_expect_message) { \
 			g_debug ("nmtst: assert-logging: g_test_expect_message %s", G_STRINGIFY ((__VA_ARGS__))); \
 		} else { \
+			G_GNUC_BEGIN_IGNORE_DEPRECATIONS \
 			g_test_expect_message (__VA_ARGS__); \
+			G_GNUC_END_IGNORE_DEPRECATIONS \
 		} \
 	} G_STMT_END
 #undef g_test_assert_expected_messages_internal
@@ -663,8 +678,11 @@ nmtst_test_quick (void)
 		if (__nmtst_internal.assert_logging && __nmtst_internal.no_expect_message) \
 			g_debug ("nmtst: assert-logging: g_test_assert_expected_messages(%s, %s:%d, %s)", _domain?:"", _file?:"", _line, _func?:""); \
 		\
+		G_GNUC_BEGIN_IGNORE_DEPRECATIONS \
 		g_test_assert_expected_messages_internal (_domain, _file, _line, _func); \
+		G_GNUC_END_IGNORE_DEPRECATIONS \
 	} G_STMT_END
+#endif
 
 #define NMTST_EXPECT(domain, level, msg)        g_test_expect_message (domain, level, msg)
 
@@ -806,7 +824,7 @@ nmtst_get_rand (void)
 			g_rand_set_seed (__nmtst_internal.rand, seed);
 		} else {
 			/* NMTST_SEED_RAND is set. Use it as a seed. */
-			gchar *s;
+			char *s;
 			gint64 i;
 
 			i = g_ascii_strtoll (str, &s, 0);
@@ -1171,12 +1189,12 @@ _nmtst_assert_ip6_address (const char *file, int line, const struct in6_addr *ad
 
 #define nmtst_spawn_sync(working_directory, standard_out, standard_err, assert_exit_status, ...) \
 	__nmtst_spawn_sync (working_directory, standard_out, standard_err, assert_exit_status, ##__VA_ARGS__, NULL)
-static inline gint
+static inline int
 __nmtst_spawn_sync (const char *working_directory, char **standard_out, char **standard_err, int assert_exit_status, ...) G_GNUC_NULL_TERMINATED;
-static inline gint
+static inline int
 __nmtst_spawn_sync (const char *working_directory, char **standard_out, char **standard_err, int assert_exit_status, ...)
 {
-	gint exit_status = 0;
+	int exit_status = 0;
 	GError *error = NULL;
 	char *arg;
 	va_list va_args;
@@ -1659,7 +1677,7 @@ nmtst_assert_connection_verifies_and_normalizable (NMConnection *con)
 static inline void
 nmtst_assert_connection_verifies_after_normalization (NMConnection *con,
                                                       GQuark expect_error_domain,
-                                                      gint expect_error_code)
+                                                      int expect_error_code)
 {
 	/* assert that the connection does not verify, but normalization does fix it */
 	GError *error = NULL;
@@ -1686,7 +1704,7 @@ nmtst_assert_connection_verifies_after_normalization (NMConnection *con,
 static inline void
 nmtst_assert_connection_unnormalizable (NMConnection *con,
                                         GQuark expect_error_domain,
-                                        gint expect_error_code)
+                                        int expect_error_code)
 {
 	/* assert that the connection does not verify, and it cannot be fixed by normalization */
 
@@ -1743,7 +1761,7 @@ _nmtst_assert_connection_has_settings (NMConnection *connection, gboolean has_at
 
 	va_start (ap, has_at_most);
 	while ((name = va_arg (ap, const char *))) {
-		if (!g_hash_table_add (names, (gpointer) name))
+		if (!nm_g_hash_table_add (names, (gpointer) name))
 			g_assert_not_reached ();
 		g_ptr_array_add (names_arr, (gpointer) name);
 	}
@@ -1784,7 +1802,7 @@ _nmtst_assert_connection_has_settings (NMConnection *connection, gboolean has_at
 static inline void
 nmtst_assert_setting_verify_fails (NMSetting *setting,
                                    GQuark expect_error_domain,
-                                   gint expect_error_code)
+                                   int expect_error_code)
 {
 	/* assert that the setting verification fails */
 
@@ -1839,25 +1857,31 @@ nmtst_assert_hwaddr_equals (gconstpointer hwaddr1, gssize hwaddr1_len, const cha
 #if defined(__NM_SIMPLE_CONNECTION_H__) && defined(__NM_SETTING_CONNECTION_H__) && defined(__NM_KEYFILE_INTERNAL_H__)
 
 static inline NMConnection *
-nmtst_create_connection_from_keyfile (const char *keyfile_str, const char *keyfile_name, const char *base_dir)
+nmtst_create_connection_from_keyfile (const char *keyfile_str, const char *full_filename)
 {
 	GKeyFile *keyfile;
 	GError *error = NULL;
 	gboolean success;
 	NMConnection *con;
+	gs_free char *filename = g_path_get_basename (full_filename);
+	gs_free char *base_dir = g_path_get_dirname (full_filename);
 
 	g_assert (keyfile_str);
+	g_assert (full_filename && full_filename[0] == '/');
 
 	keyfile =  g_key_file_new ();
 	success = g_key_file_load_from_data (keyfile, keyfile_str, strlen (keyfile_str), G_KEY_FILE_NONE, &error);
 	g_assert_no_error (error);
 	g_assert (success);
 
-	con = nm_keyfile_read (keyfile, keyfile_name, base_dir, NULL, NULL, &error);
+	con = nm_keyfile_read (keyfile, base_dir, NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (NM_IS_CONNECTION (con));
 
 	g_key_file_unref (keyfile);
+
+	nm_keyfile_read_ensure_id (con, filename);
+	nm_keyfile_read_ensure_uuid (con, full_filename);
 
 	nmtst_connection_normalize (con);
 

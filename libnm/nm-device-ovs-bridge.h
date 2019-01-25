@@ -42,7 +42,7 @@ typedef struct _NMDeviceOvsBridgeClass NMDeviceOvsBridgeClass;
 NM_AVAILABLE_IN_1_10
 GType nm_device_ovs_bridge_get_type (void);
 
-NM_AVAILABLE_IN_1_12_2
+NM_AVAILABLE_IN_1_14
 const GPtrArray *nm_device_ovs_bridge_get_slaves (NMDeviceOvsBridge *device);
 
 G_END_DECLS
