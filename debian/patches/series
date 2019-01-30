@@ -5,3 +5,5 @@ Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
 Update-dnsmasq-parameters.patch
 Disable-general-with-expect.patch
 libnm-Check-self-still-NMManager-or-not.patch
+# Upstream backport
+git_team_structure.patch

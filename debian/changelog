@@ -5,6 +5,9 @@ network-manager (1.15.2-0ubuntu1) UNRELEASED; urgency=medium
     - updated for the new version
   * debian/patches
     - removed the changes that are included in the new version
+  * debian/patches/git_team_structure.patch:
+    - backport upstream change 'fix team link-watcher struct layout',
+      the tests/build failed on i386
   * debian/rules:
     - strip '-Wl,-Bsymbolic-functions' from LDFLAGS otherwise the
       tests fails on 'cannot register existing type 'NMAgentManagerError''

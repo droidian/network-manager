@@ -1,0 +1,36 @@
+From 63b90f0dd175c7b38aecb3b8e9bad3fb8bad2265 Mon Sep 17 00:00:00 2001
+From: Beniamino Galvani <bgalvani@redhat.com>
+Date: Sat, 26 Jan 2019 18:37:12 +0100
+Subject: [PATCH] libnm-core: fix team link-watcher struct layout
+
+As the comment above the union says, structs in the union must have
+the same layout of arp_ping. 'vlanid' is in the wrong place and breaks
+that.
+
+Fixes: f44c793f6cd89c3e84e83872478daf286821ed64
+
+https://gitlab.freedesktop.org/NetworkManager/NetworkManager/issues/110
+---
+ libnm-core/nm-setting-team.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libnm-core/nm-setting-team.c b/libnm-core/nm-setting-team.c
+index 3161c05f4..867db5227 100644
+--- a/libnm-core/nm-setting-team.c
++++ b/libnm-core/nm-setting-team.c
+@@ -84,10 +84,10 @@ struct NMTeamLinkWatcher {
+ 			int init_wait;
+ 			int interval;
+ 			int missed_max;
+-			int vlanid;
+ 			char *target_host;
+ 			char *source_host;
+ 			NMTeamLinkWatcherArpPingFlags flags;
++			int vlanid;
+ 		} arp_ping;
+ 	};
+ };
+-- 
+2.18.1
+
+
