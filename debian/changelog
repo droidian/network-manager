@@ -1,4 +1,4 @@
-network-manager (1.15.2-0ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.15.2-0ubuntu1) disco; urgency=medium
 
   * Update to the current serie, resynchronize with Debian
   * debian/libnm0.symbols:
