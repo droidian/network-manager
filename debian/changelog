@@ -1,3 +1,11 @@
+network-manager (1.15.2-0ubuntu2) UNRELEASED; urgency=medium
+
+  * debian/patches/git_ifupdown_segfault.patch:
+    - 'settings/ifupdown: fix ifupdown plugin after merging eni_ifaces and 
+       connections hashes' (lp: #1815742)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 18 Feb 2019 17:06:17 +0100
+
 network-manager (1.15.2-0ubuntu1) disco; urgency=medium
 
   * Update to the current serie, resynchronize with Debian

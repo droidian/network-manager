@@ -1,0 +1,40 @@
+From b24e169ded4bc4c6f41b0ae42a150cb86d9d0c84 Mon Sep 17 00:00:00 2001
+From: Thomas Haller <thaller@redhat.com>
+Date: Fri, 15 Feb 2019 15:59:32 +0100
+Subject: [PATCH] settings/ifupdown: fix ifupdown plugin after merging
+ eni_ifaces and connections hashes
+
+The @eni_ifaces hash may now contain %NULL elements. They are only markers
+for interface names, but are not actual connections.
+
+They must be skipped.
+
+Fixes: 6aa66426a4168b3db115646f410bcb5deea6847b
+
+https://gitlab.freedesktop.org/NetworkManager/NetworkManager/issues/124
+(cherry picked from commit 5923a30c43f9e79e368f7595d96c73797d24dd46)
+---
+ src/settings/plugins/ifupdown/nms-ifupdown-plugin.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/settings/plugins/ifupdown/nms-ifupdown-plugin.c b/src/settings/plugins/ifupdown/nms-ifupdown-plugin.c
+index b66eedc70..f0e64d1de 100644
+--- a/src/settings/plugins/ifupdown/nms-ifupdown-plugin.c
++++ b/src/settings/plugins/ifupdown/nms-ifupdown-plugin.c
+@@ -282,8 +282,10 @@ initialize (NMSettingsPlugin *plugin)
+ 
+ 		g_hash_table_iter_init (&iter, priv->eni_ifaces);
+ 		while (g_hash_table_iter_next (&iter, NULL, (gpointer *) conn)) {
+-			_nm_settings_plugin_emit_signal_connection_added (NM_SETTINGS_PLUGIN (self),
+-			                                                  NM_SETTINGS_CONNECTION (conn));
++			if (conn) {
++				_nm_settings_plugin_emit_signal_connection_added (NM_SETTINGS_PLUGIN (self),
++				                                                  NM_SETTINGS_CONNECTION (conn));
++			}
+ 		}
+ 	}
+ }
+-- 
+2.18.1
+
+
