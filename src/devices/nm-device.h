@@ -183,13 +183,13 @@ typedef enum { /*< skip >*/
 	_NM_DEVICE_CHECK_CON_AVAILABLE_FOR_USER_REQUEST_IGNORE_AP           = (1L << 2),
 
 	/* a device can be marked as unmanaged for various reasons. Some of these reasons
-	 * are authorative, others not. Non-authoritative reasons can be overruled by
+	 * are authoritative, others not. Non-authoritative reasons can be overruled by
 	 * `nmcli device set $DEVICE managed yes`. Also, for an explicit user activation
 	 * request we may want to consider the device as managed. This flag makes devices
 	 * that are unmanaged appear available. */
 	_NM_DEVICE_CHECK_CON_AVAILABLE_FOR_USER_REQUEST_OVERRULE_UNMANAGED  = (1L << 3),
 
-	/* a collection of flags, that are commonly set for an explict user-request. */
+	/* a collection of flags, that are commonly set for an explicit user-request. */
 	NM_DEVICE_CHECK_CON_AVAILABLE_FOR_USER_REQUEST                      = _NM_DEVICE_CHECK_CON_AVAILABLE_FOR_USER_REQUEST
 	                                                                    | _NM_DEVICE_CHECK_CON_AVAILABLE_FOR_USER_REQUEST_WAITING_CARRIER
 	                                                                    | _NM_DEVICE_CHECK_CON_AVAILABLE_FOR_USER_REQUEST_IGNORE_AP
@@ -369,16 +369,13 @@ typedef struct _NMDeviceClass {
 	                                             NMDeviceStateReason *out_failure_reason);
 	NMActStageReturn    (* act_stage2_config)   (NMDevice *self,
 	                                             NMDeviceStateReason *out_failure_reason);
-	NMActStageReturn    (* act_stage3_ip4_config_start) (NMDevice *self,
-	                                                     NMIP4Config **out_config,
-	                                                     NMDeviceStateReason *out_failure_reason);
-	NMActStageReturn    (* act_stage3_ip6_config_start) (NMDevice *self,
-	                                                     NMIP6Config **out_config,
-	                                                     NMDeviceStateReason *out_failure_reason);
-	NMActStageReturn    (* act_stage4_ip4_config_timeout)   (NMDevice *self,
-	                                                         NMDeviceStateReason *out_failure_reason);
-	NMActStageReturn    (* act_stage4_ip6_config_timeout)   (NMDevice *self,
-	                                                         NMDeviceStateReason *out_failure_reason);
+	NMActStageReturn    (* act_stage3_ip_config_start) (NMDevice *self,
+	                                                    int addr_family,
+	                                                    gpointer *out_config,
+	                                                    NMDeviceStateReason *out_failure_reason);
+	NMActStageReturn    (* act_stage4_ip_config_timeout)   (NMDevice *self,
+	                                                        int addr_family,
+	                                                        NMDeviceStateReason *out_failure_reason);
 
 	void                (* ip4_config_pre_commit) (NMDevice *self, NMIP4Config *config);
 
@@ -456,6 +453,11 @@ typedef struct _NMDeviceClass {
 
 	guint32         (* get_dhcp_timeout) (NMDevice *self,
 	                                      int addr_family);
+
+	/* Controls, whether to call act_stage2_config() callback also for assuming
+	 * a device or for external activations. In this case, act_stage2_config() must
+	 * take care not to touch the device's configuration. */
+	bool act_stage2_config_also_for_external_or_assume:1;
 } NMDeviceClass;
 
 typedef void (*NMDeviceAuthRequestFunc) (NMDevice *device,

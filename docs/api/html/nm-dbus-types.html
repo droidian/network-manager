@@ -34,7 +34,7 @@
 <p>The range 0x7000 - 0x7FFF of capabilities is guaranteed not to be used by upstream NetworkManager. It could thus be used for downstream extensions.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.3.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.3.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -66,7 +66,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMState" title="enum NMState">NMState</a> values indicate the current overall networking state.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.4.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.4.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -204,7 +204,7 @@
 <a name="NMConnectivityState"></a><h3>enum NMConnectivityState</h3>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.5.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.5.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -298,7 +298,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMDeviceType" title="enum NMDeviceType">NMDeviceType</a> values indicate the type of hardware represented by a device object.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.6.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.6.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -757,6 +757,21 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_TYPE_WIFI_P2P</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">30</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>an 802.11 Wi-Fi P2P device (Since: 1.16)</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -767,7 +782,7 @@
 <p>General device capability flags.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.7.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.7.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -861,7 +876,7 @@
 <p>802.11 specific device encryption and authentication capabilities.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.8.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.8.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1060,7 +1075,7 @@
 <p>802.11 access point flags.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.9.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.9.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1154,7 +1169,7 @@
 <p>802.11 access point security and authentication flags.  These flags describe the current security requirements of an access point as determined from the access point's beacon.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.10.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.10.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1328,6 +1343,21 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_802_11_AP_SEC_KEY_MGMT_SAE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x00000400</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>WPA/RSN Simultaneous Authentication of Equals is supported</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -1338,7 +1368,7 @@
 <p>Indicates the 802.11 mode an access point or device is currently in.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.11.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.11.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1417,7 +1447,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMBluetoothCapabilities" title="enum NMBluetoothCapabilities">NMBluetoothCapabilities</a> values indicate the usable capabilities of a Bluetooth device.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.12.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.12.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1481,7 +1511,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMDeviceModemCapabilities" title="enum NMDeviceModemCapabilities">NMDeviceModemCapabilities</a> values indicate the generic radio access technology families a modem device supports.  For more information on the specific access technologies the device supports use the ModemManager D-Bus API.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.13.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.13.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1575,7 +1605,7 @@
 <p>WiMAX network type.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.14.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.14.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1653,7 +1683,7 @@
 <a name="NMDeviceState"></a><h3>enum NMDeviceState</h3>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.15.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.15.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1867,7 +1897,7 @@
 <p>Device state change reason codes</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.16.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.16.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -2881,6 +2911,21 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_STATE_REASON_PEER_NOT_FOUND</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">67</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>The Wi-Fi P2P peer could not be found</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -2891,7 +2936,7 @@
 <p>Since: 1.2</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.17.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.17.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -2985,7 +3030,7 @@
 <p>Since: 1.14</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.18.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.18.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3064,7 +3109,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMActiveConnectionState" title="enum NMActiveConnectionState">NMActiveConnectionState</a> values indicate the state of a connection to a specific network while it is starting, connected, or disconnecting from that network.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.19.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.19.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3159,7 +3204,7 @@
 <p>Since: 1.8</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.20.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.20.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3403,7 +3448,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMSecretAgentGetSecretsFlags" title="enum NMSecretAgentGetSecretsFlags">NMSecretAgentGetSecretsFlags</a> values modify the behavior of a GetSecrets request.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.21.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.21.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3527,7 +3572,7 @@
 <p><a class="link" href="nm-dbus-types.html#NMSecretAgentCapabilities" title="enum NMSecretAgentCapabilities">NMSecretAgentCapabilities</a> indicate various capabilities of the agent.</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.22.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.22.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3577,7 +3622,7 @@
 <p>Since: 1.2</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.23.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.23.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3777,7 +3822,7 @@
 <p>Since: 1.4 (gi flags generated since 1.12)</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.24.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.24.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3872,7 +3917,7 @@
 <p>Since: 1.4</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.25.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.25.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -3952,7 +3997,7 @@
 <p>Since: 1.12</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.26.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.26.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4032,7 +4077,7 @@
 <p>Since: 1.10</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.27.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.27.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4062,7 +4107,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">(1LL</code></p>
+<p>= <code class="literal">0x1</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -4077,7 +4122,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">(1LL</code></p>
+<p>= <code class="literal">0x2</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -4092,7 +4137,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">(1LL</code></p>
+<p>= <code class="literal">0x4</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -4107,7 +4152,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">(1LL</code></p>
+<p>= <code class="literal">0x8</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -4122,7 +4167,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">(1LL</code></p>
+<p>= <code class="literal">0x10</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -4137,7 +4182,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">(1LL</code></p>
+<p>= <code class="literal">0x20</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -4152,7 +4197,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">(1LL</code></p>
+<p>= <code class="literal">0x40</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -4171,7 +4216,7 @@
 <p>Since: 1.12</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.28.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.28.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4201,7 +4246,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">(1LL</code></p>
+<p>= <code class="literal">0x1</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -4216,7 +4261,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">(1LL</code></p>
+<p>= <code class="literal">0x2</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -4231,7 +4276,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">(1LL</code></p>
+<p>= <code class="literal">0x4</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -4246,7 +4291,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">(1LL</code></p>
+<p>= <code class="literal">0x8</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -4261,7 +4306,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">(1LL</code></p>
+<p>= <code class="literal">0x10</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -4276,7 +4321,7 @@
 <p></p>
 </td>
 <td class="enum_member_value">
-<p>= <code class="literal">(1LL</code></p>
+<p>= <code class="literal">0x20</code></p>
 <p></p>
 </td>
 <td class="enum_member_description">
@@ -4296,7 +4341,7 @@
 <p>Since: 1.14</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.16.2.29.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.29.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">

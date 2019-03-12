@@ -241,7 +241,7 @@
 <a name="nm-settings.property.connection.stable-id"></a>stable-id</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>This represents the identity of the connection used for various purposes. It allows to configure multiple profiles to share the identity. Also, the stable-id can contain placeholders that are substituted dynamically and deterministically depending on the context. The stable-id is used for generating IPv6 stable private addresses with ipv6.addr-gen-mode=stable-privacy. It is also used to seed the generated cloned MAC address for ethernet.cloned-mac-address=stable and wifi.cloned-mac-address=stable. It is also used as DHCP client identifier with ipv4.dhcp-client-id=stable and to derive the DHCP DUID with ipv6.dhcp-duid=stable-[llt,ll,uuid]. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm. For example, a per-host key is commonly also included, so that different systems end up generating different IDs. Or with ipv6.addr-gen-mode=stable-privacy, also the device's name is included, so that different interfaces yield different addresses. The '$' character is treated special to perform dynamic substitutions at runtime. Currently supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}". These effectively create unique IDs per-connection, per-device, per-boot, or every time. Note that "${DEVICE}" corresponds the the interface name of the device and "${MAC}" is the permanent MAC address of the device. Any unrecognized patterns following '$' are treated verbatim, however are reserved for future use. You are thus advised to avoid '$' or escape it as "$$". For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates. If the value is unset, a global connection default is consulted. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection.</td>
+<td>This represents the identity of the connection used for various purposes. It allows to configure multiple profiles to share the identity. Also, the stable-id can contain placeholders that are substituted dynamically and deterministically depending on the context. The stable-id is used for generating IPv6 stable private addresses with ipv6.addr-gen-mode=stable-privacy. It is also used to seed the generated cloned MAC address for ethernet.cloned-mac-address=stable and wifi.cloned-mac-address=stable. It is also used as DHCP client identifier with ipv4.dhcp-client-id=stable and to derive the DHCP DUID with ipv6.dhcp-duid=stable-[llt,ll,uuid]. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm. For example, a per-host key is commonly also included, so that different systems end up generating different IDs. Or with ipv6.addr-gen-mode=stable-privacy, also the device's name is included, so that different interfaces yield different addresses. The '$' character is treated special to perform dynamic substitutions at runtime. Currently supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}". These effectively create unique IDs per-connection, per-device, per-boot, or every time. Note that "${DEVICE}" corresponds to the interface name of the device and "${MAC}" is the permanent MAC address of the device. Any unrecognized patterns following '$' are treated verbatim, however are reserved for future use. You are thus advised to avoid '$' or escape it as "$$". For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates. If the value is unset, a global connection default is consulted. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection.</td>
 </tr>
 <tr>
 <td align="left">
@@ -3098,7 +3098,49 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.42"></a><h3>wimax setting</h3>
+<a name="id-1.2.7.4.42"></a><h3>wifi-p2p setting</h3>
+<p>Wi-Fi P2P Settings.</p>
+<div class="informaltable"><table class="informaltable" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Key Name</th>
+<th>Value Type</th>
+<th>Default Value</th>
+<th>Value Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wifi-p2p.peer"></a>peer</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>The P2P device that should be connected to. Currently this is the only way to create or join a group.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wifi-p2p.wfd-ies"></a>wfd-ies</td>
+<td align="left">byte array</td>
+<td align="left"> </td>
+<td>The Wi-Fi Display (WFD) Information Elements (IEs) to set. Wi-Fi Display requires a protocol specific information element to be set in certain Wi-Fi frames. These can be specified here for the purpose of establishing a connection. This setting is only useful when implementing a Wi-Fi Display client.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wifi-p2p.wps-method"></a>wps-method</td>
+<td align="left">uint32</td>
+<td align="left">0</td>
+<td>Flags indicating which mode of WPS is to be used. There's little point in changing the default setting as NetworkManager will automatically determine the best method to use.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="id-1.2.7.4.43"></a><h3>wimax setting</h3>
 <p>WiMax Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3133,7 +3175,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.43"></a><h3>802-3-ethernet setting</h3>
+<a name="id-1.2.7.4.44"></a><h3>802-3-ethernet setting</h3>
 <p>Wired Ethernet Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3259,7 +3301,77 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.44"></a><h3>802-11-wireless setting</h3>
+<a name="id-1.2.7.4.45"></a><h3>wireguard setting</h3>
+<p>WireGuard Ethernet Settings.</p>
+<div class="informaltable"><table class="informaltable" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Key Name</th>
+<th>Value Type</th>
+<th>Default Value</th>
+<th>Value Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wireguard.fwmark"></a>fwmark</td>
+<td align="left">uint32</td>
+<td align="left">0</td>
+<td>The use of fwmark is optional and is by default off. Setting it to 0 disables it. Otherwise it is a 32-bit fwmark for outgoing packets.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wireguard.listen-port"></a>listen-port</td>
+<td align="left">uint32</td>
+<td align="left">0</td>
+<td>The listen-port. If listen-port is not specified, the port will be chosen randomly when the interface comes up.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wireguard.mtu"></a>mtu</td>
+<td align="left">uint32</td>
+<td align="left">0</td>
+<td>If non-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple fragments. If zero a default MTU is used. Note that contrary to wg-quick's MTU setting, this does not take into account the current routes at the time of activation.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wireguard.peer-routes"></a>peer-routes</td>
+<td align="left">boolean</td>
+<td align="left">TRUE</td>
+<td>Whether to automatically add routes for the AllowedIPs ranges of the peers. If TRUE (the default), NetworkManager will automatically add routes in the routing tables according to ipv4.route-table and ipv6.route-table. If FALSE, no such routes are added automatically. In this case, the user may want to configure static routes in ipv4.routes and ipv6.routes, respectively.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wireguard.peers"></a>peers</td>
+<td align="left">array of 'a{sv}'</td>
+<td align="left"> </td>
+<td>Array of dictionaries for the WireGuard peers.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wireguard.private-key"></a>private-key</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>The 256 bit private-key in base64 encoding.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wireguard.private-key-flags"></a>private-key-flags</td>
+<td align="left">NMSettingSecretFlags (uint32)</td>
+<td align="left"> </td>
+<td>Flags indicating how to handle the "private-key" property. (see <a class="xref" href="nm-settings.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values)</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="id-1.2.7.4.46"></a><h3>802-11-wireless setting</h3>
 <p>Wi-Fi Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3413,7 +3525,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.45"></a><h3>802-11-wireless-security setting</h3>
+<a name="id-1.2.7.4.47"></a><h3>802-11-wireless-security setting</h3>
 <p>Wi-Fi Security Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3455,7 +3567,7 @@
 <a name="nm-settings.property.802-11-wireless-security.key-mgmt"></a>key-mgmt</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>Key management used for the connection.  One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa-none" (Ad-Hoc WPA-PSK), "wpa-psk" (infrastructure WPA-PSK), or "wpa-eap" (WPA-Enterprise).  This property must be set for any Wi-Fi connection that uses security.</td>
+<td>Key management used for the connection.  One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa-none" (Ad-Hoc WPA-PSK), "wpa-psk" (infrastructure WPA-PSK), "sae" (SAE) or "wpa-eap" (WPA-Enterprise). This property must be set for any Wi-Fi connection that uses security.</td>
 </tr>
 <tr>
 <td align="left">
@@ -3504,7 +3616,7 @@
 <a name="nm-settings.property.802-11-wireless-security.psk"></a>psk</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>Pre-Shared-Key for WPA networks.  If the key is 64-characters long, it must contain only hexadecimal characters and is interpreted as a hexadecimal WPA key.  Otherwise, the key must be between 8 and 63 ASCII characters (as specified in the 802.11i standard) and is interpreted as a WPA passphrase, and is hashed to derive the actual WPA-PSK used when connecting to the Wi-Fi network.</td>
+<td>Pre-Shared-Key for WPA networks. For WPA-PSK, it's either an ASCII passphrase of 8 to 63 characters that is (as specified in the 802.11i standard) hashed to derive the actual key, or the key in form of 64 hexadecimal character. The WPA3-Personal networks use a passphrase of any length for SAE authentication.</td>
 </tr>
 <tr>
 <td align="left">
@@ -3574,7 +3686,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.46"></a><h3>wpan setting</h3>
+<a name="id-1.2.7.4.48"></a><h3>wpan setting</h3>
 <p>IEEE 802.15.4 (WPAN) MAC Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>

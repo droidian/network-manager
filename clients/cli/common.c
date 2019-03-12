@@ -25,7 +25,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <sys/ioctl.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -686,6 +685,8 @@ get_secrets_from_user (const NmcConfig *nmc_config,
 			pwd = g_strdup (pwd);
 		} else {
 			if (ask) {
+				gboolean echo_on;
+
 				if (secret->value) {
 					if (!g_strcmp0 (secret->vpn_type, NM_DBUS_INTERFACE ".openconnect")) {
 						/* Do not present and ask user for openconnect secrets, we already have them */
@@ -698,11 +699,16 @@ get_secrets_from_user (const NmcConfig *nmc_config,
 				}
 				if (msg)
 					g_print ("%s\n", msg);
-				pwd = nmc_readline_echo (nmc_config,
-				                         secret->is_secret
-				                         ? nmc_config->show_secrets
-				                         : TRUE,
-				                         "%s (%s): ", secret->pretty_name, secret->entry_id);
+
+				echo_on = secret->is_secret
+				          ? nmc_config->show_secrets
+				          : TRUE;
+
+				if (secret->no_prompt_entry_id)
+					pwd = nmc_readline_echo (nmc_config, echo_on, "%s: ", secret->pretty_name);
+				else
+					pwd = nmc_readline_echo (nmc_config, echo_on, "%s (%s): ", secret->pretty_name, secret->entry_id);
+
 				if (!pwd)
 					pwd = g_strdup ("");
 			} else {
@@ -778,7 +784,7 @@ nmc_secrets_requested (NMSecretAgentSimple *agent,
 		/* Unregister our secret agent on failure, so that another agent
 		 * may be tried */
 		if (nmc->secret_agent) {
-			nm_secret_agent_old_unregister (nmc->secret_agent, NULL, NULL);
+			nm_secret_agent_old_unregister (NM_SECRET_AGENT_OLD (nmc->secret_agent), NULL, NULL);
 			g_clear_object (&nmc->secret_agent);
 		}
 	}
@@ -1343,23 +1349,39 @@ nmc_do_cmd (NmCli *nmc, const NMCCommand cmds[], const char *cmd, int argc, char
 /**
  * nmc_complete_strings:
  * @prefix: a string to match
- * @...: a %NULL-terminated list of candidate strings
+ * @nargs: the number of elements in @args. Or -1 if @args is a NULL terminated
+ *   strv array.
+ * @args: the argument list. If @nargs is not -1, then some elements may
+ *   be %NULL to indicate to silently skip the values.
  *
  * Prints all the matching candidates for completion. Useful when there's
  * no better way to suggest completion other than a hardcoded string list.
  */
 void
-nmc_complete_strings (const char *prefix, ...)
+nmc_complete_strv (const char *prefix, gssize nargs, const char *const*args)
 {
-	va_list args;
-	const char *candidate;
+	gsize i, n;
 
-	va_start (args, prefix);
-	while ((candidate = va_arg (args, const char *))) {
-		if (!*prefix || matches (prefix, candidate))
-			g_print ("%s\n", candidate);
+	if (prefix && !prefix[0])
+		prefix = NULL;
+
+	if (nargs < 0) {
+		nm_assert (nargs == -1);
+		n = NM_PTRARRAY_LEN (args);
+	} else
+		n = (gsize) nargs;
+
+	for (i = 0; i < n; i++) {
+		const char *candidate = args[i];
+
+		if (!candidate)
+			continue;
+		if (   prefix
+		    && !matches (prefix, candidate))
+			continue;
+
+		g_print ("%s\n", candidate);
 	}
-	va_end (args);
 }
 
 /**

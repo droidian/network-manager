@@ -23,11 +23,9 @@
 #include <glib-unix.h>
 #include <getopt.h>
 #include <locale.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <string.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <signal.h>
@@ -389,6 +387,7 @@ main (int argc, char *argv[])
 	gs_unref_bytes GBytes *client_id = NULL;
 	gs_free NMUtilsIPv6IfaceId *iid = NULL;
 	guint sd_id;
+	int errsv;
 
 	c_list_init (&gl.dad_failed_lst_head);
 
@@ -397,11 +396,11 @@ main (int argc, char *argv[])
 	if (!do_early_setup (&argc, &argv))
 		return 1;
 
-	nm_logging_set_syslog_identifier ("nm-iface-helper");
-	nm_logging_set_prefix ("%s[%ld] (%s): ",
-	                       _NMLOG_PREFIX_NAME,
-	                       (long) getpid (),
-	                       global_opt.ifname ?: "???");
+	nm_logging_init_pre ("nm-iface-helper",
+	                     g_strdup_printf ("%s[%ld] (%s): ",
+	                                      _NMLOG_PREFIX_NAME,
+	                                      (long) getpid (),
+	                                      global_opt.ifname ?: "???"));
 
 	if (global_opt.g_fatal_warnings) {
 		GLogLevelFlags fatal_mask;
@@ -425,7 +424,8 @@ main (int argc, char *argv[])
 
 	gl.ifindex = nmp_utils_if_nametoindex (global_opt.ifname);
 	if (gl.ifindex <= 0) {
-		fprintf (stderr, _("Failed to find interface index for %s (%s)\n"), global_opt.ifname, strerror (errno));
+		errsv = errno;
+		fprintf (stderr, _("Failed to find interface index for %s (%s)\n"), global_opt.ifname, nm_strerror_native (errsv));
 		return 1;
 	}
 	pidfile = g_strdup_printf (NMIH_PID_FILE_FMT, gl.ifindex);
@@ -450,12 +450,10 @@ main (int argc, char *argv[])
 
 	if (global_opt.become_daemon && !global_opt.debug) {
 		if (daemon (0, 0) < 0) {
-			int saved_errno;
-
-			saved_errno = errno;
+			errsv = errno;
 			fprintf (stderr, _("Could not daemonize: %s [error %u]\n"),
-			         g_strerror (saved_errno),
-			         saved_errno);
+			         nm_strerror_native (errsv),
+			         errsv);
 			return 1;
 		}
 		if (nm_main_utils_write_pidfile (pidfile))
@@ -466,8 +464,8 @@ main (int argc, char *argv[])
 	gl.main_loop = g_main_loop_new (NULL, FALSE);
 	setup_signals ();
 
-	nm_logging_syslog_openlog (global_opt.logging_backend,
-	                           global_opt.debug);
+	nm_logging_init (global_opt.logging_backend,
+	                 global_opt.debug);
 
 	_LOGI (LOGD_CORE, "nm-iface-helper (version " NM_DIST_VERSION ") is starting...");
 

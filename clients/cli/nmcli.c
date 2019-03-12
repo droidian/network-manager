@@ -24,7 +24,6 @@
 #include "nmcli.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <termios.h>
@@ -256,7 +255,7 @@ usage (void)
 	              "  -p, --pretty                             pretty output\n"
 	              "  -s, --show-secrets                       allow displaying passwords\n"
 	              "  -t, --terse                              terse output\n"
-	              "  -v, --version                            how program version\n"
+	              "  -v, --version                            show program version\n"
 	              "  -w, --wait <seconds>                     set timeout waiting for finishing operations\n"
 	              "\n"
 	              "OBJECT\n"
@@ -504,7 +503,7 @@ resolve_color_alias (const char *color)
 	static const struct {
 		const char *name;
 		const char *alias;
-	} const aliases[] = {
+	} aliases[] = {
 		{ "reset",        "0" },
 		{ "bold",         "1" },
 		{ "white",        "1;37" },
@@ -1013,15 +1012,15 @@ nmc_cleanup (NmCli *nmc)
 
 	g_clear_object (&nmc->client);
 
-	g_string_free (nmc->return_text, TRUE);
+	if (nmc->return_text)
+		g_string_free (g_steal_pointer (&nmc->return_text), TRUE);
 
 	if (nmc->secret_agent) {
-		/* Destroy secret agent if we have one. */
-		nm_secret_agent_old_unregister (nmc->secret_agent, NULL, NULL);
-		g_object_unref (nmc->secret_agent);
+		nm_secret_agent_old_unregister (NM_SECRET_AGENT_OLD (nmc->secret_agent), NULL, NULL);
+		g_clear_object (&nmc->secret_agent);
 	}
-	if (nmc->pwds_hash)
-		g_hash_table_destroy (nmc->pwds_hash);
+
+	nm_clear_pointer (&nmc->pwds_hash, g_hash_table_destroy);
 
 	nm_clear_g_free (&nmc->required_fields);
 

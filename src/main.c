@@ -23,15 +23,12 @@
 
 #include <getopt.h>
 #include <locale.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <pthread.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <string.h>
 #include <sys/resource.h>
 
 #include "main-utils.h"
@@ -233,6 +230,7 @@ main (int argc, char *argv[])
 	guint sd_id = 0;
 	GError *error_invalid_logging_config = NULL;
 	const char *const *warnings;
+	int errsv;
 
 	/* Known to cause a possible deadlock upon GDBus initialization:
 	 * https://bugzilla.gnome.org/show_bug.cgi?id=674885 */
@@ -334,12 +332,10 @@ main (int argc, char *argv[])
 
 	if (global_opt.become_daemon && !nm_config_get_is_debug (config)) {
 		if (daemon (0, 0) < 0) {
-			int saved_errno;
-
-			saved_errno = errno;
+			errsv = errno;
 			fprintf (stderr, _("Could not daemonize: %s [error %u]\n"),
-			         g_strerror (saved_errno),
-			         saved_errno);
+			         nm_strerror_native (errsv),
+			         errsv);
 			exit (1);
 		}
 		wrote_pidfile = nm_main_utils_write_pidfile (global_opt.pidfile);
@@ -355,7 +351,7 @@ main (int argc, char *argv[])
 		                              NM_CONFIG_KEYFILE_GROUP_LOGGING,
 		                              NM_CONFIG_KEYFILE_KEY_LOGGING_BACKEND,
 		                              NM_CONFIG_GET_VALUE_STRIP | NM_CONFIG_GET_VALUE_NO_EMPTY);
-		nm_logging_syslog_openlog (v, nm_config_get_is_debug (config));
+		nm_logging_init (v, nm_config_get_is_debug (config));
 	}
 
 	nm_log_info (LOGD_CORE, "NetworkManager (version " NM_DIST_VERSION ") is starting... (%s)",

@@ -307,6 +307,11 @@
               <entry role="enum_member_value"><para>= <literal>29</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>a WireGuard interface</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_WIFI_P2P</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>30</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>an 802.11 Wi-Fi P2P device (Since: 1.16)</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -551,6 +556,11 @@
               <entry role="enum_member_name"><para>NM_802_11_AP_SEC_KEY_MGMT_802_1X</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x00000200</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>802.1x authentication and key management is supported</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_KEY_MGMT_SAE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000400</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>WPA/RSN Simultaneous Authentication of Equals is supported</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -1152,6 +1162,11 @@
               <entry role="enum_member_value"><para>= <literal>66</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>configuration of SR-IOV parameters failed</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_STATE_REASON_PEER_NOT_FOUND</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>67</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>The Wi-Fi P2P peer could not be found</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -1694,37 +1709,37 @@
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_IS_MASTER</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x1</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>the device is a master.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_IS_SLAVE</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x2</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>the device is a slave.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_LAYER2_READY</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x4</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>layer2 is activated and ready.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_IP4_READY</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x8</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>IPv4 setting is completed.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_IP6_READY</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x10</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>IPv6 setting is completed.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x20</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>The master has any slave devices attached. This only makes sense if the device is a master.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x40</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>the lifetime of the activation is bound to the visilibity of the connection profile, which in turn depends on "connection.permissions" and whether a session for the user exists. Since: 1.16</para><para></para></entry>
             </row>
           </tbody>
@@ -1754,32 +1769,32 @@
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_TO_DISK</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x1</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>to persist the connection to disk.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x2</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>to make the connection in-memory only. If the connection was previously persistent, the corresponding file on disk is not deleted but merely the connection is decoupled from the file on disk. If you later delete an in-memory connection, the connection on disk will be deleted as well.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x4</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>this is like @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY, but if the connection has a corresponding file on disk, the association between the connection and the file is forgotten but the file is not modified. The difference to %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY is if you later save the connection again to disk, a new file name will be chosen without overwriting the remaining file on disk. Also, if you delete the connection later, the file on disk will not be deleted.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x8</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>this is like @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY, but if the connection has a corresponding file on disk, the file on disk will be deleted.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_VOLATILE</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x10</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>This can be specified with either %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED or %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY. After making the connection in-memory only, the connection is marked as volatile. That means, if the connection is currently not active it will be deleted right away. Otherwise, it is marked to for deletion once the connection deactivates. A volatile connection cannot autoactivate again (because it's about to be deleted), but a manual activation will clear the volatile flag.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT</para><para></para></entry>
-              <entry role="enum_member_value"><para>= <literal>(1LL</literal></para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x20</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>usually, when the connection has autoconnect enabled and is modified, it becomes eligible to autoconnect right away. Setting this flag, disables autoconnect until the connection is manually activated.</para><para></para></entry>
             </row>
           </tbody>

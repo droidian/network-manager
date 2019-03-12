@@ -845,6 +845,7 @@
             <span class="lineart">├──</span> <a class="link" href="NMDeviceVlan.html" title="NMDeviceVlan">NMDeviceVlan</a>
             <span class="lineart">├──</span> <a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan">NMDeviceVxlan</a>
             <span class="lineart">├──</span> <a class="link" href="NMDeviceWifi.html" title="NMDeviceWifi">NMDeviceWifi</a>
+            <span class="lineart">├──</span> <a class="link" href="NMDeviceWifiP2P.html" title="NMDeviceWifiP2P">NMDeviceWifiP2P</a>
             <span class="lineart">├──</span> <a class="link" href="NMDeviceWimax.html" title="NMDeviceWimax">NMDeviceWimax</a>
             <span class="lineart">├──</span> <a class="link" href="NMDeviceWireGuard.html" title="NMDeviceWireGuard">NMDeviceWireGuard</a>
             <span class="lineart">╰──</span> NMDeviceWpan
@@ -2067,9 +2068,9 @@ nm_device_get_applied_connection (<em class="parameter"><code><a class="link" hr
 </tr>
 <tr>
 <td class="parameter_name"><p>version_id</p></td>
-<td class="parameter_description"><p>(allow-none): returns the current version id of
+<td class="parameter_description"><p>returns the current version id of
 the applied connection. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>cancellable</p></td>
@@ -2176,9 +2177,9 @@ nm_device_get_applied_connection_finish
 </tr>
 <tr>
 <td class="parameter_name"><p>version_id</p></td>
-<td class="parameter_description"><p>(allow-none): the current version id of the applied
+<td class="parameter_description"><p>the current version id of the applied
 connection. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
@@ -2485,7 +2486,7 @@ incompatible with the device. To get the full list of connections see
 </tr>
 <tr>
 <td class="parameter_name"><p>connections</p></td>
-<td class="parameter_description"><p>an array of <span class="type">NMConnections</span> to filter. </p></td>
+<td class="parameter_description"><p>an array of <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> to filter. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></td>
 </tr>
 </tbody>
@@ -2494,7 +2495,7 @@ incompatible with the device. To get the full list of connections see
 <div class="refsect3">
 <a name="nm-device-filter-connections.returns"></a><h4>Returns</h4>
 <p>an array of
-<span class="type">NMConnections</span> that could be activated with the given <em class="parameter"><code>device</code></em>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> that could be activated with the given <em class="parameter"><code>device</code></em>
 .  The array
 should be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#g-ptr-array-unref"><code class="function">g_ptr_array_unref()</code></a> when it is no longer required. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>

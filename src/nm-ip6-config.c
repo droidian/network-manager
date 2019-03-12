@@ -23,7 +23,6 @@
 
 #include "nm-ip6-config.h"
 
-#include <string.h>
 #include <arpa/inet.h>
 #include <resolv.h>
 #include <linux/rtnetlink.h>
@@ -1087,6 +1086,7 @@ nm_ip6_config_subtract (NMIP6Config *dst,
 static gboolean
 _nm_ip6_config_intersect_helper (NMIP6Config *dst,
                                  const NMIP6Config *src,
+                                 gboolean intersect_addresses,
                                  gboolean intersect_routes,
                                  guint32 default_route_metric_penalty,
                                  gboolean update_dst)
@@ -1109,24 +1109,26 @@ _nm_ip6_config_intersect_helper (NMIP6Config *dst,
 		g_object_freeze_notify (G_OBJECT (dst));
 
 	/* addresses */
-	changed = FALSE;
-	nm_ip_config_iter_ip6_address_for_each (&ipconf_iter, dst, &a) {
-		if (nm_dedup_multi_index_lookup_obj (src_priv->multi_idx,
-		                                     &src_priv->idx_ip6_addresses,
-		                                     NMP_OBJECT_UP_CAST (a)))
-			continue;
+	if (intersect_addresses) {
+		changed = FALSE;
+		nm_ip_config_iter_ip6_address_for_each (&ipconf_iter, dst, &a) {
+			if (nm_dedup_multi_index_lookup_obj (src_priv->multi_idx,
+			                                     &src_priv->idx_ip6_addresses,
+			                                     NMP_OBJECT_UP_CAST (a)))
+				continue;
 
-		if (!update_dst)
-			return TRUE;
+			if (!update_dst)
+				return TRUE;
 
-		if (nm_dedup_multi_index_remove_entry (dst_priv->multi_idx,
-		                                       ipconf_iter.current) != 1)
-			nm_assert_not_reached ();
-		changed = TRUE;
-	}
-	if (changed) {
-		_notify_addresses (dst);
-		result = TRUE;
+			if (nm_dedup_multi_index_remove_entry (dst_priv->multi_idx,
+			                                       ipconf_iter.current) != 1)
+				nm_assert_not_reached ();
+			changed = TRUE;
+		}
+		if (changed) {
+			_notify_addresses (dst);
+			result = TRUE;
+		}
 	}
 
 	/* ignore nameservers */
@@ -1194,6 +1196,8 @@ skip_routes:
  * nm_ip6_config_intersect:
  * @dst: a configuration to be updated
  * @src: another configuration
+ * @intersect_addresses: whether addresses should be intersected
+ * @intersect_routes: whether routes should be intersected
  * @default_route_metric_penalty: the default route metric penalty
  *
  * Computes the intersection between @src and @dst and updates @dst in place
@@ -1202,16 +1206,24 @@ skip_routes:
 void
 nm_ip6_config_intersect (NMIP6Config *dst,
                          const NMIP6Config *src,
+                         gboolean intersect_addresses,
                          gboolean intersect_routes,
                          guint32 default_route_metric_penalty)
 {
-	_nm_ip6_config_intersect_helper (dst, src, intersect_routes, default_route_metric_penalty, TRUE);
+	_nm_ip6_config_intersect_helper (dst,
+	                                 src,
+	                                 intersect_addresses,
+	                                 intersect_routes,
+	                                 default_route_metric_penalty,
+	                                 TRUE);
 }
 
 /**
  * nm_ip6_config_intersect_alloc:
  * @a: a configuration
  * @b: another configuration
+ * @intersect_addresses: whether addresses should be intersected
+ * @intersect_routes: whether routes should be intersected
  * @default_route_metric_penalty: the default route metric penalty
  *
  * Computes the intersection between @a and @b and returns the result in a newly
@@ -1226,17 +1238,25 @@ nm_ip6_config_intersect (NMIP6Config *dst,
 NMIP6Config *
 nm_ip6_config_intersect_alloc (const NMIP6Config *a,
                                const NMIP6Config *b,
+                               gboolean intersect_addresses,
                                gboolean intersect_routes,
                                guint32 default_route_metric_penalty)
 {
 	NMIP6Config *a_copy;
 
-	if (_nm_ip6_config_intersect_helper ((NMIP6Config *) a, b,
+	if (_nm_ip6_config_intersect_helper ((NMIP6Config *) a,
+	                                     b,
+	                                     intersect_addresses,
 	                                     intersect_routes,
-	                                     default_route_metric_penalty, FALSE)) {
+	                                     default_route_metric_penalty,
+	                                     FALSE)) {
 		a_copy = nm_ip6_config_clone (a);
-		_nm_ip6_config_intersect_helper (a_copy, b, intersect_routes,
-		                                 default_route_metric_penalty, TRUE);
+		_nm_ip6_config_intersect_helper (a_copy,
+		                                 b,
+		                                 intersect_addresses,
+		                                 intersect_routes,
+		                                 default_route_metric_penalty,
+		                                 TRUE);
 		return a_copy;
 	} else
 		return NULL;
@@ -1925,7 +1945,7 @@ _add_route (NMIP6Config *self,
  * nm_ip6_config_add_route:
  * @self: the #NMIP6Config
  * @new: the new route to add to @self
- * @out_obj_new: (allow-none): (out): the added route object. Must be unrefed
+ * @out_obj_new: (allow-none) (out): the added route object. Must be unrefed
  *   by caller.
  *
  * Adds the new route to @self.  If a route with the same basic properties
@@ -2353,13 +2373,13 @@ nm_ip6_config_nmpobj_remove (NMIP6Config *self,
 
 /*****************************************************************************/
 
-static inline void
+static void
 hash_u32 (GChecksum *sum, guint32 n)
 {
 	g_checksum_update (sum, (const guint8 *) &n, sizeof (n));
 }
 
-static inline void
+static void
 hash_in6addr (GChecksum *sum, const struct in6_addr *a)
 {
 	if (a)

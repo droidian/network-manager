@@ -297,6 +297,8 @@ but VLAN id from DEVICE takes precedence over VLAN_ID."/>
 </setting>
 <setting name="vxlan">
 </setting>
+<setting name="wifi-p2p">
+</setting>
 <setting name="wimax">
 </setting>
 <setting name="802-3-ethernet">
@@ -324,6 +326,8 @@ is listed."/>
 <property name="s390-nettype" variable="NETTYPE" format="" values="&quot;qeth&quot;, &quot;lcs&quot; or &quot;ctc&quot;" default="" example="NETTYPE=qeth" description="Network type of the S390 host."/>
 <property name="s390-options" variable="OPTIONS and PORTNAME, CTCPROTO," format="" values="" default="" example="" description="S390 device options. All options go to OPTIONS, except for
 &quot;portname&quot; and &quot;ctcprot&quot; that have their own variables."/>
+</setting>
+<setting name="wireguard">
 </setting>
 <setting name="802-11-wireless-security">
 <property name="key-mgmt" variable="KEY_MGMT(+)" format="" values="IEEE8021X, WPA-PSK, WPA-EAP" default="" example="" description="Key management menthod."/>

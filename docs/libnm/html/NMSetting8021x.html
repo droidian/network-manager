@@ -1182,10 +1182,9 @@
 <div class="refsect1">
 <a name="NMSetting8021x.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
+    <span class="lineart">├──</span> NMSetting8021xAuthFlags
     <span class="lineart">├──</span> NMSetting8021xCKFormat
     <span class="lineart">╰──</span> NMSetting8021xCKScheme
-    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GFlags</a>
-    <span class="lineart">╰──</span> NMSetting8021xAuthFlags
     <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> NMSetting8021x
@@ -1255,8 +1254,8 @@ the blob must be not UNKNOWN (or NULL).</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
-<td class="parameter_description"><p>(out): validation reason. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_description"><p>validation reason. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -4208,11 +4207,6 @@ should be used.</p>
 <p>Disable TLSv1.2</p>
 </td>
 <td class="enum_member_annotations"> </td>
-</tr>
-<tr>
-<td class="enum_member_name"><p><a name="NM-SETTING-802-1X-AUTH-FLAGS-LAST:CAPS"></a>_NM_SETTING_802_1X_AUTH_FLAGS_LAST</p></td>
-<td> </td>
-<td> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-SETTING-802-1X-AUTH-FLAGS-ALL:CAPS"></a>NM_SETTING_802_1X_AUTH_FLAGS_ALL</p></td>

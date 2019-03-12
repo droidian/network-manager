@@ -23,7 +23,6 @@
 
 #include "nm-setting-bridge.h"
 
-#include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
 
@@ -201,7 +200,7 @@ nm_setting_bridge_get_multicast_snooping (NMSettingBridge *setting)
 	return NM_SETTING_BRIDGE_GET_PRIVATE (setting)->multicast_snooping;
 }
 
-static inline gboolean
+static gboolean
 check_range (guint32 val,
              guint32 min,
              guint32 max,

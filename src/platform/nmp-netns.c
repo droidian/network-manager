@@ -19,15 +19,26 @@
  */
 
 #include "nm-default.h"
+
 #include "nmp-netns.h"
 
 #include <fcntl.h>
-#include <errno.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <pthread.h>
 
-#include "NetworkManagerUtils.h"
+/*****************************************************************************/
+
+/* NOTE: NMPNetns and all code used here must be thread-safe! */
+
+/* we may not call logging functions from the main-thread alone. Hence, we
+ * require locking from nm-logging. Indicate that by setting NM_THREAD_SAFE_ON_MAIN_THREAD
+ * to zero. */
+#undef NM_THREAD_SAFE_ON_MAIN_THREAD
+#define NM_THREAD_SAFE_ON_MAIN_THREAD 0
+
+/*****************************************************************************/
 
 #define PROC_SELF_NS_MNT "/proc/self/ns/mnt"
 #define PROC_SELF_NS_NET "/proc/self/ns/net"
@@ -116,49 +127,81 @@ typedef struct {
 	int ns_types;
 } NetnsInfo;
 
-static void _stack_push (NMPNetns *netns, int ns_types);
+static void _stack_push (GArray *netns_stack,
+                         NMPNetns *netns,
+                         int ns_types);
 static NMPNetns *_netns_new (GError **error);
 
 /*****************************************************************************/
 
-static GArray *netns_stack = NULL;
+static NMPNetns *
+_netns_get (NetnsInfo *info)
+{
+	nm_assert (!info || NMP_IS_NETNS (info->netns));
+	return info ? info->netns : NULL;
+}
+
+/*****************************************************************************/
+
+static _nm_thread_local GArray *_netns_stack = NULL;
 
 static void
-_stack_ensure_init_impl (void)
+_netns_stack_clear_cb (gpointer data)
 {
-	NMPNetns *netns;
-	GError *error = NULL;
+	NetnsInfo *info = data;
 
-	nm_assert (!netns_stack);
+	nm_assert (NMP_IS_NETNS (info->netns));
+	g_object_unref (info->netns);
+}
 
-	netns_stack = g_array_new (FALSE, FALSE, sizeof (NetnsInfo));
+static GArray *
+_netns_stack_get_impl (void)
+{
+	gs_unref_object NMPNetns *netns = NULL;
+	gs_free_error GError *error = NULL;
+	pthread_key_t key;
+	GArray *s;
+
+	s = g_array_new (FALSE, FALSE, sizeof (NetnsInfo));
+	g_array_set_clear_func (s, _netns_stack_clear_cb);
+	_netns_stack = s;
 
 	/* at the bottom of the stack we must try to create a netns instance
 	 * that we never pop. It's the base to which we need to return. */
-
 	netns = _netns_new (&error);
-
 	if (!netns) {
-		/* don't know how to recover from this error. Netns are not supported. */
 		_LOGE (NULL, "failed to create initial netns: %s", error->message);
-		g_clear_error (&error);
-		return;
+		return s;
 	}
 
-	_stack_push (netns, _CLONE_NS_ALL);
+	/* we leak this instance inside the stack. */
+	_stack_push (s, netns, _CLONE_NS_ALL);
 
-	/* we leak this instance inside netns_stack. It cannot be popped. */
-	g_object_unref (netns);
+	/* finally, register a destructor function to cleanup the array. If we fail
+	 * to do so, we will leak NMPNetns instances (and their file descriptor) when the
+	 * thread exits. */
+	if (pthread_key_create (&key, (void (*) (void *)) g_array_unref) != 0)
+		_LOGE (NULL, "failure to initialize thread-local storage");
+	else if (pthread_setspecific (key, s) != 0)
+		_LOGE (NULL, "failure to set thread-local storage");
+
+	return s;
 }
-#define _stack_ensure_init() \
-	G_STMT_START { \
-		if (G_UNLIKELY (!netns_stack)) { \
-			_stack_ensure_init_impl (); \
-		} \
-	} G_STMT_END
+
+#define _netns_stack_get() \
+	({ \
+		GArray *_s = _netns_stack; \
+		\
+		if (G_UNLIKELY (!_s)) \
+			_s = _netns_stack_get_impl (); \
+		_s; \
+	})
+
+/*****************************************************************************/
 
 static NMPNetns *
-_stack_current_netns (int ns_types)
+_stack_current_netns (GArray *netns_stack,
+                      int ns_types)
 {
 	guint j;
 
@@ -179,7 +222,9 @@ _stack_current_netns (int ns_types)
 }
 
 static int
-_stack_current_ns_types (NMPNetns *netns, int ns_types)
+_stack_current_ns_types (GArray *netns_stack,
+                         NMPNetns *netns,
+                         int ns_types)
 {
 	const int ns_types_check[] = { _CLONE_NS_ALL_V };
 	guint i, j;
@@ -212,27 +257,25 @@ _stack_current_ns_types (NMPNetns *netns, int ns_types)
 }
 
 static NetnsInfo *
-_stack_peek (void)
+_stack_peek (GArray *netns_stack)
 {
-	nm_assert (netns_stack);
-
 	if (netns_stack->len > 0)
 		return &g_array_index (netns_stack, NetnsInfo, (netns_stack->len - 1));
 	return NULL;
 }
 
 static NetnsInfo *
-_stack_bottom (void)
+_stack_bottom (GArray *netns_stack)
 {
-	nm_assert (netns_stack);
-
 	if (netns_stack->len > 0)
 		return &g_array_index (netns_stack, NetnsInfo, 0);
 	return NULL;
 }
 
 static void
-_stack_push (NMPNetns *netns, int ns_types)
+_stack_push (GArray *netns_stack,
+             NMPNetns *netns,
+             int ns_types)
 {
 	NetnsInfo *info;
 
@@ -244,13 +287,15 @@ _stack_push (NMPNetns *netns, int ns_types)
 	g_array_set_size (netns_stack, netns_stack->len + 1);
 
 	info = &g_array_index (netns_stack, NetnsInfo, (netns_stack->len - 1));
-	info->netns = g_object_ref (netns);
-	info->ns_types = ns_types;
-	info->count = 1;
+	*info = (NetnsInfo) {
+		.netns    = g_object_ref (netns),
+		.ns_types = ns_types,
+		.count    = 1,
+	};
 }
 
 static void
-_stack_pop (void)
+_stack_pop (GArray *netns_stack)
 {
 	NetnsInfo *info;
 
@@ -262,13 +307,11 @@ _stack_pop (void)
 	nm_assert (NMP_IS_NETNS (info->netns));
 	nm_assert (info->count == 1);
 
-	g_object_unref (info->netns);
-
 	g_array_set_size (netns_stack, netns_stack->len - 1);
 }
 
 static guint
-_stack_size (void)
+_stack_size (GArray *netns_stack)
 {
 	nm_assert (netns_stack);
 
@@ -289,7 +332,7 @@ _netns_new (GError **error)
 		errsv = errno;
 		g_set_error (error, NM_UTILS_ERROR, NM_UTILS_ERROR_UNKNOWN,
 		             "Failed opening netns: %s",
-		             g_strerror (errsv));
+		             nm_strerror_native (errsv));
 		errno = errsv;
 		return NULL;
 	}
@@ -299,7 +342,7 @@ _netns_new (GError **error)
 		errsv = errno;
 		g_set_error (error, NM_UTILS_ERROR, NM_UTILS_ERROR_UNKNOWN,
 		             "Failed opening mntns: %s",
-		             g_strerror (errsv));
+		             nm_strerror_native (errsv));
 		nm_close (fd_net);
 		errno = errsv;
 		return NULL;
@@ -332,31 +375,33 @@ _setns (NMPNetns *self, int type)
 }
 
 static gboolean
-_netns_switch_push (NMPNetns *self, int ns_types)
+_netns_switch_push (GArray *netns_stack,
+                    NMPNetns *self,
+                    int ns_types)
 {
 	int errsv;
 
 	if (   NM_FLAGS_HAS (ns_types, CLONE_NEWNET)
-	    && !_stack_current_ns_types (self, CLONE_NEWNET)
+	    && !_stack_current_ns_types (netns_stack, self, CLONE_NEWNET)
 	    && _setns (self, CLONE_NEWNET) != 0) {
 		errsv = errno;
-		_LOGE (self, "failed to switch netns: %s", g_strerror (errsv));
+		_LOGE (self, "failed to switch netns: %s", nm_strerror_native (errsv));
 		return FALSE;
 	}
 	if (   NM_FLAGS_HAS (ns_types, CLONE_NEWNS)
-	    && !_stack_current_ns_types (self, CLONE_NEWNS)
+	    && !_stack_current_ns_types (netns_stack, self, CLONE_NEWNS)
 	    && _setns (self, CLONE_NEWNS) != 0) {
 		errsv = errno;
-		_LOGE (self, "failed to switch mntns: %s", g_strerror (errsv));
+		_LOGE (self, "failed to switch mntns: %s", nm_strerror_native (errsv));
 
 		/* try to fix the mess by returning to the previous netns. */
 		if (   NM_FLAGS_HAS (ns_types, CLONE_NEWNET)
-	        && !_stack_current_ns_types (self, CLONE_NEWNET)) {
-			self = _stack_current_netns (CLONE_NEWNET);
+	        && !_stack_current_ns_types (netns_stack, self, CLONE_NEWNET)) {
+			self = _stack_current_netns (netns_stack, CLONE_NEWNET);
 			if (   self
 			    && _setns (self, CLONE_NEWNET) != 0) {
 				errsv = errno;
-				_LOGE (self, "failed to restore netns: %s", g_strerror (errsv));
+				_LOGE (self, "failed to restore netns: %s", nm_strerror_native (errsv));
 			}
 		}
 		return FALSE;
@@ -366,33 +411,36 @@ _netns_switch_push (NMPNetns *self, int ns_types)
 }
 
 static gboolean
-_netns_switch_pop (NMPNetns *self, int ns_types)
+_netns_switch_pop (GArray *netns_stack,
+                   NMPNetns *self,
+                   int ns_types)
 {
 	int errsv;
 	NMPNetns *current;
 	int success = TRUE;
 
 	if (   NM_FLAGS_HAS (ns_types, CLONE_NEWNET)
-	    && (!self || !_stack_current_ns_types (self, CLONE_NEWNET))) {
-		current = _stack_current_netns (CLONE_NEWNET);
+	    && (   !self
+	        || !_stack_current_ns_types (netns_stack, self, CLONE_NEWNET))) {
+		current = _stack_current_netns (netns_stack, CLONE_NEWNET);
 		if (!current) {
 			g_warn_if_reached ();
 			success = FALSE;
 		} else if (_setns (current, CLONE_NEWNET) != 0) {
 			errsv = errno;
-			_LOGE (self, "failed to switch netns: %s", g_strerror (errsv));
+			_LOGE (self, "failed to switch netns: %s", nm_strerror_native (errsv));
 			success = FALSE;
 		}
 	}
 	if (   NM_FLAGS_HAS (ns_types, CLONE_NEWNS)
-	    && (!self || !_stack_current_ns_types (self, CLONE_NEWNS))) {
-		current = _stack_current_netns (CLONE_NEWNS);
+	    && (!self || !_stack_current_ns_types (netns_stack, self, CLONE_NEWNS))) {
+		current = _stack_current_netns (netns_stack, CLONE_NEWNS);
 		if (!current) {
 			g_warn_if_reached ();
 			success = FALSE;
 		} else if (_setns (current, CLONE_NEWNS) != 0) {
 			errsv = errno;
-			_LOGE (self, "failed to switch mntns: %s", g_strerror (errsv));
+			_LOGE (self, "failed to switch mntns: %s", nm_strerror_native (errsv));
 			success = FALSE;
 		}
 	}
@@ -423,32 +471,31 @@ nmp_netns_get_fd_mnt (NMPNetns *self)
 static gboolean
 _nmp_netns_push_type (NMPNetns *self, int ns_types)
 {
+	GArray *netns_stack = _netns_stack_get ();
 	NetnsInfo *info;
 	char sbuf[100];
 
-	_stack_ensure_init ();
-
-	info = _stack_peek ();
+	info = _stack_peek (netns_stack);
 	g_return_val_if_fail (info, FALSE);
 
 	if (info->netns == self && info->ns_types == ns_types) {
 		info->count++;
 		_LOGt (self, "push#%u* %s (increase count to %d)",
-		       _stack_size () - 1,
+		       _stack_size (netns_stack) - 1,
 		       _ns_types_to_str (ns_types, ns_types, sbuf), info->count);
 		return TRUE;
 	}
 
 	_LOGD (self, "push#%u %s",
-	       _stack_size (),
+	       _stack_size (netns_stack),
 	       _ns_types_to_str (ns_types,
-	                         _stack_current_ns_types (self, ns_types),
+	                         _stack_current_ns_types (netns_stack, self, ns_types),
 	                         sbuf));
 
-	if (!_netns_switch_push (self, ns_types))
+	if (!_netns_switch_push (netns_stack, self, ns_types))
 		return FALSE;
 
-	_stack_push (self, ns_types);
+	_stack_push (netns_stack, self, ns_types);
 	return TRUE;
 }
 
@@ -472,14 +519,13 @@ nmp_netns_push_type (NMPNetns *self, int ns_types)
 NMPNetns *
 nmp_netns_new (void)
 {
+	GArray *netns_stack = _netns_stack_get ();
 	NMPNetns *self;
 	int errsv;
 	GError *error = NULL;
 	unsigned long mountflags = 0;
 
-	_stack_ensure_init ();
-
-	if (!_stack_peek ()) {
+	if (!_stack_peek (netns_stack)) {
 		/* there are no netns instances. We cannot create a new one
 		 * (because after unshare we couldn't return to the original one). */
 		errno = ENOTSUP;
@@ -488,19 +534,19 @@ nmp_netns_new (void)
 
 	if (unshare (_CLONE_NS_ALL) != 0) {
 		errsv = errno;
-		_LOGE (NULL, "failed to create new net and mnt namespace: %s", g_strerror (errsv));
+		_LOGE (NULL, "failed to create new net and mnt namespace: %s", nm_strerror_native (errsv));
 		return NULL;
 	}
 
 	if (mount ("", "/", "none", MS_SLAVE | MS_REC, NULL) != 0) {
 		errsv = errno;
-		_LOGE (NULL, "failed mount --make-rslave: %s", g_strerror (errsv));
+		_LOGE (NULL, "failed mount --make-rslave: %s", nm_strerror_native (errsv));
 		goto err_out;
 	}
 
 	if (umount2 ("/sys", MNT_DETACH) != 0) {
 		errsv = errno;
-		_LOGE (NULL, "failed umount /sys: %s", g_strerror (errsv));
+		_LOGE (NULL, "failed umount /sys: %s", nm_strerror_native (errsv));
 		goto err_out;
 	}
 
@@ -509,7 +555,7 @@ nmp_netns_new (void)
 
 	if (mount ("sysfs", "/sys", "sysfs", mountflags, NULL) != 0) {
 		errsv = errno;
-		_LOGE (NULL, "failed mount /sys: %s", g_strerror (errsv));
+		_LOGE (NULL, "failed mount /sys: %s", nm_strerror_native (errsv));
 		goto err_out;
 	}
 
@@ -521,11 +567,11 @@ nmp_netns_new (void)
 		goto err_out;
 	}
 
-	_stack_push (self, _CLONE_NS_ALL);
+	_stack_push (netns_stack, self, _CLONE_NS_ALL);
 
 	return self;
 err_out:
-	_netns_switch_pop (NULL, _CLONE_NS_ALL);
+	_netns_switch_pop (netns_stack, NULL, _CLONE_NS_ALL);
 	errno = errsv;
 	return NULL;
 }
@@ -533,14 +579,13 @@ err_out:
 gboolean
 nmp_netns_pop (NMPNetns *self)
 {
+	GArray *netns_stack = _netns_stack_get ();
 	NetnsInfo *info;
 	int ns_types;
 
 	g_return_val_if_fail (NMP_IS_NETNS (self), FALSE);
 
-	_stack_ensure_init ();
-
-	info = _stack_peek ();
+	info = _stack_peek (netns_stack);
 
 	g_return_val_if_fail (info, FALSE);
 	g_return_val_if_fail (info->netns == self, FALSE);
@@ -548,52 +593,42 @@ nmp_netns_pop (NMPNetns *self)
 	if (info->count > 1) {
 		info->count--;
 		_LOGt (self, "pop#%u* (decrease count to %d)",
-		       _stack_size () - 1, info->count);
+		       _stack_size (netns_stack) - 1, info->count);
 		return TRUE;
 	}
 	g_return_val_if_fail (info->count == 1, FALSE);
 
 	/* cannot pop the original netns. */
-	g_return_val_if_fail (_stack_size () > 1, FALSE);
+	g_return_val_if_fail (_stack_size (netns_stack) > 1, FALSE);
 
-	_LOGD (self, "pop#%u", _stack_size () - 1);
+	_LOGD (self, "pop#%u", _stack_size (netns_stack) - 1);
 
 	ns_types = info->ns_types;
 
-	_stack_pop ();
+	_stack_pop (netns_stack);
 
-	return _netns_switch_pop (self, ns_types);
+	return _netns_switch_pop (netns_stack, self, ns_types);
 }
 
 NMPNetns *
 nmp_netns_get_current (void)
 {
-	NetnsInfo *info;
-
-	_stack_ensure_init ();
-
-	info = _stack_peek ();
-	return info ? info->netns : NULL;
+	return _netns_get (_stack_peek (_netns_stack_get ()));
 }
 
 NMPNetns *
 nmp_netns_get_initial (void)
 {
-	NetnsInfo *info;
-
-	_stack_ensure_init ();
-
-	info = _stack_bottom ();
-	return info ? info->netns : NULL;
+	return _netns_get (_stack_bottom (_netns_stack_get ()));
 }
 
 gboolean
 nmp_netns_is_initial (void)
 {
-	if (G_UNLIKELY (!netns_stack))
-		return TRUE;
+	GArray *netns_stack = _netns_stack_get ();
 
-	return nmp_netns_get_current () == nmp_netns_get_initial ();
+	return (   _netns_get (_stack_peek (netns_stack))
+	        == _netns_get (_stack_bottom (netns_stack)));
 }
 
 /*****************************************************************************/
@@ -618,7 +653,7 @@ nmp_netns_bind_to_path (NMPNetns *self, const char *filename, int *out_fd)
 		errsv = errno;
 		if (errsv != EEXIST) {
 			_LOGE (self, "bind: failed to create directory %s: %s",
-			       dirname, g_strerror (errsv));
+			       dirname, nm_strerror_native (errsv));
 			return FALSE;
 		}
 	}
@@ -626,7 +661,7 @@ nmp_netns_bind_to_path (NMPNetns *self, const char *filename, int *out_fd)
 	if ((fd = creat (filename, S_IRUSR | S_IRGRP | S_IROTH)) == -1) {
 		errsv = errno;
 		_LOGE (self, "bind: failed to create %s: %s",
-		       filename, g_strerror (errsv));
+		       filename, nm_strerror_native (errsv));
 		return FALSE;
 	}
 	nm_close (fd);
@@ -634,7 +669,7 @@ nmp_netns_bind_to_path (NMPNetns *self, const char *filename, int *out_fd)
 	if (mount (PROC_SELF_NS_NET, filename, "none", MS_BIND, NULL) != 0) {
 		errsv = errno;
 		_LOGE (self, "bind: failed to mount %s to %s: %s",
-		       PROC_SELF_NS_NET, filename, g_strerror (errsv));
+		       PROC_SELF_NS_NET, filename, nm_strerror_native (errsv));
 		unlink (filename);
 		return FALSE;
 	}
@@ -642,7 +677,7 @@ nmp_netns_bind_to_path (NMPNetns *self, const char *filename, int *out_fd)
 	if (out_fd) {
 		if ((fd = open (filename, O_RDONLY | O_CLOEXEC)) == -1) {
 			errsv = errno;
-			_LOGE (self, "bind: failed to open %s: %s", filename, g_strerror (errsv));
+			_LOGE (self, "bind: failed to open %s: %s", filename, nm_strerror_native (errsv));
 			umount2 (filename, MNT_DETACH);
 			unlink (filename);
 			return FALSE;
@@ -663,12 +698,12 @@ nmp_netns_bind_to_path_destroy (NMPNetns *self, const char *filename)
 
 	if (umount2 (filename, MNT_DETACH) != 0) {
 		errsv = errno;
-		_LOGE (self, "bind: failed to unmount2 %s: %s", filename, g_strerror (errsv));
+		_LOGE (self, "bind: failed to unmount2 %s: %s", filename, nm_strerror_native (errsv));
 		return FALSE;
 	}
 	if (unlink (filename) != 0) {
 		errsv = errno;
-		_LOGE (self, "bind: failed to unlink %s: %s", filename, g_strerror (errsv));
+		_LOGE (self, "bind: failed to unlink %s: %s", filename, nm_strerror_native (errsv));
 		return FALSE;
 	}
 	return TRUE;

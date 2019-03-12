@@ -162,6 +162,8 @@ vlan&apos;s interface name."/>
 </setting>
 <setting name="vxlan">
 </setting>
+<setting name="wifi-p2p">
+</setting>
 <setting name="wimax">
 </setting>
 <setting name="802-3-ethernet">
@@ -175,6 +177,9 @@ This field replaces the deprecated &quot;cloned-mac-address&quot; on D-Bus, whic
 can only contain explicit hardware addresses. Note that this property
 only exists in D-Bus API. libnm and nmcli continue to call this property
 &quot;cloned-mac-address&quot;."/>
+</setting>
+<setting name="wireguard">
+<property name="peers" variable="peers" format="array of &apos;a{sv}&apos;" values="" default="" example="" description="Array of dictionaries for the WireGuard peers."/>
 </setting>
 <setting name="802-11-wireless-security">
 </setting>

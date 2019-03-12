@@ -806,6 +806,10 @@ ipv6.ip6-privacy=0
 <td><p><span class="term"><code class="varname">wifi.wake-on-wlan</code></span></p></td>
 <td></td>
 </tr>
+<tr>
+<td><p><span class="term"><code class="varname">wireguard.mtu</code></span></p></td>
+<td></td>
+</tr>
 </tbody>
 </table></div>
 <p>
@@ -1047,6 +1051,20 @@ managed=1
     checking functionality.  This allows NetworkManager to detect
     whether or not the system can actually access the internet or
     whether it is behind a captive portal.</p>
+<p>Connectivity checking serves two purposes. For one, it exposes
+    a connectivity state on D-Bus, which other applications may use. For example,
+    Gnome's portal helper uses this as signal to show a captive portal login
+    page.
+    The other use is that default-route of devices without global connectivity
+    get a penalty of +20000 to the route-metric. This has the purpose to give a
+    better default-route to devices that have global connectivity. For example,
+    when being connected to WWAN and to a Wi-Fi network which is behind a captive
+    portal, WWAN still gets preferred until login.</p>
+<p>Note that your distribution might set <code class="literal">/proc/sys/net/ipv4/conf/*/rp_filter</code> to
+    strict filtering. That works badly with per-device connectivity checking,
+    which uses SO_BINDDEVICE to send requests on all devices. A strict rp_filter
+    setting will reject any response and the connectivity check on all but the
+    best route will fail.</p>
 <p>
       </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -1076,10 +1094,15 @@ managed=1
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">response</code></span></p></td>
-<td><p>If set controls what body content
+<td><p>If set, controls what body content
           NetworkManager checks for when requesting the URI for
-          connectivity checking.  If missing, defaults to
-          "NetworkManager is online" </p></td>
+          connectivity checking.  Note that this only compares
+          that the HTTP response starts with the specifid text,
+          it does not compare the exact string. This behavior
+          might change in the future, so avoid relying on it.
+          If missing, the response defaults to "NetworkManager is online".
+          If set to empty, the HTTP server is expected to answer with
+          status code 204 or send no data.</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -1108,7 +1131,7 @@ managed=1
 <tr>
 <td><p><span class="term"><code class="varname">options</code></span></p></td>
 <td><p>
-             A list of of options to be passed to the hostname resolver.
+             A list of options to be passed to the hostname resolver.
            </p></td>
 </tr>
 </tbody>

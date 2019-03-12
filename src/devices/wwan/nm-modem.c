@@ -24,7 +24,6 @@
 #include "nm-modem.h"
 
 #include <fcntl.h>
-#include <string.h>
 #include <termios.h>
 #include <linux/rtnetlink.h>
 
@@ -729,7 +728,7 @@ nm_modem_stage3_ip4_config_start (NMModem *self,
 		break;
 	case NM_MODEM_IP_METHOD_AUTO:
 		_LOGD ("MODEM_IP_METHOD_AUTO");
-		ret = device_class->act_stage3_ip4_config_start (device, NULL, out_failure_reason);
+		ret = device_class->act_stage3_ip_config_start (device, AF_INET, NULL, out_failure_reason);
 		break;
 	default:
 		_LOGI ("IPv4 configuration disabled");
@@ -948,7 +947,7 @@ nm_modem_get_secrets (NMModem *self,
 	                                               FALSE,
 	                                               setting_name,
 	                                               flags,
-	                                               hint,
+	                                               NM_MAKE_STRV (hint),
 	                                               modem_secrets_cb,
 	                                               self);
 	g_return_if_fail (priv->secrets_id);
@@ -986,8 +985,7 @@ nm_modem_act_stage1_prepare (NMModem *self,
 
 	setting_name = nm_connection_need_secrets (connection, &hints);
 	if (!setting_name) {
-		/* Ready to connect */
-		g_assert (!hints);
+		nm_assert (!hints);
 		return NM_MODEM_GET_CLASS (self)->act_stage1_prepare (self, connection, out_failure_reason);
 	}
 
@@ -995,11 +993,14 @@ nm_modem_act_stage1_prepare (NMModem *self,
 	if (priv->secrets_tries++)
 		flags |= NM_SECRET_AGENT_GET_SECRETS_FLAG_REQUEST_NEW;
 
+	if (hints)
+		g_ptr_array_add (hints, NULL);
+
 	priv->secrets_id = nm_act_request_get_secrets (req,
 	                                               FALSE,
 	                                               setting_name,
 	                                               flags,
-	                                               hints ? g_ptr_array_index (hints, 0) : NULL,
+	                                               hints ? (const char *const*) hints->pdata : NULL,
 	                                               modem_secrets_cb,
 	                                               self);
 	g_return_val_if_fail (priv->secrets_id, NM_ACT_STAGE_RETURN_FAILURE);

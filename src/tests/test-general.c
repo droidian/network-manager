@@ -20,8 +20,6 @@
 
 #include "nm-default.h"
 
-#include <string.h>
-#include <errno.h>
 #include <net/if.h>
 #include <byteswap.h>
 
@@ -1666,7 +1664,7 @@ test_duplicate_decl_specifier (void)
 	/* have some static variables, so that the result is certainly not optimized out. */
 	static const int v_const[1] = { 1 };
 	static int v_result[1] = { };
-	const const int v2 = 3;
+	const int v2 = 3;
 
 	/* Test that we don't get a compiler warning about duplicate const specifier.
 	 * C99 allows that and it can easily happen in macros. */
@@ -2014,11 +2012,11 @@ test_machine_id_read (void)
 	nmtst_logging_reenable (logstate);
 
 	g_assert (machine_id);
-	g_assert (_nm_utils_bin2hexstr_full (machine_id,
-	                                     sizeof (NMUuid),
-	                                     '\0',
-	                                     FALSE,
-	                                     machine_id_str) == machine_id_str);
+	g_assert (nm_utils_bin2hexstr_full (machine_id,
+	                                    sizeof (NMUuid),
+	                                    '\0',
+	                                    FALSE,
+	                                    machine_id_str) == machine_id_str);
 	g_assert (strlen (machine_id_str) == 32);
 	g_assert_cmpstr (machine_id_str, ==, nm_utils_machine_id_str ());
 
@@ -2055,14 +2053,14 @@ test_nm_utils_dhcp_client_id_systemd_node_specific (gconstpointer test_data)
 		guint64 duid_id;
 	} d_array[] = {
 		[0] = {
-			.machine_id = { 0xcb, 0xc2, 0x2e, 0x47, 0x41, 0x8e, 0x40, 0x2a, 0xa7, 0xb3, 0x0d, 0xea, 0x92, 0x83, 0x94, 0xef },
+			.machine_id.uuid = { 0xcb, 0xc2, 0x2e, 0x47, 0x41, 0x8e, 0x40, 0x2a, 0xa7, 0xb3, 0x0d, 0xea, 0x92, 0x83, 0x94, 0xef },
 			.ifname = "lo",
 			.ifname_hash_1 = 0x7297085c2b12c911llu,
 			.iaid_ifname = htobe32 (0x5985c14du),
 			.duid_id = htobe64 (0x3d769bb2c14d29e1u),
 		},
 		[1] = {
-			.machine_id = { 0x11, 0x4e, 0xb4, 0xda, 0xd3, 0x22, 0x4a, 0xff, 0x9f, 0xc3, 0x30, 0x83, 0x38, 0xa0, 0xeb, 0xb7 },
+			.machine_id.uuid = { 0x11, 0x4e, 0xb4, 0xda, 0xd3, 0x22, 0x4a, 0xff, 0x9f, 0xc3, 0x30, 0x83, 0x38, 0xa0, 0xeb, 0xb7 },
 			.ifname = "eth0",
 			.ifname_hash_1 = 0x9e1cb083b54cd7b6llu,
 			.iaid_ifname = htobe32 (0x2b506735u),

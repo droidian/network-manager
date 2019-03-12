@@ -38,48 +38,52 @@
  */
 #define NM_DBUS_SERVICE                        "org.freedesktop.NetworkManager"
 
-#define NM_DBUS_PATH                           "/org/freedesktop/NetworkManager"
 #define NM_DBUS_INTERFACE                      "org.freedesktop.NetworkManager"
-#define NM_DBUS_INTERFACE_DEVICE               NM_DBUS_INTERFACE ".Device"
-#define NM_DBUS_INTERFACE_DEVICE_WIRED         NM_DBUS_INTERFACE_DEVICE ".Wired"
-#define NM_DBUS_INTERFACE_DEVICE_ADSL          NM_DBUS_INTERFACE_DEVICE ".Adsl"
-#define NM_DBUS_INTERFACE_DEVICE_WIRELESS      NM_DBUS_INTERFACE_DEVICE ".Wireless"
-#define NM_DBUS_INTERFACE_DEVICE_BLUETOOTH     NM_DBUS_INTERFACE_DEVICE ".Bluetooth"
-#define NM_DBUS_INTERFACE_DEVICE_OLPC_MESH     NM_DBUS_INTERFACE_DEVICE ".OlpcMesh"
-#define NM_DBUS_INTERFACE_DEVICE_OVS_INTERFACE NM_DBUS_INTERFACE_DEVICE ".OvsInterface"
-#define NM_DBUS_INTERFACE_DEVICE_OVS_PORT      NM_DBUS_INTERFACE_DEVICE ".OvsPort"
-#define NM_DBUS_INTERFACE_DEVICE_OVS_BRIDGE    NM_DBUS_INTERFACE_DEVICE ".OvsBridge"
-#define NM_DBUS_PATH_ACCESS_POINT              NM_DBUS_PATH "/AccessPoint"
 #define NM_DBUS_INTERFACE_ACCESS_POINT         NM_DBUS_INTERFACE ".AccessPoint"
-#define NM_DBUS_INTERFACE_DEVICE_MODEM         NM_DBUS_INTERFACE_DEVICE ".Modem"
-#define NM_DBUS_INTERFACE_DEVICE_WIMAX         NM_DBUS_INTERFACE_DEVICE ".WiMax"
-#define NM_DBUS_INTERFACE_WIMAX_NSP            NM_DBUS_INTERFACE ".WiMax.Nsp"
-#define NM_DBUS_PATH_WIMAX_NSP                 NM_DBUS_PATH "/Nsp"
 #define NM_DBUS_INTERFACE_ACTIVE_CONNECTION    NM_DBUS_INTERFACE ".Connection.Active"
-#define NM_DBUS_INTERFACE_IP4_CONFIG           NM_DBUS_INTERFACE ".IP4Config"
-#define NM_DBUS_INTERFACE_DHCP4_CONFIG         NM_DBUS_INTERFACE ".DHCP4Config"
-#define NM_DBUS_INTERFACE_IP6_CONFIG           NM_DBUS_INTERFACE ".IP6Config"
-#define NM_DBUS_INTERFACE_DHCP6_CONFIG         NM_DBUS_INTERFACE ".DHCP6Config"
-#define NM_DBUS_INTERFACE_DEVICE_INFINIBAND    NM_DBUS_INTERFACE_DEVICE ".Infiniband"
+#define NM_DBUS_INTERFACE_CHECKPOINT           NM_DBUS_INTERFACE ".Checkpoint"
+#define NM_DBUS_INTERFACE_DEVICE               NM_DBUS_INTERFACE ".Device"
+#define NM_DBUS_INTERFACE_DEVICE_6LOWPAN       NM_DBUS_INTERFACE_DEVICE ".Lowpan"
+#define NM_DBUS_INTERFACE_DEVICE_ADSL          NM_DBUS_INTERFACE_DEVICE ".Adsl"
+#define NM_DBUS_INTERFACE_DEVICE_BLUETOOTH     NM_DBUS_INTERFACE_DEVICE ".Bluetooth"
 #define NM_DBUS_INTERFACE_DEVICE_BOND          NM_DBUS_INTERFACE_DEVICE ".Bond"
-#define NM_DBUS_INTERFACE_DEVICE_DUMMY         NM_DBUS_INTERFACE_DEVICE ".Dummy"
-#define NM_DBUS_INTERFACE_DEVICE_TEAM          NM_DBUS_INTERFACE_DEVICE ".Team"
-#define NM_DBUS_INTERFACE_DEVICE_VLAN          NM_DBUS_INTERFACE_DEVICE ".Vlan"
 #define NM_DBUS_INTERFACE_DEVICE_BRIDGE        NM_DBUS_INTERFACE_DEVICE ".Bridge"
+#define NM_DBUS_INTERFACE_DEVICE_DUMMY         NM_DBUS_INTERFACE_DEVICE ".Dummy"
 #define NM_DBUS_INTERFACE_DEVICE_GENERIC       NM_DBUS_INTERFACE_DEVICE ".Generic"
-#define NM_DBUS_INTERFACE_DEVICE_VETH          NM_DBUS_INTERFACE_DEVICE ".Veth"
-#define NM_DBUS_INTERFACE_DEVICE_TUN           NM_DBUS_INTERFACE_DEVICE ".Tun"
+#define NM_DBUS_INTERFACE_DEVICE_GRE           NM_DBUS_INTERFACE_DEVICE ".Gre"
+#define NM_DBUS_INTERFACE_DEVICE_INFINIBAND    NM_DBUS_INTERFACE_DEVICE ".Infiniband"
+#define NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL     NM_DBUS_INTERFACE_DEVICE ".IPTunnel"
 #define NM_DBUS_INTERFACE_DEVICE_MACSEC        NM_DBUS_INTERFACE_DEVICE ".Macsec"
 #define NM_DBUS_INTERFACE_DEVICE_MACVLAN       NM_DBUS_INTERFACE_DEVICE ".Macvlan"
+#define NM_DBUS_INTERFACE_DEVICE_MODEM         NM_DBUS_INTERFACE_DEVICE ".Modem"
+#define NM_DBUS_INTERFACE_DEVICE_OLPC_MESH     NM_DBUS_INTERFACE_DEVICE ".OlpcMesh"
+#define NM_DBUS_INTERFACE_DEVICE_OVS_BRIDGE    NM_DBUS_INTERFACE_DEVICE ".OvsBridge"
+#define NM_DBUS_INTERFACE_DEVICE_OVS_INTERFACE NM_DBUS_INTERFACE_DEVICE ".OvsInterface"
+#define NM_DBUS_INTERFACE_DEVICE_OVS_PORT      NM_DBUS_INTERFACE_DEVICE ".OvsPort"
 #define NM_DBUS_INTERFACE_DEVICE_PPP           NM_DBUS_INTERFACE_DEVICE ".Ppp"
-#define NM_DBUS_INTERFACE_DEVICE_VXLAN         NM_DBUS_INTERFACE_DEVICE ".Vxlan"
-#define NM_DBUS_INTERFACE_DEVICE_WIREGUARD     NM_DBUS_INTERFACE_DEVICE ".WireGuard"
-#define NM_DBUS_INTERFACE_DEVICE_GRE           NM_DBUS_INTERFACE_DEVICE ".Gre"
-#define NM_DBUS_INTERFACE_DEVICE_IP_TUNNEL     NM_DBUS_INTERFACE_DEVICE ".IPTunnel"
-#define NM_DBUS_INTERFACE_DEVICE_WPAN          NM_DBUS_INTERFACE_DEVICE ".Wpan"
-#define NM_DBUS_INTERFACE_DEVICE_6LOWPAN       NM_DBUS_INTERFACE_DEVICE ".Lowpan"
 #define NM_DBUS_INTERFACE_DEVICE_STATISTICS    NM_DBUS_INTERFACE_DEVICE ".Statistics"
-#define NM_DBUS_INTERFACE_CHECKPOINT           NM_DBUS_INTERFACE ".Checkpoint"
+#define NM_DBUS_INTERFACE_DEVICE_TEAM          NM_DBUS_INTERFACE_DEVICE ".Team"
+#define NM_DBUS_INTERFACE_DEVICE_TUN           NM_DBUS_INTERFACE_DEVICE ".Tun"
+#define NM_DBUS_INTERFACE_DEVICE_VETH          NM_DBUS_INTERFACE_DEVICE ".Veth"
+#define NM_DBUS_INTERFACE_DEVICE_VLAN          NM_DBUS_INTERFACE_DEVICE ".Vlan"
+#define NM_DBUS_INTERFACE_DEVICE_VXLAN         NM_DBUS_INTERFACE_DEVICE ".Vxlan"
+#define NM_DBUS_INTERFACE_DEVICE_WIFI_P2P      NM_DBUS_INTERFACE_DEVICE ".WifiP2P"
+#define NM_DBUS_INTERFACE_DEVICE_WIMAX         NM_DBUS_INTERFACE_DEVICE ".WiMax"
+#define NM_DBUS_INTERFACE_DEVICE_WIRED         NM_DBUS_INTERFACE_DEVICE ".Wired"
+#define NM_DBUS_INTERFACE_DEVICE_WIREGUARD     NM_DBUS_INTERFACE_DEVICE ".WireGuard"
+#define NM_DBUS_INTERFACE_DEVICE_WIRELESS      NM_DBUS_INTERFACE_DEVICE ".Wireless"
+#define NM_DBUS_INTERFACE_DEVICE_WPAN          NM_DBUS_INTERFACE_DEVICE ".Wpan"
+#define NM_DBUS_INTERFACE_DHCP4_CONFIG         NM_DBUS_INTERFACE ".DHCP4Config"
+#define NM_DBUS_INTERFACE_DHCP6_CONFIG         NM_DBUS_INTERFACE ".DHCP6Config"
+#define NM_DBUS_INTERFACE_IP4_CONFIG           NM_DBUS_INTERFACE ".IP4Config"
+#define NM_DBUS_INTERFACE_IP6_CONFIG           NM_DBUS_INTERFACE ".IP6Config"
+#define NM_DBUS_INTERFACE_WIFI_P2P_PEER        NM_DBUS_INTERFACE ".WifiP2PPeer"
+#define NM_DBUS_INTERFACE_WIMAX_NSP            NM_DBUS_INTERFACE ".WiMax.Nsp"
+
+#define NM_DBUS_PATH                           "/org/freedesktop/NetworkManager"
+#define NM_DBUS_PATH_ACCESS_POINT              NM_DBUS_PATH "/AccessPoint"
+#define NM_DBUS_PATH_WIFI_P2P_PEER             NM_DBUS_PATH "/WifiP2PPeer"
+#define NM_DBUS_PATH_WIMAX_NSP                 NM_DBUS_PATH "/Nsp"
 
 #define NM_DBUS_INTERFACE_SETTINGS        "org.freedesktop.NetworkManager.Settings"
 #define NM_DBUS_PATH_SETTINGS             "/org/freedesktop/NetworkManager/Settings"
@@ -218,6 +222,7 @@ typedef enum {
  * @NM_DEVICE_TYPE_WPAN: a IEEE 802.15.4 (WPAN) MAC Layer Device
  * @NM_DEVICE_TYPE_6LOWPAN: 6LoWPAN interface
  * @NM_DEVICE_TYPE_WIREGUARD: a WireGuard interface
+ * @NM_DEVICE_TYPE_WIFI_P2P: an 802.11 Wi-Fi P2P device (Since: 1.16)
  *
  * #NMDeviceType values indicate the type of hardware represented by a
  * device object.
@@ -253,6 +258,7 @@ typedef enum {
 	NM_DEVICE_TYPE_WPAN          = 27,
 	NM_DEVICE_TYPE_6LOWPAN       = 28,
 	NM_DEVICE_TYPE_WIREGUARD     = 29,
+	NM_DEVICE_TYPE_WIFI_P2P      = 30,
 } NMDeviceType;
 
 /**
@@ -344,6 +350,8 @@ typedef enum { /*< underscore_name=nm_802_11_ap_flags, flags >*/
  * supported
  * @NM_802_11_AP_SEC_KEY_MGMT_802_1X: 802.1x authentication and key management
  * is supported
+ * @NM_802_11_AP_SEC_KEY_MGMT_SAE: WPA/RSN Simultaneous Authentication of Equals is
+ * supported
  *
  * 802.11 access point security and authentication flags.  These flags describe
  * the current security requirements of an access point as determined from the
@@ -361,6 +369,7 @@ typedef enum { /*< underscore_name=nm_802_11_ap_security_flags, flags >*/
 	NM_802_11_AP_SEC_GROUP_CCMP      = 0x00000080,
 	NM_802_11_AP_SEC_KEY_MGMT_PSK    = 0x00000100,
 	NM_802_11_AP_SEC_KEY_MGMT_802_1X = 0x00000200,
+	NM_802_11_AP_SEC_KEY_MGMT_SAE    = 0x00000400,
 } NM80211ApSecurityFlags;
 
 /**
@@ -563,6 +572,7 @@ typedef enum {
  * @NM_DEVICE_STATE_REASON_IP_ADDRESS_DUPLICATE: a duplicate IP address was detected
  * @NM_DEVICE_STATE_REASON_IP_METHOD_UNSUPPORTED: The selected IP method is not supported
  * @NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED: configuration of SR-IOV parameters failed
+ * @NM_DEVICE_STATE_REASON_PEER_NOT_FOUND: The Wi-Fi P2P peer could not be found
  *
  * Device state change reason codes
  */
@@ -634,6 +644,7 @@ typedef enum {
 	NM_DEVICE_STATE_REASON_IP_ADDRESS_DUPLICATE           = 64,
 	NM_DEVICE_STATE_REASON_IP_METHOD_UNSUPPORTED          = 65,
 	NM_DEVICE_STATE_REASON_SRIOV_CONFIGURATION_FAILED     = 66,
+	NM_DEVICE_STATE_REASON_PEER_NOT_FOUND                 = 67,
 } NMDeviceStateReason;
 
 /**
@@ -972,13 +983,13 @@ typedef enum { /*< flags >*/
 typedef enum { /*< flags >*/
 	NM_ACTIVATION_STATE_FLAG_NONE                                 = 0,
 
-	NM_ACTIVATION_STATE_FLAG_IS_MASTER                            = (1LL <<  0),
-	NM_ACTIVATION_STATE_FLAG_IS_SLAVE                             = (1LL <<  1),
-	NM_ACTIVATION_STATE_FLAG_LAYER2_READY                         = (1LL <<  2),
-	NM_ACTIVATION_STATE_FLAG_IP4_READY                            = (1LL <<  3),
-	NM_ACTIVATION_STATE_FLAG_IP6_READY                            = (1LL <<  4),
-	NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES                    = (1LL <<  5),
-	NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY = (1LL <<  6),
+	NM_ACTIVATION_STATE_FLAG_IS_MASTER                            = 0x1,
+	NM_ACTIVATION_STATE_FLAG_IS_SLAVE                             = 0x2,
+	NM_ACTIVATION_STATE_FLAG_LAYER2_READY                         = 0x4,
+	NM_ACTIVATION_STATE_FLAG_IP4_READY                            = 0x8,
+	NM_ACTIVATION_STATE_FLAG_IP6_READY                            = 0x10,
+	NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES                    = 0x20,
+	NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY = 0x40,
 } NMActivationStateFlags;
 
 /**
@@ -1017,12 +1028,12 @@ typedef enum { /*< flags >*/
  */
 typedef enum { /*< flags >*/
 	NM_SETTINGS_UPDATE2_FLAG_NONE                       = 0,
-	NM_SETTINGS_UPDATE2_FLAG_TO_DISK                    = (1LL <<  0),
-	NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY                  = (1LL <<  1),
-	NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED         = (1LL <<  2),
-	NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY             = (1LL <<  3),
-	NM_SETTINGS_UPDATE2_FLAG_VOLATILE                   = (1LL <<  4),
-	NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT          = (1LL <<  5),
+	NM_SETTINGS_UPDATE2_FLAG_TO_DISK                    = 0x1,
+	NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY                  = 0x2,
+	NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED         = 0x4,
+	NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY             = 0x8,
+	NM_SETTINGS_UPDATE2_FLAG_VOLATILE                   = 0x10,
+	NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT          = 0x20,
 } NMSettingsUpdate2Flags;
 
 /**

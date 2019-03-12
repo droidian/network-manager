@@ -389,30 +389,32 @@ introspection_libnmdbus_la_CPPFLAGS = $(GLIB_CFLAGS)
 introspection_sources = \
 	introspection/org.freedesktop.NetworkManager.AccessPoint.c \
 	introspection/org.freedesktop.NetworkManager.AccessPoint.h \
-	introspection/org.freedesktop.NetworkManager.Connection.Active.c \
-	introspection/org.freedesktop.NetworkManager.Connection.Active.h \
 	introspection/org.freedesktop.NetworkManager.AgentManager.c \
 	introspection/org.freedesktop.NetworkManager.AgentManager.h \
 	introspection/org.freedesktop.NetworkManager.Checkpoint.c \
 	introspection/org.freedesktop.NetworkManager.Checkpoint.h \
+	introspection/org.freedesktop.NetworkManager.Connection.Active.c \
+	introspection/org.freedesktop.NetworkManager.Connection.Active.h \
+	introspection/org.freedesktop.NetworkManager.DHCP4Config.c \
+	introspection/org.freedesktop.NetworkManager.DHCP4Config.h \
+	introspection/org.freedesktop.NetworkManager.DHCP6Config.c \
+	introspection/org.freedesktop.NetworkManager.DHCP6Config.h \
 	introspection/org.freedesktop.NetworkManager.Device.Adsl.c \
 	introspection/org.freedesktop.NetworkManager.Device.Adsl.h \
+	introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c \
+	introspection/org.freedesktop.NetworkManager.Device.Bluetooth.h \
 	introspection/org.freedesktop.NetworkManager.Device.Bond.c \
 	introspection/org.freedesktop.NetworkManager.Device.Bond.h \
 	introspection/org.freedesktop.NetworkManager.Device.Bridge.c \
 	introspection/org.freedesktop.NetworkManager.Device.Bridge.h \
-	introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c \
-	introspection/org.freedesktop.NetworkManager.Device.Bluetooth.h \
 	introspection/org.freedesktop.NetworkManager.Device.Dummy.c \
 	introspection/org.freedesktop.NetworkManager.Device.Dummy.h \
-	introspection/org.freedesktop.NetworkManager.Device.Wired.c \
-	introspection/org.freedesktop.NetworkManager.Device.Wired.h \
 	introspection/org.freedesktop.NetworkManager.Device.Generic.c \
 	introspection/org.freedesktop.NetworkManager.Device.Generic.h \
-	introspection/org.freedesktop.NetworkManager.Device.Infiniband.c \
-	introspection/org.freedesktop.NetworkManager.Device.Infiniband.h \
 	introspection/org.freedesktop.NetworkManager.Device.IPTunnel.c \
 	introspection/org.freedesktop.NetworkManager.Device.IPTunnel.h \
+	introspection/org.freedesktop.NetworkManager.Device.Infiniband.c \
+	introspection/org.freedesktop.NetworkManager.Device.Infiniband.h \
 	introspection/org.freedesktop.NetworkManager.Device.Lowpan.c \
 	introspection/org.freedesktop.NetworkManager.Device.Lowpan.h \
 	introspection/org.freedesktop.NetworkManager.Device.Macsec.c \
@@ -423,12 +425,12 @@ introspection_sources = \
 	introspection/org.freedesktop.NetworkManager.Device.Modem.h \
 	introspection/org.freedesktop.NetworkManager.Device.OlpcMesh.c \
 	introspection/org.freedesktop.NetworkManager.Device.OlpcMesh.h \
+	introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c \
+	introspection/org.freedesktop.NetworkManager.Device.OvsBridge.h \
 	introspection/org.freedesktop.NetworkManager.Device.OvsInterface.c \
 	introspection/org.freedesktop.NetworkManager.Device.OvsInterface.h \
 	introspection/org.freedesktop.NetworkManager.Device.OvsPort.c \
 	introspection/org.freedesktop.NetworkManager.Device.OvsPort.h \
-	introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c \
-	introspection/org.freedesktop.NetworkManager.Device.OvsBridge.h \
 	introspection/org.freedesktop.NetworkManager.Device.Ppp.c \
 	introspection/org.freedesktop.NetworkManager.Device.Ppp.h \
 	introspection/org.freedesktop.NetworkManager.Device.Statistics.c \
@@ -443,28 +445,28 @@ introspection_sources = \
 	introspection/org.freedesktop.NetworkManager.Device.Vlan.h \
 	introspection/org.freedesktop.NetworkManager.Device.Vxlan.c \
 	introspection/org.freedesktop.NetworkManager.Device.Vxlan.h \
-	introspection/org.freedesktop.NetworkManager.Device.WireGuard.c \
-	introspection/org.freedesktop.NetworkManager.Device.WireGuard.h \
-	introspection/org.freedesktop.NetworkManager.Device.Wireless.c \
-	introspection/org.freedesktop.NetworkManager.Device.Wireless.h \
 	introspection/org.freedesktop.NetworkManager.Device.WiMax.c \
 	introspection/org.freedesktop.NetworkManager.Device.WiMax.h \
+	introspection/org.freedesktop.NetworkManager.Device.WifiP2P.c \
+	introspection/org.freedesktop.NetworkManager.Device.WifiP2P.h \
+	introspection/org.freedesktop.NetworkManager.Device.WireGuard.c \
+	introspection/org.freedesktop.NetworkManager.Device.WireGuard.h \
+	introspection/org.freedesktop.NetworkManager.Device.Wired.c \
+	introspection/org.freedesktop.NetworkManager.Device.Wired.h \
+	introspection/org.freedesktop.NetworkManager.Device.Wireless.c \
+	introspection/org.freedesktop.NetworkManager.Device.Wireless.h \
 	introspection/org.freedesktop.NetworkManager.Device.Wpan.c \
 	introspection/org.freedesktop.NetworkManager.Device.Wpan.h \
 	introspection/org.freedesktop.NetworkManager.Device.c \
 	introspection/org.freedesktop.NetworkManager.Device.h \
-	introspection/org.freedesktop.NetworkManager.DHCP4Config.c \
-	introspection/org.freedesktop.NetworkManager.DHCP4Config.h \
-	introspection/org.freedesktop.NetworkManager.DHCP6Config.c \
-	introspection/org.freedesktop.NetworkManager.DHCP6Config.h \
 	introspection/org.freedesktop.NetworkManager.DnsManager.c \
 	introspection/org.freedesktop.NetworkManager.DnsManager.h \
 	introspection/org.freedesktop.NetworkManager.IP4Config.c \
 	introspection/org.freedesktop.NetworkManager.IP4Config.h \
 	introspection/org.freedesktop.NetworkManager.IP6Config.c \
 	introspection/org.freedesktop.NetworkManager.IP6Config.h \
-	introspection/org.freedesktop.NetworkManager.c \
-	introspection/org.freedesktop.NetworkManager.h \
+	introspection/org.freedesktop.NetworkManager.WifiP2PPeer.c \
+	introspection/org.freedesktop.NetworkManager.WifiP2PPeer.h \
 	introspection/org.freedesktop.NetworkManager.PPP.c \
 	introspection/org.freedesktop.NetworkManager.PPP.h \
 	introspection/org.freedesktop.NetworkManager.SecretAgent.c \
@@ -476,56 +478,62 @@ introspection_sources = \
 	introspection/org.freedesktop.NetworkManager.VPN.Connection.c \
 	introspection/org.freedesktop.NetworkManager.VPN.Connection.h \
 	introspection/org.freedesktop.NetworkManager.VPN.Plugin.c \
-	introspection/org.freedesktop.NetworkManager.VPN.Plugin.h
+	introspection/org.freedesktop.NetworkManager.VPN.Plugin.h \
+	introspection/org.freedesktop.NetworkManager.c \
+	introspection/org.freedesktop.NetworkManager.h \
+	$(NULL)
 
 nodist_introspection_libnmdbus_la_SOURCES = $(introspection_sources)
 
 DBUS_INTERFACE_DOCS = \
 	docs/api/dbus-org.freedesktop.NetworkManager.AccessPoint.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Connection.Active.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.AgentManager.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Checkpoint.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Team.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Connection.Active.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.DHCP4Config.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.DHCP6Config.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Wireless.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.VPN.Connection.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.SecretAgent.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.VPN.Plugin.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Adsl.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Bluetooth.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Dummy.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Vxlan.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Settings.Connection.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Bond.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Bridge.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Dummy.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Generic.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.IPTunnel.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Infiniband.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Lowpan.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Macsec.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Macvlan.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.PPP.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Vlan.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Adsl.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.AgentManager.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.WiMax.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Wpan.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.IPTunnel.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Tun.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Bridge.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Modem.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.OlpcMesh.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.OvsBridge.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.OvsInterface.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.OvsPort.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.OvsBridge.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Ppp.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.DHCP4Config.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Generic.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Infiniband.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Modem.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.IP6Config.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Veth.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Settings.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Wired.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.WireGuard.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.IP4Config.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Statistics.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Team.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Tun.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Veth.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Vlan.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Vxlan.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.WiMax.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.WifiP2P.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.WireGuard.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Wired.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Wireless.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Wpan.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.DnsManager.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Lowpan.xml
+	docs/api/dbus-org.freedesktop.NetworkManager.IP4Config.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.IP6Config.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.PPP.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.SecretAgent.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Settings.Connection.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Settings.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.VPN.Connection.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.VPN.Plugin.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.WifiP2PPeer.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.xml \
+	$(NULL)
 
 introspection/%.c: introspection/%.xml
 	@$(MKDIR_P) introspection/
@@ -546,26 +554,27 @@ dbusinterfacesdir = $(datadir)/dbus-1/interfaces
 
 dbusinterfaces_DATA = \
 	introspection/org.freedesktop.NetworkManager.AccessPoint.xml \
-	introspection/org.freedesktop.NetworkManager.Connection.Active.xml \
 	introspection/org.freedesktop.NetworkManager.AgentManager.xml \
 	introspection/org.freedesktop.NetworkManager.Checkpoint.xml \
+	introspection/org.freedesktop.NetworkManager.Connection.Active.xml \
+	introspection/org.freedesktop.NetworkManager.DHCP4Config.xml \
+	introspection/org.freedesktop.NetworkManager.DHCP6Config.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Adsl.xml \
+	introspection/org.freedesktop.NetworkManager.Device.Bluetooth.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Bond.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Bridge.xml \
-	introspection/org.freedesktop.NetworkManager.Device.Bluetooth.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Dummy.xml \
-	introspection/org.freedesktop.NetworkManager.Device.Wired.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Generic.xml \
-	introspection/org.freedesktop.NetworkManager.Device.Infiniband.xml \
 	introspection/org.freedesktop.NetworkManager.Device.IPTunnel.xml \
+	introspection/org.freedesktop.NetworkManager.Device.Infiniband.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Lowpan.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Macsec.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Macvlan.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Modem.xml \
 	introspection/org.freedesktop.NetworkManager.Device.OlpcMesh.xml \
+	introspection/org.freedesktop.NetworkManager.Device.OvsBridge.xml \
 	introspection/org.freedesktop.NetworkManager.Device.OvsInterface.xml \
 	introspection/org.freedesktop.NetworkManager.Device.OvsPort.xml \
-	introspection/org.freedesktop.NetworkManager.Device.OvsBridge.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Ppp.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Statistics.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Team.xml \
@@ -573,24 +582,26 @@ dbusinterfaces_DATA = \
 	introspection/org.freedesktop.NetworkManager.Device.Veth.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Vlan.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Vxlan.xml \
-	introspection/org.freedesktop.NetworkManager.Device.WireGuard.xml \
-	introspection/org.freedesktop.NetworkManager.Device.Wireless.xml \
 	introspection/org.freedesktop.NetworkManager.Device.WiMax.xml \
+	introspection/org.freedesktop.NetworkManager.Device.WifiP2P.xml \
+	introspection/org.freedesktop.NetworkManager.Device.WireGuard.xml \
+	introspection/org.freedesktop.NetworkManager.Device.Wired.xml \
+	introspection/org.freedesktop.NetworkManager.Device.Wireless.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Wpan.xml \
 	introspection/org.freedesktop.NetworkManager.Device.xml \
-	introspection/org.freedesktop.NetworkManager.DHCP4Config.xml \
-	introspection/org.freedesktop.NetworkManager.DHCP6Config.xml \
 	introspection/org.freedesktop.NetworkManager.DnsManager.xml \
 	introspection/org.freedesktop.NetworkManager.IP4Config.xml \
 	introspection/org.freedesktop.NetworkManager.IP6Config.xml \
-	introspection/org.freedesktop.NetworkManager.xml \
 	introspection/org.freedesktop.NetworkManager.PPP.xml \
 	introspection/org.freedesktop.NetworkManager.SecretAgent.xml \
 	introspection/org.freedesktop.NetworkManager.Settings.Connection.xml \
 	introspection/org.freedesktop.NetworkManager.Settings.xml \
 	introspection/org.freedesktop.NetworkManager.VPN.Connection.xml \
 	introspection/org.freedesktop.NetworkManager.VPN.Plugin.xml \
-	introspection/org.freedesktop.NetworkManager.WiMax.Nsp.xml
+	introspection/org.freedesktop.NetworkManager.WiMax.Nsp.xml \
+	introspection/org.freedesktop.NetworkManager.WifiP2PPeer.xml \
+	introspection/org.freedesktop.NetworkManager.xml \
+	$(NULL)
 
 CLEANFILES += $(introspection_sources)
 CLEANFILES += $(DBUS_INTERFACE_DOCS)
@@ -656,8 +667,10 @@ libnm_core_lib_h_pub_real = \
 	libnm-core/nm-setting-vlan.h \
 	libnm-core/nm-setting-vpn.h \
 	libnm-core/nm-setting-vxlan.h \
+	libnm-core/nm-setting-wifi-p2p.h \
 	libnm-core/nm-setting-wimax.h \
 	libnm-core/nm-setting-wired.h \
+	libnm-core/nm-setting-wireguard.h \
 	libnm-core/nm-setting-wireless-security.h \
 	libnm-core/nm-setting-wireless.h \
 	libnm-core/nm-setting-wpan.h \
@@ -724,8 +737,10 @@ libnm_core_lib_c_settings_real = \
 	libnm-core/nm-setting-vlan.c \
 	libnm-core/nm-setting-vpn.c \
 	libnm-core/nm-setting-vxlan.c \
+	libnm-core/nm-setting-wifi-p2p.c \
 	libnm-core/nm-setting-wimax.c \
 	libnm-core/nm-setting-wired.c \
+	libnm-core/nm-setting-wireguard.c \
 	libnm-core/nm-setting-wireless-security.c \
 	libnm-core/nm-setting-wireless.c \
 	libnm-core/nm-setting-wpan.c
@@ -1029,14 +1044,15 @@ libnm_lib_h_pub_real = \
 	libnm/nm-device-macvlan.h \
 	libnm/nm-device-modem.h \
 	libnm/nm-device-olpc-mesh.h \
+	libnm/nm-device-ovs-bridge.h \
 	libnm/nm-device-ovs-interface.h \
 	libnm/nm-device-ovs-port.h \
-	libnm/nm-device-ovs-bridge.h \
 	libnm/nm-device-ppp.h \
 	libnm/nm-device-team.h \
 	libnm/nm-device-tun.h \
 	libnm/nm-device-vlan.h \
 	libnm/nm-device-vxlan.h \
+	libnm/nm-device-wifi-p2p.h \
 	libnm/nm-device-wifi.h \
 	libnm/nm-device-wimax.h \
 	libnm/nm-device-wireguard.h \
@@ -1052,6 +1068,7 @@ libnm_lib_h_pub_real = \
 	libnm/nm-vpn-editor.h \
 	libnm/nm-vpn-plugin-old.h \
 	libnm/nm-vpn-service-plugin.h \
+	libnm/nm-wifi-p2p-peer.h \
 	libnm/nm-wimax-nsp.h
 libnm_lib_h_pub_mkenums = \
 	libnm/nm-enum-types.h
@@ -1088,14 +1105,15 @@ libnm_lib_c_real = \
 	libnm/nm-device-macvlan.c \
 	libnm/nm-device-modem.c \
 	libnm/nm-device-olpc-mesh.c \
+	libnm/nm-device-ovs-bridge.c \
 	libnm/nm-device-ovs-interface.c \
 	libnm/nm-device-ovs-port.c \
-	libnm/nm-device-ovs-bridge.c \
 	libnm/nm-device-ppp.c \
 	libnm/nm-device-team.c \
 	libnm/nm-device-tun.c \
 	libnm/nm-device-vlan.c \
 	libnm/nm-device-vxlan.c \
+	libnm/nm-device-wifi-p2p.c \
 	libnm/nm-device-wifi.c \
 	libnm/nm-device-wimax.c \
 	libnm/nm-device-wireguard.c \
@@ -1114,9 +1132,10 @@ libnm_lib_c_real = \
 	libnm/nm-remote-settings.c \
 	libnm/nm-secret-agent-old.c \
 	libnm/nm-vpn-connection.c \
-	libnm/nm-vpn-plugin-old.c \
 	libnm/nm-vpn-editor.c \
+	libnm/nm-vpn-plugin-old.c \
 	libnm/nm-vpn-service-plugin.c \
+	libnm/nm-wifi-p2p-peer.c \
 	libnm/nm-wimax-nsp.c
 libnm_lib_c_mkenums = \
 	libnm/nm-enum-types.c
@@ -1615,6 +1634,7 @@ shared_systemd_libnm_systemd_shared_la_SOURCES = \
 	shared/systemd/src/basic/macro.h \
 	shared/systemd/src/basic/mempool.c \
 	shared/systemd/src/basic/mempool.h \
+	shared/systemd/src/basic/missing_fcntl.h \
 	shared/systemd/src/basic/missing_type.h \
 	shared/systemd/src/basic/parse-util.c \
 	shared/systemd/src/basic/parse-util.h \
@@ -1683,6 +1703,7 @@ src_libnm_systemd_core_la_SOURCES = \
 	src/systemd/nm-sd.h \
 	src/systemd/sd-adapt-core/condition.h \
 	src/systemd/sd-adapt-core/conf-parser.h \
+	src/systemd/sd-adapt-core/device-util.h \
 	src/systemd/sd-adapt-core/khash.h \
 	src/systemd/sd-adapt-core/nm-sd-adapt-core.c \
 	src/systemd/sd-adapt-core/nm-sd-adapt-core.h \
@@ -2750,8 +2771,8 @@ EXTRA_DIST += \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Bridge_Component.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Permissions.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Proxy_Basic.cexpected \
-	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Team_Port.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Team_Infiniband_Port.cexpected \
+	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Team_Port.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_VLAN_reorder_hdr.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_WiFi_Band_A.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_WiFi_Hidden.cexpected \
@@ -2845,6 +2866,7 @@ EXTRA_DIST += \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-open-ssid-long-hex \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-open-ssid-long-quoted \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-open-ssid-quoted \
+	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-sae \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-wep \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-wep-104-ascii \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-wep-40-ascii \
@@ -2862,8 +2884,8 @@ EXTRA_DIST += \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-wpa-psk-unquoted \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-wpa-psk-unquoted2 \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-802-1X-subj-matches \
-	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-802-1x-ttls-eapgtc \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-802-1x-password-raw \
+	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-802-1x-ttls-eapgtc \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-8021x-peap-mschapv2 \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-8021x-tls-agent \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-8021x-tls-always \
@@ -2910,6 +2932,7 @@ EXTRA_DIST += \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_write_wired_auto_negotiate_on.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-dynamic-wep-leap \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-leap \
+	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-sae \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-wep \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-wep-104-ascii \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-wep-40-ascii \
@@ -3238,24 +3261,30 @@ if WITH_WIFI
 core_plugins += src/devices/wifi/libnm-device-plugin-wifi.la
 
 src_devices_wifi_libnm_device_plugin_wifi_la_SOURCES = \
-	src/devices/wifi/nm-wifi-factory.c \
+	src/devices/wifi/nm-device-olpc-mesh.c \
+	src/devices/wifi/nm-device-olpc-mesh.h \
+	src/devices/wifi/nm-device-wifi-p2p.c \
+	src/devices/wifi/nm-device-wifi-p2p.h \
 	src/devices/wifi/nm-device-wifi.c \
 	src/devices/wifi/nm-device-wifi.h \
 	src/devices/wifi/nm-wifi-ap.c \
 	src/devices/wifi/nm-wifi-ap.h \
-	src/devices/wifi/nm-wifi-utils.c \
-	src/devices/wifi/nm-wifi-utils.h \
 	src/devices/wifi/nm-wifi-common.c \
 	src/devices/wifi/nm-wifi-common.h \
-	src/devices/wifi/nm-device-olpc-mesh.c \
-	src/devices/wifi/nm-device-olpc-mesh.h
+	src/devices/wifi/nm-wifi-factory.c \
+	src/devices/wifi/nm-wifi-p2p-peer.c \
+	src/devices/wifi/nm-wifi-p2p-peer.h \
+	src/devices/wifi/nm-wifi-utils.c \
+	src/devices/wifi/nm-wifi-utils.h \
+	$(NULL)
 
 if WITH_IWD
 src_devices_wifi_libnm_device_plugin_wifi_la_SOURCES += \
 	src/devices/wifi/nm-device-iwd.c \
 	src/devices/wifi/nm-device-iwd.h \
 	src/devices/wifi/nm-iwd-manager.c \
-	src/devices/wifi/nm-iwd-manager.h
+	src/devices/wifi/nm-iwd-manager.h \
+	$(NULL)
 endif
 
 src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS = $(src_cppflags_device_plugin)
@@ -3851,6 +3880,7 @@ clients_nm_online_LDADD = \
 	$(GLIB_LIBS)
 
 $(clients_nm_online_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+$(clients_nm_online_OBJECTS): $(libnm_lib_h_pub_mkenums)
 
 EXTRA_DIST += \
 	clients/meson.build
@@ -3973,6 +4003,13 @@ clients_common_tests_test_general_LDADD = \
 	$(GLIB_LIBS)
 
 $(clients_common_tests_test_general_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+
+EXTRA_DIST += \
+	clients/common/tests/wg-test0.conf \
+	clients/common/tests/wg-test1.conf \
+	clients/common/tests/wg-test2.conf \
+	clients/common/tests/wg-test3.conf \
+	$(NULL)
 
 ###############################################################################
 # clients/cli

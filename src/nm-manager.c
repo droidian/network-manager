@@ -25,8 +25,6 @@
 
 #include <stdlib.h>
 #include <fcntl.h>
-#include <errno.h>
-#include <string.h>
 #include <unistd.h>
 
 #include "nm-utils/nm-c-list.h"
@@ -2489,7 +2487,12 @@ get_existing_connection (NMManager *self,
 	if (ifindex) {
 		int master_ifindex = nm_platform_link_get_master (priv->platform, ifindex);
 
-		if (master_ifindex) {
+		/* Check that the master is activating before assuming a
+		 * slave connection. However, ignore ovs-system master as
+		 * we never manage it.
+		 */
+		if (   master_ifindex
+		    && nm_platform_link_get_type (priv->platform, master_ifindex) != NM_LINK_TYPE_OPENVSWITCH) {
 			master = nm_manager_get_device_by_ifindex (self, master_ifindex);
 			if (!master) {
 				_LOG2D (LOGD_DEVICE, device, "assume: don't assume because "
@@ -2708,7 +2711,7 @@ recheck_assume_connection (NMManager *self,
 
 		subject = nm_auth_subject_new_internal ();
 
-		/* Note: the lifetime of the activation connection is always bound to the profiles visiblity
+		/* Note: the lifetime of the activation connection is always bound to the profiles visibility
 		 * via NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY.
 		 *
 		 * This only makes a difference, if the profile actually has "connection.permissions"
@@ -3501,7 +3504,7 @@ nm_manager_get_best_device_for_connection (NMManager *self,
 		flags = NM_DEVICE_CHECK_CON_AVAILABLE_NONE;
 	else {
 		/* if the profile is multi-connect=single, we also consider devices which
-		 * are marked as unmanaged. And explicit user-request shows sufficent user
+		 * are marked as unmanaged. And explicit user-request shows sufficient user
 		 * intent to make the device managed.
 		 * That is also, because we expect that such profile is suitably tied
 		 * to the intended device. So when an unmanaged device matches, the user's
@@ -4421,7 +4424,7 @@ _activation_bind_lifetime_to_profile_visibility (NMAuthSubject *subject)
 	 *        logs out, the connection becomes invisible and disconnects.
 	 *
 	 *      - the profile at this time could already be invisible (e.g. if the
-	 *        user didn't ceate a proper session (sudo) and manually activates
+	 *        user didn't create a proper session (sudo) and manually activates
 	 *        an invisible profile. In this case, we still want to bind the
 	 *        lifetime, and it will disconnect after the user logs in and logs
 	 *        out again. NMKeepAlive takes care of that.
@@ -4906,7 +4909,7 @@ fail:
  * @activation_type: whether to assume the connection. That is, take over gracefully,
  *   non-destructible.
  * @activation_reason: the reason for activation
- * @initial_state_flags: the inital state flags for the activation.
+ * @initial_state_flags: the initial state flags for the activation.
  * @error: return location for an error
  *
  * Begins a new internally-initiated activation of @sett_conn on @device.
@@ -5312,10 +5315,10 @@ activation_add_done (NMSettings *settings,
 		                                 nm_dbus_object_get_path (NM_DBUS_OBJECT (new_connection)),
 		                                 nm_dbus_object_get_path (NM_DBUS_OBJECT (active)));
 	} else {
-		result_floating = g_variant_new ("(ooa{sv})",
+		result_floating = g_variant_new ("(oo@a{sv})",
 		                                 nm_dbus_object_get_path (NM_DBUS_OBJECT (new_connection)),
 		                                 nm_dbus_object_get_path (NM_DBUS_OBJECT (active)),
-		                                 g_variant_new_array (G_VARIANT_TYPE ("a{sv}"), NULL, 0));
+		                                 g_variant_new_array (G_VARIANT_TYPE ("{sv}"), NULL, 0));
 	}
 	g_dbus_method_invocation_return_value (context, result_floating);
 
@@ -7186,10 +7189,10 @@ rfkill_change (NMManager *self, const char *desc, RfKillType rtype, gboolean ena
 	int fd;
 	struct rfkill_event event;
 	ssize_t len;
+	int errsv;
 
 	g_return_if_fail (rtype == RFKILL_TYPE_WLAN || rtype == RFKILL_TYPE_WWAN);
 
-	errno = 0;
 	fd = open ("/dev/rfkill", O_RDWR | O_CLOEXEC);
 	if (fd < 0) {
 		if (errno == EACCES)
@@ -7220,8 +7223,9 @@ rfkill_change (NMManager *self, const char *desc, RfKillType rtype, gboolean ena
 
 	len = write (fd, &event, sizeof (event));
 	if (len < 0) {
+		errsv = errno;
 		_LOGW (LOGD_RFKILL, "rfkill: (%s): failed to change Wi-Fi killswitch state: (%d) %s",
-		       desc, errno, g_strerror (errno));
+		       desc, errsv, nm_strerror_native (errsv));
 	} else if (len == sizeof (event)) {
 		_LOGI (LOGD_RFKILL, "rfkill: %s hardware radio set %s",
 		       desc, enabled ? "enabled" : "disabled");

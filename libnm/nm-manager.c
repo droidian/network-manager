@@ -23,8 +23,6 @@
 
 #include "nm-manager.h"
 
-#include <string.h>
-
 #include "nm-utils.h"
 #include "nm-checkpoint.h"
 #include "nm-common-macros.h"
@@ -312,6 +310,8 @@ nm_permission_to_client (const char *nm)
 		return NM_CLIENT_PERMISSION_ENABLE_DISABLE_STATISTICS;
 	else if (!strcmp (nm, NM_AUTH_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK))
 		return NM_CLIENT_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK;
+	else if (!strcmp (nm, NM_AUTH_PERMISSION_WIFI_SCAN))
+		return NM_CLIENT_PERMISSION_WIFI_SCAN;
 
 	return NM_CLIENT_PERMISSION_NONE;
 }
@@ -918,6 +918,8 @@ activate_info_complete (ActivateInfo *info,
                         NMActiveConnection *active,
                         GError *error)
 {
+	nm_assert ((!error) != (!active));
+
 	nm_clear_g_signal_handler (info->cancellable, &info->cancelled_id);
 
 	c_list_unlink_stale (&info->lst);
@@ -1118,6 +1120,10 @@ add_activate_cb (GObject *object,
 	gs_free_error GError *error = NULL;
 	gboolean success;
 
+	nm_assert (info);
+	nm_assert (!info->active_path);
+	nm_assert (!info->add_and_activate_output);
+
 	if (info->activate_type == ACTIVATE_TYPE_ADD_AND_ACTIVATE_CONNECTION) {
 		success = nmdbus_manager_call_add_and_activate_connection_finish (NMDBUS_MANAGER (object),
 		                                                                  NULL,
@@ -1209,12 +1215,12 @@ nm_manager_add_and_activate_connection_async (NMManager *manager,
 		                                                  info);
 	} else {
 		nmdbus_manager_call_add_and_activate_connection (priv->proxy,
-		                                                  dict,
-		                                                  nm_object_get_path (NM_OBJECT (device)),
-		                                                  specific_object ?: "/",
-		                                                  cancellable,
-		                                                  add_activate_cb,
-		                                                  info);
+		                                                 dict,
+		                                                 nm_object_get_path (NM_OBJECT (device)),
+		                                                 specific_object ?: "/",
+		                                                 cancellable,
+		                                                 add_activate_cb,
+		                                                 info);
 	}
 }
 
@@ -1624,7 +1630,7 @@ nm_manager_checkpoint_rollback_finish (NMManager *manager,
 	if (g_simple_async_result_propagate_error (simple, error))
 		return NULL;
 	else
-		return g_simple_async_result_get_op_res_gpointer (simple);
+		return g_hash_table_ref (g_simple_async_result_get_op_res_gpointer (simple));
 }
 
 static void
@@ -1817,6 +1823,8 @@ dispose (GObject *object)
 		g_ptr_array_unref (priv->all_devices);
 		priv->all_devices = NULL;
 	}
+
+	nm_clear_pointer (&priv->checkpoints, g_ptr_array_unref);
 
 	free_active_connections (manager);
 	g_clear_object (&priv->primary_connection);

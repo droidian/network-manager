@@ -4,11 +4,11 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "shared/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.15.2',
+  version: '1.15.91',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
-    'c_std=gnu99',
+    'c_std=gnu11',
   ],
   meson_version: '>= 0.44.0',
 )
@@ -98,6 +98,8 @@ set_defines = [
   ['VERSION', nm_version],
 ]
 
+default_test_timeout = 90
+
 foreach define: set_defines
   config_h.set_quoted(define[0], define[1])
 endforeach
@@ -147,9 +149,17 @@ if enable_ld_gc
   common_ldflags += test_ldflags
 endif
 
+enable_lto = get_option('b_lto')
+if enable_lto
+  # meson already adds '-flto'
+  lto_flag = '-flto-partition=none'
+  assert(cc.has_argument(lto_flag), '-flto-partition=none not supported. Disable link-time optimization with -Db_lto=false.')
+  common_flags += lto_flag
+  common_ldflags += lto_flag
+endif
+
 if nm_debug
   common_flags += cc.get_supported_arguments([
-    '-fno-strict-aliasing',
     '-Wdeclaration-after-statement',
     '-Wfloat-equal',
     '-Wimplicit-fallthrough',
@@ -160,7 +170,7 @@ if nm_debug
     '-Wmissing-prototypes',
     '-Wno-duplicate-decl-specifier',
     '-Wno-format-truncation',
-    '-Wno-missing-braces',
+    '-Wno-gnu-variable-sized-type-not-at-end',
     '-Wno-missing-field-initializers',
     '-Wno-pragmas',
     '-Wno-sign-compare',
@@ -172,6 +182,7 @@ if nm_debug
     '-Wtypedef-redefinition',
     '-Wundef',
     '-Wunknown-attributes',
+    '-fno-strict-aliasing',
   ])
 endif
 
@@ -365,6 +376,8 @@ elif session_tracking == 'elogind'
   config_h.set10('SESSION_TRACKING_SYSTEMD', false)
   config_h.set10('SESSION_TRACKING_ELOGIND', true)
 else
+  config_h.set10('SESSION_TRACKING_SYSTEMD', false)
+  config_h.set10('SESSION_TRACKING_ELOGIND', false)
   logind_dep = dependency('', required:false)
 endif
 
@@ -986,7 +999,7 @@ if enable_valgrind
 endif
 output += '\n'
 output += '  code coverage: ' + get_option('b_coverage').to_string() + '\n'
-output += '  LTO: ' + get_option('b_lto').to_string() + '\n'
+output += '  LTO: ' + enable_lto.to_string() + '\n'
 output += '  Linker garbage collection: ' + enable_ld_gc.to_string() + '\n'
 output += '  JSON validation for libnm: ' + enable_json_validation.to_string() + '\n'
 output += '  crypto: ' + crypto + ' (have-gnutls: ' + crypto_gnutls_dep.found().to_string() + ', have-nss: ' + crypto_nss_dep.found().to_string() + ')\n'

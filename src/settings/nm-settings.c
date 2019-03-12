@@ -29,8 +29,6 @@
 
 #include <unistd.h>
 #include <sys/stat.h>
-#include <errno.h>
-#include <string.h>
 #include <gmodule.h>
 #include <pwd.h>
 
@@ -375,7 +373,7 @@ _clear_connections_cached_list (NMSettingsPrivate *priv)
 /**
  * nm_settings_get_connections:
  * @self: the #NMSettings
- * @out_len: (out): (allow-none): returns the number of returned
+ * @out_len: (out) (allow-none): returns the number of returned
  *   connections.
  *
  * Returns: (transfer none): a list of NMSettingsConnections. The list is
@@ -638,7 +636,7 @@ add_plugin_load_file (NMSettings *self, const char *pname, GError **error)
 
 	if (stat (path, &st) != 0) {
 		errsv = errno;
-		_LOGW ("could not load plugin '%s' from file '%s': %s", pname, path, strerror (errsv));
+		_LOGW ("could not load plugin '%s' from file '%s': %s", pname, path, nm_strerror_native (errsv));
 		return TRUE;
 	}
 	if (!S_ISREG (st.st_mode)) {

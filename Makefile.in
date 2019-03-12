@@ -262,7 +262,8 @@ TESTS = $(am__EXEEXT_14)
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/devices/wifi/nm-device-iwd.c \
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/devices/wifi/nm-device-iwd.h \
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/devices/wifi/nm-iwd-manager.c \
-@WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/devices/wifi/nm-iwd-manager.h
+@WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/devices/wifi/nm-iwd-manager.h \
+@WITH_IWD_TRUE@@WITH_WIFI_TRUE@	$(NULL)
 
 @WITH_WIFI_TRUE@am__append_48 = check-local-devices-wifi
 @WITH_WIFI_TRUE@am__append_49 = src/devices/wifi/tests/test-general
@@ -699,26 +700,27 @@ dispatcher_libnm_dispatcher_core_la_OBJECTS =  \
 	$(am_dispatcher_libnm_dispatcher_core_la_OBJECTS)
 introspection_libnmdbus_la_LIBADD =
 am__objects_1 = introspection/libnmdbus_la-org.freedesktop.NetworkManager.AccessPoint.lo \
-	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.AgentManager.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Checkpoint.lo \
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo \
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo \
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Adsl.lo \
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bond.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bridge.lo \
-	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.lo \
-	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.lo \
-	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.lo \
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Lowpan.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Macsec.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Macvlan.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Modem.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OlpcMesh.lo \
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsInterface.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsPort.lo \
-	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Ppp.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Statistics.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Team.lo \
@@ -726,23 +728,24 @@ am__objects_1 = introspection/libnmdbus_la-org.freedesktop.NetworkManager.Access
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Veth.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vlan.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vxlan.lo \
-	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.lo \
-	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.lo \
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.lo \
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.lo \
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo \
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wpan.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.lo \
-	introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo \
-	introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.DnsManager.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.IP4Config.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.IP6Config.lo \
-	introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo \
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.PPP.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.SecretAgent.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Settings.Connection.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.Settings.lo \
 	introspection/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Connection.lo \
-	introspection/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Plugin.lo
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Plugin.lo \
+	introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo
 nodist_introspection_libnmdbus_la_OBJECTS = $(am__objects_1)
 introspection_libnmdbus_la_OBJECTS =  \
 	$(nodist_introspection_libnmdbus_la_OBJECTS)
@@ -777,8 +780,9 @@ am__libnm_core_libnm_core_la_SOURCES_DIST =  \
 	libnm-core/nm-setting-team-port.h libnm-core/nm-setting-team.h \
 	libnm-core/nm-setting-tun.h libnm-core/nm-setting-user.h \
 	libnm-core/nm-setting-vlan.h libnm-core/nm-setting-vpn.h \
-	libnm-core/nm-setting-vxlan.h libnm-core/nm-setting-wimax.h \
-	libnm-core/nm-setting-wired.h \
+	libnm-core/nm-setting-vxlan.h libnm-core/nm-setting-wifi-p2p.h \
+	libnm-core/nm-setting-wimax.h libnm-core/nm-setting-wired.h \
+	libnm-core/nm-setting-wireguard.h \
 	libnm-core/nm-setting-wireless-security.h \
 	libnm-core/nm-setting-wireless.h libnm-core/nm-setting-wpan.h \
 	libnm-core/nm-setting.h libnm-core/nm-simple-connection.h \
@@ -819,8 +823,9 @@ am__libnm_core_libnm_core_la_SOURCES_DIST =  \
 	libnm-core/nm-setting-team-port.c libnm-core/nm-setting-team.c \
 	libnm-core/nm-setting-tun.c libnm-core/nm-setting-user.c \
 	libnm-core/nm-setting-vlan.c libnm-core/nm-setting-vpn.c \
-	libnm-core/nm-setting-vxlan.c libnm-core/nm-setting-wimax.c \
-	libnm-core/nm-setting-wired.c \
+	libnm-core/nm-setting-vxlan.c libnm-core/nm-setting-wifi-p2p.c \
+	libnm-core/nm-setting-wimax.c libnm-core/nm-setting-wired.c \
+	libnm-core/nm-setting-wireguard.c \
 	libnm-core/nm-setting-wireless-security.c \
 	libnm-core/nm-setting-wireless.c libnm-core/nm-setting-wpan.c \
 	shared/nm-ethtool-utils.c shared/nm-meta-setting.c \
@@ -873,8 +878,10 @@ am__objects_4 = libnm-core/libnm_core_la-nm-setting-6lowpan.lo \
 	libnm-core/libnm_core_la-nm-setting-vlan.lo \
 	libnm-core/libnm_core_la-nm-setting-vpn.lo \
 	libnm-core/libnm_core_la-nm-setting-vxlan.lo \
+	libnm-core/libnm_core_la-nm-setting-wifi-p2p.lo \
 	libnm-core/libnm_core_la-nm-setting-wimax.lo \
 	libnm-core/libnm_core_la-nm-setting-wired.lo \
+	libnm-core/libnm_core_la-nm-setting-wireguard.lo \
 	libnm-core/libnm_core_la-nm-setting-wireless-security.lo \
 	libnm-core/libnm_core_la-nm-setting-wireless.lo \
 	libnm-core/libnm_core_la-nm-setting-wpan.lo
@@ -1209,14 +1216,15 @@ am__objects_18 = libnm/libnm_la-nm-access-point.lo \
 	libnm/libnm_la-nm-device-macvlan.lo \
 	libnm/libnm_la-nm-device-modem.lo \
 	libnm/libnm_la-nm-device-olpc-mesh.lo \
+	libnm/libnm_la-nm-device-ovs-bridge.lo \
 	libnm/libnm_la-nm-device-ovs-interface.lo \
 	libnm/libnm_la-nm-device-ovs-port.lo \
-	libnm/libnm_la-nm-device-ovs-bridge.lo \
 	libnm/libnm_la-nm-device-ppp.lo \
 	libnm/libnm_la-nm-device-team.lo \
 	libnm/libnm_la-nm-device-tun.lo \
 	libnm/libnm_la-nm-device-vlan.lo \
 	libnm/libnm_la-nm-device-vxlan.lo \
+	libnm/libnm_la-nm-device-wifi-p2p.lo \
 	libnm/libnm_la-nm-device-wifi.lo \
 	libnm/libnm_la-nm-device-wimax.lo \
 	libnm/libnm_la-nm-device-wireguard.lo \
@@ -1232,9 +1240,10 @@ am__objects_18 = libnm/libnm_la-nm-access-point.lo \
 	libnm/libnm_la-nm-remote-settings.lo \
 	libnm/libnm_la-nm-secret-agent-old.lo \
 	libnm/libnm_la-nm-vpn-connection.lo \
-	libnm/libnm_la-nm-vpn-plugin-old.lo \
 	libnm/libnm_la-nm-vpn-editor.lo \
+	libnm/libnm_la-nm-vpn-plugin-old.lo \
 	libnm/libnm_la-nm-vpn-service-plugin.lo \
+	libnm/libnm_la-nm-wifi-p2p-peer.lo \
 	libnm/libnm_la-nm-wimax-nsp.lo
 am_libnm_libnm_la_OBJECTS = $(am__objects_2) $(am__objects_2) \
 	$(am__objects_18)
@@ -1458,28 +1467,34 @@ src_devices_team_libnm_device_plugin_team_la_LINK = $(LIBTOOL) \
 @WITH_WIFI_TRUE@src_devices_wifi_libnm_device_plugin_wifi_la_DEPENDENCIES =  \
 @WITH_WIFI_TRUE@	$(am__DEPENDENCIES_1)
 am__src_devices_wifi_libnm_device_plugin_wifi_la_SOURCES_DIST =  \
-	src/devices/wifi/nm-wifi-factory.c \
+	src/devices/wifi/nm-device-olpc-mesh.c \
+	src/devices/wifi/nm-device-olpc-mesh.h \
+	src/devices/wifi/nm-device-wifi-p2p.c \
+	src/devices/wifi/nm-device-wifi-p2p.h \
 	src/devices/wifi/nm-device-wifi.c \
 	src/devices/wifi/nm-device-wifi.h \
 	src/devices/wifi/nm-wifi-ap.c src/devices/wifi/nm-wifi-ap.h \
-	src/devices/wifi/nm-wifi-utils.c \
-	src/devices/wifi/nm-wifi-utils.h \
 	src/devices/wifi/nm-wifi-common.c \
 	src/devices/wifi/nm-wifi-common.h \
-	src/devices/wifi/nm-device-olpc-mesh.c \
-	src/devices/wifi/nm-device-olpc-mesh.h \
+	src/devices/wifi/nm-wifi-factory.c \
+	src/devices/wifi/nm-wifi-p2p-peer.c \
+	src/devices/wifi/nm-wifi-p2p-peer.h \
+	src/devices/wifi/nm-wifi-utils.c \
+	src/devices/wifi/nm-wifi-utils.h \
 	src/devices/wifi/nm-device-iwd.c \
 	src/devices/wifi/nm-device-iwd.h \
 	src/devices/wifi/nm-iwd-manager.c \
 	src/devices/wifi/nm-iwd-manager.h
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@am__objects_23 = src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-iwd.lo \
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/devices/wifi/libnm_device_plugin_wifi_la-nm-iwd-manager.lo
-@WITH_WIFI_TRUE@am_src_devices_wifi_libnm_device_plugin_wifi_la_OBJECTS = src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo \
+@WITH_WIFI_TRUE@am_src_devices_wifi_libnm_device_plugin_wifi_la_OBJECTS = src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo \
+@WITH_WIFI_TRUE@	src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.lo \
 @WITH_WIFI_TRUE@	src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-wifi.lo \
 @WITH_WIFI_TRUE@	src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-ap.lo \
-@WITH_WIFI_TRUE@	src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo \
 @WITH_WIFI_TRUE@	src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-common.lo \
-@WITH_WIFI_TRUE@	src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo \
+@WITH_WIFI_TRUE@	src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo \
+@WITH_WIFI_TRUE@	src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.lo \
+@WITH_WIFI_TRUE@	src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo \
 @WITH_WIFI_TRUE@	$(am__objects_23)
 src_devices_wifi_libnm_device_plugin_wifi_la_OBJECTS =  \
 	$(am_src_devices_wifi_libnm_device_plugin_wifi_la_OBJECTS)
@@ -2844,6 +2859,7 @@ am__depfiles_remade = clients/$(DEPDIR)/nm_online-nm-online.Po \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vlan.Plo \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vxlan.Plo \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.Plo \
+	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.Plo \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.Plo \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.Plo \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.Plo \
@@ -2858,6 +2874,7 @@ am__depfiles_remade = clients/$(DEPDIR)/nm_online-nm-online.Po \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Settings.Plo \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Connection.Plo \
 	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Plugin.Plo \
+	introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.Plo \
 	libnm-core/$(DEPDIR)/libnm_core_la-nm-connection.Plo \
 	libnm-core/$(DEPDIR)/libnm_core_la-nm-core-enum-types.Plo \
 	libnm-core/$(DEPDIR)/libnm_core_la-nm-crypto.Plo \
@@ -2907,8 +2924,10 @@ am__depfiles_remade = clients/$(DEPDIR)/nm_online-nm-online.Po \
 	libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-vlan.Plo \
 	libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-vpn.Plo \
 	libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-vxlan.Plo \
+	libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wifi-p2p.Plo \
 	libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wimax.Plo \
 	libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wired.Plo \
+	libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireguard.Plo \
 	libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireless-security.Plo \
 	libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireless.Plo \
 	libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wpan.Plo \
@@ -3038,6 +3057,7 @@ am__depfiles_remade = clients/$(DEPDIR)/nm_online-nm-online.Po \
 	libnm/$(DEPDIR)/libnm_la-nm-device-tun.Plo \
 	libnm/$(DEPDIR)/libnm_la-nm-device-vlan.Plo \
 	libnm/$(DEPDIR)/libnm_la-nm-device-vxlan.Plo \
+	libnm/$(DEPDIR)/libnm_la-nm-device-wifi-p2p.Plo \
 	libnm/$(DEPDIR)/libnm_la-nm-device-wifi.Plo \
 	libnm/$(DEPDIR)/libnm_la-nm-device-wimax.Plo \
 	libnm/$(DEPDIR)/libnm_la-nm-device-wireguard.Plo \
@@ -3060,6 +3080,7 @@ am__depfiles_remade = clients/$(DEPDIR)/nm_online-nm-online.Po \
 	libnm/$(DEPDIR)/libnm_la-nm-vpn-editor.Plo \
 	libnm/$(DEPDIR)/libnm_la-nm-vpn-plugin-old.Plo \
 	libnm/$(DEPDIR)/libnm_la-nm-vpn-service-plugin.Plo \
+	libnm/$(DEPDIR)/libnm_la-nm-wifi-p2p-peer.Plo \
 	libnm/$(DEPDIR)/libnm_la-nm-wimax-nsp.Plo \
 	libnm/$(DEPDIR)/libnm_utils_la-nm-libnm-utils.Plo \
 	libnm/fake-typelib/$(DEPDIR)/libnm_utils_la-typelibs.Plo \
@@ -3209,11 +3230,13 @@ am__depfiles_remade = clients/$(DEPDIR)/nm_online-nm-online.Po \
 	src/devices/tests/$(DEPDIR)/test_lldp-test-lldp.Po \
 	src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-iwd.Plo \
 	src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.Plo \
+	src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.Plo \
 	src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-wifi.Plo \
 	src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-iwd-manager.Plo \
 	src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-ap.Plo \
 	src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-common.Plo \
 	src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Plo \
+	src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.Plo \
 	src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-utils.Plo \
 	src/devices/wifi/$(DEPDIR)/src_devices_wifi_tests_test_general-nm-wifi-ap.Po \
 	src/devices/wifi/$(DEPDIR)/src_devices_wifi_tests_test_general-nm-wifi-utils.Po \
@@ -4630,8 +4653,8 @@ EXTRA_DIST = $(dbusinterfaces_DATA) introspection/meson.build \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Bridge_Component.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Permissions.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Proxy_Basic.cexpected \
-	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Team_Port.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Team_Infiniband_Port.cexpected \
+	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Team_Port.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_VLAN_reorder_hdr.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_WiFi_Band_A.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_WiFi_Hidden.cexpected \
@@ -4725,6 +4748,7 @@ EXTRA_DIST = $(dbusinterfaces_DATA) introspection/meson.build \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-open-ssid-long-hex \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-open-ssid-long-quoted \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-open-ssid-quoted \
+	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-sae \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-wep \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-wep-104-ascii \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-wep-40-ascii \
@@ -4742,8 +4766,8 @@ EXTRA_DIST = $(dbusinterfaces_DATA) introspection/meson.build \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-wpa-psk-unquoted \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wifi-wpa-psk-unquoted2 \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-802-1X-subj-matches \
-	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-802-1x-ttls-eapgtc \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-802-1x-password-raw \
+	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-802-1x-ttls-eapgtc \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-8021x-peap-mschapv2 \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-8021x-tls-agent \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-wired-8021x-tls-always \
@@ -4790,6 +4814,7 @@ EXTRA_DIST = $(dbusinterfaces_DATA) introspection/meson.build \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test_write_wired_auto_negotiate_on.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-dynamic-wep-leap \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-leap \
+	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-sae \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-wep \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-wep-104-ascii \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-wep-40-ascii \
@@ -4878,6 +4903,10 @@ EXTRA_DIST = $(dbusinterfaces_DATA) introspection/meson.build \
 	dispatcher/tests/meson.build clients/meson.build \
 	$(clients_common_settings_doc_h) \
 	$(clients_common_settings_doc_h).in \
+	clients/common/tests/wg-test0.conf \
+	clients/common/tests/wg-test1.conf \
+	clients/common/tests/wg-test2.conf \
+	clients/common/tests/wg-test3.conf $(NULL) \
 	clients/cli/nmcli-completion clients/cli/meson.build \
 	clients/common/settings-docs.xsl clients/common/meson.build \
 	clients/common/tests/meson.build clients/tui/meson.build \
@@ -4966,6 +4995,7 @@ EXTRA_DIST = $(dbusinterfaces_DATA) introspection/meson.build \
 	examples/python/gi/get_ips.py \
 	examples/python/gi/list-connections.py \
 	examples/python/gi/nm-connection-update-stable-id.py \
+	examples/python/gi/nm-wg-set \
 	examples/python/gi/setting-user-data.py \
 	examples/python/gi/show-wifi-networks.py \
 	examples/python/gi/update-ip4-method.py \
@@ -5299,30 +5329,32 @@ introspection_libnmdbus_la_CPPFLAGS = $(GLIB_CFLAGS)
 introspection_sources = \
 	introspection/org.freedesktop.NetworkManager.AccessPoint.c \
 	introspection/org.freedesktop.NetworkManager.AccessPoint.h \
-	introspection/org.freedesktop.NetworkManager.Connection.Active.c \
-	introspection/org.freedesktop.NetworkManager.Connection.Active.h \
 	introspection/org.freedesktop.NetworkManager.AgentManager.c \
 	introspection/org.freedesktop.NetworkManager.AgentManager.h \
 	introspection/org.freedesktop.NetworkManager.Checkpoint.c \
 	introspection/org.freedesktop.NetworkManager.Checkpoint.h \
+	introspection/org.freedesktop.NetworkManager.Connection.Active.c \
+	introspection/org.freedesktop.NetworkManager.Connection.Active.h \
+	introspection/org.freedesktop.NetworkManager.DHCP4Config.c \
+	introspection/org.freedesktop.NetworkManager.DHCP4Config.h \
+	introspection/org.freedesktop.NetworkManager.DHCP6Config.c \
+	introspection/org.freedesktop.NetworkManager.DHCP6Config.h \
 	introspection/org.freedesktop.NetworkManager.Device.Adsl.c \
 	introspection/org.freedesktop.NetworkManager.Device.Adsl.h \
+	introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c \
+	introspection/org.freedesktop.NetworkManager.Device.Bluetooth.h \
 	introspection/org.freedesktop.NetworkManager.Device.Bond.c \
 	introspection/org.freedesktop.NetworkManager.Device.Bond.h \
 	introspection/org.freedesktop.NetworkManager.Device.Bridge.c \
 	introspection/org.freedesktop.NetworkManager.Device.Bridge.h \
-	introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c \
-	introspection/org.freedesktop.NetworkManager.Device.Bluetooth.h \
 	introspection/org.freedesktop.NetworkManager.Device.Dummy.c \
 	introspection/org.freedesktop.NetworkManager.Device.Dummy.h \
-	introspection/org.freedesktop.NetworkManager.Device.Wired.c \
-	introspection/org.freedesktop.NetworkManager.Device.Wired.h \
 	introspection/org.freedesktop.NetworkManager.Device.Generic.c \
 	introspection/org.freedesktop.NetworkManager.Device.Generic.h \
-	introspection/org.freedesktop.NetworkManager.Device.Infiniband.c \
-	introspection/org.freedesktop.NetworkManager.Device.Infiniband.h \
 	introspection/org.freedesktop.NetworkManager.Device.IPTunnel.c \
 	introspection/org.freedesktop.NetworkManager.Device.IPTunnel.h \
+	introspection/org.freedesktop.NetworkManager.Device.Infiniband.c \
+	introspection/org.freedesktop.NetworkManager.Device.Infiniband.h \
 	introspection/org.freedesktop.NetworkManager.Device.Lowpan.c \
 	introspection/org.freedesktop.NetworkManager.Device.Lowpan.h \
 	introspection/org.freedesktop.NetworkManager.Device.Macsec.c \
@@ -5333,12 +5365,12 @@ introspection_sources = \
 	introspection/org.freedesktop.NetworkManager.Device.Modem.h \
 	introspection/org.freedesktop.NetworkManager.Device.OlpcMesh.c \
 	introspection/org.freedesktop.NetworkManager.Device.OlpcMesh.h \
+	introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c \
+	introspection/org.freedesktop.NetworkManager.Device.OvsBridge.h \
 	introspection/org.freedesktop.NetworkManager.Device.OvsInterface.c \
 	introspection/org.freedesktop.NetworkManager.Device.OvsInterface.h \
 	introspection/org.freedesktop.NetworkManager.Device.OvsPort.c \
 	introspection/org.freedesktop.NetworkManager.Device.OvsPort.h \
-	introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c \
-	introspection/org.freedesktop.NetworkManager.Device.OvsBridge.h \
 	introspection/org.freedesktop.NetworkManager.Device.Ppp.c \
 	introspection/org.freedesktop.NetworkManager.Device.Ppp.h \
 	introspection/org.freedesktop.NetworkManager.Device.Statistics.c \
@@ -5353,28 +5385,28 @@ introspection_sources = \
 	introspection/org.freedesktop.NetworkManager.Device.Vlan.h \
 	introspection/org.freedesktop.NetworkManager.Device.Vxlan.c \
 	introspection/org.freedesktop.NetworkManager.Device.Vxlan.h \
-	introspection/org.freedesktop.NetworkManager.Device.WireGuard.c \
-	introspection/org.freedesktop.NetworkManager.Device.WireGuard.h \
-	introspection/org.freedesktop.NetworkManager.Device.Wireless.c \
-	introspection/org.freedesktop.NetworkManager.Device.Wireless.h \
 	introspection/org.freedesktop.NetworkManager.Device.WiMax.c \
 	introspection/org.freedesktop.NetworkManager.Device.WiMax.h \
+	introspection/org.freedesktop.NetworkManager.Device.WifiP2P.c \
+	introspection/org.freedesktop.NetworkManager.Device.WifiP2P.h \
+	introspection/org.freedesktop.NetworkManager.Device.WireGuard.c \
+	introspection/org.freedesktop.NetworkManager.Device.WireGuard.h \
+	introspection/org.freedesktop.NetworkManager.Device.Wired.c \
+	introspection/org.freedesktop.NetworkManager.Device.Wired.h \
+	introspection/org.freedesktop.NetworkManager.Device.Wireless.c \
+	introspection/org.freedesktop.NetworkManager.Device.Wireless.h \
 	introspection/org.freedesktop.NetworkManager.Device.Wpan.c \
 	introspection/org.freedesktop.NetworkManager.Device.Wpan.h \
 	introspection/org.freedesktop.NetworkManager.Device.c \
 	introspection/org.freedesktop.NetworkManager.Device.h \
-	introspection/org.freedesktop.NetworkManager.DHCP4Config.c \
-	introspection/org.freedesktop.NetworkManager.DHCP4Config.h \
-	introspection/org.freedesktop.NetworkManager.DHCP6Config.c \
-	introspection/org.freedesktop.NetworkManager.DHCP6Config.h \
 	introspection/org.freedesktop.NetworkManager.DnsManager.c \
 	introspection/org.freedesktop.NetworkManager.DnsManager.h \
 	introspection/org.freedesktop.NetworkManager.IP4Config.c \
 	introspection/org.freedesktop.NetworkManager.IP4Config.h \
 	introspection/org.freedesktop.NetworkManager.IP6Config.c \
 	introspection/org.freedesktop.NetworkManager.IP6Config.h \
-	introspection/org.freedesktop.NetworkManager.c \
-	introspection/org.freedesktop.NetworkManager.h \
+	introspection/org.freedesktop.NetworkManager.WifiP2PPeer.c \
+	introspection/org.freedesktop.NetworkManager.WifiP2PPeer.h \
 	introspection/org.freedesktop.NetworkManager.PPP.c \
 	introspection/org.freedesktop.NetworkManager.PPP.h \
 	introspection/org.freedesktop.NetworkManager.SecretAgent.c \
@@ -5386,79 +5418,86 @@ introspection_sources = \
 	introspection/org.freedesktop.NetworkManager.VPN.Connection.c \
 	introspection/org.freedesktop.NetworkManager.VPN.Connection.h \
 	introspection/org.freedesktop.NetworkManager.VPN.Plugin.c \
-	introspection/org.freedesktop.NetworkManager.VPN.Plugin.h
+	introspection/org.freedesktop.NetworkManager.VPN.Plugin.h \
+	introspection/org.freedesktop.NetworkManager.c \
+	introspection/org.freedesktop.NetworkManager.h \
+	$(NULL)
 
 nodist_introspection_libnmdbus_la_SOURCES = $(introspection_sources)
 DBUS_INTERFACE_DOCS = \
 	docs/api/dbus-org.freedesktop.NetworkManager.AccessPoint.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Connection.Active.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.AgentManager.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Checkpoint.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Team.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Connection.Active.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.DHCP4Config.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.DHCP6Config.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Wireless.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.VPN.Connection.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.SecretAgent.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.VPN.Plugin.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Adsl.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Bluetooth.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Dummy.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Vxlan.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Settings.Connection.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Bond.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Bridge.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Dummy.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Generic.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.IPTunnel.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Infiniband.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Lowpan.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Macsec.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Macvlan.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.PPP.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Vlan.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Adsl.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.AgentManager.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.WiMax.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Wpan.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.IPTunnel.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Tun.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Bridge.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Modem.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.OlpcMesh.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.OvsBridge.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.OvsInterface.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.OvsPort.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.OvsBridge.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Ppp.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.DHCP4Config.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Generic.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Infiniband.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Modem.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.IP6Config.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Veth.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Settings.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Wired.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.WireGuard.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.IP4Config.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.Device.Statistics.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Team.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Tun.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Veth.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Vlan.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Vxlan.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.WiMax.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.WifiP2P.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.WireGuard.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Wired.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Wireless.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.Wpan.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Device.xml \
 	docs/api/dbus-org.freedesktop.NetworkManager.DnsManager.xml \
-	docs/api/dbus-org.freedesktop.NetworkManager.Device.Lowpan.xml
+	docs/api/dbus-org.freedesktop.NetworkManager.IP4Config.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.IP6Config.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.PPP.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.SecretAgent.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Settings.Connection.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.Settings.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.VPN.Connection.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.VPN.Plugin.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.WifiP2PPeer.xml \
+	docs/api/dbus-org.freedesktop.NetworkManager.xml \
+	$(NULL)
 
 dbusinterfacesdir = $(datadir)/dbus-1/interfaces
 dbusinterfaces_DATA = \
 	introspection/org.freedesktop.NetworkManager.AccessPoint.xml \
-	introspection/org.freedesktop.NetworkManager.Connection.Active.xml \
 	introspection/org.freedesktop.NetworkManager.AgentManager.xml \
 	introspection/org.freedesktop.NetworkManager.Checkpoint.xml \
+	introspection/org.freedesktop.NetworkManager.Connection.Active.xml \
+	introspection/org.freedesktop.NetworkManager.DHCP4Config.xml \
+	introspection/org.freedesktop.NetworkManager.DHCP6Config.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Adsl.xml \
+	introspection/org.freedesktop.NetworkManager.Device.Bluetooth.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Bond.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Bridge.xml \
-	introspection/org.freedesktop.NetworkManager.Device.Bluetooth.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Dummy.xml \
-	introspection/org.freedesktop.NetworkManager.Device.Wired.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Generic.xml \
-	introspection/org.freedesktop.NetworkManager.Device.Infiniband.xml \
 	introspection/org.freedesktop.NetworkManager.Device.IPTunnel.xml \
+	introspection/org.freedesktop.NetworkManager.Device.Infiniband.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Lowpan.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Macsec.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Macvlan.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Modem.xml \
 	introspection/org.freedesktop.NetworkManager.Device.OlpcMesh.xml \
+	introspection/org.freedesktop.NetworkManager.Device.OvsBridge.xml \
 	introspection/org.freedesktop.NetworkManager.Device.OvsInterface.xml \
 	introspection/org.freedesktop.NetworkManager.Device.OvsPort.xml \
-	introspection/org.freedesktop.NetworkManager.Device.OvsBridge.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Ppp.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Statistics.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Team.xml \
@@ -5466,24 +5505,26 @@ dbusinterfaces_DATA = \
 	introspection/org.freedesktop.NetworkManager.Device.Veth.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Vlan.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Vxlan.xml \
-	introspection/org.freedesktop.NetworkManager.Device.WireGuard.xml \
-	introspection/org.freedesktop.NetworkManager.Device.Wireless.xml \
 	introspection/org.freedesktop.NetworkManager.Device.WiMax.xml \
+	introspection/org.freedesktop.NetworkManager.Device.WifiP2P.xml \
+	introspection/org.freedesktop.NetworkManager.Device.WireGuard.xml \
+	introspection/org.freedesktop.NetworkManager.Device.Wired.xml \
+	introspection/org.freedesktop.NetworkManager.Device.Wireless.xml \
 	introspection/org.freedesktop.NetworkManager.Device.Wpan.xml \
 	introspection/org.freedesktop.NetworkManager.Device.xml \
-	introspection/org.freedesktop.NetworkManager.DHCP4Config.xml \
-	introspection/org.freedesktop.NetworkManager.DHCP6Config.xml \
 	introspection/org.freedesktop.NetworkManager.DnsManager.xml \
 	introspection/org.freedesktop.NetworkManager.IP4Config.xml \
 	introspection/org.freedesktop.NetworkManager.IP6Config.xml \
-	introspection/org.freedesktop.NetworkManager.xml \
 	introspection/org.freedesktop.NetworkManager.PPP.xml \
 	introspection/org.freedesktop.NetworkManager.SecretAgent.xml \
 	introspection/org.freedesktop.NetworkManager.Settings.Connection.xml \
 	introspection/org.freedesktop.NetworkManager.Settings.xml \
 	introspection/org.freedesktop.NetworkManager.VPN.Connection.xml \
 	introspection/org.freedesktop.NetworkManager.VPN.Plugin.xml \
-	introspection/org.freedesktop.NetworkManager.WiMax.Nsp.xml
+	introspection/org.freedesktop.NetworkManager.WiMax.Nsp.xml \
+	introspection/org.freedesktop.NetworkManager.WifiP2PPeer.xml \
+	introspection/org.freedesktop.NetworkManager.xml \
+	$(NULL)
 
 
 ###############################################################################
@@ -5533,8 +5574,10 @@ libnm_core_lib_h_pub_real = \
 	libnm-core/nm-setting-vlan.h \
 	libnm-core/nm-setting-vpn.h \
 	libnm-core/nm-setting-vxlan.h \
+	libnm-core/nm-setting-wifi-p2p.h \
 	libnm-core/nm-setting-wimax.h \
 	libnm-core/nm-setting-wired.h \
+	libnm-core/nm-setting-wireguard.h \
 	libnm-core/nm-setting-wireless-security.h \
 	libnm-core/nm-setting-wireless.h \
 	libnm-core/nm-setting-wpan.h \
@@ -5599,8 +5642,10 @@ libnm_core_lib_c_settings_real = \
 	libnm-core/nm-setting-vlan.c \
 	libnm-core/nm-setting-vpn.c \
 	libnm-core/nm-setting-vxlan.c \
+	libnm-core/nm-setting-wifi-p2p.c \
 	libnm-core/nm-setting-wimax.c \
 	libnm-core/nm-setting-wired.c \
+	libnm-core/nm-setting-wireguard.c \
 	libnm-core/nm-setting-wireless-security.c \
 	libnm-core/nm-setting-wireless.c \
 	libnm-core/nm-setting-wpan.c
@@ -5757,14 +5802,15 @@ libnm_lib_h_pub_real = \
 	libnm/nm-device-macvlan.h \
 	libnm/nm-device-modem.h \
 	libnm/nm-device-olpc-mesh.h \
+	libnm/nm-device-ovs-bridge.h \
 	libnm/nm-device-ovs-interface.h \
 	libnm/nm-device-ovs-port.h \
-	libnm/nm-device-ovs-bridge.h \
 	libnm/nm-device-ppp.h \
 	libnm/nm-device-team.h \
 	libnm/nm-device-tun.h \
 	libnm/nm-device-vlan.h \
 	libnm/nm-device-vxlan.h \
+	libnm/nm-device-wifi-p2p.h \
 	libnm/nm-device-wifi.h \
 	libnm/nm-device-wimax.h \
 	libnm/nm-device-wireguard.h \
@@ -5780,6 +5826,7 @@ libnm_lib_h_pub_real = \
 	libnm/nm-vpn-editor.h \
 	libnm/nm-vpn-plugin-old.h \
 	libnm/nm-vpn-service-plugin.h \
+	libnm/nm-wifi-p2p-peer.h \
 	libnm/nm-wimax-nsp.h
 
 libnm_lib_h_pub_mkenums = \
@@ -5819,14 +5866,15 @@ libnm_lib_c_real = \
 	libnm/nm-device-macvlan.c \
 	libnm/nm-device-modem.c \
 	libnm/nm-device-olpc-mesh.c \
+	libnm/nm-device-ovs-bridge.c \
 	libnm/nm-device-ovs-interface.c \
 	libnm/nm-device-ovs-port.c \
-	libnm/nm-device-ovs-bridge.c \
 	libnm/nm-device-ppp.c \
 	libnm/nm-device-team.c \
 	libnm/nm-device-tun.c \
 	libnm/nm-device-vlan.c \
 	libnm/nm-device-vxlan.c \
+	libnm/nm-device-wifi-p2p.c \
 	libnm/nm-device-wifi.c \
 	libnm/nm-device-wimax.c \
 	libnm/nm-device-wireguard.c \
@@ -5845,9 +5893,10 @@ libnm_lib_c_real = \
 	libnm/nm-remote-settings.c \
 	libnm/nm-secret-agent-old.c \
 	libnm/nm-vpn-connection.c \
-	libnm/nm-vpn-plugin-old.c \
 	libnm/nm-vpn-editor.c \
+	libnm/nm-vpn-plugin-old.c \
 	libnm/nm-vpn-service-plugin.c \
+	libnm/nm-wifi-p2p-peer.c \
 	libnm/nm-wimax-nsp.c
 
 libnm_lib_c_mkenums = \
@@ -6167,6 +6216,7 @@ shared_systemd_libnm_systemd_shared_la_SOURCES = \
 	shared/systemd/src/basic/macro.h \
 	shared/systemd/src/basic/mempool.c \
 	shared/systemd/src/basic/mempool.h \
+	shared/systemd/src/basic/missing_fcntl.h \
 	shared/systemd/src/basic/missing_type.h \
 	shared/systemd/src/basic/parse-util.c \
 	shared/systemd/src/basic/parse-util.h \
@@ -6235,6 +6285,7 @@ src_libnm_systemd_core_la_SOURCES = \
 	src/systemd/nm-sd.h \
 	src/systemd/sd-adapt-core/condition.h \
 	src/systemd/sd-adapt-core/conf-parser.h \
+	src/systemd/sd-adapt-core/device-util.h \
 	src/systemd/sd-adapt-core/khash.h \
 	src/systemd/sd-adapt-core/nm-sd-adapt-core.c \
 	src/systemd/sd-adapt-core/nm-sd-adapt-core.h \
@@ -6938,17 +6989,21 @@ src_devices_adsl_libnm_device_plugin_adsl_la_LIBADD = \
 @WITH_MODEM_MANAGER_1_TRUE@	src/devices/wwan/libnm-wwan.la \
 @WITH_MODEM_MANAGER_1_TRUE@	$(GLIB_LIBS) $(am__append_45)
 @WITH_WIFI_TRUE@src_devices_wifi_libnm_device_plugin_wifi_la_SOURCES =  \
-@WITH_WIFI_TRUE@	src/devices/wifi/nm-wifi-factory.c \
+@WITH_WIFI_TRUE@	src/devices/wifi/nm-device-olpc-mesh.c \
+@WITH_WIFI_TRUE@	src/devices/wifi/nm-device-olpc-mesh.h \
+@WITH_WIFI_TRUE@	src/devices/wifi/nm-device-wifi-p2p.c \
+@WITH_WIFI_TRUE@	src/devices/wifi/nm-device-wifi-p2p.h \
 @WITH_WIFI_TRUE@	src/devices/wifi/nm-device-wifi.c \
 @WITH_WIFI_TRUE@	src/devices/wifi/nm-device-wifi.h \
 @WITH_WIFI_TRUE@	src/devices/wifi/nm-wifi-ap.c \
 @WITH_WIFI_TRUE@	src/devices/wifi/nm-wifi-ap.h \
-@WITH_WIFI_TRUE@	src/devices/wifi/nm-wifi-utils.c \
-@WITH_WIFI_TRUE@	src/devices/wifi/nm-wifi-utils.h \
 @WITH_WIFI_TRUE@	src/devices/wifi/nm-wifi-common.c \
 @WITH_WIFI_TRUE@	src/devices/wifi/nm-wifi-common.h \
-@WITH_WIFI_TRUE@	src/devices/wifi/nm-device-olpc-mesh.c \
-@WITH_WIFI_TRUE@	src/devices/wifi/nm-device-olpc-mesh.h \
+@WITH_WIFI_TRUE@	src/devices/wifi/nm-wifi-factory.c \
+@WITH_WIFI_TRUE@	src/devices/wifi/nm-wifi-p2p-peer.c \
+@WITH_WIFI_TRUE@	src/devices/wifi/nm-wifi-p2p-peer.h \
+@WITH_WIFI_TRUE@	src/devices/wifi/nm-wifi-utils.c \
+@WITH_WIFI_TRUE@	src/devices/wifi/nm-wifi-utils.h $(NULL) \
 @WITH_WIFI_TRUE@	$(am__append_47)
 @WITH_WIFI_TRUE@src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS = $(src_cppflags_device_plugin)
 @WITH_WIFI_TRUE@src_devices_wifi_libnm_device_plugin_wifi_la_LDFLAGS = \
@@ -8615,16 +8670,25 @@ introspection/$(DEPDIR)/$(am__dirstamp):
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.AccessPoint.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo:  \
-	introspection/$(am__dirstamp) \
-	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.AgentManager.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Checkpoint.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo:  \
+	introspection/$(am__dirstamp) \
+	introspection/$(DEPDIR)/$(am__dirstamp)
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo:  \
+	introspection/$(am__dirstamp) \
+	introspection/$(DEPDIR)/$(am__dirstamp)
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo:  \
+	introspection/$(am__dirstamp) \
+	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Adsl.lo:  \
+	introspection/$(am__dirstamp) \
+	introspection/$(DEPDIR)/$(am__dirstamp)
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bond.lo:  \
@@ -8633,22 +8697,16 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bond.lo:  \
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bridge.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo:  \
-	introspection/$(am__dirstamp) \
-	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.lo:  \
-	introspection/$(am__dirstamp) \
-	introspection/$(DEPDIR)/$(am__dirstamp)
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo:  \
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.lo:  \
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Lowpan.lo:  \
@@ -8666,13 +8724,13 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Modem.lo:  \
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OlpcMesh.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo:  \
+	introspection/$(am__dirstamp) \
+	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsInterface.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsPort.lo:  \
-	introspection/$(am__dirstamp) \
-	introspection/$(DEPDIR)/$(am__dirstamp)
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Ppp.lo:  \
@@ -8696,25 +8754,25 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vlan.lo:  \
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vxlan.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.lo:  \
+	introspection/$(am__dirstamp) \
+	introspection/$(DEPDIR)/$(am__dirstamp)
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.lo:  \
+	introspection/$(am__dirstamp) \
+	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.lo:  \
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.lo:  \
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wpan.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.lo:  \
-	introspection/$(am__dirstamp) \
-	introspection/$(DEPDIR)/$(am__dirstamp)
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo:  \
-	introspection/$(am__dirstamp) \
-	introspection/$(DEPDIR)/$(am__dirstamp)
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.DnsManager.lo:  \
@@ -8726,7 +8784,7 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.IP4Config.lo:  \
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.IP6Config.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo:  \
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.PPP.lo:  \
@@ -8745,6 +8803,9 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Connection.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Plugin.lo:  \
+	introspection/$(am__dirstamp) \
+	introspection/$(DEPDIR)/$(am__dirstamp)
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo:  \
 	introspection/$(am__dirstamp) \
 	introspection/$(DEPDIR)/$(am__dirstamp)
 
@@ -8876,10 +8937,16 @@ libnm-core/libnm_core_la-nm-setting-vpn.lo:  \
 libnm-core/libnm_core_la-nm-setting-vxlan.lo:  \
 	libnm-core/$(am__dirstamp) \
 	libnm-core/$(DEPDIR)/$(am__dirstamp)
+libnm-core/libnm_core_la-nm-setting-wifi-p2p.lo:  \
+	libnm-core/$(am__dirstamp) \
+	libnm-core/$(DEPDIR)/$(am__dirstamp)
 libnm-core/libnm_core_la-nm-setting-wimax.lo:  \
 	libnm-core/$(am__dirstamp) \
 	libnm-core/$(DEPDIR)/$(am__dirstamp)
 libnm-core/libnm_core_la-nm-setting-wired.lo:  \
+	libnm-core/$(am__dirstamp) \
+	libnm-core/$(DEPDIR)/$(am__dirstamp)
+libnm-core/libnm_core_la-nm-setting-wireguard.lo:  \
 	libnm-core/$(am__dirstamp) \
 	libnm-core/$(DEPDIR)/$(am__dirstamp)
 libnm-core/libnm_core_la-nm-setting-wireless-security.lo:  \
@@ -9236,11 +9303,11 @@ libnm/libnm_la-nm-device-modem.lo: libnm/$(am__dirstamp) \
 	libnm/$(DEPDIR)/$(am__dirstamp)
 libnm/libnm_la-nm-device-olpc-mesh.lo: libnm/$(am__dirstamp) \
 	libnm/$(DEPDIR)/$(am__dirstamp)
+libnm/libnm_la-nm-device-ovs-bridge.lo: libnm/$(am__dirstamp) \
+	libnm/$(DEPDIR)/$(am__dirstamp)
 libnm/libnm_la-nm-device-ovs-interface.lo: libnm/$(am__dirstamp) \
 	libnm/$(DEPDIR)/$(am__dirstamp)
 libnm/libnm_la-nm-device-ovs-port.lo: libnm/$(am__dirstamp) \
-	libnm/$(DEPDIR)/$(am__dirstamp)
-libnm/libnm_la-nm-device-ovs-bridge.lo: libnm/$(am__dirstamp) \
 	libnm/$(DEPDIR)/$(am__dirstamp)
 libnm/libnm_la-nm-device-ppp.lo: libnm/$(am__dirstamp) \
 	libnm/$(DEPDIR)/$(am__dirstamp)
@@ -9251,6 +9318,8 @@ libnm/libnm_la-nm-device-tun.lo: libnm/$(am__dirstamp) \
 libnm/libnm_la-nm-device-vlan.lo: libnm/$(am__dirstamp) \
 	libnm/$(DEPDIR)/$(am__dirstamp)
 libnm/libnm_la-nm-device-vxlan.lo: libnm/$(am__dirstamp) \
+	libnm/$(DEPDIR)/$(am__dirstamp)
+libnm/libnm_la-nm-device-wifi-p2p.lo: libnm/$(am__dirstamp) \
 	libnm/$(DEPDIR)/$(am__dirstamp)
 libnm/libnm_la-nm-device-wifi.lo: libnm/$(am__dirstamp) \
 	libnm/$(DEPDIR)/$(am__dirstamp)
@@ -9288,11 +9357,13 @@ libnm/libnm_la-nm-secret-agent-old.lo: libnm/$(am__dirstamp) \
 	libnm/$(DEPDIR)/$(am__dirstamp)
 libnm/libnm_la-nm-vpn-connection.lo: libnm/$(am__dirstamp) \
 	libnm/$(DEPDIR)/$(am__dirstamp)
-libnm/libnm_la-nm-vpn-plugin-old.lo: libnm/$(am__dirstamp) \
-	libnm/$(DEPDIR)/$(am__dirstamp)
 libnm/libnm_la-nm-vpn-editor.lo: libnm/$(am__dirstamp) \
 	libnm/$(DEPDIR)/$(am__dirstamp)
+libnm/libnm_la-nm-vpn-plugin-old.lo: libnm/$(am__dirstamp) \
+	libnm/$(DEPDIR)/$(am__dirstamp)
 libnm/libnm_la-nm-vpn-service-plugin.lo: libnm/$(am__dirstamp) \
+	libnm/$(DEPDIR)/$(am__dirstamp)
+libnm/libnm_la-nm-wifi-p2p-peer.lo: libnm/$(am__dirstamp) \
 	libnm/$(DEPDIR)/$(am__dirstamp)
 libnm/libnm_la-nm-wimax-nsp.lo: libnm/$(am__dirstamp) \
 	libnm/$(DEPDIR)/$(am__dirstamp)
@@ -9616,7 +9687,10 @@ src/devices/wifi/$(am__dirstamp):
 src/devices/wifi/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/devices/wifi/$(DEPDIR)
 	@: > src/devices/wifi/$(DEPDIR)/$(am__dirstamp)
-src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo:  \
+src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo:  \
+	src/devices/wifi/$(am__dirstamp) \
+	src/devices/wifi/$(DEPDIR)/$(am__dirstamp)
+src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.lo:  \
 	src/devices/wifi/$(am__dirstamp) \
 	src/devices/wifi/$(DEPDIR)/$(am__dirstamp)
 src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-wifi.lo:  \
@@ -9625,13 +9699,16 @@ src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-wifi.lo:  \
 src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-ap.lo:  \
 	src/devices/wifi/$(am__dirstamp) \
 	src/devices/wifi/$(DEPDIR)/$(am__dirstamp)
-src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo:  \
-	src/devices/wifi/$(am__dirstamp) \
-	src/devices/wifi/$(DEPDIR)/$(am__dirstamp)
 src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-common.lo:  \
 	src/devices/wifi/$(am__dirstamp) \
 	src/devices/wifi/$(DEPDIR)/$(am__dirstamp)
-src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo:  \
+src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo:  \
+	src/devices/wifi/$(am__dirstamp) \
+	src/devices/wifi/$(DEPDIR)/$(am__dirstamp)
+src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.lo:  \
+	src/devices/wifi/$(am__dirstamp) \
+	src/devices/wifi/$(DEPDIR)/$(am__dirstamp)
+src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo:  \
 	src/devices/wifi/$(am__dirstamp) \
 	src/devices/wifi/$(DEPDIR)/$(am__dirstamp)
 src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-iwd.lo:  \
@@ -11383,6 +11460,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vlan.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vxlan.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.Plo@am__quote@ # am--include-marker
@@ -11397,6 +11475,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Settings.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Connection.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Plugin.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm-core/$(DEPDIR)/libnm_core_la-nm-connection.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm-core/$(DEPDIR)/libnm_core_la-nm-core-enum-types.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm-core/$(DEPDIR)/libnm_core_la-nm-crypto.Plo@am__quote@ # am--include-marker
@@ -11446,8 +11525,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-vlan.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-vpn.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-vxlan.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wifi-p2p.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wimax.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wired.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireguard.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireless-security.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireless.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wpan.Plo@am__quote@ # am--include-marker
@@ -11577,6 +11658,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/$(DEPDIR)/libnm_la-nm-device-tun.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/$(DEPDIR)/libnm_la-nm-device-vlan.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/$(DEPDIR)/libnm_la-nm-device-vxlan.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@libnm/$(DEPDIR)/libnm_la-nm-device-wifi-p2p.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/$(DEPDIR)/libnm_la-nm-device-wifi.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/$(DEPDIR)/libnm_la-nm-device-wimax.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/$(DEPDIR)/libnm_la-nm-device-wireguard.Plo@am__quote@ # am--include-marker
@@ -11599,6 +11681,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/$(DEPDIR)/libnm_la-nm-vpn-editor.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/$(DEPDIR)/libnm_la-nm-vpn-plugin-old.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/$(DEPDIR)/libnm_la-nm-vpn-service-plugin.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@libnm/$(DEPDIR)/libnm_la-nm-wifi-p2p-peer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/$(DEPDIR)/libnm_la-nm-wimax-nsp.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/$(DEPDIR)/libnm_utils_la-nm-libnm-utils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/fake-typelib/$(DEPDIR)/libnm_utils_la-typelibs.Plo@am__quote@ # am--include-marker
@@ -11748,11 +11831,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/devices/tests/$(DEPDIR)/test_lldp-test-lldp.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-iwd.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-wifi.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-iwd-manager.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-ap.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-common.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-utils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/devices/wifi/$(DEPDIR)/src_devices_wifi_tests_test_general-nm-wifi-ap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/devices/wifi/$(DEPDIR)/src_devices_wifi_tests_test_general-nm-wifi-utils.Po@am__quote@ # am--include-marker
@@ -12264,13 +12349,6 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.AccessPoint.lo: intros
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.AccessPoint.lo `test -f 'introspection/org.freedesktop.NetworkManager.AccessPoint.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.AccessPoint.c
 
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo: introspection/org.freedesktop.NetworkManager.Connection.Active.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo `test -f 'introspection/org.freedesktop.NetworkManager.Connection.Active.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Connection.Active.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Connection.Active.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo `test -f 'introspection/org.freedesktop.NetworkManager.Connection.Active.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Connection.Active.c
-
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.AgentManager.lo: introspection/org.freedesktop.NetworkManager.AgentManager.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.AgentManager.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.AgentManager.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.AgentManager.lo `test -f 'introspection/org.freedesktop.NetworkManager.AgentManager.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.AgentManager.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.AgentManager.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.AgentManager.Plo
@@ -12285,12 +12363,40 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.Checkpoint.lo: introsp
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Checkpoint.lo `test -f 'introspection/org.freedesktop.NetworkManager.Checkpoint.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Checkpoint.c
 
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo: introspection/org.freedesktop.NetworkManager.Connection.Active.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo `test -f 'introspection/org.freedesktop.NetworkManager.Connection.Active.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Connection.Active.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Connection.Active.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Connection.Active.lo `test -f 'introspection/org.freedesktop.NetworkManager.Connection.Active.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Connection.Active.c
+
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo: introspection/org.freedesktop.NetworkManager.DHCP4Config.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo `test -f 'introspection/org.freedesktop.NetworkManager.DHCP4Config.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.DHCP4Config.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.DHCP4Config.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo `test -f 'introspection/org.freedesktop.NetworkManager.DHCP4Config.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.DHCP4Config.c
+
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo: introspection/org.freedesktop.NetworkManager.DHCP6Config.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo `test -f 'introspection/org.freedesktop.NetworkManager.DHCP6Config.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.DHCP6Config.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.DHCP6Config.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo `test -f 'introspection/org.freedesktop.NetworkManager.DHCP6Config.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.DHCP6Config.c
+
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Adsl.lo: introspection/org.freedesktop.NetworkManager.Device.Adsl.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Adsl.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Adsl.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Adsl.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Adsl.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Adsl.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Adsl.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Adsl.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.Adsl.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Adsl.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Adsl.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Adsl.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Adsl.c
+
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo: introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c
 
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bond.lo: introspection/org.freedesktop.NetworkManager.Device.Bond.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bond.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bond.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bond.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Bond.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Bond.c
@@ -12306,26 +12412,12 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bridge.lo: intr
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bridge.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Bridge.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Bridge.c
 
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo: introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Bluetooth.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Bluetooth.c
-
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.lo: introspection/org.freedesktop.NetworkManager.Device.Dummy.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Dummy.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Dummy.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.Dummy.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Dummy.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Dummy.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Dummy.c
-
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo: introspection/org.freedesktop.NetworkManager.Device.Wired.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Wired.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Wired.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.Wired.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Wired.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Wired.c
 
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.lo: introspection/org.freedesktop.NetworkManager.Device.Generic.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Generic.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Generic.c
@@ -12334,19 +12426,19 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.lo: int
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Generic.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Generic.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Generic.c
 
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo: introspection/org.freedesktop.NetworkManager.Device.Infiniband.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Infiniband.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Infiniband.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.Infiniband.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Infiniband.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Infiniband.c
-
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.lo: introspection/org.freedesktop.NetworkManager.Device.IPTunnel.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.IPTunnel.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.IPTunnel.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.IPTunnel.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.IPTunnel.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.IPTunnel.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.IPTunnel.c
+
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo: introspection/org.freedesktop.NetworkManager.Device.Infiniband.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Infiniband.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Infiniband.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.Infiniband.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Infiniband.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Infiniband.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Infiniband.c
 
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Lowpan.lo: introspection/org.freedesktop.NetworkManager.Device.Lowpan.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Lowpan.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Lowpan.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Lowpan.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Lowpan.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Lowpan.c
@@ -12383,6 +12475,13 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OlpcMesh.lo: in
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OlpcMesh.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.OlpcMesh.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.OlpcMesh.c
 
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo: introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c
+
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsInterface.lo: introspection/org.freedesktop.NetworkManager.Device.OvsInterface.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsInterface.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsInterface.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsInterface.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.OvsInterface.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.OvsInterface.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsInterface.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsInterface.Plo
@@ -12396,13 +12495,6 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsPort.lo: int
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.OvsPort.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsPort.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsPort.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.OvsPort.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.OvsPort.c
-
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo: introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.OvsBridge.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.OvsBridge.c
 
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Ppp.lo: introspection/org.freedesktop.NetworkManager.Device.Ppp.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Ppp.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Ppp.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Ppp.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Ppp.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Ppp.c
@@ -12453,6 +12545,20 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vxlan.lo: intro
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vxlan.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Vxlan.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Vxlan.c
 
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.lo: introspection/org.freedesktop.NetworkManager.Device.WiMax.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.WiMax.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.WiMax.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.WiMax.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.WiMax.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.WiMax.c
+
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.lo: introspection/org.freedesktop.NetworkManager.Device.WifiP2P.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.WifiP2P.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.WifiP2P.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.WifiP2P.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.WifiP2P.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.WifiP2P.c
+
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.lo: introspection/org.freedesktop.NetworkManager.Device.WireGuard.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.WireGuard.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.WireGuard.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.Plo
@@ -12460,19 +12566,19 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.lo: i
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.WireGuard.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.WireGuard.c
 
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo: introspection/org.freedesktop.NetworkManager.Device.Wired.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Wired.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Wired.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.Wired.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Wired.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Wired.c
+
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.lo: introspection/org.freedesktop.NetworkManager.Device.Wireless.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Wireless.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Wireless.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.Wireless.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Wireless.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Wireless.c
-
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.lo: introspection/org.freedesktop.NetworkManager.Device.WiMax.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.WiMax.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.WiMax.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.WiMax.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.WiMax.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.WiMax.c
 
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wpan.lo: introspection/org.freedesktop.NetworkManager.Device.Wpan.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wpan.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wpan.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wpan.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.Wpan.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.Wpan.c
@@ -12487,20 +12593,6 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.lo: introspecti
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.Device.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.Device.lo `test -f 'introspection/org.freedesktop.NetworkManager.Device.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.Device.c
-
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo: introspection/org.freedesktop.NetworkManager.DHCP4Config.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo `test -f 'introspection/org.freedesktop.NetworkManager.DHCP4Config.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.DHCP4Config.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.DHCP4Config.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP4Config.lo `test -f 'introspection/org.freedesktop.NetworkManager.DHCP4Config.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.DHCP4Config.c
-
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo: introspection/org.freedesktop.NetworkManager.DHCP6Config.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo `test -f 'introspection/org.freedesktop.NetworkManager.DHCP6Config.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.DHCP6Config.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.DHCP6Config.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.DHCP6Config.lo `test -f 'introspection/org.freedesktop.NetworkManager.DHCP6Config.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.DHCP6Config.c
 
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.DnsManager.lo: introspection/org.freedesktop.NetworkManager.DnsManager.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.DnsManager.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.DnsManager.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.DnsManager.lo `test -f 'introspection/org.freedesktop.NetworkManager.DnsManager.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.DnsManager.c
@@ -12523,12 +12615,12 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.IP6Config.lo: introspe
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.IP6Config.lo `test -f 'introspection/org.freedesktop.NetworkManager.IP6Config.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.IP6Config.c
 
-introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo: introspection/org.freedesktop.NetworkManager.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo `test -f 'introspection/org.freedesktop.NetworkManager.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo' libtool=yes @AMDEPBACKSLASH@
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.lo: introspection/org.freedesktop.NetworkManager.WifiP2PPeer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.lo `test -f 'introspection/org.freedesktop.NetworkManager.WifiP2PPeer.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.WifiP2PPeer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.WifiP2PPeer.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo `test -f 'introspection/org.freedesktop.NetworkManager.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.lo `test -f 'introspection/org.freedesktop.NetworkManager.WifiP2PPeer.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.WifiP2PPeer.c
 
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.PPP.lo: introspection/org.freedesktop.NetworkManager.PPP.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.PPP.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.PPP.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.PPP.lo `test -f 'introspection/org.freedesktop.NetworkManager.PPP.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.PPP.c
@@ -12571,6 +12663,13 @@ introspection/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Plugin.lo: introsp
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.VPN.Plugin.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Plugin.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Plugin.lo `test -f 'introspection/org.freedesktop.NetworkManager.VPN.Plugin.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.VPN.Plugin.c
+
+introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo: introspection/org.freedesktop.NetworkManager.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo `test -f 'introspection/org.freedesktop.NetworkManager.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Tpo introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='introspection/org.freedesktop.NetworkManager.c' object='introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.lo `test -f 'introspection/org.freedesktop.NetworkManager.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.c
 
 libnm-core/libnm_core_la-nm-setting-6lowpan.lo: libnm-core/nm-setting-6lowpan.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_core_libnm_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm-core/libnm_core_la-nm-setting-6lowpan.lo -MD -MP -MF libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-6lowpan.Tpo -c -o libnm-core/libnm_core_la-nm-setting-6lowpan.lo `test -f 'libnm-core/nm-setting-6lowpan.c' || echo '$(srcdir)/'`libnm-core/nm-setting-6lowpan.c
@@ -12852,6 +12951,13 @@ libnm-core/libnm_core_la-nm-setting-vxlan.lo: libnm-core/nm-setting-vxlan.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_core_libnm_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm-core/libnm_core_la-nm-setting-vxlan.lo `test -f 'libnm-core/nm-setting-vxlan.c' || echo '$(srcdir)/'`libnm-core/nm-setting-vxlan.c
 
+libnm-core/libnm_core_la-nm-setting-wifi-p2p.lo: libnm-core/nm-setting-wifi-p2p.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_core_libnm_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm-core/libnm_core_la-nm-setting-wifi-p2p.lo -MD -MP -MF libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wifi-p2p.Tpo -c -o libnm-core/libnm_core_la-nm-setting-wifi-p2p.lo `test -f 'libnm-core/nm-setting-wifi-p2p.c' || echo '$(srcdir)/'`libnm-core/nm-setting-wifi-p2p.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wifi-p2p.Tpo libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wifi-p2p.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='libnm-core/nm-setting-wifi-p2p.c' object='libnm-core/libnm_core_la-nm-setting-wifi-p2p.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_core_libnm_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm-core/libnm_core_la-nm-setting-wifi-p2p.lo `test -f 'libnm-core/nm-setting-wifi-p2p.c' || echo '$(srcdir)/'`libnm-core/nm-setting-wifi-p2p.c
+
 libnm-core/libnm_core_la-nm-setting-wimax.lo: libnm-core/nm-setting-wimax.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_core_libnm_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm-core/libnm_core_la-nm-setting-wimax.lo -MD -MP -MF libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wimax.Tpo -c -o libnm-core/libnm_core_la-nm-setting-wimax.lo `test -f 'libnm-core/nm-setting-wimax.c' || echo '$(srcdir)/'`libnm-core/nm-setting-wimax.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wimax.Tpo libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wimax.Plo
@@ -12865,6 +12971,13 @@ libnm-core/libnm_core_la-nm-setting-wired.lo: libnm-core/nm-setting-wired.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='libnm-core/nm-setting-wired.c' object='libnm-core/libnm_core_la-nm-setting-wired.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_core_libnm_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm-core/libnm_core_la-nm-setting-wired.lo `test -f 'libnm-core/nm-setting-wired.c' || echo '$(srcdir)/'`libnm-core/nm-setting-wired.c
+
+libnm-core/libnm_core_la-nm-setting-wireguard.lo: libnm-core/nm-setting-wireguard.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_core_libnm_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm-core/libnm_core_la-nm-setting-wireguard.lo -MD -MP -MF libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireguard.Tpo -c -o libnm-core/libnm_core_la-nm-setting-wireguard.lo `test -f 'libnm-core/nm-setting-wireguard.c' || echo '$(srcdir)/'`libnm-core/nm-setting-wireguard.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireguard.Tpo libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireguard.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='libnm-core/nm-setting-wireguard.c' object='libnm-core/libnm_core_la-nm-setting-wireguard.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_core_libnm_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm-core/libnm_core_la-nm-setting-wireguard.lo `test -f 'libnm-core/nm-setting-wireguard.c' || echo '$(srcdir)/'`libnm-core/nm-setting-wireguard.c
 
 libnm-core/libnm_core_la-nm-setting-wireless-security.lo: libnm-core/nm-setting-wireless-security.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_core_libnm_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm-core/libnm_core_la-nm-setting-wireless-security.lo -MD -MP -MF libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireless-security.Tpo -c -o libnm-core/libnm_core_la-nm-setting-wireless-security.lo `test -f 'libnm-core/nm-setting-wireless-security.c' || echo '$(srcdir)/'`libnm-core/nm-setting-wireless-security.c
@@ -13678,6 +13791,13 @@ libnm/libnm_la-nm-device-olpc-mesh.lo: libnm/nm-device-olpc-mesh.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm/libnm_la-nm-device-olpc-mesh.lo `test -f 'libnm/nm-device-olpc-mesh.c' || echo '$(srcdir)/'`libnm/nm-device-olpc-mesh.c
 
+libnm/libnm_la-nm-device-ovs-bridge.lo: libnm/nm-device-ovs-bridge.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm/libnm_la-nm-device-ovs-bridge.lo -MD -MP -MF libnm/$(DEPDIR)/libnm_la-nm-device-ovs-bridge.Tpo -c -o libnm/libnm_la-nm-device-ovs-bridge.lo `test -f 'libnm/nm-device-ovs-bridge.c' || echo '$(srcdir)/'`libnm/nm-device-ovs-bridge.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) libnm/$(DEPDIR)/libnm_la-nm-device-ovs-bridge.Tpo libnm/$(DEPDIR)/libnm_la-nm-device-ovs-bridge.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='libnm/nm-device-ovs-bridge.c' object='libnm/libnm_la-nm-device-ovs-bridge.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm/libnm_la-nm-device-ovs-bridge.lo `test -f 'libnm/nm-device-ovs-bridge.c' || echo '$(srcdir)/'`libnm/nm-device-ovs-bridge.c
+
 libnm/libnm_la-nm-device-ovs-interface.lo: libnm/nm-device-ovs-interface.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm/libnm_la-nm-device-ovs-interface.lo -MD -MP -MF libnm/$(DEPDIR)/libnm_la-nm-device-ovs-interface.Tpo -c -o libnm/libnm_la-nm-device-ovs-interface.lo `test -f 'libnm/nm-device-ovs-interface.c' || echo '$(srcdir)/'`libnm/nm-device-ovs-interface.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) libnm/$(DEPDIR)/libnm_la-nm-device-ovs-interface.Tpo libnm/$(DEPDIR)/libnm_la-nm-device-ovs-interface.Plo
@@ -13691,13 +13811,6 @@ libnm/libnm_la-nm-device-ovs-port.lo: libnm/nm-device-ovs-port.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='libnm/nm-device-ovs-port.c' object='libnm/libnm_la-nm-device-ovs-port.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm/libnm_la-nm-device-ovs-port.lo `test -f 'libnm/nm-device-ovs-port.c' || echo '$(srcdir)/'`libnm/nm-device-ovs-port.c
-
-libnm/libnm_la-nm-device-ovs-bridge.lo: libnm/nm-device-ovs-bridge.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm/libnm_la-nm-device-ovs-bridge.lo -MD -MP -MF libnm/$(DEPDIR)/libnm_la-nm-device-ovs-bridge.Tpo -c -o libnm/libnm_la-nm-device-ovs-bridge.lo `test -f 'libnm/nm-device-ovs-bridge.c' || echo '$(srcdir)/'`libnm/nm-device-ovs-bridge.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) libnm/$(DEPDIR)/libnm_la-nm-device-ovs-bridge.Tpo libnm/$(DEPDIR)/libnm_la-nm-device-ovs-bridge.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='libnm/nm-device-ovs-bridge.c' object='libnm/libnm_la-nm-device-ovs-bridge.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm/libnm_la-nm-device-ovs-bridge.lo `test -f 'libnm/nm-device-ovs-bridge.c' || echo '$(srcdir)/'`libnm/nm-device-ovs-bridge.c
 
 libnm/libnm_la-nm-device-ppp.lo: libnm/nm-device-ppp.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm/libnm_la-nm-device-ppp.lo -MD -MP -MF libnm/$(DEPDIR)/libnm_la-nm-device-ppp.Tpo -c -o libnm/libnm_la-nm-device-ppp.lo `test -f 'libnm/nm-device-ppp.c' || echo '$(srcdir)/'`libnm/nm-device-ppp.c
@@ -13733,6 +13846,13 @@ libnm/libnm_la-nm-device-vxlan.lo: libnm/nm-device-vxlan.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='libnm/nm-device-vxlan.c' object='libnm/libnm_la-nm-device-vxlan.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm/libnm_la-nm-device-vxlan.lo `test -f 'libnm/nm-device-vxlan.c' || echo '$(srcdir)/'`libnm/nm-device-vxlan.c
+
+libnm/libnm_la-nm-device-wifi-p2p.lo: libnm/nm-device-wifi-p2p.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm/libnm_la-nm-device-wifi-p2p.lo -MD -MP -MF libnm/$(DEPDIR)/libnm_la-nm-device-wifi-p2p.Tpo -c -o libnm/libnm_la-nm-device-wifi-p2p.lo `test -f 'libnm/nm-device-wifi-p2p.c' || echo '$(srcdir)/'`libnm/nm-device-wifi-p2p.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) libnm/$(DEPDIR)/libnm_la-nm-device-wifi-p2p.Tpo libnm/$(DEPDIR)/libnm_la-nm-device-wifi-p2p.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='libnm/nm-device-wifi-p2p.c' object='libnm/libnm_la-nm-device-wifi-p2p.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm/libnm_la-nm-device-wifi-p2p.lo `test -f 'libnm/nm-device-wifi-p2p.c' || echo '$(srcdir)/'`libnm/nm-device-wifi-p2p.c
 
 libnm/libnm_la-nm-device-wifi.lo: libnm/nm-device-wifi.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm/libnm_la-nm-device-wifi.lo -MD -MP -MF libnm/$(DEPDIR)/libnm_la-nm-device-wifi.Tpo -c -o libnm/libnm_la-nm-device-wifi.lo `test -f 'libnm/nm-device-wifi.c' || echo '$(srcdir)/'`libnm/nm-device-wifi.c
@@ -13860,13 +13980,6 @@ libnm/libnm_la-nm-vpn-connection.lo: libnm/nm-vpn-connection.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm/libnm_la-nm-vpn-connection.lo `test -f 'libnm/nm-vpn-connection.c' || echo '$(srcdir)/'`libnm/nm-vpn-connection.c
 
-libnm/libnm_la-nm-vpn-plugin-old.lo: libnm/nm-vpn-plugin-old.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm/libnm_la-nm-vpn-plugin-old.lo -MD -MP -MF libnm/$(DEPDIR)/libnm_la-nm-vpn-plugin-old.Tpo -c -o libnm/libnm_la-nm-vpn-plugin-old.lo `test -f 'libnm/nm-vpn-plugin-old.c' || echo '$(srcdir)/'`libnm/nm-vpn-plugin-old.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) libnm/$(DEPDIR)/libnm_la-nm-vpn-plugin-old.Tpo libnm/$(DEPDIR)/libnm_la-nm-vpn-plugin-old.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='libnm/nm-vpn-plugin-old.c' object='libnm/libnm_la-nm-vpn-plugin-old.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm/libnm_la-nm-vpn-plugin-old.lo `test -f 'libnm/nm-vpn-plugin-old.c' || echo '$(srcdir)/'`libnm/nm-vpn-plugin-old.c
-
 libnm/libnm_la-nm-vpn-editor.lo: libnm/nm-vpn-editor.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm/libnm_la-nm-vpn-editor.lo -MD -MP -MF libnm/$(DEPDIR)/libnm_la-nm-vpn-editor.Tpo -c -o libnm/libnm_la-nm-vpn-editor.lo `test -f 'libnm/nm-vpn-editor.c' || echo '$(srcdir)/'`libnm/nm-vpn-editor.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) libnm/$(DEPDIR)/libnm_la-nm-vpn-editor.Tpo libnm/$(DEPDIR)/libnm_la-nm-vpn-editor.Plo
@@ -13874,12 +13987,26 @@ libnm/libnm_la-nm-vpn-editor.lo: libnm/nm-vpn-editor.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm/libnm_la-nm-vpn-editor.lo `test -f 'libnm/nm-vpn-editor.c' || echo '$(srcdir)/'`libnm/nm-vpn-editor.c
 
+libnm/libnm_la-nm-vpn-plugin-old.lo: libnm/nm-vpn-plugin-old.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm/libnm_la-nm-vpn-plugin-old.lo -MD -MP -MF libnm/$(DEPDIR)/libnm_la-nm-vpn-plugin-old.Tpo -c -o libnm/libnm_la-nm-vpn-plugin-old.lo `test -f 'libnm/nm-vpn-plugin-old.c' || echo '$(srcdir)/'`libnm/nm-vpn-plugin-old.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) libnm/$(DEPDIR)/libnm_la-nm-vpn-plugin-old.Tpo libnm/$(DEPDIR)/libnm_la-nm-vpn-plugin-old.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='libnm/nm-vpn-plugin-old.c' object='libnm/libnm_la-nm-vpn-plugin-old.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm/libnm_la-nm-vpn-plugin-old.lo `test -f 'libnm/nm-vpn-plugin-old.c' || echo '$(srcdir)/'`libnm/nm-vpn-plugin-old.c
+
 libnm/libnm_la-nm-vpn-service-plugin.lo: libnm/nm-vpn-service-plugin.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm/libnm_la-nm-vpn-service-plugin.lo -MD -MP -MF libnm/$(DEPDIR)/libnm_la-nm-vpn-service-plugin.Tpo -c -o libnm/libnm_la-nm-vpn-service-plugin.lo `test -f 'libnm/nm-vpn-service-plugin.c' || echo '$(srcdir)/'`libnm/nm-vpn-service-plugin.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) libnm/$(DEPDIR)/libnm_la-nm-vpn-service-plugin.Tpo libnm/$(DEPDIR)/libnm_la-nm-vpn-service-plugin.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='libnm/nm-vpn-service-plugin.c' object='libnm/libnm_la-nm-vpn-service-plugin.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm/libnm_la-nm-vpn-service-plugin.lo `test -f 'libnm/nm-vpn-service-plugin.c' || echo '$(srcdir)/'`libnm/nm-vpn-service-plugin.c
+
+libnm/libnm_la-nm-wifi-p2p-peer.lo: libnm/nm-wifi-p2p-peer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm/libnm_la-nm-wifi-p2p-peer.lo -MD -MP -MF libnm/$(DEPDIR)/libnm_la-nm-wifi-p2p-peer.Tpo -c -o libnm/libnm_la-nm-wifi-p2p-peer.lo `test -f 'libnm/nm-wifi-p2p-peer.c' || echo '$(srcdir)/'`libnm/nm-wifi-p2p-peer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) libnm/$(DEPDIR)/libnm_la-nm-wifi-p2p-peer.Tpo libnm/$(DEPDIR)/libnm_la-nm-wifi-p2p-peer.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='libnm/nm-wifi-p2p-peer.c' object='libnm/libnm_la-nm-wifi-p2p-peer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm/libnm_la-nm-wifi-p2p-peer.lo `test -f 'libnm/nm-wifi-p2p-peer.c' || echo '$(srcdir)/'`libnm/nm-wifi-p2p-peer.c
 
 libnm/libnm_la-nm-wimax-nsp.lo: libnm/nm-wimax-nsp.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_libnm_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libnm/libnm_la-nm-wimax-nsp.lo -MD -MP -MF libnm/$(DEPDIR)/libnm_la-nm-wimax-nsp.Tpo -c -o libnm/libnm_la-nm-wimax-nsp.lo `test -f 'libnm/nm-wimax-nsp.c' || echo '$(srcdir)/'`libnm/nm-wimax-nsp.c
@@ -14371,12 +14498,19 @@ src/devices/team/libnm_device_plugin_team_la-nm-device-team.lo: src/devices/team
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_team_libnm_device_plugin_team_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/devices/team/libnm_device_plugin_team_la-nm-device-team.lo `test -f 'src/devices/team/nm-device-team.c' || echo '$(srcdir)/'`src/devices/team/nm-device-team.c
 
-src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo: src/devices/wifi/nm-wifi-factory.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo -MD -MP -MF src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Tpo -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo `test -f 'src/devices/wifi/nm-wifi-factory.c' || echo '$(srcdir)/'`src/devices/wifi/nm-wifi-factory.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Tpo src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/devices/wifi/nm-wifi-factory.c' object='src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo' libtool=yes @AMDEPBACKSLASH@
+src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo: src/devices/wifi/nm-device-olpc-mesh.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo -MD -MP -MF src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.Tpo -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo `test -f 'src/devices/wifi/nm-device-olpc-mesh.c' || echo '$(srcdir)/'`src/devices/wifi/nm-device-olpc-mesh.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.Tpo src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/devices/wifi/nm-device-olpc-mesh.c' object='src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo `test -f 'src/devices/wifi/nm-wifi-factory.c' || echo '$(srcdir)/'`src/devices/wifi/nm-wifi-factory.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo `test -f 'src/devices/wifi/nm-device-olpc-mesh.c' || echo '$(srcdir)/'`src/devices/wifi/nm-device-olpc-mesh.c
+
+src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.lo: src/devices/wifi/nm-device-wifi-p2p.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.lo -MD -MP -MF src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.Tpo -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.lo `test -f 'src/devices/wifi/nm-device-wifi-p2p.c' || echo '$(srcdir)/'`src/devices/wifi/nm-device-wifi-p2p.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.Tpo src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/devices/wifi/nm-device-wifi-p2p.c' object='src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.lo `test -f 'src/devices/wifi/nm-device-wifi-p2p.c' || echo '$(srcdir)/'`src/devices/wifi/nm-device-wifi-p2p.c
 
 src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-wifi.lo: src/devices/wifi/nm-device-wifi.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-wifi.lo -MD -MP -MF src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-wifi.Tpo -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-wifi.lo `test -f 'src/devices/wifi/nm-device-wifi.c' || echo '$(srcdir)/'`src/devices/wifi/nm-device-wifi.c
@@ -14392,13 +14526,6 @@ src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-ap.lo: src/devices/wifi/nm-
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-ap.lo `test -f 'src/devices/wifi/nm-wifi-ap.c' || echo '$(srcdir)/'`src/devices/wifi/nm-wifi-ap.c
 
-src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo: src/devices/wifi/nm-wifi-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo -MD -MP -MF src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-utils.Tpo -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo `test -f 'src/devices/wifi/nm-wifi-utils.c' || echo '$(srcdir)/'`src/devices/wifi/nm-wifi-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-utils.Tpo src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-utils.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/devices/wifi/nm-wifi-utils.c' object='src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo `test -f 'src/devices/wifi/nm-wifi-utils.c' || echo '$(srcdir)/'`src/devices/wifi/nm-wifi-utils.c
-
 src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-common.lo: src/devices/wifi/nm-wifi-common.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-common.lo -MD -MP -MF src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-common.Tpo -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-common.lo `test -f 'src/devices/wifi/nm-wifi-common.c' || echo '$(srcdir)/'`src/devices/wifi/nm-wifi-common.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-common.Tpo src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-common.Plo
@@ -14406,12 +14533,26 @@ src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-common.lo: src/devices/wifi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-common.lo `test -f 'src/devices/wifi/nm-wifi-common.c' || echo '$(srcdir)/'`src/devices/wifi/nm-wifi-common.c
 
-src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo: src/devices/wifi/nm-device-olpc-mesh.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo -MD -MP -MF src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.Tpo -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo `test -f 'src/devices/wifi/nm-device-olpc-mesh.c' || echo '$(srcdir)/'`src/devices/wifi/nm-device-olpc-mesh.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.Tpo src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/devices/wifi/nm-device-olpc-mesh.c' object='src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo' libtool=yes @AMDEPBACKSLASH@
+src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo: src/devices/wifi/nm-wifi-factory.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo -MD -MP -MF src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Tpo -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo `test -f 'src/devices/wifi/nm-wifi-factory.c' || echo '$(srcdir)/'`src/devices/wifi/nm-wifi-factory.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Tpo src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/devices/wifi/nm-wifi-factory.c' object='src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.lo `test -f 'src/devices/wifi/nm-device-olpc-mesh.c' || echo '$(srcdir)/'`src/devices/wifi/nm-device-olpc-mesh.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-factory.lo `test -f 'src/devices/wifi/nm-wifi-factory.c' || echo '$(srcdir)/'`src/devices/wifi/nm-wifi-factory.c
+
+src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.lo: src/devices/wifi/nm-wifi-p2p-peer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.lo -MD -MP -MF src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.Tpo -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.lo `test -f 'src/devices/wifi/nm-wifi-p2p-peer.c' || echo '$(srcdir)/'`src/devices/wifi/nm-wifi-p2p-peer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.Tpo src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/devices/wifi/nm-wifi-p2p-peer.c' object='src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.lo `test -f 'src/devices/wifi/nm-wifi-p2p-peer.c' || echo '$(srcdir)/'`src/devices/wifi/nm-wifi-p2p-peer.c
+
+src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo: src/devices/wifi/nm-wifi-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo -MD -MP -MF src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-utils.Tpo -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo `test -f 'src/devices/wifi/nm-wifi-utils.c' || echo '$(srcdir)/'`src/devices/wifi/nm-wifi-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-utils.Tpo src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/devices/wifi/nm-wifi-utils.c' object='src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-wifi-utils.lo `test -f 'src/devices/wifi/nm-wifi-utils.c' || echo '$(srcdir)/'`src/devices/wifi/nm-wifi-utils.c
 
 src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-iwd.lo: src/devices/wifi/nm-device-iwd.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_wifi_libnm_device_plugin_wifi_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-iwd.lo -MD -MP -MF src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-iwd.Tpo -c -o src/devices/wifi/libnm_device_plugin_wifi_la-nm-device-iwd.lo `test -f 'src/devices/wifi/nm-device-iwd.c' || echo '$(srcdir)/'`src/devices/wifi/nm-device-iwd.c
@@ -19344,6 +19485,7 @@ distclean: distclean-recursive
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vlan.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vxlan.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.Plo
+	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.Plo
@@ -19358,6 +19500,7 @@ distclean: distclean-recursive
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Settings.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Connection.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Plugin.Plo
+	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-connection.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-core-enum-types.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-crypto.Plo
@@ -19407,8 +19550,10 @@ distclean: distclean-recursive
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-vlan.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-vpn.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-vxlan.Plo
+	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wifi-p2p.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wimax.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wired.Plo
+	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireguard.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireless-security.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireless.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wpan.Plo
@@ -19538,6 +19683,7 @@ distclean: distclean-recursive
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-tun.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-vlan.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-vxlan.Plo
+	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-wifi-p2p.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-wifi.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-wimax.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-wireguard.Plo
@@ -19560,6 +19706,7 @@ distclean: distclean-recursive
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-vpn-editor.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-vpn-plugin-old.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-vpn-service-plugin.Plo
+	-rm -f libnm/$(DEPDIR)/libnm_la-nm-wifi-p2p-peer.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-wimax-nsp.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_utils_la-nm-libnm-utils.Plo
 	-rm -f libnm/fake-typelib/$(DEPDIR)/libnm_utils_la-typelibs.Plo
@@ -19709,11 +19856,13 @@ distclean: distclean-recursive
 	-rm -f src/devices/tests/$(DEPDIR)/test_lldp-test-lldp.Po
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-iwd.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.Plo
+	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-wifi.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-iwd-manager.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-ap.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-common.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Plo
+	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-utils.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/src_devices_wifi_tests_test_general-nm-wifi-ap.Po
 	-rm -f src/devices/wifi/$(DEPDIR)/src_devices_wifi_tests_test_general-nm-wifi-utils.Po
@@ -20040,6 +20189,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vlan.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Vxlan.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WiMax.Plo
+	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WifiP2P.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.WireGuard.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wired.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Device.Wireless.Plo
@@ -20054,6 +20204,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.Settings.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Connection.Plo
 	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.VPN.Plugin.Plo
+	-rm -f introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.WifiP2PPeer.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-connection.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-core-enum-types.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-crypto.Plo
@@ -20103,8 +20254,10 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-vlan.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-vpn.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-vxlan.Plo
+	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wifi-p2p.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wimax.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wired.Plo
+	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireguard.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireless-security.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wireless.Plo
 	-rm -f libnm-core/$(DEPDIR)/libnm_core_la-nm-setting-wpan.Plo
@@ -20234,6 +20387,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-tun.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-vlan.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-vxlan.Plo
+	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-wifi-p2p.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-wifi.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-wimax.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-device-wireguard.Plo
@@ -20256,6 +20410,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-vpn-editor.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-vpn-plugin-old.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-vpn-service-plugin.Plo
+	-rm -f libnm/$(DEPDIR)/libnm_la-nm-wifi-p2p-peer.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_la-nm-wimax-nsp.Plo
 	-rm -f libnm/$(DEPDIR)/libnm_utils_la-nm-libnm-utils.Plo
 	-rm -f libnm/fake-typelib/$(DEPDIR)/libnm_utils_la-typelibs.Plo
@@ -20405,11 +20560,13 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/devices/tests/$(DEPDIR)/test_lldp-test-lldp.Po
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-iwd.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-olpc-mesh.Plo
+	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-wifi-p2p.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-device-wifi.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-iwd-manager.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-ap.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-common.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Plo
+	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-p2p-peer.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-utils.Plo
 	-rm -f src/devices/wifi/$(DEPDIR)/src_devices_wifi_tests_test_general-nm-wifi-ap.Po
 	-rm -f src/devices/wifi/$(DEPDIR)/src_devices_wifi_tests_test_general-nm-wifi-utils.Po
@@ -21014,6 +21171,7 @@ install-data-hook-dispatcher:
 $(dispatcher_tests_test_dispatcher_envp_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
 
 $(clients_nm_online_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+$(clients_nm_online_OBJECTS): $(libnm_lib_h_pub_mkenums)
 
 $(clients_common_libnmc_base_la_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
 $(clients_common_libnmc_base_la_OBJECTS): $(libnm_lib_h_pub_mkenums)

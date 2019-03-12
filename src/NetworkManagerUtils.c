@@ -212,10 +212,7 @@ nm_utils_connection_has_default_route (NMConnection *connection,
 	if (!connection)
 		goto out;
 
-	if (addr_family == AF_INET)
-		s_ip = nm_connection_get_setting_ip4_config (connection);
-	else
-		s_ip = nm_connection_get_setting_ip6_config (connection);
+	s_ip = nm_connection_get_setting_ip_config (connection, addr_family);
 	if (!s_ip)
 		goto out;
 	if (nm_setting_ip_config_get_never_default (s_ip)) {
@@ -377,40 +374,36 @@ check_ip6_method (NMConnection *orig,
 static int
 route_compare (NMIPRoute *route1, NMIPRoute *route2, gint64 default_metric)
 {
-	gint64 r, metric1, metric2;
+	NMIPAddr a1;
+	NMIPAddr a2;
+	guint64 m1;
+	guint64 m2;
 	int family;
 	guint plen;
-	NMIPAddr a1 = { 0 }, a2 = { 0 };
 
 	family = nm_ip_route_get_family (route1);
-	r = family - nm_ip_route_get_family (route2);
-	if (r)
-		return r > 0 ? 1 : -1;
+	NM_CMP_DIRECT (family, nm_ip_route_get_family (route2));
+
+	nm_assert_addr_family (family);
 
 	plen = nm_ip_route_get_prefix (route1);
-	r = plen - nm_ip_route_get_prefix (route2);
-	if (r)
-		return r > 0 ? 1 : -1;
+	NM_CMP_DIRECT (plen, nm_ip_route_get_prefix (route2));
 
-	metric1 = nm_ip_route_get_metric (route1) == -1 ? default_metric : nm_ip_route_get_metric (route1);
-	metric2 = nm_ip_route_get_metric (route2) == -1 ? default_metric : nm_ip_route_get_metric (route2);
+	m1 = nm_ip_route_get_metric (route1);
+	m2 = nm_ip_route_get_metric (route2);
+	NM_CMP_DIRECT (m1 == -1 ? default_metric : m1,
+	               m2 == -1 ? default_metric : m2);
 
-	r = metric1 - metric2;
-	if (r)
-		return r > 0 ? 1 : -1;
+	NM_CMP_DIRECT_STRCMP0 (nm_ip_route_get_next_hop (route1),
+	                       nm_ip_route_get_next_hop (route2));
 
-	r = g_strcmp0 (nm_ip_route_get_next_hop (route1), nm_ip_route_get_next_hop (route2));
-	if (r)
-		return r;
-
-	/* NMIPRoute validates family and dest. inet_pton() is not expected to fail. */
-	inet_pton (family, nm_ip_route_get_dest (route1), &a1);
-	inet_pton (family, nm_ip_route_get_dest (route2), &a2);
-	nm_utils_ipx_address_clear_host_address (family, &a1, &a1, plen);
-	nm_utils_ipx_address_clear_host_address (family, &a2, &a2, plen);
-	r = memcmp (&a1, &a2, sizeof (a1));
-	if (r)
-		return r;
+	if (!inet_pton (family, nm_ip_route_get_dest (route1), &a1))
+		nm_assert_not_reached ();
+	if (!inet_pton (family, nm_ip_route_get_dest (route2), &a2))
+		nm_assert_not_reached ();
+	nm_utils_ipx_address_clear_host_address (family, &a1, NULL, plen);
+	nm_utils_ipx_address_clear_host_address (family, &a2, NULL, plen);
+	NM_CMP_DIRECT_MEMCMP (&a1, &a2, nm_utils_addr_family_to_size (family));
 
 	return 0;
 }

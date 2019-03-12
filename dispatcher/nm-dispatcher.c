@@ -24,12 +24,10 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <errno.h>
 #include <arpa/inet.h>
 #include <glib-unix.h>
 
@@ -461,7 +459,7 @@ again:
 	return FALSE;
 }
 
-static inline gboolean
+static gboolean
 check_permissions (struct stat *s, const char **out_error_msg)
 {
 	g_return_val_if_fail (s != NULL, FALSE);

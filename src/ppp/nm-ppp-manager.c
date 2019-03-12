@@ -26,11 +26,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
-#include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <asm/types.h>
@@ -182,6 +180,7 @@ monitor_cb (gpointer user_data)
 	NMPPPManager *self = NM_PPP_MANAGER (user_data);
 	NMPPPManagerPrivate *priv = NM_PPP_MANAGER_GET_PRIVATE (self);
 	const char *ifname;
+	int errsv;
 
 	ifname = nm_platform_link_get_name (NM_PLATFORM_GET, priv->ifindex);
 
@@ -193,8 +192,9 @@ monitor_cb (gpointer user_data)
 
 		nm_utils_ifname_cpy (req.ifr_name, ifname);
 		if (ioctl (priv->monitor_fd, SIOCGPPPSTATS, &req) < 0) {
-			if (errno != ENODEV)
-				_LOGW ("could not read ppp stats: %s", strerror (errno));
+			errsv = errno;
+			if (errsv != ENODEV)
+				_LOGW ("could not read ppp stats: %s", nm_strerror_native (errsv));
 		} else {
 			g_signal_emit (self, signals[STATS], 0,
 			               (guint) stats.p.ppp_ibytes,
@@ -209,19 +209,23 @@ static void
 monitor_stats (NMPPPManager *self)
 {
 	NMPPPManagerPrivate *priv = NM_PPP_MANAGER_GET_PRIVATE (self);
+	int errsv;
 
 	/* already monitoring */
 	if (priv->monitor_fd >= 0)
 		return;
 
 	priv->monitor_fd = socket (AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
-	if (priv->monitor_fd >= 0) {
-		g_warn_if_fail (priv->monitor_id == 0);
-		if (priv->monitor_id)
-			g_source_remove (priv->monitor_id);
-		priv->monitor_id = g_timeout_add_seconds (5, monitor_cb, self);
-	} else
-		_LOGW ("could not monitor PPP stats: %s", strerror (errno));
+	if (priv->monitor_fd < 0) {
+		errsv = errno;
+		_LOGW ("could not monitor PPP stats: %s", nm_strerror_native (errsv));
+		return;
+	}
+
+	g_warn_if_fail (priv->monitor_id == 0);
+	if (priv->monitor_id)
+		g_source_remove (priv->monitor_id);
+	priv->monitor_id = g_timeout_add_seconds (5, monitor_cb, self);
 }
 
 /*****************************************************************************/
@@ -363,7 +367,7 @@ impl_ppp_manager_need_secrets (NMDBusObject *obj,
 	const char *username = NULL;
 	const char *password = NULL;
 	guint32 tries;
-	GPtrArray *hints = NULL;
+	gs_unref_ptrarray GPtrArray *hints = NULL;
 	GError *error = NULL;
 	NMSecretAgentGetSecretsFlags flags = NM_SECRET_AGENT_GET_SECRETS_FLAG_ALLOW_INTERACTION;
 
@@ -393,18 +397,18 @@ impl_ppp_manager_need_secrets (NMDBusObject *obj,
 	if (tries > 1)
 		flags |= NM_SECRET_AGENT_GET_SECRETS_FLAG_REQUEST_NEW;
 
+	if (hints)
+		g_ptr_array_add (hints, NULL);
+
 	priv->secrets_id = nm_act_request_get_secrets (priv->act_req,
 	                                               FALSE,
 	                                               priv->secrets_setting_name,
 	                                               flags,
-	                                               hints ? g_ptr_array_index (hints, 0) : NULL,
+	                                               hints ? (const char *const*) hints->pdata : NULL,
 	                                               ppp_secrets_cb,
 	                                               self);
 	g_object_set_qdata (G_OBJECT (applied_connection), ppp_manager_secret_tries_quark (), GUINT_TO_POINTER (++tries));
 	priv->pending_secrets_context = invocation;
-
-	if (hints)
-		g_ptr_array_free (hints, TRUE);
 }
 
 static void
@@ -1049,8 +1053,8 @@ _ppp_manager_start (NMPPPManager *self,
 
 	_LOGI ("starting PPP connection");
 
-	_LOGD ("command line: %s", cmd_str);
-	       (cmd_str = g_strjoinv (" ", (char **) ppp_cmd->pdata));
+	_LOGD ("command line: %s",
+	       (cmd_str = g_strjoinv (" ", (char **) ppp_cmd->pdata)));
 
 	priv->pid = 0;
 	if (!g_spawn_async (NULL,

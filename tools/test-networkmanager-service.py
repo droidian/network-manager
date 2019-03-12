@@ -296,7 +296,7 @@ class Util:
                 if val.signature == 'y':
                     return GLib.Variant('ay', [int(x) for x in val])
                 if val.signature == 'u':
-                    return GLib.Variant('au', [Util.variant_from_dbus(x) for x in val])
+                    return GLib.Variant('au', [int(x) for x in val])
                 if val.signature == 'ay':
                     return GLib.Variant('aay', [Util.variant_from_dbus(x) for x in val])
                 if val.signature == 'au':
@@ -861,12 +861,23 @@ class WifiAp(ExportedObj):
 
         ExportedObj.__init__(self, ExportedObj.create_path(WifiAp), ident)
 
+        NM_AP_FLAGS = getattr(NM, '80211ApSecurityFlags')
         if flags is None:
             flags = 0x1
         if wpaf is None:
-            wpaf = 0x1cc
+            wpaf = 0x0
+            wpaf = wpaf | NM_AP_FLAGS.PAIR_TKIP
+            wpaf = wpaf | NM_AP_FLAGS.PAIR_CCMP
+            wpaf = wpaf | NM_AP_FLAGS.GROUP_TKIP
+            wpaf = wpaf | NM_AP_FLAGS.GROUP_CCMP
+            wpaf = wpaf | NM_AP_FLAGS.KEY_MGMT_PSK
         if rsnf is None:
-            rsnf = 0x1cc
+            rsnf = 0x0
+            rsnf = rsnf | NM_AP_FLAGS.PAIR_TKIP
+            rsnf = rsnf | NM_AP_FLAGS.PAIR_CCMP
+            rsnf = rsnf | NM_AP_FLAGS.GROUP_TKIP
+            rsnf = rsnf | NM_AP_FLAGS.GROUP_CCMP
+            rsnf = rsnf | NM_AP_FLAGS.KEY_MGMT_PSK
         if freq is None:
             freq = 2412
         if bssid is None:

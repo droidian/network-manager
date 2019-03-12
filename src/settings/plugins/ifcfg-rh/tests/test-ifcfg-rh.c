@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <unistd.h>
-#include <string.h>
 #include <linux/pkt_sched.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -123,7 +122,7 @@ _assert_reread_same_FIXME (NMConnection *connection, NMConnection *reread)
 
 /* dummy path for an "expected" file, meaning: don't check for expected
  * written ifcfg file. */
-static const char const NO_EXPECTED[1];
+static const char NO_EXPECTED[1];
 
 static void
 _assert_expected_content (NMConnection *connection, const char *filename, const char *expected)
@@ -2964,6 +2963,45 @@ test_read_wifi_wpa_psk (void)
 	g_assert_cmpstr (nm_setting_ip_config_get_method (s_ip4), ==, NM_SETTING_IP4_CONFIG_METHOD_AUTO);
 
 	g_object_unref (connection);
+}
+
+static void
+test_read_wifi_sae (void)
+{
+	gs_unref_object NMConnection *connection = NULL;
+	NMSettingConnection *s_con;
+	NMSettingWireless *s_wireless;
+	NMSettingWirelessSecurity *s_wsec;
+	GBytes *ssid;
+	const char *expected_ssid = "blahblah";
+
+	connection = _connection_from_file (TEST_IFCFG_DIR"/ifcfg-test-wifi-sae",
+	                                    NULL, TYPE_WIRELESS, NULL);
+
+	s_con = nm_connection_get_setting_connection (connection);
+	g_assert (s_con);
+	g_assert_cmpstr (nm_setting_connection_get_id (s_con), ==, "System blahblah (test-wifi-sae)");
+
+	g_assert_cmpint (nm_setting_connection_get_timestamp (s_con), ==, 0);
+	g_assert (nm_setting_connection_get_autoconnect (s_con));
+
+	s_wireless = nm_connection_get_setting_wireless (connection);
+	g_assert (s_wireless);
+
+	g_assert_cmpint (nm_setting_wireless_get_mtu (s_wireless), ==, 0);
+
+	ssid = nm_setting_wireless_get_ssid (s_wireless);
+	g_assert (ssid);
+	g_assert_cmpmem (g_bytes_get_data (ssid, NULL), g_bytes_get_size (ssid), expected_ssid, strlen (expected_ssid));
+
+	g_assert (!nm_setting_wireless_get_bssid (s_wireless));
+	g_assert_cmpstr (nm_setting_wireless_get_mode (s_wireless), ==, "infrastructure");
+
+	s_wsec = nm_connection_get_setting_wireless_security (connection);
+	g_assert (s_wsec);
+	g_assert_cmpstr (nm_setting_wireless_security_get_key_mgmt (s_wsec), ==, "sae");
+	g_assert_cmpstr (nm_setting_wireless_security_get_psk (s_wsec), ==, "The king is dead.");
+	g_assert (!nm_setting_wireless_security_get_auth_alg (s_wsec));
 }
 
 static void
@@ -9981,10 +10019,14 @@ NMTST_DEFINE ();
 
 int main (int argc, char **argv)
 {
+	int errsv;
+
 	nmtst_init_assert_logging (&argc, &argv, "INFO", "DEFAULT");
 
-	if (g_mkdir_with_parents (TEST_SCRATCH_DIR_TMP, 0755) != 0)
-		g_error ("failure to create test directory \"%s\": %s", TEST_SCRATCH_DIR_TMP, g_strerror (errno));
+	if (g_mkdir_with_parents (TEST_SCRATCH_DIR_TMP, 0755) != 0) {
+		errsv = errno;
+		g_error ("failure to create test directory \"%s\": %s", TEST_SCRATCH_DIR_TMP, nm_strerror_native (errsv));
+	}
 
 	g_test_add_func (TPATH "svUnescape", test_svUnescape);
 
@@ -10081,6 +10123,7 @@ int main (int argc, char **argv)
 	g_test_add_func (TPATH "wifi/read/wpa-psk/unquoted2", test_read_wifi_wpa_psk_unquoted2);
 	g_test_add_func (TPATH "wifi/read/wpa-psk/adhoc", test_read_wifi_wpa_psk_adhoc);
 	g_test_add_func (TPATH "wifi/read/wpa-psk/hex", test_read_wifi_wpa_psk_hex);
+	g_test_add_func (TPATH "wifi/read/sae", test_read_wifi_sae);
 	g_test_add_func (TPATH "wifi/read/dynamic-wep/leap", test_read_wifi_dynamic_wep_leap);
 	g_test_add_func (TPATH "wifi/read/wpa/eap/tls", test_read_wifi_wpa_eap_tls);
 	g_test_add_func (TPATH "wifi/read/wpa/eap/ttls/tls", test_read_wifi_wpa_eap_ttls_tls);

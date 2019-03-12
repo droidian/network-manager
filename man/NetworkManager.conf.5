@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/22/2019
+.\"      Date: 03/11/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.15.2
+.\"    Source: NetworkManager 1.15.91
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.15\&.2" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.15\&.91" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -804,6 +804,10 @@ If left unspecified, the default value "optional" will be used\&.
 \fIwifi\&.wake\-on\-wlan\fR
 .RS 4
 .RE
+.PP
+\fIwireguard\&.mtu\fR
+.RS 4
+.RE
 
 .SS "Sections"
 .PP
@@ -962,6 +966,12 @@ for details\&.
 .PP
 This section controls NetworkManager\*(Aqs optional connectivity checking functionality\&. This allows NetworkManager to detect whether or not the system can actually access the internet or whether it is behind a captive portal\&.
 .PP
+Connectivity checking serves two purposes\&. For one, it exposes a connectivity state on D\-Bus, which other applications may use\&. For example, Gnome\*(Aqs portal helper uses this as signal to show a captive portal login page\&. The other use is that default\-route of devices without global connectivity get a penalty of +20000 to the route\-metric\&. This has the purpose to give a better default\-route to devices that have global connectivity\&. For example, when being connected to WWAN and to a Wi\-Fi network which is behind a captive portal, WWAN still gets preferred until login\&.
+.PP
+Note that your distribution might set
+/proc/sys/net/ipv4/conf/*/rp_filter
+to strict filtering\&. That works badly with per\-device connectivity checking, which uses SO_BINDDEVICE to send requests on all devices\&. A strict rp_filter setting will reject any response and the connectivity check on all but the best route will fail\&.
+.PP
 .PP
 \fIuri\fR
 .RS 4
@@ -977,7 +987,7 @@ Specified in seconds; controls how often connectivity is checked when a network 
 .PP
 \fIresponse\fR
 .RS 4
-If set controls what body content NetworkManager checks for when requesting the URI for connectivity checking\&. If missing, defaults to "NetworkManager is online"
+If set, controls what body content NetworkManager checks for when requesting the URI for connectivity checking\&. Note that this only compares that the HTTP response starts with the specifid text, it does not compare the exact string\&. This behavior might change in the future, so avoid relying on it\&. If missing, the response defaults to "NetworkManager is online"\&. If set to empty, the HTTP server is expected to answer with status code 204 or send no data\&.
 .RE
 .SH "GLOBAL\-DNS SECTION"
 .PP
@@ -991,7 +1001,7 @@ A list of search domains to be used during hostname lookup\&.
 .PP
 \fIoptions\fR
 .RS 4
-A list of of options to be passed to the hostname resolver\&.
+A list of options to be passed to the hostname resolver\&.
 .RE
 .SH "GLOBAL\-DNS\-DOMAIN SECTIONS"
 .PP

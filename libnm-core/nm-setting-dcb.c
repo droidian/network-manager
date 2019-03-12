@@ -23,8 +23,6 @@
 
 #include "nm-setting-dcb.h"
 
-#include <string.h>
-
 #include "nm-utils.h"
 #include "nm-utils-private.h"
 #include "nm-setting-private.h"
@@ -716,7 +714,7 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 
 G_STATIC_ASSERT (sizeof (guint) == sizeof (gboolean));
 
-static inline void
+static void
 set_array_from_gvalue (const GValue *v, uint *a, size_t len)
 {
 	GArray *src = g_value_get_boxed (v);
@@ -731,7 +729,7 @@ set_array_from_gvalue (const GValue *v, uint *a, size_t len)
 }
 #define SET_ARRAY_FROM_GVALUE(v, a)  set_array_from_gvalue (v, a, G_N_ELEMENTS (a))
 
-static inline void
+static void
 set_gvalue_from_array (GValue *v, uint *a, size_t len)
 {
 	GArray *src = g_array_sized_new (FALSE, TRUE, sizeof (guint), len);

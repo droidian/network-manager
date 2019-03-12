@@ -24,7 +24,6 @@
 
 #include "nm-connection.h"
 
-#include <string.h>
 #include <arpa/inet.h>
 
 #include "nm-connection-private.h"
@@ -229,6 +228,18 @@ nm_connection_get_setting (NMConnection *connection, GType setting_type)
 	g_return_val_if_fail (g_type_is_a (setting_type, NM_TYPE_SETTING), NULL);
 
 	return _connection_get_setting_check (connection, setting_type);
+}
+
+NMSettingIPConfig *
+nm_connection_get_setting_ip_config (NMConnection *connection,
+                                     int addr_family)
+{
+	nm_assert_addr_family (addr_family);
+
+	return NM_SETTING_IP_CONFIG (_connection_get_setting (connection,
+	                                                        (addr_family == AF_INET)
+	                                                      ? NM_TYPE_SETTING_IP4_CONFIG
+	                                                      : NM_TYPE_SETTING_IP6_CONFIG));
 }
 
 /**
@@ -674,8 +685,10 @@ _nm_connection_find_base_type_setting (NMConnection *connection)
 {
 	NMConnectionPrivate *priv = NM_CONNECTION_GET_PRIVATE (connection);
 	GHashTableIter iter;
-	NMSetting *setting = NULL, *s_iter;
-	NMSettingPriority setting_prio, s_iter_prio;
+	NMSetting *setting = NULL;
+	NMSetting *s_iter;
+	NMSettingPriority setting_prio = NM_SETTING_PRIORITY_USER;
+	NMSettingPriority s_iter_prio;
 
 	g_hash_table_iter_init (&iter, priv->settings);
 	while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &s_iter)) {
@@ -904,25 +917,24 @@ _supports_addr_family (NMConnection *self, int family)
 static gboolean
 _normalize_ip_config (NMConnection *self, GHashTable *parameters)
 {
-	const char *default_ip4_method = NM_SETTING_IP4_CONFIG_METHOD_AUTO;
-	const char *default_ip6_method = NULL;
 	NMSettingIPConfig *s_ip4, *s_ip6;
 	NMSettingProxy *s_proxy;
 	NMSetting *setting;
 	gboolean changed = FALSE;
 	guint num, i;
 
-	if (parameters)
-		default_ip6_method = g_hash_table_lookup (parameters, NM_CONNECTION_NORMALIZE_PARAM_IP6_CONFIG_METHOD);
-	if (!default_ip6_method)
-		default_ip6_method = NM_SETTING_IP6_CONFIG_METHOD_AUTO;
-
 	s_ip4 = nm_connection_get_setting_ip4_config (self);
 	s_ip6 = nm_connection_get_setting_ip6_config (self);
 	s_proxy = nm_connection_get_setting_proxy (self);
 
 	if (_supports_addr_family (self, AF_INET)) {
+
 		if (!s_ip4) {
+			const char *default_ip4_method = NM_SETTING_IP4_CONFIG_METHOD_AUTO;
+
+			if (nm_connection_is_type (self, NM_SETTING_WIREGUARD_SETTING_NAME))
+				default_ip4_method = NM_SETTING_IP4_CONFIG_METHOD_DISABLED;
+
 			 /* But if no IP4 setting was specified, assume the caller was just
 			  * being lazy and use the default method.
 			  */
@@ -965,6 +977,17 @@ _normalize_ip_config (NMConnection *self, GHashTable *parameters)
 
 	if (_supports_addr_family (self, AF_INET6)) {
 		if (!s_ip6) {
+			const char *default_ip6_method = NULL;
+
+			if (parameters)
+				default_ip6_method = g_hash_table_lookup (parameters, NM_CONNECTION_NORMALIZE_PARAM_IP6_CONFIG_METHOD);
+			if (!default_ip6_method) {
+				if (nm_connection_is_type (self, NM_SETTING_WIREGUARD_SETTING_NAME))
+					default_ip6_method = NM_SETTING_IP6_CONFIG_METHOD_IGNORE;
+				else
+					default_ip6_method = NM_SETTING_IP6_CONFIG_METHOD_AUTO;
+			}
+
 			/* If no IP6 setting was specified, then assume that means IP6 config is
 			 * allowed to fail.
 			 */
@@ -1845,7 +1868,7 @@ nm_connection_clear_secrets (NMConnection *connection)
 /**
  * nm_connection_clear_secrets_with_flags:
  * @connection: the #NMConnection
- * @func: (scope call): (allow-none): function to be called to determine whether a
+ * @func: (scope call) (allow-none): function to be called to determine whether a
  *     specific secret should be cleared or not. If %NULL, all secrets are cleared.
  * @user_data: caller-supplied data passed to @func
  *
@@ -1870,6 +1893,108 @@ nm_connection_clear_secrets_with_flags (NMConnection *connection,
 
 	g_signal_emit (connection, signals[SECRETS_CLEARED], 0);
 }
+
+/*****************************************************************************/
+
+/* Returns always a non-NULL, floating variant that must
+ * be unrefed by the caller. */
+GVariant *
+_nm_connection_for_each_secret (NMConnection *self,
+                                GVariant *secrets,
+                                gboolean remove_non_secrets,
+                                _NMConnectionForEachSecretFunc callback,
+                                gpointer callback_data)
+{
+	GVariantBuilder secrets_builder;
+	GVariantBuilder setting_builder;
+	GVariantIter secrets_iter;
+	GVariantIter *setting_iter;
+	const char *setting_name;
+
+	/* This function, given a dict of dicts representing new secrets of
+	 * an NMConnection, walks through each toplevel dict (which represents a
+	 * NMSetting), and for each setting, walks through that setting dict's
+	 * properties.  For each property that's a secret, it will check that
+	 * secret's flags in the backing NMConnection object, and call a supplied
+	 * callback.
+	 *
+	 * The one complexity is that the VPN setting's 'secrets' property is
+	 * *also* a dict (since the key/value pairs are arbitrary and known
+	 * only to the VPN plugin itself).  That means we have three levels of
+	 * dicts that we potentially have to traverse here.  The differences
+	 * are handled by the virtual for_each_secret() function.
+	 */
+
+	g_return_val_if_fail (callback, NULL);
+
+	g_variant_iter_init (&secrets_iter, secrets);
+	g_variant_builder_init (&secrets_builder, NM_VARIANT_TYPE_CONNECTION);
+	while (g_variant_iter_next (&secrets_iter, "{&sa{sv}}", &setting_name, &setting_iter)) {
+		_nm_unused nm_auto_free_variant_iter GVariantIter *setting_iter_free = setting_iter;
+		NMSetting *setting;
+		const char *secret_name;
+		GVariant *val;
+
+		setting = nm_connection_get_setting_by_name (self, setting_name);
+		if (!setting)
+			continue;
+
+		g_variant_builder_init (&setting_builder, NM_VARIANT_TYPE_SETTING);
+		while (g_variant_iter_next (setting_iter, "{&sv}", &secret_name, &val)) {
+			_nm_unused gs_unref_variant GVariant *val_free = val;
+
+			NM_SETTING_GET_CLASS (setting)->for_each_secret (setting,
+			                                                 secret_name,
+			                                                 val,
+			                                                 remove_non_secrets,
+			                                                 callback,
+			                                                 callback_data,
+			                                                 &setting_builder);
+		}
+
+		g_variant_builder_add (&secrets_builder, "{sa{sv}}", setting_name, &setting_builder);
+	}
+
+	return g_variant_builder_end (&secrets_builder);
+}
+
+/*****************************************************************************/
+
+typedef struct {
+	NMConnectionFindSecretFunc find_func;
+	gpointer find_func_data;
+	gboolean found;
+} FindSecretData;
+
+static gboolean
+find_secret_for_each_func (NMSettingSecretFlags flags,
+                           gpointer user_data)
+{
+	FindSecretData *data = user_data;
+
+	if (!data->found)
+		data->found = data->find_func (flags, data->find_func_data);
+	return FALSE;
+}
+
+gboolean
+_nm_connection_find_secret (NMConnection *self,
+                            GVariant *secrets,
+                            NMConnectionFindSecretFunc callback,
+                            gpointer callback_data)
+{
+	gs_unref_variant GVariant *dummy = NULL;
+	FindSecretData data = {
+		.find_func      = callback,
+		.find_func_data = callback_data,
+		.found          = FALSE,
+	};
+
+	dummy = _nm_connection_for_each_secret (self, secrets, FALSE, find_secret_for_each_func, &data);
+	return data.found;
+}
+
+/*****************************************************************************/
 
 /**
  * nm_connection_to_dbus:
@@ -1955,7 +2080,7 @@ _for_each_sort (NMSetting **p_a, NMSetting **p_b, void *unused)
 /**
  * nm_connection_get_settings:
  * @connection: the #NMConnection instance
- * @out_length: (allow-none): (out): the length of the returned array
+ * @out_length: (allow-none) (out): the length of the returned array
  *
  * Retrieves the settings in @connection.
  *
@@ -2316,7 +2441,8 @@ nm_connection_is_virtual (NMConnection *connection)
 	                        NM_SETTING_TEAM_SETTING_NAME,
 	                        NM_SETTING_TUN_SETTING_NAME,
 	                        NM_SETTING_VLAN_SETTING_NAME,
-	                        NM_SETTING_VXLAN_SETTING_NAME))
+	                        NM_SETTING_VXLAN_SETTING_NAME,
+	                        NM_SETTING_WIREGUARD_SETTING_NAME))
 		return TRUE;
 
 	if (nm_streq (type, NM_SETTING_INFINIBAND_SETTING_NAME)) {

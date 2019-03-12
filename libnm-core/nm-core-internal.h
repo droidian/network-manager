@@ -37,6 +37,8 @@
 
 #include "nm-connection.h"
 #include "nm-core-enum-types.h"
+#include "nm-core-types-internal.h"
+#include "nm-meta-setting.h"
 #include "nm-setting-6lowpan.h"
 #include "nm-setting-8021x.h"
 #include "nm-setting-adsl.h"
@@ -52,7 +54,6 @@
 #include "nm-setting-gsm.h"
 #include "nm-setting-infiniband.h"
 #include "nm-setting-ip-tunnel.h"
-#include "nm-setting-proxy.h"
 #include "nm-setting-ip4-config.h"
 #include "nm-setting-ip6-config.h"
 #include "nm-setting-macsec.h"
@@ -65,6 +66,7 @@
 #include "nm-setting-ovs-port.h"
 #include "nm-setting-ppp.h"
 #include "nm-setting-pppoe.h"
+#include "nm-setting-proxy.h"
 #include "nm-setting-serial.h"
 #include "nm-setting-sriov.h"
 #include "nm-setting-tc-config.h"
@@ -74,8 +76,10 @@
 #include "nm-setting-vlan.h"
 #include "nm-setting-vpn.h"
 #include "nm-setting-vxlan.h"
+#include "nm-setting-wifi-p2p.h"
 #include "nm-setting-wimax.h"
 #include "nm-setting-wired.h"
+#include "nm-setting-wireguard.h"
 #include "nm-setting-wireless-security.h"
 #include "nm-setting-wireless.h"
 #include "nm-setting-wpan.h"
@@ -83,9 +87,7 @@
 #include "nm-simple-connection.h"
 #include "nm-utils.h"
 #include "nm-vpn-dbus-interface.h"
-#include "nm-core-types-internal.h"
 #include "nm-vpn-editor-plugin.h"
-#include "nm-meta-setting.h"
 
 /* IEEE 802.1D-1998 timer values */
 #define NM_BR_MIN_HELLO_TIME    1
@@ -128,7 +130,7 @@
 
 /*****************************************************************************/
 
-#define NM_SETTING_SECRET_FLAGS_ALL \
+#define NM_SETTING_SECRET_FLAG_ALL \
 	((NMSettingSecretFlags) (  NM_SETTING_SECRET_FLAG_NONE \
 	                         | NM_SETTING_SECRET_FLAG_AGENT_OWNED \
 	                         | NM_SETTING_SECRET_FLAG_NOT_SAVED \
@@ -137,7 +139,7 @@
 static inline gboolean
 _nm_setting_secret_flags_valid (NMSettingSecretFlags flags)
 {
-	return !NM_FLAGS_ANY (flags, ~NM_SETTING_SECRET_FLAGS_ALL);
+	return !NM_FLAGS_ANY (flags, ~NM_SETTING_SECRET_FLAG_ALL);
 }
 
 /*****************************************************************************/
@@ -246,27 +248,6 @@ guint nm_setting_ethtool_init_features (NMSettingEthtool *setting,
 
 guint8 *_nm_utils_hwaddr_aton (const char *asc, gpointer buffer, gsize buffer_length, gsize *out_length);
 const char *nm_utils_hwaddr_ntoa_buf (gconstpointer addr, gsize addr_len, gboolean upper_case, char *buf, gsize buf_len);
-
-char *_nm_utils_bin2hexstr_full (gconstpointer addr, gsize length, const char delimiter, gboolean upper_case, char *out);
-
-guint8 *_nm_utils_hexstr2bin_full (const char *hexstr,
-                                   gboolean allow_0x_prefix,
-                                   gboolean delimiter_required,
-                                   const char *delimiter_candidates,
-                                   gsize required_len,
-                                   guint8 *buffer,
-                                   gsize buffer_len,
-                                   gsize *out_len);
-
-#define _nm_utils_hexstr2bin_buf(hexstr, allow_0x_prefix, delimiter_required, delimiter_candidates, buffer) \
-    _nm_utils_hexstr2bin_full ((hexstr), (allow_0x_prefix), (delimiter_required), (delimiter_candidates), G_N_ELEMENTS (buffer), (buffer), G_N_ELEMENTS (buffer), NULL)
-
-guint8 *_nm_utils_hexstr2bin_alloc (const char *hexstr,
-                                    gboolean allow_0x_prefix,
-                                    gboolean delimiter_required,
-                                    const char *delimiter_candidates,
-                                    gsize required_len,
-                                    gsize *out_len);
 
 GSList *    _nm_utils_hash_values_to_slist (GHashTable *hash);
 
@@ -468,6 +449,11 @@ gboolean _nm_utils_generate_mac_address_mask_parse (const char *value,
 
 /*****************************************************************************/
 
+NMSettingIPConfig *nm_connection_get_setting_ip_config (NMConnection *connection,
+                                                        int addr_family);
+
+/*****************************************************************************/
+
 typedef enum {
 	NM_BOND_OPTION_TYPE_INT,
 	NM_BOND_OPTION_TYPE_STRING,
@@ -613,7 +599,36 @@ gboolean _nm_setting_sriov_sort_vfs (NMSettingSriov *setting);
 
 /*****************************************************************************/
 
-typedef struct _NMSettInfoSetting NMSettInfoSetting;
+typedef struct _NMSockAddrEndpoint NMSockAddrEndpoint;
+
+NMSockAddrEndpoint *nm_sock_addr_endpoint_new (const char *endpoint);
+
+NMSockAddrEndpoint *nm_sock_addr_endpoint_ref (NMSockAddrEndpoint *self);
+void nm_sock_addr_endpoint_unref (NMSockAddrEndpoint *self);
+
+const char *nm_sock_addr_endpoint_get_endpoint (NMSockAddrEndpoint *self);
+const char *nm_sock_addr_endpoint_get_host (NMSockAddrEndpoint *self);
+gint32 nm_sock_addr_endpoint_get_port (NMSockAddrEndpoint *self);
+
+gboolean nm_sock_addr_endpoint_get_fixed_sockaddr (NMSockAddrEndpoint *self,
+                                                   gpointer sockaddr);
+
+#define nm_auto_unref_sockaddrendpoint nm_auto(_nm_auto_unref_sockaddrendpoint)
+NM_AUTO_DEFINE_FCN_VOID0 (NMSockAddrEndpoint *, _nm_auto_unref_sockaddrendpoint, nm_sock_addr_endpoint_unref)
+
+/*****************************************************************************/
+
+NMSockAddrEndpoint *_nm_wireguard_peer_get_endpoint (const NMWireGuardPeer *self);
+void _nm_wireguard_peer_set_endpoint (NMWireGuardPeer *self,
+                                      NMSockAddrEndpoint *endpoint);
+
+void _nm_wireguard_peer_set_public_key_bin (NMWireGuardPeer *self,
+                                            const guint8 public_key[static NM_WIREGUARD_PUBLIC_KEY_LEN]);
+
+/*****************************************************************************/
+
+typedef struct _NMSettInfoSetting  NMSettInfoSetting;
+typedef struct _NMSettInfoProperty NMSettInfoProperty;
 
 typedef GVariant *(*NMSettingPropertyGetFunc)           (NMSetting     *setting,
                                                          const char    *property);
@@ -637,7 +652,7 @@ typedef GVariant *(*NMSettingPropertyTransformToFunc)   (const GValue *from);
 typedef void      (*NMSettingPropertyTransformFromFunc) (GVariant *from,
                                                           GValue *to);
 
-typedef struct {
+struct _NMSettInfoProperty {
 	const char *name;
 	GParamSpec *param_spec;
 	const GVariantType *dbus_type;
@@ -649,7 +664,7 @@ typedef struct {
 
 	NMSettingPropertyTransformToFunc   to_dbus;
 	NMSettingPropertyTransformFromFunc from_dbus;
-} NMSettInfoProperty;
+};
 
 typedef struct {
 	const GVariantType *(*get_variant_type) (const struct _NMSettInfoSetting *sett_info,
@@ -728,6 +743,31 @@ GBytes *_nm_setting_802_1x_cert_value_to_bytes (NMSetting8021xCKScheme scheme,
                                                 const guint8 *val_bin,
                                                 gssize val_len,
                                                 GError **error);
+
+/*****************************************************************************/
+
+GVariant *_nm_connection_for_each_secret (NMConnection *self,
+                                          GVariant *secrets,
+                                          gboolean remove_non_secrets,
+                                          _NMConnectionForEachSecretFunc callback,
+                                          gpointer callback_data);
+
+typedef gboolean (*NMConnectionFindSecretFunc) (NMSettingSecretFlags flags,
+                                                gpointer user_data);
+
+gboolean _nm_connection_find_secret (NMConnection *self,
+                                     GVariant *secrets,
+                                     NMConnectionFindSecretFunc callback,
+                                     gpointer callback_data);
+
+/*****************************************************************************/
+
+#define nm_auto_unref_wgpeer nm_auto(_nm_auto_unref_wgpeer)
+NM_AUTO_DEFINE_FCN_VOID0 (NMWireGuardPeer *, _nm_auto_unref_wgpeer, nm_wireguard_peer_unref)
+
+gboolean nm_utils_base64secret_normalize (const char *base64_key,
+                                          gsize required_key_len,
+                                          char **out_base64_key_norm);
 
 /*****************************************************************************/
 

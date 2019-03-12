@@ -22,11 +22,9 @@
 
 #include "nms-ifcfg-rh-writer.h"
 
-#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -601,6 +599,10 @@ write_wireless_security_setting (NMConnection *connection,
 		*no_8021x = TRUE;
 	} else if (!strcmp (key_mgmt, "wpa-none") || !strcmp (key_mgmt, "wpa-psk")) {
 		svSetValueStr (ifcfg, "KEY_MGMT", "WPA-PSK");
+		wpa = TRUE;
+		*no_8021x = TRUE;
+	} else if (!strcmp (key_mgmt, "sae")) {
+		svSetValueStr (ifcfg, "KEY_MGMT", "SAE");
 		wpa = TRUE;
 		*no_8021x = TRUE;
 	} else if (!strcmp (key_mgmt, "ieee8021x")) {

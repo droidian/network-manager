@@ -23,7 +23,6 @@
 
 #include "nm-supplicant-config.h"
 
-#include <string.h>
 #include <stdlib.h>
 
 #include "nm-core-internal.h"
@@ -404,11 +403,11 @@ nm_supplicant_config_add_setting_macsec (NMSupplicantConfig * self,
 
 		value = nm_setting_macsec_get_mka_cak (setting);
 		if (   !value
-		    || !_nm_utils_hexstr2bin_buf (value,
-		                                  FALSE,
-		                                  FALSE,
-		                                  NULL,
-		                                  buffer_cak)) {
+		    || !nm_utils_hexstr2bin_buf (value,
+		                                 FALSE,
+		                                 FALSE,
+		                                 NULL,
+		                                 buffer_cak)) {
 			g_set_error_literal (error,
 			                     NM_SUPPLICANT_ERROR,
 			                     NM_SUPPLICANT_ERROR_CONFIG,
@@ -425,11 +424,11 @@ nm_supplicant_config_add_setting_macsec (NMSupplicantConfig * self,
 
 		value = nm_setting_macsec_get_mka_ckn (setting);
 		if (   !value
-		    || !_nm_utils_hexstr2bin_buf (value,
-		                                  FALSE,
-		                                  FALSE,
-		                                  NULL,
-		                                  buffer_ckn)) {
+		    || !nm_utils_hexstr2bin_buf (value,
+		                                 FALSE,
+		                                 FALSE,
+		                                 NULL,
+		                                 buffer_ckn)) {
 			g_set_error_literal (error,
 			                     NM_SUPPLICANT_ERROR,
 			                     NM_SUPPLICANT_ERROR_CONFIG,
@@ -705,14 +704,14 @@ add_wep_key (NMSupplicantConfig *self,
 		if ((key_len == 10) || (key_len == 26)) {
 			guint8 buffer[26/2];
 
-			if (!_nm_utils_hexstr2bin_full (key,
-			                                FALSE,
-			                                FALSE,
-			                                NULL,
-			                                key_len / 2,
-			                                buffer,
-			                                sizeof (buffer),
-			                                NULL)) {
+			if (!nm_utils_hexstr2bin_full (key,
+			                               FALSE,
+			                               FALSE,
+			                               NULL,
+			                               key_len / 2,
+			                               buffer,
+			                               sizeof (buffer),
+			                               NULL)) {
 				g_set_error (error, NM_SUPPLICANT_ERROR, NM_SUPPLICANT_ERROR_CONFIG,
 				             "cannot add wep-key %s to suplicant config because key is not hex",
 				             name);
@@ -807,15 +806,30 @@ nm_supplicant_config_add_setting_wireless_security (NMSupplicantConfig *self,
 	if (psk) {
 		size_t psk_len = strlen (psk);
 
-		if (psk_len == 64) {
+
+		if (psk_len >= 8 && psk_len <= 63) {
+			/* Use TYPE_STRING here so that it gets pushed to the
+			 * supplicant as a string, and therefore gets quoted,
+			 * and therefore the supplicant will interpret it as a
+			 * passphrase and not a hex key.
+			 */
+			if (!nm_supplicant_config_add_option_with_type (self, "psk", psk, -1, TYPE_STRING, "<hidden>", error))
+				return FALSE;
+		} else if (nm_streq (key_mgmt, "sae")) {
+			/* If the SAE password doesn't comply with WPA-PSK limitation,
+			 * we need to call it "sae_password" instead of "psk".
+			 */
+			if (!nm_supplicant_config_add_option_with_type (self, "sae_password", psk, -1, TYPE_STRING, "<hidden>", error))
+				return FALSE;
+		} else if (psk_len == 64) {
 			guint8 buffer[32];
 
 			/* Hex PSK */
-			if (!_nm_utils_hexstr2bin_buf (psk,
-			                               FALSE,
-			                               FALSE,
-			                               NULL,
-			                               buffer)) {
+			if (!nm_utils_hexstr2bin_buf (psk,
+			                              FALSE,
+			                              FALSE,
+			                              NULL,
+			                              buffer)) {
 				g_set_error (error, NM_SUPPLICANT_ERROR, NM_SUPPLICANT_ERROR_CONFIG,
 				             "Cannot add psk to supplicant config due to invalid hex");
 				return FALSE;
@@ -826,14 +840,6 @@ nm_supplicant_config_add_setting_wireless_security (NMSupplicantConfig *self,
 			                                      sizeof (buffer),
 			                                      "<hidden>",
 			                                      error))
-				return FALSE;
-		} else if (psk_len >= 8 && psk_len <= 63) {
-			/* Use TYPE_STRING here so that it gets pushed to the
-			 * supplicant as a string, and therefore gets quoted,
-			 * and therefore the supplicant will interpret it as a
-			 * passphrase and not a hex key.
-			 */
-			if (!nm_supplicant_config_add_option_with_type (self, "psk", psk, -1, TYPE_STRING, "<hidden>", error))
 				return FALSE;
 		} else {
 			g_set_error (error, NM_SUPPLICANT_ERROR, NM_SUPPLICANT_ERROR_CONFIG,
@@ -861,7 +867,8 @@ nm_supplicant_config_add_setting_wireless_security (NMSupplicantConfig *self,
 	/* Only WPA-specific things when using WPA */
 	if (   !strcmp (key_mgmt, "wpa-none")
 	    || !strcmp (key_mgmt, "wpa-psk")
-	    || !strcmp (key_mgmt, "wpa-eap")) {
+	    || !strcmp (key_mgmt, "wpa-eap")
+	    || !strcmp (key_mgmt, "sae")) {
 		if (!ADD_STRING_LIST_VAL (self, setting, wireless_security, proto, protos, "proto", ' ', TRUE, NULL, error))
 			return FALSE;
 		if (!ADD_STRING_LIST_VAL (self, setting, wireless_security, pairwise, pairwise, "pairwise", ' ', TRUE, NULL, error))
