@@ -11,11 +11,11 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=512286
  src/nm-manager.c | 115 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
  1 file changed, 115 insertions(+)
 
-Index: network-manager-1.15.2/src/nm-manager.c
+Index: network-manager-1.15.91/src/nm-manager.c
 ===================================================================
---- network-manager-1.15.2.orig/src/nm-manager.c
-+++ network-manager-1.15.2/src/nm-manager.c
-@@ -63,6 +63,8 @@
+--- network-manager-1.15.91.orig/src/nm-manager.c
++++ network-manager-1.15.91/src/nm-manager.c
+@@ -61,6 +61,8 @@
  #include "nm-dispatcher.h"
  #include "NetworkManagerUtils.h"
  
@@ -24,7 +24,7 @@ Index: network-manager-1.15.2/src/nm-manager.c
  /*****************************************************************************/
  
  typedef struct {
-@@ -195,6 +197,10 @@ typedef struct {
+@@ -193,6 +195,10 @@ typedef struct {
  	GFileMonitor *fw_monitor;
  	guint fw_changed_id;
  
@@ -35,7 +35,7 @@ Index: network-manager-1.15.2/src/nm-manager.c
  	guint timestamp_update_id;
  
  	guint devices_inited_id;
-@@ -1432,6 +1438,27 @@ find_best_device_state (NMManager *manag
+@@ -1430,6 +1436,27 @@ find_best_device_state (NMManager *manag
  	return best_state;
  }
  
@@ -63,7 +63,7 @@ Index: network-manager-1.15.2/src/nm-manager.c
  static void
  nm_manager_update_metered (NMManager *self)
  {
-@@ -1478,6 +1505,9 @@ nm_manager_update_state (NMManager *self
+@@ -1476,6 +1503,9 @@ nm_manager_update_state (NMManager *self
  	else
  		new_state = find_best_device_state (self);
  
@@ -73,7 +73,7 @@ Index: network-manager-1.15.2/src/nm-manager.c
  	if (   new_state >= NM_STATE_CONNECTED_LOCAL
  	    && priv->connectivity_state == NM_CONNECTIVITY_FULL) {
  		new_state = NM_STATE_CONNECTED_GLOBAL;
-@@ -6479,6 +6509,62 @@ impl_manager_check_connectivity (NMDBusO
+@@ -6482,6 +6512,62 @@ impl_manager_check_connectivity (NMDBusO
  }
  
  static void
@@ -136,7 +136,7 @@ Index: network-manager-1.15.2/src/nm-manager.c
  start_factory (NMDeviceFactory *factory, gpointer user_data)
  {
  	nm_device_factory_start (factory);
-@@ -6646,6 +6732,9 @@ nm_manager_start (NMManager *self, GErro
+@@ -6649,6 +6735,9 @@ nm_manager_start (NMManager *self, GErro
  	nm_clear_g_source (&priv->devices_inited_id);
  	priv->devices_inited_id = g_idle_add_full (G_PRIORITY_LOW + 10, devices_inited_cb, self, NULL);
  
@@ -146,7 +146,7 @@ Index: network-manager-1.15.2/src/nm-manager.c
  	return TRUE;
  }
  
-@@ -7504,6 +7593,22 @@ nm_manager_init (NMManager *self)
+@@ -7508,6 +7597,22 @@ nm_manager_init (NMManager *self)
  		       KERNEL_FIRMWARE_DIR);
  	}
  
@@ -169,7 +169,7 @@ Index: network-manager-1.15.2/src/nm-manager.c
  	/* Update timestamps in active connections */
  	priv->timestamp_update_id = g_timeout_add_seconds (300, (GSourceFunc) periodic_update_active_connection_timestamps, self);
  
-@@ -7779,6 +7884,16 @@ dispose (GObject *object)
+@@ -7783,6 +7888,16 @@ dispose (GObject *object)
  		g_clear_object (&priv->fw_monitor);
  	}
  
