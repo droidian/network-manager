@@ -21,7 +21,6 @@
 
 #include "nm-dhcp-dhclient-utils.h"
 
-#include <string.h>
 #include <ctype.h>
 #include <arpa/inet.h>
 #include <net/if.h>
@@ -495,7 +494,7 @@ nm_dhcp_dhclient_escape_duid (GBytes *duid)
 	return escaped;
 }
 
-static inline gboolean
+static gboolean
 isoctal (const guint8 *p)
 {
 	return (   p[0] >= '0' && p[0] <= '3'

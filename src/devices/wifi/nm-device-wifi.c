@@ -24,10 +24,9 @@
 #include "nm-device-wifi.h"
 
 #include <netinet/in.h>
-#include <string.h>
 #include <unistd.h>
-#include <errno.h>
 
+#include "nm-device-wifi-p2p.h"
 #include "nm-wifi-ap.h"
 #include "nm-common-macros.h"
 #include "devices/nm-device.h"
@@ -79,6 +78,7 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMDeviceWifi,
 
 enum {
 	SCANNING_PROHIBITED,
+	P2P_DEVICE_CREATED,
 
 	LAST_SIGNAL
 };
@@ -124,6 +124,8 @@ typedef struct {
 	guint             wps_timeout_id;
 
 	NMSettingWirelessWakeOnWLan wowlan_restore;
+
+	NMDeviceWifiP2P  *p2p_device;
 } NMDeviceWifiPrivate;
 
 struct _NMDeviceWifi
@@ -186,6 +188,10 @@ static void supplicant_iface_notify_current_bss (NMSupplicantInterface *iface,
                                                  GParamSpec *pspec,
                                                  NMDeviceWifi *self);
 
+static void supplicant_iface_notify_p2p_available (NMSupplicantInterface *iface,
+                                                   GParamSpec *pspec,
+                                                   NMDeviceWifi *self);
+
 static void request_wireless_scan (NMDeviceWifi *self,
                                    gboolean periodic,
                                    gboolean force_if_scanning,
@@ -197,6 +203,8 @@ static void ap_add_remove (NMDeviceWifi *self,
                            gboolean recheck_available_connections);
 
 static void _hw_addr_set_scanning (NMDeviceWifi *self, gboolean do_reset);
+
+static void recheck_p2p_availability (NMDeviceWifi *self);
 
 /*****************************************************************************/
 
@@ -291,6 +299,10 @@ supplicant_interface_acquire (NMDeviceWifi *self)
 	                  "notify::" NM_SUPPLICANT_INTERFACE_CURRENT_BSS,
 	                  G_CALLBACK (supplicant_iface_notify_current_bss),
 	                  self);
+	g_signal_connect (priv->sup_iface,
+	                  "notify::" NM_SUPPLICANT_INTERFACE_P2P_AVAILABLE,
+	                  G_CALLBACK (supplicant_iface_notify_p2p_available),
+	                  self);
 
 	_notify_scanning (self);
 
@@ -345,6 +357,11 @@ supplicant_interface_release (NMDeviceWifi *self)
 		nm_supplicant_interface_disconnect (priv->sup_iface);
 
 		g_clear_object (&priv->sup_iface);
+	}
+
+	if (priv->p2p_device) {
+		/* Signal to P2P device to also release its reference */
+		nm_device_wifi_p2p_set_mgmt_iface (priv->p2p_device, NULL);
 	}
 
 	_notify_scanning (self);
@@ -1185,7 +1202,7 @@ _nm_device_wifi_request_scan (NMDeviceWifi *self,
 	                       NM_DEVICE_AUTH_REQUEST,
 	                       invocation,
 	                       NULL,
-	                       NM_AUTH_PERMISSION_NETWORK_CONTROL,
+	                       NM_AUTH_PERMISSION_WIFI_SCAN,
 	                       TRUE,
 	                       dbus_request_scan_cb,
 	                       options ? g_variant_ref (options) : NULL);
@@ -2028,6 +2045,10 @@ supplicant_iface_state_cb (NMSupplicantInterface *iface,
 	    && new_state <= NM_SUPPLICANT_INTERFACE_STATE_COMPLETED)
 		priv->ssid_found = TRUE;
 
+	if (   old_state < NM_SUPPLICANT_INTERFACE_STATE_READY
+	    && new_state >= NM_SUPPLICANT_INTERFACE_STATE_READY)
+		recheck_p2p_availability (self);
+
 	switch (new_state) {
 	case NM_SUPPLICANT_INTERFACE_STATE_READY:
 		_LOGD (LOGD_WIFI, "supplicant ready");
@@ -2202,6 +2223,67 @@ supplicant_iface_notify_current_bss (NMSupplicantInterface *iface,
 
 		set_current_ap (self, new_ap, TRUE);
 	}
+}
+
+/* We bind the existence of the P2P device to a wifi device that is being
+ * managed by NetworkManager and is capable of P2P operation.
+ * Note that some care must be taken here, because we don't want to re-create
+ * the device every time the supplicant interface is destroyed (e.g. due to
+ * a suspend/resume cycle).
+ * Therefore, this function will be called when a change in the P2P capability
+ * is detected and the supplicant interface has been initialised.
+ */
+static void
+recheck_p2p_availability (NMDeviceWifi *self)
+{
+	NMDeviceWifiPrivate *priv = NM_DEVICE_WIFI_GET_PRIVATE (self);
+	gboolean p2p_available;
+
+	g_object_get (priv->sup_iface,
+	              NM_SUPPLICANT_INTERFACE_P2P_AVAILABLE, &p2p_available,
+	              NULL);
+
+	if (p2p_available && !priv->p2p_device) {
+		gs_free char *iface_name = NULL;
+
+		/* Create a P2P device. "p2p-dev-" is the same prefix as chosen by
+		 * wpa_supplicant internally.
+		 */
+		iface_name = g_strconcat ("p2p-dev-", nm_device_get_iface (NM_DEVICE (self)), NULL);
+
+		priv->p2p_device = nm_device_wifi_p2p_new (iface_name);
+
+		nm_device_wifi_p2p_set_mgmt_iface (priv->p2p_device, priv->sup_iface);
+
+		g_signal_emit (self, signals[P2P_DEVICE_CREATED], 0, priv->p2p_device);
+		g_object_add_weak_pointer (G_OBJECT (priv->p2p_device), (gpointer*) &priv->p2p_device);
+		g_object_unref (priv->p2p_device);
+		return;
+	}
+
+	if (p2p_available && priv->p2p_device) {
+		nm_device_wifi_p2p_set_mgmt_iface (priv->p2p_device, priv->sup_iface);
+		return;
+	}
+
+	if (!p2p_available && priv->p2p_device) {
+		/* Destroy the P2P device. */
+		g_object_remove_weak_pointer (G_OBJECT (priv->p2p_device), (gpointer*) &priv->p2p_device);
+		nm_device_wifi_p2p_remove (g_steal_pointer (&priv->p2p_device));
+		return;
+	}
+}
+
+static void
+supplicant_iface_notify_p2p_available (NMSupplicantInterface *iface,
+                                       GParamSpec *pspec,
+                                       NMDeviceWifi *self)
+{
+	/* Do not update when the interface is still initializing. */
+	if (nm_supplicant_interface_get_state (iface) < NM_SUPPLICANT_INTERFACE_STATE_READY)
+		return;
+
+	recheck_p2p_availability (self);
 }
 
 static gboolean
@@ -2792,52 +2874,29 @@ out:
 }
 
 static NMActStageReturn
-act_stage3_ip4_config_start (NMDevice *device,
-                             NMIP4Config **out_config,
-                             NMDeviceStateReason *out_failure_reason)
+act_stage3_ip_config_start (NMDevice *device,
+                            int addr_family,
+                            gpointer *out_config,
+                            NMDeviceStateReason *out_failure_reason)
 {
+	gboolean indicate_addressing_running;
 	NMConnection *connection;
-	NMSettingIPConfig *s_ip4;
-	const char *method = NM_SETTING_IP4_CONFIG_METHOD_AUTO;
+	const char *method;
 
 	connection = nm_device_get_applied_connection (device);
 
-	g_return_val_if_fail (connection, NM_ACT_STAGE_RETURN_FAILURE);
+	method = nm_utils_get_ip_config_method (connection, addr_family);
+	if (addr_family == AF_INET)
+		indicate_addressing_running = NM_IN_STRSET (method, NM_SETTING_IP4_CONFIG_METHOD_AUTO);
+	else {
+		indicate_addressing_running = NM_IN_STRSET (method, NM_SETTING_IP6_CONFIG_METHOD_AUTO,
+		                                                    NM_SETTING_IP6_CONFIG_METHOD_DHCP);
+	}
 
-	s_ip4 = nm_connection_get_setting_ip4_config (connection);
-	if (s_ip4)
-		method = nm_setting_ip_config_get_method (s_ip4);
+	if (indicate_addressing_running)
+		nm_platform_wifi_indicate_addressing_running (nm_device_get_platform (device), nm_device_get_ip_ifindex (device), TRUE);
 
-	/* Indicate that a critical protocol is about to start */
-	if (strcmp (method, NM_SETTING_IP4_CONFIG_METHOD_AUTO) == 0)
-		nm_platform_wifi_indicate_addressing_running (nm_device_get_platform (device), nm_device_get_ifindex (device), TRUE);
-
-	return NM_DEVICE_CLASS (nm_device_wifi_parent_class)->act_stage3_ip4_config_start (device, out_config, out_failure_reason);
-}
-
-static NMActStageReturn
-act_stage3_ip6_config_start (NMDevice *device,
-                             NMIP6Config **out_config,
-                             NMDeviceStateReason *out_failure_reason)
-{
-	NMConnection *connection;
-	NMSettingIPConfig *s_ip6;
-	const char *method = NM_SETTING_IP6_CONFIG_METHOD_AUTO;
-
-	connection = nm_device_get_applied_connection (device);
-
-	g_return_val_if_fail (connection, NM_ACT_STAGE_RETURN_FAILURE);
-
-	s_ip6 = nm_connection_get_setting_ip6_config (connection);
-	if (s_ip6)
-		method = nm_setting_ip_config_get_method (s_ip6);
-
-	/* Indicate that a critical protocol is about to start */
-	if (strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_AUTO) == 0 ||
-	    strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_DHCP) == 0)
-		nm_platform_wifi_indicate_addressing_running (nm_device_get_platform (device), nm_device_get_ifindex (device), TRUE);
-
-	return NM_DEVICE_CLASS (nm_device_wifi_parent_class)->act_stage3_ip6_config_start (device, out_config, out_failure_reason);
+	return NM_DEVICE_CLASS (nm_device_wifi_parent_class)->act_stage3_ip_config_start (device, addr_family, out_config, out_failure_reason);
 }
 
 static guint32
@@ -2872,19 +2931,27 @@ is_static_wep (NMConnection *connection)
 }
 
 static NMActStageReturn
-handle_ip_config_timeout (NMDeviceWifi *self,
-                          NMConnection *connection,
-                          gboolean may_fail,
-                          gboolean *chain_up,
-                          NMDeviceStateReason *out_failure_reason)
+act_stage4_ip_config_timeout (NMDevice *device,
+                              int addr_family,
+                              NMDeviceStateReason *out_failure_reason)
 {
-	NMActStageReturn ret = NM_ACT_STAGE_RETURN_FAILURE;
+	NMDeviceWifi *self = NM_DEVICE_WIFI (device);
+	NMDeviceWifiPrivate *priv = NM_DEVICE_WIFI_GET_PRIVATE (self);
+	NMConnection *connection;
+	NMSettingIPConfig *s_ip;
+	gboolean may_fail;
 
-	g_return_val_if_fail (connection != NULL, NM_ACT_STAGE_RETURN_FAILURE);
+	connection = nm_device_get_applied_connection (device);
+	s_ip = nm_connection_get_setting_ip4_config (connection);
+	may_fail = nm_setting_ip_config_get_may_fail (s_ip);
 
-	if (NM_DEVICE_WIFI_GET_PRIVATE (self)->mode == NM_802_11_MODE_AP) {
-		*chain_up = TRUE;
-		return NM_ACT_STAGE_RETURN_FAILURE;
+	if (priv->mode == NM_802_11_MODE_AP)
+		goto call_parent;
+
+	if (   may_fail
+	    && !is_static_wep (connection)) {
+		/* Not static WEP or failure allowed; let superclass handle it */
+		goto call_parent;
 	}
 
 	/* If IP configuration times out and it's a static WEP connection, that
@@ -2893,71 +2960,23 @@ handle_ip_config_timeout (NMDeviceWifi *self,
 	 * to wait for DHCP to fail to figure it out.  For all other Wi-Fi security
 	 * types (open, WPA, 802.1x, etc) if the secrets/certs were wrong the
 	 * connection would have failed before IP configuration.
-	 */
-	if (!may_fail && is_static_wep (connection)) {
-		/* Activation failed, we must have bad encryption key */
-		_LOGW (LOGD_DEVICE | LOGD_WIFI,
-		       "Activation: (wifi) could not get IP configuration for connection '%s'.",
-		       nm_connection_get_id (connection));
+	 *
+	* Activation failed, we must have bad encryption key */
+	_LOGW (LOGD_DEVICE | LOGD_WIFI,
+	       "Activation: (wifi) could not get IP configuration for connection '%s'.",
+	       nm_connection_get_id (connection));
 
-		if (handle_auth_or_fail (self, NULL, TRUE)) {
-			_LOGI (LOGD_DEVICE | LOGD_WIFI,
-			       "Activation: (wifi) asking for new secrets");
-			ret = NM_ACT_STAGE_RETURN_POSTPONE;
-		} else {
-			NM_SET_OUT (out_failure_reason, NM_DEVICE_STATE_REASON_NO_SECRETS);
-			ret = NM_ACT_STAGE_RETURN_FAILURE;
-		}
-	} else {
-		/* Not static WEP or failure allowed; let superclass handle it */
-		*chain_up = TRUE;
+	if (!handle_auth_or_fail (self, NULL, TRUE)) {
+		NM_SET_OUT (out_failure_reason, NM_DEVICE_STATE_REASON_NO_SECRETS);
+		return NM_ACT_STAGE_RETURN_FAILURE;
 	}
 
-	return ret;
-}
+	_LOGI (LOGD_DEVICE | LOGD_WIFI,
+	       "Activation: (wifi) asking for new secrets");
+	return NM_ACT_STAGE_RETURN_POSTPONE;
 
-static NMActStageReturn
-act_stage4_ip4_config_timeout (NMDevice *device, NMDeviceStateReason *out_failure_reason)
-{
-	NMConnection *connection;
-	NMSettingIPConfig *s_ip4;
-	gboolean may_fail = FALSE, chain_up = FALSE;
-	NMActStageReturn ret;
-
-	connection = nm_device_get_applied_connection (device);
-
-	g_return_val_if_fail (connection, NM_ACT_STAGE_RETURN_FAILURE);
-
-	s_ip4 = nm_connection_get_setting_ip4_config (connection);
-	may_fail = nm_setting_ip_config_get_may_fail (s_ip4);
-
-	ret = handle_ip_config_timeout (NM_DEVICE_WIFI (device), connection, may_fail, &chain_up, out_failure_reason);
-	if (chain_up)
-		ret = NM_DEVICE_CLASS (nm_device_wifi_parent_class)->act_stage4_ip4_config_timeout (device, out_failure_reason);
-
-	return ret;
-}
-
-static NMActStageReturn
-act_stage4_ip6_config_timeout (NMDevice *device, NMDeviceStateReason *out_failure_reason)
-{
-	NMConnection *connection;
-	NMSettingIPConfig *s_ip6;
-	gboolean may_fail = FALSE, chain_up = FALSE;
-	NMActStageReturn ret;
-
-	connection = nm_device_get_applied_connection (device);
-
-	g_return_val_if_fail (connection, NM_ACT_STAGE_RETURN_FAILURE);
-
-	s_ip6 = nm_connection_get_setting_ip6_config (connection);
-	may_fail = nm_setting_ip_config_get_may_fail (s_ip6);
-
-	ret = handle_ip_config_timeout (NM_DEVICE_WIFI (device), connection, may_fail, &chain_up, out_failure_reason);
-	if (chain_up)
-		ret = NM_DEVICE_CLASS (nm_device_wifi_parent_class)->act_stage4_ip6_config_timeout (device, out_failure_reason);
-
-	return ret;
+call_parent:
+	return NM_DEVICE_CLASS (nm_device_wifi_parent_class)->act_stage4_ip_config_timeout (device, addr_family, out_failure_reason);
 }
 
 static void
@@ -3314,6 +3333,12 @@ dispose (GObject *object)
 
 	remove_all_aps (self);
 
+	if (priv->p2p_device) {
+		/* Destroy the P2P device. */
+		g_object_remove_weak_pointer (G_OBJECT (priv->p2p_device), (gpointer*) &priv->p2p_device);
+		nm_device_wifi_p2p_remove (g_steal_pointer (&priv->p2p_device));
+	}
+
 	G_OBJECT_CLASS (nm_device_wifi_parent_class)->dispose (object);
 }
 
@@ -3359,10 +3384,8 @@ nm_device_wifi_class_init (NMDeviceWifiClass *klass)
 	device_class->act_stage1_prepare = act_stage1_prepare;
 	device_class->act_stage2_config = act_stage2_config;
 	device_class->get_configured_mtu = get_configured_mtu;
-	device_class->act_stage3_ip4_config_start = act_stage3_ip4_config_start;
-	device_class->act_stage3_ip6_config_start = act_stage3_ip6_config_start;
-	device_class->act_stage4_ip4_config_timeout = act_stage4_ip4_config_timeout;
-	device_class->act_stage4_ip6_config_timeout = act_stage4_ip6_config_timeout;
+	device_class->act_stage3_ip_config_start = act_stage3_ip_config_start;
+	device_class->act_stage4_ip_config_timeout = act_stage4_ip_config_timeout;
 	device_class->deactivate = deactivate;
 	device_class->deactivate_reset_hw_addr = deactivate_reset_hw_addr;
 	device_class->unmanaged_on_quit = unmanaged_on_quit;
@@ -3426,4 +3449,12 @@ nm_device_wifi_class_init (NMDeviceWifiClass *klass)
 	                  G_STRUCT_OFFSET (NMDeviceWifiClass, scanning_prohibited),
 	                  NULL, NULL, NULL,
 	                  G_TYPE_BOOLEAN, 1, G_TYPE_BOOLEAN);
+
+	signals[P2P_DEVICE_CREATED] =
+	    g_signal_new (NM_DEVICE_WIFI_P2P_DEVICE_CREATED,
+	                  G_OBJECT_CLASS_TYPE (object_class),
+	                  G_SIGNAL_RUN_LAST,
+	                  0, NULL, NULL,
+	                  g_cclosure_marshal_VOID__OBJECT,
+	                  G_TYPE_NONE, 1, NM_TYPE_DEVICE);
 }

@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-keyfile
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/22/2019
+.\"      Date: 03/11/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.15.2
+.\"    Source: NetworkManager 1.15.91
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-KEYFILE" "5" "" "NetworkManager 1\&.15\&.2" "Configuration"
+.TH "NM\-SETTINGS\-KEYFILE" "5" "" "NetworkManager 1\&.15\&.91" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -513,7 +513,38 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&7.\ \&802\-3\-ethernet setting (section)
+.B Table\ \&7.\ \&wifi\-p2p setting (section)
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Keyfile Variable
+T}:T{
+Format
+T}:T{
+Description
+T}
+.T&
+l l l l.
+T{
+peer
+T}:T{
+peer
+T}:T{
+usual hex\-digits\-and\-colons notation
+T}:T{
+MAC address in traditional hex\-digits\-and\-colons notation (e\&.g\&. 00:22:68:12:79:A2), or semicolon separated list of 6 bytes (obsolete) (e\&.g\&. 0;34;104;18;121;162)\&.
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&8.\ \&802\-3\-ethernet setting (section)
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -566,7 +597,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&8.\ \&802\-11\-wireless setting (section)
+.B Table\ \&9.\ \&802\-11\-wireless setting (section)
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -631,7 +662,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&9.\ \&wpan setting (section)
+.B Table\ \&10.\ \&wpan setting (section)
 .TS
 allbox tab(:);
 lB lB lB lB.

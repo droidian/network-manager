@@ -22,8 +22,6 @@
 
 #include "nm-modem-ofono.h"
 
-#include <string.h>
-
 #include "nm-core-internal.h"
 #include "devices/nm-device-private.h"
 #include "nm-modem.h"
@@ -214,7 +212,6 @@ disconnect (NMModem *modem,
 	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
 	DisconnectContext *ctx;
 	NMModemState state = nm_modem_get_state (NM_MODEM (self));
-	gs_free_error GError *error = NULL;
 
 	_LOGD ("warn: %s modem_state: %s",
 	       warn ? "TRUE" : "FALSE",
@@ -654,7 +651,7 @@ handle_connman_iface (NMModemOfono *self, gboolean found)
 		                          OFONO_DBUS_INTERFACE_CONNECTION_MANAGER,
 		                          priv->connman_proxy_cancellable,
 		                          _connman_proxy_new_cb,
-		                          NULL);
+		                          self);
 	}
 }
 

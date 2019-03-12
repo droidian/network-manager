@@ -28,8 +28,8 @@
 #include "nm-setting-adsl.h"
 #include "nm-setting-bluetooth.h"
 #include "nm-setting-bond.h"
-#include "nm-setting-bridge.h"
 #include "nm-setting-bridge-port.h"
+#include "nm-setting-bridge.h"
 #include "nm-setting-cdma.h"
 #include "nm-setting-connection.h"
 #include "nm-setting-dcb.h"
@@ -38,10 +38,10 @@
 #include "nm-setting-generic.h"
 #include "nm-setting-gsm.h"
 #include "nm-setting-infiniband.h"
-#include "nm-setting-ip4-config.h"
-#include "nm-setting-ip6-config.h"
 #include "nm-setting-ip-config.h"
 #include "nm-setting-ip-tunnel.h"
+#include "nm-setting-ip4-config.h"
+#include "nm-setting-ip6-config.h"
 #include "nm-setting-macsec.h"
 #include "nm-setting-macvlan.h"
 #include "nm-setting-match.h"
@@ -55,17 +55,19 @@
 #include "nm-setting-proxy.h"
 #include "nm-setting-serial.h"
 #include "nm-setting-tc-config.h"
-#include "nm-setting-team.h"
 #include "nm-setting-team-port.h"
+#include "nm-setting-team.h"
 #include "nm-setting-tun.h"
 #include "nm-setting-user.h"
 #include "nm-setting-vlan.h"
 #include "nm-setting-vpn.h"
 #include "nm-setting-vxlan.h"
+#include "nm-setting-wifi-p2p.h"
 #include "nm-setting-wimax.h"
 #include "nm-setting-wired.h"
-#include "nm-setting-wireless.h"
+#include "nm-setting-wireguard.h"
 #include "nm-setting-wireless-security.h"
+#include "nm-setting-wireless.h"
 #include "nm-setting-wpan.h"
 
 /*****************************************************************************/
@@ -383,6 +385,12 @@ const NMMetaSettingInfo nm_meta_setting_infos[] = {
 		.setting_name =             NM_SETTING_VXLAN_SETTING_NAME,
 		.get_setting_gtype =        nm_setting_vxlan_get_type,
 	},
+	[NM_META_SETTING_TYPE_WIFI_P2P] = {
+		.meta_type =                NM_META_SETTING_TYPE_WIFI_P2P,
+		.setting_priority =         NM_SETTING_PRIORITY_HW_BASE,
+		.setting_name =             NM_SETTING_WIFI_P2P_SETTING_NAME,
+		.get_setting_gtype =        nm_setting_wifi_p2p_get_type,
+	},
 	[NM_META_SETTING_TYPE_WIMAX] = {
 		.meta_type =                NM_META_SETTING_TYPE_WIMAX,
 		.setting_priority =         NM_SETTING_PRIORITY_HW_BASE,
@@ -394,6 +402,12 @@ const NMMetaSettingInfo nm_meta_setting_infos[] = {
 		.setting_priority =         NM_SETTING_PRIORITY_HW_BASE,
 		.setting_name =             NM_SETTING_WIRED_SETTING_NAME,
 		.get_setting_gtype =        nm_setting_wired_get_type,
+	},
+	[NM_META_SETTING_TYPE_WIREGUARD] = {
+		.meta_type =                NM_META_SETTING_TYPE_WIREGUARD,
+		.setting_priority =         NM_SETTING_PRIORITY_HW_BASE,
+		.setting_name =             NM_SETTING_WIREGUARD_SETTING_NAME,
+		.get_setting_gtype =        nm_setting_wireguard_get_type,
 	},
 	[NM_META_SETTING_TYPE_WIRELESS] = {
 		.meta_type =                NM_META_SETTING_TYPE_WIRELESS,

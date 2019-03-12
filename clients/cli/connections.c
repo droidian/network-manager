@@ -22,10 +22,8 @@
 #include "connections.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <errno.h>
 #include <signal.h>
 #include <netinet/ether.h>
 #include <readline/readline.h>
@@ -796,6 +794,7 @@ const NmcMetaGenericInfo *const metagen_con_active_vpn[_NMC_GENERIC_INFO_TYPE_CO
                                          NM_SETTING_IP4_CONFIG_SETTING_NAME","\
                                          NM_SETTING_IP6_CONFIG_SETTING_NAME","\
                                          NM_SETTING_SERIAL_SETTING_NAME","\
+                                         NM_SETTING_WIFI_P2P_SETTING_NAME","\
                                          NM_SETTING_PPP_SETTING_NAME","\
                                          NM_SETTING_PPPOE_SETTING_NAME","\
                                          NM_SETTING_ADSL_SETTING_NAME","\
@@ -823,6 +822,7 @@ const NmcMetaGenericInfo *const metagen_con_active_vpn[_NMC_GENERIC_INFO_TYPE_CO
                                          NM_SETTING_VXLAN_SETTING_NAME"," \
                                          NM_SETTING_WPAN_SETTING_NAME","\
                                          NM_SETTING_6LOWPAN_SETTING_NAME","\
+                                         NM_SETTING_WIREGUARD_SETTING_NAME","\
                                          NM_SETTING_PROXY_SETTING_NAME"," \
                                          NM_SETTING_TC_CONFIG_SETTING_NAME"," \
                                          NM_SETTING_SRIOV_SETTING_NAME"," \
@@ -2473,7 +2473,7 @@ check_activated (ActivateConnectionInfo *info)
 		if (nmc->secret_agent) {
 			NMRemoteConnection *connection = nm_active_connection_get_connection (info->active);
 
-			nm_secret_agent_simple_enable (NM_SECRET_AGENT_SIMPLE (nmc->secret_agent),
+			nm_secret_agent_simple_enable (nmc->secret_agent,
 			                               nm_connection_get_path (NM_CONNECTION (connection)));
 		}
 		break;
@@ -2775,7 +2775,6 @@ nmc_activate_connection (NmCli *nmc,
 		g_hash_table_destroy (nmc->pwds_hash);
 	nmc->pwds_hash = pwds_hash;
 
-	/* Create secret agent */
 	nmc->secret_agent = nm_secret_agent_simple_new ("nmcli-connect");
 	if (nmc->secret_agent) {
 		g_signal_connect (nmc->secret_agent,
@@ -3306,7 +3305,7 @@ get_valid_properties_string (const NMMetaSettingValidPartItem *const*array,
 	str = g_string_sized_new (1024);
 
 	for (i = 0; i < 2; i++, iter = array_slv) {
-		for(; !full_match && iter && *iter; iter++) {
+		for (; !full_match && iter && *iter; iter++) {
 			const NMMetaSettingInfoEditor *setting_info = (*iter)->setting_info;
 
 			if (   !(g_str_has_prefix (setting_info->general->setting_name, prefix))
@@ -6727,7 +6726,7 @@ progress_activation_editor_cb (gpointer user_data)
 		NMRemoteConnection *connection;
 
 		connection = nm_active_connection_get_connection (ac);
-		nm_secret_agent_simple_enable (NM_SECRET_AGENT_SIMPLE (info->nmc->secret_agent),
+		nm_secret_agent_simple_enable (info->nmc->secret_agent,
 		                               nm_object_get_path (NM_OBJECT (connection)));
 	}
 
@@ -8889,8 +8888,11 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 	}
 
 	while (argc > 0) {
-		if (argc == 1 && nmc->complete)
-			nmc_complete_strings (*argv, "type", "file", NULL);
+		if (argc == 1 && nmc->complete) {
+			nmc_complete_strings (*argv,
+			                      type ? NULL : "type",
+			                      filename ? NULL : "file");
+		}
 
 		if (strcmp (*argv, "type") == 0) {
 			argc--;
@@ -8900,8 +8902,13 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 				NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
 			}
 
-			if (argc == 1 && nmc->complete)
-				complete_option ((const NMMetaAbstractInfo *) nm_meta_property_info_vpn_service_type, *argv, NULL);
+			if (   argc == 1
+			    && nmc->complete) {
+				nmc_complete_strings (*argv, "wireguard");
+				complete_option ((const NMMetaAbstractInfo *) nm_meta_property_info_vpn_service_type,
+				                 *argv,
+				                 NULL);
+			}
 
 			if (!type)
 				type = *argv;
@@ -8941,21 +8948,26 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 		NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
 	}
 
-	service_type = nm_vpn_plugin_info_list_find_service_type (nm_vpn_get_plugin_infos (), type);
-	if (!service_type) {
-		g_string_printf (nmc->return_text, _("Error: failed to find VPN plugin for %s."), type);
-		NMC_RETURN (nmc, NMC_RESULT_ERROR_UNKNOWN);
+	if (nm_streq (type, "wireguard"))
+		connection = nm_vpn_wireguard_import (filename, &error);
+	else {
+		service_type = nm_vpn_plugin_info_list_find_service_type (nm_vpn_get_plugin_infos (), type);
+		if (!service_type) {
+			g_string_printf (nmc->return_text, _("Error: failed to find VPN plugin for %s."), type);
+			NMC_RETURN (nmc, NMC_RESULT_ERROR_UNKNOWN);
+		}
+
+		/* Import VPN configuration */
+		plugin = nm_vpn_get_editor_plugin (service_type, &error);
+		if (!plugin) {
+			g_string_printf (nmc->return_text, _("Error: failed to load VPN plugin: %s."),
+			                 error->message);
+			NMC_RETURN (nmc, NMC_RESULT_ERROR_UNKNOWN);
+		}
+
+		connection = nm_vpn_editor_plugin_import (plugin, filename, &error);
 	}
 
-	/* Import VPN configuration */
-	plugin = nm_vpn_get_editor_plugin (service_type, &error);
-	if (!plugin) {
-		g_string_printf (nmc->return_text, _("Error: failed to load VPN plugin: %s."),
-		                 error->message);
-		NMC_RETURN (nmc, NMC_RESULT_ERROR_UNKNOWN);
-	}
-
-	connection = nm_vpn_editor_plugin_import (plugin, filename, &error);
 	if (!connection) {
 		g_string_printf (nmc->return_text, _("Error: failed to import '%s': %s."),
 		                 filename, error->message);

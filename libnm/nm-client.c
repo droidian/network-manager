@@ -21,11 +21,11 @@
 
 #include "nm-default.h"
 
-#include <string.h>
+#include "nm-client.h"
+
 #include <libudev.h>
 
 #include "nm-utils.h"
-#include "nm-client.h"
 #include "nm-manager.h"
 #include "nm-dns-manager.h"
 #include "nm-remote-settings.h"
@@ -41,6 +41,7 @@
 
 #include "introspection/org.freedesktop.NetworkManager.h"
 #include "introspection/org.freedesktop.NetworkManager.Device.Wireless.h"
+#include "introspection/org.freedesktop.NetworkManager.Device.WifiP2P.h"
 #include "introspection/org.freedesktop.NetworkManager.Device.h"
 #include "introspection/org.freedesktop.NetworkManager.DnsManager.h"
 #include "introspection/org.freedesktop.NetworkManager.Settings.h"
@@ -65,24 +66,26 @@
 #include "nm-device-macvlan.h"
 #include "nm-device-modem.h"
 #include "nm-device-olpc-mesh.h"
+#include "nm-device-ovs-bridge.h"
 #include "nm-device-ovs-interface.h"
 #include "nm-device-ovs-port.h"
-#include "nm-device-ovs-bridge.h"
 #include "nm-device-ppp.h"
 #include "nm-device-team.h"
 #include "nm-device-tun.h"
 #include "nm-device-vlan.h"
 #include "nm-device-vxlan.h"
+#include "nm-device-wifi-p2p.h"
 #include "nm-device-wifi.h"
 #include "nm-device-wimax.h"
 #include "nm-device-wireguard.h"
 #include "nm-device-wpan.h"
+#include "nm-dhcp-config.h"
 #include "nm-dhcp4-config.h"
 #include "nm-dhcp6-config.h"
-#include "nm-dhcp-config.h"
 #include "nm-ip4-config.h"
 #include "nm-ip6-config.h"
 #include "nm-manager.h"
+#include "nm-wifi-p2p-peer.h"
 #include "nm-remote-connection.h"
 #include "nm-remote-settings.h"
 #include "nm-vpn-connection.h"
@@ -1165,7 +1168,7 @@ add_activate_cb (GObject *object,
 {
 	gs_unref_object GSimpleAsyncResult *simple = user_data;
 	gs_unref_variant GVariant *result_data = NULL;
-	NMActiveConnection *ac;
+	gs_unref_object NMActiveConnection *ac = NULL;
 	GError *error = NULL;
 
 	ac = nm_manager_add_and_activate_connection_finish (NM_MANAGER (object), result, &result_data, &error);
@@ -1363,7 +1366,7 @@ nm_client_add_and_activate_connection2 (NMClient *client,
  * @client: an #NMClient
  * @result: the result passed to the #GAsyncReadyCallback
  * @error: location for a #GError, or %NULL
- * @out_result: (allow-none): (transfer full): the output result
+ * @out_result: (allow-none) (transfer full): the output result
  *   of type "a{sv}" returned by D-Bus' AddAndActivate2 call. Currently no
  *   output is implemented yet.
  *
@@ -2611,6 +2614,8 @@ proxy_type (GDBusObjectManagerClient *manager,
 		return NMDBUS_TYPE_MANAGER_PROXY;
 	else if (strcmp (interface_name, NM_DBUS_INTERFACE_DEVICE_WIRELESS) == 0)
 		return NMDBUS_TYPE_DEVICE_WIFI_PROXY;
+	else if (strcmp (interface_name, NM_DBUS_INTERFACE_DEVICE_WIFI_P2P) == 0)
+		return NMDBUS_TYPE_DEVICE_WIFI_P2P_PROXY;
 	else if (strcmp (interface_name, NM_DBUS_INTERFACE_DEVICE) == 0)
 		return NMDBUS_TYPE_DEVICE_PROXY;
 	else if (strcmp (interface_name, NM_DBUS_INTERFACE_SETTINGS_CONNECTION) == 0)
@@ -2689,6 +2694,8 @@ obj_nm_for_gdbus_object (NMClient *self, GDBusObject *object, GDBusObjectManager
 			type = NM_TYPE_DEVICE_OVS_PORT;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_DEVICE_OVS_BRIDGE) == 0)
 			type = NM_TYPE_DEVICE_OVS_BRIDGE;
+		else if (strcmp (ifname, NM_DBUS_INTERFACE_DEVICE_WIFI_P2P) == 0)
+			type = NM_TYPE_DEVICE_WIFI_P2P;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_DEVICE_PPP) == 0)
 			type = NM_TYPE_DEVICE_PPP;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_DEVICE_TEAM) == 0)
@@ -2715,6 +2722,8 @@ obj_nm_for_gdbus_object (NMClient *self, GDBusObject *object, GDBusObjectManager
 			type = NM_TYPE_IP4_CONFIG;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_IP6_CONFIG) == 0)
 			type = NM_TYPE_IP6_CONFIG;
+		else if (strcmp (ifname, NM_DBUS_INTERFACE_WIFI_P2P_PEER) == 0)
+			type = NM_TYPE_WIFI_P2P_PEER;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_SETTINGS_CONNECTION) == 0)
 			type = NM_TYPE_REMOTE_CONNECTION;
 		else if (strcmp (ifname, NM_DBUS_INTERFACE_SETTINGS) == 0)

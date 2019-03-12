@@ -23,10 +23,8 @@
 
 #include "nm-core-utils.h"
 
-#include <errno.h>
 #include <fcntl.h>
 #include <fnmatch.h>
-#include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <resolv.h>
@@ -246,16 +244,20 @@ nm_ethernet_address_is_valid (gconstpointer addr, gssize len)
 gconstpointer
 nm_utils_ipx_address_clear_host_address (int family, gpointer dst, gconstpointer src, guint8 plen)
 {
-	g_return_val_if_fail (src, NULL);
 	g_return_val_if_fail (dst, NULL);
 
 	switch (family) {
 	case AF_INET:
 		g_return_val_if_fail (plen <= 32, NULL);
+
+		if (!src) {
+			/* allow "self-assignment", by specifying %NULL as source. */
+			src = dst;
+		}
+
 		*((guint32 *) dst) = nm_utils_ip4_address_clear_host_address (*((guint32 *) src), plen);
 		break;
 	case AF_INET6:
-		g_return_val_if_fail (plen <= 128, NULL);
 		nm_utils_ip6_address_clear_host_address (dst, src, plen);
 		break;
 	default:
@@ -441,6 +443,7 @@ nm_utils_modprobe (GError **error, gboolean suppress_error_logging, const char *
 	/* construct the argument list */
 	argv = g_ptr_array_sized_new (4);
 	g_ptr_array_add (argv, "/sbin/modprobe");
+	g_ptr_array_add (argv, "--use-blacklist");
 	g_ptr_array_add (argv, (char *) arg1);
 
 	va_start (ap, arg1);
@@ -575,7 +578,7 @@ _kc_cb_timeout_grace_period (void *user_data)
 		/* ESRCH means, process does not exist or is already a zombie. */
 		if (errsv != ESRCH) {
 			nm_log_err (LOGD_CORE | data->log_domain, "%s: kill(SIGKILL) returned unexpected return value %d: (%s, %d)",
-			            data->log_name, ret, strerror (errsv), errsv);
+			            data->log_name, ret, nm_strerror_native (errsv), errsv);
 		}
 	} else {
 		nm_log_dbg (data->log_domain, "%s: process not terminated after %ld usec. Sending SIGKILL signal",
@@ -661,7 +664,7 @@ nm_utils_kill_child_async (pid_t pid, int sig, NMLogDomain log_domain,
 		/* ECHILD means, the process is not a child/does not exist or it has SIGCHILD blocked. */
 		if (errsv != ECHILD) {
 			nm_log_err (LOGD_CORE | log_domain, LOG_NAME_FMT ": unexpected error while waitpid: %s (%d)",
-			            LOG_NAME_ARGS, strerror (errsv), errsv);
+			            LOG_NAME_ARGS, nm_strerror_native (errsv), errsv);
 			_kc_invoke_callback (pid, log_domain, log_name, callback, user_data, FALSE, -1);
 			return;
 		}
@@ -673,7 +676,7 @@ nm_utils_kill_child_async (pid_t pid, int sig, NMLogDomain log_domain,
 		/* ESRCH means, process does not exist or is already a zombie. */
 		if (errsv != ESRCH) {
 			nm_log_err (LOGD_CORE | log_domain, LOG_NAME_FMT ": unexpected error sending %s: %s (%d)",
-			            LOG_NAME_ARGS, _kc_signal_to_string (sig), strerror (errsv), errsv);
+			            LOG_NAME_ARGS, _kc_signal_to_string (sig), nm_strerror_native (errsv), errsv);
 			_kc_invoke_callback (pid, log_domain, log_name, callback, user_data, FALSE, -1);
 			return;
 		}
@@ -687,7 +690,7 @@ nm_utils_kill_child_async (pid_t pid, int sig, NMLogDomain log_domain,
 		} else {
 			errsv = errno;
 			nm_log_err (LOGD_CORE | log_domain, LOG_NAME_FMT ": failed due to unexpected return value %ld by waitpid (%s, %d) after sending %s",
-			            LOG_NAME_ARGS, (long) ret, strerror (errsv), errsv, _kc_signal_to_string (sig));
+			            LOG_NAME_ARGS, (long) ret, nm_strerror_native (errsv), errsv, _kc_signal_to_string (sig));
 			_kc_invoke_callback (pid, log_domain, log_name, callback, user_data, FALSE, -1);
 		}
 		return;
@@ -709,7 +712,7 @@ nm_utils_kill_child_async (pid_t pid, int sig, NMLogDomain log_domain,
 	g_child_watch_add (pid, _kc_cb_watch_child, data);
 }
 
-static inline gulong
+static gulong
 _sleep_duration_convert_ms_to_us (guint32 sleep_duration_msec)
 {
 	if (sleep_duration_msec > 0) {
@@ -769,7 +772,7 @@ nm_utils_kill_child_sync (pid_t pid, int sig, NMLogDomain log_domain, const char
 		/* ECHILD means, the process is not a child/does not exist or it has SIGCHILD blocked. */
 		if (errsv != ECHILD) {
 			nm_log_err (LOGD_CORE | log_domain, LOG_NAME_FMT ": unexpected error while waitpid: %s (%d)",
-			            LOG_NAME_ARGS, strerror (errsv), errsv);
+			            LOG_NAME_ARGS, nm_strerror_native (errsv), errsv);
 			goto out;
 		}
 	}
@@ -780,7 +783,7 @@ nm_utils_kill_child_sync (pid_t pid, int sig, NMLogDomain log_domain, const char
 		/* ESRCH means, process does not exist or is already a zombie. */
 		if (errsv != ESRCH) {
 			nm_log_err (LOGD_CORE | log_domain, LOG_NAME_FMT ": failed to send %s: %s (%d)",
-			            LOG_NAME_ARGS, _kc_signal_to_string (sig), strerror (errsv), errsv);
+			            LOG_NAME_ARGS, _kc_signal_to_string (sig), nm_strerror_native (errsv), errsv);
 		} else {
 			/* let's try again with waitpid, probably there was a race... */
 			ret = waitpid (pid, &status, 0);
@@ -791,7 +794,7 @@ nm_utils_kill_child_sync (pid_t pid, int sig, NMLogDomain log_domain, const char
 			} else {
 				errsv = errno;
 				nm_log_err (LOGD_CORE | log_domain, LOG_NAME_FMT ": failed due to unexpected return value %ld by waitpid (%s, %d) after sending %s",
-				            LOG_NAME_ARGS, (long) ret, strerror (errsv), errsv, _kc_signal_to_string (sig));
+				            LOG_NAME_ARGS, (long) ret, nm_strerror_native (errsv), errsv, _kc_signal_to_string (sig));
 			}
 		}
 		goto out;
@@ -822,7 +825,7 @@ nm_utils_kill_child_sync (pid_t pid, int sig, NMLogDomain log_domain, const char
 				/* ECHILD means, the process is not a child/does not exist or it has SIGCHILD blocked. */
 				if (errsv != ECHILD) {
 					nm_log_err (LOGD_CORE | log_domain, LOG_NAME_FMT ": after sending %s, waitpid failed with %s (%d)%s",
-					            LOG_NAME_ARGS, _kc_signal_to_string (sig), strerror (errsv), errsv,
+					            LOG_NAME_ARGS, _kc_signal_to_string (sig), nm_strerror_native (errsv), errsv,
 					           was_waiting ? _kc_waited_to_string (buf_wait, wait_start_us) : "");
 					goto out;
 				}
@@ -861,7 +864,7 @@ nm_utils_kill_child_sync (pid_t pid, int sig, NMLogDomain log_domain, const char
 				/* ESRCH means, process does not exist or is already a zombie. */
 				if (errsv != ESRCH) {
 					nm_log_err (LOGD_CORE | log_domain, LOG_NAME_FMT ": failed to send SIGKILL (after sending %s), %s (%d)",
-								LOG_NAME_ARGS, _kc_signal_to_string (sig), strerror (errsv), errsv);
+								LOG_NAME_ARGS, _kc_signal_to_string (sig), nm_strerror_native (errsv), errsv);
 					goto out;
 				}
 			}
@@ -879,7 +882,7 @@ nm_utils_kill_child_sync (pid_t pid, int sig, NMLogDomain log_domain, const char
 
 		if (errsv != EINTR) {
 			nm_log_err (LOGD_CORE | log_domain, LOG_NAME_FMT ": after sending %s%s, waitpid failed with %s (%d)%s",
-			            LOG_NAME_ARGS, _kc_signal_to_string (sig), send_kill ? " and SIGKILL" : "", strerror (errsv), errsv,
+			            LOG_NAME_ARGS, _kc_signal_to_string (sig), send_kill ? " and SIGKILL" : "", nm_strerror_native (errsv), errsv,
 			            _kc_waited_to_string (buf_wait, wait_start_us));
 			goto out;
 		}
@@ -967,7 +970,7 @@ nm_utils_kill_process_sync (pid_t pid, guint64 start_time, int sig, NMLogDomain 
 			            LOG_NAME_ARGS, _kc_signal_to_string (sig));
 		} else {
 			nm_log_warn (LOGD_CORE | log_domain, LOG_NAME_PROCESS_FMT ": failed to send %s: %s (%d)",
-			             LOG_NAME_ARGS, _kc_signal_to_string (sig), strerror (errsv), errsv);
+			             LOG_NAME_ARGS, _kc_signal_to_string (sig), nm_strerror_native (errsv), errsv);
 		}
 		return;
 	}
@@ -1018,7 +1021,7 @@ nm_utils_kill_process_sync (pid_t pid, guint64 start_time, int sig, NMLogDomain 
 				            was_waiting ? _kc_waited_to_string (buf_wait, wait_start_us) : "");
 			} else {
 				nm_log_warn (LOGD_CORE | log_domain, LOG_NAME_PROCESS_FMT ": failed to kill(%ld, 0): %s (%d)%s",
-				             LOG_NAME_ARGS, (long int) pid, strerror (errsv), errsv,
+				             LOG_NAME_ARGS, (long int) pid, nm_strerror_native (errsv), errsv,
 				             was_waiting ? _kc_waited_to_string (buf_wait, wait_start_us) : "");
 			}
 			return;
@@ -1054,7 +1057,7 @@ nm_utils_kill_process_sync (pid_t pid, guint64 start_time, int sig, NMLogDomain 
 						            LOG_NAME_ARGS, _kc_waited_to_string (buf_wait, wait_start_us));
 					} else {
 						nm_log_warn (LOGD_CORE | log_domain, LOG_NAME_PROCESS_FMT ": failed to send SIGKILL (after sending %s), %s (%d)%s",
-						             LOG_NAME_ARGS, _kc_signal_to_string (sig), strerror (errsv), errsv,
+						             LOG_NAME_ARGS, _kc_signal_to_string (sig), nm_strerror_native (errsv), errsv,
 						             _kc_waited_to_string (buf_wait, wait_start_us));
 					}
 					return;
@@ -2393,11 +2396,11 @@ _uuid_data_init (UuidData *uuid_data,
 	uuid_data->is_fake = is_fake;
 	if (packed) {
 		G_STATIC_ASSERT_EXPR (sizeof (uuid_data->str) >= (sizeof (*uuid) * 2 + 1));
-		_nm_utils_bin2hexstr_full (uuid,
-		                           sizeof (*uuid),
-		                           '\0',
-		                           FALSE,
-		                           uuid_data->str);
+		nm_utils_bin2hexstr_full (uuid,
+		                          sizeof (*uuid),
+		                          '\0',
+		                          FALSE,
+		                          uuid_data->str);
 	} else {
 		G_STATIC_ASSERT_EXPR (sizeof (uuid_data->str) >= 37);
 		_nm_utils_uuid_unparse (uuid, uuid_data->str);
@@ -2430,14 +2433,14 @@ again:
 		if (   nm_utils_file_get_contents (-1, "/etc/machine-id", 100*1024, 0, &content, NULL, NULL) >= 0
 		    || nm_utils_file_get_contents (-1, LOCALSTATEDIR"/lib/dbus/machine-id", 100*1024, 0, &content, NULL, NULL) >= 0) {
 			g_strstrip (content);
-			if (_nm_utils_hexstr2bin_full (content,
-			                               FALSE,
-			                               FALSE,
-			                               NULL,
-			                               16,
-			                               (guint8 *) &uuid,
-			                               sizeof (uuid),
-			                               NULL)) {
+			if (nm_utils_hexstr2bin_full (content,
+			                              FALSE,
+			                              FALSE,
+			                              NULL,
+			                              16,
+			                              (guint8 *) &uuid,
+			                              sizeof (uuid),
+			                              NULL)) {
 				if (!nm_utils_uuid_is_null (&uuid)) {
 					/* an all-zero machine-id is not valid. */
 					is_fake = FALSE;
@@ -2459,7 +2462,7 @@ again:
 			if (nm_utils_host_id_get (&seed_bin, &seed_len)) {
 				/* we have no valid machine-id. Generate a fake one by hashing
 				 * the secret-key. This key is commonly persisted, so it should be
-				 * stable accross reboots (despite having a broken system without
+				 * stable across reboots (despite having a broken system without
 				 * proper machine-id). */
 				fake_type = "secret-key";
 				hash_seed = "ab085f06-b629-46d1-a553-84eeba5683b6";
@@ -2556,7 +2559,7 @@ _host_id_read_timestamp (gboolean use_secret_key_file,
 	 * the secret_key) if we are unable to access the secret_key file in the first place.
 	 *
 	 * Pick a random timestamp from the past two years. Yes, this timestamp
-	 * is not stable accross restarts, but apparently neither is the host-id
+	 * is not stable across restarts, but apparently neither is the host-id
 	 * nor the secret_key itself. */
 
 #define EPOCH_TWO_YEARS  (G_GINT64_CONSTANT (2 * 365 * 24 * 3600) * NM_UTILS_NS_PER_SECOND)
@@ -3124,7 +3127,7 @@ nm_utils_stable_id_generated_complete (const char *stable_id_generated)
 	guint8 buf[NM_UTILS_CHECKSUM_LENGTH_SHA1];
 	char *base64;
 
-	/* for NM_UTILS_STABLE_TYPE_GENERATED we genererate a possibly long string
+	/* for NM_UTILS_STABLE_TYPE_GENERATED we generate a possibly long string
 	 * by doing text-substitutions in nm_utils_stable_id_parse().
 	 *
 	 * Let's shorten the (possibly) long stable_id to something more compact. */
@@ -3178,7 +3181,7 @@ nm_utils_stable_id_parse (const char *stable_id,
 	 * of ${...} patterns.
 	 *
 	 * At first, it looks a bit like bash parameter substitution.
-	 * In contrast however, the process is unambigious so that the resulting
+	 * In contrast however, the process is unambiguous so that the resulting
 	 * effective id differs if:
 	 *  - the original, untranslated stable-id differs
 	 *  - or any of the subsitutions differs.
@@ -3581,7 +3584,7 @@ nm_utils_dhcp_client_id_mac (int arp_type,
 /**
  * nm_utils_create_dhcp_iaid:
  * @legacy_unstable_byteorder: legacy behavior is to generate a u32 iaid which
- *   is endianness dependant. This is to preserve backward compatibility.
+ *   is endianness dependent. This is to preserve backward compatibility.
  *   For non-legacy behavior, the returned integer is in stable endianness,
  *   and corresponds to legacy behavior on little endian systems.
  * @interface_id: the seed for hashing when generating the ID. Usually,
@@ -3624,7 +3627,7 @@ nm_utils_create_dhcp_iaid (gboolean legacy_unstable_byteorder,
  * @legacy_unstable_byteorder: historically, the code would generate a iaid
  *   dependent on host endianness. This is undesirable, if backward compatibility
  *   are not a concern, generate stable endianness.
- * @interface_id: a binary identifer that is hashed into the DUID.
+ * @interface_id: a binary identifier that is hashed into the DUID.
  *   Comonly this is the interface-name, but it may be the MAC address.
  * @interface_id_len: the length of @interface_id.
  * @machine_id: the binary identifier for the machine. It is hashed
@@ -4019,7 +4022,7 @@ nm_utils_get_reverse_dns_domains_ip6 (const struct in6_addr *ip, guint8 plen, GP
 		return;
 
 	memcpy (&addr, ip, sizeof (struct in6_addr));
-	nm_utils_ip6_address_clear_host_address (&addr, &addr, plen);
+	nm_utils_ip6_address_clear_host_address (&addr, NULL, plen);
 
 	/* Number of nibbles to include in domains */
 	nibbles = (plen - 1) / 4 + 1;
@@ -4143,7 +4146,7 @@ nm_utils_read_plugin_paths (const char *dirname, const char *prefix)
 			errsv = errno;
 			nm_log_warn (LOGD_CORE,
 			             "plugin: skip invalid file %s (error during stat: %s)",
-			             data.path, strerror (errsv));
+			             data.path, nm_strerror_native (errsv));
 			goto skip;
 		}
 

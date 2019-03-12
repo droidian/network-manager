@@ -26,6 +26,18 @@
 
 /*****************************************************************************/
 
+pid_t nm_utils_gettid (void);
+
+gboolean _nm_assert_on_main_thread (void);
+
+#if NM_MORE_ASSERTS > 5
+#define NM_ASSERT_ON_MAIN_THREAD() G_STMT_START { nm_assert (_nm_assert_on_main_thread ()); } G_STMT_END
+#else
+#define NM_ASSERT_ON_MAIN_THREAD() G_STMT_START {                                         ; } G_STMT_END
+#endif
+
+/*****************************************************************************/
+
 static inline gboolean
 _NM_INT_NOT_NEGATIVE (gssize val)
 {
@@ -126,6 +138,18 @@ nm_ip_addr_set (int addr_family, gpointer dst, gconstpointer src)
 	        (addr_family != AF_INET6)
 	          ? sizeof (in_addr_t)
 	          : sizeof (struct in6_addr));
+}
+
+gboolean nm_ip_addr_set_from_untrusted (int addr_family,
+                                        gpointer dst,
+                                        gconstpointer src,
+                                        gsize src_len,
+                                        int *out_addr_family);
+
+static inline gboolean
+nm_ip4_addr_is_localhost (in_addr_t addr4)
+{
+	return (addr4 & htonl (0xFF000000u)) == htonl (0x7F000000u);
 }
 
 /*****************************************************************************/
@@ -305,7 +329,7 @@ _nm_strndup_a_step (char *s, const char *str, gsize len)
  *
  * Usually, an inline function nm_strdup_int64() would be enough. However,
  * that cannot be used for guint64. So, we would also need nm_strdup_uint64().
- * This causes suble error potential, because the caller needs to ensure to
+ * This causes subtle error potential, because the caller needs to ensure to
  * use the right one (and compiler isn't going to help as it silently casts).
  *
  * Instead, this generic macro is supposed to handle all integers correctly. */
@@ -688,20 +712,26 @@ nm_utils_error_set_literal (GError **error, int error_code, const char *literal)
 	g_set_error ((error), NM_UTILS_ERROR, error_code, __VA_ARGS__)
 
 #define nm_utils_error_set_errno(error, errsv, fmt, ...) \
-	g_set_error ((error), \
-	             NM_UTILS_ERROR, \
-	             NM_UTILS_ERROR_UNKNOWN, \
-	             fmt, \
-	             ##__VA_ARGS__, \
-	             g_strerror (({ \
-	                            const int _errsv = (errsv); \
-	                            \
-	                            (  _errsv >= 0 \
-	                             ? _errsv \
-	                             : (  (_errsv == G_MININT) \
-	                                ? G_MAXINT \
-	                                : -errsv)); \
-	                          })))
+	G_STMT_START { \
+		char _bstrerr[NM_STRERROR_BUFSIZE]; \
+		\
+		g_set_error ((error), \
+		             NM_UTILS_ERROR, \
+		             NM_UTILS_ERROR_UNKNOWN, \
+		             fmt, \
+		             ##__VA_ARGS__, \
+		             nm_strerror_native_r (({ \
+		                                      const int _errsv = (errsv); \
+		                                      \
+		                                      (  _errsv >= 0 \
+		                                       ? _errsv \
+		                                       : (  G_UNLIKELY (_errsv == G_MININT) \
+		                                          ? G_MAXINT \
+		                                          : -errsv)); \
+		                                   }), \
+		                                   _bstrerr, \
+		                                   sizeof (_bstrerr))); \
+	} G_STMT_END
 
 /*****************************************************************************/
 
@@ -774,6 +804,11 @@ gboolean nm_g_object_set_property_enum (GObject *object,
 
 GParamSpec *nm_g_object_class_find_property_from_gtype (GType gtype,
                                                         const char *property_name);
+
+/*****************************************************************************/
+
+GType nm_g_type_find_implementing_class_for_property (GType gtype,
+                                                      const char *pname);
 
 /*****************************************************************************/
 
@@ -1092,5 +1127,32 @@ nm_strv_ptrarray_take_gstring (GPtrArray *cmd,
 /*****************************************************************************/
 
 int nm_utils_getpagesize (void);
+
+/*****************************************************************************/
+
+char *nm_utils_bin2hexstr_full (gconstpointer addr,
+                                gsize length,
+                                char delimiter,
+                                gboolean upper_case,
+                                char *out);
+
+guint8 *nm_utils_hexstr2bin_full (const char *hexstr,
+                                  gboolean allow_0x_prefix,
+                                  gboolean delimiter_required,
+                                  const char *delimiter_candidates,
+                                  gsize required_len,
+                                  guint8 *buffer,
+                                  gsize buffer_len,
+                                  gsize *out_len);
+
+#define nm_utils_hexstr2bin_buf(hexstr, allow_0x_prefix, delimiter_required, delimiter_candidates, buffer) \
+    nm_utils_hexstr2bin_full ((hexstr), (allow_0x_prefix), (delimiter_required), (delimiter_candidates), G_N_ELEMENTS (buffer), (buffer), G_N_ELEMENTS (buffer), NULL)
+
+guint8 *nm_utils_hexstr2bin_alloc (const char *hexstr,
+                                   gboolean allow_0x_prefix,
+                                   gboolean delimiter_required,
+                                   const char *delimiter_candidates,
+                                   gsize required_len,
+                                   gsize *out_len);
 
 #endif /* __NM_SHARED_UTILS_H__ */

@@ -21,7 +21,6 @@
 
 #include "general.h"
 
-#include <string.h>
 #include <stdlib.h>
 
 #include "nm-common-macros.h"
@@ -125,6 +124,8 @@ permission_to_string (NMClientPermission perm)
 		return NM_AUTH_PERMISSION_ENABLE_DISABLE_STATISTICS;
 	case NM_CLIENT_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK:
 		return NM_AUTH_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK;
+	case NM_CLIENT_PERMISSION_WIFI_SCAN:
+		return NM_AUTH_PERMISSION_WIFI_SCAN;
 	default:
 		return _("unknown");
 	}

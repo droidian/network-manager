@@ -52,6 +52,7 @@ nm_device_vlan_get_type
 nm_device_vxlan_get_type
 nm_device_wifi_capabilities_get_type
 nm_device_wifi_get_type
+nm_device_wifi_p2p_get_type
 nm_device_wimax_get_type
 nm_device_wireguard_get_type
 nm_device_wpan_get_type
@@ -132,9 +133,11 @@ nm_setting_user_get_type
 nm_setting_vlan_get_type
 nm_setting_vpn_get_type
 nm_setting_vxlan_get_type
+nm_setting_wifi_p2p_get_type
 nm_setting_wimax_get_type
 nm_setting_wired_get_type
 nm_setting_wired_wake_on_lan_get_type
+nm_setting_wireguard_get_type
 nm_setting_wireless_get_type
 nm_setting_wireless_powersave_get_type
 nm_setting_wireless_security_fils_get_type
@@ -169,5 +172,7 @@ nm_vpn_plugin_error_get_type
 nm_vpn_plugin_failure_get_type
 nm_vpn_service_state_get_type
 nm_wep_key_type_get_type
+nm_wifi_p2p_peer_get_type
 nm_wimax_nsp_get_type
 nm_wimax_nsp_network_type_get_type
+nm_wireguard_peer_get_type

@@ -45,6 +45,18 @@
 #define nm_auto(fcn)         __attribute__ ((__cleanup__(fcn)))
 
 
+/* This is required to make LTO working.
+ *
+ * See https://gitlab.freedesktop.org/NetworkManager/NetworkManager/merge_requests/76#note_112694
+ *     https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48200#c28
+ */
+#ifndef __clang__
+#define _nm_externally_visible __attribute__ ((__externally_visible__))
+#else
+#define _nm_externally_visible
+#endif
+
+
 #if __GNUC__ >= 7
 #define _nm_fallthrough      __attribute__ ((__fallthrough__))
 #else
@@ -64,6 +76,28 @@
 #else
 #define _nm_thread_local __thread
 #endif
+
+/*****************************************************************************/
+
+/* most of our code is single-threaded with a mainloop. Hence, we usually don't need
+ * any thread-safety. Sometimes, we do need thread-safety (nm-logging), but we can
+ * avoid locking if we are on the main-thread by:
+ *
+ *   - modifications of shared data is done infrequently and only from the
+ *     main-thread (nm_logging_setup())
+ *   - read-only access is done frequently (nm_logging_enabled())
+ *     - from the main-thread, we can do that without locking (because
+ *       all modifications are also done on the main thread.
+ *     - from other threads, we need locking. But this is expected to be
+ *       done infrequently too. Important is the lock-free fast-path on the
+ *       main-thread.
+ *
+ * By defining NM_THREAD_SAFE_ON_MAIN_THREAD you indicate that this code runs
+ * on the main-thread. It is by default defined to "1". If you have code that
+ * is also used on another thread, redefine the define to 0 (to opt in into
+ * the slow-path).
+ */
+#define NM_THREAD_SAFE_ON_MAIN_THREAD 1
 
 /*****************************************************************************/
 
@@ -415,7 +449,7 @@ NM_G_ERROR_MSG (GError *error)
 /*****************************************************************************/
 
 /* macro to return strlen() of a compile time string. */
-#define NM_STRLEN(str)     ( sizeof ("" str) - 1 )
+#define NM_STRLEN(str)     ( sizeof (""str"") - 1 )
 
 /* returns the length of a NULL terminated array of pointers,
  * like g_strv_length() does. The difference is:
@@ -826,11 +860,32 @@ fcn (void) \
 
 /*****************************************************************************/
 
-#define nm_streq(s1, s2)  (strcmp (s1, s2) == 0)
-#define nm_streq0(s1, s2) (g_strcmp0 (s1, s2) == 0)
+static inline gboolean
+nm_streq (const char *s1, const char *s2)
+{
+	return strcmp (s1, s2) == 0;
+}
+
+static inline gboolean
+nm_streq0 (const char *s1, const char *s2)
+{
+	return    (s1 == s2)
+	       || (s1 && s2 && strcmp (s1, s2) == 0);
+}
 
 #define NM_STR_HAS_PREFIX(str, prefix) \
 	(strncmp ((str), ""prefix"", NM_STRLEN (prefix)) == 0)
+
+#define NM_STR_HAS_SUFFIX(str, suffix) \
+	({ \
+		const char *_str = (str); \
+		gsize _l = strlen (_str); \
+		\
+		(   (_l >= NM_STRLEN (suffix)) \
+		 && (memcmp (&_str[_l - NM_STRLEN (suffix)], \
+		             ""suffix"", \
+		             NM_STRLEN (suffix)) == 0)); \
+	})
 
 /*****************************************************************************/
 
@@ -1127,6 +1182,28 @@ nm_clear_g_cancellable (GCancellable **cancellable)
 	return FALSE;
 }
 
+/* If @cancellable_id is not 0, clear it and call g_cancellable_disconnect().
+ * @cancellable may be %NULL, if there is nothing to disconnect.
+ *
+ * It's like nm_clear_g_signal_handler(), except that it uses g_cancellable_disconnect()
+ * instead of g_signal_handler_disconnect().
+ *
+ * Note the warning in glib documentation about dead-lock and what g_cancellable_disconnect()
+ * actually does. */
+static inline gboolean
+nm_clear_g_cancellable_disconnect (GCancellable *cancellable, gulong *cancellable_id)
+{
+	gulong id;
+
+	if (   cancellable_id
+	    && (id = *cancellable_id) != 0) {
+		*cancellable_id = 0;
+		g_cancellable_disconnect (cancellable, id);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 /*****************************************************************************/
 
 static inline GVariant *
@@ -1243,17 +1320,17 @@ fcn_name (lookup_type val) \
 
 /*****************************************************************************/
 
-#define _NM_BACKPORT_SYMBOL_IMPL(VERSION, RETURN_TYPE, ORIG_FUNC, VERSIONED_FUNC, ARGS_TYPED, ARGS) \
-RETURN_TYPE VERSIONED_FUNC ARGS_TYPED; \
-RETURN_TYPE VERSIONED_FUNC ARGS_TYPED \
+#define _NM_BACKPORT_SYMBOL_IMPL(version, return_type, orig_func, versioned_func, args_typed, args) \
+return_type versioned_func args_typed; \
+_nm_externally_visible return_type versioned_func args_typed \
 { \
-    return ORIG_FUNC ARGS; \
+    return orig_func args; \
 } \
-RETURN_TYPE ORIG_FUNC ARGS_TYPED; \
-__asm__(".symver "G_STRINGIFY(VERSIONED_FUNC)", "G_STRINGIFY(ORIG_FUNC)"@"G_STRINGIFY(VERSION))
+return_type orig_func args_typed; \
+__asm__(".symver "G_STRINGIFY(versioned_func)", "G_STRINGIFY(orig_func)"@"G_STRINGIFY(version))
 
-#define NM_BACKPORT_SYMBOL(VERSION, RETURN_TYPE, FUNC, ARGS_TYPED, ARGS) \
-_NM_BACKPORT_SYMBOL_IMPL(VERSION, RETURN_TYPE, FUNC, _##FUNC##_##VERSION, ARGS_TYPED, ARGS)
+#define NM_BACKPORT_SYMBOL(version, return_type, func, args_typed, args) \
+_NM_BACKPORT_SYMBOL_IMPL(version, return_type, func, _##func##_##version, args_typed, args)
 
 /*****************************************************************************/
 
@@ -1370,6 +1447,14 @@ nm_strcmp_p (gconstpointer a, gconstpointer b)
 		 ? _a \
 		 : _b); \
 	})
+
+/* evaluates to (void) if _A or _B are not constant or of different types */
+#define NM_CONST_MAX(_A, _B) \
+	(__builtin_choose_expr ((   __builtin_constant_p (_A) \
+	                         && __builtin_constant_p (_B) \
+	                         && __builtin_types_compatible_p (typeof (_A), typeof (_B))), \
+	                        ((_A) > (_B)) ? (_A) : (_B),                            \
+	                        ((void)  0)))
 
 /*****************************************************************************/
 

@@ -23,10 +23,12 @@
 
 #include "nm-shared-utils.h"
 
-#include <errno.h>
 #include <arpa/inet.h>
 #include <poll.h>
 #include <fcntl.h>
+#include <sys/syscall.h>
+
+#include "nm-errno.h"
 
 /*****************************************************************************/
 
@@ -34,7 +36,116 @@ const void *const _NM_PTRARRAY_EMPTY[1] = { NULL };
 
 /*****************************************************************************/
 
-const NMIPAddr nm_ip_addr_zero = { 0 };
+const NMIPAddr nm_ip_addr_zero = { };
+
+/* this initializes a struct in_addr/in6_addr and allows for untrusted
+ * arguments (like unsuitable @addr_family or @src_len). It's almost safe
+ * in the sense that it verifies input arguments strictly. Also, it
+ * uses memcpy() to access @src, so alignment is not an issue.
+ *
+ * Only potential pitfalls:
+ *
+ * - it allows for @addr_family to be AF_UNSPEC. If that is the case (and the
+ *   caller allows for that), the caller MUST provide @out_addr_family.
+ * - when setting @dst to an IPv4 address, the trailing bytes are not touched.
+ *   Meaning, if @dst is an NMIPAddr union, only the first bytes will be set.
+ *   If that matter to you, clear @dst before. */
+gboolean
+nm_ip_addr_set_from_untrusted (int addr_family,
+                               gpointer dst,
+                               gconstpointer src,
+                               gsize src_len,
+                               int *out_addr_family)
+{
+	nm_assert (dst);
+
+	switch (addr_family) {
+	case AF_UNSPEC:
+		if (!out_addr_family) {
+			/* when the callers allow undefined @addr_family, they must provide
+			 * an @out_addr_family argument. */
+			nm_assert_not_reached ();
+			return FALSE;
+		}
+		switch (src_len) {
+		case sizeof (struct in_addr):  addr_family = AF_INET;  break;
+		case sizeof (struct in6_addr): addr_family = AF_INET6; break;
+		default:
+			return FALSE;
+		}
+		break;
+	case AF_INET:
+		if (src_len != sizeof (struct in_addr))
+			return FALSE;
+		break;
+	case AF_INET6:
+		if (src_len != sizeof (struct in6_addr))
+			return FALSE;
+		break;
+	default:
+		/* when the callers allow undefined @addr_family, they must provide
+		 * an @out_addr_family argument. */
+		nm_assert (out_addr_family);
+		return FALSE;
+	}
+
+	nm_assert (src);
+
+	memcpy (dst, src, src_len);
+	NM_SET_OUT (out_addr_family, addr_family);
+	return TRUE;
+}
+
+/*****************************************************************************/
+
+pid_t
+nm_utils_gettid (void)
+{
+	return (pid_t) syscall (SYS_gettid);
+}
+
+/* Used for asserting that this function is called on the main-thread.
+ * The main-thread is determined by remembering the thread-id
+ * of when the function was called the first time.
+ *
+ * When forking, the thread-id is again reset upon first call. */
+gboolean
+_nm_assert_on_main_thread (void)
+{
+	G_LOCK_DEFINE_STATIC (lock);
+	static pid_t seen_tid;
+	static pid_t seen_pid;
+	pid_t tid;
+	pid_t pid;
+	gboolean success = FALSE;
+
+	tid = nm_utils_gettid ();
+	nm_assert (tid != 0);
+
+	G_LOCK (lock);
+
+	if (G_LIKELY (tid == seen_tid)) {
+		/* we don't care about false positives (when the process forked, and the thread-id
+		 * is accidentally re-used) . It's for assertions only. */
+		success = TRUE;
+	} else {
+		pid = getpid ();
+		nm_assert (pid != 0);
+
+		if (   seen_tid == 0
+			|| seen_pid != pid) {
+			/* either this is the first time we call the function, or the process
+			 * forked. In both cases, remember the thread-id. */
+			seen_tid = tid;
+			seen_pid = pid;
+			success = TRUE;
+		}
+	}
+
+	G_UNLOCK (lock);
+
+	return success;
+}
 
 /*****************************************************************************/
 
@@ -561,6 +672,8 @@ nm_utils_parse_inaddr_prefix_bin (int addr_family,
 		return FALSE;
 
 	if (slash) {
+		/* For IPv4, `ip addr add` supports the prefix-length as a netmask. We don't
+		 * do that. */
 		prefix = _nm_utils_ascii_str_to_int64 (slash + 1, 10,
 		                                       0,
 		                                       addr_family == AF_INET ? 32 : 128,
@@ -1360,6 +1473,53 @@ nm_g_object_class_find_property_from_gtype (GType gtype,
 
 /*****************************************************************************/
 
+/**
+ * nm_g_type_find_implementing_class_for_property:
+ * @gtype: the GObject type which has a property @pname
+ * @pname: the name of the property to look up
+ *
+ * This is only a helper function for printf debugging. It's not
+ * used in actual code. Hence, the function just asserts that
+ * @pname and @gtype arguments are suitable. It cannot fail.
+ *
+ * Returns: the most ancestor type of @gtype, that
+ *   implements the property @pname. It means, it
+ *   searches the type hierarchy to find the type
+ *   that added @pname.
+ */
+GType
+nm_g_type_find_implementing_class_for_property (GType gtype,
+                                                const char *pname)
+{
+	nm_auto_unref_gtypeclass GObjectClass *klass = NULL;
+	GParamSpec *pspec;
+
+	g_return_val_if_fail (pname, G_TYPE_INVALID);
+
+	klass = g_type_class_ref (gtype);
+	g_return_val_if_fail (G_IS_OBJECT_CLASS (klass), G_TYPE_INVALID);
+
+	pspec = g_object_class_find_property (klass, pname);
+	g_return_val_if_fail (pspec, G_TYPE_INVALID);
+
+	gtype = G_TYPE_FROM_CLASS (klass);
+
+	while (TRUE) {
+		nm_auto_unref_gtypeclass GObjectClass *k = NULL;
+
+		k = g_type_class_ref (g_type_parent (gtype));
+
+		g_return_val_if_fail (G_IS_OBJECT_CLASS (k), G_TYPE_INVALID);
+
+		if (g_object_class_find_property (k, pname) != pspec)
+			return gtype;
+
+		gtype = G_TYPE_FROM_CLASS (k);
+	}
+}
+
+/*****************************************************************************/
+
 static void
 _str_append_escape (GString *s, char ch)
 {
@@ -1691,7 +1851,7 @@ nm_utils_fd_wait_for_event (int fd, int event, gint64 timeout_ns)
 
 	r = ppoll (&pollfd, 1, pts, NULL);
 	if (r < 0)
-		return -errno;
+		return -NM_ERRNO_NATIVE (errno);
 	if (r == 0)
 		return 0;
 	return pollfd.revents;
@@ -1718,10 +1878,12 @@ nm_utils_fd_read_loop (int fd, void *buf, size_t nbytes, bool do_poll)
 
 		k = read (fd, p, nbytes);
 		if (k < 0) {
-			if (errno == EINTR)
+			int errsv = errno;
+
+			if (errsv == EINTR)
 				continue;
 
-			if (errno == EAGAIN && do_poll) {
+			if (errsv == EAGAIN && do_poll) {
 
 				/* We knowingly ignore any return value here,
 				 * and expect that any error/EOF is reported
@@ -1731,7 +1893,7 @@ nm_utils_fd_read_loop (int fd, void *buf, size_t nbytes, bool do_poll)
 				continue;
 			}
 
-			return n > 0 ? n : -errno;
+			return n > 0 ? n : -NM_ERRNO_NATIVE (errsv);
 		}
 
 		if (k == 0)
@@ -2374,4 +2536,206 @@ nm_utils_memeqzero (gconstpointer data, gsize length)
 
 	/* Now we know that's zero, memcmp with self. */
 	return memcmp (data, p, length) == 0;
+}
+
+/**
+ * nm_utils_bin2hexstr_full:
+ * @addr: pointer of @length bytes. If @length is zero, this may
+ *   also be %NULL.
+ * @length: number of bytes in @addr. May also be zero, in which
+ *   case this will return an empty string.
+ * @delimiter: either '\0', otherwise the output string will have the
+ *   given delimiter character between each two hex numbers.
+ * @upper_case: if TRUE, use upper case ASCII characters for hex.
+ * @out: if %NULL, the function will allocate a new buffer of
+ *   either (@length*2+1) or (@length*3) bytes, depending on whether
+ *   a @delimiter is specified. In that case, the allocated buffer will
+ *   be returned and must be freed by the caller.
+ *   If not %NULL, the buffer must already be preallocated and contain
+ *   at least (@length*2+1) or (@length*3) bytes, depending on the delimiter.
+ *
+ * Returns: the binary value converted to a hex string. If @out is given,
+ *   this always returns @out. If @out is %NULL, a newly allocated string
+ *   is returned.
+ */
+char *
+nm_utils_bin2hexstr_full (gconstpointer addr,
+                          gsize length,
+                          char delimiter,
+                          gboolean upper_case,
+                          char *out)
+{
+	const guint8 *in = addr;
+	const char *LOOKUP = upper_case ? "0123456789ABCDEF" : "0123456789abcdef";
+	char *out0;
+
+	if (out)
+		out0 = out;
+	else {
+		out0 = out = g_new (char, delimiter == '\0'
+		                          ? length * 2 + 1
+		                          : length * 3);
+	}
+
+	/* @out must contain at least @length*3 bytes if @delimiter is set,
+	 * otherwise, @length*2+1. */
+
+	if (length > 0) {
+		nm_assert (in);
+		for (;;) {
+			const guint8 v = *in++;
+
+			*out++ = LOOKUP[v >> 4];
+			*out++ = LOOKUP[v & 0x0F];
+			length--;
+			if (!length)
+				break;
+			if (delimiter)
+				*out++ = delimiter;
+		}
+	}
+
+	*out = '\0';
+	return out0;
+}
+
+guint8 *
+nm_utils_hexstr2bin_full (const char *hexstr,
+                          gboolean allow_0x_prefix,
+                          gboolean delimiter_required,
+                          const char *delimiter_candidates,
+                          gsize required_len,
+                          guint8 *buffer,
+                          gsize buffer_len,
+                          gsize *out_len)
+{
+	const char *in = hexstr;
+	guint8 *out = buffer;
+	gboolean delimiter_has = TRUE;
+	guint8 delimiter = '\0';
+	gsize len;
+
+	nm_assert (hexstr);
+	nm_assert (buffer);
+	nm_assert (required_len > 0 || out_len);
+
+	if (   allow_0x_prefix
+	    && in[0] == '0'
+	    && in[1] == 'x')
+		in += 2;
+
+	while (TRUE) {
+		const guint8 d1 = in[0];
+		guint8 d2;
+		int i1, i2;
+
+		i1 = nm_utils_hexchar_to_int (d1);
+		if (i1 < 0)
+			goto fail;
+
+		/* If there's no leading zero (ie "aa:b:cc") then fake it */
+		d2 = in[1];
+		if (   d2
+		    && (i2 = nm_utils_hexchar_to_int (d2)) >= 0) {
+			*out++ = (i1 << 4) + i2;
+			d2 = in[2];
+			if (!d2)
+				break;
+			in += 2;
+		} else {
+			/* Fake leading zero */
+			*out++ = i1;
+			if (!d2) {
+				if (!delimiter_has) {
+					/* when using no delimiter, there must be pairs of hex chars */
+					goto fail;
+				}
+				break;
+			}
+			in += 1;
+		}
+
+		if (--buffer_len == 0)
+			goto fail;
+
+		if (delimiter_has) {
+			if (d2 != delimiter) {
+				if (delimiter)
+					goto fail;
+				if (delimiter_candidates) {
+					while (delimiter_candidates[0]) {
+						if (delimiter_candidates++[0] == d2)
+							delimiter = d2;
+					}
+				}
+				if (!delimiter) {
+					if (delimiter_required)
+						goto fail;
+					delimiter_has = FALSE;
+					continue;
+				}
+			}
+			in++;
+		}
+	}
+
+	len = out - buffer;
+	if (   required_len == 0
+	    || len == required_len) {
+		NM_SET_OUT (out_len, len);
+		return buffer;
+	}
+
+fail:
+	NM_SET_OUT (out_len, 0);
+	return NULL;
+}
+
+guint8 *
+nm_utils_hexstr2bin_alloc (const char *hexstr,
+                           gboolean allow_0x_prefix,
+                           gboolean delimiter_required,
+                           const char *delimiter_candidates,
+                           gsize required_len,
+                           gsize *out_len)
+{
+	guint8 *buffer;
+	gsize buffer_len, len;
+
+	g_return_val_if_fail (hexstr, NULL);
+
+	nm_assert (required_len > 0 || out_len);
+
+	if (   allow_0x_prefix
+	    && hexstr[0] == '0'
+	    && hexstr[1] == 'x')
+		hexstr += 2;
+
+	if (!hexstr[0])
+		goto fail;
+
+	if (required_len > 0)
+		buffer_len = required_len;
+	else
+		buffer_len = strlen (hexstr) / 2 + 3;
+
+	buffer = g_malloc (buffer_len);
+
+	if (nm_utils_hexstr2bin_full (hexstr,
+	                              FALSE,
+	                              delimiter_required,
+	                              delimiter_candidates,
+	                              required_len,
+	                              buffer,
+	                              buffer_len,
+	                              &len)) {
+		NM_SET_OUT (out_len, len);
+		return buffer;
+	}
+
+	g_free (buffer);
+
+fail:
+	NM_SET_OUT (out_len, 0);
+	return NULL;
 }

@@ -1,15 +1,16 @@
 libnm_inc = include_directories('.')
 
-sources = files('nm-libnm-utils.c')
-
-deps = [
-  libnmdbus_dep,
-  shared_dep,
-]
-
 cflags = [
   '-DG_LOG_DOMAIN="@0@"'.format(libnm_name),
   '-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_LIBNM',
+]
+
+libnm_utils_sources = files('nm-libnm-utils.c')
+
+deps = [
+  libnmdbus_dep,
+  shared_nm_utils_base_dep,
+  nm_core_dep,
 ]
 
 if have_fake_typelibs
@@ -19,7 +20,7 @@ endif
 
 libnm_utils = static_library(
   'nm-utils',
-  sources: sources,
+  sources: libnm_utils_sources,
   include_directories: libnm_core_inc,
   dependencies: deps,
   c_args: cflags,
@@ -40,25 +41,26 @@ libnm_headers = files(
   'nm-device-dummy.h',
   'nm-device-ethernet.h',
   'nm-device-generic.h',
-  'nm-device.h',
   'nm-device-infiniband.h',
   'nm-device-ip-tunnel.h',
   'nm-device-macsec.h',
   'nm-device-macvlan.h',
   'nm-device-modem.h',
   'nm-device-olpc-mesh.h',
+  'nm-device-ovs-bridge.h',
   'nm-device-ovs-interface.h',
   'nm-device-ovs-port.h',
-  'nm-device-ovs-bridge.h',
   'nm-device-ppp.h',
   'nm-device-team.h',
   'nm-device-tun.h',
   'nm-device-vlan.h',
   'nm-device-vxlan.h',
+  'nm-device-wifi-p2p.h',
   'nm-device-wifi.h',
   'nm-device-wimax.h',
   'nm-device-wireguard.h',
   'nm-device-wpan.h',
+  'nm-device.h',
   'nm-dhcp-config.h',
   'nm-ip-config.h',
   'nm-object.h',
@@ -69,6 +71,7 @@ libnm_headers = files(
   'nm-vpn-editor.h',
   'nm-vpn-plugin-old.h',
   'nm-vpn-service-plugin.h',
+  'nm-wifi-p2p-peer.h',
   'nm-wimax-nsp.h',
 )
 
@@ -101,7 +104,6 @@ libnm_sources = files(
   'nm-device-bond.c',
   'nm-device-bridge.c',
   'nm-device-bt.c',
-  'nm-device.c',
   'nm-device-dummy.c',
   'nm-device-ethernet.c',
   'nm-device-generic.c',
@@ -111,18 +113,20 @@ libnm_sources = files(
   'nm-device-macvlan.c',
   'nm-device-modem.c',
   'nm-device-olpc-mesh.c',
+  'nm-device-ovs-bridge.c',
   'nm-device-ovs-interface.c',
   'nm-device-ovs-port.c',
-  'nm-device-ovs-bridge.c',
   'nm-device-ppp.c',
   'nm-device-team.c',
   'nm-device-tun.c',
   'nm-device-vlan.c',
   'nm-device-vxlan.c',
+  'nm-device-wifi-p2p.c',
   'nm-device-wifi.c',
   'nm-device-wimax.c',
   'nm-device-wireguard.c',
   'nm-device-wpan.c',
+  'nm-device.c',
   'nm-dhcp-config.c',
   'nm-dhcp4-config.c',
   'nm-dhcp6-config.c',
@@ -136,19 +140,12 @@ libnm_sources = files(
   'nm-remote-settings.c',
   'nm-secret-agent-old.c',
   'nm-vpn-connection.c',
-  'nm-vpn-plugin-old.c',
   'nm-vpn-editor.c',
+  'nm-vpn-plugin-old.c',
   'nm-vpn-service-plugin.c',
+  'nm-wifi-p2p-peer.c',
   'nm-wimax-nsp.c',
 )
-
-deps = [
-  dl_dep,
-  libudev_dep,
-  shared_dep,
-  uuid_dep,
-  libnm_systemd_shared_no_logging_dep,
-]
 
 linker_script = join_paths(meson.current_source_dir(), 'libnm.ver')
 
@@ -158,7 +155,14 @@ libnm = shared_library(
   sources: libnm_sources + libnm_enum,
   version: libnm_version,
   include_directories: libnm_core_inc,
-  dependencies: deps,
+  dependencies: [
+    dl_dep,
+    libudev_dep,
+    shared_nm_utils_base_dep,
+    nm_core_dep,
+    uuid_dep,
+    libnm_systemd_shared_no_logging_dep,
+  ],
   c_args: cflags,
   link_with: libnm_utils,
   link_whole: libnm_core,

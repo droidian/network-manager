@@ -39,8 +39,8 @@ typedef struct _NMDeviceBt           NMDeviceBt;
 typedef struct _NMDeviceDummy        NMDeviceDummy;
 typedef struct _NMDeviceEthernet     NMDeviceEthernet;
 typedef struct _NMDeviceGeneric      NMDeviceGeneric;
-typedef struct _NMDeviceInfiniband   NMDeviceInfiniband;
 typedef struct _NMDeviceIPTunnel     NMDeviceIPTunnel;
+typedef struct _NMDeviceInfiniband   NMDeviceInfiniband;
 typedef struct _NMDeviceMacsec       NMDeviceMacsec;
 typedef struct _NMDeviceMacvlan      NMDeviceMacvlan;
 typedef struct _NMDeviceModem        NMDeviceModem;
@@ -54,6 +54,7 @@ typedef struct _NMDeviceTun          NMDeviceTun;
 typedef struct _NMDeviceVlan         NMDeviceVlan;
 typedef struct _NMDeviceVxlan        NMDeviceVxlan;
 typedef struct _NMDeviceWifi         NMDeviceWifi;
+typedef struct _NMDeviceWifiP2P      NMDeviceWifiP2P;
 typedef struct _NMDeviceWimax        NMDeviceWimax;
 typedef struct _NMDeviceWireGuard    NMDeviceWireGuard;
 typedef struct _NMDeviceWpan         NMDeviceWpan;
@@ -62,6 +63,7 @@ typedef struct _NMIPConfig           NMIPConfig;
 typedef struct _NMObject             NMObject;
 typedef struct _NMRemoteConnection   NMRemoteConnection;
 typedef struct _NMVpnConnection      NMVpnConnection;
+typedef struct _NMWifiP2PPeer        NMWifiP2PPeer;
 typedef struct _NMWimaxNsp           NMWimaxNsp;
 
 #endif  /* NM_TYPES_H */

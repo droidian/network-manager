@@ -20,14 +20,13 @@
 
 #include "nm-default.h"
 
-#include <string.h>
+#include "nm-device-tun.h"
+
 #include <arpa/inet.h>
 
 #include "nm-setting-connection.h"
 #include "nm-setting-tun.h"
 #include "nm-utils.h"
-
-#include "nm-device-tun.h"
 #include "nm-object-private.h"
 
 G_DEFINE_TYPE (NMDeviceTun, nm_device_tun, NM_TYPE_DEVICE)
@@ -268,6 +267,7 @@ finalize (GObject *object)
 	NMDeviceTunPrivate *priv = NM_DEVICE_TUN_GET_PRIVATE (object);
 
 	g_free (priv->mode);
+	g_free (priv->hw_address);
 
 	G_OBJECT_CLASS (nm_device_tun_parent_class)->finalize (object);
 }

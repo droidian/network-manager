@@ -2923,10 +2923,10 @@ nm_client_add_and_activate_connection2_finish
 </tr>
 <tr>
 <td class="parameter_name"><p>out_result</p></td>
-<td class="parameter_description"><p>(transfer full): the output result
+<td class="parameter_description"><p>the output result
 of type "a{sv}" returned by D-Bus' AddAndActivate2 call. Currently no
 output is implemented yet. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -4506,6 +4506,13 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_description">
 <p>controls whether
  connectivity check can be enabled or disabled</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-WIFI-SCAN:CAPS"></a>NM_CLIENT_PERMISSION_WIFI_SCAN</p></td>
+<td class="enum_member_description">
+<p>controls whether wifi scans can be performed</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>

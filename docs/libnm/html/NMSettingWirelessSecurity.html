@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
-<link rel="prev" href="NMSettingWired.html" title="NMSettingWired">
+<link rel="prev" href="NMSettingWireGuard.html" title="NMSettingWireGuard">
 <link rel="next" href="NMSettingWireless.html" title="NMSettingWireless">
 <meta name="generator" content="GTK-Doc V1.29 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
@@ -21,7 +21,7 @@
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="NMSettingWired.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="NMSettingWireGuard.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="NMSettingWireless.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
@@ -1668,7 +1668,7 @@ the actual WEP key using the MD5 hash algorithm.</p>
 <a name="NMSettingWirelessSecurityWpsMethod"></a><h3>enum NMSettingWirelessSecurityWpsMethod</h3>
 <p>Configure the use of WPS by a connection while it activates.</p>
 <p>Note: prior to 1.16, this was a GEnum type instead of a GFlags type
-altough, with the same numeric values.</p>
+although, with the same numeric values.</p>
 <div class="refsect3">
 <a name="NMSettingWirelessSecurityWpsMethod.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1950,8 +1950,8 @@ list element may be one of "wep40", "wep104", "tkip", or "ccmp".</p>
 <pre class="programlisting">  “key-mgmt”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Key management used for the connection.  One of "none" (WEP), "ieee8021x"
 (Dynamic WEP), "wpa-none" (Ad-Hoc WPA-PSK), "wpa-psk" (infrastructure
-WPA-PSK), or "wpa-eap" (WPA-Enterprise).  This property must be set for
-any Wi-Fi connection that uses security.</p>
+WPA-PSK), "sae" (SAE) or "wpa-eap" (WPA-Enterprise).
+This property must be set for any Wi-Fi connection that uses security.</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -2020,12 +2020,11 @@ not specified, both WPA and RSN connections are allowed.</p>
 <div class="refsect2">
 <a name="NMSettingWirelessSecurity--psk"></a><h3>The <code class="literal">“psk”</code> property</h3>
 <pre class="programlisting">  “psk”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
-<p>Pre-Shared-Key for WPA networks.  If the key is 64-characters long, it
-must contain only hexadecimal characters and is interpreted as a
-hexadecimal WPA key.  Otherwise, the key must be between 8 and 63 ASCII
-characters (as specified in the 802.11i standard) and is interpreted as a
-WPA passphrase, and is hashed to derive the actual WPA-PSK used when
-connecting to the Wi-Fi network.</p>
+<p>Pre-Shared-Key for WPA networks. For WPA-PSK, it's either an ASCII
+passphrase of 8 to 63 characters that is (as specified in the 802.11i
+standard) hashed to derive the actual key, or the key in form of 64
+hexadecimal character. The WPA3-Personal networks use a passphrase
+of any length for SAE authentication.</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>

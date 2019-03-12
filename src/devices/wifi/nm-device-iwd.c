@@ -22,8 +22,6 @@
 
 #include "nm-device-iwd.h"
 
-#include <string.h>
-
 #include "nm-common-macros.h"
 #include "devices/nm-device.h"
 #include "devices/nm-device-private.h"
@@ -1132,7 +1130,7 @@ _nm_device_iwd_request_scan (NMDeviceIwd *self,
 	                       NM_DEVICE_AUTH_REQUEST,
 	                       invocation,
 	                       NULL,
-	                       NM_AUTH_PERMISSION_NETWORK_CONTROL,
+	                       NM_AUTH_PERMISSION_WIFI_SCAN,
 	                       TRUE,
 	                       dbus_request_scan_cb,
 	                       options ? g_variant_ref (options) : NULL);
@@ -1380,7 +1378,7 @@ wifi_secrets_get_one (NMDeviceIwd *self,
 	                                                    TRUE,
 	                                                    setting_name,
 	                                                    flags,
-	                                                    setting_key,
+	                                                    NM_MAKE_STRV (setting_key),
 	                                                    wifi_secrets_cb,
 	                                                    nm_utils_user_data_pack (self, invocation));
 }
@@ -1549,11 +1547,11 @@ error:
  * DBus interface has appeared already.  If so proceed to call Start or
  * StartOpen on that interface.
  */
-static void act_check_interface (NMDeviceIwd *self)
+static void
+act_check_interface (NMDeviceIwd *self)
 {
 	NMDeviceIwdPrivate *priv = NM_DEVICE_IWD_GET_PRIVATE (self);
 	NMDevice *device = NM_DEVICE (self);
-	gs_free_error GError *error = NULL;
 	NMSettingWireless *s_wireless;
 	NMSettingWirelessSecurity *s_wireless_sec;
 	GDBusProxy *proxy = NULL;
@@ -1894,7 +1892,7 @@ act_stage2_config (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 			                                                    TRUE,
 			                                                    NM_SETTING_WIRELESS_SECURITY_SETTING_NAME,
 			                                                    NM_SECRET_AGENT_GET_SECRETS_FLAG_ALLOW_INTERACTION,
-			                                                    "psk",
+			                                                    NM_MAKE_STRV (NM_SETTING_WIRELESS_SECURITY_PSK),
 			                                                    act_psk_cb,
 			                                                    self);
 			nm_device_state_changed (device, NM_DEVICE_STATE_NEED_AUTH, NM_DEVICE_STATE_REASON_NONE);
@@ -2335,7 +2333,7 @@ powered_changed (NMDeviceIwd *self, gboolean new_powered)
 			value = g_dbus_proxy_get_cached_property (priv->dbus_device_proxy, "State");
 			if (value) {
 				g_variant_unref (value);
-				interface = g_object_ref (priv->dbus_device_proxy);
+				interface = g_object_ref (G_DBUS_INTERFACE (priv->dbus_device_proxy));
 			} else {
 				_LOGE (LOGD_WIFI, "Interface %s not found on obj %s",
 				       NM_IWD_STATION_INTERFACE,
@@ -2401,7 +2399,7 @@ nm_device_iwd_set_dbus_object (NMDeviceIwd *self, GDBusObject *object)
 	gboolean powered;
 	NMDeviceWifiCapabilities capabilities;
 
-	if (!nm_g_object_ref_set ((GObject **) &priv->dbus_obj, (GObject *) object))
+	if (!nm_g_object_ref_set (&priv->dbus_obj, object))
 		return;
 
 	if (priv->dbus_device_proxy) {

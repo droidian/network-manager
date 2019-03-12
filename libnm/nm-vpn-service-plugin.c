@@ -23,7 +23,6 @@
 
 #include "nm-vpn-service-plugin.h"
 
-#include <errno.h>
 #include <signal.h>
 #include <stdlib.h>
 
@@ -808,7 +807,6 @@ nm_vpn_service_plugin_read_vpn_details (int fd,
 	while (1) {
 		ssize_t nr;
 
-		errno = 0;
 		nr = read (fd, &c, 1);
 		if (nr < 0) {
 			if (errno == EAGAIN) {
@@ -830,8 +828,8 @@ nm_vpn_service_plugin_read_vpn_details (int fd,
 			/* done a line */
 			g_return_val_if_fail (hash, FALSE);
 			g_hash_table_insert (hash,
-					     g_string_free (key, FALSE),
-					     g_string_free (val, FALSE));
+			                     g_string_free (key, FALSE),
+			                     g_string_free (val, FALSE));
 			key = NULL;
 			val = NULL;
 			hash = NULL;
@@ -839,7 +837,7 @@ nm_vpn_service_plugin_read_vpn_details (int fd,
 		}
 
 		if (strcmp (line->str, "DONE") == 0) {
-			 /* finish marker */
+			/* finish marker */
 			break;
 		} else if (strncmp (line->str, DATA_KEY_TAG, strlen (DATA_KEY_TAG)) == 0) {
 			if (key != NULL) {

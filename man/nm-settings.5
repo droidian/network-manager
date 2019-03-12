@@ -2,12 +2,12 @@
 .\"     Title: nm-settings
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/22/2019
+.\"      Date: 03/11/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.15.2
+.\"    Source: NetworkManager 1.15.91
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.15\&.2" "Configuration"
+.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.15\&.91" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -266,7 +266,7 @@ string
 T}:T{
 \ \&
 T}:T{
-This represents the identity of the connection used for various purposes\&. It allows to configure multiple profiles to share the identity\&. Also, the stable\-id can contain placeholders that are substituted dynamically and deterministically depending on the context\&. The stable\-id is used for generating IPv6 stable private addresses with ipv6\&.addr\-gen\-mode=stable\-privacy\&. It is also used to seed the generated cloned MAC address for ethernet\&.cloned\-mac\-address=stable and wifi\&.cloned\-mac\-address=stable\&. It is also used as DHCP client identifier with ipv4\&.dhcp\-client\-id=stable and to derive the DHCP DUID with ipv6\&.dhcp\-duid=stable\-[llt,ll,uuid]\&. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm\&. For example, a per\-host key is commonly also included, so that different systems end up generating different IDs\&. Or with ipv6\&.addr\-gen\-mode=stable\-privacy, also the device\*(Aqs name is included, so that different interfaces yield different addresses\&. The \*(Aq$\*(Aq character is treated special to perform dynamic substitutions at runtime\&. Currently supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}"\&. These effectively create unique IDs per\-connection, per\-device, per\-boot, or every time\&. Note that "${DEVICE}" corresponds the the interface name of the device and "${MAC}" is the permanent MAC address of the device\&. Any unrecognized patterns following \*(Aq$\*(Aq are treated verbatim, however are reserved for future use\&. You are thus advised to avoid \*(Aq$\*(Aq or escape it as "$$"\&. For example, set it to "${CONNECTION}\-${BOOT}\-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates\&. If the value is unset, a global connection default is consulted\&. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection\&.
+This represents the identity of the connection used for various purposes\&. It allows to configure multiple profiles to share the identity\&. Also, the stable\-id can contain placeholders that are substituted dynamically and deterministically depending on the context\&. The stable\-id is used for generating IPv6 stable private addresses with ipv6\&.addr\-gen\-mode=stable\-privacy\&. It is also used to seed the generated cloned MAC address for ethernet\&.cloned\-mac\-address=stable and wifi\&.cloned\-mac\-address=stable\&. It is also used as DHCP client identifier with ipv4\&.dhcp\-client\-id=stable and to derive the DHCP DUID with ipv6\&.dhcp\-duid=stable\-[llt,ll,uuid]\&. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm\&. For example, a per\-host key is commonly also included, so that different systems end up generating different IDs\&. Or with ipv6\&.addr\-gen\-mode=stable\-privacy, also the device\*(Aqs name is included, so that different interfaces yield different addresses\&. The \*(Aq$\*(Aq character is treated special to perform dynamic substitutions at runtime\&. Currently supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}"\&. These effectively create unique IDs per\-connection, per\-device, per\-boot, or every time\&. Note that "${DEVICE}" corresponds to the interface name of the device and "${MAC}" is the permanent MAC address of the device\&. Any unrecognized patterns following \*(Aq$\*(Aq are treated verbatim, however are reserved for future use\&. You are thus advised to avoid \*(Aq$\*(Aq or escape it as "$$"\&. For example, set it to "${CONNECTION}\-${BOOT}\-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates\&. If the value is unset, a global connection default is consulted\&. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection\&.
 T}
 T{
 timestamp
@@ -3903,6 +3903,54 @@ Specifies the time\-to\-live value to use in outgoing packets\&.
 T}
 .TE
 .sp 1
+.SS "wifi\-p2p setting"
+.PP
+Wi\-Fi P2P Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l
+l l l l.
+T{
+peer
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The P2P device that should be connected to\&. Currently this is the only way to create or join a group\&.
+T}
+T{
+wfd\-ies
+T}:T{
+byte array
+T}:T{
+\ \&
+T}:T{
+The Wi\-Fi Display (WFD) Information Elements (IEs) to set\&. Wi\-Fi Display requires a protocol specific information element to be set in certain Wi\-Fi frames\&. These can be specified here for the purpose of establishing a connection\&. This setting is only useful when implementing a Wi\-Fi Display client\&.
+T}
+T{
+wps\-method
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+Flags indicating which mode of WPS is to be used\&. There\*(Aqs little point in changing the default setting as NetworkManager will automatically determine the best method to use\&.
+T}
+.TE
+.sp 1
 .SS "wimax setting"
 .PP
 WiMax Settings\&.
@@ -4106,6 +4154,94 @@ T}:T{
 \ \&
 T}:T{
 If specified, the password used with magic\-packet\-based Wake\-on\-LAN, represented as an Ethernet MAC address\&.  If NULL, no password will be required\&.
+T}
+.TE
+.sp 1
+.SS "wireguard setting"
+.PP
+WireGuard Ethernet Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l.
+T{
+fwmark
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+The use of fwmark is optional and is by default off\&. Setting it to 0 disables it\&. Otherwise it is a 32\-bit fwmark for outgoing packets\&.
+T}
+T{
+listen\-port
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+The listen\-port\&. If listen\-port is not specified, the port will be chosen randomly when the interface comes up\&.
+T}
+T{
+mtu
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+If non\-zero, only transmit packets of the specified size or smaller, breaking larger packets up into multiple fragments\&. If zero a default MTU is used\&. Note that contrary to wg\-quick\*(Aqs MTU setting, this does not take into account the current routes at the time of activation\&.
+T}
+T{
+peer\-routes
+T}:T{
+boolean
+T}:T{
+TRUE
+T}:T{
+Whether to automatically add routes for the AllowedIPs ranges of the peers\&. If TRUE (the default), NetworkManager will automatically add routes in the routing tables according to ipv4\&.route\-table and ipv6\&.route\-table\&. If FALSE, no such routes are added automatically\&. In this case, the user may want to configure static routes in ipv4\&.routes and ipv6\&.routes, respectively\&.
+T}
+T{
+peers
+T}:T{
+array of \*(Aqa{sv}\*(Aq
+T}:T{
+\ \&
+T}:T{
+Array of dictionaries for the WireGuard peers\&.
+T}
+T{
+private\-key
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The 256 bit private\-key in base64 encoding\&.
+T}
+T{
+private\-key\-flags
+T}:T{
+NMSettingSecretFlags (uint32)
+T}:T{
+\ \&
+T}:T{
+Flags indicating how to handle the "private\-key" property\&. (see the section called \(lqSecret flag types:\(rq for flag values)
 T}
 .TE
 .sp 1
@@ -4387,7 +4523,7 @@ string
 T}:T{
 \ \&
 T}:T{
-Key management used for the connection\&.  One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa\-none" (Ad\-Hoc WPA\-PSK), "wpa\-psk" (infrastructure WPA\-PSK), or "wpa\-eap" (WPA\-Enterprise)\&.  This property must be set for any Wi\-Fi connection that uses security\&.
+Key management used for the connection\&.  One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa\-none" (Ad\-Hoc WPA\-PSK), "wpa\-psk" (infrastructure WPA\-PSK), "sae" (SAE) or "wpa\-eap" (WPA\-Enterprise)\&. This property must be set for any Wi\-Fi connection that uses security\&.
 T}
 T{
 leap\-password
@@ -4450,7 +4586,7 @@ string
 T}:T{
 \ \&
 T}:T{
-Pre\-Shared\-Key for WPA networks\&.  If the key is 64\-characters long, it must contain only hexadecimal characters and is interpreted as a hexadecimal WPA key\&.  Otherwise, the key must be between 8 and 63 ASCII characters (as specified in the 802\&.11i standard) and is interpreted as a WPA passphrase, and is hashed to derive the actual WPA\-PSK used when connecting to the Wi\-Fi network\&.
+Pre\-Shared\-Key for WPA networks\&. For WPA\-PSK, it\*(Aqs either an ASCII passphrase of 8 to 63 characters that is (as specified in the 802\&.11i standard) hashed to derive the actual key, or the key in form of 64 hexadecimal character\&. The WPA3\-Personal networks use a passphrase of any length for SAE authentication\&.
 T}
 T{
 psk\-flags

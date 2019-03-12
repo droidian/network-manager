@@ -41,6 +41,18 @@ struct _NMVariantAttributeSpec {
 gboolean    _nm_utils_string_slist_validate (GSList *list,
                                              const char **valid_values);
 
+gboolean _nm_utils_secret_flags_validate (NMSettingSecretFlags secret_flags,
+                                          const char *setting_name,
+                                          const char *property_name,
+                                          NMSettingSecretFlags disallowed_flags,
+                                          GError **error);
+
+gboolean _nm_utils_wps_method_validate (NMSettingWirelessSecurityWpsMethod wps_method,
+                                        const char *setting_name,
+                                        const char *property_name,
+                                        gboolean wps_required,
+                                        GError **error);
+
 /* D-Bus transform funcs */
 
 GVariant   *_nm_utils_hwaddr_cloned_get (NMSetting     *setting,

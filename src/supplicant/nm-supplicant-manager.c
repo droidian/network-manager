@@ -23,8 +23,6 @@
 
 #include "nm-supplicant-manager.h"
 
-#include <string.h>
-
 #include "nm-supplicant-interface.h"
 #include "nm-supplicant-types.h"
 #include "nm-core-internal.h"
@@ -71,7 +69,7 @@ NM_CACHED_QUARK_FCN ("nm-supplicant-error-quark", nm_supplicant_error_quark)
 
 /*****************************************************************************/
 
-static inline gboolean
+static gboolean
 die_count_exceeded (guint32 count)
 {
 	return count > 2;
@@ -123,6 +121,72 @@ _sup_iface_last_ref (gpointer data,
 
 	priv->ifaces = g_slist_remove (priv->ifaces, sup_iface);
 	g_object_remove_toggle_ref ((GObject *) sup_iface, _sup_iface_last_ref, self);
+}
+
+static void
+on_supplicant_wfd_ies_set (GObject *source_object,
+                           GAsyncResult *res,
+                           gpointer user_data)
+{
+	gs_unref_variant GVariant *result = NULL;
+	gs_free_error GError *error = NULL;
+
+	result = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source_object), res, &error);
+
+	if (!result)
+		_LOGW ("failed to set WFD IEs on wpa_supplicant: %s", error->message);
+}
+
+/**
+ * nm_supplicant_manager_set_wfd_ies:
+ * @self: the #NMSupplicantManager
+ * @wfd_ies: a #GBytes with the WFD IEs or %NULL
+ *
+ * This function sets the global WFD IEs on wpa_supplicant. Note that
+ * it would make more sense if this was per-device, but wpa_supplicant
+ * simply does not work that way.
+ * */
+void
+nm_supplicant_manager_set_wfd_ies (NMSupplicantManager *self,
+                                   GBytes *wfd_ies)
+{
+	NMSupplicantManagerPrivate *priv;
+	GVariantBuilder params;
+	GVariant *val;
+
+	g_return_if_fail (NM_IS_SUPPLICANT_MANAGER (self));
+
+	priv = NM_SUPPLICANT_MANAGER_GET_PRIVATE (self);
+
+	_LOGD ("setting WFD IEs for P2P operation");
+
+	if (wfd_ies)
+		val = g_variant_new_fixed_array (G_VARIANT_TYPE_BYTE,
+		                                 g_bytes_get_data (wfd_ies, NULL),
+		                                 g_bytes_get_size (wfd_ies),
+		                                 sizeof (guint8));
+	else
+		val = g_variant_new_fixed_array (G_VARIANT_TYPE_BYTE,
+		                                 NULL, 0, sizeof (guint8));
+
+	g_variant_builder_init (&params, G_VARIANT_TYPE ("(ssv)"));
+
+	g_variant_builder_add (&params, "s", g_dbus_proxy_get_interface_name (priv->proxy));
+	g_variant_builder_add (&params, "s", "WFDIEs");
+	g_variant_builder_add_value (&params, g_variant_new_variant (val));
+
+	g_dbus_connection_call (g_dbus_proxy_get_connection (priv->proxy),
+	                        g_dbus_proxy_get_name (priv->proxy),
+	                        g_dbus_proxy_get_object_path (priv->proxy),
+	                        "org.freedesktop.DBus.Properties",
+	                        "Set",
+	                        g_variant_builder_end (&params),
+	                        G_VARIANT_TYPE_UNIT,
+	                        G_DBUS_CALL_FLAGS_NO_AUTO_START,
+	                        1000,
+	                        NULL,
+	                        on_supplicant_wfd_ies_set,
+	                        NULL);
 }
 
 /**

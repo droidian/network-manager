@@ -16,7 +16,7 @@
 <div>
 <div><table class="navigation" id="top" width="100%" cellpadding="2" cellspacing="0"><tr><th valign="middle"><p class="title">NetworkManager Reference Manual</p></th></tr></table></div>
 <div><p class="releaseinfo">
-      for NetworkManager 1.15.2
+      for NetworkManager 1.15.91
 
       The latest version of this documentation can be found on-line at
       <a class="ulink" href="https://developer.gnome.org/NetworkManager/stable/" target="_top">https://developer.gnome.org/NetworkManager/stable/</a>.
@@ -226,10 +226,16 @@
 <span class="refentrytitle"><a href="settings-vxlan.html">vxlan</a></span><span class="refpurpose"> — VXLAN Settings</span>
 </dt>
 <dt>
+<span class="refentrytitle"><a href="settings-wifi-p2p.html">wifi-p2p</a></span><span class="refpurpose"> — Wi-Fi P2P Settings</span>
+</dt>
+<dt>
 <span class="refentrytitle"><a href="settings-wimax.html">wimax</a></span><span class="refpurpose"> — WiMax Settings</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="settings-802-3-ethernet.html">802-3-ethernet</a></span><span class="refpurpose"> — Wired Ethernet Settings</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="settings-wireguard.html">wireguard</a></span><span class="refpurpose"> — WireGuard Ethernet Settings</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="settings-802-11-wireless.html">802-11-wireless</a></span><span class="refpurpose"> — Wi-Fi Settings</span>
@@ -277,28 +283,25 @@
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Adsl.html">org.freedesktop.NetworkManager.Device.Adsl</a></span><span class="refpurpose"> — ADSL Device</span>
 </dt>
 <dt>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Bluetooth.html">org.freedesktop.NetworkManager.Device.Bluetooth</a></span><span class="refpurpose"> — Bluetooth Device</span>
+</dt>
+<dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Bond.html">org.freedesktop.NetworkManager.Device.Bond</a></span><span class="refpurpose"> — Bonding Device</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Bridge.html">org.freedesktop.NetworkManager.Device.Bridge</a></span><span class="refpurpose"> — Bridging Device</span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Bluetooth.html">org.freedesktop.NetworkManager.Device.Bluetooth</a></span><span class="refpurpose"> — Bluetooth Device</span>
-</dt>
-<dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Dummy.html">org.freedesktop.NetworkManager.Device.Dummy</a></span><span class="refpurpose"> — Dummy Device</span>
-</dt>
-<dt>
-<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Wired.html">org.freedesktop.NetworkManager.Device.Wired</a></span><span class="refpurpose"> — Wired Ethernet Device</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Generic.html">org.freedesktop.NetworkManager.Device.Generic</a></span><span class="refpurpose"> — Unrecognized Device</span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Infiniband.html">org.freedesktop.NetworkManager.Device.Infiniband</a></span><span class="refpurpose"> — Infiniband Device</span>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html">org.freedesktop.NetworkManager.Device.IPTunnel</a></span><span class="refpurpose"> — IP Tunneling Device</span>
 </dt>
 <dt>
-<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html">org.freedesktop.NetworkManager.Device.IPTunnel</a></span><span class="refpurpose"> — IP Tunneling Device</span>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Infiniband.html">org.freedesktop.NetworkManager.Device.Infiniband</a></span><span class="refpurpose"> — Infiniband Device</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Lowpan.html">org.freedesktop.NetworkManager.Device.Lowpan</a></span><span class="refpurpose"> — 6LoWPAN Device</span>
@@ -343,7 +346,13 @@
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Vxlan.html">org.freedesktop.NetworkManager.Device.Vxlan</a></span><span class="refpurpose"> — VXLAN Device</span>
 </dt>
 <dt>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.WifiP2P.html">org.freedesktop.NetworkManager.Device.WifiP2P</a></span><span class="refpurpose"> — Wi-Fi P2P Device</span>
+</dt>
+<dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.WireGuard.html">org.freedesktop.NetworkManager.Device.WireGuard</a></span><span class="refpurpose"> — WireGuard Device</span>
+</dt>
+<dt>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Wired.html">org.freedesktop.NetworkManager.Device.Wired</a></span><span class="refpurpose"> — Wired Ethernet Device</span>
 </dt>
 <dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html">org.freedesktop.NetworkManager.Device.Wireless</a></span><span class="refpurpose"> — Wi-Fi Device</span>
@@ -383,6 +392,10 @@
 <dt><span class="chapter"><a href="ref-dbus-access-points.html">The <code class="literal">/org/freedesktop/NetworkManager/AccessPoint/*</code> objects</a></span></dt>
 <dd><dl><dt>
 <span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.AccessPoint.html">org.freedesktop.NetworkManager.AccessPoint</a></span><span class="refpurpose"> — Wi-Fi Access Point</span>
+</dt></dl></dd>
+<dt><span class="chapter"><a href="ref-dbus-wifi-p2p-peers.html">The <code class="literal">/org.freedesktop.NetworkManager.WifiP2PPeer/*</code> objects</a></span></dt>
+<dd><dl><dt>
+<span class="refentrytitle"><a href="gdbus-org.freedesktop.NetworkManager.WifiP2PPeer.html">org.freedesktop.NetworkManager.WifiP2PPeer</a></span><span class="refpurpose"> — Wi-Fi P2P Peer</span>
 </dt></dl></dd>
 <dt><span class="chapter"><a href="ref-dbus-checkpoint.html">The <code class="literal">/org/freedesktop/NetworkManager/Checkpoint/*</code> objects</a></span></dt>
 <dd><dl><dt>

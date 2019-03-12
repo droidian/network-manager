@@ -19,8 +19,6 @@
 
 #include "nm-default.h"
 
-#include <string.h>
-#include <errno.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 
@@ -546,7 +544,7 @@ nm_dhcp_utils_ip4_config_from_options (NMDedupMultiIndex *multi_idx,
 
 		errno = 0;
 		int_mtu = strtol (str, NULL, 10);
-		if ((errno == EINVAL) || (errno == ERANGE))
+		if (NM_IN_SET (errno, EINVAL, ERANGE))
 			goto error;
 
 		if (int_mtu > 576)
@@ -732,7 +730,7 @@ nm_dhcp_utils_duid_to_string (GBytes *duid)
 	g_return_val_if_fail (duid, NULL);
 
 	data = g_bytes_get_data (duid, &len);
-	return _nm_utils_bin2hexstr_full (data, len, ':', FALSE, NULL);
+	return nm_utils_bin2hexstr_full (data, len, ':', FALSE, NULL);
 }
 
 /**

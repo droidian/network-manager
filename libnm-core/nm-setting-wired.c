@@ -24,7 +24,6 @@
 
 #include "nm-setting-wired.h"
 
-#include <string.h>
 #include <net/ethernet.h>
 
 #include "nm-utils.h"
@@ -39,6 +38,11 @@
  * The #NMSettingWired object is a #NMSetting subclass that describes properties
  * necessary for connection to Ethernet networks.
  **/
+
+/*****************************************************************************/
+
+G_STATIC_ASSERT (NM_SETTING_WIRED_WAKE_ON_LAN_EXCLUSIVE_FLAGS == (  NM_SETTING_WIRED_WAKE_ON_LAN_DEFAULT
+                                                                  | NM_SETTING_WIRED_WAKE_ON_LAN_IGNORE));
 
 /*****************************************************************************/
 

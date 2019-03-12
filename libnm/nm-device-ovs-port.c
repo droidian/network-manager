@@ -19,9 +19,8 @@
 
 #include "nm-default.h"
 
-#include <string.h>
-
 #include "nm-device-ovs-port.h"
+
 #include "nm-object-private.h"
 #include "nm-setting-ovs-port.h"
 #include "nm-setting-ovs-port.h"
@@ -76,6 +75,7 @@ get_type_description (NMDevice *device)
 {
 	return "ovs-port";
 }
+
 static gboolean
 connection_compatible (NMDevice *device, NMConnection *connection, GError **error)
 {

@@ -1545,13 +1545,13 @@ _vt_cmd_plobj_id_hash_update (tfilter, NMPlatformTfilter, {
 	                     obj->handle);
 })
 
-static inline void
+static void
 _vt_cmd_plobj_hash_update_ip4_route (const NMPlatformObject *obj, NMHashState *h)
 {
 	return nm_platform_ip4_route_hash_update ((const NMPlatformIP4Route *) obj, NM_PLATFORM_IP_ROUTE_CMP_TYPE_FULL, h);
 }
 
-static inline void
+static void
 _vt_cmd_plobj_hash_update_ip6_route (const NMPlatformObject *obj, NMHashState *h)
 {
 	return nm_platform_ip6_route_hash_update ((const NMPlatformIP6Route *) obj, NM_PLATFORM_IP_ROUTE_CMP_TYPE_FULL, h);
@@ -2519,10 +2519,10 @@ nmp_cache_remove_netlink (NMPCache *cache,
  *    afterwards. Hence, during a dump, every update should move the object to the
  *    end of the list, to obtain the correct order. That means, to use NM_DEDUP_MULTI_IDX_MODE_APPEND_FORCE,
  *    instead of NM_DEDUP_MULTI_IDX_MODE_APPEND.
- * @out_obj_old: (allow-none): (out): return the object with same ID as @obj_hand_over,
+ * @out_obj_old: (allow-none) (out): return the object with same ID as @obj_hand_over,
  *    that was in the cache before update. If an object is returned, the caller must
  *    unref it afterwards.
- * @out_obj_new: (allow-none): (out): return the object from the cache after update.
+ * @out_obj_new: (allow-none) (out): return the object from the cache after update.
  *    The caller must unref this object.
  *
  * Returns: how the cache changed.
@@ -2920,15 +2920,15 @@ nmp_cache_update_link_master_connected (NMPCache *cache,
 /*****************************************************************************/
 
 void
-nmp_cache_dirty_set_all (NMPCache *cache, NMPObjectType obj_type)
+nmp_cache_dirty_set_all (NMPCache *cache,
+                         const NMPLookup *lookup)
 {
-	NMPObject obj_needle;
-
 	nm_assert (cache);
+	nm_assert (lookup);
 
 	nm_dedup_multi_index_dirty_set_head (cache->multi_idx,
-	                                     _idx_type_get (cache, NMP_CACHE_ID_TYPE_OBJECT_TYPE),
-	                                     _nmp_object_stackinit_from_type (&obj_needle, obj_type));
+	                                     _idx_type_get (cache, lookup->cache_id_type),
+	                                     &lookup->selector_obj);
 }
 
 /*****************************************************************************/
@@ -2977,7 +2977,6 @@ const NMPClass _nmp_classes[NMP_OBJECT_TYPE_MAX] = {
 		.sizeof_data                        = sizeof (NMPObjectLink),
 		.sizeof_public                      = sizeof (NMPlatformLink),
 		.obj_type_name                      = "link",
-		.addr_family                        = AF_UNSPEC,
 		.rtm_gettype                        = RTM_GETLINK,
 		.signal_type_id                     = NM_PLATFORM_SIGNAL_ID_LINK,
 		.signal_type                        = NM_PLATFORM_SIGNAL_LINK_CHANGED,

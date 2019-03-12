@@ -25,7 +25,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
@@ -105,7 +104,10 @@ get_secrets_from_user (const NmcConfig *nmc_config,
 			rl_startup_hook = set_deftext;
 			pre_input_deftext = g_strdup (secret->value);
 		}
-		pwd = nmc_readline (nmc_config, "%s (%s): ", secret->pretty_name, secret->entry_id);
+		if (secret->no_prompt_entry_id)
+			pwd = nmc_readline (nmc_config, "%s: ", secret->pretty_name);
+		else
+			pwd = nmc_readline (nmc_config, "%s (%s): ", secret->pretty_name, secret->entry_id);
 
 		/* No password provided, cancel the secrets. */
 		if (!pwd)
@@ -149,7 +151,7 @@ do_agent_secret (NmCli *nmc, int argc, char **argv)
 		/* We keep running */
 		nmc->should_wait++;
 
-		nm_secret_agent_simple_enable (NM_SECRET_AGENT_SIMPLE (nmc->secret_agent), NULL);
+		nm_secret_agent_simple_enable (nmc->secret_agent, NULL);
 		g_signal_connect (nmc->secret_agent,
 		                  NM_SECRET_AGENT_SIMPLE_REQUEST_SECRETS,
 		                  G_CALLBACK (secrets_requested),
