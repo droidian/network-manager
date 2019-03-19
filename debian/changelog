@@ -1,3 +1,9 @@
+network-manager (1.16.0-0ubuntu1) UNRELEASED; urgency=medium
+
+  * New upstream version
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 19 Mar 2019 16:17:44 +0100
+
 network-manager (1.15.91-0Ubuntu1) disco; urgency=medium
 
   * New upstream version
