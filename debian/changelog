@@ -1,4 +1,4 @@
-network-manager (1.16.0-0ubuntu2) UNRELEASED; urgency=medium
+network-manager (1.16.0-0ubuntu2) disco; urgency=medium
 
   * debian/patches/git_ifupdown_iterator.patch:
     - ifupdown: fix connection iterator, should fix a segfault in the
