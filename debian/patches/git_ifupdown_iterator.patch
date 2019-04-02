@@ -1,0 +1,30 @@
+From 00858afc4f0512e751f35a56e74dff2d5a4a4c07 Mon Sep 17 00:00:00 2001
+From: Yupeng Chang <changyp6@gmail.com>
+Date: Tue, 2 Apr 2019 11:30:29 +0200
+Subject: [PATCH] ifupdown: fix connection iterator
+
+Fixes: 6aa66426a416 ('settings/ifupdown: merge eni_ifaces and connections hashes in plugin')
+
+https://gitlab.freedesktop.org/NetworkManager/NetworkManager/issues/145
+https://bugzilla.redhat.com/show_bug.cgi?id=1694912
+(cherry picked from commit 1dd67583e3eecba09ee983ef6a443ded64303846)
+---
+ src/settings/plugins/ifupdown/nms-ifupdown-plugin.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/settings/plugins/ifupdown/nms-ifupdown-plugin.c b/src/settings/plugins/ifupdown/nms-ifupdown-plugin.c
+index 99a594776..9c9b73f28 100644
+--- a/src/settings/plugins/ifupdown/nms-ifupdown-plugin.c
++++ b/src/settings/plugins/ifupdown/nms-ifupdown-plugin.c
+@@ -280,7 +280,7 @@ initialize (NMSettingsPlugin *plugin)
+ 		GHashTableIter iter;
+ 
+ 		g_hash_table_iter_init (&iter, priv->eni_ifaces);
+-		while (g_hash_table_iter_next (&iter, NULL, (gpointer *) conn)) {
++		while (g_hash_table_iter_next (&iter, NULL, (gpointer) &conn)) {
+ 			if (conn) {
+ 				_nm_settings_plugin_emit_signal_connection_added (NM_SETTINGS_PLUGIN (self),
+ 				                                                  NM_SETTINGS_CONNECTION (conn));
+-- 
+2.18.1
+
