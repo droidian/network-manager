@@ -22,12 +22,13 @@
 
 #include "nm-netns.h"
 
-#include "nm-utils/nm-dedup-multi.h"
+#include "nm-glib-aux/nm-dedup-multi.h"
 
+#include "NetworkManagerUtils.h"
+#include "nm-core-internal.h"
 #include "platform/nm-platform.h"
 #include "platform/nmp-netns.h"
-#include "nm-core-internal.h"
-#include "NetworkManagerUtils.h"
+#include "platform/nmp-rules-manager.h"
 
 /*****************************************************************************/
 
@@ -38,6 +39,7 @@ NM_GOBJECT_PROPERTIES_DEFINE_BASE (
 typedef struct {
 	NMPlatform *platform;
 	NMPNetns *platform_netns;
+	NMPRulesManager *rules_manager;
 } NMNetnsPrivate;
 
 struct _NMNetns {
@@ -69,6 +71,12 @@ NMPlatform *
 nm_netns_get_platform (NMNetns *self)
 {
 	return NM_NETNS_GET_PRIVATE (self)->platform;
+}
+
+NMPRulesManager *
+nm_netns_get_rules_manager (NMNetns *self)
+{
+	return NM_NETNS_GET_PRIVATE (self)->rules_manager;
 }
 
 NMDedupMultiIndex *
@@ -118,6 +126,20 @@ constructed (GObject *object)
 
 	priv->platform_netns = nm_platform_netns_get (priv->platform);
 
+	priv->rules_manager = nmp_rules_manager_new (priv->platform);
+
+	/* Weakly track the default rules and rules that were added
+	 * outside of NetworkManager. */
+	nmp_rules_manager_track_default (priv->rules_manager,
+	                                 AF_UNSPEC,
+	                                 0,
+	                                 nm_netns_parent_class /* static dummy user-tag */);
+	nmp_rules_manager_track_from_platform (priv->rules_manager,
+	                                       NULL,
+	                                       AF_UNSPEC,
+	                                       0,
+	                                       nm_netns_parent_class /* static dummy user-tag */);
+
 	G_OBJECT_CLASS (nm_netns_parent_class)->constructed (object);
 }
 
@@ -136,6 +158,8 @@ dispose (GObject *object)
 	NMNetnsPrivate *priv = NM_NETNS_GET_PRIVATE (self);
 
 	g_clear_object (&priv->platform);
+
+	nm_clear_pointer (&priv->rules_manager, nmp_rules_manager_unref);
 
 	G_OBJECT_CLASS (nm_netns_parent_class)->dispose (object);
 }

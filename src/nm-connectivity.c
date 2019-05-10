@@ -167,6 +167,7 @@ NM_DEFINE_SINGLETON_GETTER (NMConnectivity, nm_connectivity_get, NM_TYPE_CONNECT
 
 /*****************************************************************************/
 
+#if WITH_CONCHECK
 static ConConfig *
 _con_config_ref (ConConfig *con_config)
 {
@@ -176,6 +177,7 @@ _con_config_ref (ConConfig *con_config)
 	}
 	return con_config;
 }
+#endif
 
 static void
 _con_config_unref (ConConfig *con_config)
@@ -195,11 +197,13 @@ _con_config_unref (ConConfig *con_config)
 	g_slice_free (ConConfig, con_config);
 }
 
+#if WITH_CONCHECK
 static const char *
 _con_config_get_response (const ConConfig *con_config)
 {
 	return con_config->response ?: NM_CONFIG_DEFAULT_CONNECTIVITY_RESPONSE;
 }
+#endif
 
 /*****************************************************************************/
 
@@ -673,6 +677,7 @@ _idle_cb (gpointer user_data)
 	return G_SOURCE_REMOVE;
 }
 
+#if WITH_CONCHECK
 static void
 do_curl_request (NMConnectivityCheckHandle *cb_data)
 {
@@ -791,6 +796,7 @@ resolve_cb (GObject *object, GAsyncResult *res, gpointer user_data)
 
 	do_curl_request (cb_data);
 }
+#endif
 
 #define SD_RESOLVED_DNS ((guint64) (1LL << 0))
 
@@ -819,12 +825,12 @@ nm_connectivity_check_start (NMConnectivity *self,
 	cb_data->user_data = user_data;
 	cb_data->completed_state = NM_CONNECTIVITY_UNKNOWN;
 	cb_data->addr_family = addr_family;
-	cb_data->concheck.con_config = _con_config_ref (priv->con_config);
-
 	if (iface)
 		cb_data->ifspec = g_strdup_printf ("if!%s", iface);
 
 #if WITH_CONCHECK
+
+	cb_data->concheck.con_config = _con_config_ref (priv->con_config);
 
 	if (   iface
 	    && ifindex > 0
@@ -840,7 +846,18 @@ nm_connectivity_check_start (NMConnectivity *self,
 		 *
 		 * Yes, this makes NMConnectivity singleton dependent on NMDnsManager singleton.
 		 * Well, not really: it makes connectivity-check-start dependent on NMDnsManager
-		 * which merely means, not to start a connectivity check, late during shutdown. */
+		 * which merely means, not to start a connectivity check, late during shutdown.
+		 *
+		 * NMDnsSystemdResolved tries to D-Bus activate systemd-resolved only once,
+		 * to not spam syslog with failures messages from dbus-daemon.
+		 * Note that unless NMDnsSystemdResolved tried and failed to start systemd-resolved,
+		 * it guesses that systemd-resolved is activatable and returns %TRUE here. That
+		 * means, while NMDnsSystemdResolved would not try to D-Bus activate systemd-resolved
+		 * more than once, NMConnectivity might -- until NMDnsSystemdResolved tried itself
+		 * and noticed that systemd-resolved is not available.
+		 * This is relatively cumbersome to avoid, because we would have to go through
+		 * NMDnsSystemdResolved trying to asynchronously start the service, to ensure there
+		 * is only one attempt to start the service. */
 		has_systemd_resolved = nm_dns_manager_has_systemd_resolved (nm_dns_manager_get ());
 
 		if (has_systemd_resolved) {

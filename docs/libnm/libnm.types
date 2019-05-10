@@ -8,6 +8,7 @@ nm_active_connection_state_get_type
 nm_active_connection_state_reason_get_type
 nm_agent_manager_error_get_type
 nm_bluetooth_capabilities_get_type
+nm_bridge_vlan_get_type
 nm_capability_get_type
 nm_checkpoint_create_flags_get_type
 nm_checkpoint_get_type
@@ -61,6 +62,8 @@ nm_dns_entry_get_type
 nm_ip_address_get_type
 nm_ip_config_get_type
 nm_ip_route_get_type
+nm_ip_routing_rule_as_string_flags_get_type
+nm_ip_routing_rule_get_type
 nm_ip_tunnel_flags_get_type
 nm_ip_tunnel_mode_get_type
 nm_lldp_neighbor_get_type

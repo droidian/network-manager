@@ -4,7 +4,7 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "shared/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.16.0',
+  version: '1.18.0',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -327,6 +327,11 @@ if enable_libnm_glib
 endif
 # FIXME: do this better!!!
 have_fake_typelibs = enable_libnm_glib and enable_introspection
+if have_fake_typelibs and gio_unix_dep.version().version_compare('< 2.51.1')
+  warning('cannot build fake typelibs for libnm because glib is too old')
+  have_fake_typelibs=false
+endif
+
 config_h.set10('WITH_FAKE_TYPELIBS', have_fake_typelibs)
 
 udev_dir = get_option('udev_dir')
@@ -437,7 +442,8 @@ config_h.set10('HAVE_SELINUX', enable_selinux)
 
 # eBPF support
 ebpf_opt = get_option('ebpf')
-if ebpf_opt == 'false'
+# 'auto' means 'false', because there are still issues.
+if ebpf_opt != 'true'
   enable_ebpf = false
 else
   enable_ebpf = true

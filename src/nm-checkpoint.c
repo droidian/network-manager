@@ -38,15 +38,19 @@
 
 typedef struct {
 	char *original_dev_path;
+	char *original_dev_name;
+	NMDeviceType dev_type;
 	NMDevice *device;
 	NMConnection *applied_connection;
 	NMConnection *settings_connection;
 	guint64 ac_version_id;
 	NMDeviceState state;
+	bool is_software:1;
 	bool realized:1;
 	bool activation_lifetime_bound_to_profile_visiblity:1;
 	NMUnmanFlagOp unmanaged_explicit;
 	NMActivationReason activation_reason;
+	gulong dev_exported_change_id;
 } DeviceCheckpoint;
 
 NM_GOBJECT_PROPERTIES_DEFINE (NMCheckpoint,
@@ -58,14 +62,15 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMCheckpoint,
 struct _NMCheckpointPrivate {
 	/* properties */
 	GHashTable *devices;
+	GPtrArray *removed_devices;
 	gint64 created_at_ms;
 	guint32 rollback_timeout_s;
 	guint timeout_id;
 	/* private members */
-	/* private members */
 	NMManager *manager;
 	NMCheckpointCreateFlags flags;
 	GHashTable *connection_uuids;
+	gulong dev_removed_id;
 
 	NMCheckpointTimeoutCallback timeout_cb;
 	gpointer timeout_data;
@@ -204,28 +209,140 @@ find_settings_connection (NMCheckpoint *self,
 	return sett_conn;
 }
 
+static gboolean
+restore_and_activate_connection (NMCheckpoint *self,
+                                 DeviceCheckpoint *dev_checkpoint)
+{
+	NMCheckpointPrivate *priv = NM_CHECKPOINT_GET_PRIVATE (self);
+	NMSettingsConnection *connection;
+	gs_unref_object NMAuthSubject *subject = NULL;
+	GError *local_error = NULL;
+	gboolean need_update, need_activation;
+
+	connection = find_settings_connection (self,
+	                                       dev_checkpoint,
+	                                       &need_update,
+	                                       &need_activation);
+	if (connection) {
+		if (need_update) {
+			_LOGD ("rollback: updating connection %s",
+			       nm_settings_connection_get_uuid (connection));
+			nm_settings_connection_update (connection,
+			                               dev_checkpoint->settings_connection,
+			                               NM_SETTINGS_CONNECTION_PERSIST_MODE_DISK,
+			                               NM_SETTINGS_CONNECTION_COMMIT_REASON_NONE,
+			                               "checkpoint-rollback",
+			                               NULL);
+		}
+	} else {
+		/* The connection was deleted, recreate it */
+		_LOGD ("rollback: adding connection %s again",
+		       nm_connection_get_uuid (dev_checkpoint->settings_connection));
+
+		connection = nm_settings_add_connection (nm_settings_get (),
+		                                         dev_checkpoint->settings_connection,
+		                                         TRUE,
+		                                         &local_error);
+		if (!connection) {
+			_LOGD ("rollback: connection add failure: %s", local_error->message);
+			g_clear_error (&local_error);
+			return FALSE;
+		}
+
+		/* If the device is software, a brand new NMDevice may have been created */
+		if (   dev_checkpoint->is_software
+		    && !dev_checkpoint->device) {
+			dev_checkpoint->device = nm_manager_get_device (priv->manager,
+			                                                dev_checkpoint->original_dev_name,
+			                                                dev_checkpoint->dev_type);
+			nm_g_object_ref (dev_checkpoint->device);
+		}
+		need_activation = TRUE;
+	}
+
+	if (!dev_checkpoint->device) {
+		_LOGD ("rollback: device cannot be restored");
+		return FALSE;
+	}
+
+	if (need_activation) {
+		_LOGD ("rollback: reactivating connection %s",
+		       nm_settings_connection_get_uuid (connection));
+		subject = nm_auth_subject_new_internal ();
+
+		/* Disconnect the device if needed. This necessary because now
+		 * the manager prevents the reactivation of the same connection by
+		 * an internal subject. */
+		if (   nm_device_get_state (dev_checkpoint->device) > NM_DEVICE_STATE_DISCONNECTED
+		    && nm_device_get_state (dev_checkpoint->device) < NM_DEVICE_STATE_DEACTIVATING) {
+			nm_device_state_changed (dev_checkpoint->device,
+			                         NM_DEVICE_STATE_DEACTIVATING,
+			                         NM_DEVICE_STATE_REASON_NEW_ACTIVATION);
+		}
+
+		if (!nm_manager_activate_connection (priv->manager,
+		                                     connection,
+		                                     dev_checkpoint->applied_connection,
+		                                     NULL,
+		                                     dev_checkpoint->device,
+		                                     subject,
+		                                     NM_ACTIVATION_TYPE_MANAGED,
+		                                     dev_checkpoint->activation_reason,
+		                                       dev_checkpoint->activation_lifetime_bound_to_profile_visiblity
+		                                     ? NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY
+		                                     : NM_ACTIVATION_STATE_FLAG_NONE,
+		                                     &local_error)) {
+			_LOGW ("rollback: reactivation of connection %s/%s failed: %s",
+			       nm_settings_connection_get_id (connection),
+			       nm_settings_connection_get_uuid (connection),
+			       local_error->message);
+			g_clear_error (&local_error);
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
 GVariant *
 nm_checkpoint_rollback (NMCheckpoint *self)
 {
 	NMCheckpointPrivate *priv = NM_CHECKPOINT_GET_PRIVATE (self);
 	DeviceCheckpoint *dev_checkpoint;
 	GHashTableIter iter;
-	NMSettingsConnection *connection;
 	NMDevice *device;
-	GError *local_error = NULL;
 	GVariantBuilder builder;
+	uint i;
 
 	_LOGI ("rollback of %s", nm_dbus_object_get_path (NM_DBUS_OBJECT (self)));
 	 g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{su}"));
 
+	/* Start creating removed devices (if any and if possible) */
+	if (priv->removed_devices) {
+		for (i = 0; i < priv->removed_devices->len; i++) {
+			guint32 result = NM_ROLLBACK_RESULT_OK;
+
+			dev_checkpoint = priv->removed_devices->pdata[i];
+			_LOGD ("rollback: restoring removed device %s (state %d, realized %d, explicitly unmanaged %d)",
+			       dev_checkpoint->original_dev_name,
+			       (int) dev_checkpoint->state,
+			       dev_checkpoint->realized,
+			       dev_checkpoint->unmanaged_explicit);
+
+			if (dev_checkpoint->applied_connection) {
+				if (!restore_and_activate_connection (self, dev_checkpoint))
+					result = NM_ROLLBACK_RESULT_ERR_FAILED;
+			}
+			g_variant_builder_add (&builder, "{su}", dev_checkpoint->original_dev_path, result);
+		}
+	}
+
 	/* Start rolling-back each device */
 	g_hash_table_iter_init (&iter, priv->devices);
 	while (g_hash_table_iter_next (&iter, (gpointer *) &device, (gpointer *) &dev_checkpoint)) {
-		gs_unref_object NMAuthSubject *subject = NULL;
 		guint32 result = NM_ROLLBACK_RESULT_OK;
 
 		_LOGD ("rollback: restoring device %s (state %d, realized %d, explicitly unmanaged %d)",
-		       nm_device_get_iface (device),
+		       dev_checkpoint->original_dev_name,
 		       (int) dev_checkpoint->state,
 		       dev_checkpoint->realized,
 		       dev_checkpoint->unmanaged_explicit);
@@ -241,7 +358,7 @@ nm_checkpoint_rollback (NMCheckpoint *self)
 			}
 		} else {
 			if (dev_checkpoint->realized) {
-				if (nm_device_is_software (device)) {
+				if (dev_checkpoint->is_software) {
 					/* try to recreate software device */
 					_LOGD ("rollback: software device not realized, will re-activate");
 					goto activate;
@@ -253,7 +370,6 @@ nm_checkpoint_rollback (NMCheckpoint *self)
 			goto next_dev;
 		}
 
-activate:
 		/* Manage the device again if needed */
 		if (   nm_device_get_unmanaged_flags (device, NM_UNMANAGED_USER_EXPLICIT)
 		    && dev_checkpoint->unmanaged_explicit != NM_UNMAN_FLAG_OP_SET_UNMANAGED) {
@@ -276,76 +392,11 @@ activate:
 			goto next_dev;
 		}
 
+activate:
 		if (dev_checkpoint->applied_connection) {
-			gboolean need_update, need_activation;
-
-			/* The device had an active connection: check if the
-			 * connection still exists, is active and was changed */
-			connection = find_settings_connection (self, dev_checkpoint, &need_update, &need_activation);
-			if (connection) {
-				if (need_update) {
-					_LOGD ("rollback: updating connection %s",
-					        nm_settings_connection_get_uuid (connection));
-					nm_settings_connection_update (connection,
-					                               dev_checkpoint->settings_connection,
-					                               NM_SETTINGS_CONNECTION_PERSIST_MODE_DISK,
-					                               NM_SETTINGS_CONNECTION_COMMIT_REASON_NONE,
-					                               "checkpoint-rollback",
-					                               NULL);
-				}
-			} else {
-				/* The connection was deleted, recreate it */
-				_LOGD ("rollback: adding connection %s again",
-				       nm_connection_get_uuid (dev_checkpoint->settings_connection));
-
-				connection = nm_settings_add_connection (nm_settings_get (),
-				                                         dev_checkpoint->settings_connection,
-				                                         TRUE,
-				                                         &local_error);
-				if (!connection) {
-					_LOGD ("rollback: connection add failure: %s", local_error->message);
-					g_clear_error (&local_error);
-					result = NM_ROLLBACK_RESULT_ERR_FAILED;
-					goto next_dev;
-				}
-				need_activation = TRUE;
-			}
-
-			if (need_activation) {
-				_LOGD ("rollback: reactivating connection %s",
-				       nm_settings_connection_get_uuid (connection));
-				subject = nm_auth_subject_new_internal ();
-
-				/* Disconnect the device if needed. This necessary because now
-				 * the manager prevents the reactivation of the same connection by
-				 * an internal subject. */
-				if (   nm_device_get_state (device) > NM_DEVICE_STATE_DISCONNECTED
-				    && nm_device_get_state (device) < NM_DEVICE_STATE_DEACTIVATING) {
-					nm_device_state_changed (device,
-					                         NM_DEVICE_STATE_DEACTIVATING,
-					                         NM_DEVICE_STATE_REASON_NEW_ACTIVATION);
-				}
-
-				if (!nm_manager_activate_connection (priv->manager,
-				                                     connection,
-				                                     dev_checkpoint->applied_connection,
-				                                     NULL,
-				                                     device,
-				                                     subject,
-				                                     NM_ACTIVATION_TYPE_MANAGED,
-				                                     dev_checkpoint->activation_reason,
-				                                       dev_checkpoint->activation_lifetime_bound_to_profile_visiblity
-				                                     ? NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY
-				                                     : NM_ACTIVATION_STATE_FLAG_NONE,
-				                                     &local_error)) {
-					_LOGW ("rollback: reactivation of connection %s/%s failed: %s",
-					       nm_settings_connection_get_id (connection),
-					       nm_settings_connection_get_uuid (connection),
-					       local_error->message);
-					g_clear_error (&local_error);
-					result = NM_ROLLBACK_RESULT_ERR_FAILED;
-					goto next_dev;
-				}
+			if (!restore_and_activate_connection (self, dev_checkpoint)) {
+				result = NM_ROLLBACK_RESULT_ERR_FAILED;
+				goto next_dev;
 			}
 		} else {
 			/* The device was initially disconnected, deactivate any existing connection */
@@ -366,7 +417,6 @@ next_dev:
 	if (NM_FLAGS_HAS (priv->flags, NM_CHECKPOINT_CREATE_FLAG_DELETE_NEW_CONNECTIONS)) {
 		NMSettingsConnection *con;
 		gs_free NMSettingsConnection **list = NULL;
-		guint i;
 
 		g_return_val_if_fail (priv->connection_uuids, NULL);
 		list = nm_settings_get_connections_clone (nm_settings_get (), NULL,
@@ -406,8 +456,56 @@ next_dev:
 	return g_variant_new ("(a{su})", &builder);
 }
 
+static void
+device_checkpoint_destroy (gpointer data)
+{
+	DeviceCheckpoint *dev_checkpoint = data;
+
+	nm_clear_g_signal_handler (dev_checkpoint->device, &dev_checkpoint->dev_exported_change_id);
+	g_clear_object (&dev_checkpoint->applied_connection);
+	g_clear_object (&dev_checkpoint->settings_connection);
+	g_clear_object (&dev_checkpoint->device);
+	g_free (dev_checkpoint->original_dev_path);
+	g_free (dev_checkpoint->original_dev_name);
+
+	g_slice_free (DeviceCheckpoint, dev_checkpoint);
+}
+
+static void
+_move_dev_to_removed_devices (NMDevice *device,
+                              NMCheckpoint *checkpoint)
+{
+	NMCheckpointPrivate *priv = NM_CHECKPOINT_GET_PRIVATE (checkpoint);
+	DeviceCheckpoint *dev_checkpoint;
+
+	g_return_if_fail (device);
+
+	dev_checkpoint = g_hash_table_lookup (priv->devices, device);
+	if (!dev_checkpoint)
+		return;
+
+	g_hash_table_steal (priv->devices, dev_checkpoint->device);
+	nm_clear_g_signal_handler (dev_checkpoint->device,
+	                           &dev_checkpoint->dev_exported_change_id);
+	g_clear_object (&dev_checkpoint->device);
+
+	if (!priv->removed_devices)
+		priv->removed_devices = g_ptr_array_new_with_free_func ((GDestroyNotify) device_checkpoint_destroy);
+	g_ptr_array_add (priv->removed_devices, dev_checkpoint);
+
+	_notify (checkpoint, PROP_DEVICES);
+}
+
+static void
+_dev_exported_changed (NMDBusObject *obj,
+                       NMCheckpoint *checkpoint)
+{
+
+	_move_dev_to_removed_devices (NM_DEVICE (obj), checkpoint);
+}
+
 static DeviceCheckpoint *
-device_checkpoint_create (NMDevice *device)
+device_checkpoint_create (NMCheckpoint *checkpoint, NMDevice *device)
 {
 	DeviceCheckpoint *dev_checkpoint;
 	NMConnection *applied_connection;
@@ -423,8 +521,15 @@ device_checkpoint_create (NMDevice *device)
 	dev_checkpoint = g_slice_new0 (DeviceCheckpoint);
 	dev_checkpoint->device = g_object_ref (device);
 	dev_checkpoint->original_dev_path = g_strdup (path);
+	dev_checkpoint->original_dev_name = g_strdup (nm_device_get_iface (device));
+	dev_checkpoint->dev_type = nm_device_get_device_type (device);
 	dev_checkpoint->state = nm_device_get_state (device);
+	dev_checkpoint->is_software = nm_device_is_software (device);
 	dev_checkpoint->realized = nm_device_is_real (device);
+	dev_checkpoint->dev_exported_change_id = g_signal_connect (device,
+	                                                           NM_DBUS_OBJECT_EXPORTED_CHANGED,
+	                                                           G_CALLBACK (_dev_exported_changed),
+	                                                           checkpoint);
 
 	if (nm_device_get_unmanaged_mask (device, NM_UNMANAGED_USER_EXPLICIT)) {
 		dev_checkpoint->unmanaged_explicit = !!nm_device_get_unmanaged_flags (device,
@@ -446,19 +551,6 @@ device_checkpoint_create (NMDevice *device)
 	}
 
 	return dev_checkpoint;
-}
-
-static void
-device_checkpoint_destroy (gpointer data)
-{
-	DeviceCheckpoint *dev_checkpoint = data;
-
-	g_clear_object (&dev_checkpoint->applied_connection);
-	g_clear_object (&dev_checkpoint->settings_connection);
-	g_clear_object (&dev_checkpoint->device);
-	g_free (dev_checkpoint->original_dev_path);
-
-	g_slice_free (DeviceCheckpoint, dev_checkpoint);
 }
 
 static gboolean
@@ -558,6 +650,12 @@ nm_checkpoint_init (NMCheckpoint *self)
 	                                       NULL, device_checkpoint_destroy);
 }
 
+static void
+_device_removed (NMManager *manager, NMDevice *device, gpointer user_data)
+{
+	_move_dev_to_removed_devices (device, NM_CHECKPOINT (user_data));
+}
+
 NMCheckpoint *
 nm_checkpoint_new (NMManager *manager, GPtrArray *devices, guint32 rollback_timeout_s,
                    NMCheckpointCreateFlags flags)
@@ -575,7 +673,7 @@ nm_checkpoint_new (NMManager *manager, GPtrArray *devices, guint32 rollback_time
 	self = g_object_new (NM_TYPE_CHECKPOINT, NULL);
 
 	priv = NM_CHECKPOINT_GET_PRIVATE (self);
-	priv->manager = manager;
+	priv->manager = g_object_ref (manager);
 	priv->rollback_timeout_s = rollback_timeout_s;
 	priv->created_at_ms = nm_utils_get_monotonic_timestamp_ms ();
 	priv->flags = flags;
@@ -598,15 +696,18 @@ nm_checkpoint_new (NMManager *manager, GPtrArray *devices, guint32 rollback_time
 	for (i = 0; i < devices->len; i++) {
 		NMDevice *device = devices->pdata[i];
 
-		/* FIXME: as long as the check point instance exists, it won't let go
-		 *        of the device. That is a bug, for example, if you have a ethernet
-		 *        device that gets removed (rmmod), the checkpoint will reference
-		 *        a non-existing D-Bus path of a device. */
+		/* As long as the check point instance exists, it will keep a reference
+		 * to the device also if the device gets removed (by rmmod or by deleting
+		 * a connection profile for a software device). */
 		g_hash_table_insert (priv->devices,
 		                     device,
-		                     device_checkpoint_create (device));
+		                     device_checkpoint_create (self, device));
 	}
 
+	priv->dev_removed_id = g_signal_connect (priv->manager,
+	                                         NM_MANAGER_DEVICE_REMOVED,
+	                                         G_CALLBACK (_device_removed),
+	                                         self);
 	return self;
 }
 
@@ -620,6 +721,10 @@ dispose (GObject *object)
 
 	g_clear_pointer (&priv->devices, g_hash_table_unref);
 	g_clear_pointer (&priv->connection_uuids, g_hash_table_unref);
+	nm_clear_pointer (&priv->removed_devices, g_ptr_array_unref);
+
+	nm_clear_g_signal_handler (priv->manager, &priv->dev_removed_id);
+	g_clear_object (&priv->manager);
 
 	nm_clear_g_source (&priv->timeout_id);
 

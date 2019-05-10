@@ -2,7 +2,7 @@ name = 'nmtui'
 
 deps = [
   newt_dep,
-  nm_core_dep,
+  libnm_core_dep,
 ]
 
 cflags = clients_cflags + [
@@ -56,6 +56,7 @@ sources = files(
 
 deps += [
   libnm_dep,
+  libnmc_dep,
   libnmc_base_dep,
   libnmt_newt_dep,
 ]

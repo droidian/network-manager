@@ -30,14 +30,14 @@
 #include <teamdctl.h>
 #include <stdlib.h>
 
-#include "nm-utils/nm-jansson.h"
+#include "nm-glib-aux/nm-jansson.h"
 #include "NetworkManagerUtils.h"
 #include "devices/nm-device-private.h"
 #include "platform/nm-platform.h"
 #include "nm-config.h"
 #include "nm-core-internal.h"
 #include "nm-ip4-config.h"
-#include "nm-dbus-compat.h"
+#include "nm-std-aux/nm-dbus-compat.h"
 
 #include "devices/nm-device-logging.h"
 _LOG_DECLARE_SELF(NMDeviceTeam);
@@ -408,8 +408,10 @@ teamd_dbus_appeared (GDBusConnection *connection,
 			success = teamd_read_config (device);
 		if (success)
 			nm_device_activate_schedule_stage2_device_config (device);
-		else if (!nm_device_sys_iface_state_is_external_or_assume (device))
+		else if (!nm_device_sys_iface_state_is_external_or_assume (device)) {
+			teamd_cleanup (device, TRUE);
 			nm_device_state_changed (device, NM_DEVICE_STATE_FAILED, NM_DEVICE_STATE_REASON_TEAMD_CONTROL_FAILED);
+		}
 	}
 }
 

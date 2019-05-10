@@ -23,8 +23,8 @@
 
 #include "nm-default.h"
 
-#include "nm-utils/c-list-util.h"
-#include "nm-utils/nm-enum-utils.h"
+#include "nm-std-aux/c-list-util.h"
+#include "nm-glib-aux/nm-enum-utils.h"
 
 #include "nm-utils.h"
 #include "nm-setting-private.h"
@@ -63,8 +63,8 @@
 #include "nm-setting-wpan.h"
 #include "nm-simple-connection.h"
 #include "nm-keyfile-internal.h"
-#include "nm-utils/nm-dedup-multi.h"
-#include "nm-ethtool-utils.h"
+#include "nm-glib-aux/nm-dedup-multi.h"
+#include "nm-libnm-core-intern/nm-ethtool-utils.h"
 
 #include "test-general-enums.h"
 
@@ -77,6 +77,29 @@
  * will just work correctly. */
 G_STATIC_ASSERT (sizeof (gboolean) == sizeof (int));
 G_STATIC_ASSERT (sizeof (bool) <= sizeof (int));
+
+/*****************************************************************************/
+
+static void
+test_nm_ascii_spaces (void)
+{
+	int i;
+	const char *const S = NM_ASCII_SPACES;
+
+	for (i = 0; S[i]; i++)
+		g_assert (!strchr (&S[i + 1], S[i]));
+
+	for (i = 0; S[i] != '\0'; i++)
+		g_assert (g_ascii_isspace (S[i]));
+
+	g_assert (!g_ascii_isspace ((char) 0));
+	for (i = 1; i < 0x100; i++) {
+		if (g_ascii_isspace ((char) i))
+			g_assert (strchr (S, (char) i));
+		else
+			g_assert (!strchr (S, (char) i));
+	}
+}
 
 /*****************************************************************************/
 
@@ -236,51 +259,324 @@ test_nm_g_slice_free_fcn (void)
 /*****************************************************************************/
 
 static void
-_do_test_nm_utils_strsplit_set (gboolean escape, const char *str, ...)
+_do_test_nm_utils_strsplit_set_f_one (NMUtilsStrsplitSetFlags flags,
+                                      const char *str,
+                                      gsize words_len,
+                                      const char *const*exp_words)
 {
-	gs_unref_ptrarray GPtrArray *args_array = g_ptr_array_new ();
-	const char *const*args;
+#define DELIMITERS           " \n"
+#define DELIMITERS_C         ' ', '\n'
+
 	gs_free const char **words = NULL;
-	const char *arg;
-	gsize i;
-	va_list ap;
+	gsize i, j, k;
+	const gboolean f_allow_escaping = NM_FLAGS_HAS (flags, NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING);
+	const gboolean f_preserve_empty = NM_FLAGS_HAS (flags, NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY);
+	const char *s1;
+	gsize initial_offset;
+	gs_strfreev char **words_g = NULL;
 
-	va_start (ap, str);
-	while ((arg = va_arg (ap, const char *)))
-		g_ptr_array_add (args_array, (gpointer) arg);
-	va_end (ap);
-	g_ptr_array_add (args_array, NULL);
+	g_assert (!NM_FLAGS_ANY (flags, ~(  NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING
+	                                  | NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY)));
 
-	args = (const char *const*) args_array->pdata;
+	/* assert that the epected words are valid (and don't contain unescaped delimiters). */
+	for (i = 0; i < words_len; i++) {
+		const char *w = exp_words[i];
 
-	words = nm_utils_strsplit_set (str, " \t\n", escape);
+		g_assert (w);
+		if (!f_preserve_empty)
+			g_assert (w[0]);
+		for (k = 0; w[k]; ) {
+			if (   f_allow_escaping
+			    && w[k] == '\\') {
+				k++;
+				if (w[k] == '\0')
+					break;
+				k++;
+				continue;
+			}
+			g_assert (!NM_IN_SET (w[k], DELIMITERS_C));
+			k++;
+		}
+		if (!f_allow_escaping)
+			g_assert (!NM_STRCHAR_ANY (w, ch, NM_IN_SET (ch, DELIMITERS_C)));
+	}
 
-	if (!args[0]) {
+	initial_offset = (f_preserve_empty || !str)
+	                 ? 0u
+	                 : strspn (str, DELIMITERS);
+
+	/* first compare our expected values with what g_strsplit_set() would
+	 * do. */
+	words_g = str ? g_strsplit_set (str, DELIMITERS, -1) : NULL;
+	if (str == NULL) {
+		g_assert_cmpint (words_len, ==, 0);
+		g_assert (!words_g);
+	} else if (nm_streq0 (str, "")) {
+		g_assert_cmpint (words_len, ==, 0);
+		g_assert (words_g);
+		g_assert (!words_g[0]);
+	} else {
+		g_assert (words_g);
+		g_assert (words_g[0]);
+		if (!f_allow_escaping) {
+			if (!f_preserve_empty) {
+				for (i = 0, j = 0; words_g[i]; i++) {
+					if (words_g[i][0] == '\0')
+						g_free (words_g[i]);
+					else
+						words_g[j++] = words_g[i];
+				}
+				words_g[j] = NULL;
+			}
+			if (f_preserve_empty)
+				g_assert_cmpint (words_len, >, 0);
+			for (i = 0; i < words_len; i++) {
+				g_assert (exp_words[i]);
+				g_assert_cmpstr (exp_words[i], ==, words_g[i]);
+			}
+			g_assert (words_g[words_len] == NULL);
+			g_assert_cmpint (NM_PTRARRAY_LEN (words_g), ==, words_len);
+			g_assert (_nm_utils_strv_cmp_n (exp_words, words_len, NM_CAST_STRV_CC (words_g), -1) == 0);
+		}
+	}
+
+	if (   flags == NM_UTILS_STRSPLIT_SET_FLAGS_NONE
+	    && nmtst_get_rand_bool ())
+		words = nm_utils_strsplit_set (str, DELIMITERS);
+	else if (   flags == NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY
+	         && nmtst_get_rand_bool ())
+		words = nm_utils_strsplit_set_with_empty (str, DELIMITERS);
+	else
+		words = nm_utils_strsplit_set_full (str, DELIMITERS, flags);
+
+	g_assert_cmpint (NM_PTRARRAY_LEN (words), ==, words_len);
+
+	if (words_len == 0) {
 		g_assert (!words);
 		g_assert (   !str
-		          || NM_STRCHAR_ALL (str, ch, NM_IN_SET (ch, ' ', '\t', '\n')));
+		          || NM_STRCHAR_ALL (str, ch, NM_IN_SET (ch, DELIMITERS_C)));
 		return;
 	}
+
 	g_assert (words);
-	for (i = 0; args[i] || words[i]; i++) {
-		g_assert (args[i]);
-		g_assert (words[i]);
-		g_assert (args[i][0]);
-		g_assert (escape || NM_STRCHAR_ALL (args[i], ch, !NM_IN_SET (ch, ' ', '\t', '\n')));
-		g_assert_cmpstr (args[i], ==, words[i]);
+	for (i = 0; i < words_len; i++)
+		g_assert_cmpstr (exp_words[i], ==, words[i]);
+	g_assert (words[words_len] == NULL);
+
+	g_assert (_nm_utils_strv_cmp_n (exp_words, words_len, words, -1) == 0);
+
+	s1 = words[0];
+	g_assert (s1 >= (char *) &words[words_len + 1]);
+	s1 = &s1[strlen (str)];
+	for (i = 1; i < words_len; i++) {
+		g_assert (&(words[i - 1])[strlen (words[i - 1])] < words[i]);
+		g_assert (words[i] <= s1);
+	}
+
+	/* while strsplit removes all delimiters, we can relatively easily find them
+	 * in the original string. Assert that the original string and the pointer offsets
+	 * of words correspond. In particular, find idx_delim_after and idx_delim_before
+	 * to determine which delimiter was after/before a word. */
+	{
+		gsize idx_word_start;
+		gsize idx_delim_after_old = G_MAXSIZE;
+
+		idx_word_start = initial_offset;
+		for (i = 0; i < words_len; i++) {
+			const gsize l_i = strlen (words[i]);
+			gsize idx_delim_after;
+			gsize idx_delim_before;
+
+			/* find the delimiter *after* words[i]. We can do that by looking at the next
+			 * word and calculating the pointer difference.
+			 *
+			 * The delimiter after the very last word is '\0' and requires strlen() to find. */
+			idx_delim_after = initial_offset + ((words[i] - words[0]) + l_i);
+			if (idx_delim_after != idx_word_start + l_i) {
+				g_assert (!f_preserve_empty);
+				g_assert_cmpint (idx_word_start + l_i, <, idx_delim_after);
+				idx_word_start = idx_delim_after - l_i;
+			}
+			if (i + 1 < words_len) {
+				gsize x = initial_offset + ((words[i + 1] - words[0]) - 1);
+
+				if (idx_delim_after != x) {
+					g_assert (!f_preserve_empty);
+					g_assert_cmpint (idx_delim_after, <, x);
+					for (k = idx_delim_after; k <= x; k++)
+						g_assert (NM_IN_SET (str[k], DELIMITERS_C));
+				}
+				g_assert (NM_IN_SET (str[idx_delim_after], DELIMITERS_C));
+			} else {
+				if (f_preserve_empty)
+					g_assert (NM_IN_SET (str[idx_delim_after], '\0'));
+				else
+					g_assert (NM_IN_SET (str[idx_delim_after], '\0', DELIMITERS_C));
+			}
+
+			/* find the delimiter *before* words[i]. */
+			if (i == 0) {
+				/* there is only a delimiter *before*, with !f_preserve_empty and leading
+				 * delimiters. */
+				idx_delim_before = G_MAXSIZE;
+				if (initial_offset > 0) {
+					g_assert (!f_preserve_empty);
+					idx_delim_before = initial_offset - 1;
+				}
+			} else
+				idx_delim_before = initial_offset + (words[i] - words[0]) - 1;
+			if (idx_delim_before != G_MAXSIZE)
+				g_assert (NM_IN_SET (str[idx_delim_before], DELIMITERS_C));
+			if (idx_delim_after_old != idx_delim_before) {
+				g_assert (!f_preserve_empty);
+				if (i == 0) {
+					g_assert_cmpint (initial_offset, >, 0);
+					g_assert_cmpint (idx_delim_before, !=, G_MAXSIZE);
+					g_assert_cmpint (idx_delim_before, ==, initial_offset - 1);
+				} else {
+					g_assert_cmpint (idx_delim_after_old, !=, G_MAXSIZE);
+					g_assert_cmpint (idx_delim_before, !=, G_MAXSIZE);
+					g_assert_cmpint (idx_delim_after_old, <, idx_delim_before);
+					for (k = idx_delim_after_old; k <= idx_delim_before; k++)
+						g_assert (NM_IN_SET (str[k], DELIMITERS_C));
+				}
+			}
+
+			for (k = 0; k < l_i; ) {
+				if (   f_allow_escaping
+				    && str[idx_word_start + k] == '\\') {
+					k++;
+					if (k >= l_i)
+						break;
+					k++;
+					continue;
+				}
+				g_assert (!NM_IN_SET (str[idx_word_start + k], DELIMITERS_C));
+				k++;
+			}
+			g_assert (strncmp (words[i], &str[idx_word_start], l_i) == 0);
+
+			if (i > 0) {
+				const char *s = &(words[i - 1])[strlen (words[i - 1]) + 1];
+
+				if (s != words[i]) {
+					g_assert (!f_preserve_empty);
+					g_assert (s < words[i]);
+				}
+			}
+
+			idx_word_start += l_i + 1;
+			idx_delim_after_old = idx_delim_after;
+		}
 	}
 }
 
-#define do_test_nm_utils_strsplit_set(str, ...) \
-	_do_test_nm_utils_strsplit_set (str, ##__VA_ARGS__, NULL)
+static void
+_do_test_nm_utils_strsplit_set_f (NMUtilsStrsplitSetFlags flags,
+                                  const char *str,
+                                  gsize words_len,
+                                  const char *const*exp_words)
+{
+	_do_test_nm_utils_strsplit_set_f_one (flags, str, words_len, exp_words);
+
+	if (NM_FLAGS_HAS (flags, NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY)) {
+		gs_unref_ptrarray GPtrArray *exp_words2 = NULL;
+		gsize k;
+
+		exp_words2 = g_ptr_array_new ();
+		for (k = 0; k < words_len; k++) {
+			if (exp_words[k][0] != '\0')
+				g_ptr_array_add (exp_words2, (gpointer) exp_words[k]);
+		}
+
+		_do_test_nm_utils_strsplit_set_f_one (flags & (~NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY),
+		                                      str,
+		                                      exp_words2->len,
+		                                      (const char *const*) exp_words2->pdata);
+	}
+}
+
+#define do_test_nm_utils_strsplit_set_f(flags, str, ...) \
+	_do_test_nm_utils_strsplit_set_f (flags, \
+	                                  str, \
+	                                  NM_NARG (__VA_ARGS__), \
+	                                  NM_MAKE_STRV (__VA_ARGS__))
+
+#define do_test_nm_utils_strsplit_set(allow_escaping, str, ...) \
+	do_test_nm_utils_strsplit_set_f (  (allow_escaping) \
+	                                 ? NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING \
+	                                 : NM_UTILS_STRSPLIT_SET_FLAGS_NONE, \
+	                                 str, \
+	                                 ##__VA_ARGS__)
+
+static void
+_do_test_nm_utils_strsplit_set_simple (NMUtilsStrsplitSetFlags flags,
+                                       const char *str,
+                                       gsize words_len,
+                                       const char *const*exp_words)
+{
+	gs_free const char **tokens = NULL;
+	gsize n_tokens;
+
+	tokens = nm_utils_strsplit_set_full (str, DELIMITERS, flags);
+
+	if (!tokens) {
+		g_assert_cmpint (words_len, ==, 0);
+		return;
+	}
+
+	g_assert (str && str[0]);
+	g_assert_cmpint (words_len, >, 0);
+	n_tokens = NM_PTRARRAY_LEN (tokens);
+
+	if (_nm_utils_strv_cmp_n (exp_words, words_len, tokens, -1) != 0) {
+		gsize i;
+
+		g_print (">>> split \"%s\" (flags %x) got %zu tokens (%zu expected)\n", str, (guint) flags, n_tokens, words_len);
+		for (i = 0; i < NM_MAX (n_tokens, words_len); i++) {
+			const char *s1 = i < n_tokens  ? tokens[i]    : NULL;
+			const char *s2 = i < words_len ? exp_words[i] : NULL;
+
+			g_print (">>> [%zu]: %s - %s%s%s vs. %s%s%s\n",
+			         i,
+			         nm_streq0 (s1, s2) ? "same" : "diff",
+			         NM_PRINT_FMT_QUOTE_STRING (s1),
+			         NM_PRINT_FMT_QUOTE_STRING (s2));
+		}
+		g_assert_not_reached ();
+	}
+	g_assert_cmpint (words_len, ==, NM_PTRARRAY_LEN (tokens));
+}
+#define do_test_nm_utils_strsplit_set_simple(flags, str, ...) \
+	_do_test_nm_utils_strsplit_set_simple ((flags), (str), NM_NARG (__VA_ARGS__), NM_MAKE_STRV (__VA_ARGS__))
 
 static void
 test_nm_utils_strsplit_set (void)
 {
+	gs_unref_ptrarray GPtrArray *words_exp = NULL;
+	guint test_run;
+
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_NONE, NULL);
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_NONE, "");
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_NONE, " ");
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_NONE, "a  b", "a", "b");
+
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, NULL);
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "");
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, " ", "", "");
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "  ", "", "", "");
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "a  ", "a", "", "");
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "a  b", "a", "", "b");
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, " ab  b", "", "ab", "", "b");
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "ab  b", "ab", "", "b");
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "abb", "abb");
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "abb  bb ", "abb", "", "bb", "");
+	do_test_nm_utils_strsplit_set_f (NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "abb bcb ", "abb", "bcb", "");
+
 	do_test_nm_utils_strsplit_set (FALSE, NULL);
 	do_test_nm_utils_strsplit_set (FALSE, "");
-	do_test_nm_utils_strsplit_set (FALSE, "\t");
-	do_test_nm_utils_strsplit_set (FALSE, " \t\n");
+	do_test_nm_utils_strsplit_set (FALSE, "\n");
+	do_test_nm_utils_strsplit_set (TRUE, " \t\n", "\t");
 	do_test_nm_utils_strsplit_set (FALSE, "a", "a");
 	do_test_nm_utils_strsplit_set (FALSE, "a b", "a", "b");
 	do_test_nm_utils_strsplit_set (FALSE, "a\rb", "a\rb");
@@ -300,6 +596,76 @@ test_nm_utils_strsplit_set (void)
 	do_test_nm_utils_strsplit_set (TRUE, "foo\\", "foo\\");
 	do_test_nm_utils_strsplit_set (TRUE, "bar foo\\", "bar", "foo\\");
 	do_test_nm_utils_strsplit_set (TRUE, "\\ a b\\ \\  c", "\\ a", "b\\ \\ ", "c");
+
+	words_exp = g_ptr_array_new_with_free_func (g_free);
+	for (test_run = 0; test_run < 100; test_run++) {
+		gboolean f_allow_escaping = nmtst_get_rand_bool ();
+		guint words_len = nmtst_get_rand_int () % 100;
+		gs_free char *str = NULL;
+		guint i;
+
+		g_ptr_array_set_size (words_exp, 0);
+		for (i = 0; i < words_len; i++) {
+			guint word_len;
+			char *word;
+			guint j;
+
+			word_len = nmtst_get_rand_int ();
+			if ((word_len % 100) < 30)
+				word_len = 0;
+			else
+				word_len = (word_len >> 10) % 100;
+			word = g_new (char, word_len + 3);
+			for (j = 0; j < word_len; ) {
+				guint32 p = nmtst_get_rand_int ();
+				static const char delimiters_arr[] = { DELIMITERS_C };
+				static const char regular_chars[] = "abcdefghijklmnopqrstuvwxyz";
+
+				if (   !f_allow_escaping
+				    || (p % 1000) < 700) {
+					if (((p >> 20) % 100) < 20)
+						word[j++] = '\\';
+					word[j++] = regular_chars[(p >> 11) % (G_N_ELEMENTS (regular_chars) - 1)];
+					continue;
+				}
+				word[j++] = '\\';
+				word[j++] = delimiters_arr[(p >> 11) % G_N_ELEMENTS (delimiters_arr)];
+			}
+			word[j] = '\0';
+			g_ptr_array_add (words_exp, word);
+		}
+		g_ptr_array_add (words_exp, NULL);
+
+		str = g_strjoinv (" ", (char **) words_exp->pdata);
+
+		if (   str[0] == '\0'
+		    && words_len > 0) {
+			g_assert (words_len == 1);
+			g_assert_cmpstr (words_exp->pdata[0], ==, "");
+			words_len = 0;
+		}
+
+		_do_test_nm_utils_strsplit_set_f (  (f_allow_escaping ? NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING : NM_UTILS_STRSPLIT_SET_FLAGS_NONE)
+		                                  | NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
+		                                  str,
+		                                  words_len,
+		                                  (const char *const*) words_exp->pdata);
+	}
+
+	do_test_nm_utils_strsplit_set_simple (NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED, "\t", "\t");
+	do_test_nm_utils_strsplit_set_simple (NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED | NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP, "\t");
+	do_test_nm_utils_strsplit_set_simple (NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED | NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP | NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
+	                                      "\t", "");
+	do_test_nm_utils_strsplit_set_simple (NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED | NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP | NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
+	                                      "\t\\\t\t\t\\\t", "\t\t\t\t");
+
+	do_test_nm_utils_strsplit_set_simple (NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED, "\ta", "\ta");
+	do_test_nm_utils_strsplit_set_simple (NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED | NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP, "\ta", "a");
+	do_test_nm_utils_strsplit_set_simple (NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED, "\ta\\ b\t\\ ", "\ta b\t ");
+	do_test_nm_utils_strsplit_set_simple (NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED | NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP, "\ta\\ b\t\\ \t", "a b\t ");
+	do_test_nm_utils_strsplit_set_simple (NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED, "a\\  b", "a ", "b");
+	do_test_nm_utils_strsplit_set_simple (NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED, "\ta\\  b", "\ta ", "b");
+	do_test_nm_utils_strsplit_set_simple (NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED | NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP, "\ta\\  b", "a ", "b");
 }
 
 /*****************************************************************************/
@@ -809,54 +1175,54 @@ test_setting_vpn_items (void)
 	nm_setting_vpn_remove_data_item (s_vpn, "foobar4-flags");
 
 	/* Try to add some blank values and make sure they are rejected */
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key && key[0]));
 	nm_setting_vpn_add_data_item (s_vpn, NULL, NULL);
 	g_test_assert_expected_messages ();
 
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strlen (key) > 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key && key[0]));
 	nm_setting_vpn_add_data_item (s_vpn, "", "");
 	g_test_assert_expected_messages ();
 
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (item != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (item && item[0]));
 	nm_setting_vpn_add_data_item (s_vpn, "foobar1", NULL);
 	g_test_assert_expected_messages ();
 
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strlen (item) > 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (item && item[0]));
 	nm_setting_vpn_add_data_item (s_vpn, "foobar1", "");
 	g_test_assert_expected_messages ();
 
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key && key[0]));
 	nm_setting_vpn_add_data_item (s_vpn, NULL, "blahblah1");
 	g_test_assert_expected_messages ();
 
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strlen (key) > 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key && key[0]));
 	nm_setting_vpn_add_data_item (s_vpn, "", "blahblah1");
 	g_test_assert_expected_messages ();
 
 	nm_setting_vpn_foreach_data_item (s_vpn, vpn_check_empty_func, NULL);
 
 	/* Try to add some blank secrets and make sure they are rejected */
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key && key[0]));
 	nm_setting_vpn_add_secret (s_vpn, NULL, NULL);
 	g_test_assert_expected_messages ();
 
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strlen (key) > 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key && key[0]));
 	nm_setting_vpn_add_secret (s_vpn, "", "");
 	g_test_assert_expected_messages ();
 
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (secret != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (secret && secret[0]));
 	nm_setting_vpn_add_secret (s_vpn, "foobar1", NULL);
 	g_test_assert_expected_messages ();
 
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strlen (secret) > 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (secret && secret[0]));
 	nm_setting_vpn_add_secret (s_vpn, "foobar1", "");
 	g_test_assert_expected_messages ();
 
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key != NULL));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key && key[0]));
 	nm_setting_vpn_add_secret (s_vpn, NULL, "blahblah1");
 	g_test_assert_expected_messages ();
 
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (strlen (key) > 0));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key && key[0]));
 	nm_setting_vpn_add_secret (s_vpn, "", "blahblah1");
 	g_test_assert_expected_messages ();
 
@@ -2347,7 +2713,7 @@ test_setting_connection_permissions_helpers (void)
 	g_assert (!success);
 
 	/* Ensure a bad [type] is rejected */
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (ptype));
+	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (ptype && ptype[0]));
 	success = nm_setting_connection_add_permission (s_con, NULL, "blah", NULL);
 	g_test_assert_expected_messages ();
 	g_assert (!success);
@@ -2687,6 +3053,7 @@ test_connection_diff_a_only (void)
 			{ NM_SETTING_IP_CONFIG_ROUTES,             NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_ROUTE_METRIC,       NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_ROUTE_TABLE,        NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_IP_CONFIG_ROUTING_RULES,      NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES, NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS,    NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP4_CONFIG_DHCP_CLIENT_ID,    NM_SETTING_DIFF_RESULT_IN_A },
@@ -4713,6 +5080,7 @@ test_connection_normalize_infiniband_mtu (void)
 {
 	gs_unref_object NMConnection *con = NULL;
 	NMSettingInfiniband *s_infini;
+	guint mtu_regular = nmtst_rand_select (2044, 2045, 65520);
 
 	con = nmtst_create_minimal_connection ("test_connection_normalize_infiniband_mtu", NULL,
 	                                       NM_SETTING_INFINIBAND_SETTING_NAME, NULL);
@@ -4725,26 +5093,26 @@ test_connection_normalize_infiniband_mtu (void)
 
 	g_object_set (s_infini,
 	              NM_SETTING_INFINIBAND_TRANSPORT_MODE, "datagram",
-	              NM_SETTING_INFINIBAND_MTU, (guint) 2044,
+	              NM_SETTING_INFINIBAND_MTU, (guint) mtu_regular,
 	              NULL);
 	nmtst_assert_connection_verifies_and_normalizable (con);
 	nmtst_connection_normalize (con);
-	g_assert_cmpint (2044, ==, nm_setting_infiniband_get_mtu (s_infini));
+	g_assert_cmpint (mtu_regular, ==, nm_setting_infiniband_get_mtu (s_infini));
 
 	g_object_set (s_infini,
 	              NM_SETTING_INFINIBAND_TRANSPORT_MODE, "datagram",
-	              NM_SETTING_INFINIBAND_MTU, (guint) 2045,
+	              NM_SETTING_INFINIBAND_MTU, (guint) 65521,
 	              NULL);
 	nmtst_assert_connection_verifies_after_normalization (con, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY);
 	nmtst_connection_normalize (con);
-	g_assert_cmpint (2044, ==, nm_setting_infiniband_get_mtu (s_infini));
+	g_assert_cmpint (65520, ==, nm_setting_infiniband_get_mtu (s_infini));
 
 	g_object_set (s_infini,
 	              NM_SETTING_INFINIBAND_TRANSPORT_MODE, "connected",
-	              NM_SETTING_INFINIBAND_MTU, (guint) 65520,
+	              NM_SETTING_INFINIBAND_MTU, (guint) mtu_regular,
 	              NULL);
 	nmtst_assert_connection_verifies_without_normalization (con);
-	g_assert_cmpint (65520, ==, nm_setting_infiniband_get_mtu (s_infini));
+	g_assert_cmpint (mtu_regular, ==, nm_setting_infiniband_get_mtu (s_infini));
 
 	g_object_set (s_infini,
 	              NM_SETTING_INFINIBAND_TRANSPORT_MODE, "connected",
@@ -5540,7 +5908,7 @@ _sock_addr_endpoint (const char *endpoint,
 	SockAddrUnion sockaddr = { };
 
 	g_assert (endpoint);
-	g_assert (!host == (port == -1));
+	g_assert ((!host) == (port == -1));
 	g_assert (port >= -1 && port <= G_MAXUINT16);
 
 	ep = nm_sock_addr_endpoint_new (endpoint);
@@ -7706,53 +8074,6 @@ test_ethtool_offload (void)
 	g_assert_cmpstr (d->optname, ==, NM_ETHTOOL_OPTNAME_FEATURE_RXHASH);
 }
 
-static void
-test_nm_utils_escape_spaces (void)
-{
-	char *to_free;
-
-	g_assert_cmpstr (_nm_utils_escape_spaces (NULL, &to_free), ==, NULL);
-	g_free (to_free);
-
-	g_assert_cmpstr (_nm_utils_escape_spaces ("", &to_free), ==, "");
-	g_free (to_free);
-
-	g_assert_cmpstr (_nm_utils_escape_spaces (" ", &to_free), ==, "\\ ");
-	g_free (to_free);
-
-	g_assert_cmpstr (_nm_utils_escape_spaces ("\t ", &to_free), ==, "\\\t\\ ");
-	g_free (to_free);
-
-	g_assert_cmpstr (_nm_utils_escape_spaces ("abc", &to_free), ==, "abc");
-	g_free (to_free);
-
-	g_assert_cmpstr (_nm_utils_escape_spaces ("abc def", &to_free), ==, "abc\\ def");
-	g_free (to_free);
-
-	g_assert_cmpstr (_nm_utils_escape_spaces ("abc\tdef", &to_free), ==, "abc\\\tdef");
-	g_free (to_free);
-}
-
-static void
-test_nm_utils_unescape_spaces (void)
-{
-#define CHECK_STR(in, out) \
-	G_STMT_START { \
-		gs_free char *str = g_strdup (in); \
-		\
-		g_assert_cmpstr (_nm_utils_unescape_spaces (str), ==, out); \
-	} G_STMT_END
-
-	CHECK_STR ("\\a", "\\a");
-	CHECK_STR ("foobar", "foobar");
-	CHECK_STR ("foo bar", "foo bar");
-	CHECK_STR ("foo\\ bar", "foo bar");
-	CHECK_STR ("foo\\", "foo\\");
-	CHECK_STR ("\\\\\t", "\\\t");
-
-#undef CHECK_STR
-}
-
 /*****************************************************************************/
 
 NMTST_DEFINE ();
@@ -7761,6 +8082,7 @@ int main (int argc, char **argv)
 {
 	nmtst_init (&argc, &argv, TRUE);
 
+	g_test_add_func ("/core/general/test_nm_ascii_spaces", test_nm_ascii_spaces);
 	g_test_add_func ("/core/general/test_nm_hash", test_nm_hash);
 	g_test_add_func ("/core/general/test_nm_g_slice_free_fcn", test_nm_g_slice_free_fcn);
 	g_test_add_func ("/core/general/test_c_list_sort", test_c_list_sort);
@@ -7905,8 +8227,6 @@ int main (int argc, char **argv)
 	g_test_add_func ("/core/general/_nm_utils_dns_option_find_idx", test_nm_utils_dns_option_find_idx);
 	g_test_add_func ("/core/general/_nm_utils_validate_json", test_nm_utils_check_valid_json);
 	g_test_add_func ("/core/general/_nm_utils_team_config_equal", test_nm_utils_team_config_equal);
-	g_test_add_func ("/core/general/_nm_utils_escape_spaces", test_nm_utils_escape_spaces);
-	g_test_add_func ("/core/general/_nm_utils_unescape_spaces", test_nm_utils_unescape_spaces);
 	g_test_add_func ("/core/general/test_nm_utils_enum", test_nm_utils_enum);
 	g_test_add_func ("/core/general/nm-set-out", test_nm_set_out);
 	g_test_add_func ("/core/general/route_attributes/parse", test_route_attributes_parse);

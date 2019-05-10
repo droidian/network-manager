@@ -416,11 +416,17 @@
     <keyword type="macro" name="NM_LLDP_ATTR_SYSTEM_NAME" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-SYSTEM-NAME:CAPS"/>
     <keyword type="macro" name="NM_LLDP_ATTR_SYSTEM_DESCRIPTION" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-SYSTEM-DESCRIPTION:CAPS"/>
     <keyword type="macro" name="NM_LLDP_ATTR_SYSTEM_CAPABILITIES" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-SYSTEM-CAPABILITIES:CAPS"/>
+    <keyword type="macro" name="NM_LLDP_ATTR_MANAGEMENT_ADDRESSES" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-MANAGEMENT-ADDRESSES:CAPS"/>
     <keyword type="macro" name="NM_LLDP_ATTR_IEEE_802_1_PVID" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PVID:CAPS"/>
-    <keyword type="macro" name="NM_LLDP_ATTR_IEEE_802_1_PPVID" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PPVID:CAPS"/>
-    <keyword type="macro" name="NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PPVID-FLAGS:CAPS"/>
+    <keyword type="macro" name="NM_LLDP_ATTR_IEEE_802_1_VLANS" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-VLANS:CAPS"/>
+    <keyword type="macro" name="NM_LLDP_ATTR_IEEE_802_1_PPVIDS" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PPVIDS:CAPS"/>
+    <keyword type="macro" name="NM_LLDP_ATTR_IEEE_802_3_MAC_PHY_CONF" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-3-MAC-PHY-CONF:CAPS"/>
+    <keyword type="macro" name="NM_LLDP_ATTR_IEEE_802_3_POWER_VIA_MDI" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-3-POWER-VIA-MDI:CAPS"/>
+    <keyword type="macro" name="NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-3-MAX-FRAME-SIZE:CAPS"/>
     <keyword type="macro" name="NM_LLDP_ATTR_IEEE_802_1_VID" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-VID:CAPS"/>
     <keyword type="macro" name="NM_LLDP_ATTR_IEEE_802_1_VLAN_NAME" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-VLAN-NAME:CAPS"/>
+    <keyword type="macro" name="NM_LLDP_ATTR_IEEE_802_1_PPVID" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PPVID:CAPS"/>
+    <keyword type="macro" name="NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS" link="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PPVID-FLAGS:CAPS"/>
     <keyword type="macro" name="NM_LLDP_DEST_NEAREST_BRIDGE" link="libnm-nm-dbus-interface.html#NM-LLDP-DEST-NEAREST-BRIDGE:CAPS"/>
     <keyword type="macro" name="NM_LLDP_DEST_NEAREST_NON_TPMR_BRIDGE" link="libnm-nm-dbus-interface.html#NM-LLDP-DEST-NEAREST-NON-TPMR-BRIDGE:CAPS"/>
     <keyword type="macro" name="NM_LLDP_DEST_NEAREST_CUSTOMER_BRIDGE" link="libnm-nm-dbus-interface.html#NM-LLDP-DEST-NEAREST-CUSTOMER-BRIDGE:CAPS"/>
@@ -923,14 +929,22 @@
     <keyword type="function" name="nm_setting_bridge_port_get_priority ()" link="NMSettingBridgePort.html#nm-setting-bridge-port-get-priority"/>
     <keyword type="function" name="nm_setting_bridge_port_get_path_cost ()" link="NMSettingBridgePort.html#nm-setting-bridge-port-get-path-cost"/>
     <keyword type="function" name="nm_setting_bridge_port_get_hairpin_mode ()" link="NMSettingBridgePort.html#nm-setting-bridge-port-get-hairpin-mode"/>
+    <keyword type="function" name="nm_setting_bridge_port_add_vlan ()" link="NMSettingBridgePort.html#nm-setting-bridge-port-add-vlan" since="1.18"/>
+    <keyword type="function" name="nm_setting_bridge_port_get_num_vlans ()" link="NMSettingBridgePort.html#nm-setting-bridge-port-get-num-vlans" since="1.18"/>
+    <keyword type="function" name="nm_setting_bridge_port_get_vlan ()" link="NMSettingBridgePort.html#nm-setting-bridge-port-get-vlan" since="1.18"/>
+    <keyword type="function" name="nm_setting_bridge_port_remove_vlan ()" link="NMSettingBridgePort.html#nm-setting-bridge-port-remove-vlan" since="1.18"/>
+    <keyword type="function" name="nm_setting_bridge_port_remove_vlan_by_vid ()" link="NMSettingBridgePort.html#nm-setting-bridge-port-remove-vlan-by-vid" since="1.18"/>
+    <keyword type="function" name="nm_setting_bridge_port_clear_vlans ()" link="NMSettingBridgePort.html#nm-setting-bridge-port-clear-vlans" since="1.18"/>
     <keyword type="macro" name="NM_SETTING_BRIDGE_PORT_SETTING_NAME" link="NMSettingBridgePort.html#NM-SETTING-BRIDGE-PORT-SETTING-NAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BRIDGE_PORT_PRIORITY" link="NMSettingBridgePort.html#NM-SETTING-BRIDGE-PORT-PRIORITY:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BRIDGE_PORT_PATH_COST" link="NMSettingBridgePort.html#NM-SETTING-BRIDGE-PORT-PATH-COST:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BRIDGE_PORT_HAIRPIN_MODE" link="NMSettingBridgePort.html#NM-SETTING-BRIDGE-PORT-HAIRPIN-MODE:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_BRIDGE_PORT_VLANS" link="NMSettingBridgePort.html#NM-SETTING-BRIDGE-PORT-VLANS:CAPS"/>
     <keyword type="struct" name="NMSettingBridgePort" link="NMSettingBridgePort.html#NMSettingBridgePort-struct"/>
     <keyword type="property" name="The “hairpin-mode” property" link="NMSettingBridgePort.html#NMSettingBridgePort--hairpin-mode"/>
     <keyword type="property" name="The “path-cost” property" link="NMSettingBridgePort.html#NMSettingBridgePort--path-cost"/>
     <keyword type="property" name="The “priority” property" link="NMSettingBridgePort.html#NMSettingBridgePort--priority"/>
+    <keyword type="property" name="The “vlans” property" link="NMSettingBridgePort.html#NMSettingBridgePort--vlans"/>
     <keyword type="function" name="nm_setting_bridge_new ()" link="NMSettingBridge.html#nm-setting-bridge-new"/>
     <keyword type="function" name="nm_setting_bridge_get_mac_address ()" link="NMSettingBridge.html#nm-setting-bridge-get-mac-address"/>
     <keyword type="function" name="nm_setting_bridge_get_stp ()" link="NMSettingBridge.html#nm-setting-bridge-get-stp"/>
@@ -941,6 +955,28 @@
     <keyword type="function" name="nm_setting_bridge_get_ageing_time ()" link="NMSettingBridge.html#nm-setting-bridge-get-ageing-time"/>
     <keyword type="function" name="nm_setting_bridge_get_group_forward_mask ()" link="NMSettingBridge.html#nm-setting-bridge-get-group-forward-mask" since="1.10"/>
     <keyword type="function" name="nm_setting_bridge_get_multicast_snooping ()" link="NMSettingBridge.html#nm-setting-bridge-get-multicast-snooping" since="1.2"/>
+    <keyword type="function" name="nm_setting_bridge_get_vlan_filtering ()" link="NMSettingBridge.html#nm-setting-bridge-get-vlan-filtering" since="1.18"/>
+    <keyword type="function" name="nm_setting_bridge_get_vlan_default_pvid ()" link="NMSettingBridge.html#nm-setting-bridge-get-vlan-default-pvid" since="1.18"/>
+    <keyword type="function" name="nm_setting_bridge_add_vlan ()" link="NMSettingBridge.html#nm-setting-bridge-add-vlan" since="1.18"/>
+    <keyword type="function" name="nm_setting_bridge_get_num_vlans ()" link="NMSettingBridge.html#nm-setting-bridge-get-num-vlans" since="1.18"/>
+    <keyword type="function" name="nm_setting_bridge_get_vlan ()" link="NMSettingBridge.html#nm-setting-bridge-get-vlan" since="1.18"/>
+    <keyword type="function" name="nm_setting_bridge_remove_vlan ()" link="NMSettingBridge.html#nm-setting-bridge-remove-vlan" since="1.18"/>
+    <keyword type="function" name="nm_setting_bridge_remove_vlan_by_vid ()" link="NMSettingBridge.html#nm-setting-bridge-remove-vlan-by-vid" since="1.18"/>
+    <keyword type="function" name="nm_setting_bridge_clear_vlans ()" link="NMSettingBridge.html#nm-setting-bridge-clear-vlans" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_new ()" link="NMSettingBridge.html#nm-bridge-vlan-new" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_ref ()" link="NMSettingBridge.html#nm-bridge-vlan-ref" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_unref ()" link="NMSettingBridge.html#nm-bridge-vlan-unref" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_new_clone ()" link="NMSettingBridge.html#nm-bridge-vlan-new-clone" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_cmp ()" link="NMSettingBridge.html#nm-bridge-vlan-cmp" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_seal ()" link="NMSettingBridge.html#nm-bridge-vlan-seal" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_is_sealed ()" link="NMSettingBridge.html#nm-bridge-vlan-is-sealed" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_set_untagged ()" link="NMSettingBridge.html#nm-bridge-vlan-set-untagged" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_set_pvid ()" link="NMSettingBridge.html#nm-bridge-vlan-set-pvid" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_get_vid_range ()" link="NMSettingBridge.html#nm-bridge-vlan-get-vid-range" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_is_untagged ()" link="NMSettingBridge.html#nm-bridge-vlan-is-untagged" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_is_pvid ()" link="NMSettingBridge.html#nm-bridge-vlan-is-pvid" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_to_str ()" link="NMSettingBridge.html#nm-bridge-vlan-to-str" since="1.18"/>
+    <keyword type="function" name="nm_bridge_vlan_from_str ()" link="NMSettingBridge.html#nm-bridge-vlan-from-str" since="1.18"/>
     <keyword type="macro" name="NM_SETTING_BRIDGE_SETTING_NAME" link="NMSettingBridge.html#NM-SETTING-BRIDGE-SETTING-NAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BRIDGE_MAC_ADDRESS" link="NMSettingBridge.html#NM-SETTING-BRIDGE-MAC-ADDRESS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BRIDGE_STP" link="NMSettingBridge.html#NM-SETTING-BRIDGE-STP:CAPS"/>
@@ -951,6 +987,11 @@
     <keyword type="macro" name="NM_SETTING_BRIDGE_AGEING_TIME" link="NMSettingBridge.html#NM-SETTING-BRIDGE-AGEING-TIME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BRIDGE_GROUP_FORWARD_MASK" link="NMSettingBridge.html#NM-SETTING-BRIDGE-GROUP-FORWARD-MASK:CAPS"/>
     <keyword type="macro" name="NM_SETTING_BRIDGE_MULTICAST_SNOOPING" link="NMSettingBridge.html#NM-SETTING-BRIDGE-MULTICAST-SNOOPING:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_BRIDGE_VLAN_FILTERING" link="NMSettingBridge.html#NM-SETTING-BRIDGE-VLAN-FILTERING:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_BRIDGE_VLAN_DEFAULT_PVID" link="NMSettingBridge.html#NM-SETTING-BRIDGE-VLAN-DEFAULT-PVID:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_BRIDGE_VLANS" link="NMSettingBridge.html#NM-SETTING-BRIDGE-VLANS:CAPS"/>
+    <keyword type="macro" name="NM_BRIDGE_VLAN_VID_MIN" link="NMSettingBridge.html#NM-BRIDGE-VLAN-VID-MIN:CAPS"/>
+    <keyword type="macro" name="NM_BRIDGE_VLAN_VID_MAX" link="NMSettingBridge.html#NM-BRIDGE-VLAN-VID-MAX:CAPS"/>
     <keyword type="struct" name="NMSettingBridge" link="NMSettingBridge.html#NMSettingBridge-struct"/>
     <keyword type="property" name="The “ageing-time” property" link="NMSettingBridge.html#NMSettingBridge--ageing-time"/>
     <keyword type="property" name="The “forward-delay” property" link="NMSettingBridge.html#NMSettingBridge--forward-delay"/>
@@ -961,6 +1002,9 @@
     <keyword type="property" name="The “multicast-snooping” property" link="NMSettingBridge.html#NMSettingBridge--multicast-snooping"/>
     <keyword type="property" name="The “priority” property" link="NMSettingBridge.html#NMSettingBridge--priority"/>
     <keyword type="property" name="The “stp” property" link="NMSettingBridge.html#NMSettingBridge--stp"/>
+    <keyword type="property" name="The “vlan-default-pvid” property" link="NMSettingBridge.html#NMSettingBridge--vlan-default-pvid"/>
+    <keyword type="property" name="The “vlan-filtering” property" link="NMSettingBridge.html#NMSettingBridge--vlan-filtering"/>
+    <keyword type="property" name="The “vlans” property" link="NMSettingBridge.html#NMSettingBridge--vlans"/>
     <keyword type="function" name="nm_setting_cdma_new ()" link="NMSettingCdma.html#nm-setting-cdma-new"/>
     <keyword type="function" name="nm_setting_cdma_get_number ()" link="NMSettingCdma.html#nm-setting-cdma-get-number"/>
     <keyword type="function" name="nm_setting_cdma_get_username ()" link="NMSettingCdma.html#nm-setting-cdma-get-username"/>
@@ -1239,6 +1283,48 @@
     <keyword type="function" name="nm_ip_route_set_attribute ()" link="NMSettingIPConfig.html#nm-ip-route-set-attribute"/>
     <keyword type="function" name="nm_ip_route_get_variant_attribute_spec ()" link="NMSettingIPConfig.html#nm-ip-route-get-variant-attribute-spec" since="1.8"/>
     <keyword type="function" name="nm_ip_route_attribute_validate ()" link="NMSettingIPConfig.html#nm-ip-route-attribute-validate" since="1.8"/>
+    <keyword type="function" name="nm_ip_routing_rule_new ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-new" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_new_clone ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-new-clone" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_ref ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-ref" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_unref ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-unref" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_is_sealed ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-is-sealed" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_seal ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-seal" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_addr_family ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-addr-family" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_invert ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-invert" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_set_invert ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-set-invert" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_priority ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-priority" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_set_priority ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-set-priority" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_tos ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-tos" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_set_tos ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-set-tos" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_ipproto ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-ipproto" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_set_ipproto ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-set-ipproto" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_source_port_start ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-source-port-start" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_source_port_end ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-source-port-end" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_set_source_port ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-set-source-port" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_destination_port_start ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-destination-port-start" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_destination_port_end ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-destination-port-end" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_set_destination_port ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-set-destination-port" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_fwmark ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-fwmark" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_fwmask ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-fwmask" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_set_fwmark ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-set-fwmark" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_from_len ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-from-len" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_from ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-from" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_set_from ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-set-from" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_to_len ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-to-len" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_to ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-to" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_set_to ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-set-to" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_iifname ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-iifname" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_set_iifname ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-set-iifname" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_oifname ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-oifname" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_set_oifname ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-set-oifname" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_action ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-action" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_set_action ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-set-action" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_get_table ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-get-table" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_set_table ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-set-table" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_cmp ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-cmp" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_validate ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-validate" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_from_string ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-from-string" since="1.18"/>
+    <keyword type="function" name="nm_ip_routing_rule_to_string ()" link="NMSettingIPConfig.html#nm-ip-routing-rule-to-string" since="1.18"/>
     <keyword type="function" name="nm_setting_ip_config_get_method ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-method"/>
     <keyword type="function" name="nm_setting_ip_config_get_num_dns ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-num-dns"/>
     <keyword type="function" name="nm_setting_ip_config_get_dns ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-dns"/>
@@ -1276,6 +1362,11 @@
     <keyword type="function" name="nm_setting_ip_config_clear_routes ()" link="NMSettingIPConfig.html#nm-setting-ip-config-clear-routes"/>
     <keyword type="function" name="nm_setting_ip_config_get_route_metric ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-route-metric"/>
     <keyword type="function" name="nm_setting_ip_config_get_route_table ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-route-table" since="1.10"/>
+    <keyword type="function" name="nm_setting_ip_config_get_num_routing_rules ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-num-routing-rules" since="1.18"/>
+    <keyword type="function" name="nm_setting_ip_config_get_routing_rule ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-routing-rule" since="1.18"/>
+    <keyword type="function" name="nm_setting_ip_config_add_routing_rule ()" link="NMSettingIPConfig.html#nm-setting-ip-config-add-routing-rule" since="1.18"/>
+    <keyword type="function" name="nm_setting_ip_config_remove_routing_rule ()" link="NMSettingIPConfig.html#nm-setting-ip-config-remove-routing-rule" since="1.18"/>
+    <keyword type="function" name="nm_setting_ip_config_clear_routing_rules ()" link="NMSettingIPConfig.html#nm-setting-ip-config-clear-routing-rules" since="1.18"/>
     <keyword type="function" name="nm_setting_ip_config_get_ignore_auto_routes ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-ignore-auto-routes"/>
     <keyword type="function" name="nm_setting_ip_config_get_ignore_auto_dns ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-ignore-auto-dns"/>
     <keyword type="function" name="nm_setting_ip_config_get_dhcp_hostname ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-dhcp-hostname"/>
@@ -1300,6 +1391,7 @@
     <keyword type="macro" name="NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND" link="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-INITCWND:CAPS"/>
     <keyword type="macro" name="NM_IP_ROUTE_ATTRIBUTE_LOCK_INITRWND" link="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-INITRWND:CAPS"/>
     <keyword type="macro" name="NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU" link="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-MTU:CAPS"/>
+    <keyword type="enum" name="enum NMIPRoutingRuleAsStringFlags" link="NMSettingIPConfig.html#NMIPRoutingRuleAsStringFlags" since="1.18"/>
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_DAD_TIMEOUT_MAX" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DAD-TIMEOUT-MAX:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_METHOD" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-METHOD:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_DNS" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DNS:CAPS"/>
@@ -1319,6 +1411,7 @@
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_MAY_FAIL" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-MAY-FAIL:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_DAD_TIMEOUT" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DAD-TIMEOUT:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_DHCP_TIMEOUT" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DHCP-TIMEOUT:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_IP_CONFIG_ROUTING_RULES" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-ROUTING-RULES:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_DEBUG" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-DEBUG:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_NDOTS" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-NDOTS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_TIMEOUT" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-TIMEOUT:CAPS"/>
@@ -1626,7 +1719,7 @@
     <keyword type="function" name="nm_sriov_vf_set_vlan_protocol ()" link="NMSettingSriov.html#nm-sriov-vf-set-vlan-protocol" since="1.14"/>
     <keyword type="function" name="nm_sriov_vf_get_vlan_qos ()" link="NMSettingSriov.html#nm-sriov-vf-get-vlan-qos" since="1.14"/>
     <keyword type="function" name="nm_sriov_vf_get_vlan_protocol ()" link="NMSettingSriov.html#nm-sriov-vf-get-vlan-protocol"/>
-    <keyword type="function" name="nm_sriov_vf_new ()" link="NMSettingSriov.html#nm-sriov-vf-new"/>
+    <keyword type="function" name="nm_sriov_vf_new ()" link="NMSettingSriov.html#nm-sriov-vf-new" since="1.14"/>
     <keyword type="function" name="nm_sriov_vf_ref ()" link="NMSettingSriov.html#nm-sriov-vf-ref" since="1.14"/>
     <keyword type="function" name="nm_sriov_vf_unref ()" link="NMSettingSriov.html#nm-sriov-vf-unref" since="1.14"/>
     <keyword type="function" name="nm_sriov_vf_equal ()" link="NMSettingSriov.html#nm-sriov-vf-equal" since="1.14"/>
@@ -1655,6 +1748,9 @@
     <keyword type="function" name="nm_tc_qdisc_get_handle ()" link="NMSettingTCConfig.html#nm-tc-qdisc-get-handle" since="1.12"/>
     <keyword type="function" name="nm_tc_qdisc_set_handle ()" link="NMSettingTCConfig.html#nm-tc-qdisc-set-handle" since="1.12"/>
     <keyword type="function" name="nm_tc_qdisc_get_parent ()" link="NMSettingTCConfig.html#nm-tc-qdisc-get-parent" since="1.12"/>
+    <keyword type="function" name="nm_tc_qdisc_get_attribute_names ()" link="NMSettingTCConfig.html#nm-tc-qdisc-get-attribute-names" since="1.18"/>
+    <keyword type="function" name="nm_tc_qdisc_get_attribute ()" link="NMSettingTCConfig.html#nm-tc-qdisc-get-attribute" since="1.18"/>
+    <keyword type="function" name="nm_tc_qdisc_set_attribute ()" link="NMSettingTCConfig.html#nm-tc-qdisc-set-attribute" since="1.18"/>
     <keyword type="function" name="nm_tc_action_new ()" link="NMSettingTCConfig.html#nm-tc-action-new" since="1.12"/>
     <keyword type="function" name="nm_tc_action_ref ()" link="NMSettingTCConfig.html#nm-tc-action-ref" since="1.12"/>
     <keyword type="function" name="nm_tc_action_unref ()" link="NMSettingTCConfig.html#nm-tc-action-unref" since="1.12"/>
@@ -2312,6 +2408,7 @@
     <keyword type="function" name="nm_lldp_neighbor_get_attr_string_value ()" link="NMDevice.html#nm-lldp-neighbor-get-attr-string-value" since="1.2"/>
     <keyword type="function" name="nm_lldp_neighbor_get_attr_uint_value ()" link="NMDevice.html#nm-lldp-neighbor-get-attr-uint-value" since="1.2"/>
     <keyword type="function" name="nm_lldp_neighbor_get_attr_type ()" link="NMDevice.html#nm-lldp-neighbor-get-attr-type" since="1.2"/>
+    <keyword type="function" name="nm_lldp_neighbor_get_attr_value ()" link="NMDevice.html#nm-lldp-neighbor-get-attr-value" since="1.18"/>
     <keyword type="macro" name="NM_DEVICE_DEVICE_TYPE" link="NMDevice.html#NM-DEVICE-DEVICE-TYPE:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_UDI" link="NMDevice.html#NM-DEVICE-UDI:CAPS"/>
     <keyword type="macro" name="NM_DEVICE_INTERFACE" link="NMDevice.html#NM-DEVICE-INTERFACE:CAPS"/>
@@ -3000,6 +3097,7 @@
     <keyword type="macro" name="NM_DEPRECATED_IN_1_12_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-12-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_14_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-14-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_16_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-16-FOR:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_18_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-18-FOR:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MIN_REQUIRED" link="libnm-nm-version.html#NM-VERSION-MIN-REQUIRED:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MAX_ALLOWED" link="libnm-nm-version.html#NM-VERSION-MAX-ALLOWED:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_0_9_10" link="libnm-nm-version.html#NM-DEPRECATED-IN-0-9-10:CAPS"/>
@@ -3022,6 +3120,8 @@
     <keyword type="macro" name="NM_AVAILABLE_IN_1_14" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-14:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_16" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-16:CAPS"/>
     <keyword type="macro" name="NM_AVAILABLE_IN_1_16" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-16:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_18" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-18:CAPS"/>
+    <keyword type="macro" name="NM_AVAILABLE_IN_1_18" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-18:CAPS"/>
     <keyword type="macro" name="NM_VPN_SERVICE_PLUGIN_DBUS_SERVICE_NAME" link="libnm-nm-vpn-service-plugin.html#NM-VPN-SERVICE-PLUGIN-DBUS-SERVICE-NAME:CAPS"/>
     <keyword type="macro" name="NM_VPN_SERVICE_PLUGIN_DBUS_WATCH_PEER" link="libnm-nm-vpn-service-plugin.html#NM-VPN-SERVICE-PLUGIN-DBUS-WATCH-PEER:CAPS"/>
     <keyword type="macro" name="NM_VPN_SERVICE_PLUGIN_STATE" link="libnm-nm-vpn-service-plugin.html#NM-VPN-SERVICE-PLUGIN-STATE:CAPS"/>
@@ -3475,6 +3575,10 @@
     <keyword type="constant" name="NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_TEMP_ADDR" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-PRIVACY-PREFER-TEMP-ADDR:CAPS"/>
     <keyword type="constant" name="NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-ADDR-GEN-MODE-EUI64:CAPS"/>
     <keyword type="constant" name="NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-ADDR-GEN-MODE-STABLE-PRIVACY:CAPS"/>
+    <keyword type="constant" name="NM_IP_ROUTING_RULE_AS_STRING_FLAGS_NONE" link="NMSettingIPConfig.html#NM-IP-ROUTING-RULE-AS-STRING-FLAGS-NONE:CAPS"/>
+    <keyword type="constant" name="NM_IP_ROUTING_RULE_AS_STRING_FLAGS_AF_INET" link="NMSettingIPConfig.html#NM-IP-ROUTING-RULE-AS-STRING-FLAGS-AF-INET:CAPS"/>
+    <keyword type="constant" name="NM_IP_ROUTING_RULE_AS_STRING_FLAGS_AF_INET6" link="NMSettingIPConfig.html#NM-IP-ROUTING-RULE-AS-STRING-FLAGS-AF-INET6:CAPS"/>
+    <keyword type="constant" name="NM_IP_ROUTING_RULE_AS_STRING_FLAGS_VALIDATE" link="NMSettingIPConfig.html#NM-IP-ROUTING-RULE-AS-STRING-FLAGS-VALIDATE:CAPS"/>
     <keyword type="constant" name="NM_IP_TUNNEL_FLAG_NONE" link="NMSettingIPTunnel.html#NM-IP-TUNNEL-FLAG-NONE:CAPS"/>
     <keyword type="constant" name="NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT" link="NMSettingIPTunnel.html#NM-IP-TUNNEL-FLAG-IP6-IGN-ENCAP-LIMIT:CAPS"/>
     <keyword type="constant" name="NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_TCLASS" link="NMSettingIPTunnel.html#NM-IP-TUNNEL-FLAG-IP6-USE-ORIG-TCLASS:CAPS"/>

@@ -628,6 +628,14 @@ Allowed values: </strong></span>1 - 65535</td>
 <td align="left">yes</td>
 <td align="left">Hairpin mode of the bridge port.</td>
 </tr>
+<tr>
+<td align="left">vlans</td>
+<td align="left">BRIDGE_PORT_VLANS</td>
+<td align="left"> </td>
+<td align="left">List of VLANs on the bridge port<span class="bold"><strong>
+
+Example: </strong></span>BRIDGE_PORT_VLANS="1 pvid untagged,20,300-400 untagged"</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -707,6 +715,30 @@ Allowed values: </strong></span>0 - 1000000</td>
 <td align="left">IGMP snooping support.<span class="bold"><strong>
 
 Allowed values: </strong></span>0 or 1</td>
+</tr>
+<tr>
+<td align="left">vlan-filtering</td>
+<td align="left">BRIDGING_OPTS: vlan_filtering=</td>
+<td align="left">0</td>
+<td align="left">VLAN filtering support.<span class="bold"><strong>
+
+Allowed values: </strong></span>0 or 1</td>
+</tr>
+<tr>
+<td align="left">vlan-default-pvid</td>
+<td align="left">BRIDGING_OPTS: default_pvid=</td>
+<td align="left">1</td>
+<td align="left">default VLAN PVID.<span class="bold"><strong>
+
+Allowed values: </strong></span>0 - 4094</td>
+</tr>
+<tr>
+<td align="left">vlans</td>
+<td align="left">BRIDGE_VLANS</td>
+<td align="left"> </td>
+<td align="left">List of VLANs on the bridge<span class="bold"><strong>
+
+Example: </strong></span>BRIDGE_VLANS="1 pvid untagged,20,300-400 untagged"</td>
 </tr>
 </tbody>
 </table></div>

@@ -27,7 +27,7 @@
 #include <resolv.h>
 #include <linux/rtnetlink.h>
 
-#include "nm-utils/nm-dedup-multi.h"
+#include "nm-glib-aux/nm-dedup-multi.h"
 
 #include "nm-utils.h"
 #include "platform/nmp-object.h"
@@ -115,13 +115,13 @@ _nm_ip_config_add_obj (NMDedupMultiIndex *multi_idx,
 	if (!obj_new) {
 		nm_assert (pl_new);
 		obj_new = nmp_object_stackinit (&obj_new_stackinit, idx_type->obj_type, pl_new);
-		obj_new_stackinit.object.ifindex = ifindex;
+		NMP_OBJECT_CAST_OBJ_WITH_IFINDEX (&obj_new_stackinit)->ifindex = ifindex;
 	} else {
 		nm_assert (!pl_new);
 		nm_assert (NMP_OBJECT_GET_TYPE (obj_new) == idx_type->obj_type);
-		if (obj_new->object.ifindex != ifindex) {
+		if (NMP_OBJECT_CAST_OBJ_WITH_IFINDEX (obj_new)->ifindex != ifindex) {
 			obj_new = nmp_object_stackinit_obj (&obj_new_stackinit, obj_new);
-			obj_new_stackinit.object.ifindex = ifindex;
+			NMP_OBJECT_CAST_OBJ_WITH_IFINDEX (&obj_new_stackinit)->ifindex = ifindex;
 		}
 	}
 	nm_assert (NMP_OBJECT_GET_TYPE (obj_new) == idx_type->obj_type);
@@ -859,15 +859,12 @@ _nm_ip_config_merge_route_attributes (int addr_family,
 	GET_ATTR (NM_IP_ROUTE_ATTRIBUTE_TABLE, table, UINT32, uint32, 0);
 	r->table_coerced = nm_platform_route_table_coerce (table ?: (route_table ?: RT_TABLE_MAIN));
 
-	if (addr_family == AF_INET) {
+	if (addr_family == AF_INET)
 		GET_ATTR (NM_IP_ROUTE_ATTRIBUTE_TOS,        r4->tos,           BYTE,     byte, 0);
-		GET_ATTR (NM_IP_ROUTE_ATTRIBUTE_ONLINK,     onlink,            BOOLEAN,  boolean, FALSE);
-	} else
-		onlink = FALSE;
 
-	r->r_rtm_flags = 0;
-	if (onlink)
-		r->r_rtm_flags = RTNH_F_ONLINK;
+	GET_ATTR (NM_IP_ROUTE_ATTRIBUTE_ONLINK,         onlink,            BOOLEAN,  boolean, FALSE);
+
+	r->r_rtm_flags = ((onlink) ? (unsigned) RTNH_F_ONLINK : 0u);
 
 	GET_ATTR (NM_IP_ROUTE_ATTRIBUTE_WINDOW,         r->window,         UINT32,   uint32, 0);
 	GET_ATTR (NM_IP_ROUTE_ATTRIBUTE_CWND,           r->cwnd,           UINT32,   uint32, 0);

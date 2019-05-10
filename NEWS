@@ -1,4 +1,17 @@
 =============================================
+NetworkManager-1.18
+Overview of changes since NetworkManager-1.16
+=============================================
+
+This is a new stable release of NetworkManager.  Notable changes include:
+
+* Add support for policy routing rules.
+* Add support for VLAN filtering for Linux bridge.
+* Support ieee-802-1 and ieee-802-3 LLDP TLVs.
+* Allow large MTU sizes for infiniband/IPoIB connection profiles.
+* Improve nmcli's handling of list options for connection properties.
+
+=============================================
 NetworkManager-1.16
 Overview of changes since NetworkManager-1.14
 =============================================

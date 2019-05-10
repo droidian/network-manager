@@ -635,8 +635,16 @@ nm_utils_parse_inaddr (int addr_family,
 	NMIPAddr addrbin;
 	char addrstr_buf[MAX (INET_ADDRSTRLEN, INET6_ADDRSTRLEN)];
 
-	if (!nm_utils_parse_inaddr_bin (addr_family, text, &addr_family, &addrbin))
+	g_return_val_if_fail (text, FALSE);
+
+	if (addr_family == AF_UNSPEC)
+		addr_family = strchr (text, ':') ? AF_INET6 : AF_INET;
+	else
+		g_return_val_if_fail (NM_IN_SET (addr_family, AF_INET, AF_INET6), FALSE);
+
+	if (inet_pton (addr_family, text, &addrbin) != 1)
 		return FALSE;
+
 	NM_SET_OUT (out_addr, g_strdup (inet_ntop (addr_family, &addrbin, addrstr_buf, sizeof (addrstr_buf))));
 	return TRUE;
 }
@@ -954,133 +962,335 @@ comp_l:
 
 /*****************************************************************************/
 
+static void
+_char_lookup_table_init (guint8 lookup[static 256],
+                         const char *candidates)
+{
+	memset (lookup, 0, 256);
+	while (candidates[0] != '\0')
+		lookup[(guint8) ((candidates++)[0])] = 1;
+}
+
+static gboolean
+_char_lookup_has (const guint8 lookup[static 256],
+                  char ch)
+{
+	nm_assert (lookup[(guint8) '\0'] == 0);
+	return lookup[(guint8) ch] != 0;
+}
+
 /**
- * nm_utils_strsplit_set:
+ * nm_utils_strsplit_set_full:
  * @str: the string to split.
- * @delimiters: the set of delimiters. If %NULL, defaults to " \t\n",
- *   like bash's $IFS.
- * @allow_escaping: whether delimiters can be escaped by a backslash
+ * @delimiters: the set of delimiters.
+ * @flags: additional flags for controlling the operation.
  *
  * This is a replacement for g_strsplit_set() which avoids copying
  * each word once (the entire strv array), but instead copies it once
  * and all words point into that internal copy.
  *
- * Another difference from g_strsplit_set() is that this never returns
- * empty words. Multiple delimiters are combined and treated as one.
+ * Note that for @str %NULL and "", this always returns %NULL too. That differs
+ * from g_strsplit_set(), which would return an empty strv array for "".
  *
- * If @allow_escaping is %TRUE, delimiters prefixed by a backslash are
- * not treated as a separator. Such delimiters and their escape
- * character are copied to the current word without unescaping them.
+ * Note that g_strsplit_set() returns empty words as well. By default,
+ * nm_utils_strsplit_set_full() strips all empty tokens (that is, repeated
+ * delimiters. With %NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, empty tokens
+ * are not removed.
  *
- * Returns: %NULL if @str is %NULL or contains only delimiters.
- *   Otherwise, a %NULL terminated strv array containing non-empty
- *   words, split at the delimiter characters (delimiter characters
- *   are removed).
+ * If @flags has %NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING, delimiters prefixed
+ * by a backslash are not treated as a separator. Such delimiters and their escape
+ * character are copied to the current word without unescaping them. In general,
+ * nm_utils_strsplit_set_full() does not remove any backslash escape characters
+ * and does not unescaping. It only considers them for skipping to split at
+ * an escaped delimiter.
+ *
+ * Returns: %NULL if @str is %NULL or "".
+ *   If @str only contains delimiters and %NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY
+ *   is not set, it also returns %NULL.
+ *   Otherwise, a %NULL terminated strv array containing the split words.
+ *   (delimiter characters are removed).
  *   The strings to which the result strv array points to are allocated
  *   after the returned result itself. Don't free the strings themself,
  *   but free everything with g_free().
+ *   It is however safe and allowed to modify the indiviual strings,
+ *   like "g_strstrip((char *) iter[0])".
  */
 const char **
-nm_utils_strsplit_set (const char *str, const char *delimiters, gboolean allow_escaping)
+nm_utils_strsplit_set_full (const char *str,
+                            const char *delimiters,
+                            NMUtilsStrsplitSetFlags flags)
 {
-	const char **ptr, **ptr0;
-	gsize alloc_size, plen, i;
-	gsize str_len;
-	char *s0;
+	const char **ptr;
+	gsize num_tokens;
+	gsize i_token;
+	gsize str_len_p1;
+	const char *c_str;
 	char *s;
-	guint8 delimiters_table[256];
-	gboolean escaped = FALSE;
+	guint8 ch_lookup[256];
+	const gboolean f_escaped = NM_FLAGS_HAS (flags, NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED);
+	const gboolean f_allow_escaping = f_escaped || NM_FLAGS_HAS (flags, NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING);
+	const gboolean f_preserve_empty = NM_FLAGS_HAS (flags, NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY);
+	const gboolean f_strstrip = NM_FLAGS_HAS (flags, NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP);
 
 	if (!str)
 		return NULL;
 
-	/* initialize lookup table for delimiter */
-	if (!delimiters)
+	if (!delimiters) {
+		nm_assert_not_reached ();
 		delimiters = " \t\n";
-	memset (delimiters_table, 0, sizeof (delimiters_table));
-	for (i = 0; delimiters[i]; i++)
-		delimiters_table[(guint8) delimiters[i]] = 1;
+	}
+	_char_lookup_table_init (ch_lookup, delimiters);
 
-#define _is_delimiter(ch, delimiters_table, allow_esc, esc) \
-	((delimiters_table)[(guint8) (ch)] != 0 && (!allow_esc || !esc))
+	nm_assert (   !f_allow_escaping
+	           || !_char_lookup_has (ch_lookup, '\\'));
 
-#define next_char(p, esc) \
-	G_STMT_START { \
-		if (esc) \
-			esc = FALSE; \
-		else \
-			esc = p[0] == '\\'; \
-		p++; \
-	} G_STMT_END
+	if (!f_preserve_empty) {
+		while (_char_lookup_has (ch_lookup, str[0]))
+			str++;
+	}
 
-	/* skip initial delimiters, and return of the remaining string is
-	 * empty. */
-	while (_is_delimiter (str[0], delimiters_table, allow_escaping, escaped))
-		next_char (str, escaped);
-
-	if (!str[0])
+	if (!str[0]) {
+		/* We return %NULL here, also with NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY.
+		 * That makes nm_utils_strsplit_set_full() with NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY
+		 * different from g_strsplit_set(), which would in this case return an empty array.
+		 * If you need to handle %NULL, and "" specially, then check the input string first. */
 		return NULL;
+	}
 
-	str_len = strlen (str) + 1;
-	alloc_size = 8;
+#define _char_is_escaped(str_start, str_cur) \
+	({ \
+		const char *const _str_start = (str_start); \
+		const char *const _str_cur = (str_cur); \
+		const char *_str_i = (_str_cur); \
+		\
+		while (   _str_i > _str_start \
+		       && _str_i[-1] == '\\') \
+			_str_i--; \
+		(((_str_cur - _str_i) % 2) != 0); \
+	})
 
-	/* we allocate the buffer larger, so to copy @str at the
-	 * end of it as @s0. */
-	ptr0 = g_malloc ((sizeof (const char *) * (alloc_size + 1)) + str_len);
-	s0 = (char *) &ptr0[alloc_size + 1];
-	memcpy (s0, str, str_len);
+	num_tokens = 1;
+	c_str = str;
+	while (TRUE) {
 
-	plen = 0;
-	s = s0;
-	ptr = ptr0;
+		while (G_LIKELY (!_char_lookup_has (ch_lookup, c_str[0]))) {
+			if (c_str[0] == '\0')
+				goto done1;
+			c_str++;
+		}
+
+		/* we assume escapings are not frequent. After we found
+		 * this delimiter, check whether it was escaped by counting
+		 * the backslashed before. */
+		if (   f_allow_escaping
+		    && _char_is_escaped (str, c_str)) {
+			/* the delimiter is escaped. This was not an accepted delimiter. */
+			c_str++;
+			continue;
+		}
+
+		c_str++;
+
+		/* if we drop empty tokens, then we now skip over all consecutive delimiters. */
+		if (!f_preserve_empty) {
+			while (_char_lookup_has (ch_lookup, c_str[0]))
+				c_str++;
+			if (c_str[0] == '\0')
+				break;
+		}
+
+		num_tokens++;
+	}
+
+done1:
+
+	nm_assert (c_str[0] == '\0');
+
+	str_len_p1 = (c_str - str) + 1;
+
+	nm_assert (str[str_len_p1 - 1] == '\0');
+
+	ptr = g_malloc ((sizeof (const char *) * (num_tokens + 1)) + str_len_p1);
+	s = (char *) &ptr[num_tokens + 1];
+	memcpy (s, str, str_len_p1);
+
+	i_token = 0;
 
 	while (TRUE) {
-		if (plen >= alloc_size) {
-			const char **ptr_old = ptr;
 
-			/* reallocate the buffer. Note that for now the string
-			 * continues to be in ptr0/s0. We fix that at the end. */
-			alloc_size *= 2;
-			ptr = g_malloc ((sizeof (const char *) * (alloc_size + 1)) + str_len);
-			memcpy (ptr, ptr_old, sizeof (const char *) * plen);
-			if (ptr_old != ptr0)
-				g_free (ptr_old);
+		nm_assert (i_token < num_tokens);
+		ptr[i_token++] = s;
+
+		if (s[0] == '\0') {
+			nm_assert (f_preserve_empty);
+			goto done2;
+		}
+		nm_assert (   f_preserve_empty
+		           || !_char_lookup_has (ch_lookup, s[0]));
+
+		while (!_char_lookup_has (ch_lookup, s[0])) {
+			if (G_UNLIKELY (   s[0] == '\\'
+			                && f_allow_escaping)) {
+				s++;
+				if (s[0] == '\0')
+					goto done2;
+				s++;
+			} else if (s[0] == '\0')
+				goto done2;
+			else
+				s++;
 		}
 
-		ptr[plen++] = s;
-
-		nm_assert (s[0] && !_is_delimiter (s[0], delimiters_table, allow_escaping, escaped));
-
-		while (TRUE) {
-			next_char (s, escaped);
-			if (_is_delimiter (s[0], delimiters_table, allow_escaping, escaped))
-				break;
-			if (s[0] == '\0')
-				goto done;
-		}
-
+		nm_assert (_char_lookup_has (ch_lookup, s[0]));
 		s[0] = '\0';
-		next_char (s, escaped);
-		while (_is_delimiter (s[0], delimiters_table, allow_escaping, escaped))
-			next_char (s, escaped);
-		if (s[0] == '\0')
-			break;
-	}
-done:
-	ptr[plen] = NULL;
+		s++;
 
-	if (ptr != ptr0) {
-		/* we reallocated the buffer. We must copy over the
-		 * string @s0 and adjust the pointers. */
-		s = (char *) &ptr[alloc_size + 1];
-		memcpy (s, s0, str_len);
-		for (i = 0; i < plen; i++)
-			ptr[i] = &s[ptr[i] - s0];
-		g_free (ptr0);
+		if (!f_preserve_empty) {
+			while (_char_lookup_has (ch_lookup, s[0]))
+				s++;
+			if (s[0] == '\0')
+				goto done2;
+		}
+	}
+
+done2:
+	nm_assert (i_token == num_tokens);
+	ptr[i_token] = NULL;
+
+	if (f_strstrip) {
+		gsize i;
+
+		i_token = 0;
+		for (i = 0; ptr[i]; i++) {
+
+			s = (char *) nm_str_skip_leading_spaces (ptr[i]);
+			if (s[0] != '\0') {
+				char *s_last;
+
+				s_last = &s[strlen (s) - 1];
+				while (   s_last > s
+				       && g_ascii_isspace (s_last[0])
+				       && (   ! f_allow_escaping
+				           || !_char_is_escaped (s, s_last)))
+					(s_last--)[0] = '\0';
+			}
+
+			if (   !f_preserve_empty
+			    && s[0] == '\0')
+				continue;
+
+			ptr[i_token++] = s;
+		}
+
+		if (i_token == 0) {
+			g_free (ptr);
+			return NULL;
+		}
+		ptr[i_token] = NULL;
+	}
+
+	if (f_escaped) {
+		gsize i, j;
+
+		/* We no longer need ch_lookup for its original purpose. Modify it, so it
+		 * can detect the delimiters, '\\', and (optionally) whitespaces. */
+		ch_lookup[((guint8) '\\')] = 1;
+		if (f_strstrip) {
+			for (i = 0; NM_ASCII_SPACES[i]; i++)
+				ch_lookup[((guint8) (NM_ASCII_SPACES[i]))] = 1;
+		}
+
+		for (i_token = 0; ptr[i_token]; i_token++) {
+			s = (char *) ptr[i_token];
+			j = 0;
+			for (i = 0; s[i] != '\0'; ) {
+				if (   s[i] == '\\'
+				    && _char_lookup_has (ch_lookup, s[i + 1]))
+					i++;
+				s[j++] = s[i++];
+			}
+			s[j] = '\0';
+		}
 	}
 
 	return ptr;
 }
+
+/*****************************************************************************/
+
+const char *
+nm_utils_escaped_tokens_escape (const char *str,
+                                const char *delimiters,
+                                char **out_to_free)
+{
+	guint8 ch_lookup[256];
+	char *ret;
+	gsize str_len;
+	gsize alloc_len;
+	gsize n_escapes;
+	gsize i, j;
+	gboolean escape_trailing_space;
+
+	if (!delimiters) {
+		nm_assert (delimiters);
+		delimiters = NM_ASCII_SPACES;
+	}
+
+	if (!str || str[0] == '\0') {
+		*out_to_free = NULL;
+		return str;
+	}
+
+	_char_lookup_table_init (ch_lookup, delimiters);
+
+	/* also mark '\\' as requiring escaping. */
+	ch_lookup[((guint8) '\\')] = 1;
+
+	n_escapes = 0;
+	for (i = 0; str[i] != '\0'; i++) {
+		if (_char_lookup_has (ch_lookup, str[i]))
+			n_escapes++;
+	}
+
+	str_len = i;
+	nm_assert (str_len > 0 && strlen (str) == str_len);
+
+	escape_trailing_space =    !_char_lookup_has (ch_lookup, str[str_len - 1])
+	                        && g_ascii_isspace (str[str_len - 1]);
+
+	if (   n_escapes == 0
+	    && !escape_trailing_space) {
+		*out_to_free = NULL;
+		return str;
+	}
+
+	alloc_len = str_len + n_escapes + ((gsize) escape_trailing_space) + 1;
+	ret = g_new (char, alloc_len);
+
+	j = 0;
+	for (i = 0; str[i] != '\0'; i++) {
+		if (_char_lookup_has (ch_lookup, str[i])) {
+			nm_assert (j < alloc_len);
+			ret[j++] = '\\';
+		}
+		nm_assert (j < alloc_len);
+		ret[j++] = str[i];
+	}
+	if (escape_trailing_space) {
+		nm_assert (!_char_lookup_has (ch_lookup, ret[j - 1]) && g_ascii_isspace (ret[j - 1]));
+		ret[j] = ret[j - 1];
+		ret[j - 1] = '\\';
+		j++;
+	}
+
+	nm_assert (j == alloc_len - 1);
+	ret[j] = '\0';
+
+	*out_to_free = ret;
+	return ret;
+}
+
+/*****************************************************************************/
 
 /**
  * nm_utils_strv_find_first:
@@ -1163,31 +1373,27 @@ int
 _nm_utils_ascii_str_to_bool (const char *str,
                              int default_value)
 {
-	gsize len;
-	char *s = NULL;
+	gs_free char *str_free = NULL;
 
 	if (!str)
 		return default_value;
 
-	while (str[0] && g_ascii_isspace (str[0]))
-		str++;
-
-	if (!str[0])
+	str = nm_strstrip_avoid_copy_a (300, str, &str_free);
+	if (str[0] == '\0')
 		return default_value;
 
-	len = strlen (str);
-	if (g_ascii_isspace (str[len - 1])) {
-		s = g_strdup (str);
-		g_strchomp (s);
-		str = s;
-	}
+	if (   !g_ascii_strcasecmp (str, "true")
+	    || !g_ascii_strcasecmp (str, "yes")
+	    || !g_ascii_strcasecmp (str, "on")
+	    || !g_ascii_strcasecmp (str, "1"))
+		return TRUE;
 
-	if (!g_ascii_strcasecmp (str, "true") || !g_ascii_strcasecmp (str, "yes") || !g_ascii_strcasecmp (str, "on") || !g_ascii_strcasecmp (str, "1"))
-		default_value = TRUE;
-	else if (!g_ascii_strcasecmp (str, "false") || !g_ascii_strcasecmp (str, "no") || !g_ascii_strcasecmp (str, "off") || !g_ascii_strcasecmp (str, "0"))
-		default_value = FALSE;
-	if (s)
-		g_free (s);
+	if (   !g_ascii_strcasecmp (str, "false")
+	    || !g_ascii_strcasecmp (str, "no")
+	    || !g_ascii_strcasecmp (str, "off")
+	    || !g_ascii_strcasecmp (str, "0"))
+		return FALSE;
+
 	return default_value;
 }
 
@@ -2258,7 +2464,7 @@ nm_utils_get_start_time_for_pid (pid_t pid, char *out_state, pid_t *out_ppid)
 
 	state = p[0];
 
-	tokens = nm_utils_strsplit_set (p, " ", FALSE);
+	tokens = nm_utils_strsplit_set (p, " ");
 
 	if (NM_PTRARRAY_LEN (tokens) < 20)
 		goto fail;
@@ -2318,6 +2524,57 @@ _nm_utils_strv_sort (const char **strv, gssize len)
 	                   NULL);
 }
 
+/**
+ * _nm_utils_strv_cmp_n:
+ * @strv1: a string array
+ * @len1: the length of @strv1, or -1 for NULL terminated array.
+ * @strv2: a string array
+ * @len2: the length of @strv2, or -1 for NULL terminated array.
+ *
+ * Note that
+ *   - len == -1 && strv == NULL
+ * is treated like a %NULL argument and compares differently from
+ * other arrays.
+ *
+ * Note that an empty array can be represented as
+ *   - len == -1 &&  strv && !strv[0]
+ *   - len ==  0 && !strv
+ *   - len ==  0 &&  strv
+ * These 3 forms all compare equal.
+ * It also means, if length is 0, then it is permissible for strv to be %NULL.
+ *
+ * The strv arrays may contain %NULL strings (if len is positive).
+ *
+ * Returns: 0 if the arrays are equal (using strcmp).
+ **/
+int
+_nm_utils_strv_cmp_n (const char *const*strv1,
+                      gssize len1,
+                      const char *const*strv2,
+                      gssize len2)
+{
+	gsize n, n2;
+
+	if (len1 < 0) {
+		if (!strv1)
+			return (len2 < 0 && !strv2) ? 0 : -1;
+		n = NM_PTRARRAY_LEN (strv1);
+	} else
+		n = len1;
+
+	if (len2 < 0) {
+		if (!strv2)
+			return 1;
+		n2 = NM_PTRARRAY_LEN (strv2);
+	} else
+		n2 = len2;
+
+	NM_CMP_DIRECT (n, n2);
+	for (; n > 0; n--, strv1++, strv2++)
+		NM_CMP_DIRECT_STRCMP0 (*strv1, *strv2);
+	return 0;
+}
+
 /*****************************************************************************/
 
 gpointer
@@ -2358,63 +2615,6 @@ _nm_utils_user_data_unpack (gpointer user_data, int nargs, ...)
 
 	g_slice_free1 (((gsize) nargs) * sizeof (gconstpointer), user_data);
 }
-
-/*****************************************************************************/
-
-#define IS_SPACE(c) NM_IN_SET ((c), ' ', '\t')
-
-const char *
-_nm_utils_escape_spaces (const char *str, char **to_free)
-{
-	const char *ptr = str;
-	char *ret, *r;
-
-	*to_free = NULL;
-
-	if (!str)
-		return NULL;
-
-	while (TRUE) {
-		if (!*ptr)
-			return str;
-		if (IS_SPACE (*ptr))
-			break;
-		ptr++;
-	}
-
-	ptr = str;
-	ret = g_new (char, strlen (str) * 2 + 1);
-	r = ret;
-	*to_free = ret;
-	while (*ptr) {
-		if (IS_SPACE (*ptr))
-			*r++ = '\\';
-		*r++ = *ptr++;
-	}
-	*r = '\0';
-
-	return ret;
-}
-
-char *
-_nm_utils_unescape_spaces (char *str)
-{
-	guint i, j = 0;
-
-	if (!str)
-		return NULL;
-
-	for (i = 0; str[i]; i++) {
-		if (str[i] == '\\' && IS_SPACE (str[i+1]))
-			i++;
-		str[j++] = str[i];
-	}
-	str[j] = '\0';
-
-	return str;
-}
-
-#undef IS_SPACE
 
 /*****************************************************************************/
 

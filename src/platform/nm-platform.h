@@ -152,6 +152,14 @@ typedef enum {
 } NMPlatformIPRouteCmpType;
 
 typedef enum {
+	NM_PLATFORM_ROUTING_RULE_CMP_TYPE_ID,
+
+	NM_PLATFORM_ROUTING_RULE_CMP_TYPE_SEMANTICALLY,
+
+	NM_PLATFORM_ROUTING_RULE_CMP_TYPE_FULL,
+} NMPlatformRoutingRuleCmpType;
+
+typedef enum {
 
 	/* match-flags are strictly inclusive. That means,
 	 * by default nothing is matched, but if you enable a particular
@@ -181,12 +189,22 @@ typedef enum {
 
 #define NM_PLATFORM_LINK_OTHER_NETNS    (-1)
 
-#define __NMPlatformObject_COMMON \
+struct _NMPlatformObject {
+	/* the object type has no fields of its own, it is only used to having
+	 * a special pointer type that can be used to indicate "any" type. */
+	char _dummy_don_t_use_me;
+};
+
+#define __NMPlatformObjWithIfindex_COMMON \
 	int ifindex; \
 	;
 
+struct _NMPlatformObjWithIfindex {
+	__NMPlatformObjWithIfindex_COMMON;
+};
+
 struct _NMPlatformLink {
-	__NMPlatformObject_COMMON;
+	__NMPlatformObjWithIfindex_COMMON;
 	char name[NMP_IFNAMSIZ];
 	NMLinkType type;
 
@@ -246,6 +264,7 @@ typedef enum { /*< skip >*/
 	NM_PLATFORM_SIGNAL_ID_IP6_ADDRESS,
 	NM_PLATFORM_SIGNAL_ID_IP4_ROUTE,
 	NM_PLATFORM_SIGNAL_ID_IP6_ROUTE,
+	NM_PLATFORM_SIGNAL_ID_ROUTING_RULE,
 	NM_PLATFORM_SIGNAL_ID_QDISC,
 	NM_PLATFORM_SIGNAL_ID_TFILTER,
 	_NM_PLATFORM_SIGNAL_ID_LAST,
@@ -260,15 +279,11 @@ typedef enum {
 	NM_PLATFORM_SIGNAL_REMOVED,
 } NMPlatformSignalChangeType;
 
-struct _NMPlatformObject {
-	__NMPlatformObject_COMMON;
-};
-
 #define NM_PLATFORM_IP_ADDRESS_CAST(address) \
 	NM_CONSTCAST (NMPlatformIPAddress, (address), NMPlatformIPXAddress, NMPlatformIP4Address, NMPlatformIP6Address)
 
 #define __NMPlatformIPAddress_COMMON \
-	__NMPlatformObject_COMMON; \
+	__NMPlatformObjWithIfindex_COMMON; \
 	NMIPConfigSource addr_source; \
 	\
 	/* Timestamp in seconds in the reference system of nm_utils_get_monotonic_timestamp_*().
@@ -370,7 +385,7 @@ typedef union {
 #define NM_PLATFORM_ROUTE_METRIC_IP4_DEVICE_ROUTE 0
 
 #define __NMPlatformIPRoute_COMMON \
-	__NMPlatformObject_COMMON; \
+	__NMPlatformObjWithIfindex_COMMON; \
 	\
 	/* The NMIPConfigSource. For routes that we receive from cache this corresponds
 	 * to the rtm_protocol field (and is one of the NM_IP_CONFIG_SOURCE_RTPROT_* values).
@@ -414,7 +429,7 @@ typedef union {
 	 * Such a route is not alive, according to nmp_object_is_alive().
 	 *
 	 * NOTE: currently we ignore all flags except RTM_F_CLONED
-	 * and RTNH_F_ONLINK for IPv4.
+	 * and RTNH_F_ONLINK.
 	 * We also may not properly consider the flags as part of the ID
 	 * in route-cmp. */ \
 	unsigned r_rtm_flags; \
@@ -540,7 +555,49 @@ typedef union {
 #undef __NMPlatformIPRoute_COMMON
 
 typedef struct {
-	__NMPlatformObject_COMMON;
+	/* struct fib_rule_uid_range */
+	guint32 start;
+	guint32 end;
+} NMFibRuleUidRange;
+
+typedef struct {
+	/* struct fib_rule_port_range */
+	guint16 start;
+	guint16 end;
+} NMFibRulePortRange;
+
+typedef struct {
+	NMIPAddr src;                        /* FRA_SRC */
+	NMIPAddr dst;                        /* FRA_DST */
+	guint64  tun_id;                     /* betoh64(FRA_TUN_ID) */
+	guint32  table;                      /* (struct fib_rule_hdr).table, FRA_TABLE */
+	guint32  flags;                      /* (struct fib_rule_hdr).flags */
+	guint32  priority;                   /* RA_PRIORITY */
+	guint32  fwmark;                     /* FRA_FWMARK */
+	guint32  fwmask;                     /* FRA_FWMASK */
+	guint32  goto_target;                /* FRA_GOTO */
+	guint32  flow;                       /* FRA_FLOW */
+	guint32  suppress_prefixlen_inverse; /* ~(FRA_SUPPRESS_PREFIXLEN) */
+	guint32  suppress_ifgroup_inverse;   /* ~(FRA_SUPPRESS_IFGROUP) */
+	NMFibRuleUidRange uid_range;         /* FRA_UID_RANGE */
+	NMFibRulePortRange sport_range;      /* FRA_SPORT_RANGE */
+	NMFibRulePortRange dport_range;      /* FRA_DPORT_RANGE */
+	char     iifname[NMP_IFNAMSIZ];      /* FRA_IIFNAME */
+	char     oifname[NMP_IFNAMSIZ];      /* FRA_OIFNAME */
+	guint8   addr_family;                /* (struct fib_rule_hdr).family */
+	guint8   action;                     /* (struct fib_rule_hdr).action */
+	guint8   tos;                        /* (struct fib_rule_hdr).tos */
+	guint8   src_len;                    /* (struct fib_rule_hdr).src_len */
+	guint8   dst_len;                    /* (struct fib_rule_hdr).dst_len */
+	guint8   l3mdev;                     /* FRA_L3MDEV */
+	guint8   protocol;                   /* FRA_PROTOCOL */
+	guint8   ip_proto;                   /* FRA_IP_PROTO */
+
+	bool     uid_range_has:1;            /* has(FRA_UID_RANGE) */
+} NMPlatformRoutingRule;
+
+typedef struct {
+	__NMPlatformObjWithIfindex_COMMON;
 	const char *kind;
 	int addr_family;
 	guint32 handle;
@@ -562,7 +619,7 @@ typedef struct {
 #define NM_PLATFORM_ACTION_KIND_SIMPLE "simple"
 
 typedef struct {
-	__NMPlatformObject_COMMON;
+	__NMPlatformObjWithIfindex_COMMON;
 	const char *kind;
 	int addr_family;
 	guint32 handle;
@@ -571,7 +628,7 @@ typedef struct {
 	NMPlatformAction action;
 } NMPlatformTfilter;
 
-#undef __NMPlatformObject_COMMON
+#undef __NMPlatformObjWithIfindex_COMMON
 
 typedef struct {
 	gboolean is_ip4;
@@ -583,8 +640,15 @@ typedef struct {
 	guint32 (*metric_normalize) (guint32 metric);
 } NMPlatformVTableRoute;
 
-extern const NMPlatformVTableRoute nm_platform_vtable_route_v4;
-extern const NMPlatformVTableRoute nm_platform_vtable_route_v6;
+typedef union {
+	struct {
+		NMPlatformVTableRoute v6;
+		NMPlatformVTableRoute v4;
+	};
+	NMPlatformVTableRoute vx[2];
+} _NMPlatformVTableRouteUnion;
+
+extern const _NMPlatformVTableRouteUnion nm_platform_vtable_route;
 
 typedef struct {
 	guint16 id;
@@ -605,6 +669,13 @@ typedef struct {
 	gint8 spoofchk;
 	gint8 trust;
 } NMPlatformVF;
+
+typedef struct {
+	guint16 vid_start;
+	guint16 vid_end;
+	bool untagged:1;
+	bool pvid:1;
+} NMPlatformBridgeVlan;
 
 typedef struct {
 	in_addr_t local;
@@ -748,12 +819,6 @@ typedef enum {
 } NMPlatformLinkDuplexType;
 
 typedef enum {
-	NM_PLATFORM_KERNEL_SUPPORT_EXTENDED_IFA_FLAGS                 = (1LL <<  0),
-	NM_PLATFORM_KERNEL_SUPPORT_USER_IPV6LL                        = (1LL <<  1),
-	NM_PLATFORM_KERNEL_SUPPORT_RTA_PREF                           = (1LL <<  2),
-} NMPlatformKernelSupportFlags;
-
-typedef enum {
 	NM_PLATFORM_WIREGUARD_CHANGE_FLAG_NONE                        = 0,
 	NM_PLATFORM_WIREGUARD_CHANGE_FLAG_REPLACE_PEERS               = (1LL << 0),
 	NM_PLATFORM_WIREGUARD_CHANGE_FLAG_HAS_PRIVATE_KEY             = (1LL << 1),
@@ -779,6 +844,51 @@ typedef enum {
 
 /*****************************************************************************/
 
+typedef enum {
+	NM_PLATFORM_KERNEL_SUPPORT_TYPE_EXTENDED_IFA_FLAGS,
+	NM_PLATFORM_KERNEL_SUPPORT_TYPE_USER_IPV6LL,
+	NM_PLATFORM_KERNEL_SUPPORT_TYPE_RTA_PREF,
+	NM_PLATFORM_KERNEL_SUPPORT_TYPE_FRA_L3MDEV,
+	NM_PLATFORM_KERNEL_SUPPORT_TYPE_FRA_UID_RANGE,
+	NM_PLATFORM_KERNEL_SUPPORT_TYPE_FRA_PROTOCOL,
+
+	/* this also includes FRA_SPORT_RANGE and FRA_DPORT_RANGE which
+	 * were added at the same time. */
+	NM_PLATFORM_KERNEL_SUPPORT_TYPE_FRA_IP_PROTO,
+
+	_NM_PLATFORM_KERNEL_SUPPORT_NUM,
+} NMPlatformKernelSupportType;
+
+extern volatile int _nm_platform_kernel_support_state[_NM_PLATFORM_KERNEL_SUPPORT_NUM];
+
+int _nm_platform_kernel_support_init (NMPlatformKernelSupportType type,
+                                      int value);
+
+#define _nm_platform_kernel_support_detected(type) \
+	G_LIKELY (({ \
+		const NMPlatformKernelSupportType _type = (type); \
+		\
+		nm_assert (_NM_INT_NOT_NEGATIVE (_type) && _type < G_N_ELEMENTS (_nm_platform_kernel_support_state)); \
+		\
+		(_nm_platform_kernel_support_state[_type] != 0); \
+	}))
+
+#define nm_platform_kernel_support_get(type) \
+	({ \
+		const NMPlatformKernelSupportType _type = (type); \
+		int _v; \
+		\
+		nm_assert (_NM_INT_NOT_NEGATIVE (_type) && _type < G_N_ELEMENTS (_nm_platform_kernel_support_state)); \
+		\
+		_v = _nm_platform_kernel_support_state[_type]; \
+		if (G_UNLIKELY (_v == 0)) \
+			_v = _nm_platform_kernel_support_init (_type, 0); \
+		\
+		(_v >= 0); \
+	})
+
+/*****************************************************************************/
+
 struct _NMPlatformPrivate;
 
 struct _NMPlatform {
@@ -792,8 +902,6 @@ typedef struct {
 
 	gboolean (*sysctl_set) (NMPlatform *, const char *pathid, int dirfd, const char *path, const char *value);
 	char * (*sysctl_get) (NMPlatform *, const char *pathid, int dirfd, const char *path);
-
-	void (*refresh_all) (NMPlatform *self, NMPObjectType obj_type);
 
 	int (*link_add) (NMPlatform *,
 	                 const char *name,
@@ -831,6 +939,7 @@ typedef struct {
 	gboolean (*link_set_name) (NMPlatform *, int ifindex, const char *name);
 	gboolean (*link_set_sriov_params) (NMPlatform *, int ifindex, guint num_vfs, int autoprobe);
 	gboolean (*link_set_sriov_vfs) (NMPlatform *self, int ifindex, const NMPlatformVF *const *vfs);
+	gboolean (*link_set_bridge_vlans) (NMPlatform *self, int ifindex, gboolean on_master, const NMPlatformBridgeVlan *const *vlans);
 
 	char *   (*link_get_physical_port_id) (NMPlatform *, int ifindex);
 	guint    (*link_get_dev_id) (NMPlatform *, int ifindex);
@@ -973,6 +1082,10 @@ typedef struct {
 	                     int oif_ifindex,
 	                     NMPObject **out_route);
 
+	int (*routing_rule_add) (NMPlatform *self,
+	                         NMPNlmFlags flags,
+	                         const NMPlatformRoutingRule *routing_rule);
+
 	int (*qdisc_add)   (NMPlatform *self,
 	                    NMPNlmFlags flags,
 	                    const NMPlatformQdisc *qdisc);
@@ -980,9 +1093,6 @@ typedef struct {
 	int (*tfilter_add)   (NMPlatform *self,
 	                      NMPNlmFlags flags,
 	                      const NMPlatformTfilter *tfilter);
-
-	NMPlatformKernelSupportFlags (*check_kernel_support) (NMPlatform * self,
-	                                                      NMPlatformKernelSupportFlags request_flags);
 } NMPlatformClass;
 
 /* NMPlatform signals
@@ -1001,6 +1111,7 @@ typedef struct {
 #define NM_PLATFORM_SIGNAL_IP6_ADDRESS_CHANGED "ip6-address-changed"
 #define NM_PLATFORM_SIGNAL_IP4_ROUTE_CHANGED "ip4-route-changed"
 #define NM_PLATFORM_SIGNAL_IP6_ROUTE_CHANGED "ip6-route-changed"
+#define NM_PLATFORM_SIGNAL_ROUTING_RULE_CHANGED "routing-rule-changed"
 #define NM_PLATFORM_SIGNAL_QDISC_CHANGED "qdisc-changed"
 #define NM_PLATFORM_SIGNAL_TFILTER_CHANGED "tfilter-changed"
 
@@ -1167,8 +1278,6 @@ gboolean nm_platform_sysctl_ip_conf_set_ipv6_hop_limit_safe (NMPlatform *self,
 const char *nm_platform_if_indextoname (NMPlatform *self, int ifindex, char *out_ifname/* of size IFNAMSIZ */);
 int nm_platform_if_nametoindex (NMPlatform *self, const char *ifname);
 
-void nm_platform_refresh_all (NMPlatform *self, NMPObjectType obj_type);
-
 const NMPObject *nm_platform_link_get_obj (NMPlatform *self,
                                            int ifindex,
                                            gboolean visible_only);
@@ -1261,6 +1370,7 @@ int nm_platform_link_set_mtu (NMPlatform *self, int ifindex, guint32 mtu);
 gboolean nm_platform_link_set_name (NMPlatform *self, int ifindex, const char *name);
 gboolean nm_platform_link_set_sriov_params (NMPlatform *self, int ifindex, guint num_vfs, int autoprobe);
 gboolean nm_platform_link_set_sriov_vfs (NMPlatform *self, int ifindex, const NMPlatformVF *const *vfs);
+gboolean nm_platform_link_set_bridge_vlans (NMPlatform *self, int ifindex, gboolean on_master, const NMPlatformBridgeVlan *const *vlans);
 
 char    *nm_platform_link_get_physical_port_id (NMPlatform *self, int ifindex);
 guint    nm_platform_link_get_dev_id (NMPlatform *self, int ifindex);
@@ -1482,6 +1592,10 @@ int nm_platform_ip_route_get (NMPlatform *self,
                               int oif_ifindex,
                               NMPObject **out_route);
 
+int nm_platform_routing_rule_add (NMPlatform *self,
+                                  NMPNlmFlags flags,
+                                  const NMPlatformRoutingRule *routing_rule);
+
 int nm_platform_qdisc_add   (NMPlatform *self,
                              NMPNlmFlags flags,
                              const NMPlatformQdisc *qdisc);
@@ -1512,9 +1626,11 @@ const char *nm_platform_ip4_address_to_string (const NMPlatformIP4Address *addre
 const char *nm_platform_ip6_address_to_string (const NMPlatformIP6Address *address, char *buf, gsize len);
 const char *nm_platform_ip4_route_to_string (const NMPlatformIP4Route *route, char *buf, gsize len);
 const char *nm_platform_ip6_route_to_string (const NMPlatformIP6Route *route, char *buf, gsize len);
+const char *nm_platform_routing_rule_to_string (const NMPlatformRoutingRule *routing_rule, char *buf, gsize len);
 const char *nm_platform_qdisc_to_string (const NMPlatformQdisc *qdisc, char *buf, gsize len);
 const char *nm_platform_tfilter_to_string (const NMPlatformTfilter *tfilter, char *buf, gsize len);
 const char *nm_platform_vf_to_string (const NMPlatformVF *vf, char *buf, gsize len);
+const char *nm_platform_bridge_vlan_to_string (const NMPlatformBridgeVlan *vlan, char *buf, gsize len);
 
 const char *nm_platform_vlan_qos_mapping_to_string (const char *name,
                                                     const NMVlanQosMapping *map,
@@ -1556,6 +1672,14 @@ nm_platform_ip6_route_cmp_full (const NMPlatformIP6Route *a, const NMPlatformIP6
 	return nm_platform_ip6_route_cmp (a, b, NM_PLATFORM_IP_ROUTE_CMP_TYPE_FULL);
 }
 
+int nm_platform_routing_rule_cmp (const NMPlatformRoutingRule *a, const NMPlatformRoutingRule *b, NMPlatformRoutingRuleCmpType cmp_type);
+
+static inline int
+nm_platform_routing_rule_cmp_full (const NMPlatformRoutingRule *a, const NMPlatformRoutingRule *b)
+{
+	return nm_platform_routing_rule_cmp (a, b, NM_PLATFORM_ROUTING_RULE_CMP_TYPE_FULL);
+}
+
 int nm_platform_qdisc_cmp (const NMPlatformQdisc *a, const NMPlatformQdisc *b);
 int nm_platform_tfilter_cmp (const NMPlatformTfilter *a, const NMPlatformTfilter *b);
 
@@ -1564,6 +1688,7 @@ void nm_platform_ip4_address_hash_update (const NMPlatformIP4Address *obj, NMHas
 void nm_platform_ip6_address_hash_update (const NMPlatformIP6Address *obj, NMHashState *h);
 void nm_platform_ip4_route_hash_update (const NMPlatformIP4Route *obj, NMPlatformIPRouteCmpType cmp_type, NMHashState *h);
 void nm_platform_ip6_route_hash_update (const NMPlatformIP6Route *obj, NMPlatformIPRouteCmpType cmp_type, NMHashState *h);
+void nm_platform_routing_rule_hash_update (const NMPlatformRoutingRule *obj, NMPlatformRoutingRuleCmpType cmp_type, NMHashState *h);
 void nm_platform_lnk_gre_hash_update (const NMPlatformLnkGre *obj, NMHashState *h);
 void nm_platform_lnk_infiniband_hash_update (const NMPlatformLnkInfiniband *obj, NMHashState *h);
 void nm_platform_lnk_ip6tnl_hash_update (const NMPlatformLnkIp6Tnl *obj, NMHashState *h);
@@ -1578,9 +1703,6 @@ void nm_platform_lnk_wireguard_hash_update (const NMPlatformLnkWireGuard *obj, N
 
 void nm_platform_qdisc_hash_update (const NMPlatformQdisc *obj, NMHashState *h);
 void nm_platform_tfilter_hash_update (const NMPlatformTfilter *obj, NMHashState *h);
-
-NMPlatformKernelSupportFlags nm_platform_check_kernel_support (NMPlatform *self,
-                                                               NMPlatformKernelSupportFlags request_flags);
 
 const char *nm_platform_link_flags2str (unsigned flags, char *buf, gsize len);
 const char *nm_platform_link_inet6_addrgenmode2str (guint8 mode, char *buf, gsize len);

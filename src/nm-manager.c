@@ -27,9 +27,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "nm-utils/nm-c-list.h"
+#include "nm-glib-aux/nm-c-list.h"
 
-#include "nm-common-macros.h"
+#include "nm-libnm-core-intern/nm-common-macros.h"
 #include "nm-dbus-manager.h"
 #include "vpn/nm-vpn-manager.h"
 #include "devices/nm-device.h"
@@ -54,7 +54,7 @@
 #include "nm-core-internal.h"
 #include "nm-config.h"
 #include "nm-audit-manager.h"
-#include "nm-dbus-compat.h"
+#include "nm-std-aux/nm-dbus-compat.h"
 #include "nm-checkpoint.h"
 #include "nm-checkpoint-manager.h"
 #include "nm-dbus-object.h"
@@ -302,6 +302,8 @@ static const GDBusSignalInfo signal_info_check_permissions;
 static const GDBusSignalInfo signal_info_state_changed;
 static const GDBusSignalInfo signal_info_device_added;
 static const GDBusSignalInfo signal_info_device_removed;
+
+static void update_connectivity_value (NMManager *self);
 
 static gboolean add_device (NMManager *self, NMDevice *device, GError **error);
 
@@ -1700,6 +1702,8 @@ remove_device (NMManager *self,
 	g_signal_emit (self, signals[INTERNAL_DEVICE_REMOVED], 0, device);
 	_notify (self, PROP_ALL_DEVICES);
 
+	update_connectivity_value (self);
+
 	nm_dbus_object_clear_and_unexport (&device);
 
 	check_if_startup_complete (self);
@@ -1989,6 +1993,13 @@ system_create_virtual_device (NMManager *self, NMConnection *connection)
 		 * safe to unref here and still return @device.
 		 */
 		g_object_unref (device);
+	}
+
+	if (!nm_device_check_unrealized_device_managed (device)) {
+		_LOG3D (LOGD_DEVICE, connection,
+		        "skip activation because virtual device '%s' is unmanaged",
+		        nm_device_get_iface (device));
+		return device;
 	}
 
 	/* Create backing resources if the device has any autoconnect connections */
@@ -2923,6 +2934,12 @@ static void
 device_connectivity_changed (NMDevice *device,
                              GParamSpec *pspec,
                              NMManager *self)
+{
+	update_connectivity_value (self);
+}
+
+static void
+update_connectivity_value (NMManager *self)
 {
 	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
 	NMConnectivityState best_state;
@@ -8283,8 +8300,8 @@ nm_manager_class_init (NMManagerClass *manager_class)
 	signals[INTERNAL_DEVICE_ADDED] =
 	    g_signal_new (NM_MANAGER_INTERNAL_DEVICE_ADDED,
 	                  G_OBJECT_CLASS_TYPE (object_class),
-	                  G_SIGNAL_RUN_FIRST, 0,
-	                  NULL, NULL, NULL,
+	                  G_SIGNAL_RUN_FIRST,
+	                  0, NULL, NULL, NULL,
 	                  G_TYPE_NONE, 1, G_TYPE_OBJECT);
 
 	/* emitted only for realized devices when a device
@@ -8300,8 +8317,8 @@ nm_manager_class_init (NMManagerClass *manager_class)
 	signals[INTERNAL_DEVICE_REMOVED] =
 	    g_signal_new (NM_MANAGER_INTERNAL_DEVICE_REMOVED,
 	                  G_OBJECT_CLASS_TYPE (object_class),
-	                  G_SIGNAL_RUN_FIRST, 0,
-	                  NULL, NULL, NULL,
+	                  G_SIGNAL_RUN_FIRST,
+	                  0, NULL, NULL, NULL,
 	                  G_TYPE_NONE, 1, G_TYPE_OBJECT);
 
 	signals[ACTIVE_CONNECTION_ADDED] =

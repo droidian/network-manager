@@ -394,15 +394,31 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-MANAGEMENT-ADDRESSES:CAPS" title="NM_LLDP_ATTR_MANAGEMENT_ADDRESSES">NM_LLDP_ATTR_MANAGEMENT_ADDRESSES</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PVID:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_PVID">NM_LLDP_ATTR_IEEE_802_1_PVID</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PPVID:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_PPVID">NM_LLDP_ATTR_IEEE_802_1_PPVID</a></td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-VLANS:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_VLANS">NM_LLDP_ATTR_IEEE_802_1_VLANS</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PPVID-FLAGS:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS">NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS</a></td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PPVIDS:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_PPVIDS">NM_LLDP_ATTR_IEEE_802_1_PPVIDS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-3-MAC-PHY-CONF:CAPS" title="NM_LLDP_ATTR_IEEE_802_3_MAC_PHY_CONF">NM_LLDP_ATTR_IEEE_802_3_MAC_PHY_CONF</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-3-POWER-VIA-MDI:CAPS" title="NM_LLDP_ATTR_IEEE_802_3_POWER_VIA_MDI">NM_LLDP_ATTR_IEEE_802_3_POWER_VIA_MDI</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-3-MAX-FRAME-SIZE:CAPS" title="NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE">NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -411,6 +427,14 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-VLAN-NAME:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_VLAN_NAME">NM_LLDP_ATTR_IEEE_802_1_VLAN_NAME</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PPVID:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_PPVID">NM_LLDP_ATTR_IEEE_802_1_PPVID</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PPVID-FLAGS:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS">NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -2873,20 +2897,44 @@ VPN plugin authentication dialogs.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-LLDP-ATTR-MANAGEMENT-ADDRESSES:CAPS"></a><h3>NM_LLDP_ATTR_MANAGEMENT_ADDRESSES</h3>
+<pre class="programlisting">#define NM_LLDP_ATTR_MANAGEMENT_ADDRESSES    "management-addresses"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-LLDP-ATTR-IEEE-802-1-PVID:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_PVID</h3>
 <pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PVID         "ieee-802-1-pvid"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
-<a name="NM-LLDP-ATTR-IEEE-802-1-PPVID:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_PPVID</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PPVID        "ieee-802-1-ppvid"
+<a name="NM-LLDP-ATTR-IEEE-802-1-VLANS:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_VLANS</h3>
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_VLANS        "ieee-802-1-vlans"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
-<a name="NM-LLDP-ATTR-IEEE-802-1-PPVID-FLAGS:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS  "ieee-802-1-ppvid-flags"
+<a name="NM-LLDP-ATTR-IEEE-802-1-PPVIDS:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_PPVIDS</h3>
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PPVIDS       "ieee-802-1-ppvids"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-LLDP-ATTR-IEEE-802-3-MAC-PHY-CONF:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_3_MAC_PHY_CONF</h3>
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_3_MAC_PHY_CONF    "ieee-802-3-mac-phy-conf"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-LLDP-ATTR-IEEE-802-3-POWER-VIA-MDI:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_3_POWER_VIA_MDI</h3>
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_3_POWER_VIA_MDI   "ieee-802-3-power-via-mdi"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-LLDP-ATTR-IEEE-802-3-MAX-FRAME-SIZE:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE</h3>
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE  "ieee-802-3-max-frame-size"
 </pre>
 </div>
 <hr>
@@ -2899,6 +2947,18 @@ VPN plugin authentication dialogs.</p>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-IEEE-802-1-VLAN-NAME:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_VLAN_NAME</h3>
 <pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_VLAN_NAME    "ieee-802-1-vlan-name"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-LLDP-ATTR-IEEE-802-1-PPVID:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_PPVID</h3>
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PPVID        "ieee-802-1-ppvid"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-LLDP-ATTR-IEEE-802-1-PPVID-FLAGS:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS</h3>
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS  "ieee-802-1-ppvid-flags"
 </pre>
 </div>
 <hr>

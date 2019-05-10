@@ -744,6 +744,102 @@ test_vpn_1 (void)
 
 /*****************************************************************************/
 
+static void
+test_bridge_vlans (void)
+{
+	gs_unref_keyfile GKeyFile *keyfile = NULL;
+	gs_unref_object NMConnection *con = NULL;
+	NMSettingBridge *s_bridge;
+	NMBridgeVlan *vlan;
+	guint16 vid, vid_end;
+
+	con = nmtst_create_connection_from_keyfile (
+	      "[connection]\n"
+	      "id=t\n"
+	      "type=bridge\n"
+	      "interface-name=br4\n"
+	      "\n"
+	      "[bridge]\n"
+	      "vlans=900 ,  1 pvid  untagged, 100-123 untagged\n"
+	      "",
+	      "/test_bridge_port/vlans");
+	s_bridge = NM_SETTING_BRIDGE (nm_connection_get_setting (con, NM_TYPE_SETTING_BRIDGE));
+	g_assert (s_bridge);
+	g_assert_cmpuint (nm_setting_bridge_get_num_vlans (s_bridge), ==, 3);
+
+	vlan = nm_setting_bridge_get_vlan (s_bridge, 0);
+	g_assert (vlan);
+	nm_bridge_vlan_get_vid_range (vlan, &vid, &vid_end);
+	g_assert_cmpuint (vid, ==, 1);
+	g_assert_cmpuint (vid_end, ==, 1);
+	g_assert_cmpint  (nm_bridge_vlan_is_pvid (vlan), ==, TRUE);
+	g_assert_cmpint  (nm_bridge_vlan_is_untagged (vlan), ==, TRUE);
+
+	vlan = nm_setting_bridge_get_vlan (s_bridge, 1);
+	g_assert (vlan);
+	nm_bridge_vlan_get_vid_range (vlan, &vid, &vid_end);
+	g_assert_cmpuint (vid, ==, 100);
+	g_assert_cmpuint (vid_end, ==, 123);
+	g_assert_cmpint  (nm_bridge_vlan_is_pvid (vlan), ==, FALSE);
+	g_assert_cmpint  (nm_bridge_vlan_is_untagged (vlan), ==, TRUE);
+
+	vlan = nm_setting_bridge_get_vlan (s_bridge, 2);
+	g_assert (vlan);
+	nm_bridge_vlan_get_vid_range (vlan, &vid, &vid_end);
+	g_assert_cmpuint (vid, ==, 900);
+	g_assert_cmpuint (vid_end, ==, 900);
+	g_assert_cmpint  (nm_bridge_vlan_is_pvid (vlan), ==, FALSE);
+	g_assert_cmpint  (nm_bridge_vlan_is_untagged (vlan), ==, FALSE);
+
+	CLEAR (&con, &keyfile);
+}
+
+static void
+test_bridge_port_vlans (void)
+{
+	gs_unref_keyfile GKeyFile *keyfile = NULL;
+	gs_unref_object NMConnection *con = NULL;
+	NMSettingBridgePort *s_port;
+	NMBridgeVlan *vlan;
+	guint16 vid_start, vid_end;
+
+	con = nmtst_create_connection_from_keyfile (
+	      "[connection]\n"
+	      "id=t\n"
+	      "type=dummy\n"
+	      "interface-name=dummy1\n"
+	      "master=br0\n"
+	      "slave-type=bridge\n"
+	      "\n"
+	      "[bridge-port]\n"
+	      "vlans=4094 pvid , 10-20 untagged\n"
+	      "",
+	      "/test_bridge_port/vlans");
+	s_port = NM_SETTING_BRIDGE_PORT (nm_connection_get_setting (con, NM_TYPE_SETTING_BRIDGE_PORT));
+	g_assert (s_port);
+	g_assert_cmpuint (nm_setting_bridge_port_get_num_vlans (s_port), ==, 2);
+
+	vlan = nm_setting_bridge_port_get_vlan (s_port, 0);
+	g_assert (vlan);
+	nm_bridge_vlan_get_vid_range (vlan, &vid_start, &vid_end);
+	g_assert_cmpuint (vid_start, ==, 10);
+	g_assert_cmpuint (vid_end, ==, 20);
+	g_assert_cmpint  (nm_bridge_vlan_is_pvid (vlan), ==, FALSE);
+	g_assert_cmpint  (nm_bridge_vlan_is_untagged (vlan), ==, TRUE);
+
+	vlan = nm_setting_bridge_port_get_vlan (s_port, 1);
+	g_assert (vlan);
+	nm_bridge_vlan_get_vid_range (vlan, &vid_start, &vid_end);
+	g_assert_cmpuint (vid_start, ==, 4094);
+	g_assert_cmpuint (vid_end, ==, 4094);
+	g_assert_cmpint  (nm_bridge_vlan_is_pvid (vlan), ==, TRUE);
+	g_assert_cmpint  (nm_bridge_vlan_is_untagged (vlan), ==, FALSE);
+
+	CLEAR (&con, &keyfile);
+}
+
+/*****************************************************************************/
+
 NMTST_DEFINE ();
 
 int main (int argc, char **argv)
@@ -757,6 +853,8 @@ int main (int argc, char **argv)
 	g_test_add_func ("/core/keyfile/test_team_conf_read/invalid", test_team_conf_read_invalid);
 	g_test_add_func ("/core/keyfile/test_user/1", test_user_1);
 	g_test_add_func ("/core/keyfile/test_vpn/1", test_vpn_1);
+	g_test_add_func ("/core/keyfile/bridge/vlans", test_bridge_vlans);
+	g_test_add_func ("/core/keyfile/bridge-port/vlans", test_bridge_port_vlans);
 
 	return g_test_run ();
 }

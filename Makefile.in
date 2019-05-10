@@ -667,7 +667,7 @@ clients_tui_newt_libnmt_newt_a_OBJECTS =  \
 	$(am_clients_tui_newt_libnmt_newt_a_OBJECTS)
 am__DEPENDENCIES_1 =
 clients_common_libnmc_base_la_DEPENDENCIES = libnm/libnm.la \
-	shared/nm-utils/libnm-utils-base.la $(am__DEPENDENCIES_1)
+	shared/nm-glib-aux/libnm-glib-aux.la $(am__DEPENDENCIES_1)
 am_clients_common_libnmc_base_la_OBJECTS =  \
 	clients/common/libnmc_base_la-nm-secret-agent-simple.lo \
 	clients/common/libnmc_base_la-nm-vpn-helpers.lo \
@@ -680,11 +680,13 @@ am__v_lt_0 = --silent
 am__v_lt_1 = 
 @ENABLE_TESTS_FALSE@am_clients_common_libnmc_base_la_rpath =
 @ENABLE_TESTS_TRUE@am_clients_common_libnmc_base_la_rpath =
-clients_common_libnmc_la_DEPENDENCIES = libnm/libnm.la \
-	clients/common/libnmc-base.la $(am__DEPENDENCIES_1)
+clients_common_libnmc_la_DEPENDENCIES = clients/common/libnmc-base.la \
+	libnm/libnm.la \
+	shared/nm-libnm-core-aux/libnm-libnm-core-aux.la \
+	shared/nm-libnm-core-intern/libnm-libnm-core-intern.la \
+	$(am__DEPENDENCIES_1)
 am_clients_common_libnmc_la_OBJECTS =  \
 	shared/clients_common_libnmc_la-nm-meta-setting.lo \
-	shared/clients_common_libnmc_la-nm-ethtool-utils.lo \
 	clients/common/libnmc_la-nm-meta-setting-desc.lo \
 	clients/common/libnmc_la-nm-meta-setting-access.lo
 clients_common_libnmc_la_OBJECTS =  \
@@ -789,9 +791,9 @@ am__libnm_core_libnm_core_la_SOURCES_DIST =  \
 	libnm-core/nm-utils.h libnm-core/nm-version.h \
 	libnm-core/nm-vpn-dbus-interface.h \
 	libnm-core/nm-vpn-editor-plugin.h \
-	libnm-core/nm-vpn-plugin-info.h shared/nm-ethtool-utils.h \
-	shared/nm-meta-setting.h libnm-core/nm-crypto.h \
-	libnm-core/nm-crypto-impl.h libnm-core/nm-connection-private.h \
+	libnm-core/nm-vpn-plugin-info.h shared/nm-meta-setting.h \
+	libnm-core/nm-crypto.h libnm-core/nm-crypto-impl.h \
+	libnm-core/nm-connection-private.h \
 	libnm-core/nm-core-internal.h \
 	libnm-core/nm-core-types-internal.h \
 	libnm-core/nm-keyfile-internal.h libnm-core/nm-keyfile-utils.h \
@@ -828,13 +830,12 @@ am__libnm_core_libnm_core_la_SOURCES_DIST =  \
 	libnm-core/nm-setting-wireguard.c \
 	libnm-core/nm-setting-wireless-security.c \
 	libnm-core/nm-setting-wireless.c libnm-core/nm-setting-wpan.c \
-	shared/nm-ethtool-utils.c shared/nm-meta-setting.c \
-	libnm-core/nm-crypto.c libnm-core/nm-connection.c \
-	libnm-core/nm-dbus-utils.c libnm-core/nm-errors.c \
-	libnm-core/nm-keyfile.c libnm-core/nm-keyfile-utils.c \
-	libnm-core/nm-property-compare.c libnm-core/nm-setting.c \
-	libnm-core/nm-simple-connection.c libnm-core/nm-utils.c \
-	libnm-core/nm-vpn-editor-plugin.c \
+	shared/nm-meta-setting.c libnm-core/nm-crypto.c \
+	libnm-core/nm-connection.c libnm-core/nm-dbus-utils.c \
+	libnm-core/nm-errors.c libnm-core/nm-keyfile.c \
+	libnm-core/nm-keyfile-utils.c libnm-core/nm-property-compare.c \
+	libnm-core/nm-setting.c libnm-core/nm-simple-connection.c \
+	libnm-core/nm-utils.c libnm-core/nm-vpn-editor-plugin.c \
 	libnm-core/nm-vpn-plugin-info.c libnm-core/nm-json.c
 am__objects_2 =
 am__objects_3 = $(am__objects_2)
@@ -887,7 +888,6 @@ am__objects_4 = libnm-core/libnm_core_la-nm-setting-6lowpan.lo \
 	libnm-core/libnm_core_la-nm-setting-wpan.lo
 @WITH_JSON_VALIDATION_TRUE@am__objects_5 = libnm-core/libnm_core_la-nm-json.lo
 am__objects_6 = $(am__objects_4) \
-	shared/libnm_core_libnm_core_la-nm-ethtool-utils.lo \
 	shared/libnm_core_libnm_core_la-nm-meta-setting.lo \
 	libnm-core/libnm_core_la-nm-crypto.lo \
 	libnm-core/libnm_core_la-nm-connection.lo \
@@ -982,7 +982,7 @@ libnm_glib_libnm_glib_vpn_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 @WITH_LEGACY_LIBRARIES_TRUE@libnm_glib_libnm_glib_la_DEPENDENCIES =  \
 @WITH_LEGACY_LIBRARIES_TRUE@	libnm-util/libnm-util.la \
 @WITH_LEGACY_LIBRARIES_TRUE@	libnm-glib/libdeprecated-nm-glib.la \
-@WITH_LEGACY_LIBRARIES_TRUE@	shared/nm-utils/libnm-utils-udev.la \
+@WITH_LEGACY_LIBRARIES_TRUE@	shared/nm-udev-aux/libnm-udev-aux.la \
 @WITH_LEGACY_LIBRARIES_TRUE@	$(am__DEPENDENCIES_1) \
 @WITH_LEGACY_LIBRARIES_TRUE@	$(am__DEPENDENCIES_1) \
 @WITH_LEGACY_LIBRARIES_TRUE@	$(am__DEPENDENCIES_1)
@@ -1067,7 +1067,7 @@ libnm_glib_libnm_glib_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 @WITH_LEGACY_LIBRARIES_TRUE@	-rpath $(libdir)
 @WITH_GNUTLS_TRUE@@WITH_LEGACY_LIBRARIES_TRUE@am__DEPENDENCIES_3 = $(am__DEPENDENCIES_1)
 @WITH_LEGACY_LIBRARIES_TRUE@@WITH_NSS_TRUE@am__DEPENDENCIES_4 = $(am__DEPENDENCIES_1)
-@WITH_LEGACY_LIBRARIES_TRUE@libnm_util_libnm_util_la_DEPENDENCIES = shared/nm-utils/libnm-utils-base.la \
+@WITH_LEGACY_LIBRARIES_TRUE@libnm_util_libnm_util_la_DEPENDENCIES = shared/nm-glib-aux/libnm-glib-aux.la \
 @WITH_LEGACY_LIBRARIES_TRUE@	$(am__DEPENDENCIES_1) \
 @WITH_LEGACY_LIBRARIES_TRUE@	$(am__DEPENDENCIES_1) \
 @WITH_LEGACY_LIBRARIES_TRUE@	$(am__DEPENDENCIES_1) \
@@ -1185,9 +1185,12 @@ libnm_util_libtest_crypto_la_OBJECTS =  \
 	$(am_libnm_util_libtest_crypto_la_OBJECTS)
 @ENABLE_TESTS_FALSE@@WITH_LEGACY_LIBRARIES_TRUE@am_libnm_util_libtest_crypto_la_rpath =
 @ENABLE_TESTS_TRUE@@WITH_LEGACY_LIBRARIES_TRUE@am_libnm_util_libtest_crypto_la_rpath =
-libnm_libnm_utils_la_DEPENDENCIES = libnm-core/libnm-core.la \
-	$(libnm_crypto_lib) introspection/libnmdbus.la \
-	shared/nm-utils/libnm-utils-base.la $(am__DEPENDENCIES_1)
+libnm_libnm_utils_la_DEPENDENCIES =  \
+	shared/nm-libnm-core-aux/libnm-libnm-core-aux.la \
+	libnm-core/libnm-core.la $(libnm_crypto_lib) \
+	shared/nm-libnm-core-intern/libnm-libnm-core-intern.la \
+	introspection/libnmdbus.la \
+	shared/nm-glib-aux/libnm-glib-aux.la $(am__DEPENDENCIES_1)
 am_libnm_libnm_utils_la_OBJECTS =  \
 	libnm/libnm_utils_la-nm-libnm-utils.lo
 @HAVE_INTROSPECTION_TRUE@@WITH_FAKE_TYPELIBS_TRUE@nodist_libnm_libnm_utils_la_OBJECTS = libnm/fake-typelib/libnm_utils_la-typelibs.lo
@@ -1196,7 +1199,7 @@ libnm_libnm_utils_la_OBJECTS = $(am_libnm_libnm_utils_la_OBJECTS) \
 libnm_libnm_la_DEPENDENCIES = libnm/libnm-utils.la \
 	shared/systemd/libnm-systemd-shared.la \
 	shared/systemd/libnm-systemd-logging-stub.la \
-	shared/nm-utils/libnm-utils-udev.la $(am__DEPENDENCIES_1) \
+	shared/nm-udev-aux/libnm-udev-aux.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am__objects_18 = libnm/libnm_la-nm-access-point.lo \
 	libnm/libnm_la-nm-active-connection.lo \
@@ -1273,12 +1276,16 @@ am_shared_libcrbtree_la_OBJECTS =  \
 shared_libcrbtree_la_OBJECTS = $(am_shared_libcrbtree_la_OBJECTS)
 shared_libcrbtree_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(shared_libcrbtree_la_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
+	$(shared_libcrbtree_la_CFLAGS) $(CFLAGS) \
+	$(shared_libcrbtree_la_LDFLAGS) $(LDFLAGS) -o $@
 shared_libcsiphash_la_LIBADD =
 am_shared_libcsiphash_la_OBJECTS =  \
 	shared/c-siphash/src/libcsiphash_la-c-siphash.lo
 shared_libcsiphash_la_OBJECTS = $(am_shared_libcsiphash_la_OBJECTS)
+shared_libcsiphash_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(shared_libcsiphash_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
 shared_libnacd_la_DEPENDENCIES = shared/libcrbtree.la
 am__shared_libnacd_la_SOURCES_DIST = shared/n-acd/src/n-acd.c \
 	shared/n-acd/src/n-acd.h shared/n-acd/src/n-acd-private.h \
@@ -1295,38 +1302,66 @@ am_shared_libnacd_la_OBJECTS = shared/n-acd/src/libnacd_la-n-acd.lo \
 shared_libnacd_la_OBJECTS = $(am_shared_libnacd_la_OBJECTS)
 shared_libnacd_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(shared_libnacd_la_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
-	-o $@
-shared_nm_utils_libnm_utils_base_la_DEPENDENCIES =  \
-	shared/libcsiphash.la $(am__DEPENDENCIES_1)
-am_shared_nm_utils_libnm_utils_base_la_OBJECTS =  \
-	shared/nm-utils/libnm_utils_base_la-c-list-util.lo \
-	shared/nm-utils/libnm_utils_base_la-nm-dedup-multi.lo \
-	shared/nm-utils/libnm_utils_base_la-nm-enum-utils.lo \
-	shared/nm-utils/libnm_utils_base_la-nm-errno.lo \
-	shared/nm-utils/libnm_utils_base_la-nm-hash-utils.lo \
-	shared/nm-utils/libnm_utils_base_la-nm-io-utils.lo \
-	shared/nm-utils/libnm_utils_base_la-nm-random-utils.lo \
-	shared/nm-utils/libnm_utils_base_la-nm-secret-utils.lo \
-	shared/nm-utils/libnm_utils_base_la-nm-shared-utils.lo \
-	shared/nm-utils/libnm_utils_base_la-nm-time-utils.lo
-shared_nm_utils_libnm_utils_base_la_OBJECTS =  \
-	$(am_shared_nm_utils_libnm_utils_base_la_OBJECTS)
-shared_nm_utils_libnm_utils_base_la_LINK = $(LIBTOOL) $(AM_V_lt) \
+	$(shared_libnacd_la_CFLAGS) $(CFLAGS) \
+	$(shared_libnacd_la_LDFLAGS) $(LDFLAGS) -o $@
+shared_nm_glib_aux_libnm_glib_aux_la_DEPENDENCIES =  \
+	shared/nm-std-aux/libnm-std-aux.la $(am__DEPENDENCIES_1)
+am_shared_nm_glib_aux_libnm_glib_aux_la_OBJECTS =  \
+	shared/nm-glib-aux/libnm_glib_aux_la-nm-dedup-multi.lo \
+	shared/nm-glib-aux/libnm_glib_aux_la-nm-enum-utils.lo \
+	shared/nm-glib-aux/libnm_glib_aux_la-nm-errno.lo \
+	shared/nm-glib-aux/libnm_glib_aux_la-nm-hash-utils.lo \
+	shared/nm-glib-aux/libnm_glib_aux_la-nm-io-utils.lo \
+	shared/nm-glib-aux/libnm_glib_aux_la-nm-random-utils.lo \
+	shared/nm-glib-aux/libnm_glib_aux_la-nm-secret-utils.lo \
+	shared/nm-glib-aux/libnm_glib_aux_la-nm-shared-utils.lo \
+	shared/nm-glib-aux/libnm_glib_aux_la-nm-time-utils.lo
+shared_nm_glib_aux_libnm_glib_aux_la_OBJECTS =  \
+	$(am_shared_nm_glib_aux_libnm_glib_aux_la_OBJECTS)
+shared_nm_glib_aux_libnm_glib_aux_la_LINK = $(LIBTOOL) $(AM_V_lt) \
 	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(shared_nm_utils_libnm_utils_base_la_LDFLAGS) $(LDFLAGS) -o \
+	$(shared_nm_glib_aux_libnm_glib_aux_la_LDFLAGS) $(LDFLAGS) -o \
 	$@
-shared_nm_utils_libnm_utils_udev_la_DEPENDENCIES =  \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
-am_shared_nm_utils_libnm_utils_udev_la_OBJECTS =  \
-	shared/nm-utils/libnm_utils_udev_la-nm-udev-utils.lo
-shared_nm_utils_libnm_utils_udev_la_OBJECTS =  \
-	$(am_shared_nm_utils_libnm_utils_udev_la_OBJECTS)
-shared_nm_utils_libnm_utils_udev_la_LINK = $(LIBTOOL) $(AM_V_lt) \
+shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_DEPENDENCIES =  \
+	$(am__DEPENDENCIES_1)
+am_shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_OBJECTS =
+shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_OBJECTS = $(am_shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_OBJECTS)
+shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_LINK = $(LIBTOOL) \
+	$(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
+shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_DEPENDENCIES =  \
+	$(am__DEPENDENCIES_1)
+am_shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_OBJECTS = shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-ethtool-utils.lo \
+	shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-libnm-core-utils.lo
+shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_OBJECTS = $(am_shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_OBJECTS)
+shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_LINK =  \
+	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
+shared_nm_std_aux_libnm_std_aux_la_DEPENDENCIES =  \
+	shared/libcsiphash.la
+am_shared_nm_std_aux_libnm_std_aux_la_OBJECTS =  \
+	shared/nm-std-aux/libnm_std_aux_la-c-list-util.lo
+shared_nm_std_aux_libnm_std_aux_la_OBJECTS =  \
+	$(am_shared_nm_std_aux_libnm_std_aux_la_OBJECTS)
+shared_nm_std_aux_libnm_std_aux_la_LINK = $(LIBTOOL) $(AM_V_lt) \
 	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(shared_nm_utils_libnm_utils_udev_la_LDFLAGS) $(LDFLAGS) -o \
+	$(shared_nm_std_aux_libnm_std_aux_la_LDFLAGS) $(LDFLAGS) -o $@
+shared_nm_udev_aux_libnm_udev_aux_la_DEPENDENCIES =  \
+	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
+am_shared_nm_udev_aux_libnm_udev_aux_la_OBJECTS =  \
+	shared/nm-udev-aux/libnm_udev_aux_la-nm-udev-utils.lo
+shared_nm_udev_aux_libnm_udev_aux_la_OBJECTS =  \
+	$(am_shared_nm_udev_aux_libnm_udev_aux_la_OBJECTS)
+shared_nm_udev_aux_libnm_udev_aux_la_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(shared_nm_udev_aux_libnm_udev_aux_la_LDFLAGS) $(LDFLAGS) -o \
 	$@
 shared_systemd_libnm_systemd_logging_stub_la_DEPENDENCIES =  \
 	$(am__DEPENDENCIES_2)
@@ -1352,6 +1387,7 @@ am_shared_systemd_libnm_systemd_shared_la_OBJECTS =  \
 	shared/systemd/src/basic/libnm_systemd_shared_la-hostname-util.lo \
 	shared/systemd/src/basic/libnm_systemd_shared_la-in-addr-util.lo \
 	shared/systemd/src/basic/libnm_systemd_shared_la-io-util.lo \
+	shared/systemd/src/basic/libnm_systemd_shared_la-memory-util.lo \
 	shared/systemd/src/basic/libnm_systemd_shared_la-mempool.lo \
 	shared/systemd/src/basic/libnm_systemd_shared_la-parse-util.lo \
 	shared/systemd/src/basic/libnm_systemd_shared_la-path-util.lo \
@@ -1643,9 +1679,12 @@ am_src_libNetworkManager_la_OBJECTS =  \
 	src/libNetworkManager_la-nm-sleep-monitor.lo
 src_libNetworkManager_la_OBJECTS =  \
 	$(am_src_libNetworkManager_la_OBJECTS)
-src_libNetworkManagerBase_la_DEPENDENCIES = libnm-core/libnm-core.la \
-	$(libnm_crypto_lib) shared/nm-utils/libnm-utils-udev.la \
-	shared/nm-utils/libnm-utils-base.la $(am__DEPENDENCIES_1) \
+src_libNetworkManagerBase_la_DEPENDENCIES =  \
+	shared/nm-libnm-core-aux/libnm-libnm-core-aux.la \
+	libnm-core/libnm-core.la $(libnm_crypto_lib) \
+	shared/nm-libnm-core-intern/libnm-libnm-core-intern.la \
+	shared/nm-udev-aux/libnm-udev-aux.la \
+	shared/nm-glib-aux/libnm-glib-aux.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 am__src_libNetworkManagerBase_la_SOURCES_DIST = src/nm-core-utils.c \
 	src/nm-core-utils.h src/nm-logging.c src/nm-logging.h \
@@ -1658,6 +1697,8 @@ am__src_libNetworkManagerBase_la_SOURCES_DIST = src/nm-core-utils.c \
 	src/platform/nm-platform.h src/platform/nm-platform-private.h \
 	src/platform/nm-linux-platform.c \
 	src/platform/nm-linux-platform.h \
+	src/platform/nmp-rules-manager.c \
+	src/platform/nmp-rules-manager.h \
 	src/platform/wifi/nm-wifi-utils-nl80211.c \
 	src/platform/wifi/nm-wifi-utils-nl80211.h \
 	src/platform/wifi/nm-wifi-utils-private.h \
@@ -1688,6 +1729,7 @@ am_src_libNetworkManagerBase_la_OBJECTS =  \
 	src/platform/libNetworkManagerBase_la-nm-platform-utils.lo \
 	src/platform/libNetworkManagerBase_la-nm-platform.lo \
 	src/platform/libNetworkManagerBase_la-nm-linux-platform.lo \
+	src/platform/libNetworkManagerBase_la-nmp-rules-manager.lo \
 	src/platform/wifi/libNetworkManagerBase_la-nm-wifi-utils-nl80211.lo \
 	src/platform/wifi/libNetworkManagerBase_la-nm-wifi-utils.lo \
 	src/platform/wpan/libNetworkManagerBase_la-nm-wpan-utils.lo \
@@ -2011,6 +2053,7 @@ clients_tui_nmtui_OBJECTS = $(am_clients_tui_nmtui_OBJECTS)
 @BUILD_NMTUI_TRUE@clients_tui_nmtui_DEPENDENCIES = libnm/libnm.la \
 @BUILD_NMTUI_TRUE@	clients/tui/newt/libnmt-newt.a \
 @BUILD_NMTUI_TRUE@	clients/common/libnmc-base.la \
+@BUILD_NMTUI_TRUE@	clients/common/libnmc.la \
 @BUILD_NMTUI_TRUE@	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 clients_tui_nmtui_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
@@ -2032,8 +2075,9 @@ dispatcher_nm_dispatcher_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 dispatcher_tests_test_dispatcher_envp_SOURCES =  \
 	dispatcher/tests/test-dispatcher-envp.c
 dispatcher_tests_test_dispatcher_envp_OBJECTS = dispatcher/tests/test_dispatcher_envp-test-dispatcher-envp.$(OBJEXT)
-dispatcher_tests_test_dispatcher_envp_DEPENDENCIES = libnm/libnm.la \
-	dispatcher/libnm-dispatcher-core.la $(am__DEPENDENCIES_1)
+dispatcher_tests_test_dispatcher_envp_DEPENDENCIES =  \
+	dispatcher/libnm-dispatcher-core.la libnm/libnm.la \
+	shared/nm-glib-aux/libnm-glib-aux.la $(am__DEPENDENCIES_1)
 dispatcher_tests_test_dispatcher_envp_LINK = $(LIBTOOL) $(AM_V_lt) \
 	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -2112,11 +2156,12 @@ libnm_core_tests_test_compare_SOURCES =  \
 	libnm-core/tests/test-compare.c
 libnm_core_tests_test_compare_OBJECTS =  \
 	libnm-core/tests/test_compare-test-compare.$(OBJEXT)
-am__DEPENDENCIES_8 = libnm-core/libnm-core.la \
+am__DEPENDENCIES_8 = shared/nm-libnm-core-aux/libnm-libnm-core-aux.la \
+	libnm-core/libnm-core.la $(libnm_crypto_lib) \
+	shared/nm-libnm-core-intern/libnm-libnm-core-intern.la \
 	shared/systemd/libnm-systemd-shared.la \
 	shared/systemd/libnm-systemd-logging-stub.la \
-	shared/nm-utils/libnm-utils-base.la $(libnm_crypto_lib) \
-	$(am__DEPENDENCIES_1)
+	shared/nm-glib-aux/libnm-glib-aux.la $(am__DEPENDENCIES_1)
 libnm_core_tests_test_compare_DEPENDENCIES = $(am__DEPENDENCIES_8)
 libnm_core_tests_test_compare_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
@@ -2328,7 +2373,12 @@ shared_nm_utils_tests_test_shared_general_SOURCES =  \
 	shared/nm-utils/tests/test-shared-general.c
 shared_nm_utils_tests_test_shared_general_OBJECTS = shared/nm-utils/tests/test_shared_general-test-shared-general.$(OBJEXT)
 shared_nm_utils_tests_test_shared_general_DEPENDENCIES =  \
-	shared/nm-utils/libnm-utils-base.la $(am__DEPENDENCIES_1)
+	shared/nm-glib-aux/libnm-glib-aux.la $(am__DEPENDENCIES_1)
+shared_nm_utils_tests_test_shared_general_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(shared_nm_utils_tests_test_shared_general_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_src_NetworkManager_OBJECTS = src/NetworkManager-main.$(OBJEXT)
 src_NetworkManager_OBJECTS = $(am_src_NetworkManager_OBJECTS)
 src_NetworkManager_DEPENDENCIES = src/libNetworkManager.la
@@ -2413,10 +2463,9 @@ am_src_initrd_nm_initrd_generator_OBJECTS =  \
 src_initrd_nm_initrd_generator_OBJECTS =  \
 	$(am_src_initrd_nm_initrd_generator_OBJECTS)
 src_initrd_nm_initrd_generator_DEPENDENCIES =  \
-	libnm-core/libnm-core.la src/initrd/libnmi-core.la \
-	src/libNetworkManagerBase.la \
+	src/initrd/libnmi-core.la src/libNetworkManagerBase.la \
 	shared/systemd/libnm-systemd-shared.la \
-	shared/nm-utils/libnm-utils-base.la $(am__DEPENDENCIES_1)
+	shared/nm-glib-aux/libnm-glib-aux.la $(am__DEPENDENCIES_1)
 src_initrd_nm_initrd_generator_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) \
@@ -2425,9 +2474,8 @@ src_initrd_tests_test_cmdline_reader_SOURCES =  \
 	src/initrd/tests/test-cmdline-reader.c
 src_initrd_tests_test_cmdline_reader_OBJECTS = src/initrd/tests/test_cmdline_reader-test-cmdline-reader.$(OBJEXT)
 src_initrd_tests_test_cmdline_reader_DEPENDENCIES =  \
-	libnm-core/libnm-core.la src/initrd/libnmi-core.la \
-	src/libNetworkManagerTest.la \
-	shared/nm-utils/libnm-utils-base.la $(am__DEPENDENCIES_1)
+	src/initrd/libnmi-core.la src/libNetworkManagerTest.la \
+	shared/nm-glib-aux/libnm-glib-aux.la $(am__DEPENDENCIES_1)
 src_initrd_tests_test_cmdline_reader_LINK = $(LIBTOOL) $(AM_V_lt) \
 	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -2438,9 +2486,8 @@ src_initrd_tests_test_ibft_reader_SOURCES =  \
 src_initrd_tests_test_ibft_reader_OBJECTS =  \
 	src/initrd/tests/test_ibft_reader-test-ibft-reader.$(OBJEXT)
 src_initrd_tests_test_ibft_reader_DEPENDENCIES =  \
-	libnm-core/libnm-core.la src/initrd/libnmi-core.la \
-	src/libNetworkManagerTest.la \
-	shared/nm-utils/libnm-utils-base.la $(am__DEPENDENCIES_1)
+	src/initrd/libnmi-core.la src/libNetworkManagerTest.la \
+	shared/nm-glib-aux/libnm-glib-aux.la $(am__DEPENDENCIES_1)
 src_initrd_tests_test_ibft_reader_LINK = $(LIBTOOL) $(AM_V_lt) \
 	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -2701,6 +2748,10 @@ src_tests_test_systemd_OBJECTS =  \
 src_tests_test_systemd_DEPENDENCIES = src/libnm-systemd-core.la \
 	shared/systemd/libnm-systemd-shared.la shared/libcsiphash.la \
 	$(am__DEPENDENCIES_6)
+src_tests_test_systemd_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(src_tests_test_systemd_LDFLAGS) \
+	$(LDFLAGS) -o $@
 src_tests_test_utils_SOURCES = src/tests/test-utils.c
 src_tests_test_utils_OBJECTS =  \
 	src/tests/test_utils-test-utils.$(OBJEXT)
@@ -3088,9 +3139,7 @@ am__depfiles_remade = clients/$(DEPDIR)/nm_online-nm-online.Po \
 	libnm/tests/$(DEPDIR)/libnm_tests_test_nm_client-test-nm-client.Po \
 	libnm/tests/$(DEPDIR)/libnm_tests_test_remote_settings_client-test-remote-settings-client.Po \
 	libnm/tests/$(DEPDIR)/test_secret_agent-test-secret-agent.Po \
-	shared/$(DEPDIR)/clients_common_libnmc_la-nm-ethtool-utils.Plo \
 	shared/$(DEPDIR)/clients_common_libnmc_la-nm-meta-setting.Plo \
-	shared/$(DEPDIR)/libnm_core_libnm_core_la-nm-ethtool-utils.Plo \
 	shared/$(DEPDIR)/libnm_core_libnm_core_la-nm-meta-setting.Plo \
 	shared/$(DEPDIR)/libnm_glib_tests_test_nm_client-nm-test-utils-impl.Po \
 	shared/$(DEPDIR)/libnm_glib_tests_test_remote_settings_client-nm-test-utils-impl.Po \
@@ -3104,19 +3153,21 @@ am__depfiles_remade = clients/$(DEPDIR)/nm_online-nm-online.Po \
 	shared/n-acd/src/$(DEPDIR)/libnacd_la-n-acd-probe.Plo \
 	shared/n-acd/src/$(DEPDIR)/libnacd_la-n-acd.Plo \
 	shared/n-acd/src/util/$(DEPDIR)/libnacd_la-timer.Plo \
+	shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-dedup-multi.Plo \
+	shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-enum-utils.Plo \
+	shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-errno.Plo \
+	shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-hash-utils.Plo \
+	shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-io-utils.Plo \
+	shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-random-utils.Plo \
+	shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-secret-utils.Plo \
+	shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-shared-utils.Plo \
+	shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-time-utils.Plo \
+	shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-ethtool-utils.Plo \
+	shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-libnm-core-utils.Plo \
+	shared/nm-std-aux/$(DEPDIR)/libnm_std_aux_la-c-list-util.Plo \
+	shared/nm-udev-aux/$(DEPDIR)/libnm_udev_aux_la-nm-udev-utils.Plo \
 	shared/nm-utils/$(DEPDIR)/libnm_tests_libnm_vpn_plugin_utils_test_la-nm-vpn-plugin-utils.Plo \
 	shared/nm-utils/$(DEPDIR)/libnm_tests_test_general-nm-compat.Po \
-	shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-c-list-util.Plo \
-	shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-dedup-multi.Plo \
-	shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-enum-utils.Plo \
-	shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-errno.Plo \
-	shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-hash-utils.Plo \
-	shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-io-utils.Plo \
-	shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-random-utils.Plo \
-	shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-secret-utils.Plo \
-	shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-shared-utils.Plo \
-	shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-time-utils.Plo \
-	shared/nm-utils/$(DEPDIR)/libnm_utils_udev_la-nm-udev-utils.Plo \
 	shared/nm-utils/tests/$(DEPDIR)/test_shared_general-test-shared-general.Po \
 	shared/systemd/$(DEPDIR)/libnm_systemd_logging_stub_la-nm-logging-stub.Plo \
 	shared/systemd/$(DEPDIR)/libnm_systemd_shared_la-nm-sd-utils-shared.Plo \
@@ -3135,6 +3186,7 @@ am__depfiles_remade = clients/$(DEPDIR)/nm_online-nm-online.Po \
 	shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-hostname-util.Plo \
 	shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-in-addr-util.Plo \
 	shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-io-util.Plo \
+	shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-memory-util.Plo \
 	shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-mempool.Plo \
 	shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-parse-util.Plo \
 	shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-path-util.Plo \
@@ -3283,6 +3335,7 @@ am__depfiles_remade = clients/$(DEPDIR)/nm_online-nm-online.Po \
 	src/platform/$(DEPDIR)/libNetworkManagerBase_la-nm-platform.Plo \
 	src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-netns.Plo \
 	src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-object.Plo \
+	src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-rules-manager.Plo \
 	src/platform/$(DEPDIR)/libNetworkManagerTest_la-nm-fake-platform.Plo \
 	src/platform/tests/$(DEPDIR)/libNetworkManagerTest_la-test-common.Plo \
 	src/platform/tests/$(DEPDIR)/monitor-monitor.Po \
@@ -3434,8 +3487,11 @@ SOURCES = $(clients_tui_newt_libnmt_newt_a_SOURCES) \
 	$(libnm_tests_libnm_vpn_plugin_utils_test_la_SOURCES) \
 	$(shared_libcrbtree_la_SOURCES) \
 	$(shared_libcsiphash_la_SOURCES) $(shared_libnacd_la_SOURCES) \
-	$(shared_nm_utils_libnm_utils_base_la_SOURCES) \
-	$(shared_nm_utils_libnm_utils_udev_la_SOURCES) \
+	$(shared_nm_glib_aux_libnm_glib_aux_la_SOURCES) \
+	$(shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_SOURCES) \
+	$(shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_SOURCES) \
+	$(shared_nm_std_aux_libnm_std_aux_la_SOURCES) \
+	$(shared_nm_udev_aux_libnm_udev_aux_la_SOURCES) \
 	$(shared_systemd_libnm_systemd_logging_stub_la_SOURCES) \
 	$(shared_systemd_libnm_systemd_shared_la_SOURCES) \
 	$(src_devices_adsl_libnm_device_plugin_adsl_la_SOURCES) \
@@ -3548,8 +3604,11 @@ DIST_SOURCES = $(am__clients_tui_newt_libnmt_newt_a_SOURCES_DIST) \
 	$(shared_libcrbtree_la_SOURCES) \
 	$(shared_libcsiphash_la_SOURCES) \
 	$(am__shared_libnacd_la_SOURCES_DIST) \
-	$(shared_nm_utils_libnm_utils_base_la_SOURCES) \
-	$(shared_nm_utils_libnm_utils_udev_la_SOURCES) \
+	$(shared_nm_glib_aux_libnm_glib_aux_la_SOURCES) \
+	$(shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_SOURCES) \
+	$(shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_SOURCES) \
+	$(shared_nm_std_aux_libnm_std_aux_la_SOURCES) \
+	$(shared_nm_udev_aux_libnm_udev_aux_la_SOURCES) \
 	$(shared_systemd_libnm_systemd_logging_stub_la_SOURCES) \
 	$(shared_systemd_libnm_systemd_shared_la_SOURCES) \
 	$(src_devices_adsl_libnm_device_plugin_adsl_la_SOURCES) \
@@ -4301,12 +4360,22 @@ AUTOMAKE_OPTIONS = subdir-objects
 ###############################################################################
 
 ###############################################################################
+
+###############################################################################
+
+###############################################################################
+
+###############################################################################
 noinst_LTLIBRARIES = shared/libcsiphash.la shared/libcrbtree.la \
-	shared/libnacd.la shared/nm-utils/libnm-utils-base.la \
-	shared/nm-utils/libnm-utils-udev.la introspection/libnmdbus.la \
-	libnm-core/libnm-core.la $(libnm_crypto_lib) \
-	libnm/libnm-utils.la src/libNetworkManagerBase.la \
-	src/libNetworkManager.la src/libnm-systemd-core.la $(NULL) \
+	shared/libnacd.la shared/nm-std-aux/libnm-std-aux.la \
+	shared/nm-glib-aux/libnm-glib-aux.la \
+	shared/nm-udev-aux/libnm-udev-aux.la \
+	shared/nm-libnm-core-intern/libnm-libnm-core-intern.la \
+	shared/nm-libnm-core-aux/libnm-libnm-core-aux.la \
+	introspection/libnmdbus.la libnm-core/libnm-core.la \
+	$(libnm_crypto_lib) libnm/libnm-utils.la \
+	src/libNetworkManagerBase.la src/libNetworkManager.la \
+	src/libnm-systemd-core.la $(NULL) \
 	shared/systemd/libnm-systemd-logging-stub.la \
 	shared/systemd/libnm-systemd-shared.la \
 	src/initrd/libnmi-core.la $(am__append_25) $(am__append_29) \
@@ -4653,6 +4722,7 @@ EXTRA_DIST = $(dbusinterfaces_DATA) introspection/meson.build \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Bridge_Component.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Permissions.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Proxy_Basic.cexpected \
+	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Routing_Rules.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Team_Infiniband_Port.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Team_Port.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_VLAN_reorder_hdr.cexpected \
@@ -4935,11 +5005,9 @@ EXTRA_DIST = $(dbusinterfaces_DATA) introspection/meson.build \
 	linker-script-settings.ver src/ppp/nm-ppp-plugin.ver \
 	Makefile.glib autogen.sh valgrind.suppressions meson.build \
 	meson_options.txt config.h.meson config-extra.h.meson \
-	docs/meson.build po/meson.build shared/nm-common-macros.h \
-	shared/nm-dbus-compat.h shared/nm-default.h \
-	shared/nm-dispatcher-api.h shared/nm-test-libnm-utils.h \
-	shared/nm-test-utils-impl.c shared/nm-utils/nm-compat.c \
-	shared/nm-utils/nm-compat.h shared/nm-utils/nm-jansson.h \
+	docs/meson.build po/meson.build shared/nm-default.h \
+	shared/nm-test-libnm-utils.h shared/nm-test-utils-impl.c \
+	shared/nm-utils/nm-compat.c shared/nm-utils/nm-compat.h \
 	shared/nm-utils/nm-test-utils.h \
 	shared/nm-utils/nm-vpn-editor-plugin-call.h \
 	shared/nm-utils/nm-vpn-plugin-macros.h \
@@ -4952,8 +5020,8 @@ EXTRA_DIST = $(dbusinterfaces_DATA) introspection/meson.build \
 	tools/meson-post-install.sh tools/run-nm-test.sh \
 	tools/test-networkmanager-service.py \
 	tools/test-sudo-wrapper.sh tools/enums-to-docbook.pl \
-	src/settings/plugins/README src/settings/plugins/meson.build \
-	$(NULL) examples/C/glib/meson.build \
+	src/settings/plugins/meson.build $(NULL) \
+	examples/C/glib/meson.build \
 	examples/C/qt/add-connection-wired.cpp \
 	examples/C/qt/list-connections.cpp \
 	examples/C/qt/change-ipv4-addresses.cpp \
@@ -5187,6 +5255,9 @@ shared_libcsiphash_la_CPPFLAGS = \
 	$(SANITIZER_LIB_CFLAGS) \
 	$(NULL)
 
+shared_libcsiphash_la_LDFLAGS = \
+	$(SANITIZER_LIB_LDFLAGS)
+
 shared_libcsiphash_la_SOURCES = \
 	shared/c-siphash/src/c-siphash.c \
 	shared/c-siphash/src/c-siphash.h \
@@ -5201,6 +5272,9 @@ shared_libcrbtree_la_CPPFLAGS = \
 	$(CODE_COVERAGE_CFLAGS) \
 	$(SANITIZER_LIB_CFLAGS) \
 	$(NULL)
+
+shared_libcrbtree_la_LDFLAGS = \
+	$(SANITIZER_LIB_LDFLAGS)
 
 shared_libcrbtree_la_SOURCES = \
 	shared/c-rbtree/src/c-rbtree.c \
@@ -5225,6 +5299,9 @@ shared_libnacd_la_CPPFLAGS = \
 	-I$(srcdir)/shared/c-rbtree/src \
 	$(NULL)
 
+shared_libnacd_la_LDFLAGS = \
+	$(SANITIZER_LIB_LDFLAGS)
+
 shared_libnacd_la_SOURCES = shared/n-acd/src/n-acd.c \
 	shared/n-acd/src/n-acd.h shared/n-acd/src/n-acd-private.h \
 	shared/n-acd/src/n-acd-probe.c shared/n-acd/src/util/timer.c \
@@ -5234,9 +5311,35 @@ shared_libnacd_la_LIBADD = \
 	shared/libcrbtree.la \
 	$(NULL)
 
+shared_nm_std_aux_libnm_std_aux_la_CPPFLAGS = \
+	$(dflt_cppflags) \
+	-I$(srcdir)/shared \
+	$(CODE_COVERAGE_CFLAGS) \
+	$(SANITIZER_LIB_CFLAGS) \
+	-DG_LOG_DOMAIN=\""libnm"\" \
+	-DNETWORKMANAGER_COMPILATION='0' \
+	$(NULL)
+
+shared_nm_std_aux_libnm_std_aux_la_SOURCES = \
+	shared/c-list/src/c-list.h \
+	shared/nm-std-aux/c-list-util.c \
+	shared/nm-std-aux/c-list-util.h \
+	shared/nm-std-aux/nm-dbus-compat.h \
+	shared/nm-std-aux/unaligned.h \
+	$(NULL)
+
+shared_nm_std_aux_libnm_std_aux_la_LDFLAGS = \
+	$(CODE_COVERAGE_LDFLAGS) \
+	$(SANITIZER_LIB_LDFLAGS) \
+	$(NULL)
+
+shared_nm_std_aux_libnm_std_aux_la_LIBADD = \
+	shared/libcsiphash.la \
+	$(NULL)
+
 
 ###############################################################################
-shared_nm_utils_libnm_utils_cppflags = \
+shared_nm_glib_aux_cppflags = \
 	$(dflt_cppflags) \
 	-I$(srcdir)/shared \
 	$(CODE_COVERAGE_CFLAGS) \
@@ -5246,68 +5349,121 @@ shared_nm_utils_libnm_utils_cppflags = \
 	-DNETWORKMANAGER_COMPILATION='(NM_NETWORKMANAGER_COMPILATION_GLIB|NM_NETWORKMANAGER_COMPILATION_WITH_GLIB_I18N_LIB)' \
 	$(NULL)
 
-shared_nm_utils_libnm_utils_base_la_CPPFLAGS = \
-	$(shared_nm_utils_libnm_utils_cppflags) \
+shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS = \
+	$(shared_nm_glib_aux_cppflags) \
 	$(NULL)
 
-shared_nm_utils_libnm_utils_base_la_SOURCES = \
-	shared/c-list/src/c-list.h \
-	shared/nm-utils/c-list-util.c \
-	shared/nm-utils/c-list-util.h \
-	shared/nm-utils/nm-c-list.h \
-	shared/nm-utils/nm-dedup-multi.c \
-	shared/nm-utils/nm-dedup-multi.h \
-	shared/nm-utils/nm-enum-utils.c \
-	shared/nm-utils/nm-enum-utils.h \
-	shared/nm-utils/nm-errno.c \
-	shared/nm-utils/nm-errno.h \
-	shared/nm-utils/nm-glib.h \
-	shared/nm-utils/nm-hash-utils.c \
-	shared/nm-utils/nm-hash-utils.h \
-	shared/nm-utils/nm-io-utils.c \
-	shared/nm-utils/nm-io-utils.h \
-	shared/nm-utils/nm-logging-fwd.h \
-	shared/nm-utils/nm-macros-internal.h \
-	shared/nm-utils/nm-obj.h \
-	shared/nm-utils/nm-random-utils.c \
-	shared/nm-utils/nm-random-utils.h \
-	shared/nm-utils/nm-secret-utils.c \
-	shared/nm-utils/nm-secret-utils.h \
-	shared/nm-utils/nm-shared-utils.c \
-	shared/nm-utils/nm-shared-utils.h \
-	shared/nm-utils/nm-time-utils.c \
-	shared/nm-utils/nm-time-utils.h \
-	shared/nm-utils/unaligned.h \
+shared_nm_glib_aux_libnm_glib_aux_la_SOURCES = \
+	shared/nm-glib-aux/nm-c-list.h \
+	shared/nm-glib-aux/nm-dedup-multi.c \
+	shared/nm-glib-aux/nm-dedup-multi.h \
+	shared/nm-glib-aux/nm-enum-utils.c \
+	shared/nm-glib-aux/nm-enum-utils.h \
+	shared/nm-glib-aux/nm-errno.c \
+	shared/nm-glib-aux/nm-errno.h \
+	shared/nm-glib-aux/nm-glib.h \
+	shared/nm-glib-aux/nm-hash-utils.c \
+	shared/nm-glib-aux/nm-hash-utils.h \
+	shared/nm-glib-aux/nm-io-utils.c \
+	shared/nm-glib-aux/nm-io-utils.h \
+	shared/nm-glib-aux/nm-jansson.h \
+	shared/nm-glib-aux/nm-logging-fwd.h \
+	shared/nm-glib-aux/nm-macros-internal.h \
+	shared/nm-glib-aux/nm-obj.h \
+	shared/nm-glib-aux/nm-random-utils.c \
+	shared/nm-glib-aux/nm-random-utils.h \
+	shared/nm-glib-aux/nm-secret-utils.c \
+	shared/nm-glib-aux/nm-secret-utils.h \
+	shared/nm-glib-aux/nm-shared-utils.c \
+	shared/nm-glib-aux/nm-shared-utils.h \
+	shared/nm-glib-aux/nm-time-utils.c \
+	shared/nm-glib-aux/nm-time-utils.h \
 	$(NULL)
 
-shared_nm_utils_libnm_utils_base_la_LDFLAGS = \
+shared_nm_glib_aux_libnm_glib_aux_la_LDFLAGS = \
 	$(CODE_COVERAGE_LDFLAGS) \
 	$(SANITIZER_LIB_LDFLAGS) \
 	$(NULL)
 
-shared_nm_utils_libnm_utils_base_la_LIBADD = \
-	shared/libcsiphash.la \
+shared_nm_glib_aux_libnm_glib_aux_la_LIBADD = \
+	shared/nm-std-aux/libnm-std-aux.la \
 	$(GLIB_LIBS) \
 	$(NULL)
 
-shared_nm_utils_libnm_utils_udev_la_CPPFLAGS = \
-	$(shared_nm_utils_libnm_utils_cppflags) \
+shared_nm_udev_aux_libnm_udev_aux_la_CPPFLAGS = \
+	$(shared_nm_glib_aux_cppflags) \
 	$(LIBUDEV_CFLAGS) \
 	$(NULL)
 
-shared_nm_utils_libnm_utils_udev_la_SOURCES = \
-	shared/nm-utils/nm-udev-utils.c \
-	shared/nm-utils/nm-udev-utils.h \
+shared_nm_udev_aux_libnm_udev_aux_la_SOURCES = \
+	shared/nm-udev-aux/nm-udev-utils.c \
+	shared/nm-udev-aux/nm-udev-utils.h \
 	$(NULL)
 
-shared_nm_utils_libnm_utils_udev_la_LDFLAGS = \
+shared_nm_udev_aux_libnm_udev_aux_la_LDFLAGS = \
 	$(CODE_COVERAGE_LDFLAGS) \
 	$(SANITIZER_LIB_LDFLAGS) \
 	$(NULL)
 
-shared_nm_utils_libnm_utils_udev_la_LIBADD = \
+shared_nm_udev_aux_libnm_udev_aux_la_LIBADD = \
 	$(GLIB_LIBS) \
 	$(LIBUDEV_LIBS) \
+	$(NULL)
+
+shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_CPPFLAGS = \
+	$(dflt_cppflags) \
+	-I$(srcdir)/shared \
+	-I$(builddir)/shared \
+	-I$(srcdir)/libnm-core \
+	-I$(builddir)/libnm-core \
+	$(CODE_COVERAGE_CFLAGS) \
+	$(GLIB_CFLAGS) \
+	$(SANITIZER_LIB_CFLAGS) \
+	-DG_LOG_DOMAIN=\""libnm"\" \
+	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_LIBNM_CORE \
+	$(NULL)
+
+shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_SOURCES = \
+	shared/nm-libnm-core-intern/nm-common-macros.h \
+	shared/nm-libnm-core-intern/nm-ethtool-utils.c \
+	shared/nm-libnm-core-intern/nm-ethtool-utils.h \
+	shared/nm-libnm-core-intern/nm-libnm-core-utils.c \
+	shared/nm-libnm-core-intern/nm-libnm-core-utils.h \
+	$(NULL)
+
+shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_LDFLAGS = \
+	$(CODE_COVERAGE_LDFLAGS) \
+	$(SANITIZER_LIB_LDFLAGS) \
+	$(NULL)
+
+shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_LIBADD = \
+	$(GLIB_LIBS) \
+	$(NULL)
+
+shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_CPPFLAGS = \
+	$(dflt_cppflags) \
+	-I$(srcdir)/shared \
+	-I$(builddir)/shared \
+	-I$(srcdir)/libnm-core \
+	-I$(builddir)/libnm-core \
+	$(CODE_COVERAGE_CFLAGS) \
+	$(GLIB_CFLAGS) \
+	$(SANITIZER_LIB_CFLAGS) \
+	-DG_LOG_DOMAIN=\""libnm"\" \
+	-DNETWORKMANAGER_COMPILATION='(NM_NETWORKMANAGER_COMPILATION_WITH_GLIB|NM_NETWORKMANAGER_COMPILATION_WITH_GLIB_I18N_LIB)' \
+	$(NULL)
+
+shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_SOURCES = \
+	shared/nm-libnm-core-aux/nm-dispatcher-api.h \
+	$(NULL)
+
+shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_LDFLAGS = \
+	$(CODE_COVERAGE_LDFLAGS) \
+	$(SANITIZER_LIB_LDFLAGS) \
+	$(NULL)
+
+shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_LIBADD = \
+	$(GLIB_LIBS) \
 	$(NULL)
 
 shared_nm_utils_tests_test_shared_general_CPPFLAGS = \
@@ -5320,8 +5476,13 @@ shared_nm_utils_tests_test_shared_general_CPPFLAGS = \
 	$(SANITIZER_LIB_CFLAGS) \
 	$(NULL)
 
+shared_nm_utils_tests_test_shared_general_LDFLAGS = \
+	$(CODE_COVERAGE_LDFLAGS) \
+	$(SANITIZER_EXEC_LDFLAGS) \
+	$(NULL)
+
 shared_nm_utils_tests_test_shared_general_LDADD = \
-	shared/nm-utils/libnm-utils-base.la \
+	shared/nm-glib-aux/libnm-glib-aux.la \
 	$(GLIB_LIBS) \
 	$(NULL)
 
@@ -5592,9 +5753,9 @@ libnm_core_lib_h_pub_real = \
 libnm_core_lib_h_pub_mkenums = \
 	libnm-core/nm-core-enum-types.h
 
-libnm_core_lib_h_priv = shared/nm-ethtool-utils.h \
-	shared/nm-meta-setting.h libnm-core/nm-crypto.h \
-	libnm-core/nm-crypto-impl.h libnm-core/nm-connection-private.h \
+libnm_core_lib_h_priv = shared/nm-meta-setting.h \
+	libnm-core/nm-crypto.h libnm-core/nm-crypto-impl.h \
+	libnm-core/nm-connection-private.h \
 	libnm-core/nm-core-internal.h \
 	libnm-core/nm-core-types-internal.h \
 	libnm-core/nm-keyfile-internal.h libnm-core/nm-keyfile-utils.h \
@@ -5651,13 +5812,12 @@ libnm_core_lib_c_settings_real = \
 	libnm-core/nm-setting-wpan.c
 
 libnm_core_lib_c_real = $(libnm_core_lib_c_settings_real) \
-	shared/nm-ethtool-utils.c shared/nm-meta-setting.c \
-	libnm-core/nm-crypto.c libnm-core/nm-connection.c \
-	libnm-core/nm-dbus-utils.c libnm-core/nm-errors.c \
-	libnm-core/nm-keyfile.c libnm-core/nm-keyfile-utils.c \
-	libnm-core/nm-property-compare.c libnm-core/nm-setting.c \
-	libnm-core/nm-simple-connection.c libnm-core/nm-utils.c \
-	libnm-core/nm-vpn-editor-plugin.c \
+	shared/nm-meta-setting.c libnm-core/nm-crypto.c \
+	libnm-core/nm-connection.c libnm-core/nm-dbus-utils.c \
+	libnm-core/nm-errors.c libnm-core/nm-keyfile.c \
+	libnm-core/nm-keyfile-utils.c libnm-core/nm-property-compare.c \
+	libnm-core/nm-setting.c libnm-core/nm-simple-connection.c \
+	libnm-core/nm-utils.c libnm-core/nm-vpn-editor-plugin.c \
 	libnm-core/nm-vpn-plugin-info.c $(am__append_9)
 libnm_core_lib_c_mkenums = \
 	libnm-core/nm-core-enum-types.c
@@ -5747,22 +5907,28 @@ libnm_core_tests_test_setting_CPPFLAGS = $(libnm_core_tests_cppflags)
 libnm_core_tests_test_settings_defaults_CPPFLAGS = $(libnm_core_tests_cppflags)
 libnm_core_tests_test_general_SOURCES = \
 	libnm-core/tests/test-general-enums.h \
-	libnm-core/tests/test-general.c
+	libnm-core/tests/test-general.c \
+	$(NULL)
 
 nodist_libnm_core_tests_test_general_SOURCES = \
 	libnm-core/tests/nm-core-tests-enum-types.c \
-	libnm-core/tests/nm-core-tests-enum-types.h
+	libnm-core/tests/nm-core-tests-enum-types.h \
+	$(NULL)
 
 libnm_core_tests_ldadd = \
+	shared/nm-libnm-core-aux/libnm-libnm-core-aux.la \
 	libnm-core/libnm-core.la \
+	$(libnm_crypto_lib) \
+	shared/nm-libnm-core-intern/libnm-libnm-core-intern.la \
 	shared/systemd/libnm-systemd-shared.la \
 	shared/systemd/libnm-systemd-logging-stub.la \
-	shared/nm-utils/libnm-utils-base.la \
-	$(libnm_crypto_lib) \
-	$(GLIB_LIBS)
+	shared/nm-glib-aux/libnm-glib-aux.la \
+	$(GLIB_LIBS) \
+	$(NULL)
 
 libnm_core_tests_ldflags = \
-	$(SANITIZER_LIB_LDFLAGS)
+	$(SANITIZER_EXEC_LDFLAGS) \
+	$(NULL)
 
 libnm_core_tests_test_compare_LDADD = $(libnm_core_tests_ldadd)
 libnm_core_tests_test_crypto_LDADD = $(libnm_core_tests_ldadd)
@@ -5918,10 +6084,12 @@ libnm_libnm_utils_la_SOURCES = \
 	libnm/nm-libnm-utils.c
 
 libnm_libnm_utils_la_LIBADD = \
+	shared/nm-libnm-core-aux/libnm-libnm-core-aux.la \
 	libnm-core/libnm-core.la \
 	$(libnm_crypto_lib) \
+	shared/nm-libnm-core-intern/libnm-libnm-core-intern.la \
 	introspection/libnmdbus.la \
-	shared/nm-utils/libnm-utils-base.la \
+	shared/nm-glib-aux/libnm-glib-aux.la \
 	$(GLIB_LIBS) \
 	$(NULL)
 
@@ -5952,7 +6120,7 @@ libnm_libnm_la_LIBADD = \
 	libnm/libnm-utils.la \
 	shared/systemd/libnm-systemd-shared.la \
 	shared/systemd/libnm-systemd-logging-stub.la \
-	shared/nm-utils/libnm-utils-udev.la \
+	shared/nm-udev-aux/libnm-udev-aux.la \
 	$(DL_LIBS) \
 	$(GLIB_LIBS) \
 	$(UUID_LIBS) \
@@ -6018,7 +6186,7 @@ libnm_tests_ldadd = \
 	$(GLIB_LIBS)
 
 libnm_tests_ldflags = \
-	$(SANITIZER_LIB_LDFLAGS)
+	$(SANITIZER_EXEC_LDFLAGS)
 
 libnm_tests_test_general_CPPFLAGS = $(libnm_tests_cppflags)
 libnm_tests_test_nm_client_CPPFLAGS = $(libnm_tests_cppflags)
@@ -6167,15 +6335,17 @@ shared_systemd_libnm_systemd_shared_la_SOURCES = \
 	shared/systemd/sd-adapt-shared/locale-util.h \
 	shared/systemd/sd-adapt-shared/memfd-util.h \
 	shared/systemd/sd-adapt-shared/missing.h \
-	shared/systemd/sd-adapt-shared/missing_socket.h \
 	shared/systemd/sd-adapt-shared/missing_syscall.h \
 	shared/systemd/sd-adapt-shared/missing_timerfd.h \
 	shared/systemd/sd-adapt-shared/mkdir.h \
+	shared/systemd/sd-adapt-shared/namespace-util.h \
 	shared/systemd/sd-adapt-shared/nm-sd-adapt-shared.h \
 	shared/systemd/sd-adapt-shared/nm-sd-adapt-shared.h \
+	shared/systemd/sd-adapt-shared/nulstr-util.h \
 	shared/systemd/sd-adapt-shared/procfs-util.h \
 	shared/systemd/sd-adapt-shared/raw-clone.h \
 	shared/systemd/sd-adapt-shared/rlimit-util.h \
+	shared/systemd/sd-adapt-shared/strxcpyx.h \
 	shared/systemd/sd-adapt-shared/terminal-util.h \
 	shared/systemd/sd-adapt-shared/unaligned.h \
 	shared/systemd/sd-adapt-shared/user-util.h \
@@ -6187,6 +6357,7 @@ shared_systemd_libnm_systemd_shared_la_SOURCES = \
 	shared/systemd/src/basic/env-file.h \
 	shared/systemd/src/basic/env-util.c \
 	shared/systemd/src/basic/env-util.h \
+	shared/systemd/src/basic/errno-util.h \
 	shared/systemd/src/basic/escape.c \
 	shared/systemd/src/basic/escape.h \
 	shared/systemd/src/basic/ether-addr-util.c \
@@ -6214,9 +6385,13 @@ shared_systemd_libnm_systemd_shared_la_SOURCES = \
 	shared/systemd/src/basic/list.h \
 	shared/systemd/src/basic/log.h \
 	shared/systemd/src/basic/macro.h \
+	shared/systemd/src/basic/memory-util.c \
+	shared/systemd/src/basic/memory-util.h \
 	shared/systemd/src/basic/mempool.c \
 	shared/systemd/src/basic/mempool.h \
 	shared/systemd/src/basic/missing_fcntl.h \
+	shared/systemd/src/basic/missing_socket.h \
+	shared/systemd/src/basic/missing_stat.h \
 	shared/systemd/src/basic/missing_type.h \
 	shared/systemd/src/basic/parse-util.c \
 	shared/systemd/src/basic/parse-util.h \
@@ -6228,12 +6403,12 @@ shared_systemd_libnm_systemd_shared_la_SOURCES = \
 	shared/systemd/src/basic/process-util.h \
 	shared/systemd/src/basic/random-util.c \
 	shared/systemd/src/basic/random-util.h \
-	shared/systemd/src/basic/refcnt.h \
 	shared/systemd/src/basic/set.h \
 	shared/systemd/src/basic/signal-util.h \
 	shared/systemd/src/basic/siphash24.h \
 	shared/systemd/src/basic/socket-util.c \
 	shared/systemd/src/basic/socket-util.h \
+	shared/systemd/src/basic/sort-util.h \
 	shared/systemd/src/basic/sparse-endian.h \
 	shared/systemd/src/basic/stat-util.c \
 	shared/systemd/src/basic/stat-util.h \
@@ -6291,7 +6466,7 @@ src_libnm_systemd_core_la_SOURCES = \
 	src/systemd/sd-adapt-core/nm-sd-adapt-core.h \
 	src/systemd/sd-adapt-core/sd-daemon.h \
 	src/systemd/sd-adapt-core/sd-device.h \
-	src/systemd/sd-adapt-core/stat-util.h \
+	src/systemd/sd-adapt-core/udev-util.h \
 	src/systemd/src/libsystemd-network/arp-util.c \
 	src/systemd/src/libsystemd-network/arp-util.h \
 	src/systemd/src/libsystemd-network/dhcp-identifier.c \
@@ -6358,6 +6533,8 @@ src_libNetworkManagerBase_la_SOURCES = src/nm-core-utils.c \
 	src/platform/nm-platform.h src/platform/nm-platform-private.h \
 	src/platform/nm-linux-platform.c \
 	src/platform/nm-linux-platform.h \
+	src/platform/nmp-rules-manager.c \
+	src/platform/nmp-rules-manager.h \
 	src/platform/wifi/nm-wifi-utils-nl80211.c \
 	src/platform/wifi/nm-wifi-utils-nl80211.h \
 	src/platform/wifi/nm-wifi-utils-private.h \
@@ -6376,10 +6553,12 @@ src_libNetworkManagerBase_la_SOURCES = src/nm-core-utils.c \
 	src/dhcp/nm-dhcp-manager.c src/dhcp/nm-dhcp-manager.h \
 	src/main-utils.c src/main-utils.h $(NULL) $(am__append_21)
 src_libNetworkManagerBase_la_LIBADD = \
+	shared/nm-libnm-core-aux/libnm-libnm-core-aux.la \
 	libnm-core/libnm-core.la \
 	$(libnm_crypto_lib) \
-	shared/nm-utils/libnm-utils-udev.la \
-	shared/nm-utils/libnm-utils-base.la \
+	shared/nm-libnm-core-intern/libnm-libnm-core-intern.la \
+	shared/nm-udev-aux/libnm-udev-aux.la \
+	shared/nm-glib-aux/libnm-glib-aux.la \
 	$(GLIB_LIBS) \
 	$(SYSTEMD_JOURNAL_LIBS) \
 	$(LIBUDEV_LIBS) \
@@ -6647,11 +6826,10 @@ src_initrd_nm_initrd_generator_SOURCES = \
 	src/initrd/nm-initrd-generator.c
 
 src_initrd_nm_initrd_generator_LDADD = \
-	libnm-core/libnm-core.la \
 	src/initrd/libnmi-core.la \
 	src/libNetworkManagerBase.la \
 	shared/systemd/libnm-systemd-shared.la \
-	shared/nm-utils/libnm-utils-base.la \
+	shared/nm-glib-aux/libnm-glib-aux.la \
 	$(GLIB_LIBS) \
 	$(NULL)
 
@@ -6669,10 +6847,9 @@ src_initrd_tests_test_ibft_reader_LDFLAGS = \
 	$(SANITIZER_EXEC_LDFLAGS)
 
 src_initrd_tests_test_ibft_reader_LDADD = \
-	libnm-core/libnm-core.la \
 	src/initrd/libnmi-core.la \
 	src/libNetworkManagerTest.la \
-	shared/nm-utils/libnm-utils-base.la \
+	shared/nm-glib-aux/libnm-glib-aux.la \
 	$(GLIB_LIBS) \
 	$(NULL)
 
@@ -6686,10 +6863,9 @@ src_initrd_tests_test_cmdline_reader_LDFLAGS = \
 	$(SANITIZER_EXEC_LDFLAGS)
 
 src_initrd_tests_test_cmdline_reader_LDADD = \
-	libnm-core/libnm-core.la \
 	src/initrd/libnmi-core.la \
 	src/libNetworkManagerTest.la \
-	shared/nm-utils/libnm-utils-base.la \
+	shared/nm-glib-aux/libnm-glib-aux.la \
 	$(GLIB_LIBS) \
 	$(NULL)
 
@@ -7227,6 +7403,9 @@ src_tests_test_systemd_CPPFLAGS = \
 	$(src_libnm_systemd_core_la_cppflags) \
 	-DNETWORKMANAGER_COMPILATION_TEST
 
+src_tests_test_systemd_LDFLAGS = \
+	$(SANITIZER_EXEC_LDFLAGS)
+
 src_tests_test_systemd_LDADD = \
 	src/libnm-systemd-core.la \
 	shared/systemd/libnm-systemd-shared.la \
@@ -7254,9 +7433,9 @@ dispatcher_nmdbus_dispatcher_sources = \
 	dispatcher/nmdbus-dispatcher.c
 
 dispatcher_libnm_dispatcher_core_la_SOURCES = \
-	shared/nm-dispatcher-api.h \
 	dispatcher/nm-dispatcher-utils.c \
-	dispatcher/nm-dispatcher-utils.h
+	dispatcher/nm-dispatcher-utils.h \
+	$(NULL)
 
 dispatcher_libnm_dispatcher_core_la_CPPFLAGS = $(dispatcher_cppflags)
 dispatcher_libnm_dispatcher_core_la_LIBADD = \
@@ -7264,8 +7443,8 @@ dispatcher_libnm_dispatcher_core_la_LIBADD = \
 	$(GLIB_LIBS)
 
 dispatcher_nm_dispatcher_SOURCES = \
-	shared/nm-dispatcher-api.h \
-	dispatcher/nm-dispatcher.c
+	dispatcher/nm-dispatcher.c \
+	$(NULL)
 
 nodist_dispatcher_nm_dispatcher_SOURCES = $(dispatcher_nmdbus_dispatcher_sources)
 dispatcher_nm_dispatcher_CPPFLAGS = $(dispatcher_cppflags)
@@ -7297,8 +7476,9 @@ dispatcher_tests_test_dispatcher_envp_LDFLAGS = \
 	$(SANITIZER_EXEC_LDFLAGS)
 
 dispatcher_tests_test_dispatcher_envp_LDADD = \
-	libnm/libnm.la \
 	dispatcher/libnm-dispatcher-core.la \
+	libnm/libnm.la \
+	shared/nm-glib-aux/libnm-glib-aux.la \
 	$(GLIB_LIBS)
 
 clients_nm_online_CPPFLAGS = \
@@ -7355,7 +7535,7 @@ clients_common_libnmc_base_la_CPPFLAGS = \
 
 clients_common_libnmc_base_la_LIBADD = \
 	libnm/libnm.la \
-	shared/nm-utils/libnm-utils-base.la \
+	shared/nm-glib-aux/libnm-glib-aux.la \
 	$(GLIB_LIBS) \
 	$(NULL)
 
@@ -7363,9 +7543,6 @@ clients_common_settings_doc_h = clients/common/settings-docs.h
 clients_common_libnmc_la_SOURCES = \
 	shared/nm-meta-setting.c \
 	shared/nm-meta-setting.h \
-	\
-	shared/nm-ethtool-utils.c \
-	shared/nm-ethtool-utils.h \
 	\
 	clients/common/nm-meta-setting-desc.c \
 	clients/common/nm-meta-setting-desc.h \
@@ -7379,8 +7556,10 @@ clients_common_libnmc_la_CPPFLAGS = \
 	$(NULL)
 
 clients_common_libnmc_la_LIBADD = \
-	libnm/libnm.la \
 	clients/common/libnmc-base.la \
+	libnm/libnm.la \
+	shared/nm-libnm-core-aux/libnm-libnm-core-aux.la \
+	shared/nm-libnm-core-intern/libnm-libnm-core-intern.la \
 	$(GLIB_LIBS)
 
 clients_common_tests_test_general_CPPFLAGS = \
@@ -7575,6 +7754,7 @@ clients_common_tests_test_general_LDADD = \
 @BUILD_NMTUI_TRUE@	libnm/libnm.la \
 @BUILD_NMTUI_TRUE@	clients/tui/newt/libnmt-newt.a \
 @BUILD_NMTUI_TRUE@	clients/common/libnmc-base.la \
+@BUILD_NMTUI_TRUE@	clients/common/libnmc.la \
 @BUILD_NMTUI_TRUE@	$(GLIB_LIBS) \
 @BUILD_NMTUI_TRUE@	$(NEWT_LIBS) \
 @BUILD_NMTUI_TRUE@	$(NULL)
@@ -7722,7 +7902,7 @@ data_edit = sed \
 
 @WITH_LEGACY_LIBRARIES_TRUE@libnm_util_libnm_util_la_CPPFLAGS = $(libnm_util_cppflags)
 @WITH_LEGACY_LIBRARIES_TRUE@nm_utils_enum_types_sources = $(filter-out libnm-util/NetworkManager%,$(libnm_util_lib_h_pub_real))
-@WITH_LEGACY_LIBRARIES_TRUE@libnm_util_libnm_util_la_LIBADD = shared/nm-utils/libnm-utils-base.la \
+@WITH_LEGACY_LIBRARIES_TRUE@libnm_util_libnm_util_la_LIBADD = shared/nm-glib-aux/libnm-glib-aux.la \
 @WITH_LEGACY_LIBRARIES_TRUE@	$(GLIB_LIBS) $(DBUS_LIBS) \
 @WITH_LEGACY_LIBRARIES_TRUE@	$(UUID_LIBS) $(am__append_73) \
 @WITH_LEGACY_LIBRARIES_TRUE@	$(am__append_76)
@@ -7961,7 +8141,7 @@ data_edit = sed \
 @WITH_LEGACY_LIBRARIES_TRUE@libnm_glib_libnm_glib_la_LIBADD = \
 @WITH_LEGACY_LIBRARIES_TRUE@	libnm-util/libnm-util.la \
 @WITH_LEGACY_LIBRARIES_TRUE@	libnm-glib/libdeprecated-nm-glib.la \
-@WITH_LEGACY_LIBRARIES_TRUE@	shared/nm-utils/libnm-utils-udev.la \
+@WITH_LEGACY_LIBRARIES_TRUE@	shared/nm-udev-aux/libnm-udev-aux.la \
 @WITH_LEGACY_LIBRARIES_TRUE@	$(GLIB_LIBS) \
 @WITH_LEGACY_LIBRARIES_TRUE@	$(DBUS_LIBS) \
 @WITH_LEGACY_LIBRARIES_TRUE@	$(LIBUDEV_LIBS) \
@@ -8638,8 +8818,6 @@ shared/$(DEPDIR)/$(am__dirstamp):
 	@: > shared/$(DEPDIR)/$(am__dirstamp)
 shared/clients_common_libnmc_la-nm-meta-setting.lo:  \
 	shared/$(am__dirstamp) shared/$(DEPDIR)/$(am__dirstamp)
-shared/clients_common_libnmc_la-nm-ethtool-utils.lo:  \
-	shared/$(am__dirstamp) shared/$(DEPDIR)/$(am__dirstamp)
 clients/common/libnmc_la-nm-meta-setting-desc.lo:  \
 	clients/common/$(am__dirstamp) \
 	clients/common/$(DEPDIR)/$(am__dirstamp)
@@ -8958,8 +9136,6 @@ libnm-core/libnm_core_la-nm-setting-wireless.lo:  \
 libnm-core/libnm_core_la-nm-setting-wpan.lo:  \
 	libnm-core/$(am__dirstamp) \
 	libnm-core/$(DEPDIR)/$(am__dirstamp)
-shared/libnm_core_libnm_core_la-nm-ethtool-utils.lo:  \
-	shared/$(am__dirstamp) shared/$(DEPDIR)/$(am__dirstamp)
 shared/libnm_core_libnm_core_la-nm-meta-setting.lo:  \
 	shared/$(am__dirstamp) shared/$(DEPDIR)/$(am__dirstamp)
 libnm-core/libnm_core_la-nm-crypto.lo: libnm-core/$(am__dirstamp) \
@@ -9410,7 +9586,7 @@ shared/c-siphash/src/libcsiphash_la-c-siphash.lo:  \
 	shared/c-siphash/src/$(DEPDIR)/$(am__dirstamp)
 
 shared/libcsiphash.la: $(shared_libcsiphash_la_OBJECTS) $(shared_libcsiphash_la_DEPENDENCIES) $(EXTRA_shared_libcsiphash_la_DEPENDENCIES) shared/$(am__dirstamp)
-	$(AM_V_CCLD)$(LINK)  $(shared_libcsiphash_la_OBJECTS) $(shared_libcsiphash_la_LIBADD) $(LIBS)
+	$(AM_V_CCLD)$(shared_libcsiphash_la_LINK)  $(shared_libcsiphash_la_OBJECTS) $(shared_libcsiphash_la_LIBADD) $(LIBS)
 shared/n-acd/src/$(am__dirstamp):
 	@$(MKDIR_P) shared/n-acd/src
 	@: > shared/n-acd/src/$(am__dirstamp)
@@ -9441,45 +9617,87 @@ shared/n-acd/src/libnacd_la-n-acd-bpf-fallback.lo:  \
 
 shared/libnacd.la: $(shared_libnacd_la_OBJECTS) $(shared_libnacd_la_DEPENDENCIES) $(EXTRA_shared_libnacd_la_DEPENDENCIES) shared/$(am__dirstamp)
 	$(AM_V_CCLD)$(shared_libnacd_la_LINK)  $(shared_libnacd_la_OBJECTS) $(shared_libnacd_la_LIBADD) $(LIBS)
-shared/nm-utils/libnm_utils_base_la-c-list-util.lo:  \
-	shared/nm-utils/$(am__dirstamp) \
-	shared/nm-utils/$(DEPDIR)/$(am__dirstamp)
-shared/nm-utils/libnm_utils_base_la-nm-dedup-multi.lo:  \
-	shared/nm-utils/$(am__dirstamp) \
-	shared/nm-utils/$(DEPDIR)/$(am__dirstamp)
-shared/nm-utils/libnm_utils_base_la-nm-enum-utils.lo:  \
-	shared/nm-utils/$(am__dirstamp) \
-	shared/nm-utils/$(DEPDIR)/$(am__dirstamp)
-shared/nm-utils/libnm_utils_base_la-nm-errno.lo:  \
-	shared/nm-utils/$(am__dirstamp) \
-	shared/nm-utils/$(DEPDIR)/$(am__dirstamp)
-shared/nm-utils/libnm_utils_base_la-nm-hash-utils.lo:  \
-	shared/nm-utils/$(am__dirstamp) \
-	shared/nm-utils/$(DEPDIR)/$(am__dirstamp)
-shared/nm-utils/libnm_utils_base_la-nm-io-utils.lo:  \
-	shared/nm-utils/$(am__dirstamp) \
-	shared/nm-utils/$(DEPDIR)/$(am__dirstamp)
-shared/nm-utils/libnm_utils_base_la-nm-random-utils.lo:  \
-	shared/nm-utils/$(am__dirstamp) \
-	shared/nm-utils/$(DEPDIR)/$(am__dirstamp)
-shared/nm-utils/libnm_utils_base_la-nm-secret-utils.lo:  \
-	shared/nm-utils/$(am__dirstamp) \
-	shared/nm-utils/$(DEPDIR)/$(am__dirstamp)
-shared/nm-utils/libnm_utils_base_la-nm-shared-utils.lo:  \
-	shared/nm-utils/$(am__dirstamp) \
-	shared/nm-utils/$(DEPDIR)/$(am__dirstamp)
-shared/nm-utils/libnm_utils_base_la-nm-time-utils.lo:  \
-	shared/nm-utils/$(am__dirstamp) \
-	shared/nm-utils/$(DEPDIR)/$(am__dirstamp)
+shared/nm-glib-aux/$(am__dirstamp):
+	@$(MKDIR_P) shared/nm-glib-aux
+	@: > shared/nm-glib-aux/$(am__dirstamp)
+shared/nm-glib-aux/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) shared/nm-glib-aux/$(DEPDIR)
+	@: > shared/nm-glib-aux/$(DEPDIR)/$(am__dirstamp)
+shared/nm-glib-aux/libnm_glib_aux_la-nm-dedup-multi.lo:  \
+	shared/nm-glib-aux/$(am__dirstamp) \
+	shared/nm-glib-aux/$(DEPDIR)/$(am__dirstamp)
+shared/nm-glib-aux/libnm_glib_aux_la-nm-enum-utils.lo:  \
+	shared/nm-glib-aux/$(am__dirstamp) \
+	shared/nm-glib-aux/$(DEPDIR)/$(am__dirstamp)
+shared/nm-glib-aux/libnm_glib_aux_la-nm-errno.lo:  \
+	shared/nm-glib-aux/$(am__dirstamp) \
+	shared/nm-glib-aux/$(DEPDIR)/$(am__dirstamp)
+shared/nm-glib-aux/libnm_glib_aux_la-nm-hash-utils.lo:  \
+	shared/nm-glib-aux/$(am__dirstamp) \
+	shared/nm-glib-aux/$(DEPDIR)/$(am__dirstamp)
+shared/nm-glib-aux/libnm_glib_aux_la-nm-io-utils.lo:  \
+	shared/nm-glib-aux/$(am__dirstamp) \
+	shared/nm-glib-aux/$(DEPDIR)/$(am__dirstamp)
+shared/nm-glib-aux/libnm_glib_aux_la-nm-random-utils.lo:  \
+	shared/nm-glib-aux/$(am__dirstamp) \
+	shared/nm-glib-aux/$(DEPDIR)/$(am__dirstamp)
+shared/nm-glib-aux/libnm_glib_aux_la-nm-secret-utils.lo:  \
+	shared/nm-glib-aux/$(am__dirstamp) \
+	shared/nm-glib-aux/$(DEPDIR)/$(am__dirstamp)
+shared/nm-glib-aux/libnm_glib_aux_la-nm-shared-utils.lo:  \
+	shared/nm-glib-aux/$(am__dirstamp) \
+	shared/nm-glib-aux/$(DEPDIR)/$(am__dirstamp)
+shared/nm-glib-aux/libnm_glib_aux_la-nm-time-utils.lo:  \
+	shared/nm-glib-aux/$(am__dirstamp) \
+	shared/nm-glib-aux/$(DEPDIR)/$(am__dirstamp)
 
-shared/nm-utils/libnm-utils-base.la: $(shared_nm_utils_libnm_utils_base_la_OBJECTS) $(shared_nm_utils_libnm_utils_base_la_DEPENDENCIES) $(EXTRA_shared_nm_utils_libnm_utils_base_la_DEPENDENCIES) shared/nm-utils/$(am__dirstamp)
-	$(AM_V_CCLD)$(shared_nm_utils_libnm_utils_base_la_LINK)  $(shared_nm_utils_libnm_utils_base_la_OBJECTS) $(shared_nm_utils_libnm_utils_base_la_LIBADD) $(LIBS)
-shared/nm-utils/libnm_utils_udev_la-nm-udev-utils.lo:  \
-	shared/nm-utils/$(am__dirstamp) \
-	shared/nm-utils/$(DEPDIR)/$(am__dirstamp)
+shared/nm-glib-aux/libnm-glib-aux.la: $(shared_nm_glib_aux_libnm_glib_aux_la_OBJECTS) $(shared_nm_glib_aux_libnm_glib_aux_la_DEPENDENCIES) $(EXTRA_shared_nm_glib_aux_libnm_glib_aux_la_DEPENDENCIES) shared/nm-glib-aux/$(am__dirstamp)
+	$(AM_V_CCLD)$(shared_nm_glib_aux_libnm_glib_aux_la_LINK)  $(shared_nm_glib_aux_libnm_glib_aux_la_OBJECTS) $(shared_nm_glib_aux_libnm_glib_aux_la_LIBADD) $(LIBS)
+shared/nm-libnm-core-aux/$(am__dirstamp):
+	@$(MKDIR_P) shared/nm-libnm-core-aux
+	@: > shared/nm-libnm-core-aux/$(am__dirstamp)
 
-shared/nm-utils/libnm-utils-udev.la: $(shared_nm_utils_libnm_utils_udev_la_OBJECTS) $(shared_nm_utils_libnm_utils_udev_la_DEPENDENCIES) $(EXTRA_shared_nm_utils_libnm_utils_udev_la_DEPENDENCIES) shared/nm-utils/$(am__dirstamp)
-	$(AM_V_CCLD)$(shared_nm_utils_libnm_utils_udev_la_LINK)  $(shared_nm_utils_libnm_utils_udev_la_OBJECTS) $(shared_nm_utils_libnm_utils_udev_la_LIBADD) $(LIBS)
+shared/nm-libnm-core-aux/libnm-libnm-core-aux.la: $(shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_OBJECTS) $(shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_DEPENDENCIES) $(EXTRA_shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_DEPENDENCIES) shared/nm-libnm-core-aux/$(am__dirstamp)
+	$(AM_V_CCLD)$(shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_LINK)  $(shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_OBJECTS) $(shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_LIBADD) $(LIBS)
+shared/nm-libnm-core-intern/$(am__dirstamp):
+	@$(MKDIR_P) shared/nm-libnm-core-intern
+	@: > shared/nm-libnm-core-intern/$(am__dirstamp)
+shared/nm-libnm-core-intern/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) shared/nm-libnm-core-intern/$(DEPDIR)
+	@: > shared/nm-libnm-core-intern/$(DEPDIR)/$(am__dirstamp)
+shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-ethtool-utils.lo:  \
+	shared/nm-libnm-core-intern/$(am__dirstamp) \
+	shared/nm-libnm-core-intern/$(DEPDIR)/$(am__dirstamp)
+shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-libnm-core-utils.lo:  \
+	shared/nm-libnm-core-intern/$(am__dirstamp) \
+	shared/nm-libnm-core-intern/$(DEPDIR)/$(am__dirstamp)
+
+shared/nm-libnm-core-intern/libnm-libnm-core-intern.la: $(shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_OBJECTS) $(shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_DEPENDENCIES) $(EXTRA_shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_DEPENDENCIES) shared/nm-libnm-core-intern/$(am__dirstamp)
+	$(AM_V_CCLD)$(shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_LINK)  $(shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_OBJECTS) $(shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_LIBADD) $(LIBS)
+shared/nm-std-aux/$(am__dirstamp):
+	@$(MKDIR_P) shared/nm-std-aux
+	@: > shared/nm-std-aux/$(am__dirstamp)
+shared/nm-std-aux/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) shared/nm-std-aux/$(DEPDIR)
+	@: > shared/nm-std-aux/$(DEPDIR)/$(am__dirstamp)
+shared/nm-std-aux/libnm_std_aux_la-c-list-util.lo:  \
+	shared/nm-std-aux/$(am__dirstamp) \
+	shared/nm-std-aux/$(DEPDIR)/$(am__dirstamp)
+
+shared/nm-std-aux/libnm-std-aux.la: $(shared_nm_std_aux_libnm_std_aux_la_OBJECTS) $(shared_nm_std_aux_libnm_std_aux_la_DEPENDENCIES) $(EXTRA_shared_nm_std_aux_libnm_std_aux_la_DEPENDENCIES) shared/nm-std-aux/$(am__dirstamp)
+	$(AM_V_CCLD)$(shared_nm_std_aux_libnm_std_aux_la_LINK)  $(shared_nm_std_aux_libnm_std_aux_la_OBJECTS) $(shared_nm_std_aux_libnm_std_aux_la_LIBADD) $(LIBS)
+shared/nm-udev-aux/$(am__dirstamp):
+	@$(MKDIR_P) shared/nm-udev-aux
+	@: > shared/nm-udev-aux/$(am__dirstamp)
+shared/nm-udev-aux/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) shared/nm-udev-aux/$(DEPDIR)
+	@: > shared/nm-udev-aux/$(DEPDIR)/$(am__dirstamp)
+shared/nm-udev-aux/libnm_udev_aux_la-nm-udev-utils.lo:  \
+	shared/nm-udev-aux/$(am__dirstamp) \
+	shared/nm-udev-aux/$(DEPDIR)/$(am__dirstamp)
+
+shared/nm-udev-aux/libnm-udev-aux.la: $(shared_nm_udev_aux_libnm_udev_aux_la_OBJECTS) $(shared_nm_udev_aux_libnm_udev_aux_la_DEPENDENCIES) $(EXTRA_shared_nm_udev_aux_libnm_udev_aux_la_DEPENDENCIES) shared/nm-udev-aux/$(am__dirstamp)
+	$(AM_V_CCLD)$(shared_nm_udev_aux_libnm_udev_aux_la_LINK)  $(shared_nm_udev_aux_libnm_udev_aux_la_OBJECTS) $(shared_nm_udev_aux_libnm_udev_aux_la_LIBADD) $(LIBS)
 shared/systemd/$(am__dirstamp):
 	@$(MKDIR_P) shared/systemd
 	@: > shared/systemd/$(am__dirstamp)
@@ -9544,6 +9762,9 @@ shared/systemd/src/basic/libnm_systemd_shared_la-in-addr-util.lo:  \
 	shared/systemd/src/basic/$(am__dirstamp) \
 	shared/systemd/src/basic/$(DEPDIR)/$(am__dirstamp)
 shared/systemd/src/basic/libnm_systemd_shared_la-io-util.lo:  \
+	shared/systemd/src/basic/$(am__dirstamp) \
+	shared/systemd/src/basic/$(DEPDIR)/$(am__dirstamp)
+shared/systemd/src/basic/libnm_systemd_shared_la-memory-util.lo:  \
 	shared/systemd/src/basic/$(am__dirstamp) \
 	shared/systemd/src/basic/$(DEPDIR)/$(am__dirstamp)
 shared/systemd/src/basic/libnm_systemd_shared_la-mempool.lo:  \
@@ -10050,6 +10271,9 @@ src/platform/libNetworkManagerBase_la-nm-platform.lo:  \
 	src/platform/$(am__dirstamp) \
 	src/platform/$(DEPDIR)/$(am__dirstamp)
 src/platform/libNetworkManagerBase_la-nm-linux-platform.lo:  \
+	src/platform/$(am__dirstamp) \
+	src/platform/$(DEPDIR)/$(am__dirstamp)
+src/platform/libNetworkManagerBase_la-nmp-rules-manager.lo:  \
 	src/platform/$(am__dirstamp) \
 	src/platform/$(DEPDIR)/$(am__dirstamp)
 src/platform/wifi/$(am__dirstamp):
@@ -10824,7 +11048,7 @@ shared/nm-utils/tests/test_shared_general-test-shared-general.$(OBJEXT):  \
 
 shared/nm-utils/tests/test-shared-general$(EXEEXT): $(shared_nm_utils_tests_test_shared_general_OBJECTS) $(shared_nm_utils_tests_test_shared_general_DEPENDENCIES) $(EXTRA_shared_nm_utils_tests_test_shared_general_DEPENDENCIES) shared/nm-utils/tests/$(am__dirstamp)
 	@rm -f shared/nm-utils/tests/test-shared-general$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(shared_nm_utils_tests_test_shared_general_OBJECTS) $(shared_nm_utils_tests_test_shared_general_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(shared_nm_utils_tests_test_shared_general_LINK) $(shared_nm_utils_tests_test_shared_general_OBJECTS) $(shared_nm_utils_tests_test_shared_general_LDADD) $(LIBS)
 src/NetworkManager-main.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 
@@ -11161,7 +11385,7 @@ src/tests/test_systemd-test-systemd.$(OBJEXT):  \
 
 src/tests/test-systemd$(EXEEXT): $(src_tests_test_systemd_OBJECTS) $(src_tests_test_systemd_DEPENDENCIES) $(EXTRA_src_tests_test_systemd_DEPENDENCIES) src/tests/$(am__dirstamp)
 	@rm -f src/tests/test-systemd$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(src_tests_test_systemd_OBJECTS) $(src_tests_test_systemd_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(src_tests_test_systemd_LINK) $(src_tests_test_systemd_OBJECTS) $(src_tests_test_systemd_LDADD) $(LIBS)
 src/tests/test_utils-test-utils.$(OBJEXT): src/tests/$(am__dirstamp) \
 	src/tests/$(DEPDIR)/$(am__dirstamp)
 
@@ -11250,6 +11474,14 @@ mostlyclean-compile:
 	-rm -f shared/n-acd/src/*.lo
 	-rm -f shared/n-acd/src/util/*.$(OBJEXT)
 	-rm -f shared/n-acd/src/util/*.lo
+	-rm -f shared/nm-glib-aux/*.$(OBJEXT)
+	-rm -f shared/nm-glib-aux/*.lo
+	-rm -f shared/nm-libnm-core-intern/*.$(OBJEXT)
+	-rm -f shared/nm-libnm-core-intern/*.lo
+	-rm -f shared/nm-std-aux/*.$(OBJEXT)
+	-rm -f shared/nm-std-aux/*.lo
+	-rm -f shared/nm-udev-aux/*.$(OBJEXT)
+	-rm -f shared/nm-udev-aux/*.lo
 	-rm -f shared/nm-utils/*.$(OBJEXT)
 	-rm -f shared/nm-utils/*.lo
 	-rm -f shared/nm-utils/tests/*.$(OBJEXT)
@@ -11689,9 +11921,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/tests/$(DEPDIR)/libnm_tests_test_nm_client-test-nm-client.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/tests/$(DEPDIR)/libnm_tests_test_remote_settings_client-test-remote-settings-client.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@libnm/tests/$(DEPDIR)/test_secret_agent-test-secret-agent.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@shared/$(DEPDIR)/clients_common_libnmc_la-nm-ethtool-utils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/$(DEPDIR)/clients_common_libnmc_la-nm-meta-setting.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@shared/$(DEPDIR)/libnm_core_libnm_core_la-nm-ethtool-utils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/$(DEPDIR)/libnm_core_libnm_core_la-nm-meta-setting.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/$(DEPDIR)/libnm_glib_tests_test_nm_client-nm-test-utils-impl.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/$(DEPDIR)/libnm_glib_tests_test_remote_settings_client-nm-test-utils-impl.Po@am__quote@ # am--include-marker
@@ -11705,19 +11935,21 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@shared/n-acd/src/$(DEPDIR)/libnacd_la-n-acd-probe.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/n-acd/src/$(DEPDIR)/libnacd_la-n-acd.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/n-acd/src/util/$(DEPDIR)/libnacd_la-timer.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-dedup-multi.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-enum-utils.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-errno.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-hash-utils.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-io-utils.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-random-utils.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-secret-utils.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-shared-utils.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-time-utils.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-ethtool-utils.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-libnm-core-utils.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-std-aux/$(DEPDIR)/libnm_std_aux_la-c-list-util.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-udev-aux/$(DEPDIR)/libnm_udev_aux_la-nm-udev-utils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/$(DEPDIR)/libnm_tests_libnm_vpn_plugin_utils_test_la-nm-vpn-plugin-utils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/$(DEPDIR)/libnm_tests_test_general-nm-compat.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-c-list-util.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-dedup-multi.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-enum-utils.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-errno.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-hash-utils.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-io-utils.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-random-utils.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-secret-utils.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-shared-utils.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-time-utils.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/$(DEPDIR)/libnm_utils_udev_la-nm-udev-utils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/nm-utils/tests/$(DEPDIR)/test_shared_general-test-shared-general.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/systemd/$(DEPDIR)/libnm_systemd_logging_stub_la-nm-logging-stub.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/systemd/$(DEPDIR)/libnm_systemd_shared_la-nm-sd-utils-shared.Plo@am__quote@ # am--include-marker
@@ -11736,6 +11968,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-hostname-util.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-in-addr-util.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-io-util.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-memory-util.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-mempool.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-parse-util.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-path-util.Plo@am__quote@ # am--include-marker
@@ -11884,6 +12117,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/platform/$(DEPDIR)/libNetworkManagerBase_la-nm-platform.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-netns.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-object.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-rules-manager.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/platform/$(DEPDIR)/libNetworkManagerTest_la-nm-fake-platform.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/platform/tests/$(DEPDIR)/libNetworkManagerTest_la-test-common.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/platform/tests/$(DEPDIR)/monitor-monitor.Po@am__quote@ # am--include-marker
@@ -12313,13 +12547,6 @@ shared/clients_common_libnmc_la-nm-meta-setting.lo: shared/nm-meta-setting.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-meta-setting.c' object='shared/clients_common_libnmc_la-nm-meta-setting.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clients_common_libnmc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/clients_common_libnmc_la-nm-meta-setting.lo `test -f 'shared/nm-meta-setting.c' || echo '$(srcdir)/'`shared/nm-meta-setting.c
-
-shared/clients_common_libnmc_la-nm-ethtool-utils.lo: shared/nm-ethtool-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clients_common_libnmc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/clients_common_libnmc_la-nm-ethtool-utils.lo -MD -MP -MF shared/$(DEPDIR)/clients_common_libnmc_la-nm-ethtool-utils.Tpo -c -o shared/clients_common_libnmc_la-nm-ethtool-utils.lo `test -f 'shared/nm-ethtool-utils.c' || echo '$(srcdir)/'`shared/nm-ethtool-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/$(DEPDIR)/clients_common_libnmc_la-nm-ethtool-utils.Tpo shared/$(DEPDIR)/clients_common_libnmc_la-nm-ethtool-utils.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-ethtool-utils.c' object='shared/clients_common_libnmc_la-nm-ethtool-utils.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clients_common_libnmc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/clients_common_libnmc_la-nm-ethtool-utils.lo `test -f 'shared/nm-ethtool-utils.c' || echo '$(srcdir)/'`shared/nm-ethtool-utils.c
 
 clients/common/libnmc_la-nm-meta-setting-desc.lo: clients/common/nm-meta-setting-desc.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clients_common_libnmc_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT clients/common/libnmc_la-nm-meta-setting-desc.lo -MD -MP -MF clients/common/$(DEPDIR)/libnmc_la-nm-meta-setting-desc.Tpo -c -o clients/common/libnmc_la-nm-meta-setting-desc.lo `test -f 'clients/common/nm-meta-setting-desc.c' || echo '$(srcdir)/'`clients/common/nm-meta-setting-desc.c
@@ -12999,13 +13226,6 @@ libnm-core/libnm_core_la-nm-setting-wpan.lo: libnm-core/nm-setting-wpan.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='libnm-core/nm-setting-wpan.c' object='libnm-core/libnm_core_la-nm-setting-wpan.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_core_libnm_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libnm-core/libnm_core_la-nm-setting-wpan.lo `test -f 'libnm-core/nm-setting-wpan.c' || echo '$(srcdir)/'`libnm-core/nm-setting-wpan.c
-
-shared/libnm_core_libnm_core_la-nm-ethtool-utils.lo: shared/nm-ethtool-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_core_libnm_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/libnm_core_libnm_core_la-nm-ethtool-utils.lo -MD -MP -MF shared/$(DEPDIR)/libnm_core_libnm_core_la-nm-ethtool-utils.Tpo -c -o shared/libnm_core_libnm_core_la-nm-ethtool-utils.lo `test -f 'shared/nm-ethtool-utils.c' || echo '$(srcdir)/'`shared/nm-ethtool-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/$(DEPDIR)/libnm_core_libnm_core_la-nm-ethtool-utils.Tpo shared/$(DEPDIR)/libnm_core_libnm_core_la-nm-ethtool-utils.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-ethtool-utils.c' object='shared/libnm_core_libnm_core_la-nm-ethtool-utils.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_core_libnm_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/libnm_core_libnm_core_la-nm-ethtool-utils.lo `test -f 'shared/nm-ethtool-utils.c' || echo '$(srcdir)/'`shared/nm-ethtool-utils.c
 
 shared/libnm_core_libnm_core_la-nm-meta-setting.lo: shared/nm-meta-setting.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libnm_core_libnm_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/libnm_core_libnm_core_la-nm-meta-setting.lo -MD -MP -MF shared/$(DEPDIR)/libnm_core_libnm_core_la-nm-meta-setting.Tpo -c -o shared/libnm_core_libnm_core_la-nm-meta-setting.lo `test -f 'shared/nm-meta-setting.c' || echo '$(srcdir)/'`shared/nm-meta-setting.c
@@ -14078,82 +14298,96 @@ shared/n-acd/src/libnacd_la-n-acd-bpf-fallback.lo: shared/n-acd/src/n-acd-bpf-fa
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_libnacd_la_CPPFLAGS) $(CPPFLAGS) $(shared_libnacd_la_CFLAGS) $(CFLAGS) -c -o shared/n-acd/src/libnacd_la-n-acd-bpf-fallback.lo `test -f 'shared/n-acd/src/n-acd-bpf-fallback.c' || echo '$(srcdir)/'`shared/n-acd/src/n-acd-bpf-fallback.c
 
-shared/nm-utils/libnm_utils_base_la-c-list-util.lo: shared/nm-utils/c-list-util.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-utils/libnm_utils_base_la-c-list-util.lo -MD -MP -MF shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-c-list-util.Tpo -c -o shared/nm-utils/libnm_utils_base_la-c-list-util.lo `test -f 'shared/nm-utils/c-list-util.c' || echo '$(srcdir)/'`shared/nm-utils/c-list-util.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-c-list-util.Tpo shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-c-list-util.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-utils/c-list-util.c' object='shared/nm-utils/libnm_utils_base_la-c-list-util.lo' libtool=yes @AMDEPBACKSLASH@
+shared/nm-glib-aux/libnm_glib_aux_la-nm-dedup-multi.lo: shared/nm-glib-aux/nm-dedup-multi.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-glib-aux/libnm_glib_aux_la-nm-dedup-multi.lo -MD -MP -MF shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-dedup-multi.Tpo -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-dedup-multi.lo `test -f 'shared/nm-glib-aux/nm-dedup-multi.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-dedup-multi.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-dedup-multi.Tpo shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-dedup-multi.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-glib-aux/nm-dedup-multi.c' object='shared/nm-glib-aux/libnm_glib_aux_la-nm-dedup-multi.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-utils/libnm_utils_base_la-c-list-util.lo `test -f 'shared/nm-utils/c-list-util.c' || echo '$(srcdir)/'`shared/nm-utils/c-list-util.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-dedup-multi.lo `test -f 'shared/nm-glib-aux/nm-dedup-multi.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-dedup-multi.c
 
-shared/nm-utils/libnm_utils_base_la-nm-dedup-multi.lo: shared/nm-utils/nm-dedup-multi.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-utils/libnm_utils_base_la-nm-dedup-multi.lo -MD -MP -MF shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-dedup-multi.Tpo -c -o shared/nm-utils/libnm_utils_base_la-nm-dedup-multi.lo `test -f 'shared/nm-utils/nm-dedup-multi.c' || echo '$(srcdir)/'`shared/nm-utils/nm-dedup-multi.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-dedup-multi.Tpo shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-dedup-multi.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-utils/nm-dedup-multi.c' object='shared/nm-utils/libnm_utils_base_la-nm-dedup-multi.lo' libtool=yes @AMDEPBACKSLASH@
+shared/nm-glib-aux/libnm_glib_aux_la-nm-enum-utils.lo: shared/nm-glib-aux/nm-enum-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-glib-aux/libnm_glib_aux_la-nm-enum-utils.lo -MD -MP -MF shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-enum-utils.Tpo -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-enum-utils.lo `test -f 'shared/nm-glib-aux/nm-enum-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-enum-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-enum-utils.Tpo shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-enum-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-glib-aux/nm-enum-utils.c' object='shared/nm-glib-aux/libnm_glib_aux_la-nm-enum-utils.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-utils/libnm_utils_base_la-nm-dedup-multi.lo `test -f 'shared/nm-utils/nm-dedup-multi.c' || echo '$(srcdir)/'`shared/nm-utils/nm-dedup-multi.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-enum-utils.lo `test -f 'shared/nm-glib-aux/nm-enum-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-enum-utils.c
 
-shared/nm-utils/libnm_utils_base_la-nm-enum-utils.lo: shared/nm-utils/nm-enum-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-utils/libnm_utils_base_la-nm-enum-utils.lo -MD -MP -MF shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-enum-utils.Tpo -c -o shared/nm-utils/libnm_utils_base_la-nm-enum-utils.lo `test -f 'shared/nm-utils/nm-enum-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-enum-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-enum-utils.Tpo shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-enum-utils.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-utils/nm-enum-utils.c' object='shared/nm-utils/libnm_utils_base_la-nm-enum-utils.lo' libtool=yes @AMDEPBACKSLASH@
+shared/nm-glib-aux/libnm_glib_aux_la-nm-errno.lo: shared/nm-glib-aux/nm-errno.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-glib-aux/libnm_glib_aux_la-nm-errno.lo -MD -MP -MF shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-errno.Tpo -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-errno.lo `test -f 'shared/nm-glib-aux/nm-errno.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-errno.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-errno.Tpo shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-errno.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-glib-aux/nm-errno.c' object='shared/nm-glib-aux/libnm_glib_aux_la-nm-errno.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-utils/libnm_utils_base_la-nm-enum-utils.lo `test -f 'shared/nm-utils/nm-enum-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-enum-utils.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-errno.lo `test -f 'shared/nm-glib-aux/nm-errno.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-errno.c
 
-shared/nm-utils/libnm_utils_base_la-nm-errno.lo: shared/nm-utils/nm-errno.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-utils/libnm_utils_base_la-nm-errno.lo -MD -MP -MF shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-errno.Tpo -c -o shared/nm-utils/libnm_utils_base_la-nm-errno.lo `test -f 'shared/nm-utils/nm-errno.c' || echo '$(srcdir)/'`shared/nm-utils/nm-errno.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-errno.Tpo shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-errno.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-utils/nm-errno.c' object='shared/nm-utils/libnm_utils_base_la-nm-errno.lo' libtool=yes @AMDEPBACKSLASH@
+shared/nm-glib-aux/libnm_glib_aux_la-nm-hash-utils.lo: shared/nm-glib-aux/nm-hash-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-glib-aux/libnm_glib_aux_la-nm-hash-utils.lo -MD -MP -MF shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-hash-utils.Tpo -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-hash-utils.lo `test -f 'shared/nm-glib-aux/nm-hash-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-hash-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-hash-utils.Tpo shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-hash-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-glib-aux/nm-hash-utils.c' object='shared/nm-glib-aux/libnm_glib_aux_la-nm-hash-utils.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-utils/libnm_utils_base_la-nm-errno.lo `test -f 'shared/nm-utils/nm-errno.c' || echo '$(srcdir)/'`shared/nm-utils/nm-errno.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-hash-utils.lo `test -f 'shared/nm-glib-aux/nm-hash-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-hash-utils.c
 
-shared/nm-utils/libnm_utils_base_la-nm-hash-utils.lo: shared/nm-utils/nm-hash-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-utils/libnm_utils_base_la-nm-hash-utils.lo -MD -MP -MF shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-hash-utils.Tpo -c -o shared/nm-utils/libnm_utils_base_la-nm-hash-utils.lo `test -f 'shared/nm-utils/nm-hash-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-hash-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-hash-utils.Tpo shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-hash-utils.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-utils/nm-hash-utils.c' object='shared/nm-utils/libnm_utils_base_la-nm-hash-utils.lo' libtool=yes @AMDEPBACKSLASH@
+shared/nm-glib-aux/libnm_glib_aux_la-nm-io-utils.lo: shared/nm-glib-aux/nm-io-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-glib-aux/libnm_glib_aux_la-nm-io-utils.lo -MD -MP -MF shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-io-utils.Tpo -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-io-utils.lo `test -f 'shared/nm-glib-aux/nm-io-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-io-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-io-utils.Tpo shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-io-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-glib-aux/nm-io-utils.c' object='shared/nm-glib-aux/libnm_glib_aux_la-nm-io-utils.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-utils/libnm_utils_base_la-nm-hash-utils.lo `test -f 'shared/nm-utils/nm-hash-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-hash-utils.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-io-utils.lo `test -f 'shared/nm-glib-aux/nm-io-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-io-utils.c
 
-shared/nm-utils/libnm_utils_base_la-nm-io-utils.lo: shared/nm-utils/nm-io-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-utils/libnm_utils_base_la-nm-io-utils.lo -MD -MP -MF shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-io-utils.Tpo -c -o shared/nm-utils/libnm_utils_base_la-nm-io-utils.lo `test -f 'shared/nm-utils/nm-io-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-io-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-io-utils.Tpo shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-io-utils.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-utils/nm-io-utils.c' object='shared/nm-utils/libnm_utils_base_la-nm-io-utils.lo' libtool=yes @AMDEPBACKSLASH@
+shared/nm-glib-aux/libnm_glib_aux_la-nm-random-utils.lo: shared/nm-glib-aux/nm-random-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-glib-aux/libnm_glib_aux_la-nm-random-utils.lo -MD -MP -MF shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-random-utils.Tpo -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-random-utils.lo `test -f 'shared/nm-glib-aux/nm-random-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-random-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-random-utils.Tpo shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-random-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-glib-aux/nm-random-utils.c' object='shared/nm-glib-aux/libnm_glib_aux_la-nm-random-utils.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-utils/libnm_utils_base_la-nm-io-utils.lo `test -f 'shared/nm-utils/nm-io-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-io-utils.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-random-utils.lo `test -f 'shared/nm-glib-aux/nm-random-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-random-utils.c
 
-shared/nm-utils/libnm_utils_base_la-nm-random-utils.lo: shared/nm-utils/nm-random-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-utils/libnm_utils_base_la-nm-random-utils.lo -MD -MP -MF shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-random-utils.Tpo -c -o shared/nm-utils/libnm_utils_base_la-nm-random-utils.lo `test -f 'shared/nm-utils/nm-random-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-random-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-random-utils.Tpo shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-random-utils.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-utils/nm-random-utils.c' object='shared/nm-utils/libnm_utils_base_la-nm-random-utils.lo' libtool=yes @AMDEPBACKSLASH@
+shared/nm-glib-aux/libnm_glib_aux_la-nm-secret-utils.lo: shared/nm-glib-aux/nm-secret-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-glib-aux/libnm_glib_aux_la-nm-secret-utils.lo -MD -MP -MF shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-secret-utils.Tpo -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-secret-utils.lo `test -f 'shared/nm-glib-aux/nm-secret-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-secret-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-secret-utils.Tpo shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-secret-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-glib-aux/nm-secret-utils.c' object='shared/nm-glib-aux/libnm_glib_aux_la-nm-secret-utils.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-utils/libnm_utils_base_la-nm-random-utils.lo `test -f 'shared/nm-utils/nm-random-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-random-utils.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-secret-utils.lo `test -f 'shared/nm-glib-aux/nm-secret-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-secret-utils.c
 
-shared/nm-utils/libnm_utils_base_la-nm-secret-utils.lo: shared/nm-utils/nm-secret-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-utils/libnm_utils_base_la-nm-secret-utils.lo -MD -MP -MF shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-secret-utils.Tpo -c -o shared/nm-utils/libnm_utils_base_la-nm-secret-utils.lo `test -f 'shared/nm-utils/nm-secret-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-secret-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-secret-utils.Tpo shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-secret-utils.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-utils/nm-secret-utils.c' object='shared/nm-utils/libnm_utils_base_la-nm-secret-utils.lo' libtool=yes @AMDEPBACKSLASH@
+shared/nm-glib-aux/libnm_glib_aux_la-nm-shared-utils.lo: shared/nm-glib-aux/nm-shared-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-glib-aux/libnm_glib_aux_la-nm-shared-utils.lo -MD -MP -MF shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-shared-utils.Tpo -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-shared-utils.lo `test -f 'shared/nm-glib-aux/nm-shared-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-shared-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-shared-utils.Tpo shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-shared-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-glib-aux/nm-shared-utils.c' object='shared/nm-glib-aux/libnm_glib_aux_la-nm-shared-utils.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-utils/libnm_utils_base_la-nm-secret-utils.lo `test -f 'shared/nm-utils/nm-secret-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-secret-utils.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-shared-utils.lo `test -f 'shared/nm-glib-aux/nm-shared-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-shared-utils.c
 
-shared/nm-utils/libnm_utils_base_la-nm-shared-utils.lo: shared/nm-utils/nm-shared-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-utils/libnm_utils_base_la-nm-shared-utils.lo -MD -MP -MF shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-shared-utils.Tpo -c -o shared/nm-utils/libnm_utils_base_la-nm-shared-utils.lo `test -f 'shared/nm-utils/nm-shared-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-shared-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-shared-utils.Tpo shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-shared-utils.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-utils/nm-shared-utils.c' object='shared/nm-utils/libnm_utils_base_la-nm-shared-utils.lo' libtool=yes @AMDEPBACKSLASH@
+shared/nm-glib-aux/libnm_glib_aux_la-nm-time-utils.lo: shared/nm-glib-aux/nm-time-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-glib-aux/libnm_glib_aux_la-nm-time-utils.lo -MD -MP -MF shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-time-utils.Tpo -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-time-utils.lo `test -f 'shared/nm-glib-aux/nm-time-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-time-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-time-utils.Tpo shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-time-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-glib-aux/nm-time-utils.c' object='shared/nm-glib-aux/libnm_glib_aux_la-nm-time-utils.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-utils/libnm_utils_base_la-nm-shared-utils.lo `test -f 'shared/nm-utils/nm-shared-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-shared-utils.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_glib_aux_libnm_glib_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-glib-aux/libnm_glib_aux_la-nm-time-utils.lo `test -f 'shared/nm-glib-aux/nm-time-utils.c' || echo '$(srcdir)/'`shared/nm-glib-aux/nm-time-utils.c
 
-shared/nm-utils/libnm_utils_base_la-nm-time-utils.lo: shared/nm-utils/nm-time-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-utils/libnm_utils_base_la-nm-time-utils.lo -MD -MP -MF shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-time-utils.Tpo -c -o shared/nm-utils/libnm_utils_base_la-nm-time-utils.lo `test -f 'shared/nm-utils/nm-time-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-time-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-time-utils.Tpo shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-time-utils.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-utils/nm-time-utils.c' object='shared/nm-utils/libnm_utils_base_la-nm-time-utils.lo' libtool=yes @AMDEPBACKSLASH@
+shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-ethtool-utils.lo: shared/nm-libnm-core-intern/nm-ethtool-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-ethtool-utils.lo -MD -MP -MF shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-ethtool-utils.Tpo -c -o shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-ethtool-utils.lo `test -f 'shared/nm-libnm-core-intern/nm-ethtool-utils.c' || echo '$(srcdir)/'`shared/nm-libnm-core-intern/nm-ethtool-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-ethtool-utils.Tpo shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-ethtool-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-libnm-core-intern/nm-ethtool-utils.c' object='shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-ethtool-utils.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-utils/libnm_utils_base_la-nm-time-utils.lo `test -f 'shared/nm-utils/nm-time-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-time-utils.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-ethtool-utils.lo `test -f 'shared/nm-libnm-core-intern/nm-ethtool-utils.c' || echo '$(srcdir)/'`shared/nm-libnm-core-intern/nm-ethtool-utils.c
 
-shared/nm-utils/libnm_utils_udev_la-nm-udev-utils.lo: shared/nm-utils/nm-udev-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_udev_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-utils/libnm_utils_udev_la-nm-udev-utils.lo -MD -MP -MF shared/nm-utils/$(DEPDIR)/libnm_utils_udev_la-nm-udev-utils.Tpo -c -o shared/nm-utils/libnm_utils_udev_la-nm-udev-utils.lo `test -f 'shared/nm-utils/nm-udev-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-udev-utils.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-utils/$(DEPDIR)/libnm_utils_udev_la-nm-udev-utils.Tpo shared/nm-utils/$(DEPDIR)/libnm_utils_udev_la-nm-udev-utils.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-utils/nm-udev-utils.c' object='shared/nm-utils/libnm_utils_udev_la-nm-udev-utils.lo' libtool=yes @AMDEPBACKSLASH@
+shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-libnm-core-utils.lo: shared/nm-libnm-core-intern/nm-libnm-core-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-libnm-core-utils.lo -MD -MP -MF shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-libnm-core-utils.Tpo -c -o shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-libnm-core-utils.lo `test -f 'shared/nm-libnm-core-intern/nm-libnm-core-utils.c' || echo '$(srcdir)/'`shared/nm-libnm-core-intern/nm-libnm-core-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-libnm-core-utils.Tpo shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-libnm-core-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-libnm-core-intern/nm-libnm-core-utils.c' object='shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-libnm-core-utils.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_utils_libnm_utils_udev_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-utils/libnm_utils_udev_la-nm-udev-utils.lo `test -f 'shared/nm-utils/nm-udev-utils.c' || echo '$(srcdir)/'`shared/nm-utils/nm-udev-utils.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-libnm-core-intern/libnm_libnm_core_intern_la-nm-libnm-core-utils.lo `test -f 'shared/nm-libnm-core-intern/nm-libnm-core-utils.c' || echo '$(srcdir)/'`shared/nm-libnm-core-intern/nm-libnm-core-utils.c
+
+shared/nm-std-aux/libnm_std_aux_la-c-list-util.lo: shared/nm-std-aux/c-list-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_std_aux_libnm_std_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-std-aux/libnm_std_aux_la-c-list-util.lo -MD -MP -MF shared/nm-std-aux/$(DEPDIR)/libnm_std_aux_la-c-list-util.Tpo -c -o shared/nm-std-aux/libnm_std_aux_la-c-list-util.lo `test -f 'shared/nm-std-aux/c-list-util.c' || echo '$(srcdir)/'`shared/nm-std-aux/c-list-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-std-aux/$(DEPDIR)/libnm_std_aux_la-c-list-util.Tpo shared/nm-std-aux/$(DEPDIR)/libnm_std_aux_la-c-list-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-std-aux/c-list-util.c' object='shared/nm-std-aux/libnm_std_aux_la-c-list-util.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_std_aux_libnm_std_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-std-aux/libnm_std_aux_la-c-list-util.lo `test -f 'shared/nm-std-aux/c-list-util.c' || echo '$(srcdir)/'`shared/nm-std-aux/c-list-util.c
+
+shared/nm-udev-aux/libnm_udev_aux_la-nm-udev-utils.lo: shared/nm-udev-aux/nm-udev-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_udev_aux_libnm_udev_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/nm-udev-aux/libnm_udev_aux_la-nm-udev-utils.lo -MD -MP -MF shared/nm-udev-aux/$(DEPDIR)/libnm_udev_aux_la-nm-udev-utils.Tpo -c -o shared/nm-udev-aux/libnm_udev_aux_la-nm-udev-utils.lo `test -f 'shared/nm-udev-aux/nm-udev-utils.c' || echo '$(srcdir)/'`shared/nm-udev-aux/nm-udev-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/nm-udev-aux/$(DEPDIR)/libnm_udev_aux_la-nm-udev-utils.Tpo shared/nm-udev-aux/$(DEPDIR)/libnm_udev_aux_la-nm-udev-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/nm-udev-aux/nm-udev-utils.c' object='shared/nm-udev-aux/libnm_udev_aux_la-nm-udev-utils.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_nm_udev_aux_libnm_udev_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/nm-udev-aux/libnm_udev_aux_la-nm-udev-utils.lo `test -f 'shared/nm-udev-aux/nm-udev-utils.c' || echo '$(srcdir)/'`shared/nm-udev-aux/nm-udev-utils.c
 
 shared/systemd/libnm_systemd_logging_stub_la-nm-logging-stub.lo: shared/systemd/nm-logging-stub.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_systemd_libnm_systemd_logging_stub_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/systemd/libnm_systemd_logging_stub_la-nm-logging-stub.lo -MD -MP -MF shared/systemd/$(DEPDIR)/libnm_systemd_logging_stub_la-nm-logging-stub.Tpo -c -o shared/systemd/libnm_systemd_logging_stub_la-nm-logging-stub.lo `test -f 'shared/systemd/nm-logging-stub.c' || echo '$(srcdir)/'`shared/systemd/nm-logging-stub.c
@@ -14273,6 +14507,13 @@ shared/systemd/src/basic/libnm_systemd_shared_la-io-util.lo: shared/systemd/src/
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/systemd/src/basic/io-util.c' object='shared/systemd/src/basic/libnm_systemd_shared_la-io-util.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_systemd_libnm_systemd_shared_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/systemd/src/basic/libnm_systemd_shared_la-io-util.lo `test -f 'shared/systemd/src/basic/io-util.c' || echo '$(srcdir)/'`shared/systemd/src/basic/io-util.c
+
+shared/systemd/src/basic/libnm_systemd_shared_la-memory-util.lo: shared/systemd/src/basic/memory-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_systemd_libnm_systemd_shared_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/systemd/src/basic/libnm_systemd_shared_la-memory-util.lo -MD -MP -MF shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-memory-util.Tpo -c -o shared/systemd/src/basic/libnm_systemd_shared_la-memory-util.lo `test -f 'shared/systemd/src/basic/memory-util.c' || echo '$(srcdir)/'`shared/systemd/src/basic/memory-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-memory-util.Tpo shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-memory-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='shared/systemd/src/basic/memory-util.c' object='shared/systemd/src/basic/libnm_systemd_shared_la-memory-util.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_systemd_libnm_systemd_shared_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o shared/systemd/src/basic/libnm_systemd_shared_la-memory-util.lo `test -f 'shared/systemd/src/basic/memory-util.c' || echo '$(srcdir)/'`shared/systemd/src/basic/memory-util.c
 
 shared/systemd/src/basic/libnm_systemd_shared_la-mempool.lo: shared/systemd/src/basic/mempool.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(shared_systemd_libnm_systemd_shared_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT shared/systemd/src/basic/libnm_systemd_shared_la-mempool.lo -MD -MP -MF shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-mempool.Tpo -c -o shared/systemd/src/basic/libnm_systemd_shared_la-mempool.lo `test -f 'shared/systemd/src/basic/mempool.c' || echo '$(srcdir)/'`shared/systemd/src/basic/mempool.c
@@ -15232,6 +15473,13 @@ src/platform/libNetworkManagerBase_la-nm-linux-platform.lo: src/platform/nm-linu
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/platform/nm-linux-platform.c' object='src/platform/libNetworkManagerBase_la-nm-linux-platform.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/platform/libNetworkManagerBase_la-nm-linux-platform.lo `test -f 'src/platform/nm-linux-platform.c' || echo '$(srcdir)/'`src/platform/nm-linux-platform.c
+
+src/platform/libNetworkManagerBase_la-nmp-rules-manager.lo: src/platform/nmp-rules-manager.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/platform/libNetworkManagerBase_la-nmp-rules-manager.lo -MD -MP -MF src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-rules-manager.Tpo -c -o src/platform/libNetworkManagerBase_la-nmp-rules-manager.lo `test -f 'src/platform/nmp-rules-manager.c' || echo '$(srcdir)/'`src/platform/nmp-rules-manager.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-rules-manager.Tpo src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-rules-manager.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/platform/nmp-rules-manager.c' object='src/platform/libNetworkManagerBase_la-nmp-rules-manager.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/platform/libNetworkManagerBase_la-nmp-rules-manager.lo `test -f 'src/platform/nmp-rules-manager.c' || echo '$(srcdir)/'`src/platform/nmp-rules-manager.c
 
 src/platform/wifi/libNetworkManagerBase_la-nm-wifi-utils-nl80211.lo: src/platform/wifi/nm-wifi-utils-nl80211.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/platform/wifi/libNetworkManagerBase_la-nm-wifi-utils-nl80211.lo -MD -MP -MF src/platform/wifi/$(DEPDIR)/libNetworkManagerBase_la-nm-wifi-utils-nl80211.Tpo -c -o src/platform/wifi/libNetworkManagerBase_la-nm-wifi-utils-nl80211.lo `test -f 'src/platform/wifi/nm-wifi-utils-nl80211.c' || echo '$(srcdir)/'`src/platform/wifi/nm-wifi-utils-nl80211.c
@@ -17638,6 +17886,11 @@ clean-libtool:
 	-rm -rf shared/c-siphash/src/.libs shared/c-siphash/src/_libs
 	-rm -rf shared/n-acd/src/.libs shared/n-acd/src/_libs
 	-rm -rf shared/n-acd/src/util/.libs shared/n-acd/src/util/_libs
+	-rm -rf shared/nm-glib-aux/.libs shared/nm-glib-aux/_libs
+	-rm -rf shared/nm-libnm-core-aux/.libs shared/nm-libnm-core-aux/_libs
+	-rm -rf shared/nm-libnm-core-intern/.libs shared/nm-libnm-core-intern/_libs
+	-rm -rf shared/nm-std-aux/.libs shared/nm-std-aux/_libs
+	-rm -rf shared/nm-udev-aux/.libs shared/nm-udev-aux/_libs
 	-rm -rf shared/nm-utils/.libs shared/nm-utils/_libs
 	-rm -rf shared/nm-utils/tests/.libs shared/nm-utils/tests/_libs
 	-rm -rf shared/systemd/.libs shared/systemd/_libs
@@ -19249,6 +19502,15 @@ distclean-generic:
 	-rm -f shared/n-acd/src/$(am__dirstamp)
 	-rm -f shared/n-acd/src/util/$(DEPDIR)/$(am__dirstamp)
 	-rm -f shared/n-acd/src/util/$(am__dirstamp)
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/$(am__dirstamp)
+	-rm -f shared/nm-glib-aux/$(am__dirstamp)
+	-rm -f shared/nm-libnm-core-aux/$(am__dirstamp)
+	-rm -f shared/nm-libnm-core-intern/$(DEPDIR)/$(am__dirstamp)
+	-rm -f shared/nm-libnm-core-intern/$(am__dirstamp)
+	-rm -f shared/nm-std-aux/$(DEPDIR)/$(am__dirstamp)
+	-rm -f shared/nm-std-aux/$(am__dirstamp)
+	-rm -f shared/nm-udev-aux/$(DEPDIR)/$(am__dirstamp)
+	-rm -f shared/nm-udev-aux/$(am__dirstamp)
 	-rm -f shared/nm-utils/$(DEPDIR)/$(am__dirstamp)
 	-rm -f shared/nm-utils/$(am__dirstamp)
 	-rm -f shared/nm-utils/tests/$(DEPDIR)/$(am__dirstamp)
@@ -19714,9 +19976,7 @@ distclean: distclean-recursive
 	-rm -f libnm/tests/$(DEPDIR)/libnm_tests_test_nm_client-test-nm-client.Po
 	-rm -f libnm/tests/$(DEPDIR)/libnm_tests_test_remote_settings_client-test-remote-settings-client.Po
 	-rm -f libnm/tests/$(DEPDIR)/test_secret_agent-test-secret-agent.Po
-	-rm -f shared/$(DEPDIR)/clients_common_libnmc_la-nm-ethtool-utils.Plo
 	-rm -f shared/$(DEPDIR)/clients_common_libnmc_la-nm-meta-setting.Plo
-	-rm -f shared/$(DEPDIR)/libnm_core_libnm_core_la-nm-ethtool-utils.Plo
 	-rm -f shared/$(DEPDIR)/libnm_core_libnm_core_la-nm-meta-setting.Plo
 	-rm -f shared/$(DEPDIR)/libnm_glib_tests_test_nm_client-nm-test-utils-impl.Po
 	-rm -f shared/$(DEPDIR)/libnm_glib_tests_test_remote_settings_client-nm-test-utils-impl.Po
@@ -19730,19 +19990,21 @@ distclean: distclean-recursive
 	-rm -f shared/n-acd/src/$(DEPDIR)/libnacd_la-n-acd-probe.Plo
 	-rm -f shared/n-acd/src/$(DEPDIR)/libnacd_la-n-acd.Plo
 	-rm -f shared/n-acd/src/util/$(DEPDIR)/libnacd_la-timer.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-dedup-multi.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-enum-utils.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-errno.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-hash-utils.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-io-utils.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-random-utils.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-secret-utils.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-shared-utils.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-time-utils.Plo
+	-rm -f shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-ethtool-utils.Plo
+	-rm -f shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-libnm-core-utils.Plo
+	-rm -f shared/nm-std-aux/$(DEPDIR)/libnm_std_aux_la-c-list-util.Plo
+	-rm -f shared/nm-udev-aux/$(DEPDIR)/libnm_udev_aux_la-nm-udev-utils.Plo
 	-rm -f shared/nm-utils/$(DEPDIR)/libnm_tests_libnm_vpn_plugin_utils_test_la-nm-vpn-plugin-utils.Plo
 	-rm -f shared/nm-utils/$(DEPDIR)/libnm_tests_test_general-nm-compat.Po
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-c-list-util.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-dedup-multi.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-enum-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-errno.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-hash-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-io-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-random-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-secret-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-shared-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-time-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_udev_la-nm-udev-utils.Plo
 	-rm -f shared/nm-utils/tests/$(DEPDIR)/test_shared_general-test-shared-general.Po
 	-rm -f shared/systemd/$(DEPDIR)/libnm_systemd_logging_stub_la-nm-logging-stub.Plo
 	-rm -f shared/systemd/$(DEPDIR)/libnm_systemd_shared_la-nm-sd-utils-shared.Plo
@@ -19761,6 +20023,7 @@ distclean: distclean-recursive
 	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-hostname-util.Plo
 	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-in-addr-util.Plo
 	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-io-util.Plo
+	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-memory-util.Plo
 	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-mempool.Plo
 	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-parse-util.Plo
 	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-path-util.Plo
@@ -19909,6 +20172,7 @@ distclean: distclean-recursive
 	-rm -f src/platform/$(DEPDIR)/libNetworkManagerBase_la-nm-platform.Plo
 	-rm -f src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-netns.Plo
 	-rm -f src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-object.Plo
+	-rm -f src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-rules-manager.Plo
 	-rm -f src/platform/$(DEPDIR)/libNetworkManagerTest_la-nm-fake-platform.Plo
 	-rm -f src/platform/tests/$(DEPDIR)/libNetworkManagerTest_la-test-common.Plo
 	-rm -f src/platform/tests/$(DEPDIR)/monitor-monitor.Po
@@ -20418,9 +20682,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f libnm/tests/$(DEPDIR)/libnm_tests_test_nm_client-test-nm-client.Po
 	-rm -f libnm/tests/$(DEPDIR)/libnm_tests_test_remote_settings_client-test-remote-settings-client.Po
 	-rm -f libnm/tests/$(DEPDIR)/test_secret_agent-test-secret-agent.Po
-	-rm -f shared/$(DEPDIR)/clients_common_libnmc_la-nm-ethtool-utils.Plo
 	-rm -f shared/$(DEPDIR)/clients_common_libnmc_la-nm-meta-setting.Plo
-	-rm -f shared/$(DEPDIR)/libnm_core_libnm_core_la-nm-ethtool-utils.Plo
 	-rm -f shared/$(DEPDIR)/libnm_core_libnm_core_la-nm-meta-setting.Plo
 	-rm -f shared/$(DEPDIR)/libnm_glib_tests_test_nm_client-nm-test-utils-impl.Po
 	-rm -f shared/$(DEPDIR)/libnm_glib_tests_test_remote_settings_client-nm-test-utils-impl.Po
@@ -20434,19 +20696,21 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f shared/n-acd/src/$(DEPDIR)/libnacd_la-n-acd-probe.Plo
 	-rm -f shared/n-acd/src/$(DEPDIR)/libnacd_la-n-acd.Plo
 	-rm -f shared/n-acd/src/util/$(DEPDIR)/libnacd_la-timer.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-dedup-multi.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-enum-utils.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-errno.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-hash-utils.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-io-utils.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-random-utils.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-secret-utils.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-shared-utils.Plo
+	-rm -f shared/nm-glib-aux/$(DEPDIR)/libnm_glib_aux_la-nm-time-utils.Plo
+	-rm -f shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-ethtool-utils.Plo
+	-rm -f shared/nm-libnm-core-intern/$(DEPDIR)/libnm_libnm_core_intern_la-nm-libnm-core-utils.Plo
+	-rm -f shared/nm-std-aux/$(DEPDIR)/libnm_std_aux_la-c-list-util.Plo
+	-rm -f shared/nm-udev-aux/$(DEPDIR)/libnm_udev_aux_la-nm-udev-utils.Plo
 	-rm -f shared/nm-utils/$(DEPDIR)/libnm_tests_libnm_vpn_plugin_utils_test_la-nm-vpn-plugin-utils.Plo
 	-rm -f shared/nm-utils/$(DEPDIR)/libnm_tests_test_general-nm-compat.Po
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-c-list-util.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-dedup-multi.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-enum-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-errno.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-hash-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-io-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-random-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-secret-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-shared-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_base_la-nm-time-utils.Plo
-	-rm -f shared/nm-utils/$(DEPDIR)/libnm_utils_udev_la-nm-udev-utils.Plo
 	-rm -f shared/nm-utils/tests/$(DEPDIR)/test_shared_general-test-shared-general.Po
 	-rm -f shared/systemd/$(DEPDIR)/libnm_systemd_logging_stub_la-nm-logging-stub.Plo
 	-rm -f shared/systemd/$(DEPDIR)/libnm_systemd_shared_la-nm-sd-utils-shared.Plo
@@ -20465,6 +20729,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-hostname-util.Plo
 	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-in-addr-util.Plo
 	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-io-util.Plo
+	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-memory-util.Plo
 	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-mempool.Plo
 	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-parse-util.Plo
 	-rm -f shared/systemd/src/basic/$(DEPDIR)/libnm_systemd_shared_la-path-util.Plo
@@ -20613,6 +20878,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/platform/$(DEPDIR)/libNetworkManagerBase_la-nm-platform.Plo
 	-rm -f src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-netns.Plo
 	-rm -f src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-object.Plo
+	-rm -f src/platform/$(DEPDIR)/libNetworkManagerBase_la-nmp-rules-manager.Plo
 	-rm -f src/platform/$(DEPDIR)/libNetworkManagerTest_la-nm-fake-platform.Plo
 	-rm -f src/platform/tests/$(DEPDIR)/libNetworkManagerTest_la-test-common.Plo
 	-rm -f src/platform/tests/$(DEPDIR)/monitor-monitor.Po
@@ -20872,6 +21138,10 @@ dist-configure-check:
 dist: $(dist_configure_check) $(dist_dependencies)
 
 @INTLTOOL_POLICY_RULE@
+
+$(shared_nm_libnm_core_intern_libnm_libnm_core_intern_la_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+
+$(shared_nm_libnm_core_aux_libnm_libnm_core_aux_la_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
 
 introspection/%.c: introspection/%.xml
 	@$(MKDIR_P) introspection/

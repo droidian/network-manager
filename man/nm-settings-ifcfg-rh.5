@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 03/15/2019
+.\"      Date: 04/21/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.16.0
+.\"    Source: NetworkManager 1.18.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.16\&.0" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.18\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -812,6 +812,7 @@ T}
 .T&
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 priority
@@ -844,6 +845,17 @@ yes
 T}:T{
 Hairpin mode of the bridge port\&.
 T}
+T{
+vlans
+T}:T{
+BRIDGE_PORT_VLANS
+T}:T{
+\ \&
+T}:T{
+List of VLANs on the bridge port\fB
+
+Example: \fRBRIDGE_PORT_VLANS="1 pvid untagged,20,300\-400 untagged"
+T}
 .TE
 .sp 1
 .sp
@@ -865,6 +877,9 @@ T}:T{
 Description
 T}
 .T&
+l l l l
+l l l l
+l l l l
 l l l l
 l l l l
 l l l l
@@ -956,6 +971,39 @@ T}:T{
 IGMP snooping support\&.\fB
 
 Allowed values: \fR0 or 1
+T}
+T{
+vlan\-filtering
+T}:T{
+BRIDGING_OPTS: vlan_filtering=
+T}:T{
+0
+T}:T{
+VLAN filtering support\&.\fB
+
+Allowed values: \fR0 or 1
+T}
+T{
+vlan\-default\-pvid
+T}:T{
+BRIDGING_OPTS: default_pvid=
+T}:T{
+1
+T}:T{
+default VLAN PVID\&.\fB
+
+Allowed values: \fR0 \- 4094
+T}
+T{
+vlans
+T}:T{
+BRIDGE_VLANS
+T}:T{
+\ \&
+T}:T{
+List of VLANs on the bridge\fB
+
+Example: \fRBRIDGE_VLANS="1 pvid untagged,20,300\-400 untagged"
 T}
 .TE
 .sp 1

@@ -7,7 +7,7 @@ dnl  - add corresponding NM_VERSION_x_y_z macros in
 dnl    "shared/nm-version-macros.h.in"
 dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
-m4_define([nm_minor_version], [16])
+m4_define([nm_minor_version], [18])
 m4_define([nm_micro_version], [0])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
@@ -240,8 +240,9 @@ AM_CONDITIONAL(WITH_IWD, test x"${ac_with_iwd}" = x"yes")
 dnl
 dnl Checks for libdl - on certain platforms its part of libc
 dnl
-AC_SEARCH_LIBS([dlopen], [dl dld], [], [ac_cv_search_dlopen=])
-AC_SUBST([DL_LIBS], "$ac_cv_search_dlopen")
+AC_SEARCH_LIBS([dlopen], [dl dld],
+	[test "$ac_cv_search_dlopen" = "none required" || AC_SUBST([DL_LIBS], "$ac_cv_search_dlopen"]),
+	[])
 
 PKG_CHECK_MODULES(GLIB, [gio-unix-2.0 >= 2.37.6 gmodule-2.0],
                   [AC_SUBST(LOG_DRIVER, '$(top_srcdir)/build-aux/tap-driver.sh')
@@ -528,7 +529,8 @@ esac
 AC_ARG_WITH(ebpf,
             AS_HELP_STRING([--with-ebpf=yes|no|auto], [Build with eBPF support (default: auto)]),
             [], [with_ebpf=auto])
-if test "$with_ebpf" = "yes" -o "$with_ebpf" = "auto"; then
+# 'auto' means 'false' because there are still some issues.
+if test "$with_ebpf" = "yes" ; then
 	AC_CHECK_HEADER(linux/bpf.h, [have_ebpf=yes], [have_ebpf=no])
 else
 	have_ebpf=no

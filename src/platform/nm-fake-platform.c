@@ -154,10 +154,17 @@ static char *
 sysctl_get (NMPlatform *platform, const char *pathid, int dirfd, const char *path)
 {
 	NMFakePlatformPrivate *priv = NM_FAKE_PLATFORM_GET_PRIVATE ((NMFakePlatform *) platform);
+	const char *v;
 
 	ASSERT_SYSCTL_ARGS (pathid, dirfd, path);
 
-	return g_strdup (g_hash_table_lookup (priv->options, path));
+	v = g_hash_table_lookup (priv->options, path);
+	if (!v) {
+		errno = ENOENT;
+		return NULL;
+	}
+
+	return g_strdup (v);
 }
 
 static NMFakePlatformLink *
@@ -1119,7 +1126,7 @@ ipx_route_delete (NMPlatform *platform,
 		g_assert (NM_IN_SET (NMP_OBJECT_GET_TYPE (obj), NMP_OBJECT_TYPE_IP4_ROUTE,
 		                                                NMP_OBJECT_TYPE_IP6_ROUTE));
 		g_assert (ifindex == -1);
-		ifindex = obj->object.ifindex;
+		ifindex = NMP_OBJECT_CAST_IP_ROUTE (obj)->ifindex;
 		obj_type = NMP_OBJECT_GET_TYPE (obj);
 	} else {
 		g_assert (NM_IN_SET (addr_family, AF_INET, AF_INET6));
@@ -1394,6 +1401,10 @@ nm_fake_platform_class_init (NMFakePlatformClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	NMPlatformClass *platform_class = NM_PLATFORM_CLASS (klass);
+	NMPlatformKernelSupportType kernel_support;
+
+	for (kernel_support = 0; kernel_support < _NM_PLATFORM_KERNEL_SUPPORT_NUM; kernel_support++)
+		_nm_platform_kernel_support_init (kernel_support, -1);
 
 	object_class->finalize = finalize;
 

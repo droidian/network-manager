@@ -1,3 +1,94 @@
+network-manager (1.18.0-1ubuntu1) eoan; urgency=medium
+
+  * Update to 1.18, merge on Debian, new version includes nwe support for 
+    policy routing rules and for VLAN filtering for Linux bridge.
+  * Remaining Ubuntu changes
+    - Use systemd-resolved instead of dnsmasq
+    - debian/control:
+      + Depend on isc-dhcp-client instead of recommends
+      + Recommend network-manager-pptp
+      + Suggest avahi-autoipd for IPv4LL support
+    - debian/rules, debian/network-manager.postinst:
+      + Don't restart NetworkManager on upgrade but recommend restarting
+        the computer
+    - debian/rules, debian/network-manager.postinst:
+      + Don't install sysvinit scripts or migrate from sysvinit
+    - debian/network-manager.postinst:
+      + Don't add the netdev group.
+      + drop in an empty override file for NetworkManager to manage all
+        devices for upgrade from any version, as long as there is no
+        netplan configuration yet.
+    - debian/default-wifi-powersave-on.conf, debian/rules:
+      + Install a config file to enable WiFi powersave
+    - Enable build tests
+    - Add autopkgtests
+    - debian/source_network-manager.py, debian/network-manager.install,
+      debian/network-manager.links: Add apport hook
+    - Add network-manager-config-connectivity-ubuntu package
+    - NetworkManager.conf: disable MAC randomization feature. There is no
+      easy way for desktop users to disable this feature yet. And there are
+      reports that it doesn't work well with some systems.
+    - Update Vcs links to point to Ubuntu branch
+    - Add patches. See patch descriptions for more details:
+      + Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
+      + Update-dnsmasq-parameters.patch
+      + Disable-general-with-expect.patch
+      + libnm-Check-self-still-NMManager-or-not.patch
+      + dns-manager-don-t-merge-split-DNS-search-domains.patch (but disabled)
+      + Read-system-connections-from-run.patch
+    - debian/tests/urfkill-integration - don't stop/start network manager
+    - Revert "Add Conflicts to network-manager-dev against deprecated libraries"
+      This reverts commit b4acc5e03e2b821e1cccc69529bb70826c741942.  We're still
+      building libnm-glib for now, so these packages have a use in Ubuntu.
+  * Removed delta, not needed anymore
+    - debian/network-manager.maintscript
+      + Remove /etc/dbus-1/system.d/nm-ofono.conf
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 10 May 2019 15:07:08 +0200
+
+network-manager (1.18.0-1) experimental; urgency=medium
+
+  * New upstream version 1.18.0
+  * Rebase patches
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 21 Apr 2019 22:28:56 +0200
+
+network-manager (1.16.0-2) experimental; urgency=medium
+
+  * Drop dependency on lsb-base.
+    It is only needed when booting with sysvinit and initscripts, but
+    initscripts already Depends on lsb-base (see #864999).
+  * Drop dpkg-dev (>= 1.17.14) Build-Depends.
+    No longer needed as even the version in oldstable is new enough.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 11 Apr 2019 11:07:57 +0200
+
+network-manager (1.16.0-1) experimental; urgency=medium
+
+  * New upstream version 1.16.0
+  * Rebase patches
+  * Update symbols file for linm0
+  * Drop migration code from pre-stretch
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 27 Mar 2019 00:13:49 +0100
+
+network-manager (1.14.6-2) unstable; urgency=medium
+
+  * supplicant: fix setting pmf when the supplicant doesn't advertise support
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 26 Feb 2019 21:23:14 +0100
+
+network-manager (1.14.6-1) unstable; urgency=medium
+
+  * New upstream version 1.14.6
+  * Use debhelper-compat (= 12) Build-Depends and drop debian/compat
+  * Rebase patches
+  * Do not manage Docker bridge interfaces (Closes: #875127)
+  * Bump Standards-Version to 4.3.0
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 26 Feb 2019 19:33:53 +0100
+
 network-manager (1.16.0-0ubuntu2) disco; urgency=medium
 
   * debian/patches/git_ifupdown_iterator.patch:

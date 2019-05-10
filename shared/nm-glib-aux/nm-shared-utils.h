@@ -126,6 +126,16 @@ typedef struct {
 
 extern const NMIPAddr nm_ip_addr_zero;
 
+static inline gboolean
+nm_ip_addr_is_null (int addr_family, gconstpointer addr)
+{
+	nm_assert (addr);
+	if (addr_family == AF_INET6)
+		return IN6_IS_ADDR_UNSPECIFIED ((const struct in6_addr *) addr);
+	nm_assert (addr_family == AF_INET);
+	return ((const struct in_addr *) addr)->s_addr == 0;
+}
+
 static inline void
 nm_ip_addr_set (int addr_family, gpointer dst, gconstpointer src)
 {
@@ -248,118 +258,6 @@ gboolean nm_utils_memeqzero (gconstpointer data, gsize length);
 
 /*****************************************************************************/
 
-/* like g_memdup(). The difference is that the @size argument is of type
- * gsize, while g_memdup() has type guint. Since, the size of container types
- * like GArray is guint as well, this means trying to g_memdup() an
- * array,
- *    g_memdup (array->data, array->len * sizeof (ElementType))
- * will lead to integer overflow, if there are more than G_MAXUINT/sizeof(ElementType)
- * bytes. That seems unnecessarily dangerous to me.
- * nm_memdup() avoids that, because its size argument is always large enough
- * to contain all data that a GArray can hold.
- *
- * Another minor difference to g_memdup() is that the glib version also
- * returns %NULL if @data is %NULL. E.g. g_memdup(NULL, 1)
- * gives %NULL, but nm_memdup(NULL, 1) crashes. I think that
- * is desirable, because @size MUST be correct at all times. @size
- * may be zero, but one must not claim to have non-zero bytes when
- * passing a %NULL @data pointer.
- */
-static inline gpointer
-nm_memdup (gconstpointer data, gsize size)
-{
-	gpointer p;
-
-	if (size == 0)
-		return NULL;
-	p = g_malloc (size);
-	memcpy (p, data, size);
-	return p;
-}
-
-static inline char *
-_nm_strndup_a_step (char *s, const char *str, gsize len)
-{
-	NM_PRAGMA_WARNING_DISABLE ("-Wstringop-truncation");
-	if (len > 0)
-		strncpy (s, str, len);
-	s[len] = '\0';
-	return s;
-	NM_PRAGMA_WARNING_REENABLE;
-}
-
-/* Similar to g_strndup(), however, if the string (including the terminating
- * NUL char) fits into alloca_maxlen, this will alloca() the memory.
- *
- * It's a mix of strndup() and strndupa(), but deciding based on @alloca_maxlen
- * which one to use.
- *
- * In case malloc() is necessary, @out_str_free will be set (this string
- * must be freed afterwards). It is permissible to pass %NULL as @out_str_free,
- * if you ensure that len < alloca_maxlen.
- *
- * Note that just like g_strndup(), this always returns a buffer with @len + 1
- * bytes, even if strlen(@str) is shorter than that (NUL terminated early). We fill
- * the buffer with strncpy(), which means, that @str is copied up to the first
- * NUL character and then filled with NUL characters. */
-#define nm_strndup_a(alloca_maxlen, str, len, out_str_free) \
-	({ \
-		const gsize _alloca_maxlen = (alloca_maxlen); \
-		const char *const _str = (str); \
-		const gsize _len = (len); \
-		char **const _out_str_free = (out_str_free); \
-		char *_s; \
-		\
-		G_STATIC_ASSERT_EXPR ((alloca_maxlen) <= 300); \
-		\
-		if (   _out_str_free \
-		    && _len >= _alloca_maxlen) { \
-			_s = g_malloc (_len + 1); \
-			*_out_str_free = _s; \
-		} else { \
-			g_assert (_len < _alloca_maxlen); \
-			_s = g_alloca (_len + 1); \
-		} \
-		_nm_strndup_a_step (_s, _str, _len); \
-	})
-
-/*****************************************************************************/
-
-/* generic macro to convert an int to a (heap allocated) string.
- *
- * Usually, an inline function nm_strdup_int64() would be enough. However,
- * that cannot be used for guint64. So, we would also need nm_strdup_uint64().
- * This causes subtle error potential, because the caller needs to ensure to
- * use the right one (and compiler isn't going to help as it silently casts).
- *
- * Instead, this generic macro is supposed to handle all integers correctly. */
-#if _NM_CC_SUPPORT_GENERIC
-#define nm_strdup_int(val) \
-	_Generic ((val), \
-	          char:               g_strdup_printf ("%d",   (int)                (val)), \
-	          \
-	          signed char:        g_strdup_printf ("%d",   (signed)             (val)), \
-	          signed short:       g_strdup_printf ("%d",   (signed)             (val)), \
-	          signed:             g_strdup_printf ("%d",   (signed)             (val)), \
-	          signed long:        g_strdup_printf ("%ld",  (signed long)        (val)), \
-	          signed long long:   g_strdup_printf ("%lld", (signed long long)   (val)), \
-	          \
-	          unsigned char:      g_strdup_printf ("%u",   (unsigned)           (val)), \
-	          unsigned short:     g_strdup_printf ("%u",   (unsigned)           (val)), \
-	          unsigned:           g_strdup_printf ("%u",   (unsigned)           (val)), \
-	          unsigned long:      g_strdup_printf ("%lu",  (unsigned long)      (val)), \
-	          unsigned long long: g_strdup_printf ("%llu", (unsigned long long) (val))  \
-	)
-#else
-#define nm_strdup_int(val) \
-	(  (   sizeof (val) == sizeof (guint64) \
-	    && ((typeof (val)) -1) > 0) \
-	 ? g_strdup_printf ("%"G_GUINT64_FORMAT, (guint64) (val)) \
-	 : g_strdup_printf ("%"G_GINT64_FORMAT, (gint64) (val)))
-#endif
-
-/*****************************************************************************/
-
 extern const void *const _NM_PTRARRAY_EMPTY[1];
 
 #define NM_PTRARRAY_EMPTY(type) ((type const*) _NM_PTRARRAY_EMPTY)
@@ -434,7 +332,71 @@ int nm_utils_dbus_path_cmp (const char *dbus_path_a, const char *dbus_path_b);
 
 /*****************************************************************************/
 
-const char **nm_utils_strsplit_set (const char *str, const char *delimiters, gboolean allow_escaping);
+typedef enum {
+	NM_UTILS_STRSPLIT_SET_FLAGS_NONE           = 0,
+	NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY = (1u << 0),
+	NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING = (1u << 1),
+
+	/* If flag is set, does the same as g_strstrip() on the returned tokens.
+	 * This will remove leading and trailing ascii whitespaces (g_ascii_isspace()
+	 * and NM_ASCII_SPACES).
+	 *
+	 * - when combined with !%NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
+	 *   empty tokens will be removed (and %NULL will be returned if that
+	 *   results in an empty string array).
+	 * - when combined with %NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING,
+	 *   trailing whitespace escaped by backslash are not stripped. */
+	NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP       = (1u << 2),
+
+	/* This implies %NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING.
+	 *
+	 * This will do a final run over all tokens and remove all backslash
+	 * escape characters that
+	 *   - precede a delimiter.
+	 *   - precede a backslash.
+	 *   - preceed a whitespace (with %NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP).
+	 *
+	 *  Note that with %NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP, it is only
+	 *  necessary to escape the very last whitespace (if the delimiters
+	 *  are not whitespace themself). So, technically, it would be sufficient
+	 *  to only unescape a backslash before the last whitespace and the user
+	 *  still could express everything. However, such a rule would be complicated
+	 *  to understand, so when using backslash escaping with nm_utils_strsplit_set_full(),
+	 *  then all characters (including backslash) are treated verbatim, except:
+	 *
+	 *    - "\\$DELIMITER" (escaped delimiter)
+	 *    - "\\\\" (escaped backslash)
+	 *    - "\\$SPACE" (escaped space) (with %NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP).
+	 *
+	 * Note that all other escapes like "\\n" or "\\001" are left alone.
+	 * That makes the escaping/unescaping rules simple. Also, for the most part
+	 * a text is just taken as-is, with little additional rules. Only backslashes
+	 * need extra care, and then only if they proceed one of the relevant characters.
+	 */
+	NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED        = (1u << 3),
+} NMUtilsStrsplitSetFlags;
+
+const char **nm_utils_strsplit_set_full (const char *str,
+                                         const char *delimiter,
+                                         NMUtilsStrsplitSetFlags flags);
+
+static inline const char **
+nm_utils_strsplit_set_with_empty (const char *str,
+                                  const char *delimiters)
+{
+	/* this returns the same result as g_strsplit_set(str, delimiters, -1), except
+	 * it does not deep-clone the strv array.
+	 * Also, for @str == "", this returns %NULL while g_strsplit_set() would return
+	 * an empty strv array. */
+	return nm_utils_strsplit_set_full (str, delimiters, NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY);
+}
+
+static inline const char **
+nm_utils_strsplit_set (const char *str,
+                       const char *delimiters)
+{
+	return nm_utils_strsplit_set_full (str, delimiters, NM_UTILS_STRSPLIT_SET_FLAGS_NONE);
+}
 
 gssize nm_utils_strv_find_first (char **list, gssize len, const char *needle);
 
@@ -442,6 +404,70 @@ char **_nm_utils_strv_cleanup (char **strv,
                                gboolean strip_whitespace,
                                gboolean skip_empty,
                                gboolean skip_repeated);
+
+/*****************************************************************************/
+
+static inline const char **
+nm_utils_escaped_tokens_split (const char *str,
+                               const char *delimiters)
+{
+	return nm_utils_strsplit_set_full (str,
+	                                   delimiters,
+	                                     NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED
+	                                   | NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP);
+}
+
+const char *nm_utils_escaped_tokens_escape (const char *str,
+                                            const char *delimiters,
+                                            char **out_to_free);
+
+static inline GString *
+nm_utils_escaped_tokens_escape_gstr_assert (const char *str,
+                                            const char *delimiters,
+                                            GString *gstring)
+{
+#if NM_MORE_ASSERTS > 0
+
+	/* Just appends @str to @gstring, but also assert that
+	 * no escaping is necessary.
+	 *
+	 * Use nm_utils_escaped_tokens_escape_gstr_assert() instead
+	 * of nm_utils_escaped_tokens_escape_gstr(), if you *know* that
+	 * @str contains no delimiters, no backslashes, and no trailing
+	 * whitespace that requires escaping. */
+
+	nm_assert (str);
+	nm_assert (gstring);
+	nm_assert (delimiters);
+
+	{
+		gs_free char *str_to_free = NULL;
+		const char *str0;
+
+		str0 = nm_utils_escaped_tokens_escape (str, delimiters, &str_to_free);
+		nm_assert (str0 == str);
+		nm_assert (!str_to_free);
+	}
+#endif
+
+	g_string_append (gstring, str);
+	return gstring;
+}
+
+static inline GString *
+nm_utils_escaped_tokens_escape_gstr (const char *str,
+                                     const char *delimiters,
+                                     GString *gstring)
+{
+	gs_free char *str_to_free = NULL;
+
+	nm_assert (str);
+	nm_assert (gstring);
+
+	g_string_append (gstring,
+	                 nm_utils_escaped_tokens_escape (str, delimiters, &str_to_free));
+	return gstring;
+}
 
 /*****************************************************************************/
 
@@ -941,6 +967,18 @@ gboolean nm_utils_hash_table_equal (const GHashTable *a,
 void _nm_utils_strv_sort (const char **strv, gssize len);
 #define nm_utils_strv_sort(strv, len) _nm_utils_strv_sort (NM_CAST_STRV_MC (strv), len)
 
+int _nm_utils_strv_cmp_n (const char *const*strv1,
+                          gssize len1,
+                          const char *const*strv2,
+                          gssize len2);
+
+static inline gboolean
+_nm_utils_strv_equal (char **strv1, char **strv2)
+{
+	return _nm_utils_strv_cmp_n ((const char *const*) strv1, -1,
+	                             (const char *const*) strv2, -1) == 0;
+}
+
 /*****************************************************************************/
 
 #define NM_UTILS_NS_PER_SECOND   ((gint64) 1000000000)
@@ -1069,11 +1107,6 @@ void _nm_utils_user_data_unpack (gpointer user_data, int nargs, ...);
 
 #define nm_utils_user_data_unpack(user_data, ...) \
 	_nm_utils_user_data_unpack(user_data, NM_NARG (__VA_ARGS__), __VA_ARGS__)
-
-/*****************************************************************************/
-
-const char *_nm_utils_escape_spaces (const char *str, char **to_free);
-char *_nm_utils_unescape_spaces (char *str);
 
 /*****************************************************************************/
 

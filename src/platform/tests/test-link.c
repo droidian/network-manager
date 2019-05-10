@@ -25,7 +25,7 @@
 #include <sys/types.h>
 #include <linux/if_tun.h>
 
-#include "nm-utils/nm-io-utils.h"
+#include "nm-glib-aux/nm-io-utils.h"
 #include "platform/nmp-object.h"
 #include "platform/nmp-netns.h"
 #include "platform/nm-platform-utils.h"
@@ -521,8 +521,7 @@ test_bridge_addr (void)
 	plink = nm_platform_link_get (NM_PLATFORM_GET, link.ifindex);
 	g_assert (plink);
 
-	if (nm_platform_check_kernel_support (NM_PLATFORM_GET,
-	                                      NM_PLATFORM_KERNEL_SUPPORT_USER_IPV6LL)) {
+	if (nm_platform_kernel_support_get (NM_PLATFORM_KERNEL_SUPPORT_TYPE_USER_IPV6LL)) {
 		g_assert (!nm_platform_link_get_user_ipv6ll_enabled (NM_PLATFORM_GET, link.ifindex));
 		g_assert_cmpint (_nm_platform_uint8_inv (plink->inet6_addr_gen_mode_inv), ==, NM_IN6_ADDR_GEN_MODE_EUI64);
 
@@ -2962,6 +2961,37 @@ test_sysctl_netns_switch (void)
 	}
 	g_assert_cmpint (ifindex, ==, (gint32) nm_platform_sysctl_get_int32 (PL, NMP_SYSCTL_PATHID_NETDIR (dirfd, s ?: "<unknown>", "ifindex"), -1));
 	g_assert_cmpint (ifindex, ==, (gint32) nm_platform_sysctl_get_int32 (PL, NMP_SYSCTL_PATHID_ABSOLUTE (nm_sprintf_bufa (100, "/sys/class/net/%s/ifindex", IFNAME)), -1));
+
+	/* also test that nm_platform_sysctl_get() sets errno to ENOENT for non-existing paths. */
+	{
+		gint64 i64;
+		int errsv;
+		char *v;
+
+		errno = ESRCH;
+		v = nm_platform_sysctl_get (PL, NMP_SYSCTL_PATHID_ABSOLUTE ("/sys/devices/virtual/net/not-existing/ifindex"));
+		errsv = errno;
+		g_assert (!v);
+		g_assert_cmpint (errsv, ==, ENOENT);
+
+		errno = ESRCH;
+		i64 = nm_platform_sysctl_get_int_checked (PL, NMP_SYSCTL_PATHID_ABSOLUTE ("/sys/devices/virtual/net/not-existing/ifindex"), 10, 1, G_MAXINT, -1);
+		errsv = errno;
+		g_assert_cmpint (i64, ==, -1);
+		g_assert_cmpint (errsv, ==, ENOENT);
+
+		errno = ESRCH;
+		v = nm_platform_sysctl_get (PL, NMP_SYSCTL_PATHID_ABSOLUTE ("/sys/devices/virtual/net/lo/not-existing"));
+		errsv = errno;
+		g_assert (!v);
+		g_assert_cmpint (errsv, ==, ENOENT);
+
+		errno = ESRCH;
+		i64 = nm_platform_sysctl_get_int_checked (PL, NMP_SYSCTL_PATHID_ABSOLUTE ("/sys/devices/virtual/net/lo/not-existing"), 10, 1, G_MAXINT, -1);
+		errsv = errno;
+		g_assert_cmpint (i64, ==, -1);
+		g_assert_cmpint (errsv, ==, ENOENT);
+	}
 
 	/* accessing the path directly, only succeeds iff the current namespace happens to be the namespace
 	 * in which we created the link. */

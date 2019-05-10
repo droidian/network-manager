@@ -1276,12 +1276,18 @@ static void
 update_secrets_in_connection (NMRemoteConnection *remote, NMConnection *local)
 {
 	GetSecretsData data = { 0, };
+	GType setting_type;
 	int i;
 
 	data.local = local;
 	data.loop = g_main_loop_new (NULL, FALSE);
 
 	for (i = 0; i < _NM_META_SETTING_TYPE_NUM; i++) {
+		setting_type = nm_meta_setting_infos[i].get_setting_gtype();
+		if (!nm_connection_get_setting (NM_CONNECTION (remote), setting_type))
+			continue;
+		if (!nm_meta_setting_info_editor_has_secrets (nm_meta_setting_info_editor_find_by_gtype (setting_type)))
+			continue;
 		data.setting_name = nm_meta_setting_infos[i].setting_name;
 		nm_remote_connection_get_secrets_async (remote,
 		                                        nm_meta_setting_infos[i].setting_name,
@@ -1522,15 +1528,13 @@ split_required_fields_for_con_show (const char *input,
                                     char **active_flds,
                                     GError **error)
 {
-	char **fields, **iter;
-	char *dot;
-	GString *str1, *str2;
-	gboolean found;
+	gs_free const char **fields = NULL;
+	const char *const*iter;
+	nm_auto_free_gstring GString *str1 = NULL;
+	nm_auto_free_gstring GString *str2 = NULL;
 	gboolean group_profile = FALSE;
 	gboolean group_active = FALSE;
-	gboolean success = TRUE;
-	gboolean is_all, is_common;
-	int i;
+	gboolean do_free;
 
 	if (!input) {
 		*profile_flds = NULL;
@@ -1541,25 +1545,30 @@ split_required_fields_for_con_show (const char *input,
 	str1 = g_string_new (NULL);
 	str2 = g_string_new (NULL);
 
-	/* Split supplied fields string */
-	fields = g_strsplit_set (input, ",", -1);
+	fields = nm_utils_strsplit_set_with_empty (input, ",");
 	for (iter = fields; iter && *iter; iter++) {
-		g_strstrip (*iter);
-		dot = strchr (*iter, '.');
+		char *s_mutable = (char *) (*iter);
+		char *dot;
+		gboolean is_all;
+		gboolean is_common;
+		gboolean found;
+		int i;
+
+		g_strstrip (s_mutable);
+		dot = strchr (s_mutable, '.');
 		if (dot)
 			*dot = '\0';
 
-		is_all = !dot && strcasecmp (*iter, "all") == 0;
-		is_common = !dot && strcasecmp (*iter, "common") == 0;
+		is_all = !dot && strcasecmp (s_mutable, "all") == 0;
+		is_common = !dot && strcasecmp (s_mutable, "common") == 0;
 
 		found = FALSE;
-
 		for (i = 0; i < _NM_META_SETTING_TYPE_NUM; i++) {
 			if (   is_all || is_common
-			    || !strcasecmp (*iter, nm_meta_setting_infos[i].setting_name)) {
+			    || !strcasecmp (s_mutable, nm_meta_setting_infos[i].setting_name)) {
 				if (dot)
 					*dot = '.';
-				g_string_append (str1, *iter);
+				g_string_append (str1, s_mutable);
 				g_string_append_c (str1, ',');
 				found = TRUE;
 				break;
@@ -1567,12 +1576,13 @@ split_required_fields_for_con_show (const char *input,
 		}
 		if (found)
 			continue;
+
 		for (i = 0; nmc_fields_con_active_details_groups[i]; i++) {
 			if (   is_all || is_common
-			    || !strcasecmp (*iter, nmc_fields_con_active_details_groups[i]->name)) {
+			    || !strcasecmp (s_mutable, nmc_fields_con_active_details_groups[i]->name)) {
 				if (dot)
 					*dot = '.';
-				g_string_append (str2, *iter);
+				g_string_append (str2, s_mutable);
 				g_string_append_c (str2, ',');
 				found = TRUE;
 				break;
@@ -1581,55 +1591,49 @@ split_required_fields_for_con_show (const char *input,
 		if (!found) {
 			if (dot)
 				*dot = '.';
-			if (!strcasecmp (*iter, CON_SHOW_DETAIL_GROUP_PROFILE))
+			if (!strcasecmp (s_mutable, CON_SHOW_DETAIL_GROUP_PROFILE))
 				group_profile = TRUE;
-			else if (!strcasecmp (*iter, CON_SHOW_DETAIL_GROUP_ACTIVE))
+			else if (!strcasecmp (s_mutable, CON_SHOW_DETAIL_GROUP_ACTIVE))
 				group_active = TRUE;
 			else {
-				char *allowed1 = nm_meta_abstract_infos_get_names_str ((const NMMetaAbstractInfo *const*) nm_meta_setting_infos_editor_p (), NULL);
-				char *allowed2 = nm_meta_abstract_infos_get_names_str ((const NMMetaAbstractInfo *const*) nmc_fields_con_active_details_groups, NULL);
+				gs_free char *allowed1 = nm_meta_abstract_infos_get_names_str ((const NMMetaAbstractInfo *const*) nm_meta_setting_infos_editor_p (), NULL);
+				gs_free char *allowed2 = nm_meta_abstract_infos_get_names_str ((const NMMetaAbstractInfo *const*) nmc_fields_con_active_details_groups, NULL);
+
 				g_set_error (error, NMCLI_ERROR, 0, _("invalid field '%s'; allowed fields: %s and %s, or %s,%s"),
-				             *iter, allowed1, allowed2, CON_SHOW_DETAIL_GROUP_PROFILE, CON_SHOW_DETAIL_GROUP_ACTIVE);
-				g_free (allowed1);
-				g_free (allowed2);
-				success = FALSE;
-				break;
+				             s_mutable, allowed1, allowed2, CON_SHOW_DETAIL_GROUP_PROFILE, CON_SHOW_DETAIL_GROUP_ACTIVE);
+				return FALSE;
 			}
 		}
 	}
-	if (fields)
-		g_strfreev (fields);
 
 	/* Handle pseudo groups: profile, active */
-	if (success && group_profile) {
+	if (group_profile) {
 		if (str1->len > 0) {
 			g_set_error (error, NMCLI_ERROR, 0, _("'%s' has to be alone"),
 			             CON_SHOW_DETAIL_GROUP_PROFILE);
-			success = FALSE;
-		} else
-			g_string_assign (str1, "all,");
+			return FALSE;
+		}
+		g_string_assign (str1, "all,");
 	}
-	if (success && group_active) {
+	if (group_active) {
 		if (str2->len > 0) {
 			g_set_error (error, NMCLI_ERROR, 0, _("'%s' has to be alone"),
 			             CON_SHOW_DETAIL_GROUP_ACTIVE);
-			success = FALSE;
-		} else
-			g_string_assign (str2, "all,");
+			return FALSE;
+		}
+		g_string_assign (str2, "all,");
 	}
 
-	if (success) {
-		if (str1->len > 0)
-			g_string_truncate (str1, str1->len - 1);
-		if (str2->len > 0)
-			g_string_truncate (str2, str2->len - 1);
-		*profile_flds = g_string_free (str1, str1->len == 0);
-		*active_flds = g_string_free (str2, str2->len == 0);
-	} else {
-		g_string_free (str1, TRUE);
-		g_string_free (str2, TRUE);
-	}
-	return success;
+	if (str1->len > 0)
+		g_string_truncate (str1, str1->len - 1);
+	if (str2->len > 0)
+		g_string_truncate (str2, str2->len - 1);
+
+	do_free = (str1->len == 0);
+	*profile_flds = g_string_free (g_steal_pointer (&str1), do_free);
+	do_free = (str2->len == 0);
+	*active_flds = g_string_free (g_steal_pointer (&str2), do_free);
+	return TRUE;
 }
 
 typedef enum {
@@ -1870,7 +1874,7 @@ parse_preferred_connection_order (const char *order, GError **error)
 	gboolean inverse, unique;
 	int i;
 
-	strv = nm_utils_strsplit_set (order, ":", FALSE);
+	strv = nm_utils_strsplit_set (order, ":");
 	if (!strv) {
 		g_set_error (error, NMCLI_ERROR, 0,
 		             _("incorrect string '%s' of '--order' option"), order);
@@ -2674,7 +2678,7 @@ parse_passwords (const char *passwd_file, GError **error)
 		return NULL;
 	}
 
-	strv = nm_utils_strsplit_set (contents, "\r\n", FALSE);
+	strv = nm_utils_strsplit_set (contents, "\r\n");
 	for (iter = strv; *iter; iter++) {
 		gs_free char *iter_s = g_strdup (*iter);
 
@@ -3959,11 +3963,12 @@ set_property (NMClient *client,
               char modifier,
               GError **error)
 {
-	gs_free char *property_name = NULL, *value_free = NULL;
+	gs_free char *property_name = NULL;
+	gs_free_error GError *local = NULL;
 	NMSetting *setting;
-	GError *local = NULL;
 
-	g_assert (setting_name && setting_name[0]);
+	nm_assert (setting_name && setting_name[0]);
+	nm_assert (NM_IN_SET (modifier, '\0', '+', '-'));
 
 	setting = nm_connection_get_setting_by_name (connection, setting_name);
 	if (!setting) {
@@ -3977,48 +3982,26 @@ set_property (NMClient *client,
 		g_set_error (error, NMCLI_ERROR, NMC_RESULT_ERROR_USER_INPUT,
 		             _("Error: invalid property '%s': %s."),
 		             property, local->message);
-		g_clear_error (&local);
 		return FALSE;
 	}
 
-	if (modifier != '-') {
-		/* Set/add value */
-		if (modifier != '+') {
-			/* We allow the existing property value to be passed as parameter,
-			 * so make a copy if we are going to free it.
-			 */
-			value = value_free = g_strdup (value);
-			nmc_setting_reset_property (setting, property_name, NULL);
-		}
-		if (!nmc_setting_set_property (client, setting, property_name, value, &local)) {
-			g_set_error (error, NMCLI_ERROR, NMC_RESULT_ERROR_USER_INPUT,
-			             _("Error: failed to modify %s.%s: %s."),
-			             setting_name, property, local->message);
-			g_clear_error (&local);
-			return FALSE;
-		}
-	} else {
-		/* Remove value
-		 * - either empty: remove whole value
-		 * - or specified by index <0-n>: remove item at the index
-		 * - or option name: remove item with the option name
-		 */
-		if (value) {
-			unsigned long idx;
-
-			if (nmc_string_to_uint (value, TRUE, 0, G_MAXUINT32, &idx))
-				nmc_setting_remove_property_option (setting, property_name, NULL, idx, &local);
-			else
-				nmc_setting_remove_property_option (setting, property_name, value, 0, &local);
-			if (local) {
-				g_set_error (error, NMCLI_ERROR, NMC_RESULT_ERROR_USER_INPUT,
-				             _("Error: failed to remove a value from %s.%s: %s."),
-				             setting_name, property,  local->message);
-				g_clear_error (&local);
-				return FALSE;
-			}
-		} else
-			nmc_setting_reset_property (setting, property_name, NULL);
+	if (!nmc_setting_set_property (client,
+	                               setting,
+	                               property_name,
+	                               (  (modifier == '-' && !value)
+	                                ? '\0'
+	                                : modifier),
+	                               value,
+	                               &local)) {
+		g_set_error (error, NMCLI_ERROR, NMC_RESULT_ERROR_USER_INPUT,
+		             _("Error: failed to %s %s.%s: %s."),
+		             (  modifier != '-'
+		              ? "modify"
+		              : "remove a value from"),
+		             setting_name,
+		             property,
+		             local->message);
+		return FALSE;
 	}
 
 	/* Don't ask for this property in interactive mode. */
@@ -6904,7 +6887,6 @@ property_edit_submenu (NmCli *nmc,
 		gs_free char *cmd_property_user = NULL;
 		gs_free char *cmd_property_arg = NULL;
 		gs_free char *prop_val_user = NULL;
-		nm_auto_unset_gvalue GValue prop_g_value = G_VALUE_INIT;
 		gboolean removed;
 		gboolean dirty;
 
@@ -6954,24 +6936,17 @@ property_edit_submenu (NmCli *nmc,
 			} else
 				prop_val_user = g_strdup (cmd_property_arg);
 
-			/* nmc_setting_set_property() only adds new value, thus we have to
-			 * remove the original value and save it for error cases.
-			 */
-			if (cmdsub == NMC_EDITOR_SUB_CMD_SET) {
-				nmc_property_get_gvalue (curr_setting, prop_name, &prop_g_value);
-				nmc_property_set_default_value (curr_setting, prop_name);
-			}
-
-			set_result = nmc_setting_set_property (nmc->client, curr_setting, prop_name, prop_val_user, &tmp_err);
+			set_result = nmc_setting_set_property (nmc->client,
+			                                       curr_setting,
+			                                       prop_name,
+			                                         (cmdsub == NMC_EDITOR_SUB_CMD_SET)
+			                                       ? '\0'
+			                                       : '+',
+			                                       prop_val_user,
+			                                       &tmp_err);
 			if (!set_result) {
 				g_print (_("Error: failed to set '%s' property: %s\n"), prop_name, tmp_err->message);
 				g_clear_error (&tmp_err);
-				if (cmdsub == NMC_EDITOR_SUB_CMD_SET) {
-					/* Block change signals and restore original value */
-					g_signal_handlers_block_matched (curr_setting, G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, NULL);
-					nmc_property_set_gvalue (curr_setting, prop_name, &prop_g_value);
-					g_signal_handlers_unblock_matched (curr_setting, G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, NULL);
-				}
 			}
 			break;
 
@@ -6982,41 +6957,23 @@ property_edit_submenu (NmCli *nmc,
 			                              _("Edit '%s' value: "),
 			                              prop_name);
 
-			nmc_property_get_gvalue (curr_setting, prop_name, &prop_g_value);
-			nmc_property_set_default_value (curr_setting, prop_name);
-
-			if (!nmc_setting_set_property (nmc->client, curr_setting, prop_name, prop_val_user, &tmp_err)) {
+			if (!nmc_setting_set_property (nmc->client, curr_setting, prop_name, '\0', prop_val_user, &tmp_err)) {
 				g_print (_("Error: failed to set '%s' property: %s\n"), prop_name, tmp_err->message);
 				g_clear_error (&tmp_err);
-				g_signal_handlers_block_matched (curr_setting, G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, NULL);
-				nmc_property_set_gvalue (curr_setting, prop_name, &prop_g_value);
-				g_signal_handlers_unblock_matched (curr_setting, G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, NULL);
 			}
 			break;
 
 		case NMC_EDITOR_SUB_CMD_REMOVE:
-			if (cmd_property_arg) {
-				unsigned long val_int = G_MAXUINT32;
-				gs_free char *option = NULL;
-
-				if (!nmc_string_to_uint (cmd_property_arg, TRUE, 0, G_MAXUINT32, &val_int)) {
-					option = g_strdup (cmd_property_arg);
-					g_strstrip (option);
-				}
-
-				if (!nmc_setting_remove_property_option (curr_setting, prop_name,
-				                                         option,
-				                                         (guint32) val_int,
-				                                         &tmp_err)) {
-					g_print (_("Error: %s\n"), tmp_err->message);
-					g_clear_error (&tmp_err);
-				}
-			} else {
-				if (!nmc_setting_reset_property (curr_setting, prop_name, &tmp_err)) {
-					g_print (_("Error: failed to remove value of '%s': %s\n"), prop_name,
-					         tmp_err->message);
-					g_clear_error (&tmp_err);
-				}
+			if (!nmc_setting_set_property (nmc->client,
+			                               curr_setting,
+			                               prop_name,
+			                               (  cmd_property_arg
+			                                ? '-'
+			                                : '\0'),
+			                               cmd_property_arg,
+			                               &tmp_err)) {
+				g_print (_("Error: %s\n"), tmp_err->message);
+				g_clear_error (&tmp_err);
 			}
 			break;
 
@@ -7367,8 +7324,7 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 					                              _("Enter '%s' value: "),
 					                              prop_name);
 
-					/* Set property value */
-					if (!nmc_setting_set_property (nmc->client, menu_ctx.curr_setting, prop_name, prop_val_user, &tmp_err)) {
+					if (!nmc_setting_set_property (nmc->client, menu_ctx.curr_setting, prop_name, '+', prop_val_user, &tmp_err)) {
 						g_print (_("Error: failed to set '%s' property: %s\n"), prop_name, tmp_err->message);
 						g_clear_error (&tmp_err);
 					}
@@ -7428,8 +7384,13 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 					                          prop_name);
 				}
 
-				/* Set property value */
-				if (!nmc_setting_set_property (nmc->client, ss, prop_name, cmd_arg_v, &tmp_err)) {
+				/* setting a value in edit mode "appends". That seems unexpected behavior. */
+				if (!nmc_setting_set_property (nmc->client,
+				                               ss,
+				                               prop_name,
+				                               cmd_arg_v ? '+' : '\0',
+				                               cmd_arg_v,
+				                               &tmp_err)) {
 					g_print (_("Error: failed to set '%s' property: %s\n"),
 					         prop_name, tmp_err->message);
 					g_clear_error (&tmp_err);
@@ -7526,8 +7487,7 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 					if (!prop_name)
 						break;
 
-					/* Delete property value */
-					if (!nmc_setting_reset_property (menu_ctx.curr_setting, prop_name, &tmp_err)) {
+					if (!nmc_setting_set_property (nmc->client, menu_ctx.curr_setting, prop_name, '\0', NULL, &tmp_err)) {
 						g_print (_("Error: failed to remove value of '%s': %s\n"), prop_name,
 						         tmp_err->message);
 						g_clear_error (&tmp_err);
@@ -7577,8 +7537,7 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 
 					prop_name = is_property_valid (ss, cmd_arg_p, &tmp_err);
 					if (prop_name) {
-						/* Delete property value */
-						if (!nmc_setting_reset_property (ss, prop_name, &tmp_err)) {
+						if (!nmc_setting_set_property (nmc->client, ss, prop_name, '\0', NULL, &tmp_err)) {
 							g_print (_("Error: failed to remove value of '%s': %s\n"), prop_name,
 							         tmp_err->message);
 							g_clear_error (&tmp_err);
@@ -8148,6 +8107,9 @@ editor_init_existing_connection (NMConnection *connection)
 	NMSettingWireless *s_wireless;
 	NMSettingConnection *s_con;
 
+	/* FIXME: this approach of connecting handlers to do something is fundamentally
+	 * flawed. See the comment in nmc_setting_ip6_connect_handlers(). */
+
 	s_ip4 = nm_connection_get_setting_ip4_config (connection);
 	s_ip6 = nm_connection_get_setting_ip6_config (connection);
 	s_proxy = nm_connection_get_setting_proxy (connection);
@@ -8585,7 +8547,7 @@ delete_cb (GObject *con, GAsyncResult *result, gpointer user_data)
 		if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
 			return;
 		g_string_printf (info->nmc->return_text, _("Error: not all connections deleted."));
-		g_printerr (_("Error: Connection deletion failed: %s"),
+		g_printerr (_("Error: Connection deletion failed: %s\n"),
 		            error->message);
 		g_error_free (error);
 		info->nmc->return_value = NMC_RESULT_ERROR_CON_DEL;

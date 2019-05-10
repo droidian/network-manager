@@ -30,8 +30,8 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#include "nm-utils/nm-enum-utils.h"
-#include "nm-utils/nm-io-utils.h"
+#include "nm-glib-aux/nm-enum-utils.h"
+#include "nm-glib-aux/nm-io-utils.h"
 #include "nm-manager.h"
 #include "nm-setting-connection.h"
 #include "nm-setting-wired.h"
@@ -50,7 +50,7 @@
 #include "nm-core-internal.h"
 #include "NetworkManagerUtils.h"
 #include "nm-meta-setting.h"
-#include "nm-ethtool-utils.h"
+#include "nm-libnm-core-intern/nm-ethtool-utils.h"
 
 #include "nms-ifcfg-rh-common.h"
 #include "nms-ifcfg-rh-reader.h"
@@ -1464,6 +1464,43 @@ get_setting_default_boolean (NMSetting *setting, const char *prop)
 }
 
 static gboolean
+write_bridge_vlans (NMSetting *setting,
+                    const char *property_name,
+                    shvarFile *ifcfg,
+                    const char *key,
+                    GError **error)
+{
+	gs_unref_ptrarray GPtrArray *vlans = NULL;
+	NMBridgeVlan *vlan;
+	GString *string;
+	guint i;
+
+	g_object_get (setting, property_name, &vlans, NULL);
+
+	if (!vlans || !vlans->len) {
+		svUnsetValue (ifcfg, key);
+		return TRUE;
+	}
+
+	string = g_string_new ("");
+	for (i = 0; i < vlans->len; i++) {
+		gs_free char *vlan_str = NULL;
+
+		vlan = vlans->pdata[i];
+		vlan_str = nm_bridge_vlan_to_str (vlan, error);
+		if (!vlan_str)
+			return FALSE;
+		if (string->len > 0)
+			g_string_append (string, ",");
+		nm_utils_escaped_tokens_escape_gstr_assert (vlan_str, ",", string);
+	}
+
+	svSetValueStr (ifcfg, key, string->str);
+	g_string_free (string, TRUE);
+	return TRUE;
+}
+
+static gboolean
 write_bridge_setting (NMConnection *connection, shvarFile *ifcfg, gboolean *wired, GError **error)
 {
 	NMSettingBridge *s_bridge;
@@ -1534,9 +1571,30 @@ write_bridge_setting (NMConnection *connection, shvarFile *ifcfg, gboolean *wire
 		g_string_append_printf (opts, "multicast_snooping=%u", (guint32) b);
 	}
 
+	b = nm_setting_bridge_get_vlan_filtering (s_bridge);
+	if (b != get_setting_default_boolean (NM_SETTING (s_bridge), NM_SETTING_BRIDGE_VLAN_FILTERING)) {
+		if (opts->len)
+			g_string_append_c (opts, ' ');
+		g_string_append_printf (opts, "vlan_filtering=%u", (guint32) b);
+	}
+
+	i = nm_setting_bridge_get_vlan_default_pvid (s_bridge);
+	if (i != get_setting_default_uint (NM_SETTING (s_bridge), NM_SETTING_BRIDGE_VLAN_DEFAULT_PVID)) {
+		if (opts->len)
+			g_string_append_c (opts, ' ');
+		g_string_append_printf (opts, "default_pvid=%u", i);
+	}
+
 	if (opts->len)
 		svSetValueStr (ifcfg, "BRIDGING_OPTS", opts->str);
 	g_string_free (opts, TRUE);
+
+	if (!write_bridge_vlans ((NMSetting *) s_bridge,
+	                         NM_SETTING_BRIDGE_VLANS,
+	                         ifcfg,
+	                         "BRIDGE_VLANS",
+	                         error))
+		return FALSE;
 
 	svSetValueStr (ifcfg, "TYPE", TYPE_BRIDGE);
 
@@ -1550,7 +1608,7 @@ write_bridge_port_setting (NMConnection *connection, shvarFile *ifcfg, GError **
 {
 	NMSettingBridgePort *s_port;
 	guint32 i;
-	GString *opts;
+	GString *string;
 
 	s_port = nm_connection_get_setting_bridge_port (connection);
 	if (!s_port)
@@ -1559,28 +1617,35 @@ write_bridge_port_setting (NMConnection *connection, shvarFile *ifcfg, GError **
 	svUnsetValue (ifcfg, "BRIDGING_OPTS");
 
 	/* Bridge options */
-	opts = g_string_sized_new (32);
+	string = g_string_sized_new (32);
 
 	i = nm_setting_bridge_port_get_priority (s_port);
 	if (i != get_setting_default_uint (NM_SETTING (s_port), NM_SETTING_BRIDGE_PORT_PRIORITY))
-		g_string_append_printf (opts, "priority=%u", i);
+		g_string_append_printf (string, "priority=%u", i);
 
 	i = nm_setting_bridge_port_get_path_cost (s_port);
 	if (i != get_setting_default_uint (NM_SETTING (s_port), NM_SETTING_BRIDGE_PORT_PATH_COST)) {
-		if (opts->len)
-			g_string_append_c (opts, ' ');
-		g_string_append_printf (opts, "path_cost=%u", i);
+		if (string->len)
+			g_string_append_c (string, ' ');
+		g_string_append_printf (string, "path_cost=%u", i);
 	}
 
 	if (nm_setting_bridge_port_get_hairpin_mode (s_port)) {
-		if (opts->len)
-			g_string_append_c (opts, ' ');
-		g_string_append_printf (opts, "hairpin_mode=1");
+		if (string->len)
+			g_string_append_c (string, ' ');
+		g_string_append_printf (string, "hairpin_mode=1");
 	}
 
-	if (opts->len)
-		svSetValueStr (ifcfg, "BRIDGING_OPTS", opts->str);
-	g_string_free (opts, TRUE);
+	if (string->len)
+		svSetValueStr (ifcfg, "BRIDGING_OPTS", string->str);
+	g_string_free (string, TRUE);
+
+	if (!write_bridge_vlans ((NMSetting *) s_port,
+	                         NM_SETTING_BRIDGE_PORT_VLANS,
+	                         ifcfg,
+	                         "BRIDGE_PORT_VLANS",
+	                         error))
+		return FALSE;
 
 	return TRUE;
 }
@@ -2310,15 +2375,17 @@ write_match_setting (NMConnection *connection, shvarFile *ifcfg, GError **error)
 
 	num = nm_setting_match_get_num_interface_names (s_match);
 	for (i = 0; i < num; i++) {
-		gs_free char *to_free = NULL;
 		const char *name;
 
-		if (i == 0)
+		name = nm_setting_match_get_interface_name (s_match, i);
+		if (!name || !name[0])
+			continue;
+
+		if (!str)
 			str = g_string_new ("");
 		else
 			g_string_append_c (str, ' ');
-		name = nm_setting_match_get_interface_name (s_match, i);
-		g_string_append (str, _nm_utils_escape_spaces (name, &to_free));
+		nm_utils_escaped_tokens_escape_gstr (name, NM_ASCII_SPACES, str);
 	}
 
 	if (str)
@@ -2889,6 +2956,52 @@ write_ip6_setting (NMConnection *connection,
 	return TRUE;
 }
 
+static void
+write_ip_routing_rules (NMConnection *connection,
+                        shvarFile *ifcfg,
+                        gboolean route_ignore)
+{
+	gsize idx;
+	int is_ipv4;
+
+	svUnsetAll (ifcfg, SV_KEY_TYPE_ROUTING_RULE4 | SV_KEY_TYPE_ROUTING_RULE6);
+
+	if (route_ignore)
+		return;
+
+	idx = 0;
+
+	for (is_ipv4 = 1; is_ipv4 >= 0; is_ipv4--) {
+		const int addr_family = is_ipv4 ? AF_INET : AF_INET6;
+		NMSettingIPConfig *s_ip;
+		guint i, num;
+
+		s_ip = nm_connection_get_setting_ip_config (connection, addr_family);
+		if (!s_ip)
+			continue;
+
+		num = nm_setting_ip_config_get_num_routing_rules (s_ip);
+		for (i = 0; i < num; i++) {
+			NMIPRoutingRule *rule = nm_setting_ip_config_get_routing_rule (s_ip, i);
+			gs_free const char *s = NULL;
+			char key[64];
+
+			s = nm_ip_routing_rule_to_string (rule,
+			                                  NM_IP_ROUTING_RULE_AS_STRING_FLAGS_NONE,
+			                                  NULL,
+			                                  NULL);
+			if (!s)
+				continue;
+
+			if (is_ipv4)
+				numbered_tag (key, "ROUTING_RULE_", ++idx);
+			else
+				numbered_tag (key, "ROUTING_RULE6_", ++idx);
+			svSetValueStr (ifcfg, key, s);
+		}
+	}
+}
+
 static char *
 escape_id (const char *id)
 {
@@ -3111,6 +3224,15 @@ do_write_construct (NMConnection *connection,
 			             has_complex_routes_v4 ? "" : "6");
 			return FALSE;
 		}
+		if (   (   s_ip4
+		        && nm_setting_ip_config_get_num_routing_rules (s_ip4) > 0)
+		    || (   s_ip6
+		        && nm_setting_ip_config_get_num_routing_rules (s_ip6) > 0)) {
+			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_FAILED,
+			             "Cannot configure routing rules on a connection that has an associated 'rule%s-' file",
+			             has_complex_routes_v4 ? "" : "6");
+			return FALSE;
+		}
 		route_ignore = TRUE;
 	} else
 		route_ignore = FALSE;
@@ -3127,6 +3249,10 @@ do_write_construct (NMConnection *connection,
 	                        !route_ignore ? &route6_content : NULL,
 	                        error))
 		return FALSE;
+
+	write_ip_routing_rules (connection,
+	                        ifcfg,
+	                        route_ignore);
 
 	write_connection_setting (s_con, ifcfg);
 

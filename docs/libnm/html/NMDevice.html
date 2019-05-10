@@ -493,6 +493,14 @@
 <a class="link" href="NMDevice.html#nm-lldp-neighbor-get-attr-type" title="nm_lldp_neighbor_get_attr_type ()">nm_lldp_neighbor_get_attr_type</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
+<tr>
+<td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="NMDevice.html#nm-lldp-neighbor-get-attr-value" title="nm_lldp_neighbor_get_attr_value ()">nm_lldp_neighbor_get_attr_value</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -2722,7 +2730,7 @@ nm_lldp_neighbor_get_attr_names (<em class="parameter"><code><a class="link" hre
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_lldp_neighbor_get_attr_string_value
                                (<em class="parameter"><code><a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> *neighbor</code></em>,
-                                <em class="parameter"><code><span class="type">char</span> *name</code></em>,
+                                <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
                                 <em class="parameter"><code>const <span class="type">char</span> **out_value</code></em>);</pre>
 <p>Gets the string value of attribute with name <em class="parameter"><code>name</code></em>
  on <em class="parameter"><code>neighbor</code></em>
@@ -2766,7 +2774,7 @@ was found, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macr
 <a name="nm-lldp-neighbor-get-attr-uint-value"></a><h3>nm_lldp_neighbor_get_attr_uint_value ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_lldp_neighbor_get_attr_uint_value (<em class="parameter"><code><a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> *neighbor</code></em>,
-                                      <em class="parameter"><code><span class="type">char</span> *name</code></em>,
+                                      <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
                                       <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *out_value</code></em>);</pre>
 <p>Gets the uint value of attribute with name <em class="parameter"><code>name</code></em>
  on <em class="parameter"><code>neighbor</code></em>
@@ -2810,7 +2818,7 @@ was found, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macr
 <a name="nm-lldp-neighbor-get-attr-type"></a><h3>nm_lldp_neighbor_get_attr_type ()</h3>
 <pre class="programlisting">const <a href="https://developer.gnome.org/glib/unstable/glib-GVariantType.html#GVariantType"><span class="returnvalue">GVariantType</span></a> *
 nm_lldp_neighbor_get_attr_type (<em class="parameter"><code><a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> *neighbor</code></em>,
-                                <em class="parameter"><code><span class="type">char</span> *name</code></em>);</pre>
+                                <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
 <p>Get the type of an attribute.</p>
 <div class="refsect3">
 <a name="nm-lldp-neighbor-get-attr-type.parameters"></a><h4>Parameters</h4>
@@ -2840,6 +2848,46 @@ nm_lldp_neighbor_get_attr_type (<em class="parameter"><code><a class="link" href
 </p>
 </div>
 <p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-lldp-neighbor-get-attr-value"></a><h3>nm_lldp_neighbor_get_attr_value ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *
+nm_lldp_neighbor_get_attr_value (<em class="parameter"><code><a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> *neighbor</code></em>,
+                                 <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
+<p>Gets the value (as a GVariant) of attribute with name <em class="parameter"><code>name</code></em>
+ on <em class="parameter"><code>neighbor</code></em>
+</p>
+<div class="refsect3">
+<a name="nm-lldp-neighbor-get-attr-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>neighbor</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the attribute name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-lldp-neighbor-get-attr-value.returns"></a><h4>Returns</h4>
+<p>the value or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the attribute with <em class="parameter"><code>name</code></em>
+was
+not found. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.18</p>
 </div>
 </div>
 <div class="refsect1">

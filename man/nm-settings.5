@@ -2,12 +2,12 @@
 .\"     Title: nm-settings
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 03/15/2019
+.\"      Date: 04/21/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.16.0
+.\"    Source: NetworkManager 1.18.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.16\&.0" "Configuration"
+.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.18\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -981,6 +981,9 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
+l l l l
 l l l l.
 T{
 ageing\-time
@@ -1072,6 +1075,33 @@ TRUE
 T}:T{
 Controls whether Spanning Tree Protocol (STP) is enabled for this bridge\&.
 T}
+T{
+vlan\-default\-pvid
+T}:T{
+uint32
+T}:T{
+1
+T}:T{
+The default PVID for the ports of the bridge, that is the VLAN id assigned to incoming untagged frames\&.
+T}
+T{
+vlan\-filtering
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+Control whether VLAN filtering is enabled on the bridge\&.
+T}
+T{
+vlans
+T}:T{
+array of vardict
+T}:T{
+[]
+T}:T{
+Array of bridge VLAN objects\&. In addition to the VLANs specified here, the bridge will also have the default\-pvid VLAN configured  by the bridge\&.vlan\-default\-pvid property\&. In nmcli the VLAN list can be specified with the following syntax: $vid [pvid] [untagged] [, $vid [pvid] [untagged]]\&.\&.\&. where $vid is either a single id between 1 and 4094 or a range, represented as a couple of ids separated by a dash\&.
+T}
 .TE
 .sp 1
 .SS "bridge\-port setting"
@@ -1090,6 +1120,7 @@ T}:T{
 Value Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l.
@@ -1119,6 +1150,15 @@ T}:T{
 32
 T}:T{
 The Spanning Tree Protocol (STP) priority of this bridge port\&.
+T}
+T{
+vlans
+T}:T{
+array of vardict
+T}:T{
+[]
+T}:T{
+Array of bridge VLAN objects\&. In addition to the VLANs specified here, the port will also have the default\-pvid VLAN configured on the bridge by the bridge\&.vlan\-default\-pvid property\&. In nmcli the VLAN list can be specified with the following syntax: $vid [pvid] [untagged] [, $vid [pvid] [untagged]]\&.\&.\&. where $vid is either a single id between 1 and 4094 or a range, represented as a couple of ids separated by a dash\&.
 T}
 .TE
 .sp 1

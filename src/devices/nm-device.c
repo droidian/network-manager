@@ -36,17 +36,18 @@
 #include <linux/rtnetlink.h>
 #include <linux/pkt_sched.h>
 
-#include "nm-utils/nm-dedup-multi.h"
-#include "nm-utils/nm-random-utils.h"
-#include "nm-utils/unaligned.h"
+#include "nm-std-aux/unaligned.h"
+#include "nm-glib-aux/nm-dedup-multi.h"
+#include "nm-glib-aux/nm-random-utils.h"
 
-#include "nm-ethtool-utils.h"
-#include "nm-common-macros.h"
+#include "nm-libnm-core-intern/nm-ethtool-utils.h"
+#include "nm-libnm-core-intern/nm-common-macros.h"
 #include "nm-device-private.h"
 #include "NetworkManagerUtils.h"
 #include "nm-manager.h"
 #include "platform/nm-platform.h"
 #include "platform/nmp-object.h"
+#include "platform/nmp-rules-manager.h"
 #include "ndisc/nm-ndisc.h"
 #include "ndisc/nm-lndp-ndisc.h"
 #include "dhcp/nm-dhcp-manager.h"
@@ -1545,8 +1546,7 @@ _set_ip_ifindex (NMDevice *self,
 		                                        priv->ip_ifindex,
 		                                        priv->ip_iface);
 
-		if (nm_platform_check_kernel_support (platform,
-		                                      NM_PLATFORM_KERNEL_SUPPORT_USER_IPV6LL))
+		if (nm_platform_kernel_support_get (NM_PLATFORM_KERNEL_SUPPORT_TYPE_USER_IPV6LL))
 			nm_platform_link_set_user_ipv6ll_enabled (platform, priv->ip_ifindex, TRUE);
 
 		if (!nm_platform_link_is_up (platform, priv->ip_ifindex))
@@ -2787,8 +2787,10 @@ nm_device_check_connectivity_update_interval (NMDevice *self)
 }
 
 static void
-concheck_update_state (NMDevice *self, int addr_family,
-                       NMConnectivityState state, gboolean allow_periodic_bump)
+concheck_update_state (NMDevice *self,
+                       int addr_family,
+                       NMConnectivityState state,
+                       gboolean allow_periodic_bump)
 {
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
 	const gboolean IS_IPv4 = (addr_family == AF_INET);
@@ -2820,6 +2822,14 @@ concheck_update_state (NMDevice *self, int addr_family,
 			else
 				state = NM_CONNECTIVITY_LIMITED;
 		} else
+			state = NM_CONNECTIVITY_NONE;
+	} else if (state == NM_CONNECTIVITY_LIMITED) {
+		/* NMConnectivity cannot distinguish between NONE and LIMITED connectivity. In both
+		 * cases, it just failed to fetch the URL.
+		 *
+		 * NMDevice coerces a LIMITED state to NONE here, if the logical state of the device
+		 * is disconnected. */
+		if (priv->state <= NM_DEVICE_STATE_DISCONNECTED)
 			state = NM_CONNECTIVITY_NONE;
 	}
 
@@ -4319,8 +4329,7 @@ realize_start_setup (NMDevice *self,
 		if (priv->firmware_version)
 			_notify (self, PROP_FIRMWARE_VERSION);
 
-		if (nm_platform_check_kernel_support (nm_device_get_platform (self),
-		                                      NM_PLATFORM_KERNEL_SUPPORT_USER_IPV6LL))
+		if (nm_platform_kernel_support_get (NM_PLATFORM_KERNEL_SUPPORT_TYPE_USER_IPV6LL))
 			priv->ipv6ll_handle = nm_platform_link_get_user_ipv6ll_enabled (nm_device_get_platform (self), priv->ifindex);
 
 		if (nm_platform_link_supports_sriov (nm_device_get_platform (self), priv->ifindex))
@@ -5064,7 +5073,6 @@ nm_device_slave_notify_release (NMDevice *self, NMDeviceStateReason reason)
 {
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
 	NMConnection *connection = nm_device_get_applied_connection (self);
-	NMDeviceState new_state;
 	const char *master_status;
 
 	g_return_if_fail (priv->master);
@@ -5073,16 +5081,17 @@ nm_device_slave_notify_release (NMDevice *self, NMDeviceStateReason reason)
 	    && priv->state <= NM_DEVICE_STATE_ACTIVATED) {
 		switch (nm_device_state_reason_check (reason)) {
 		case NM_DEVICE_STATE_REASON_DEPENDENCY_FAILED:
-			new_state = NM_DEVICE_STATE_FAILED;
 			master_status = "failed";
 			break;
 		case NM_DEVICE_STATE_REASON_USER_REQUESTED:
-			new_state = NM_DEVICE_STATE_DEACTIVATING;
 			reason = NM_DEVICE_STATE_REASON_DEPENDENCY_FAILED;
 			master_status = "deactivated by user request";
 			break;
+		case NM_DEVICE_STATE_REASON_CONNECTION_REMOVED:
+			reason = NM_DEVICE_STATE_REASON_DEPENDENCY_FAILED;
+			master_status = "deactivated because master was removed";
+			break;
 		default:
-			new_state = NM_DEVICE_STATE_DISCONNECTED;
 			master_status = "deactivated";
 			break;
 		}
@@ -5093,7 +5102,7 @@ nm_device_slave_notify_release (NMDevice *self, NMDeviceStateReason reason)
 
 		/* Cancel any pending activation sources */
 		_cancel_activation (self);
-		nm_device_queue_state (self, new_state, reason);
+		nm_device_queue_state (self, NM_DEVICE_STATE_DEACTIVATING, reason);
 	} else
 		_LOGI (LOGD_DEVICE, "released from master device %s", nm_device_get_iface (priv->master));
 
@@ -5304,7 +5313,8 @@ nm_device_autoconnect_allowed (NMDevice *self)
 		if (priv->state < NM_DEVICE_STATE_DISCONNECTED)
 			return FALSE;
 	} else {
-		/* Unrealized devices can always autoconnect. */
+		if (!nm_device_check_unrealized_device_managed (self))
+			return FALSE;
 	}
 
 	/* The 'autoconnect-allowed' signal is emitted on a device to allow
@@ -6403,6 +6413,84 @@ lldp_init (NMDevice *self, gboolean restart)
 	}
 }
 
+/* set-mode can be:
+ *  - TRUE: sync with new rules.
+ *  - FALSE: sync, but remove all rules (== flush)
+ *  - DEFAULT: forget about all the rules that we previously tracked,
+ *       but don't actually remove them. This is when quitting NM
+ *       we want to keep the rules.
+ *       The problem is, after restart of NM, the rule manager will
+ *       no longer remember that NM added these rules and treat them
+ *       as externally added ones. Don't restart NetworkManager if
+ *       you care about that.
+ */
+static void
+_routing_rules_sync (NMDevice *self,
+                     NMTernary set_mode)
+{
+	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
+	NMPRulesManager *rules_manager = nm_netns_get_rules_manager (nm_device_get_netns (self));
+	gboolean untrack_only_dirty = FALSE;
+	gboolean keep_deleted_rules;
+	gpointer user_tag;
+
+	user_tag = priv;
+
+	if (set_mode == NM_TERNARY_TRUE) {
+		NMConnection *applied_connection;
+		NMSettingIPConfig *s_ip;
+		guint i, num;
+		int is_ipv4;
+
+		untrack_only_dirty = TRUE;
+		nmp_rules_manager_set_dirty (rules_manager, user_tag);
+
+		applied_connection = nm_device_get_applied_connection (self);
+
+		for (is_ipv4 = 0; applied_connection && is_ipv4 < 2; is_ipv4++) {
+			int addr_family = is_ipv4 ? AF_INET : AF_INET6;
+
+			s_ip = nm_connection_get_setting_ip_config (applied_connection, addr_family);
+			if (!s_ip)
+				continue;
+
+			num = nm_setting_ip_config_get_num_routing_rules (s_ip);
+			for (i = 0; i < num; i++) {
+				NMPlatformRoutingRule plrule;
+				NMIPRoutingRule *rule;
+
+				rule = nm_setting_ip_config_get_routing_rule (s_ip, i);
+				nm_ip_routing_rule_to_platform (rule, &plrule);
+				nmp_rules_manager_track (rules_manager,
+				                         &plrule,
+				                         10,
+				                         user_tag);
+			}
+		}
+	}
+
+	nmp_rules_manager_untrack_all (rules_manager, user_tag, !untrack_only_dirty);
+
+	keep_deleted_rules = FALSE;
+	if (set_mode == NM_TERNARY_DEFAULT) {
+		/* when exiting NM, we leave the device up and the rules configured.
+		 * We just all nmp_rules_manager_sync() to forget about the synced rules,
+		 * but we don't actually delete them.
+		 *
+		 * FIXME: that is a problem after restart of NetworkManager, because these
+		 * rules will look like externally added, and NM will no longer remove
+		 * them.
+		 * To fix that, we could during "assume" mark the rules of the profile
+		 * as owned (and "added" by the device). The problem with that is that it
+		 * wouldn't cover rules that devices add by internal decision (not because
+		 * of a setting in the profile, e.g. WireGuard could setup policy routing).
+		 * Maybe it would be better to remember these orphaned rules at exit in a
+		 * file and track them after restart again. */
+		keep_deleted_rules = TRUE;
+	}
+	nmp_rules_manager_sync (rules_manager, keep_deleted_rules);
+}
+
 static gboolean
 tc_commit (NMDevice *self)
 {
@@ -6513,6 +6601,8 @@ activate_stage2_device_config (NMDevice *self)
 			return;
 		}
 	}
+
+	_routing_rules_sync (self, NM_TERNARY_TRUE);
 
 	if (!nm_device_sys_iface_state_is_external_or_assume (self)) {
 		if (!nm_device_bring_up (self, FALSE, &no_firmware)) {
@@ -6747,7 +6837,8 @@ ipv4_dad_start (NMDevice *self, NMIP4Config **configs, AcdCallback cb)
 	NMDedupMultiIter ipconf_iter;
 	AcdData *data;
 	guint timeout;
-	gboolean ret, addr_found;
+	gboolean addr_found;
+	int r;
 	const guint8 *hwaddr_arr;
 	size_t length;
 	guint i;
@@ -6801,9 +6892,8 @@ ipv4_dad_start (NMDevice *self, NMIP4Config **configs, AcdCallback cb)
 			nm_acd_manager_add_address (acd_manager, address->address);
 	}
 
-	ret = nm_acd_manager_start_probe (acd_manager, timeout);
-
-	if (!ret) {
+	r = nm_acd_manager_start_probe (acd_manager, timeout);
+	if (r < 0) {
 		_LOGW (LOGD_DEVICE, "acd probe failed");
 
 		/* DAD could not be started, signal success */
@@ -8830,12 +8920,13 @@ linklocal6_start (NMDevice *self)
 
 gint64
 nm_device_get_configured_mtu_from_connection_default (NMDevice *self,
-                                                      const char *property_name)
+                                                      const char *property_name,
+                                                      guint32 max_mtu)
 {
 	return nm_config_data_get_connection_default_int64 (NM_CONFIG_GET_DATA,
 	                                                    property_name,
 	                                                    self,
-	                                                    0, G_MAXUINT32, -1);
+	                                                    0, max_mtu, -1);
 }
 
 guint32
@@ -8848,6 +8939,7 @@ nm_device_get_configured_mtu_from_connection (NMDevice *self,
 	NMSetting *setting;
 	gint64 mtu_default;
 	guint32 mtu = 0;
+	guint32 max_mtu = G_MAXUINT32;
 
 	nm_assert (NM_IS_DEVICE (self));
 	nm_assert (out_source);
@@ -8870,6 +8962,7 @@ nm_device_get_configured_mtu_from_connection (NMDevice *self,
 		if (setting)
 			mtu = nm_setting_infiniband_get_mtu (NM_SETTING_INFINIBAND (setting));
 		global_property_name = NM_CON_DEFAULT ("infiniband.mtu");
+		max_mtu = NM_INFINIBAND_MAX_MTU;
 	} else if (setting_type == NM_TYPE_SETTING_IP_TUNNEL) {
 		if (setting)
 			mtu = nm_setting_ip_tunnel_get_mtu (NM_SETTING_IP_TUNNEL (setting));
@@ -8881,13 +8974,12 @@ nm_device_get_configured_mtu_from_connection (NMDevice *self,
 	} else
 		g_return_val_if_reached (0);
 
-
 	if (mtu) {
 		*out_source = NM_DEVICE_MTU_SOURCE_CONNECTION;
 		return mtu;
 	}
 
-	mtu_default = nm_device_get_configured_mtu_from_connection_default (self, global_property_name);
+	mtu_default = nm_device_get_configured_mtu_from_connection_default (self, global_property_name, max_mtu);
 	if (mtu_default >= 0) {
 		*out_source = NM_DEVICE_MTU_SOURCE_CONNECTION;
 		return (guint32) mtu_default;
@@ -9140,8 +9232,7 @@ ndisc_config_changed (NMNDisc *ndisc, const NMNDiscData *rdata, guint changed_in
 		 * addresses as /128. The reason for the /128 is to prevent the kernel
 		 * from adding a prefix route for this address. */
 		ifa_flags = 0;
-		if (nm_platform_check_kernel_support (nm_device_get_platform (self),
-		                                      NM_PLATFORM_KERNEL_SUPPORT_EXTENDED_IFA_FLAGS)) {
+		if (nm_platform_kernel_support_get (NM_PLATFORM_KERNEL_SUPPORT_TYPE_EXTENDED_IFA_FLAGS)) {
 			ifa_flags |= IFA_F_NOPREFIXROUTE;
 			if (NM_IN_SET (priv->ndisc_use_tempaddr, NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_TEMP_ADDR,
 			                                         NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_PUBLIC_ADDR))
@@ -9173,8 +9264,7 @@ ndisc_config_changed (NMNDisc *ndisc, const NMNDiscData *rdata, guint changed_in
 		                                  rdata->routes_n,
 		                                  nm_device_get_route_table (self, AF_INET6, TRUE),
 		                                  nm_device_get_route_metric (self, AF_INET6),
-		                                  nm_platform_check_kernel_support (nm_device_get_platform (self),
-		                                                                    NM_PLATFORM_KERNEL_SUPPORT_RTA_PREF));
+		                                  nm_platform_kernel_support_get (NM_PLATFORM_KERNEL_SUPPORT_TYPE_RTA_PREF));
 		if (priv->ac_ip6_config.current) {
 			nm_ip6_config_reset_routes_ndisc ((NMIP6Config *) priv->ac_ip6_config.current,
 			                                  rdata->gateways,
@@ -9183,8 +9273,7 @@ ndisc_config_changed (NMNDisc *ndisc, const NMNDiscData *rdata, guint changed_in
 			                                  rdata->routes_n,
 			                                  nm_device_get_route_table (self, AF_INET6, TRUE),
 			                                  nm_device_get_route_metric (self, AF_INET6),
-			                                  nm_platform_check_kernel_support (nm_device_get_platform (self),
-			                                                                    NM_PLATFORM_KERNEL_SUPPORT_RTA_PREF));
+			                                  nm_platform_kernel_support_get (NM_PLATFORM_KERNEL_SUPPORT_TYPE_RTA_PREF));
 		}
 
 	}
@@ -9372,8 +9461,7 @@ addrconf6_start (NMDevice *self, NMSettingIP6ConfigPrivacy use_tempaddr)
 	priv->ndisc_use_tempaddr = use_tempaddr;
 
 	if (   NM_IN_SET (use_tempaddr, NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_TEMP_ADDR, NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_PUBLIC_ADDR)
-	    && !nm_platform_check_kernel_support (nm_device_get_platform (self),
-	                                          NM_PLATFORM_KERNEL_SUPPORT_EXTENDED_IFA_FLAGS)) {
+	    && !nm_platform_kernel_support_get (NM_PLATFORM_KERNEL_SUPPORT_TYPE_EXTENDED_IFA_FLAGS)) {
 		_LOGW (LOGD_IP6, "The kernel does not support extended IFA_FLAGS needed by NM for "
 		                 "IPv6 private addresses. This feature is not available");
 	}
@@ -9480,8 +9568,7 @@ set_nm_ipv6ll (NMDevice *self, gboolean enable)
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
 	int ifindex = nm_device_get_ip_ifindex (self);
 
-	if (!nm_platform_check_kernel_support (nm_device_get_platform (self),
-	                                       NM_PLATFORM_KERNEL_SUPPORT_USER_IPV6LL))
+	if (!nm_platform_kernel_support_get (NM_PLATFORM_KERNEL_SUPPORT_TYPE_USER_IPV6LL))
 		return;
 
 	priv->ipv6ll_handle = enable;
@@ -9854,7 +9941,7 @@ nm_device_activate_stage3_ip6_start (NMDevice *self)
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
 	NMActStageReturn ret;
 	NMDeviceStateReason failure_reason = NM_DEVICE_STATE_REASON_NONE;
-	NMIP6Config *ip6_config = NULL;
+	gs_unref_object NMIP6Config *ip6_config = NULL;
 
 	g_assert (priv->ip_state_6 == NM_DEVICE_IP_STATE_WAIT);
 
@@ -13424,6 +13511,32 @@ nm_device_set_unmanaged_by_flags_queue (NMDevice *self,
 	_set_unmanaged_flags (self, flags, set_op, TRUE, FALSE, reason);
 }
 
+/**
+ * nm_device_check_unrealized_device_managed:
+ *
+ * Checks if a unrealized device is managed from user settings
+ * or user configuration.
+ */
+gboolean
+nm_device_check_unrealized_device_managed (NMDevice *self)
+{
+	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
+
+	nm_assert (!nm_device_is_real (self));
+
+	if (!nm_config_data_get_device_config_boolean (NM_CONFIG_GET_DATA,
+	                                               NM_CONFIG_KEYFILE_KEY_DEVICE_MANAGED,
+	                                               self,
+	                                               TRUE,
+	                                               TRUE))
+		return FALSE;
+
+	if (nm_device_spec_match_list (self, nm_settings_get_unmanaged_specs (priv->settings)))
+		return FALSE;
+
+	return TRUE;
+}
+
 void
 nm_device_set_unmanaged_by_user_settings (NMDevice *self)
 {
@@ -14344,6 +14457,11 @@ nm_device_cleanup (NMDevice *self, NMDeviceStateReason reason, CleanupType clean
 			nm_platform_qdisc_sync (platform, ifindex, NULL);
 		}
 	}
+
+	_routing_rules_sync (self,
+	                       cleanup_type == CLEANUP_TYPE_KEEP
+	                     ? NM_TERNARY_DEFAULT
+	                     : NM_TERNARY_FALSE);
 
 	if (ifindex > 0)
 		nm_platform_ip4_dev_route_blacklist_set (nm_device_get_platform (self), ifindex, NULL);
@@ -15879,17 +15997,22 @@ nm_device_spec_match_list_full (NMDevice *self, const GSList *specs, int no_matc
 {
 	NMDeviceClass *klass;
 	NMMatchSpecMatchType m;
+	const char *hw_address = NULL;
+	gboolean is_fake;
 
 	g_return_val_if_fail (NM_IS_DEVICE (self), FALSE);
 
 	klass = NM_DEVICE_GET_CLASS (self);
+	hw_address = nm_device_get_permanent_hw_address_full (self,
+	                                                      !nm_device_get_unmanaged_flags (self, NM_UNMANAGED_PLATFORM_INIT),
+	                                                      &is_fake);
 
 	m = nm_match_spec_device (specs,
 	                          nm_device_get_iface (self),
 	                          nm_device_get_type_description (self),
 	                          nm_device_get_driver (self),
 	                          nm_device_get_driver_version (self),
-	                          nm_device_get_permanent_hw_address (self),
+	                          is_fake ? NULL : hw_address,
 	                          klass->get_s390_subchannels ? klass->get_s390_subchannels (self) : NULL,
 	                          nm_dhcp_manager_get_config (nm_dhcp_manager_get ()));
 

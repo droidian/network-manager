@@ -88,6 +88,7 @@
 #include "nm-utils.h"
 #include "nm-vpn-dbus-interface.h"
 #include "nm-vpn-editor-plugin.h"
+#include "nm-libnm-core-intern/nm-libnm-core-utils.h"
 
 /* IEEE 802.1D-1998 timer values */
 #define NM_BR_MIN_HELLO_TIME    1
@@ -249,6 +250,8 @@ guint nm_setting_ethtool_init_features (NMSettingEthtool *setting,
 guint8 *_nm_utils_hwaddr_aton (const char *asc, gpointer buffer, gsize buffer_length, gsize *out_length);
 const char *nm_utils_hwaddr_ntoa_buf (gconstpointer addr, gsize addr_len, gboolean upper_case, char *buf, gsize buf_len);
 
+gboolean nm_utils_is_valid_iface_name_utf8safe (const char *utf8safe_name);
+
 GSList *    _nm_utils_hash_values_to_slist (GHashTable *hash);
 
 GHashTable *_nm_utils_copy_strdict (GHashTable *strdict);
@@ -259,18 +262,10 @@ const char **_nm_ip_address_get_attribute_names (const NMIPAddress *addr, gboole
 
 gboolean _nm_ip_route_attribute_validate_all (const NMIPRoute *route);
 const char **_nm_ip_route_get_attribute_names (const NMIPRoute *route, gboolean sorted, guint *out_length);
-GHashTable *_nm_ip_route_get_attributes_direct (NMIPRoute *route);
+GHashTable *_nm_ip_route_get_attributes (NMIPRoute *route);
 
 NMSriovVF *_nm_utils_sriov_vf_from_strparts (const char *index, const char *detail, gboolean ignore_unknown, GError **error);
 gboolean _nm_sriov_vf_attribute_validate_all (const NMSriovVF *vf, GError **error);
-
-static inline void
-_nm_auto_ip_route_unref (NMIPRoute **v)
-{
-	if (*v)
-		nm_ip_route_unref (*v);
-}
-#define nm_auto_ip_route_unref nm_auto (_nm_auto_ip_route_unref)
 
 GPtrArray *_nm_utils_copy_array (const GPtrArray *array,
                                  NMUtilsCopyFunc copy_func,
@@ -284,7 +279,6 @@ char **     _nm_utils_slist_to_strv (GSList *slist, gboolean deep_copy);
 
 GPtrArray * _nm_utils_strv_to_ptrarray (char **strv);
 char **     _nm_utils_ptrarray_to_strv (GPtrArray *ptrarray);
-gboolean    _nm_utils_strv_equal (char **strv1, char **strv2);
 
 gboolean _nm_utils_check_file (const char *filename,
                                gint64 check_owner,
@@ -538,6 +532,8 @@ gboolean _nm_utils_inet6_is_token (const struct in6_addr *in6addr);
 
 /*****************************************************************************/
 
+gboolean _nm_team_link_watchers_equal (GPtrArray *a, GPtrArray *b, gboolean ignore_order);
+
 gboolean _nm_utils_team_config_equal (const char *conf1, const char *conf2, gboolean port);
 GValue *_nm_utils_team_config_get (const char *conf,
                                    const char *key,
@@ -553,18 +549,6 @@ gboolean _nm_utils_team_config_set (char **conf,
 
 /*****************************************************************************/
 
-static inline int
-nm_setting_ip_config_get_addr_family (NMSettingIPConfig *s_ip)
-{
-	if (NM_IS_SETTING_IP4_CONFIG (s_ip))
-		return AF_INET;
-	if (NM_IS_SETTING_IP6_CONFIG (s_ip))
-		return AF_INET6;
-	g_return_val_if_reached (AF_UNSPEC);
-}
-
-/*****************************************************************************/
-
 guint32 _nm_utils_parse_tc_handle                (const char *str,
                                                   GError **error);
 void _nm_utils_string_append_tc_parent           (GString *string,
@@ -575,6 +559,9 @@ void _nm_utils_string_append_tc_qdisc_rest       (GString *string,
 gboolean _nm_utils_string_append_tc_tfilter_rest (GString *string,
                                                   NMTCTfilter *tfilter,
                                                   GError **error);
+
+GHashTable *_nm_tc_qdisc_get_attributes (NMTCQdisc *qdisc);
+GHashTable *_nm_tc_action_get_attributes (NMTCAction *action);
 
 /*****************************************************************************/
 
@@ -596,6 +583,8 @@ gboolean _nm_utils_dhcp_duid_valid (const char *duid, GBytes **out_duid_bin);
 /*****************************************************************************/
 
 gboolean _nm_setting_sriov_sort_vfs (NMSettingSriov *setting);
+gboolean _nm_setting_bridge_port_sort_vlans (NMSettingBridgePort *setting);
+gboolean _nm_setting_bridge_sort_vlans (NMSettingBridge *setting);
 
 /*****************************************************************************/
 
@@ -624,6 +613,47 @@ void _nm_wireguard_peer_set_endpoint (NMWireGuardPeer *self,
 
 void _nm_wireguard_peer_set_public_key_bin (NMWireGuardPeer *self,
                                             const guint8 public_key[static NM_WIREGUARD_PUBLIC_KEY_LEN]);
+
+/*****************************************************************************/
+
+const NMIPAddr *nm_ip_routing_rule_get_from_bin (const NMIPRoutingRule *self);
+void nm_ip_routing_rule_set_from_bin (NMIPRoutingRule *self,
+                                      gconstpointer from,
+                                      guint8 len);
+
+const NMIPAddr *nm_ip_routing_rule_get_to_bin (const NMIPRoutingRule *self);
+void nm_ip_routing_rule_set_to_bin (NMIPRoutingRule *self,
+                                    gconstpointer to,
+                                    guint8 len);
+
+gboolean nm_ip_routing_rule_get_xifname_bin (const NMIPRoutingRule *self,
+                                             gboolean iif /* or else oif */,
+                                             char out_xifname[static 16]);
+
+#define NM_IP_ROUTING_RULE_ATTR_ACTION      "action"
+#define NM_IP_ROUTING_RULE_ATTR_DPORT_END   "dport-end"
+#define NM_IP_ROUTING_RULE_ATTR_DPORT_START "dport-start"
+#define NM_IP_ROUTING_RULE_ATTR_FAMILY      "family"
+#define NM_IP_ROUTING_RULE_ATTR_FROM        "from"
+#define NM_IP_ROUTING_RULE_ATTR_FROM_LEN    "from-len"
+#define NM_IP_ROUTING_RULE_ATTR_FWMARK      "fwmark"
+#define NM_IP_ROUTING_RULE_ATTR_FWMASK      "fwmask"
+#define NM_IP_ROUTING_RULE_ATTR_IIFNAME     "iifname"
+#define NM_IP_ROUTING_RULE_ATTR_INVERT      "invert"
+#define NM_IP_ROUTING_RULE_ATTR_IPPROTO     "ipproto"
+#define NM_IP_ROUTING_RULE_ATTR_OIFNAME     "oifname"
+#define NM_IP_ROUTING_RULE_ATTR_PRIORITY    "priority"
+#define NM_IP_ROUTING_RULE_ATTR_SPORT_END   "sport-end"
+#define NM_IP_ROUTING_RULE_ATTR_SPORT_START "sport-start"
+#define NM_IP_ROUTING_RULE_ATTR_TABLE       "table"
+#define NM_IP_ROUTING_RULE_ATTR_TO          "to"
+#define NM_IP_ROUTING_RULE_ATTR_TOS         "tos"
+#define NM_IP_ROUTING_RULE_ATTR_TO_LEN      "to-len"
+
+NMIPRoutingRule *nm_ip_routing_rule_from_dbus (GVariant *variant,
+                                               gboolean strict,
+                                               GError **error);
+GVariant *nm_ip_routing_rule_to_dbus (const NMIPRoutingRule *self);
 
 /*****************************************************************************/
 
@@ -762,13 +792,14 @@ gboolean _nm_connection_find_secret (NMConnection *self,
 
 /*****************************************************************************/
 
-#define nm_auto_unref_wgpeer nm_auto(_nm_auto_unref_wgpeer)
-NM_AUTO_DEFINE_FCN0 (NMWireGuardPeer *, _nm_auto_unref_wgpeer, nm_wireguard_peer_unref)
-
 gboolean nm_utils_base64secret_normalize (const char *base64_key,
                                           gsize required_key_len,
                                           char **out_base64_key_norm);
 
 /*****************************************************************************/
+
+void _nm_bridge_vlan_str_append_rest (const NMBridgeVlan *vlan,
+                                      GString *string,
+                                      gboolean leading_space);
 
 #endif

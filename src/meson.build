@@ -13,7 +13,7 @@ nm_cflags = ['-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_DAEMON'
 
 nm_dep = declare_dependency(
   include_directories: src_inc,
-  dependencies: nm_core_dep,
+  dependencies: libnm_core_dep,
   compile_args: nm_cflags,
 )
 
@@ -35,6 +35,7 @@ sources = files(
   'platform/nm-platform-utils.c',
   'platform/nmp-netns.c',
   'platform/nmp-object.c',
+  'platform/nmp-rules-manager.c',
   'main-utils.c',
   'NetworkManagerUtils.c',
   'nm-core-utils.c',
@@ -48,7 +49,7 @@ sources = files(
 deps = [
   libsystemd_dep,
   libudev_dep,
-  nm_core_dep,
+  libnm_core_dep,
 ]
 
 if enable_wext
@@ -148,7 +149,7 @@ nm_deps = [
   dl_dep,
   libndp_dep,
   libudev_dep,
-  nm_core_dep,
+  libnm_core_dep,
   shared_n_acd_dep,
   logind_dep,
 ]
@@ -185,7 +186,7 @@ deps = [
   dl_dep,
   libndp_dep,
   libudev_dep,
-  nm_core_dep,
+  libnm_core_dep,
 ]
 
 name = 'nm-iface-helper'
@@ -215,7 +216,7 @@ if enable_tests
 
   deps = [
     libudev_dep,
-    nm_core_dep,
+    libnm_core_dep,
   ]
 
   test_cflags = ['-DNETWORKMANAGER_COMPILATION_TEST']
