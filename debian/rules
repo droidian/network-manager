@@ -43,8 +43,8 @@ override_dh_auto_configure:
 		--with-tests \
 		--with-libaudit \
 		--with-iwd \
-		--with-libnm-glib \
 		--without-dhcpcanon \
+		--without-libnm-glib \
 		--enable-polkit \
 		--enable-polkit-agent \
 		--enable-ppp \
