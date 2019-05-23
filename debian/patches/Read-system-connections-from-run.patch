@@ -8,22 +8,22 @@ Bug-Ubuntu: https://launchpad.net/bugs/1594551
  src/settings/plugins/keyfile/nms-keyfile-plugin.c | 18 ++++++++++++++++++
  1 file changed, 18 insertions(+)
 
-Index: network-manager-1.12.2/src/settings/plugins/keyfile/nms-keyfile-plugin.c
+Index: network-manager-1.18.0/src/settings/plugins/keyfile/nms-keyfile-plugin.c
 ===================================================================
---- network-manager-1.12.2.orig/src/settings/plugins/keyfile/nms-keyfile-plugin.c
-+++ network-manager-1.12.2/src/settings/plugins/keyfile/nms-keyfile-plugin.c
-@@ -411,6 +411,8 @@ _sort_paths (const char **f1, const char
+--- network-manager-1.18.0.orig/src/settings/plugins/keyfile/nms-keyfile-plugin.c
++++ network-manager-1.18.0/src/settings/plugins/keyfile/nms-keyfile-plugin.c
+@@ -416,6 +416,8 @@ _sort_paths (const char **f1, const char
  	return strcmp (*f1, *f2);
  }
  
 +#define NM_CONFIG_KEYFILE_PATH_RUNTIME "/run/NetworkManager/system-connections"
 +
  static void
- read_connections (NMSettingsPlugin *config)
- {
-@@ -446,6 +448,22 @@ read_connections (NMSettingsPlugin *conf
- 	}
- 	g_dir_close (dir);
+ _read_dir (GPtrArray *filenames,
+            const char *path,
+@@ -461,6 +463,22 @@ read_connections (NMSettingsPlugin *conf
+ 
+ 	alive_connections = g_hash_table_new (nm_direct_hash, NULL);
  
 +	/* Now add files from /run too, unless they have a file in /etc */
 +	dir = g_dir_open (NM_CONFIG_KEYFILE_PATH_RUNTIME, 0, &error);
