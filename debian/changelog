@@ -1,4 +1,4 @@
-network-manager (1.18.0-1ubuntu3) UNRELEASED; urgency=medium
+network-manager (1.18.0-1ubuntu3) eoan; urgency=medium
 
   * d/p/Read-system-connections-from-run.patch:
     - remove, upstream addressed it in a different way/for different 
@@ -6,7 +6,7 @@ network-manager (1.18.0-1ubuntu3) UNRELEASED; urgency=medium
   * debian/network-manager-dev.install:
     - update following the the recent binary changes
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 24 May 2019 11:09:56 +0200
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 24 May 2019 11:26:30 +0200
 
 network-manager (1.18.0-1ubuntu2) eoan; urgency=medium
 
