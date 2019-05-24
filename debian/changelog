@@ -1,3 +1,11 @@
+network-manager (1.18.0-1ubuntu3) UNRELEASED; urgency=medium
+
+  * d/p/Read-system-connections-from-run.patch:
+    - remove, upstream addressed it in a different way/for different 
+      reasons in commit ce4dbd7daf.
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 24 May 2019 11:09:56 +0200
+
 network-manager (1.18.0-1ubuntu2) eoan; urgency=medium
 
   * debian/control, debian/lib*.install, debian/rules:
