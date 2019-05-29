@@ -1,3 +1,10 @@
+network-manager (1.18.0-1ubuntu5) UNRELEASED; urgency=medium
+
+  * debian/tests/control: fix test dependency to list gir1.2-nm-1.0 instead
+    of its old name gir1.2-networkmanager-1.0.
+
+ -- Mathieu Trudel-Lapierre <cyphermox@ubuntu.com>  Wed, 29 May 2019 12:58:53 -0400
+
 network-manager (1.18.0-1ubuntu4) eoan; urgency=medium
 
   * debian/tests/nm.py: give test_no_ap more time for wifi devices to start
