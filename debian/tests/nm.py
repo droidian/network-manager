@@ -402,6 +402,9 @@ Logs are in '%s'. When done, exit the shell.
         '''no available access point'''
 
         self.start_nm(self.dev_w_client)
+        # Give the interfaces a bit more time to intialized; it may be needed
+        # on ppc64el.
+        time.sleep(30)
         self.assertEventually(self.nmclient.networking_get_enabled, timeout=20)
 
         # state independent properties

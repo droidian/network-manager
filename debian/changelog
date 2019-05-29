@@ -1,3 +1,10 @@
+network-manager (1.18.0-1ubuntu4) UNRELEASED; urgency=medium
+
+  * debian/tests/nm.py: give test_no_ap more time for wifi devices to start
+    as it may be necessary on ppc64el.
+
+ -- Mathieu Trudel-Lapierre <cyphermox@ubuntu.com>  Wed, 29 May 2019 09:25:18 -0400
+
 network-manager (1.18.0-1ubuntu3) eoan; urgency=medium
 
   * d/p/Read-system-connections-from-run.patch:
