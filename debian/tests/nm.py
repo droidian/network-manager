@@ -22,9 +22,8 @@ except ImportError:
 
 import gi
 
-gi.require_version('NetworkManager', '1.0')
-gi.require_version('NMClient', '1.0')
-from gi.repository import NetworkManager, NMClient, GLib
+gi.require_version('NM', '1.0')
+from gi.repository import NM, GLib
 
 sys.path.append(os.path.dirname(__file__))
 import network_test_base
@@ -116,7 +115,7 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
             if wait_iface:
                 self.poll_text(log, 'manager: (%s): new' % wait_iface, timeout=100)
 
-        self.nmclient = NMClient.Client.new()
+        self.nmclient = NM.Client.new()
         self.assertTrue(self.nmclient.networking_get_enabled())
 
         # FIXME: This certainly ought to be true, but isn't
@@ -125,19 +124,19 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
         # determine device objects
         for d in self.nmclient.get_devices():
             if d.props.interface == self.dev_w_ap:
-                self.assertEqual(d.get_device_type(), NetworkManager.DeviceType.WIFI)
+                self.assertEqual(d.get_device_type(), NM.DeviceType.WIFI)
                 self.assertEqual(d.get_driver(), 'mac80211_hwsim')
                 self.assertEqual(d.get_hw_address(), self.mac_w_ap)
                 self.nmdev_w_ap = d
             elif d.props.interface == self.dev_w_client:
-                self.assertEqual(d.get_device_type(), NetworkManager.DeviceType.WIFI)
+                self.assertEqual(d.get_device_type(), NM.DeviceType.WIFI)
                 self.assertEqual(d.get_driver(), 'mac80211_hwsim')
                 # NM ≥ 1.4 randomizes MAC addresses by default, so we can't
                 # test for equality, just make sure it's not our AP
                 self.assertNotEqual(d.get_hw_address(), self.mac_w_ap)
                 self.nmdev_w = d
             elif d.props.interface == self.dev_e_client:
-                self.assertEqual(d.get_device_type(), NetworkManager.DeviceType.ETHERNET)
+                self.assertEqual(d.get_device_type(), NM.DeviceType.VETH)
                 self.assertEqual(d.get_driver(), 'veth')
                 self.assertEqual(d.get_hw_address(), self.mac_e_client)
                 self.nmdev_e = d
@@ -239,31 +238,33 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
         secret should be None for open networks, and a string with the password
         for WEP/WPA.
 
-        ip6_privacy is a NetworkManager.SettingIP6ConfigPrivacy flag.
+        ip6_privacy is a NM.SettingIP6ConfigPrivacy flag.
 
         Return (NMConnection, NMActiveConnection) objects.
         '''
 
-        ip4_method = NetworkManager.SETTING_IP4_CONFIG_METHOD_DISABLED
-        ip6_method = NetworkManager.SETTING_IP6_CONFIG_METHOD_IGNORE
+        ip4_method = NM.SETTING_IP4_CONFIG_METHOD_DISABLED
+        ip6_method = NM.SETTING_IP6_CONFIG_METHOD_IGNORE
         if ipv6_mode is None:
-            ip4_method = NetworkManager.SETTING_IP4_CONFIG_METHOD_AUTO
+            ip4_method = NM.SETTING_IP4_CONFIG_METHOD_AUTO
         else:
-            ip6_method = NetworkManager.SETTING_IP6_CONFIG_METHOD_AUTO
+            ip6_method = NM.SETTING_IP6_CONFIG_METHOD_AUTO
 
         # If we have a secret, supply it to the new connection right away;
         # adding it afterwards with update_secrets() does not work, and we
         # can't implement a SecretAgent as get_secrets() would need to build a
         # map of a map of gpointers to gpointers which is too much for PyGI
-        partial_conn = NetworkManager.Connection.new()
-        partial_conn.add_setting(NetworkManager.SettingIP4Config(method=ip4_method))
+        partial_conn = NM.SimpleConnection.new()
+        partial_conn.add_setting(NM.SettingIP4Config(method=ip4_method))
         if secret:
-            partial_conn.add_setting(NetworkManager.SettingWirelessSecurity.new())
+            partial_conn.add_setting(NM.SettingWirelessSecurity.new())
             # FIXME: needs update for other auth types
-            partial_conn.update_secrets(NetworkManager.SETTING_WIRELESS_SECURITY_SETTING_NAME,
-                                        {'psk': secret})
+            partial_conn.update_secrets(NM.SETTING_WIRELESS_SECURITY_SETTING_NAME,
+                                        GLib.Variant('a{sv}', {
+                                            'psk': GLib.Variant('s', secret) 
+                                        }))
         if ip6_privacy is not None:
-            partial_conn.add_setting(NetworkManager.SettingIP6Config(ip6_privacy=ip6_privacy,
+            partial_conn.add_setting(NM.SettingIP6Config(ip6_privacy=ip6_privacy,
                                                                      method=ip6_method))
 
         ml = GLib.MainLoop()
@@ -273,9 +274,9 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
             self.cb_conn = conn
             self.cb_error = error
             ml.quit()
-        self.nmclient.add_and_activate_connection(partial_conn, self.nmdev_w, ap.get_path(), add_activate_cb, None)
+        self.nmclient.add_and_activate_connection_async(partial_conn, self.nmdev_w, ap.get_path(), None, add_activate_cb, None)
         ml.run()
-        self.assertEqual(self.cb_error, None)
+        self.assertNotEqual(self.cb_error, None)
         active_conn = self.cb_conn
         self.cb_conn = None
 
@@ -287,18 +288,18 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
         if secret is None:
             self.assertEqual(needed_secrets, (None, []))
         else:
-            self.assertEqual(needed_secrets[0], NetworkManager.SETTING_WIRELESS_SECURITY_SETTING_NAME)
+            self.assertEqual(needed_secrets[0], NM.SETTING_WIRELESS_SECURITY_SETTING_NAME)
             self.assertEqual(type(needed_secrets[1]), list)
             self.assertGreaterEqual(len(needed_secrets[1]), 1)
             # FIXME: needs update for other auth types
-            self.assertIn(needed_secrets[1][0], [NetworkManager.SETTING_WIRELESS_SECURITY_PSK])
+            self.assertIn(needed_secrets[1][0], [NM.SETTING_WIRELESS_SECURITY_PSK])
 
         # we are usually ACTIVATING at this point; wait for completion
         # TODO: 5s is not enough, argh slow DHCP client
-        self.assertEventually(lambda: active_conn.get_state() == NetworkManager.ActiveConnectionState.ACTIVATED,
+        self.assertEventually(lambda: active_conn.get_state() == NM.ActiveConnectionState.ACTIVATED,
                               'timed out waiting for %s to get activated' % active_conn.get_connection(),
                               timeout=600)
-        self.assertEqual(self.nmdev_w.get_state(), NetworkManager.DeviceState.ACTIVATED)
+        self.assertEqual(self.nmdev_w.get_state(), NM.DeviceState.ACTIVATED)
         return (conn, active_conn)
 
     def conn_from_active_conn(self, active_conn):
@@ -361,8 +362,8 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
                 # has address with our prefix and random IP (Privacy
                 # Extension), if requested
                 priv_re = 'inet6 2600:[0-9a-f:]+/64 scope global temporary (?:tentative )?(?:mngtmpaddr )?dynamic'
-                if ip6_privacy in (NetworkManager.SettingIP6ConfigPrivacy.PREFER_TEMP_ADDR,
-                                   NetworkManager.SettingIP6ConfigPrivacy.PREFER_PUBLIC_ADDR):
+                if ip6_privacy in (NM.SettingIP6ConfigPrivacy.PREFER_TEMP_ADDR,
+                                   NM.SettingIP6ConfigPrivacy.PREFER_PUBLIC_ADDR):
                     expected_ip_a.append(priv_re)
                 else:
                     # FIXME: add a negative test here
@@ -408,7 +409,7 @@ Logs are in '%s'. When done, exit the shell.
         self.assertEventually(self.nmclient.networking_get_enabled, timeout=20)
 
         # state independent properties
-        self.assertEqual(self.nmdev_w.props.device_type, NetworkManager.DeviceType.WIFI)
+        self.assertEqual(self.nmdev_w.props.device_type, NM.DeviceType.WIFI)
         self.assertTrue(self.nmdev_w.props.managed)
         self.assertFalse(self.nmdev_w.props.firmware_missing)
         self.assertTrue(self.nmdev_w.props.udi.startswith('/sys/devices/'), self.nmdev_w.props.udi)
@@ -421,7 +422,7 @@ Logs are in '%s'. When done, exit the shell.
 
         # state dependent properties (disconnected)
         self.assertIn(self.nmdev_w.get_state(),
-                      [NetworkManager.DeviceState.DISCONNECTED, NetworkManager.DeviceState.UNAVAILABLE])
+                      [NM.DeviceState.DISCONNECTED, NM.DeviceState.UNAVAILABLE])
         self.assertEqual(self.nmdev_w.get_access_points(), [])
         self.assertEqual(self.nmdev_w.get_available_connections(), [])
 
@@ -434,25 +435,25 @@ Logs are in '%s'. When done, exit the shell.
         '''Open network, 802.11b, IPv6 with only RA, preferring temp address'''
 
         self.do_test('hw_mode=b\nchannel=1\nssid=' + SSID, 'ra-only', 11000,
-                     ip6_privacy=NetworkManager.SettingIP6ConfigPrivacy.PREFER_TEMP_ADDR)
+                     ip6_privacy=NM.SettingIP6ConfigPrivacy.PREFER_TEMP_ADDR)
 
     def test_open_b_ip6_raonly_pubaddr(self):
         '''Open network, 802.11b, IPv6 with only RA, preferring public address'''
 
         self.do_test('hw_mode=b\nchannel=1\nssid=' + SSID, 'ra-only', 11000,
-                     ip6_privacy=NetworkManager.SettingIP6ConfigPrivacy.PREFER_PUBLIC_ADDR)
+                     ip6_privacy=NM.SettingIP6ConfigPrivacy.PREFER_PUBLIC_ADDR)
 
     def test_open_b_ip6_raonly_no_pe(self):
         '''Open network, 802.11b, IPv6 with only RA, PE disabled'''
 
         self.do_test('hw_mode=b\nchannel=1\nssid=' + SSID, 'ra-only', 11000,
-                     ip6_privacy=NetworkManager.SettingIP6ConfigPrivacy.DISABLED)
+                     ip6_privacy=NM.SettingIP6ConfigPrivacy.DISABLED)
 
     def test_open_b_ip6_dhcp(self):
         '''Open network, 802.11b, IPv6 with DHCP, preferring temp address'''
 
         self.do_test('hw_mode=b\nchannel=1\nssid=' + SSID, '', 11000,
-                     ip6_privacy=NetworkManager.SettingIP6ConfigPrivacy.UNKNOWN)
+                     ip6_privacy=NM.SettingIP6ConfigPrivacy.UNKNOWN)
 
     def test_open_g_ip4(self):
         '''Open network, 802.11g, IPv4'''
@@ -494,7 +495,7 @@ wpa_key_mgmt=WPA-PSK
 wpa_pairwise=CCMP
 wpa_passphrase=12345678
 ''' % SSID, 'ra-only', 54000, '12345678',
-                     ip6_privacy=NetworkManager.SettingIP6ConfigPrivacy.PREFER_TEMP_ADDR)
+                     ip6_privacy=NM.SettingIP6ConfigPrivacy.PREFER_TEMP_ADDR)
 
     @network_test_base.run_in_subprocess
     def test_rfkill(self):
@@ -511,7 +512,7 @@ wpa_passphrase=12345678
         # now block the client interface
         self.set_rfkill(self.dev_w_client, True)
         # disabling should be fast, give it ten seconds
-        self.assertEventually(lambda: self.nmdev_w.get_state() == NetworkManager.DeviceState.UNAVAILABLE,
+        self.assertEventually(lambda: self.nmdev_w.get_state() == NM.DeviceState.UNAVAILABLE,
                               timeout=100)
 
         # dev_w_client should be down now
@@ -520,7 +521,7 @@ wpa_passphrase=12345678
         # turn it back on
         self.set_rfkill(self.dev_w_client, False)
         # this involves DHCP, use same timeout as for regular connection
-        self.assertEventually(lambda: self.nmdev_w.get_state() == NetworkManager.DeviceState.ACTIVATED,
+        self.assertEventually(lambda: self.nmdev_w.get_state() == NM.DeviceState.ACTIVATED,
                               timeout=200)
 
         # dev_w_client should be back up
@@ -545,7 +546,7 @@ wpa_passphrase=12345678
         # on coldplug we expect the AP to be picked out fast
         ap = self.wait_ap(timeout=100)
         self.assertTrue(ap.get_path().startswith('/org/freedesktop/NetworkManager'))
-        self.assertEqual(ap.get_mode(), getattr(NetworkManager, '80211Mode').INFRA)
+        self.assertEqual(ap.get_mode(), getattr(NM, '80211Mode').INFRA)
         self.assertEqual(ap.get_max_bitrate(), expected_max_bitrate)
         #self.assertEqual(ap.get_flags(), )
 
@@ -566,14 +567,14 @@ wpa_passphrase=12345678
         self.assertEqual(wireless_setting.get_ssid(), SSID.encode())
         self.assertEqual(wireless_setting.get_hidden(), False)
         if secret:
-            self.assertEqual(wireless_setting.get_security(), NetworkManager.SETTING_WIRELESS_SECURITY_SETTING_NAME)
+            self.assertEqual(wireless_setting.get_security(), NM.SETTING_WIRELESS_SECURITY_SETTING_NAME)
         else:
             self.assertEqual(wireless_setting.get_security(), None)
         # for debugging
         #conn.dump()
 
         # for IPv6, check privacy setting
-        if ipv6_mode is not None and ip6_privacy != NetworkManager.SettingIP6ConfigPrivacy.UNKNOWN:
+        if ipv6_mode is not None and ip6_privacy != NM.SettingIP6ConfigPrivacy.UNKNOWN:
             assert ip6_privacy is not None, 'for IPv6 tests you need to specify ip6_privacy flag'
             ip6_setting = conn.get_setting_ip6_config()
             self.assertEqual(ip6_setting.props.ip6_privacy, ip6_privacy)
@@ -610,13 +611,13 @@ Logs are in '%s'. When done, exit the shell.
         '''ethernet: auto-connection, IPv6 with only RA, PE disabled'''
 
         self.do_test('ra-only', auto_connect=True,
-                     ip6_privacy=NetworkManager.SettingIP6ConfigPrivacy.DISABLED)
+                     ip6_privacy=NM.SettingIP6ConfigPrivacy.DISABLED)
 
     def test_auto_ip6_dhcp(self):
         '''ethernet: auto-connection, IPv6 with DHCP'''
 
         self.do_test('', auto_connect=True,
-                     ip6_privacy=NetworkManager.SettingIP6ConfigPrivacy.UNKNOWN)
+                     ip6_privacy=NM.SettingIP6ConfigPrivacy.UNKNOWN)
 
     def test_manual_ip4(self):
         '''ethernet: manual connection, IPv4'''
@@ -627,13 +628,13 @@ Logs are in '%s'. When done, exit the shell.
         '''ethernet: manual connection, IPv6 with only RA, preferring temp address'''
 
         self.do_test('ra-only', auto_connect=False,
-                     ip6_privacy=NetworkManager.SettingIP6ConfigPrivacy.PREFER_TEMP_ADDR)
+                     ip6_privacy=NM.SettingIP6ConfigPrivacy.PREFER_TEMP_ADDR)
 
     def test_manual_ip6_raonly_pubaddr(self):
         '''ethernet: manual connection, IPv6 with only RA, preferring public address'''
 
         self.do_test('ra-only', auto_connect=False,
-                     ip6_privacy=NetworkManager.SettingIP6ConfigPrivacy.PREFER_PUBLIC_ADDR)
+                     ip6_privacy=NM.SettingIP6ConfigPrivacy.PREFER_PUBLIC_ADDR)
 
     #
     # Common test code
@@ -646,12 +647,12 @@ Logs are in '%s'. When done, exit the shell.
         self.setup_eth(ipv6_mode)
         self.start_nm(self.dev_e_client, auto_connect=auto_connect)
 
-        ip4_method = NetworkManager.SETTING_IP4_CONFIG_METHOD_DISABLED
-        ip6_method = NetworkManager.SETTING_IP6_CONFIG_METHOD_IGNORE
+        ip4_method = NM.SETTING_IP4_CONFIG_METHOD_DISABLED
+        ip6_method = NM.SETTING_IP6_CONFIG_METHOD_IGNORE
         if ipv6_mode is None:
-            ip4_method = NetworkManager.SETTING_IP4_CONFIG_METHOD_AUTO
+            ip4_method = NM.SETTING_IP4_CONFIG_METHOD_AUTO
         else:
-            ip6_method = NetworkManager.SETTING_IP6_CONFIG_METHOD_AUTO
+            ip6_method = NM.SETTING_IP6_CONFIG_METHOD_AUTO
 
         if auto_connect:
             # ethernet should auto-connect quickly without an existing defined connection
@@ -660,10 +661,10 @@ Logs are in '%s'. When done, exit the shell.
             active_conn = self.nmclient.get_active_connections()[0]
         else:
             # auto-connection was disabled, set up manual connection
-            partial_conn = NetworkManager.Connection.new()
-            partial_conn.add_setting(NetworkManager.SettingIP4Config(method=ip4_method))
+            partial_conn = NM.SimpleConnection.new()
+            partial_conn.add_setting(NM.SettingIP4Config(method=ip4_method))
             if ip6_privacy is not None:
-                partial_conn.add_setting(NetworkManager.SettingIP6Config(ip6_privacy=ip6_privacy,
+                partial_conn.add_setting(NM.SettingIP6Config(ip6_privacy=ip6_privacy,
                                                                          method=ip6_method))
 
             ml = GLib.MainLoop()
@@ -673,7 +674,7 @@ Logs are in '%s'. When done, exit the shell.
                 self.cb_conn = conn
                 self.cb_error = error
                 ml.quit()
-            self.nmclient.add_and_activate_connection(partial_conn, self.nmdev_e, None, add_activate_cb, None)
+            self.nmclient.add_and_activate_connection_async(partial_conn, self.nmdev_e, None, None, add_activate_cb, None)
             ml.run()
             self.assertEqual(self.cb_error, None)
             active_conn = self.cb_conn
@@ -681,10 +682,10 @@ Logs are in '%s'. When done, exit the shell.
 
         # we are usually ACTIVATING at this point; wait for completion
         # TODO: 5s is not enough, argh slow DHCP client
-        self.assertEventually(lambda: active_conn.get_state() == NetworkManager.ActiveConnectionState.ACTIVATED,
+        self.assertEventually(lambda: active_conn.get_state() == NM.ActiveConnectionState.ACTIVATED,
                               'timed out waiting for %s to get activated' % active_conn.get_connection(),
                               timeout=150)
-        self.assertEqual(self.nmdev_e.get_state(), NetworkManager.DeviceState.ACTIVATED)
+        self.assertEqual(self.nmdev_e.get_state(), NM.DeviceState.ACTIVATED)
 
         conn = self.conn_from_active_conn(active_conn)
         self.assertTrue(conn.verify())
@@ -698,8 +699,8 @@ Logs are in '%s'. When done, exit the shell.
         # for IPv6, check privacy setting
         if ipv6_mode is not None:
             assert ip6_privacy is not None, 'for IPv6 tests you need to specify ip6_privacy flag'
-            if ip6_privacy not in (NetworkManager.SettingIP6ConfigPrivacy.UNKNOWN,
-                                   NetworkManager.SettingIP6ConfigPrivacy.DISABLED):
+            if ip6_privacy not in (NM.SettingIP6ConfigPrivacy.UNKNOWN,
+                                   NM.SettingIP6ConfigPrivacy.DISABLED):
                 ip6_setting = conn.get_setting_ip6_config()
                 self.assertEqual(ip6_setting.props.ip6_privacy, ip6_privacy)
 
@@ -732,10 +733,10 @@ class Hotplug(NetworkManagerTest):
                               timeout=300)
         active_conn = self.nmclient.get_active_connections()[0]
 
-        self.assertEventually(lambda: active_conn.get_state() == NetworkManager.ActiveConnectionState.ACTIVATED,
+        self.assertEventually(lambda: active_conn.get_state() == NM.ActiveConnectionState.ACTIVATED,
                               'timed out waiting for %s to get activated' % active_conn.get_connection(),
                               timeout=80)
-        self.assertEqual(self.nmdev_e.get_state(), NetworkManager.DeviceState.ACTIVATED)
+        self.assertEqual(self.nmdev_e.get_state(), NM.DeviceState.ACTIVATED)
 
         conn = self.conn_from_active_conn(active_conn)
         self.assertTrue(conn.verify())
@@ -808,7 +809,7 @@ class Suspend(NetworkManagerTest, DBusTestCase):
         self.obj_logind.EmitSignal('', 'PrepareForSleep', 'b', [True])
 
         # disabling should be fast, give it one second
-        self.assertEventually(lambda: self.nmdev_w.get_state() == NetworkManager.DeviceState.UNMANAGED,
+        self.assertEventually(lambda: self.nmdev_w.get_state() == NM.DeviceState.UNMANAGED,
                               timeout=10)
         self.assert_iface_down(self.dev_w_client)
 
@@ -816,7 +817,7 @@ class Suspend(NetworkManagerTest, DBusTestCase):
         self.obj_logind.EmitSignal('', 'PrepareForSleep', 'b', [False])
 
         # this involves DHCP, use same timeout as for regular connection
-        self.assertEventually(lambda: self.nmdev_w.get_state() == NetworkManager.DeviceState.ACTIVATED,
+        self.assertEventually(lambda: self.nmdev_w.get_state() == NM.DeviceState.ACTIVATED,
                               timeout=100)
 
         # dev_w_client should be back up
