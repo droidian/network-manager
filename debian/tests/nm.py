@@ -12,6 +12,7 @@ import os.path
 import time
 import subprocess
 import socket
+import netaddr
 import unittest
 import ctypes
 
@@ -270,13 +271,12 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
         ml = GLib.MainLoop()
         self.cb_conn = None
 
-        def add_activate_cb(client, conn, conn_path, error, data):
-            self.cb_conn = conn
-            self.cb_error = error
+        def add_activate_cb(client, res, data):
+            self.cb_conn = self.nmclient.add_and_activate_connection_finish(res)
             ml.quit()
         self.nmclient.add_and_activate_connection_async(partial_conn, self.nmdev_w, ap.get_path(), None, add_activate_cb, None)
         ml.run()
-        self.assertNotEqual(self.cb_error, None)
+        self.assertNotEqual(self.cb_conn, None)
         active_conn = self.cb_conn
         self.cb_conn = None
 
@@ -310,7 +310,7 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
         tries = 3
         while tries > 0:
             self.process_glib_events()
-            path = active_conn.get_connection()
+            path = active_conn.get_connection().get_path()
             for dev in active_conn.get_devices():
                 for c in dev.get_available_connections():
                     if c.get_path() == path:
@@ -342,7 +342,7 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
             conf = nmdev.get_ip4_config()
             self.assertNotEqual(conf, None)
             self.assertEqual(len(conf.get_addresses()), 1)
-            self.assertEqual(socket.ntohl(conf.get_addresses()[0].get_address()) & 0xFFFFFF00,
+            self.assertEqual(int(netaddr.IPAddress(conf.get_addresses()[0].get_address())) & 0xFFFFFF00,
                              0xC0A80500)  # 192.168.5.x
 
     def check_low_level_config(self, iface, ipv6_mode, ip6_privacy):
@@ -564,12 +564,12 @@ wpa_passphrase=12345678
 
         # check corresponding NMConnection object
         wireless_setting = conn.get_setting_wireless()
-        self.assertEqual(wireless_setting.get_ssid(), SSID.encode())
+        self.assertEqual(wireless_setting.get_ssid().get_data(), SSID.encode())
         self.assertEqual(wireless_setting.get_hidden(), False)
         if secret:
-            self.assertEqual(wireless_setting.get_security(), NM.SETTING_WIRELESS_SECURITY_SETTING_NAME)
+            self.assertEqual(conn.get_setting_wireless_security().get_name(), NM.SETTING_WIRELESS_SECURITY_SETTING_NAME)
         else:
-            self.assertEqual(wireless_setting.get_security(), None)
+            self.assertEqual(conn.get_setting_wireless_security(), None)
         # for debugging
         #conn.dump()
 
@@ -657,6 +657,7 @@ Logs are in '%s'. When done, exit the shell.
         if auto_connect:
             # ethernet should auto-connect quickly without an existing defined connection
             self.assertEventually(lambda: len(self.nmclient.get_active_connections()) > 0,
+                                  'timed out waiting for active connections',
                                   timeout=100)
             active_conn = self.nmclient.get_active_connections()[0]
         else:
@@ -670,13 +671,12 @@ Logs are in '%s'. When done, exit the shell.
             ml = GLib.MainLoop()
             self.cb_conn = None
 
-            def add_activate_cb(client, conn, conn_path, error, data):
-                self.cb_conn = conn
-                self.cb_error = error
+            def add_activate_cb(client, res, data):
+                self.cb_conn = self.nmclient.add_and_activate_connection_finish(res)
                 ml.quit()
             self.nmclient.add_and_activate_connection_async(partial_conn, self.nmdev_e, None, None, add_activate_cb, None)
             ml.run()
-            self.assertEqual(self.cb_error, None)
+            self.assertNotEqual(self.cb_conn, None)
             active_conn = self.cb_conn
             self.cb_conn = None
 

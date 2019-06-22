@@ -3,7 +3,7 @@ Depends: python3, hostapd, dnsmasq-base, wpasupplicant, isc-dhcp-client, iw
 Restrictions: needs-root allow-stderr isolation-machine
 
 Tests: nm.py
-Depends: python3, dnsmasq-base, isc-dhcp-client, gir1.2-nm-1.0, network-manager, hostapd, iw, python3-dbusmock
+Depends: python3, dnsmasq-base, isc-dhcp-client, gir1.2-nm-1.0, network-manager, hostapd, iw, python3-dbusmock, python3-netaddr
 Restrictions: needs-root isolation-machine
 
 Tests: killswitches-no-urfkill
