@@ -1,4 +1,4 @@
-network-manager (1.18.0-1ubuntu5) UNRELEASED; urgency=medium
+network-manager (1.18.0-1ubuntu5) eoan; urgency=medium
 
   * Updated autopkg test nm.py for API changes in network-manager.
 
