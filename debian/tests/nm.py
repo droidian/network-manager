@@ -24,7 +24,7 @@ except ImportError:
 import gi
 
 gi.require_version('NM', '1.0')
-from gi.repository import NM, GLib
+from gi.repository import NM, GLib, Gio
 
 sys.path.append(os.path.dirname(__file__))
 import network_test_base
@@ -270,20 +270,31 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
 
         ml = GLib.MainLoop()
         self.cb_conn = None
+        self.cancel = Gio.Cancellable()
+        self.timeout_tag = 0
 
         def add_activate_cb(client, res, data):
-            self.cb_conn = self.nmclient.add_and_activate_connection_finish(res)
+            if (self.timeout_tag > 0):
+                GLib.source_remove(self.timeout_tag)
+                self.timeout_tag = 0
+            if (not self.cancel.is_cancelled()):
+                self.cb_conn = \
+                    self.nmclient.add_and_activate_connection_finish(res)
             ml.quit()
 
         def timeout_cb():
-            print("Main loop timed out!")
+            self.cancel.cancel()
+            self.timeout_tag = -1
             ml.quit()
-            return False
+            return GLib.SOURCE_REMOVE
 
-        self.nmclient.add_and_activate_connection_async(partial_conn, self.nmdev_w, ap.get_path(), None, add_activate_cb, None)
-        timeout_tag = GLib.timeout_add_seconds(300, timeout_cb)
+        self.nmclient.add_and_activate_connection_async(partial_conn, self.nmdev_w, ap.get_path(), self.cancel, add_activate_cb, None)
+        self.timeout_tag = GLib.timeout_add_seconds(300, timeout_cb)
         ml.run()
-        GLib.source_remove(timeout_tag)
+        self.cancel.reset()
+        if (self.timeout_tag < 0):
+            self.timeout_tag = 0
+            self.fail('Main loop for adding connection timed out!')
         self.assertNotEqual(self.cb_conn, None)
         active_conn = self.cb_conn
         self.cb_conn = None
@@ -678,20 +689,31 @@ Logs are in '%s'. When done, exit the shell.
 
             ml = GLib.MainLoop()
             self.cb_conn = None
+            self.cancel = Gio.Cancellable()
+            self.timeout_tag = 0
 
             def add_activate_cb(client, res, data):
-                self.cb_conn = self.nmclient.add_and_activate_connection_finish(res)
+                if (self.timeout_tag > 0):
+                    GLib.source_remove(self.timeout_tag)
+                    self.timeout_tag = 0
+                if (not self.cancel.is_cancelled()):
+                    self.cb_conn = \
+                        self.nmclient.add_and_activate_connection_finish(res)
                 ml.quit()
 
             def timeout_cb():
-                print("Main loop timed out!")
+                self.cancel.cancel()
+                self.timeout_tag = -1
                 ml.quit()
-                return False
+                return GLib.SOURCE_REMOVE
 
-            self.nmclient.add_and_activate_connection_async(partial_conn, self.nmdev_e, None, None, add_activate_cb, None)
-            timeout_tag = GLib.timeout_add_seconds(300, timeout_cb)
+            self.nmclient.add_and_activate_connection_async(partial_conn, self.nmdev_e, None, self.cancel, add_activate_cb, None)
+            self.timeout_tag = GLib.timeout_add_seconds(300, timeout_cb)
             ml.run()
-            GLib.source_remove(timeout_tag)
+            self.cancel.reset()
+            if (self.timeout_tag < 0):
+                self.timeout_tag = 0
+                self.fail('Main loop for adding connection timed out!')
             self.assertNotEqual(self.cb_conn, None)
             active_conn = self.cb_conn
             self.cb_conn = None
