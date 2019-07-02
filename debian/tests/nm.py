@@ -274,8 +274,16 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
         def add_activate_cb(client, res, data):
             self.cb_conn = self.nmclient.add_and_activate_connection_finish(res)
             ml.quit()
+
+        def timeout_cb():
+            print("Main loop timed out!")
+            ml.quit()
+            return False
+
         self.nmclient.add_and_activate_connection_async(partial_conn, self.nmdev_w, ap.get_path(), None, add_activate_cb, None)
+        timeout_tag = GLib.timeout_add_seconds(300, timeout_cb)
         ml.run()
+        GLib.source_remove(timeout_tag)
         self.assertNotEqual(self.cb_conn, None)
         active_conn = self.cb_conn
         self.cb_conn = None
@@ -674,8 +682,16 @@ Logs are in '%s'. When done, exit the shell.
             def add_activate_cb(client, res, data):
                 self.cb_conn = self.nmclient.add_and_activate_connection_finish(res)
                 ml.quit()
+
+            def timeout_cb():
+                print("Main loop timed out!")
+                ml.quit()
+                return False
+
             self.nmclient.add_and_activate_connection_async(partial_conn, self.nmdev_e, None, None, add_activate_cb, None)
+            timeout_tag = GLib.timeout_add_seconds(300, timeout_cb)
             ml.run()
+            GLib.source_remove(timeout_tag)
             self.assertNotEqual(self.cb_conn, None)
             active_conn = self.cb_conn
             self.cb_conn = None
