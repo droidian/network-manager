@@ -277,21 +277,25 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
             if (self.timeout_tag > 0):
                 GLib.source_remove(self.timeout_tag)
                 self.timeout_tag = 0
-            if (not self.cancel.is_cancelled()):
+            try:
                 self.cb_conn = \
                     self.nmclient.add_and_activate_connection_finish(res)
+            except gi.repository.GLib.Error as e:
+                # Check if the error is "Operation was cancelled"
+                if (e.domain != "g-io-error-quark" or e.code != 19):
+                    self.fail("add_and_activate_connection failed: %s (%s, %d)" %
+                              (e.message, e.domain, e.code))
             ml.quit()
 
         def timeout_cb():
-            self.cancel.cancel()
             self.timeout_tag = -1
+            self.cancel.cancel()
             ml.quit()
             return GLib.SOURCE_REMOVE
 
         self.nmclient.add_and_activate_connection_async(partial_conn, self.nmdev_w, ap.get_path(), self.cancel, add_activate_cb, None)
         self.timeout_tag = GLib.timeout_add_seconds(300, timeout_cb)
         ml.run()
-        self.cancel.reset()
         if (self.timeout_tag < 0):
             self.timeout_tag = 0
             self.fail('Main loop for adding connection timed out!')
@@ -696,21 +700,25 @@ Logs are in '%s'. When done, exit the shell.
                 if (self.timeout_tag > 0):
                     GLib.source_remove(self.timeout_tag)
                     self.timeout_tag = 0
-                if (not self.cancel.is_cancelled()):
+                try:
                     self.cb_conn = \
                         self.nmclient.add_and_activate_connection_finish(res)
+                except gi.repository.GLib.Error as e:
+                    # Check if the error is "Operation was cancelled"
+                    if (e.domain != "g-io-error-quark" or e.code != 19):
+                        self.fail("add_and_activate_connection failed: %s (%s, %d)" %
+                                  (e.message, e.domain, e.code))
                 ml.quit()
 
             def timeout_cb():
-                self.cancel.cancel()
                 self.timeout_tag = -1
+                self.cancel.cancel()
                 ml.quit()
                 return GLib.SOURCE_REMOVE
 
             self.nmclient.add_and_activate_connection_async(partial_conn, self.nmdev_e, None, self.cancel, add_activate_cb, None)
             self.timeout_tag = GLib.timeout_add_seconds(300, timeout_cb)
             ml.run()
-            self.cancel.reset()
             if (self.timeout_tag < 0):
                 self.timeout_tag = 0
                 self.fail('Main loop for adding connection timed out!')
