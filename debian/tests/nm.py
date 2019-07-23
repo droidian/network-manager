@@ -346,10 +346,10 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
     def check_connected_device_config(self, ipv6_mode, nmdev):
         '''Check NMDevice configuration state after being connected'''
 
-        time.sleep(10)
         if ipv6_mode is not None:
-            # FIXME: why do we need to wait here, if state is already ACTIVATED?
-            self.assertEventually(lambda: nmdev.get_ip6_config() is not None, timeout=50)
+            # Wait for a valid, non-empty config entry (Why wait here,
+            # connection is already ACTIVATED?)
+            self.assertEventually(lambda: ((nmdev.get_ip6_config() is not None) and (len(nmdev.get_ip6_config().get_addresses()) > 0)), timeout=600)
             #self.assertEqual(nmdev.get_ip4_config(), None)
             conf = nmdev.get_ip6_config()
             self.assertNotEqual(conf, None)
@@ -360,8 +360,9 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
             # note, we cannot call IP6Address.get_address(), as that returns a
             # raw gpointer; check address with low-level tools only
         else:
-            # FIXME: why do we need to wait here, if state is already ACTIVATED?
-            self.assertEventually(lambda: nmdev.get_ip4_config() is not None, timeout=50)
+            # Wait for a valid, non-empty config entry (Why wait here,
+            # connection is already ACTIVATED?)
+            self.assertEventually(lambda: ((nmdev.get_ip4_config() is not None) and (len(nmdev.get_ip4_config().get_addresses()) > 0)), timeout=600)
             conf = nmdev.get_ip4_config()
             self.assertNotEqual(conf, None)
             self.assertEqual(len(conf.get_addresses()), 1)
