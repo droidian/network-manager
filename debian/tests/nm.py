@@ -343,32 +343,6 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
 
         self.fail('Could not find NMConnection object for %s' % path)
 
-    def check_connected_device_config(self, ipv6_mode, nmdev):
-        '''Check NMDevice configuration state after being connected'''
-
-        if ipv6_mode is not None:
-            # Wait for a valid, non-empty config entry (Why wait here,
-            # connection is already ACTIVATED?)
-            self.assertEventually(lambda: ((nmdev.get_ip6_config() is not None) and (len(nmdev.get_ip6_config().get_addresses()) > 0)), timeout=600)
-            #self.assertEqual(nmdev.get_ip4_config(), None)
-            conf = nmdev.get_ip6_config()
-            self.assertNotEqual(conf, None)
-            # we expect at least a link-local and a RA prefix or DHCP assigned
-            # address
-            addrs = conf.get_addresses()
-            self.assertGreaterEqual(len(addrs), 2, [a.get_address() for a in addrs])
-            # note, we cannot call IP6Address.get_address(), as that returns a
-            # raw gpointer; check address with low-level tools only
-        else:
-            # Wait for a valid, non-empty config entry (Why wait here,
-            # connection is already ACTIVATED?)
-            self.assertEventually(lambda: ((nmdev.get_ip4_config() is not None) and (len(nmdev.get_ip4_config().get_addresses()) > 0)), timeout=600)
-            conf = nmdev.get_ip4_config()
-            self.assertNotEqual(conf, None)
-            self.assertEqual(len(conf.get_addresses()), 1)
-            self.assertEqual(int(netaddr.IPAddress(conf.get_addresses()[0].get_address())) & 0xFFFFFF00,
-                             0xC0A80500)  # 192.168.5.x
-
     def check_low_level_config(self, iface, ipv6_mode, ip6_privacy):
         '''Check actual hardware state with ip/iw after being connected'''
 
@@ -584,13 +558,6 @@ wpa_passphrase=12345678
         self.assertIn(active_conn.get_uuid(), [c.get_uuid() for c in self.nmclient.get_active_connections()])
         self.assertEqual([d.get_udi() for d in active_conn.get_devices()], [self.nmdev_w.get_udi()])
 
-        # We are skipping this test as it often randomly fails on IPv6
-        # configurations without any reason as the configuration is working
-        # anyway and the correct addresses get confirmed by
-        # the check_low_level_config() in the end (and there is an even
-        # more thorough checking of the correctness of the addresses).
-        #self.check_connected_device_config(ipv6_mode, self.nmdev_w)
-
         # check corresponding NMConnection object
         wireless_setting = conn.get_setting_wireless()
         self.assertEqual(wireless_setting.get_ssid().get_data(), SSID.encode())
@@ -745,13 +712,6 @@ Logs are in '%s'. When done, exit the shell.
         # check NMActiveConnection object
         self.assertIn(active_conn.get_uuid(), [c.get_uuid() for c in self.nmclient.get_active_connections()])
         self.assertEqual([d.get_udi() for d in active_conn.get_devices()], [self.nmdev_e.get_udi()])
-
-        # We are skipping this test as it often randomly fails on IPv6
-        # configurations without any reason as the configuration is working
-        # anyway and the correct addresses get confirmed by
-        # the check_low_level_config() in the end (and there is an even
-        # more thorough checking of the correctness of the addresses).
-        #self.check_connected_device_config(ipv6_mode, self.nmdev_e)
 
         # for IPv6, check privacy setting
         if ipv6_mode is not None:
