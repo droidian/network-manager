@@ -1,3 +1,19 @@
+network-manager (1.18.0-1ubuntu6) UNRELEASED; urgency=medium
+
+  [ Till Kamppeter ]
+  * debian/tests/nm.py:
+    + Make activating an AP time out earlier than it otherwise would.
+    + Skip a call that is failing for IPv6 connections.
+
+  [ Iain Lane ]
+  * debian/tests/nm.py: Delete code skipped by the previous change, rather
+    than commenting it out and leaving it inactive in the source.
+
+  [ Sebastien Bacher ]
+  * Updated debian branch from eoan to master
+
+ -- Iain Lane <iain.lane@canonical.com>  Thu, 01 Aug 2019 12:50:19 +0100
+
 network-manager (1.18.0-1ubuntu5) eoan; urgency=medium
 
   * Updated autopkg test nm.py for API changes in network-manager.
