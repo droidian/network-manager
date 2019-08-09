@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -70,6 +69,7 @@ complete_connection (NMDevice *device,
 	                           NULL,
 	                           _("Bond connection"),
 	                           "bond",
+	                           NULL,
 	                           TRUE);
 
 	s_bond = nm_connection_get_setting_bond (connection);
@@ -413,6 +413,18 @@ release_slave (NMDevice *device,
 	NMDeviceBond *self = NM_DEVICE_BOND (device);
 	gboolean success;
 	gs_free char *address = NULL;
+	int ifindex_slave;
+	int ifindex;
+
+	ifindex = nm_device_get_ifindex (device);
+	if (   ifindex <= 0
+	    || !nm_platform_link_get (nm_device_get_platform (device), ifindex))
+		configure = FALSE;
+
+	ifindex_slave = nm_device_get_ip_ifindex (slave);
+
+	if (ifindex_slave <= 0)
+		_LOGD (LOGD_TEAM, "bond slave %s is already released", nm_device_get_ip_iface (slave));
 
 	if (configure) {
 		/* When the last slave is released the bond MAC will be set to a random
@@ -420,16 +432,18 @@ release_slave (NMDevice *device,
 		 */
 		address = g_strdup (nm_device_get_hw_address (device));
 
-		success = nm_platform_link_release (nm_device_get_platform (device),
-		                                    nm_device_get_ip_ifindex (device),
-		                                    nm_device_get_ip_ifindex (slave));
+		if (ifindex_slave > 0) {
+			success = nm_platform_link_release (nm_device_get_platform (device),
+			                                    nm_device_get_ip_ifindex (device),
+			                                    ifindex_slave);
 
-		if (success) {
-			_LOGI (LOGD_BOND, "released bond slave %s",
-			       nm_device_get_ip_iface (slave));
-		} else {
-			_LOGW (LOGD_BOND, "failed to release bond slave %s",
-			       nm_device_get_ip_iface (slave));
+			if (success) {
+				_LOGI (LOGD_BOND, "released bond slave %s",
+				       nm_device_get_ip_iface (slave));
+			} else {
+				_LOGW (LOGD_BOND, "failed to release bond slave %s",
+				       nm_device_get_ip_iface (slave));
+			}
 		}
 
 		nm_platform_process_events (nm_device_get_platform (device));
@@ -440,11 +454,15 @@ release_slave (NMDevice *device,
 		 * IFF_UP), so we must bring it back up here to ensure carrier changes and
 		 * other state is noticed by the now-released slave.
 		 */
-		if (!nm_device_bring_up (slave, TRUE, NULL))
-			_LOGW (LOGD_BOND, "released bond slave could not be brought up.");
+		if (ifindex_slave > 0) {
+			if (!nm_device_bring_up (slave, TRUE, NULL))
+				_LOGW (LOGD_BOND, "released bond slave could not be brought up.");
+		}
 	} else {
-		_LOGI (LOGD_BOND, "bond slave %s was released",
-		       nm_device_get_ip_iface (slave));
+		if (ifindex_slave > 0) {
+			_LOGI (LOGD_BOND, "bond slave %s was released",
+			       nm_device_get_ip_iface (slave));
+		}
 	}
 }
 

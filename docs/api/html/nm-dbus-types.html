@@ -1065,6 +1065,21 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_WIFI_DEVICE_CAP_MESH</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x00001000</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>device supports acting as a mesh point. Since: 1.20.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -1433,6 +1448,21 @@
 </td>
 <td class="enum_member_description">
 <p>the device is an access point/hotspot.  Not valid for access point objects; used only for hotspot mode on the local machine.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_802_11_MODE_MESH</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">4</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the device is a 802.11s mesh point. Since: 1.20.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -3049,7 +3079,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>indicates that the per-connection setting is unspecified. In this case, it will fallback to the default value, which is @NM_CONNECTION_MULTI_CONNECT_SINGLE.</p>
+<p>indicates that the per-connection setting is unspecified. In this case, it will fallback to the default value, which is %NM_CONNECTION_MULTI_CONNECT_SINGLE.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -4212,11 +4242,91 @@
 </div>
 <hr>
 <div class="refsect2">
+<a name="NMSettingsAddConnection2Flags"></a><h3>enum NMSettingsAddConnection2Flags</h3>
+<p>Numeric flags for the "flags" argument of AddConnection2() D-Bus API.</p>
+<p>Since: 1.20</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.17.2.28.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_SETTINGS_ADD_CONNECTION2_FLAG_NONE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>an alias for numeric zero, no flags set.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_SETTINGS_ADD_CONNECTION2_FLAG_TO_DISK</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x1</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>to persist the connection to disk.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_SETTINGS_ADD_CONNECTION2_FLAG_IN_MEMORY</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x2</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>to make the connection in-memory only.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_SETTINGS_ADD_CONNECTION2_FLAG_BLOCK_AUTOCONNECT</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x20</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>usually, when the connection has autoconnect enabled and gets added, it becomes eligible to autoconnect right away. Setting this flag, disables autoconnect until the connection is manually activated.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMSettingsUpdate2Flags"></a><h3>enum NMSettingsUpdate2Flags</h3>
 <p>Since: 1.12</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.28.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.29.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4265,7 +4375,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>to make the connection in-memory only. If the connection was previously persistent, the corresponding file on disk is not deleted but merely the connection is decoupled from the file on disk. If you later delete an in-memory connection, the connection on disk will be deleted as well.</p>
+<p>makes the profile in-memory. Note that such profiles are stored in keyfile format under /run. If the file is already in-memory, the file in /run is updated in-place. Otherwise, the previous storage for the profile is left unchanged on disk, and the in-memory copy shadows it. Note that the original filename of the previous persistent storage (if any) is remembered. That means, when later persisting the profile again to disk, the file on disk will be overwritten again. Likewise, when finally deleting the profile, both the storage from /run and persistent storage are deleted (or if the persistent storage does not allow deletion, and nmmeta file is written to mark the UUID as deleted).</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -4280,7 +4390,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>this is like @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY, but if the connection has a corresponding file on disk, the association between the connection and the file is forgotten but the file is not modified. The difference to %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY is if you later save the connection again to disk, a new file name will be chosen without overwriting the remaining file on disk. Also, if you delete the connection later, the file on disk will not be deleted.</p>
+<p>this is almost the same as %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY, with one difference: when later deleting the profile, the original profile will not be deleted. Instead a nmmeta file is written to /run to indicate that the profile is gone. Note that if such a nmmeta tombstone file exists and hides a file in persistant storage, then when re-adding the profile with the same UUID, then the original storage is taken over again.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -4295,7 +4405,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>this is like @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY, but if the connection has a corresponding file on disk, the file on disk will be deleted.</p>
+<p>this is like %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY, but if the connection has a corresponding file on persistent storage, the file will be deleted right away. If the profile is later again persisted to disk, a new, unused filename will be chosen.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -4310,7 +4420,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>This can be specified with either %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED or %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY. After making the connection in-memory only, the connection is marked as volatile. That means, if the connection is currently not active it will be deleted right away. Otherwise, it is marked to for deletion once the connection deactivates. A volatile connection cannot autoactivate again (because it's about to be deleted), but a manual activation will clear the volatile flag.</p>
+<p>This can be specified with either %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY, %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED or %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY. After making the connection in-memory only, the connection is marked as volatile. That means, if the connection is currently not active it will be deleted right away. Otherwise, it is marked to for deletion once the connection deactivates. A volatile connection cannot autoactivate again (because it's about to be deleted), but a manual activation will clear the volatile flag.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -4330,6 +4440,21 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_SETTINGS_UPDATE2_FLAG_NO_REAPPLY</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x40</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>when a profile gets modified that is currently active, then these changes don't take effect for the active device unless the profile gets reactivated or the configuration reapplied. There are two exceptions: by default "connection.zone" and "connection.metered" properties take effect immediately. Specify this flag to prevent these properties to take effect, so that the change is restricted to modify the profile. Since: 1.20.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -4341,7 +4466,7 @@
 <p>Since: 1.14</p>
 <p></p>
 <div class="refsect3">
-<a name="id-1.4.17.2.29.4"></a><h4>Values</h4>
+<a name="id-1.4.17.2.30.4"></a><h4>Values</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">

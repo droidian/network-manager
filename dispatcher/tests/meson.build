@@ -7,9 +7,12 @@ incs = [
 
 exe = executable(
   test_unit,
-  test_unit + '.c',
+  [ test_unit + '.c' ] + [ nmdbus_dispatcher_sources ],
   include_directories: incs,
-  dependencies: libnm_core_dep,
+  dependencies: [
+    libnm_core_dep,
+    libnm_dep,
+  ],
   c_args: [
       '-DNETWORKMANAGER_COMPILATION_TEST',
       '-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_CLIENT',

@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -103,7 +102,7 @@ _nl80211_alloc_msg (int id, int ifindex, int phy, guint32 cmd, guint32 flags)
 	return g_steal_pointer (&msg);
 
 nla_put_failure:
-	return NULL;
+	g_return_val_if_reached (NULL);
 }
 
 static struct nl_msg *
@@ -200,6 +199,9 @@ nl80211_iface_info_handler (struct nl_msg *msg, void *arg)
 	case NL80211_IFTYPE_STATION:
 		info->mode = NM_802_11_MODE_INFRA;
 		break;
+	case NL80211_IFTYPE_MESH_POINT:
+		info->mode = NM_802_11_MODE_MESH;
+		break;
 	}
 
 	return NL_SKIP;
@@ -242,6 +244,9 @@ wifi_nl80211_set_mode (NMWifiUtils *data, const NM80211Mode mode)
 	case NM_802_11_MODE_AP:
 		NLA_PUT_U32 (msg, NL80211_ATTR_IFTYPE, NL80211_IFTYPE_AP);
 		break;
+	case NM_802_11_MODE_MESH:
+		NLA_PUT_U32 (msg, NL80211_ATTR_IFTYPE, NL80211_IFTYPE_MESH_POINT);
+		break;
 	default:
 		g_assert_not_reached ();
 	}
@@ -250,7 +255,7 @@ wifi_nl80211_set_mode (NMWifiUtils *data, const NM80211Mode mode)
 	return err >= 0;
 
 nla_put_failure:
-	return FALSE;
+	g_return_val_if_reached (FALSE);
 }
 
 static gboolean
@@ -267,7 +272,7 @@ wifi_nl80211_set_powersave (NMWifiUtils *data, guint32 powersave)
 	return err >= 0;
 
 nla_put_failure:
-	return FALSE;
+	g_return_val_if_reached (FALSE);
 }
 
 static int
@@ -279,8 +284,8 @@ nl80211_get_wake_on_wlan_handler (struct nl_msg *msg, void *arg)
 	struct genlmsghdr *gnlh = nlmsg_data (nlmsg_hdr (msg));
 
 	nla_parse_arr (attrs,
-	               genlmsg_attrdata(gnlh, 0),
-	               genlmsg_attrlen(gnlh, 0),
+	               genlmsg_attrdata (gnlh, 0),
+	               genlmsg_attrlen (gnlh, 0),
 	               NULL);
 
 	if (!attrs[NL80211_ATTR_WOWLAN_TRIGGERS])
@@ -338,10 +343,10 @@ wifi_nl80211_set_wake_on_wlan (NMWifiUtils *data, NMSettingWirelessWakeOnWLan wo
 		return TRUE;
 
 	msg = nl80211_alloc_msg (self, NL80211_CMD_SET_WOWLAN, 0);
-	if (!msg)
-		return FALSE;
 
 	triggers = nla_nest_start (msg, NL80211_ATTR_WOWLAN_TRIGGERS);
+	if (!triggers)
+		goto nla_put_failure;
 
 	if (NM_FLAGS_HAS (wowl, NM_SETTING_WIRELESS_WAKE_ON_WLAN_ANY))
 		NLA_PUT_FLAG (msg, NL80211_WOWLAN_TRIG_ANY);
@@ -358,14 +363,14 @@ wifi_nl80211_set_wake_on_wlan (NMWifiUtils *data, NMSettingWirelessWakeOnWLan wo
 	if (NM_FLAGS_HAS (wowl, NM_SETTING_WIRELESS_WAKE_ON_WLAN_RFKILL_RELEASE))
 		NLA_PUT_FLAG (msg, NL80211_WOWLAN_TRIG_RFKILL_RELEASE);
 
-	nla_nest_end(msg, triggers);
+	nla_nest_end (msg, triggers);
 
 	err = nl80211_send_and_recv (self, msg, NULL, NULL);
 
 	return err >= 0;
 
 nla_put_failure:
-	return FALSE;
+	g_return_val_if_reached (FALSE);
 }
 
 /* @divisor: pass what value @xbm should be divided by to get dBm */
@@ -629,20 +634,18 @@ nl80211_get_ap_info (NMWifiUtilsNl80211 *self,
 		return;
 
 	msg = nl80211_alloc_msg (self, NL80211_CMD_GET_STATION, 0);
-	if (msg) {
-		NLA_PUT (msg, NL80211_ATTR_MAC, ETH_ALEN, bss_info.bssid);
+	NLA_PUT (msg, NL80211_ATTR_MAC, ETH_ALEN, bss_info.bssid);
 
-		nl80211_send_and_recv (self, msg, nl80211_station_handler, sta_info);
-		if (!sta_info->signal_valid) {
-			/* Fall back to bss_info signal quality (both are in percent) */
-			sta_info->signal = bss_info.beacon_signal;
-		}
+	nl80211_send_and_recv (self, msg, nl80211_station_handler, sta_info);
+	if (!sta_info->signal_valid) {
+		/* Fall back to bss_info signal quality (both are in percent) */
+		sta_info->signal = bss_info.beacon_signal;
 	}
 
 	return;
 
 nla_put_failure:
-	return;
+	g_return_if_reached ();
 }
 
 static guint32
@@ -695,7 +698,7 @@ wifi_nl80211_indicate_addressing_running (NMWifiUtils *data, gboolean running)
 	return err >= 0;
 
 nla_put_failure:
-	return FALSE;
+	g_return_val_if_reached (FALSE);
 }
 
 struct nl80211_device_info {
@@ -893,10 +896,11 @@ static int nl80211_wiphy_info_handler (struct nl_msg *msg, void *arg)
 		int i;
 
 		nla_for_each_nested (nl_mode, tb[NL80211_ATTR_SUPPORTED_IFTYPES], i) {
-			if (nla_type (nl_mode) == NL80211_IFTYPE_AP)
-				info->caps |= NM_WIFI_DEVICE_CAP_AP;
-			else if (nla_type (nl_mode) == NL80211_IFTYPE_ADHOC)
-				info->caps |= NM_WIFI_DEVICE_CAP_ADHOC;
+			switch (nla_type (nl_mode)) {
+			case NL80211_IFTYPE_AP:         info->caps |= NM_WIFI_DEVICE_CAP_AP;    break;
+			case NL80211_IFTYPE_ADHOC:      info->caps |= NM_WIFI_DEVICE_CAP_ADHOC; break;
+			case NL80211_IFTYPE_MESH_POINT: info->caps |= NM_WIFI_DEVICE_CAP_MESH;  break;
+			}
 		}
 	}
 

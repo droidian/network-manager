@@ -62,7 +62,8 @@ struct _NMDevice;
 #define NM_META_TEXT_WORD_INFRA  "infrastructure"
 #define NM_META_TEXT_WORD_AP     "ap"
 #define NM_META_TEXT_WORD_ADHOC  "adhoc"
-#define NM_META_TEXT_PROMPT_WIFI_MODE_CHOICES "(" NM_META_TEXT_WORD_INFRA "/" NM_META_TEXT_WORD_AP "/" NM_META_TEXT_WORD_ADHOC ") [" NM_META_TEXT_WORD_INFRA "]"
+#define NM_META_TEXT_WORD_MESH   "mesh"
+#define NM_META_TEXT_PROMPT_WIFI_MODE_CHOICES "(" NM_META_TEXT_WORD_INFRA "/" NM_META_TEXT_WORD_AP "/" NM_META_TEXT_WORD_ADHOC "/" NM_META_TEXT_WORD_MESH ") [" NM_META_TEXT_WORD_INFRA "]"
 
 #define NM_META_TEXT_PROMPT_TUN_MODE N_("Tun mode")
 #define NM_META_TEXT_WORD_TUN  "tun"
@@ -221,6 +222,7 @@ struct _NMMetaPropertyType {
 	                                   gpointer environment_user_data,
 	                                   const NMMetaOperationContext *operation_context,
 	                                   const char *text,
+	                                   gboolean *out_complete_filename,
 	                                   char ***out_to_free);
 
 	/* Whether set_fcn() supports the '-' modifier. That is, whether the property
@@ -270,6 +272,13 @@ struct _NMMetaPropertyTypData {
 			guint32 (*get_num_fcn_u32) (NMSetting *setting);
 			guint (*get_num_fcn_u) (NMSetting *setting);
 			void (*clear_all_fcn) (NMSetting *setting);
+
+			/* some multilist properties distinguish between an empty list and
+			 * and unset. If this function pointer is set, certain behaviors come
+			 * into action to handle that. */
+			void (*clear_emptyunset_fcn) (NMSetting *setting,
+			                              gboolean is_set /* or else set default */);
+
 			gboolean (*add_fcn) (NMSetting *setting,
 			                     const char *item);
 			void (*add2_fcn) (NMSetting *setting,
@@ -444,6 +453,7 @@ struct _NMMetaType {
 	                                   gpointer environment_user_data,
 	                                   const NMMetaOperationContext *operation_context,
 	                                   const char *text,
+	                                   gboolean *out_complete_filename,
 	                                   char ***out_to_free);
 };
 

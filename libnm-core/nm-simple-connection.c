@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -142,6 +141,10 @@ nm_simple_connection_new_clone (NMConnection *connection)
 static void
 dispose (GObject *object)
 {
+#if NM_MORE_ASSERTS
+	g_signal_handlers_disconnect_by_data (object, (gpointer) &_nmtst_connection_unchanging_user_data);
+#endif
+
 	nm_connection_clear_secrets (NM_CONNECTION (object));
 
 	G_OBJECT_CLASS (nm_simple_connection_parent_class)->dispose (object);

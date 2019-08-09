@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1841,14 +1840,15 @@ nm_device_disambiguate_names (NMDevice **devices,
 	for (i = 0; i < num_devices; i++) {
 		if (duplicates[i] && NM_IS_DEVICE_BT (devices[i])) {
 			const char *devname = nm_device_bt_get_name (NM_DEVICE_BT (devices[i]));
+			char *name;
 
 			if (!devname)
 				continue;
 
 			g_free (names[i]);
-			names[i] = g_strdup_printf ("%s (%s)",
-			                            get_device_type_name_with_iface (devices[i]),
-			                            devname);
+			name = get_device_type_name_with_iface (devices[i]);
+			names[i] = g_strdup_printf ("%s (%s)", name, devname);
+			g_free (name);
 		}
 	}
 	if (!find_duplicates (names, duplicates, num_devices))

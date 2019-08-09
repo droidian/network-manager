@@ -146,33 +146,7 @@ plugins-=remove-me
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">monitor-connection-files</code></span></p></td>
-<td>
-<p>Whether the configured settings plugin(s)
-        should set up file monitors and immediately pick up changes
-        made to connection files while NetworkManager is running. This
-        is disabled by default; NetworkManager will only read
-        the connection files at startup, and when explicitly requested
-        via the ReloadConnections D-Bus call. If this key is set to
-        '<code class="literal">true</code>', then NetworkManager will reload
-        connection files any time they changed.
-        Automatic reloading is not advised because there are race conditions
-        involved and it depends on the way how the editor updates the file.
-        In some situations, NetworkManager might first delete and add the
-        connection anew, instead of updating the existing one. Also, NetworkManager
-        might pick up incomplete settings while the user is still editing the files.
-        </p>
-<p>
-        Note that neither this setting nor restarting the NetworkManager daemon
-        is the advised way to reload connection profiles from disk. Instead, after
-        modifying the files reload them with <span class="command"><strong>nmcli connection reload</strong></span>
-        or <span class="command"><strong>nmcli connection load "$FILENAME"</strong></span>. Even better,
-        instead of modifying files directly, use NetworkManager tools like
-        <span class="command"><strong>nmcli</strong></span>, <span class="command"><strong>nmtui</strong></span> or the GUI.
-        </p>
-<p>
-        This setting is deprecated and will have no effect in the future.
-        </p>
-</td>
+<td><p>This setting is deprecated and has no effect.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">auth-polkit</code></span></p></td>
@@ -323,8 +297,8 @@ no-auto-default=*
         <code class="filename">/etc/resolv.conf</code> to reflect the nameservers
         provided by currently active connections.</p>
 <p><code class="literal">dnsmasq</code>: NetworkManager will run
-        dnsmasq as a local caching nameserver, using a "split DNS"
-        configuration if you are connected to a VPN, and then update
+        dnsmasq as a local caching nameserver, using "Conditional Forwarding"
+        if you are connected to a VPN, and then update
         <code class="filename">resolv.conf</code> to point to the local
         nameserver. It is possible to pass custom options to the
         dnsmasq instance by adding them to files in the
@@ -338,8 +312,8 @@ no-auto-default=*
 <p><code class="literal">systemd-resolved</code>: NetworkManager will
         push the DNS configuration to systemd-resolved</p>
 <p><code class="literal">unbound</code>: NetworkManager will talk
-        to unbound and dnssec-triggerd, providing a "split DNS"
-        configuration with DNSSEC support. <code class="filename">/etc/resolv.conf</code>
+        to unbound and dnssec-triggerd, using "Conditional Forwarding"
+        with DNSSEC support. <code class="filename">/etc/resolv.conf</code>
         will be managed by dnssec-trigger daemon.</p>
 <p><code class="literal">none</code>: NetworkManager will not
         modify resolv.conf. This implies
@@ -1354,21 +1328,10 @@ enable=nm-version-min:1.3,nm-version-min:1.2.6,nm-version-min:1.0.16
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">ibft</code>, <code class="varname">no-ibft</code></span></p></td>
-<td>
-<p>
-            This plugin allows to read iBFT configuration (iSCSI Boot Firmware Table).
-            The configuration is read using <code class="filename">/sbin/iscsiadm</code>. Users are
-            expected to configure iBFT connections via the firmware interfaces.
-            If ibft support is available, it is automatically enabled after
-            <code class="literal">ifcfg-rh</code>. This can be disabled by <code class="literal">no-ibft</code>.
-            You can also explicitly specify <code class="literal">ibft</code> to load the
-            plugin without <code class="literal">ifcfg-rh</code> or to change the plugin order.
-          </p>
-<p>
-            Note that ibft plugin uses <code class="filename">/sbin/iscsiadm</code> and thus requires
-            CAP_SYS_ADMIN capability.
-          </p>
-</td>
+<td><p>
+            These plugins are deprecated and their selection has no effect.
+            This is now handled by nm-initrd-generator.
+          </p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">ifcfg-suse</code>, <code class="varname">ifnet</code></span></p></td>

@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,6 +25,7 @@
 #include <arpa/inet.h>
 #include <resolv.h>
 #include <linux/rtnetlink.h>
+#include <linux/if.h>
 
 #include "nm-glib-aux/nm-dedup-multi.h"
 
@@ -77,6 +77,7 @@ typedef struct {
 		NMIPConfigDedupMultiIdxType idx_ip6_routes_;
 		NMDedupMultiIdxType idx_ip6_routes;
 	};
+	bool ipv6_disabled;
 } NMIP6ConfigPrivate;
 
 struct _NMIP6Config {
@@ -317,6 +318,9 @@ sort_captured_addresses (const CList *lst_a, const CList *lst_b, gconstpointer u
 	const NMPlatformIP6Address *addr_a = NMP_OBJECT_CAST_IP6_ADDRESS (c_list_entry (lst_a, NMDedupMultiEntry, lst_entries)->obj);
 	const NMPlatformIP6Address *addr_b = NMP_OBJECT_CAST_IP6_ADDRESS (c_list_entry (lst_b, NMDedupMultiEntry, lst_entries)->obj);
 
+	nm_assert (addr_a);
+	nm_assert (addr_b);
+
 	return _addresses_sort_cmp (addr_a, addr_b,
 	                            ((NMSettingIP6ConfigPrivacy) GPOINTER_TO_INT (user_data)) == NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_TEMP_ADDR);
 }
@@ -382,6 +386,8 @@ nm_ip6_config_capture (NMDedupMultiIndex *multi_idx, NMPlatform *platform, int i
 	const NMDedupMultiHeadEntry *head_entry;
 	NMDedupMultiIter iter;
 	const NMPObject *plobj = NULL;
+	char ifname[IFNAMSIZ];
+	char *path;
 
 	nm_assert (ifindex > 0);
 
@@ -422,6 +428,12 @@ nm_ip6_config_capture (NMDedupMultiIndex *multi_idx, NMPlatform *platform, int i
 
 	nmp_cache_iter_for_each (&iter, head_entry, &plobj)
 		_add_route (self, plobj, NULL, NULL);
+
+	if (nm_platform_if_indextoname (platform, ifindex, ifname)) {
+		path = nm_sprintf_bufa (128, "/proc/sys/net/ipv6/conf/%s/disable_ipv6", ifname);
+		if (nm_platform_sysctl_get_int32 (platform, NMP_SYSCTL_PATHID_ABSOLUTE (path), 0) != 0)
+			priv->ipv6_disabled = TRUE;
+	}
 
 	return self;
 }
@@ -672,7 +684,7 @@ nm_ip6_config_merge_setting (NMIP6Config *self,
 
 		nm_utils_ip6_address_clear_host_address (&route.network, &route.network, route.plen);
 
-		_nm_ip_config_merge_route_attributes (AF_INET,
+		_nm_ip_config_merge_route_attributes (AF_INET6,
 		                                      s_route,
 		                                      NM_PLATFORM_IP_ROUTE_CAST (&route),
 		                                      route_table);
@@ -772,8 +784,11 @@ nm_ip6_config_create_setting (const NMIP6Config *self)
 	}
 
 	/* Use 'ignore' if the method wasn't previously set */
-	if (!method)
-		method = NM_SETTING_IP6_CONFIG_METHOD_IGNORE;
+	if (!method) {
+		method =   priv->ipv6_disabled
+		         ? NM_SETTING_IP6_CONFIG_METHOD_DISABLED
+		         : NM_SETTING_IP6_CONFIG_METHOD_IGNORE;
+	}
 
 	g_object_set (s_ip6,
 	              NM_SETTING_IP_CONFIG_METHOD, method,
@@ -838,9 +853,14 @@ nm_ip6_config_merge (NMIP6Config *dst,
 	guint32 i;
 	NMDedupMultiIter ipconf_iter;
 	const NMPlatformIP6Address *address = NULL;
+	const NMIP6ConfigPrivate *src_priv;
+	NMIP6ConfigPrivate *dst_priv;
 
 	g_return_if_fail (src != NULL);
 	g_return_if_fail (dst != NULL);
+
+	src_priv = NM_IP6_CONFIG_GET_PRIVATE (src);
+	dst_priv = NM_IP6_CONFIG_GET_PRIVATE (dst);
 
 	g_object_freeze_notify (G_OBJECT (dst));
 
@@ -895,6 +915,9 @@ nm_ip6_config_merge (NMIP6Config *dst,
 	/* DNS priority */
 	if (nm_ip6_config_get_dns_priority (src))
 		nm_ip6_config_set_dns_priority (dst, nm_ip6_config_get_dns_priority (src));
+
+	if (src_priv->ipv6_disabled)
+		dst_priv->ipv6_disabled = src_priv->ipv6_disabled;
 
 	g_object_thaw_notify (G_OBJECT (dst));
 }
@@ -1498,6 +1521,11 @@ nm_ip6_config_replace (NMIP6Config *dst, const NMIP6Config *src, gboolean *relev
 
 	if (src_priv->privacy != dst_priv->privacy) {
 		nm_ip6_config_set_privacy (dst, src_priv->privacy);
+		has_minor_changes = TRUE;
+	}
+
+	if (src_priv->ipv6_disabled != dst_priv->ipv6_disabled) {
+		dst_priv->ipv6_disabled = src_priv->ipv6_disabled;
 		has_minor_changes = TRUE;
 	}
 

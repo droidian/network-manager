@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * Dan Williams <dcbw@redhat.com>
@@ -132,6 +131,7 @@ complete_connection (NMDevice *device,
 	                           existing_connections,
 	                           NULL,
 	                           _("Mesh"),
+	                           NULL,
 	                           NULL,
 	                           FALSE); /* No IPv6 by default */
 

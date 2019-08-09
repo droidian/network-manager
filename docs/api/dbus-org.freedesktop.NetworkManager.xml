@@ -85,6 +85,7 @@
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.Connectivity">Connectivity</link>                readable   u
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.ConnectivityCheckAvailable">ConnectivityCheckAvailable</link>  readable   b
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.ConnectivityCheckEnabled">ConnectivityCheckEnabled</link>    readwrite  b
+<link linkend="gdbus-property-org-freedesktop-NetworkManager.ConnectivityCheckUri">ConnectivityCheckUri</link>        readable   s
 <link linkend="gdbus-property-org-freedesktop-NetworkManager.GlobalDnsConfiguration">GlobalDnsConfiguration</link>      readwrite  a{sv}
 </synopsis>
   </refsect1>
@@ -858,6 +859,15 @@ ConnectivityCheckEnabled  readwrite  b
 <para>        Indicates whether connectivity checking is enabled.  This
         property can also be written to to disable connectivity
         checking (as a privacy control panel might want to do).
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.ConnectivityCheckUri">
+  <title>The "ConnectivityCheckUri" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager.ConnectivityCheckUri"><primary sortas="Manager:ConnectivityCheckUri">org.freedesktop.NetworkManager:ConnectivityCheckUri</primary></indexterm>
+<programlisting>
+ConnectivityCheckUri  readable   s
+</programlisting>
+<para>        The URI that NetworkManager will hit to check if there is internet connectivity.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.GlobalDnsConfiguration">

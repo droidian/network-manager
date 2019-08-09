@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* nm-dhcp-manager.c - Handle the DHCP daemon for NetworkManager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -90,6 +89,54 @@ _client_factory_available (const NMDhcpClientFactory *client_factory)
 	return NULL;
 }
 
+static const NMDhcpClientFactory *
+_client_factory_get_effective (const NMDhcpClientFactory *client_factory,
+                               int addr_family)
+{
+	nm_auto_unref_gtypeclass NMDhcpClientClass *klass = NULL;
+
+	nm_assert (client_factory);
+	nm_assert_addr_family (addr_family);
+
+	/* currently, the chosen DHCP plugin for IPv4 and IPv6 is configured in NetworkManager.conf
+	 * and cannot be reloaded. It would be nice to configure the plugin per address family
+	 * or to be able to reload it.
+	 *
+	 * Note that certain options in NetworkManager.conf depend on the chosen DHCP plugin.
+	 * See "dhcp-plugin:" in "Device List Format" (`man NetworkManager.conf`).
+	 * Supporting reloading the plugin would also require to re-evalate the decisions from
+	 * the "Device List Format". Likewise, having per-address family plugins would make the
+	 * "main.dhcp" setting and "dhcp-plugin:" match non-sensical because these configurations
+	 * currently are address family independet.
+	 *
+	 * So actually, we don't want that complexity. We want to phase out all plugins in favor
+	 * of the internal plugin.
+	 * However, certain existing plugins are well known to not support an address family.
+	 * In those cases, we should just silently fallback to the internal plugin.
+	 *
+	 * This could be a problem with forward compatibility if we ever intended to add IPv6 support
+	 * to those plugins. But we don't intend to do so. The internal plugin is the way forward and
+	 * not extending other plugins. */
+
+	if (client_factory == &_nm_dhcp_client_factory_internal) {
+		/* already using internal plugin. Nothing to do. */
+		return client_factory;
+	}
+
+	klass = g_type_class_ref (client_factory->get_type ());
+
+	nm_assert (NM_IS_DHCP_CLIENT_CLASS (klass));
+
+	if (addr_family == AF_INET6) {
+		return   klass->ip6_start
+		       ? client_factory
+		       : &_nm_dhcp_client_factory_internal;
+	}
+	return   klass->ip4_start
+	       ? client_factory
+	       : &_nm_dhcp_client_factory_internal;
+}
+
 /*****************************************************************************/
 
 static NMDhcpClient *
@@ -157,6 +204,7 @@ client_start (NMDhcpManager *self,
               const char *iface,
               int ifindex,
               GBytes *hwaddr,
+              GBytes *bcast_hwaddr,
               const char *uuid,
               guint32 route_table,
               guint32 route_metric,
@@ -177,6 +225,7 @@ client_start (NMDhcpManager *self,
 	NMDhcpClient *client;
 	gboolean success = FALSE;
 	gsize hwaddr_len;
+	const NMDhcpClientFactory *client_factory;
 
 	g_return_val_if_fail (NM_IS_DHCP_MANAGER (self), NULL);
 	g_return_val_if_fail (iface, NULL);
@@ -185,10 +234,11 @@ client_start (NMDhcpManager *self,
 	g_return_val_if_fail (!dhcp_client_id || g_bytes_get_size (dhcp_client_id) >= 2, NULL);
 	g_return_val_if_fail (!error || !*error, NULL);
 
-	if (!hwaddr) {
+	if (!hwaddr || !bcast_hwaddr) {
 		nm_utils_error_set (error,
 		                    NM_UTILS_ERROR_UNKNOWN,
-		                    "missing MAC address");
+		                    "missing %s address",
+		                    hwaddr ? "broadcast" : "MAC");
 		return NULL;
 	}
 
@@ -201,24 +251,33 @@ client_start (NMDhcpManager *self,
 		g_return_val_if_reached (NULL) ;
 	}
 
+	nm_assert (g_bytes_get_size (hwaddr) == g_bytes_get_size (bcast_hwaddr));
+
 	priv = NM_DHCP_MANAGER_GET_PRIVATE (self);
 
-	nm_assert (priv->client_factory);
+	client_factory = _client_factory_get_effective (priv->client_factory, addr_family);
 
 	/* Kill any old client instance */
 	client = get_client_for_ifindex (self, addr_family, ifindex);
 	if (client) {
+		/* FIXME: we cannot just call synchronously "stop()" and forget about the client.
+		 * We need to wait for the client to be fully stopped because most/all clients
+		 * cannot quit right away.
+		 *
+		 * FIXME(shutdown): also fix this during shutdown, to wait for all DHCP clients
+		 * to be fully stopped. */
 		remove_client (self, client);
 		nm_dhcp_client_stop (client, FALSE);
 		g_object_unref (client);
 	}
 
-	client = g_object_new (priv->client_factory->get_type (),
+	client = g_object_new (client_factory->get_type (),
 	                       NM_DHCP_CLIENT_MULTI_IDX, multi_idx,
 	                       NM_DHCP_CLIENT_ADDR_FAMILY, addr_family,
 	                       NM_DHCP_CLIENT_INTERFACE, iface,
 	                       NM_DHCP_CLIENT_IFINDEX, ifindex,
 	                       NM_DHCP_CLIENT_HWADDR, hwaddr,
+	                       NM_DHCP_CLIENT_BROADCAST_HWADDR, bcast_hwaddr,
 	                       NM_DHCP_CLIENT_UUID, uuid,
 	                       NM_DHCP_CLIENT_HOSTNAME, hostname,
 	                       NM_DHCP_CLIENT_ROUTE_TABLE, (guint) route_table,
@@ -291,6 +350,7 @@ nm_dhcp_manager_start_ip4 (NMDhcpManager *self,
                            const char *iface,
                            int ifindex,
                            GBytes *hwaddr,
+                           GBytes *bcast_hwaddr,
                            const char *uuid,
                            guint32 route_table,
                            guint32 route_metric,
@@ -341,6 +401,7 @@ nm_dhcp_manager_start_ip4 (NMDhcpManager *self,
 	                     iface,
 	                     ifindex,
 	                     hwaddr,
+	                     bcast_hwaddr,
 	                     uuid,
 	                     route_table,
 	                     route_metric,
@@ -365,6 +426,7 @@ nm_dhcp_manager_start_ip6 (NMDhcpManager *self,
                            const char *iface,
                            int ifindex,
                            GBytes *hwaddr,
+                           GBytes *bcast_hwaddr,
                            const struct in6_addr *ll_addr,
                            const char *uuid,
                            guint32 route_table,
@@ -396,6 +458,7 @@ nm_dhcp_manager_start_ip6 (NMDhcpManager *self,
 	                     iface,
 	                     ifindex,
 	                     hwaddr,
+	                     bcast_hwaddr,
 	                     uuid,
 	                     route_table,
 	                     route_metric,

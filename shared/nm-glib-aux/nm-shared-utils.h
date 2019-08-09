@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This library is free software; you can redistribute it and/or
@@ -171,6 +170,13 @@ nm_ip4_addr_is_localhost (in_addr_t addr4)
             return _cc < 0 ? -1 : 1; \
     } G_STMT_END
 
+#define NM_CMP_RETURN_DIRECT(c) \
+    G_STMT_START { \
+        const int _cc = (c); \
+        if (_cc) \
+            return _cc; \
+    } G_STMT_END
+
 #define NM_CMP_SELF(a, b) \
     G_STMT_START { \
         typeof (a) _a = (a); \
@@ -196,8 +202,11 @@ nm_ip4_addr_is_localhost (in_addr_t addr4)
 #define NM_CMP_DIRECT_MEMCMP(a, b, size) \
     NM_CMP_RETURN (memcmp ((a), (b), (size)))
 
+#define NM_CMP_DIRECT_STRCMP(a, b) \
+    NM_CMP_RETURN_DIRECT (strcmp ((a), (b)))
+
 #define NM_CMP_DIRECT_STRCMP0(a, b) \
-    NM_CMP_RETURN (g_strcmp0 ((a), (b)))
+    NM_CMP_RETURN_DIRECT (nm_strcmp0 ((a), (b)))
 
 #define NM_CMP_DIRECT_IN6ADDR(a, b) \
     G_STMT_START { \
@@ -229,16 +238,16 @@ nm_ip4_addr_is_localhost (in_addr_t addr4)
         const char *_b = ((b)->field); \
         \
         if (_a != _b) { \
-            NM_CMP_RETURN (g_strcmp0 (_a, _b)); \
+            NM_CMP_RETURN_DIRECT (nm_strcmp0 (_a, _b)); \
         } \
     } G_STMT_END
 
 #define NM_CMP_FIELD_STR0(a, b, field) \
-    NM_CMP_RETURN (g_strcmp0 (((a)->field), ((b)->field)))
+    NM_CMP_RETURN_DIRECT (nm_strcmp0 (((a)->field), ((b)->field)))
 
 #define NM_CMP_FIELD_MEMCMP_LEN(a, b, field, len) \
     NM_CMP_RETURN (memcmp (&((a)->field), &((b)->field), \
-                           MIN (len, sizeof ((a)->field))))
+                           NM_MIN (len, sizeof ((a)->field))))
 
 #define NM_CMP_FIELD_MEMCMP(a, b, field) \
     NM_CMP_RETURN (memcmp (&((a)->field), \
@@ -302,6 +311,20 @@ gboolean nm_utils_gbytes_equal_mem (GBytes *bytes,
                                     gsize mem_len);
 
 GVariant *nm_utils_gbytes_to_variant_ay (GBytes *bytes);
+
+/*****************************************************************************/
+
+GVariant *nm_utils_gvariant_vardict_filter (GVariant *src,
+                                            gboolean (*filter_fcn) (const char *key,
+                                                                    GVariant *val,
+                                                                    char **out_key,
+                                                                    GVariant **out_val,
+                                                                    gpointer user_data),
+                                            gpointer user_data);
+
+GVariant *
+nm_utils_gvariant_vardict_filter_drop_one (GVariant *src,
+                                           const char *key);
 
 /*****************************************************************************/
 
@@ -693,6 +716,8 @@ _nm_g_slice_free_fcn_define (16)
  * @NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY: the profile is currently not
  *   available/compatible with the device, but this may be only temporary.
  *
+ * @NM_UTILS_ERROR_SETTING_MISSING: the setting is missing
+ *
  * @NM_UTILS_ERROR_INVALID_ARGUMENT: invalid argument.
  */
 typedef enum {
@@ -715,6 +740,8 @@ typedef enum {
 	NM_UTILS_ERROR_CONNECTION_AVAILABLE_UNMANAGED_DEVICE,
 	NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY,
 
+	NM_UTILS_ERROR_SETTING_MISSING,
+
 } NMUtilsError;
 
 #define NM_UTILS_ERROR (nm_utils_error_quark ())
@@ -735,7 +762,13 @@ nm_utils_error_set_literal (GError **error, int error_code, const char *literal)
 }
 
 #define nm_utils_error_set(error, error_code, ...) \
-	g_set_error ((error), NM_UTILS_ERROR, error_code, __VA_ARGS__)
+	G_STMT_START { \
+		if (NM_NARG (__VA_ARGS__) == 1) { \
+			g_set_error_literal ((error), NM_UTILS_ERROR, (error_code), _NM_UTILS_MACRO_FIRST (__VA_ARGS__)); \
+		} else { \
+			g_set_error ((error), NM_UTILS_ERROR, (error_code), __VA_ARGS__); \
+		} \
+	} G_STMT_END
 
 #define nm_utils_error_set_errno(error, errsv, fmt, ...) \
 	G_STMT_START { \
@@ -885,7 +918,9 @@ nm_utf8_collate0 (const char *a, const char *b)
 	return g_utf8_collate (a, b);
 }
 
+int nm_strcmp_with_data (gconstpointer a, gconstpointer b, gpointer user_data);
 int nm_strcmp_p_with_data (gconstpointer a, gconstpointer b, gpointer user_data);
+int nm_strcmp0_p_with_data (gconstpointer a, gconstpointer b, gpointer user_data);
 int nm_cmp_uint32_p_with_data (gconstpointer p_a, gconstpointer p_b, gpointer user_data);
 int nm_cmp_int2ptr_p_with_data (gconstpointer p_a, gconstpointer p_b, gpointer user_data);
 
@@ -906,10 +941,25 @@ typedef struct {
 	};
 } NMUtilsNamedValue;
 
-#define nm_utils_named_entry_cmp           nm_strcmp_p
-#define nm_utils_named_entry_cmp_with_data nm_strcmp_p_with_data
-
 NMUtilsNamedValue *nm_utils_named_values_from_str_dict (GHashTable *hash, guint *out_len);
+
+gssize nm_utils_named_value_list_find (const NMUtilsNamedValue *arr,
+                                       gsize len,
+                                       const char *name,
+                                       gboolean sorted);
+
+gboolean nm_utils_named_value_list_is_sorted (const NMUtilsNamedValue *arr,
+                                              gsize len,
+                                              gboolean accept_duplicates,
+                                              GCompareDataFunc compare_func,
+                                              gpointer user_data);
+
+void nm_utils_named_value_list_sort (NMUtilsNamedValue *arr,
+                                     gsize len,
+                                     GCompareDataFunc compare_func,
+                                     gpointer user_data);
+
+/*****************************************************************************/
 
 gpointer *nm_utils_hash_keys_to_array (GHashTable *hash,
                                        GCompareDataFunc compare_func,
@@ -927,13 +977,27 @@ nm_utils_strdict_get_keys (const GHashTable *hash,
 	                                                    out_length);
 }
 
+gboolean nm_utils_hashtable_same_keys (const GHashTable *a,
+                                       const GHashTable *b);
+
 char **nm_utils_strv_make_deep_copied (const char **strv);
+
+char **nm_utils_strv_make_deep_copied_n (const char **strv, gsize len);
 
 static inline char **
 nm_utils_strv_make_deep_copied_nonnull (const char **strv)
 {
 	return nm_utils_strv_make_deep_copied (strv) ?: g_new0 (char *, 1);
 }
+
+char **nm_utils_strv_dup (gpointer strv, gssize len);
+
+/*****************************************************************************/
+
+GSList *nm_utils_g_slist_find_str (const GSList *list,
+                                   const char *needle);
+
+int nm_utils_g_slist_strlist_cmp (const GSList *a, const GSList *b);
 
 /*****************************************************************************/
 

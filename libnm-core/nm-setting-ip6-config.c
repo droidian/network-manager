@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,7 +37,7 @@
  * #NMSettingIP6Config has few properties or methods of its own; it inherits
  * almost everything from #NMSettingIPConfig.
  *
- * NetworkManager supports 6 values for the #NMSettingIPConfig:method property
+ * NetworkManager supports 7 values for the #NMSettingIPConfig:method property
  * for IPv6.  If "auto" is specified then the appropriate automatic method (PPP,
  * router advertisement, etc) is used for the device and most other properties
  * can be left unset.  To force the use of DHCP only, specify "dhcp"; this
@@ -48,7 +46,8 @@
  * If "manual" is specified, static IP addressing is used and at least one IP
  * address must be given in the "addresses" property.  If "ignore" is specified,
  * IPv6 configuration is not done. Note: the "shared" method is not yet
- * supported.
+ * supported. If "disabled" is specified, IPv6 is disabled completely for the
+ * interface.
  **/
 
 /*****************************************************************************/
@@ -166,7 +165,7 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 	/* Base class already checked that it exists */
 	g_assert (method);
 
-	if (!strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_MANUAL)) {
+	if (nm_streq (method, NM_SETTING_IP6_CONFIG_METHOD_MANUAL)) {
 		if (nm_setting_ip_config_get_num_addresses (s_ip) == 0) {
 			g_set_error (error,
 			             NM_CONNECTION_ERROR,
@@ -176,12 +175,12 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 			g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP_CONFIG_ADDRESSES);
 			return FALSE;
 		}
-	} else if (   !strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE)
-	           || !strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL)
-	           || !strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_SHARED)) {
-
-		/* Shared allows IP addresses and DNS; link-local and disabled do not */
-		if (strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_SHARED) != 0) {
+	} else if (NM_IN_STRSET (method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
+	                                 NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL,
+	                                 NM_SETTING_IP6_CONFIG_METHOD_SHARED,
+	                                 NM_SETTING_IP6_CONFIG_METHOD_DISABLED)) {
+		/* Shared allows IP addresses and DNS; other methods do not */
+		if (!nm_streq (method, NM_SETTING_IP6_CONFIG_METHOD_SHARED)) {
 			if (nm_setting_ip_config_get_num_dns (s_ip) > 0) {
 				g_set_error (error,
 				             NM_CONNECTION_ERROR,
@@ -212,8 +211,8 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 				return FALSE;
 			}
 		}
-	} else if (   !strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_AUTO)
-	           || !strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_DHCP)) {
+	} else if (NM_IN_STRSET (method, NM_SETTING_IP6_CONFIG_METHOD_AUTO,
+	                                 NM_SETTING_IP6_CONFIG_METHOD_DHCP)) {
 		/* nothing to do */
 	} else {
 		g_set_error_literal (error,
@@ -286,12 +285,13 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 
 	/* Failures from here on are NORMALIZABLE... */
 
-	if (   !strcmp (method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE)
+	if (   NM_IN_STRSET (method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
+	                             NM_SETTING_IP6_CONFIG_METHOD_DISABLED)
 	    && !nm_setting_ip_config_get_may_fail (s_ip)) {
 		g_set_error_literal (error,
 		                     NM_CONNECTION_ERROR,
 		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
-		                     _("property should be TRUE when method is set to ignore"));
+		                     _("property should be TRUE when method is set to ignore or disabled"));
 		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP6_CONFIG_SETTING_NAME, NM_SETTING_IP_CONFIG_MAY_FAIL);
 		return NM_SETTING_VERIFY_NORMALIZABLE;
 	}
@@ -313,19 +313,19 @@ ip6_dns_from_dbus (GVariant *dbus_value,
 }
 
 static GVariant *
-ip6_addresses_get (NMSetting  *setting,
-                   const char *property)
+ip6_addresses_get (const NMSettInfoSetting *sett_info,
+                   guint property_idx,
+                   NMConnection *connection,
+                   NMSetting *setting,
+                   NMConnectionSerializationFlags flags,
+                   const NMConnectionSerializationOptions *options)
 {
-	GPtrArray *addrs;
+	gs_unref_ptrarray GPtrArray *addrs = NULL;
 	const char *gateway;
-	GVariant *ret;
 
-	g_object_get (setting, property, &addrs, NULL);
+	g_object_get (setting, NM_SETTING_IP_CONFIG_ADDRESSES, &addrs, NULL);
 	gateway = nm_setting_ip_config_get_gateway (NM_SETTING_IP_CONFIG (setting));
-	ret = nm_utils_ip6_addresses_to_variant (addrs, gateway);
-	g_ptr_array_unref (addrs);
-
-	return ret;
+	return nm_utils_ip6_addresses_to_variant (addrs, gateway);
 }
 
 static gboolean
@@ -360,7 +360,8 @@ ip6_address_data_get (const NMSettInfoSetting *sett_info,
                       guint property_idx,
                       NMConnection *connection,
                       NMSetting *setting,
-                      NMConnectionSerializationFlags flags)
+                      NMConnectionSerializationFlags flags,
+                      const NMConnectionSerializationOptions *options)
 {
 	gs_unref_ptrarray GPtrArray *addrs = NULL;
 
@@ -394,17 +395,17 @@ ip6_address_data_set (NMSetting  *setting,
 }
 
 static GVariant *
-ip6_routes_get (NMSetting  *setting,
-                const char *property)
+ip6_routes_get (const NMSettInfoSetting *sett_info,
+                guint property_idx,
+                NMConnection *connection,
+                NMSetting *setting,
+                NMConnectionSerializationFlags flags,
+                const NMConnectionSerializationOptions *options)
 {
-	GPtrArray *routes;
-	GVariant *ret;
+	gs_unref_ptrarray GPtrArray *routes = NULL;
 
-	g_object_get (setting, property, &routes, NULL);
-	ret = nm_utils_ip6_routes_to_variant (routes);
-	g_ptr_array_unref (routes);
-
-	return ret;
+	g_object_get (setting, NM_SETTING_IP_CONFIG_ROUTES, &routes, NULL);
+	return nm_utils_ip6_routes_to_variant (routes);
 }
 
 static gboolean
@@ -433,7 +434,8 @@ ip6_route_data_get (const NMSettInfoSetting *sett_info,
                     guint property_idx,
                     NMConnection *connection,
                     NMSetting *setting,
-                    NMConnectionSerializationFlags flags)
+                    NMConnectionSerializationFlags flags,
+                    const NMConnectionSerializationOptions *options)
 {
 	gs_unref_ptrarray GPtrArray *routes = NULL;
 
@@ -569,10 +571,11 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *klass)
 
 	/* ---ifcfg-rh---
 	 * property: method
-	 * variable: IPV6INIT, IPV6FORWARDING, IPV6_AUTOCONF, DHCPV6C
+	 * variable: IPV6INIT, IPV6FORWARDING, IPV6_AUTOCONF, DHCPV6C, IPV6_DISABLED
 	 * default:  IPV6INIT=yes; IPV6FORWARDING=no; IPV6_AUTOCONF=!IPV6FORWARDING, DHCPV6=no
 	 * description: Method used for IPv6 protocol configuration.
-	 *   ignore ~ IPV6INIT=no; auto ~ IPV6_AUTOCONF=yes; dhcp ~ IPV6_AUTOCONF=no and DHCPV6C=yes
+	 *   ignore ~ IPV6INIT=no; auto ~ IPV6_AUTOCONF=yes; dhcp ~ IPV6_AUTOCONF=no and DHCPV6C=yes;
+	 *   disabled ~ IPV6_DISABLED=yes
 	 * ---end---
 	 */
 
@@ -663,7 +666,7 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *klass)
 
 	/* ---ifcfg-rh---
 	 * property: dhcp-hostname
-	 * variable: DHCP_HOSTNAME
+	 * variable: DHCPV6_HOSTNAME
 	 * description: Hostname to send the DHCP server.
 	 * ---end---
 	 */

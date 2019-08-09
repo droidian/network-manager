@@ -22,8 +22,10 @@ cflags = nm_cflags
 sources = files(
   'dhcp/nm-dhcp-client.c',
   'dhcp/nm-dhcp-manager.c',
+  'dhcp/nm-dhcp-nettools.c',
   'dhcp/nm-dhcp-systemd.c',
   'dhcp/nm-dhcp-utils.c',
+  'dhcp/nm-dhcp-options.c',
   'ndisc/nm-lndp-ndisc.c',
   'ndisc/nm-ndisc.c',
   'platform/nm-netlink.c',
@@ -50,6 +52,7 @@ deps = [
   libsystemd_dep,
   libudev_dep,
   libnm_core_dep,
+  shared_n_dhcp4_dep,
 ]
 
 if enable_wext
@@ -100,7 +103,7 @@ sources = files(
   'dnsmasq/nm-dnsmasq-manager.c',
   'dnsmasq/nm-dnsmasq-utils.c',
   'ppp/nm-ppp-manager-call.c',
-  'settings/plugins/keyfile/nms-keyfile-connection.c',
+  'settings/plugins/keyfile/nms-keyfile-storage.c',
   'settings/plugins/keyfile/nms-keyfile-plugin.c',
   'settings/plugins/keyfile/nms-keyfile-reader.c',
   'settings/plugins/keyfile/nms-keyfile-utils.c',
@@ -110,6 +113,8 @@ sources = files(
   'settings/nm-settings.c',
   'settings/nm-settings-connection.c',
   'settings/nm-settings-plugin.c',
+  'settings/nm-settings-storage.c',
+  'settings/nm-settings-utils.c',
   'supplicant/nm-supplicant-config.c',
   'supplicant/nm-supplicant-interface.c',
   'supplicant/nm-supplicant-manager.c',

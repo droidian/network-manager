@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -293,6 +292,7 @@ typedef enum { /*< flags >*/
  * @NM_WIFI_DEVICE_CAP_FREQ_VALID: device reports frequency capabilities
  * @NM_WIFI_DEVICE_CAP_FREQ_2GHZ: device supports 2.4GHz frequencies
  * @NM_WIFI_DEVICE_CAP_FREQ_5GHZ: device supports 5GHz frequencies
+ * @NM_WIFI_DEVICE_CAP_MESH: device supports acting as a mesh point. Since: 1.20.
  *
  * 802.11 specific device encryption and authentication capabilities.
  **/
@@ -309,6 +309,7 @@ typedef enum { /*< flags >*/
 	NM_WIFI_DEVICE_CAP_FREQ_VALID    = 0x00000100,
 	NM_WIFI_DEVICE_CAP_FREQ_2GHZ     = 0x00000200,
 	NM_WIFI_DEVICE_CAP_FREQ_5GHZ     = 0x00000400,
+	NM_WIFI_DEVICE_CAP_MESH          = 0x00001000,
 } NMDeviceWifiCapabilities;
 
 /**
@@ -384,6 +385,7 @@ typedef enum { /*< underscore_name=nm_802_11_ap_security_flags, flags >*/
  *   provides connectivity to clients.
  * @NM_802_11_MODE_AP: the device is an access point/hotspot.  Not valid for
  *   access point objects; used only for hotspot mode on the local machine.
+ * @NM_802_11_MODE_MESH: the device is a 802.11s mesh point. Since: 1.20.
  *
  * Indicates the 802.11 mode an access point or device is currently in.
  **/
@@ -392,6 +394,7 @@ typedef enum { /*< underscore_name=nm_802_11_mode >*/
 	NM_802_11_MODE_ADHOC   = 1,
 	NM_802_11_MODE_INFRA   = 2,
 	NM_802_11_MODE_AP      = 3,
+	NM_802_11_MODE_MESH    = 4,
 } NM80211Mode;
 
 /**
@@ -670,7 +673,7 @@ typedef enum {
  * NMConnectionMultiConnect:
  * @NM_CONNECTION_MULTI_CONNECT_DEFAULT: indicates that the per-connection
  *   setting is unspecified. In this case, it will fallback to the default
- *   value, which is @NM_CONNECTION_MULTI_CONNECT_SINGLE.
+ *   value, which is %NM_CONNECTION_MULTI_CONNECT_SINGLE.
  * @NM_CONNECTION_MULTI_CONNECT_SINGLE: the connection profile can only
  *   be active once at each moment. Activating a profile that is already active,
  *   will first deactivate it.
@@ -1007,26 +1010,55 @@ typedef enum { /*< flags >*/
 } NMActivationStateFlags;
 
 /**
+ * NMSettingsAddConnection2Flags:
+ * @NM_SETTINGS_ADD_CONNECTION2_FLAG_NONE: an alias for numeric zero, no flags set.
+ * @NM_SETTINGS_ADD_CONNECTION2_FLAG_TO_DISK: to persist the connection to disk.
+ * @NM_SETTINGS_ADD_CONNECTION2_FLAG_IN_MEMORY: to make the connection in-memory only.
+ * @NM_SETTINGS_ADD_CONNECTION2_FLAG_BLOCK_AUTOCONNECT: usually, when the connection
+ *   has autoconnect enabled and gets added, it becomes eligible to autoconnect
+ *   right away. Setting this flag, disables autoconnect until the connection
+ *   is manually activated.
+ *
+ * Numeric flags for the "flags" argument of AddConnection2() D-Bus API.
+ *
+ * Since: 1.20
+ */
+typedef enum { /*< flags >*/
+	NM_SETTINGS_ADD_CONNECTION2_FLAG_NONE              = 0,
+	NM_SETTINGS_ADD_CONNECTION2_FLAG_TO_DISK           = 0x1,
+	NM_SETTINGS_ADD_CONNECTION2_FLAG_IN_MEMORY         = 0x2,
+	NM_SETTINGS_ADD_CONNECTION2_FLAG_BLOCK_AUTOCONNECT = 0x20,
+} NMSettingsAddConnection2Flags;
+
+/**
  * NMSettingsUpdate2Flags:
  * @NM_SETTINGS_UPDATE2_FLAG_NONE: an alias for numeric zero, no flags set.
  * @NM_SETTINGS_UPDATE2_FLAG_TO_DISK: to persist the connection to disk.
- * @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY: to make the connection in-memory only.
- *   If the connection was previously persistent, the corresponding file on disk
- *   is not deleted but merely the connection is decoupled from the file
- *   on disk. If you later delete an in-memory connection, the connection
- *   on disk will be deleted as well.
- * @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED: this is like @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY,
- *   but if the connection has a corresponding file on disk, the association between
- *   the connection and the file is forgotten but the file is not modified.
- *   The difference to %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY is if you later
- *   save the connection again to disk, a new file name will be chosen without
- *   overwriting the remaining file on disk. Also, if you delete the connection
- *   later, the file on disk will not be deleted.
- * @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY: this is like @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY,
- *   but if the connection has a corresponding file on disk, the file on
- *   disk will be deleted.
+ * @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY: makes the profile in-memory.
+ *   Note that such profiles are stored in keyfile format under /run.
+ *   If the file is already in-memory, the file in /run is updated in-place.
+ *   Otherwise, the previous storage for the profile is left unchanged
+ *   on disk, and the in-memory copy shadows it.
+ *   Note that the original filename of the previous persistent storage (if any)
+ *   is remembered. That means, when later persisting the profile again to disk,
+ *   the file on disk will be overwritten again.
+ *   Likewise, when finally deleting the profile, both the storage from /run
+ *   and persistent storage are deleted (or if the persistent storage does not
+ *   allow deletion, and nmmeta file is written to mark the UUID as deleted).
+ * @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED: this is almost the same
+ *   as %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY, with one difference: when later deleting
+ *   the profile, the original profile will not be deleted. Instead a nmmeta
+ *   file is written to /run to indicate that the profile is gone.
+ *   Note that if such a nmmeta tombstone file exists and hides a file in persistant
+ *   storage, then when re-adding the profile with the same UUID, then the original
+ *   storage is taken over again.
+ * @NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY: this is like %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY,
+ *   but if the connection has a corresponding file on persistent storage, the file
+ *   will be deleted right away. If the profile is later again persisted to disk,
+ *   a new, unused filename will be chosen.
  * @NM_SETTINGS_UPDATE2_FLAG_VOLATILE: This can be specified with either
- *   %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED or %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY.
+ *   %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY, %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED
+ *   or %NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY.
  *   After making the connection in-memory only, the connection is marked
  *   as volatile. That means, if the connection is currently not active
  *   it will be deleted right away. Otherwise, it is marked to for deletion
@@ -1037,6 +1069,13 @@ typedef enum { /*< flags >*/
  *   has autoconnect enabled and is modified, it becomes eligible to autoconnect
  *   right away. Setting this flag, disables autoconnect until the connection
  *   is manually activated.
+ * @NM_SETTINGS_UPDATE2_FLAG_NO_REAPPLY: when a profile gets modified that is
+ *   currently active, then these changes don't take effect for the active
+ *   device unless the profile gets reactivated or the configuration reapplied.
+ *   There are two exceptions: by default "connection.zone" and "connection.metered"
+ *   properties take effect immediately. Specify this flag to prevent these
+ *   properties to take effect, so that the change is restricted to modify
+ *   the profile. Since: 1.20.
  *
  * Since: 1.12
  */
@@ -1048,6 +1087,7 @@ typedef enum { /*< flags >*/
 	NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY             = 0x8,
 	NM_SETTINGS_UPDATE2_FLAG_VOLATILE                   = 0x10,
 	NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT          = 0x20,
+	NM_SETTINGS_UPDATE2_FLAG_NO_REAPPLY                 = 0x40,
 } NMSettingsUpdate2Flags;
 
 /**

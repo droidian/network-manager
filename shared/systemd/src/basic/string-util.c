@@ -6,7 +6,6 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdio_ext.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -207,10 +206,6 @@ char *strnappend(const char *s, const char *suffix, size_t b) {
         r[a+b] = 0;
 
         return r;
-}
-
-char *strappend(const char *s, const char *suffix) {
-        return strnappend(s, suffix, strlen_ptr(suffix));
 }
 
 #if 0 /* NM_IGNORED */
@@ -736,9 +731,17 @@ char *strreplace(const char *text, const char *old_string, const char *new_strin
         return ret;
 }
 
-static void advance_offsets(ssize_t diff, size_t offsets[static 2], size_t shift[static 2], size_t size) {
+#if 0 /* NM_IGNORED */
+static void advance_offsets(
+                ssize_t diff,
+                size_t offsets[2], /* note: we can't use [static 2] here, since this may be NULL */
+                size_t shift[static 2],
+                size_t size) {
+
         if (!offsets)
                 return;
+
+        assert(shift);
 
         if ((size_t) diff < offsets[0])
                 shift[0] += size;
@@ -767,22 +770,19 @@ char *strip_tab_ansi(char **ibuf, size_t *_isz, size_t highlight[2]) {
          * 2. Strips ANSI color sequences (a subset of CSI), i.e. ESC '[' … 'm' sequences
          * 3. Strips ANSI operating system sequences (CSO), i.e. ESC ']' … BEL sequences
          *
-         * Everything else will be left as it is. In particular other ANSI sequences are left as they are, as are any
-         * other special characters. Truncated ANSI sequences are left-as is too. This call is supposed to suppress the
-         * most basic formatting noise, but nothing else.
+         * Everything else will be left as it is. In particular other ANSI sequences are left as they are, as
+         * are any other special characters. Truncated ANSI sequences are left-as is too. This call is
+         * supposed to suppress the most basic formatting noise, but nothing else.
          *
          * Why care for CSO sequences? Well, to undo what terminal_urlify() and friends generate. */
 
         isz = _isz ? *_isz : strlen(*ibuf);
 
-        f = open_memstream(&obuf, &osz);
+        /* Note we turn off internal locking on f for performance reasons. It's safe to do so since we
+         * created f here and it doesn't leave our scope. */
+        f = open_memstream_unlocked(&obuf, &osz);
         if (!f)
                 return NULL;
-
-        /* Note we turn off internal locking on f for performance reasons.  It's safe to do so since we created f here
-         * and it doesn't leave our scope. */
-
-        (void) __fsetlocking(f, FSETLOCKING_BYCALLER);
 
         for (i = *ibuf; i < *ibuf + isz + 1; i++) {
 
@@ -858,8 +858,7 @@ char *strip_tab_ansi(char **ibuf, size_t *_isz, size_t highlight[2]) {
 
         fclose(f);
 
-        free(*ibuf);
-        *ibuf = obuf;
+        free_and_replace(*ibuf, obuf);
 
         if (_isz)
                 *_isz = osz;
@@ -869,10 +868,9 @@ char *strip_tab_ansi(char **ibuf, size_t *_isz, size_t highlight[2]) {
                 highlight[1] += shift[1];
         }
 
-        return obuf;
+        return *ibuf;
 }
 
-#if 0 /* NM_IGNORED */
 char *strextend_with_separator(char **x, const char *separator, ...) {
         bool need_separator;
         size_t f, l, l_separator;
@@ -1042,20 +1040,6 @@ int free_and_strndup(char **p, const char *s, size_t l) {
 
         free_and_replace(*p, t);
         return 1;
-}
-
-char* string_erase(char *x) {
-        if (!x)
-                return NULL;
-
-        /* A delicious drop of snake-oil! To be called on memory where
-         * we stored passphrases or so, after we used them. */
-        explicit_bzero_safe(x, strlen(x));
-        return x;
-}
-
-char *string_free_erase(char *s) {
-        return mfree(string_erase(s));
 }
 
 bool string_is_safe(const char *p) {

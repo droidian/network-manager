@@ -113,6 +113,7 @@
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.Connectivity" title='The "Connectivity" property'>Connectivity</a>                readable   u
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.ConnectivityCheckAvailable" title='The "ConnectivityCheckAvailable" property'>ConnectivityCheckAvailable</a>  readable   b
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.ConnectivityCheckEnabled" title='The "ConnectivityCheckEnabled" property'>ConnectivityCheckEnabled</a>    readwrite  b
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.ConnectivityCheckUri" title='The "ConnectivityCheckUri" property'>ConnectivityCheckUri</a>        readable   s
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.GlobalDnsConfiguration" title='The "GlobalDnsConfiguration" property'>GlobalDnsConfiguration</a>      readwrite  a{sv}
 </pre>
 </div>
@@ -1007,6 +1008,15 @@ ConnectivityCheckEnabled  readwrite  b
 <p>        Indicates whether connectivity checking is enabled.  This
         property can also be written to to disable connectivity
         checking (as a privacy control panel might want to do).
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-property-org-freedesktop-NetworkManager.ConnectivityCheckUri"></a><h3>The "ConnectivityCheckUri" property</h3>
+<pre class="programlisting">
+ConnectivityCheckUri  readable   s
+</pre>
+<p>        The URI that NetworkManager will hit to check if there is internet connectivity.
 </p>
 </div>
 <hr>

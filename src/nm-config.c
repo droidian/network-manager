@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -67,7 +66,7 @@ struct NMConfigCmdLineOptions {
 	 *
 	 * It is true, if NM is started the first time -- contrary to a restart
 	 * during the same boot up. That is determined by the content of the
-	 * /var/run/NetworManager state directory. */
+	 * /run/NetworManager state directory. */
 	bool first_start;
 };
 
@@ -99,8 +98,6 @@ typedef struct {
 	char *system_config_dir;
 	char *no_auto_default_file;
 	char *intern_config_file;
-
-	gboolean monitor_connection_files;
 
 	char *log_level;
 	char *log_domains;
@@ -313,14 +310,6 @@ nm_config_get_data_orig (NMConfig *config)
 	return NM_CONFIG_GET_PRIVATE (config)->config_data_orig;
 }
 
-gboolean
-nm_config_get_monitor_connection_files (NMConfig *config)
-{
-	g_return_val_if_fail (config != NULL, FALSE);
-
-	return NM_CONFIG_GET_PRIVATE (config)->monitor_connection_files;
-}
-
 const char *
 nm_config_get_log_level (NMConfig *config)
 {
@@ -360,47 +349,44 @@ nm_config_get_first_start (NMConfig *config)
 static char **
 no_auto_default_from_file (const char *no_auto_default_file)
 {
-	GPtrArray *no_auto_default_new;
-	char **list;
-	guint i;
-	char *data;
-
-	no_auto_default_new = g_ptr_array_new ();
+	gs_free char *data = NULL;
+	const char **list = NULL;
+	gsize i;
 
 	if (   no_auto_default_file
-	    && g_file_get_contents (no_auto_default_file, &data, NULL, NULL)) {
-		list = g_strsplit (data, "\n", -1);
-		for (i = 0; list[i]; i++) {
-			if (   *list[i]
-			    && nm_utils_hwaddr_valid (list[i], -1)
-			    && nm_utils_strv_find_first (list, i, list[i]) < 0)
-				g_ptr_array_add (no_auto_default_new, list[i]);
-			else
-				g_free (list[i]);
-		}
-		g_free (list);
-		g_free (data);
+	    && g_file_get_contents (no_auto_default_file, &data, NULL, NULL))
+		list = nm_utils_strsplit_set (data, "\n");
+
+	if (list) {
+		for (i = 0; list[i]; i++)
+			list[i] = nm_utils_str_utf8safe_unescape_cp (list[i]);
 	}
 
-	g_ptr_array_add (no_auto_default_new, NULL);
-	return (char **) g_ptr_array_free (no_auto_default_new, FALSE);
+	/* The returned buffer here is not at all compact. That means, it has additional
+	 * memory allocations and is larger than needed. That means, you should not keep
+	 * this result around, only process it further and free it. */
+	return (char **) list;
 }
 
 static gboolean
 no_auto_default_to_file (const char *no_auto_default_file, const char *const*no_auto_default, GError **error)
 {
-	GString *data;
-	gboolean success;
-	guint i;
+	nm_auto_free_gstring GString *data = NULL;
+	gsize i;
 
 	data = g_string_new ("");
 	for (i = 0; no_auto_default && no_auto_default[i]; i++) {
-		g_string_append (data, no_auto_default[i]);
+		gs_free char *s_to_free = NULL;
+		const char *s = no_auto_default[i];
+
+		s = nm_utils_str_utf8safe_escape (s,
+		                                    NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL
+		                                  | NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII,
+		                                  &s_to_free);
+		g_string_append (data, s);
 		g_string_append_c (data, '\n');
 	}
-	success = g_file_set_contents (no_auto_default_file, data->str, data->len, error);
-	g_string_free (data, TRUE);
-	return success;
+	return  g_file_set_contents (no_auto_default_file, data->str, data->len, error);
 }
 
 gboolean
@@ -424,44 +410,76 @@ nm_config_set_no_auto_default_for_device (NMConfig *self, NMDevice *device)
 	NMConfigPrivate *priv;
 	GError *error = NULL;
 	NMConfigData *new_data = NULL;
+	gs_free char *spec_to_free = NULL;
+	const char *ifname;
 	const char *hw_address;
+	const char *spec;
 	const char *const*no_auto_default_current;
-	GPtrArray *no_auto_default_new = NULL;
-	guint i;
+	gs_free const char **no_auto_default_new = NULL;
+	gboolean is_fake;
+	gsize len;
+	gssize idx;
 
 	g_return_if_fail (NM_IS_CONFIG (self));
 	g_return_if_fail (NM_IS_DEVICE (device));
 
 	priv = NM_CONFIG_GET_PRIVATE (self);
 
-	hw_address = nm_device_get_permanent_hw_address (device);
-	if (!hw_address)
+	hw_address = nm_device_get_permanent_hw_address_full (device, TRUE, &is_fake);
+
+	if (!hw_address) {
+		/* No MAC address, not even a fake one. We don't do anything for this device. */
 		return;
+	}
+
+	if (is_fake) {
+		/* A fake MAC address, no point in storing it to the file.
+		 * Also, nm_match_spec_device() would ignore fake MAC addresses.
+		 *
+		 * Instead, try the interface-name...  */
+		ifname = nm_device_get_ip_iface (device);
+		if (!nm_utils_is_valid_iface_name (ifname, NULL))
+			return;
+
+		spec_to_free = g_strdup_printf (NM_MATCH_SPEC_INTERFACE_NAME_TAG"=%s", ifname);
+		spec = spec_to_free;
+	} else
+		spec = hw_address;
 
 	no_auto_default_current = nm_config_data_get_no_auto_default (priv->config_data);
 
-	if (nm_utils_strv_find_first ((char **) no_auto_default_current, -1, hw_address) >= 0) {
-		/* @hw_address is already blocked. We don't have to update our in-memory representation.
+	len = NM_PTRARRAY_LEN (no_auto_default_current);
+
+	idx = nm_utils_ptrarray_find_binary_search ((gconstpointer *) no_auto_default_current,
+	                                            len,
+	                                            spec,
+	                                            nm_strcmp_with_data,
+	                                            NULL,
+	                                            NULL,
+	                                            NULL);
+	if (idx >= 0) {
+		/* @spec is already blocked. We don't have to update our in-memory representation.
 		 * Maybe we should write to no_auto_default_file anew, but let's save that too. */
 		return;
 	}
 
-	no_auto_default_new = g_ptr_array_new ();
-	for (i = 0; no_auto_default_current && no_auto_default_current[i]; i++)
-		g_ptr_array_add (no_auto_default_new, (char *) no_auto_default_current[i]);
-	g_ptr_array_add (no_auto_default_new, (char *) hw_address);
-	g_ptr_array_add (no_auto_default_new, NULL);
+	idx = ~idx;
 
-	if (!no_auto_default_to_file (priv->no_auto_default_file, (const char *const*) no_auto_default_new->pdata, &error)) {
+	no_auto_default_new = g_new (const char *, len + 2);
+	if (idx > 0)
+		memcpy (no_auto_default_new, no_auto_default_current, sizeof (const char *) * idx);
+	no_auto_default_new[idx] = spec;
+	if (idx < len)
+		memcpy (&no_auto_default_new[idx + 1], &no_auto_default_current[idx], sizeof (const char *) * (len - idx));
+	no_auto_default_new[len + 1] = NULL;
+
+	if (!no_auto_default_to_file (priv->no_auto_default_file, no_auto_default_new, &error)) {
 		_LOGW ("Could not update no-auto-default.state file: %s",
 		       error->message);
 		g_error_free (error);
 	}
 
-	new_data = nm_config_data_new_update_no_auto_default (priv->config_data, (const char *const*) no_auto_default_new->pdata);
-
-	/* unref no_auto_default_set here. Note that _set_config_data() probably invalidates the content of the array. */
-	g_ptr_array_unref (no_auto_default_new);
+	new_data = nm_config_data_new_update_no_auto_default (priv->config_data, no_auto_default_new);
 
 	_set_config_data (self, new_data, NM_CONFIG_CHANGE_CAUSE_NO_AUTO_DEFAULT);
 }
@@ -2187,6 +2205,7 @@ _nm_config_state_set (NMConfig *self,
 #define DEVICE_RUN_STATE_KEYFILE_KEY_DEVICE_ROUTE_METRIC_DEFAULT_ASPIRED   "route-metric-default-aspired"
 #define DEVICE_RUN_STATE_KEYFILE_KEY_DEVICE_ROUTE_METRIC_DEFAULT_EFFECTIVE "route-metric-default-effective"
 #define DEVICE_RUN_STATE_KEYFILE_KEY_DEVICE_ROOT_PATH           "root-path"
+#define DEVICE_RUN_STATE_KEYFILE_KEY_DEVICE_NEXT_SERVER         "next-server"
 
 NM_UTILS_LOOKUP_STR_DEFINE_STATIC (_device_state_managed_type_to_str, NMConfigDeviceStateManagedType,
 	NM_UTILS_LOOKUP_DEFAULT_NM_ASSERT ("unknown"),
@@ -2385,6 +2404,7 @@ nm_config_device_state_write (int ifindex,
                               int nm_owned,
                               guint32 route_metric_default_aspired,
                               guint32 route_metric_default_effective,
+                              const char *next_server,
                               const char *root_path)
 {
 	char path[NM_STRLEN (NM_CONFIG_DEVICE_STATE_DIR) + 60];
@@ -2439,6 +2459,12 @@ nm_config_device_state_write (int ifindex,
 			                      route_metric_default_aspired);
 		}
 	}
+	if (next_server) {
+		g_key_file_set_string (kf,
+		                       DEVICE_RUN_STATE_KEYFILE_GROUP_DEVICE,
+		                       DEVICE_RUN_STATE_KEYFILE_KEY_DEVICE_NEXT_SERVER,
+		                       next_server);
+	}
 	if (root_path) {
 		g_key_file_set_string (kf,
 		                       DEVICE_RUN_STATE_KEYFILE_GROUP_DEVICE,
@@ -2451,13 +2477,14 @@ nm_config_device_state_write (int ifindex,
 		g_error_free (local);
 		return FALSE;
 	}
-	_LOGT ("device-state: write #%d (%s); managed=%s%s%s%s%s%s%s, route-metric-default=%"G_GUINT32_FORMAT"-%"G_GUINT32_FORMAT"%s%s%s",
+	_LOGT ("device-state: write #%d (%s); managed=%s%s%s%s%s%s%s, route-metric-default=%"G_GUINT32_FORMAT"-%"G_GUINT32_FORMAT"%s%s%s%s%s%s",
 	       ifindex, path,
 	       _device_state_managed_type_to_str (managed),
 	       NM_PRINT_FMT_QUOTED (connection_uuid, ", connection-uuid=", connection_uuid, "", ""),
 	       NM_PRINT_FMT_QUOTED (perm_hw_addr_fake, ", perm-hw-addr-fake=", perm_hw_addr_fake, "", ""),
 	       route_metric_default_aspired,
 	       route_metric_default_effective,
+	       NM_PRINT_FMT_QUOTED (next_server, ", next-server=", next_server, "", ""),
 	       NM_PRINT_FMT_QUOTED (root_path, ", root-path=", root_path, "", ""));
 	return TRUE;
 }
@@ -2709,7 +2736,8 @@ nm_config_setup (const NMConfigCmdLineOptions *cli, char **atomic_section_prefix
 
 		/* usually, you would not see this logging line because when creating the
 		 * NMConfig instance, the logging is not yet set up to print debug message. */
-		nm_log_dbg (LOGD_CORE, "setup %s singleton (%p)", "NMConfig", singleton_instance);
+		nm_log_dbg (LOGD_CORE, "setup %s singleton ("NM_HASH_OBFUSCATE_PTR_FMT")",
+		            "NMConfig", NM_HASH_OBFUSCATE_PTR (singleton_instance));
 	}
 	return singleton_instance;
 }
@@ -2803,10 +2831,6 @@ init_sync (GInitable *initable, GCancellable *cancellable, GError **error)
 	else
 		priv->no_auto_default_file = g_strdup (DEFAULT_NO_AUTO_DEFAULT_FILE);
 
-	priv->monitor_connection_files = nm_config_keyfile_get_boolean (keyfile,
-	                                                                NM_CONFIG_KEYFILE_GROUP_MAIN,
-	                                                                NM_CONFIG_KEYFILE_KEY_MAIN_MONITOR_CONNECTION_FILES,
-	                                                                FALSE);
 	priv->log_level = nm_strstrip (g_key_file_get_string (keyfile,
 	                                                      NM_CONFIG_KEYFILE_GROUP_LOGGING,
 	                                                      NM_CONFIG_KEYFILE_KEY_LOGGING_LEVEL,

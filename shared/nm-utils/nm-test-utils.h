@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -710,18 +709,10 @@ nmtst_test_quick (void)
 
 #define NMTST_EXPECT(domain, level, msg)        g_test_expect_message (domain, level, msg)
 
-#if (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_UTIL
-#define NMTST_EXPECT_LIBNM_U(level, msg)        NMTST_EXPECT ("libnm-util", level, msg)
-#define NMTST_EXPECT_LIBNM_G(level, msg)        NMTST_EXPECT ("libnm-glib", level, msg)
-
-#define NMTST_EXPECT_LIBNM_U_CRITICAL(msg)      NMTST_EXPECT_LIBNM_U (G_LOG_LEVEL_CRITICAL, msg)
-#define NMTST_EXPECT_LIBNM_G_CRITICAL(msg)      NMTST_EXPECT_LIBNM_G (G_LOG_LEVEL_CRITICAL, msg)
-#else
 #define NMTST_EXPECT_LIBNM(level, msg)          NMTST_EXPECT ("libnm", level, msg)
 
 #define NMTST_EXPECT_LIBNM_WARNING(msg)         NMTST_EXPECT_LIBNM (G_LOG_LEVEL_WARNING, msg)
 #define NMTST_EXPECT_LIBNM_CRITICAL(msg)        NMTST_EXPECT_LIBNM (G_LOG_LEVEL_CRITICAL, msg)
-#endif
 
 /*****************************************************************************/
 
@@ -866,15 +857,22 @@ nmtst_get_rand (void)
 }
 
 static inline guint32
-nmtst_get_rand_int (void)
+nmtst_get_rand_uint32 (void)
 {
 	return g_rand_int (nmtst_get_rand ());
+}
+
+static inline guint
+nmtst_get_rand_uint (void)
+{
+	G_STATIC_ASSERT_EXPR (sizeof (guint32) == sizeof (guint));
+	return nmtst_get_rand_uint32 ();
 }
 
 static inline gboolean
 nmtst_get_rand_bool (void)
 {
-	return nmtst_get_rand_int () % 2;
+	return nmtst_get_rand_uint32 () % 2;
 }
 
 static inline gpointer
@@ -909,7 +907,7 @@ nmtst_rand_buf (GRand *rand, gpointer buffer, gsize buffer_length)
 	({ \
 		typeof (v0) NM_UNIQ_T (UNIQ, uniq)[1 + NM_NARG (__VA_ARGS__)] = { (v0), __VA_ARGS__ }; \
 		\
-		NM_UNIQ_T (UNIQ, uniq)[nmtst_get_rand_int () % G_N_ELEMENTS (NM_UNIQ_T (UNIQ, uniq))]; \
+		NM_UNIQ_T (UNIQ, uniq)[nmtst_get_rand_uint32 () % G_N_ELEMENTS (NM_UNIQ_T (UNIQ, uniq))]; \
 	})
 
 #define nmtst_rand_select(...) \
@@ -1935,6 +1933,69 @@ nmtst_assert_setting_verify_fails (NMSetting *setting,
 	g_clear_error (&error);
 }
 
+static inline void
+nmtst_assert_setting_is_equal (gconstpointer /* const NMSetting * */ a,
+                               gconstpointer /* const NMSetting * */ b,
+                               NMSettingCompareFlags flags)
+{
+	gs_unref_hashtable GHashTable *hash = NULL;
+	guint32 r = nmtst_get_rand_uint32 ();
+
+	g_assert (NM_IS_SETTING (a));
+	g_assert (NM_IS_SETTING (b));
+
+	if (NM_FLAGS_HAS (r, 0x4))
+		NMTST_SWAP (a, b);
+
+	g_assert (nm_setting_compare ((NMSetting *) a,
+	                              (NMSetting *) b,
+	                              flags));
+
+	if (NM_FLAGS_HAS (r, 0x8))
+		NMTST_SWAP (a, b);
+
+	g_assert (nm_setting_diff ((NMSetting *) a,
+	                           (NMSetting *) b,
+	                           flags,
+	                           NM_FLAGS_HAS (r, 0x1),
+	                           &hash));
+	g_assert (!hash);
+}
+#endif
+
+#ifdef __NM_SETTING_PRIVATE_H__
+static inline NMSetting *
+nmtst_assert_setting_dbus_new (GType gtype, GVariant *variant)
+{
+	NMSetting *setting;
+	gs_free_error GError *error = NULL;
+
+	g_assert (g_type_is_a (gtype, NM_TYPE_SETTING));
+	g_assert (gtype != NM_TYPE_SETTING);
+	g_assert (variant);
+	g_assert (g_variant_is_of_type (variant, NM_VARIANT_TYPE_SETTING));
+
+	setting = _nm_setting_new_from_dbus (gtype,
+	                                     variant,
+	                                     NULL,
+	                                     NM_SETTING_PARSE_FLAGS_STRICT,
+	                                     &error);
+	nmtst_assert_success (setting, error);
+	return setting;
+}
+
+static inline void
+nmtst_assert_setting_dbus_roundtrip (gconstpointer /* const NMSetting * */ setting)
+{
+	gs_unref_object NMSetting *setting2 = NULL;
+	gs_unref_variant GVariant *variant = NULL;
+
+	g_assert (NM_IS_SETTING (setting));
+
+	variant = _nm_setting_to_dbus ((NMSetting *) setting, NULL, NM_CONNECTION_SERIALIZE_ALL, NULL);
+	setting2 = nmtst_assert_setting_dbus_new (G_OBJECT_TYPE (setting), variant);
+	nmtst_assert_setting_is_equal (setting, setting2, NM_SETTING_COMPARE_FLAG_EXACT);
+}
 #endif
 
 #ifdef __NM_UTILS_H__
@@ -2147,6 +2208,25 @@ typedef enum {
 	} G_STMT_END
 
 #endif /* __NM_CONNECTION_H__ */
+
+static inline GVariant *
+nmtst_variant_from_string (const GVariantType *variant_type,
+                           const char *variant_str)
+{
+	GVariant *variant;
+	GError *error = NULL;
+
+	g_assert (variant_type);
+	g_assert (variant_str);
+
+	variant = g_variant_parse (variant_type,
+	                           variant_str,
+	                           NULL,
+	                           NULL,
+	                           &error);
+	nmtst_assert_success (variant, error);
+	return variant;
+}
 
 /*****************************************************************************/
 

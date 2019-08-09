@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,11 +19,6 @@
 
 #ifndef __NM_DISPACHER_API_H__
 #define __NM_DISPACHER_API_H__
-
-#define NMD_SCRIPT_DIR_DEFAULT  NMCONFDIR "/dispatcher.d"
-#define NMD_SCRIPT_DIR_PRE_UP   NMD_SCRIPT_DIR_DEFAULT "/pre-up.d"
-#define NMD_SCRIPT_DIR_PRE_DOWN NMD_SCRIPT_DIR_DEFAULT "/pre-down.d"
-#define NMD_SCRIPT_DIR_NO_WAIT  NMD_SCRIPT_DIR_DEFAULT "/no-wait.d"
 
 #define NM_DISPATCHER_DBUS_SERVICE   "org.freedesktop.nm_dispatcher"
 #define NM_DISPATCHER_DBUS_INTERFACE "org.freedesktop.nm_dispatcher"

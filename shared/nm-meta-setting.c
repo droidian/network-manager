@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -48,6 +46,7 @@
 #include "nm-setting-olpc-mesh.h"
 #include "nm-setting-ovs-bridge.h"
 #include "nm-setting-ovs-interface.h"
+#include "nm-setting-ovs-dpdk.h"
 #include "nm-setting-ovs-patch.h"
 #include "nm-setting-ovs-port.h"
 #include "nm-setting-ppp.h"
@@ -73,87 +72,96 @@
 /*****************************************************************************/
 
 const NMSetting8021xSchemeVtable nm_setting_8021x_scheme_vtable[] = {
-	[NM_SETTING_802_1X_SCHEME_TYPE_CA_CERT] = {
-		.setting_key            = NM_SETTING_802_1X_CA_CERT,
-		.scheme_func            = nm_setting_802_1x_get_ca_cert_scheme,
-		.format_func            = NULL,
-		.path_func              = nm_setting_802_1x_get_ca_cert_path,
-		.blob_func              = nm_setting_802_1x_get_ca_cert_blob,
-		.uri_func               = nm_setting_802_1x_get_ca_cert_uri,
-		.passwd_func            = nm_setting_802_1x_get_ca_cert_password,
-		.pwflag_func            = nm_setting_802_1x_get_ca_cert_password_flags,
-		.set_cert_func          = nm_setting_802_1x_set_ca_cert,
-		.file_suffix            = "ca-cert",
-	},
 
-	[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CA_CERT] = {
-		.setting_key            = NM_SETTING_802_1X_PHASE2_CA_CERT,
-		.scheme_func            = nm_setting_802_1x_get_phase2_ca_cert_scheme,
-		.format_func            = NULL,
-		.path_func              = nm_setting_802_1x_get_phase2_ca_cert_path,
-		.blob_func              = nm_setting_802_1x_get_phase2_ca_cert_blob,
-		.uri_func               = nm_setting_802_1x_get_phase2_ca_cert_uri,
-		.passwd_func            = nm_setting_802_1x_get_phase2_ca_cert_password,
-		.pwflag_func            = nm_setting_802_1x_get_phase2_ca_cert_password_flags,
-		.set_cert_func          = nm_setting_802_1x_set_phase2_ca_cert,
-		.file_suffix            = "inner-ca-cert",
-	},
+#define _D(_scheme_type, ...) \
+	[(_scheme_type)] = { \
+		.scheme_type = (_scheme_type), \
+		__VA_ARGS__ \
+	}
 
-	[NM_SETTING_802_1X_SCHEME_TYPE_CLIENT_CERT] = {
-		.setting_key            = NM_SETTING_802_1X_CLIENT_CERT,
-		.scheme_func            = nm_setting_802_1x_get_client_cert_scheme,
-		.format_func            = NULL,
-		.path_func              = nm_setting_802_1x_get_client_cert_path,
-		.blob_func              = nm_setting_802_1x_get_client_cert_blob,
-		.uri_func               = nm_setting_802_1x_get_client_cert_uri,
-		.passwd_func            = nm_setting_802_1x_get_client_cert_password,
-		.pwflag_func            = nm_setting_802_1x_get_client_cert_password_flags,
-		.set_cert_func          = nm_setting_802_1x_set_client_cert,
-		.file_suffix            = "client-cert",
-	},
+	_D (NM_SETTING_802_1X_SCHEME_TYPE_UNKNOWN),
 
-	[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CLIENT_CERT] = {
-		.setting_key            = NM_SETTING_802_1X_PHASE2_CLIENT_CERT,
-		.scheme_func            = nm_setting_802_1x_get_phase2_client_cert_scheme,
-		.format_func            = NULL,
-		.path_func              = nm_setting_802_1x_get_phase2_client_cert_path,
-		.blob_func              = nm_setting_802_1x_get_phase2_client_cert_blob,
-		.uri_func               = nm_setting_802_1x_get_phase2_client_cert_uri,
-		.passwd_func            = nm_setting_802_1x_get_phase2_client_cert_password,
-		.pwflag_func            = nm_setting_802_1x_get_phase2_client_cert_password_flags,
-		.set_cert_func          = nm_setting_802_1x_set_phase2_client_cert,
-		.file_suffix            = "inner-client-cert",
-	},
+	_D (NM_SETTING_802_1X_SCHEME_TYPE_CA_CERT,
+		.setting_key          = NM_SETTING_802_1X_CA_CERT,
+		.scheme_func          = nm_setting_802_1x_get_ca_cert_scheme,
+		.format_func          = NULL,
+		.path_func            = nm_setting_802_1x_get_ca_cert_path,
+		.blob_func            = nm_setting_802_1x_get_ca_cert_blob,
+		.uri_func             = nm_setting_802_1x_get_ca_cert_uri,
+		.passwd_func          = nm_setting_802_1x_get_ca_cert_password,
+		.pwflag_func          = nm_setting_802_1x_get_ca_cert_password_flags,
+		.set_cert_func        = nm_setting_802_1x_set_ca_cert,
+		.file_suffix          = "ca-cert",
+	),
 
-	[NM_SETTING_802_1X_SCHEME_TYPE_PRIVATE_KEY] = {
-		.setting_key            = NM_SETTING_802_1X_PRIVATE_KEY,
-		.scheme_func            = nm_setting_802_1x_get_private_key_scheme,
-		.format_func            = nm_setting_802_1x_get_private_key_format,
-		.path_func              = nm_setting_802_1x_get_private_key_path,
-		.blob_func              = nm_setting_802_1x_get_private_key_blob,
-		.uri_func               = nm_setting_802_1x_get_private_key_uri,
-		.passwd_func            = nm_setting_802_1x_get_private_key_password,
-		.pwflag_func            = nm_setting_802_1x_get_private_key_password_flags,
-		.set_private_key_func   = nm_setting_802_1x_set_private_key,
-		.file_suffix            = "private-key",
-		.is_secret              = TRUE,
-	},
+	_D (NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CA_CERT,
+		.setting_key          = NM_SETTING_802_1X_PHASE2_CA_CERT,
+		.scheme_func          = nm_setting_802_1x_get_phase2_ca_cert_scheme,
+		.format_func          = NULL,
+		.path_func            = nm_setting_802_1x_get_phase2_ca_cert_path,
+		.blob_func            = nm_setting_802_1x_get_phase2_ca_cert_blob,
+		.uri_func             = nm_setting_802_1x_get_phase2_ca_cert_uri,
+		.passwd_func          = nm_setting_802_1x_get_phase2_ca_cert_password,
+		.pwflag_func          = nm_setting_802_1x_get_phase2_ca_cert_password_flags,
+		.set_cert_func        = nm_setting_802_1x_set_phase2_ca_cert,
+		.file_suffix          = "inner-ca-cert",
+	),
 
-	[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_PRIVATE_KEY] = {
-		.setting_key            = NM_SETTING_802_1X_PHASE2_PRIVATE_KEY,
-		.scheme_func            = nm_setting_802_1x_get_phase2_private_key_scheme,
-		.format_func            = nm_setting_802_1x_get_phase2_private_key_format,
-		.path_func              = nm_setting_802_1x_get_phase2_private_key_path,
-		.blob_func              = nm_setting_802_1x_get_phase2_private_key_blob,
-		.uri_func               = nm_setting_802_1x_get_phase2_private_key_uri,
-		.passwd_func            = nm_setting_802_1x_get_phase2_private_key_password,
-		.pwflag_func            = nm_setting_802_1x_get_phase2_private_key_password_flags,
-		.set_private_key_func   = nm_setting_802_1x_set_phase2_private_key,
-		.file_suffix            = "inner-private-key",
-		.is_secret              = TRUE,
-	},
+	_D (NM_SETTING_802_1X_SCHEME_TYPE_CLIENT_CERT,
+		.setting_key          = NM_SETTING_802_1X_CLIENT_CERT,
+		.scheme_func          = nm_setting_802_1x_get_client_cert_scheme,
+		.format_func          = NULL,
+		.path_func            = nm_setting_802_1x_get_client_cert_path,
+		.blob_func            = nm_setting_802_1x_get_client_cert_blob,
+		.uri_func             = nm_setting_802_1x_get_client_cert_uri,
+		.passwd_func          = nm_setting_802_1x_get_client_cert_password,
+		.pwflag_func          = nm_setting_802_1x_get_client_cert_password_flags,
+		.set_cert_func        = nm_setting_802_1x_set_client_cert,
+		.file_suffix          = "client-cert",
+	),
 
-	[NM_SETTING_802_1X_SCHEME_TYPE_UNKNOWN] = { NULL },
+	_D (NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CLIENT_CERT,
+		.setting_key          = NM_SETTING_802_1X_PHASE2_CLIENT_CERT,
+		.scheme_func          = nm_setting_802_1x_get_phase2_client_cert_scheme,
+		.format_func          = NULL,
+		.path_func            = nm_setting_802_1x_get_phase2_client_cert_path,
+		.blob_func            = nm_setting_802_1x_get_phase2_client_cert_blob,
+		.uri_func             = nm_setting_802_1x_get_phase2_client_cert_uri,
+		.passwd_func          = nm_setting_802_1x_get_phase2_client_cert_password,
+		.pwflag_func          = nm_setting_802_1x_get_phase2_client_cert_password_flags,
+		.set_cert_func        = nm_setting_802_1x_set_phase2_client_cert,
+		.file_suffix          = "inner-client-cert",
+	),
+
+	_D (NM_SETTING_802_1X_SCHEME_TYPE_PRIVATE_KEY,
+		.setting_key          = NM_SETTING_802_1X_PRIVATE_KEY,
+		.scheme_func          = nm_setting_802_1x_get_private_key_scheme,
+		.format_func          = nm_setting_802_1x_get_private_key_format,
+		.path_func            = nm_setting_802_1x_get_private_key_path,
+		.blob_func            = nm_setting_802_1x_get_private_key_blob,
+		.uri_func             = nm_setting_802_1x_get_private_key_uri,
+		.passwd_func          = nm_setting_802_1x_get_private_key_password,
+		.pwflag_func          = nm_setting_802_1x_get_private_key_password_flags,
+		.set_private_key_func = nm_setting_802_1x_set_private_key,
+		.file_suffix          = "private-key",
+		.is_secret            = TRUE,
+	),
+
+	_D (NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_PRIVATE_KEY,
+		.setting_key          = NM_SETTING_802_1X_PHASE2_PRIVATE_KEY,
+		.scheme_func          = nm_setting_802_1x_get_phase2_private_key_scheme,
+		.format_func          = nm_setting_802_1x_get_phase2_private_key_format,
+		.path_func            = nm_setting_802_1x_get_phase2_private_key_path,
+		.blob_func            = nm_setting_802_1x_get_phase2_private_key_blob,
+		.uri_func             = nm_setting_802_1x_get_phase2_private_key_uri,
+		.passwd_func          = nm_setting_802_1x_get_phase2_private_key_password,
+		.pwflag_func          = nm_setting_802_1x_get_phase2_private_key_password_flags,
+		.set_private_key_func = nm_setting_802_1x_set_phase2_private_key,
+		.file_suffix          = "inner-private-key",
+		.is_secret            = TRUE,
+	),
+
+#undef _D
 };
 
 /*****************************************************************************/
@@ -296,6 +304,12 @@ const NMMetaSettingInfo nm_meta_setting_infos[] = {
 		.setting_priority =         NM_SETTING_PRIORITY_HW_BASE,
 		.setting_name =             NM_SETTING_OVS_BRIDGE_SETTING_NAME,
 		.get_setting_gtype =        nm_setting_ovs_bridge_get_type,
+	},
+	[NM_META_SETTING_TYPE_OVS_DPDK] = {
+		.meta_type =                NM_META_SETTING_TYPE_OVS_DPDK,
+		.setting_priority =         NM_SETTING_PRIORITY_HW_BASE,
+		.setting_name =             NM_SETTING_OVS_DPDK_SETTING_NAME,
+		.get_setting_gtype =        nm_setting_ovs_dpdk_get_type,
 	},
 	[NM_META_SETTING_TYPE_OVS_INTERFACE] = {
 		.meta_type =                NM_META_SETTING_TYPE_OVS_INTERFACE,

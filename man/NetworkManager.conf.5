@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 04/21/2019
+.\"      Date: 08/06/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.18.0
+.\"    Source: NetworkManager 1.20.0
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.18\&.0" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.20\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -120,17 +120,7 @@ plugin is always appended to the end of this list (if it doesn\*(Aqt already app
 .PP
 \fImonitor\-connection\-files\fR
 .RS 4
-Whether the configured settings plugin(s) should set up file monitors and immediately pick up changes made to connection files while NetworkManager is running\&. This is disabled by default; NetworkManager will only read the connection files at startup, and when explicitly requested via the ReloadConnections D\-Bus call\&. If this key is set to \*(Aqtrue\*(Aq, then NetworkManager will reload connection files any time they changed\&. Automatic reloading is not advised because there are race conditions involved and it depends on the way how the editor updates the file\&. In some situations, NetworkManager might first delete and add the connection anew, instead of updating the existing one\&. Also, NetworkManager might pick up incomplete settings while the user is still editing the files\&.
-.sp
-Note that neither this setting nor restarting the NetworkManager daemon is the advised way to reload connection profiles from disk\&. Instead, after modifying the files reload them with
-\fBnmcli connection reload\fR
-or
-\fBnmcli connection load "$FILENAME"\fR\&. Even better, instead of modifying files directly, use NetworkManager tools like
-\fBnmcli\fR,
-\fBnmtui\fR
-or the GUI\&.
-.sp
-This setting is deprecated and will have no effect in the future\&.
+This setting is deprecated and has no effect\&.
 .RE
 .PP
 \fIauth\-polkit\fR
@@ -248,13 +238,13 @@ default: NetworkManager will update
 /etc/resolv\&.conf
 to reflect the nameservers provided by currently active connections\&.
 .sp
-dnsmasq: NetworkManager will run dnsmasq as a local caching nameserver, using a "split DNS" configuration if you are connected to a VPN, and then update
+dnsmasq: NetworkManager will run dnsmasq as a local caching nameserver, using "Conditional Forwarding" if you are connected to a VPN, and then update
 resolv\&.conf
 to point to the local nameserver\&. It is possible to pass custom options to the dnsmasq instance by adding them to files in the "/etc/NetworkManager/dnsmasq\&.d/" directory\&. Note that when multiple upstream servers are available, dnsmasq will initially contact them in parallel and then use the fastest to respond, probing again other servers after some time\&. This behavior can be modified passing the \*(Aqall\-servers\*(Aq or \*(Aqstrict\-order\*(Aq options to dnsmasq (see the manual page for more details)\&.
 .sp
 systemd\-resolved: NetworkManager will push the DNS configuration to systemd\-resolved
 .sp
-unbound: NetworkManager will talk to unbound and dnssec\-triggerd, providing a "split DNS" configuration with DNSSEC support\&.
+unbound: NetworkManager will talk to unbound and dnssec\-triggerd, using "Conditional Forwarding" with DNSSEC support\&.
 /etc/resolv\&.conf
 will be managed by dnssec\-trigger daemon\&.
 .sp
@@ -1164,18 +1154,7 @@ plugin instead\&.
 .PP
 \fIibft\fR, \fIno\-ibft\fR
 .RS 4
-This plugin allows to read iBFT configuration (iSCSI Boot Firmware Table)\&. The configuration is read using
-/sbin/iscsiadm\&. Users are expected to configure iBFT connections via the firmware interfaces\&. If ibft support is available, it is automatically enabled after
-ifcfg\-rh\&. This can be disabled by
-no\-ibft\&. You can also explicitly specify
-ibft
-to load the plugin without
-ifcfg\-rh
-or to change the plugin order\&.
-.sp
-Note that ibft plugin uses
-/sbin/iscsiadm
-and thus requires CAP_SYS_ADMIN capability\&.
+These plugins are deprecated and their selection has no effect\&. This is now handled by nm\-initrd\-generator\&.
 .RE
 .PP
 \fIifcfg\-suse\fR, \fIifnet\fR

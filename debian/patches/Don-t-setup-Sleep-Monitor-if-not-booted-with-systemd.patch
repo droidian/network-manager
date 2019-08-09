@@ -15,11 +15,11 @@ Closes: #742933
  src/nm-sleep-monitor.c | 5 +++++
  1 file changed, 5 insertions(+)
 
-Index: network-manager-1.15.91/src/nm-sleep-monitor.c
-===================================================================
---- network-manager-1.15.91.orig/src/nm-sleep-monitor.c
-+++ network-manager-1.15.91/src/nm-sleep-monitor.c
-@@ -23,6 +23,7 @@
+diff --git a/src/nm-sleep-monitor.c b/src/nm-sleep-monitor.c
+index c97f6f7..5ea0a64 100644
+--- a/src/nm-sleep-monitor.c
++++ b/src/nm-sleep-monitor.c
+@@ -22,6 +22,7 @@
  
  #include <sys/stat.h>
  #include <gio/gunixfdlist.h>
@@ -27,7 +27,7 @@ Index: network-manager-1.15.91/src/nm-sleep-monitor.c
  
  #include "nm-core-internal.h"
  #include "NetworkManagerUtils.h"
-@@ -342,6 +343,10 @@ on_proxy_acquired (GObject *object,
+@@ -341,6 +342,10 @@ on_proxy_acquired (GObject *object,
  static void
  nm_sleep_monitor_init (NMSleepMonitor *self)
  {

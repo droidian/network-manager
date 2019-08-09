@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* nm-platform.c - Handle runtime kernel networking configuration
  *
  * This program is free software; you can redistribute it and/or modify
@@ -457,7 +456,7 @@ _test_recv_fixture_setup (TestRecvFixture *fixture, gconstpointer user_data)
 
 	fixture->ifindex = link->ifindex;
 	fixture->fd = nm_steal_fd (&fd);
-	memcpy (fixture->mac, link->addr.data, ETH_ALEN);
+	memcpy (fixture->mac, link->l_address.data, ETH_ALEN);
 }
 
 typedef struct {

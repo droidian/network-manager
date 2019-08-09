@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.18.2.2.1"></a><p class="title"><b>Table 83. </b></p>
+<a name="id-1.3.3.18.2.2.1"></a><p class="title"><b>Table 84. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -68,7 +68,7 @@
 <tr>
 <td><pre class="screen">addresses</pre></td>
 <td><pre class="screen">array of legacy IPv6 address struct (a(ayuay))</pre></td>
-<td><pre class="screen">[]</pre></td>
+<td><pre class="screen"></pre></td>
 <td>Deprecated in favor of the 'address-data' and 'gateway' properties, but this can be used for backward-compatibility with older daemons. Note that if you send this property the daemon will ignore 'address-data' and 'gateway'.  Array of IPv6 address structures.  Each IPv6 address structure is composed of an IPv6 address, a prefix length (1 - 128), and an IPv6 gateway address. The gateway may be zeroed out if no gateway exists for that subnet.</td>
 </tr>
 <tr>
@@ -104,25 +104,25 @@
 <tr>
 <td><pre class="screen">dns</pre></td>
 <td><pre class="screen">array of byte array</pre></td>
-<td><pre class="screen">[]</pre></td>
+<td><pre class="screen"></pre></td>
 <td>Array of IP addresses of DNS servers (in network byte order)</td>
 </tr>
 <tr>
 <td><pre class="screen">dns-options</pre></td>
 <td><pre class="screen">array of string</pre></td>
-<td><pre class="screen">[]</pre></td>
+<td><pre class="screen"></pre></td>
 <td>Array of DNS options as described in man 5 resolv.conf. NULL means that the options are unset and left at the default. In this case NetworkManager will use default options. This is distinct from an empty list of properties.</td>
 </tr>
 <tr>
 <td><pre class="screen">dns-priority</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">0</pre></td>
-<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports split-DNS as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
+<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
 </tr>
 <tr>
 <td><pre class="screen">dns-search</pre></td>
 <td><pre class="screen">array of string</pre></td>
-<td><pre class="screen">[]</pre></td>
+<td><pre class="screen"></pre></td>
 <td>Array of DNS search domains. Domains starting with a tilde ('~') are considered 'routing' domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names.</td>
 </tr>
 <tr>
@@ -159,7 +159,7 @@
 <td><pre class="screen">method</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td>IP configuration method. NMSettingIP4Config and NMSettingIP6Config both support "auto", "manual", and "link-local". See the subclass-specific documentation for other values. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration.  The "ignore-auto-routes" and "ignore-auto-dns" properties modify this behavior. For methods that imply no upstream network, such as "shared" or "link-local", these properties must be empty. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10.42.x.0/24 is chosen. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared.</td>
+<td>IP configuration method. NMSettingIP4Config and NMSettingIP6Config both support "disabled", "auto", "manual", and "link-local". See the subclass-specific documentation for other values. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration.  The "ignore-auto-routes" and "ignore-auto-dns" properties modify this behavior. For methods that imply no upstream network, such as "shared" or "link-local", these properties must be empty. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10.42.x.0/24 is chosen. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared.</td>
 </tr>
 <tr>
 <td><pre class="screen">never-default</pre></td>
@@ -188,7 +188,7 @@
 <tr>
 <td><pre class="screen">routes</pre></td>
 <td><pre class="screen">array of legacy IPv6 route struct (a(ayuayu))</pre></td>
-<td><pre class="screen">[]</pre></td>
+<td><pre class="screen"></pre></td>
 <td>Deprecated in favor of the 'route-data' property, but this can be used for backward-compatibility with older daemons. Note that if you send this property the daemon will ignore 'route-data'.  Array of IPv6 route structures.  Each IPv6 route structure is composed of an IPv6 address, a prefix length (1 - 128), an IPv6 next hop address (which may be zeroed out if there is no next hop), and a metric. If the metric is 0, NM will choose an appropriate default metric for the device.</td>
 </tr>
 <tr>

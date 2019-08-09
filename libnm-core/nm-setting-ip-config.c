@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1212,25 +1210,22 @@ nm_ip_route_set_attribute (NMIPRoute *route, const char *name, GVariant *value)
 		g_hash_table_remove (route->attributes, name);
 }
 
-#define ATTR_SPEC_PTR(name, type, v4, v6, str_type) \
-	&(NMVariantAttributeSpec) { name, type, v4, v6, FALSE, FALSE, str_type }
-
-static const NMVariantAttributeSpec * const ip_route_attribute_spec[] = {
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_TABLE,           G_VARIANT_TYPE_UINT32,   TRUE,  TRUE,  0 ),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_SRC,             G_VARIANT_TYPE_STRING,   TRUE,  TRUE, 'a'),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_FROM,            G_VARIANT_TYPE_STRING,   FALSE, TRUE, 'p'),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_TOS,             G_VARIANT_TYPE_BYTE,     TRUE,  FALSE, 0 ),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_ONLINK,          G_VARIANT_TYPE_BOOLEAN,  TRUE,  TRUE,  0 ),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_WINDOW,          G_VARIANT_TYPE_UINT32,   TRUE,  TRUE,  0 ),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_CWND,            G_VARIANT_TYPE_UINT32,   TRUE,  TRUE,  0 ),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_INITCWND,        G_VARIANT_TYPE_UINT32,   TRUE,  TRUE,  0 ),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_INITRWND,        G_VARIANT_TYPE_UINT32,   TRUE,  TRUE,  0 ),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_MTU,             G_VARIANT_TYPE_UINT32,   TRUE,  TRUE,  0 ),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW,     G_VARIANT_TYPE_BOOLEAN,  TRUE,  TRUE,  0 ),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_LOCK_CWND,       G_VARIANT_TYPE_BOOLEAN,  TRUE,  TRUE,  0 ),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND,   G_VARIANT_TYPE_BOOLEAN,  TRUE,  TRUE,  0 ),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_LOCK_INITRWND,   G_VARIANT_TYPE_BOOLEAN,  TRUE,  TRUE,  0 ),
-	ATTR_SPEC_PTR (NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU,        G_VARIANT_TYPE_BOOLEAN,  TRUE,  TRUE,  0 ),
+static const NMVariantAttributeSpec *const ip_route_attribute_spec[] = {
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_TABLE,         G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_SRC,           G_VARIANT_TYPE_STRING,  .v4 = TRUE, .v6 = TRUE, .str_type = 'a', ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_FROM,          G_VARIANT_TYPE_STRING,              .v6 = TRUE, .str_type = 'p', ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_TOS,           G_VARIANT_TYPE_BYTE,    .v4 = TRUE,                              ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_ONLINK,        G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_WINDOW,        G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_CWND,          G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_INITCWND,      G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_INITRWND,      G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_MTU,           G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW,   G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_LOCK_CWND,     G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND, G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_LOCK_INITRWND, G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU,      G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
 	NULL,
 };
 
@@ -1397,6 +1392,7 @@ struct NMIPRoutingRule {
 	guint ref_count;
 	guint32 priority;
 	guint32 table;
+	gint32 suppress_prefixlength;
 	guint32 fwmark;
 	guint32 fwmask;
 	guint16 sport_start;
@@ -1477,10 +1473,11 @@ nm_ip_routing_rule_new (int addr_family)
 
 	self = g_slice_new (NMIPRoutingRule);
 	*self = (NMIPRoutingRule) {
-		.ref_count    = 1,
-		.is_v4        = (addr_family == AF_INET),
-		.action       = FR_ACT_TO_TBL,
-		.table        = RT_TABLE_MAIN,
+		.ref_count             = 1,
+		.is_v4                 = (addr_family == AF_INET),
+		.action                = FR_ACT_TO_TBL,
+		.table                 = RT_TABLE_MAIN,
+		.suppress_prefixlength = -1,
 	};
 	return self;
 }
@@ -1504,50 +1501,52 @@ nm_ip_routing_rule_new_clone (const NMIPRoutingRule *rule)
 
 	self = g_slice_new (NMIPRoutingRule);
 	*self = (NMIPRoutingRule) {
-		.ref_count    = 1,
-		.sealed       = FALSE,
-		.is_v4        = rule->is_v4,
+		.ref_count             = 1,
+		.sealed                = FALSE,
+		.is_v4                 = rule->is_v4,
 
-		.priority     = rule->priority,
-		.priority_has = rule->priority_has,
+		.priority              = rule->priority,
+		.priority_has          = rule->priority_has,
 
-		.invert       = rule->invert,
+		.invert                = rule->invert,
 
-		.tos          = rule->tos,
+		.tos                   = rule->tos,
 
-		.fwmark       = rule->fwmark,
-		.fwmask       = rule->fwmask,
+		.fwmark                = rule->fwmark,
+		.fwmask                = rule->fwmask,
 
-		.sport_start  = rule->sport_start,
-		.sport_end    = rule->sport_end,
-		.dport_start  = rule->dport_start,
-		.dport_end    = rule->dport_end,
+		.sport_start           = rule->sport_start,
+		.sport_end             = rule->sport_end,
+		.dport_start           = rule->dport_start,
+		.dport_end             = rule->dport_end,
 
-		.ipproto      = rule->ipproto,
+		.ipproto               = rule->ipproto,
 
-		.from_len     = rule->from_len,
-		.from_bin     = rule->from_bin,
-		.from_str     =   (   rule->from_has
-		                   && !rule->from_valid)
-		                ? g_strdup (rule->from_str)
-		                : NULL,
-		.from_has     = rule->from_has,
-		.from_valid   = rule->from_valid,
+		.from_len              = rule->from_len,
+		.from_bin              = rule->from_bin,
+		.from_str              =   (   rule->from_has
+		                            && !rule->from_valid)
+		                         ? g_strdup (rule->from_str)
+		                         : NULL,
+		.from_has              = rule->from_has,
+		.from_valid            = rule->from_valid,
 
-		.to_len       = rule->to_len,
-		.to_bin       = rule->to_bin,
-		.to_str       =   (   rule->to_has
-		                   && !rule->to_valid)
-		                ? g_strdup (rule->to_str)
-		                : NULL,
-		.to_has       = rule->to_has,
-		.to_valid     = rule->to_valid,
+		.to_len                = rule->to_len,
+		.to_bin                = rule->to_bin,
+		.to_str                =   (   rule->to_has
+		                            && !rule->to_valid)
+		                         ? g_strdup (rule->to_str)
+		                         : NULL,
+		.to_has                = rule->to_has,
+		.to_valid              = rule->to_valid,
 
-		.iifname      = g_strdup (rule->iifname),
-		.oifname      = g_strdup (rule->oifname),
+		.iifname               = g_strdup (rule->iifname),
+		.oifname               = g_strdup (rule->oifname),
 
-		.action       = rule->action,
-		.table        = rule->table,
+		.action                = rule->action,
+		.table                 = rule->table,
+
+		.suppress_prefixlength = rule->suppress_prefixlength,
 	};
 	return self;
 }
@@ -1628,7 +1627,7 @@ nm_ip_routing_rule_is_sealed (const NMIPRoutingRule *self)
  * @self: the #NMIPRoutingRule instance
  *
  * Seals the routing rule. Afterwards, the instance can no longer be
- * modfied, and it is a bug to call any of the accessors that would
+ * modified, and it is a bug to call any of the accessors that would
  * modify the rule. If @self was already sealed, this has no effect.
  *
  * Since: 1.18
@@ -2215,7 +2214,7 @@ nm_ip_routing_rule_get_xifname_bin (const NMIPRoutingRule *self,
  * The name supports C backslash escaping for non-UTF-8 characters.
  * Note that nm_ip_routing_rule_from_string() too uses backslash
  * escaping when tokenizing the words by whitespace. So, in string
- * representation you'd get double backslashs.
+ * representation you'd get double backslashes.
  *
  * Since: 1.18
  */
@@ -2252,7 +2251,7 @@ nm_ip_routing_rule_get_oifname (const NMIPRoutingRule *self)
  * The name supports C backslash escaping for non-UTF-8 characters.
  * Note that nm_ip_routing_rule_from_string() too uses backslash
  * escaping when tokenizing the words by whitespace. So, in string
- * representation you'd get double backslashs.
+ * representation you'd get double backslashes.
  *
  * Since: 1.18
  */
@@ -2331,6 +2330,38 @@ nm_ip_routing_rule_set_table (NMIPRoutingRule *self, guint32 table)
 }
 
 /**
+ * nm_ip_routing_rule_get_suppress_prefixlength:
+ * @self: the #NMIPRoutingRule instance
+ *
+ * Returns: the suppress_prefixlength of the rule. -1 means that the value is unset.
+ *
+ * Since: 1.20
+ */
+gint32
+nm_ip_routing_rule_get_suppress_prefixlength (const NMIPRoutingRule *self)
+{
+	g_return_val_if_fail (NM_IS_IP_ROUTING_RULE (self, TRUE), -1);
+
+	return self->suppress_prefixlength;
+}
+
+/**
+ * nm_ip_routing_rule_set_suppress_prefixlength:
+ * @self: the #NMIPRoutingRule instance
+ * @suppress_prefixlength: the suppress_prefixlength to set. The value -1 means
+ *   unset.
+ *
+ * Since: 1.20
+ */
+void
+nm_ip_routing_rule_set_suppress_prefixlength (NMIPRoutingRule *self, gint32 suppress_prefixlength)
+{
+	g_return_if_fail (NM_IS_IP_ROUTING_RULE (self, FALSE));
+
+	self->suppress_prefixlength = suppress_prefixlength;
+}
+
+/**
  * nm_ip_routing_rule_cmp:
  * @rule: (allow-none): the #NMIPRoutingRule instance to compare
  * @other: (allow-none): the other #NMIPRoutingRule instance to compare
@@ -2365,6 +2396,8 @@ nm_ip_routing_rule_cmp (const NMIPRoutingRule *rule,
 	NM_CMP_FIELD (rule, other, action);
 
 	NM_CMP_FIELD (rule, other, table);
+
+	NM_CMP_FIELD (rule, other, suppress_prefixlength);
 
 	NM_CMP_FIELD (rule, other, sport_start);
 	NM_CMP_FIELD (rule, other, sport_end);
@@ -2576,6 +2609,20 @@ nm_ip_routing_rule_validate (const NMIPRoutingRule *self,
 		return FALSE;
 	}
 
+	if (self->suppress_prefixlength != -1) {
+		if (   self->suppress_prefixlength < -1
+		    || self->suppress_prefixlength > (self->is_v4 ? 32 : 128)) {
+			g_set_error_literal (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
+			                     _("suppress_prefixlength out of range"));
+			return FALSE;
+		}
+		if (self->action != FR_ACT_TO_TBL) {
+			g_set_error_literal (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
+			                     _("suppress_prefixlength is only allowed with the to-table action"));
+			return FALSE;
+		}
+	}
+
 	return TRUE;
 }
 
@@ -2598,6 +2645,7 @@ typedef enum {
 	RR_DBUS_ATTR_SPORT_END,
 	RR_DBUS_ATTR_SPORT_START,
 	RR_DBUS_ATTR_TABLE,
+	RR_DBUS_ATTR_SUPPRESS_PREFIXLENGTH,
 	RR_DBUS_ATTR_TO,
 	RR_DBUS_ATTR_TOS,
 	RR_DBUS_ATTR_TO_LEN,
@@ -2612,25 +2660,26 @@ typedef struct {
 
 static const RRDbusData rr_dbus_data[_RR_DBUS_ATTR_NUM] = {
 #define _D(attr, _name, type) [attr] = { .name = _name, .dbus_type = type, }
-	_D (RR_DBUS_ATTR_ACTION,      NM_IP_ROUTING_RULE_ATTR_ACTION,      G_VARIANT_TYPE_BYTE),
-	_D (RR_DBUS_ATTR_DPORT_END,   NM_IP_ROUTING_RULE_ATTR_DPORT_END,   G_VARIANT_TYPE_UINT16),
-	_D (RR_DBUS_ATTR_DPORT_START, NM_IP_ROUTING_RULE_ATTR_DPORT_START, G_VARIANT_TYPE_UINT16),
-	_D (RR_DBUS_ATTR_FAMILY,      NM_IP_ROUTING_RULE_ATTR_FAMILY,      G_VARIANT_TYPE_INT32),
-	_D (RR_DBUS_ATTR_FROM,        NM_IP_ROUTING_RULE_ATTR_FROM,        G_VARIANT_TYPE_STRING),
-	_D (RR_DBUS_ATTR_FROM_LEN,    NM_IP_ROUTING_RULE_ATTR_FROM_LEN,    G_VARIANT_TYPE_BYTE),
-	_D (RR_DBUS_ATTR_FWMARK,      NM_IP_ROUTING_RULE_ATTR_FWMARK,      G_VARIANT_TYPE_UINT32),
-	_D (RR_DBUS_ATTR_FWMASK,      NM_IP_ROUTING_RULE_ATTR_FWMASK,      G_VARIANT_TYPE_UINT32),
-	_D (RR_DBUS_ATTR_IIFNAME,     NM_IP_ROUTING_RULE_ATTR_IIFNAME,     G_VARIANT_TYPE_STRING),
-	_D (RR_DBUS_ATTR_INVERT,      NM_IP_ROUTING_RULE_ATTR_INVERT,      G_VARIANT_TYPE_BOOLEAN),
-	_D (RR_DBUS_ATTR_IPPROTO,     NM_IP_ROUTING_RULE_ATTR_IPPROTO,     G_VARIANT_TYPE_BYTE),
-	_D (RR_DBUS_ATTR_OIFNAME,     NM_IP_ROUTING_RULE_ATTR_OIFNAME,     G_VARIANT_TYPE_STRING),
-	_D (RR_DBUS_ATTR_PRIORITY,    NM_IP_ROUTING_RULE_ATTR_PRIORITY,    G_VARIANT_TYPE_UINT32),
-	_D (RR_DBUS_ATTR_SPORT_END,   NM_IP_ROUTING_RULE_ATTR_SPORT_END,   G_VARIANT_TYPE_UINT16),
-	_D (RR_DBUS_ATTR_SPORT_START, NM_IP_ROUTING_RULE_ATTR_SPORT_START, G_VARIANT_TYPE_UINT16),
-	_D (RR_DBUS_ATTR_TABLE,       NM_IP_ROUTING_RULE_ATTR_TABLE,       G_VARIANT_TYPE_UINT32),
-	_D (RR_DBUS_ATTR_TO,          NM_IP_ROUTING_RULE_ATTR_TO,          G_VARIANT_TYPE_STRING),
-	_D (RR_DBUS_ATTR_TOS,         NM_IP_ROUTING_RULE_ATTR_TOS,         G_VARIANT_TYPE_BYTE),
-	_D (RR_DBUS_ATTR_TO_LEN,      NM_IP_ROUTING_RULE_ATTR_TO_LEN,      G_VARIANT_TYPE_BYTE),
+	_D (RR_DBUS_ATTR_ACTION,                NM_IP_ROUTING_RULE_ATTR_ACTION,                G_VARIANT_TYPE_BYTE),
+	_D (RR_DBUS_ATTR_DPORT_END,             NM_IP_ROUTING_RULE_ATTR_DPORT_END,             G_VARIANT_TYPE_UINT16),
+	_D (RR_DBUS_ATTR_DPORT_START,           NM_IP_ROUTING_RULE_ATTR_DPORT_START,           G_VARIANT_TYPE_UINT16),
+	_D (RR_DBUS_ATTR_FAMILY,                NM_IP_ROUTING_RULE_ATTR_FAMILY,                G_VARIANT_TYPE_INT32),
+	_D (RR_DBUS_ATTR_FROM,                  NM_IP_ROUTING_RULE_ATTR_FROM,                  G_VARIANT_TYPE_STRING),
+	_D (RR_DBUS_ATTR_FROM_LEN,              NM_IP_ROUTING_RULE_ATTR_FROM_LEN,              G_VARIANT_TYPE_BYTE),
+	_D (RR_DBUS_ATTR_FWMARK,                NM_IP_ROUTING_RULE_ATTR_FWMARK,                G_VARIANT_TYPE_UINT32),
+	_D (RR_DBUS_ATTR_FWMASK,                NM_IP_ROUTING_RULE_ATTR_FWMASK,                G_VARIANT_TYPE_UINT32),
+	_D (RR_DBUS_ATTR_IIFNAME,               NM_IP_ROUTING_RULE_ATTR_IIFNAME,               G_VARIANT_TYPE_STRING),
+	_D (RR_DBUS_ATTR_INVERT,                NM_IP_ROUTING_RULE_ATTR_INVERT,                G_VARIANT_TYPE_BOOLEAN),
+	_D (RR_DBUS_ATTR_IPPROTO,               NM_IP_ROUTING_RULE_ATTR_IPPROTO,               G_VARIANT_TYPE_BYTE),
+	_D (RR_DBUS_ATTR_OIFNAME,               NM_IP_ROUTING_RULE_ATTR_OIFNAME,               G_VARIANT_TYPE_STRING),
+	_D (RR_DBUS_ATTR_PRIORITY,              NM_IP_ROUTING_RULE_ATTR_PRIORITY,              G_VARIANT_TYPE_UINT32),
+	_D (RR_DBUS_ATTR_SPORT_END,             NM_IP_ROUTING_RULE_ATTR_SPORT_END,             G_VARIANT_TYPE_UINT16),
+	_D (RR_DBUS_ATTR_SPORT_START,           NM_IP_ROUTING_RULE_ATTR_SPORT_START,           G_VARIANT_TYPE_UINT16),
+	_D (RR_DBUS_ATTR_SUPPRESS_PREFIXLENGTH, NM_IP_ROUTING_RULE_ATTR_SUPPRESS_PREFIXLENGTH, G_VARIANT_TYPE_INT32),
+	_D (RR_DBUS_ATTR_TABLE,                 NM_IP_ROUTING_RULE_ATTR_TABLE,                 G_VARIANT_TYPE_UINT32),
+	_D (RR_DBUS_ATTR_TO,                    NM_IP_ROUTING_RULE_ATTR_TO,                    G_VARIANT_TYPE_STRING),
+	_D (RR_DBUS_ATTR_TOS,                   NM_IP_ROUTING_RULE_ATTR_TOS,                   G_VARIANT_TYPE_BYTE),
+	_D (RR_DBUS_ATTR_TO_LEN,                NM_IP_ROUTING_RULE_ATTR_TO_LEN,                G_VARIANT_TYPE_BYTE),
 #undef _D
 };
 
@@ -2793,6 +2842,9 @@ nm_ip_routing_rule_from_dbus (GVariant *variant,
 	if (variants[RR_DBUS_ATTR_TABLE])
 		nm_ip_routing_rule_set_table (self, g_variant_get_uint32 (variants[RR_DBUS_ATTR_TABLE]));
 
+	if (variants[RR_DBUS_ATTR_SUPPRESS_PREFIXLENGTH])
+		nm_ip_routing_rule_set_suppress_prefixlength (self, g_variant_get_int32 (variants[RR_DBUS_ATTR_SUPPRESS_PREFIXLENGTH]));
+
 	if (   strict
 	    && !nm_ip_routing_rule_validate (self, error))
 		return NULL;
@@ -2894,6 +2946,9 @@ nm_ip_routing_rule_to_dbus (const NMIPRoutingRule *self)
 	if (self->table != 0)
 		_rr_to_dbus_add (&builder, RR_DBUS_ATTR_TABLE, g_variant_new_uint32 (self->table));
 
+	if (self->suppress_prefixlength != -1)
+		_rr_to_dbus_add (&builder, RR_DBUS_ATTR_SUPPRESS_PREFIXLENGTH, g_variant_new_int32 (self->suppress_prefixlength));
+
 	return g_variant_builder_end (&builder);;
 }
 
@@ -2970,6 +3025,7 @@ nm_ip_routing_rule_from_string (const char *str,
 	gint64 i64_fwmask = -1;
 	gint64 i64_sport_start = -1;
 	gint64 i64_ipproto = -1;
+	gint64 i64_suppress_prefixlength = -1;
 	guint16 sport_end = 0;
 	gint64 i64_dport_start = -1;
 	guint16 dport_end = 0;
@@ -2997,7 +3053,8 @@ nm_ip_routing_rule_from_string (const char *str,
 	 *   Of course, valid rules can be converted to string and read back the same (round-trip).
 	 *
 	 * - iproute2 in may regards is flexible about the command lines. For example
-	 *   - for tables it accepts table names from /etc/iproute2/rt_tables
+	 *   - for tables it accepts table names from /etc/iproute2/rt_tables. We only
+	 *     accept the special aliases "main", "local", and "default".
 	 *   - key names like "preference" can be abbreviated to "prefe", we don't do that.
 	 *   - the "preference"/"priority" may be unspecified, in which kernel automatically
 	 *     chooses an unused priority (during `ip rule add`). We don't allow for that, the
@@ -3077,8 +3134,16 @@ nm_ip_routing_rule_from_string (const char *str,
 			if (i64_table != -1)
 				goto next_fail_word0_duplicate_key;
 			i64_table = _nm_utils_ascii_str_to_int64 (word1, 0, 1, G_MAXUINT32, -1);
-			if (i64_table == -1)
-				goto next_fail_word1_invalid_value;
+			if (i64_table == -1) {
+				if (nm_streq (word1, "main"))
+					i64_table = RT_TABLE_MAIN;
+				else if (nm_streq (word1, "local"))
+					i64_table = RT_TABLE_LOCAL;
+				else if (nm_streq (word1, "default"))
+					i64_table = RT_TABLE_DEFAULT;
+				else
+					goto next_fail_word1_invalid_value;
+			}
 			goto next_words_consumed;
 		}
 		if (NM_IN_STRSET (word0, "tos",
@@ -3154,6 +3219,17 @@ nm_ip_routing_rule_from_string (const char *str,
 			if (word_oifname)
 				goto next_fail_word0_duplicate_key;
 			word_oifname = word1;
+			goto next_words_consumed;
+		}
+		if (NM_IN_STRSET (word0, "suppress_prefixlength",
+		                         "sup_pl")) {
+			if (!word1)
+				continue;
+			if (i64_suppress_prefixlength != -1)
+				goto next_fail_word0_duplicate_key;
+			i64_suppress_prefixlength = _nm_utils_ascii_str_to_int64 (word1, 0, 0, G_MAXINT32, -1);;
+			if (i64_suppress_prefixlength == -1)
+				goto next_fail_word1_invalid_value;
 			goto next_words_consumed;
 		}
 
@@ -3248,6 +3324,9 @@ next_words_consumed:
 
 	if (i64_dport_start != -1)
 		nm_ip_routing_rule_set_destination_port (self, i64_dport_start, dport_end);
+
+	if (i64_suppress_prefixlength != -1)
+		nm_ip_routing_rule_set_suppress_prefixlength (self, i64_suppress_prefixlength);
 
 	if (   val_from_len > 0
 	    || (   val_from_len == 0
@@ -3483,6 +3562,12 @@ nm_ip_routing_rule_to_string (const NMIPRoutingRule *self,
 		g_string_append_printf (nm_gstring_add_space_delimiter (str),
 		                        "table %u",
 		                        (guint) self->table);
+	}
+
+	if (self->suppress_prefixlength != -1) {
+		g_string_append_printf (nm_gstring_add_space_delimiter (str),
+		                        "suppress_prefixlength %d",
+		                        (int) self->suppress_prefixlength);
 	}
 
 	return g_string_free (g_steal_pointer (&str), FALSE);
@@ -4555,7 +4640,8 @@ _routing_rules_dbus_only_synth (const NMSettInfoSetting *sett_info,
                                 guint property_idx,
                                 NMConnection *connection,
                                 NMSetting *setting,
-                                NMConnectionSerializationFlags flags)
+                                NMConnectionSerializationFlags flags,
+                                const NMConnectionSerializationOptions *options)
 {
 	NMSettingIPConfig *self = NM_SETTING_IP_CONFIG (setting);
 	NMSettingIPConfigPrivate *priv;
@@ -4969,8 +5055,10 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 static NMTernary
 compare_property (const NMSettInfoSetting *sett_info,
                   guint property_idx,
-                  NMSetting *setting,
-                  NMSetting *other,
+                  NMConnection *con_a,
+                  NMSetting *set_a,
+                  NMConnection *con_b,
+                  NMSetting *set_b,
                   NMSettingCompareFlags flags)
 {
 	NMSettingIPConfigPrivate *a_priv;
@@ -4978,9 +5066,9 @@ compare_property (const NMSettInfoSetting *sett_info,
 	guint i;
 
 	if (nm_streq (sett_info->property_infos[property_idx].name, NM_SETTING_IP_CONFIG_ADDRESSES)) {
-		if (other) {
-			a_priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (setting);
-			b_priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (other);
+		if (set_b) {
+			a_priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (set_a);
+			b_priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (set_b);
 
 			if (a_priv->addresses->len != b_priv->addresses->len)
 				return FALSE;
@@ -4993,9 +5081,9 @@ compare_property (const NMSettInfoSetting *sett_info,
 	}
 
 	if (nm_streq (sett_info->property_infos[property_idx].name, NM_SETTING_IP_CONFIG_ROUTES)) {
-		if (other) {
-			a_priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (setting);
-			b_priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (other);
+		if (set_b) {
+			a_priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (set_a);
+			b_priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (set_b);
 
 			if (a_priv->routes->len != b_priv->routes->len)
 				return FALSE;
@@ -5008,11 +5096,11 @@ compare_property (const NMSettInfoSetting *sett_info,
 	}
 
 	if (nm_streq (sett_info->property_infos[property_idx].name, NM_SETTING_IP_CONFIG_ROUTING_RULES)) {
-		if (other) {
+		if (set_b) {
 			guint n;
 
-			a_priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (setting);
-			b_priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (other);
+			a_priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (set_a);
+			b_priv = NM_SETTING_IP_CONFIG_GET_PRIVATE (set_b);
 
 			n = (a_priv->routing_rules) ? a_priv->routing_rules->len : 0u;
 			if (n != (b_priv->routing_rules ? b_priv->routing_rules->len : 0u))
@@ -5027,8 +5115,10 @@ compare_property (const NMSettInfoSetting *sett_info,
 
 	return NM_SETTING_CLASS (nm_setting_ip_config_parent_class)->compare_property (sett_info,
 	                                                                               property_idx,
-	                                                                               setting,
-	                                                                               other,
+	                                                                               con_a,
+	                                                                               set_a,
+	                                                                               con_b,
+	                                                                               set_b,
 	                                                                               flags);
 }
 
@@ -5377,9 +5467,9 @@ nm_setting_ip_config_class_init (NMSettingIPConfigClass *klass)
 	 *
 	 * IP configuration method.
 	 *
-	 * #NMSettingIP4Config and #NMSettingIP6Config both support "auto",
-	 * "manual", and "link-local". See the subclass-specific documentation for
-	 * other values.
+	 * #NMSettingIP4Config and #NMSettingIP6Config both support "disabled",
+	 * "auto", "manual", and "link-local". See the subclass-specific
+	 * documentation for other values.
 	 *
 	 * In general, for the "auto" method, properties such as
 	 * #NMSettingIPConfig:dns and #NMSettingIPConfig:routes specify information
@@ -5467,7 +5557,7 @@ nm_setting_ip_config_class_init (NMSettingIPConfigClass *klass)
 	 * so in presence of at least a negative priority, only DNS servers from
 	 * connections with the lowest priority value will be used.
 	 *
-	 * When using a DNS resolver that supports split-DNS as dns=dnsmasq or
+	 * When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or
 	 * dns=systemd-resolved, each connection is used to query domains in its
 	 * search list.  Queries for domains not present in any search list are
 	 * routed through connections having the '~.' special wildcard domain, which

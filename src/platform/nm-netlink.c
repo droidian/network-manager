@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* nm-platform.c - Handle runtime kernel networking configuration
  *
  * This program is free software; you can redistribute it and/or modify
@@ -510,7 +509,7 @@ nla_nest_start (struct nl_msg *msg, int attrtype)
 {
 	struct nlattr *start = (struct nlattr *) nlmsg_tail (msg->nm_nlh);
 
-	if (nla_put (msg, attrtype, 0, NULL) < 0)
+	if (nla_put (msg, NLA_F_NESTED | attrtype, 0, NULL) < 0)
 		return NULL;
 
 	return start;

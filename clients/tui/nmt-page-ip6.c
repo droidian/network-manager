@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -40,6 +39,7 @@ static NmtNewtPopupEntry ip6methods[] = {
 	{ N_("Automatic (DHCP-only)"), NM_SETTING_IP6_CONFIG_METHOD_DHCP },
 	{ N_("Link-Local"), NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL },
 	{ N_("Manual"), NM_SETTING_IP6_CONFIG_METHOD_MANUAL },
+	{ N_("Disabled"), NM_SETTING_IP6_CONFIG_METHOD_DISABLED },
 	{ NULL, NULL }
 };
 

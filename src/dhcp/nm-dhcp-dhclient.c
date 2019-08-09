@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* nm-dhcp-dhclient.c - dhclient specific hooks for NetworkManager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -376,7 +375,7 @@ dhclient_start (NMDhcpClient *client,
 	iface = nm_dhcp_client_get_iface (client);
 	uuid = nm_dhcp_client_get_uuid (client);
 
-	pid_file = g_strdup_printf (RUNSTATEDIR "/dhclient%s-%s.pid",
+	pid_file = g_strdup_printf (NMRUNDIR "/dhclient%s-%s.pid",
 	                            _addr_family_to_path_part (addr_family),
 	                            iface);
 

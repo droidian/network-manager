@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This library is free software; you can redistribute it and/or
@@ -59,5 +58,9 @@ gboolean nm_utils_file_set_contents (const char *filename,
                                      gssize length,
                                      mode_t mode,
                                      GError **error);
+
+struct stat;
+
+int nm_utils_file_stat (const char *filename, struct stat *out_st);
 
 #endif /* __NM_IO_UTILS_H__ */

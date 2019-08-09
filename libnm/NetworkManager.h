@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -87,6 +86,7 @@
 #include "nm-setting-olpc-mesh.h"
 #include "nm-setting-ovs-bridge.h"
 #include "nm-setting-ovs-interface.h"
+#include "nm-setting-ovs-dpdk.h"
 #include "nm-setting-ovs-patch.h"
 #include "nm-setting-ovs-port.h"
 #include "nm-setting-wifi-p2p.h"

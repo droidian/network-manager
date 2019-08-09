@@ -25,8 +25,7 @@
 #include <gio/gunixsocketaddress.h>
 
 #include "nm-glib-aux/nm-jansson.h"
-#include "devices/nm-device.h"
-#include "platform/nm-platform.h"
+#include "nm-core-utils.h"
 #include "nm-core-internal.h"
 
 /*****************************************************************************/
@@ -58,7 +57,7 @@ typedef struct {
 enum {
 	DEVICE_ADDED,
 	DEVICE_REMOVED,
-	DEVICE_CHANGED,
+	INTERFACE_FAILED,
 	LAST_SIGNAL
 };
 
@@ -341,6 +340,7 @@ _insert_interface (json_t *params, NMConnection *interface)
 {
 	const char *type = NULL;
 	NMSettingOvsInterface *s_ovs_iface;
+	NMSettingOvsDpdk *s_ovs_dpdk;
 	NMSettingOvsPatch *s_ovs_patch;
 	json_t *options = json_array ();
 
@@ -349,11 +349,20 @@ _insert_interface (json_t *params, NMConnection *interface)
 		type = nm_setting_ovs_interface_get_interface_type (s_ovs_iface);
 
 	json_array_append_new (options, json_string ("map"));
-	s_ovs_patch = nm_connection_get_setting_ovs_patch (interface);
-	if (s_ovs_patch) {
+
+	s_ovs_dpdk = (NMSettingOvsDpdk *) nm_connection_get_setting (interface,
+	                                                             NM_TYPE_SETTING_OVS_DPDK);
+	if (!s_ovs_dpdk)
+		s_ovs_patch = nm_connection_get_setting_ovs_patch (interface);
+
+	if (s_ovs_dpdk) {
 		json_array_append_new (options, json_pack ("[[s, s]]",
-		                                       "peer",
-		                                        nm_setting_ovs_patch_get_peer (s_ovs_patch)));
+		                                           "dpdk-devargs",
+		                                           nm_setting_ovs_dpdk_get_devargs (s_ovs_dpdk)));
+	} else if (s_ovs_patch) {
+		json_array_append_new (options, json_pack ("[[s, s]]",
+		                                           "peer",
+		                                           nm_setting_ovs_patch_get_peer (s_ovs_patch)));
 	} else {
 		json_array_append_new (options, json_array ());
 	}
@@ -436,6 +445,7 @@ _insert_bridge (json_t *params, NMConnection *bridge, json_t *new_ports)
 	gboolean mcast_snooping_enable = FALSE;
 	gboolean rstp_enable = FALSE;
 	gboolean stp_enable = FALSE;
+	const char *datapath_type = NULL;
 	json_t *row;
 
 	s_ovs_bridge = nm_connection_get_setting_ovs_bridge (bridge);
@@ -447,6 +457,7 @@ _insert_bridge (json_t *params, NMConnection *bridge, json_t *new_ports)
 		mcast_snooping_enable = nm_setting_ovs_bridge_get_mcast_snooping_enable (s_ovs_bridge);
 		rstp_enable = nm_setting_ovs_bridge_get_rstp_enable (s_ovs_bridge);
 		stp_enable = nm_setting_ovs_bridge_get_stp_enable (s_ovs_bridge);
+		datapath_type = nm_setting_ovs_bridge_get_datapath_type (s_ovs_bridge);
 	}
 
 	if (fail_mode)
@@ -457,6 +468,8 @@ _insert_bridge (json_t *params, NMConnection *bridge, json_t *new_ports)
 		json_object_set_new (row, "rstp_enable", json_boolean (rstp_enable));
 	if (stp_enable)
 		json_object_set_new (row, "stp_enable", json_boolean (stp_enable));
+	if (datapath_type)
+		json_object_set_new (row, "datapath_type", json_string (datapath_type));
 
 	json_object_set_new (row, "name", json_string (nm_connection_get_interface_name (bridge)));
 	json_object_set_new (row, "ports", json_pack ("[s, O]", "set", new_ports));
@@ -534,9 +547,14 @@ _add_interface (NMOvsdb *self, json_t *params,
 
 			json_array_append_new (ports, json_pack ("[s, s]", "uuid", port_uuid));
 
-			if (   g_strcmp0 (ovs_port->name, nm_connection_get_interface_name (port)) != 0
-			    || g_strcmp0 (ovs_port->connection_uuid, nm_connection_get_uuid (port)) != 0)
+			if (!ovs_port) {
+				/* This would be a violation of ovsdb's reference integrity (a bug). */
+				_LOGW ("Unknown port '%s' in bridge '%s'", port_uuid, bridge_uuid);
 				continue;
+			} else if (   strcmp (ovs_port->name, nm_connection_get_interface_name (port)) != 0
+			           || g_strcmp0 (ovs_port->connection_uuid, nm_connection_get_uuid (port)) != 0) {
+				continue;
+			}
 
 			for (ii = 0; ii < ovs_port->interfaces->len; ii++) {
 				interface_uuid = g_ptr_array_index (ovs_port->interfaces, ii);
@@ -544,9 +562,13 @@ _add_interface (NMOvsdb *self, json_t *params,
 
 				json_array_append_new (interfaces, json_pack ("[s, s]", "uuid", interface_uuid));
 
-				if (   g_strcmp0 (ovs_interface->name, nm_connection_get_interface_name (interface)) == 0
-				    && g_strcmp0 (ovs_interface->connection_uuid, nm_connection_get_uuid (interface)) == 0)
+				if (!ovs_interface) {
+					/* This would be a violation of ovsdb's reference integrity (a bug). */
+					_LOGW ("Unknown interface '%s' in port '%s'", interface_uuid, port_uuid);
+				} else if (   strcmp (ovs_interface->name, nm_connection_get_interface_name (interface)) == 0
+				           && g_strcmp0 (ovs_interface->connection_uuid, nm_connection_get_uuid (interface)) == 0) {
 					has_interface = TRUE;
+				}
 			}
 
 			break;
@@ -642,16 +664,27 @@ _delete_interface (NMOvsdb *self, json_t *params, const char *ifname)
 
 			interfaces_changed = FALSE;
 
+			if (!ovs_port) {
+				/* This would be a violation of ovsdb's reference integrity (a bug). */
+				_LOGW ("Unknown port '%s' in bridge '%s'", port_uuid, bridge_uuid);
+				continue;
+			}
+
 			for (ii = 0; ii < ovs_port->interfaces->len; ii++) {
 				interface_uuid = g_ptr_array_index (ovs_port->interfaces, ii);
 				ovs_interface = g_hash_table_lookup (priv->interfaces, interface_uuid);
 
 				json_array_append_new (interfaces, json_pack ("[s,s]", "uuid", interface_uuid));
 
-				if (strcmp (ovs_interface->name, ifname) == 0) {
-					/* skip the interface */
-					interfaces_changed = TRUE;
-					continue;
+				if (ovs_interface) {
+					if (strcmp (ovs_interface->name, ifname) == 0) {
+						/* skip the interface */
+						interfaces_changed = TRUE;
+						continue;
+					}
+				} else {
+					/* This would be a violation of ovsdb's reference integrity (a bug). */
+					_LOGW ("Unknown interface '%s' in port '%s'", interface_uuid, port_uuid);
 				}
 
 				json_array_append_new (new_interfaces, json_pack ("[s,s]", "uuid", interface_uuid));
@@ -718,14 +751,14 @@ ovsdb_next_command (NMOvsdb *self)
 		msg = json_pack ("{s:i, s:s, s:[s, n, {"
 		                 "  s:[{s:[s, s, s]}],"
 		                 "  s:[{s:[s, s, s]}],"
-		                 "  s:[{s:[s, s, s]}],"
+		                 "  s:[{s:[s, s, s, s]}],"
 		                 "  s:[{s:[]}]"
 		                 "}]}",
 		                 "id", call->id,
 		                 "method", "monitor", "params", "Open_vSwitch",
 		                 "Bridge", "columns", "name", "ports", "external_ids",
 		                 "Port", "columns", "name", "interfaces", "external_ids",
-		                 "Interface", "columns", "name", "type", "external_ids",
+		                 "Interface", "columns", "name", "type", "external_ids", "error",
 		                 "Open_vSwitch", "columns");
 		break;
 	case OVSDB_ADD_INTERFACE:
@@ -864,21 +897,25 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 
 	/* Interfaces */
 	json_object_foreach (interface, key, value) {
+		json_t *error = NULL;
 		gboolean old = FALSE;
 		gboolean new = FALSE;
 
 		if (json_unpack (value, "{s:{}}", "old") == 0)
 			old = TRUE;
 
-		if (json_unpack (value, "{s:{s:s, s:s, s:o}}", "new",
+		if (json_unpack (value, "{s:{s:s, s:s, s?:o, s:o}}", "new",
 		                 "name", &name,
 		                 "type", &type,
+		                 "error", &error,
 		                 "external_ids", &external_ids) == 0)
 			new = TRUE;
 
 		if (old) {
 			ovs_interface = g_hash_table_lookup (priv->interfaces, key);
-			if (!new || g_strcmp0 (ovs_interface->name, name) != 0) {
+			if (!ovs_interface) {
+				_LOGW ("Interface '%s' was not seen", key);
+			} else if (!new || strcmp (ovs_interface->name, name) != 0) {
 				old = FALSE;
 				_LOGT ("removed an '%s' interface: %s%s%s",
 				       ovs_interface->type, ovs_interface->name,
@@ -899,12 +936,11 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 			ovs_interface->name = g_strdup (name);
 			ovs_interface->type = g_strdup (type);
 			ovs_interface->connection_uuid = _connection_uuid_from_external_ids (external_ids);
+			g_hash_table_insert (priv->interfaces, g_strdup (key), ovs_interface);
 			if (old) {
 				_LOGT ("changed an '%s' interface: %s%s%s", type, ovs_interface->name,
 				       ovs_interface->connection_uuid ? ", " : "",
 				       ovs_interface->connection_uuid ?: "");
-				g_signal_emit (self, signals[DEVICE_CHANGED], 0,
-				               "ovs-interface", ovs_interface->name);
 			} else {
 				_LOGT ("added an '%s' interface: %s%s%s",
 				       ovs_interface->type, ovs_interface->name,
@@ -917,7 +953,14 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 					               ovs_interface->name, NM_DEVICE_TYPE_OVS_INTERFACE);
 				}
 			}
-			g_hash_table_insert (priv->interfaces, g_strdup (key), ovs_interface);
+			/* The error is a string. No error is indicated by an empty set,
+			 * because why the fuck not: [ "set": [] ] */
+			if (error && json_is_string (error)) {
+				g_signal_emit (self, signals[INTERFACE_FAILED], 0,
+				               ovs_interface->name,
+				               ovs_interface->connection_uuid,
+				               json_string_value (error));
+			}
 		}
 	}
 
@@ -954,12 +997,11 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 			ovs_port->connection_uuid = _connection_uuid_from_external_ids (external_ids);
 			ovs_port->interfaces = g_ptr_array_new_with_free_func (g_free);
 			_uuids_to_array (ovs_port->interfaces, items);
+			g_hash_table_insert (priv->ports, g_strdup (key), ovs_port);
 			if (old) {
 				_LOGT ("changed a port: %s%s%s", ovs_port->name,
 				       ovs_port->connection_uuid ? ", " : "",
 				       ovs_port->connection_uuid ?: "");
-				g_signal_emit (self, signals[DEVICE_CHANGED], 0,
-				               NM_SETTING_OVS_PORT_SETTING_NAME, ovs_port->name);
 			} else {
 				_LOGT ("added a port: %s%s%s", ovs_port->name,
 				       ovs_port->connection_uuid ? ", " : "",
@@ -967,7 +1009,6 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 				g_signal_emit (self, signals[DEVICE_ADDED], 0,
 				               ovs_port->name, NM_DEVICE_TYPE_OVS_PORT);
 			}
-			g_hash_table_insert (priv->ports, g_strdup (key), ovs_port);
 		}
 	}
 
@@ -1004,12 +1045,11 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 			ovs_bridge->connection_uuid = _connection_uuid_from_external_ids (external_ids);
 			ovs_bridge->ports = g_ptr_array_new_with_free_func (g_free);
 			_uuids_to_array (ovs_bridge->ports, items);
+			g_hash_table_insert (priv->bridges, g_strdup (key), ovs_bridge);
 			if (old) {
 				_LOGT ("changed a bridge: %s%s%s", ovs_bridge->name,
 				       ovs_bridge->connection_uuid ? ", " : "",
 				       ovs_bridge->connection_uuid ?: "");
-				g_signal_emit (self, signals[DEVICE_CHANGED], 0,
-				               NM_SETTING_OVS_BRIDGE_SETTING_NAME, ovs_bridge->name);
 			} else {
 				_LOGT ("added a bridge: %s%s%s", ovs_bridge->name,
 				       ovs_bridge->connection_uuid ? ", " : "",
@@ -1017,7 +1057,6 @@ ovsdb_got_update (NMOvsdb *self, json_t *msg)
 				g_signal_emit (self, signals[DEVICE_ADDED], 0,
 				               ovs_bridge->name, NM_DEVICE_TYPE_OVS_BRIDGE);
 			}
-			g_hash_table_insert (priv->bridges, g_strdup (key), ovs_bridge);
 		}
 	}
 
@@ -1562,19 +1601,19 @@ nm_ovsdb_class_init (NMOvsdbClass *klass)
 		              G_OBJECT_CLASS_TYPE (object_class),
 		              G_SIGNAL_RUN_LAST,
 		              0, NULL, NULL, NULL,
-		              G_TYPE_NONE, 2, G_TYPE_POINTER, G_TYPE_UINT);
+		              G_TYPE_NONE, 2, G_TYPE_STRING, G_TYPE_UINT);
 
 	signals[DEVICE_REMOVED] =
 		g_signal_new (NM_OVSDB_DEVICE_REMOVED,
 		              G_OBJECT_CLASS_TYPE (object_class),
 		              G_SIGNAL_RUN_LAST,
 		              0, NULL, NULL, NULL,
-		              G_TYPE_NONE, 2, G_TYPE_POINTER, G_TYPE_UINT);
+		              G_TYPE_NONE, 2, G_TYPE_STRING, G_TYPE_UINT);
 
-	signals[DEVICE_CHANGED] =
-		g_signal_new (NM_OVSDB_DEVICE_CHANGED,
+	signals[INTERFACE_FAILED] =
+		g_signal_new (NM_OVSDB_INTERFACE_FAILED,
 		              G_OBJECT_CLASS_TYPE (object_class),
 		              G_SIGNAL_RUN_LAST,
 		              0, NULL, NULL, NULL,
-		              G_TYPE_NONE, 2, G_TYPE_POINTER, G_TYPE_UINT);
+		              G_TYPE_NONE, 3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 }

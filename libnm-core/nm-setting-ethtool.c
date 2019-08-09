@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -40,13 +38,17 @@
 
 /**
  * nm_ethtool_optname_is_feature:
- * @optname: the option name to check
+ * @optname: (allow-none): the option name to check
  *
  * Checks whether @optname is a valid option name for an offload feature.
  *
  * %Returns: %TRUE, if @optname is valid
  *
- * Since: 1.14
+ * Since: 1.20
+ *
+ * Note that nm_ethtool_optname_is_feature() was first added to the libnm header files
+ * in 1.14.0 but forgot to actually add to the library. This happened belatedly in 1.20.0 and
+ * the stable versions 1.18.2, 1.16.4 and 1.14.8 (with linker version "libnm_1_14_8").
  */
 gboolean
 nm_ethtool_optname_is_feature (const char *optname)
@@ -93,6 +95,9 @@ _notify_attributes (NMSettingEthtool *self)
  * Gets and offload feature setting. Returns %NM_TERNARY_DEFAULT if the
  * feature is not set.
  *
+ * Note that @optname must be a valid name for a feature, according to
+ * nm_ethtool_optname_is_feature().
+ *
  * Returns: a #NMTernary value indicating whether the offload feature
  *   is enabled, disabled, or left untouched.
  *
@@ -125,6 +130,9 @@ nm_setting_ethtool_get_feature (NMSettingEthtool *setting,
  *   means to clear the offload feature setting.
  *
  * Sets and offload feature setting.
+ *
+ * Note that @optname must be a valid name for a feature, according to
+ * nm_ethtool_optname_is_feature().
  *
  * Since: 1.14
  */
@@ -243,6 +251,34 @@ nm_setting_ethtool_init_features (NMSettingEthtool *setting,
 	}
 
 	return n_req;
+}
+
+/*****************************************************************************/
+
+/**
+ * nm_setting_ethtool_get_optnames:
+ * @setting: the #NMSettingEthtool instance.
+ * @out_length: (out) (optional): return location for the number of keys returned, or %NULL
+ *
+ * This returns all options names that are set. This includes the feature names
+ * like %NM_ETHTOOL_OPTNAME_FEATURE_GRO. See nm_ethtool_optname_is_feature() to
+ * check whether the option name is valid for offload features.
+ *
+ * Returns: (array zero-terminated=1) (transfer container): list of set option
+ *   names or %NULL if no options are set. The option names are still owned by
+ *   @setting and may get invalidated when @setting gets modified.
+ *
+ * Since: 1.20
+ */
+const char **
+nm_setting_ethtool_get_optnames (NMSettingEthtool *setting,
+                                 guint *out_length)
+{
+	g_return_val_if_fail (NM_IS_SETTING_ETHTOOL (setting), NULL);
+
+	return nm_utils_strdict_get_keys (_nm_setting_gendata_hash (NM_SETTING (setting), FALSE),
+	                                  TRUE,
+	                                  out_length);
 }
 
 /*****************************************************************************/

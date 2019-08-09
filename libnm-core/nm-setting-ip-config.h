@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -263,6 +261,11 @@ NM_AVAILABLE_IN_1_18
 guint32 nm_ip_routing_rule_get_table (const NMIPRoutingRule *self);
 NM_AVAILABLE_IN_1_18
 void nm_ip_routing_rule_set_table (NMIPRoutingRule *self, guint32 table);
+
+NM_AVAILABLE_IN_1_20
+gint32 nm_ip_routing_rule_get_suppress_prefixlength (const NMIPRoutingRule *self);
+NM_AVAILABLE_IN_1_20
+void nm_ip_routing_rule_set_suppress_prefixlength (NMIPRoutingRule *self, gint32 suppress_prefixlength);
 
 NM_AVAILABLE_IN_1_18
 int nm_ip_routing_rule_cmp (const NMIPRoutingRule *rule,

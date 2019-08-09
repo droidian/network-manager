@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -236,8 +234,10 @@ typedef struct {
 	/*< private >*/
 	NMTernary  (*compare_property)  (const struct _NMSettInfoSetting *sett_info,
 	                                 guint property_idx,
-	                                 NMSetting *setting,
-	                                 NMSetting *other,
+	                                 NMConnection *con_a,
+	                                 NMSetting *set_a,
+	                                 NMConnection *con_b,
+	                                 NMSetting *set_b,
 	                                 NMSettingCompareFlags flags);
 
 	/*< private >*/
@@ -266,7 +266,15 @@ typedef struct {
 	                         GVariantBuilder *setting_builder);
 
 	/*< private >*/
-	gpointer padding[2];
+	gboolean (*init_from_dbus) (NMSetting *setting,
+	                            GHashTable *keys,
+	                            GVariant *setting_dict,
+	                            GVariant *connection_dict,
+	                            guint /* NMSettingParseFlags */ parse_flags,
+	                            GError **error);
+
+	/*< private >*/
+	gpointer padding[1];
 
 	/*< private >*/
 	const struct _NMMetaSettingInfo *setting_info;

@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -387,7 +386,7 @@ nm_bluez5_dun_cleanup (NMBluez5DunContext *context)
 			struct rfcomm_dev_req req = { 0 };
 
 			req.dev_id = context->rfcomm_id;
-			ioctl (context->rfcomm_fd, RFCOMMRELEASEDEV, &req);
+			(void) ioctl (context->rfcomm_fd, RFCOMMRELEASEDEV, &req);
 			context->rfcomm_id = -1;
 		}
 		nm_close (context->rfcomm_fd);

@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -46,6 +45,9 @@ typedef enum {
 typedef struct {
 	NmtSlaveList *slaves;
 
+	/* Note: when adding new options to the UI also ensure they are
+	 * initialized in bond_connection_setup_func()
+	 */
 	NmtNewtPopup *mode;
 	NmtNewtEntry *primary;
 	NmtNewtPopup *monitoring;

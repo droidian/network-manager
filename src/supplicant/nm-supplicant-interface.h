@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -68,7 +67,10 @@ typedef enum {
 #define NM_SUPPLICANT_INTERFACE_PMF_SUPPORT      "pmf-support"
 #define NM_SUPPLICANT_INTERFACE_FILS_SUPPORT     "fils-support"
 #define NM_SUPPLICANT_INTERFACE_P2P_SUPPORT      "p2p-support"
+#define NM_SUPPLICANT_INTERFACE_MESH_SUPPORT     "mesh-support"
 #define NM_SUPPLICANT_INTERFACE_WFD_SUPPORT      "wfd-support"
+#define NM_SUPPLICANT_INTERFACE_FT_SUPPORT       "ft-support"
+#define NM_SUPPLICANT_INTERFACE_SHA384_SUPPORT   "sha384-support"
 
 /* Signals */
 #define NM_SUPPLICANT_INTERFACE_STATE            "state"
@@ -96,7 +98,10 @@ NMSupplicantInterface * nm_supplicant_interface_new (const char *ifname,
                                                      NMSupplicantFeature pmf_support,
                                                      NMSupplicantFeature fils_support,
                                                      NMSupplicantFeature p2p_support,
-                                                     NMSupplicantFeature wfd_support);
+                                                     NMSupplicantFeature mesh_support,
+                                                     NMSupplicantFeature wfd_support,
+                                                     NMSupplicantFeature ft_support,
+                                                     NMSupplicantFeature sha384_support);
 
 void nm_supplicant_interface_set_supplicant_available (NMSupplicantInterface *self,
                                                        gboolean available);
@@ -112,6 +117,16 @@ nm_supplicant_interface_assoc (NMSupplicantInterface *self,
                                gpointer user_data);
 
 void nm_supplicant_interface_disconnect (NMSupplicantInterface * iface);
+
+typedef void (*NMSupplicantInterfaceDisconnectCb) (NMSupplicantInterface *iface,
+                                                   GError *error,
+                                                   gpointer user_data);
+
+void
+nm_supplicant_interface_disconnect_async (NMSupplicantInterface * self,
+                                          GCancellable * cancellable,
+                                          NMSupplicantInterfaceDisconnectCb callback,
+                                          gpointer user_data);
 
 const char *nm_supplicant_interface_get_object_path (NMSupplicantInterface * iface);
 
@@ -161,7 +176,10 @@ NMSupplicantFeature nm_supplicant_interface_get_ap_support (NMSupplicantInterfac
 NMSupplicantFeature nm_supplicant_interface_get_pmf_support (NMSupplicantInterface *self);
 NMSupplicantFeature nm_supplicant_interface_get_fils_support (NMSupplicantInterface *self);
 NMSupplicantFeature nm_supplicant_interface_get_p2p_support (NMSupplicantInterface *self);
+NMSupplicantFeature nm_supplicant_interface_get_mesh_support (NMSupplicantInterface *self);
 NMSupplicantFeature nm_supplicant_interface_get_wfd_support (NMSupplicantInterface *self);
+NMSupplicantFeature nm_supplicant_interface_get_ft_support (NMSupplicantInterface *self);
+NMSupplicantFeature nm_supplicant_interface_get_sha384_support (NMSupplicantInterface *self);
 
 void nm_supplicant_interface_set_ap_support (NMSupplicantInterface *self,
                                              NMSupplicantFeature apmode);
@@ -178,8 +196,17 @@ void nm_supplicant_interface_set_fils_support (NMSupplicantInterface *self,
 void nm_supplicant_interface_set_p2p_support (NMSupplicantInterface *self,
                                               NMSupplicantFeature p2p_support);
 
+void nm_supplicant_interface_set_mesh_support (NMSupplicantInterface *self,
+                                               NMSupplicantFeature mesh_support);
+
 void nm_supplicant_interface_set_wfd_support (NMSupplicantInterface *self,
                                               NMSupplicantFeature wfd_support);
+
+void nm_supplicant_interface_set_ft_support (NMSupplicantInterface *self,
+                                             NMSupplicantFeature ft_support);
+
+void nm_supplicant_interface_set_sha384_support (NMSupplicantInterface *self,
+                                                 NMSupplicantFeature sha384_support);
 
 void nm_supplicant_interface_enroll_wps (NMSupplicantInterface *self,
                                          const char *const type,

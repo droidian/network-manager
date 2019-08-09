@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,6 +31,7 @@
 #include "nm-utils-private.h"
 #include "nm-core-internal.h"
 #include "nm-core-tests-enum-types.h"
+#include "nm-team-utils.h"
 
 #include "nm-setting-8021x.h"
 #include "nm-setting-adsl.h"
@@ -600,7 +600,7 @@ test_nm_utils_strsplit_set (void)
 	words_exp = g_ptr_array_new_with_free_func (g_free);
 	for (test_run = 0; test_run < 100; test_run++) {
 		gboolean f_allow_escaping = nmtst_get_rand_bool ();
-		guint words_len = nmtst_get_rand_int () % 100;
+		guint words_len = nmtst_get_rand_uint32 () % 100;
 		gs_free char *str = NULL;
 		guint i;
 
@@ -610,14 +610,14 @@ test_nm_utils_strsplit_set (void)
 			char *word;
 			guint j;
 
-			word_len = nmtst_get_rand_int ();
+			word_len = nmtst_get_rand_uint32 ();
 			if ((word_len % 100) < 30)
 				word_len = 0;
 			else
 				word_len = (word_len >> 10) % 100;
 			word = g_new (char, word_len + 3);
 			for (j = 0; j < word_len; ) {
-				guint32 p = nmtst_get_rand_int ();
+				guint32 p = nmtst_get_rand_uint32 ();
 				static const char delimiters_arr[] = { DELIMITERS_C };
 				static const char regular_chars[] = "abcdefghijklmnopqrstuvwxyz";
 
@@ -705,7 +705,7 @@ _do_test_c_list_sort (CListSort *elements, guint n_list, gboolean headless)
 	c_list_init (&head);
 	for (i = 0; i < n_list; i++) {
 		el = &elements[i];
-		el->val = nmtst_get_rand_int () % (2*n_list);
+		el->val = nmtst_get_rand_uint32 () % (2*n_list);
 		c_list_link_tail (&head, &el->lst);
 	}
 
@@ -766,7 +766,7 @@ test_c_list_sort (void)
 	elements = g_new0 (CListSort, N_ELEMENTS);
 	for (n_list = 1; n_list < N_ELEMENTS; n_list++) {
 		if (n_list > 150) {
-			n_list += nmtst_get_rand_int () % n_list;
+			n_list += nmtst_get_rand_uint32 () % n_list;
 			if (n_list >= N_ELEMENTS)
 				break;
 		}
@@ -774,7 +774,7 @@ test_c_list_sort (void)
 			const guint N_REPEAT = n_list > 50 ? 1 : 5;
 
 			for (repeat = 0; repeat < N_REPEAT; repeat++)
-				_do_test_c_list_sort (elements, n_list, nmtst_get_rand_int () % 2);
+				_do_test_c_list_sort (elements, n_list, nmtst_get_rand_uint32 () % 2);
 		}
 	}
 }
@@ -1855,7 +1855,7 @@ test_setting_to_dbus_all (void)
 
 	s_wsec = make_test_wsec_setting ("setting-to-dbus-all");
 
-	dict = _nm_setting_to_dbus (NM_SETTING (s_wsec), NULL, NM_CONNECTION_SERIALIZE_ALL);
+	dict = _nm_setting_to_dbus (NM_SETTING (s_wsec), NULL, NM_CONNECTION_SERIALIZE_ALL, NULL);
 
 	/* Make sure all keys are there */
 	g_assert (_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT));
@@ -1875,7 +1875,7 @@ test_setting_to_dbus_no_secrets (void)
 
 	s_wsec = make_test_wsec_setting ("setting-to-dbus-no-secrets");
 
-	dict = _nm_setting_to_dbus (NM_SETTING (s_wsec), NULL, NM_CONNECTION_SERIALIZE_NO_SECRETS);
+	dict = _nm_setting_to_dbus (NM_SETTING (s_wsec), NULL, NM_CONNECTION_SERIALIZE_NO_SECRETS, NULL);
 
 	/* Make sure non-secret keys are there */
 	g_assert (_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT));
@@ -1897,7 +1897,7 @@ test_setting_to_dbus_only_secrets (void)
 
 	s_wsec = make_test_wsec_setting ("setting-to-dbus-only-secrets");
 
-	dict = _nm_setting_to_dbus (NM_SETTING (s_wsec), NULL, NM_CONNECTION_SERIALIZE_ONLY_SECRETS);
+	dict = _nm_setting_to_dbus (NM_SETTING (s_wsec), NULL, NM_CONNECTION_SERIALIZE_ONLY_SECRETS, NULL);
 
 	/* Make sure non-secret keys are not there */
 	g_assert (!_variant_contains (dict, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT));
@@ -1928,7 +1928,7 @@ test_setting_to_dbus_transform (void)
 
 	g_assert_cmpstr (nm_setting_wired_get_mac_address (NM_SETTING_WIRED (s_wired)), ==, test_mac_address);
 
-	dict = _nm_setting_to_dbus (s_wired, NULL, NM_CONNECTION_SERIALIZE_ALL);
+	dict = _nm_setting_to_dbus (s_wired, NULL, NM_CONNECTION_SERIALIZE_ALL, NULL);
 	g_assert (dict != NULL);
 
 	val = g_variant_lookup_value (dict, NM_SETTING_WIRED_MAC_ADDRESS, G_VARIANT_TYPE_BYTESTRING);
@@ -1957,7 +1957,7 @@ test_setting_to_dbus_enum (void)
 	              NM_SETTING_IP6_CONFIG_IP6_PRIVACY, NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_TEMP_ADDR,
 	              NULL);
 
-	dict = _nm_setting_to_dbus (s_ip6, NULL, NM_CONNECTION_SERIALIZE_ALL);
+	dict = _nm_setting_to_dbus (s_ip6, NULL, NM_CONNECTION_SERIALIZE_ALL, NULL);
 	g_assert (dict != NULL);
 
 	val = g_variant_lookup_value (dict, NM_SETTING_IP6_CONFIG_IP6_PRIVACY, G_VARIANT_TYPE_INT32);
@@ -1976,7 +1976,7 @@ test_setting_to_dbus_enum (void)
 	                                                           NM_SETTING_SECRET_FLAG_NOT_SAVED),
 	              NULL);
 
-	dict = _nm_setting_to_dbus (s_wsec, NULL, NM_CONNECTION_SERIALIZE_ALL);
+	dict = _nm_setting_to_dbus (s_wsec, NULL, NM_CONNECTION_SERIALIZE_ALL, NULL);
 	g_assert (dict != NULL);
 
 	val = g_variant_lookup_value (dict, NM_SETTING_WIRELESS_SECURITY_WEP_KEY_TYPE, G_VARIANT_TYPE_UINT32);
@@ -1999,7 +1999,7 @@ test_setting_to_dbus_enum (void)
 	              NM_SETTING_SERIAL_PARITY, NM_SETTING_SERIAL_PARITY_ODD,
 	              NULL);
 
-	dict = _nm_setting_to_dbus (s_serial, NULL, NM_CONNECTION_SERIALIZE_ALL);
+	dict = _nm_setting_to_dbus (s_serial, NULL, NM_CONNECTION_SERIALIZE_ALL, NULL);
 	g_assert (dict != NULL);
 
 	val = g_variant_lookup_value (dict, NM_SETTING_SERIAL_PARITY, G_VARIANT_TYPE_BYTE);
@@ -2114,7 +2114,7 @@ test_setting_new_from_dbus (void)
 	GVariant *dict;
 
 	s_wsec = make_test_wsec_setting ("setting-new-from-dbus");
-	dict = _nm_setting_to_dbus (NM_SETTING (s_wsec), NULL, NM_CONNECTION_SERIALIZE_ALL);
+	dict = _nm_setting_to_dbus (NM_SETTING (s_wsec), NULL, NM_CONNECTION_SERIALIZE_ALL, NULL);
 	g_object_unref (s_wsec);
 
 	s_wsec = (NMSettingWirelessSecurity *) _nm_setting_new_from_dbus (NM_TYPE_SETTING_WIRELESS_SECURITY, dict, NULL, NM_SETTING_PARSE_FLAGS_NONE, NULL);
@@ -3024,6 +3024,7 @@ test_connection_diff_a_only (void)
 			{ NM_SETTING_CONNECTION_AUTH_RETRIES,         NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_CONNECTION_MDNS,                 NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_CONNECTION_LLMNR,                NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT,  NM_SETTING_DIFF_RESULT_IN_A },
 			{ NULL, NM_SETTING_DIFF_RESULT_UNKNOWN }
 		} },
 		{ NM_SETTING_WIRED_SETTING_NAME, {
@@ -3500,7 +3501,7 @@ test_setting_compare_addresses (void)
 
 	nm_ip_address_unref (a);
 
-	if (nmtst_get_rand_int () % 2)
+	if (nmtst_get_rand_uint32 () % 2)
 		NMTST_SWAP (s1, s2);
 
 	success = nm_setting_compare (s1, s2, NM_SETTING_COMPARE_FLAG_EXACT);
@@ -3532,7 +3533,7 @@ test_setting_compare_routes (void)
 
 	nm_ip_route_unref (r);
 
-	if (nmtst_get_rand_int () % 2)
+	if (nmtst_get_rand_uint32 () % 2)
 		NMTST_SWAP (s1, s2);
 
 	success = nm_setting_compare (s1, s2, NM_SETTING_COMPARE_FLAG_EXACT);
@@ -6080,7 +6081,7 @@ test_hexstr2bin (void)
 static void
 _do_strquote (const char *str, gsize buf_len, const char *expected)
 {
-	char canary = (char) nmtst_get_rand_int ();
+	char canary = (char) nmtst_get_rand_uint32 ();
 	gs_free char *buf_full = g_malloc (buf_len + 2);
 	char *buf = &buf_full[1];
 	const char *b;
@@ -6807,14 +6808,42 @@ _team_config_equal_check (const char *conf1,
                           gboolean port_config,
                           gboolean expected)
 {
-	g_assert_cmpint (_nm_utils_team_config_equal (conf1, conf2, port_config), ==, expected);
+	nm_auto_free_team_setting NMTeamSetting *team_a = NULL;
+	nm_auto_free_team_setting NMTeamSetting *team_b = NULL;
+	gboolean is_same;
+
+	if (nmtst_get_rand_bool ())
+		NMTST_SWAP (conf1, conf2);
+
+	if (!nm_streq0 (conf1, conf2)) {
+		_team_config_equal_check (conf1, conf1, port_config, TRUE);
+		_team_config_equal_check (conf2, conf2, port_config, TRUE);
+	}
+
+	team_a = nm_team_setting_new (port_config, conf1);
+	team_b = nm_team_setting_new (port_config, conf2);
+
+	is_same = (nm_team_setting_cmp (team_a, team_b, TRUE) == 0);
+	g_assert_cmpint (is_same, ==, expected);
+
+	if (nm_streq0 (conf1, conf2)) {
+		g_assert_cmpint (nm_team_setting_cmp (team_a, team_b, FALSE), ==, 0);
+		g_assert (expected);
+	} else
+		g_assert_cmpint (nm_team_setting_cmp (team_a, team_b, FALSE), !=, 0);
 }
 
 static void
 test_nm_utils_team_config_equal (void)
 {
-#if WITH_JSON_VALIDATION
-	_team_config_equal_check ("", "", TRUE, TRUE);
+	_team_config_equal_check ("",
+	                          "",
+	                          TRUE,
+	                          TRUE);
+	_team_config_equal_check ("",
+	                          " ",
+	                          TRUE,
+	                          TRUE);
 	_team_config_equal_check ("{}",
 	                          "{ }",
 	                          TRUE,
@@ -6822,21 +6851,25 @@ test_nm_utils_team_config_equal (void)
 	_team_config_equal_check ("{}",
 	                          "{",
 	                          TRUE,
-	                          FALSE);
+	                          TRUE);
+	_team_config_equal_check ("{ \"a\": 1 }",
+	                          "{ \"a\": 1 }",
+	                          TRUE,
+	                          TRUE);
+	_team_config_equal_check ("{ \"a\": 1 }",
+	                          "{ \"a\":   1 }",
+	                          TRUE,
+	                          TRUE);
 
 	/* team config */
 	_team_config_equal_check ("{ }",
-	                          "{ \"runner\" :  { \"name\" : \"roundrobin\"} }",
-	                          FALSE,
-	                          TRUE);
-	_team_config_equal_check ("{ }",
 	                          "{ \"runner\" :  { \"name\" : \"random\"} }",
 	                          FALSE,
-	                          FALSE);
+	                          !WITH_JSON_VALIDATION);
 	_team_config_equal_check ("{ \"runner\" :  { \"name\" : \"roundrobin\"} }",
 	                          "{ \"runner\" :  { \"name\" : \"random\"} }",
 	                          FALSE,
-	                          FALSE);
+	                          !WITH_JSON_VALIDATION);
 	_team_config_equal_check ("{ \"runner\" :  { \"name\" : \"random\"} }",
 	                          "{ \"runner\" :  { \"name\" : \"random\"} }",
 	                          FALSE,
@@ -6852,29 +6885,29 @@ test_nm_utils_team_config_equal (void)
 	_team_config_equal_check ("{ \"runner\" :  { \"name\" : \"lacp\"} }",
 	                          "{ \"runner\" :  { \"name\" : \"lacp\", \"tx_hash\" : [ \"eth\", \"ipv4\", \"ipv6\" ] } }",
 	                          FALSE,
-	                          TRUE);
+	                          !WITH_JSON_VALIDATION);
 	_team_config_equal_check ("{ \"runner\" :  { \"name\" : \"roundrobin\"} }",
 	                          "{ \"runner\" :  { \"name\" : \"roundrobin\", \"tx_hash\" : [ \"eth\", \"ipv4\", \"ipv6\" ] } }",
 	                          FALSE,
-	                          FALSE);
+	                          !WITH_JSON_VALIDATION);
 	_team_config_equal_check ("{ \"runner\" :  { \"name\" : \"lacp\"} }",
 	                          "{ \"runner\" :  { \"name\" : \"lacp\", \"tx_hash\" : [ \"eth\" ] } }",
 	                          FALSE,
-	                          FALSE);
+	                          !WITH_JSON_VALIDATION);
 
 	/* team port config */
 	_team_config_equal_check ("{ }",
 	                          "{ \"link_watch\" :  { \"name\" : \"ethtool\"} }",
 	                          TRUE,
-	                          TRUE);
+	                          !WITH_JSON_VALIDATION);
 	_team_config_equal_check ("{ }",
 	                          "{ \"link_watch\" :  { \"name\" : \"arp_ping\"} }",
 	                          TRUE,
-	                          FALSE);
+	                          TRUE);
 	_team_config_equal_check ("{ \"link_watch\" :  { \"name\" : \"ethtool\"} }",
 	                          "{ \"link_watch\" :  { \"name\" : \"arp_ping\"} }",
 	                          TRUE,
-	                          FALSE);
+	                          !WITH_JSON_VALIDATION);
 	_team_config_equal_check ("{ \"link_watch\" :  { \"name\" : \"arp_ping\"} }",
 	                          "{ \"link_watch\" :  { \"name\" : \"arp_ping\"} }",
 	                          TRUE,
@@ -6883,13 +6916,6 @@ test_nm_utils_team_config_equal (void)
 	                          "{ \"link_watch\" :  { \"name\" : \"arp_ping\"}, \"ports\" : { \"eth1\" : {} } }",
 	                          TRUE,
 	                          TRUE);
-#else
-	/* Without JSON library, strings are compared for equality */
-	_team_config_equal_check ("", "", TRUE, TRUE);
-	_team_config_equal_check ("", " ", TRUE, FALSE);
-	_team_config_equal_check ("{ \"a\": 1 }", "{ \"a\": 1 }", TRUE, TRUE);
-	_team_config_equal_check ("{ \"a\": 1 }", "{ \"a\":   1 }", TRUE, FALSE);
-#endif
 }
 
 /*****************************************************************************/
@@ -7188,7 +7214,7 @@ test_nm_utils_ptrarray_find_binary_search_with_duplicates (void)
 			/* fill with random numbers... surely there are some duplicates
 			 * there... or maybe even there are none... */
 			for (i = 0; i < i_len; i++)
-				arr[i] = GINT_TO_POINTER (nmtst_get_rand_int () % (i_len + BIN_SEARCH_W_DUPS_JITTER));
+				arr[i] = GINT_TO_POINTER (nmtst_get_rand_uint32 () % (i_len + BIN_SEARCH_W_DUPS_JITTER));
 			g_qsort_with_data (arr,
 			                   i_len,
 			                   sizeof (gpointer),

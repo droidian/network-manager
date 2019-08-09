@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -223,7 +221,7 @@ check_replace_duplicate_priority (GSList *list, guint32 from, guint32 to)
  * the Linux SKB priorities to 802.1p priorities.
  *
  * Returns: %TRUE if the entry was successfully added to the list, or it
- * overwrote the old value, %FALSE if error
+ * overwrote the old value, %FALSE if @str is not a valid mapping.
  */
 gboolean
 nm_setting_vlan_add_priority_str (NMSettingVlan *setting,
@@ -237,11 +235,11 @@ nm_setting_vlan_add_priority_str (NMSettingVlan *setting,
 	g_return_val_if_fail (map == NM_VLAN_INGRESS_MAP || map == NM_VLAN_EGRESS_MAP, FALSE);
 	g_return_val_if_fail (str && str[0], FALSE);
 
-	list = get_map (setting, map);
-
 	item = priority_map_new_from_str (map, str);
 	if (!item)
-		g_return_val_if_reached (FALSE);
+		return FALSE;
+
+	list = get_map (setting, map);
 
 	/* Duplicates get replaced */
 	if (check_replace_duplicate_priority (list, item->from, item->to)) {
@@ -266,7 +264,7 @@ nm_setting_vlan_add_priority_str (NMSettingVlan *setting,
  * #NMSettingVlan:ingress_priority_map or #NMSettingVlan:egress_priority_map
  * properties of this setting.
  *
- * Returns: return the number of ingress/egress priority entries, -1 if error
+ * Returns: return the number of ingress/egress priority entries.
  **/
 gint32
 nm_setting_vlan_get_num_priorities (NMSettingVlan *setting, NMVlanPriorityMap map)
@@ -282,13 +280,13 @@ nm_setting_vlan_get_num_priorities (NMSettingVlan *setting, NMVlanPriorityMap ma
  * @setting: the #NMSettingVlan
  * @map: the type of priority map
  * @idx: the zero-based index of the ingress/egress priority map entry
- * @out_from: (out): on return the value of the priority map's 'from' item
- * @out_to: (out): on return the value of priority map's 'to' item
+ * @out_from: (out) (allow-none): on return the value of the priority map's 'from' item
+ * @out_to: (out) (allow-none): on return the value of priority map's 'to' item
  *
  * Retrieve one of the entries of the #NMSettingVlan:ingress_priority_map
  * or #NMSettingVlan:egress_priority_map properties of this setting.
  *
- * Returns: %TRUE if a priority map was returned, %FALSE if error
+ * Returns: returns %TRUE if @idx is in range. Otherwise %FALSE.
  **/
 gboolean
 nm_setting_vlan_get_priority (NMSettingVlan *setting,
@@ -297,21 +295,23 @@ nm_setting_vlan_get_priority (NMSettingVlan *setting,
                               guint32 *out_from,
                               guint32 *out_to)
 {
-	GSList *list = NULL;
-	NMVlanQosMapping *item = NULL;
+	NMVlanQosMapping *item;
+	GSList *list;
 
 	g_return_val_if_fail (NM_IS_SETTING_VLAN (setting), FALSE);
-	g_return_val_if_fail (map == NM_VLAN_INGRESS_MAP || map == NM_VLAN_EGRESS_MAP, FALSE);
-	g_return_val_if_fail (out_from != NULL, FALSE);
-	g_return_val_if_fail (out_to != NULL, FALSE);
+	g_return_val_if_fail (NM_IN_SET (map, NM_VLAN_INGRESS_MAP, NM_VLAN_EGRESS_MAP), FALSE);
 
 	list = get_map (setting, map);
-	g_return_val_if_fail (idx < g_slist_length (list), FALSE);
-
 	item = g_slist_nth_data (list, idx);
-	g_assert (item);
-	*out_from = item->from;
-	*out_to = item->to;
+
+	if (!item) {
+		NM_SET_OUT (out_from, 0);
+		NM_SET_OUT (out_to, 0);
+		return FALSE;
+	}
+
+	NM_SET_OUT (out_from, item->from);
+	NM_SET_OUT (out_to, item->to);
 	return TRUE;
 }
 
@@ -333,8 +333,7 @@ nm_setting_vlan_get_priority (NMSettingVlan *setting,
  * If @map is #NM_VLAN_EGRESS_MAP then @from is the Linux SKB priority value and
  * @to is the outgoing 802.1q VLAN Priority Code Point (PCP) value.
  *
- * Returns: %TRUE if the new priority mapping was successfully added to the
- * list, %FALSE if error
+ * Returns: %TRUE.
  */
 gboolean
 nm_setting_vlan_add_priority (NMSettingVlan *setting,
@@ -679,7 +678,12 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 }
 
 static GVariant *
-_override_flags_get (NMSetting *setting, const char *property)
+_override_flags_get (const NMSettInfoSetting *sett_info,
+                     guint property_idx,
+                     NMConnection *connection,
+                     NMSetting *setting,
+                     NMConnectionSerializationFlags flags,
+                     const NMConnectionSerializationOptions *options)
 {
 	return g_variant_new_uint32 (nm_setting_vlan_get_flags ((NMSettingVlan *) setting));
 }
@@ -921,7 +925,7 @@ nm_setting_vlan_class_init (NMSettingVlanClass *klass)
 
 	_properties_override_add_override (properties_override,
 	                                   obj_properties[PROP_FLAGS],
-	                                   NULL,
+	                                   G_VARIANT_TYPE_UINT32,
 	                                   _override_flags_get,
 	                                   NULL,
 	                                   _override_flags_not_set);

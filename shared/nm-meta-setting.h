@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -101,6 +99,7 @@ typedef struct {
 	                                  NMSetting8021xCKFormat *out_format,
 	                                  GError **error);
 	const char *file_suffix;
+	NMSetting8021xSchemeType scheme_type;
 	bool is_secret:1;
 } NMSetting8021xSchemeVtable;
 
@@ -141,6 +140,7 @@ typedef enum {
 	NM_META_SETTING_TYPE_MACVLAN,
 	NM_META_SETTING_TYPE_MATCH,
 	NM_META_SETTING_TYPE_OVS_BRIDGE,
+	NM_META_SETTING_TYPE_OVS_DPDK,
 	NM_META_SETTING_TYPE_OVS_INTERFACE,
 	NM_META_SETTING_TYPE_OVS_PATCH,
 	NM_META_SETTING_TYPE_OVS_PORT,

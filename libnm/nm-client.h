@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -266,6 +265,9 @@ NM_AVAILABLE_IN_1_10
 void     nm_client_connectivity_check_set_enabled (NMClient *client,
                                                    gboolean enabled);
 
+NM_AVAILABLE_IN_1_20
+const char *nm_client_connectivity_check_get_uri (NMClient *client);
+
 gboolean nm_client_get_logging (NMClient *client,
                                 char **level,
                                 char **domains,
@@ -386,6 +388,22 @@ void                nm_client_add_connection_async  (NMClient *client,
 NMRemoteConnection *nm_client_add_connection_finish (NMClient *client,
                                                      GAsyncResult *result,
                                                      GError **error);
+
+NM_AVAILABLE_IN_1_20
+void nm_client_add_connection2 (NMClient *client,
+                                GVariant *settings,
+                                NMSettingsAddConnection2Flags flags,
+                                GVariant *args,
+                                gboolean ignore_out_result,
+                                GCancellable *cancellable,
+                                GAsyncReadyCallback callback,
+                                gpointer user_data);
+
+NM_AVAILABLE_IN_1_20
+NMRemoteConnection *nm_client_add_connection2_finish (NMClient *client,
+                                                      GAsyncResult *result,
+                                                      GVariant **out_result,
+                                                      GError **error);
 
 gboolean nm_client_load_connections        (NMClient *client,
                                             char **filenames,

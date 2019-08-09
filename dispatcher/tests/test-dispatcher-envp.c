@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +26,8 @@
 #include "nm-libnm-core-aux/nm-dispatcher-api.h"
 
 #include "nm-utils/nm-test-utils.h"
+
+#include "nmdbus-dispatcher.h"
 
 #define TEST_DIR      NM_BUILD_SRCDIR"/dispatcher/tests"
 
@@ -637,6 +638,17 @@ test_up_empty_vpn_iface (void)
 
 /*****************************************************************************/
 
+static void
+test_gdbus_codegen (void)
+{
+	gs_unref_object NMDBusDispatcher *dbus_dispatcher = NULL;
+
+	dbus_dispatcher = nmdbus_dispatcher_skeleton_new ();
+	g_assert (NMDBUS_IS_DISPATCHER_SKELETON (dbus_dispatcher));
+}
+
+/*****************************************************************************/
+
 NMTST_DEFINE ();
 
 int
@@ -652,6 +664,8 @@ main (int argc, char **argv)
 	g_test_add_func ("/dispatcher/connectivity_changed", test_connectivity_changed);
 
 	g_test_add_func ("/dispatcher/up_empty_vpn_iface", test_up_empty_vpn_iface);
+
+	g_test_add_func ("/dispatcher/gdbus-codegen", test_gdbus_codegen);
 
 	return g_test_run ();
 }

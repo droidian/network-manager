@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -84,7 +83,7 @@ G_BEGIN_DECLS
 #define NM_ETHTOOL_OPTNAME_FEATURE_TX_UDP_TNL_SEGMENTATION      "feature-tx-udp_tnl-segmentation"
 #define NM_ETHTOOL_OPTNAME_FEATURE_TX_VLAN_STAG_HW_INSERT       "feature-tx-vlan-stag-hw-insert"
 
-NM_AVAILABLE_IN_1_14
+NM_AVAILABLE_IN_1_20
 gboolean nm_ethtool_optname_is_feature (const char *optname);
 
 /*****************************************************************************/
@@ -119,6 +118,10 @@ void              nm_setting_ethtool_set_feature (NMSettingEthtool *setting,
                                                   NMTernary value);
 NM_AVAILABLE_IN_1_14
 void              nm_setting_ethtool_clear_features (NMSettingEthtool *setting);
+
+NM_AVAILABLE_IN_1_20
+const char **     nm_setting_ethtool_get_optnames (NMSettingEthtool *setting,
+                                                   guint *out_length);
 
 G_END_DECLS
 

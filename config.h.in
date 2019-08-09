@@ -110,9 +110,6 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
-/* Define if systemd support is available */
-#undef HAVE_SYSTEMD
-
 /* Define to 1 if you have the <sys/auxv.h> header file. */
 #undef HAVE_SYS_AUXV_H
 
@@ -225,11 +222,23 @@
 /* The size of `dev_t', as computed by sizeof. */
 #undef SIZEOF_DEV_T
 
+/* The size of `gid_t', as computed by sizeof. */
+#undef SIZEOF_GID_T
+
+/* The size of `ino_t', as computed by sizeof. */
+#undef SIZEOF_INO_T
+
 /* The size of `pid_t', as computed by sizeof. */
 #undef SIZEOF_PID_T
 
+/* The size of `rlim_t', as computed by sizeof. */
+#undef SIZEOF_RLIM_T
+
 /* The size of `time_t', as computed by sizeof. */
 #undef SIZEOF_TIME_T
+
+/* The size of `uid_t', as computed by sizeof. */
+#undef SIZEOF_UID_T
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
@@ -298,9 +307,6 @@
 /* Define if you have dhcpcd */
 #undef WITH_DHCPCD
 
-/* Define for libnm to prevent GIR from loading libnm-glib */
-#undef WITH_FAKE_TYPELIBS
-
 /* Define to compile without the IWD wifi-backend */
 #undef WITH_IWD
 
@@ -321,12 +327,6 @@
 
 /* Define if you have PPP support */
 #undef WITH_PPP
-
-/* Whether compilation of ibft setting plugin is enabled */
-#undef WITH_SETTINGS_PLUGIN_IBFT
-
-/* Define if you have Wi-Fi support */
-#undef WITH_WIFI
 
 /* Define to 1 if on MINIX. */
 #undef _MINIX

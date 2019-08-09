@@ -536,6 +536,9 @@ _metagen_device_detail_wifi_properties_get_fcn (NMC_META_GENERIC_INFO_GET_FCN_AR
 		                                         : N_("no"))
 		                                      : N_("unknown"),
 		                                      get_type);
+	case NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_WIFI_PROPERTIES_MESH:
+		return nmc_meta_generic_get_bool (NM_FLAGS_HAS (wcaps, NM_WIFI_DEVICE_CAP_MESH),
+		                                  get_type);
 	default:
 		break;
 	}
@@ -555,6 +558,7 @@ const NmcMetaGenericInfo *const metagen_device_detail_wifi_properties[_NMC_GENER
 	_METAGEN_DEVICE_DETAIL_WIFI_PROPERTIES (NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_WIFI_PROPERTIES_ADHOC, "ADHOC"),
 	_METAGEN_DEVICE_DETAIL_WIFI_PROPERTIES (NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_WIFI_PROPERTIES_2GHZ,  "2GHZ"),
 	_METAGEN_DEVICE_DETAIL_WIFI_PROPERTIES (NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_WIFI_PROPERTIES_5GHZ,  "5GHZ"),
+	_METAGEN_DEVICE_DETAIL_WIFI_PROPERTIES (NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_WIFI_PROPERTIES_MESH,  "MESH"),
 };
 
 /*****************************************************************************/
@@ -1188,6 +1192,7 @@ fill_output_access_point (gpointer data, gpointer user_data)
 	set_val_strc (arr, 3, bssid);
 	set_val_strc (arr, 4, mode == NM_802_11_MODE_ADHOC ? _("Ad-Hoc")
 	                    : mode == NM_802_11_MODE_INFRA ? _("Infra")
+	                    : mode == NM_802_11_MODE_MESH ? _("Mesh")
 	                    : _("N/A"));
 	set_val_str  (arr, 5, channel_str);
 	set_val_str  (arr, 6, freq_str);
@@ -1897,7 +1902,6 @@ create_connect_connection_for_device (AddAndActivateInfo *info)
 	nm_connection_add_setting (connection, NM_SETTING (s_con));
 	g_object_set (s_con,
 	              NM_SETTING_CONNECTION_ID, nm_device_get_iface (info->device),
-	              NM_SETTING_CONNECTION_INTERFACE_NAME, nm_device_get_iface (info->device),
 	              NULL);
 
 	nm_client_add_and_activate_connection_async (info->nmc->client,
@@ -2473,7 +2477,7 @@ do_device_set (NmCli *nmc, int argc, char **argv)
 		gboolean flag;
 
 		if (argc == 1 && nmc->complete)
-			nmc_complete_strings (*argv, "managed", "autoconnect", NULL);
+			nmc_complete_strings (*argv, "managed", "autoconnect");
 
 		if (matches (*argv, "managed")) {
 			argc--;
@@ -2997,7 +3001,7 @@ do_device_wifi_list (NmCli *nmc, int argc, char **argv)
 			}
 			rescan = *argv;
 			if (argc == 1 && nmc->complete)
-				nmc_complete_strings (rescan, "auto", "no", "yes", NULL);
+				nmc_complete_strings (rescan, "auto", "no", "yes");
 			break;
 		default:
 			g_assert_not_reached();
@@ -3179,7 +3183,7 @@ do_device_wifi_connect_network (NmCli *nmc, int argc, char **argv)
 	while (argc > 0) {
 		if (argc == 1 && nmc->complete) {
 			nmc_complete_strings (*argv, "ifname", "bssid", "password", "wep-key-type",
-			                      "name", "private", "hidden", NULL);
+			                      "name", "private", "hidden");
 		}
 
 		if (strcmp (*argv, "ifname") == 0) {
@@ -3229,7 +3233,7 @@ do_device_wifi_connect_network (NmCli *nmc, int argc, char **argv)
 				goto finish;
 			}
 			if (argc == 1 && nmc->complete)
-				nmc_complete_strings (*argv, "key", "phrase", NULL);
+				nmc_complete_strings (*argv, "key", "phrase");
 			if (strcmp (*argv, "key") == 0)
 				wep_passphrase = FALSE;
 			else if (strcmp (*argv, "phrase") == 0)
@@ -3711,7 +3715,7 @@ do_device_wifi_hotspot (NmCli *nmc, int argc, char **argv)
 	while (argc > 0) {
 		if (argc == 1 && nmc->complete) {
 			nmc_complete_strings (*argv, "ifname", "con-name", "ssid", "band",
-			                             "channel", "password", NULL);
+			                             "channel", "password");
 		}
 
 		if (strcmp (*argv, "ifname") == 0) {
@@ -3753,7 +3757,7 @@ do_device_wifi_hotspot (NmCli *nmc, int argc, char **argv)
 			}
 			band = *argv;
 			if (argc == 1 && nmc->complete)
-				nmc_complete_strings (band, "a", "bg", NULL);
+				nmc_complete_strings (band, "a", "bg");
 			if (strcmp (band, "a") && strcmp (band, "bg")) {
 				g_string_printf (nmc->return_text, _("Error: band argument value '%s' is invalid; use 'a' or 'bg'."),
 				                 band);
@@ -3935,7 +3939,7 @@ do_device_wifi_rescan (NmCli *nmc, int argc, char **argv)
 	/* Get the parameters */
 	while (argc > 0) {
 		if (argc == 1 && nmc->complete)
-			nmc_complete_strings (*argv, "ifname", "ssid", NULL);
+			nmc_complete_strings (*argv, "ifname", "ssid");
 
 		if (strcmp (*argv, "ifname") == 0) {
 			if (ifname) {
@@ -4122,7 +4126,7 @@ do_device_lldp_list (NmCli *nmc, int argc, char **argv)
 	next_arg (nmc, &argc, &argv, NULL);
 	while (argc > 0) {
 		if (argc == 1 && nmc->complete)
-			nmc_complete_strings (*argv, "ifname", NULL);
+			nmc_complete_strings (*argv, "ifname");
 
 		if (strcmp (*argv, "ifname") == 0) {
 			argc--;

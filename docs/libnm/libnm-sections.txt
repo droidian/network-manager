@@ -182,6 +182,7 @@ nm_client_wimax_hardware_get_enabled
 nm_client_connectivity_check_get_available
 nm_client_connectivity_check_get_enabled
 nm_client_connectivity_check_set_enabled
+nm_client_connectivity_check_get_uri
 nm_client_get_logging
 nm_client_set_logging
 nm_client_get_permission_result
@@ -214,6 +215,8 @@ nm_client_get_connection_by_path
 nm_client_get_connection_by_uuid
 nm_client_add_connection_async
 nm_client_add_connection_finish
+nm_client_add_connection2
+nm_client_add_connection2_finish
 nm_client_load_connections
 nm_client_load_connections_async
 nm_client_load_connections_finish
@@ -365,6 +368,7 @@ NM_TYPE_METERED
 NM_TYPE_SECRET_AGENT_CAPABILITIES
 NM_TYPE_SECRET_AGENT_ERROR
 NM_TYPE_SECRET_AGENT_GET_SECRETS_FLAGS
+NM_TYPE_SETTINGS_ADD_CONNECTION2_FLAGS
 NM_TYPE_SETTINGS_CONNECTION_FLAGS
 NM_TYPE_SETTINGS_ERROR
 NM_TYPE_SETTINGS_UPDATE2_FLAGS
@@ -460,6 +464,7 @@ nm_setting_wireless_security_fils_get_type
 nm_setting_wireless_security_pmf_get_type
 nm_setting_wireless_security_wps_method_get_type
 nm_setting_wireless_wake_on_wlan_get_type
+nm_settings_add_connection2_flags_get_type
 nm_settings_connection_flags_get_type
 nm_settings_error_get_type
 nm_settings_update2_flags_get_type
@@ -506,6 +511,7 @@ NMSettingMacvlan
 NMSettingMatch
 NMSettingOlpcMesh
 NMSettingOvsBridge
+NMSettingOvsDpdk
 NMSettingOvsInterface
 NMSettingOvsPatch
 NMSettingOvsPort
@@ -641,6 +647,7 @@ NMCheckpointCreateFlags
 NMRollbackResult
 NMSettingsConnectionFlags
 NMActivationStateFlags
+NMSettingsAddConnection2Flags
 NMSettingsUpdate2Flags
 NMTernary
 </SECTION>
@@ -1024,9 +1031,15 @@ nm_device_macvlan_get_type
 <TITLE>NMDeviceModem</TITLE>
 NM_DEVICE_MODEM_MODEM_CAPABILITIES
 NM_DEVICE_MODEM_CURRENT_CAPABILITIES
+NM_DEVICE_MODEM_DEVICE_ID
+NM_DEVICE_MODEM_OPERATOR_CODE
+NM_DEVICE_MODEM_APN
 NMDeviceModem
 nm_device_modem_get_modem_capabilities
 nm_device_modem_get_current_capabilities
+nm_device_modem_get_device_id
+nm_device_modem_get_operator_code
+nm_device_modem_get_apn
 <SUBSECTION Standard>
 NMDeviceModemClass
 NM_DEVICE_MODEM
@@ -2028,6 +2041,7 @@ NM_SETTING_CONNECTION_LLDP
 NM_SETTING_CONNECTION_AUTH_RETRIES
 NM_SETTING_CONNECTION_MDNS
 NM_SETTING_CONNECTION_LLMNR
+NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT
 NMSettingConnectionAutoconnectSlaves
 NMSettingConnectionLldp
 NMSettingConnectionMdns
@@ -2067,6 +2081,7 @@ nm_setting_connection_get_lldp
 nm_setting_connection_get_auth_retries
 nm_setting_connection_get_mdns
 nm_setting_connection_get_llmnr
+nm_setting_connection_get_wait_device_timeout
 <SUBSECTION Standard>
 NMSettingConnectionClass
 NM_IS_SETTING_CONNECTION
@@ -2209,6 +2224,7 @@ nm_setting_ethtool_new
 nm_setting_ethtool_get_feature
 nm_setting_ethtool_set_feature
 nm_setting_ethtool_clear_features
+nm_setting_ethtool_get_optnames
 <SUBSECTION Standard>
 NMSettingEthtoolClass
 NM_IS_SETTING_ETHTOOL
@@ -2402,6 +2418,8 @@ nm_ip_routing_rule_get_action
 nm_ip_routing_rule_set_action
 nm_ip_routing_rule_get_table
 nm_ip_routing_rule_set_table
+nm_ip_routing_rule_get_suppress_prefixlength
+nm_ip_routing_rule_set_suppress_prefixlength
 nm_ip_routing_rule_cmp
 nm_ip_routing_rule_validate
 NMIPRoutingRuleAsStringFlags
@@ -2591,6 +2609,7 @@ NM_SETTING_IP6_CONFIG_METHOD_DHCP
 NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL
 NM_SETTING_IP6_CONFIG_METHOD_MANUAL
 NM_SETTING_IP6_CONFIG_METHOD_SHARED
+NM_SETTING_IP6_CONFIG_METHOD_DISABLED
 NMSettingIP6ConfigPrivacy
 NMSettingIP6ConfigAddrGenMode
 NMSettingIP6Config
@@ -2725,11 +2744,13 @@ NM_SETTING_OVS_BRIDGE_FAIL_MODE
 NM_SETTING_OVS_BRIDGE_MCAST_SNOOPING_ENABLE
 NM_SETTING_OVS_BRIDGE_RSTP_ENABLE
 NM_SETTING_OVS_BRIDGE_STP_ENABLE
+NM_SETTING_OVS_BRIDGE_DATAPATH_TYPE
 nm_setting_ovs_bridge_new
 nm_setting_ovs_bridge_get_fail_mode
 nm_setting_ovs_bridge_get_mcast_snooping_enable
 nm_setting_ovs_bridge_get_rstp_enable
 nm_setting_ovs_bridge_get_stp_enable
+nm_setting_ovs_bridge_get_datapath_type
 <SUBSECTION Standard>
 NMSettingOvsBridgeClass
 NM_IS_SETTING_OVS_BRIDGE
@@ -2738,6 +2759,23 @@ NM_SETTING_OVS_BRIDGE_CLASS
 NM_SETTING_OVS_BRIDGE_GET_CLASS
 NM_TYPE_SETTING_OVS_BRIDGE
 nm_setting_ovs_bridge_get_type
+</SECTION>
+
+<SECTION>
+<FILE>nm-setting-ovs-dpdk</FILE>
+<TITLE>NMSettingOvsDpdk</TITLE>
+NM_SETTING_OVS_DPDK_SETTING_NAME
+NM_SETTING_OVS_DPDK_DEVARGS
+nm_setting_ovs_dpdk_new
+nm_setting_ovs_dpdk_get_devargs
+<SUBSECTION Standard>
+NMSettingOvsDpdkClass
+NM_IS_SETTING_OVS_DPDK
+NM_SETTING_OVS_DPDK
+NM_SETTING_OVS_DPDK_CLASS
+NM_SETTING_OVS_DPDK_GET_CLASS
+NM_TYPE_SETTING_OVS_DPDK
+nm_setting_ovs_dpdk_get_type
 </SECTION>
 
 <SECTION>
@@ -3493,6 +3531,8 @@ NM_SETTING_WIREGUARD_PRIVATE_KEY_FLAGS
 NM_SETTING_WIREGUARD_PEERS
 NM_SETTING_WIREGUARD_MTU
 NM_SETTING_WIREGUARD_PEER_ROUTES
+NM_SETTING_WIREGUARD_IP4_AUTO_DEFAULT_ROUTE
+NM_SETTING_WIREGUARD_IP6_AUTO_DEFAULT_ROUTE
 NM_WIREGUARD_PEER_ATTR_ALLOWED_IPS
 NM_WIREGUARD_PEER_ATTR_ENDPOINT
 NM_WIREGUARD_PEER_ATTR_PERSISTENT_KEEPALIVE
@@ -3513,6 +3553,8 @@ nm_setting_wireguard_remove_peer
 nm_setting_wireguard_clear_peers
 nm_setting_wireguard_get_peer_routes
 nm_setting_wireguard_get_mtu
+nm_setting_wireguard_get_ip4_auto_default_route
+nm_setting_wireguard_get_ip6_auto_default_route
 <SUBSECTION Standard>
 NMSettingWireGuardClass
 NMWireGuardPeer
@@ -3550,6 +3592,7 @@ NM_SETTING_WIRELESS_WAKE_ON_WLAN
 NM_SETTING_WIRELESS_MODE_ADHOC
 NM_SETTING_WIRELESS_MODE_AP
 NM_SETTING_WIRELESS_MODE_INFRA
+NM_SETTING_WIRELESS_MODE_MESH
 NMSettingWirelessPowersave
 NMSettingWireless
 nm_setting_wireless_new
@@ -3704,6 +3747,39 @@ NM_SIMPLE_CONNECTION_CLASS
 NM_SIMPLE_CONNECTION_GET_CLASS
 NM_TYPE_SIMPLE_CONNECTION
 nm_simple_connection_get_type
+</SECTION>
+
+<SECTION>
+<FILE>nm-team-utils</FILE>
+NMTeamAttribute
+nm_team_attribute_to_flags
+NMTeamSettingData
+NMTeamSetting
+nm_team_setting_new
+nm_team_setting_free
+nm_auto_free_team_setting
+nm_team_setting_config_get
+nm_team_setting_config_set
+nm_team_setting_value_get_bool
+nm_team_setting_value_get_int32
+nm_team_setting_value_get_string
+nm_team_setting_value_reset
+nm_team_setting_value_set_bool
+nm_team_setting_value_set_int32
+nm_team_setting_value_set_string
+nm_team_setting_value_link_watchers_add
+nm_team_setting_value_link_watchers_remove
+nm_team_setting_value_link_watchers_remove_by_value
+nm_team_setting_value_link_watchers_set_list
+nm_team_setting_value_master_runner_tx_hash_add
+nm_team_setting_value_master_runner_tx_hash_remove
+nm_team_setting_value_master_runner_tx_hash_set_list
+nm_team_setting_verify
+nm_team_setting_cmp
+nm_team_setting_reset
+nm_team_setting_reset_from_dbus
+nm_team_setting_maybe_changed
+NMTeamLinkWatcher
 </SECTION>
 
 <SECTION>
@@ -3872,6 +3948,9 @@ NM_AVAILABLE_IN_1_16
 NM_DEPRECATED_IN_1_18
 NM_DEPRECATED_IN_1_18_FOR
 NM_AVAILABLE_IN_1_18
+NM_DEPRECATED_IN_1_20
+NM_DEPRECATED_IN_1_20_FOR
+NM_AVAILABLE_IN_1_20
 </SECTION>
 
 <SECTION>

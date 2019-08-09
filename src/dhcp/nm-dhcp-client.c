@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option)
@@ -52,6 +51,7 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMDhcpClient,
 	PROP_ADDR_FAMILY,
 	PROP_FLAGS,
 	PROP_HWADDR,
+	PROP_BROADCAST_HWADDR,
 	PROP_IFACE,
 	PROP_IFINDEX,
 	PROP_MULTI_IDX,
@@ -66,6 +66,7 @@ typedef struct _NMDhcpClientPrivate {
 	NMDedupMultiIndex *multi_idx;
 	char *       iface;
 	GBytes *     hwaddr;
+	GBytes *     bcast_hwaddr;
 	char *       uuid;
 	GBytes *     client_id;
 	char *       hostname;
@@ -142,6 +143,14 @@ nm_dhcp_client_get_hw_addr (NMDhcpClient *self)
 	g_return_val_if_fail (NM_IS_DHCP_CLIENT (self), NULL);
 
 	return NM_DHCP_CLIENT_GET_PRIVATE (self)->hwaddr;
+}
+
+GBytes *
+nm_dhcp_client_get_broadcast_hw_addr (NMDhcpClient *self)
+{
+	g_return_val_if_fail (NM_IS_DHCP_CLIENT (self), NULL);
+
+	return NM_DHCP_CLIENT_GET_PRIVATE (self)->bcast_hwaddr;
 }
 
 guint32
@@ -476,8 +485,9 @@ nm_dhcp_client_start_timeout (NMDhcpClient *self)
 {
 	NMDhcpClientPrivate *priv = NM_DHCP_CLIENT_GET_PRIVATE (self);
 
+	g_return_if_fail (priv->timeout_id == 0);
+
 	/* Set up a timeout on the transaction to kill it after the timeout */
-	g_assert (priv->timeout_id == 0);
 
 	if (priv->timeout == NM_DHCP_TIMEOUT_INFINITY)
 		return;
@@ -528,6 +538,36 @@ nm_dhcp_client_start_ip4 (NMDhcpClient *self,
 	                                                   dhcp_anycast_addr,
 	                                                   last_ip4_address,
 	                                                   error);
+}
+
+gboolean
+nm_dhcp_client_accept (NMDhcpClient *self,
+                       GError **error)
+{
+	g_return_val_if_fail (NM_IS_DHCP_CLIENT (self), FALSE);
+
+	if (NM_DHCP_CLIENT_GET_CLASS (self)->accept) {
+		return NM_DHCP_CLIENT_GET_CLASS (self)->accept (self,
+		                                                error);
+	}
+
+	return TRUE;
+}
+
+gboolean
+nm_dhcp_client_decline (NMDhcpClient *self,
+                        const char *error_message,
+                        GError **error)
+{
+	g_return_val_if_fail (NM_IS_DHCP_CLIENT (self), FALSE);
+
+	if (NM_DHCP_CLIENT_GET_CLASS (self)->decline) {
+		return NM_DHCP_CLIENT_GET_CLASS (self)->decline (self,
+		                                                 error_message,
+		                                                 error);
+	}
+
+	return TRUE;
 }
 
 static GBytes *
@@ -690,6 +730,23 @@ bytearray_variant_to_string (NMDhcpClient *self, GVariant *value, const char *ke
 	return converted;
 }
 
+static int
+label_is_unknown_xyz (const char *label)
+{
+	if (!NM_STR_HAS_PREFIX (label, "unknown_"))
+		return -EINVAL;
+
+	label += NM_STRLEN  ("unknown_");
+	if (   label[0] != '2'
+	    || !g_ascii_isdigit (label[1])
+	    || !g_ascii_isdigit (label[2])
+	    || label[3] != '\0')
+		return -EINVAL;
+
+	return _nm_utils_ascii_str_to_int64 (label, 10, 224, 254, -EINVAL);
+}
+
+
 #define OLD_TAG "old_"
 #define NEW_TAG "new_"
 
@@ -713,14 +770,41 @@ maybe_add_option (NMDhcpClient *self,
 	                       "dhcp_message_type"))
 		return;
 
-	if (g_str_has_prefix (key, NEW_TAG))
+	if (NM_STR_HAS_PREFIX (key, NEW_TAG))
 		key += NM_STRLEN (NEW_TAG);
-	if (!key[0])
+	if (NM_STR_HAS_PREFIX (key, "private_") || !key[0])
 		return;
 
 	str_value = bytearray_variant_to_string (self, value, key);
-	if (str_value)
+	if (str_value) {
+		int priv_opt_num;
+
 		g_hash_table_insert (hash, g_strdup (key), str_value);
+
+		/* dhclient has no special labels for private dhcp options: it uses "unknown_xyz"
+		 * labels for that. We need to identify those to alias them to our "private_xyz"
+		 * format unsed in the internal dchp plugins.
+		 */
+		if ((priv_opt_num = label_is_unknown_xyz (key)) > 0) {
+			gs_free guint8 *check_val = NULL;
+			char *hex_str = NULL;
+			gsize len;
+
+			/* dhclient passes values from dhcp private options in its own "string" format:
+			 * if the raw values are printable as ascii strings, it will pass the string
+			 * representation; if the values are not printable as an ascii string, it will
+			 * pass a string displaying the hex values (hex string). Try to enforce passing
+			 * always an hex string, converting string representation if needed.
+			 */
+			check_val = nm_utils_hexstr2bin_alloc (str_value, FALSE, TRUE, ":", 0, &len);
+			hex_str = nm_utils_bin2hexstr_full (check_val ?: (guint8 *) str_value,
+			                                    check_val ? len : strlen (str_value),
+			                                    ':', FALSE, NULL);
+			g_hash_table_insert (hash,
+			                     g_strdup_printf ("private_%d", priv_opt_num),
+			                     hex_str);
+		}
+	}
 }
 
 gboolean
@@ -839,6 +923,9 @@ get_property (GObject *object, guint prop_id,
 	case PROP_HWADDR:
 		g_value_set_boxed (value, priv->hwaddr);
 		break;
+	case PROP_BROADCAST_HWADDR:
+		g_value_set_boxed (value, priv->bcast_hwaddr);
+		break;
 	case PROP_ADDR_FAMILY:
 		g_value_set_int (value, priv->addr_family);
 		break;
@@ -899,6 +986,10 @@ set_property (GObject *object, guint prop_id,
 	case PROP_HWADDR:
 		/* construct-only */
 		priv->hwaddr = g_value_dup_boxed (value);
+		break;
+	case PROP_BROADCAST_HWADDR:
+		/* construct-only */
+		priv->bcast_hwaddr = g_value_dup_boxed (value);
 		break;
 	case PROP_ADDR_FAMILY:
 		/* construct-only */
@@ -966,6 +1057,7 @@ dispose (GObject *object)
 	g_clear_pointer (&priv->uuid, g_free);
 	g_clear_pointer (&priv->client_id, g_bytes_unref);
 	g_clear_pointer (&priv->hwaddr, g_bytes_unref);
+	g_clear_pointer (&priv->bcast_hwaddr, g_bytes_unref);
 
 	G_OBJECT_CLASS (nm_dhcp_client_parent_class)->dispose (object);
 
@@ -1006,6 +1098,12 @@ nm_dhcp_client_class_init (NMDhcpClientClass *client_class)
 
 	obj_properties[PROP_HWADDR] =
 	    g_param_spec_boxed (NM_DHCP_CLIENT_HWADDR, "", "",
+	                        G_TYPE_BYTES,
+	                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+	                        G_PARAM_STATIC_STRINGS);
+
+	obj_properties[PROP_BROADCAST_HWADDR] =
+	    g_param_spec_boxed (NM_DHCP_CLIENT_BROADCAST_HWADDR, "", "",
 	                        G_TYPE_BYTES,
 	                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
 	                        G_PARAM_STATIC_STRINGS);

@@ -89,6 +89,7 @@ if test "$GCC" = "yes" -a "$set_more_warnings" != "no"; then
 		      -Wno-missing-field-initializers \
 		      -Wno-pragmas \
 		      -Wno-sign-compare \
+		      -Wno-unknown-pragmas \
 		      -Wno-unused-parameter \
 		      ; do
 		dnl GCC 4.4 does not warn when checking for -Wno-* flags (https://gcc.gnu.org/wiki/FAQ#wnowarning)
@@ -142,7 +143,7 @@ fi
 ])
 
 AC_DEFUN([NM_LTO],
-[AC_ARG_ENABLE(lto, AS_HELP_STRING([--enable-lto], [Enable Link Time Optimization for smaller size (default: no)]))
+[AC_ARG_ENABLE(lto, AS_HELP_STRING([--enable-lto], [Enable Link Time Optimization for smaller size [default=no]]))
 if (test "${enable_lto}" = "yes"); then
 	CC_CHECK_FLAG_APPEND([lto_flags], [CFLAGS], [-flto -flto-partition=none])
 	if (test -n "${lto_flags}"); then
@@ -156,7 +157,7 @@ fi
 ])
 
 AC_DEFUN([NM_LD_GC],
-[AC_ARG_ENABLE(ld-gc, AS_HELP_STRING([--enable-ld-gc], [Enable garbage collection of unused symbols on linking (default: auto)]))
+[AC_ARG_ENABLE(ld-gc, AS_HELP_STRING([--enable-ld-gc], [Enable garbage collection of unused symbols on linking [default=auto]]))
 if (test "${enable_ld_gc}" != "no"); then
 	CC_CHECK_FLAG_APPEND([ld_gc_flags], [CFLAGS], [-fdata-sections -ffunction-sections -Wl,--gc-sections])
 	if (test -n "${ld_gc_flags}"); then

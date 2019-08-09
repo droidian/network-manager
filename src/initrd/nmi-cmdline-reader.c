@@ -32,6 +32,20 @@
 
 /*****************************************************************************/
 
+static gboolean
+_connection_matches_type (gpointer key, gpointer value, gpointer user_data)
+{
+	NMConnection *connection = value;
+	const char *type_name = user_data;
+	NMSettingConnection *s_con;
+
+	s_con = nm_connection_get_setting_connection (connection);
+	if (type_name == NULL)
+		return nm_setting_connection_get_master (s_con) == NULL;
+	else
+		return strcmp (nm_setting_connection_get_connection_type (s_con), type_name) == 0;
+}
+
 static NMConnection *
 get_conn (GHashTable *connections, const char *ifname, const char *type_name)
 {
@@ -49,7 +63,18 @@ get_conn (GHashTable *connections, const char *ifname, const char *type_name)
 		multi_connect = NM_CONNECTION_MULTI_CONNECT_MULTIPLE;
 	}
 
-	connection = g_hash_table_lookup (connections, (gpointer)basename);
+	connection = g_hash_table_lookup (connections, (gpointer) basename);
+	if (!connection && !ifname) {
+		/*
+		 * If ifname was not given, we'll match the connection by type.
+		 * If the type was not given either, then we're happy with any connection but slaves.
+		 * This is so that things like "bond=bond0:eth1,eth2 nameserver=1.3.3.7 end up
+		 * slapping the nameserver to the most reasonable connection (bond0).
+		 */
+		connection = g_hash_table_find (connections,
+		                                _connection_matches_type,
+		                                (gpointer) type_name);
+	}
 
 	if (connection) {
 		setting = (NMSetting *)nm_connection_get_setting_connection (connection);
@@ -219,7 +244,7 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 			dns[0] = tmp;
 			dns[1] = get_word (&argument, ':');
 			dns_addr_family[1] = guess_ip_address_family (dns[1]);
-			if (argument && *argument)
+			if (*argument)
 				_LOGW (LOGD_CORE, "Ignoring extra: '%s'.", argument);
 		} else {
 			mtu = tmp;
@@ -270,11 +295,13 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 	if (netmask && *netmask) {
 		NMIPAddr addr;
 
-		if (nm_utils_parse_inaddr_bin (AF_INET, netmask, NULL, &addr)) {
+		if (nm_utils_parse_inaddr_bin (AF_INET, netmask, NULL, &addr))
 			client_ip_prefix = nm_utils_ip4_netmask_to_prefix (addr.addr4);
-		} else {
-			_LOGW (LOGD_CORE, "Unrecognized address: %s", client_ip);
-		}
+		else
+			client_ip_prefix = _nm_utils_ascii_str_to_int64 (netmask, 10, 0, 32, -1);
+
+		if (client_ip_prefix == -1)
+			_LOGW (LOGD_CORE, "Invalid IP mask: %s", netmask);
 	}
 
 	/* Static IP configuration might be present. */
@@ -332,7 +359,7 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 	if (g_strcmp0 (kind, "none") == 0 || (g_strcmp0 (kind, "off") == 0)) {
 		if (nm_setting_ip_config_get_num_addresses (s_ip6) == 0) {
 			g_object_set (s_ip6,
-			              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
+			              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_DISABLED,
 			              NULL);
 		}
 		if (nm_setting_ip_config_get_num_addresses (s_ip4) == 0) {
@@ -347,7 +374,7 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 		              NULL);
 		if (nm_setting_ip_config_get_num_addresses (s_ip6) == 0) {
 			g_object_set (s_ip6,
-			              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
+			              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_DISABLED,
 			              NULL);
 		}
 	} else if (g_strcmp0 (kind, "dhcp6") == 0) {
@@ -398,7 +425,7 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 	}
 
 	if (peer && *peer)
-		_LOGW (LOGD_CORE, "Ignoring peer: %s (not implemented)\b", peer);
+		_LOGW (LOGD_CORE, "Ignoring peer: %s (not implemented)\n", peer);
 
 	if (gateway_ip && *gateway_ip) {
 		int addr_family = guess_ip_address_family (gateway_ip);
@@ -656,7 +683,6 @@ parse_rd_peerdns (GHashTable *connections, char *argument)
 	              NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS, auto_dns,
 	              NULL);
 
-
 	s_ip = nm_connection_get_setting_ip6_config (connection);
 	g_object_set (s_ip,
 	              NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS, auto_dns,
@@ -678,6 +704,7 @@ nmi_cmdline_reader_parse (const char *sysfs_dir, char **argv)
 	const char *tag;
 	char *argument;
 	gboolean ignore_bootif = FALSE;
+	gboolean neednet = FALSE;
 	char *bootif = NULL;
 	int i;
 
@@ -706,6 +733,8 @@ nmi_cmdline_reader_parse (const char *sysfs_dir, char **argv)
 			parse_rd_peerdns (connections, argument);
 		else if (strcmp (tag, "rd.bootif") == 0)
 			ignore_bootif = !_nm_utils_ascii_str_to_bool (argument, TRUE);
+		else if (strcmp (tag, "rd.neednet") == 0)
+			neednet = _nm_utils_ascii_str_to_bool (argument, TRUE);
 		else if (strcasecmp (tag, "BOOTIF") == 0)
 			bootif = argument;
 	}
@@ -716,12 +745,26 @@ nmi_cmdline_reader_parse (const char *sysfs_dir, char **argv)
 		NMConnection *connection;
 		NMSettingWired *s_wired;
 
+		if (   !nm_utils_hwaddr_valid (bootif, ETH_ALEN)
+		    && g_str_has_prefix (bootif, "01-")
+		    && nm_utils_hwaddr_valid (&bootif[3], ETH_ALEN)) {
+			/*
+			 * BOOTIF MAC address can be prefixed with a hardware type identifier.
+			 * "01" stays for "wired", no other are known.
+			 */
+			bootif += 3;
+		}
+
 		connection = get_conn (connections, NULL, NM_SETTING_WIRED_SETTING_NAME);
 
 		s_wired = nm_connection_get_setting_wired (connection);
 		g_object_set (s_wired,
 		              NM_SETTING_WIRED_MAC_ADDRESS, bootif,
 		              NULL);
+	}
+	if (neednet && g_hash_table_size (connections) == 0) {
+		/* Make sure there's some connection. */
+		get_conn (connections, NULL, NM_SETTING_WIRED_SETTING_NAME);
 	}
 
 	g_hash_table_foreach (connections, _normalize_conn, NULL);

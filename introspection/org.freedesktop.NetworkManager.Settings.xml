@@ -56,13 +56,46 @@
         does not start the network connection unless (1) device is idle and able
         to connect to the network described by the new connection, and (2) the
         connection is allowed to be started automatically. Use the 'Save' method
-        on the connection to save these changes to disk. Note that unsaved changes
-        will be lost if the connection is reloaded from disk (either automatically
-        on file change or due to an explicit ReloadConnections call).
+        on the connection to save these changes to disk.
     -->
     <method name="AddConnectionUnsaved">
       <arg name="connection" type="a{sa{sv}}" direction="in"/>
       <arg name="path" type="o" direction="out"/>
+    </method>
+
+    <!--
+        AddConnection2:
+        @settings: New connection settings, properties, and (optionally) secrets.
+        @flags: optional flags argument. Currently the following flags are supported:
+          "0x1" (to-disk),
+          "0x2" (in-memory),
+          "0x20" (block-autoconnect).
+          Unknown flags cause the call to fail.
+        @args: optional arguments dictionary, for extensibility. Currently no
+          arguments are accepted. Specifying unknown keys causes the call
+          to fail.
+        @path: Object path of the new connection that was just added.
+        @result: output argument, currently no additional results are returned.
+
+        Add a new connection profile.
+
+        Either the flags 0x1 (to-disk) or 0x2 (in-memory) must be specified.
+        The effect is whether to behave like AddConnection or AddConnectionUnsaved.
+        If 0x20 (block-autoconnect) is specified, autoconnect for the new profile
+        is blocked from the beginnin. Otherwise, the profile might automatically
+        connect if a suitable device is around.
+
+        AddConnection2 is a extensible alternative to AddConnection, and AddConnectionUnsaved.
+        The new variant can do everything that the older variants could, and more.
+
+        Since: 1.20
+    -->
+    <method name="AddConnection2">
+      <arg name="settings" type="a{sa{sv}}" direction="in"/>
+      <arg name="flags" type="u" direction="in"/>
+      <arg name="args" type="a{sv}" direction="in"/>
+      <arg name="path" type="o" direction="out"/>
+      <arg name="result" type="a{sv}" direction="out"/>
     </method>
 
     <!--

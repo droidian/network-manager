@@ -976,8 +976,8 @@ reaches zero, the object will be destroyed.</p>
 <div class="refsect2">
 <a name="nm-team-link-watcher-equal"></a><h3>nm_team_link_watcher_equal ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
-nm_team_link_watcher_equal (<em class="parameter"><code><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>,
-                            <em class="parameter"><code><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *other</code></em>);</pre>
+nm_team_link_watcher_equal (<em class="parameter"><code>const <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>,
+                            <em class="parameter"><code>const <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *other</code></em>);</pre>
 <p>Determines if two <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> objects contain the same values
 in all the properties.</p>
 <div class="refsect3">
@@ -1013,7 +1013,7 @@ to.</p></td>
 <div class="refsect2">
 <a name="nm-team-link-watcher-dup"></a><h3>nm_team_link_watcher_dup ()</h3>
 <pre class="programlisting"><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="returnvalue">NMTeamLinkWatcher</span></a> *
-nm_team_link_watcher_dup (<em class="parameter"><code><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
+nm_team_link_watcher_dup (<em class="parameter"><code>const <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
 <p>Creates a copy of <em class="parameter"><code>watcher</code></em>
 </p>
 <div class="refsect3">
@@ -1043,7 +1043,7 @@ nm_team_link_watcher_dup (<em class="parameter"><code><a class="link" href="NMSe
 <div class="refsect2">
 <a name="nm-team-link-watcher-get-name"></a><h3>nm_team_link_watcher_get_name ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
-nm_team_link_watcher_get_name (<em class="parameter"><code><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
+nm_team_link_watcher_get_name (<em class="parameter"><code>const <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
 <p>Gets the name of the link watcher to be used.</p>
 <div class="refsect3">
 <a name="nm-team-link-watcher-get-name.parameters"></a><h4>Parameters</h4>
@@ -1066,7 +1066,7 @@ nm_team_link_watcher_get_name (<em class="parameter"><code><a class="link" href=
 <div class="refsect2">
 <a name="nm-team-link-watcher-get-delay-up"></a><h3>nm_team_link_watcher_get_delay_up ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
-nm_team_link_watcher_get_delay_up (<em class="parameter"><code><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
+nm_team_link_watcher_get_delay_up (<em class="parameter"><code>const <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
 <p>Gets the delay_up interval (in milliseconds) that elapses between the link
 coming up and the runner being notified about it.</p>
 <div class="refsect3">
@@ -1090,7 +1090,7 @@ coming up and the runner being notified about it.</p>
 <div class="refsect2">
 <a name="nm-team-link-watcher-get-delay-down"></a><h3>nm_team_link_watcher_get_delay_down ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
-nm_team_link_watcher_get_delay_down (<em class="parameter"><code><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
+nm_team_link_watcher_get_delay_down (<em class="parameter"><code>const <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
 <p>Gets the delay_down interval (in milliseconds) that elapses between the link
 going down and the runner being notified about it.</p>
 <div class="refsect3">
@@ -1114,7 +1114,7 @@ going down and the runner being notified about it.</p>
 <div class="refsect2">
 <a name="nm-team-link-watcher-get-init-wait"></a><h3>nm_team_link_watcher_get_init_wait ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
-nm_team_link_watcher_get_init_wait (<em class="parameter"><code><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
+nm_team_link_watcher_get_init_wait (<em class="parameter"><code>const <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
 <p>Gets the init_wait interval (in milliseconds) that the team slave should
 wait before sending the first packet to the target host.</p>
 <div class="refsect3">
@@ -1138,7 +1138,7 @@ wait before sending the first packet to the target host.</p>
 <div class="refsect2">
 <a name="nm-team-link-watcher-get-interval"></a><h3>nm_team_link_watcher_get_interval ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
-nm_team_link_watcher_get_interval (<em class="parameter"><code><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
+nm_team_link_watcher_get_interval (<em class="parameter"><code>const <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
 <p>Gets the interval (in milliseconds) that the team slave should wait between
 sending two check packets to the target host.</p>
 <div class="refsect3">
@@ -1162,7 +1162,7 @@ sending two check packets to the target host.</p>
 <div class="refsect2">
 <a name="nm-team-link-watcher-get-missed-max"></a><h3>nm_team_link_watcher_get_missed_max ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
-nm_team_link_watcher_get_missed_max (<em class="parameter"><code><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
+nm_team_link_watcher_get_missed_max (<em class="parameter"><code>const <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
 <p>Gets the number of missed replies after which the link is considered down.</p>
 <div class="refsect3">
 <a name="nm-team-link-watcher-get-missed-max.parameters"></a><h4>Parameters</h4>
@@ -1185,7 +1185,7 @@ nm_team_link_watcher_get_missed_max (<em class="parameter"><code><a class="link"
 <div class="refsect2">
 <a name="nm-team-link-watcher-get-target-host"></a><h3>nm_team_link_watcher_get_target_host ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
-nm_team_link_watcher_get_target_host (<em class="parameter"><code><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
+nm_team_link_watcher_get_target_host (<em class="parameter"><code>const <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
 <p>Gets the host name/ip address to be used as destination for the link probing
 packets.</p>
 <div class="refsect3">
@@ -1209,7 +1209,7 @@ packets.</p>
 <div class="refsect2">
 <a name="nm-team-link-watcher-get-source-host"></a><h3>nm_team_link_watcher_get_source_host ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
-nm_team_link_watcher_get_source_host (<em class="parameter"><code><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
+nm_team_link_watcher_get_source_host (<em class="parameter"><code>const <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
 <p>Gets the ip address to be used as source for the link probing packets.</p>
 <div class="refsect3">
 <a name="nm-team-link-watcher-get-source-host.parameters"></a><h4>Parameters</h4>
@@ -1232,7 +1232,7 @@ nm_team_link_watcher_get_source_host (<em class="parameter"><code><a class="link
 <div class="refsect2">
 <a name="nm-team-link-watcher-get-flags"></a><h3>nm_team_link_watcher_get_flags ()</h3>
 <pre class="programlisting"><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcherArpPingFlags" title="enum NMTeamLinkWatcherArpPingFlags"><span class="returnvalue">NMTeamLinkWatcherArpPingFlags</span></a>
-nm_team_link_watcher_get_flags (<em class="parameter"><code><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
+nm_team_link_watcher_get_flags (<em class="parameter"><code>const <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
 <p>Gets the arp ping watcher flags.</p>
 <div class="refsect3">
 <a name="nm-team-link-watcher-get-flags.parameters"></a><h4>Parameters</h4>
@@ -1255,7 +1255,7 @@ nm_team_link_watcher_get_flags (<em class="parameter"><code><a class="link" href
 <div class="refsect2">
 <a name="nm-team-link-watcher-get-vlanid"></a><h3>nm_team_link_watcher_get_vlanid ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
-nm_team_link_watcher_get_vlanid (<em class="parameter"><code><a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
+nm_team_link_watcher_get_vlanid (<em class="parameter"><code>const <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> *watcher</code></em>);</pre>
 <p>Gets the VLAN tag ID to be used to outgoing link probes</p>
 <div class="refsect3">
 <a name="nm-team-link-watcher-get-vlanid.parameters"></a><h4>Parameters</h4>
@@ -2349,7 +2349,7 @@ arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
 <pre class="programlisting">  “mcast-rejoin-count”       <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd mcast_rejoin.count.</p>
 <p>Flags: Read / Write</p>
-<p>Default value: 0</p>
+<p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
 </div>
 <hr>
@@ -2358,7 +2358,7 @@ arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
 <pre class="programlisting">  “mcast-rejoin-interval”    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd mcast_rejoin.interval.</p>
 <p>Flags: Read / Write</p>
-<p>Default value: 0</p>
+<p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
 </div>
 <hr>
@@ -2367,7 +2367,7 @@ arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
 <pre class="programlisting">  “notify-peers-count”       <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd notify_peers.count.</p>
 <p>Flags: Read / Write</p>
-<p>Default value: 0</p>
+<p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
 </div>
 <hr>
@@ -2376,7 +2376,7 @@ arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
 <pre class="programlisting">  “notify-peers-interval”    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd notify_peers.interval.</p>
 <p>Flags: Read / Write</p>
-<p>Default value: 0</p>
+<p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
 </div>
 <hr>
@@ -2385,11 +2385,7 @@ arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
 <pre class="programlisting">  “runner”                   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Corresponds to the teamd runner.name.
 Permitted values are: "roundrobin", "broadcast", "activebackup",
-"loadbalance", "lacp", "random".
-When setting the runner, all the properties specific to the runner
-will be reset to the default value; all the properties specific to
-other runners will be set to an empty value (or if not possible to
-a default value).</p>
+"loadbalance", "lacp", "random".</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.12</p>
@@ -2400,7 +2396,7 @@ a default value).</p>
 <pre class="programlisting">  “runner-active”            <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Corresponds to the teamd runner.active.</p>
 <p>Flags: Read / Write</p>
-<p>Default value: FALSE</p>
+<p>Default value: TRUE</p>
 <p class="since">Since: 1.12</p>
 </div>
 <hr>
@@ -2436,7 +2432,7 @@ a default value).</p>
 <pre class="programlisting">  “runner-min-ports”         <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd runner.min_ports.</p>
 <p>Flags: Read / Write</p>
-<p>Default value: 0</p>
+<p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
 </div>
 <hr>
@@ -2445,7 +2441,7 @@ a default value).</p>
 <pre class="programlisting">  “runner-sys-prio”          <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd runner.sys_prio.</p>
 <p>Flags: Read / Write</p>
-<p>Default value: 0</p>
+<p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
 </div>
 <hr>
@@ -2463,7 +2459,7 @@ a default value).</p>
 <pre class="programlisting">  “runner-tx-balancer-interval” <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd runner.tx_balancer.interval.</p>
 <p>Flags: Read / Write</p>
-<p>Default value: 0</p>
+<p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
 </div>
 <hr>

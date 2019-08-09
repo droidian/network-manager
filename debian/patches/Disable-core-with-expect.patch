@@ -1,0 +1,22 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Date: Fri, 13 May 2016 11:13:20 +0800
+Subject: Disable core-with-expect
+
+which tends to fail on ppc64el and arm64
+---
+ Makefile.am | 1 -
+ 1 file changed, 1 deletion(-)
+
+Index: network-manager-1.18.0/Makefile.am
+===================================================================
+--- network-manager-1.18.0.orig/Makefile.am
++++ network-manager-1.18.0/Makefile.am
+@@ -3785,7 +3785,6 @@
+ 
+ check_programs += \
+ 	src/tests/test-core \
+-	src/tests/test-core-with-expect \
+ 	src/tests/test-ip4-config \
+ 	src/tests/test-ip6-config \
+ 	src/tests/test-dcb \
+

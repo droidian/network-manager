@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager audit support
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,6 +40,9 @@ typedef struct _NMAuditManagerClass NMAuditManagerClass;
 #define NM_AUDIT_OP_CONN_ADD_ACTIVATE       "connection-add-activate"
 #define NM_AUDIT_OP_CONN_DEACTIVATE         "connection-deactivate"
 #define NM_AUDIT_OP_CONN_CLEAR_SECRETS      "connection-clear-secrets"
+
+#define NM_AUDIT_OP_CONNS_RELOAD            "connections-reload"
+#define NM_AUDIT_OP_CONNS_LOAD              "connections-load"
 
 #define NM_AUDIT_OP_RELOAD                  "reload"
 #define NM_AUDIT_OP_SLEEP_CONTROL           "sleep-control"

@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -263,12 +262,10 @@ nmt_newt_button_box_size_request (NmtNewtWidget *widget,
 	size_request_buttons (bbox, priv->start_buttons, width, height);
 	size_request_buttons (bbox, priv->end_buttons, width, height);
 
-	if (priv->start_buttons && priv->end_buttons) {
-		if (priv->orientation == NMT_NEWT_BUTTON_BOX_HORIZONTAL)
-			*width += 1;
-		else
-			*height += 1;
-	}
+	if (priv->orientation == NMT_NEWT_BUTTON_BOX_HORIZONTAL)
+		*width += 1;
+	else
+		*height += 1;
 }
 
 static void

@@ -34,7 +34,6 @@ option('ofono', type: 'boolean', value: false, description: 'Enable oFono suppor
 option('concheck', type: 'boolean', value: true, description: 'enable connectivity checking support')
 option('teamdctl', type: 'boolean', value: false, description: 'enable Teamd control support')
 option('ovs', type: 'boolean', value: true, description: 'enable Open vSwitch support')
-option('libnm_glib', type: 'boolean', value: false, description: 'build legacy libraries')
 option('nmcli', type: 'boolean', value: true, description: 'Build nmcli')
 option('nmtui', type: 'boolean', value: true, description: 'Build nmtui')
 option('bluez5_dun', type: 'boolean', value: false, description: 'enable Bluez5 DUN support')
@@ -42,7 +41,6 @@ option('ebpf', type: 'combo', choices : ['auto', 'true', 'false'], description: 
 
 # configuration plugins
 option('config_plugins_default', type: 'string', value: '', description: 'Default configuration option for main.plugins setting, used as fallback if the configuration option is unset')
-option('ibft',     type: 'boolean', value: false, description: 'enable ibft configuration plugin')
 option('ifcfg_rh', type: 'boolean', value: false, description: 'enable ifcfg-rh configuration plugin (Fedora/RHEL)')
 option('ifupdown', type: 'boolean', value: false, description: 'enable ifupdown configuration plugin (Debian/Ubuntu)')
 
@@ -55,7 +53,7 @@ option('config_dns_rc_manager_default', type: 'combo', choices: ['symlink', 'fil
 option('dhclient', type: 'string', value: '', description: 'Enable dhclient support')
 option('dhcpcanon', type: 'string', value: '', description: 'Enable dhcpcanon support (experimental)')
 option('dhcpcd', type: 'string', value: '', description: 'Enable dhcpcd support')
-option('config_dhcp_default', type: 'combo', choices: ['dhcpcanon', 'dhclient', 'dhcpcd', 'internal'], value: 'internal', description: 'Default configuration option for main.dhcp setting, used as fallback if the configuration option is unset')
+option('config_dhcp_default', type: 'combo', choices: ['dhcpcanon', 'dhclient', 'dhcpcd', 'internal', 'nettools'], value: 'internal', description: 'Default configuration option for main.dhcp setting, used as fallback if the configuration option is unset')
 
 # miscellaneous
 option('introspection', type: 'boolean', value: true, description: 'Enable introspection for this build')

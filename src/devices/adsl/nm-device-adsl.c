@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -131,6 +130,7 @@ complete_connection (NMDevice *device,
 	                           NULL,
 	                           _("ADSL connection"),
 	                           NULL,
+	                           NULL,
 	                           FALSE); /* No IPv6 yet by default */
 	return TRUE;
 }
@@ -155,6 +155,7 @@ br2684_assign_vcc (NMDeviceAdsl *self, NMSettingAdsl *s_adsl)
 	if (priv->brfd < 0) {
 		errsv = errno;
 		_LOGE (LOGD_ADSL, "failed to open ATM control socket (%d)", errsv);
+		priv->brfd = -1;
 		return FALSE;
 	}
 
@@ -206,7 +207,7 @@ br2684_assign_vcc (NMDeviceAdsl *self, NMSettingAdsl *s_adsl)
 	memset (&be, 0, sizeof (be));
 	be.backend_num = ATM_BACKEND_BR2684;
 	be.ifspec.method = BR2684_FIND_BYIFNAME;
-	strcpy (be.ifspec.spec.ifname, priv->nas_ifname);
+	nm_utils_ifname_cpy (be.ifspec.spec.ifname, priv->nas_ifname);
 	be.fcs_in = BR2684_FCSIN_NO;
 	be.fcs_out = BR2684_FCSOUT_NO;
 	be.encaps = is_llc ? BR2684_ENCAPS_LLC : BR2684_ENCAPS_VC;
@@ -487,9 +488,9 @@ act_stage3_ip4_config_start (NMDevice *device,
 
 	if (priv->ppp_manager) {
 		nm_ppp_manager_set_route_parameters (priv->ppp_manager,
-		                                     nm_device_get_route_table (device, AF_INET, TRUE),
+		                                     nm_device_get_route_table (device, AF_INET),
 		                                     nm_device_get_route_metric (device, AF_INET),
-		                                     nm_device_get_route_table (device, AF_INET6, TRUE),
+		                                     nm_device_get_route_table (device, AF_INET6),
 		                                     nm_device_get_route_metric (device, AF_INET6));
 	}
 

@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* nm-platform.c - Handle runtime kernel networking configuration
  *
  * This program is free software; you can redistribute it and/or modify
@@ -398,7 +397,7 @@ _idx_obj_part (const DedupMultiIdxType *idx_type,
 		if (h) {
 			nm_hash_update_vals (h,
 			                     idx_type->cache_id_type,
-			                     NMP_OBJECT_CAST_OBJ_WITH_IFINDEX (obj_a)->ifindex);
+			                     obj_a->obj_with_ifindex.ifindex);
 		}
 		return 1;
 
@@ -787,7 +786,7 @@ _nmp_object_new_from_class (const NMPClass *klass)
 }
 
 NMPObject *
-nmp_object_new (NMPObjectType obj_type, const NMPlatformObject *plobj)
+nmp_object_new (NMPObjectType obj_type, gconstpointer plobj)
 {
 	const NMPClass *klass = nmp_class_from_type (obj_type);
 	NMPObject *obj;
@@ -2147,9 +2146,12 @@ nmp_lookup_init_object_by_addr_family (NMPLookup *lookup,
 	NMPObject *o;
 
 	nm_assert (lookup);
-	nm_assert_addr_family (addr_family);
 	nm_assert (NM_IN_SET (obj_type, NMP_OBJECT_TYPE_ROUTING_RULE));
 
+	if (addr_family == AF_UNSPEC)
+		return nmp_lookup_init_obj_type (lookup, obj_type);
+
+	nm_assert_addr_family (addr_family);
 	o = _nmp_object_stackinit_from_type (&lookup->selector_obj, obj_type);
 	NMP_OBJECT_CAST_ROUTING_RULE (o)->addr_family = addr_family;
 	lookup->cache_id_type = NMP_CACHE_ID_TYPE_OBJECT_BY_ADDR_FAMILY;

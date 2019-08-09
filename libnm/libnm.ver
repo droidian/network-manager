@@ -1445,6 +1445,10 @@ global:
 	nm_utils_sriov_vf_to_str;
 } libnm_1_12_0;
 
+libnm_1_14_8 {
+	nm_ethtool_optname_is_feature;
+} libnm_1_14_0;
+
 libnm_1_16_0 {
 global:
 	nm_client_add_and_activate_connection2;
@@ -1604,3 +1608,23 @@ global:
 	nm_tc_qdisc_get_attribute_names;
 	nm_tc_qdisc_set_attribute;
 } libnm_1_16_0;
+
+libnm_1_20_0 {
+global:
+	nm_client_add_connection2;
+	nm_client_add_connection2_finish;
+	nm_client_connectivity_check_get_uri;
+	nm_device_modem_get_apn;
+	nm_device_modem_get_device_id;
+	nm_device_modem_get_operator_code;
+	nm_ip_routing_rule_get_suppress_prefixlength;
+	nm_ip_routing_rule_set_suppress_prefixlength;
+	nm_setting_connection_get_wait_device_timeout;
+	nm_setting_ethtool_get_optnames;
+	nm_setting_ovs_dpdk_get_devargs;
+	nm_setting_ovs_dpdk_get_type;
+	nm_setting_ovs_dpdk_new;
+	nm_setting_wireguard_get_ip4_auto_default_route;
+	nm_setting_wireguard_get_ip6_auto_default_route;
+	nm_settings_add_connection2_flags_get_type;
+} libnm_1_18_0;

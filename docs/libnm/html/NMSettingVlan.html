@@ -365,7 +365,7 @@ properties of this setting.</p>
 </div>
 <div class="refsect3">
 <a name="nm-setting-vlan-get-num-priorities.returns"></a><h4>Returns</h4>
-<p> return the number of ingress/egress priority entries, -1 if error</p>
+<p> return the number of ingress/egress priority entries.</p>
 </div>
 </div>
 <hr>
@@ -406,19 +406,20 @@ or <a class="link" href="NMSettingVlan.html#NMSettingVlan--egress-priority-map" 
 <tr>
 <td class="parameter_name"><p>out_from</p></td>
 <td class="parameter_description"><p>on return the value of the priority map's 'from' item. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>out_to</p></td>
 <td class="parameter_description"><p>on return the value of priority map's 'to' item. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
 <a name="nm-setting-vlan-get-priority.returns"></a><h4>Returns</h4>
-<p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if a priority map was returned, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if error</p>
+<p> returns <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>idx</code></em>
+is in range. Otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>.</p>
 </div>
 </div>
 <hr>
@@ -481,8 +482,7 @@ to</p></td>
 </div>
 <div class="refsect3">
 <a name="nm-setting-vlan-add-priority.returns"></a><h4>Returns</h4>
-<p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the new priority mapping was successfully added to the
-list, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if error</p>
+<p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>.</p>
 </div>
 </div>
 <hr>
@@ -694,7 +694,8 @@ the Linux SKB priorities to 802.1p priorities.</p>
 <div class="refsect3">
 <a name="nm-setting-vlan-add-priority-str.returns"></a><h4>Returns</h4>
 <p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the entry was successfully added to the list, or it
-overwrote the old value, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if error</p>
+overwrote the old value, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if <em class="parameter"><code>str</code></em>
+is not a valid mapping.</p>
 </div>
 </div>
 </div>

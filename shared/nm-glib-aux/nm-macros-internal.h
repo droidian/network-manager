@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This library is free software; you can redistribute it and/or
@@ -635,8 +634,14 @@ NM_G_ERROR_MSG (GError *error)
  * It's useful to check the let the compiler ensure that @value is
  * of a certain type. */
 #define _NM_ENSURE_TYPE(type, value) (_Generic ((value), type: (value)))
+#define _NM_ENSURE_TYPE_CONST(type, value) (_Generic ((value), \
+                                                      const type      : ((const type) (value)), \
+                                                      const type const: ((const type) (value)), \
+                                                            type      : ((const type) (value)), \
+                                                            type const: ((const type) (value))))
 #else
 #define _NM_ENSURE_TYPE(type, value) (value)
+#define _NM_ENSURE_TYPE_CONST(type, value) ((const type) (value))
 #endif
 
 #if _NM_CC_SUPPORT_GENERIC
@@ -865,6 +870,28 @@ fcn (void) \
 
 /*****************************************************************************/
 
+static inline int
+nm_strcmp0 (const char *s1, const char *s2)
+{
+	int c;
+
+	/* like g_strcmp0(), but this is inlinable.
+	 *
+	 * Also, it is guaranteed to return either -1, 0, or 1. */
+	if (s1 == s2)
+		return 0;
+	if (!s1)
+		return -1;
+	if (!s2)
+		return 1;
+	c = strcmp (s1, s2);
+	if (c < 0)
+		return -1;
+	if (c > 0)
+		return 1;
+	return 0;
+}
+
 static inline gboolean
 nm_streq (const char *s1, const char *s2)
 {
@@ -879,14 +906,19 @@ nm_streq0 (const char *s1, const char *s2)
 }
 
 #define NM_STR_HAS_PREFIX(str, prefix) \
-	(strncmp ((str), ""prefix"", NM_STRLEN (prefix)) == 0)
+	({ \
+		const char *const _str = (str); \
+		\
+		_str && (strncmp ((str), ""prefix"", NM_STRLEN (prefix)) == 0); \
+	})
 
 #define NM_STR_HAS_SUFFIX(str, suffix) \
 	({ \
-		const char *_str = (str); \
-		gsize _l = strlen (_str); \
+		const char *_str; \
+		gsize _l; \
 		\
-		(   (_l >= NM_STRLEN (suffix)) \
+		(   (_str = (str)) \
+		 && ((_l = strlen (_str)) >= NM_STRLEN (suffix)) \
 		 && (memcmp (&_str[_l - NM_STRLEN (suffix)], \
 		             ""suffix"", \
 		             NM_STRLEN (suffix)) == 0)); \
@@ -989,10 +1021,9 @@ typedef enum { \
 } _PropertyEnums; \
 static GParamSpec *obj_properties[_PROPERTY_ENUMS_LAST] = { NULL, }
 
-#define NM_GOBJECT_PROPERTIES_DEFINE(obj_type, ...) \
-NM_GOBJECT_PROPERTIES_DEFINE_BASE (__VA_ARGS__); \
+#define NM_GOBJECT_PROPERTIES_DEFINE_NOTIFY(obj_type, obj_properties, property_enums_type, prop_0) \
 static inline void \
-_nm_gobject_notify_together_impl (obj_type *obj, guint n, const _PropertyEnums *props) \
+_nm_gobject_notify_together_impl (obj_type *obj, guint n, const property_enums_type *props) \
 { \
 	const gboolean freeze_thaw = (n > 1); \
 	\
@@ -1002,9 +1033,9 @@ _nm_gobject_notify_together_impl (obj_type *obj, guint n, const _PropertyEnums *
 	if (freeze_thaw) \
 		g_object_freeze_notify ((GObject *) obj); \
 	while (n-- > 0) { \
-		const _PropertyEnums prop = *props++; \
+		const property_enums_type prop = *props++; \
 		\
-		if (prop != PROP_0) { \
+		if (prop != prop_0) { \
 			nm_assert ((gsize) prop < G_N_ELEMENTS (obj_properties)); \
 			nm_assert (obj_properties[prop]); \
 			g_object_notify_by_pspec ((GObject *) obj, obj_properties[prop]); \
@@ -1015,10 +1046,14 @@ _nm_gobject_notify_together_impl (obj_type *obj, guint n, const _PropertyEnums *
 } \
 \
 static inline void \
-_notify (obj_type *obj, _PropertyEnums prop) \
+_notify (obj_type *obj, property_enums_type prop) \
 { \
 	_nm_gobject_notify_together_impl (obj, 1, &prop); \
 } \
+
+#define NM_GOBJECT_PROPERTIES_DEFINE(obj_type, ...) \
+NM_GOBJECT_PROPERTIES_DEFINE_BASE (__VA_ARGS__); \
+NM_GOBJECT_PROPERTIES_DEFINE_NOTIFY (obj_type, obj_properties, _PropertyEnums, PROP_0)
 
 /* invokes _notify() for all arguments (of type _PropertyEnums). Note, that if
  * there are more than one prop arguments, this will involve a freeze/thaw
@@ -1130,6 +1165,30 @@ nm_g_object_unref (gpointer obj)
 #define nm_clear_g_object(pp) \
 	nm_clear_pointer (pp, g_object_unref)
 
+/**
+ * nm_clear_error:
+ * @err: a pointer to pointer to a #GError.
+ *
+ * This is like g_clear_error(). The only difference is
+ * that this is an inline function.
+ */
+static inline void
+nm_clear_error (GError **err)
+{
+	if (err && *err) {
+		g_error_free (*err);
+		*err = NULL;
+	}
+}
+
+/* Patch g_clear_error() to use nm_clear_error(), which is inlineable
+ * and visible to the compiler. For example gs_free_error attribute only
+ * frees the error after checking that it's not %NULL. So, in many cases
+ * the compiler knows that gs_free_error has no effect and can optimize
+ * the call away. By making g_clear_error() inlineable, we give the compiler
+ * more chance to detect that the function actually has no effect. */
+#define g_clear_error(ptr) nm_clear_error(ptr)
+
 static inline gboolean
 nm_clear_g_source (guint *id)
 {
@@ -1219,11 +1278,27 @@ nm_g_variant_ref (GVariant *v)
 	return v;
 }
 
+static inline GVariant *
+nm_g_variant_ref_sink (GVariant *v)
+{
+	if (v)
+		g_variant_ref_sink (v);
+	return v;
+}
+
 static inline void
 nm_g_variant_unref (GVariant *v)
 {
 	if (v)
 		g_variant_unref (v);
+}
+
+static inline GVariant *
+nm_g_variant_take_ref (GVariant *v)
+{
+	if (v)
+		g_variant_take_ref (v);
+	return v;
 }
 
 /*****************************************************************************/
@@ -1494,6 +1569,11 @@ nm_strcmp_p (gconstpointer a, gconstpointer b)
 
 /*****************************************************************************/
 
+#define nm_g_slice_free(ptr) \
+	g_slice_free (typeof (*(ptr)), ptr)
+
+/*****************************************************************************/
+
 /* like g_memdup(). The difference is that the @size argument is of type
  * gsize, while g_memdup() has type guint. Since, the size of container types
  * like GArray is guint as well, this means trying to g_memdup() an
@@ -1523,14 +1603,71 @@ nm_memdup (gconstpointer data, gsize size)
 	return p;
 }
 
+#define nm_malloc_maybe_a(alloca_maxlen, bytes, to_free) \
+	({ \
+		const gsize _bytes = (bytes); \
+		typeof (to_free) _to_free = (to_free); \
+		typeof (*_to_free) _ptr; \
+		\
+		G_STATIC_ASSERT_EXPR ((alloca_maxlen) <= 500); \
+		nm_assert (_to_free && !*_to_free); \
+		\
+		if (_bytes <= (alloca_maxlen)) { \
+			_ptr = g_alloca (_bytes); \
+		} else { \
+			_ptr = g_malloc (_bytes); \
+			*_to_free = _ptr; \
+		}; \
+		\
+		_ptr; \
+	})
+
+#define nm_malloc0_maybe_a(alloca_maxlen, bytes, to_free) \
+	({ \
+		const gsize _bytes = (bytes); \
+		typeof (to_free) _to_free = (to_free); \
+		typeof (*_to_free) _ptr; \
+		\
+		G_STATIC_ASSERT_EXPR ((alloca_maxlen) <= 500); \
+		nm_assert (_to_free && !*_to_free); \
+		\
+		if (_bytes <= (alloca_maxlen)) { \
+			_ptr = g_alloca (_bytes); \
+			memset (_ptr, 0, _bytes); \
+		} else { \
+			_ptr = g_malloc0 (_bytes); \
+			*_to_free = _ptr; \
+		}; \
+		\
+		_ptr; \
+	})
+
+#define nm_memdup_maybe_a(alloca_maxlen, data, size, to_free) \
+	({ \
+		const gsize _size = (size); \
+		typeof (to_free) _to_free_md = (to_free); \
+		typeof (*_to_free_md) _ptr_md = NULL; \
+		\
+		nm_assert (_to_free_md && !*_to_free_md); \
+		\
+		if (_size > 0u) { \
+			_ptr_md = nm_malloc_maybe_a ((alloca_maxlen), _size, _to_free_md); \
+			memcpy (_ptr_md, (data), _size); \
+		} \
+		\
+		_ptr_md; \
+	})
+
 static inline char *
 _nm_strndup_a_step (char *s, const char *str, gsize len)
 {
 	NM_PRAGMA_WARNING_DISABLE ("-Wstringop-truncation");
+	NM_PRAGMA_WARNING_DISABLE ("-Wstringop-overflow");
 	if (len > 0)
 		strncpy (s, str, len);
 	s[len] = '\0';
 	return s;
+	NM_PRAGMA_WARNING_REENABLE;
 	NM_PRAGMA_WARNING_REENABLE;
 }
 

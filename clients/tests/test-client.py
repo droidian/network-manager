@@ -324,7 +324,7 @@ class NMStubServer:
             nmobj = self._conn_get_main_object(self._conn)
             if nmobj is not None:
                 break
-            if (NM.utils_get_timestamp_msec() - start) >= 2000:
+            if (NM.utils_get_timestamp_msec() - start) >= 4000:
                 p.stdin.close()
                 p.kill()
                 Util.popen_wait(p, 1000)
@@ -889,7 +889,7 @@ class TestNmcli(NmTestBase):
 
         replace_stdout.append((Util.memoize_nullary(lambda: self.srv.findConnectionUuid('con-gsm1')), 'UUID-con-gsm1-REPLACED-REPLACED-REPL'))
 
-        self.call_nmcli(['connection', 'add', 'type', 'gsm', 'autoconnect', 'no', 'con-name', 'con-gsm1', 'ifname', '*', 'apn', 'xyz.con-gsm1', 'serial.baud', '5', 'serial.send-delay', '100', 'serial.pari', '1'],
+        self.call_nmcli(['connection', 'add', 'type', 'gsm', 'autoconnect', 'no', 'con-name', 'con-gsm1', 'ifname', '*', 'apn', 'xyz.con-gsm1', 'serial.baud', '5', 'serial.send-delay', '100', 'serial.pari', '1', 'ipv4.dns-options', ' '],
                         replace_stdout = replace_stdout)
 
         replace_stdout.append((Util.memoize_nullary(lambda: self.srv.findConnectionUuid('ethernet')), 'UUID-ethernet-REPLACED-REPLACED-REPL'))

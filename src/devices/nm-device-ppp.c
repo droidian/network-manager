@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -117,6 +116,25 @@ ppp_ip4_config (NMPPPManager *ppp_manager,
 	}
 }
 
+static gboolean
+check_connection_compatible (NMDevice *device, NMConnection *connection, GError **error)
+{
+	NMSettingPppoe *s_pppoe;
+
+	if (!NM_DEVICE_CLASS (nm_device_ppp_parent_class)->check_connection_compatible (device, connection, error))
+		return FALSE;
+
+	s_pppoe = nm_connection_get_setting_pppoe (connection);
+	if (   !s_pppoe
+	    || !nm_setting_pppoe_get_parent (s_pppoe)) {
+		nm_utils_error_set_literal (error, NM_UTILS_ERROR_CONNECTION_AVAILABLE_INCOMPATIBLE,
+		                            "the connection doesn't specify a PPPoE parent interface");
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 static NMActStageReturn
 act_stage2_config (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
@@ -140,9 +158,9 @@ act_stage2_config (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 
 	if (priv->ppp_manager) {
 		nm_ppp_manager_set_route_parameters (priv->ppp_manager,
-		                                     nm_device_get_route_table (device, AF_INET, TRUE),
+		                                     nm_device_get_route_table (device, AF_INET),
 		                                     nm_device_get_route_metric (device, AF_INET),
-		                                     nm_device_get_route_table (device, AF_INET6, TRUE),
+		                                     nm_device_get_route_table (device, AF_INET6),
 		                                     nm_device_get_route_metric (device, AF_INET6));
 	}
 
@@ -280,6 +298,7 @@ nm_device_ppp_class_init (NMDevicePppClass *klass)
 
 	device_class->act_stage2_config = act_stage2_config;
 	device_class->act_stage3_ip_config_start = act_stage3_ip_config_start;
+	device_class->check_connection_compatible = check_connection_compatible;
 	device_class->create_and_realize = create_and_realize;
 	device_class->deactivate = deactivate;
 	device_class->get_generic_capabilities = get_generic_capabilities;

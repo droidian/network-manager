@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -77,8 +75,8 @@ static const BondDefault defaults[] = {
 	{ NM_SETTING_BOND_OPTION_UPDELAY,          "0",          NM_BOND_OPTION_TYPE_INT, 0, G_MAXINT },
 	{ NM_SETTING_BOND_OPTION_ARP_INTERVAL,     "0",          NM_BOND_OPTION_TYPE_INT, 0, G_MAXINT },
 	{ NM_SETTING_BOND_OPTION_ARP_IP_TARGET,    "",           NM_BOND_OPTION_TYPE_IP },
-	{ NM_SETTING_BOND_OPTION_ARP_VALIDATE,     "none",       NM_BOND_OPTION_TYPE_BOTH, 0, 3,
-	  { "none", "active", "backup", "all", NULL } },
+	{ NM_SETTING_BOND_OPTION_ARP_VALIDATE,     "none",       NM_BOND_OPTION_TYPE_BOTH, 0, 6,
+	  { "none", "active", "backup", "all", "filter", "filter_active", "filter_backup", NULL } },
 	{ NM_SETTING_BOND_OPTION_PRIMARY,          "",           NM_BOND_OPTION_TYPE_IFNAME },
 	{ NM_SETTING_BOND_OPTION_PRIMARY_RESELECT, "always",     NM_BOND_OPTION_TYPE_BOTH, 0, 2,
 	  { "always", "better", "failure", NULL } },
@@ -511,6 +509,7 @@ static const struct {
 	{ NM_SETTING_BOND_OPTION_PACKETS_PER_SLAVE, ~(BIT (NM_BOND_MODE_ROUNDROBIN)) },
 	{ NM_SETTING_BOND_OPTION_ARP_VALIDATE,      BIT (NM_BOND_MODE_8023AD) | BIT (NM_BOND_MODE_TLB) | BIT (NM_BOND_MODE_ALB) },
 	{ NM_SETTING_BOND_OPTION_ARP_INTERVAL,      BIT (NM_BOND_MODE_8023AD) | BIT (NM_BOND_MODE_TLB) | BIT (NM_BOND_MODE_ALB) },
+	{ NM_SETTING_BOND_OPTION_ARP_IP_TARGET,     BIT (NM_BOND_MODE_8023AD) | BIT (NM_BOND_MODE_TLB) | BIT (NM_BOND_MODE_ALB) },
 	{ NM_SETTING_BOND_OPTION_LACP_RATE,         ~(BIT (NM_BOND_MODE_8023AD)) },
 	{ NM_SETTING_BOND_OPTION_PRIMARY,           ~(BIT (NM_BOND_MODE_ACTIVEBACKUP) | BIT (NM_BOND_MODE_TLB) | BIT (NM_BOND_MODE_ALB)) },
 	{ NM_SETTING_BOND_OPTION_ACTIVE_SLAVE,      ~(BIT (NM_BOND_MODE_ACTIVEBACKUP) | BIT (NM_BOND_MODE_TLB) | BIT (NM_BOND_MODE_ALB)) },
@@ -854,21 +853,25 @@ options_equal (NMSettingBond *s_bond,
 static NMTernary
 compare_property (const NMSettInfoSetting *sett_info,
                   guint property_idx,
-                  NMSetting *setting,
-                  NMSetting *other,
+                  NMConnection *con_a,
+                  NMSetting *set_a,
+                  NMConnection *con_b,
+                  NMSetting *set_b,
                   NMSettingCompareFlags flags)
 {
 	if (nm_streq (sett_info->property_infos[property_idx].name, NM_SETTING_BOND_OPTIONS)) {
-		return (   !other
-		        || options_equal (NM_SETTING_BOND (setting),
-		                          NM_SETTING_BOND (other),
+		return (   !set_b
+		        || options_equal (NM_SETTING_BOND (set_a),
+		                          NM_SETTING_BOND (set_b),
 		                          flags));
 	}
 
 	return NM_SETTING_CLASS (nm_setting_bond_parent_class)->compare_property (sett_info,
 	                                                                          property_idx,
-	                                                                          setting,
-	                                                                          other,
+	                                                                          con_a,
+	                                                                          set_a,
+	                                                                          con_b,
+	                                                                          set_b,
 	                                                                          flags);
 }
 

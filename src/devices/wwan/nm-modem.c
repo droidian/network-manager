@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -52,6 +51,8 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMModem,
 	PROP_SIM_ID,
 	PROP_IP_TYPES,
 	PROP_SIM_OPERATOR_ID,
+	PROP_OPERATOR_CODE,
+	PROP_APN,
 );
 
 enum {
@@ -90,6 +91,8 @@ typedef struct _NMModemPrivate {
 	char *sim_id;
 	NMModemIPType ip_types;
 	char *sim_operator_id;
+	char *operator_code;
+	char *apn;
 
 	NMPPPManager *ppp_manager;
 
@@ -344,7 +347,8 @@ nm_modem_get_connection_ip_type (NMModem *self,
 	s_ip6 = nm_connection_get_setting_ip6_config (connection);
 	if (s_ip6) {
 		method = nm_setting_ip_config_get_method (s_ip6);
-		if (g_strcmp0 (method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE) == 0)
+		if (NM_IN_STRSET (method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
+		                          NM_SETTING_IP6_CONFIG_METHOD_DISABLED))
 			ip6 = FALSE;
 		ip6_may_fail = nm_setting_ip_config_get_may_fail (s_ip6);
 	}
@@ -434,6 +438,18 @@ const char *
 nm_modem_get_sim_operator_id (NMModem *self)
 {
 	return NM_MODEM_GET_PRIVATE (self)->sim_operator_id;
+}
+
+const char *
+nm_modem_get_operator_code (NMModem *self)
+{
+	return NM_MODEM_GET_PRIVATE (self)->operator_code;
+}
+
+const char *
+nm_modem_get_apn (NMModem *self)
+{
+	return NM_MODEM_GET_PRIVATE (self)->apn;
 }
 
 /*****************************************************************************/
@@ -824,8 +840,9 @@ nm_modem_stage3_ip6_config_start (NMModem *self,
 
 	method = nm_utils_get_ip_config_method (connection, AF_INET6);
 
-	/* Only Ignore and Auto methods make sense for WWAN */
-	if (nm_streq (method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE))
+	/* Only Ignore, Disabled and Auto methods make sense for WWAN */
+	if (NM_IN_STRSET (method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
+	                          NM_SETTING_IP6_CONFIG_METHOD_DISABLED))
 		return NM_ACT_STAGE_RETURN_IP_DONE;
 
 	if (!nm_streq (method, NM_SETTING_IP6_CONFIG_METHOD_AUTO)) {
@@ -1086,6 +1103,7 @@ nm_modem_check_connection_compatible (NMModem *self, NMConnection *connection, G
 
 gboolean
 nm_modem_complete_connection (NMModem *self,
+                              const char *iface,
                               NMConnection *connection,
                               NMConnection *const*existing_connections,
                               GError **error)
@@ -1100,7 +1118,7 @@ nm_modem_complete_connection (NMModem *self,
 		return FALSE;
 	}
 
-	return klass->complete_connection (self, connection, existing_connections, error);
+	return klass->complete_connection (self, iface, connection, existing_connections, error);
 }
 
 /*****************************************************************************/
@@ -1556,9 +1574,9 @@ nm_modem_set_route_parameters_from_device (NMModem *self,
 	g_return_if_fail (NM_IS_DEVICE (device));
 
 	nm_modem_set_route_parameters (self,
-	                               nm_device_get_route_table (device, AF_INET, TRUE),
+	                               nm_device_get_route_table (device, AF_INET),
 	                               nm_device_get_route_metric (device, AF_INET),
-	                               nm_device_get_route_table (device, AF_INET6, TRUE),
+	                               nm_device_get_route_table (device, AF_INET6),
 	                               nm_device_get_route_metric (device, AF_INET6));
 }
 
@@ -1575,6 +1593,30 @@ nm_modem_get_capabilities (NMModem *self,
 }
 
 /*****************************************************************************/
+
+void
+_nm_modem_set_operator_code (NMModem *self, const char *operator_code)
+{
+	NMModemPrivate *priv = NM_MODEM_GET_PRIVATE (self);
+
+	if (g_strcmp0 (priv->operator_code, operator_code) != 0) {
+		g_free (priv->operator_code);
+		priv->operator_code = g_strdup (operator_code);
+		_notify (self, PROP_OPERATOR_CODE);
+	}
+}
+
+void
+_nm_modem_set_apn (NMModem *self, const char *apn)
+{
+	NMModemPrivate *priv = NM_MODEM_GET_PRIVATE (self);
+
+	if (g_strcmp0 (priv->apn, apn) != 0) {
+		g_free (priv->apn);
+		priv->apn = g_strdup (apn);
+		_notify (self, PROP_APN);
+	}
+}
 
 static void
 get_property (GObject *object, guint prop_id,
@@ -1613,6 +1655,12 @@ get_property (GObject *object, guint prop_id,
 		break;
 	case PROP_SIM_OPERATOR_ID:
 		g_value_set_string (value, priv->sim_operator_id);
+		break;
+	case PROP_OPERATOR_CODE:
+		g_value_set_string (value, priv->operator_code);
+		break;
+	case PROP_APN:
+		g_value_set_string (value, priv->apn);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1665,6 +1713,10 @@ set_property (GObject *object, guint prop_id,
 		s = g_value_get_string (value);
 		if (s && s[0])
 			priv->sim_operator_id = g_strdup (s);
+		break;
+	case PROP_OPERATOR_CODE:
+		/* construct-only */
+		priv->operator_code = g_value_dup_string (value);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1727,6 +1779,8 @@ finalize (GObject *object)
 	g_free (priv->device_id);
 	g_free (priv->sim_id);
 	g_free (priv->sim_operator_id);
+	g_free (priv->operator_code);
+	g_free (priv->apn);
 
 	G_OBJECT_CLASS (nm_modem_parent_class)->finalize (object);
 }
@@ -1808,6 +1862,18 @@ nm_modem_class_init (NMModemClass *klass)
 	     g_param_spec_string (NM_MODEM_SIM_OPERATOR_ID, "", "",
 	                          NULL,
 	                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT |
+	                          G_PARAM_STATIC_STRINGS);
+
+	obj_properties[PROP_OPERATOR_CODE] =
+	     g_param_spec_string (NM_MODEM_OPERATOR_CODE, "", "",
+	                          NULL,
+	                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT |
+	                          G_PARAM_STATIC_STRINGS);
+
+	obj_properties[PROP_APN] =
+	     g_param_spec_string (NM_MODEM_APN, "", "",
+	                          NULL,
+	                          G_PARAM_READABLE |
 	                          G_PARAM_STATIC_STRINGS);
 
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);

@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -37,6 +36,7 @@ typedef enum {
 gboolean nm_wifi_utils_complete_connection (GBytes *ssid,
                                             const char *bssid,
                                             NM80211Mode mode,
+                                            guint32 ap_freq,
                                             guint32 flags,
                                             guint32 wpa_flags,
                                             guint32 rsn_flags,

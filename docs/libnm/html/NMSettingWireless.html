@@ -452,6 +452,10 @@
 <td class="function_name"><a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-INFRA:CAPS" title="NM_SETTING_WIRELESS_MODE_INFRA">NM_SETTING_WIRELESS_MODE_INFRA</a></td>
 </tr>
 <tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-MESH:CAPS" title="NM_SETTING_WIRELESS_MODE_MESH">NM_SETTING_WIRELESS_MODE_MESH</a></td>
+</tr>
+<tr>
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="NMSettingWireless.html#NMSettingWirelessPowersave" title="enum NMSettingWirelessPowersave">NMSettingWirelessPowersave</a></td>
 </tr>
@@ -1505,6 +1509,14 @@ for this connection.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-SETTING-WIRELESS-MODE-MESH:CAPS"></a><h3>NM_SETTING_WIRELESS_MODE_MESH</h3>
+<pre class="programlisting">#define NM_SETTING_WIRELESS_MODE_MESH   "mesh"
+</pre>
+<p>Indicates that the connection should create a mesh point.</p>
+<p class="since">Since: 1.20</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMSettingWirelessPowersave"></a><h3>enum NMSettingWirelessPowersave</h3>
 <p>These flags indicate whether wireless powersave must be enabled.</p>
 <div class="refsect3">
@@ -1711,7 +1723,7 @@ randomize the MAC address), or <a class="link" href="NMSetting.html#NM-SETTING-M
 <div class="refsect2">
 <a name="NMSettingWireless--mode"></a><h3>The <code class="literal">“mode”</code> property</h3>
 <pre class="programlisting">  “mode”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
-<p>Wi-Fi network mode; one of "infrastructure", "adhoc" or "ap".  If blank,
+<p>Wi-Fi network mode; one of "infrastructure", "mesh", "adhoc" or "ap".  If blank,
 infrastructure is assumed.</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>

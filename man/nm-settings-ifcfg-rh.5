@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 04/21/2019
+.\"      Date: 08/06/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.18.0
+.\"    Source: NetworkManager 1.20.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.18\&.0" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.20\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1046,6 +1046,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 id
@@ -1271,6 +1272,19 @@ Whether or not LLMNR is enabled for the connection\fB
 Example: \fRLLMNR=yes\fB
 
 Allowed values: \fRyes,no,resolve
+T}
+T{
+wait\-device\-timeout
+T}:T{
+DEVTIMEOUT\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+for initscripts compatibility, this variable must be a whole integer\&. If necessary, NetworkManager stores also a fractional component for the milliseconds\&.\fB
+
+Example: \fRDEVTIMEOUT=5\fB
+
+Allowed values: \fRtimeout in seconds\&.
 T}
 .TE
 .sp 1
@@ -1850,11 +1864,11 @@ l l l l.
 T{
 method
 T}:T{
-IPV6INIT, IPV6FORWARDING, IPV6_AUTOCONF, DHCPV6C
+IPV6INIT, IPV6FORWARDING, IPV6_AUTOCONF, DHCPV6C, IPV6_DISABLED
 T}:T{
 IPV6INIT=yes; IPV6FORWARDING=no; IPV6_AUTOCONF=!IPV6FORWARDING, DHCPV6=no
 T}:T{
-Method used for IPv6 protocol configuration\&. ignore ~ IPV6INIT=no; auto ~ IPV6_AUTOCONF=yes; dhcp ~ IPV6_AUTOCONF=no and DHCPV6C=yes
+Method used for IPv6 protocol configuration\&. ignore ~ IPV6INIT=no; auto ~ IPV6_AUTOCONF=yes; dhcp ~ IPV6_AUTOCONF=no and DHCPV6C=yes; disabled ~ IPV6_DISABLED=yes
 T}
 T{
 dns
@@ -1926,7 +1940,7 @@ T}
 T{
 dhcp\-hostname
 T}:T{
-DHCP_HOSTNAME
+DHCPV6_HOSTNAME
 T}:T{
 \ \&
 T}:T{
@@ -2089,7 +2103,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&14.\ \&ovs\-interface setting
+.B Table\ \&14.\ \&ovs\-dpdk setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2111,7 +2125,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&15.\ \&ovs\-patch setting
+.B Table\ \&15.\ \&ovs\-interface setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2133,7 +2147,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&16.\ \&ovs\-port setting
+.B Table\ \&16.\ \&ovs\-patch setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2155,7 +2169,29 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&17.\ \&proxy setting
+.B Table\ \&17.\ \&ovs\-port setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+.
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&18.\ \&proxy setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2222,7 +2258,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&18.\ \&sriov setting
+.B Table\ \&19.\ \&sriov setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2279,7 +2315,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&19.\ \&tc setting
+.B Table\ \&20.\ \&tc setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2324,7 +2360,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&20.\ \&team\-port setting
+.B Table\ \&21.\ \&team\-port setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2355,7 +2391,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&21.\ \&team setting
+.B Table\ \&22.\ \&team setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2386,7 +2422,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&22.\ \&user setting
+.B Table\ \&23.\ \&user setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2419,7 +2455,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&23.\ \&vlan setting
+.B Table\ \&24.\ \&vlan setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2508,7 +2544,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&24.\ \&wifi\-p2p setting
+.B Table\ \&25.\ \&wifi\-p2p setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2530,7 +2566,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&25.\ \&802\-3\-ethernet setting
+.B Table\ \&26.\ \&802\-3\-ethernet setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2679,7 +2715,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&26.\ \&wireguard setting
+.B Table\ \&27.\ \&wireguard setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2701,7 +2737,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&27.\ \&802\-11\-wireless\-security setting
+.B Table\ \&28.\ \&802\-11\-wireless\-security setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2948,7 +2984,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&28.\ \&802\-11\-wireless setting
+.B Table\ \&29.\ \&802\-11\-wireless setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3159,7 +3195,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&29.\ \&wpan setting
+.B Table\ \&30.\ \&wpan setting
 .TS
 allbox tab(:);
 lB lB lB lB.

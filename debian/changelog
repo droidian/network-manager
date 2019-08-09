@@ -1,3 +1,48 @@
+network-manager (1.20.0-1ubuntu1) UNRELEASED; urgency=medium
+
+  * New upstream version, merged from Debian
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 09 Aug 2019 11:08:56 +0200
+
+network-manager (1.20.0-1) unstable; urgency=medium
+
+  * New upstream version 1.20.0
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 06 Aug 2019 22:55:57 +0200
+
+network-manager (1.19.90-2) unstable; urgency=medium
+
+  * Demote isc-dhcp-client to Suggests.
+    The DHCP client now defaults to "internal". This default can be
+    overridden at run time by setting the main.dhcp option in the
+    configuration file. The old default was "dhclient" and required
+    isc-dhcp-client. (Closes: #933545)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 01 Aug 2019 10:42:16 +0200
+
+network-manager (1.19.90-1) unstable; urgency=medium
+
+  * New upstream version 1.19.90 (1.20 rc1)
+  * Drop obsolete configure flags
+  * Rebase patches
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 31 Jul 2019 13:35:47 +0200
+
+network-manager (1.18.0-3) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 11 Jul 2019 00:36:17 +0200
+
+network-manager (1.18.0-2) experimental; urgency=medium
+
+  * Fix package description after avahi-autoipd removal
+  * Drop obsolete lintian overrides
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 28 May 2019 22:27:17 +0200
+
 network-manager (1.18.0-1ubuntu6) eoan; urgency=medium
 
   [ Till Kamppeter ]

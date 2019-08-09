@@ -212,7 +212,7 @@
 <td align="left">
 <a name="nm-settings.property.connection.permissions"></a>permissions</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>An array of strings defining what access a given user has to this connection.  If this is NULL or empty, all users are allowed to access this connection; otherwise users are allowed if and only if they are in this list.  When this is not empty, the connection can be active only when one of the specified users is logged into an active session.  Each entry is of the form "[type]:[id]:[reserved]"; for example, "user:dcbw:blah". At this time only the "user" [type] is allowed.  Any other values are ignored and reserved for future use.  [id] is the username that this permission refers to, which may not contain the ":" character. Any [reserved] information present must be ignored and is reserved for future use.  All of [type], [id], and [reserved] must be valid UTF-8.</td>
 </tr>
 <tr>
@@ -226,7 +226,7 @@
 <td align="left">
 <a name="nm-settings.property.connection.secondaries"></a>secondaries</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>List of connection UUIDs that should be activated when the base connection itself is activated. Currently only VPN connections are supported.</td>
 </tr>
 <tr>
@@ -263,6 +263,13 @@
 <td align="left">string</td>
 <td align="left"> </td>
 <td>A universally unique identifier for the connection, for example generated with libuuid.  It should be assigned when the connection is created, and never changed as long as the connection still applies to the same network.  For example, it should not be changed when the "id" property or NMSettingIP4Config changes, but might need to be re-created when the Wi-Fi SSID, mobile broadband network provider, or "type" property changes. The UUID must be in the format "2815492f-7e56-435e-b2e9-246bd7cdc664" (ie, contains only hexadecimal characters and "-").</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.connection.wait-device-timeout"></a>wait-device-timeout</td>
+<td align="left">int32</td>
+<td align="left">-1</td>
+<td>Timeout in milliseconds to wait for device at startup. During boot, devices may take a while to be detected by the driver. This property will cause to delay NetworkManager-wait-online.service and nm-online to give the device a chance to appear. Note that this property only works together with NMSettingConnection:interface-name to identify the device that will be waited for. The value 0 means no wait time. The default value is -1, which currently has the same meaning as no wait time.</td>
 </tr>
 <tr>
 <td align="left">
@@ -322,7 +329,7 @@
 <td align="left">
 <a name="nm-settings.property.802-1x.altsubject-matches"></a>altsubject-matches</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>List of strings to be matched against the altSubjectName of the certificate presented by the authentication server. If the list is empty, no verification of the server certificate's altSubjectName is performed.</td>
 </tr>
 <tr>
@@ -399,7 +406,7 @@
 <td align="left">
 <a name="nm-settings.property.802-1x.eap"></a>eap</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>The allowed EAP method to be used when authenticating to the network with 802.1x.  Valid methods are: "leap", "md5", "tls", "peap", "ttls", "pwd", and "fast".  Each method requires different configuration using the properties of this setting; refer to wpa_supplicant documentation for the allowed combinations.</td>
 </tr>
 <tr>
@@ -476,7 +483,7 @@
 <td align="left">
 <a name="nm-settings.property.802-1x.phase2-altsubject-matches"></a>phase2-altsubject-matches</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>List of strings to be matched against the altSubjectName of the certificate presented by the authentication server during the inner "phase 2" authentication. If the list is empty, no verification of the server certificate's altSubjectName is performed.</td>
 </tr>
 <tr>
@@ -875,7 +882,7 @@
 <td align="left">
 <a name="nm-settings.property.bridge.vlans"></a>vlans</td>
 <td align="left">array of vardict</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Array of bridge VLAN objects. In addition to the VLANs specified here, the bridge will also have the default-pvid VLAN configured  by the bridge.vlan-default-pvid property. In nmcli the VLAN list can be specified with the following syntax: $vid [pvid] [untagged] [, $vid [pvid] [untagged]]... where $vid is either a single id between 1 and 4094 or a range, represented as a couple of ids separated by a dash.</td>
 </tr>
 </tbody>
@@ -924,7 +931,7 @@
 <td align="left">
 <a name="nm-settings.property.bridge-port.vlans"></a>vlans</td>
 <td align="left">array of vardict</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Array of bridge VLAN objects. In addition to the VLANs specified here, the port will also have the default-pvid VLAN configured on the bridge by the bridge.vlan-default-pvid property. In nmcli the VLAN list can be specified with the following syntax: $vid [pvid] [untagged] [, $vid [pvid] [untagged]]... where $vid is either a single id between 1 and 4094 or a range, represented as a couple of ids separated by a dash.</td>
 </tr>
 </tbody>
@@ -1057,14 +1064,14 @@
 <td align="left">
 <a name="nm-settings.property.dcb.priority-bandwidth"></a>priority-bandwidth</td>
 <td align="left">array of uint32</td>
-<td align="left">[0, 0, 0, 0, 0, 0, 0, 0]</td>
+<td align="left"> </td>
 <td>An array of 8 uint values, where the array index corresponds to the User Priority (0 - 7) and the value indicates the percentage of bandwidth of the priority's assigned group that the priority may use.  The sum of all percentages for priorities which belong to the same group must total 100 percents.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.dcb.priority-flow-control"></a>priority-flow-control</td>
 <td align="left">array of uint32</td>
-<td align="left">[False, False, False, False, False, False, False, False]</td>
+<td align="left"> </td>
 <td>An array of 8 boolean values, where the array index corresponds to the User Priority (0 - 7) and the value indicates whether or not the corresponding priority should transmit priority pause.</td>
 </tr>
 <tr>
@@ -1078,7 +1085,7 @@
 <td align="left">
 <a name="nm-settings.property.dcb.priority-group-bandwidth"></a>priority-group-bandwidth</td>
 <td align="left">array of uint32</td>
-<td align="left">[0, 0, 0, 0, 0, 0, 0, 0]</td>
+<td align="left"> </td>
 <td>An array of 8 uint values, where the array index corresponds to the Priority Group ID (0 - 7) and the value indicates the percentage of link bandwidth allocated to that group.  Allowed values are 0 - 100, and the sum of all values must total 100 percents.</td>
 </tr>
 <tr>
@@ -1092,21 +1099,21 @@
 <td align="left">
 <a name="nm-settings.property.dcb.priority-group-id"></a>priority-group-id</td>
 <td align="left">array of uint32</td>
-<td align="left">[0, 0, 0, 0, 0, 0, 0, 0]</td>
+<td align="left"> </td>
 <td>An array of 8 uint values, where the array index corresponds to the User Priority (0 - 7) and the value indicates the Priority Group ID.  Allowed Priority Group ID values are 0 - 7 or 15 for the unrestricted group.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.dcb.priority-strict-bandwidth"></a>priority-strict-bandwidth</td>
 <td align="left">array of uint32</td>
-<td align="left">[False, False, False, False, False, False, False, False]</td>
+<td align="left"> </td>
 <td>An array of 8 boolean values, where the array index corresponds to the User Priority (0 - 7) and the value indicates whether or not the priority may use all of the bandwidth allocated to its assigned group.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.dcb.priority-traffic-class"></a>priority-traffic-class</td>
 <td align="left">array of uint32</td>
-<td align="left">[0, 0, 0, 0, 0, 0, 0, 0]</td>
+<td align="left"> </td>
 <td>An array of 8 uint values, where the array index corresponds to the User Priority (0 - 7) and the value indicates the traffic class (0 - 7) to which the priority is mapped.</td>
 </tr>
 </tbody>
@@ -1369,7 +1376,7 @@
 <td align="left">
 <a name="nm-settings.property.ipv4.addresses"></a>addresses</td>
 <td align="left">array of array of uint32</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Deprecated in favor of the 'address-data' and 'gateway' properties, but this can be used for backward-compatibility with older daemons. Note that if you send this property the daemon will ignore 'address-data' and 'gateway'.  Array of IPv4 address structures.  Each IPv4 address structure is composed of 3 32-bit values; the first being the IPv4 address (network byte order), the second the prefix (1 - 32), and last the IPv4 gateway (network byte order). The gateway may be left as 0 if no gateway exists for that subnet.</td>
 </tr>
 <tr>
@@ -1418,14 +1425,14 @@
 <td align="left">
 <a name="nm-settings.property.ipv4.dns"></a>dns</td>
 <td align="left">array of uint32</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Array of IP addresses of DNS servers (as network-byte-order integers)</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.ipv4.dns-options"></a>dns-options</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Array of DNS options as described in man 5 resolv.conf. NULL means that the options are unset and left at the default. In this case NetworkManager will use default options. This is distinct from an empty list of properties.</td>
 </tr>
 <tr>
@@ -1433,13 +1440,13 @@
 <a name="nm-settings.property.ipv4.dns-priority"></a>dns-priority</td>
 <td align="left">int32</td>
 <td align="left">0</td>
-<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports split-DNS as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
+<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.ipv4.dns-search"></a>dns-search</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Array of DNS search domains. Domains starting with a tilde ('~') are considered 'routing' domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names.</td>
 </tr>
 <tr>
@@ -1475,7 +1482,7 @@
 <a name="nm-settings.property.ipv4.method"></a>method</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>IP configuration method. NMSettingIP4Config and NMSettingIP6Config both support "auto", "manual", and "link-local". See the subclass-specific documentation for other values. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration.  The "ignore-auto-routes" and "ignore-auto-dns" properties modify this behavior. For methods that imply no upstream network, such as "shared" or "link-local", these properties must be empty. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10.42.x.0/24 is chosen. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared.</td>
+<td>IP configuration method. NMSettingIP4Config and NMSettingIP6Config both support "disabled", "auto", "manual", and "link-local". See the subclass-specific documentation for other values. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration.  The "ignore-auto-routes" and "ignore-auto-dns" properties modify this behavior. For methods that imply no upstream network, such as "shared" or "link-local", these properties must be empty. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10.42.x.0/24 is chosen. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1509,7 +1516,7 @@
 <td align="left">
 <a name="nm-settings.property.ipv4.routes"></a>routes</td>
 <td align="left">array of array of uint32</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Deprecated in favor of the 'route-data' property, but this can be used for backward-compatibility with older daemons. Note that if you send this property the daemon will ignore 'route-data'.  Array of IPv4 route structures.  Each IPv4 route structure is composed of 4 32-bit values; the first being the destination IPv4 network or address (network byte order), the second the destination network or address prefix (1 - 32), the third being the next-hop (network byte order) if any, and the fourth being the route metric. If the metric is 0, NM will choose an appropriate default metric for the device. (There is no way to explicitly specify an actual metric of 0 with this property.)</td>
 </tr>
 </tbody>
@@ -1551,7 +1558,7 @@
 <td align="left">
 <a name="nm-settings.property.ipv6.addresses"></a>addresses</td>
 <td align="left">array of legacy IPv6 address struct (a(ayuay))</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Deprecated in favor of the 'address-data' and 'gateway' properties, but this can be used for backward-compatibility with older daemons. Note that if you send this property the daemon will ignore 'address-data' and 'gateway'.  Array of IPv6 address structures.  Each IPv6 address structure is composed of an IPv6 address, a prefix length (1 - 128), and an IPv6 gateway address. The gateway may be zeroed out if no gateway exists for that subnet.</td>
 </tr>
 <tr>
@@ -1593,14 +1600,14 @@
 <td align="left">
 <a name="nm-settings.property.ipv6.dns"></a>dns</td>
 <td align="left">array of byte array</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Array of IP addresses of DNS servers (in network byte order)</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.ipv6.dns-options"></a>dns-options</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Array of DNS options as described in man 5 resolv.conf. NULL means that the options are unset and left at the default. In this case NetworkManager will use default options. This is distinct from an empty list of properties.</td>
 </tr>
 <tr>
@@ -1608,13 +1615,13 @@
 <a name="nm-settings.property.ipv6.dns-priority"></a>dns-priority</td>
 <td align="left">int32</td>
 <td align="left">0</td>
-<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports split-DNS as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
+<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.ipv6.dns-search"></a>dns-search</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Array of DNS search domains. Domains starting with a tilde ('~') are considered 'routing' domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names.</td>
 </tr>
 <tr>
@@ -1657,7 +1664,7 @@
 <a name="nm-settings.property.ipv6.method"></a>method</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>IP configuration method. NMSettingIP4Config and NMSettingIP6Config both support "auto", "manual", and "link-local". See the subclass-specific documentation for other values. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration.  The "ignore-auto-routes" and "ignore-auto-dns" properties modify this behavior. For methods that imply no upstream network, such as "shared" or "link-local", these properties must be empty. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10.42.x.0/24 is chosen. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared.</td>
+<td>IP configuration method. NMSettingIP4Config and NMSettingIP6Config both support "disabled", "auto", "manual", and "link-local". See the subclass-specific documentation for other values. In general, for the "auto" method, properties such as "dns" and "routes" specify information that is added on to the information returned from automatic configuration.  The "ignore-auto-routes" and "ignore-auto-dns" properties modify this behavior. For methods that imply no upstream network, such as "shared" or "link-local", these properties must be empty. For IPv4 method "shared", the IP subnet can be configured by adding one manual IPv4 address or otherwise 10.42.x.0/24 is chosen. Note that the shared method must be configured on the interface which shares the internet to a subnet, not on the uplink which is shared.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1691,7 +1698,7 @@
 <td align="left">
 <a name="nm-settings.property.ipv6.routes"></a>routes</td>
 <td align="left">array of legacy IPv6 route struct (a(ayuayu))</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Deprecated in favor of the 'route-data' property, but this can be used for backward-compatibility with older daemons. Note that if you send this property the daemon will ignore 'route-data'.  Array of IPv6 route structures.  Each IPv6 route structure is composed of an IPv6 address, a prefix length (1 - 128), an IPv6 next hop address (which may be zeroed out if there is no next hop), and a metric. If the metric is 0, NM will choose an appropriate default metric for the device.</td>
 </tr>
 <tr>
@@ -1970,7 +1977,7 @@
 <td align="left">
 <a name="nm-settings.property.match.interface-name"></a>interface-name</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>A list of interface names to match. Each element is a shell wildcard pattern.  When an element is prefixed with exclamation mark (!) the condition is inverted. A candidate interface name is considered matching when both these conditions are satisfied: (a) any of the elements not prefixed with '!' matches or there aren't such elements; (b) none of the elements prefixed with '!' match.</td>
 </tr></tbody>
 </table></div>
@@ -2037,6 +2044,13 @@
 <tbody>
 <tr>
 <td align="left">
+<a name="nm-settings.property.ovs-bridge.datapath-type"></a>datapath-type</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>The data path type. One of "system", "netdev" or empty.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings.property.ovs-bridge.fail-mode"></a>fail-mode</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -2068,7 +2082,33 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.26"></a><h3>ovs-interface setting</h3>
+<a name="id-1.2.7.4.26"></a><h3>ovs-dpdk setting</h3>
+<p>OvsDpdk Link Settings.</p>
+<div class="informaltable"><table class="informaltable" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Key Name</th>
+<th>Value Type</th>
+<th>Default Value</th>
+<th>Value Description</th>
+</tr></thead>
+<tbody><tr>
+<td align="left">
+<a name="nm-settings.property.ovs-dpdk.devargs"></a>devargs</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>Open vSwitch DPDK device arguments.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="id-1.2.7.4.27"></a><h3>ovs-interface setting</h3>
 <p>Open vSwitch Interface Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2088,13 +2128,13 @@
 <a name="nm-settings.property.ovs-interface.type"></a>type</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>The interface type. Either "internal", or empty.</td>
+<td>The interface type. Either "internal", "system", "patch", "dpdk", or empty.</td>
 </tr></tbody>
 </table></div>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.27"></a><h3>ovs-patch setting</h3>
+<a name="id-1.2.7.4.28"></a><h3>ovs-patch setting</h3>
 <p>OvsPatch Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2120,7 +2160,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.28"></a><h3>ovs-port setting</h3>
+<a name="id-1.2.7.4.29"></a><h3>ovs-port setting</h3>
 <p>OvsPort Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2183,7 +2223,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.29"></a><h3>ppp setting</h3>
+<a name="id-1.2.7.4.30"></a><h3>ppp setting</h3>
 <p>Point-to-Point Protocol Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2330,7 +2370,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.30"></a><h3>pppoe setting</h3>
+<a name="id-1.2.7.4.31"></a><h3>pppoe setting</h3>
 <p>PPP-over-Ethernet Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2386,7 +2426,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.31"></a><h3>proxy setting</h3>
+<a name="id-1.2.7.4.32"></a><h3>proxy setting</h3>
 <p>WWW Proxy Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2435,7 +2475,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.32"></a><h3>serial setting</h3>
+<a name="id-1.2.7.4.33"></a><h3>serial setting</h3>
 <p>Serial Link Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2491,7 +2531,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.33"></a><h3>sriov setting</h3>
+<a name="id-1.2.7.4.34"></a><h3>sriov setting</h3>
 <p>SR-IOV settings..</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2525,7 +2565,7 @@
 <td align="left">
 <a name="nm-settings.property.sriov.vfs"></a>vfs</td>
 <td align="left">array of vardict</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Array of virtual function descriptors. Each VF descriptor is a dictionary mapping attribute names to GVariant values. The 'index' entry is mandatory for each VF. When represented as string a VF is in the form: "INDEX [ATTR=VALUE[ ATTR=VALUE]...]". for example: "2 mac=00:11:22:33:44:55 spoof-check=true". Multiple VFs can be specified using a comma as separator. Currently the following attributes are supported: mac, spoof-check, trust, min-tx-rate, max-tx-rate, vlans. The "vlans" attribute is represented as a semicolon-separated list of VLAN descriptors, where each descriptor has the form "ID[.PRIORITY[.PROTO]]". PROTO can be either 'q' for 802.1Q (the default) or 'ad' for 802.1ad.</td>
 </tr>
 </tbody>
@@ -2533,7 +2573,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.34"></a><h3>tc setting</h3>
+<a name="id-1.2.7.4.35"></a><h3>tc setting</h3>
 <p>Linux Traffic Control Settings..</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2553,14 +2593,14 @@
 <td align="left">
 <a name="nm-settings.property.tc.qdiscs"></a>qdiscs</td>
 <td align="left">array of vardict</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Array of TC queueing disciplines.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.tc.tfilters"></a>tfilters</td>
 <td align="left">array of vardict</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Array of TC traffic filters.</td>
 </tr>
 </tbody>
@@ -2568,7 +2608,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.35"></a><h3>team setting</h3>
+<a name="id-1.2.7.4.36"></a><h3>team setting</h3>
 <p>Teaming Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2602,49 +2642,49 @@
 <td align="left">
 <a name="nm-settings.property.team.link-watchers"></a>link-watchers</td>
 <td align="left">array of vardict</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Link watchers configuration for the connection: each link watcher is defined by a dictionary, whose keys depend upon the selected link watcher. Available link watchers are 'ethtool', 'nsna_ping' and 'arp_ping' and it is specified in the dictionary with the key 'name'. Available keys are:   ethtool: 'delay-up', 'delay-down', 'init-wait'; nsna_ping: 'init-wait', 'interval', 'missed-max', 'target-host'; arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active', 'validate-inactive', 'send-always'. See teamd.conf man for more details.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.team.mcast-rejoin-count"></a>mcast-rejoin-count</td>
 <td align="left">int32</td>
-<td align="left">0</td>
+<td align="left">-1</td>
 <td>Corresponds to the teamd mcast_rejoin.count.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.team.mcast-rejoin-interval"></a>mcast-rejoin-interval</td>
 <td align="left">int32</td>
-<td align="left">0</td>
+<td align="left">-1</td>
 <td>Corresponds to the teamd mcast_rejoin.interval.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.team.notify-peers-count"></a>notify-peers-count</td>
 <td align="left">int32</td>
-<td align="left">0</td>
+<td align="left">-1</td>
 <td>Corresponds to the teamd notify_peers.count.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.team.notify-peers-interval"></a>notify-peers-interval</td>
 <td align="left">int32</td>
-<td align="left">0</td>
+<td align="left">-1</td>
 <td>Corresponds to the teamd notify_peers.interval.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.team.runner"></a>runner</td>
 <td align="left">string</td>
-<td align="left">"roundrobin"</td>
-<td>Corresponds to the teamd runner.name. Permitted values are: "roundrobin", "broadcast", "activebackup", "loadbalance", "lacp", "random". When setting the runner, all the properties specific to the runner will be reset to the default value; all the properties specific to other runners will be set to an empty value (or if not possible to a default value).</td>
+<td align="left"> </td>
+<td>Corresponds to the teamd runner.name. Permitted values are: "roundrobin", "broadcast", "activebackup", "loadbalance", "lacp", "random".</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.team.runner-active"></a>runner-active</td>
 <td align="left">boolean</td>
-<td align="left">FALSE</td>
+<td align="left">TRUE</td>
 <td>Corresponds to the teamd runner.active.</td>
 </tr>
 <tr>
@@ -2700,7 +2740,7 @@
 <td align="left">
 <a name="nm-settings.property.team.runner-tx-hash"></a>runner-tx-hash</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Corresponds to the teamd runner.tx_hash.</td>
 </tr>
 </tbody>
@@ -2708,7 +2748,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.36"></a><h3>team-port setting</h3>
+<a name="id-1.2.7.4.37"></a><h3>team-port setting</h3>
 <p>Team Port Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2735,21 +2775,21 @@
 <td align="left">
 <a name="nm-settings.property.team-port.lacp-key"></a>lacp-key</td>
 <td align="left">int32</td>
-<td align="left">0</td>
+<td align="left">-1</td>
 <td>Corresponds to the teamd ports.PORTIFNAME.lacp_key.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.team-port.lacp-prio"></a>lacp-prio</td>
 <td align="left">int32</td>
-<td align="left">255</td>
+<td align="left">-1</td>
 <td>Corresponds to the teamd ports.PORTIFNAME.lacp_prio.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.team-port.link-watchers"></a>link-watchers</td>
 <td align="left">array of vardict</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Link watchers configuration for the connection: each link watcher is defined by a dictionary, whose keys depend upon the selected link watcher. Available link watchers are 'ethtool', 'nsna_ping' and 'arp_ping' and it is specified in the dictionary with the key 'name'. Available keys are:   ethtool: 'delay-up', 'delay-down', 'init-wait'; nsna_ping: 'init-wait', 'interval', 'missed-max', 'target-host'; arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active', 'validate-inactive', 'send-always'. See teamd.conf man for more details.</td>
 </tr>
 <tr>
@@ -2778,7 +2818,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.37"></a><h3>tun setting</h3>
+<a name="id-1.2.7.4.38"></a><h3>tun setting</h3>
 <p>Tunnel Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2841,7 +2881,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.38"></a><h3>user setting</h3>
+<a name="id-1.2.7.4.39"></a><h3>user setting</h3>
 <p>General User Profile Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2867,7 +2907,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.39"></a><h3>vlan setting</h3>
+<a name="id-1.2.7.4.40"></a><h3>vlan setting</h3>
 <p>VLAN Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2887,7 +2927,7 @@
 <td align="left">
 <a name="nm-settings.property.vlan.egress-priority-map"></a>egress-priority-map</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>For outgoing packets, a list of mappings from Linux SKB priorities to 802.1p priorities.  The mapping is given in the format "from:to" where both "from" and "to" are unsigned integers, ie "7:3".</td>
 </tr>
 <tr>
@@ -2908,7 +2948,7 @@
 <td align="left">
 <a name="nm-settings.property.vlan.ingress-priority-map"></a>ingress-priority-map</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>For incoming packets, a list of mappings from 802.1p priorities to Linux SKB priorities.  The mapping is given in the format "from:to" where both "from" and "to" are unsigned integers, ie "7:3".</td>
 </tr>
 <tr>
@@ -2930,7 +2970,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.40"></a><h3>vpn setting</h3>
+<a name="id-1.2.7.4.41"></a><h3>vpn setting</h3>
 <p>VPN Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -2993,7 +3033,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.41"></a><h3>vxlan setting</h3>
+<a name="id-1.2.7.4.42"></a><h3>vxlan setting</h3>
 <p>VXLAN Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3126,7 +3166,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.42"></a><h3>wifi-p2p setting</h3>
+<a name="id-1.2.7.4.43"></a><h3>wifi-p2p setting</h3>
 <p>Wi-Fi P2P Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3168,7 +3208,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.43"></a><h3>wimax setting</h3>
+<a name="id-1.2.7.4.44"></a><h3>wimax setting</h3>
 <p>WiMax Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3203,7 +3243,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.44"></a><h3>802-3-ethernet setting</h3>
+<a name="id-1.2.7.4.45"></a><h3>802-3-ethernet setting</h3>
 <p>Wired Ethernet Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3265,7 +3305,7 @@
 <td align="left">
 <a name="nm-settings.property.802-3-ethernet.mac-address-blacklist"></a>mac-address-blacklist</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>If specified, this connection will never apply to the Ethernet device whose permanent MAC address matches an address in the list.  Each MAC address is in the standard hex-digits-and-colons notation (00:11:22:33:44:55).</td>
 </tr>
 <tr>
@@ -3300,7 +3340,7 @@
 <td align="left">
 <a name="nm-settings.property.802-3-ethernet.s390-subchannels"></a>s390-subchannels</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>Identifies specific subchannels that this network device uses for communication with z/VM or s390 host.  Like the "mac-address" property for non-z/VM devices, this property can be used to ensure this connection only applies to the network device that uses these subchannels.  The list should contain exactly 3 strings, and each string may only be composed of hexadecimal characters and the period (.) character.</td>
 </tr>
 <tr>
@@ -3329,8 +3369,8 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.45"></a><h3>wireguard setting</h3>
-<p>WireGuard Ethernet Settings.</p>
+<a name="id-1.2.7.4.46"></a><h3>wireguard setting</h3>
+<p>WireGuard Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
 <col>
@@ -3350,7 +3390,21 @@
 <a name="nm-settings.property.wireguard.fwmark"></a>fwmark</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
-<td>The use of fwmark is optional and is by default off. Setting it to 0 disables it. Otherwise it is a 32-bit fwmark for outgoing packets.</td>
+<td>The use of fwmark is optional and is by default off. Setting it to 0 disables it. Otherwise it is a 32-bit fwmark for outgoing packets. Note that "ip4-auto-default-route" or "ip6-auto-default-route" enabled, implies to automatically choose a fwmark.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wireguard.ip4-auto-default-route"></a>ip4-auto-default-route</td>
+<td align="left">NMTernary (int32)</td>
+<td align="left"> </td>
+<td>Whether to enable special handling of the IPv4 default route. If enabled, the IPv4 default route will be placed to a dedicated routing-table and two policy routing rules will be added. The fwmark number is also used as routing-table for the default-route, and if fwmark is zero, a unused fwmark/table is chosen automatically. This corresponds to what wg-quick does with Table=auto. Leaving this at the default will enable this option automatically if ipv4.never-default is not set and there are any peers that use a default-route as allowed-ips.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.wireguard.ip6-auto-default-route"></a>ip6-auto-default-route</td>
+<td align="left">NMTernary (int32)</td>
+<td align="left"> </td>
+<td>Like ip4-auto-default-route, but for the IPv6 default route.</td>
 </tr>
 <tr>
 <td align="left">
@@ -3399,7 +3453,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.46"></a><h3>802-11-wireless setting</h3>
+<a name="id-1.2.7.4.47"></a><h3>802-11-wireless setting</h3>
 <p>Wi-Fi Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3475,7 +3529,7 @@
 <td align="left">
 <a name="nm-settings.property.802-11-wireless.mac-address-blacklist"></a>mac-address-blacklist</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>A list of permanent MAC addresses of Wi-Fi devices to which this connection should never apply.  Each MAC address should be given in the standard hex-digits-and-colons notation (eg "00:11:22:33:44:55").</td>
 </tr>
 <tr>
@@ -3490,7 +3544,7 @@
 <a name="nm-settings.property.802-11-wireless.mode"></a>mode</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>Wi-Fi network mode; one of "infrastructure", "adhoc" or "ap".  If blank, infrastructure is assumed.</td>
+<td>Wi-Fi network mode; one of "infrastructure", "mesh", "adhoc" or "ap".  If blank, infrastructure is assumed.</td>
 </tr>
 <tr>
 <td align="left">
@@ -3524,7 +3578,7 @@
 <td align="left">
 <a name="nm-settings.property.802-11-wireless.seen-bssids"></a>seen-bssids</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>A list of BSSIDs (each BSSID formatted as a MAC address like "00:11:22:33:44:55") that have been detected as part of the Wi-Fi network.  NetworkManager internally tracks previously seen BSSIDs. The property is only meant for reading and reflects the BSSID list of NetworkManager. The changes you make to this property will not be preserved.</td>
 </tr>
 <tr>
@@ -3553,7 +3607,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.47"></a><h3>802-11-wireless-security setting</h3>
+<a name="id-1.2.7.4.48"></a><h3>802-11-wireless-security setting</h3>
 <p>Wi-Fi Security Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3587,7 +3641,7 @@
 <td align="left">
 <a name="nm-settings.property.802-11-wireless-security.group"></a>group</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>A list of group/broadcast encryption algorithms which prevents connections to Wi-Fi networks that do not utilize one of the algorithms in the list.  For maximum compatibility leave this property empty.  Each list element may be one of "wep40", "wep104", "tkip", or "ccmp".</td>
 </tr>
 <tr>
@@ -3622,7 +3676,7 @@
 <td align="left">
 <a name="nm-settings.property.802-11-wireless-security.pairwise"></a>pairwise</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>A list of pairwise encryption algorithms which prevents connections to Wi-Fi networks that do not utilize one of the algorithms in the list. For maximum compatibility leave this property empty.  Each list element may be one of "tkip" or "ccmp".</td>
 </tr>
 <tr>
@@ -3636,7 +3690,7 @@
 <td align="left">
 <a name="nm-settings.property.802-11-wireless-security.proto"></a>proto</td>
 <td align="left">array of string</td>
-<td align="left">[]</td>
+<td align="left"> </td>
 <td>List of strings specifying the allowed WPA protocol versions to use. Each element may be one "wpa" (allow WPA) or "rsn" (allow WPA2/RSN).  If not specified, both WPA and RSN connections are allowed.</td>
 </tr>
 <tr>
@@ -3714,7 +3768,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.48"></a><h3>wpan setting</h3>
+<a name="id-1.2.7.4.49"></a><h3>wpan setting</h3>
 <p>IEEE 802.15.4 (WPAN) MAC Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>

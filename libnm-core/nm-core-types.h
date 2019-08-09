@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -53,6 +52,7 @@ typedef struct _NMSettingMacvlan          NMSettingMacvlan;
 typedef struct _NMSettingMatch            NMSettingMatch;
 typedef struct _NMSettingOlpcMesh         NMSettingOlpcMesh;
 typedef struct _NMSettingOvsBridge        NMSettingOvsBridge;
+typedef struct _NMSettingOvsDpdk          NMSettingOvsDpdk;
 typedef struct _NMSettingOvsInterface     NMSettingOvsInterface;
 typedef struct _NMSettingOvsPatch         NMSettingOvsPatch;
 typedef struct _NMSettingOvsPort          NMSettingOvsPort;

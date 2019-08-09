@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -40,7 +39,8 @@ typedef struct _NMSupplicantConfigClass NMSupplicantConfigClass;
 
 GType nm_supplicant_config_get_type (void);
 
-NMSupplicantConfig *nm_supplicant_config_new (gboolean support_pmf, gboolean support_fils);
+NMSupplicantConfig *nm_supplicant_config_new (gboolean support_pmf, gboolean support_fils,
+                                              gboolean support_ft, gboolean support_sha384);
 
 guint32 nm_supplicant_config_get_ap_scan (NMSupplicantConfig *self);
 

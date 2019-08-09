@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -62,6 +61,7 @@
 #include "nm-setting-olpc-mesh.h"
 #include "nm-setting-ovs-bridge.h"
 #include "nm-setting-ovs-interface.h"
+#include "nm-setting-ovs-dpdk.h"
 #include "nm-setting-ovs-patch.h"
 #include "nm-setting-ovs-port.h"
 #include "nm-setting-ppp.h"
@@ -164,6 +164,20 @@ gpointer _nm_connection_check_main_setting (NMConnection *connection,
                                             const char *setting_name,
                                             GError **error);
 
+typedef struct {
+	struct {
+		guint64 val;
+		bool has;
+	} timestamp;
+
+	const char **seen_bssids;
+
+} NMConnectionSerializationOptions;
+
+GVariant *nm_connection_to_dbus_full (NMConnection *connection,
+                                      NMConnectionSerializationFlags flags,
+                                      const NMConnectionSerializationOptions *options);
+
 typedef enum {
 	/* whether the connection has any secrets.
 	 *
@@ -202,7 +216,24 @@ typedef enum {
 
 NMSettingVerifyResult _nm_connection_verify (NMConnection *connection, GError **error);
 
+gboolean _nm_connection_ensure_normalized (NMConnection *connection,
+                                           gboolean allow_modify,
+                                           const char *expected_uuid,
+                                           gboolean coerce_uuid,
+                                           NMConnection **out_connection_clone,
+                                           GError **error);
+
 gboolean _nm_connection_remove_setting (NMConnection *connection, GType setting_type);
+
+#if NM_MORE_ASSERTS
+extern const char _nmtst_connection_unchanging_user_data;
+void nmtst_connection_assert_unchanging (NMConnection *connection);
+#else
+static inline void
+nmtst_connection_assert_unchanging (NMConnection *connection)
+{
+}
+#endif
 
 NMConnection *_nm_simple_connection_new_from_dbus (GVariant      *dict,
                                                    NMSettingParseFlags parse_flags,
@@ -260,6 +291,8 @@ typedef gpointer (*NMUtilsCopyFunc) (gpointer);
 
 const char **_nm_ip_address_get_attribute_names (const NMIPAddress *addr, gboolean sorted, guint *out_length);
 
+void _nm_setting_wired_clear_s390_options (NMSettingWired *setting);
+
 gboolean _nm_ip_route_attribute_validate_all (const NMIPRoute *route);
 const char **_nm_ip_route_get_attribute_names (const NMIPRoute *route, gboolean sorted, guint *out_length);
 GHashTable *_nm_ip_route_get_attributes (NMIPRoute *route);
@@ -275,10 +308,10 @@ GPtrArray *_nm_utils_copy_object_array (const GPtrArray *array);
 gssize _nm_utils_ptrarray_find_first (gconstpointer *list, gssize len, gconstpointer needle);
 
 GSList *    _nm_utils_strv_to_slist (char **strv, gboolean deep_copy);
-char **     _nm_utils_slist_to_strv (GSList *slist, gboolean deep_copy);
+char **     _nm_utils_slist_to_strv (const GSList *slist, gboolean deep_copy);
 
 GPtrArray * _nm_utils_strv_to_ptrarray (char **strv);
-char **     _nm_utils_ptrarray_to_strv (GPtrArray *ptrarray);
+char **     _nm_utils_ptrarray_to_strv (const GPtrArray *ptrarray);
 
 gboolean _nm_utils_check_file (const char *filename,
                                gint64 check_owner,
@@ -443,6 +476,13 @@ gboolean _nm_utils_generate_mac_address_mask_parse (const char *value,
 
 /*****************************************************************************/
 
+static inline gpointer
+_nm_connection_get_setting (NMConnection *connection,
+                            GType type)
+{
+	return (gpointer) nm_connection_get_setting (connection, type);
+}
+
 NMSettingIPConfig *nm_connection_get_setting_ip_config (NMConnection *connection,
                                                         int addr_family);
 
@@ -532,20 +572,18 @@ gboolean _nm_utils_inet6_is_token (const struct in6_addr *in6addr);
 
 /*****************************************************************************/
 
-gboolean _nm_team_link_watchers_equal (GPtrArray *a, GPtrArray *b, gboolean ignore_order);
+NMTeamLinkWatcher *_nm_team_link_watcher_ref (NMTeamLinkWatcher *watcher);
 
-gboolean _nm_utils_team_config_equal (const char *conf1, const char *conf2, gboolean port);
-GValue *_nm_utils_team_config_get (const char *conf,
-                                   const char *key,
-                                   const char *key2,
-                                   const char *key3,
-                                   gboolean port_config);
+int nm_team_link_watcher_cmp (const NMTeamLinkWatcher *watcher, const NMTeamLinkWatcher *other);
 
-gboolean _nm_utils_team_config_set (char **conf,
-                                    const char *key,
-                                    const char *key2,
-                                    const char *key3,
-                                    const GValue *value);
+int nm_team_link_watchers_cmp (const NMTeamLinkWatcher *const*a,
+                               const NMTeamLinkWatcher *const*b,
+                               gsize len,
+                               gboolean ignore_order);
+
+gboolean nm_team_link_watchers_equal (const GPtrArray *a,
+                                      const GPtrArray *b,
+                                      gboolean ignore_order);
 
 /*****************************************************************************/
 
@@ -630,25 +668,26 @@ gboolean nm_ip_routing_rule_get_xifname_bin (const NMIPRoutingRule *self,
                                              gboolean iif /* or else oif */,
                                              char out_xifname[static 16]);
 
-#define NM_IP_ROUTING_RULE_ATTR_ACTION      "action"
-#define NM_IP_ROUTING_RULE_ATTR_DPORT_END   "dport-end"
-#define NM_IP_ROUTING_RULE_ATTR_DPORT_START "dport-start"
-#define NM_IP_ROUTING_RULE_ATTR_FAMILY      "family"
-#define NM_IP_ROUTING_RULE_ATTR_FROM        "from"
-#define NM_IP_ROUTING_RULE_ATTR_FROM_LEN    "from-len"
-#define NM_IP_ROUTING_RULE_ATTR_FWMARK      "fwmark"
-#define NM_IP_ROUTING_RULE_ATTR_FWMASK      "fwmask"
-#define NM_IP_ROUTING_RULE_ATTR_IIFNAME     "iifname"
-#define NM_IP_ROUTING_RULE_ATTR_INVERT      "invert"
-#define NM_IP_ROUTING_RULE_ATTR_IPPROTO     "ipproto"
-#define NM_IP_ROUTING_RULE_ATTR_OIFNAME     "oifname"
-#define NM_IP_ROUTING_RULE_ATTR_PRIORITY    "priority"
-#define NM_IP_ROUTING_RULE_ATTR_SPORT_END   "sport-end"
-#define NM_IP_ROUTING_RULE_ATTR_SPORT_START "sport-start"
-#define NM_IP_ROUTING_RULE_ATTR_TABLE       "table"
-#define NM_IP_ROUTING_RULE_ATTR_TO          "to"
-#define NM_IP_ROUTING_RULE_ATTR_TOS         "tos"
-#define NM_IP_ROUTING_RULE_ATTR_TO_LEN      "to-len"
+#define NM_IP_ROUTING_RULE_ATTR_ACTION                "action"
+#define NM_IP_ROUTING_RULE_ATTR_DPORT_END             "dport-end"
+#define NM_IP_ROUTING_RULE_ATTR_DPORT_START           "dport-start"
+#define NM_IP_ROUTING_RULE_ATTR_FAMILY                "family"
+#define NM_IP_ROUTING_RULE_ATTR_FROM                  "from"
+#define NM_IP_ROUTING_RULE_ATTR_FROM_LEN              "from-len"
+#define NM_IP_ROUTING_RULE_ATTR_FWMARK                "fwmark"
+#define NM_IP_ROUTING_RULE_ATTR_FWMASK                "fwmask"
+#define NM_IP_ROUTING_RULE_ATTR_IIFNAME               "iifname"
+#define NM_IP_ROUTING_RULE_ATTR_INVERT                "invert"
+#define NM_IP_ROUTING_RULE_ATTR_IPPROTO               "ipproto"
+#define NM_IP_ROUTING_RULE_ATTR_OIFNAME               "oifname"
+#define NM_IP_ROUTING_RULE_ATTR_PRIORITY              "priority"
+#define NM_IP_ROUTING_RULE_ATTR_SPORT_END             "sport-end"
+#define NM_IP_ROUTING_RULE_ATTR_SPORT_START           "sport-start"
+#define NM_IP_ROUTING_RULE_ATTR_SUPPRESS_PREFIXLENGTH "suppress-prefixlength"
+#define NM_IP_ROUTING_RULE_ATTR_TABLE                 "table"
+#define NM_IP_ROUTING_RULE_ATTR_TO                    "to"
+#define NM_IP_ROUTING_RULE_ATTR_TOS                   "tos"
+#define NM_IP_ROUTING_RULE_ATTR_TO_LEN                "to-len"
 
 NMIPRoutingRule *nm_ip_routing_rule_from_dbus (GVariant *variant,
                                                gboolean strict,
@@ -660,40 +699,41 @@ GVariant *nm_ip_routing_rule_to_dbus (const NMIPRoutingRule *self);
 typedef struct _NMSettInfoSetting  NMSettInfoSetting;
 typedef struct _NMSettInfoProperty NMSettInfoProperty;
 
-typedef GVariant *(*NMSettingPropertyGetFunc)           (NMSetting     *setting,
-                                                         const char    *property);
-typedef GVariant *(*NMSettingPropertySynthFunc)         (const NMSettInfoSetting *sett_info,
+typedef GVariant *(*NMSettInfoPropToDBusFcn)            (const NMSettInfoSetting *sett_info,
                                                          guint property_idx,
                                                          NMConnection  *connection,
                                                          NMSetting     *setting,
-                                                         NMConnectionSerializationFlags flags);
-typedef gboolean  (*NMSettingPropertySetFunc)           (NMSetting     *setting,
+                                                         NMConnectionSerializationFlags flags,
+                                                         const NMConnectionSerializationOptions *options);
+typedef gboolean  (*NMSettInfoPropFromDBusFcn)          (NMSetting     *setting,
                                                          GVariant      *connection_dict,
                                                          const char    *property,
                                                          GVariant      *value,
                                                          NMSettingParseFlags parse_flags,
                                                          GError       **error);
-typedef gboolean  (*NMSettingPropertyNotSetFunc)        (NMSetting     *setting,
+typedef gboolean  (*NMSettInfoPropMissingFromDBusFcn)   (NMSetting     *setting,
                                                          GVariant      *connection_dict,
                                                          const char    *property,
                                                          NMSettingParseFlags parse_flags,
                                                          GError       **error);
-typedef GVariant *(*NMSettingPropertyTransformToFunc)   (const GValue *from);
-typedef void      (*NMSettingPropertyTransformFromFunc) (GVariant *from,
-                                                          GValue *to);
+typedef GVariant *(*NMSettInfoPropGPropToDBusFcn)       (const GValue *from);
+typedef void      (*NMSettInfoPropGPropFromDBusFcn)     (GVariant *from,
+                                                         GValue *to);
 
 struct _NMSettInfoProperty {
 	const char *name;
 	GParamSpec *param_spec;
+
 	const GVariantType *dbus_type;
 
-	NMSettingPropertyGetFunc           get_func;
-	NMSettingPropertySynthFunc         synth_func;
-	NMSettingPropertySetFunc           set_func;
-	NMSettingPropertyNotSetFunc        not_set_func;
+	NMSettInfoPropToDBusFcn            to_dbus_fcn;
+	NMSettInfoPropFromDBusFcn          from_dbus_fcn;
+	NMSettInfoPropMissingFromDBusFcn   missing_from_dbus_fcn;
 
-	NMSettingPropertyTransformToFunc   to_dbus;
-	NMSettingPropertyTransformFromFunc from_dbus;
+	/* Simpler variants of @to_dbus_fcn/@from_dbus_fcn that operate solely
+	 * on the GValue value of the GObject property. */
+	NMSettInfoPropGPropToDBusFcn       gprop_to_dbus_fcn;
+	NMSettInfoPropGPropFromDBusFcn     gprop_from_dbus_fcn;
 };
 
 typedef struct {
@@ -767,6 +807,20 @@ _nm_setting_class_get_property_info (NMSettingClass *setting_class,
 
 /*****************************************************************************/
 
+gboolean _nm_setting_compare (NMConnection *con_a,
+                              NMSetting *set_a,
+                              NMConnection *con_b,
+                              NMSetting *set_b,
+                              NMSettingCompareFlags flags);
+
+gboolean _nm_setting_diff (NMConnection *con_a,
+                           NMSetting *set_a,
+                           NMConnection *con_b,
+                           NMSetting *set_b,
+                           NMSettingCompareFlags flags,
+                           gboolean invert_results,
+                           GHashTable **results);
+
 NMSetting8021xCKScheme _nm_setting_802_1x_cert_get_scheme (GBytes *bytes, GError **error);
 
 GBytes *_nm_setting_802_1x_cert_value_to_bytes (NMSetting8021xCKScheme scheme,
@@ -775,6 +829,21 @@ GBytes *_nm_setting_802_1x_cert_value_to_bytes (NMSetting8021xCKScheme scheme,
                                                 GError **error);
 
 /*****************************************************************************/
+
+static inline gboolean
+_nm_connection_serialize_secrets (NMConnectionSerializationFlags flags,
+                                  NMSettingSecretFlags secret_flags)
+{
+	if (NM_FLAGS_HAS (flags, NM_CONNECTION_SERIALIZE_NO_SECRETS))
+		return FALSE;
+	if (   NM_FLAGS_HAS (flags, NM_CONNECTION_SERIALIZE_WITH_SECRETS_AGENT_OWNED)
+	    && !NM_FLAGS_HAS (secret_flags, NM_SETTING_SECRET_FLAG_AGENT_OWNED))
+		return FALSE;
+	return TRUE;
+}
+
+void _nm_connection_clear_secrets_by_secret_flags (NMConnection *self,
+                                                   NMSettingSecretFlags filter_flags);
 
 GVariant *_nm_connection_for_each_secret (NMConnection *self,
                                           GVariant *secrets,
@@ -801,5 +870,9 @@ gboolean nm_utils_base64secret_normalize (const char *base64_key,
 void _nm_bridge_vlan_str_append_rest (const NMBridgeVlan *vlan,
                                       GString *string,
                                       gboolean leading_space);
+
+gboolean nm_utils_connection_is_adhoc_wpa (NMConnection *connection);
+
+const char *nm_utils_wifi_freq_to_band (guint32 freq);
 
 #endif

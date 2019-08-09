@@ -907,6 +907,8 @@ typedef struct {
 
 NM_GOBJECT_PROPERTIES_DEFINE_BASE (
 	PROP_FWMARK,
+	PROP_IP4_AUTO_DEFAULT_ROUTE,
+	PROP_IP6_AUTO_DEFAULT_ROUTE,
 	PROP_LISTEN_PORT,
 	PROP_MTU,
 	PROP_PEER_ROUTES,
@@ -919,6 +921,8 @@ typedef struct {
 	GPtrArray *peers_arr;
 	GHashTable *peers_hash;
 	NMSettingSecretFlags private_key_flags;
+	NMTernary ip4_auto_default_route;
+	NMTernary ip6_auto_default_route;
 	guint32 fwmark;
 	guint32 mtu;
 	guint16 listen_port;
@@ -929,7 +933,7 @@ typedef struct {
 /**
  * NMSettingWireGuard:
  *
- * WireGuard Ethernet Settings
+ * WireGuard Settings
  *
  * Since: 1.16
  */
@@ -1068,6 +1072,38 @@ nm_setting_wireguard_get_mtu (NMSettingWireGuard *self)
 	g_return_val_if_fail (NM_IS_SETTING_WIREGUARD (self), 0);
 
 	return NM_SETTING_WIREGUARD_GET_PRIVATE (self)->mtu;
+}
+
+/**
+ * nm_setting_wireguard_get_ip4_auto_default_route:
+ * @self: the #NMSettingWireGuard setting.
+ *
+ * Returns: the "ip4-auto-default-route" property of the setting.
+ *
+ * Since: 1.20
+ */
+NMTernary
+nm_setting_wireguard_get_ip4_auto_default_route (NMSettingWireGuard *self)
+{
+	g_return_val_if_fail (NM_IS_SETTING_WIREGUARD (self), NM_TERNARY_DEFAULT);
+
+	return NM_SETTING_WIREGUARD_GET_PRIVATE (self)->ip4_auto_default_route;
+}
+
+/**
+ * nm_setting_wireguard_get_ip6_auto_default_route:
+ * @self: the #NMSettingWireGuard setting.
+ *
+ * Returns: the "ip6-auto-default-route" property of the setting.
+ *
+ * Since: 1.20
+ */
+NMTernary
+nm_setting_wireguard_get_ip6_auto_default_route (NMSettingWireGuard *self)
+{
+	g_return_val_if_fail (NM_IS_SETTING_WIREGUARD (self), NM_TERNARY_DEFAULT);
+
+	return NM_SETTING_WIREGUARD_GET_PRIVATE (self)->ip6_auto_default_route;
 }
 
 /*****************************************************************************/
@@ -1460,7 +1496,8 @@ _peers_dbus_only_synth (const NMSettInfoSetting *sett_info,
                         guint property_idx,
                         NMConnection *connection,
                         NMSetting *setting,
-                        NMConnectionSerializationFlags flags)
+                        NMConnectionSerializationFlags flags,
+                        const NMConnectionSerializationOptions *options)
 {
 	NMSettingWireGuard *self = NM_SETTING_WIREGUARD (setting);
 	NMSettingWireGuardPrivate *priv;
@@ -1490,7 +1527,7 @@ _peers_dbus_only_synth (const NMSettInfoSetting *sett_info,
 		    && peer->endpoint)
 			g_variant_builder_add (&builder, "{sv}", NM_WIREGUARD_PEER_ATTR_ENDPOINT, g_variant_new_string (nm_sock_addr_endpoint_get_endpoint (peer->endpoint)));
 
-		if (   !NM_FLAGS_HAS (flags, NM_CONNECTION_SERIALIZE_NO_SECRETS)
+		if (   _nm_connection_serialize_secrets (flags, peer->preshared_key_flags)
 		    && peer->preshared_key)
 			g_variant_builder_add (&builder, "{sv}", NM_WIREGUARD_PEER_ATTR_PRESHARED_KEY, g_variant_new_string (peer->preshared_key));
 
@@ -1712,7 +1749,8 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		    && (method = nm_setting_ip_config_get_method (s_ip6))
 		    && !NM_IN_STRSET (method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
 		                              NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL,
-		                              NM_SETTING_IP6_CONFIG_METHOD_MANUAL)) {
+		                              NM_SETTING_IP6_CONFIG_METHOD_MANUAL,
+		                              NM_SETTING_IP6_CONFIG_METHOD_DISABLED)) {
 			g_set_error (error,
 			             NM_CONNECTION_ERROR,
 			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
@@ -1884,8 +1922,8 @@ update_one_secret (NMSetting *setting,
 	i_peer = 0;
 	while (g_variant_iter_next (&iter_peers, "@a{sv}", &peer_var)) {
 		_nm_unused gs_unref_variant GVariant *peer_var_unref = peer_var;
+		nm_auto_unref_wgpeer NMWireGuardPeer *peer = NULL;
 		PeerData *pd;
-		NMWireGuardPeer *peer;
 		const char *cstr;
 
 		i_peer++;
@@ -1945,8 +1983,10 @@ update_one_secret (NMSetting *setting,
 static NMTernary
 compare_property (const NMSettInfoSetting *sett_info,
                   guint property_idx,
-                  NMSetting *setting,
-                  NMSetting *other,
+                  NMConnection *con_a,
+                  NMSetting *set_a,
+                  NMConnection *con_b,
+                  NMSetting *set_b,
                   NMSettingCompareFlags flags)
 {
 	NMSettingWireGuardPrivate *a_priv;
@@ -1958,11 +1998,11 @@ compare_property (const NMSettInfoSetting *sett_info,
 		if (NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_INFERRABLE))
 			return NM_TERNARY_DEFAULT;
 
-		if (!other)
+		if (!set_b)
 			return TRUE;
 
-		a_priv = NM_SETTING_WIREGUARD_GET_PRIVATE (setting);
-		b_priv = NM_SETTING_WIREGUARD_GET_PRIVATE (other);
+		a_priv = NM_SETTING_WIREGUARD_GET_PRIVATE (set_a);
+		b_priv = NM_SETTING_WIREGUARD_GET_PRIVATE (set_b);
 
 		if (a_priv->peers_arr->len != b_priv->peers_arr->len)
 			return FALSE;
@@ -1981,8 +2021,10 @@ compare_property (const NMSettInfoSetting *sett_info,
 
 	return NM_SETTING_CLASS (nm_setting_wireguard_parent_class)->compare_property (sett_info,
 	                                                                               property_idx,
-	                                                                               setting,
-	                                                                               other,
+	                                                                               con_a,
+	                                                                               set_a,
+	                                                                               con_b,
+	                                                                               set_b,
 	                                                                               flags);
 }
 
@@ -2254,6 +2296,12 @@ get_property (GObject *object, guint prop_id,
 	case PROP_FWMARK:
 		g_value_set_uint (value, priv->fwmark);
 		break;
+	case PROP_IP4_AUTO_DEFAULT_ROUTE:
+		g_value_set_enum (value, priv->ip4_auto_default_route);
+		break;
+	case PROP_IP6_AUTO_DEFAULT_ROUTE:
+		g_value_set_enum (value, priv->ip6_auto_default_route);
+		break;
 	case PROP_LISTEN_PORT:
 		g_value_set_uint (value, priv->listen_port);
 		break;
@@ -2285,6 +2333,12 @@ set_property (GObject *object, guint prop_id,
 	switch (prop_id) {
 	case PROP_FWMARK:
 		priv->fwmark = g_value_get_uint (value);
+		break;
+	case PROP_IP4_AUTO_DEFAULT_ROUTE:
+		priv->ip4_auto_default_route = g_value_get_enum (value);
+		break;
+	case PROP_IP6_AUTO_DEFAULT_ROUTE:
+		priv->ip6_auto_default_route = g_value_get_enum (value);
 		break;
 	case PROP_LISTEN_PORT:
 		priv->listen_port = g_value_get_uint (value);
@@ -2328,6 +2382,8 @@ nm_setting_wireguard_init (NMSettingWireGuard *setting)
 	priv->peers_arr = g_ptr_array_new ();
 	priv->peers_hash = g_hash_table_new (nm_pstr_hash, nm_pstr_equal);
 	priv->peer_routes = TRUE;
+	priv->ip4_auto_default_route = NM_TERNARY_DEFAULT;
+	priv->ip6_auto_default_route = NM_TERNARY_DEFAULT;
 }
 
 /**
@@ -2418,6 +2474,9 @@ nm_setting_wireguard_class_init (NMSettingWireGuardClass *klass)
 	 * The use of fwmark is optional and is by default off. Setting it to 0
 	 * disables it. Otherwise it is a 32-bit fwmark for outgoing packets.
 	 *
+	 * Note that "ip4-auto-default-route" or "ip6-auto-default-route" enabled,
+	 * implies to automatically choose a fwmark.
+	 *
 	 * Since: 1.16
 	 **/
 	obj_properties[PROP_FWMARK] =
@@ -2480,6 +2539,45 @@ nm_setting_wireguard_class_init (NMSettingWireGuardClass *klass)
 	                         G_PARAM_READWRITE
 	                       | NM_SETTING_PARAM_INFERRABLE
 	                       | G_PARAM_STATIC_STRINGS);
+
+	/**
+	 * NMSettingWireGuard:ip4-auto-default-route:
+	 *
+	 * Whether to enable special handling of the IPv4 default route.
+	 * If enabled, the IPv4 default route will be placed to a dedicated
+	 * routing-table and two policy routing rules will be added.
+	 * The fwmark number is also used as routing-table for the default-route,
+	 * and if fwmark is zero, a unused fwmark/table is chosen automatically.
+	 * This corresponds to what wg-quick does with Table=auto.
+	 *
+	 * Leaving this at the default will enable this option automatically
+	 * if ipv4.never-default is not set and there are any peers that use
+	 * a default-route as allowed-ips.
+	 *
+	 * Since: 1.20
+	 **/
+	obj_properties[PROP_IP4_AUTO_DEFAULT_ROUTE] =
+	    g_param_spec_enum (NM_SETTING_WIREGUARD_IP4_AUTO_DEFAULT_ROUTE, "", "",
+	                       NM_TYPE_TERNARY,
+	                       NM_TERNARY_DEFAULT,
+	                       NM_SETTING_PARAM_FUZZY_IGNORE |
+	                       G_PARAM_READWRITE |
+	                       G_PARAM_STATIC_STRINGS);
+
+	/**
+	 * NMSettingWireGuard:ip6-auto-default-route:
+	 *
+	 * Like ip4-auto-default-route, but for the IPv6 default route.
+	 *
+	 * Since: 1.20
+	 **/
+	obj_properties[PROP_IP6_AUTO_DEFAULT_ROUTE] =
+	    g_param_spec_enum (NM_SETTING_WIREGUARD_IP6_AUTO_DEFAULT_ROUTE, "", "",
+	                       NM_TYPE_TERNARY,
+	                       NM_TERNARY_DEFAULT,
+	                       NM_SETTING_PARAM_FUZZY_IGNORE |
+	                       G_PARAM_READWRITE |
+	                       G_PARAM_STATIC_STRINGS);
 
 	/* ---dbus---
 	 * property: peers

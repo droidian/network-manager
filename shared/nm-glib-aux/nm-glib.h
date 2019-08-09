@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -523,10 +522,18 @@ _nm_g_variant_new_printf (const char *format_string, ...)
 
 /*****************************************************************************/
 
-#if !GLIB_CHECK_VERSION (2, 56, 0)
+/* Recent glib also casts the results to typeof(Obj), but only if
+ *
+ *  ( defined(g_has_typeof) && GLIB_VERSION_MAX_ALLOWED >= GLIB_VERSION_2_56 )
+ *
+ * Since we build NetworkManager with older GLIB_VERSION_MAX_ALLOWED, it's
+ * not taking effect.
+ *
+ * Override this. */
+#undef g_object_ref
+#undef g_object_ref_sink
 #define g_object_ref(Obj)      ((typeof(Obj)) g_object_ref (Obj))
 #define g_object_ref_sink(Obj) ((typeof(Obj)) g_object_ref_sink (Obj))
-#endif
 
 /*****************************************************************************/
 

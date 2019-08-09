@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This library is free software; you can redistribute it and/or
@@ -734,10 +733,7 @@ _nm_utils_ascii_str_to_int64 (const char *str, guint base, gint64 min, gint64 ma
 	gint64 v;
 	const char *s = NULL;
 
-	if (str) {
-		while (g_ascii_isspace (str[0]))
-			str++;
-	}
+	str = nm_str_skip_leading_spaces (str);
 	if (!str || !str[0]) {
 		errno = EINVAL;
 		return fallback;
@@ -748,9 +744,9 @@ _nm_utils_ascii_str_to_int64 (const char *str, guint base, gint64 min, gint64 ma
 
 	if (errno != 0)
 		return fallback;
+
 	if (s[0] != '\0') {
-		while (g_ascii_isspace (s[0]))
-			s++;
+		s = nm_str_skip_leading_spaces (s);
 		if (s[0] != '\0') {
 			errno = EINVAL;
 			return fallback;
@@ -810,6 +806,15 @@ _nm_utils_ascii_str_to_uint64 (const char *str, guint base, guint64 min, guint64
 
 /*****************************************************************************/
 
+int
+nm_strcmp_with_data (gconstpointer a, gconstpointer b, gpointer user_data)
+{
+	const char *s1 = a;
+	const char *s2 = b;
+
+	return strcmp (s1, s2);
+}
+
 /* like nm_strcmp_p(), suitable for g_ptr_array_sort_with_data().
  * g_ptr_array_sort() just casts nm_strcmp_p() to a function of different
  * signature. I guess, in glib there are knowledgeable people that ensure
@@ -824,6 +829,15 @@ nm_strcmp_p_with_data (gconstpointer a, gconstpointer b, gpointer user_data)
 	const char *s2 = *((const char **) b);
 
 	return strcmp (s1, s2);
+}
+
+int
+nm_strcmp0_p_with_data (gconstpointer a, gconstpointer b, gpointer user_data)
+{
+	const char *s1 = *((const char **) a);
+	const char *s2 = *((const char **) b);
+
+	return nm_strcmp0 (s1, s2);
 }
 
 int
@@ -1350,6 +1364,8 @@ _nm_utils_strv_cleanup (char **strv,
 		return strv;
 
 	if (strip_whitespace) {
+		/* we only modify the strings pointed to by @strv if @strip_whitespace is
+		 * requested. Otherwise, the strings themselves are untouched. */
 		for (i = 0; strv[i]; i++)
 			g_strstrip (strv[i]);
 	}
@@ -1923,7 +1939,7 @@ nm_utils_buf_utf8safe_escape (gconstpointer buf, gssize buflen, NMUtilsStrUtf8Sa
 			break;
 
 		s = &p[1];
-		g_utf8_validate (s, buflen, &p);
+		(void) g_utf8_validate (s, buflen, &p);
 	} while (TRUE);
 
 	*to_free = g_string_free (gstr, FALSE);
@@ -2130,6 +2146,8 @@ nm_utils_fd_read_loop_exact (int fd, void *buf, size_t nbytes, bool do_poll)
 	return 0;
 }
 
+/*****************************************************************************/
+
 NMUtilsNamedValue *
 nm_utils_named_values_from_str_dict (GHashTable *hash, guint *out_len)
 {
@@ -2154,14 +2172,105 @@ nm_utils_named_values_from_str_dict (GHashTable *hash, guint *out_len)
 	values[i].name = NULL;
 	values[i].value_ptr = NULL;
 
-	if (len > 1) {
-		g_qsort_with_data (values, len, sizeof (values[0]),
-		                   nm_utils_named_entry_cmp_with_data, NULL);
-	}
+	nm_utils_named_value_list_sort (values, len, NULL, NULL);
 
 	NM_SET_OUT (out_len, len);
 	return values;
 }
+
+gssize
+nm_utils_named_value_list_find (const NMUtilsNamedValue *arr,
+                                gsize len,
+                                const char *name,
+                                gboolean sorted)
+{
+	gsize i;
+
+	nm_assert (name);
+
+#if NM_MORE_ASSERTS > 5
+	{
+		for (i = 0; i < len; i++) {
+			const NMUtilsNamedValue *v = &arr[i];
+
+			nm_assert (v->name);
+			if (   sorted
+			    && i > 0)
+				nm_assert (strcmp (arr[i - 1].name, v->name) < 0);
+		}
+	}
+
+	nm_assert (   !sorted
+	           || nm_utils_named_value_list_is_sorted (arr, len, FALSE, NULL, NULL));
+#endif
+
+	if (sorted) {
+		return nm_utils_array_find_binary_search (arr,
+		                                          sizeof (NMUtilsNamedValue),
+		                                          len,
+		                                          &name,
+		                                          nm_strcmp_p_with_data,
+		                                          NULL);
+	}
+	for (i = 0; i < len; i++) {
+		if (nm_streq (arr[i].name, name))
+			return i;
+	}
+	return ~((gssize) len);
+}
+
+gboolean
+nm_utils_named_value_list_is_sorted (const NMUtilsNamedValue *arr,
+                                     gsize len,
+                                     gboolean accept_duplicates,
+                                     GCompareDataFunc compare_func,
+                                     gpointer user_data)
+{
+	gsize i;
+	int c_limit;
+
+	if (len == 0)
+		return TRUE;
+
+	g_return_val_if_fail (arr, FALSE);
+
+	if (!compare_func)
+		compare_func = nm_strcmp_p_with_data;
+
+	c_limit = accept_duplicates ? 0 : -1;
+
+	for (i = 1; i < len; i++) {
+		int c;
+
+		c = compare_func (&arr[i - 1], &arr[i], user_data);
+		if (c > c_limit)
+			return FALSE;
+	}
+	return TRUE;
+}
+
+void
+nm_utils_named_value_list_sort (NMUtilsNamedValue *arr,
+                                gsize len,
+                                GCompareDataFunc compare_func,
+                                gpointer user_data)
+{
+	if (len == 0)
+		return;
+
+	g_return_if_fail (arr);
+
+	if (len == 1)
+		return;
+
+	g_qsort_with_data (arr,
+	                   len,
+	                   sizeof (NMUtilsNamedValue),
+	                   compare_func ?: nm_strcmp_p_with_data,
+	                   user_data);
+}
+
+/*****************************************************************************/
 
 gpointer *
 nm_utils_hash_keys_to_array (GHashTable *hash,
@@ -2193,12 +2302,41 @@ nm_utils_hash_keys_to_array (GHashTable *hash,
 	return keys;
 }
 
+gboolean
+nm_utils_hashtable_same_keys (const GHashTable *a,
+                              const GHashTable *b)
+{
+	GHashTableIter h;
+	const char *k;
+
+	if (a == b)
+		return TRUE;
+	if (!a || !b)
+		return FALSE;
+	if (g_hash_table_size ((GHashTable *) a) != g_hash_table_size ((GHashTable *) b))
+		return FALSE;
+
+	g_hash_table_iter_init (&h, (GHashTable *) a);
+	while (g_hash_table_iter_next (&h, (gpointer) &k, NULL)) {
+		if (!g_hash_table_contains ((GHashTable *) b, k))
+			return FALSE;
+	}
+
+#if NM_MORE_ASSERTS > 5
+	g_hash_table_iter_init (&h, (GHashTable *) b);
+	while (g_hash_table_iter_next (&h, (gpointer) &k, NULL))
+		nm_assert (g_hash_table_contains ((GHashTable *) a, k));
+#endif
+
+	return TRUE;
+}
+
 char **
 nm_utils_strv_make_deep_copied (const char **strv)
 {
 	gsize i;
 
-	/* it takes a strv dictionary, and copies each
+	/* it takes a strv list, and copies each
 	 * strings. Note that this updates @strv *in-place*
 	 * and returns it. */
 
@@ -2208,6 +2346,79 @@ nm_utils_strv_make_deep_copied (const char **strv)
 		strv[i] = g_strdup (strv[i]);
 
 	return (char **) strv;
+}
+
+char **
+nm_utils_strv_make_deep_copied_n (const char **strv, gsize len)
+{
+	gsize i;
+
+	/* it takes a strv array with len elements, and copies each
+	 * strings. Note that this updates @strv *in-place*
+	 * and returns it. */
+
+	if (!strv)
+		return NULL;
+	for (i = 0; i < len; i++)
+		strv[i] = g_strdup (strv[i]);
+
+	return (char **) strv;
+}
+
+/**
+ * @strv: the strv array to copy. It may be %NULL if @len
+ *   is negative or zero (in which case %NULL will be returned).
+ * @len: the length of strings in @str. If negative, strv is assumed
+ *   to be a NULL terminated array.
+ *
+ * Like g_strdupv(), with two differences:
+ *
+ * - accepts a @len parameter for non-null terminated strv array.
+ *
+ * - this never returns an empty strv array, but always %NULL if
+ *   there are no strings.
+ *
+ * Note that if @len is non-negative, then it still must not
+ * contain any %NULL pointers within the first @len elements.
+ * Otherwise you would leak elements if you try to free the
+ * array with g_strfreev(). Allowing that would be error prone.
+ *
+ * Returns: (transfer full): a clone of the strv array. Always
+ *   %NULL terminated.
+ */
+char **
+nm_utils_strv_dup (gpointer strv, gssize len)
+{
+	gsize i, l;
+	char **v;
+	const char *const *const src = strv;
+
+	if (len < 0)
+		l = NM_PTRARRAY_LEN (src);
+	else
+		l = len;
+	if (l == 0) {
+		/* this function never returns an empty strv array. If you
+		 * need that, handle it yourself. */
+		return NULL;
+	}
+
+	v = g_new (char *, l + 1);
+	for (i = 0; i < l; i++) {
+
+		if (G_UNLIKELY (!src[i])) {
+			/* NULL strings are not allowed. Clear the remainder of the array
+			 * and return it (with assertion failure). */
+			l++;
+			for (; i < l; i++)
+				v[i] = NULL;
+			g_return_val_if_reached (v);
+		}
+
+		v[i] = g_strdup (src[i]);
+	}
+	v[l] = NULL;
+	return v;
 }
 
 /*****************************************************************************/
@@ -2499,8 +2710,8 @@ fail:
  * @len: the number of elements in strv. If negative,
  *   strv must be a NULL terminated array and the length
  *   will be calculated first. If @len is a positive
- *   number, all first @len elements in @strv must be
- *   non-NULL, valid strings.
+ *   number, @strv is allowed to contain %NULL strings
+ *   too.
  *
  * Ascending sort of the array @strv inplace, using plain strcmp() string
  * comparison.
@@ -2508,9 +2719,16 @@ fail:
 void
 _nm_utils_strv_sort (const char **strv, gssize len)
 {
+	GCompareDataFunc cmp;
 	gsize l;
 
-	l = len < 0 ? (gsize) NM_PTRARRAY_LEN (strv) : (gsize) len;
+	if (len < 0) {
+		l = NM_PTRARRAY_LEN (strv);
+		cmp = nm_strcmp_p_with_data;
+	} else {
+		l = len;
+		cmp = nm_strcmp0_p_with_data;
+	}
 
 	if (l <= 1)
 		return;
@@ -2520,7 +2738,7 @@ _nm_utils_strv_sort (const char **strv, gssize len)
 	g_qsort_with_data (strv,
 	                   l,
 	                   sizeof (const char *),
-	                   nm_strcmp_p_with_data,
+	                   cmp,
 	                   NULL);
 }
 
@@ -2577,6 +2795,58 @@ _nm_utils_strv_cmp_n (const char *const*strv1,
 
 /*****************************************************************************/
 
+/**
+ * nm_utils_g_slist_find_str:
+ * @list: the #GSList with NUL terminated strings to search
+ * @needle: the needle string to look for.
+ *
+ * Search the list for @needle and return the first found match
+ * (or %NULL if not found). Uses strcmp() for finding the first matching
+ * element.
+ *
+ * Returns: the #GSList element with @needle as string value or
+ *   %NULL if not found.
+ */
+GSList *
+nm_utils_g_slist_find_str (const GSList *list,
+                           const char *needle)
+{
+	nm_assert (needle);
+
+	for (; list; list = list->next) {
+		nm_assert (list->data);
+		if (nm_streq (list->data, needle))
+			return (GSList *) list;
+	}
+	return NULL;
+}
+
+/**
+ * nm_utils_g_slist_strlist_cmp:
+ * @a: the left #GSList of strings
+ * @b: the right #GSList of strings to compare.
+ *
+ * Compares two string lists. The data elements are compared with
+ * strcmp(), alloing %NULL elements.
+ *
+ * Returns: 0, 1, or -1, depending on how the lists compare.
+ */
+int
+nm_utils_g_slist_strlist_cmp (const GSList *a, const GSList *b)
+{
+	while (TRUE) {
+		if (!a)
+			return !b ? 0 : -1;
+		if (!b)
+			return 1;
+		NM_CMP_DIRECT_STRCMP0 (a->data, b->data);
+		a = a->next;
+		b = b->next;
+	}
+}
+
+/*****************************************************************************/
+
 gpointer
 _nm_utils_user_data_pack (int nargs, gconstpointer *args)
 {
@@ -2613,7 +2883,7 @@ _nm_utils_user_data_unpack (gpointer user_data, int nargs, ...)
 	}
 	va_end (ap);
 
-	g_slice_free1 (((gsize) nargs) * sizeof (gconstpointer), user_data);
+	g_slice_free1 (((gsize) nargs) * sizeof (gconstpointer), data);
 }
 
 /*****************************************************************************/
@@ -2753,10 +3023,13 @@ nm_utils_memeqzero (gconstpointer data, gsize length)
  *   be returned and must be freed by the caller.
  *   If not %NULL, the buffer must already be preallocated and contain
  *   at least (@length*2+1) or (@length*3) bytes, depending on the delimiter.
+ *   If @length is zero, then of course at least one byte will be allocated
+ *   or @out (if given) must contain at least room for the trailing NUL byte.
  *
  * Returns: the binary value converted to a hex string. If @out is given,
  *   this always returns @out. If @out is %NULL, a newly allocated string
- *   is returned.
+ *   is returned. This never returns %NULL, for buffers of length zero
+ *   an empty string is returend.
  */
 char *
 nm_utils_bin2hexstr_full (gconstpointer addr,
@@ -2772,9 +3045,11 @@ nm_utils_bin2hexstr_full (gconstpointer addr,
 	if (out)
 		out0 = out;
 	else {
-		out0 = out = g_new (char, delimiter == '\0'
-		                          ? length * 2 + 1
-		                          : length * 3);
+		out0 = out = g_new (char, length == 0
+		                          ? 1u
+		                          : (  delimiter == '\0'
+		                             ? length * 2u + 1u
+		                             : length * 3u));
 	}
 
 	/* @out must contain at least @length*3 bytes if @delimiter is set,
@@ -2938,4 +3213,65 @@ nm_utils_hexstr2bin_alloc (const char *hexstr,
 fail:
 	NM_SET_OUT (out_len, 0);
 	return NULL;
+}
+
+/*****************************************************************************/
+
+GVariant *
+nm_utils_gvariant_vardict_filter (GVariant *src,
+                                  gboolean (*filter_fcn) (const char *key,
+                                                          GVariant *val,
+                                                          char **out_key,
+                                                          GVariant **out_val,
+                                                          gpointer user_data),
+                                  gpointer user_data)
+{
+	GVariantIter iter;
+	GVariantBuilder builder;
+	const char *key;
+	GVariant *val;
+
+	g_return_val_if_fail (src && g_variant_is_of_type (src, G_VARIANT_TYPE_VARDICT), NULL);
+	g_return_val_if_fail (filter_fcn, NULL);
+
+	g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
+
+	g_variant_iter_init (&iter, src);
+	while (g_variant_iter_next (&iter, "{&sv}", &key, &val)) {
+		_nm_unused gs_unref_variant GVariant *val_free = val;
+		gs_free char *key2 = NULL;
+		gs_unref_variant GVariant *val2 = NULL;
+
+		if (filter_fcn (key,
+		                val,
+		                &key2,
+		                &val2,
+		                user_data)) {
+			g_variant_builder_add (&builder,
+			                       "{sv}",
+			                       key2 ?: key,
+			                       val2 ?: val);
+		}
+	}
+
+	return g_variant_builder_end (&builder);
+}
+
+static gboolean
+_gvariant_vardict_filter_drop_one (const char *key,
+                                   GVariant *val,
+                                   char **out_key,
+                                   GVariant **out_val,
+                                   gpointer user_data)
+{
+	return !nm_streq (key, user_data);
+}
+
+GVariant *
+nm_utils_gvariant_vardict_filter_drop_one (GVariant *src,
+                                           const char *key)
+{
+	return nm_utils_gvariant_vardict_filter (src,
+	                                         _gvariant_vardict_filter_drop_one,
+	                                         (gpointer) key);
 }

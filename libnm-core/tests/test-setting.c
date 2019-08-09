@@ -45,6 +45,15 @@
 
 /*****************************************************************************/
 
+/* assert that the define is just a plain integer (boolean). */
+
+G_STATIC_ASSERT (   (WITH_JSON_VALIDATION) == 1
+                 || (WITH_JSON_VALIDATION) == 0);
+
+_nm_unused static const int _with_json_validation = WITH_JSON_VALIDATION;
+
+/*****************************************************************************/
+
 /* converts @dict to a connection. In this case, @dict must be good, without warnings, so that
  * NM_SETTING_PARSE_FLAGS_STRICT and NM_SETTING_PARSE_FLAGS_BEST_EFFORT yield the exact same results. */
 static NMConnection *
@@ -92,8 +101,8 @@ _connection_new_from_dbus_strict (GVariant *dict,
 	 * after accounting for normalization. */
 	for (i = 0; i < 10; i++) {
 		NMConnection *cons[] = { con_x_0, con_x_s, con_x_e, con_n_0, con_n_s, con_n_e };
-		guint idx_a = (nmtst_get_rand_int () % G_N_ELEMENTS (cons));
-		guint idx_b = (nmtst_get_rand_int () % G_N_ELEMENTS (cons));
+		guint idx_a = (nmtst_get_rand_uint32 () % G_N_ELEMENTS (cons));
+		guint idx_b = (nmtst_get_rand_uint32 () % G_N_ELEMENTS (cons));
 		gboolean normalize_a, normalize_b;
 
 		if (idx_a <= 2 && idx_b <= 2) {
@@ -128,14 +137,14 @@ _create_random_ipaddr (int addr_family, gboolean as_service)
 	g_assert (NM_IN_SET (addr_family, AF_INET, AF_INET6));
 
 	if (as_service)
-		num = (nmtst_get_rand_int () % 1000) + 30000;
+		num = (nmtst_get_rand_uint32 () % 1000) + 30000;
 	else
 		num = addr_family == AF_INET ? 32 : 128;
 
 	if (addr_family == AF_INET)
-		return g_strdup_printf ("192.168.%u.%u%c%d", nmtst_get_rand_int () % 256, nmtst_get_rand_int () % 256, delimiter, num);
+		return g_strdup_printf ("192.168.%u.%u%c%d", nmtst_get_rand_uint32 () % 256, nmtst_get_rand_uint32 () % 256, delimiter, num);
 	else
-		return g_strdup_printf ("a:b:c::%02x:%02x%c%d", nmtst_get_rand_int () % 256, nmtst_get_rand_int () % 256, delimiter, num);
+		return g_strdup_printf ("a:b:c::%02x:%02x%c%d", nmtst_get_rand_uint32 () % 256, nmtst_get_rand_uint32 () % 256, delimiter, num);
 }
 
 /*****************************************************************************/
@@ -966,7 +975,6 @@ test_dcb_bandwidth_sums (void)
 
 /*****************************************************************************/
 
-#if WITH_JSON_VALIDATION
 static void
 _test_team_config_sync (const char *team_config,
                         int notify_peer_count,
@@ -989,26 +997,31 @@ _test_team_config_sync (const char *team_config,
 	guint i, j;
 	gboolean found;
 
+	if (!WITH_JSON_VALIDATION) {
+		g_test_skip ("team test requires JSON validation");
+		return;
+	}
+
 	s_team = (NMSettingTeam *) nm_setting_team_new ();
 	g_assert (s_team);
 
 	g_object_set (s_team, NM_SETTING_TEAM_CONFIG, team_config, NULL);
-	g_assert (nm_setting_team_get_notify_peers_count (s_team) == notify_peer_count);
-	g_assert (nm_setting_team_get_notify_peers_interval (s_team) == notify_peers_interval);
-	g_assert (nm_setting_team_get_mcast_rejoin_count (s_team) == mcast_rejoin_count);
-	g_assert (nm_setting_team_get_mcast_rejoin_interval (s_team) == mcast_rejoin_interval);
-	g_assert (nm_setting_team_get_runner_tx_balancer_interval (s_team) == runner_tx_balancer_interval);
-	g_assert (nm_setting_team_get_runner_active (s_team) == runner_active);
-	g_assert (nm_setting_team_get_runner_fast_rate (s_team) == runner_fast_rate);
-	g_assert (nm_setting_team_get_runner_sys_prio (s_team) == runner_sys_prio);
-	g_assert (nm_setting_team_get_runner_min_ports (s_team) == runner_min_ports);
-	g_assert (nm_streq0 (nm_setting_team_get_runner (s_team), runner));
-	g_assert (nm_streq0 (nm_setting_team_get_runner_hwaddr_policy (s_team), runner_hwaddr_policy));
-	g_assert (nm_streq0 (nm_setting_team_get_runner_tx_balancer (s_team), runner_tx_balancer));
-	g_assert (nm_streq0 (nm_setting_team_get_runner_agg_select_policy (s_team), runner_agg_select_policy));
+	g_assert_cmpint (nm_setting_team_get_notify_peers_count (s_team), ==, notify_peer_count);
+	g_assert_cmpint (nm_setting_team_get_notify_peers_interval (s_team), ==, notify_peers_interval);
+	g_assert_cmpint (nm_setting_team_get_mcast_rejoin_count (s_team), ==, mcast_rejoin_count);
+	g_assert_cmpint (nm_setting_team_get_mcast_rejoin_interval (s_team), ==, mcast_rejoin_interval);
+	g_assert_cmpint (nm_setting_team_get_runner_tx_balancer_interval (s_team), ==, runner_tx_balancer_interval);
+	g_assert_cmpint (nm_setting_team_get_runner_active (s_team), ==, runner_active);
+	g_assert_cmpint (nm_setting_team_get_runner_fast_rate (s_team), ==, runner_fast_rate);
+	g_assert_cmpint (nm_setting_team_get_runner_sys_prio (s_team), ==, runner_sys_prio);
+	g_assert_cmpint (nm_setting_team_get_runner_min_ports (s_team), ==, runner_min_ports);
+	g_assert_cmpstr (nm_setting_team_get_runner (s_team), ==, runner);
+	g_assert_cmpstr (nm_setting_team_get_runner_hwaddr_policy (s_team), ==, runner_hwaddr_policy);
+	g_assert_cmpstr (nm_setting_team_get_runner_tx_balancer (s_team), ==, runner_tx_balancer);
+	g_assert_cmpstr (nm_setting_team_get_runner_agg_select_policy (s_team), ==, runner_agg_select_policy);
 
 	if (runner_tx_hash) {
-		g_assert (runner_tx_hash->len == nm_setting_team_get_num_runner_tx_hash (s_team));
+		g_assert_cmpint (runner_tx_hash->len, ==, nm_setting_team_get_num_runner_tx_hash (s_team));
 		for (i = 0; i < runner_tx_hash->len; i++) {
 			found = FALSE;
 			for (j = 0; j < nm_setting_team_get_num_runner_tx_hash (s_team); j++) {
@@ -1023,7 +1036,7 @@ _test_team_config_sync (const char *team_config,
 	}
 
 	if (link_watchers) {
-		g_assert (link_watchers->len == nm_setting_team_get_num_link_watchers (s_team));
+		g_assert_cmpint (link_watchers->len, ==, nm_setting_team_get_num_link_watchers (s_team));
 		for (i = 0; i < link_watchers->len; i++) {
 			found = FALSE;
 			for (j = 0; j < nm_setting_team_get_num_link_watchers (s_team); j++) {
@@ -1044,11 +1057,11 @@ static void
 test_runner_roundrobin_sync_from_config (void)
 {
 	_test_team_config_sync ("",
-	                        0, 0, 0, 0,
-	                        NM_SETTING_TEAM_RUNNER_ROUNDROBIN,
+	                        -1, -1, -1, -1,
+	                        NULL,
 	                        NULL,
 	                        NULL, NULL, -1,
-	                        FALSE, FALSE, -1, -1, NULL,
+	                        TRUE, FALSE, -1, -1, NULL,
 	                        NULL);
 }
 
@@ -1056,11 +1069,11 @@ static void
 test_runner_broadcast_sync_from_config (void)
 {
 	_test_team_config_sync ("{\"runner\": {\"name\": \"broadcast\"}}",
-	                        0, 0, 0, 0,
+	                        -1, -1, -1, -1,
 	                        NM_SETTING_TEAM_RUNNER_BROADCAST,
 	                        NULL,
 	                        NULL, NULL, -1,
-	                        FALSE, FALSE, -1, -1, NULL,
+	                        TRUE, FALSE, -1, -1, NULL,
 	                        NULL);
 }
 
@@ -1068,11 +1081,11 @@ static void
 test_runner_random_sync_from_config (void)
 {
 	_test_team_config_sync ("{\"runner\": {\"name\": \"random\"}}",
-	                        0, 0, 0, 0,
+	                        -1, -1, -1, -1,
 	                        NM_SETTING_TEAM_RUNNER_RANDOM,
 	                        NULL,
 	                        NULL, NULL, -1,
-	                        FALSE, FALSE, -1, -1, NULL,
+	                        TRUE, FALSE, -1, -1, NULL,
 	                        NULL);
 }
 
@@ -1080,12 +1093,11 @@ static void
 test_runner_activebackup_sync_from_config (void)
 {
 	_test_team_config_sync ("{\"runner\": {\"name\": \"activebackup\"}}",
-	                        NM_SETTING_TEAM_NOTIFY_PEERS_COUNT_ACTIVEBACKUP_DEFAULT, 0,
-	                        NM_SETTING_TEAM_NOTIFY_MCAST_COUNT_ACTIVEBACKUP_DEFAULT, 0,
+	                        -1, -1, -1, -1,
 	                        NM_SETTING_TEAM_RUNNER_ACTIVEBACKUP,
-	                        NM_SETTING_TEAM_RUNNER_HWADDR_POLICY_DEFAULT,
+	                        NULL,
 	                        NULL, NULL, -1,
-	                        FALSE, FALSE, -1, -1, NULL,
+	                        TRUE, FALSE, -1, -1, NULL,
 	                        NULL);
 }
 
@@ -1100,29 +1112,29 @@ test_runner_loadbalance_sync_from_config (void)
 	g_ptr_array_add (tx_hash, g_strdup ("ipv6"));
 
 	_test_team_config_sync ("{\"runner\": {\"name\": \"loadbalance\"}}",
-	                        0, 0, 0, 0,
+	                        -1, -1, -1, -1,
 	                        NM_SETTING_TEAM_RUNNER_LOADBALANCE,
 	                        NULL,
-	                        tx_hash, NULL, NM_SETTING_TEAM_RUNNER_TX_BALANCER_INTERVAL_DEFAULT,
-	                        FALSE, FALSE, -1, -1, NULL,
+	                        NULL, NULL, -1,
+	                        TRUE, FALSE, -1, -1, NULL,
 	                        NULL);
 
 	_test_team_config_sync ("{\"runner\": {\"name\": \"loadbalance\", "
 	                        "\"tx_hash\": [\"eth\", \"ipv4\", \"ipv6\"]}}",
-	                        0, 0, 0, 0,
+	                        -1, -1, -1, -1,
 	                        NM_SETTING_TEAM_RUNNER_LOADBALANCE,
 	                        NULL,
-	                        tx_hash, NULL, NM_SETTING_TEAM_RUNNER_TX_BALANCER_INTERVAL_DEFAULT,
-	                        FALSE, FALSE, -1, -1, NULL,
+	                        tx_hash, NULL, -1,
+	                        TRUE, FALSE, -1, -1, NULL,
 	                        NULL);
 
 	_test_team_config_sync ("{\"runner\": {\"name\": \"loadbalance\", \"tx_hash\": [\"eth\", \"ipv4\", \"ipv6\"], "
 	                        "\"tx_balancer\": {\"name\": \"basic\", \"balancing_interval\": 30}}}",
-	                        0, 0, 0, 0,
+	                        -1, -1, -1, -1,
 	                        NM_SETTING_TEAM_RUNNER_LOADBALANCE,
 	                        NULL,
 	                        tx_hash, "basic", 30,
-	                        FALSE, FALSE, -1, -1, NULL,
+	                        TRUE, FALSE, -1, -1, NULL,
 	                        NULL);
 }
 
@@ -1137,21 +1149,21 @@ test_runner_lacp_sync_from_config (void)
 	g_ptr_array_add (tx_hash, g_strdup ("ipv6"));
 
 	_test_team_config_sync ("{\"runner\": {\"name\": \"lacp\", \"tx_hash\": [\"eth\", \"ipv4\", \"ipv6\"]}}",
-	                        0, 0, 0, 0,
+	                        -1, -1, -1, -1,
 	                        NM_SETTING_TEAM_RUNNER_LACP,
 	                        NULL,
-	                        tx_hash, NULL, NM_SETTING_TEAM_RUNNER_TX_BALANCER_INTERVAL_DEFAULT,
-	                        TRUE, FALSE, NM_SETTING_TEAM_RUNNER_SYS_PRIO_DEFAULT, 0,
-	                        NM_SETTING_TEAM_RUNNER_AGG_SELECT_POLICY_DEFAULT,
+	                        tx_hash, NULL, -1,
+	                        TRUE, FALSE, -1, -1,
+	                        NULL,
 	                        NULL);
 
 	_test_team_config_sync ("{\"runner\": {\"name\": \"lacp\", \"tx_hash\": [\"eth\", \"ipv4\", \"ipv6\"], "
 	                        "\"active\": false, \"fast_rate\": true, \"sys_prio\": 10, \"min_ports\": 5, "
 	                        "\"agg_select_policy\": \"port_config\"}}",
-	                        0, 0, 0, 0,
+	                        -1, -1, -1, -1,
 	                        NM_SETTING_TEAM_RUNNER_LACP,
 	                        NULL,
-	                        tx_hash, NULL, NM_SETTING_TEAM_RUNNER_TX_BALANCER_INTERVAL_DEFAULT,
+	                        tx_hash, NULL, -1,
 	                        FALSE, TRUE, 10, 5, "port_config",
 	                        NULL);
 }
@@ -1164,11 +1176,11 @@ test_watcher_ethtool_sync_from_config (void)
 	link_watchers = g_ptr_array_new_with_free_func ((GDestroyNotify) nm_team_link_watcher_unref);
 	g_ptr_array_add (link_watchers, nm_team_link_watcher_new_ethtool (0, 0, NULL));
 	_test_team_config_sync ("{\"link_watch\": {\"name\": \"ethtool\"}}",
-	                        0, 0, 0, 0,
-	                        "roundrobin",
+	                        -1, -1, -1, -1,
+	                        NULL,
 	                        NULL,
 	                        NULL, NULL, -1,
-	                        FALSE, FALSE, -1, -1, NULL,
+	                        TRUE, FALSE, -1, -1, NULL,
 	                        link_watchers);
 }
 
@@ -1180,11 +1192,11 @@ test_watcher_nsna_ping_sync_from_config (void)
 	link_watchers = g_ptr_array_new_with_free_func ((GDestroyNotify) nm_team_link_watcher_unref);
 	g_ptr_array_add (link_watchers, nm_team_link_watcher_new_nsna_ping (0, 0, 3, "target.host", NULL));
 	_test_team_config_sync ("{\"link_watch\": {\"name\": \"nsna_ping\", \"target_host\": \"target.host\"}}",
-	                        0, 0, 0, 0,
-	                        "roundrobin",
+	                        -1, -1, -1, -1,
+	                        NULL,
 	                        NULL,
 	                        NULL, NULL, -1,
-	                        FALSE, FALSE, -1, -1, NULL,
+	                        TRUE, FALSE, -1, -1, NULL,
 	                        link_watchers);
 }
 
@@ -1198,11 +1210,11 @@ test_watcher_arp_ping_sync_from_config (void)
 	                 nm_team_link_watcher_new_arp_ping (0, 0, 3, "target.host", "source.host", 0, NULL));
 	_test_team_config_sync ("{\"link_watch\": {\"name\": \"arp_ping\", \"target_host\": \"target.host\", "
 	                        "\"source_host\": \"source.host\"}}",
-	                        0, 0, 0, 0,
-	                        "roundrobin",
+	                        -1, -1, -1, -1,
+	                        NULL,
 	                        NULL,
 	                        NULL, NULL, -1,
-	                        FALSE, FALSE, -1, -1, NULL,
+	                        TRUE, FALSE, -1, -1, NULL,
 	                        link_watchers);
 }
 
@@ -1227,11 +1239,11 @@ test_multiple_watchers_sync_from_config (void)
 	                        "\"validate_active\": true, \"validate_inactive\": true, \"send_always\": true}, "
 	                        "{\"name\": \"nsna_ping\", \"init_wait\": 3, \"interval\": 6, \"missed_max\": 9, "
 	                        "\"target_host\": \"target.host\"}]}",
-	                        0, 0, 0, 0,
-	                        "roundrobin",
+	                        -1, -1, -1, -1,
+	                        NULL,
 	                        NULL,
 	                        NULL, NULL, -1,
-	                        FALSE, FALSE, -1, -1, NULL,
+	                        TRUE, FALSE, -1, -1, NULL,
 	                        link_watchers);
 }
 
@@ -1249,6 +1261,11 @@ _test_team_port_config_sync (const char *team_port_config,
 	gs_unref_object NMSettingTeamPort *s_team_port = NULL;
 	guint i, j;
 	gboolean found;
+
+	if (!WITH_JSON_VALIDATION) {
+		g_test_skip ("team test requires JSON validation");
+		return;
+	}
 
 	s_team_port = (NMSettingTeamPort *) nm_setting_team_port_new ();
 	g_assert (s_team_port);
@@ -1282,52 +1299,52 @@ _test_team_port_config_sync (const char *team_port_config,
 static void
 test_team_port_default (void)
 {
-	_test_team_port_config_sync ("", -1, 0, FALSE, 255, 0, NULL);
+	_test_team_port_config_sync ("", -1, 0, FALSE, -1, -1, NULL);
 }
 
 static void
 test_team_port_queue_id (void)
 {
 	_test_team_port_config_sync ("{\"queue_id\": 3}",
-	                             3, 0, FALSE, 255, 0, NULL);
+	                             3, 0, FALSE, -1, -1, NULL);
 	_test_team_port_config_sync ("{\"queue_id\": 0}",
-	                             0, 0, FALSE, 255, 0, NULL);
+	                             0, 0, FALSE, -1, -1, NULL);
 }
 
 static void
 test_team_port_prio (void)
 {
 	_test_team_port_config_sync ("{\"prio\": 6}",
-	                             -1, 6, FALSE, 255, 0, NULL);
+	                             -1, 6, FALSE, -1, -1, NULL);
 	_test_team_port_config_sync ("{\"prio\": 0}",
-	                             -1, 0, FALSE, 255, 0, NULL);
+	                             -1, 0, FALSE, -1, -1, NULL);
 }
 
 static void
 test_team_port_sticky (void)
 {
 	_test_team_port_config_sync ("{\"sticky\": true}",
-	                             -1, 0, TRUE, 255, 0, NULL);
+	                             -1, 0, TRUE, -1, -1, NULL);
 	_test_team_port_config_sync ("{\"sticky\": false}",
-	                             -1, 0, FALSE, 255, 0, NULL);
+	                             -1, 0, FALSE, -1, -1, NULL);
 }
 
 static void
 test_team_port_lacp_prio (void)
 {
 	_test_team_port_config_sync ("{\"lacp_prio\": 9}",
-	                             -1, 0, FALSE, 9, 0, NULL);
+	                             -1, 0, FALSE, 9, -1, NULL);
 	_test_team_port_config_sync ("{\"lacp_prio\": 0}",
-	                             -1, 0, FALSE, 0, 0, NULL);
+	                             -1, 0, FALSE, 0, -1, NULL);
 }
 
 static void
 test_team_port_lacp_key (void)
 {
 	_test_team_port_config_sync ("{\"lacp_key\": 12}",
-	                             -1, 0, FALSE, 255, 12, NULL);
+	                             -1, 0, FALSE, -1, 12, NULL);
 	_test_team_port_config_sync ("{\"lacp_key\": 0}",
-	                             -1, 0, FALSE, 255, 0, NULL);
+	                             -1, 0, FALSE, -1, 0, NULL);
 }
 
 static void
@@ -1354,7 +1371,127 @@ test_team_port_full_config (void)
 	                             "\"send_always\": true}]}",
 	                             10, 20, true, 30, 40, NULL);
 }
-#endif
+
+/*****************************************************************************/
+
+static void
+_check_team_setting (NMSetting *setting)
+{
+	gs_unref_object NMSetting *setting2 = NULL;
+	gs_unref_object NMSetting *setting_clone = NULL;
+	gboolean is_port = NM_IS_SETTING_TEAM_PORT (setting);
+	gs_unref_variant GVariant *variant2 = NULL;
+	gs_unref_variant GVariant *variant3 = NULL;
+
+	g_assert (NM_IS_SETTING_TEAM (setting) || is_port);
+
+	setting2 = g_object_new (G_OBJECT_TYPE (setting),
+	                           is_port
+	                         ? NM_SETTING_TEAM_PORT_CONFIG
+	                         : NM_SETTING_TEAM_CONFIG,
+	                           is_port
+	                         ? nm_setting_team_port_get_config (NM_SETTING_TEAM_PORT (setting))
+	                         : nm_setting_team_get_config (NM_SETTING_TEAM (setting)),
+	                         NULL);
+
+	if (WITH_JSON_VALIDATION)
+		nmtst_assert_setting_is_equal (setting, setting2, NM_SETTING_COMPARE_FLAG_EXACT);
+
+	g_clear_object (&setting2);
+
+	nmtst_assert_setting_dbus_roundtrip (setting);
+
+	/* OK, now parse the setting only from the D-Bus variant, but removing the JSON config.
+	 * For that, we have to "drop" the JSON and we do that by resetting the property.
+	 * This causes JSON to be regenerated and it's in a normalized form that will compare
+	 * equal. */
+	setting_clone = nm_setting_duplicate (setting);
+	setting = setting_clone;
+	if (is_port) {
+		g_object_set (setting,
+		              NM_SETTING_TEAM_PORT_STICKY,
+		              nm_setting_team_port_get_sticky (NM_SETTING_TEAM_PORT (setting)),
+		              NULL);
+	} else {
+		g_object_set (setting,
+		              NM_SETTING_TEAM_RUNNER_SYS_PRIO,
+		              nm_setting_team_get_runner_sys_prio (NM_SETTING_TEAM (setting)),
+		              NULL);
+	}
+	variant2 = _nm_setting_to_dbus (setting, NULL, NM_CONNECTION_SERIALIZE_ALL, NULL);
+	variant3 = nm_utils_gvariant_vardict_filter_drop_one (variant2, "config");
+	setting2 = nmtst_assert_setting_dbus_new (G_OBJECT_TYPE (setting), variant3);
+	nmtst_assert_setting_is_equal (setting, setting2, NM_SETTING_COMPARE_FLAG_EXACT);
+}
+
+static void
+test_team_setting (void)
+{
+	gs_unref_variant GVariant *variant = nmtst_variant_from_string (G_VARIANT_TYPE_VARDICT,
+	                                                                "{'config': <'{\"link_watch\": {\"name\": \"ethtool\"}}'>, 'interface-name': <'nm-team'>, 'link-watchers': <[{'name': <'ethtool'>}]>}");
+	gs_free_error GError *error = NULL;
+	gs_unref_object NMSetting *setting = NULL;
+	nm_auto_unref_team_link_watcher NMTeamLinkWatcher *watcher1 = nm_team_link_watcher_new_nsna_ping (1, 3, 4, "bbb", NULL);
+	nm_auto_unref_team_link_watcher NMTeamLinkWatcher *watcher2 = nm_team_link_watcher_new_arp_ping2 (1, 3, 4, -1, "ccc", "ddd", 0, NULL);
+
+	g_assert (watcher1);
+	g_assert (watcher2);
+
+	setting = _nm_setting_new_from_dbus (NM_TYPE_SETTING_TEAM,
+	                                     variant,
+	                                     NULL,
+	                                     NM_SETTING_PARSE_FLAGS_STRICT,
+	                                     &error);
+	nmtst_assert_success (setting, error);
+	_check_team_setting (setting);
+
+	g_assert_cmpstr (nm_setting_team_get_config (NM_SETTING_TEAM (setting)), ==, "{\"link_watch\": {\"name\": \"ethtool\"}}");
+	g_assert_cmpint (nm_setting_team_get_num_link_watchers (NM_SETTING_TEAM (setting)), ==, 1);
+
+	g_object_set (setting,
+	              NM_SETTING_TEAM_RUNNER_SYS_PRIO,
+	              (int) 10,
+	              NULL);
+
+	_check_team_setting (setting);
+	g_assert_cmpint (nm_setting_team_get_num_link_watchers (NM_SETTING_TEAM (setting)), ==, 1);
+	g_assert_cmpstr (nm_setting_team_get_config (NM_SETTING_TEAM (setting)), ==, "{ \"runner\": { \"sys_prio\": 10 }, \"link_watch\": { \"name\": \"ethtool\" } }");
+
+	nm_setting_team_remove_link_watcher (NM_SETTING_TEAM (setting), 0);
+
+	_check_team_setting (setting);
+	g_assert_cmpint (nm_setting_team_get_num_link_watchers (NM_SETTING_TEAM (setting)), ==, 0);
+	g_assert_cmpstr (nm_setting_team_get_config (NM_SETTING_TEAM (setting)), ==, "{ \"runner\": { \"sys_prio\": 10 } }");
+
+	nm_setting_team_add_link_watcher (NM_SETTING_TEAM (setting), watcher1);
+	_check_team_setting (setting);
+	g_assert_cmpstr (nm_setting_team_get_config (NM_SETTING_TEAM (setting)), ==, "{ \"runner\": { \"sys_prio\": 10 }, \"link_watch\": { \"name\": \"nsna_ping\", \"interval\": 3, \"init_wait\": 1, \"missed_max\": 4, \"target_host\": \"bbb\" } }");
+
+	nm_setting_team_add_link_watcher (NM_SETTING_TEAM (setting), watcher2);
+	_check_team_setting (setting);
+	g_assert_cmpstr (nm_setting_team_get_config (NM_SETTING_TEAM (setting)), ==, "{ \"runner\": { \"sys_prio\": 10 }, \"link_watch\": [ { \"name\": \"nsna_ping\", \"interval\": 3, \"init_wait\": 1, \"missed_max\": 4, \"target_host\": \"bbb\" }, { \"name\": \"arp_ping\", \"interval\": 3, \"init_wait\": 1, \"missed_max\": 4, \"source_host\": \"ddd\", \"target_host\": \"ccc\" } ] }");
+
+	nm_setting_team_remove_link_watcher (NM_SETTING_TEAM (setting), 0);
+	nm_setting_team_remove_link_watcher (NM_SETTING_TEAM (setting), 0);
+	g_object_set (setting,
+	              NM_SETTING_TEAM_RUNNER_TX_BALANCER_INTERVAL,
+	              (int) 5,
+	              NULL);
+	g_assert_cmpstr (nm_setting_team_get_config (NM_SETTING_TEAM (setting)), ==, "{ \"runner\": { \"tx_balancer\": { \"balancing_interval\": 5 }, \"sys_prio\": 10 } }");
+
+	g_object_set (setting,
+	              NM_SETTING_TEAM_RUNNER,
+	              NULL,
+	              NULL);
+	_check_team_setting (setting);
+	g_assert_cmpstr (nm_setting_team_get_config (NM_SETTING_TEAM (setting)), ==, "{ \"runner\": { \"tx_balancer\": { \"balancing_interval\": 5 }, \"sys_prio\": 10 } }");
+
+	g_object_set (setting,
+	              NM_SETTING_TEAM_CONFIG,
+	              "{ \"runner\": { \"tx_hash\": [ \"eth\", \"l3\" ] } }",
+	              NULL);
+	_check_team_setting (setting);
+}
 
 /*****************************************************************************/
 
@@ -2108,6 +2245,105 @@ test_tc_config_dbus (void)
 
 /*****************************************************************************/
 
+static void
+_rndt_wired_add_s390_options (NMSettingWired *s_wired,
+                              char **out_keyfile_entries)
+{
+	gsize n_opts;
+	gsize i, j;
+	const char *const*option_names;
+	gs_free const char **opt_keys = NULL;
+	gs_strfreev char **opt_vals = NULL;
+	gs_free bool *opt_found = NULL;
+	GString *keyfile_entries;
+	nm_auto_free_gstring GString *str_tmp = NULL;
+
+	option_names = nm_setting_wired_get_valid_s390_options (nmtst_get_rand_bool () ? NULL : s_wired);
+
+	n_opts = NM_PTRARRAY_LEN (option_names);
+	opt_keys = g_new (const char *, (n_opts + 1));
+	nmtst_rand_perm (NULL, opt_keys, option_names, sizeof (const char *), n_opts);
+	n_opts = nmtst_get_rand_uint32 () % (n_opts + 1);
+	opt_keys[n_opts] = NULL;
+
+	opt_vals = g_new0 (char *, n_opts + 1);
+	opt_found = g_new0 (bool, n_opts + 1);
+	for (i = 0; i < n_opts; i++) {
+		guint p = nmtst_get_rand_uint32 () % 1000;
+
+		if (p < 200)
+			opt_vals[i] = nm_strdup_int (i);
+		else {
+			opt_vals[i] = g_strdup_printf ("%s%s%s%s-%zu",
+			                               ((p % 5)  % 2) ? "\n" : "",
+			                               ((p % 7)  % 2) ? "\t" : "",
+			                               ((p % 11) % 2) ? "x" : "",
+			                               ((p % 13) % 2) ? "=" : "",
+			                               i);
+		}
+	}
+
+	if (nmtst_get_rand_bool ()) {
+		gs_unref_hashtable GHashTable *hash = NULL;
+
+		hash = g_hash_table_new (nm_str_hash, g_str_equal);
+		for (i = 0; i < n_opts; i++)
+			g_hash_table_insert (hash, (char *) opt_keys[i], opt_vals[i]);
+		g_object_set (s_wired,
+		              NM_SETTING_WIRED_S390_OPTIONS,
+		              hash,
+		              NULL);
+	} else {
+		_nm_setting_wired_clear_s390_options (s_wired);
+		for (i = 0; i < n_opts; i++) {
+			if (!nm_setting_wired_add_s390_option (s_wired, opt_keys[i], opt_vals[i]))
+				g_assert_not_reached ();
+		}
+	}
+
+	g_assert_cmpint (nm_setting_wired_get_num_s390_options (s_wired), ==, n_opts);
+
+	keyfile_entries = g_string_new (NULL);
+	str_tmp = g_string_new (NULL);
+	if (n_opts > 0)
+		g_string_append_printf (keyfile_entries, "[ethernet-s390-options]\n");
+	for (i = 0; i < n_opts; i++) {
+		gssize idx;
+		const char *k, *v;
+
+		nm_setting_wired_get_s390_option (s_wired, i, &k, &v);
+		g_assert (k);
+		g_assert (v);
+
+		idx = nm_utils_strv_find_first ((char **) opt_keys, n_opts, k);
+		g_assert (idx >= 0);
+		g_assert (!opt_found[idx]);
+		opt_found[idx] = TRUE;
+		g_assert_cmpstr (opt_keys[idx], ==, k);
+		g_assert_cmpstr (opt_vals[idx], ==, v);
+
+		g_string_truncate (str_tmp, 0);
+		for (j = 0; v[j] != '\0'; j++) {
+			if (v[j] == '\n')
+				g_string_append (str_tmp, "\\n");
+			else if (v[j] == '\t')
+				g_string_append (str_tmp, "\\t");
+			else
+				g_string_append_c (str_tmp, v[j]);
+		}
+
+		g_string_append_printf (keyfile_entries,
+		                        "%s=%s\n",
+		                        k,
+		                        str_tmp->str);
+	}
+	for (i = 0; i < n_opts; i++)
+		g_assert (opt_found[i]);
+	if (n_opts > 0)
+		g_string_append_printf (keyfile_entries, "\n");
+	*out_keyfile_entries = g_string_free (keyfile_entries, FALSE);
+}
+
 static GPtrArray *
 _rndt_wg_peers_create (void)
 {
@@ -2116,7 +2352,7 @@ _rndt_wg_peers_create (void)
 
 	wg_peers = g_ptr_array_new_with_free_func ((GDestroyNotify) nm_wireguard_peer_unref);
 
-	n = nmtst_get_rand_int () % 10;
+	n = nmtst_get_rand_uint32 () % 10;
 	for (i = 0; i < n; i++) {
 		NMWireGuardPeer *peer;
 		guint8 public_key_buf[NM_WIREGUARD_PUBLIC_KEY_LEN];
@@ -2147,12 +2383,12 @@ _rndt_wg_peers_create (void)
 		                                                                    NM_SETTING_SECRET_FLAG_AGENT_OWNED));
 
 		nm_wireguard_peer_set_persistent_keepalive (peer,
-		                                            nmtst_rand_select ((guint32) 0, nmtst_get_rand_int ()));
+		                                            nmtst_rand_select ((guint32) 0, nmtst_get_rand_uint32 ()));
 
 		if (!nm_wireguard_peer_set_endpoint (peer, nmtst_rand_select (s_endpoint, NULL), TRUE))
 			g_assert_not_reached ();
 
-		n_aip = nmtst_rand_select (0, nmtst_get_rand_int () % 10);
+		n_aip = nmtst_rand_select (0, nmtst_get_rand_uint32 () % 10);
 		for (i_aip = 0; i_aip < n_aip; i_aip++) {
 			gs_free char *aip = NULL;
 
@@ -2349,7 +2585,7 @@ test_roundtrip_conversion (gconstpointer test_data)
 	const char *UUID= "63376701-b61e-4318-bf7e-664a1c1eeaab";
 	const char *INTERFACE_NAME = nm_sprintf_bufa (100, "ifname%d", MODE);
 	guint32 ETH_MTU = nmtst_rand_select ((guint32) 0u,
-	                                     nmtst_get_rand_int ());
+	                                     nmtst_get_rand_uint32 ());
 	const char *WG_PRIVATE_KEY = nmtst_get_rand_bool ()
 	                             ? "yGXGK+5bVnxSJUejH4vbpXbq+ZtaG4NB8IHRK/aVtE0="
 	                             : NULL;
@@ -2357,9 +2593,9 @@ test_roundtrip_conversion (gconstpointer test_data)
 	                                                                     NM_SETTING_SECRET_FLAG_NOT_SAVED,
 	                                                                     NM_SETTING_SECRET_FLAG_AGENT_OWNED);
 	const guint WG_LISTEN_PORT = nmtst_rand_select (0u,
-	                                                nmtst_get_rand_int () % 0x10000);
+	                                                nmtst_get_rand_uint32 () % 0x10000);
 	const guint WG_FWMARK = nmtst_rand_select (0u,
-	                                           nmtst_get_rand_int ());
+	                                           nmtst_get_rand_uint32 ());
 	gs_unref_ptrarray GPtrArray *kf_data_arr = g_ptr_array_new_with_free_func (g_free);
 	gs_unref_ptrarray GPtrArray *wg_peers = NULL;
 	const NMConnectionSerializationFlags dbus_serialization_flags[] = {
@@ -2385,6 +2621,7 @@ test_roundtrip_conversion (gconstpointer test_data)
 	int is_ipv4;
 	guint i;
 	gboolean success;
+	gs_free char *s390_keyfile_entries = NULL;
 
 	switch (MODE) {
 	case 0:
@@ -2403,6 +2640,8 @@ test_roundtrip_conversion (gconstpointer test_data)
 		              ETH_MTU,
 		              NULL);
 
+		_rndt_wired_add_s390_options (s_eth, &s390_keyfile_entries);
+
 		g_ptr_array_add (kf_data_arr,
 		    g_strdup_printf ("[connection]\n"
 		                     "id=%s\n"
@@ -2415,6 +2654,7 @@ test_roundtrip_conversion (gconstpointer test_data)
 		                     "mac-address-blacklist=\n"
 		                     "%s" /* mtu */
 		                     "\n"
+		                     "%s" /* [ethernet-s390-options] */
 		                     "[ipv4]\n"
 		                     "dns-search=\n"
 		                     "method=auto\n"
@@ -2429,7 +2669,8 @@ test_roundtrip_conversion (gconstpointer test_data)
 		                     INTERFACE_NAME,
 		                       (ETH_MTU != 0)
 		                     ? nm_sprintf_bufa (100, "mtu=%u\n", ETH_MTU)
-		                     : ""));
+		                     : "",
+		                     s390_keyfile_entries));
 
 		g_ptr_array_add (kf_data_arr,
 		    g_strdup_printf ("[connection]\n"
@@ -2443,6 +2684,7 @@ test_roundtrip_conversion (gconstpointer test_data)
 		                     "mac-address-blacklist=\n"
 		                     "%s" /* mtu */
 		                     "\n"
+		                     "%s" /* [ethernet-s390-options] */
 		                     "[ipv4]\n"
 		                     "dns-search=\n"
 		                     "method=auto\n"
@@ -2457,7 +2699,8 @@ test_roundtrip_conversion (gconstpointer test_data)
 		                     INTERFACE_NAME,
 		                       (ETH_MTU != 0)
 		                     ? nm_sprintf_bufa (100, "mtu=%d\n", (int) ETH_MTU)
-		                     : ""));
+		                     : "",
+		                     s390_keyfile_entries));
 
 		break;
 
@@ -2703,6 +2946,9 @@ test_roundtrip_conversion (gconstpointer test_data)
 
 			g_assert_cmpint (nm_setting_wired_get_mtu (s_eth), ==, ETH_MTU);
 			g_assert_cmpint (nm_setting_wired_get_mtu (s_eth2), ==, ETH_MTU);
+
+			g_assert_cmpint (nm_setting_wired_get_num_s390_options (s_eth2), ==, nm_setting_wired_get_num_s390_options (s_eth));
+
 			break;
 
 		case 1:
@@ -2979,6 +3225,60 @@ test_routing_rule (gconstpointer test_data)
 
 /*****************************************************************************/
 
+static void
+test_parse_tc_handle (void)
+{
+#define _parse_tc_handle(str, exp) \
+	G_STMT_START { \
+		gs_free_error GError *_error = NULL; \
+		GError **_perror = nmtst_get_rand_bool () ? &_error : NULL; \
+		guint32 _v; \
+		const guint32 _v_exp = (exp); \
+		\
+		_v = _nm_utils_parse_tc_handle (""str"", _perror); \
+		\
+		if (_v != _v_exp) \
+			g_error ("%s:%d: \"%s\" gave %08x but %08x expected.", __FILE__, __LINE__, ""str"", _v, _v_exp); \
+		\
+		if (_v == TC_H_UNSPEC) \
+			g_assert (!_perror || *_perror); \
+		else \
+			g_assert (!_perror || !*_perror); \
+		\
+	} G_STMT_END
+
+#define _parse_tc_handle_inval(str)           _parse_tc_handle (str, TC_H_UNSPEC)
+#define _parse_tc_handle_valid(str, maj, min) _parse_tc_handle (str, TC_H_MAKE (((guint32) (maj)) << 16, ((guint16) (min))))
+
+	_parse_tc_handle_inval ("");
+	_parse_tc_handle_inval (" ");
+	_parse_tc_handle_inval (" \n");
+	_parse_tc_handle_valid ("1", 1, 0);
+	_parse_tc_handle_valid(" 1 ", 1, 0);
+	_parse_tc_handle_valid ("1:", 1, 0);
+	_parse_tc_handle_valid ("1:  ", 1, 0);
+	_parse_tc_handle_valid ("1:0", 1, 0);
+	_parse_tc_handle_valid ("1   :0", 1, 0);
+	_parse_tc_handle_valid ("1   \t\n\f\r:0", 1, 0);
+	_parse_tc_handle_inval ("1   \t\n\f\r\v:0");
+	_parse_tc_handle_valid (" 1 : 0  ", 1, 0);
+	_parse_tc_handle_inval (" \t\v\n1: 0");
+	_parse_tc_handle_valid ("1:2", 1, 2);
+	_parse_tc_handle_valid ("01:02", 1, 2);
+	_parse_tc_handle_inval ("0x01:0x02");
+	_parse_tc_handle_valid ("  01:   02", 1, 2);
+	_parse_tc_handle_valid ("019:   020", 0x19, 0x20);
+	_parse_tc_handle_valid ("FFFF:   020", 0xFFFF, 0x20);
+	_parse_tc_handle_valid ("FfFF:   ffff", 0xFFFF, 0xFFFF);
+	_parse_tc_handle_valid ("FFFF", 0xFFFF, 0);
+	_parse_tc_handle_inval ("0xFFFF");
+	_parse_tc_handle_inval ("10000");
+	_parse_tc_handle_valid ("\t\n\f\r FFFF", 0xFFFF, 0);
+	_parse_tc_handle_inval ("\t\n\f\r \vFFFF");
+}
+
+/*****************************************************************************/
+
 NMTST_DEFINE ();
 
 int
@@ -3026,7 +3326,6 @@ main (int argc, char **argv)
 
 	g_test_add_func ("/libnm/settings/bridge/vlans", test_bridge_vlans);
 
-#if WITH_JSON_VALIDATION
 	g_test_add_func ("/libnm/settings/team/sync_runner_from_config_roundrobin",
 	                 test_runner_roundrobin_sync_from_config);
 	g_test_add_func ("/libnm/settings/team/sync_runner_from_config_broadcast",
@@ -3055,7 +3354,6 @@ main (int argc, char **argv)
 	g_test_add_func ("/libnm/settings/team-port/sync_from_config_lacp_prio", test_team_port_lacp_prio);
 	g_test_add_func ("/libnm/settings/team-port/sync_from_config_lacp_key", test_team_port_lacp_key);
 	g_test_add_func ("/libnm/settings/team-port/sycn_from_config_full", test_team_port_full_config);
-#endif
 
 	g_test_add_data_func ("/libnm/settings/roundtrip-conversion/general/0",   GINT_TO_POINTER (0), test_roundtrip_conversion);
 	g_test_add_data_func ("/libnm/settings/roundtrip-conversion/wireguard/1", GINT_TO_POINTER (1), test_roundtrip_conversion);
@@ -3063,6 +3361,10 @@ main (int argc, char **argv)
 	g_test_add_data_func ("/libnm/settings/roundtrip-conversion/general/3",   GINT_TO_POINTER (3), test_roundtrip_conversion);
 
 	g_test_add_data_func ("/libnm/settings/routing-rule/1", GINT_TO_POINTER (0), test_routing_rule);
+
+	g_test_add_func ("/libnm/parse-tc-handle", test_parse_tc_handle);
+
+	g_test_add_func ("/libnm/test_team_setting", test_team_setting);
 
 	return g_test_run ();
 }

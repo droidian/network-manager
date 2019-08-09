@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -81,6 +80,12 @@ typedef struct _AddNetworkData {
 	AssocData *assoc_data;
 } AddNetworkData;
 
+typedef struct {
+	NMSupplicantInterface *self;
+	NMSupplicantInterfaceDisconnectCb callback;
+	gpointer user_data;
+} DisconnectData;
+
 enum {
 	STATE,                   /* change in the interface's state */
 	REMOVED,                 /* interface was removed by the supplicant */
@@ -113,7 +118,10 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMSupplicantInterface,
 	PROP_PMF_SUPPORT,
 	PROP_FILS_SUPPORT,
 	PROP_P2P_SUPPORT,
+	PROP_MESH_SUPPORT,
 	PROP_WFD_SUPPORT,
+	PROP_FT_SUPPORT,
+	PROP_SHA384_SUPPORT,
 );
 
 typedef struct {
@@ -125,7 +133,10 @@ typedef struct {
 	NMSupplicantFeature pmf_support;
 	NMSupplicantFeature fils_support;
 	NMSupplicantFeature p2p_support;
+	NMSupplicantFeature mesh_support;
 	NMSupplicantFeature wfd_support;
+	NMSupplicantFeature ft_support;
+	NMSupplicantFeature sha384_support;
 	guint32        max_scan_ssids;
 	guint32        ready_count;
 
@@ -782,9 +793,27 @@ nm_supplicant_interface_get_p2p_support (NMSupplicantInterface *self)
 }
 
 NMSupplicantFeature
+nm_supplicant_interface_get_mesh_support (NMSupplicantInterface *self)
+{
+	return NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self)->mesh_support;
+}
+
+NMSupplicantFeature
 nm_supplicant_interface_get_wfd_support (NMSupplicantInterface *self)
 {
 	return NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self)->wfd_support;
+}
+
+NMSupplicantFeature
+nm_supplicant_interface_get_ft_support (NMSupplicantInterface *self)
+{
+	return NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self)->ft_support;
+}
+
+NMSupplicantFeature
+nm_supplicant_interface_get_sha384_support (NMSupplicantInterface *self)
+{
+	return NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self)->sha384_support;
 }
 
 void
@@ -837,12 +866,39 @@ nm_supplicant_interface_set_p2p_support (NMSupplicantInterface *self,
 }
 
 void
+nm_supplicant_interface_set_mesh_support (NMSupplicantInterface *self,
+                                          NMSupplicantFeature mesh_support)
+{
+	NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self);
+
+	priv->mesh_support = mesh_support;
+}
+
+void
 nm_supplicant_interface_set_wfd_support (NMSupplicantInterface *self,
                                          NMSupplicantFeature wfd_support)
 {
 	NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self);
 
 	priv->wfd_support = wfd_support;
+}
+
+void
+nm_supplicant_interface_set_ft_support (NMSupplicantInterface *self,
+                                        NMSupplicantFeature ft_support)
+{
+	NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self);
+
+	priv->ft_support = ft_support;
+}
+
+void
+nm_supplicant_interface_set_sha384_support (NMSupplicantInterface *self,
+                                            NMSupplicantFeature sha384_support)
+{
+	NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self);
+
+	priv->sha384_support = sha384_support;
 }
 
 /*****************************************************************************/
@@ -2118,6 +2174,60 @@ nm_supplicant_interface_disconnect (NMSupplicantInterface * self)
 }
 
 static void
+disconnect_cb (GDBusProxy *proxy, GAsyncResult *result, gpointer user_data)
+{
+	DisconnectData *disconnect_data = user_data;
+	gs_unref_object NMSupplicantInterface *self = disconnect_data->self;
+	gs_unref_variant GVariant *reply = NULL;
+	gs_free_error GError *error = NULL;
+
+	reply = g_dbus_proxy_call_finish (proxy, result, &error);
+
+	/* an already disconnected interface is not an error*/
+	if (   !reply
+	    && !strstr (error->message, "fi.w1.wpa_supplicant1.NotConnected")) {
+		g_clear_error(&error);
+	}
+
+	disconnect_data->callback(self, error, disconnect_data->user_data);
+	g_slice_free (DisconnectData, disconnect_data);
+}
+
+void
+nm_supplicant_interface_disconnect_async ( NMSupplicantInterface * self,
+                                           GCancellable * cancellable,
+                                           NMSupplicantInterfaceDisconnectCb callback,
+                                           gpointer user_data)
+{
+	NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE (self);
+	DisconnectData *disconnect_data;
+
+	/* Don't do anything if there is no connection to the supplicant yet. */
+	if (!priv->iface_proxy)
+		return;
+
+	g_return_if_fail (NM_IS_SUPPLICANT_INTERFACE (self));
+	g_return_if_fail (NULL != callback);
+
+	disconnect_data = g_slice_new0(DisconnectData);
+
+	/* Keep interface alive until disconnect finishes */
+	disconnect_data->self = g_object_ref (self);
+	disconnect_data->callback = callback;
+	disconnect_data->user_data = user_data;
+
+	/* Disconnect the interface */
+	g_dbus_proxy_call (priv->iface_proxy,
+	                   "Disconnect",
+	                   NULL,
+	                   G_DBUS_CALL_FLAGS_NONE,
+	                   -1,
+	                   cancellable,
+	                   (GAsyncReadyCallback) disconnect_cb,
+	                   disconnect_data);
+}
+
+static void
 assoc_select_network_cb (GDBusProxy *proxy, GAsyncResult *result, gpointer user_data)
 {
 	NMSupplicantInterface *self;
@@ -2681,9 +2791,21 @@ set_property (GObject *object,
 		/* construct-only */
 		priv->p2p_support = g_value_get_int (value);
 		break;
+	case PROP_MESH_SUPPORT:
+		/* construct-only */
+		priv->mesh_support = g_value_get_int (value);
+		break;
 	case PROP_WFD_SUPPORT:
 		/* construct-only */
 		priv->wfd_support = g_value_get_int (value);
+		break;
+	case PROP_FT_SUPPORT:
+		/* construct-only */
+		priv->ft_support = g_value_get_int (value);
+		break;
+	case PROP_SHA384_SUPPORT:
+		/* construct-only */
+		priv->sha384_support = g_value_get_int (value);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -2710,7 +2832,10 @@ nm_supplicant_interface_new (const char *ifname,
                              NMSupplicantFeature pmf_support,
                              NMSupplicantFeature fils_support,
                              NMSupplicantFeature p2p_support,
-                             NMSupplicantFeature wfd_support)
+                             NMSupplicantFeature mesh_support,
+                             NMSupplicantFeature wfd_support,
+                             NMSupplicantFeature ft_support,
+                             NMSupplicantFeature sha384_support)
 {
 	/* One of ifname or path need to be set */
 	g_return_val_if_fail (ifname != NULL || object_path != NULL, NULL);
@@ -2725,7 +2850,10 @@ nm_supplicant_interface_new (const char *ifname,
 	                     NM_SUPPLICANT_INTERFACE_PMF_SUPPORT, (int) pmf_support,
 	                     NM_SUPPLICANT_INTERFACE_FILS_SUPPORT, (int) fils_support,
 	                     NM_SUPPLICANT_INTERFACE_P2P_SUPPORT, (int) p2p_support,
+	                     NM_SUPPLICANT_INTERFACE_MESH_SUPPORT, (int) mesh_support,
 	                     NM_SUPPLICANT_INTERFACE_WFD_SUPPORT, (int) wfd_support,
+	                     NM_SUPPLICANT_INTERFACE_FT_SUPPORT, (int) ft_support,
+	                     NM_SUPPLICANT_INTERFACE_SHA384_SUPPORT, (int) sha384_support,
 	                     NULL);
 }
 
@@ -2876,8 +3004,32 @@ nm_supplicant_interface_class_init (NMSupplicantInterfaceClass *klass)
 	                      G_PARAM_WRITABLE |
 	                      G_PARAM_CONSTRUCT_ONLY |
 	                      G_PARAM_STATIC_STRINGS);
+	obj_properties[PROP_MESH_SUPPORT] =
+	    g_param_spec_int (NM_SUPPLICANT_INTERFACE_MESH_SUPPORT, "", "",
+	                      NM_SUPPLICANT_FEATURE_UNKNOWN,
+	                      NM_SUPPLICANT_FEATURE_YES,
+	                      NM_SUPPLICANT_FEATURE_UNKNOWN,
+	                      G_PARAM_WRITABLE |
+	                      G_PARAM_CONSTRUCT_ONLY |
+	                      G_PARAM_STATIC_STRINGS);
 	obj_properties[PROP_WFD_SUPPORT] =
 	    g_param_spec_int (NM_SUPPLICANT_INTERFACE_WFD_SUPPORT, "", "",
+	                      NM_SUPPLICANT_FEATURE_UNKNOWN,
+	                      NM_SUPPLICANT_FEATURE_YES,
+	                      NM_SUPPLICANT_FEATURE_UNKNOWN,
+	                      G_PARAM_WRITABLE |
+	                      G_PARAM_CONSTRUCT_ONLY |
+	                      G_PARAM_STATIC_STRINGS);
+	obj_properties[PROP_FT_SUPPORT] =
+	    g_param_spec_int (NM_SUPPLICANT_INTERFACE_FT_SUPPORT, "", "",
+	                      NM_SUPPLICANT_FEATURE_UNKNOWN,
+	                      NM_SUPPLICANT_FEATURE_YES,
+	                      NM_SUPPLICANT_FEATURE_UNKNOWN,
+	                      G_PARAM_WRITABLE |
+	                      G_PARAM_CONSTRUCT_ONLY |
+	                      G_PARAM_STATIC_STRINGS);
+	obj_properties[PROP_SHA384_SUPPORT] =
+	    g_param_spec_int (NM_SUPPLICANT_INTERFACE_SHA384_SUPPORT, "", "",
 	                      NM_SUPPLICANT_FEATURE_UNKNOWN,
 	                      NM_SUPPLICANT_FEATURE_YES,
 	                      NM_SUPPLICANT_FEATURE_UNKNOWN,

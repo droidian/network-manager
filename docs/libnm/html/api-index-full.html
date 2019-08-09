@@ -457,19 +457,19 @@ NMCheckpoint:rollback-timeout, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct">NMConnection</a>, struct in NMSettingOvs
+NMConnection, struct in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-changed">NMConnection::changed</a>, object signal in NMSettingOvs
+NMConnection::changed, object signal in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-secrets-cleared">NMConnection::secrets-cleared</a>, object signal in NMSettingOvs
+NMConnection::secrets-cleared, object signal in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-secrets-updated">NMConnection::secrets-updated</a>, object signal in NMSettingOvs
+NMConnection::secrets-updated, object signal in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
@@ -897,11 +897,23 @@ NMDevice6Lowpan:parent, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMDeviceModem.html#NMDeviceModem--apn" title="The “apn” property">NMDeviceModem:apn</a>, object property in NMDeviceOvs
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMDeviceModem.html#NMDeviceModem--current-capabilities" title="The “current-capabilities” property">NMDeviceModem:current-capabilities</a>, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMDeviceModem.html#NMDeviceModem--device-id" title="The “device-id” property">NMDeviceModem:device-id</a>, object property in NMDeviceOvs
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMDeviceModem.html#NMDeviceModem--modem-capabilities" title="The “modem-capabilities” property">NMDeviceModem:modem-capabilities</a>, object property in NMDeviceOvs
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceModem.html#NMDeviceModem--operator-code" title="The “operator-code” property">NMDeviceModem:operator-code</a>, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
@@ -1849,6 +1861,10 @@ NMSetting6Lowpan:parent, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingConnection.html#NMSettingConnection--wait-device-timeout" title="The “wait-device-timeout” property">NMSettingConnection:wait-device-timeout</a>, object property in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingConnection.html#NMSettingConnection--zone" title="The “zone” property">NMSettingConnection:zone</a>, object property in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
 </dt>
 <dd></dd>
@@ -2309,6 +2325,10 @@ NMSettingOvsBridge, struct in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
+NMSettingOvsBridge:datapath-type, object property in NMSettingOvs
+</dt>
+<dd></dd>
+<dt>
 NMSettingOvsBridge:fail-mode, object property in NMSettingOvs
 </dt>
 <dd></dd>
@@ -2322,6 +2342,14 @@ NMSettingOvsBridge:rstp-enable, object property in NMSettingOvs
 <dd></dd>
 <dt>
 NMSettingOvsBridge:stp-enable, object property in NMSettingOvs
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsDpdk, struct in NMSettingOvs
+</dt>
+<dd></dd>
+<dt>
+NMSettingOvsDpdk:devargs, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
@@ -2490,6 +2518,10 @@ NMSettingOvsPort:vlan-mode, object property in NMSettingOvs
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingProxy.html#NMSettingProxyMethod" title="enum NMSettingProxyMethod">NMSettingProxyMethod</a>, enum in <a class="link" href="NMSettingProxy.html" title="NMSettingProxy">NMSettingProxy</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NMSettingsAddConnection2Flags" title="enum NMSettingsAddConnection2Flags">NMSettingsAddConnection2Flags</a>, enum in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
 </dt>
 <dd></dd>
 <dt>
@@ -2929,6 +2961,14 @@ NMSettingWireGuard:fwmark, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
+NMSettingWireGuard:ip4-auto-default-route, object property in NMSettingOvs
+</dt>
+<dd></dd>
+<dt>
+NMSettingWireGuard:ip6-auto-default-route, object property in NMSettingOvs
+</dt>
+<dd></dd>
+<dt>
 NMSettingWireGuard:listen-port, object property in NMSettingOvs
 </dt>
 <dd></dd>
@@ -3161,7 +3201,23 @@ NMSettingWpan:short-address, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
+NMTeamAttribute, enum in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher">NMTeamLinkWatcher</a>, typedef in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcherArpPingFlags" title="enum NMTeamLinkWatcherArpPingFlags">NMTeamLinkWatcherArpPingFlags</a>, enum in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+NMTeamSetting, struct in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+NMTeamSettingData, struct in nm-team-utils
 </dt>
 <dd></dd>
 <dt>
@@ -3577,6 +3633,10 @@ NMWifiP2PPeer:wfd-ies, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
+nm_auto_free_team_setting, macro in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="libnm-nm-version.html#NM-AVAILABLE-IN-0-9-10:CAPS" title="NM_AVAILABLE_IN_0_9_10">NM_AVAILABLE_IN_0_9_10</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
 </dt>
 <dd></dd>
@@ -3606,6 +3666,10 @@ NMWifiP2PPeer:wfd-ies, object property in NMDeviceOvs
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-dbus-interface.html#NM-AVAILABLE-IN-1-2:CAPS" title="NM_AVAILABLE_IN_1_2">NM_AVAILABLE_IN_1_2</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-version.html#NM-AVAILABLE-IN-1-20:CAPS" title="NM_AVAILABLE_IN_1_20">NM_AVAILABLE_IN_1_20</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
 </dt>
 <dd></dd>
 <dt>
@@ -3749,6 +3813,14 @@ NMWifiP2PPeer:wfd-ies, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMClient.html#nm-client-add-connection2" title="nm_client_add_connection2 ()">nm_client_add_connection2</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-client-add-connection2-finish" title="nm_client_add_connection2_finish ()">nm_client_add_connection2_finish</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMClient.html#nm-client-add-connection-async" title="nm_client_add_connection_async ()">nm_client_add_connection_async</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
 </dt>
 <dd></dd>
@@ -3846,6 +3918,10 @@ NMWifiP2PPeer:wfd-ies, object property in NMDeviceOvs
 <dd></dd>
 <dt>
 <a class="link" href="NMClient.html#nm-client-connectivity-check-get-enabled" title="nm_client_connectivity_check_get_enabled ()">nm_client_connectivity_check_get_enabled</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-client-connectivity-check-get-uri" title="nm_client_connectivity_check_get_uri ()">nm_client_connectivity_check_get_uri</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4621,11 +4697,11 @@ NMWifiP2PPeer:wfd-ies, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-INTERFACE-VPN:CAPS">NM_DBUS_INTERFACE_VPN</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_INTERFACE_VPN, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-INTERFACE-VPN-CONNECTION:CAPS">NM_DBUS_INTERFACE_VPN_CONNECTION</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_INTERFACE_VPN_CONNECTION, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
@@ -4637,15 +4713,15 @@ NMWifiP2PPeer:wfd-ies, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-INVALID-VPN-CONNECTION:CAPS">NM_DBUS_INVALID_VPN_CONNECTION</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_INVALID_VPN_CONNECTION, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-NO-ACTIVE-VPN-CONNECTION:CAPS">NM_DBUS_NO_ACTIVE_VPN_CONNECTION</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_NO_ACTIVE_VPN_CONNECTION, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-NO-VPN-CONNECTIONS:CAPS">NM_DBUS_NO_VPN_CONNECTIONS</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_NO_VPN_CONNECTIONS, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
@@ -4677,11 +4753,11 @@ NMWifiP2PPeer:wfd-ies, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-PATH-VPN:CAPS">NM_DBUS_PATH_VPN</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_PATH_VPN, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-PATH-VPN-CONNECTION:CAPS">NM_DBUS_PATH_VPN_CONNECTION</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_PATH_VPN_CONNECTION, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
@@ -4697,67 +4773,67 @@ NMWifiP2PPeer:wfd-ies, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-ALREADY-STARTED:CAPS">NM_DBUS_VPN_ALREADY_STARTED</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_ALREADY_STARTED, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-ALREADY-STOPPED:CAPS">NM_DBUS_VPN_ALREADY_STOPPED</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_ALREADY_STOPPED, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-BAD-ARGUMENTS:CAPS">NM_DBUS_VPN_BAD_ARGUMENTS</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_BAD_ARGUMENTS, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-ERROR-PREFIX:CAPS">NM_DBUS_VPN_ERROR_PREFIX</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_ERROR_PREFIX, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-INTERACTIVE-NOT-SUPPORTED:CAPS">NM_DBUS_VPN_INTERACTIVE_NOT_SUPPORTED</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_INTERACTIVE_NOT_SUPPORTED, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-SIGNAL-CONNECT-FAILED:CAPS">NM_DBUS_VPN_SIGNAL_CONNECT_FAILED</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_SIGNAL_CONNECT_FAILED, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-SIGNAL-IP4-CONFIG:CAPS">NM_DBUS_VPN_SIGNAL_IP4_CONFIG</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_SIGNAL_IP4_CONFIG, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-SIGNAL-IP-CONFIG-BAD:CAPS">NM_DBUS_VPN_SIGNAL_IP_CONFIG_BAD</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_SIGNAL_IP_CONFIG_BAD, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-SIGNAL-LAUNCH-FAILED:CAPS">NM_DBUS_VPN_SIGNAL_LAUNCH_FAILED</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_SIGNAL_LAUNCH_FAILED, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-SIGNAL-LOGIN-BANNER:CAPS">NM_DBUS_VPN_SIGNAL_LOGIN_BANNER</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_SIGNAL_LOGIN_BANNER, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-SIGNAL-LOGIN-FAILED:CAPS">NM_DBUS_VPN_SIGNAL_LOGIN_FAILED</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_SIGNAL_LOGIN_FAILED, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-SIGNAL-STATE-CHANGE:CAPS">NM_DBUS_VPN_SIGNAL_STATE_CHANGE</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_SIGNAL_STATE_CHANGE, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-SIGNAL-VPN-CONFIG-BAD:CAPS">NM_DBUS_VPN_SIGNAL_VPN_CONFIG_BAD</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_SIGNAL_VPN_CONFIG_BAD, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-STARTING-IN-PROGRESS:CAPS">NM_DBUS_VPN_STARTING_IN_PROGRESS</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_STARTING_IN_PROGRESS, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-STOPPING-IN-PROGRESS:CAPS">NM_DBUS_VPN_STOPPING_IN_PROGRESS</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_STOPPING_IN_PROGRESS, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-DBUS-VPN-WRONG-STATE:CAPS">NM_DBUS_VPN_WRONG_STATE</a>, macro in nm-vpn-dbus-interface
+NM_DBUS_VPN_WRONG_STATE, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
@@ -4818,6 +4894,14 @@ NMWifiP2PPeer:wfd-ies, object property in NMDeviceOvs
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-2:CAPS" title="NM_DEPRECATED_IN_1_2">NM_DEPRECATED_IN_1_2</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-20:CAPS" title="NM_DEPRECATED_IN_1_20">NM_DEPRECATED_IN_1_20</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-20-FOR:CAPS" title="NM_DEPRECATED_IN_1_20_FOR()">NM_DEPRECATED_IN_1_20_FOR</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5541,7 +5625,19 @@ NMWifiP2PPeer:wfd-ies, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMDeviceModem.html#NM-DEVICE-MODEM-APN:CAPS" title="NM_DEVICE_MODEM_APN">NM_DEVICE_MODEM_APN</a>, macro in <a class="link" href="NMDeviceModem.html" title="NMDeviceModem">NMDeviceModem</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMDeviceModem.html#NM-DEVICE-MODEM-CURRENT-CAPABILITIES:CAPS" title="NM_DEVICE_MODEM_CURRENT_CAPABILITIES">NM_DEVICE_MODEM_CURRENT_CAPABILITIES</a>, macro in <a class="link" href="NMDeviceModem.html" title="NMDeviceModem">NMDeviceModem</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceModem.html#NM-DEVICE-MODEM-DEVICE-ID:CAPS" title="NM_DEVICE_MODEM_DEVICE_ID">NM_DEVICE_MODEM_DEVICE_ID</a>, macro in <a class="link" href="NMDeviceModem.html" title="NMDeviceModem">NMDeviceModem</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceModem.html#nm-device-modem-get-apn" title="nm_device_modem_get_apn ()">nm_device_modem_get_apn</a>, function in <a class="link" href="NMDeviceModem.html" title="NMDeviceModem">NMDeviceModem</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5549,11 +5645,23 @@ NMWifiP2PPeer:wfd-ies, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMDeviceModem.html#nm-device-modem-get-device-id" title="nm_device_modem_get_device_id ()">nm_device_modem_get_device_id</a>, function in <a class="link" href="NMDeviceModem.html" title="NMDeviceModem">NMDeviceModem</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMDeviceModem.html#nm-device-modem-get-modem-capabilities" title="nm_device_modem_get_modem_capabilities ()">nm_device_modem_get_modem_capabilities</a>, function in <a class="link" href="NMDeviceModem.html" title="NMDeviceModem">NMDeviceModem</a>
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMDeviceModem.html#nm-device-modem-get-operator-code" title="nm_device_modem_get_operator_code ()">nm_device_modem_get_operator_code</a>, function in <a class="link" href="NMDeviceModem.html" title="NMDeviceModem">NMDeviceModem</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMDeviceModem.html#NM-DEVICE-MODEM-MODEM-CAPABILITIES:CAPS" title="NM_DEVICE_MODEM_MODEM_CAPABILITIES">NM_DEVICE_MODEM_MODEM_CAPABILITIES</a>, macro in <a class="link" href="NMDeviceModem.html" title="NMDeviceModem">NMDeviceModem</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceModem.html#NM-DEVICE-MODEM-OPERATOR-CODE:CAPS" title="NM_DEVICE_MODEM_OPERATOR_CODE">NM_DEVICE_MODEM_OPERATOR_CODE</a>, macro in <a class="link" href="NMDeviceModem.html" title="NMDeviceModem">NMDeviceModem</a>
 </dt>
 <dd></dd>
 <dt>
@@ -6761,6 +6869,10 @@ NMWifiP2PPeer:wfd-ies, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingIPConfig.html#nm-ip-routing-rule-get-suppress-prefixlength" title="nm_ip_routing_rule_get_suppress_prefixlength ()">nm_ip_routing_rule_get_suppress_prefixlength</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingIPConfig.html#nm-ip-routing-rule-get-table" title="nm_ip_routing_rule_get_table ()">nm_ip_routing_rule_get_table</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
 </dt>
 <dd></dd>
@@ -6834,6 +6946,10 @@ NMWifiP2PPeer:wfd-ies, object property in NMDeviceOvs
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingIPConfig.html#nm-ip-routing-rule-set-source-port" title="nm_ip_routing_rule_set_source_port ()">nm_ip_routing_rule_set_source_port</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#nm-ip-routing-rule-set-suppress-prefixlength" title="nm_ip_routing_rule_set_suppress_prefixlength ()">nm_ip_routing_rule_set_suppress_prefixlength</a>, function in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8381,6 +8497,10 @@ nm_jansson_load, function in nm-json
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingConnection.html#nm-setting-connection-get-wait-device-timeout" title="nm_setting_connection_get_wait_device_timeout ()">nm_setting_connection_get_wait_device_timeout</a>, function in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingConnection.html#nm-setting-connection-get-zone" title="nm_setting_connection_get_zone ()">nm_setting_connection_get_zone</a>, function in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
 </dt>
 <dd></dd>
@@ -8478,6 +8598,10 @@ nm_jansson_load, function in nm-json
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-UUID:CAPS" title="NM_SETTING_CONNECTION_UUID">NM_SETTING_CONNECTION_UUID</a>, macro in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingConnection.html#NM-SETTING-CONNECTION-WAIT-DEVICE-TIMEOUT:CAPS" title="NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT">NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT</a>, macro in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection">NMSettingConnection</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8730,6 +8854,10 @@ nm_jansson_load, function in nm-json
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingEthtool.html#nm-setting-ethtool-get-feature" title="nm_setting_ethtool_get_feature ()">nm_setting_ethtool_get_feature</a>, function in <a class="link" href="NMSettingEthtool.html" title="NMSettingEthtool">NMSettingEthtool</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingEthtool.html#nm-setting-ethtool-get-optnames" title="nm_setting_ethtool_get_optnames ()">nm_setting_ethtool_get_optnames</a>, function in <a class="link" href="NMSettingEthtool.html" title="NMSettingEthtool">NMSettingEthtool</a>
 </dt>
 <dd></dd>
 <dt>
@@ -9006,6 +9134,10 @@ nm_jansson_load, function in nm-json
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-METHOD-DHCP:CAPS" title="NM_SETTING_IP6_CONFIG_METHOD_DHCP">NM_SETTING_IP6_CONFIG_METHOD_DHCP</a>, macro in <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config">NMSettingIP6Config</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-METHOD-DISABLED:CAPS" title="NM_SETTING_IP6_CONFIG_METHOD_DISABLED">NM_SETTING_IP6_CONFIG_METHOD_DISABLED</a>, macro in <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config">NMSettingIP6Config</a>
 </dt>
 <dd></dd>
 <dt>
@@ -9637,7 +9769,15 @@ nm_jansson_load, function in nm-json
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingOvsBridge.html#NM-SETTING-OVS-BRIDGE-DATAPATH-TYPE:CAPS" title="NM_SETTING_OVS_BRIDGE_DATAPATH_TYPE">NM_SETTING_OVS_BRIDGE_DATAPATH_TYPE</a>, macro in <a class="link" href="NMSettingOvsBridge.html" title="NMSettingOvsBridge">NMSettingOvsBridge</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingOvsBridge.html#NM-SETTING-OVS-BRIDGE-FAIL-MODE:CAPS" title="NM_SETTING_OVS_BRIDGE_FAIL_MODE">NM_SETTING_OVS_BRIDGE_FAIL_MODE</a>, macro in <a class="link" href="NMSettingOvsBridge.html" title="NMSettingOvsBridge">NMSettingOvsBridge</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingOvsBridge.html#nm-setting-ovs-bridge-get-datapath-type" title="nm_setting_ovs_bridge_get_datapath_type ()">nm_setting_ovs_bridge_get_datapath_type</a>, function in <a class="link" href="NMSettingOvsBridge.html" title="NMSettingOvsBridge">NMSettingOvsBridge</a>
 </dt>
 <dd></dd>
 <dt>
@@ -9674,6 +9814,22 @@ nm_jansson_load, function in nm-json
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingOvsBridge.html#NM-SETTING-OVS-BRIDGE-STP-ENABLE:CAPS" title="NM_SETTING_OVS_BRIDGE_STP_ENABLE">NM_SETTING_OVS_BRIDGE_STP_ENABLE</a>, macro in <a class="link" href="NMSettingOvsBridge.html" title="NMSettingOvsBridge">NMSettingOvsBridge</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingOvsDpdk.html#NM-SETTING-OVS-DPDK-DEVARGS:CAPS" title="NM_SETTING_OVS_DPDK_DEVARGS">NM_SETTING_OVS_DPDK_DEVARGS</a>, macro in <a class="link" href="NMSettingOvsDpdk.html" title="NMSettingOvsDpdk">NMSettingOvsDpdk</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingOvsDpdk.html#nm-setting-ovs-dpdk-get-devargs" title="nm_setting_ovs_dpdk_get_devargs ()">nm_setting_ovs_dpdk_get_devargs</a>, function in <a class="link" href="NMSettingOvsDpdk.html" title="NMSettingOvsDpdk">NMSettingOvsDpdk</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingOvsDpdk.html#nm-setting-ovs-dpdk-new" title="nm_setting_ovs_dpdk_new ()">nm_setting_ovs_dpdk_new</a>, function in <a class="link" href="NMSettingOvsDpdk.html" title="NMSettingOvsDpdk">NMSettingOvsDpdk</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingOvsDpdk.html#NM-SETTING-OVS-DPDK-SETTING-NAME:CAPS" title="NM_SETTING_OVS_DPDK_SETTING_NAME">NM_SETTING_OVS_DPDK_SETTING_NAME</a>, macro in <a class="link" href="NMSettingOvsDpdk.html" title="NMSettingOvsDpdk">NMSettingOvsDpdk</a>
 </dt>
 <dd></dd>
 <dt>
@@ -11173,6 +11329,14 @@ nm_jansson_load, function in nm-json
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingWireGuard.html#nm-setting-wireguard-get-ip4-auto-default-route" title="nm_setting_wireguard_get_ip4_auto_default_route ()">nm_setting_wireguard_get_ip4_auto_default_route</a>, function in <a class="link" href="NMSettingWireGuard.html" title="NMSettingWireGuard">NMSettingWireGuard</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingWireGuard.html#nm-setting-wireguard-get-ip6-auto-default-route" title="nm_setting_wireguard_get_ip6_auto_default_route ()">nm_setting_wireguard_get_ip6_auto_default_route</a>, function in <a class="link" href="NMSettingWireGuard.html" title="NMSettingWireGuard">NMSettingWireGuard</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingWireGuard.html#nm-setting-wireguard-get-listen-port" title="nm_setting_wireguard_get_listen_port ()">nm_setting_wireguard_get_listen_port</a>, function in <a class="link" href="NMSettingWireGuard.html" title="NMSettingWireGuard">NMSettingWireGuard</a>
 </dt>
 <dd></dd>
@@ -11202,6 +11366,14 @@ nm_jansson_load, function in nm-json
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingWireGuard.html#nm-setting-wireguard-get-private-key-flags" title="nm_setting_wireguard_get_private_key_flags ()">nm_setting_wireguard_get_private_key_flags</a>, function in <a class="link" href="NMSettingWireGuard.html" title="NMSettingWireGuard">NMSettingWireGuard</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingWireGuard.html#NM-SETTING-WIREGUARD-IP4-AUTO-DEFAULT-ROUTE:CAPS" title="NM_SETTING_WIREGUARD_IP4_AUTO_DEFAULT_ROUTE">NM_SETTING_WIREGUARD_IP4_AUTO_DEFAULT_ROUTE</a>, macro in <a class="link" href="NMSettingWireGuard.html" title="NMSettingWireGuard">NMSettingWireGuard</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingWireGuard.html#NM-SETTING-WIREGUARD-IP6-AUTO-DEFAULT-ROUTE:CAPS" title="NM_SETTING_WIREGUARD_IP6_AUTO_DEFAULT_ROUTE">NM_SETTING_WIREGUARD_IP6_AUTO_DEFAULT_ROUTE</a>, macro in <a class="link" href="NMSettingWireGuard.html" title="NMSettingWireGuard">NMSettingWireGuard</a>
 </dt>
 <dd></dd>
 <dt>
@@ -11390,6 +11562,10 @@ nm_jansson_load, function in nm-json
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-INFRA:CAPS" title="NM_SETTING_WIRELESS_MODE_INFRA">NM_SETTING_WIRELESS_MODE_INFRA</a>, macro in <a class="link" href="NMSettingWireless.html" title="NMSettingWireless">NMSettingWireless</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-MESH:CAPS" title="NM_SETTING_WIRELESS_MODE_MESH">NM_SETTING_WIRELESS_MODE_MESH</a>, macro in <a class="link" href="NMSettingWireless.html" title="NMSettingWireless">NMSettingWireless</a>
 </dt>
 <dd></dd>
 <dt>
@@ -11941,6 +12117,10 @@ nm_jansson_load, function in nm-json
 </dt>
 <dd></dd>
 <dt>
+nm_team_attribute_to_flags, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingTeam.html#NM-TEAM-LINK-WATCHER-ARP-PING:CAPS" title="NM_TEAM_LINK_WATCHER_ARP_PING">NM_TEAM_LINK_WATCHER_ARP_PING</a>, macro in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
 </dt>
 <dd></dd>
@@ -12022,6 +12202,98 @@ nm_jansson_load, function in nm-json
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingTeam.html#nm-team-link-watcher-unref" title="nm_team_link_watcher_unref ()">nm_team_link_watcher_unref</a>, function in <a class="link" href="NMSettingTeam.html" title="NMSettingTeam">NMSettingTeam</a>
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_cmp, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_config_get, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_config_set, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_free, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_maybe_changed, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_new, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_reset, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_reset_from_dbus, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_get_bool, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_get_int32, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_get_string, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_link_watchers_add, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_link_watchers_remove, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_link_watchers_remove_by_value, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_link_watchers_set_list, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_master_runner_tx_hash_add, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_master_runner_tx_hash_remove, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_master_runner_tx_hash_set_list, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_reset, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_set_bool, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_set_int32, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_value_set_string, function in nm-team-utils
+</dt>
+<dd></dd>
+<dt>
+nm_team_setting_verify, function in nm-team-utils
 </dt>
 <dd></dd>
 <dt>
@@ -12369,11 +12641,11 @@ nm_utils_fixup_vendor_string, function in nm-libnm-utils
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-DBUS-PLUGIN-INTERFACE:CAPS">NM_VPN_DBUS_PLUGIN_INTERFACE</a>, macro in nm-vpn-dbus-interface
+NM_VPN_DBUS_PLUGIN_INTERFACE, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-DBUS-PLUGIN-PATH:CAPS">NM_VPN_DBUS_PLUGIN_PATH</a>, macro in nm-vpn-dbus-interface
+NM_VPN_DBUS_PLUGIN_PATH, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
@@ -12441,27 +12713,27 @@ nm_utils_fixup_vendor_string, function in nm-libnm-utils
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-CAN-PERSIST:CAPS">NM_VPN_PLUGIN_CAN_PERSIST</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_CAN_PERSIST, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-CONFIG-BANNER:CAPS">NM_VPN_PLUGIN_CONFIG_BANNER</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_CONFIG_BANNER, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-CONFIG-EXT-GATEWAY:CAPS">NM_VPN_PLUGIN_CONFIG_EXT_GATEWAY</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_CONFIG_EXT_GATEWAY, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-CONFIG-HAS-IP4:CAPS">NM_VPN_PLUGIN_CONFIG_HAS_IP4</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_CONFIG_HAS_IP4, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-CONFIG-HAS-IP6:CAPS">NM_VPN_PLUGIN_CONFIG_HAS_IP6</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_CONFIG_HAS_IP6, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-CONFIG-MTU:CAPS">NM_VPN_PLUGIN_CONFIG_MTU</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_CONFIG_MTU, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
@@ -12469,7 +12741,7 @@ NM_VPN_PLUGIN_CONFIG_PROXY_PAC, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-CONFIG-TUNDEV:CAPS">NM_VPN_PLUGIN_CONFIG_TUNDEV</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_CONFIG_TUNDEV, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
@@ -12505,55 +12777,55 @@ NM_VPN_PLUGIN_CONFIG_PROXY_PAC, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-ADDRESS:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_ADDRESS</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_ADDRESS, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-BANNER:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_BANNER</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_BANNER, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-DNS:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_DNS</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_DNS, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-DOMAIN:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_DOMAIN</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_DOMAIN, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-DOMAINS:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_DOMAINS</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_DOMAINS, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-EXT-GATEWAY:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_EXT_GATEWAY</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_EXT_GATEWAY, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-GATEWAY:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_GATEWAY</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_GATEWAY, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-INT-GATEWAY:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_INT_GATEWAY</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_INT_GATEWAY, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-MSS:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_MSS</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_MSS, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-MTU:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_MTU</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_MTU, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-NBNS:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_NBNS</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_NBNS, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-NEVER-DEFAULT:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_NEVER_DEFAULT</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_NEVER_DEFAULT, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-PREFIX:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_PREFIX</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_PREFIX, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
@@ -12561,47 +12833,47 @@ NM_VPN_PLUGIN_IP4_CONFIG_PRESERVE_ROUTES, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-PTP:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_PTP</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_PTP, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-ROUTES:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_ROUTES</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_ROUTES, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP4-CONFIG-TUNDEV:CAPS">NM_VPN_PLUGIN_IP4_CONFIG_TUNDEV</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP4_CONFIG_TUNDEV, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP6-CONFIG-ADDRESS:CAPS">NM_VPN_PLUGIN_IP6_CONFIG_ADDRESS</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP6_CONFIG_ADDRESS, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP6-CONFIG-DNS:CAPS">NM_VPN_PLUGIN_IP6_CONFIG_DNS</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP6_CONFIG_DNS, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP6-CONFIG-DOMAIN:CAPS">NM_VPN_PLUGIN_IP6_CONFIG_DOMAIN</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP6_CONFIG_DOMAIN, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP6-CONFIG-DOMAINS:CAPS">NM_VPN_PLUGIN_IP6_CONFIG_DOMAINS</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP6_CONFIG_DOMAINS, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP6-CONFIG-INT-GATEWAY:CAPS">NM_VPN_PLUGIN_IP6_CONFIG_INT_GATEWAY</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP6_CONFIG_INT_GATEWAY, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP6-CONFIG-MSS:CAPS">NM_VPN_PLUGIN_IP6_CONFIG_MSS</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP6_CONFIG_MSS, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP6-CONFIG-NEVER-DEFAULT:CAPS">NM_VPN_PLUGIN_IP6_CONFIG_NEVER_DEFAULT</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP6_CONFIG_NEVER_DEFAULT, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP6-CONFIG-PREFIX:CAPS">NM_VPN_PLUGIN_IP6_CONFIG_PREFIX</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP6_CONFIG_PREFIX, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
@@ -12609,11 +12881,11 @@ NM_VPN_PLUGIN_IP6_CONFIG_PRESERVE_ROUTES, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP6-CONFIG-PTP:CAPS">NM_VPN_PLUGIN_IP6_CONFIG_PTP</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP6_CONFIG_PTP, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-util/libnm-util-NetworkManagerVPN.html#NM-VPN-PLUGIN-IP6-CONFIG-ROUTES:CAPS">NM_VPN_PLUGIN_IP6_CONFIG_ROUTES</a>, macro in nm-vpn-dbus-interface
+NM_VPN_PLUGIN_IP6_CONFIG_ROUTES, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>

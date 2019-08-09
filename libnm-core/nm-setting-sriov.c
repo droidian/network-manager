@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -365,17 +364,14 @@ nm_sriov_vf_get_attribute (const NMSriovVF *vf, const char *name)
 	return g_hash_table_lookup (vf->attributes, name);
 }
 
-#define SRIOV_ATTR_SPEC_PTR(name, type, str_type) \
-	&(NMVariantAttributeSpec) { name, type, FALSE, FALSE, FALSE, FALSE, str_type }
-
-const NMVariantAttributeSpec * const _nm_sriov_vf_attribute_spec[] = {
-	SRIOV_ATTR_SPEC_PTR (NM_SRIOV_VF_ATTRIBUTE_MAC,          G_VARIANT_TYPE_STRING,  'm'),
-	SRIOV_ATTR_SPEC_PTR (NM_SRIOV_VF_ATTRIBUTE_SPOOF_CHECK,  G_VARIANT_TYPE_BOOLEAN,  0),
-	SRIOV_ATTR_SPEC_PTR (NM_SRIOV_VF_ATTRIBUTE_TRUST,        G_VARIANT_TYPE_BOOLEAN,  0),
-	SRIOV_ATTR_SPEC_PTR (NM_SRIOV_VF_ATTRIBUTE_MIN_TX_RATE,  G_VARIANT_TYPE_UINT32,   0),
-	SRIOV_ATTR_SPEC_PTR (NM_SRIOV_VF_ATTRIBUTE_MAX_TX_RATE,  G_VARIANT_TYPE_UINT32,   0),
+const NMVariantAttributeSpec *const _nm_sriov_vf_attribute_spec[] = {
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_SRIOV_VF_ATTRIBUTE_MAC,         G_VARIANT_TYPE_STRING,  .str_type = 'm', ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_SRIOV_VF_ATTRIBUTE_SPOOF_CHECK, G_VARIANT_TYPE_BOOLEAN,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_SRIOV_VF_ATTRIBUTE_TRUST,       G_VARIANT_TYPE_BOOLEAN,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_SRIOV_VF_ATTRIBUTE_MIN_TX_RATE, G_VARIANT_TYPE_UINT32,                   ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_SRIOV_VF_ATTRIBUTE_MAX_TX_RATE, G_VARIANT_TYPE_UINT32,                   ),
 	/* D-Bus only, synthetic attributes */
-	SRIOV_ATTR_SPEC_PTR ("vlans",                            G_VARIANT_TYPE_STRING,  'd'),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("vlans",                           G_VARIANT_TYPE_STRING,  .str_type = 'd', ),
 	NULL,
 };
 
@@ -905,7 +901,12 @@ _nm_setting_sriov_sort_vfs (NMSettingSriov *setting)
 /*****************************************************************************/
 
 static GVariant *
-vfs_to_dbus (NMSetting *setting, const char *property)
+vfs_to_dbus (const NMSettInfoSetting *sett_info,
+             guint property_idx,
+             NMConnection *connection,
+             NMSetting *setting,
+             NMConnectionSerializationFlags flags,
+             const NMConnectionSerializationOptions *options)
 {
 	gs_unref_ptrarray GPtrArray *vfs = NULL;
 	GVariantBuilder builder;
@@ -1129,8 +1130,10 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 static NMTernary
 compare_property (const NMSettInfoSetting *sett_info,
                   guint property_idx,
-                  NMSetting *setting,
-                  NMSetting *other,
+                  NMConnection *con_a,
+                  NMSetting *set_a,
+                  NMConnection *con_b,
+                  NMSetting *set_b,
                   NMSettingCompareFlags flags)
 {
 	NMSettingSriov *a;
@@ -1138,9 +1141,9 @@ compare_property (const NMSettInfoSetting *sett_info,
 	guint i;
 
 	if (nm_streq (sett_info->property_infos[property_idx].name, NM_SETTING_SRIOV_VFS)) {
-		if (other) {
-			a = NM_SETTING_SRIOV (setting);
-			b = NM_SETTING_SRIOV (other);
+		if (set_b) {
+			a = NM_SETTING_SRIOV (set_a);
+			b = NM_SETTING_SRIOV (set_b);
 
 			if (a->vfs->len != b->vfs->len)
 				return FALSE;
@@ -1154,8 +1157,10 @@ compare_property (const NMSettInfoSetting *sett_info,
 
 	return NM_SETTING_CLASS (nm_setting_sriov_parent_class)->compare_property (sett_info,
 	                                                                           property_idx,
-	                                                                           setting,
-	                                                                           other,
+	                                                                           con_a,
+	                                                                           set_a,
+	                                                                           con_b,
+	                                                                           set_b,
 	                                                                           flags);
 }
 
@@ -1365,7 +1370,7 @@ nm_setting_sriov_class_init (NMSettingSriovClass *klass)
 	 */
 	obj_properties[PROP_AUTOPROBE_DRIVERS] =
 	    g_param_spec_enum (NM_SETTING_SRIOV_AUTOPROBE_DRIVERS, "", "",
-	                       nm_ternary_get_type (),
+	                       NM_TYPE_TERNARY,
 	                       NM_TERNARY_DEFAULT,
 	                       NM_SETTING_PARAM_FUZZY_IGNORE |
 	                       G_PARAM_READWRITE |

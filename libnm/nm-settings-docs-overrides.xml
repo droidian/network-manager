@@ -122,6 +122,8 @@ also exist on some routes."/>
 </setting>
 <setting name="ovs-bridge">
 </setting>
+<setting name="ovs-dpdk">
+</setting>
 <setting name="ovs-interface">
 </setting>
 <setting name="ovs-patch">

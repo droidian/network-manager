@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This library is free software; you can redistribute it and/or
@@ -27,6 +26,9 @@
 
 /*****************************************************************************/
 
+#define NM_HASH_SEED_16(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, aa, ab, ac, ad, ae, af) \
+	((const guint8[16]) { a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, aa, ab, ac, ad, ae, af })
+
 void nm_hash_siphash42_init (CSipHash *h, guint static_seed);
 
 /* Siphash24 of binary buffer @arr and @len, using the randomized seed from
@@ -34,7 +36,7 @@ void nm_hash_siphash42_init (CSipHash *h, guint static_seed);
  *
  * Note, that this is guaranteed to use siphash42 under the hood (contrary to
  * all other NMHash API, which leave this undefined). That matters at the point,
- * where the caller needs to be sure that a reasonably strong hasing algorithm
+ * where the caller needs to be sure that a reasonably strong hashing algorithm
  * is used.  (Yes, NMHash is all about siphash24, but otherwise that is not promised
  * anywhere).
  *
@@ -291,7 +293,16 @@ gboolean nm_pstr_equal (gconstpointer a, gconstpointer b);
 
 /*****************************************************************************/
 
-#define NM_HASH_OBFUSCATE_PTR_FMT "%016llx"
+/* this hashes/compares the pointer value that we point to. Basically,
+ * (((const void *const*) a) == ((const void *const*) b)). */
+
+guint nm_pdirect_hash (gconstpointer p);
+
+gboolean nm_pdirect_equal (gconstpointer a, gconstpointer b);
+
+/*****************************************************************************/
+
+#define NM_HASH_OBFUSCATE_PTR_FMT "%016" G_GINT64_MODIFIER "x"
 
 /* sometimes we want to log a pointer directly, for providing context/information about
  * the message that get logged. Logging pointer values directly defeats ASLR, so we should
@@ -307,8 +318,18 @@ gboolean nm_pstr_equal (gconstpointer a, gconstpointer b);
 		\
 		nm_hash_init (&_h, (static_seed)); \
 		nm_hash_update_val (&_h, _val_obf_ptr); \
-		(unsigned long long) nm_hash_complete_u64 (&_h); \
+		nm_hash_complete_u64 (&_h); \
 	})
+
+/* if you want to log obfuscated pointer for a certain context (like, NMPRuleManager
+ * logging user-tags), then you are advised to use nm_hash_obfuscate_ptr() with your
+ * own, unique static-seed.
+ *
+ * However, for example the singleton constructors log the obfuscated pointer values
+ * for all singletons, so they must all be obfuscated with the same seed. So, this
+ * macro uses a particular static seed that should be used by when comparing pointer
+ * values in a global context. */
+#define NM_HASH_OBFUSCATE_PTR(ptr) (nm_hash_obfuscate_ptr (1678382159u, ptr))
 
 /*****************************************************************************/
 

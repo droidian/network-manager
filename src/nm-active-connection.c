@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -182,7 +181,7 @@ NM_UTILS_FLAGS2STR_DEFINE_STATIC (_state_flags_to_string, NMActivationStateFlags
 
 static void
 _settings_connection_updated (NMSettingsConnection *sett_conn,
-                              gboolean by_user,
+                              guint update_reason_u,
                               gpointer user_data)
 {
 	NMActiveConnection *self = user_data;
@@ -285,7 +284,7 @@ nm_active_connection_set_state (NMActiveConnection *self,
 	if (   new_state == NM_ACTIVE_CONNECTION_STATE_ACTIVATED
 	    || old_state == NM_ACTIVE_CONNECTION_STATE_ACTIVATED) {
 		nm_settings_connection_update_timestamp (priv->settings_connection.obj,
-		                                         (guint64) time (NULL), TRUE);
+		                                         (guint64) time (NULL));
 	}
 
 	if (priv->device) {
@@ -523,8 +522,9 @@ nm_active_connection_clear_secrets (NMActiveConnection *self)
 	if (nm_settings_connection_has_unmodified_applied_connection (priv->settings_connection.obj,
 	                                                              priv->applied_connection,
 	                                                              NM_SETTING_COMPARE_FLAG_NONE)) {
-		/* FIXME(copy-on-write-connection): avoid modifying NMConnection instances and share them via copy-on-write. */
-		nm_connection_clear_secrets (nm_settings_connection_get_connection (priv->settings_connection.obj));
+		nm_settings_connection_clear_secrets (priv->settings_connection.obj,
+		                                      FALSE,
+		                                      FALSE);
 	}
 	nm_connection_clear_secrets (priv->applied_connection);
 }
@@ -1534,8 +1534,7 @@ finalize (GObject *object)
 
 	nm_dbus_track_obj_path_set (&priv->settings_connection, NULL, FALSE);
 
-	_nm_keep_alive_set_owner (priv->keep_alive, NULL);
-	g_clear_object (&priv->keep_alive);
+	nm_clear_pointer (&priv->keep_alive, nm_keep_alive_destroy);
 
 	G_OBJECT_CLASS (nm_active_connection_parent_class)->finalize (object);
 }

@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,7 +41,9 @@ static void \
 _singleton_instance_weak_ref_cb (gpointer data, \
                                  GObject *where_the_object_was) \
 { \
-	nm_log_dbg (LOGD_CORE, "disposing %s singleton (%p)", G_STRINGIFY (TYPE), singleton_instance); \
+	nm_log_dbg (LOGD_CORE, "disposing %s singleton ("NM_HASH_OBFUSCATE_PTR_FMT")", \
+	            G_STRINGIFY (TYPE), \
+	            NM_HASH_OBFUSCATE_PTR (singleton_instance)); \
 	singleton_instance = NULL; \
 } \
 static inline void \
@@ -73,7 +74,9 @@ GETTER (void) \
 		singleton_instance = (g_object_new (GTYPE, ##__VA_ARGS__, NULL)); \
 		g_assert (singleton_instance); \
 		nm_singleton_instance_register (); \
-		nm_log_dbg (LOGD_CORE, "create %s singleton (%p)", G_STRINGIFY (TYPE), singleton_instance); \
+		nm_log_dbg (LOGD_CORE, "create %s singleton ("NM_HASH_OBFUSCATE_PTR_FMT")", \
+		            G_STRINGIFY (TYPE), \
+		            NM_HASH_OBFUSCATE_PTR (singleton_instance)); \
 	} \
 	return singleton_instance; \
 } \
@@ -212,6 +215,10 @@ const char *nm_utils_find_helper (const char *progname,
                                   GError **error);
 
 char *nm_utils_read_link_absolute (const char *link_file, GError **error);
+
+#define NM_MATCH_SPEC_MAC_TAG                    "mac:"
+#define NM_MATCH_SPEC_S390_SUBCHANNELS_TAG       "s390-subchannels:"
+#define NM_MATCH_SPEC_INTERFACE_NAME_TAG         "interface-name:"
 
 typedef enum {
 	NM_MATCH_SPEC_NO_MATCH  = 0,

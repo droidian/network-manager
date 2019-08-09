@@ -119,6 +119,9 @@ pinging the gateway and waiting for the specified timeout (in seconds)."/>
 <property name="auth-retries" variable="AUTH_RETRIES(+)" format="" values="" default="0" example="" description="Number of retries for authentication."/>
 <property name="mdns" variable="MDNS(+)" format="" values="yes,no,resolve" default="missing variable means global default" example="MDNS=yes" description="Whether or not mDNS is enabled for the connection"/>
 <property name="llmnr" variable="LLMNR(+)" format="" values="yes,no,resolve" default="missing variable means global default" example="LLMNR=yes" description="Whether or not LLMNR is enabled for the connection"/>
+<property name="wait-device-timeout" variable="DEVTIMEOUT(+)" format="" values="timeout in seconds." default="" example="DEVTIMEOUT=5" description="for initscripts compatibility, this variable must be
+a whole integer. If necessary, NetworkManager stores also a fractional
+component for the milliseconds."/>
 </setting>
 <setting name="dcb">
 <property name="app-fcoe-flags" variable="DCB_APP_FCOE_ENABLE, DCB_APP_FCOE_ADVERTISE, DCB_APP_FCOE_WILLING" format="" values="" default="no" example="DCB_APP_FCOE_ENABLE=yes DCB_APP_FCOE_ADVERTISE=yes" description="FCOE flags."/>
@@ -200,8 +203,9 @@ IPv4 addresses. 0 turns off the ACD completely, -1 means default value."/>
 DHCP_FQDN are specified only the latter is used."/>
 </setting>
 <setting name="ipv6">
-<property name="method" variable="IPV6INIT, IPV6FORWARDING, IPV6_AUTOCONF, DHCPV6C" format="" values="" default="IPV6INIT=yes; IPV6FORWARDING=no; IPV6_AUTOCONF=!IPV6FORWARDING, DHCPV6=no" example="" description="Method used for IPv6 protocol configuration.
-ignore ~ IPV6INIT=no; auto ~ IPV6_AUTOCONF=yes; dhcp ~ IPV6_AUTOCONF=no and DHCPV6C=yes"/>
+<property name="method" variable="IPV6INIT, IPV6FORWARDING, IPV6_AUTOCONF, DHCPV6C, IPV6_DISABLED" format="" values="" default="IPV6INIT=yes; IPV6FORWARDING=no; IPV6_AUTOCONF=!IPV6FORWARDING, DHCPV6=no" example="" description="Method used for IPv6 protocol configuration.
+ignore ~ IPV6INIT=no; auto ~ IPV6_AUTOCONF=yes; dhcp ~ IPV6_AUTOCONF=no and DHCPV6C=yes;
+disabled ~ IPV6_DISABLED=yes"/>
 <property name="dns" variable="DNS1, DNS2, ..." format="string" values="" default="" example="" description="List of DNS servers. NetworkManager uses the variables both
 for IPv4 and IPv6."/>
 <property name="dns-search" variable="IPV6_DOMAIN(+)" format="string (space-separated domains)" values="" default="" example="" description="List of DNS search domains."/>
@@ -212,7 +216,7 @@ IPV6ADDR_SECONDARIES=&quot;ab12:9876::2 ab12:9876::3&quot;" description="List of
 but in route6-* file instead in the form of command line for &apos;ip route add&apos;."/>
 <property name="ignore-auto-routes" variable="IPV6_PEERROUTES(+)" format="" values="" default="yes" example="" description="IPV6_PEERROUTES has the opposite meaning as &apos;ignore-auto-routes&apos; property."/>
 <property name="ignore-auto-dns" variable="IPV6_PEERDNS(+)" format="" values="" default="yes" example="" description="IPV6_PEERDNS has the opposite meaning as &apos;ignore-auto-dns&apos; property."/>
-<property name="dhcp-hostname" variable="DHCP_HOSTNAME" format="" values="" default="" example="" description="Hostname to send the DHCP server."/>
+<property name="dhcp-hostname" variable="DHCPV6_HOSTNAME" format="" values="" default="" example="" description="Hostname to send the DHCP server."/>
 <property name="never-default" variable="IPV6_DEFROUTE(+), (and IPV6_DEFAULTGW, IPV6_DEFAULTDEV in /etc/sysconfig/network)" format="" values="" default="IPV6_DEFROUTE=yes (when no variable specified)" example="" description="IPV6_DEFROUTE=no tells NetworkManager that this connection
 should not be assigned the default IPv6 route. IPV6_DEFROUTE has the opposite
 meaning as &apos;never-default&apos; property."/>
@@ -242,6 +246,8 @@ each octet is separated by a colon is also accepted."/>
 <setting name="802-11-olpc-mesh">
 </setting>
 <setting name="ovs-bridge">
+</setting>
+<setting name="ovs-dpdk">
 </setting>
 <setting name="ovs-interface">
 </setting>

@@ -2,12 +2,12 @@
 .\"     Title: nm-openvswitch
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 04/21/2019
+.\"      Date: 08/06/2019
 .\"    Manual: Open vSwitch support overview
-.\"    Source: NetworkManager 1.18.0
+.\"    Source: NetworkManager 1.20.0
 .\"  Language: English
 .\"
-.TH "NM\-OPENVSWITCH" "7" "" "NetworkManager 1\&.18\&.0" "Open vSwitch support overview"
+.TH "NM\-OPENVSWITCH" "7" "" "NetworkManager 1\&.20\&.0" "Open vSwitch support overview"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -133,8 +133,8 @@ $ \fBnmcli conn add type ovs\-bridge conn\&.interface bridge0\fR
 Connection \*(Aqovs\-bridge\-bridge0\*(Aq (d10fc64d\-1d48\-4394\-a1b8\-e1aea72f27d5) successfully added\&.
 $ \fBnmcli conn add type ovs\-port conn\&.interface port0 master bridge0\fR
 Connection \*(Aqovs\-port\-port0\*(Aq (5ae22bae\-bba4\-4815\-9ade\-7e635633e1f0) successfully added\&.
-$ \fBnmcli conn add type ovs\-interface conn\&.interface iface0 master port0 \e
-  ipv4\&.method manual ipv4\&.address 192\&.0\&.2\&.1/24\fR
+$ \fBnmcli conn add type ovs\-interface slave\-type ovs\-port conn\&.interface iface0 \e
+  master port0 ipv4\&.method manual ipv4\&.address 192\&.0\&.2\&.1/24\fR
 Connection \*(Aqovs\-interface\-iface0\*(Aq (3640d2a1\-a2fd\-4718\-92f1\-cffadb5b6cdc) successfully added\&.
 .fi
 .if n \{\

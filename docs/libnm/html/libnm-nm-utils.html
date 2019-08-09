@@ -2529,14 +2529,17 @@ nm_utils_iface_valid_name (<em class="parameter"><code>const <span class="type">
 </colgroup>
 <tbody><tr>
 <td class="parameter_name"><p>name</p></td>
-<td class="parameter_description"><p>Name of interface</p></td>
-<td class="parameter_annotations"> </td>
+<td class="parameter_description"><p>Name of interface. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr></tbody>
 </table></div>
 </div>
 <div class="refsect3">
 <a name="nm-utils-iface-valid-name.returns"></a><h4>Returns</h4>
 <p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if interface name is valid, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> is returned.</p>
+<p>Before 1.20, this function did not accept <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> as <em class="parameter"><code>name</code></em>
+argument. If you
+want to run against older versions of libnm, don't pass <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</p>
 </div>
 </div>
 <hr>
@@ -2559,8 +2562,8 @@ function in net/core/dev.c.</p>
 <tbody>
 <tr>
 <td class="parameter_name"><p>name</p></td>
-<td class="parameter_description"><p>Name of interface</p></td>
-<td class="parameter_annotations"> </td>
+<td class="parameter_description"><p>Name of interface. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
@@ -2573,6 +2576,9 @@ function in net/core/dev.c.</p>
 <div class="refsect3">
 <a name="nm-utils-is-valid-iface-name.returns"></a><h4>Returns</h4>
 <p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if interface name is valid, otherwise <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> is returned.</p>
+<p>Before 1.20, this function did not accept <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> as <em class="parameter"><code>name</code></em>
+argument. If you
+want to run against older versions of libnm, don't pass <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</p>
 </div>
 </div>
 <hr>
@@ -2592,8 +2598,8 @@ nm_utils_is_uuid (<em class="parameter"><code>const <span class="type">char</spa
 </colgroup>
 <tbody><tr>
 <td class="parameter_name"><p>str</p></td>
-<td class="parameter_description"><p>a string that might be a UUID</p></td>
-<td class="parameter_annotations"> </td>
+<td class="parameter_description"><p>a string that might be a UUID. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr></tbody>
 </table></div>
 </div>
@@ -2601,6 +2607,8 @@ nm_utils_is_uuid (<em class="parameter"><code>const <span class="type">char</spa
 <a name="nm-utils-is-uuid.returns"></a><h4>Returns</h4>
 <p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>str</code></em>
 is a UUID, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not</p>
+<p>In older versions, <a class="link" href="libnm-nm-utils.html#nm-utils-is-uuid" title="nm_utils_is_uuid ()"><code class="function">nm_utils_is_uuid()</code></a> did not accept <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> as <em class="parameter"><code>str</code></em>
+argument. Don't pass <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if you run against older versions of libnm.</p>
 </div>
 </div>
 <hr>

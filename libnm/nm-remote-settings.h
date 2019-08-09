@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -74,15 +73,20 @@ NMRemoteConnection *nm_remote_settings_get_connection_by_path (NMRemoteSettings 
 NMRemoteConnection *nm_remote_settings_get_connection_by_uuid (NMRemoteSettings *settings,
                                                                const char *uuid);
 
-void                nm_remote_settings_add_connection_async  (NMRemoteSettings *settings,
-                                                              NMConnection *connection,
-                                                              gboolean save_to_disk,
-                                                              GCancellable *cancellable,
-                                                              GAsyncReadyCallback callback,
-                                                              gpointer user_data);
-NMRemoteConnection *nm_remote_settings_add_connection_finish (NMRemoteSettings *settings,
-                                                              GAsyncResult *result,
-                                                              GError **error);
+typedef void (*NMRemoteSettingAddConnection2Callback) (NMRemoteSettings *self,
+                                                       NMRemoteConnection *connection,
+                                                       GVariant *results,
+                                                       GError *error,
+                                                       gpointer user_data);
+
+void nm_remote_settings_add_connection2 (NMRemoteSettings *self,
+                                         GVariant *settings,
+                                         NMSettingsAddConnection2Flags flags,
+                                         GVariant *args,
+                                         gboolean ignore_out_result,
+                                         GCancellable *cancellable,
+                                         NMRemoteSettingAddConnection2Callback callback,
+                                         gpointer user_data);
 
 gboolean nm_remote_settings_load_connections        (NMRemoteSettings *settings,
                                                      char **filenames,

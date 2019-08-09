@@ -15,6 +15,11 @@
                       OUT o         path);
 <link linkend="gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnectionUnsaved">AddConnectionUnsaved</link> (IN  a{sa{sv}} connection,
                       OUT o         path);
+<link linkend="gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnection2">AddConnection2</link>       (IN  a{sa{sv}} settings,
+                      IN  u         flags,
+                      IN  a{sv}     args,
+                      OUT o         path,
+                      OUT a{sv}     result);
 <link linkend="gdbus-method-org-freedesktop-NetworkManager-Settings.LoadConnections">LoadConnections</link>      (IN  as        filenames,
                       OUT b         status,
                       OUT as        failures);
@@ -115,9 +120,7 @@ AddConnectionUnsaved (IN  a{sa{sv}} connection,
         does not start the network connection unless (1) device is idle and able
         to connect to the network described by the new connection, and (2) the
         connection is allowed to be started automatically. Use the 'Save' method
-        on the connection to save these changes to disk. Note that unsaved changes
-        will be lost if the connection is reloaded from disk (either automatically
-        on file change or due to an explicit ReloadConnections call).
+        on the connection to save these changes to disk.
 </para>
 <variablelist role="params">
 <varlistentry>
@@ -127,6 +130,58 @@ AddConnectionUnsaved (IN  a{sa{sv}} connection,
 <varlistentry>
   <term><literal>OUT o <parameter>path</parameter></literal>:</term>
   <listitem><para>Object path of the new connection that was just added.</para></listitem>
+</varlistentry>
+</variablelist>
+</refsect2>
+<refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnection2">
+  <title>The AddConnection2() method</title>
+  <indexterm zone="gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnection2"><primary sortas=".Settings.AddConnection2">org.freedesktop.NetworkManager.Settings.AddConnection2()</primary></indexterm>
+<programlisting>
+AddConnection2 (IN  a{sa{sv}} settings,
+                IN  u         flags,
+                IN  a{sv}     args,
+                OUT o         path,
+                OUT a{sv}     result);
+</programlisting>
+<para>          "0x1" (to-disk),
+          "0x2" (in-memory),
+          "0x20" (block-autoconnect).
+          Unknown flags cause the call to fail.
+        <parameter>args</parameter>: optional arguments dictionary, for extensibility. Currently no
+          arguments are accepted. Specifying unknown keys causes the call
+          to fail.
+        <parameter>path</parameter>: Object path of the new connection that was just added.
+        <parameter>result</parameter>: output argument, currently no additional results are returned.
+</para><para>        Add a new connection profile.
+</para><para>        Either the flags 0x1 (to-disk) or 0x2 (in-memory) must be specified.
+        The effect is whether to behave like AddConnection or AddConnectionUnsaved.
+        If 0x20 (block-autoconnect) is specified, autoconnect for the new profile
+        is blocked from the beginnin. Otherwise, the profile might automatically
+        connect if a suitable device is around.
+</para><para>        AddConnection2 is a extensible alternative to AddConnection, and AddConnectionUnsaved.
+        The new variant can do everything that the older variants could, and more.
+</para><para>        Since: 1.20
+</para>
+<variablelist role="params">
+<varlistentry>
+  <term><literal>IN a{sa{sv}} <parameter>settings</parameter></literal>:</term>
+  <listitem><para>New connection settings, properties, and (optionally) secrets.</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>IN u <parameter>flags</parameter></literal>:</term>
+  <listitem><para>optional flags argument. Currently the following flags are supported:</para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>IN a{sv} <parameter>args</parameter></literal>:</term>
+  <listitem><para></para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>OUT o <parameter>path</parameter></literal>:</term>
+  <listitem><para></para></listitem>
+</varlistentry>
+<varlistentry>
+  <term><literal>OUT a{sv} <parameter>result</parameter></literal>:</term>
+  <listitem><para></para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>

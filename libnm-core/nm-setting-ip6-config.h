@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -100,6 +98,15 @@ G_BEGIN_DECLS
  * supported for IPv6)
  */
 #define NM_SETTING_IP6_CONFIG_METHOD_SHARED     "shared"
+
+/**
+ * NM_SETTING_IP6_CONFIG_METHOD_DISABLED:
+ *
+ * IPv6 is disabled for the connection.
+ *
+ * Since: 1.20
+ */
+#define NM_SETTING_IP6_CONFIG_METHOD_DISABLED   "disabled"
 
 /**
  * NMSettingIP6ConfigPrivacy:

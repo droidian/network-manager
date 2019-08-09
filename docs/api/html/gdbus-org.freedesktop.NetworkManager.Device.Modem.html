@@ -44,6 +44,9 @@
 <pre class="synopsis">
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.Modem.html#gdbus-property-org-freedesktop-NetworkManager-Device-Modem.ModemCapabilities" title='The "ModemCapabilities" property'>ModemCapabilities</a>    readable   u
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.Modem.html#gdbus-property-org-freedesktop-NetworkManager-Device-Modem.CurrentCapabilities" title='The "CurrentCapabilities" property'>CurrentCapabilities</a>  readable   u
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.Modem.html#gdbus-property-org-freedesktop-NetworkManager-Device-Modem.DeviceId" title='The "DeviceId" property'>DeviceId</a>             readable   s
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.Modem.html#gdbus-property-org-freedesktop-NetworkManager-Device-Modem.OperatorCode" title='The "OperatorCode" property'>OperatorCode</a>         readable   s
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.Modem.html#gdbus-property-org-freedesktop-NetworkManager-Device-Modem.Apn" title='The "Apn" property'>Apn</a>                  readable   s
 </pre>
 </div>
 <div class="refsect1">
@@ -96,6 +99,42 @@ CurrentCapabilities  readable   u
         without a firmware reload or reinitialization.
 </p>
 <p>        Returns: <a class="link" href="nm-dbus-types.html#NMDeviceModemCapabilities" title="enum NMDeviceModemCapabilities">NMDeviceModemCapabilities</a>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-property-org-freedesktop-NetworkManager-Device-Modem.DeviceId"></a><h3>The "DeviceId" property</h3>
+<pre class="programlisting">
+DeviceId  readable   s
+</pre>
+<p>        An identifier used by the modem backend (ModemManager) that aims to
+        uniquely identify the a device. Can be used to match a connection to a
+        particular device.
+</p>
+<p>        Since: 1.20
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-property-org-freedesktop-NetworkManager-Device-Modem.OperatorCode"></a><h3>The "OperatorCode" property</h3>
+<pre class="programlisting">
+OperatorCode  readable   s
+</pre>
+<p>        The MCC and MNC (concatenated) of the network the modem is connected to.
+        Blank if disconnected or not a 3GPP modem.
+</p>
+<p>        Since: 1.20
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-property-org-freedesktop-NetworkManager-Device-Modem.Apn"></a><h3>The "Apn" property</h3>
+<pre class="programlisting">
+Apn  readable   s
+</pre>
+<p>        The access point name the modem is connected to. Blank if disconnected.
+</p>
+<p>        Since: 1.20
 </p>
 </div>
 </div>

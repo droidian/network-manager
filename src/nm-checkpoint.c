@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -171,7 +170,7 @@ find_settings_connection (NMCheckpoint *self,
 	*need_update = FALSE;
 
 	uuid = nm_connection_get_uuid (dev_checkpoint->settings_connection);
-	sett_conn = nm_settings_get_connection_by_uuid (nm_settings_get (), uuid);
+	sett_conn = nm_settings_get_connection_by_uuid (NM_SETTINGS_GET, uuid);
 
 	if (!sett_conn)
 		return NULL;
@@ -218,19 +217,35 @@ restore_and_activate_connection (NMCheckpoint *self,
 	gs_unref_object NMAuthSubject *subject = NULL;
 	GError *local_error = NULL;
 	gboolean need_update, need_activation;
+	NMSettingsConnectionPersistMode persist_mode;
+	NMSettingsConnectionIntFlags sett_flags;
+	NMSettingsConnectionIntFlags sett_mask;
 
 	connection = find_settings_connection (self,
 	                                       dev_checkpoint,
 	                                       &need_update,
 	                                       &need_activation);
+
+	/* FIXME: we need to ensure to re-create/update the profile for the
+	 *   same settings plugin. E.g. if it was a keyfile in /run or /etc,
+	 *   it must be again. If it was previously handled by a certain settings plugin,
+	 *   so it must again.
+	 *
+	 * FIXME: preserve and restore the right settings flags (volatile, nm-generated). */
+	sett_flags = NM_SETTINGS_CONNECTION_INT_FLAGS_NONE;
+	sett_mask = NM_SETTINGS_CONNECTION_INT_FLAGS_NONE;
+
 	if (connection) {
 		if (need_update) {
 			_LOGD ("rollback: updating connection %s",
 			       nm_settings_connection_get_uuid (connection));
+			persist_mode = NM_SETTINGS_CONNECTION_PERSIST_MODE_KEEP;
 			nm_settings_connection_update (connection,
 			                               dev_checkpoint->settings_connection,
-			                               NM_SETTINGS_CONNECTION_PERSIST_MODE_DISK,
-			                               NM_SETTINGS_CONNECTION_COMMIT_REASON_NONE,
+			                               persist_mode,
+			                               sett_flags,
+			                               sett_mask,
+			                               NM_SETTINGS_CONNECTION_UPDATE_REASON_NONE,
 			                               "checkpoint-rollback",
 			                               NULL);
 		}
@@ -239,11 +254,14 @@ restore_and_activate_connection (NMCheckpoint *self,
 		_LOGD ("rollback: adding connection %s again",
 		       nm_connection_get_uuid (dev_checkpoint->settings_connection));
 
-		connection = nm_settings_add_connection (nm_settings_get (),
-		                                         dev_checkpoint->settings_connection,
-		                                         TRUE,
-		                                         &local_error);
-		if (!connection) {
+		persist_mode = NM_SETTINGS_CONNECTION_PERSIST_MODE_TO_DISK;
+		if (!nm_settings_add_connection (NM_SETTINGS_GET,
+		                                 dev_checkpoint->settings_connection,
+		                                 persist_mode,
+		                                 NM_SETTINGS_CONNECTION_ADD_REASON_NONE,
+		                                 sett_flags,
+		                                 &connection,
+		                                 &local_error)) {
 			_LOGD ("rollback: connection add failure: %s", local_error->message);
 			g_clear_error (&local_error);
 			return FALSE;
@@ -419,7 +437,7 @@ next_dev:
 		gs_free NMSettingsConnection **list = NULL;
 
 		g_return_val_if_fail (priv->connection_uuids, NULL);
-		list = nm_settings_get_connections_clone (nm_settings_get (), NULL,
+		list = nm_settings_get_connections_clone (NM_SETTINGS_GET, NULL,
 		                                          NULL, NULL,
 		                                          nm_settings_connection_cmp_autoconnect_priority_p_with_data, NULL);
 
@@ -429,7 +447,7 @@ next_dev:
 			                            nm_settings_connection_get_uuid (con))) {
 				_LOGD ("rollback: deleting new connection %s",
 				       nm_settings_connection_get_uuid (con));
-				nm_settings_connection_delete (con, NULL);
+				nm_settings_connection_delete (con, FALSE);
 			}
 		}
 	}
@@ -687,7 +705,7 @@ nm_checkpoint_new (NMManager *manager, GPtrArray *devices, guint32 rollback_time
 
 	if (NM_FLAGS_HAS (flags, NM_CHECKPOINT_CREATE_FLAG_DELETE_NEW_CONNECTIONS)) {
 		priv->connection_uuids = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, NULL);
-		for (con = nm_settings_get_connections (nm_settings_get (), NULL); *con; con++) {
+		for (con = nm_settings_get_connections (NM_SETTINGS_GET, NULL); *con; con++) {
 			g_hash_table_add (priv->connection_uuids,
 			                  g_strdup (nm_settings_connection_get_uuid (*con)));
 		}

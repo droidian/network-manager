@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,6 +40,7 @@ void nm_utils_complete_generic (NMPlatform *platform,
                                 const char *preferred_id,
                                 const char *fallback_id_prefix,
                                 const char *ifname_prefix,
+                                const char *ifname,
                                 gboolean default_enable_ipv6);
 
 typedef gboolean (NMUtilsMatchFilterFunc) (NMConnection *connection, gpointer user_data);
@@ -78,7 +78,7 @@ NMPlatformRoutingRule *nm_ip_routing_rule_to_platform (const NMIPRoutingRule *ru
  * SIGKILL.
  *
  * After NM_SHUTDOWN_TIMEOUT_MS, NetworkManager will however not yet terminate right
- * away. It iterates the mainloop for another NM_SHUTDOWN_TIMEOUT_MS_EXTRA. This
+ * away. It iterates the mainloop for another NM_SHUTDOWN_TIMEOUT_MS_WATCHDOG. This
  * should give time to reap the child process (after SIGKILL).
  *
  * So, the maximum time we should wait before sending SIGKILL should be at most
@@ -89,10 +89,11 @@ NMPlatformRoutingRule *nm_ip_routing_rule_to_platform (const NMIPRoutingRule *ru
 
 typedef struct _NMShutdownWaitObjHandle NMShutdownWaitObjHandle;
 
-NMShutdownWaitObjHandle *_nm_shutdown_wait_obj_register (GObject *watched_obj,
-                                                        const char *msg_reason);
+NMShutdownWaitObjHandle *nm_shutdown_wait_obj_register_full (GObject *watched_obj,
+                                                             char *msg_reason,
+                                                             gboolean free_msg_reason);
 
-#define nm_shutdown_wait_obj_register(watched_obj, msg_reason) _nm_shutdown_wait_obj_register((watched_obj), (""msg_reason""))
+#define nm_shutdown_wait_obj_register(watched_obj, msg_reason) nm_shutdown_wait_obj_register_full((watched_obj), (""msg_reason""), FALSE)
 
 void nm_shutdown_wait_obj_unregister (NMShutdownWaitObjHandle *handle);
 

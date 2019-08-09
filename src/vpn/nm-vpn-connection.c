@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -103,7 +102,7 @@ typedef struct {
 	char *username;
 
 	VpnState vpn_state;
-	guint dispatcher_id;
+	NMDispatcherCallId *dispatcher_id;
 	NMActiveConnectionStateReason failure_reason;
 
 	NMVpnServiceState service_state;
@@ -124,8 +123,7 @@ typedef struct {
 	GVariant *connect_hash;
 	guint connect_timeout;
 	NMProxyConfig *proxy_config;
-	NMPacrunnerManager *pacrunner_manager;
-	NMPacrunnerCallId *pacrunner_call_id;
+	NMPacrunnerConfId *pacrunner_conf_id;
 	gboolean has_ip4;
 	NMIP4Config *ip4_config;
 	guint32 ip4_internal_gw;
@@ -419,22 +417,28 @@ vpn_cleanup (NMVpnConnection *self, NMDevice *parent_dev)
 }
 
 static void
-dispatcher_pre_down_done (guint call_id, gpointer user_data)
+dispatcher_pre_down_done (NMDispatcherCallId *call_id, gpointer user_data)
 {
 	NMVpnConnection *self = NM_VPN_CONNECTION (user_data);
 	NMVpnConnectionPrivate *priv = NM_VPN_CONNECTION_GET_PRIVATE (self);
 
-	priv->dispatcher_id = 0;
+	nm_assert (call_id);
+	nm_assert (priv->dispatcher_id == call_id);
+
+	priv->dispatcher_id = NULL;
 	_set_vpn_state (self, STATE_DISCONNECTED, NM_ACTIVE_CONNECTION_STATE_REASON_USER_DISCONNECTED, FALSE);
 }
 
 static void
-dispatcher_pre_up_done (guint call_id, gpointer user_data)
+dispatcher_pre_up_done (NMDispatcherCallId *call_id, gpointer user_data)
 {
 	NMVpnConnection *self = NM_VPN_CONNECTION (user_data);
 	NMVpnConnectionPrivate *priv = NM_VPN_CONNECTION_GET_PRIVATE (self);
 
-	priv->dispatcher_id = 0;
+	nm_assert (call_id);
+	nm_assert (priv->dispatcher_id == call_id);
+
+	priv->dispatcher_id = NULL;
 	_set_vpn_state (self, STATE_ACTIVATED, NM_ACTIVE_CONNECTION_STATE_REASON_NONE, FALSE);
 }
 
@@ -443,10 +447,8 @@ dispatcher_cleanup (NMVpnConnection *self)
 {
 	NMVpnConnectionPrivate *priv = NM_VPN_CONNECTION_GET_PRIVATE (self);
 
-	if (priv->dispatcher_id) {
-		nm_dispatcher_call_cancel (priv->dispatcher_id);
-		priv->dispatcher_id = 0;
-	}
+	if (priv->dispatcher_id)
+		nm_dispatcher_call_cancel (g_steal_pointer (&priv->dispatcher_id));
 }
 
 static void
@@ -552,18 +554,12 @@ _set_vpn_state (NMVpnConnection *self,
 		                        NULL);
 
 		if (priv->proxy_config) {
-			nm_pacrunner_manager_remove_clear (priv->pacrunner_manager,
-			                                   &priv->pacrunner_call_id);
-			if (!priv->pacrunner_manager) {
-				/* the pending call doesn't keep NMPacrunnerManager alive.
-				 * Take a reference to it. */
-				priv->pacrunner_manager = g_object_ref (nm_pacrunner_manager_get ());
-			}
-			priv->pacrunner_call_id = nm_pacrunner_manager_send (priv->pacrunner_manager,
-			                                                     priv->ip_iface,
-			                                                     priv->proxy_config,
-			                                                     priv->ip4_config,
-			                                                     priv->ip6_config);
+			nm_pacrunner_manager_remove_clear (&priv->pacrunner_conf_id);
+			priv->pacrunner_conf_id = nm_pacrunner_manager_add (nm_pacrunner_manager_get (),
+			                                                    priv->proxy_config,
+			                                                    priv->ip_iface,
+			                                                    priv->ip4_config,
+			                                                    priv->ip6_config);
 		}
 		break;
 	case STATE_DEACTIVATING:
@@ -594,8 +590,7 @@ _set_vpn_state (NMVpnConnection *self,
 			}
 		}
 
-		nm_pacrunner_manager_remove_clear (priv->pacrunner_manager,
-		                                   &priv->pacrunner_call_id);
+		nm_pacrunner_manager_remove_clear (&priv->pacrunner_conf_id);
 		break;
 	case STATE_FAILED:
 	case STATE_DISCONNECTED:
@@ -2801,9 +2796,7 @@ dispose (GObject *object)
 
 	fw_call_cleanup (self);
 
-	nm_pacrunner_manager_remove_clear (priv->pacrunner_manager,
-	                                   &priv->pacrunner_call_id);
-	g_clear_object (&priv->pacrunner_manager);
+	nm_pacrunner_manager_remove_clear (&priv->pacrunner_conf_id);
 
 	G_OBJECT_CLASS (nm_vpn_connection_parent_class)->dispose (object);
 }

@@ -63,6 +63,8 @@ route2=7.7.0.0/16" description="List of IP routes."/>
 </setting>
 <setting name="ovs-bridge">
 </setting>
+<setting name="ovs-dpdk">
+</setting>
 <setting name="ovs-interface">
 </setting>
 <setting name="ovs-patch">

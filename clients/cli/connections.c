@@ -41,6 +41,8 @@
 #include "devices.h"
 #include "polkit-agent.h"
 
+/*****************************************************************************/
+
 typedef enum {
 	PROPERTY_INF_FLAG_NONE                      = 0x0,
 	PROPERTY_INF_FLAG_DISABLED                  = 0x1, /* Don't ask due to runtime decision. */
@@ -50,14 +52,13 @@ typedef enum {
 
 typedef char *(*CompEntryFunc) (const char *, int);
 
-typedef struct _OptionInfo OptionInfo;
-struct _OptionInfo {
+typedef struct _OptionInfo {
 	const NMMetaSettingInfoEditor *setting_info;
 	const char *property;
 	const char *option;
-	gboolean (*check_and_set)(NmCli *nmc, NMConnection *connection, const OptionInfo *option, const char *value, GError **error);
+	gboolean (*check_and_set)(NmCli *nmc, NMConnection *connection, const struct _OptionInfo *option, const char *value, GError **error);
 	CompEntryFunc generator_func;
-};
+} OptionInfo;
 
 /* define some prompts for connection editor */
 #define EDITOR_PROMPT_SETTING  _("Setting name? ")
@@ -95,6 +96,47 @@ NM_UTILS_LOOKUP_STR_DEFINE_STATIC (vpn_connection_state_to_string, NMVpnConnecti
 	NM_UTILS_LOOKUP_ITEM (NM_VPN_CONNECTION_STATE_DISCONNECTED,  N_("VPN disconnected")),
 	NM_UTILS_LOOKUP_ITEM_IGNORE (NM_VPN_CONNECTION_STATE_UNKNOWN),
 )
+
+/*****************************************************************************/
+
+typedef struct {
+	NmCli *nmc;
+	char *orig_id;
+	char *orig_uuid;
+	char *new_id;
+} AddConnectionInfo;
+
+static AddConnectionInfo *
+_add_connection_info_new (NmCli *nmc,
+                          NMConnection *orig_connection,
+                          NMConnection *new_connection)
+{
+	AddConnectionInfo *info;
+
+	info = g_slice_new (AddConnectionInfo);
+	*info = (AddConnectionInfo) {
+		.nmc       = nmc,
+		.orig_id   = orig_connection ? g_strdup (nm_connection_get_id   (orig_connection)) : NULL,
+		.orig_uuid = orig_connection ? g_strdup (nm_connection_get_uuid (orig_connection)) : NULL,
+		.new_id    = g_strdup (nm_connection_get_id (new_connection)),
+	};
+	return info;
+}
+
+static void
+_add_connection_info_free (AddConnectionInfo *info)
+{
+	g_free (info->orig_id);
+	g_free (info->orig_uuid);
+	g_free (info->new_id);
+	nm_g_slice_free (info);
+}
+
+NM_AUTO_DEFINE_FCN (AddConnectionInfo *, _nm_auto_free_add_connection_info, _add_connection_info_free)
+
+#define nm_auto_free_add_connection_info nm_auto (_nm_auto_free_add_connection_info)
+
+/*****************************************************************************/
 
 /* Essentially a version of nm_setting_connection_get_connection_type() that
  * prefers an alias instead of the settings name when in pretty print mode.
@@ -209,7 +251,7 @@ get_ac_device_string (NMActiveConnection *active)
 {
 	GString *dev_str;
 	const GPtrArray *devices;
-	int i;
+	guint i;
 
 	if (!active)
 		return NULL;
@@ -826,7 +868,8 @@ const NmcMetaGenericInfo *const metagen_con_active_vpn[_NMC_GENERIC_INFO_TYPE_CO
                                          NM_SETTING_PROXY_SETTING_NAME"," \
                                          NM_SETTING_TC_CONFIG_SETTING_NAME"," \
                                          NM_SETTING_SRIOV_SETTING_NAME"," \
-                                         NM_SETTING_ETHTOOL_SETTING_NAME
+                                         NM_SETTING_ETHTOOL_SETTING_NAME"," \
+                                         NM_SETTING_OVS_DPDK_SETTING_NAME \
                                          // NM_SETTING_DUMMY_SETTING_NAME
                                          // NM_SETTING_WIMAX_SETTING_NAME
 
@@ -1255,17 +1298,16 @@ got_secrets (GObject *source_object, GAsyncResult *res, gpointer user_data)
 {
 	NMRemoteConnection *remote = NM_REMOTE_CONNECTION (source_object);
 	GetSecretsData *data = user_data;
-	GVariant *secrets;
-	GError *error = NULL;
+	gs_unref_variant GVariant *secrets = NULL;
 
 	secrets = nm_remote_connection_get_secrets_finish (remote, res, NULL);
 	if (secrets) {
+		gs_free_error GError *error = NULL;
+
 		if (!nm_connection_update_secrets (data->local, NULL, secrets, &error) && error) {
 			g_printerr (_("Error updating secrets for %s: %s\n"),
 			            data->setting_name, error->message);
-			g_clear_error (&error);
 		}
-		g_variant_unref (secrets);
 	}
 
 	g_main_loop_quit (data->loop);
@@ -1306,7 +1348,7 @@ nmc_connection_profile_details (NMConnection *connection, NmCli *nmc)
 	GError *error = NULL;
 	GArray *print_settings_array;
 	GPtrArray *prop_array = NULL;
-	int i;
+	guint i;
 	char *fields_str;
 	char *fields_all =    NMC_FIELDS_SETTINGS_NAMES_ALL;
 	char *fields_common = NMC_FIELDS_SETTINGS_NAMES_ALL;
@@ -1872,7 +1914,7 @@ parse_preferred_connection_order (const char *order, GError **error)
 	GArray *order_arr;
 	NmcSortOrder val;
 	gboolean inverse, unique;
-	int i;
+	guint i;
 
 	strv = nm_utils_strsplit_set (order, ":");
 	if (!strv) {
@@ -1945,7 +1987,7 @@ get_connection (NmCli *nmc,
 	}
 
 	if (*argc == 1 && nmc->complete)
-		nmc_complete_strings (**argv, "id", "uuid", "path", "filename", NULL);
+		nmc_complete_strings (**argv, "id", "uuid", "path", "filename");
 
 	if (NM_IN_STRSET (**argv, "id", "uuid", "path", "filename")) {
 		if (*argc == 1) {
@@ -2104,7 +2146,7 @@ do_connections_show (NmCli *nmc, int argc, char **argv)
 			guint i_found_cons;
 
 			if (argc == 1 && nmc->complete)
-				nmc_complete_strings (*argv, "id", "uuid", "path", "filename", "apath", NULL);
+				nmc_complete_strings (*argv, "id", "uuid", "path", "filename", "apath");
 
 			if (NM_IN_STRSET (*argv, "id", "uuid", "path", "filename", "apath")) {
 				selector = *argv;
@@ -2243,7 +2285,7 @@ get_default_active_connection (NmCli *nmc, NMDevice **device)
 	NMDevice *non_default_device = NULL;
 	NMActiveConnection *non_default_ac = NULL;
 	const GPtrArray *connections;
-	int i;
+	guint i;
 
 	g_return_val_if_fail (nmc, NULL);
 	g_return_val_if_fail (device, NULL);
@@ -2302,7 +2344,7 @@ find_device_for_connection (NmCli *nmc,
 {
 	NMSettingConnection *s_con;
 	const char *con_type;
-	int i, j;
+	guint i, j;
 
 	g_return_val_if_fail (nmc, FALSE);
 	g_return_val_if_fail (iface || ap || nsp, FALSE);
@@ -2669,7 +2711,6 @@ parse_passwords (const char *passwd_file, GError **error)
 	if (!passwd_file)
 		return g_steal_pointer (&pwds_hash);
 
-	/* Read the passwords file */
 	if (!g_file_get_contents (passwd_file, &contents, &len, &local_err)) {
 		g_set_error (error, NMCLI_ERROR, NMC_RESULT_ERROR_USER_INPUT,
 		             _("failed to read passwd-file '%s': %s"),
@@ -2679,7 +2720,7 @@ parse_passwords (const char *passwd_file, GError **error)
 	}
 
 	strv = nm_utils_strsplit_set (contents, "\r\n");
-	for (iter = strv; *iter; iter++) {
+	for (iter = strv; strv && *iter; iter++) {
 		gs_free char *iter_s = g_strdup (*iter);
 
 		pwd = strchr (iter_s, ':');
@@ -2721,6 +2762,7 @@ parse_passwords (const char *passwd_file, GError **error)
 
 		g_hash_table_insert (pwds_hash, pwd_spec, g_strdup (pwd));
 	}
+
 	return g_steal_pointer (&pwds_hash);
 }
 
@@ -2740,22 +2782,24 @@ nmc_activate_connection (NmCli *nmc,
 	NMDevice *device = NULL;
 	const char *spec_object = NULL;
 	gboolean device_found;
-	GError *local = NULL;
 
 	g_return_val_if_fail (nmc, FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
 
-	if (connection && (ifname || ap || nsp)) {
+	if (   connection
+	    && (   ifname
+	        || ap
+	        || nsp)) {
+		gs_free_error GError *local = NULL;
+
 		device_found = find_device_for_connection (nmc, connection, ifname, ap, nsp, &device, &spec_object, &local);
 
 		/* Virtual connection may not have their interfaces created yet */
 		if (!device_found && !nm_connection_is_virtual (connection)) {
 			g_set_error (error, NMCLI_ERROR, NMC_RESULT_ERROR_CON_ACTIVATION,
 			             "%s", local->message);
-			g_clear_error (&local);
 			return FALSE;
 		}
-		g_clear_error (&local);
 	} else if (ifname) {
 		device = nm_client_get_device_by_iface (nmc->client, ifname);
 		if (!device) {
@@ -2770,11 +2814,10 @@ nmc_activate_connection (NmCli *nmc,
 	}
 
 	/* Parse passwords given in passwords file */
-	pwds_hash = parse_passwords (pwds, &local);
-	if (local) {
-		g_propagate_error (error, local);
+	pwds_hash = parse_passwords (pwds, error);
+	if (!pwds_hash)
 		return FALSE;
-	}
+
 	if (nmc->pwds_hash)
 		g_hash_table_destroy (nmc->pwds_hash);
 	nmc->pwds_hash = pwds_hash;
@@ -2850,7 +2893,7 @@ do_connection_up (NmCli *nmc, int argc, char **argv)
 
 	while (argc > 0) {
 		if (argc == 1 && nmc->complete)
-			nmc_complete_strings (*argv, "ifname", "ap", "passwd-file", NULL);
+			nmc_complete_strings (*argv, "ifname", "ap", "passwd-file");
 
 		if (strcmp (*argv, "ifname") == 0) {
 			argc--;
@@ -3102,7 +3145,7 @@ do_connection_down (NmCli *nmc, int argc, char **argv)
 		const char *selector = NULL;
 
 		if (arg_num == 1 && nmc->complete)
-			nmc_complete_strings (*arg_ptr, "id", "uuid", "path",  "filename", "apath", NULL);
+			nmc_complete_strings (*arg_ptr, "id", "uuid", "path",  "filename", "apath");
 
 		if (NM_IN_STRSET (*arg_ptr, "id", "uuid", "path",  "filename", "apath")) {
 			selector = *arg_ptr;
@@ -3301,7 +3344,7 @@ get_valid_properties_string (const NMMetaSettingValidPartItem *const*array,
 	const NMMetaSettingValidPartItem *const*iter = array;
 	const char *prop_name = NULL;
 	GString *str;
-	int i, j;
+	guint i, j;
 	gboolean full_match = FALSE;
 
 	g_return_val_if_fail (prefix, NULL);
@@ -3546,7 +3589,7 @@ _strip_master_prefix (const char *master, const char *(**func)(NMConnection *))
 	} else if (g_str_has_prefix (master, "id/")) {
 		master = master + strlen ("id/");
 		if (func)
-			 *func = nm_connection_get_id;
+			*func = nm_connection_get_id;
 	}
 	return master;
 }
@@ -3573,7 +3616,7 @@ normalized_master_for_slave (const GPtrArray *connections,
 	NMConnection *connection;
 	NMSettingConnection *s_con;
 	const char *con_type = NULL, *id, *uuid, *ifname;
-	int i;
+	guint i;
 	const char *found_by_id = NULL;
 	const char *out_type_by_id = NULL;
 	const char *out_master = NULL;
@@ -3785,6 +3828,7 @@ _meta_abstract_complete (const NMMetaAbstractInfo *abstract_info, const char *te
 	                                         nmc_meta_environment_arg,
 	                                         &ctx,
 	                                         text,
+	                                         NULL,
 	                                         &values_to_free);
 	if (values)
 		return values_to_free ?: g_strdupv ((char **) values);
@@ -4208,7 +4252,7 @@ set_connection_master (NmCli *nmc, NMConnection *con, const OptionInfo *option, 
 
 	if (!value) {
 		g_set_error_literal (error, NMCLI_ERROR, NMC_RESULT_ERROR_USER_INPUT,
-			             _("Error: master is required"));
+		                     _("Error: master is required"));
 		return FALSE;
 	}
 
@@ -4525,11 +4569,12 @@ run_rl_generator (rl_compentry_func_t *generator_func, const char *prefix)
 }
 
 static gboolean
-complete_option (const NMMetaAbstractInfo *abstract_info, const char *prefix, NMConnection *context_connection)
+complete_option (NmCli *nmc, const NMMetaAbstractInfo *abstract_info, const char *prefix, NMConnection *context_connection)
 {
 	const OptionInfo *candidate;
 	const char *const*values;
 	gs_strfreev char **values_to_free = NULL;
+	gboolean complete_filename = FALSE;
 	const NMMetaOperationContext ctx = {
 		.connection = context_connection,
 	};
@@ -4539,7 +4584,12 @@ complete_option (const NMMetaAbstractInfo *abstract_info, const char *prefix, NM
 	                                         nmc_meta_environment_arg,
 	                                         &ctx,
 	                                         prefix,
+	                                         &complete_filename,
 	                                         &values_to_free);
+	if (complete_filename) {
+		nmc->return_value = NMC_RESULT_COMPLETE_FILE;
+		return TRUE;
+	}
 	if (values) {
 		for (; values[0]; values++)
 			g_print ("%s\n", values[0]);
@@ -4556,19 +4606,13 @@ complete_option (const NMMetaAbstractInfo *abstract_info, const char *prefix, NM
 }
 
 static void
-complete_property (const char *setting_name, const char *property, const char *prefix, NMConnection *connection)
+complete_property (NmCli *nmc, const char *setting_name, const char *property, const char *prefix, NMConnection *connection)
 {
 	const NMMetaPropertyInfo *property_info;
 
 	property_info = nm_meta_property_info_find_by_name (setting_name, property);
-	if (property_info) {
-		if (complete_option ((const NMMetaAbstractInfo *) property_info, prefix, connection))
-			return;
-	}
-
-	if (   strcmp (setting_name, NM_SETTING_BLUETOOTH_SETTING_NAME) == 0
-	         && strcmp (property, NM_SETTING_BLUETOOTH_TYPE) == 0)
-		run_rl_generator (gen_func_bt_type, prefix);
+	if (property_info)
+		complete_option (nmc, (const NMMetaAbstractInfo *) property_info, prefix, connection);
 }
 
 /*****************************************************************************/
@@ -4658,8 +4702,10 @@ nmc_read_connection_properties (NmCli *nmc,
 			if (!get_value (&value, argc, argv, option, error))
 				return FALSE;
 
-			if (!*argc && nmc->complete)
-				complete_property (setting, strv[1], value ?: "", connection);
+			if (!*argc && nmc->complete) {
+				complete_property (nmc, setting, strv[1], value ?: "", connection);
+				return TRUE;
+			}
 
 			if (!set_property (nmc->client, connection, setting_name, strv[1], value, modifier, error))
 				return FALSE;
@@ -4740,7 +4786,7 @@ nmc_read_connection_properties (NmCli *nmc,
 				return FALSE;
 
 			if (!*argc && nmc->complete)
-				complete_option (chosen, value ?: "", connection);
+				complete_option (nmc, chosen, value ?: "", connection);
 
 			if (!set_option (nmc, connection, chosen, value, error))
 				return FALSE;
@@ -4751,28 +4797,23 @@ nmc_read_connection_properties (NmCli *nmc,
 	return TRUE;
 }
 
-typedef struct {
-	NmCli *nmc;
-	char *con_name;
-} AddConnectionInfo;
-
 static void
 add_connection_cb (GObject *client,
                    GAsyncResult *result,
                    gpointer user_data)
 {
-	AddConnectionInfo *info = (AddConnectionInfo *) user_data;
+	nm_auto_free_add_connection_info AddConnectionInfo *info = user_data;
 	NmCli *nmc = info->nmc;
 	NMRemoteConnection *connection;
 	GError *error = NULL;
 	const GPtrArray *connections;
 	guint i, found;
 
-	connection = nm_client_add_connection_finish (NM_CLIENT (client), result, &error);
+	connection = nm_client_add_connection2_finish (NM_CLIENT (client), result, NULL, &error);
 	if (error) {
 		g_string_printf (nmc->return_text,
 		                 _("Error: Failed to add '%s' connection: %s"),
-		                 info->con_name, error->message);
+		                 info->new_id, error->message);
 		g_error_free (error);
 		nmc->return_value = NMC_RESULT_ERROR_CON_ACTIVATION;
 	} else {
@@ -4784,7 +4825,7 @@ add_connection_cb (GObject *client,
 
 				if ((NMConnection *) connection == candidate)
 					continue;
-				if (nm_streq0 (nm_connection_get_id (candidate), info->con_name))
+				if (nm_streq0 (nm_connection_get_id (candidate), info->new_id))
 					found++;
 			}
 			if (found > 0) {
@@ -4792,7 +4833,7 @@ add_connection_cb (GObject *client,
 				                         "Warning: There is another connection with the name '%1$s'. Reference the connection by its uuid '%2$s'\n",
 				                         "Warning: There are %3$u other connections with the name '%1$s'. Reference the connection by its uuid '%2$s'\n",
 				                         found),
-				            info->con_name,
+				            info->new_id,
 				            nm_connection_get_uuid (NM_CONNECTION (connection)),
 				            found);
 			}
@@ -4804,30 +4845,39 @@ add_connection_cb (GObject *client,
 		g_object_unref (connection);
 	}
 
-	g_free (info->con_name);
-	g_free (info);
 	quit ();
 }
 
 static void
-add_new_connection (gboolean persistent,
-                    NMClient *client,
-                    NMConnection *connection,
-                    GAsyncReadyCallback callback,
-                    gpointer user_data)
+add_connection (NMClient *client,
+                NMConnection *connection,
+                gboolean temporary,
+                GAsyncReadyCallback callback,
+                gpointer user_data)
 {
-	nm_client_add_connection_async (client, connection, persistent,
-	                                NULL, callback, user_data);
+	nm_client_add_connection2 (client,
+	                           nm_connection_to_dbus (connection, NM_CONNECTION_SERIALIZE_ALL),
+	                             temporary
+	                           ? NM_SETTINGS_ADD_CONNECTION2_FLAG_IN_MEMORY
+	                           : NM_SETTINGS_ADD_CONNECTION2_FLAG_TO_DISK,
+	                           NULL,
+	                           TRUE,
+	                           NULL,
+	                           callback,
+	                           user_data);
 }
 
 static void
-update_connection (gboolean persistent,
-                   NMRemoteConnection *connection,
+update_connection (NMRemoteConnection *connection,
+                   gboolean temporary,
                    GAsyncReadyCallback callback,
                    gpointer user_data)
 {
-	nm_remote_connection_commit_changes_async (connection, persistent,
-	                                           NULL, callback, user_data);
+	nm_remote_connection_commit_changes_async (connection,
+	                                           !temporary,
+	                                           NULL,
+	                                           callback,
+	                                           user_data);
 }
 
 static gboolean
@@ -5146,7 +5196,6 @@ do_connection_add (NmCli *nmc, int argc, char **argv)
 	gs_unref_object NMConnection *connection = NULL;
 	NMSettingConnection *s_con;
 	gs_free_error GError *error = NULL;
-	AddConnectionInfo *info = NULL;
 	gboolean save_bool = TRUE;
 	gboolean seen_dash_dash = FALSE;
 	NMMetaSettingType s;
@@ -5291,18 +5340,12 @@ read_properties:
 		}
 	}
 
+	add_connection (nmc->client,
+	                connection,
+	                !save_bool,
+	                add_connection_cb,
+	                _add_connection_info_new (nmc, NULL, connection));
 	nmc->should_wait++;
-
-	info = g_malloc0 (sizeof (AddConnectionInfo));
-	info->nmc = nmc;
-	info->con_name = g_strdup (nm_connection_get_id (connection));
-
-	/* Tell the settings service to add the new connection */
-	add_new_connection (save_bool,
-	                    nmc->client,
-	                    connection,
-	                    add_connection_cb,
-	                    info);
 
 finish:
 	reset_options ();
@@ -5578,7 +5621,7 @@ gen_property_names (const char *text, int state)
 static char *
 gen_compat_devices (const char *text, int state)
 {
-	int i, j = 0;
+	guint i, j = 0;
 	const GPtrArray *devices;
 	const char **compatible_devices;
 	char *ret;
@@ -6084,7 +6127,7 @@ nmcli_editor_tab_completion (const char *text, int start, int end)
 							rl_completion_display_matches_hook = uuid_display_hook;
 							generator_func = gen_vpn_uuids;
 						} else if (   should_complete_property_values (NULL, line, &multi)
-							   && (num == 3 || multi)) {
+						           && (num == 3 || multi)) {
 							generator_func = gen_property_values;
 						} else if (should_complete_boolean (NULL, line) && num == 3)
 							generator_func = gen_func_bool_values;
@@ -6131,7 +6174,7 @@ nmcli_editor_tab_completion (const char *text, int start, int end)
 						rl_completion_display_matches_hook = uuid_display_hook;
 						generator_func = gen_vpn_uuids;
 					} else if (   should_complete_property_values (prompt_tmp, NULL, &multi)
-						   && (num <= 2 || multi)) {
+					           && (num <= 2 || multi)) {
 						generator_func = gen_property_values;
 					} else if (should_complete_boolean (prompt_tmp, NULL) && num <= 2)
 						generator_func = gen_func_bool_values;
@@ -6652,14 +6695,11 @@ add_connection_editor_cb (GObject *client,
                           GAsyncResult *result,
                           gpointer user_data)
 {
-	NMRemoteConnection *connection;
-	GError *error = NULL;
+	gs_unref_object NMRemoteConnection *connection = NULL;
+	gs_free_error GError *error = NULL;
 
-	connection = nm_client_add_connection_finish (NM_CLIENT (client), result, &error);
+	connection = nm_client_add_connection2_finish (NM_CLIENT (client), result, NULL, &error);
 	set_info_and_signal_editor_thread (error, NULL);
-
-	g_clear_object (&connection);
-	g_clear_error (&error);
 }
 
 static void
@@ -7238,7 +7278,6 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 	const NMMetaSettingValidPartItem *const*valid_settings_slave;
 	gs_free char *valid_settings_str = NULL;
 	const char *s_type = NULL;
-	AddConnectionInfo *info = NULL;
 	gboolean temp_changes;
 	GError *err1 = NULL;
 	NmcEditorMenuContext menu_ctx = { 0 };
@@ -7533,18 +7572,19 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 					}
 				} else {
 					gs_free char *prop_name = NULL;
-					GError *tmp_err = NULL;
+					gs_free GError *tmp_err = NULL;
 
 					prop_name = is_property_valid (ss, cmd_arg_p, &tmp_err);
 					if (prop_name) {
 						if (!nmc_setting_set_property (nmc->client, ss, prop_name, '\0', NULL, &tmp_err)) {
-							g_print (_("Error: failed to remove value of '%s': %s\n"), prop_name,
+							g_print (_("Error: failed to remove value of '%s': %s\n"),
+							         prop_name,
 							         tmp_err->message);
-							g_clear_error (&tmp_err);
 						}
 					} else {
-						/* If the string is not a property, try it as a setting */
 						NMSetting *s_tmp;
+
+						/* If the string is not a property, try it as a setting */
 						s_tmp = is_setting_valid (connection,
 						                          valid_settings_main,
 						                          valid_settings_slave,
@@ -7552,16 +7592,17 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 						if (s_tmp) {
 							/* Remove setting from the connection */
 							connection_remove_setting (connection, s_tmp);
+
 							/* coverity[copy_paste_error] - suppress Coverity COPY_PASTE_ERROR defect */
 							if (ss == menu_ctx.curr_setting) {
 								/* If we removed the setting we are in, go up */
 								menu_switch_to_level0 (&nmc->nmc_config, &menu_ctx, BASE_PROMPT);
 								nmc_tab_completion.setting = NULL;  /* for TAB completion */
 							}
-						} else
+						} else {
 							g_print (_("Error: %s properties, nor it is a setting name.\n"),
 							         tmp_err->message);
-						g_clear_error (&tmp_err);
+						}
 					}
 				}
 			}
@@ -7621,7 +7662,7 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 					/* Show description for all properties */
 					print_setting_description (ss);
 				} else {
-					GError *tmp_err = NULL;
+					gs_free_error GError *tmp_err = NULL;
 					gs_free char *prop_name = NULL;
 
 					prop_name = is_property_valid (ss, cmd_arg_p, &tmp_err);
@@ -7638,11 +7679,11 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 						                          cmd_arg_p);
 						if (s_tmp)
 							print_setting_description (s_tmp);
-						else
+						else {
 							g_print (_("Error: invalid property: %s, "
 							           "neither a valid setting name.\n"),
 							         tmp_err->message);
-						g_clear_error (&tmp_err);
+						}
 					}
 				}
 			}
@@ -7729,19 +7770,21 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 
 			if (   menu_ctx.curr_setting
 			    && (!cmd_arg || strcmp (cmd_arg, "all") != 0)) {
-				GError *tmp_err = NULL;
-				(void) nm_setting_verify (menu_ctx.curr_setting, NULL, &tmp_err);
+				gs_free_error GError *tmp_err = NULL;
+
+				nm_setting_verify (menu_ctx.curr_setting, NULL, &tmp_err);
 				g_print (_("Verify setting '%s': %s\n"),
 				         nm_setting_get_name (menu_ctx.curr_setting),
 				         tmp_err ? tmp_err->message : "OK");
-				g_clear_error (&tmp_err);
 			} else {
-				GError *tmp_err = NULL;
-				gboolean valid, modified;
+				gs_free_error GError *tmp_err = NULL;
 				gboolean fixed = TRUE;
+				gboolean modified;
+				gboolean valid;
 
 				valid = nm_connection_verify (connection, &tmp_err);
-				if (!valid && (g_strcmp0 (cmd_arg, "fix") == 0)) {
+				if (   !valid
+				    && nm_streq0 (cmd_arg, "fix")) {
 					/* Try to fix normalizable errors */
 					g_clear_error (&tmp_err);
 					fixed = nm_connection_normalize (connection, NULL, &modified, &tmp_err);
@@ -7750,14 +7793,13 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 				         tmp_err ? tmp_err->message : "OK");
 				if (!fixed)
 					g_print (_("The error cannot be fixed automatically.\n"));
-				g_clear_error (&tmp_err);
 			}
 			break;
 
 		case NMC_EDITOR_MAIN_CMD_SAVE:
 			/* Save the connection */
 			if (nm_connection_verify (connection, &err1)) {
-				gboolean persistent = TRUE;
+				gboolean temporary = FALSE;
 				gboolean connection_changed;
 				nm_auto_unref_gsource GSource *source = NULL;
 				gboolean timeout = FALSE;
@@ -7766,9 +7808,9 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 				/* parse argument */
 				if (cmd_arg) {
 					if (matches (cmd_arg, "temporary"))
-						persistent = FALSE;
+						temporary = TRUE;
 					else if (matches (cmd_arg, "persistent"))
-						persistent = TRUE;
+						temporary = FALSE;
 					else {
 						g_print (_("Error: invalid argument '%s'\n"), cmd_arg);
 						break;
@@ -7784,21 +7826,17 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 				}
 
 				if (!rem_con) {
-					/* Tell the settings service to add the new connection */
-					info = g_malloc0 (sizeof (AddConnectionInfo));
-					info->nmc = nmc;
-					info->con_name = g_strdup (nm_connection_get_id (connection));
-					add_new_connection (persistent,
-					                    nmc->client,
-					                    connection,
-					                    add_connection_editor_cb,
-					                    info);
+					add_connection (nmc->client,
+					                connection,
+					                temporary,
+					                add_connection_editor_cb,
+					                NULL);
 					connection_changed = TRUE;
 				} else {
 					/* Save/update already saved (existing) connection */
 					nm_connection_replace_settings_from_connection (NM_CONNECTION (rem_con),
 					                                                connection);
-					update_connection (persistent, rem_con, update_connection_editor_cb, NULL);
+					update_connection (rem_con, temporary, update_connection_editor_cb, NULL);
 
 					handler_id = g_signal_connect (rem_con,
 					                               NM_CONNECTION_CHANGED,
@@ -7814,8 +7852,10 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 				while (!nmc_editor_cb_called && !timeout)
 					g_main_context_iteration (NULL, TRUE);
 
-				while (!connection_changed && !timeout)
-					g_main_context_iteration (NULL, TRUE);
+				if (!nmc_editor_error) {
+					while (!connection_changed && !timeout)
+						g_main_context_iteration (NULL, TRUE);
+				}
 
 				if (handler_id)
 					g_signal_handler_disconnect (rem_con, handler_id);
@@ -8025,7 +8065,7 @@ static const char *
 get_ethernet_device_name (NmCli *nmc)
 {
 	const GPtrArray *devices;
-	int i;
+	guint i;
 
 	devices = nm_client_get_devices (nmc->client);
 	for (i = 0; i < devices->len; i++) {
@@ -8171,7 +8211,7 @@ do_connection_edit (NmCli *nmc, int argc, char **argv)
 
 	next_arg (nmc, &argc, &argv, NULL);
 	if (argc == 1 && nmc->complete)
-		nmc_complete_strings (*argv, "type", "con-name", "id", "uuid", "path",  "filename", NULL);
+		nmc_complete_strings (*argv, "type", "con-name", "id", "uuid", "path",  "filename");
 
 	nmc->return_value = NMC_RESULT_SUCCESS;
 
@@ -8397,35 +8437,27 @@ do_connection_modify (NmCli *nmc,
 	if (nmc->complete)
 		return nmc->return_value;
 
-	update_connection (!temporary, rc, modify_connection_cb, nmc);
+	update_connection (rc, temporary, modify_connection_cb, nmc);
 	nmc->should_wait++;
 
 	return nmc->return_value;
 }
-
-typedef struct {
-	NmCli *nmc;
-	char *orig_id;
-	char *orig_uuid;
-	char *con_id;
-} CloneConnectionInfo;
 
 static void
 clone_connection_cb (GObject *client,
                      GAsyncResult *result,
                      gpointer user_data)
 {
-	CloneConnectionInfo *info = (CloneConnectionInfo *) user_data;
+	nm_auto_free_add_connection_info AddConnectionInfo *info = user_data;
 	NmCli *nmc = info->nmc;
-	NMRemoteConnection *connection;
-	GError *error = NULL;
+	gs_unref_object NMRemoteConnection *connection = NULL;
+	gs_free_error GError *error = NULL;
 
-	connection = nm_client_add_connection_finish (NM_CLIENT (client), result, &error);
+	connection = nm_client_add_connection2_finish (NM_CLIENT (client), result, NULL, &error);
 	if (error) {
 		g_string_printf (nmc->return_text,
 		                 _("Error: Failed to add '%s' connection: %s"),
-		                 info->con_id, error->message);
-		g_error_free (error);
+		                 info->new_id, error->message);
 		nmc->return_value = NMC_RESULT_ERROR_CON_ACTIVATION;
 	} else {
 		g_print (_("%s (%s) cloned as %s (%s).\n"),
@@ -8433,13 +8465,8 @@ clone_connection_cb (GObject *client,
 		         info->orig_uuid,
 		         nm_connection_get_id (NM_CONNECTION (connection)),
 		         nm_connection_get_uuid (NM_CONNECTION (connection)));
-		g_object_unref (connection);
 	}
 
-	g_free (info->con_id);
-	g_free (info->orig_id);
-	g_free (info->orig_uuid);
-	g_slice_free (CloneConnectionInfo, info);
 	quit ();
 }
 
@@ -8448,11 +8475,9 @@ do_connection_clone (NmCli *nmc, int argc, char **argv)
 {
 	NMConnection *connection = NULL;
 	gs_unref_object NMConnection *new_connection = NULL;
-	NMSettingConnection *s_con;
-	CloneConnectionInfo *info;
 	const char *new_name;
-	gs_free char *new_name_ask = NULL;
-	char *uuid;
+	gs_free char *new_name_free = NULL;
+	gs_free char *uuid = NULL;
 	gboolean temporary = FALSE;
 	char **arg_arr = NULL;
 	int arg_num;
@@ -8493,8 +8518,8 @@ do_connection_clone (NmCli *nmc, int argc, char **argv)
 	if (argv[0])
 		new_name = *argv;
 	else if (nmc->ask) {
-		new_name = new_name_ask = nmc_readline (&nmc->nmc_config,
-		                                        _("New connection name: "));
+		new_name = new_name_free = nmc_readline (&nmc->nmc_config,
+		                                         _("New connection name: "));
 	} else {
 		g_string_printf (nmc->return_text, _("Error: <new name> argument is missing."));
 		NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
@@ -8505,35 +8530,23 @@ do_connection_clone (NmCli *nmc, int argc, char **argv)
 		NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
 	}
 
-	/* Copy the connection */
 	new_connection = nm_simple_connection_new_clone (connection);
 
-	s_con = nm_connection_get_setting_connection (new_connection);
-	g_assert (s_con);
 	uuid = nm_utils_uuid_generate ();
-	g_object_set (s_con,
+	g_object_set (nm_connection_get_setting_connection (new_connection),
 	              NM_SETTING_CONNECTION_ID, new_name,
 	              NM_SETTING_CONNECTION_UUID, uuid,
 	              NULL);
-	g_free (uuid);
 
-	/* Merge secrets into the new connection */
 	update_secrets_in_connection (NM_REMOTE_CONNECTION (connection), new_connection);
 
-	info = g_slice_new0 (CloneConnectionInfo);
-	info->nmc = nmc;
-	info->orig_id = g_strdup (nm_connection_get_id (connection));
-	info->orig_uuid = g_strdup (nm_connection_get_uuid (connection));
-	info->con_id = g_strdup (nm_connection_get_id (new_connection));
-
-	/* Add the new cloned connection to NetworkManager */
-	add_new_connection (!temporary,
-	                    nmc->client,
-	                    new_connection,
-	                    clone_connection_cb,
-	                    info);
-
+	add_connection (nmc->client,
+	                new_connection,
+	                temporary,
+	                clone_connection_cb,
+	                _add_connection_info_new (nmc, connection, new_connection));
 	nmc->should_wait++;
+
 	return nmc->return_value;
 }
 
@@ -8736,6 +8749,9 @@ do_connection_monitor (NmCli *nmc, int argc, char **argv)
 		}
 	}
 
+	if (nmc->complete)
+		return nmc->return_value;
+
 	for (i = 0; i < connections->len; i++)
 		connection_watch (nmc, connections->pdata[i]);
 
@@ -8745,8 +8761,6 @@ do_connection_monitor (NmCli *nmc, int argc, char **argv)
 		g_signal_connect (nmc->client, NM_CLIENT_CONNECTION_ADDED, G_CALLBACK (connection_added), nmc);
 	}
 
-	if (nmc->complete)
-		return nmc->return_value;
 	g_signal_connect (nmc->client, NM_CLIENT_CONNECTION_REMOVED, G_CALLBACK (connection_removed), nmc);
 
 	return NMC_RESULT_SUCCESS;
@@ -8819,7 +8833,6 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 	const char *type = NULL, *filename = NULL;
 	gs_free char *type_ask = NULL;
 	gs_free char *filename_ask = NULL;
-	AddConnectionInfo *info;
 	gs_unref_object NMConnection *connection = NULL;
 	NMVpnEditorPlugin *plugin;
 	gs_free char *service_type = NULL;
@@ -8867,7 +8880,7 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 			if (   argc == 1
 			    && nmc->complete) {
 				nmc_complete_strings (*argv, "wireguard");
-				complete_option ((const NMMetaAbstractInfo *) nm_meta_property_info_vpn_service_type,
+				complete_option (nmc, (const NMMetaAbstractInfo *) nm_meta_property_info_vpn_service_type,
 				                 *argv,
 				                 NULL);
 			}
@@ -8936,18 +8949,13 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 		NMC_RETURN (nmc, NMC_RESULT_ERROR_UNKNOWN);
 	}
 
-	info = g_malloc0 (sizeof (AddConnectionInfo));
-	info->nmc = nmc;
-	info->con_name = g_strdup (nm_connection_get_id (connection));
-
-	/* Add the new imported connection to NetworkManager */
-	add_new_connection (!temporary,
-	                    nmc->client,
-	                    connection,
-	                    add_connection_cb,
-	                    info);
-
+	add_connection (nmc->client,
+	                connection,
+	                temporary,
+	                add_connection_cb,
+	                _add_connection_info_new (nmc, NULL, connection));
 	nmc->should_wait++;
+
 	return nmc->return_value;
 }
 
@@ -9068,7 +9076,7 @@ finish:
 static char *
 gen_func_connection_names (const char *text, int state)
 {
-	int i;
+	guint i;
 	const GPtrArray *connections;
 	const char **connection_names;
 	char *ret;
@@ -9091,7 +9099,7 @@ gen_func_connection_names (const char *text, int state)
 static char *
 gen_func_active_connection_names (const char *text, int state)
 {
-	int i;
+	guint i;
 	const GPtrArray *acs;
 	const char **connections;
 	char *ret;

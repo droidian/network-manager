@@ -58,7 +58,6 @@ Depends: ${shlibs:Depends},
          dbus,
          udev,
          adduser,
-         isc-dhcp-client,
          libpam-systemd,
          policykit-1
 Recommends: ppp,
@@ -67,7 +66,9 @@ Recommends: ppp,
             modemmanager,
             network-manager-pptp,
             crda,
-Suggests: avahi-autoipd, libteam-utils
+Suggests: avahi-autoipd,
+          libteam-utils,
+          isc-dhcp-client,
 Breaks: ${misc:Breaks}
 Description: network management framework (daemon and userspace tools)
  NetworkManager is a system network service that manages your network devices

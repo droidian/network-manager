@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -437,7 +436,6 @@ mirror_8021x_connection (NMIwdManager *self,
 	                                    NM_SETTING_CONNECTION_TYPE, NM_SETTING_WIRELESS_SETTING_NAME,
 	                                    NM_SETTING_CONNECTION_ID, name,
 	                                    NM_SETTING_CONNECTION_UUID, nm_utils_uuid_generate_buf (uuid),
-	                                    NM_SETTING_CONNECTION_READ_ONLY, TRUE,
 	                                    NULL));
 	nm_connection_add_setting (connection, setting);
 
@@ -470,19 +468,19 @@ mirror_8021x_connection (NMIwdManager *self,
 	if (!nm_connection_normalize (connection, NULL, NULL, NULL))
 		return NULL;
 
-	settings_connection = nm_settings_add_connection (priv->settings, connection,
-	                                                  FALSE, &error);
-	if (!settings_connection) {
+	if (!nm_settings_add_connection (priv->settings,
+	                                 connection,
+	                                 NM_SETTINGS_CONNECTION_PERSIST_MODE_IN_MEMORY_ONLY,
+	                                 NM_SETTINGS_CONNECTION_ADD_REASON_NONE,
+	                                 NM_SETTINGS_CONNECTION_INT_FLAGS_NM_GENERATED,
+	                                 &settings_connection,
+	                                 &error)) {
 		_LOGW ("failed to add a mirror NMConnection for IWD's Known Network '%s': %s",
 		       name, error->message);
 		g_error_free (error);
 		return NULL;
 	}
 
-	nm_settings_connection_set_flags (settings_connection,
-	                                  NM_SETTINGS_CONNECTION_INT_FLAGS_NM_GENERATED |
-	                                  NM_SETTINGS_CONNECTION_INT_FLAGS_UNSAVED,
-	                                  TRUE);
 	return settings_connection;
 }
 
@@ -499,7 +497,7 @@ mirror_8021x_connection_take_and_delete (NMSettingsConnection *sett_conn)
 	/* If connection has not been saved since we created it
 	 * in interface_added it too can be removed now. */
 	if (NM_FLAGS_HAS (flags, NM_SETTINGS_CONNECTION_INT_FLAGS_NM_GENERATED))
-		nm_settings_connection_delete (sett_conn, NULL);
+		nm_settings_connection_delete (sett_conn, FALSE);
 
 	g_object_unref (sett_conn);
 }
@@ -900,7 +898,7 @@ nm_iwd_manager_init (NMIwdManager *self)
 	g_signal_connect (priv->manager, NM_MANAGER_DEVICE_ADDED,
 	                  G_CALLBACK (device_added), self);
 
-	priv->settings = g_object_ref (nm_settings_get ());
+	priv->settings = g_object_ref (NM_SETTINGS_GET);
 	g_signal_connect (priv->settings, NM_SETTINGS_SIGNAL_CONNECTION_REMOVED,
 	                  G_CALLBACK (connection_removed), self);
 

@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager system settings service - keyfile plugin
  *
  * This program is free software; you can redistribute it and/or modify
@@ -363,6 +362,53 @@ read_field (char **current, const char **out_err_str, const char *characters, co
 		return start;
 	}
 }
+
+/*****************************************************************************/
+
+#define NM_DBUS_SERVICE_OPENCONNECT    "org.freedesktop.NetworkManager.openconnect"
+#define NM_OPENCONNECT_KEY_GATEWAY     "gateway"
+#define NM_OPENCONNECT_KEY_COOKIE      "cookie"
+#define NM_OPENCONNECT_KEY_GWCERT      "gwcert"
+#define NM_OPENCONNECT_KEY_XMLCONFIG   "xmlconfig"
+#define NM_OPENCONNECT_KEY_LASTHOST    "lasthost"
+#define NM_OPENCONNECT_KEY_AUTOCONNECT "autoconnect"
+#define NM_OPENCONNECT_KEY_CERTSIGS    "certsigs"
+
+static void
+openconnect_fix_secret_flags (NMSetting *setting)
+{
+	NMSettingVpn *s_vpn;
+	NMSettingSecretFlags flags;
+
+	/* Huge hack.  There were some openconnect changes that needed to happen
+	 * pretty late, too late to get into distros.  Migration has already
+	 * happened for many people, and their secret flags are wrong.  But we
+	 * don't want to requrie re-migration, so we have to fix it up here. Ugh.
+	 */
+
+	if (!NM_IS_SETTING_VPN (setting))
+		return;
+
+	s_vpn = NM_SETTING_VPN (setting);
+
+	if (!nm_streq0 (nm_setting_vpn_get_service_type (s_vpn), NM_DBUS_SERVICE_OPENCONNECT))
+		return;
+
+	/* These are different for every login session, and should not be stored */
+	flags = NM_SETTING_SECRET_FLAG_NOT_SAVED;
+	nm_setting_set_secret_flags (NM_SETTING (s_vpn), NM_OPENCONNECT_KEY_GATEWAY, flags, NULL);
+	nm_setting_set_secret_flags (NM_SETTING (s_vpn), NM_OPENCONNECT_KEY_COOKIE, flags, NULL);
+	nm_setting_set_secret_flags (NM_SETTING (s_vpn), NM_OPENCONNECT_KEY_GWCERT, flags, NULL);
+
+	/* These are purely internal data for the auth-dialog, and should be stored */
+	flags = 0;
+	nm_setting_set_secret_flags (NM_SETTING (s_vpn), NM_OPENCONNECT_KEY_XMLCONFIG, flags, NULL);
+	nm_setting_set_secret_flags (NM_SETTING (s_vpn), NM_OPENCONNECT_KEY_LASTHOST, flags, NULL);
+	nm_setting_set_secret_flags (NM_SETTING (s_vpn), NM_OPENCONNECT_KEY_AUTOCONNECT, flags, NULL);
+	nm_setting_set_secret_flags (NM_SETTING (s_vpn), NM_OPENCONNECT_KEY_CERTSIGS, flags, NULL);
+}
+
+/*****************************************************************************/
 
 #define IP_ADDRESS_CHARS "0123456789abcdefABCDEF:.%"
 #define DIGITS "0123456789"
@@ -994,6 +1040,11 @@ read_hash_of_string (GKeyFile *file, NMSetting *setting, const char *key)
 	gboolean is_vpn;
 	gsize n_keys;
 
+	nm_assert (   (NM_IS_SETTING_VPN (setting)  && nm_streq (key, NM_SETTING_VPN_DATA))
+	           || (NM_IS_SETTING_VPN (setting)  && nm_streq (key, NM_SETTING_VPN_SECRETS))
+	           || (NM_IS_SETTING_BOND (setting) && nm_streq (key, NM_SETTING_BOND_OPTIONS))
+	           || (NM_IS_SETTING_USER (setting) && nm_streq (key, NM_SETTING_USER_DATA)));
+
 	keys = nm_keyfile_plugin_kf_get_keys (file, setting_name, &n_keys, NULL);
 	if (n_keys == 0)
 		return;
@@ -1020,6 +1071,7 @@ read_hash_of_string (GKeyFile *file, NMSetting *setting, const char *key)
 					nm_setting_bond_add_option (NM_SETTING_BOND (setting), name, value);
 			}
 		}
+		openconnect_fix_secret_flags (setting);
 		return;
 	}
 
@@ -1041,7 +1093,10 @@ read_hash_of_string (GKeyFile *file, NMSetting *setting, const char *key)
 			                     value);
 		}
 		g_object_set (setting, NM_SETTING_USER_DATA, data, NULL);
+		return;
 	}
+
+	nm_assert_not_reached ();
 }
 
 static gsize
@@ -1611,16 +1666,16 @@ team_config_parser (KeyfileReaderInfo *info, NMSetting *setting, const char *key
 	gs_free_error GError *error = NULL;
 
 	conf = nm_keyfile_plugin_kf_get_string (info->keyfile, setting_name, key, NULL);
+
+	g_object_set (G_OBJECT (setting), key, conf, NULL);
+
 	if (   conf
-	    && conf[0]
-	    && !nm_utils_is_json_object (conf, &error)) {
+	    && !nm_setting_verify (setting, NULL, &error)) {
 		handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
 		             _("ignoring invalid team configuration: %s"),
 		             error->message);
-		g_clear_pointer (&conf, g_free);
+		g_object_set (G_OBJECT (setting), key, NULL, NULL);
 	}
-
-	g_object_set (G_OBJECT (setting), key, conf, NULL);
 }
 
 static void
@@ -2019,6 +2074,64 @@ bridge_vlan_writer (KeyfileWriterInfo *info,
 	g_string_free (string, TRUE);
 }
 
+
+#define ETHERNET_S390_OPTIONS_GROUP_NAME "ethernet-s390-options"
+
+static void
+wired_s390_options_parser_full (KeyfileReaderInfo *info,
+                                const NMMetaSettingInfo *setting_info,
+                                const NMSettInfoProperty *property_info,
+                                const ParseInfoProperty *pip,
+                                NMSetting *setting)
+{
+	NMSettingWired *s_wired = NM_SETTING_WIRED (setting);
+	gs_strfreev char **keys = NULL;
+	gsize n_keys;
+	gsize i;
+
+	keys = nm_keyfile_plugin_kf_get_keys (info->keyfile, ETHERNET_S390_OPTIONS_GROUP_NAME, &n_keys, NULL);
+	for (i = 0; i < n_keys; i++) {
+		gs_free char *value = NULL;
+		gs_free char *key_to_free = NULL;
+
+		value = nm_keyfile_plugin_kf_get_string (info->keyfile,
+		                                         ETHERNET_S390_OPTIONS_GROUP_NAME,
+		                                         keys[i],
+		                                         NULL);
+		if (!value)
+			continue;
+
+		nm_setting_wired_add_s390_option (s_wired,
+		                                  nm_keyfile_key_decode (keys[i],
+		                                                         &key_to_free),
+		                                  value);
+	}
+}
+
+static void
+wired_s390_options_writer_full (KeyfileWriterInfo *info,
+                                const NMMetaSettingInfo *setting_info,
+                                const NMSettInfoProperty *property_info,
+                                const ParseInfoProperty *pip,
+                                NMSetting *setting)
+{
+	NMSettingWired *s_wired = NM_SETTING_WIRED (setting);
+	guint i, n;
+
+	n = nm_setting_wired_get_num_s390_options (s_wired);
+	for (i = 0; i < n; i++) {
+		const char *opt_key;
+		const char *opt_val;
+		gs_free char *key_to_free = NULL;
+
+		nm_setting_wired_get_s390_option (s_wired, i, &opt_key, &opt_val);
+		nm_keyfile_plugin_kf_set_string (info->keyfile,
+		                                 ETHERNET_S390_OPTIONS_GROUP_NAME,
+		                                 nm_keyfile_key_encode (opt_key, &key_to_free),
+		                                 opt_val);
+	}
+}
+
 static void
 ip_routing_rule_writer_full (KeyfileWriterInfo *info,
                              const NMMetaSettingInfo *setting_info,
@@ -2130,6 +2243,11 @@ write_hash_of_string (GKeyFile *file,
 	gboolean vpn_secrets = FALSE;
 	gs_free const char **keys = NULL;
 	guint i, l;
+
+	nm_assert (   (NM_IS_SETTING_VPN (setting)  && nm_streq (key, NM_SETTING_VPN_DATA))
+	           || (NM_IS_SETTING_VPN (setting)  && nm_streq (key, NM_SETTING_VPN_SECRETS))
+	           || (NM_IS_SETTING_BOND (setting) && nm_streq (key, NM_SETTING_BOND_OPTIONS))
+	           || (NM_IS_SETTING_USER (setting) && nm_streq (key, NM_SETTING_USER_DATA)));
 
 	/* Write VPN secrets out to a different group to keep them separate */
 	if (   NM_IS_SETTING_VPN (setting)
@@ -2477,6 +2595,13 @@ static const ParseInfoSetting *const parse_infos[_NM_META_SETTING_TYPE_NUM] = {
 			),
 			PARSE_INFO_PROPERTY (NM_SETTING_WIRED_MAC_ADDRESS,
 				.parser        = mac_address_parser_ETHER,
+			),
+			PARSE_INFO_PROPERTY (NM_SETTING_WIRED_S390_OPTIONS,
+				.parser_no_check_key = TRUE,
+				.parser_full   = wired_s390_options_parser_full,
+				.writer_full   = wired_s390_options_writer_full,
+				.has_parser_full = TRUE,
+				.has_writer_full = TRUE,
 			),
 		),
 	),
@@ -3269,10 +3394,9 @@ _read_setting_wireguard_peer (KeyfileReaderInfo *info)
 		return;
 
 	if (!nm_wireguard_peer_is_valid (peer, TRUE, TRUE, &error)) {
-		if (!handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
-		                  _("peer '%s' is invalid: %s"),
-		                  info->group, error->message))
-			return;
+		handle_warn (info, key, NM_KEYFILE_WARN_SEVERITY_WARN,
+		             _("peer '%s' is invalid: %s"),
+		             info->group, error->message);
 		return;
 	}
 
@@ -3412,7 +3536,9 @@ nm_keyfile_read (GKeyFile *keyfile,
 			vpn_secrets = TRUE;
 		} else if (NM_STR_HAS_PREFIX (groups[i], NM_KEYFILE_GROUPPREFIX_WIREGUARD_PEER))
 			_read_setting_wireguard_peer (&info);
-		else
+		else if (nm_streq (groups[i], NM_KEYFILE_GROUP_NMMETA)) {
+			/* pass */
+		} else
 			_read_setting (&info);
 
 		info.group = NULL;
@@ -3856,7 +3982,7 @@ nm_keyfile_utils_ignore_filename (const char *filename, gboolean require_extensi
 
 	if (require_extension) {
 		if (   l <= NM_STRLEN (NM_KEYFILE_PATH_SUFFIX_NMCONNECTION)
-		    || !g_str_has_suffix (base, NM_KEYFILE_PATH_SUFFIX_NMCONNECTION))
+		    || !NM_STR_HAS_SUFFIX (base, NM_KEYFILE_PATH_SUFFIX_NMCONNECTION))
 			return TRUE;
 		return FALSE;
 	}
@@ -3865,7 +3991,10 @@ nm_keyfile_utils_ignore_filename (const char *filename, gboolean require_extensi
 	if (base[l - 1] == '~')
 		return TRUE;
 
-	/* Ignore temporary files */
+	/* Ignore temporary files
+	 *
+	 * This check is also important to ignore .nmload files (see
+	 * %NM_KEYFILE_PATH_SUFFIX_NMMETA). */
 	if (check_mkstemp_suffix (base))
 		return TRUE;
 

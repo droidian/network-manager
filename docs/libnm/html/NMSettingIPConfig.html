@@ -668,6 +668,22 @@
 </tr>
 <tr>
 <td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint32"><span class="returnvalue">gint32</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPConfig.html#nm-ip-routing-rule-get-suppress-prefixlength" title="nm_ip_routing_rule_get_suppress_prefixlength ()">nm_ip_routing_rule_get_suppress_prefixlength</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPConfig.html#nm-ip-routing-rule-set-suppress-prefixlength" title="nm_ip_routing_rule_set_suppress_prefixlength ()">nm_ip_routing_rule_set_suppress_prefixlength</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
 <span class="returnvalue">int</span>
 </td>
 <td class="function_name">
@@ -2986,7 +3002,7 @@ cannot be modified nor unsealed.</p>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_ip_routing_rule_seal (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoutingRule"><span class="type">NMIPRoutingRule</span></a> *self</code></em>);</pre>
 <p>Seals the routing rule. Afterwards, the instance can no longer be
-modfied, and it is a bug to call any of the accessors that would
+modified, and it is a bug to call any of the accessors that would
 modify the rule. If <em class="parameter"><code>self</code></em>
  was already sealed, this has no effect.</p>
 <div class="refsect3">
@@ -3753,7 +3769,7 @@ nm_ip_routing_rule_set_iifname (<em class="parameter"><code><a class="link" href
 <p>The name supports C backslash escaping for non-UTF-8 characters.
 Note that <a class="link" href="NMSettingIPConfig.html#nm-ip-routing-rule-from-string" title="nm_ip_routing_rule_from_string ()"><code class="function">nm_ip_routing_rule_from_string()</code></a> too uses backslash
 escaping when tokenizing the words by whitespace. So, in string
-representation you'd get double backslashs.</p>
+representation you'd get double backslashes.</p>
 <div class="refsect3">
 <a name="nm-ip-routing-rule-set-iifname.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -3814,7 +3830,7 @@ nm_ip_routing_rule_set_oifname (<em class="parameter"><code><a class="link" href
 <p>The name supports C backslash escaping for non-UTF-8 characters.
 Note that <a class="link" href="NMSettingIPConfig.html#nm-ip-routing-rule-from-string" title="nm_ip_routing_rule_from_string ()"><code class="function">nm_ip_routing_rule_from_string()</code></a> too uses backslash
 escaping when tokenizing the words by whitespace. So, in string
-representation you'd get double backslashs.</p>
+representation you'd get double backslashes.</p>
 <div class="refsect3">
 <a name="nm-ip-routing-rule-set-oifname.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -3952,6 +3968,65 @@ nm_ip_routing_rule_set_table (<em class="parameter"><code><a class="link" href="
 </table></div>
 </div>
 <p class="since">Since: 1.18</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-ip-routing-rule-get-suppress-prefixlength"></a><h3>nm_ip_routing_rule_get_suppress_prefixlength ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint32"><span class="returnvalue">gint32</span></a>
+nm_ip_routing_rule_get_suppress_prefixlength
+                               (<em class="parameter"><code>const <a class="link" href="NMSettingIPConfig.html#NMIPRoutingRule"><span class="type">NMIPRoutingRule</span></a> *self</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-ip-routing-rule-get-suppress-prefixlength.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>self</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html#NMIPRoutingRule"><span class="type">NMIPRoutingRule</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-ip-routing-rule-get-suppress-prefixlength.returns"></a><h4>Returns</h4>
+<p> the suppress_prefixlength of the rule. -1 means that the value is unset.</p>
+</div>
+<p class="since">Since: 1.20</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-ip-routing-rule-set-suppress-prefixlength"></a><h3>nm_ip_routing_rule_set_suppress_prefixlength ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+nm_ip_routing_rule_set_suppress_prefixlength
+                               (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPRoutingRule"><span class="type">NMIPRoutingRule</span></a> *self</code></em>,
+                                <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint32"><span class="type">gint32</span></a> suppress_prefixlength</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-ip-routing-rule-set-suppress-prefixlength.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>self</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html#NMIPRoutingRule"><span class="type">NMIPRoutingRule</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>suppress_prefixlength</p></td>
+<td class="parameter_description"><p>the suppress_prefixlength to set. The value -1 means
+unset.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.20</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -6113,7 +6188,7 @@ active default route will be preferred.  Negative values have the special
 effect of excluding other configurations with a greater priority value;
 so in presence of at least a negative priority, only DNS servers from
 connections with the lowest priority value will be used.</p>
-<p>When using a DNS resolver that supports split-DNS as dns=dnsmasq or
+<p>When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or
 dns=systemd-resolved, each connection is used to query domains in its
 search list.  Queries for domains not present in any search list are
 routed through connections having the '~.' special wildcard domain, which
@@ -6186,9 +6261,9 @@ successfully.</p>
 <a name="NMSettingIPConfig--method"></a><h3>The <code class="literal">“method”</code> property</h3>
 <pre class="programlisting">  “method”                   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>IP configuration method.</p>
-<p><a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> and <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> both support "auto",
-"manual", and "link-local". See the subclass-specific documentation for
-other values.</p>
+<p><a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> and <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> both support "disabled",
+"auto", "manual", and "link-local". See the subclass-specific
+documentation for other values.</p>
 <p>In general, for the "auto" method, properties such as
 <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dns" title="The “dns” property"><span class="type">“dns”</span></a> and <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--routes" title="The “routes” property"><span class="type">“routes”</span></a> specify information
 that is added on to the information returned from automatic

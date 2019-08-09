@@ -22,6 +22,8 @@
 
 #include "nm-time-utils.h"
 
+#include "nm-logging-fwd.h"
+
 /*****************************************************************************/
 
 typedef struct {
@@ -229,15 +231,15 @@ nm_utils_get_monotonic_timestamp_s (void)
 /**
  * nm_utils_monotonic_timestamp_as_boottime:
  * @timestamp: the monotonic-timestamp that should be converted into CLOCK_BOOTTIME.
- * @timestamp_ns_per_tick: How many nano seconds make one unit of @timestamp? E.g. if
- * @timestamp is in unit seconds, pass %NM_UTILS_NS_PER_SECOND; @timestamp in nano
- * seconds, pass 1; @timestamp in milli seconds, pass %NM_UTILS_NS_PER_SECOND/1000; etc.
+ * @timestamp_ns_per_tick: How many nanoseconds make one unit of @timestamp? E.g. if
+ *   @timestamp is in unit seconds, pass %NM_UTILS_NS_PER_SECOND; if @timestamp is
+ *   in nanoseconds, pass 1; if @timestamp is in milliseconds, pass %NM_UTILS_NS_PER_SECOND/1000.
  *
  * Returns: the monotonic-timestamp as CLOCK_BOOTTIME, as returned by clock_gettime().
- * The unit is the same as the passed in @timestamp basd on @timestamp_ns_per_tick.
- * E.g. if you passed @timestamp in as seconds, it will return boottime in seconds.
- * If @timestamp is a non-positive, it returns -1. Note that a (valid) monotonic-timestamp
- * is always positive.
+ *   The unit is the same as the passed in @timestamp based on @timestamp_ns_per_tick.
+ *   E.g. if you passed @timestamp in as seconds, it will return boottime in seconds.
+ *   If @timestamp is non-positive, it returns -1. Note that a (valid) monotonic-timestamp
+ *   is always positive.
  *
  * On older kernels that don't support CLOCK_BOOTTIME, the returned time is instead CLOCK_MONOTONIC.
  **/
@@ -263,6 +265,8 @@ nm_utils_monotonic_timestamp_as_boottime (gint64 timestamp, gint64 timestamp_ns_
 
 	p = _t_get_global_state ();
 
+	nm_assert (p->offset_sec <= 0);
+
 	/* calculate the offset of monotonic-timestamp to boottime. offset_s is <= 1. */
 	offset = p->offset_sec * (NM_UTILS_NS_PER_SECOND / timestamp_ns_per_tick);
 
@@ -270,4 +274,24 @@ nm_utils_monotonic_timestamp_as_boottime (gint64 timestamp, gint64 timestamp_ns_
 	g_return_val_if_fail (offset > 0 || timestamp < G_MAXINT64 + offset, G_MAXINT64);
 
 	return timestamp - offset;
+}
+
+gint64
+nm_utils_clock_gettime_ns (clockid_t clockid)
+{
+	struct timespec tp;
+
+	if (clock_gettime (clockid, &tp) != 0)
+		return -NM_ERRNO_NATIVE (errno);
+	return nm_utils_timespec_to_ns (&tp);
+}
+
+gint64
+nm_utils_clock_gettime_ms (clockid_t clockid)
+{
+	struct timespec tp;
+
+	if (clock_gettime (clockid, &tp) != 0)
+		return -NM_ERRNO_NATIVE (errno);
+	return nm_utils_timespec_to_ms (&tp);
 }

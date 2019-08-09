@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -581,7 +579,8 @@ nm_connection_compare (NMConnection *a,
 	while (g_hash_table_iter_next (&iter, NULL, (gpointer) &src)) {
 		NMSetting *cmp = nm_connection_get_setting (b, G_OBJECT_TYPE (src));
 
-		if (!cmp || !nm_setting_compare (src, cmp, flags))
+		if (   !cmp
+		    || !_nm_setting_compare (a, src, b, cmp, flags))
 			return FALSE;
 	}
 
@@ -614,7 +613,7 @@ diff_one_connection (NMConnection *a,
 		if (results)
 			new_results = FALSE;
 
-		if (!nm_setting_diff (a_setting, b_setting, flags, invert_results, &results))
+		if (!_nm_setting_diff (a, a_setting, b, b_setting, flags, invert_results, &results))
 			diff_found = TRUE;
 
 		if (new_results && results)
@@ -1024,8 +1023,9 @@ _normalize_ip_config (NMConnection *self, GHashTable *parameters)
 				changed = TRUE;
 			}
 
-			if (   nm_streq0 (nm_setting_ip_config_get_method (s_ip6),
-			                  NM_SETTING_IP6_CONFIG_METHOD_IGNORE)
+			if (   NM_IN_STRSET (nm_setting_ip_config_get_method (s_ip6),
+			                     NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
+			                     NM_SETTING_IP6_CONFIG_METHOD_DISABLED)
 			    && !nm_setting_ip_config_get_may_fail (s_ip6)) {
 				g_object_set (s_ip6, NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE, NULL);
 				changed = TRUE;
@@ -1585,6 +1585,77 @@ nm_connection_verify_secrets (NMConnection *connection, GError **error)
 	return TRUE;
 }
 
+static gboolean
+_connection_normalize (NMConnection *connection,
+                       GHashTable *parameters,
+                       gboolean *modified,
+                       GError **error)
+{
+	NMSettingVerifyResult success;
+	gboolean was_modified;
+
+#if NM_MORE_ASSERTS > 10
+	/* only call this _nm_connection_verify() confirms that the connection
+	 * requires normalization and is normalizable. */
+	nm_assert (NM_IN_SET (_nm_connection_verify (connection, NULL),
+	                      NM_SETTING_VERIFY_NORMALIZABLE,
+	                      NM_SETTING_VERIFY_NORMALIZABLE_ERROR));
+#endif
+
+	/* Try to perform all kind of normalizations on the settings to fix it.
+	 * We only do this, after verifying that the connection contains no un-normalizable
+	 * errors, because in that case we rather fail without touching the settings. */
+
+	was_modified = FALSE;
+
+	was_modified |= _normalize_connection_uuid (connection);
+	was_modified |= _normalize_connection_type (connection);
+	was_modified |= _normalize_connection_slave_type (connection);
+	was_modified |= _normalize_required_settings (connection, parameters);
+	was_modified |= _normalize_invalid_slave_port_settings (connection, parameters);
+	was_modified |= _normalize_ip_config (connection, parameters);
+	was_modified |= _normalize_ethernet_link_neg (connection);
+	was_modified |= _normalize_infiniband_mtu (connection, parameters);
+	was_modified |= _normalize_bond_mode (connection, parameters);
+	was_modified |= _normalize_bond_options (connection, parameters);
+	was_modified |= _normalize_wireless_mac_address_randomization (connection, parameters);
+	was_modified |= _normalize_macsec (connection, parameters);
+	was_modified |= _normalize_team_config (connection, parameters);
+	was_modified |= _normalize_team_port_config (connection, parameters);
+	was_modified |= _normalize_bluetooth_type (connection, parameters);
+	was_modified |= _normalize_ovs_interface_type (connection, parameters);
+	was_modified |= _normalize_ip_tunnel_wired_setting (connection, parameters);
+	was_modified |= _normalize_sriov_vf_order (connection, parameters);
+	was_modified |= _normalize_bridge_vlan_order (connection, parameters);
+	was_modified |= _normalize_bridge_port_vlan_order (connection, parameters);
+
+	was_modified = !!was_modified;
+
+	/* Verify anew */
+	success = _nm_connection_verify (connection, error);
+
+	NM_SET_OUT (modified, was_modified);
+
+	if (success != NM_SETTING_VERIFY_SUCCESS) {
+		/* we would expect, that after normalization, the connection can be verified.
+		 * Also treat NM_SETTING_VERIFY_NORMALIZABLE as failure, because there is something
+		 * odd going on. */
+		if (error && !*error) {
+			g_set_error_literal (error,
+			                     NM_CONNECTION_ERROR,
+			                     NM_CONNECTION_ERROR_FAILED,
+			                     _("Unexpected failure to normalize the connection"));
+		}
+		g_warning ("connection did not verify after normalization: %s", error ? (*error)->message : "??");
+		g_return_val_if_reached (FALSE);
+	}
+
+	/* we would expect, that the connection was modified during normalization. */
+	g_return_val_if_fail (was_modified, TRUE);
+
+	return TRUE;
+}
+
 /**
  * nm_connection_normalize:
  * @connection: the #NMConnection to normalize
@@ -1615,79 +1686,163 @@ nm_connection_normalize (NMConnection *connection,
                          GError **error)
 {
 	NMSettingVerifyResult success;
-	gboolean was_modified = FALSE;
-	GError *normalizable_error = NULL;
+	gs_free_error GError *normalizable_error = NULL;
 
 	success = _nm_connection_verify (connection, &normalizable_error);
 
-	if (success == NM_SETTING_VERIFY_ERROR ||
-	    success == NM_SETTING_VERIFY_SUCCESS) {
-		if (normalizable_error)
-			g_propagate_error (error, normalizable_error);
-		if (modified)
-			*modified = FALSE;
-		if (success == NM_SETTING_VERIFY_ERROR && error && !*error) {
-			g_set_error_literal (error,
-			                     NM_CONNECTION_ERROR,
-			                     NM_CONNECTION_ERROR_FAILED,
-			                     _("Unexpected failure to verify the connection"));
+	if (!NM_IN_SET (success,
+	                NM_SETTING_VERIFY_NORMALIZABLE,
+	                NM_SETTING_VERIFY_NORMALIZABLE_ERROR)) {
+		if (normalizable_error) {
+			nm_assert (success == NM_SETTING_VERIFY_ERROR);
+			g_propagate_error (error, g_steal_pointer (&normalizable_error));
+		} else
+			nm_assert (success == NM_SETTING_VERIFY_SUCCESS);
+
+		NM_SET_OUT (modified, FALSE);
+
+		if (success != NM_SETTING_VERIFY_SUCCESS) {
+			if (   error
+			    && !*error) {
+				g_set_error_literal (error,
+				                     NM_CONNECTION_ERROR,
+				                     NM_CONNECTION_ERROR_FAILED,
+				                     _("Unexpected failure to verify the connection"));
+				return FALSE;
+			}
+			return FALSE;
+		}
+
+		if (error && *error)
+			return FALSE;
+		return TRUE;
+	}
+
+	return _connection_normalize (connection, parameters, modified, error);
+}
+
+gboolean
+_nm_connection_ensure_normalized (NMConnection *connection,
+                                  gboolean allow_modify,
+                                  const char *expected_uuid,
+                                  gboolean coerce_uuid,
+                                  NMConnection **out_connection_clone,
+                                  GError **error)
+{
+	gs_unref_object NMConnection *connection_clone = NULL;
+	gs_free_error GError *local = NULL;
+	NMSettingVerifyResult vresult;
+
+	nm_assert (NM_IS_CONNECTION (connection));
+	nm_assert (!out_connection_clone || !*out_connection_clone);
+	nm_assert (!expected_uuid || nm_utils_is_uuid (expected_uuid));
+
+	if (expected_uuid) {
+		if (nm_streq0 (expected_uuid, nm_connection_get_uuid (connection)))
+			expected_uuid = NULL;
+		else if (   !coerce_uuid
+		         || (!allow_modify && !out_connection_clone)) {
+			g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY,
+			             _("unexpected uuid %s instead of %s"),
+			             nm_connection_get_uuid (connection),
+			             expected_uuid);
+			return FALSE;
+		}
+	}
+
+	vresult = _nm_connection_verify (connection, &local);
+	if (vresult != NM_SETTING_VERIFY_SUCCESS) {
+		if (!NM_IN_SET (vresult, NM_SETTING_VERIFY_NORMALIZABLE,
+		                         NM_SETTING_VERIFY_NORMALIZABLE_ERROR)) {
+			g_propagate_error (error, g_steal_pointer (&local));
+			return FALSE;
+		}
+		if (!allow_modify) {
+			if (!out_connection_clone) {
+				/* even NM_SETTING_VERIFY_NORMALIZABLE is treated as an error. We could normalize,
+				 * but are not allowed to (and no out argument is provided for cloning).  */
+				g_propagate_error (error, g_steal_pointer (&local));
+				return FALSE;
+			}
+			connection_clone = nm_simple_connection_new_clone (connection);
+			connection = connection_clone;
+		}
+		if (!_connection_normalize (connection, NULL, NULL, error))
 			g_return_val_if_reached (FALSE);
-		}
-		return success == NM_SETTING_VERIFY_SUCCESS;
-	}
-	g_assert (success == NM_SETTING_VERIFY_NORMALIZABLE || success == NM_SETTING_VERIFY_NORMALIZABLE_ERROR);
-	g_clear_error (&normalizable_error);
-
-	/* Try to perform all kind of normalizations on the settings to fix it.
-	 * We only do this, after verifying that the connection contains no un-normalizable
-	 * errors, because in that case we rather fail without touching the settings. */
-
-	was_modified |= _normalize_connection_uuid (connection);
-	was_modified |= _normalize_connection_type (connection);
-	was_modified |= _normalize_connection_slave_type (connection);
-	was_modified |= _normalize_required_settings (connection, parameters);
-	was_modified |= _normalize_invalid_slave_port_settings (connection, parameters);
-	was_modified |= _normalize_ip_config (connection, parameters);
-	was_modified |= _normalize_ethernet_link_neg (connection);
-	was_modified |= _normalize_infiniband_mtu (connection, parameters);
-	was_modified |= _normalize_bond_mode (connection, parameters);
-	was_modified |= _normalize_bond_options (connection, parameters);
-	was_modified |= _normalize_wireless_mac_address_randomization (connection, parameters);
-	was_modified |= _normalize_macsec (connection, parameters);
-	was_modified |= _normalize_team_config (connection, parameters);
-	was_modified |= _normalize_team_port_config (connection, parameters);
-	was_modified |= _normalize_bluetooth_type (connection, parameters);
-	was_modified |= _normalize_ovs_interface_type (connection, parameters);
-	was_modified |= _normalize_ip_tunnel_wired_setting (connection, parameters);
-	was_modified |= _normalize_sriov_vf_order (connection, parameters);
-	was_modified |= _normalize_bridge_vlan_order (connection, parameters);
-	was_modified |= _normalize_bridge_port_vlan_order (connection, parameters);
-
-	/* Verify anew. */
-	success = _nm_connection_verify (connection, error);
-
-	if (modified)
-		*modified = was_modified;
-
-	if (success != NM_SETTING_VERIFY_SUCCESS) {
-		/* we would expect, that after normalization, the connection can be verified.
-		 * Also treat NM_SETTING_VERIFY_NORMALIZABLE as failure, because there is something
-		 * odd going on. */
-		if (error && !*error) {
-			g_set_error_literal (error,
-			                     NM_CONNECTION_ERROR,
-			                     NM_CONNECTION_ERROR_FAILED,
-			                     _("Unexpected failure to normalize the connection"));
-		}
-		g_warning ("connection did not verify after normalization: %s", error ? (*error)->message : "??");
-		g_return_val_if_reached (FALSE);
 	}
 
-	/* we would expect, that the connection was modified during normalization. */
-	g_return_val_if_fail (was_modified, TRUE);
+	if (expected_uuid) {
+		NMSettingConnection *s_con;
 
+		if (   !allow_modify
+		    && !connection_clone) {
+			nm_assert (out_connection_clone);
+			connection_clone = nm_simple_connection_new_clone (connection);
+			connection = connection_clone;
+		}
+		s_con = nm_connection_get_setting_connection (connection);
+		g_object_set (s_con,
+		              NM_SETTING_CONNECTION_UUID,
+		              expected_uuid,
+		              NULL);
+	}
+
+	NM_SET_OUT (out_connection_clone, g_steal_pointer (&connection_clone));
 	return TRUE;
 }
+
+/*****************************************************************************/
+
+#if NM_MORE_ASSERTS
+static void
+_nmtst_connection_unchanging_changed_cb (NMConnection *connection, gpointer user_data)
+{
+	nm_assert_not_reached ();
+}
+
+static void
+_nmtst_connection_unchanging_secrets_updated_cb (NMConnection *connection, const char *setting_name, gpointer user_data)
+{
+	nm_assert_not_reached ();
+}
+
+const char _nmtst_connection_unchanging_user_data = 0;
+
+void
+nmtst_connection_assert_unchanging (NMConnection *connection)
+{
+	if (!connection)
+		return;
+
+	nm_assert (NM_IS_CONNECTION (connection));
+
+	if (g_signal_handler_find (connection,
+	                           G_SIGNAL_MATCH_DATA,
+	                           0,
+	                           0,
+	                           NULL,
+	                           NULL,
+	                           (gpointer) &_nmtst_connection_unchanging_user_data) != 0) {
+		/* avoid connecting the assertion handler multiple times. */
+		return;
+	}
+
+	g_signal_connect (connection,
+	                  NM_CONNECTION_CHANGED,
+	                  G_CALLBACK (_nmtst_connection_unchanging_changed_cb),
+	                  (gpointer) &_nmtst_connection_unchanging_user_data);
+	g_signal_connect (connection,
+	                  NM_CONNECTION_SECRETS_CLEARED,
+	                  G_CALLBACK (_nmtst_connection_unchanging_changed_cb),
+	                  (gpointer) &_nmtst_connection_unchanging_user_data);
+	g_signal_connect (connection,
+	                  NM_CONNECTION_SECRETS_UPDATED,
+	                  G_CALLBACK (_nmtst_connection_unchanging_secrets_updated_cb),
+	                  (gpointer) &_nmtst_connection_unchanging_user_data);
+}
+#endif
+
+/*****************************************************************************/
 
 /**
  * nm_connection_update_secrets:
@@ -1714,7 +1869,8 @@ nm_connection_update_secrets (NMConnection *connection,
                               GError **error)
 {
 	NMSetting *setting;
-	gboolean success = TRUE, updated = FALSE;
+	gboolean success = TRUE;
+	gboolean updated = FALSE;
 	GVariant *setting_dict = NULL;
 	GVariantIter iter;
 	const char *key;
@@ -1722,13 +1878,13 @@ nm_connection_update_secrets (NMConnection *connection,
 	int success_detail;
 
 	g_return_val_if_fail (NM_IS_CONNECTION (connection), FALSE);
-	g_return_val_if_fail (   g_variant_is_of_type (secrets, NM_VARIANT_TYPE_SETTING)
-	                      || g_variant_is_of_type (secrets, NM_VARIANT_TYPE_CONNECTION), FALSE);
-	if (error)
-		g_return_val_if_fail (*error == NULL, FALSE);
 
 	full_connection = g_variant_is_of_type (secrets, NM_VARIANT_TYPE_CONNECTION);
-	g_return_val_if_fail (setting_name != NULL || full_connection, FALSE);
+
+	g_return_val_if_fail (   full_connection
+	                      || g_variant_is_of_type (secrets, NM_VARIANT_TYPE_SETTING), FALSE);
+	g_return_val_if_fail (!error || !*error, FALSE);
+	g_return_val_if_fail (setting_name || full_connection, FALSE);
 
 	/* Empty @secrets means success */
 	if (g_variant_n_children (secrets) == 0)
@@ -1763,8 +1919,10 @@ nm_connection_update_secrets (NMConnection *connection,
 
 		g_clear_pointer (&setting_dict, g_variant_unref);
 
-		if (success_detail == NM_SETTING_UPDATE_SECRET_ERROR)
+		if (success_detail == NM_SETTING_UPDATE_SECRET_ERROR) {
+			nm_assert (!error || *error);
 			return FALSE;
+		}
 		if (success_detail == NM_SETTING_UPDATE_SECRET_SUCCESS_MODIFIED)
 			updated = TRUE;
 	} else {
@@ -1784,17 +1942,27 @@ nm_connection_update_secrets (NMConnection *connection,
 		/* Update each setting with any secrets from the connection dictionary */
 		g_variant_iter_init (&iter, secrets);
 		while (g_variant_iter_next (&iter, "{&s@a{sv}}", &key, &setting_dict)) {
+			gs_free_error GError *local = NULL;
+
 			/* Update the secrets for this setting */
 			setting = nm_connection_get_setting_by_name (connection, key);
 
 			g_signal_handlers_block_by_func (setting, (GCallback) setting_changed_cb, connection);
-			success_detail = _nm_setting_update_secrets (setting, setting_dict, error);
+			success_detail = _nm_setting_update_secrets (setting, setting_dict, error ? &local : NULL);
 			g_signal_handlers_unblock_by_func (setting, (GCallback) setting_changed_cb, connection);
 
 			g_variant_unref (setting_dict);
 
 			if (success_detail == NM_SETTING_UPDATE_SECRET_ERROR) {
-				success = FALSE;
+				if (success) {
+					if (error) {
+						nm_assert (local);
+						g_propagate_error (error, g_steal_pointer (&local));
+						error = NULL;
+					} else
+						nm_assert (!local);
+					success = FALSE;
+				}
 				break;
 			}
 			if (success_detail == NM_SETTING_UPDATE_SECRET_SUCCESS_MODIFIED)
@@ -1910,6 +2078,52 @@ nm_connection_clear_secrets_with_flags (NMConnection *connection,
 
 	g_signal_emit (connection, signals[SECRETS_CLEARED], 0);
 }
+
+static gboolean
+_clear_secrets_by_secret_flags_cb (NMSetting *setting,
+                                   const char *secret,
+                                   NMSettingSecretFlags flags,
+                                   gpointer user_data)
+{
+	NMSettingSecretFlags filter_flags = GPOINTER_TO_UINT (user_data);
+	gboolean remove_secret;
+
+	if (filter_flags == NM_SETTING_SECRET_FLAG_NONE) {
+		/* Can't use bitops with SECRET_FLAG_NONE so handle that specifically */
+		remove_secret = (flags != NM_SETTING_SECRET_FLAG_NONE);
+	} else {
+		/* Otherwise if the secret has at least one of the desired flags keep it */
+		remove_secret = !NM_FLAGS_ANY (flags, filter_flags);
+	}
+
+	return remove_secret;
+}
+
+/**
+ * _nm_connection_clear_secrets_by_secret_flags:
+ * @self: the #NMConnection to filter (will be modified)
+ * @filter_flags: the secret flags to control whether to drop/remove
+ *   a secret or to keep it. The meaning of the filter flags is to
+ *   preseve the secrets. The secrets that have matching (see below)
+ *   flags are kept, the others are dropped.
+ *
+ * Removes/drops secrets from @self according to @filter_flags.
+ * If @filter_flags is %NM_SETTING_SECRET_NONE, then only secrets that
+ * have %NM_SETTING_SECRET_NONE flags are kept.
+ * Otherwise, only secrets with secret flags are kept that have at least
+ * one of the filter flags.
+ */
+void
+_nm_connection_clear_secrets_by_secret_flags (NMConnection *self,
+                                              NMSettingSecretFlags filter_flags)
+{
+	nm_connection_clear_secrets_with_flags (self,
+	                                        _clear_secrets_by_secret_flags_cb,
+	                                        GUINT_TO_POINTER (filter_flags));
+}
+
+/*****************************************************************************/
+
 
 /*****************************************************************************/
 
@@ -2029,6 +2243,14 @@ GVariant *
 nm_connection_to_dbus (NMConnection *connection,
                        NMConnectionSerializationFlags flags)
 {
+	return nm_connection_to_dbus_full (connection, flags, NULL);
+}
+
+GVariant *
+nm_connection_to_dbus_full (NMConnection *connection,
+                            NMConnectionSerializationFlags flags,
+                            const NMConnectionSerializationOptions *options)
+{
 	NMConnectionPrivate *priv;
 	GVariantBuilder builder;
 	GHashTableIter iter;
@@ -2041,11 +2263,14 @@ nm_connection_to_dbus (NMConnection *connection,
 	g_variant_builder_init (&builder, NM_VARIANT_TYPE_CONNECTION);
 
 	/* Add each setting's hash to the main hash */
+
+	/* FIXME: the order of serialized settings must be stable. */
+
 	g_hash_table_iter_init (&iter, priv->settings);
 	while (g_hash_table_iter_next (&iter, NULL, &data)) {
 		NMSetting *setting = NM_SETTING (data);
 
-		setting_dict = _nm_setting_to_dbus (setting, connection, flags);
+		setting_dict = _nm_setting_to_dbus (setting, connection, flags, options);
 		if (setting_dict)
 			g_variant_builder_add (&builder, "{s@a{sv}}", nm_setting_get_name (setting), setting_dict);
 	}
@@ -3158,13 +3383,13 @@ nm_connection_default_init (NMConnectionInterface *iface)
 	 */
 	signals[SECRETS_UPDATED] =
 	    g_signal_new (NM_CONNECTION_SECRETS_UPDATED,
-	                 NM_TYPE_CONNECTION,
-	                 G_SIGNAL_RUN_FIRST,
-	                 G_STRUCT_OFFSET (NMConnectionInterface, secrets_updated),
-	                 NULL, NULL,
-	                 g_cclosure_marshal_VOID__STRING,
-	                 G_TYPE_NONE, 1,
-	                 G_TYPE_STRING);
+	                  NM_TYPE_CONNECTION,
+	                  G_SIGNAL_RUN_FIRST,
+	                  G_STRUCT_OFFSET (NMConnectionInterface, secrets_updated),
+	                  NULL, NULL,
+	                  g_cclosure_marshal_VOID__STRING,
+	                  G_TYPE_NONE, 1,
+	                  G_TYPE_STRING);
 
 	/**
 	 * NMConnection::secrets-cleared:
@@ -3175,12 +3400,12 @@ nm_connection_default_init (NMConnectionInterface *iface)
 	 */
 	signals[SECRETS_CLEARED] =
 	    g_signal_new (NM_CONNECTION_SECRETS_CLEARED,
-	                 NM_TYPE_CONNECTION,
-	                 G_SIGNAL_RUN_FIRST,
-	                 G_STRUCT_OFFSET (NMConnectionInterface, secrets_cleared),
-	                 NULL, NULL,
-	                 g_cclosure_marshal_VOID__VOID,
-	                 G_TYPE_NONE, 0);
+	                  NM_TYPE_CONNECTION,
+	                  G_SIGNAL_RUN_FIRST,
+	                  G_STRUCT_OFFSET (NMConnectionInterface, secrets_cleared),
+	                  NULL, NULL,
+	                  g_cclosure_marshal_VOID__VOID,
+	                  G_TYPE_NONE, 0);
 
 	/**
 	 * NMConnection::changed:
@@ -3192,10 +3417,10 @@ nm_connection_default_init (NMConnectionInterface *iface)
 	 */
 	signals[CHANGED] =
 	    g_signal_new (NM_CONNECTION_CHANGED,
-	                 NM_TYPE_CONNECTION,
-	                 G_SIGNAL_RUN_FIRST,
-	                 G_STRUCT_OFFSET (NMConnectionInterface, changed),
-	                 NULL, NULL,
-	                 g_cclosure_marshal_VOID__VOID,
-	                 G_TYPE_NONE, 0);
+	                  NM_TYPE_CONNECTION,
+	                  G_SIGNAL_RUN_FIRST,
+	                  G_STRUCT_OFFSET (NMConnectionInterface, changed),
+	                  NULL, NULL,
+	                  g_cclosure_marshal_VOID__VOID,
+	                  G_TYPE_NONE, 0);
 }

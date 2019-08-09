@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,6 +40,7 @@
 #include "nm-glib-aux/nm-random-utils.h"
 #include "nm-glib-aux/nm-io-utils.h"
 #include "nm-glib-aux/nm-secret-utils.h"
+#include "nm-glib-aux/nm-time-utils.h"
 #include "nm-utils.h"
 #include "nm-core-internal.h"
 #include "nm-setting-connection.h"
@@ -127,6 +127,8 @@ static void
 _nm_singleton_instance_weak_cb (gpointer data,
                                 GObject *where_the_object_was)
 {
+	nm_assert (g_slist_find (_singletons, where_the_object_was));
+
 	_singletons = g_slist_remove (_singletons, where_the_object_was);
 }
 
@@ -142,8 +144,10 @@ _nm_singleton_instance_destroy (void)
 
 		g_object_weak_unref (instance, _nm_singleton_instance_weak_cb, NULL);
 
-		if (instance->ref_count > 1)
-			nm_log_dbg (LOGD_CORE, "disown %s singleton (%p)", G_OBJECT_TYPE_NAME (instance), instance);
+		if (instance->ref_count > 1) {
+			nm_log_dbg (LOGD_CORE, "disown %s singleton ("NM_HASH_OBFUSCATE_PTR_FMT")",
+			            G_OBJECT_TYPE_NAME (instance), NM_HASH_OBFUSCATE_PTR (instance));
+		}
 
 		g_object_unref (instance);
 	}
@@ -1154,13 +1158,10 @@ nm_utils_read_link_absolute (const char *link_file, GError **error)
 
 /*****************************************************************************/
 
-#define MAC_TAG "mac:"
-#define INTERFACE_NAME_TAG "interface-name:"
-#define DEVICE_TYPE_TAG "type:"
-#define DRIVER_TAG "driver:"
-#define SUBCHAN_TAG "s390-subchannels:"
-#define DHCP_PLUGIN_TAG "dhcp-plugin:"
-#define EXCEPT_TAG "except:"
+#define DEVICE_TYPE_TAG                         "type:"
+#define DRIVER_TAG                              "driver:"
+#define DHCP_PLUGIN_TAG                         "dhcp-plugin:"
+#define EXCEPT_TAG                              "except:"
 #define MATCH_TAG_CONFIG_NM_VERSION             "nm-version:"
 #define MATCH_TAG_CONFIG_NM_VERSION_MIN         "nm-version-min:"
 #define MATCH_TAG_CONFIG_NM_VERSION_MAX         "nm-version-max:"
@@ -1359,10 +1360,10 @@ match_device_eval (const char *spec_str,
 		       && nm_streq (spec_str, match_data->device_type);
 	}
 
-	if (_MATCH_CHECK (spec_str, MAC_TAG))
+	if (_MATCH_CHECK (spec_str, NM_MATCH_SPEC_MAC_TAG))
 		return match_device_hwaddr_eval (spec_str, match_data);
 
-	if (_MATCH_CHECK (spec_str, INTERFACE_NAME_TAG)) {
+	if (_MATCH_CHECK (spec_str, NM_MATCH_SPEC_INTERFACE_NAME_TAG)) {
 		gboolean use_pattern = FALSE;
 
 		if (spec_str[0] == '=')
@@ -1414,7 +1415,7 @@ match_device_eval (const char *spec_str,
 		                                  match_data->driver_version ?: "");
 	}
 
-	if (_MATCH_CHECK (spec_str, SUBCHAN_TAG))
+	if (_MATCH_CHECK (spec_str, NM_MATCH_SPEC_S390_SUBCHANNELS_TAG))
 		return match_data_s390_subchannels_eval (spec_str, match_data);
 
 	if (_MATCH_CHECK (spec_str, DHCP_PLUGIN_TAG))
@@ -2543,7 +2544,7 @@ _host_id_read_timestamp (gboolean use_secret_key_file,
 	    && stat (SECRET_KEY_FILE, &st) == 0) {
 		/* don't check for overflow or timestamps in the future. We get whatever
 		 * (bogus) date is on the file. */
-		*out_timestamp_ns = (st.st_mtim.tv_sec * NM_UTILS_NS_PER_SECOND) + st.st_mtim.tv_nsec;
+		*out_timestamp_ns = nm_utils_timespec_to_ns (&st.st_mtim);
 		return TRUE;
 	}
 
@@ -2697,7 +2698,7 @@ _host_id_read (guint8 **out_host_id,
 		} else if (!nm_utils_file_set_contents (SECRET_KEY_FILE,
 		                                        (const char *) new_content,
 		                                        len,
-		                                        0077,
+		                                        0600,
 		                                        &error)) {
 			nm_log_warn (LOGD_CORE, "secret-key: failure to persist secret key in \"%s\" (%s) (use non-persistent key)",
 			             SECRET_KEY_FILE, error->message);
@@ -3813,13 +3814,22 @@ nm_utils_parse_debug_string (const char *string,
 void
 nm_utils_ifname_cpy (char *dst, const char *name)
 {
+	int i;
+
 	g_return_if_fail (dst);
 	g_return_if_fail (name && name[0]);
 
 	nm_assert (nm_utils_is_valid_iface_name (name, NULL));
 
-	if (g_strlcpy (dst, name, IFNAMSIZ) >= IFNAMSIZ)
-		g_return_if_reached ();
+	/* ensures NUL padding of the entire IFNAMSIZ buffer. */
+
+	for (i = 0; i < (int) IFNAMSIZ && name[i] != '\0'; i++)
+		dst[i] = name[i];
+
+	nm_assert (name[i] == '\0');
+
+	for (; i < (int) IFNAMSIZ; i++)
+		dst[i] = '\0';
 }
 
 /*****************************************************************************/

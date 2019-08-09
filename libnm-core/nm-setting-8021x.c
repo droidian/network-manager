@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -92,7 +90,7 @@ typedef struct {
 	EAPMethodValidateFunc v_func;
 } EAPMethodsTable;
 
-static EAPMethodsTable eap_methods_table[];
+static const EAPMethodsTable eap_methods_table[];
 
 /*****************************************************************************/
 
@@ -2787,7 +2785,7 @@ need_secrets_phase2 (NMSetting8021x *self,
 	}
 }
 
-static EAPMethodsTable eap_methods_table[] = {
+static const EAPMethodsTable eap_methods_table[] = {
 	{ "leap", need_secrets_password, verify_identity },
 	{ "pwd", need_secrets_password, verify_identity },
 	{ "md5", need_secrets_password, verify_identity },

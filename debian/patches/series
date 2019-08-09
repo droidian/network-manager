@@ -1,7 +1,9 @@
 Force-online-state-with-unmanaged-devices.patch
 Don-t-setup-Sleep-Monitor-if-not-booted-with-systemd.patch
+
 # Ubuntu patches
 Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
 Update-dnsmasq-parameters.patch
-Disable-general-with-expect.patch
+Disable-core-with-expect.patch
 libnm-Check-self-still-NMManager-or-not.patch
+

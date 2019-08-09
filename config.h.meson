@@ -49,9 +49,6 @@
 /* Define to 1 if you have the <sys/auxv.h> header file. */
 #mesondefine HAVE_SYS_AUXV_H
 
-/* Define if systemd support is available */
-#mesondefine HAVE_SYSTEMD
-
 /* Define if you have Linux Wireless Extensions support */
 #mesondefine HAVE_WEXT
 
@@ -121,14 +118,26 @@
 /* Define to 1 if libsystemd-login is available */
 #mesondefine SESSION_TRACKING_SYSTEMD
 
+/* The size of `pid_t', as computed by sizeof. */
+#mesondefine SIZEOF_PID_T
+
+/* The size of `uid_t', as computed by sizeof. */
+#mesondefine SIZEOF_UID_T
+
+/* The size of `gid_t', as computed by sizeof. */
+#mesondefine SIZEOF_GID_T
+
 /* The size of `dev_t', as computed by sizeof. */
 #mesondefine SIZEOF_DEV_T
+
+/* The size of `ino_t', as computed by sizeof. */
+#mesondefine SIZEOF_INO_T
 
 /* The size of `time_t', as computed by sizeof. */
 #mesondefine SIZEOF_TIME_T
 
-/* The size of `pid_t', as computed by sizeof. */
-#mesondefine SIZEOF_PID_T
+/* The size of `rlim_t', as computed by sizeof. */
+#mesondefine SIZEOF_RLIM_T
 
 /* Define to 1 to use ConsoleKit2 suspend api */
 #mesondefine SUSPEND_RESUME_CONSOLEKIT
@@ -197,9 +206,6 @@
 /* Define if you have dhcpcd */
 #mesondefine WITH_DHCPCD
 
-/* Define for libnm to prevent GIR from loading libnm-glib */
-#mesondefine WITH_FAKE_TYPELIBS
-
 /* Define if JANSSON is enabled */
 #mesondefine WITH_JANSSON
 
@@ -217,12 +223,6 @@
 
 /* Define if you have PPP support */
 #mesondefine WITH_PPP
-
-/* Whether compilation of ibft setting plugin is enabled */
-#mesondefine WITH_SETTINGS_PLUGIN_IBFT
-
-/* Define if you have Wi-Fi support */
-#mesondefine WITH_WIFI
 
 /* Define if you have iwd support */
 #mesondefine WITH_IWD

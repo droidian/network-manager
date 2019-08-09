@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager system settings service
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,6 +27,32 @@
 #include "NetworkManagerUtils.h"
 
 #include "nms-ifcfg-rh-common.h"
+
+/*****************************************************************************/
+
+gboolean
+nms_ifcfg_rh_util_parse_unhandled_spec (const char *unhandled_spec,
+                                        const char **out_unmanaged_spec,
+                                        const char **out_unrecognized_spec)
+{
+	if (unhandled_spec) {
+		if (NM_STR_HAS_PREFIX (unhandled_spec, "unmanaged:")) {
+			NM_SET_OUT (out_unmanaged_spec, &unhandled_spec[NM_STRLEN ("unmanaged:")]);
+			NM_SET_OUT (out_unrecognized_spec, NULL);
+			return TRUE;
+		}
+		if (NM_STR_HAS_PREFIX (unhandled_spec, "unrecognized:")) {
+			NM_SET_OUT (out_unmanaged_spec, NULL);
+			NM_SET_OUT (out_unrecognized_spec, &unhandled_spec[NM_STRLEN ("unrecognized:")]);
+			return TRUE;
+		}
+	}
+	NM_SET_OUT (out_unmanaged_spec, NULL);
+	NM_SET_OUT (out_unrecognized_spec, NULL);
+	return FALSE;
+}
+
+/*****************************************************************************/
 
 /*
  * Check ';[a-fA-F0-9]{8}' file suffix used for temporary files by rpm when
@@ -317,36 +342,41 @@ utils_is_ifcfg_alias_file (const char *alias, const char *ifcfg)
 char *
 utils_detect_ifcfg_path (const char *path, gboolean only_ifcfg)
 {
-	gs_free char *base = NULL;
-	char *ptr, *ifcfg = NULL;
+	const char *base;
 
 	g_return_val_if_fail (path != NULL, NULL);
 
 	if (utils_should_ignore_file (path, only_ifcfg))
 		return NULL;
 
-	base = g_path_get_basename (path);
+	base = strrchr (path, '/');
+	if (!base)
+		base = path;
+	else
+		base += 1;
 
-	if (strncmp (base, IFCFG_TAG, NM_STRLEN (IFCFG_TAG)) == 0) {
+	if (NM_STR_HAS_PREFIX (base, IFCFG_TAG)) {
 		if (base[NM_STRLEN (IFCFG_TAG)] == '\0')
 			return NULL;
 		if (utils_is_ifcfg_alias_file (base, NULL)) {
+			gs_free char *ifcfg = NULL;
+			char *ptr;
+
 			ifcfg = g_strdup (path);
 			ptr = strrchr (ifcfg, ':');
-			if (ptr && ptr > ifcfg) {
+			if (   ptr
+			    && ptr > ifcfg
+			    && !strchr (ptr, '/')) {
 				*ptr = '\0';
 				if (g_file_test (ifcfg, G_FILE_TEST_EXISTS)) {
 					/* the file has a colon, so it is probably an alias.
 					 * To be ~more~ certain that this is an alias file,
 					 * check whether a corresponding base file exists. */
-					if (only_ifcfg) {
-						g_free (ifcfg);
+					if (only_ifcfg)
 						return NULL;
-					}
-					return ifcfg;
+					return g_steal_pointer (&ifcfg);
 				}
 			}
-			g_free (ifcfg);
 		}
 		return g_strdup (path);
 	}

@@ -1314,7 +1314,7 @@ failed (tried to update secrets for a setting that doesn't exist, etc)</p>
 nm_connection_set_path (<em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>,
                         <em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
 <p>Sets the D-Bus path of the connection.  This property is not serialized, and
-is only for the reference of the caller.  Sets the <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection--path"><span class="type">“path”</span></a>
+is only for the reference of the caller.  Sets the <span class="type">“path”</span>
 property.</p>
 <div class="refsect3">
 <a name="nm-connection-set-path.parameters"></a><h4>Parameters</h4>
@@ -2844,6 +2844,14 @@ calling <a class="link" href="NMConnection.html#nm-connection-to-dbus" title="nm
 <td class="enum_member_name"><p><a name="NM-CONNECTION-SERIALIZE-ONLY-SECRETS:CAPS"></a>NM_CONNECTION_SERIALIZE_ONLY_SECRETS</p></td>
 <td class="enum_member_description">
 <p>only serialize secrets</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CONNECTION-SERIALIZE-WITH-SECRETS-AGENT-OWNED:CAPS"></a>NM_CONNECTION_SERIALIZE_WITH_SECRETS_AGENT_OWNED</p></td>
+<td class="enum_member_description">
+<p>if set, only secrets that
+  are agent owned will be serialized. Since: 1.20</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>

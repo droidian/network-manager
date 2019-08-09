@@ -254,7 +254,7 @@ nm_vpn_plugin_error_quark (<em class="parameter"><code><span class="type">void</
 <a name="NMAgentManagerError"></a><h3>enum NMAgentManagerError</h3>
 <p>Errors returned from the secret-agent manager.</p>
 <p>These errors may be returned from operations that could cause secrets to be
-requested (such as <a href="/usr/share/gtk-doc/html/libnm-glib/NMClient.html#nm-client-activate-connection"><code class="function">nm_client_activate_connection()</code></a>), and correspond to D-Bus
+requested (such as <code class="function">nm_client_activate_connection()</code>), and correspond to D-Bus
 errors in the "org.freedesktop.NetworkManager.AgentManager" namespace.</p>
 <div class="refsect3">
 <a name="NMAgentManagerError.members"></a><h4>Members</h4>
@@ -737,7 +737,7 @@ errors in that namespace.</p>
 when they encounter problems retrieving secrets on behalf of NM. They
 correspond to errors in the "org.freedesktop.NetworkManager.SecretManager"
 namespace.</p>
-<p>Client APIs such as <a href="/usr/share/gtk-doc/html/libnm-glib/NMClient.html#nm-client-activate-connection"><code class="function">nm_client_activate_connection()</code></a> will not see these error
+<p>Client APIs such as <code class="function">nm_client_activate_connection()</code> will not see these error
 codes; instead, the secret agent manager will translate them to the
 corresponding <a class="link" href="libnm-nm-errors.html#NMAgentManagerError" title="enum NMAgentManagerError"><span class="type">NMAgentManagerError</span></a> codes.</p>
 <div class="refsect3">

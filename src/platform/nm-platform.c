@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* nm-platform.c - Handle runtime kernel networking configuration
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,6 +33,7 @@
 #include <linux/if_tun.h>
 #include <linux/if_tunnel.h>
 #include <linux/rtnetlink.h>
+#include <linux/tc_act/tc_mirred.h>
 #include <libudev.h>
 
 #include "nm-utils.h"
@@ -50,11 +50,70 @@
 
 /*****************************************************************************/
 
-G_STATIC_ASSERT (sizeof ( ((NMPlatformLink *) NULL)->addr.data ) == NM_UTILS_HWADDR_LEN_MAX);
 G_STATIC_ASSERT (G_STRUCT_OFFSET (NMPlatformIPAddress, address_ptr) == G_STRUCT_OFFSET (NMPlatformIP4Address, address));
 G_STATIC_ASSERT (G_STRUCT_OFFSET (NMPlatformIPAddress, address_ptr) == G_STRUCT_OFFSET (NMPlatformIP6Address, address));
 G_STATIC_ASSERT (G_STRUCT_OFFSET (NMPlatformIPRoute, network_ptr) == G_STRUCT_OFFSET (NMPlatformIP4Route, network));
 G_STATIC_ASSERT (G_STRUCT_OFFSET (NMPlatformIPRoute, network_ptr) == G_STRUCT_OFFSET (NMPlatformIP6Route, network));
+
+/*****************************************************************************/
+
+G_STATIC_ASSERT (sizeof ( ((NMPLinkAddress *) NULL)->data ) == NM_UTILS_HWADDR_LEN_MAX);
+G_STATIC_ASSERT (sizeof ( ((NMPlatformLink *) NULL)->l_address.data ) == NM_UTILS_HWADDR_LEN_MAX);
+G_STATIC_ASSERT (sizeof ( ((NMPlatformLink *) NULL)->l_broadcast.data ) == NM_UTILS_HWADDR_LEN_MAX);
+
+static const char *
+_nmp_link_address_to_string (const NMPLinkAddress *addr,
+                             char buf[static (NM_UTILS_HWADDR_LEN_MAX * 3)])
+{
+	nm_assert (addr);
+
+	if (addr->len > 0) {
+		if (!nm_utils_hwaddr_ntoa_buf (addr->data,
+		                               addr->len,
+		                               TRUE,
+		                               buf,
+		                               NM_UTILS_HWADDR_LEN_MAX * 3)) {
+			buf[0] = '\0';
+			g_return_val_if_reached (buf);
+		}
+	} else
+		buf[0] = '\0';
+
+	return buf;
+}
+
+gconstpointer
+nmp_link_address_get (const NMPLinkAddress *addr, size_t *length)
+{
+	if (   !addr
+	    || addr->len <= 0) {
+		NM_SET_OUT (length, 0);
+		return NULL;
+	}
+
+	if (addr->len > NM_UTILS_HWADDR_LEN_MAX) {
+		NM_SET_OUT (length, 0);
+		g_return_val_if_reached (NULL);
+	}
+
+	NM_SET_OUT (length, addr->len);
+	return addr->data;
+}
+
+GBytes *
+nmp_link_address_get_as_bytes (const NMPLinkAddress *addr)
+{
+	gconstpointer data;
+	size_t length;
+
+	data = nmp_link_address_get (addr, &length);
+
+	return   length > 0
+	       ? g_bytes_new (data, length)
+	       : NULL;
+}
+
+/*****************************************************************************/
 
 #define _NMLOG_DOMAIN           LOGD_PLATFORM
 #define _NMLOG_PREFIX_NAME      "platform"
@@ -220,7 +279,8 @@ nm_platform_setup (NMPlatform *instance)
 
 	nm_singleton_instance_register ();
 
-	nm_log_dbg (LOGD_CORE, "setup %s singleton (%p, %s)", "NMPlatform", singleton_instance, G_OBJECT_TYPE_NAME (instance));
+	nm_log_dbg (LOGD_CORE, "setup %s singleton ("NM_HASH_OBFUSCATE_PTR_FMT")",
+	            "NMPlatform", NM_HASH_OBFUSCATE_PTR (instance));
 }
 
 /**
@@ -479,6 +539,40 @@ nm_platform_sysctl_set (NMPlatform *self, const char *pathid, int dirfd, const c
 	return klass->sysctl_set (self, pathid, dirfd, path, value);
 }
 
+/**
+ * nm_platform_sysctl_set_async:
+ * @self: platform instance
+ * @pathid: if @dirfd is present, this must be the full path that is looked up
+ * @dirfd: optional file descriptor for parent directory for openat()
+ * @path: absolute option path
+ * @values: NULL-terminated array of strings to be written
+ * @callback: function called on termination
+ * @data: data passed to callback function
+ * @cancellable: to cancel the operation
+ *
+ * This function is intended to be used for writing values to sysctl-style
+ * virtual runtime configuration files. This includes not only /proc/sys
+ * but also for example /sys/class. The function does not block and returns
+ * immediately. The callback is always invoked, and asynchronously. The file
+ * is closed after writing each value and reopened to write the next one so
+ * that the function can be used safely on all /proc and /sys files,
+ * independently of how /proc/sys/kernel/sysctl_writes_strict is configured.
+ */
+void nm_platform_sysctl_set_async (NMPlatform *self,
+                                   const char *pathid,
+                                   int dirfd,
+                                   const char *path,
+                                   const char *const *values,
+                                   NMPlatformAsyncCallback callback,
+                                   gpointer data,
+                                   GCancellable *cancellable)
+{
+	_CHECK_SELF_VOID (self, klass);
+
+	klass->sysctl_set_async (self, pathid, dirfd, path, values, callback, data, cancellable);
+}
+
+
 gboolean
 nm_platform_sysctl_ip_conf_set_ipv6_hop_limit_safe (NMPlatform *self,
                                                     const char *iface,
@@ -621,14 +715,14 @@ nm_platform_sysctl_get_int_checked (NMPlatform *self,
 /*****************************************************************************/
 
 char *
-nm_platform_sysctl_ip_conf_get (NMPlatform *platform,
+nm_platform_sysctl_ip_conf_get (NMPlatform *self,
                                 int addr_family,
                                 const char *ifname,
                                 const char *property)
 {
 	char buf[NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE];
 
-	return nm_platform_sysctl_get (platform,
+	return nm_platform_sysctl_get (self,
 	                               NMP_SYSCTL_PATHID_ABSOLUTE (nm_utils_sysctl_ip_conf_path (addr_family,
 	                                                                                         buf,
 	                                                                                         ifname,
@@ -636,7 +730,7 @@ nm_platform_sysctl_ip_conf_get (NMPlatform *platform,
 }
 
 gint64
-nm_platform_sysctl_ip_conf_get_int_checked (NMPlatform *platform,
+nm_platform_sysctl_ip_conf_get_int_checked (NMPlatform *self,
                                             int addr_family,
                                             const char *ifname,
                                             const char *property,
@@ -647,7 +741,7 @@ nm_platform_sysctl_ip_conf_get_int_checked (NMPlatform *platform,
 {
 	char buf[NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE];
 
-	return nm_platform_sysctl_get_int_checked (platform,
+	return nm_platform_sysctl_get_int_checked (self,
 	                                           NMP_SYSCTL_PATHID_ABSOLUTE (nm_utils_sysctl_ip_conf_path (addr_family,
 	                                                                                                     buf,
 	                                                                                                     ifname,
@@ -659,7 +753,7 @@ nm_platform_sysctl_ip_conf_get_int_checked (NMPlatform *platform,
 }
 
 gboolean
-nm_platform_sysctl_ip_conf_set (NMPlatform *platform,
+nm_platform_sysctl_ip_conf_set (NMPlatform *self,
                                 int addr_family,
                                 const char *ifname,
                                 const char *property,
@@ -667,7 +761,7 @@ nm_platform_sysctl_ip_conf_set (NMPlatform *platform,
 {
 	char buf[NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE];
 
-	return nm_platform_sysctl_set (platform,
+	return nm_platform_sysctl_set (self,
 	                               NMP_SYSCTL_PATHID_ABSOLUTE (nm_utils_sysctl_ip_conf_path (addr_family,
 	                                                                                         buf,
 	                                                                                         ifname,
@@ -676,7 +770,7 @@ nm_platform_sysctl_ip_conf_set (NMPlatform *platform,
 }
 
 gboolean
-nm_platform_sysctl_ip_conf_set_int64 (NMPlatform *platform,
+nm_platform_sysctl_ip_conf_set_int64 (NMPlatform *self,
                                       int addr_family,
                                       const char *ifname,
                                       const char *property,
@@ -685,12 +779,53 @@ nm_platform_sysctl_ip_conf_set_int64 (NMPlatform *platform,
 	char buf[NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE];
 	char s[64];
 
-	return nm_platform_sysctl_set (platform,
+	return nm_platform_sysctl_set (self,
 	                               NMP_SYSCTL_PATHID_ABSOLUTE (nm_utils_sysctl_ip_conf_path (addr_family,
 	                                                                                         buf,
 	                                                                                         ifname,
 	                                                                                         property)),
 	                               nm_sprintf_buf (s, "%"G_GINT64_FORMAT, value));
+}
+
+int
+nm_platform_sysctl_ip_conf_get_rp_filter_ipv4 (NMPlatform *self,
+                                               const char *ifname,
+                                               gboolean consider_all,
+                                               gboolean *out_due_to_all)
+{
+	int val, val_all;
+
+	NM_SET_OUT (out_due_to_all, FALSE);
+
+	if (!ifname)
+		return -1;
+
+	val = nm_platform_sysctl_ip_conf_get_int_checked (self,
+	                                                  AF_INET,
+	                                                  ifname,
+	                                                  "rp_filter",
+	                                                  10, 0, 2, -1);
+	if (val == -1)
+		return -1;
+
+	/* the effectively used value is the rp_filter sysctl value of MAX(all,ifname).
+	 * Note that this is the numerical MAX(), despite rp_filter "1" being more strict
+	 * than "2". */
+	if (   val < 2
+	    && consider_all
+	    && !nm_streq (ifname, "all")) {
+		val_all = nm_platform_sysctl_ip_conf_get_int_checked (self,
+		                                                      AF_INET,
+		                                                      "all",
+		                                                      "rp_filter",
+		                                                      10, 0, 2, val);
+		if (val_all > val) {
+			val = val_all;
+			NM_SET_OUT (out_due_to_all, TRUE);
+		}
+	}
+
+	return val;
 }
 
 /*****************************************************************************/
@@ -905,14 +1040,15 @@ nm_platform_link_get_by_ifname (NMPlatform *self, const char *ifname)
 }
 
 struct _nm_platform_link_get_by_address_data {
-	gconstpointer address;
-	guint8 length;
+	gconstpointer data;
+	guint8 len;
 };
 
 static gboolean
 _nm_platform_link_get_by_address_match_link (const NMPObject *obj, struct _nm_platform_link_get_by_address_data *d)
 {
-	return obj->link.addr.len == d->length && !memcmp (obj->link.addr.data, d->address, d->length);
+	return    obj->link.l_address.len == d->len
+	       && !memcmp (obj->link.l_address.data, d->data, d->len);
 }
 
 /**
@@ -932,8 +1068,8 @@ nm_platform_link_get_by_address (NMPlatform *self,
 {
 	const NMPObject *obj;
 	struct _nm_platform_link_get_by_address_data d = {
-		.address = address,
-		.length = length,
+		.data = address,
+		.len  = length,
 	};
 
 	_CHECK_SELF (self, klass, NULL);
@@ -1471,19 +1607,7 @@ nm_platform_link_get_address (NMPlatform *self, int ifindex, size_t *length)
 	const NMPlatformLink *pllink;
 
 	pllink = nm_platform_link_get (self, ifindex);
-	if (   !pllink
-	    || pllink->addr.len <= 0) {
-		NM_SET_OUT (length, 0);
-		return NULL;
-	}
-
-	if (pllink->addr.len > NM_UTILS_HWADDR_LEN_MAX) {
-		NM_SET_OUT (length, 0);
-		g_return_val_if_reached (NULL);
-	}
-
-	NM_SET_OUT (length, pllink->addr.len);
-	return pllink->addr.data;
+	return nmp_link_address_get (pllink ? &pllink->l_address : NULL, length);
 }
 
 /**
@@ -1551,19 +1675,35 @@ nm_platform_link_supports_sriov (NMPlatform *self, int ifindex)
  * @num_vfs: the number of VFs to create
  * @autoprobe: the new autoprobe-drivers value (pass
  *     %NM_TERNARY_DEFAULT to keep current value)
+ * @callback: called when the operation finishes
+ * @callback_data: data passed to @callback
+ * @cancellable: cancellable to abort the operation
+ *
+ * Sets SR-IOV parameters asynchronously without
+ * blocking the main thread. The callback function is
+ * always invoked, and asynchronously.
  */
-gboolean
-nm_platform_link_set_sriov_params (NMPlatform *self,
-                                   int ifindex,
-                                   guint num_vfs,
-                                   NMTernary autoprobe)
+void
+nm_platform_link_set_sriov_params_async (NMPlatform *self,
+                                         int ifindex,
+                                         guint num_vfs,
+                                         NMTernary autoprobe,
+                                         NMPlatformAsyncCallback callback,
+                                         gpointer callback_data,
+                                         GCancellable *cancellable)
 {
-	_CHECK_SELF (self, klass, FALSE);
+	_CHECK_SELF_VOID (self, klass);
 
-	g_return_val_if_fail (ifindex > 0, FALSE);
+	g_return_if_fail (ifindex > 0);
 
 	_LOG3D ("link: setting %u total VFs and autoprobe %d", num_vfs, (int) autoprobe);
-	return klass->link_set_sriov_params (self, ifindex, num_vfs, autoprobe);
+	klass->link_set_sriov_params_async (self,
+	                                    ifindex,
+	                                    num_vfs,
+	                                    autoprobe,
+	                                    callback,
+	                                    callback_data,
+	                                    cancellable);
 }
 
 gboolean
@@ -2369,9 +2509,10 @@ nm_platform_link_6lowpan_get_properties (NMPlatform *self, int ifindex, int *out
 	if (out_parent) {
 		const NMPlatformLink *parent_plink;
 
-		parent_plink = nm_platform_link_get_by_address (self, NM_LINK_TYPE_WPAN,
-		                                                plink->addr.data,
-		                                                plink->addr.len);
+		parent_plink = nm_platform_link_get_by_address (self,
+		                                                NM_LINK_TYPE_WPAN,
+		                                                plink->l_address.data,
+		                                                plink->l_address.len);
 		NM_SET_OUT (out_parent, parent_plink ? parent_plink->ifindex : -1);
 	}
 
@@ -3400,21 +3541,21 @@ nm_platform_ethtool_set_features (NMPlatform *self,
 /*****************************************************************************/
 
 const NMDedupMultiHeadEntry *
-nm_platform_lookup_all (NMPlatform *platform,
+nm_platform_lookup_all (NMPlatform *self,
                         NMPCacheIdType cache_id_type,
                         const NMPObject *obj)
 {
-	return nmp_cache_lookup_all (nm_platform_get_cache (platform),
+	return nmp_cache_lookup_all (nm_platform_get_cache (self),
 	                             cache_id_type,
 	                             obj);
 }
 
 const NMDedupMultiEntry *
-nm_platform_lookup_entry (NMPlatform *platform,
+nm_platform_lookup_entry (NMPlatform *self,
                           NMPCacheIdType cache_id_type,
                           const NMPObject *obj)
 {
-	return nmp_cache_lookup_entry_with_idx_type (nm_platform_get_cache (platform),
+	return nmp_cache_lookup_entry_with_idx_type (nm_platform_get_cache (self),
 	                                             cache_id_type,
 	                                             obj);
 }
@@ -5076,10 +5217,27 @@ nm_platform_qdisc_add (NMPlatform *self,
 	int ifindex = qdisc->ifindex;
 	_CHECK_SELF (self, klass, -NME_BUG);
 
+	/* Note: @qdisc must not be copied or kept alive because the lifetime of qdisc.kind
+	 * is undefined. */
+
 	_LOG3D ("adding or updating a qdisc: %s", nm_platform_qdisc_to_string (qdisc, NULL, 0));
 	return klass->qdisc_add (self, flags, qdisc);
 }
 
+/**
+ * nm_platform_qdisc_sync:
+ * @self: the #NMPlatform instance
+ * @ifindex: the ifindex where to configure the qdiscs.
+ * @known_qdiscs: the list of qdiscs (#NMPObject).
+ *
+ * The function promises not to take any reference to the qdisc
+ * instances from @known_qdiscs, nor to keep them around after
+ * the function returns. This is important, because it allows the
+ * caller to pass NMPlatformQdisc instances which "kind" string
+ * have a limited lifetime.
+ *
+ * Returns: %TRUE on success.
+ */
 gboolean
 nm_platform_qdisc_sync (NMPlatform *self,
                         int ifindex,
@@ -5142,10 +5300,27 @@ nm_platform_tfilter_add (NMPlatform *self,
 	int ifindex = tfilter->ifindex;
 	_CHECK_SELF (self, klass, -NME_BUG);
 
+	/* Note: @tfilter must not be copied or kept alive because the lifetime of tfilter.kind
+	 * and tfilter.action.kind is undefined. */
+
 	_LOG3D ("adding or updating a tfilter: %s", nm_platform_tfilter_to_string (tfilter, NULL, 0));
 	return klass->tfilter_add (self, flags, tfilter);
 }
 
+/**
+ * nm_platform_qdisc_sync:
+ * @self: the #NMPlatform instance
+ * @ifindex: the ifindex where to configure the qdiscs.
+ * @known_tfilters: the list of tfilters (#NMPObject).
+ *
+ * The function promises not to take any reference to the tfilter
+ * instances from @known_tfilters, nor to keep them around after
+ * the function returns. This is important, because it allows the
+ * caller to pass NMPlatformTfilter instances which "kind" string
+ * have a limited lifetime.
+ *
+ * Returns: %TRUE on success.
+ */
 gboolean
 nm_platform_tfilter_sync (NMPlatform *self,
                           int ifindex,
@@ -5268,31 +5443,36 @@ nm_platform_link_to_string (const NMPlatformLink *link, char *buf, gsize len)
 {
 	char master[20];
 	char parent[20];
-	GString *str_flags;
+	char str_flags[1 + NM_PLATFORM_LINK_FLAGS2STR_MAX_LEN + 1];
+	char str_highlighted_flags[50];
+	char *s;
+	gsize l;
 	char str_addrmode[30];
-	gs_free char *str_addr = NULL;
+	char str_address[NM_UTILS_HWADDR_LEN_MAX * 3];
+	char str_broadcast[NM_UTILS_HWADDR_LEN_MAX * 3];
 	char str_inet6_token[NM_UTILS_INET_ADDRSTRLEN];
 	const char *str_link_type;
 
 	if (!nm_utils_to_string_buffer_init_null (link, &buf, &len))
 		return buf;
 
-	str_flags = g_string_new (NULL);
+	s = str_highlighted_flags;
+	l = sizeof (str_highlighted_flags);
 	if (NM_FLAGS_HAS (link->n_ifi_flags, IFF_NOARP))
-		g_string_append (str_flags, "NOARP,");
+		nm_utils_strbuf_append_str (&s, &l, "NOARP,");
 	if (NM_FLAGS_HAS (link->n_ifi_flags, IFF_UP))
-		g_string_append (str_flags, "UP");
+		nm_utils_strbuf_append_str (&s, &l, "UP");
 	else
-		g_string_append (str_flags, "DOWN");
+		nm_utils_strbuf_append_str (&s, &l, "DOWN");
 	if (link->connected)
-		g_string_append (str_flags, ",LOWER_UP");
+		nm_utils_strbuf_append_str (&s, &l, ",LOWER_UP");
+	nm_assert (s > str_highlighted_flags && l > 0);
 
 	if (link->n_ifi_flags) {
-		char str_flags_buf[64];
-
-		nm_platform_link_flags2str (link->n_ifi_flags, str_flags_buf, sizeof (str_flags_buf));
-		g_string_append_printf (str_flags, ";%s", str_flags_buf);
-	}
+		str_flags[0] = ';';
+		nm_platform_link_flags2str (link->n_ifi_flags, &str_flags[1], sizeof (str_flags) - 1);
+	} else
+		str_flags[0] = '\0';
 
 	if (link->master)
 		g_snprintf (master, sizeof (master), " master %d", link->master);
@@ -5306,8 +5486,8 @@ nm_platform_link_to_string (const NMPlatformLink *link, char *buf, gsize len)
 	else
 		parent[0] = 0;
 
-	if (link->addr.len)
-		str_addr = nm_utils_hwaddr_ntoa (link->addr.data, MIN (link->addr.len, sizeof (link->addr.data)));
+	_nmp_link_address_to_string (&link->l_address, str_address);
+	_nmp_link_address_to_string (&link->l_broadcast, str_broadcast);
 
 	str_link_type = nm_link_type_to_string (link->type);
 
@@ -5315,7 +5495,7 @@ nm_platform_link_to_string (const NMPlatformLink *link, char *buf, gsize len)
 	            "%d: " /* ifindex */
 	            "%s" /* name */
 	            "%s" /* parent */
-	            " <%s>" /* flags */
+	            " <%s%s>" /* flags */
 	            " mtu %d"
 	            "%s" /* master */
 	            " arp %u" /* arptype */
@@ -5323,7 +5503,8 @@ nm_platform_link_to_string (const NMPlatformLink *link, char *buf, gsize len)
 	            "%s%s" /* kind */
 	            "%s" /* is-in-udev */
 	            "%s%s" /* addr-gen-mode */
-	            "%s%s" /* addr */
+	            "%s%s" /* l_address */
+	            "%s%s" /* l_broadcast */
 	            "%s%s" /* inet6_token */
 	            "%s%s" /* driver */
 	            " rx:%"G_GUINT64_FORMAT",%"G_GUINT64_FORMAT
@@ -5332,7 +5513,8 @@ nm_platform_link_to_string (const NMPlatformLink *link, char *buf, gsize len)
 	            link->ifindex,
 	            link->name,
 	            parent,
-	            str_flags->str,
+	            str_highlighted_flags,
+	            str_flags,
 	            link->mtu, master,
 	            link->arptype,
 	            str_link_type ?: "???",
@@ -5341,15 +5523,16 @@ nm_platform_link_to_string (const NMPlatformLink *link, char *buf, gsize len)
 	            link->initialized ? " init" : " not-init",
 	            link->inet6_addr_gen_mode_inv ? " addrgenmode " : "",
 	            link->inet6_addr_gen_mode_inv ? nm_platform_link_inet6_addrgenmode2str (_nm_platform_uint8_inv (link->inet6_addr_gen_mode_inv), str_addrmode, sizeof (str_addrmode)) : "",
-	            str_addr ? " addr " : "",
-	            str_addr ?: "",
+	            str_address[0] ? " addr " : "",
+	            str_address[0] ? str_address : "",
+	            str_broadcast[0] ? " brd " : "",
+	            str_broadcast[0] ? str_broadcast : "",
 	            link->inet6_token.id ? " inet6token " : "",
 	            link->inet6_token.id ? nm_utils_inet6_interface_identifier_to_token (link->inet6_token, str_inet6_token) : "",
 	            link->driver ? " driver " : "",
 	            link->driver ?: "",
 	            link->rx_packets, link->rx_bytes,
 	            link->tx_packets, link->tx_bytes);
-	g_string_free (str_flags, TRUE);
 	return buf;
 }
 
@@ -6426,19 +6609,41 @@ const char *
 nm_platform_qdisc_to_string (const NMPlatformQdisc *qdisc, char *buf, gsize len)
 {
 	char str_dev[TO_STRING_DEV_BUF_SIZE];
+	const char *buf0;
 
 	if (!nm_utils_to_string_buffer_init_null (qdisc, &buf, &len))
 		return buf;
 
-	g_snprintf (buf, len, "%s%s family %d handle %x parent %x info %x",
-	            qdisc->kind,
-	            _to_string_dev (NULL, qdisc->ifindex, str_dev, sizeof (str_dev)),
-	            qdisc->addr_family,
-	            qdisc->handle,
-	            qdisc->parent,
-	            qdisc->info);
+	buf0 = buf;
 
-	return buf;
+	nm_utils_strbuf_append (&buf, &len, "%s%s family %u handle %x parent %x info %x",
+	                        qdisc->kind,
+	                        _to_string_dev (NULL, qdisc->ifindex, str_dev, sizeof (str_dev)),
+	                        qdisc->addr_family,
+	                        qdisc->handle,
+	                        qdisc->parent,
+	                        qdisc->info);
+
+	if (nm_streq0 (qdisc->kind, "fq_codel")) {
+		if (qdisc->fq_codel.limit)
+			nm_utils_strbuf_append (&buf, &len, " limit %u", qdisc->fq_codel.limit);
+		if (qdisc->fq_codel.flows)
+			nm_utils_strbuf_append (&buf, &len, " flows %u", qdisc->fq_codel.flows);
+		if (qdisc->fq_codel.target)
+			nm_utils_strbuf_append (&buf, &len, " target %u", qdisc->fq_codel.target);
+		if (qdisc->fq_codel.interval)
+			nm_utils_strbuf_append (&buf, &len, " interval %u", qdisc->fq_codel.interval);
+		if (qdisc->fq_codel.quantum)
+			nm_utils_strbuf_append (&buf, &len, " quantum %u", qdisc->fq_codel.quantum);
+		if (qdisc->fq_codel.ce_threshold != NM_PLATFORM_FQ_CODEL_CE_THRESHOLD_DISABLED)
+			nm_utils_strbuf_append (&buf, &len, " ce_threshold %u", qdisc->fq_codel.ce_threshold);
+		if (qdisc->fq_codel.memory_limit != NM_PLATFORM_FQ_CODEL_MEMORY_LIMIT_UNSET)
+			nm_utils_strbuf_append (&buf, &len, " memory_limit %u", qdisc->fq_codel.memory_limit);
+		if (qdisc->fq_codel.ecn)
+			nm_utils_strbuf_append (&buf, &len, " ecn");
+	}
+
+	return buf0;
 }
 
 void
@@ -6451,6 +6656,18 @@ nm_platform_qdisc_hash_update (const NMPlatformQdisc *obj, NMHashState *h)
 	                     obj->handle,
 	                     obj->parent,
 	                     obj->info);
+	if (nm_streq0 (obj->kind, "fq_codel")) {
+		nm_hash_update_vals (h,
+		                     obj->fq_codel.limit,
+		                     obj->fq_codel.flows,
+		                     obj->fq_codel.target,
+		                     obj->fq_codel.interval,
+		                     obj->fq_codel.quantum,
+		                     obj->fq_codel.ce_threshold,
+		                     obj->fq_codel.memory_limit,
+		                     NM_HASH_COMBINE_BOOLS (guint8,
+		                                            obj->fq_codel.ecn));
+	}
 }
 
 int
@@ -6463,6 +6680,17 @@ nm_platform_qdisc_cmp (const NMPlatformQdisc *a, const NMPlatformQdisc *b)
 	NM_CMP_FIELD (a, b, addr_family);
 	NM_CMP_FIELD (a, b, handle);
 	NM_CMP_FIELD (a, b, info);
+
+	if (nm_streq0 (a->kind, "fq_codel")) {
+		NM_CMP_FIELD (a, b, fq_codel.limit);
+		NM_CMP_FIELD (a, b, fq_codel.flows);
+		NM_CMP_FIELD (a, b, fq_codel.target);
+		NM_CMP_FIELD (a, b, fq_codel.interval);
+		NM_CMP_FIELD (a, b, fq_codel.quantum);
+		NM_CMP_FIELD (a, b, fq_codel.ce_threshold);
+		NM_CMP_FIELD (a, b, fq_codel.memory_limit);
+		NM_CMP_FIELD_UNSAFE (a, b, fq_codel.ecn);
+	}
 
 	return 0;
 }
@@ -6492,11 +6720,18 @@ nm_platform_tfilter_to_string (const NMPlatformTfilter *tfilter, char *buf, gsiz
 			                                                        NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL
 			                                                      | NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII,
 			                                                      &t));
+		} else if (nm_streq (tfilter->action.kind, NM_PLATFORM_ACTION_KIND_MIRRED)) {
+			nm_utils_strbuf_append (&p, &l, "%s%s%s%s dev %d",
+			                        tfilter->action.mirred.ingress ? " ingress" : "",
+			                        tfilter->action.mirred.egress ? " egress" : "",
+			                        tfilter->action.mirred.mirror ? " mirror" : "",
+			                        tfilter->action.mirred.redirect ? " redirect" : "",
+			                        tfilter->action.mirred.ifindex);
 		}
 	} else
 		act_buf[0] = '\0';
 
-	g_snprintf (buf, len, "%s%s family %d handle %x parent %x info %x%s",
+	g_snprintf (buf, len, "%s%s family %u handle %x parent %x info %x%s",
 	            tfilter->kind,
 	            _to_string_dev (NULL, tfilter->ifindex, str_dev, sizeof (str_dev)),
 	            tfilter->addr_family,
@@ -6520,8 +6755,17 @@ nm_platform_tfilter_hash_update (const NMPlatformTfilter *obj, NMHashState *h)
 	                     obj->info);
 	if (obj->action.kind) {
 		nm_hash_update_str (h, obj->action.kind);
-		if (nm_streq (obj->action.kind, NM_PLATFORM_ACTION_KIND_SIMPLE))
+		if (nm_streq (obj->action.kind, NM_PLATFORM_ACTION_KIND_SIMPLE)) {
 			nm_hash_update_strarr (h, obj->action.simple.sdata);
+		} else if (nm_streq (obj->action.kind, NM_PLATFORM_ACTION_KIND_MIRRED)) {
+			nm_hash_update_vals (h,
+			                     obj->action.mirred.ifindex,
+			                     NM_HASH_COMBINE_BOOLS (guint8,
+			                                            obj->action.mirred.ingress,
+			                                            obj->action.mirred.egress,
+			                                            obj->action.mirred.mirror,
+			                                            obj->action.mirred.redirect));
+		}
 	}
 }
 
@@ -6538,8 +6782,15 @@ nm_platform_tfilter_cmp (const NMPlatformTfilter *a, const NMPlatformTfilter *b)
 
 	NM_CMP_FIELD_STR_INTERNED (a, b, action.kind);
 	if (a->action.kind) {
-		if (nm_streq (a->action.kind, NM_PLATFORM_ACTION_KIND_SIMPLE))
+		if (nm_streq (a->action.kind, NM_PLATFORM_ACTION_KIND_SIMPLE)) {
 			NM_CMP_FIELD_STR (a, b, action.simple.sdata);
+		} else if (nm_streq (a->action.kind, NM_PLATFORM_ACTION_KIND_MIRRED)) {
+			NM_CMP_FIELD (a, b, action.mirred.ifindex);
+			NM_CMP_FIELD_UNSAFE (a, b, action.mirred.ingress);
+			NM_CMP_FIELD_UNSAFE (a, b, action.mirred.egress);
+			NM_CMP_FIELD_UNSAFE (a, b, action.mirred.mirror);
+			NM_CMP_FIELD_UNSAFE (a, b, action.mirred.redirect);
+		}
 	}
 
 	return 0;
@@ -6641,7 +6892,8 @@ nm_platform_link_hash_update (const NMPlatformLink *obj, NMHashState *h)
 	nm_hash_update_str0 (h, obj->kind);
 	nm_hash_update_str0 (h, obj->driver);
 	/* nm_hash_update_mem() also hashes the length obj->addr.len */
-	nm_hash_update_mem (h, obj->addr.data, obj->addr.len);
+	nm_hash_update_mem (h, obj->l_address.data, NM_MIN (obj->l_address.len, sizeof (obj->l_address.data)));
+	nm_hash_update_mem (h, obj->l_broadcast.data, NM_MIN (obj->l_broadcast.len, sizeof (obj->l_broadcast.data)));
 }
 
 int
@@ -6658,12 +6910,15 @@ nm_platform_link_cmp (const NMPlatformLink *a, const NMPlatformLink *b)
 	NM_CMP_FIELD (a, b, mtu);
 	NM_CMP_FIELD_BOOL (a, b, initialized);
 	NM_CMP_FIELD (a, b, arptype);
-	NM_CMP_FIELD (a, b, addr.len);
+	NM_CMP_FIELD (a, b, l_address.len);
+	NM_CMP_FIELD (a, b, l_broadcast.len);
 	NM_CMP_FIELD (a, b, inet6_addr_gen_mode_inv);
 	NM_CMP_FIELD_STR_INTERNED (a, b, kind);
 	NM_CMP_FIELD_STR_INTERNED (a, b, driver);
-	if (a->addr.len)
-		NM_CMP_FIELD_MEMCMP_LEN (a, b, addr.data, a->addr.len);
+	if (a->l_address.len)
+		NM_CMP_FIELD_MEMCMP_LEN (a, b, l_address.data, a->l_address.len);
+	if (a->l_broadcast.len)
+		NM_CMP_FIELD_MEMCMP_LEN (a, b, l_broadcast.data, a->l_broadcast.len);
 	NM_CMP_FIELD_MEMCMP (a, b, inet6_token);
 	NM_CMP_FIELD (a, b, rx_packets);
 	NM_CMP_FIELD (a, b, rx_bytes);

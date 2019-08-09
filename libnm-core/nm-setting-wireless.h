@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -123,6 +121,15 @@ typedef enum { /*< flags >*/
  * for this connection.
  */
 #define NM_SETTING_WIRELESS_MODE_INFRA  "infrastructure"
+
+/**
+ * NM_SETTING_WIRELESS_MODE_MESH:
+ *
+ * Indicates that the connection should create a mesh point.
+ *
+ * Since: 1.20
+ */
+#define NM_SETTING_WIRELESS_MODE_MESH   "mesh"
 
 /**
  * NMSettingWirelessPowersave:

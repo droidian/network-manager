@@ -18,10 +18,15 @@ die() {
 # options to yield the most symbols.
 _build() {
     git clean -fdx
-    ./autogen.sh --enable-ld-gc --enable-ifcfg-rh --enable-ifupdown \
-        --enable-config-plugin-ibft --enable-teamdctl --enable-wifi \
-        --with-modem-manager-1 --with-ofono --with-more-asserts \
-        --with-more-logging
+    ./autogen.sh --enable-ld-gc \
+                 --enable-ifcfg-rh \
+                 --enable-ifupdown \
+                 --enable-teamdctl \
+                 --enable-wifi \
+                 --with-modem-manager-1 \
+                 --with-ofono \
+                 --with-more-asserts \
+                 --with-more-logging
     make -j20
 }
 
@@ -56,7 +61,7 @@ get_symbols_missing() {
                      ./src/devices/*/${libs} \
                      ./src/ppp/${libs} -name '*.so' 2>/dev/null); do
         call_nm "$f" |
-            sed -n 's/^\([U]\) \(\(nm_\|nmp_\|_nm\|NM\|_NM\|c_siphash_\).*\)$/\2/p'
+            sed -n 's/^\([U]\) \(\(nm_\|nmp_\|_nm\|NM\|_NM\|nmtst_\|c_siphash_\|c_list_\).*\)$/\2/p'
     done) |
         _sort |
         grep -Fx -f <(get_symbols_explict) -v |

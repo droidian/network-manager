@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -157,7 +156,6 @@ NMConfigData *nm_config_get_data_orig (NMConfig *config);
 #define NM_CONFIG_GET_DATA      (nm_config_get_data (nm_config_get ()))
 #define NM_CONFIG_GET_DATA_ORIG (nm_config_get_data_orig (nm_config_get ()))
 
-gboolean nm_config_get_monitor_connection_files (NMConfig *config);
 const char *nm_config_get_log_level (NMConfig *config);
 const char *nm_config_get_log_domains (NMConfig *config);
 NMConfigConfigureAndQuitType nm_config_get_configure_and_quit (NMConfig *config);
@@ -270,6 +268,7 @@ gboolean nm_config_device_state_write (int ifindex,
                                        int nm_owned,
                                        guint32 route_metric_default_aspired,
                                        guint32 route_metric_default_effective,
+                                       const char *next_server,
                                        const char *root_path);
 
 void nm_config_device_state_prune_unseen (GHashTable *seen_ifindexes);

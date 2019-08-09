@@ -43,6 +43,11 @@
                       OUT o         path);
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnectionUnsaved" title="The AddConnectionUnsaved() method">AddConnectionUnsaved</a> (IN  a{sa{sv}} connection,
                       OUT o         path);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnection2" title="The AddConnection2() method">AddConnection2</a>       (IN  a{sa{sv}} settings,
+                      IN  u         flags,
+                      IN  a{sv}     args,
+                      OUT o         path,
+                      OUT a{sv}     result);
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.LoadConnections" title="The LoadConnections() method">LoadConnections</a>      (IN  as        filenames,
                       OUT b         status,
                       OUT as        failures);
@@ -158,9 +163,7 @@ AddConnectionUnsaved (IN  a{sa{sv}} connection,
         does not start the network connection unless (1) device is idle and able
         to connect to the network described by the new connection, and (2) the
         connection is allowed to be started automatically. Use the 'Save' method
-        on the connection to save these changes to disk. Note that unsaved changes
-        will be lost if the connection is reloaded from disk (either automatically
-        on file change or due to an explicit ReloadConnections call).
+        on the connection to save these changes to disk.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -175,6 +178,68 @@ AddConnectionUnsaved (IN  a{sa{sv}} connection,
 <tr>
 <td><p><span class="term"><code class="literal">OUT o <em class="parameter"><code>path</code></em></code>:</span></p></td>
 <td><p>Object path of the new connection that was just added.</p></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnection2"></a><h3>The AddConnection2() method</h3>
+<pre class="programlisting">
+AddConnection2 (IN  a{sa{sv}} settings,
+                IN  u         flags,
+                IN  a{sv}     args,
+                OUT o         path,
+                OUT a{sv}     result);
+</pre>
+<p>          "0x1" (to-disk),
+          "0x2" (in-memory),
+          "0x20" (block-autoconnect).
+          Unknown flags cause the call to fail.
+        <em class="parameter"><code>args</code></em>: optional arguments dictionary, for extensibility. Currently no
+          arguments are accepted. Specifying unknown keys causes the call
+          to fail.
+        <em class="parameter"><code>path</code></em>: Object path of the new connection that was just added.
+        <em class="parameter"><code>result</code></em>: output argument, currently no additional results are returned.
+</p>
+<p>        Add a new connection profile.
+</p>
+<p>        Either the flags 0x1 (to-disk) or 0x2 (in-memory) must be specified.
+        The effect is whether to behave like AddConnection or AddConnectionUnsaved.
+        If 0x20 (block-autoconnect) is specified, autoconnect for the new profile
+        is blocked from the beginnin. Otherwise, the profile might automatically
+        connect if a suitable device is around.
+</p>
+<p>        AddConnection2 is a extensible alternative to AddConnection, and AddConnectionUnsaved.
+        The new variant can do everything that the older variants could, and more.
+</p>
+<p>        Since: 1.20
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="literal">IN a{sa{sv}} <em class="parameter"><code>settings</code></em></code>:</span></p></td>
+<td><p>New connection settings, properties, and (optionally) secrets.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">IN u <em class="parameter"><code>flags</code></em></code>:</span></p></td>
+<td><p>optional flags argument. Currently the following flags are supported:</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>args</code></em></code>:</span></p></td>
+<td><p></p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">OUT o <em class="parameter"><code>path</code></em></code>:</span></p></td>
+<td><p></p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>result</code></em></code>:</span></p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table></div>

@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager system settings service - keyfile plugin
  *
  * This program is free software; you can redistribute it and/or modify
@@ -162,6 +161,11 @@ nms_keyfile_reader_from_keyfile (GKeyFile *key_file,
 NMConnection *
 nms_keyfile_reader_from_file (const char *full_filename,
                               const char *profile_dir,
+                              struct stat *out_stat,
+                              NMTernary *out_is_nm_generated,
+                              NMTernary *out_is_volatile,
+                              char **out_shadowed_storage,
+                              NMTernary *out_shadowed_owned,
                               GError **error)
 {
 	gs_unref_keyfile GKeyFile *key_file = NULL;
@@ -171,9 +175,12 @@ nms_keyfile_reader_from_file (const char *full_filename,
 	nm_assert (full_filename && full_filename[0] == '/');
 	nm_assert (!profile_dir || profile_dir[0] == '/');
 
+	NM_SET_OUT (out_is_nm_generated, NM_TERNARY_DEFAULT);
+	NM_SET_OUT (out_is_volatile, NM_TERNARY_DEFAULT);
+
 	if (!nms_keyfile_utils_check_file_permissions (NMS_KEYFILE_FILETYPE_KEYFILE,
 	                                               full_filename,
-	                                               NULL,
+	                                               out_stat,
 	                                               error))
 		return NULL;
 
@@ -194,6 +201,26 @@ nms_keyfile_reader_from_file (const char *full_filename,
 		g_object_unref (connection);
 		connection = NULL;
 	}
+
+	NM_SET_OUT (out_is_nm_generated, nm_key_file_get_boolean (key_file,
+	                                                          NM_KEYFILE_GROUP_NMMETA,
+	                                                          NM_KEYFILE_KEY_NMMETA_NM_GENERATED,
+	                                                          NM_TERNARY_DEFAULT));
+
+	NM_SET_OUT (out_is_volatile, nm_key_file_get_boolean (key_file,
+	                                                      NM_KEYFILE_GROUP_NMMETA,
+	                                                      NM_KEYFILE_KEY_NMMETA_VOLATILE,
+	                                                      NM_TERNARY_DEFAULT));
+
+	NM_SET_OUT (out_shadowed_storage, g_key_file_get_string (key_file,
+	                                                         NM_KEYFILE_GROUP_NMMETA,
+	                                                         NM_KEYFILE_KEY_NMMETA_SHADOWED_STORAGE,
+	                                                         NULL));
+
+	NM_SET_OUT (out_shadowed_owned, nm_key_file_get_boolean (key_file,
+	                                                         NM_KEYFILE_GROUP_NMMETA,
+	                                                         NM_KEYFILE_KEY_NMMETA_SHADOWED_OWNED,
+	                                                         NM_TERNARY_DEFAULT));
 
 	return connection;
 }

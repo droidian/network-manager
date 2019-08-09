@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -229,6 +228,7 @@ nm_utils_connection_has_default_route (NMConnection *connection,
 			goto out;
 	} else {
 		if (NM_IN_STRSET (method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
+		                          NM_SETTING_IP6_CONFIG_METHOD_DISABLED,
 		                          NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL))
 			goto out;
 	}
@@ -249,13 +249,15 @@ nm_utils_complete_generic (NMPlatform *platform,
                            const char *preferred_id,
                            const char *fallback_id_prefix,
                            const char *ifname_prefix,
+                           const char *ifname,
                            gboolean default_enable_ipv6)
 {
 	NMSettingConnection *s_con;
-	char *id, *ifname;
+	char *id, *generated_ifname;
 	GHashTable *parameters;
 
 	g_assert (fallback_id_prefix);
+	g_return_if_fail (ifname_prefix == NULL || ifname == NULL);
 
 	s_con = nm_connection_get_setting_connection (connection);
 	if (!s_con) {
@@ -278,10 +280,12 @@ nm_utils_complete_generic (NMPlatform *platform,
 	}
 
 	/* Add an interface name, if requested */
-	if (ifname_prefix && !nm_setting_connection_get_interface_name (s_con)) {
-		ifname = get_new_connection_ifname (platform, existing_connections, ifname_prefix);
+	if (ifname) {
 		g_object_set (G_OBJECT (s_con), NM_SETTING_CONNECTION_INTERFACE_NAME, ifname, NULL);
-		g_free (ifname);
+	} else if (ifname_prefix && !nm_setting_connection_get_interface_name (s_con)) {
+		generated_ifname = get_new_connection_ifname (platform, existing_connections, ifname_prefix);
+		g_object_set (G_OBJECT (s_con), NM_SETTING_CONNECTION_INTERFACE_NAME, generated_ifname, NULL);
+		g_free (generated_ifname);
 	}
 
 	/* Normalize */
@@ -919,29 +923,30 @@ nm_ip_routing_rule_to_platform (const NMIPRoutingRule *rule,
 	nm_assert (out_pl);
 
 	*out_pl = (NMPlatformRoutingRule) {
-		.addr_family = nm_ip_routing_rule_get_addr_family (rule),
-		.flags       = (  nm_ip_routing_rule_get_invert (rule)
-		                ? FIB_RULE_INVERT
-		                : 0),
-		.priority    = nm_ip_routing_rule_get_priority (rule),
-		.tos         = nm_ip_routing_rule_get_tos (rule),
-		.ip_proto    = nm_ip_routing_rule_get_ipproto (rule),
-		.fwmark      = nm_ip_routing_rule_get_fwmark (rule),
-		.fwmask      = nm_ip_routing_rule_get_fwmask (rule),
-		.sport_range = {
-		    .start   = nm_ip_routing_rule_get_source_port_start (rule),
-		    .end     = nm_ip_routing_rule_get_source_port_end (rule),
+		.addr_family                = nm_ip_routing_rule_get_addr_family (rule),
+		.flags                      = (  nm_ip_routing_rule_get_invert (rule)
+		                               ? FIB_RULE_INVERT
+		                               : 0),
+		.priority                   = nm_ip_routing_rule_get_priority (rule),
+		.tos                        = nm_ip_routing_rule_get_tos (rule),
+		.ip_proto                   = nm_ip_routing_rule_get_ipproto (rule),
+		.fwmark                     = nm_ip_routing_rule_get_fwmark (rule),
+		.fwmask                     = nm_ip_routing_rule_get_fwmask (rule),
+		.sport_range                = {
+		    .start                  = nm_ip_routing_rule_get_source_port_start (rule),
+		    .end                    = nm_ip_routing_rule_get_source_port_end (rule),
 		},
-		.dport_range = {
-		    .start   = nm_ip_routing_rule_get_destination_port_start (rule),
-		    .end     = nm_ip_routing_rule_get_destination_port_end (rule),
+		.dport_range                = {
+		    .start                  = nm_ip_routing_rule_get_destination_port_start (rule),
+		    .end                    = nm_ip_routing_rule_get_destination_port_end (rule),
 		},
-		.src         = *(nm_ip_routing_rule_get_from_bin (rule) ?: &nm_ip_addr_zero),
-		.dst         = *(nm_ip_routing_rule_get_to_bin (rule)   ?: &nm_ip_addr_zero),
-		.src_len     = nm_ip_routing_rule_get_from_len (rule),
-		.dst_len     = nm_ip_routing_rule_get_to_len (rule),
-		.action      = nm_ip_routing_rule_get_action (rule),
-		.table       = nm_ip_routing_rule_get_table (rule),
+		.src                        = *(nm_ip_routing_rule_get_from_bin (rule) ?: &nm_ip_addr_zero),
+		.dst                        = *(nm_ip_routing_rule_get_to_bin (rule)   ?: &nm_ip_addr_zero),
+		.src_len                    = nm_ip_routing_rule_get_from_len (rule),
+		.dst_len                    = nm_ip_routing_rule_get_to_len (rule),
+		.action                     = nm_ip_routing_rule_get_action (rule),
+		.table                      = nm_ip_routing_rule_get_table (rule),
+		.suppress_prefixlen_inverse = ~((guint32) nm_ip_routing_rule_get_suppress_prefixlength (rule)),
 	};
 
 	nm_ip_routing_rule_get_xifname_bin (rule, TRUE,  out_pl->iifname);
@@ -955,7 +960,8 @@ nm_ip_routing_rule_to_platform (const NMIPRoutingRule *rule,
 struct _NMShutdownWaitObjHandle {
 	CList lst;
 	GObject *watched_obj;
-	const char *msg_reason;
+	char *msg_reason;
+	bool free_msg_reason:1;
 };
 
 static CList _shutdown_waitobj_lst_head;
@@ -964,6 +970,8 @@ static void
 _shutdown_waitobj_unregister (NMShutdownWaitObjHandle *handle)
 {
 	c_list_unlink_stale (&handle->lst);
+	if (handle->free_msg_reason)
+		g_free (handle->msg_reason);
 	g_slice_free (NMShutdownWaitObjHandle, handle);
 
 	/* FIXME(shutdown): check whether the object list is empty, and
@@ -982,13 +990,14 @@ _shutdown_waitobj_cb (gpointer user_data,
 }
 
 /**
- * _nm_shutdown_wait_obj_register:
+ * nm_shutdown_wait_obj_register_full:
  * @watched_obj: the object to watch. Takes a weak reference on the object
  *   to be notified when it gets destroyed.
- * @msg_reason: a reason message, for debugging and logging purposes. It
- *   must be a static string. Or at least, be alive at least as long as
- *   @watched_obj. So, theoretically, if you need a dynamic @msg_reason,
- *   you could attach it to @watched_obj's user-data.
+ * @msg_reason: a reason message, for debugging and logging purposes.
+ * @free_msg_reason: if %TRUE, then ownership of @msg_reason will be taken
+ *   and the string will be freed with g_free() afterwards. If %FALSE,
+ *   the caller must ensure that @msg_reason string outlives the watched
+ *   objects (e.g. being a static strings).
  *
  * Keep track of @watched_obj until it gets destroyed. During shutdown,
  * we wait until all watched objects are destroyed. This is useful, if
@@ -1005,8 +1014,9 @@ _shutdown_waitobj_cb (gpointer user_data,
  *   once it gets destroyed.
  */
 NMShutdownWaitObjHandle *
-_nm_shutdown_wait_obj_register (GObject *watched_obj,
-                                const char *msg_reason)
+nm_shutdown_wait_obj_register_full (GObject *watched_obj,
+                                    char *msg_reason,
+                                    gboolean free_msg_reason)
 {
 	NMShutdownWaitObjHandle *handle;
 
@@ -1016,11 +1026,14 @@ _nm_shutdown_wait_obj_register (GObject *watched_obj,
 		c_list_init (&_shutdown_waitobj_lst_head);
 
 	handle = g_slice_new (NMShutdownWaitObjHandle);
-	handle->watched_obj = watched_obj;
-	/* we don't clone the string. We require the caller to use pass a static message.
-	 * If he really cannot do that, he should attach the string to the watched_obj
-	 * as user-data. */
-	handle->msg_reason = msg_reason;
+	*handle = (NMShutdownWaitObjHandle) {
+		/* depending on @free_msg_reason, we take ownership of @msg_reason.
+		 * In either case, we just reference the string without cloning
+		 * it. */
+		.watched_obj     = watched_obj,
+		.msg_reason      = msg_reason,
+		.free_msg_reason = free_msg_reason,
+	};
 	c_list_link_tail (&_shutdown_waitobj_lst_head, &handle->lst);
 	g_object_weak_ref (watched_obj, _shutdown_waitobj_cb, handle);
 	return handle;

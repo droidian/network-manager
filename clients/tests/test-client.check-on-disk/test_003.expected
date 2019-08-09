@@ -32,9 +32,9 @@ con-1    5fcfd6d7-1e63-3332-8826-a7eda103792d  ethernet  --
 con-xx1  UUID-con-xx1-REPLACED-REPLACED-REPLA  ethernet  --     
 
 <<<
-size: 332
+size: 353
 location: clients/tests/test-client.py:893:test_003()/4
-cmd: $NMCLI connection add type gsm autoconnect no con-name con-gsm1 ifname '*' apn xyz.con-gsm1 serial.baud 5 serial.send-delay 100 serial.pari 1
+cmd: $NMCLI connection add type gsm autoconnect no con-name con-gsm1 ifname '*' apn xyz.con-gsm1 serial.baud 5 serial.send-delay 100 serial.pari 1 ipv4.dns-options ' '
 lang: C
 returncode: 0
 stdout: 81 bytes
@@ -150,12 +150,12 @@ id
 path
 uuid
 <<<
-size: 4073
+size: 4116
 location: clients/tests/test-client.py:911:test_003()/12
 cmd: $NMCLI con s con-gsm1
 lang: C
 returncode: 0
-stdout: 3939 bytes
+stdout: 3982 bytes
 >>>
 connection.id:                          con-gsm1
 connection.uuid:                        UUID-con-gsm1-REPLACED-REPLACED-REPL
@@ -180,6 +180,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
@@ -204,7 +205,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -246,12 +247,12 @@ proxy.pac-url:                          --
 proxy.pac-script:                       --
 
 <<<
-size: 4102
+size: 4145
 location: clients/tests/test-client.py:911:test_003()/13
 cmd: $NMCLI con s con-gsm1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 3958 bytes
+stdout: 4001 bytes
 >>>
 connection.id:                          con-gsm1
 connection.uuid:                        UUID-con-gsm1-REPLACED-REPLACED-REPL
@@ -276,6 +277,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
@@ -300,7 +302,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -474,12 +476,12 @@ UUID                                  NAME
 UUID-ethernet-REPLACED-REPLACED-REPL  ethernet 
 
 <<<
-size: 3891
+size: 3934
 location: clients/tests/test-client.py:942:test_003()/25
 cmd: $NMCLI -f ALL con s ethernet
 lang: C
 returncode: 0
-stdout: 3750 bytes
+stdout: 3793 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -504,6 +506,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -521,7 +524,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -542,7 +545,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -566,12 +569,12 @@ proxy.pac-url:                          --
 proxy.pac-script:                       --
 
 <<<
-size: 3919
+size: 3962
 location: clients/tests/test-client.py:942:test_003()/26
 cmd: $NMCLI -f ALL con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 3768 bytes
+stdout: 3811 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -596,6 +599,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -613,7 +617,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -634,7 +638,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -678,12 +682,12 @@ stdout: 51 bytes
 GENERAL.STATE:                          aktywowano
 
 <<<
-size: 4548
+size: 4591
 location: clients/tests/test-client.py:948:test_003()/29
 cmd: $NMCLI con s ethernet
 lang: C
 returncode: 0
-stdout: 4414 bytes
+stdout: 4457 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -708,6 +712,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -725,7 +730,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -746,7 +751,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -782,12 +787,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 4580
+size: 4623
 location: clients/tests/test-client.py:948:test_003()/30
 cmd: $NMCLI con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 4436 bytes
+stdout: 4479 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -812,6 +817,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -829,7 +835,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -850,7 +856,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -1330,12 +1336,12 @@ UUID                                  NAME
 UUID-ethernet-REPLACED-REPLACED-REPL  ethernet 
 
 <<<
-size: 3891
+size: 3934
 location: clients/tests/test-client.py:942:test_003()/48
 cmd: $NMCLI -f ALL con s ethernet
 lang: C
 returncode: 0
-stdout: 3750 bytes
+stdout: 3793 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -1360,6 +1366,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -1377,7 +1384,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -1398,7 +1405,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -1422,12 +1429,12 @@ proxy.pac-url:                          --
 proxy.pac-script:                       --
 
 <<<
-size: 3919
+size: 3962
 location: clients/tests/test-client.py:942:test_003()/49
 cmd: $NMCLI -f ALL con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 3768 bytes
+stdout: 3811 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -1452,6 +1459,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -1469,7 +1477,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -1490,7 +1498,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -1538,12 +1546,12 @@ GENERAL.STATE:                          aktywowano
 GENERAL.STATE:                          aktywowano
 
 <<<
-size: 5213
+size: 5256
 location: clients/tests/test-client.py:948:test_003()/52
 cmd: $NMCLI con s ethernet
 lang: C
 returncode: 0
-stdout: 5079 bytes
+stdout: 5122 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -1568,6 +1576,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -1585,7 +1594,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -1606,7 +1615,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -1655,12 +1664,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 5249
+size: 5292
 location: clients/tests/test-client.py:948:test_003()/53
 cmd: $NMCLI con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 5105 bytes
+stdout: 5148 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -1685,6 +1694,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -1702,7 +1712,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -1723,7 +1733,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -2134,12 +2144,12 @@ UUID-con-gsm1-REPLACED-REPLACED-REPL  gsm
 UUID-con-xx1-REPLACED-REPLACED-REPLA  ethernet 
 
 <<<
-size: 5216
+size: 5259
 location: clients/tests/test-client.py:978:test_003()/64
 cmd: $NMCLI con s ethernet
 lang: C
 returncode: 0
-stdout: 5082 bytes
+stdout: 5125 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -2164,6 +2174,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -2181,7 +2192,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -2202,7 +2213,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -2251,12 +2262,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 5253
+size: 5296
 location: clients/tests/test-client.py:978:test_003()/65
 cmd: $NMCLI con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 5109 bytes
+stdout: 5152 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -2281,6 +2292,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -2298,7 +2310,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -2319,7 +2331,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -2368,12 +2380,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 4591
+size: 4634
 location: clients/tests/test-client.py:981:test_003()/66
 cmd: $NMCLI c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 4417 bytes
+stdout: 4460 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -2398,6 +2410,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -2415,7 +2428,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -2436,7 +2449,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -2472,12 +2485,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 4624
+size: 4667
 location: clients/tests/test-client.py:981:test_003()/67
 cmd: $NMCLI c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 4440 bytes
+stdout: 4483 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -2502,6 +2515,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -2519,7 +2533,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -2540,7 +2554,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -2766,12 +2780,12 @@ UUID-con-gsm1-REPLACED-REPLACED-REPL  gsm
 UUID-con-xx1-REPLACED-REPLACED-REPLA  ethernet 
 
 <<<
-size: 5228
+size: 5271
 location: clients/tests/test-client.py:978:test_003()/74
 cmd: $NMCLI --color yes con s ethernet
 lang: C
 returncode: 0
-stdout: 5082 bytes
+stdout: 5125 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -2796,6 +2810,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -2813,7 +2828,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -2834,7 +2849,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -2883,12 +2898,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 5265
+size: 5308
 location: clients/tests/test-client.py:978:test_003()/75
 cmd: $NMCLI --color yes con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 5109 bytes
+stdout: 5152 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -2913,6 +2928,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -2930,7 +2946,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -2951,7 +2967,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -3000,12 +3016,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 4603
+size: 4646
 location: clients/tests/test-client.py:981:test_003()/76
 cmd: $NMCLI --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 4417 bytes
+stdout: 4460 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -3030,6 +3046,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -3047,7 +3064,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -3068,7 +3085,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -3104,12 +3121,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 4636
+size: 4679
 location: clients/tests/test-client.py:981:test_003()/77
 cmd: $NMCLI --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 4440 bytes
+stdout: 4483 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -3134,6 +3151,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -3151,7 +3169,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -3172,7 +3190,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -3414,12 +3432,12 @@ UUID-con-gsm1-REPLACED-REPLACED-REPL  gsm
 UUID-con-xx1-REPLACED-REPLACED-REPLA  ethernet 
 
 <<<
-size: 6470
+size: 6513
 location: clients/tests/test-client.py:978:test_003()/84
 cmd: $NMCLI --pretty con s ethernet
 lang: C
 returncode: 0
-stdout: 6327 bytes
+stdout: 6370 bytes
 >>>
 ===============================================================================
                      Connection profile details (ethernet)
@@ -3447,6 +3465,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -3466,7 +3485,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -3488,7 +3507,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -3547,12 +3566,12 @@ GENERAL.MASTER-PATH:                    --
 -------------------------------------------------------------------------------
 
 <<<
-size: 6526
+size: 6569
 location: clients/tests/test-client.py:978:test_003()/85
 cmd: $NMCLI --pretty con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 6373 bytes
+stdout: 6416 bytes
 >>>
 ===============================================================================
                     Szczegóły profilu połączenia (ethernet)
@@ -3580,6 +3599,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -3599,7 +3619,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -3621,7 +3641,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -3680,12 +3700,12 @@ GENERAL.MASTER-PATH:                    --
 -------------------------------------------------------------------------------
 
 <<<
-size: 5532
+size: 5575
 location: clients/tests/test-client.py:981:test_003()/86
 cmd: $NMCLI --pretty c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 5349 bytes
+stdout: 5392 bytes
 >>>
 ===============================================================================
                      Connection profile details (ethernet)
@@ -3713,6 +3733,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -3732,7 +3753,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -3754,7 +3775,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -3796,12 +3817,12 @@ GENERAL.MASTER-PATH:                    --
 -------------------------------------------------------------------------------
 
 <<<
-size: 5577
+size: 5620
 location: clients/tests/test-client.py:981:test_003()/87
 cmd: $NMCLI --pretty c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 5384 bytes
+stdout: 5427 bytes
 >>>
 ===============================================================================
                     Szczegóły profilu połączenia (ethernet)
@@ -3829,6 +3850,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -3848,7 +3870,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -3870,7 +3892,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -4140,12 +4162,12 @@ UUID-con-gsm1-REPLACED-REPLACED-REPL  gsm
 UUID-con-xx1-REPLACED-REPLACED-REPLA  ethernet 
 
 <<<
-size: 6482
+size: 6525
 location: clients/tests/test-client.py:978:test_003()/94
 cmd: $NMCLI --pretty --color yes con s ethernet
 lang: C
 returncode: 0
-stdout: 6327 bytes
+stdout: 6370 bytes
 >>>
 ===============================================================================
                      Connection profile details (ethernet)
@@ -4173,6 +4195,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -4192,7 +4215,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -4214,7 +4237,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -4273,12 +4296,12 @@ GENERAL.MASTER-PATH:                    --
 -------------------------------------------------------------------------------
 
 <<<
-size: 6538
+size: 6581
 location: clients/tests/test-client.py:978:test_003()/95
 cmd: $NMCLI --pretty --color yes con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 6373 bytes
+stdout: 6416 bytes
 >>>
 ===============================================================================
                     Szczegóły profilu połączenia (ethernet)
@@ -4306,6 +4329,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -4325,7 +4349,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -4347,7 +4371,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -4406,12 +4430,12 @@ GENERAL.MASTER-PATH:                    --
 -------------------------------------------------------------------------------
 
 <<<
-size: 5544
+size: 5587
 location: clients/tests/test-client.py:981:test_003()/96
 cmd: $NMCLI --pretty --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 5349 bytes
+stdout: 5392 bytes
 >>>
 ===============================================================================
                      Connection profile details (ethernet)
@@ -4439,6 +4463,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -4458,7 +4483,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -4480,7 +4505,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -4522,12 +4547,12 @@ GENERAL.MASTER-PATH:                    --
 -------------------------------------------------------------------------------
 
 <<<
-size: 5589
+size: 5632
 location: clients/tests/test-client.py:981:test_003()/97
 cmd: $NMCLI --pretty --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 5384 bytes
+stdout: 5427 bytes
 >>>
 ===============================================================================
                     Szczegóły profilu połączenia (ethernet)
@@ -4555,6 +4580,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -4574,7 +4600,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -4596,7 +4622,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -4846,12 +4872,12 @@ UUID-con-gsm1-REPLACED-REPLACED-REPL:gsm
 UUID-con-xx1-REPLACED-REPLACED-REPLA:802-3-ethernet
 
 <<<
-size: 2809
+size: 2841
 location: clients/tests/test-client.py:978:test_003()/104
 cmd: $NMCLI --terse con s ethernet
 lang: C
 returncode: 0
-stdout: 2666 bytes
+stdout: 2698 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -4876,6 +4902,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -4893,7 +4920,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -4914,7 +4941,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -4963,12 +4990,12 @@ GENERAL.ZONE:
 GENERAL.MASTER-PATH:
 
 <<<
-size: 2819
+size: 2851
 location: clients/tests/test-client.py:978:test_003()/105
 cmd: $NMCLI --terse con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 2666 bytes
+stdout: 2698 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -4993,6 +5020,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -5010,7 +5038,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -5031,7 +5059,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -5080,12 +5108,12 @@ GENERAL.ZONE:
 GENERAL.MASTER-PATH:
 
 <<<
-size: 2481
+size: 2513
 location: clients/tests/test-client.py:981:test_003()/106
 cmd: $NMCLI --terse c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 2298 bytes
+stdout: 2330 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -5110,6 +5138,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -5127,7 +5156,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -5148,7 +5177,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -5184,12 +5213,12 @@ GENERAL.ZONE:
 GENERAL.MASTER-PATH:
 
 <<<
-size: 2491
+size: 2523
 location: clients/tests/test-client.py:981:test_003()/107
 cmd: $NMCLI --terse c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 2298 bytes
+stdout: 2330 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -5214,6 +5243,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -5231,7 +5261,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -5252,7 +5282,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -5474,12 +5504,12 @@ UUID-con-gsm1-REPLACED-REPLACED-REPL:gsm
 UUID-con-xx1-REPLACED-REPLACED-REPLA:802-3-ethernet
 
 <<<
-size: 2821
+size: 2853
 location: clients/tests/test-client.py:978:test_003()/114
 cmd: $NMCLI --terse --color yes con s ethernet
 lang: C
 returncode: 0
-stdout: 2666 bytes
+stdout: 2698 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -5504,6 +5534,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -5521,7 +5552,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -5542,7 +5573,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -5591,12 +5622,12 @@ GENERAL.ZONE:
 GENERAL.MASTER-PATH:
 
 <<<
-size: 2831
+size: 2863
 location: clients/tests/test-client.py:978:test_003()/115
 cmd: $NMCLI --terse --color yes con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 2666 bytes
+stdout: 2698 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -5621,6 +5652,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -5638,7 +5670,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -5659,7 +5691,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -5708,12 +5740,12 @@ GENERAL.ZONE:
 GENERAL.MASTER-PATH:
 
 <<<
-size: 2493
+size: 2525
 location: clients/tests/test-client.py:981:test_003()/116
 cmd: $NMCLI --terse --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 2298 bytes
+stdout: 2330 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -5738,6 +5770,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -5755,7 +5788,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -5776,7 +5809,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -5812,12 +5845,12 @@ GENERAL.ZONE:
 GENERAL.MASTER-PATH:
 
 <<<
-size: 2503
+size: 2535
 location: clients/tests/test-client.py:981:test_003()/117
 cmd: $NMCLI --terse --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 2298 bytes
+stdout: 2330 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -5842,6 +5875,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -5859,7 +5893,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -5880,7 +5914,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -6106,24 +6140,24 @@ UUID-con-gsm1-REPLACED-REPLACED-REPL  gsm
 UUID-con-xx1-REPLACED-REPLACED-REPLA  ethernet 
 
 <<<
-size: 3476
+size: 3518
 location: clients/tests/test-client.py:978:test_003()/124
 cmd: $NMCLI --mode tabular con s ethernet
 lang: C
 returncode: 0
-stdout: 3326 bytes
+stdout: 3368 bytes
 >>>
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr        
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr         wait-device-timeout 
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu   s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 802-3-ethernet  --    0      --      no              --           --                  --                         --                     auto  --                --            --            default      --                   
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 proxy  none    no            --       --         
@@ -6137,24 +6171,24 @@ GENERAL  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  eth0     deactivating  
 
 
 <<<
-size: 3510
+size: 3552
 location: clients/tests/test-client.py:978:test_003()/125
 cmd: $NMCLI --mode tabular con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 3350 bytes
+stdout: 3392 bytes
 >>>
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr        
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr         wait-device-timeout 
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu           s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 802-3-ethernet  --    0      --      nie             --           --                  --                         --                     automatyczne  --                --            --            default      --                   
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 proxy  none    nie           --       --         
@@ -6168,24 +6202,24 @@ GENERAL  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  eth0     dezaktywowanie
 
 
 <<<
-size: 3034
+size: 3076
 location: clients/tests/test-client.py:981:test_003()/126
 cmd: $NMCLI --mode tabular c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 2844 bytes
+stdout: 2886 bytes
 >>>
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr        
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr         wait-device-timeout 
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu   s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 802-3-ethernet  --    0      --      no              --           --                  --                         --                     auto  --                --            --            default      --                   
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 proxy  none    no            --       --         
@@ -6195,24 +6229,24 @@ GENERAL  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  eth0     deactivating  
 
 
 <<<
-size: 3066
+size: 3108
 location: clients/tests/test-client.py:981:test_003()/127
 cmd: $NMCLI --mode tabular c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 2866 bytes
+stdout: 2908 bytes
 >>>
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr        
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr         wait-device-timeout 
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu           s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 802-3-ethernet  --    0      --      nie             --           --                  --                         --                     automatyczne  --                --            --            default      --                   
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 proxy  none    nie           --       --         
@@ -6344,24 +6378,24 @@ UUID-con-gsm1-REPLACED-REPLACED-REPL  gsm
 UUID-con-xx1-REPLACED-REPLACED-REPLA  ethernet 
 
 <<<
-size: 3488
+size: 3530
 location: clients/tests/test-client.py:978:test_003()/134
 cmd: $NMCLI --mode tabular --color yes con s ethernet
 lang: C
 returncode: 0
-stdout: 3326 bytes
+stdout: 3368 bytes
 >>>
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr        
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr         wait-device-timeout 
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu   s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 802-3-ethernet  --    0      --      no              --           --                  --                         --                     auto  --                --            --            default      --                   
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 proxy  none    no            --       --         
@@ -6375,24 +6409,24 @@ GENERAL  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  eth0     deactivating  
 
 
 <<<
-size: 3522
+size: 3564
 location: clients/tests/test-client.py:978:test_003()/135
 cmd: $NMCLI --mode tabular --color yes con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 3350 bytes
+stdout: 3392 bytes
 >>>
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr        
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr         wait-device-timeout 
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu           s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 802-3-ethernet  --    0      --      nie             --           --                  --                         --                     automatyczne  --                --            --            default      --                   
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 proxy  none    nie           --       --         
@@ -6406,24 +6440,24 @@ GENERAL  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  eth0     dezaktywowanie
 
 
 <<<
-size: 3046
+size: 3088
 location: clients/tests/test-client.py:981:test_003()/136
 cmd: $NMCLI --mode tabular --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 2844 bytes
+stdout: 2886 bytes
 >>>
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr        
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr         wait-device-timeout 
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu   s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 802-3-ethernet  --    0      --      no              --           --                  --                         --                     auto  --                --            --            default      --                   
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 proxy  none    no            --       --         
@@ -6433,24 +6467,24 @@ GENERAL  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  eth0     deactivating  
 
 
 <<<
-size: 3078
+size: 3120
 location: clients/tests/test-client.py:981:test_003()/137
 cmd: $NMCLI --mode tabular --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 2866 bytes
+stdout: 2908 bytes
 >>>
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr        
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr         wait-device-timeout 
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu           s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 802-3-ethernet  --    0      --      nie             --           --                  --                         --                     automatyczne  --                --            --            default      --                   
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 proxy  none    nie           --       --         
@@ -6598,19 +6632,19 @@ UUID-con-gsm1-REPLACED-REPLACED-REPL  gsm
 UUID-con-xx1-REPLACED-REPLACED-REPLA  ethernet 
 
 <<<
-size: 5697
+size: 5760
 location: clients/tests/test-client.py:978:test_003()/144
 cmd: $NMCLI --mode tabular --pretty con s ethernet
 lang: C
 returncode: 0
-stdout: 5538 bytes
+stdout: 5601 bytes
 >>>
 =========================================
   Connection profile details (ethernet)
 =========================================
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr        
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr         wait-device-timeout 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu   s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -6618,11 +6652,11 @@ name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-add
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 --------------------------------------------------
@@ -6645,19 +6679,19 @@ GENERAL  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  eth0     deactivating  
 
 
 <<<
-size: 5791
+size: 5854
 location: clients/tests/test-client.py:978:test_003()/145
 cmd: $NMCLI --mode tabular --pretty con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 5622 bytes
+stdout: 5685 bytes
 >>>
 ===========================================
   Szczegóły profilu połączenia (ethernet)
 ===========================================
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr        
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr         wait-device-timeout 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu           s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -6665,11 +6699,11 @@ name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-add
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 --------------------------------------------------
@@ -6692,19 +6726,19 @@ GENERAL  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  eth0     dezaktywowanie
 
 
 <<<
-size: 4803
+size: 4866
 location: clients/tests/test-client.py:981:test_003()/146
 cmd: $NMCLI --mode tabular --pretty c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 4604 bytes
+stdout: 4667 bytes
 >>>
 =========================================
   Connection profile details (ethernet)
 =========================================
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr        
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr         wait-device-timeout 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu   s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -6712,11 +6746,11 @@ name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-add
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 --------------------------------------------------
@@ -6731,19 +6765,19 @@ GENERAL  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  eth0     deactivating  
 
 
 <<<
-size: 4875
+size: 4938
 location: clients/tests/test-client.py:981:test_003()/147
 cmd: $NMCLI --mode tabular --pretty c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 4666 bytes
+stdout: 4729 bytes
 >>>
 ===========================================
   Szczegóły profilu połączenia (ethernet)
 ===========================================
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr        
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr         wait-device-timeout 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu           s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -6751,11 +6785,11 @@ name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-add
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 --------------------------------------------------
@@ -6930,19 +6964,19 @@ UUID-con-gsm1-REPLACED-REPLACED-REPL  gsm
 UUID-con-xx1-REPLACED-REPLACED-REPLA  ethernet 
 
 <<<
-size: 5709
+size: 5772
 location: clients/tests/test-client.py:978:test_003()/154
 cmd: $NMCLI --mode tabular --pretty --color yes con s ethernet
 lang: C
 returncode: 0
-stdout: 5538 bytes
+stdout: 5601 bytes
 >>>
 =========================================
   Connection profile details (ethernet)
 =========================================
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr        
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr         wait-device-timeout 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu   s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -6950,11 +6984,11 @@ name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-add
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 --------------------------------------------------
@@ -6977,19 +7011,19 @@ GENERAL  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  eth0     deactivating  
 
 
 <<<
-size: 5803
+size: 5866
 location: clients/tests/test-client.py:978:test_003()/155
 cmd: $NMCLI --mode tabular --pretty --color yes con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 5622 bytes
+stdout: 5685 bytes
 >>>
 ===========================================
   Szczegóły profilu połączenia (ethernet)
 ===========================================
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr        
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr         wait-device-timeout 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu           s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -6997,11 +7031,11 @@ name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-add
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 --------------------------------------------------
@@ -7024,19 +7058,19 @@ GENERAL  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  eth0     dezaktywowanie
 
 
 <<<
-size: 4815
+size: 4878
 location: clients/tests/test-client.py:981:test_003()/156
 cmd: $NMCLI --mode tabular --pretty --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 4604 bytes
+stdout: 4667 bytes
 >>>
 =========================================
   Connection profile details (ethernet)
 =========================================
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr        
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered  lldp     mdns          llmnr         wait-device-timeout 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              yes          0                     -1 (default)         0 (default)    -1            0          no         --           --    --      --          -1 (default)        --           0                     unknown  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu   s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -7044,11 +7078,11 @@ name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-add
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               --              0 (default)   yes                 --             --         no             yes       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             no                  no               no             yes       -1 (unknown)  stable-privacy  --         yes                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 --------------------------------------------------
@@ -7063,19 +7097,19 @@ GENERAL  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  eth0     deactivating  
 
 
 <<<
-size: 4887
+size: 4950
 location: clients/tests/test-client.py:981:test_003()/157
 cmd: $NMCLI --mode tabular --pretty --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 4666 bytes
+stdout: 4729 bytes
 >>>
 ===========================================
   Szczegóły profilu połączenia (ethernet)
 ===========================================
-name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr        
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default) 
+name        id        uuid                                  stable-id  type            interface-name  autoconnect  autoconnect-priority  autoconnect-retries  multi-connect  auth-retries  timestamp  read-only  permissions  zone  master  slave-type  autoconnect-slaves  secondaries  gateway-ping-timeout  metered   lldp     mdns          llmnr         wait-device-timeout 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+connection  ethernet  UUID-ethernet-REPLACED-REPLACED-REPL  --         802-3-ethernet  --              tak          0                     -1 (default)         0 (default)    -1            0          nie        --           --    --      --          -1 (default)        --           0                     nieznane  default  -1 (default)  -1 (default)  -1                  
 
 name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-address  generate-mac-address-mask  mac-address-blacklist  mtu           s390-subchannels  s390-nettype  s390-options  wake-on-lan  wake-on-lan-password 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -7083,11 +7117,11 @@ name            port  speed  duplex  auto-negotiate  mac-address  cloned-mac-add
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  dhcp-client-id  dhcp-timeout  dhcp-send-hostname  dhcp-hostname  dhcp-fqdn  never-default  may-fail  dad-timeout  
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv4  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
+ipv4  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              --              0 (default)   tak                 --             --         nie            tak       -1 (default) 
 
 name  method  dns  dns-search  dns-options  dns-priority  addresses  gateway  routes  route-metric  route-table  routing-rules  ignore-auto-routes  ignore-auto-dns  never-default  may-fail  ip6-privacy   addr-gen-mode   dhcp-duid  dhcp-send-hostname  dhcp-hostname  token 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-ipv6  auto    --   --          ""           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
+ipv6  auto    --   --          --           0             --         --       --      -1            0 (unspec)   --             nie                 nie              nie            tak       -1 (unknown)  stable-privacy  --         tak                 --             --    
 
 name   method  browser-only  pac-url  pac-script 
 --------------------------------------------------
@@ -7242,66 +7276,66 @@ UUID-con-gsm1-REPLACED-REPLACED-REPL:gsm
 UUID-con-xx1-REPLACED-REPLACED-REPLA:802-3-ethernet
 
 <<<
-size: 830
+size: 831
 location: clients/tests/test-client.py:978:test_003()/164
 cmd: $NMCLI --mode tabular --terse con s ethernet
 lang: C
 returncode: 0
-stdout: 673 bytes
+stdout: 674 bytes
 >>>
-connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1
+connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1:-1
 802-3-ethernet::0::no:::::auto::::default:
-ipv4:auto::: :0::::-1:0::no:no::0:yes:::no:yes:-1
-ipv6:auto::: :0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
+ipv4:auto::::0::::-1:0::no:no::0:yes:::no:yes:-1
+ipv6:auto::::0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
 proxy:none:no::
 GENERAL:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL:eth1:activated:no:no::no:/org/freedesktop/NetworkManager/ActiveConnection/2:/org/freedesktop/NetworkManager/Settings/Connection/4::
 
 GENERAL:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL:eth0:deactivating:no:no::no:/org/freedesktop/NetworkManager/ActiveConnection/1:/org/freedesktop/NetworkManager/Settings/Connection/4::
 
 <<<
-size: 840
+size: 841
 location: clients/tests/test-client.py:978:test_003()/165
 cmd: $NMCLI --mode tabular --terse con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 673 bytes
+stdout: 674 bytes
 >>>
-connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1
+connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1:-1
 802-3-ethernet::0::no:::::auto::::default:
-ipv4:auto::: :0::::-1:0::no:no::0:yes:::no:yes:-1
-ipv6:auto::: :0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
+ipv4:auto::::0::::-1:0::no:no::0:yes:::no:yes:-1
+ipv6:auto::::0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
 proxy:none:no::
 GENERAL:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL:eth1:activated:no:no::no:/org/freedesktop/NetworkManager/ActiveConnection/2:/org/freedesktop/NetworkManager/Settings/Connection/4::
 
 GENERAL:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL:eth0:deactivating:no:no::no:/org/freedesktop/NetworkManager/ActiveConnection/1:/org/freedesktop/NetworkManager/Settings/Connection/4::
 
 <<<
-size: 683
+size: 684
 location: clients/tests/test-client.py:981:test_003()/166
 cmd: $NMCLI --mode tabular --terse c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 486 bytes
+stdout: 487 bytes
 >>>
-connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1
+connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1:-1
 802-3-ethernet::0::no:::::auto::::default:
-ipv4:auto::: :0::::-1:0::no:no::0:yes:::no:yes:-1
-ipv6:auto::: :0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
+ipv4:auto::::0::::-1:0::no:no::0:yes:::no:yes:-1
+ipv6:auto::::0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
 proxy:none:no::
 GENERAL:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL:eth0:deactivating:no:no::no:/org/freedesktop/NetworkManager/ActiveConnection/1:/org/freedesktop/NetworkManager/Settings/Connection/4::
 
 <<<
-size: 693
+size: 694
 location: clients/tests/test-client.py:981:test_003()/167
 cmd: $NMCLI --mode tabular --terse c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 486 bytes
+stdout: 487 bytes
 >>>
-connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1
+connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1:-1
 802-3-ethernet::0::no:::::auto::::default:
-ipv4:auto::: :0::::-1:0::no:no::0:yes:::no:yes:-1
-ipv6:auto::: :0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
+ipv4:auto::::0::::-1:0::no:no::0:yes:::no:yes:-1
+ipv6:auto::::0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
 proxy:none:no::
 GENERAL:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL:eth0:deactivating:no:no::no:/org/freedesktop/NetworkManager/ActiveConnection/1:/org/freedesktop/NetworkManager/Settings/Connection/4::
 
@@ -7394,66 +7428,66 @@ UUID-con-gsm1-REPLACED-REPLACED-REPL:gsm
 UUID-con-xx1-REPLACED-REPLACED-REPLA:802-3-ethernet
 
 <<<
-size: 842
+size: 843
 location: clients/tests/test-client.py:978:test_003()/174
 cmd: $NMCLI --mode tabular --terse --color yes con s ethernet
 lang: C
 returncode: 0
-stdout: 673 bytes
+stdout: 674 bytes
 >>>
-connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1
+connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1:-1
 802-3-ethernet::0::no:::::auto::::default:
-ipv4:auto::: :0::::-1:0::no:no::0:yes:::no:yes:-1
-ipv6:auto::: :0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
+ipv4:auto::::0::::-1:0::no:no::0:yes:::no:yes:-1
+ipv6:auto::::0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
 proxy:none:no::
 GENERAL:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL:eth1:activated:no:no::no:/org/freedesktop/NetworkManager/ActiveConnection/2:/org/freedesktop/NetworkManager/Settings/Connection/4::
 
 GENERAL:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL:eth0:deactivating:no:no::no:/org/freedesktop/NetworkManager/ActiveConnection/1:/org/freedesktop/NetworkManager/Settings/Connection/4::
 
 <<<
-size: 852
+size: 853
 location: clients/tests/test-client.py:978:test_003()/175
 cmd: $NMCLI --mode tabular --terse --color yes con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 673 bytes
+stdout: 674 bytes
 >>>
-connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1
+connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1:-1
 802-3-ethernet::0::no:::::auto::::default:
-ipv4:auto::: :0::::-1:0::no:no::0:yes:::no:yes:-1
-ipv6:auto::: :0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
+ipv4:auto::::0::::-1:0::no:no::0:yes:::no:yes:-1
+ipv6:auto::::0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
 proxy:none:no::
 GENERAL:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL:eth1:activated:no:no::no:/org/freedesktop/NetworkManager/ActiveConnection/2:/org/freedesktop/NetworkManager/Settings/Connection/4::
 
 GENERAL:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL:eth0:deactivating:no:no::no:/org/freedesktop/NetworkManager/ActiveConnection/1:/org/freedesktop/NetworkManager/Settings/Connection/4::
 
 <<<
-size: 695
+size: 696
 location: clients/tests/test-client.py:981:test_003()/176
 cmd: $NMCLI --mode tabular --terse --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 486 bytes
+stdout: 487 bytes
 >>>
-connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1
+connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1:-1
 802-3-ethernet::0::no:::::auto::::default:
-ipv4:auto::: :0::::-1:0::no:no::0:yes:::no:yes:-1
-ipv6:auto::: :0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
+ipv4:auto::::0::::-1:0::no:no::0:yes:::no:yes:-1
+ipv6:auto::::0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
 proxy:none:no::
 GENERAL:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL:eth0:deactivating:no:no::no:/org/freedesktop/NetworkManager/ActiveConnection/1:/org/freedesktop/NetworkManager/Settings/Connection/4::
 
 <<<
-size: 705
+size: 706
 location: clients/tests/test-client.py:981:test_003()/177
 cmd: $NMCLI --mode tabular --terse --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 486 bytes
+stdout: 487 bytes
 >>>
-connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1
+connection:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL::802-3-ethernet::yes:0:-1:0:-1:0:no:::::-1::0:unknown:default:-1:-1:-1
 802-3-ethernet::0::no:::::auto::::default:
-ipv4:auto::: :0::::-1:0::no:no::0:yes:::no:yes:-1
-ipv6:auto::: :0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
+ipv4:auto::::0::::-1:0::no:no::0:yes:::no:yes:-1
+ipv6:auto::::0::::-1:0::no:no:no:yes:-1:stable-privacy::yes::
 proxy:none:no::
 GENERAL:ethernet:UUID-ethernet-REPLACED-REPLACED-REPL:eth0:deactivating:no:no::no:/org/freedesktop/NetworkManager/ActiveConnection/1:/org/freedesktop/NetworkManager/Settings/Connection/4::
 
@@ -7694,12 +7728,12 @@ UUID:                                   UUID-con-xx1-REPLACED-REPLACED-REPLA
 TYPE:                                   ethernet
 
 <<<
-size: 5234
+size: 5277
 location: clients/tests/test-client.py:978:test_003()/184
 cmd: $NMCLI --mode multiline con s ethernet
 lang: C
 returncode: 0
-stdout: 5082 bytes
+stdout: 5125 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -7724,6 +7758,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -7741,7 +7776,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -7762,7 +7797,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -7811,12 +7846,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 5271
+size: 5314
 location: clients/tests/test-client.py:978:test_003()/185
 cmd: $NMCLI --mode multiline con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 5109 bytes
+stdout: 5152 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -7841,6 +7876,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -7858,7 +7894,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -7879,7 +7915,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -7928,12 +7964,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 4609
+size: 4652
 location: clients/tests/test-client.py:981:test_003()/186
 cmd: $NMCLI --mode multiline c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 4417 bytes
+stdout: 4460 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -7958,6 +7994,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -7975,7 +8012,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -7996,7 +8033,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -8032,12 +8069,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 4642
+size: 4685
 location: clients/tests/test-client.py:981:test_003()/187
 cmd: $NMCLI --mode multiline c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 4440 bytes
+stdout: 4483 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -8062,6 +8099,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -8079,7 +8117,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -8100,7 +8138,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -8470,12 +8508,12 @@ UUID:                                   UUID-con-xx1-REPLACED-REPLACED-REPLA
 TYPE:                                   ethernet
 
 <<<
-size: 5246
+size: 5289
 location: clients/tests/test-client.py:978:test_003()/194
 cmd: $NMCLI --mode multiline --color yes con s ethernet
 lang: C
 returncode: 0
-stdout: 5082 bytes
+stdout: 5125 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -8500,6 +8538,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -8517,7 +8556,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -8538,7 +8577,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -8587,12 +8626,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 5283
+size: 5326
 location: clients/tests/test-client.py:978:test_003()/195
 cmd: $NMCLI --mode multiline --color yes con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 5109 bytes
+stdout: 5152 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -8617,6 +8656,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -8634,7 +8674,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -8655,7 +8695,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -8704,12 +8744,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 4621
+size: 4664
 location: clients/tests/test-client.py:981:test_003()/196
 cmd: $NMCLI --mode multiline --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 4417 bytes
+stdout: 4460 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -8734,6 +8774,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -8751,7 +8792,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -8772,7 +8813,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -8808,12 +8849,12 @@ GENERAL.ZONE:                           --
 GENERAL.MASTER-PATH:                    --
 
 <<<
-size: 4654
+size: 4697
 location: clients/tests/test-client.py:981:test_003()/197
 cmd: $NMCLI --mode multiline --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 4440 bytes
+stdout: 4483 bytes
 >>>
 connection.id:                          ethernet
 connection.uuid:                        UUID-ethernet-REPLACED-REPLACED-REPL
@@ -8838,6 +8879,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
 802-3-ethernet.duplex:                  --
@@ -8855,7 +8897,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -8876,7 +8918,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -9276,12 +9318,12 @@ TYPE:                                   ethernet
 -------------------------------------------------------------------------------
 
 <<<
-size: 6488
+size: 6531
 location: clients/tests/test-client.py:978:test_003()/204
 cmd: $NMCLI --mode multiline --pretty con s ethernet
 lang: C
 returncode: 0
-stdout: 6327 bytes
+stdout: 6370 bytes
 >>>
 ===============================================================================
                      Connection profile details (ethernet)
@@ -9309,6 +9351,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -9328,7 +9371,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -9350,7 +9393,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -9409,12 +9452,12 @@ GENERAL.MASTER-PATH:                    --
 -------------------------------------------------------------------------------
 
 <<<
-size: 6544
+size: 6587
 location: clients/tests/test-client.py:978:test_003()/205
 cmd: $NMCLI --mode multiline --pretty con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 6373 bytes
+stdout: 6416 bytes
 >>>
 ===============================================================================
                     Szczegóły profilu połączenia (ethernet)
@@ -9442,6 +9485,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -9461,7 +9505,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -9483,7 +9527,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -9542,12 +9586,12 @@ GENERAL.MASTER-PATH:                    --
 -------------------------------------------------------------------------------
 
 <<<
-size: 5550
+size: 5593
 location: clients/tests/test-client.py:981:test_003()/206
 cmd: $NMCLI --mode multiline --pretty c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 5349 bytes
+stdout: 5392 bytes
 >>>
 ===============================================================================
                      Connection profile details (ethernet)
@@ -9575,6 +9619,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -9594,7 +9639,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -9616,7 +9661,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -9658,12 +9703,12 @@ GENERAL.MASTER-PATH:                    --
 -------------------------------------------------------------------------------
 
 <<<
-size: 5595
+size: 5638
 location: clients/tests/test-client.py:981:test_003()/207
 cmd: $NMCLI --mode multiline --pretty c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 5384 bytes
+stdout: 5427 bytes
 >>>
 ===============================================================================
                     Szczegóły profilu połączenia (ethernet)
@@ -9691,6 +9736,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -9710,7 +9756,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -9732,7 +9778,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -10160,12 +10206,12 @@ TYPE:                                   ethernet
 -------------------------------------------------------------------------------
 
 <<<
-size: 6500
+size: 6543
 location: clients/tests/test-client.py:978:test_003()/214
 cmd: $NMCLI --mode multiline --pretty --color yes con s ethernet
 lang: C
 returncode: 0
-stdout: 6327 bytes
+stdout: 6370 bytes
 >>>
 ===============================================================================
                      Connection profile details (ethernet)
@@ -10193,6 +10239,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -10212,7 +10259,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -10234,7 +10281,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -10293,12 +10340,12 @@ GENERAL.MASTER-PATH:                    --
 -------------------------------------------------------------------------------
 
 <<<
-size: 6556
+size: 6599
 location: clients/tests/test-client.py:978:test_003()/215
 cmd: $NMCLI --mode multiline --pretty --color yes con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 6373 bytes
+stdout: 6416 bytes
 >>>
 ===============================================================================
                     Szczegóły profilu połączenia (ethernet)
@@ -10326,6 +10373,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -10345,7 +10393,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -10367,7 +10415,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -10426,12 +10474,12 @@ GENERAL.MASTER-PATH:                    --
 -------------------------------------------------------------------------------
 
 <<<
-size: 5562
+size: 5605
 location: clients/tests/test-client.py:981:test_003()/216
 cmd: $NMCLI --mode multiline --pretty --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 5349 bytes
+stdout: 5392 bytes
 >>>
 ===============================================================================
                      Connection profile details (ethernet)
@@ -10459,6 +10507,7 @@ connection.metered:                     unknown
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -10478,7 +10527,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -10500,7 +10549,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -10542,12 +10591,12 @@ GENERAL.MASTER-PATH:                    --
 -------------------------------------------------------------------------------
 
 <<<
-size: 5607
+size: 5650
 location: clients/tests/test-client.py:981:test_003()/217
 cmd: $NMCLI --mode multiline --pretty --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 5384 bytes
+stdout: 5427 bytes
 >>>
 ===============================================================================
                     Szczegóły profilu połączenia (ethernet)
@@ -10575,6 +10624,7 @@ connection.metered:                     nieznane
 connection.lldp:                        default
 connection.mdns:                        -1 (default)
 connection.llmnr:                       -1 (default)
+connection.wait-device-timeout:         -1
 -------------------------------------------------------------------------------
 802-3-ethernet.port:                    --
 802-3-ethernet.speed:                   0
@@ -10594,7 +10644,7 @@ connection.llmnr:                       -1 (default)
 ipv4.method:                            auto
 ipv4.dns:                               --
 ipv4.dns-search:                        --
-ipv4.dns-options:                       ""
+ipv4.dns-options:                       --
 ipv4.dns-priority:                      0
 ipv4.addresses:                         --
 ipv4.gateway:                           --
@@ -10616,7 +10666,7 @@ ipv4.dad-timeout:                       -1 (default)
 ipv6.method:                            auto
 ipv6.dns:                               --
 ipv6.dns-search:                        --
-ipv6.dns-options:                       ""
+ipv6.dns-options:                       --
 ipv6.dns-priority:                      0
 ipv6.addresses:                         --
 ipv6.gateway:                           --
@@ -11014,12 +11064,12 @@ UUID:UUID-con-xx1-REPLACED-REPLACED-REPLA
 TYPE:802-3-ethernet
 
 <<<
-size: 2826
+size: 2858
 location: clients/tests/test-client.py:978:test_003()/224
 cmd: $NMCLI --mode multiline --terse con s ethernet
 lang: C
 returncode: 0
-stdout: 2666 bytes
+stdout: 2698 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -11044,6 +11094,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -11061,7 +11112,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -11082,7 +11133,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -11131,12 +11182,12 @@ GENERAL.ZONE:
 GENERAL.MASTER-PATH:
 
 <<<
-size: 2836
+size: 2868
 location: clients/tests/test-client.py:978:test_003()/225
 cmd: $NMCLI --mode multiline --terse con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 2666 bytes
+stdout: 2698 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -11161,6 +11212,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -11178,7 +11230,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -11199,7 +11251,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -11248,12 +11300,12 @@ GENERAL.ZONE:
 GENERAL.MASTER-PATH:
 
 <<<
-size: 2498
+size: 2530
 location: clients/tests/test-client.py:981:test_003()/226
 cmd: $NMCLI --mode multiline --terse c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 2298 bytes
+stdout: 2330 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -11278,6 +11330,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -11295,7 +11348,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -11316,7 +11369,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -11352,12 +11405,12 @@ GENERAL.ZONE:
 GENERAL.MASTER-PATH:
 
 <<<
-size: 2508
+size: 2540
 location: clients/tests/test-client.py:981:test_003()/227
 cmd: $NMCLI --mode multiline --terse c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 2298 bytes
+stdout: 2330 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -11382,6 +11435,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -11399,7 +11453,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -11420,7 +11474,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -11790,12 +11844,12 @@ UUID:UUID-con-xx1-REPLACED-REPLACED-REPLA
 TYPE:802-3-ethernet
 
 <<<
-size: 2838
+size: 2870
 location: clients/tests/test-client.py:978:test_003()/234
 cmd: $NMCLI --mode multiline --terse --color yes con s ethernet
 lang: C
 returncode: 0
-stdout: 2666 bytes
+stdout: 2698 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -11820,6 +11874,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -11837,7 +11892,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -11858,7 +11913,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -11907,12 +11962,12 @@ GENERAL.ZONE:
 GENERAL.MASTER-PATH:
 
 <<<
-size: 2848
+size: 2880
 location: clients/tests/test-client.py:978:test_003()/235
 cmd: $NMCLI --mode multiline --terse --color yes con s ethernet
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 2666 bytes
+stdout: 2698 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -11937,6 +11992,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -11954,7 +12010,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -11975,7 +12031,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -12024,12 +12080,12 @@ GENERAL.ZONE:
 GENERAL.MASTER-PATH:
 
 <<<
-size: 2510
+size: 2542
 location: clients/tests/test-client.py:981:test_003()/236
 cmd: $NMCLI --mode multiline --terse --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: C
 returncode: 0
-stdout: 2298 bytes
+stdout: 2330 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -12054,6 +12110,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -12071,7 +12128,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -12092,7 +12149,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:
@@ -12128,12 +12185,12 @@ GENERAL.ZONE:
 GENERAL.MASTER-PATH:
 
 <<<
-size: 2520
+size: 2552
 location: clients/tests/test-client.py:981:test_003()/237
 cmd: $NMCLI --mode multiline --terse --color yes c s /org/freedesktop/NetworkManager/ActiveConnection/1
 lang: pl_PL.UTF-8
 returncode: 0
-stdout: 2298 bytes
+stdout: 2330 bytes
 >>>
 connection.id:ethernet
 connection.uuid:UUID-ethernet-REPLACED-REPLACED-REPL
@@ -12158,6 +12215,7 @@ connection.metered:unknown
 connection.lldp:default
 connection.mdns:-1
 connection.llmnr:-1
+connection.wait-device-timeout:-1
 802-3-ethernet.port:
 802-3-ethernet.speed:0
 802-3-ethernet.duplex:
@@ -12175,7 +12233,7 @@ connection.llmnr:-1
 ipv4.method:auto
 ipv4.dns:
 ipv4.dns-search:
-ipv4.dns-options: 
+ipv4.dns-options:
 ipv4.dns-priority:0
 ipv4.addresses:
 ipv4.gateway:
@@ -12196,7 +12254,7 @@ ipv4.dad-timeout:-1
 ipv6.method:auto
 ipv6.dns:
 ipv6.dns-search:
-ipv6.dns-options: 
+ipv6.dns-options:
 ipv6.dns-priority:0
 ipv6.addresses:
 ipv6.gateway:

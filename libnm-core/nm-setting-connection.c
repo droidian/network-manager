@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -78,6 +76,7 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMSettingConnection,
 	PROP_LLMNR,
 	PROP_STABLE_ID,
 	PROP_AUTH_RETRIES,
+	PROP_WAIT_DEVICE_TIMEOUT,
 );
 
 typedef struct {
@@ -104,6 +103,7 @@ typedef struct {
 	int auth_retries;
 	int mdns;
 	int llmnr;
+	int wait_device_timeout;
 } NMSettingConnectionPrivate;
 
 G_DEFINE_TYPE (NMSettingConnection, nm_setting_connection, NM_TYPE_SETTING)
@@ -592,6 +592,26 @@ nm_setting_connection_get_timestamp (NMSettingConnection *setting)
 	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->timestamp;
 }
 
+static GVariant *
+_to_dbus_fcn_timestamp (const NMSettInfoSetting *sett_info,
+                        guint property_idx,
+                        NMConnection *connection,
+                        NMSetting *setting,
+                        NMConnectionSerializationFlags flags,
+                        const NMConnectionSerializationOptions *options)
+{
+	guint64 v;
+
+	v =   options && options->timestamp.has
+	    ? options->timestamp.val
+	    : NM_SETTING_CONNECTION_GET_PRIVATE (setting)->timestamp;
+
+	if (v == 0u)
+		return NULL;
+
+	return g_variant_new_uint64 (v);
+}
+
 /**
  * nm_setting_connection_get_read_only:
  * @setting: the #NMSettingConnection
@@ -672,6 +692,23 @@ nm_setting_connection_is_slave_type (NMSettingConnection *setting,
 	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), FALSE);
 
 	return !g_strcmp0 (NM_SETTING_CONNECTION_GET_PRIVATE (setting)->slave_type, type);
+}
+
+/**
+ * nm_setting_connection_get_wait_device_timeout:
+ * @setting: the #NMSettingConnection
+ *
+ * Returns: the %NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT property with
+ *   the timeout in milli seconds. -1 is the default.
+ *
+ * Since: 1.20
+ */
+gint32
+nm_setting_connection_get_wait_device_timeout (NMSettingConnection *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_CONNECTION (setting), -1);
+
+	return NM_SETTING_CONNECTION_GET_PRIVATE (setting)->wait_device_timeout;
 }
 
 /**
@@ -1131,6 +1168,20 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		return FALSE;
 	}
 
+	if (   priv->wait_device_timeout != -1
+	    && !priv->interface_name) {
+		/* currently, only waiting by interface-name is implemented. Hence reject
+		 * configurations that are not implemented (yet). */
+		g_set_error (error,
+		             NM_CONNECTION_ERROR,
+		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		             _("wait-device-timeout requires %s"),
+		             NM_SETTING_CONNECTION_INTERFACE_NAME);
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_CONNECTION_SETTING_NAME,
+		                NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT);
+		return FALSE;
+	}
+
 	/* *** errors above here should be always fatal, below NORMALIZABLE_ERROR *** */
 
 	if (!priv->uuid) {
@@ -1268,8 +1319,10 @@ nm_setting_connection_no_interface_name (NMSetting *setting,
 static NMTernary
 compare_property (const NMSettInfoSetting *sett_info,
                   guint property_idx,
-                  NMSetting *setting,
-                  NMSetting *other,
+                  NMConnection *con_a,
+                  NMSetting *set_a,
+                  NMConnection *con_b,
+                  NMSetting *set_b,
                   NMSettingCompareFlags flags)
 {
 	if (   NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_IGNORE_ID)
@@ -1282,8 +1335,10 @@ compare_property (const NMSettInfoSetting *sett_info,
 
 	return NM_SETTING_CLASS (nm_setting_connection_parent_class)->compare_property (sett_info,
 	                                                                                property_idx,
-	                                                                                setting,
-	                                                                                other,
+	                                                                                con_a,
+	                                                                                set_a,
+	                                                                                con_b,
+	                                                                                set_b,
 	                                                                                flags);
 }
 
@@ -1400,6 +1455,9 @@ get_property (GObject *object, guint prop_id,
 	case PROP_LLMNR:
 		g_value_set_int (value, priv->llmnr);
 		break;
+	case PROP_WAIT_DEVICE_TIMEOUT:
+		g_value_set_int (value, priv->wait_device_timeout);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -1492,6 +1550,9 @@ set_property (GObject *object, guint prop_id,
 	case PROP_LLMNR:
 		priv->llmnr = g_value_get_int (value);
 		break;
+	case PROP_WAIT_DEVICE_TIMEOUT:
+		priv->wait_device_timeout = g_value_get_int (value);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -1507,6 +1568,7 @@ nm_setting_connection_init (NMSettingConnection *setting)
 
 	priv->mdns = NM_SETTING_CONNECTION_MDNS_DEFAULT;
 	priv->llmnr = NM_SETTING_CONNECTION_LLMNR_DEFAULT;
+	priv->wait_device_timeout = -1;
 }
 
 /**
@@ -1873,6 +1935,13 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	                         NM_SETTING_PARAM_FUZZY_IGNORE |
 	                         G_PARAM_STATIC_STRINGS);
 
+	_properties_override_add_override (properties_override,
+	                                   obj_properties[PROP_TIMESTAMP],
+	                                   G_VARIANT_TYPE_UINT64,
+	                                   _to_dbus_fcn_timestamp,
+	                                   NULL,
+	                                   NULL);
+
 	/**
 	 * NMSettingConnection:read-only:
 	 *
@@ -2174,6 +2243,38 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	    g_param_spec_int (NM_SETTING_CONNECTION_LLMNR, "", "",
 	                      G_MININT32, G_MAXINT32,
 	                      NM_SETTING_CONNECTION_LLMNR_DEFAULT,
+	                      G_PARAM_READWRITE |
+	                      G_PARAM_STATIC_STRINGS);
+
+	/**
+	 * NMSettingConnection:wait-device-timeout:
+	 *
+	 * Timeout in milliseconds to wait for device at startup.
+	 * During boot, devices may take a while to be detected by the driver.
+	 * This property will cause to delay NetworkManager-wait-online.service
+	 * and nm-online to give the device a chance to appear.
+	 *
+	 * Note that this property only works together with NMSettingConnection:interface-name
+	 * to identify the device that will be waited for.
+	 *
+	 * The value 0 means no wait time. The default value is -1, which
+	 * currently has the same meaning as no wait time.
+	 *
+	 * Since: 1.20
+	 **/
+	/* ---ifcfg-rh---
+	 * property: wait-device-timeout
+	 * variable: DEVTIMEOUT(+)
+	 * values: timeout in seconds.
+	 * description: for initscripts compatibility, this variable must be
+	 *   a whole integer. If necessary, NetworkManager stores also a fractional
+	 *   component for the milliseconds.
+	 * example: DEVTIMEOUT=5
+	 * ---end---
+	 */
+	obj_properties[PROP_WAIT_DEVICE_TIMEOUT] =
+	    g_param_spec_int (NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT, "", "",
+	                      -1, G_MAXINT32, -1,
 	                      G_PARAM_READWRITE |
 	                      G_PARAM_STATIC_STRINGS);
 

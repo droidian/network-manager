@@ -30,6 +30,7 @@ libnm_core_headers = files(
   'nm-setting-olpc-mesh.h',
   'nm-setting-ovs-bridge.h',
   'nm-setting-ovs-interface.h',
+  'nm-setting-ovs-dpdk.h',
   'nm-setting-ovs-patch.h',
   'nm-setting-ovs-port.h',
   'nm-setting-ppp.h',
@@ -87,6 +88,7 @@ libnm_core_settings_sources = files(
   'nm-setting-olpc-mesh.c',
   'nm-setting-ovs-bridge.c',
   'nm-setting-ovs-interface.c',
+  'nm-setting-ovs-dpdk.c',
   'nm-setting-ovs-patch.c',
   'nm-setting-ovs-port.c',
   'nm-setting-ppp.c',
@@ -112,15 +114,16 @@ libnm_core_settings_sources = files(
 )
 
 libnm_core_sources = libnm_core_settings_sources + files(
-  'nm-crypto.c',
   'nm-connection.c',
+  'nm-crypto.c',
   'nm-dbus-utils.c',
   'nm-errors.c',
-  'nm-keyfile.c',
   'nm-keyfile-utils.c',
+  'nm-keyfile.c',
   'nm-property-compare.c',
   'nm-setting.c',
   'nm-simple-connection.c',
+  'nm-team-utils.c',
   'nm-utils.c',
   'nm-vpn-editor-plugin.c',
   'nm-vpn-plugin-info.c',
@@ -256,7 +259,7 @@ libnm_core_dep = declare_dependency(
 
 shared_nm_libnm_core_aux = static_library(
     'nm-libnm-core-aux',
-    sources: files('../shared/nm-libnm-core-aux/nm-dispatcher-api.h'),
+    sources: files('../shared/nm-libnm-core-aux/nm-libnm-core-aux.c'),
     c_args: [
         '-DG_LOG_DOMAIN="@0@"'.format(libnm_name),
         '-DNETWORKMANAGER_COMPILATION=(NM_NETWORKMANAGER_COMPILATION_WITH_GLIB|NM_NETWORKMANAGER_COMPILATION_WITH_GLIB_I18N_LIB)',
@@ -270,6 +273,7 @@ shared_nm_libnm_core_aux = static_library(
         glib_dep,
         shared_c_siphash_dep,
         shared_nm_glib_aux_dep,
+        libnm_core_dep,
     ],
 )
 

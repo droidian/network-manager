@@ -169,6 +169,10 @@
 <td class="function_name"><a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-METHOD-SHARED:CAPS" title="NM_SETTING_IP6_CONFIG_METHOD_SHARED">NM_SETTING_IP6_CONFIG_METHOD_SHARED</a></td>
 </tr>
 <tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-METHOD-DISABLED:CAPS" title="NM_SETTING_IP6_CONFIG_METHOD_DISABLED">NM_SETTING_IP6_CONFIG_METHOD_DISABLED</a></td>
+</tr>
+<tr>
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6ConfigPrivacy" title="enum NMSettingIP6ConfigPrivacy">NMSettingIP6ConfigPrivacy</a></td>
 </tr>
@@ -200,7 +204,7 @@
 properties related to IPv6 addressing, routing, and Domain Name Service</p>
 <p><a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> has few properties or methods of its own; it inherits
 almost everything from <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a>.</p>
-<p>NetworkManager supports 6 values for the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--method" title="The “method” property"><span class="type">“method”</span></a> property
+<p>NetworkManager supports 7 values for the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--method" title="The “method” property"><span class="type">“method”</span></a> property
 for IPv6.  If "auto" is specified then the appropriate automatic method (PPP,
 router advertisement, etc) is used for the device and most other properties
 can be left unset.  To force the use of DHCP only, specify "dhcp"; this
@@ -209,7 +213,8 @@ specified, then an IPv6 link-local address will be assigned to the interface.
 If "manual" is specified, static IP addressing is used and at least one IP
 address must be given in the "addresses" property.  If "ignore" is specified,
 IPv6 configuration is not done. Note: the "shared" method is not yet
-supported.</p>
+supported. If "disabled" is specified, IPv6 is disabled completely for the
+interface.</p>
 </div>
 <div class="refsect1">
 <a name="NMSettingIP6Config.functions_details"></a><h2>Functions</h2>
@@ -422,6 +427,14 @@ advertisements, a caching DNS server, and Network Address Translation (NAT)
 functionality will be started on this connection's interface to allow other
 devices to connect through that interface to the default network. (not yet
 supported for IPv6)</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP6-CONFIG-METHOD-DISABLED:CAPS"></a><h3>NM_SETTING_IP6_CONFIG_METHOD_DISABLED</h3>
+<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_METHOD_DISABLED   "disabled"
+</pre>
+<p>IPv6 is disabled for the connection.</p>
+<p class="since">Since: 1.20</p>
 </div>
 <hr>
 <div class="refsect2">

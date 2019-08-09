@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -101,6 +100,7 @@ complete_connection (NMDevice *device,
 	                           NULL,
 	                           _("Team connection"),
 	                           "team",
+	                           NULL,
 	                           TRUE);
 
 	s_team = nm_connection_get_setting_team (connection);
@@ -694,6 +694,9 @@ deactivate (NMDevice *device)
 	NMDeviceTeam *self = NM_DEVICE_TEAM (device);
 	NMDeviceTeamPrivate *priv = NM_DEVICE_TEAM_GET_PRIVATE (self);
 
+	if (nm_device_sys_iface_state_is_external (device))
+		return;
+
 	if (priv->teamd_pid || priv->tdc)
 		_LOGI (LOGD_TEAM, "deactivation: stopping teamd...");
 
@@ -771,11 +774,25 @@ release_slave (NMDevice *device,
 	NMDeviceTeam *self = NM_DEVICE_TEAM (device);
 	NMDeviceTeamPrivate *priv = NM_DEVICE_TEAM_GET_PRIVATE (self);
 	gboolean success;
+	int ifindex_slave;
+	int ifindex;
+
+	ifindex = nm_device_get_ifindex (device);
+	if (   ifindex <= 0
+	    || !nm_platform_link_get (nm_device_get_platform (device), ifindex))
+		configure = FALSE;
+
+	ifindex_slave = nm_device_get_ip_ifindex (slave);
+
+	if (ifindex_slave <= 0) {
+		_LOGD (LOGD_TEAM, "team port %s is already released", nm_device_get_ip_iface (slave));
+		return;
+	}
 
 	if (configure) {
 		success = nm_platform_link_release (nm_device_get_platform (device),
 		                                    nm_device_get_ip_ifindex (device),
-		                                    nm_device_get_ip_ifindex (slave));
+		                                    ifindex_slave);
 
 		if (success)
 			_LOGI (LOGD_TEAM, "released team port %s", nm_device_get_ip_iface (slave));
@@ -786,9 +803,10 @@ release_slave (NMDevice *device,
 		 * IFF_UP), so we must bring it back up here to ensure carrier changes and
 		 * other state is noticed by the now-released port.
 		 */
-		if (!nm_device_bring_up (slave, TRUE, NULL))
+		if (!nm_device_bring_up (slave, TRUE, NULL)) {
 			_LOGW (LOGD_TEAM, "released team port %s could not be brought up",
 			       nm_device_get_ip_iface (slave));
+		}
 
 		nm_clear_g_source (&priv->teamd_read_timeout);
 		priv->teamd_read_timeout = g_timeout_add_seconds (5,

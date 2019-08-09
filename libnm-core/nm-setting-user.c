@@ -1,5 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -398,8 +396,10 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 static NMTernary
 compare_property (const NMSettInfoSetting *sett_info,
                   guint property_idx,
-                  NMSetting *setting,
-                  NMSetting *other,
+                  NMConnection *con_a,
+                  NMSetting *set_a,
+                  NMConnection *con_b,
+                  NMSetting *set_b,
                   NMSettingCompareFlags flags)
 {
 	NMSettingUserPrivate *priv, *pri2;
@@ -409,19 +409,21 @@ compare_property (const NMSettInfoSetting *sett_info,
 		if (NM_FLAGS_HAS (flags, NM_SETTING_COMPARE_FLAG_INFERRABLE))
 			return NM_TERNARY_DEFAULT;
 
-		if (!other)
+		if (!set_b)
 			return TRUE;
 
-		priv = NM_SETTING_USER_GET_PRIVATE (NM_SETTING_USER (setting));
-		pri2 = NM_SETTING_USER_GET_PRIVATE (NM_SETTING_USER (other));
+		priv = NM_SETTING_USER_GET_PRIVATE (NM_SETTING_USER (set_a));
+		pri2 = NM_SETTING_USER_GET_PRIVATE (NM_SETTING_USER (set_b));
 		return    nm_utils_hash_table_equal (priv->data, pri2->data, TRUE, g_str_equal)
 		       && nm_utils_hash_table_equal (priv->data_invalid, pri2->data_invalid, TRUE, g_str_equal);
 	}
 
 	return NM_SETTING_CLASS (nm_setting_user_parent_class)->compare_property (sett_info,
 	                                                                          property_idx,
-	                                                                          setting,
-	                                                                          other,
+	                                                                          con_a,
+	                                                                          set_a,
+	                                                                          con_b,
+	                                                                          set_b,
 	                                                                          flags);
 }
 

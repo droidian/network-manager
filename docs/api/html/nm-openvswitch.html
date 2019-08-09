@@ -102,8 +102,8 @@
 Connection 'ovs-bridge-bridge0' (d10fc64d-1d48-4394-a1b8-e1aea72f27d5) successfully added.
 <code class="prompt">$ </code><strong class="userinput"><code>nmcli conn add type ovs-port conn.interface port0 master bridge0</code></strong>
 Connection 'ovs-port-port0' (5ae22bae-bba4-4815-9ade-7e635633e1f0) successfully added.
-<code class="prompt">$ </code><strong class="userinput"><code>nmcli conn add type ovs-interface conn.interface iface0 master port0 \
-  ipv4.method manual ipv4.address 192.0.2.1/24</code></strong>
+<code class="prompt">$ </code><strong class="userinput"><code>nmcli conn add type ovs-interface slave-type ovs-port conn.interface iface0 \
+  master port0 ipv4.method manual ipv4.address 192.0.2.1/24</code></strong>
 Connection 'ovs-interface-iface0' (3640d2a1-a2fd-4718-92f1-cffadb5b6cdc) successfully added.
 </pre>
 <p>As said above, you need to create a Port even for a single interface.

@@ -7,7 +7,7 @@ dnl  - add corresponding NM_VERSION_x_y_z macros in
 dnl    "shared/nm-version-macros.h.in"
 dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
-m4_define([nm_minor_version], [18])
+m4_define([nm_minor_version], [20])
 m4_define([nm_micro_version], [0])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
@@ -65,9 +65,13 @@ dnl
 dnl Checks for typedefs, structures, and compiler characteristics.
 dnl
 AC_TYPE_PID_T
-AC_CHECK_SIZEOF(dev_t)
-AC_CHECK_SIZEOF(time_t)
 AC_CHECK_SIZEOF(pid_t)
+AC_CHECK_SIZEOF(uid_t)
+AC_CHECK_SIZEOF(gid_t)
+AC_CHECK_SIZEOF(dev_t)
+AC_CHECK_SIZEOF(ino_t)
+AC_CHECK_SIZEOF(time_t)
+AC_CHECK_SIZEOF(rlim_t,,[[#include <sys/resource.h>]])
 
 AC_CHECK_DECLS([
 	explicit_bzero],
@@ -115,7 +119,14 @@ GETTEXT_PACKAGE=NetworkManager
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [Gettext package])
 
-# Add runstatedir if not specified manually in autoconf < 2.70
+# autoconf 2.70 adds option --runstatedir. To make the directory also configurable
+# on older versions, add --with-runstatedir option. Note that this option overwrites
+# --runstatedir (should it be set). If you know to use autoconf >= 2.70, you should
+# instead use --runstatedir.
+AC_ARG_WITH([runstatedir],
+            AS_HELP_STRING([--with-runstatedir=DIR],
+                           [Directory for /var/run. Defaults to $localstatedir/run. In autoconf >= 2.70, you should instead use --runstatedir option. This option takes precedence over --runstatedir.]),
+            [runstatedir="$withval"])
 AS_IF([test -z "$runstatedir"], runstatedir="$localstatedir/run")
 AC_SUBST(runstatedir)
 
@@ -131,7 +142,6 @@ AC_GNU_SOURCE
 AC_CHECK_FUNCS([__secure_getenv secure_getenv])
 
 # Alternative configuration plugins
-AC_ARG_ENABLE(config-plugin-ibft, AS_HELP_STRING([--enable-config-plugin-ibft], [enable ibft configuration plugin]))
 AC_ARG_ENABLE(ifcfg-rh, AS_HELP_STRING([--enable-ifcfg-rh], [enable ifcfg-rh configuration plugin (Fedora/RHEL)]))
 AC_ARG_ENABLE(ifupdown, AS_HELP_STRING([--enable-ifupdown], [enable ifupdown configuration plugin (Debian/Ubuntu)]))
 # Default alternative plugins by distribution
@@ -140,10 +150,7 @@ AS_IF([test -z "$enable_ifupdown" -a -f /etc/debian_version],            enable_
 # Otherwise plugins default to "no"
 AS_IF([test -z "$enable_ifcfg_rh"], enable_ifcfg_rh=no)
 AS_IF([test -z "$enable_ifupdown"], enable_ifupdown=no)
-# Disable obsolete ibft plugin by default
-AS_IF([test -z "$enable_config_plugin_ibft"], enable_config_plugin_ibft="no")
 # Create automake conditionals
-AM_CONDITIONAL(CONFIG_PLUGIN_IBFT, test "$enable_config_plugin_ibft" = "yes")
 AM_CONDITIONAL(CONFIG_PLUGIN_IFCFG_RH, test "$enable_ifcfg_rh" = "yes")
 AM_CONDITIONAL(CONFIG_PLUGIN_IFUPDOWN, test "$enable_ifupdown" = "yes")
 
@@ -155,7 +162,6 @@ if test -z "$config_plugins_default" -o "$config_plugins_default" = no; then
 	config_plugins_default=''
 	test "$enable_ifcfg_rh" = "yes"           && config_plugins_default="$config_plugins_default,ifcfg-rh"
 	test "$enable_ifupdown" = "yes"           && config_plugins_default="$config_plugins_default,ifupdown"
-	test "$enable_config_plugin_ibft" = "yes" && config_plugins_default="$config_plugins_default,ibft"
 	config_plugins_default="${config_plugins_default#,}"
 fi
 
@@ -164,11 +170,6 @@ test "$enable_ifupdown" = "yes"           && distro_plugins="$distro_plugins,ifu
 distro_plugins="${distro_plugins#,}"
 
 AC_DEFINE_UNQUOTED(NM_CONFIG_DEFAULT_MAIN_PLUGINS, "$config_plugins_default", [Default configuration option for main.plugins setting])
-if test "${enable_config_plugin_ibft}" = yes; then
-	AC_DEFINE(WITH_SETTINGS_PLUGIN_IBFT, 1, [Whether compilation of ibft setting plugin is enabled])
-else
-	AC_DEFINE(WITH_SETTINGS_PLUGIN_IBFT, 0, [Whether compilation of ibft setting plugin is enabled])
-fi
 
 if test "$enable_ifcfg_rh" = "yes"; then
 	DISTRO_NETWORK_SERVICE=network.service
@@ -191,9 +192,6 @@ AC_SUBST(NM_DIST_VERSION, "$ac_distver")
 AC_ARG_ENABLE(wifi, AS_HELP_STRING([--enable-wifi], [enable Wi-Fi support]))
 if test "${enable_wifi}" != "no"; then
 	enable_wifi='yes'
-	AC_DEFINE(WITH_WIFI, 1, [Define if you have Wi-Fi support])
-else
-	AC_DEFINE(WITH_WIFI, 0, [Define if you have Wi-Fi support])
 fi
 AM_CONDITIONAL(WITH_WIFI, test "${enable_wifi}" = "yes")
 
@@ -257,34 +255,6 @@ AC_SUBST(GLIB_LIBS)
 
 GOBJECT_INTROSPECTION_CHECK([0.9.6])
 
-AC_ARG_WITH(libnm-glib,
-            AS_HELP_STRING([--with-libnm-glib],
-                           [build legacy libraries]))
-fake_typelibs=no
-if test "$with_libnm_glib" == "yes"; then
-	PKG_CHECK_MODULES(DBUS, dbus-1 >= 1.1 dbus-glib-1 >= 0.94, :,
-	                  [AC_MSG_FAILURE([$DBUS_PKG_ERRORS
-
-Configure with --without-libnm-glib if you do not need the legacy libraries])
-	                  ])
-
-	if test "${found_introspection}" = "yes"; then
-		AC_PATH_PROG(GLIB_COMPILE_RESOURCES, glib-compile-resources)
-		if ! test x"$GLIB_COMPILE_RESOURCES" = x""; then
-			fake_typelibs=yes
-		fi
-	fi
-else
-	with_libnm_glib=no
-fi
-AM_CONDITIONAL(WITH_LEGACY_LIBRARIES, test "$with_libnm_glib" == "yes")
-if test "$fake_typelibs" = "yes"; then
-	AC_DEFINE(WITH_FAKE_TYPELIBS, 1, [Define for libnm to prevent GIR from loading libnm-glib])
-else
-	AC_DEFINE(WITH_FAKE_TYPELIBS, 0, [Define for libnm to prevent GIR from loading libnm-glib])
-fi
-AM_CONDITIONAL(WITH_FAKE_TYPELIBS, test "${fake_typelibs}" = "yes")
-
 PKG_CHECK_MODULES([LIBUDEV], [libudev >= 175])
 
 # Qt4
@@ -330,9 +300,6 @@ AS_IF([test -z "$with_systemdsystemunitdir"], with_systemdsystemunitdir=no)
 AM_CONDITIONAL(HAVE_SYSTEMD, [test "$with_systemdsystemunitdir" != no])
 if test "$with_systemdsystemunitdir" != no; then
 	AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])
-	AC_DEFINE(HAVE_SYSTEMD, 1, [Define if systemd support is available])
-else
-	AC_DEFINE(HAVE_SYSTEMD, 0, [Define if systemd support is available])
 fi
 
 PKG_CHECK_MODULES(SYSTEMD_200, [systemd >= 200], [have_systemd_200=yes], [have_systemd_200=no])
@@ -527,7 +494,7 @@ esac
 
 # eBPF support
 AC_ARG_WITH(ebpf,
-            AS_HELP_STRING([--with-ebpf=yes|no|auto], [Build with eBPF support (default: auto)]),
+            AS_HELP_STRING([--with-ebpf=yes|no|auto], [Build with eBPF support [default=auto]]),
             [], [with_ebpf=auto])
 # 'auto' means 'false' because there are still some issues.
 if test "$with_ebpf" = "yes" ; then
@@ -542,7 +509,7 @@ AM_CONDITIONAL(WITH_EBPF, test "${have_ebpf}" = "yes")
 
 # SELinux support
 AC_ARG_WITH(selinux,
-            AS_HELP_STRING([--with-selinux=yes|no|auto], [Build with SELinux (default: auto)]),
+            AS_HELP_STRING([--with-selinux=yes|no|auto], [Build with SELinux [default=auto]]),
             [], [with_selinux=auto])
 if test "$with_selinux" = "yes" -o "$with_selinux" = "auto"; then
 	PKG_CHECK_MODULES(SELINUX, libselinux, [have_selinux=yes], [have_selinux=no])
@@ -559,7 +526,7 @@ else
 fi
 
 # libaudit support
-AC_ARG_WITH(libaudit, AS_HELP_STRING([--with-libaudit=yes|yes-disabled-by-default|no|auto], [Build with audit daemon support (default: auto). yes-disabled-by-default enables support, but disables it unless explicitly configured via NetworkManager.conf]),,[with_libaudit=auto])
+AC_ARG_WITH(libaudit, AS_HELP_STRING([--with-libaudit=yes|yes-disabled-by-default|no|auto], [Build with audit daemon support [default=auto]. yes-disabled-by-default enables support, but disables it unless explicitly configured via NetworkManager.conf]),,[with_libaudit=auto])
 if test "$with_libaudit" = "yes" -o "$with_libaudit" = "yes-disabled-by-default" -o "$with_libaudit" = "auto"; then
 	PKG_CHECK_MODULES(LIBAUDIT, audit, [have_libaudit=yes], [have_libaudit=no])
 	if test "$with_libaudit" != "auto" -a "$have_libaudit" = "no"; then
@@ -881,15 +848,11 @@ fi
 
 AC_ARG_WITH(config-dhcp-default,
             AS_HELP_STRING([--with-config-dhcp-default=dhclient|dhcpcd|internal],
-                           [Default configuration option for main.dhcp setting, used as fallback if the configuration option is unset]),
+                           [Default configuration option for main.dhcp setting, used as fallback if the configuration option is unset [default=internal]]),
             [config_dhcp_default="$withval"], [config_dhcp_default=""])
-if test "$config_dhcp_default" = yes -o "$config_dhcp_default" = no; then
-	config_dhcp_default=''
+if test "$config_dhcp_default" = yes -o "$config_dhcp_default" = no -o -z "$config_dhcp_default"; then
+	config_dhcp_default='internal'
 fi
-test -z "$config_dhcp_default" -a "$with_dhcpcanon" != "no" && config_dhcp_default='dhcpcanon'
-test -z "$config_dhcp_default" -a "$with_dhclient" != "no" && config_dhcp_default='dhclient'
-test -z "$config_dhcp_default" -a "$with_dhcpcd"   != "no" && config_dhcp_default='dhcpcd'
-test -z "$config_dhcp_default"                             && config_dhcp_default='internal'
 AC_DEFINE_UNQUOTED(NM_CONFIG_DEFAULT_MAIN_DHCP, "$config_dhcp_default", [Default configuration option for main.dhcp setting])
 AC_SUBST(NM_CONFIG_DEFAULT_MAIN_DHCP, $config_dhcp_default)
 
@@ -990,7 +953,7 @@ AC_DEFINE_UNQUOTED(SYSTEM_CA_PATH, "$SYSTEM_CA_PATH", [Define to path to system 
 AC_SUBST(SYSTEM_CA_PATH)
 
 AC_ARG_WITH(kernel-firmware-dir,
-            AS_HELP_STRING([--with-kernel-firmware-dir=DIR], [where kernel firmware directory is (default is /lib/firmware)]))
+            AS_HELP_STRING([--with-kernel-firmware-dir=DIR], [where kernel firmware directory is [default=/lib/firmware]]))
 if test -n "$with_kernel_firmware_dir" ; then
 	KERNEL_FIRMWARE_DIR="$with_kernel_firmware_dir"
 else
@@ -1077,12 +1040,12 @@ AM_CFLAGS="$AM_CFLAGS $with_cflags"
 
 AC_ARG_ENABLE(more-asserts,
               AS_HELP_STRING([--enable-more-asserts],
-                             [Enable more assertions for debugging (default: auto). Deprecated option. Use --with-more-asserts=level]))
+                             [Enable more assertions for debugging [default=auto]. Deprecated option. Use --with-more-asserts=level]))
 if test "${enable_more_asserts}" = "yes"; then
 	more_asserts=100
 fi
 AC_ARG_WITH(more-asserts,
-            AS_HELP_STRING([--with-more-asserts=level], [Enable more assertions for debugging (0 = none, 100 = all, default: auto)]),
+            AS_HELP_STRING([--with-more-asserts=level], [Enable more assertions for debugging (0 = none, 100 = all) [default=auto]]),
             [more_asserts=${with_more_asserts}],
             [])
 if test "${more_asserts}" = "no"; then
@@ -1097,7 +1060,7 @@ if test "${more_asserts}" = ""; then
 fi
 AC_DEFINE_UNQUOTED(NM_MORE_ASSERTS, $more_asserts, [Define if more asserts are enabled])
 
-AC_ARG_ENABLE(more-logging, AS_HELP_STRING([--enable-more-logging], [Enable more debug logging (default: auto)]))
+AC_ARG_ENABLE(more-logging, AS_HELP_STRING([--enable-more-logging], [Enable more debug logging [default=auto]]))
 if test "${enable_more_logging}" = ""; then
 	enable_more_logging=${more_logging_default}
 fi
@@ -1111,7 +1074,7 @@ NM_LTO
 NM_LD_GC
 
 AC_ARG_WITH(address-sanitizer,
-            AS_HELP_STRING([--with-address-sanitizer=yes|no|exec], [Enable address sanitizer (default: no)]))
+            AS_HELP_STRING([--with-address-sanitizer=yes|no|exec], [Enable address sanitizer [default=no]]))
 if test "$with_address_sanitizer" = yes -o "$with_address_sanitizer" = "exec"; then
 	CC_CHECK_FLAGS_APPEND([asan_cflags], [CFLAGS], [-fsanitize=address])
 	AS_IF([test -z "$asan_cflags"],
@@ -1133,7 +1096,7 @@ fi
 
 AC_ARG_ENABLE(undefined-sanitizer,
               AS_HELP_STRING([--enable-undefined-sanitizer],
-                             [Compile with undefined behavior sanitizer (default: no)]))
+                             [Compile with undefined behavior sanitizer [default=no]]))
 if (test "${enable_undefined_sanitizer}" = "yes"); then
 	CC_CHECK_FLAGS_APPEND([ubsan_cflags], [CFLAGS], [-fsanitize=undefined])
 	AS_IF([test -z "$ubsan_cflags"],
@@ -1179,9 +1142,9 @@ VAPIGEN_CHECK(0.17.1.24)
 AC_CONFIG_COMMANDS([vapi], [$MKDIR_P vapi])
 
 # Tests, utilities and documentation
-AC_ARG_ENABLE(tests, AS_HELP_STRING([--enable-tests=root|yes|no], [Build NetworkManager tests (default: yes)]))
+AC_ARG_ENABLE(tests, AS_HELP_STRING([--enable-tests=root|yes|no], [Build NetworkManager tests [default=yes]]))
 AC_ARG_WITH(valgrind,
-            AS_HELP_STRING([--with-valgrind=yes|no|path], [Use valgrind to memory-check the tests (default: no)]))
+            AS_HELP_STRING([--with-valgrind=yes|no|path], [Use valgrind to memory-check the tests [default=no]]))
 # Fallback to --with-tests
 AC_ARG_WITH(tests,
             AS_HELP_STRING([--with-tests], [Build NetworkManager tests (deprecated)]))
@@ -1276,17 +1239,10 @@ AC_CONFIG_FILES([
 Makefile
 shared/nm-version-macros.h
 libnm/libnm.pc
-libnm-util/libnm-util.pc
-libnm-glib/libnm-glib.pc
-libnm-glib/libnm-glib-vpn.pc
 po/Makefile.in
 data/org.freedesktop.NetworkManager.policy.in
 docs/api/Makefile
 docs/api/version.xml
-docs/libnm-glib/Makefile
-docs/libnm-glib/version.xml
-docs/libnm-util/Makefile
-docs/libnm-util/version.xml
 docs/libnm/Makefile
 docs/libnm/version.xml
 NetworkManager.pc
@@ -1335,14 +1291,12 @@ echo "  ofono: $with_ofono"
 echo "  concheck: $enable_concheck"
 echo "  libteamdctl: $enable_teamdctl"
 echo "  ovs: $enable_ovs"
-echo "  libnm-glib: $with_libnm_glib"
 echo "  nmcli: $build_nmcli"
 echo "  nmtui: $build_nmtui"
 echo "  iwd: $ac_with_iwd"
 echo
 
 echo "Configuration plugins (main.plugins=${config_plugins_default})"
-echo "  ibft: ${enable_config_plugin_ibft}"
 echo "  ifcfg-rh: ${enable_ifcfg_rh}"
 echo "  ifupdown: ${enable_ifupdown}"
 echo

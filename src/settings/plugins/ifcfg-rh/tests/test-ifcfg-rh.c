@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager system settings service - keyfile plugin
  *
  * This program is free software; you can redistribute it and/or modify
@@ -239,7 +238,7 @@ _assert_expected_content (NMConnection *connection, const char *filename, const 
 		g_assert (_ifcfg_dir && _ifcfg_dir[0]); \
 		g_assert (_filename && _filename[0]); \
 		\
-		_success = nms_ifcfg_rh_writer_write_connection (_connection, _ifcfg_dir, _filename, NULL, _out_reread, _out_reread_same, &_error); \
+		_success = nms_ifcfg_rh_writer_write_connection (_connection, _ifcfg_dir, _filename, NULL, NULL, NULL, _out_reread, _out_reread_same, &_error); \
 		nmtst_assert_success (_success, _error); \
 		_assert_expected_content (_connection, _filename, _expected); \
 	} G_STMT_END
@@ -310,7 +309,7 @@ _writer_new_connection_reread (NMConnection *connection,
 	char *filename = NULL;
 	gs_unref_object NMConnection *con_verified = NULL;
 	gs_unref_object NMConnection *reread_copy = NULL;
-	NMConnection **reread = out_reread ?: ((nmtst_get_rand_int () % 2) ? &reread_copy : NULL);
+	NMConnection **reread = out_reread ?: ((nmtst_get_rand_uint32 () % 2) ? &reread_copy : NULL);
 
 	g_assert (NM_IS_CONNECTION (connection));
 	g_assert (ifcfg_dir);
@@ -319,6 +318,8 @@ _writer_new_connection_reread (NMConnection *connection,
 
 	success = nms_ifcfg_rh_writer_write_connection (con_verified,
 	                                                ifcfg_dir,
+	                                                NULL,
+	                                                NULL,
 	                                                NULL,
 	                                                &filename,
 	                                                reread,
@@ -394,6 +395,8 @@ _writer_new_connection_fail (NMConnection *connection,
 
 	success = nms_ifcfg_rh_writer_write_connection (connection_normalized,
 	                                                ifcfg_dir,
+	                                                NULL,
+	                                                NULL,
 	                                                NULL,
 	                                                &filename,
 	                                                &reread,
@@ -718,7 +721,7 @@ test_read_unmanaged_unrecognized (void)
 	connection = _connection_from_file (TEST_IFCFG_DIR"/ifcfg-test-nm-controlled-unrecognized",
 	                                    NULL, NULL,
 	                                    &unhandled_spec);
-	g_assert_cmpstr (unhandled_spec, ==, "unmanaged:interface-name:ipoac0");
+	g_assert_cmpstr (unhandled_spec, ==, "unmanaged:interface-name:=ipoac0");
 
 	/* ===== CONNECTION SETTING ===== */
 	s_con = nm_connection_get_setting_connection (connection);
@@ -1971,6 +1974,27 @@ test_read_802_1x_ttls_eapgtc (void)
 	g_assert_cmpstr (nm_setting_802_1x_get_phase2_autheap (s_8021x), ==, "gtc");
 
 	g_object_unref (connection);
+}
+
+static void
+test_read_802_1x_tls_p12_no_client_cert (void)
+{
+	gs_unref_object NMConnection *connection = NULL;
+	NMSetting8021x *s_8021x;
+	const char *path;
+
+	connection = _connection_from_file (TEST_IFCFG_DIR"/ifcfg-test-wired-8021x-tls-p12-no-client-cert",
+	                                    NULL, TYPE_ETHERNET, NULL);
+
+	s_8021x = nm_connection_get_setting_802_1x (connection);
+	g_assert (s_8021x);
+
+	g_assert_cmpint (nm_setting_802_1x_get_private_key_scheme (s_8021x), ==, NM_SETTING_802_1X_CK_SCHEME_PATH);
+	path = nm_setting_802_1x_get_private_key_path (s_8021x);
+	g_assert (path);
+
+	g_assert_cmpint (nm_setting_802_1x_get_client_cert_scheme (s_8021x), ==, NM_SETTING_802_1X_CK_SCHEME_PATH);
+	g_assert_cmpstr (path, ==, nm_setting_802_1x_get_client_cert_path (s_8021x));
 }
 
 static void
@@ -4765,6 +4789,48 @@ test_write_wired_static_ip6_only (void)
 
 	reread = _connection_from_file (testfile, NULL, TYPE_ETHERNET, NULL);
 
+	nmtst_assert_connection_equals (connection, TRUE, reread, FALSE);
+}
+
+static void
+test_write_ip6_disabled (void)
+{
+	nmtst_auto_unlinkfile char *testfile = NULL;
+	gs_unref_object NMConnection *connection = NULL;
+	gs_unref_object NMConnection *reread = NULL;
+	NMSettingConnection *s_con;
+	NMSettingWired *s_wired;
+	NMSettingIPConfig *s_ip4;
+	NMSettingIPConfig *s_ip6;
+
+	connection = nmtst_create_minimal_connection ("Test Write Wired Disabled IP6",
+	                                              NULL,
+	                                              NM_SETTING_WIRED_SETTING_NAME,
+	                                              &s_con);
+
+	s_wired = (NMSettingWired *) nm_setting_wired_new ();
+	nm_connection_add_setting (connection, NM_SETTING (s_wired));
+
+	s_ip4 = (NMSettingIPConfig *) nm_setting_ip4_config_new ();
+	nm_connection_add_setting (connection, NM_SETTING (s_ip4));
+	g_object_set (s_ip4,
+	              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO,
+	              NULL);
+
+	s_ip6 = (NMSettingIPConfig *) nm_setting_ip6_config_new ();
+	nm_connection_add_setting (connection, NM_SETTING (s_ip6));
+	g_object_set (s_ip6,
+	              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_DISABLED,
+	              NULL);
+
+	nmtst_assert_connection_verifies (connection);
+
+	_writer_new_connec_exp (connection,
+	                        TEST_SCRATCH_DIR_TMP,
+	                        TEST_IFCFG_DIR"/ifcfg-test-ip6-disabled.cexpected",
+	                        &testfile);
+
+	reread = _connection_from_file (testfile, NULL, TYPE_ETHERNET, NULL);
 	nmtst_assert_connection_equals (connection, TRUE, reread, FALSE);
 }
 
@@ -8938,25 +9004,16 @@ static void
 test_read_team_master_invalid (gconstpointer user_data)
 {
 	const char *const PATH_NAME = user_data;
-	NMConnection *connection;
-	NMSettingConnection *s_con;
-	NMSettingTeam *s_team;
+	gs_free_error GError *error = NULL;
+	gs_unref_object NMConnection *connection = NULL;
 
-	NMTST_EXPECT_NM_WARN ("*ignoring invalid team configuration*");
-	connection = _connection_from_file (PATH_NAME, NULL, TYPE_ETHERNET, NULL);
-	g_test_assert_expected_messages ();
+	if (WITH_JSON_VALIDATION) {
+		_connection_from_file_fail (PATH_NAME, NULL, TYPE_ETHERNET, &error);
 
-	g_assert_cmpstr (nm_connection_get_interface_name (connection), ==, "team0");
-
-	s_con = nm_connection_get_setting_connection (connection);
-	g_assert (s_con);
-	g_assert_cmpstr (nm_setting_connection_get_connection_type (s_con), ==, NM_SETTING_TEAM_SETTING_NAME);
-
-	s_team = nm_connection_get_setting_team (connection);
-	g_assert (s_team);
-	g_assert (nm_setting_team_get_config (s_team) == NULL);
-
-	g_object_unref (connection);
+		g_assert_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY);
+		g_assert (strstr (error->message, _("invalid json")));
+	} else
+		connection = _connection_from_file (PATH_NAME, NULL, TYPE_ETHERNET, NULL);
 }
 
 static void
@@ -9237,19 +9294,19 @@ test_team_reread_slave (void)
 
 	nmtst_assert_connection_equals (connection_1, FALSE, connection_2, FALSE);
 
-	_writer_new_connection_reread ((nmtst_get_rand_int () % 2) ? connection_1 : connection_2,
+	_writer_new_connection_reread ((nmtst_get_rand_uint32 () % 2) ? connection_1 : connection_2,
 	                               TEST_SCRATCH_DIR,
 	                               &testfile,
 	                               TEST_IFCFG_DIR"/ifcfg-team-slave-enp31s0f1-142.cexpected",
 	                               &reread,
 	                               &reread_same);
-	_assert_reread_same ((nmtst_get_rand_int () % 2) ? connection_1 : connection_2, reread);
+	_assert_reread_same ((nmtst_get_rand_uint32 () % 2) ? connection_1 : connection_2, reread);
 	g_assert (reread_same);
 	g_clear_object (&reread);
 
 	reread = _connection_from_file (testfile, NULL, TYPE_VLAN,
 	                                NULL);
-	nmtst_assert_connection_equals ((nmtst_get_rand_int () % 2) ? connection_1 : connection_2, FALSE,
+	nmtst_assert_connection_equals ((nmtst_get_rand_uint32 () % 2) ? connection_1 : connection_2, FALSE,
 	                                reread, FALSE);
 }
 
@@ -9414,7 +9471,7 @@ do_svUnescape_combine_ansi (GString *str_val, GString *str_exp, const UnescapeTe
 	g_string_append (str_val, "$'");
 	if (idx < 0) {
 		for (i = -idx; i > 0; i--) {
-			j = nmtst_get_rand_int () % data_len;
+			j = nmtst_get_rand_uint32 () % data_len;
 			if (!data_ansi[j].can_concat) {
 				i++;
 				continue;
@@ -9613,7 +9670,7 @@ test_svUnescape (void)
 
 	/* different values can be just concatenated... */
 	for (i = 0; i < 200; i++) {
-		gsize num_concat = (nmtst_get_rand_int () % 5) + 2;
+		gsize num_concat = (nmtst_get_rand_uint32 () % 5) + 2;
 
 		g_string_set_size (str_val, 0);
 		g_string_set_size (str_exp, 0);
@@ -9621,12 +9678,12 @@ test_svUnescape (void)
 		while (num_concat > 0) {
 			gsize idx;
 
-			if ((nmtst_get_rand_int () % 3 == 0)) {
-				do_svUnescape_combine_ansi (str_val2, str_exp2, data_ansi, G_N_ELEMENTS (data_ansi), -((int) ((nmtst_get_rand_int () % 5) + 1)));
+			if ((nmtst_get_rand_uint32 () % 3 == 0)) {
+				do_svUnescape_combine_ansi (str_val2, str_exp2, data_ansi, G_N_ELEMENTS (data_ansi), -((int) ((nmtst_get_rand_uint32 () % 5) + 1)));
 				continue;
 			}
 
-			idx = nmtst_get_rand_int () % G_N_ELEMENTS (data_full);
+			idx = nmtst_get_rand_uint32 () % G_N_ELEMENTS (data_full);
 			if (!data_full[idx].can_concat)
 				continue;
 			g_string_append (str_val, data_full[idx].val);
@@ -9634,7 +9691,7 @@ test_svUnescape (void)
 			num_concat--;
 		}
 
-		switch (nmtst_get_rand_int () % 3) {
+		switch (nmtst_get_rand_uint32 () % 3) {
 		case 0:
 			g_string_append (str_val, " ");
 			break;
@@ -9642,7 +9699,7 @@ test_svUnescape (void)
 			g_string_append (str_val, "    ");
 			break;
 		}
-		switch (nmtst_get_rand_int () % 3) {
+		switch (nmtst_get_rand_uint32 () % 3) {
 		case 0:
 			g_string_append (str_val, " #");
 			break;
@@ -10177,6 +10234,7 @@ int main (int argc, char **argv)
 	g_test_add_data_func (TPATH "static-ip6-only-gw/::", "::", test_write_wired_static_ip6_only_gw);
 	g_test_add_data_func (TPATH "static-ip6-only-gw/2001:db8:8:4::2", "2001:db8:8:4::2", test_write_wired_static_ip6_only_gw);
 	g_test_add_data_func (TPATH "static-ip6-only-gw/::ffff:255.255.255.255", "::ffff:255.255.255.255", test_write_wired_static_ip6_only_gw);
+	g_test_add_func (TPATH "ip6/disabled", test_write_ip6_disabled);
 	g_test_add_func (TPATH "read-dns-options", test_read_dns_options);
 	g_test_add_func (TPATH "clear-master", test_clear_master);
 
@@ -10223,6 +10281,8 @@ int main (int argc, char **argv)
 	g_test_add_func (TPATH "802-1x/subj-matches", test_read_write_802_1X_subj_matches);
 	g_test_add_func (TPATH "802-1x/ttls-eapgtc", test_read_802_1x_ttls_eapgtc);
 	g_test_add_func (TPATH "802-1x/password_raw", test_read_write_802_1x_password_raw);
+	g_test_add_func (TPATH "802-1x/tls-p12-no-client-cert", test_read_802_1x_tls_p12_no_client_cert);
+
 	g_test_add_data_func (TPATH "wired/read/aliases/good/0", GINT_TO_POINTER (0), test_read_wired_aliases_good);
 	g_test_add_data_func (TPATH "wired/read/aliases/good/3", GINT_TO_POINTER (3), test_read_wired_aliases_good);
 	g_test_add_func (TPATH "wired/read/aliases/bad1", test_read_wired_aliases_bad_1);

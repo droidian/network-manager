@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -340,6 +339,7 @@ complete_connection (NMDevice *device,
 	                           existing_connections,
 	                           preferred,
 	                           fallback_prefix,
+	                           NULL,
 	                           NULL,
 	                           is_dun ? FALSE : TRUE); /* No IPv6 yet for DUN */
 

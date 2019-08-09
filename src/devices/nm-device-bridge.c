@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -153,6 +152,7 @@ complete_connection (NMDevice *device,
 	                           NULL,
 	                           _("Bridge connection"),
 	                           "bridge",
+	                           NULL,
 	                           TRUE);
 
 	s_bridge = nm_connection_get_setting_bridge (connection);
@@ -625,11 +625,25 @@ release_slave (NMDevice *device,
 {
 	NMDeviceBridge *self = NM_DEVICE_BRIDGE (device);
 	gboolean success;
+	int ifindex_slave;
+	int ifindex;
+
+	ifindex = nm_device_get_ifindex (device);
+	if (   ifindex <= 0
+	    || !nm_platform_link_get (nm_device_get_platform (device), ifindex))
+		configure = FALSE;
+
+	ifindex_slave = nm_device_get_ip_ifindex (slave);
+
+	if (ifindex_slave <= 0) {
+		_LOGD (LOGD_TEAM, "bond slave %s is already released", nm_device_get_ip_iface (slave));
+		return;
+	}
 
 	if (configure) {
 		success = nm_platform_link_release (nm_device_get_platform (device),
 		                                    nm_device_get_ip_ifindex (device),
-		                                    nm_device_get_ip_ifindex (slave));
+		                                    ifindex_slave);
 
 		if (success) {
 			_LOGI (LOGD_BRIDGE, "detached bridge port %s",

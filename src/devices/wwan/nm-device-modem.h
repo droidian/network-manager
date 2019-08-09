@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,6 +33,9 @@
 #define NM_DEVICE_MODEM_MODEM "modem"
 #define NM_DEVICE_MODEM_CAPABILITIES "modem-capabilities"
 #define NM_DEVICE_MODEM_CURRENT_CAPABILITIES "current-capabilities"
+#define NM_DEVICE_MODEM_DEVICE_ID            "device-id"
+#define NM_DEVICE_MODEM_OPERATOR_CODE        "operator-code"
+#define NM_DEVICE_MODEM_APN                  "apn"
 
 typedef struct _NMDeviceModem NMDeviceModem;
 typedef struct _NMDeviceModemClass NMDeviceModemClass;

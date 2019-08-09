@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager system settings service - keyfile plugin
  *
  * This program is free software; you can redistribute it and/or modify
@@ -177,30 +176,18 @@ typedef struct {
 } Setting8021xSchemeVtable;
 
 static const Setting8021xSchemeVtable setting_8021x_scheme_vtable[] = {
-	[NM_SETTING_802_1X_SCHEME_TYPE_CA_CERT] = {
-		.vtable                 = &nm_setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_CA_CERT],
-		.ifcfg_rh_key           = "IEEE_8021X_CA_CERT",
-	},
-	[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CA_CERT] = {
-		.vtable                 = &nm_setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CA_CERT],
-		.ifcfg_rh_key           = "IEEE_8021X_INNER_CA_CERT",
-	},
-	[NM_SETTING_802_1X_SCHEME_TYPE_CLIENT_CERT] = {
-		.vtable                 = &nm_setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_CLIENT_CERT],
-		.ifcfg_rh_key           = "IEEE_8021X_CLIENT_CERT",
-	},
-	[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CLIENT_CERT] = {
-		.vtable                 = &nm_setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CLIENT_CERT],
-		.ifcfg_rh_key           = "IEEE_8021X_INNER_CLIENT_CERT",
-	},
-	[NM_SETTING_802_1X_SCHEME_TYPE_PRIVATE_KEY] = {
-		.vtable                 = &nm_setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_PRIVATE_KEY],
-		.ifcfg_rh_key           = "IEEE_8021X_PRIVATE_KEY",
-	},
-	[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_PRIVATE_KEY] = {
-		.vtable                 = &nm_setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_PRIVATE_KEY],
-		.ifcfg_rh_key           = "IEEE_8021X_INNER_PRIVATE_KEY",
-	},
+#define _D(_scheme_type, _ifcfg_rh_key) \
+	[(_scheme_type)] = { \
+		.vtable       = &nm_setting_8021x_scheme_vtable[(_scheme_type)], \
+		.ifcfg_rh_key = ""_ifcfg_rh_key"", \
+	}
+	_D (NM_SETTING_802_1X_SCHEME_TYPE_CA_CERT,            "IEEE_8021X_CA_CERT"),
+	_D (NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CA_CERT,     "IEEE_8021X_INNER_CA_CERT"),
+	_D (NM_SETTING_802_1X_SCHEME_TYPE_CLIENT_CERT,        "IEEE_8021X_CLIENT_CERT"),
+	_D (NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CLIENT_CERT, "IEEE_8021X_INNER_CLIENT_CERT"),
+	_D (NM_SETTING_802_1X_SCHEME_TYPE_PRIVATE_KEY,        "IEEE_8021X_PRIVATE_KEY"),
+	_D (NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_PRIVATE_KEY, "IEEE_8021X_INNER_PRIVATE_KEY"),
+#undef _D
 };
 
 static gboolean
@@ -209,6 +196,7 @@ write_object (NMSetting8021x *s_8021x,
               GHashTable *secrets,
               GHashTable *blobs,
               const Setting8021xSchemeVtable *objtype,
+              gboolean force_write,
               GError **error)
 {
 	NMSetting8021xCKScheme scheme;
@@ -216,7 +204,8 @@ write_object (NMSetting8021x *s_8021x,
 	GBytes *blob = NULL;
 	const char *password = NULL;
 	NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
-	char *secret_name, *secret_flags;
+	char secret_name[100];
+	char secret_flags[sizeof (secret_name) + NM_STRLEN ("_FLAGS")];
 	const char *extension;
 	char *standard_file;
 
@@ -243,13 +232,11 @@ write_object (NMSetting8021x *s_8021x,
 	}
 
 	/* Set the password for certificate/private key. */
-	secret_name = g_strdup_printf ("%s_PASSWORD", objtype->ifcfg_rh_key);
-	secret_flags = g_strdup_printf ("%s_PASSWORD_FLAGS", objtype->ifcfg_rh_key);
+	nm_sprintf_buf (secret_name, "%s_PASSWORD", objtype->ifcfg_rh_key);
+	nm_sprintf_buf (secret_flags, "%s_PASSWORD_FLAGS", objtype->ifcfg_rh_key);
 	password = (*(objtype->vtable->passwd_func))(s_8021x);
 	flags = (*(objtype->vtable->pwflag_func))(s_8021x);
 	set_secret (ifcfg, secrets, secret_name, password, secret_flags, flags);
-	g_free (secret_name);
-	g_free (secret_flags);
 
 	if (!objtype->vtable->format_func)
 		extension = "der";
@@ -287,7 +274,7 @@ write_object (NMSetting8021x *s_8021x,
 	 */
 	standard_file = utils_cert_path (svFileGetName (ifcfg), objtype->vtable->file_suffix, extension);
 	g_hash_table_replace (blobs, standard_file, NULL);
-	svUnsetValue (ifcfg, objtype->ifcfg_rh_key);
+	svSetValue (ifcfg, objtype->ifcfg_rh_key, force_write ? "" : NULL);
 	return TRUE;
 }
 
@@ -338,43 +325,41 @@ write_8021x_certs (NMSetting8021x *s_8021x,
                    shvarFile *ifcfg,
                    GError **error)
 {
-	const Setting8021xSchemeVtable *otype = NULL;
+	const Setting8021xSchemeVtable *pk_otype = NULL;
+	gs_free char *value_to_free = NULL;
 
 	/* CA certificate */
 	if (!write_object (s_8021x, ifcfg, secrets, blobs,
 	                   phase2
 	                       ? &setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CA_CERT]
 	                       : &setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_CA_CERT],
+	                   FALSE,
 	                   error))
 		return FALSE;
 
 	/* Private key */
 	if (phase2)
-		otype = &setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_PRIVATE_KEY];
+		pk_otype = &setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_PRIVATE_KEY];
 	else
-		otype = &setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_PRIVATE_KEY];
+		pk_otype = &setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_PRIVATE_KEY];
 
 	/* Save the private key */
-	if (!write_object (s_8021x, ifcfg, secrets, blobs, otype, error))
+	if (!write_object (s_8021x, ifcfg, secrets, blobs, pk_otype, FALSE, error))
 		return FALSE;
 
-	/* Client certificate */
-	if (otype->vtable->format_func (s_8021x) == NM_SETTING_802_1X_CK_FORMAT_PKCS12) {
-		/* Don't need a client certificate with PKCS#12 since the file is both
-		 * the client certificate and the private key in one file.
-		 */
-		svSetValueStr (ifcfg,
-		               phase2 ? "IEEE_8021X_INNER_CLIENT_CERT" : "IEEE_8021X_CLIENT_CERT",
-		               NULL);
-	} else {
-		/* Save the client certificate */
-		if (!write_object (s_8021x, ifcfg, secrets, blobs,
-		                   phase2
-		                       ? &setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CLIENT_CERT]
-		                       : &setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_CLIENT_CERT],
-		                   error))
-			return FALSE;
-	}
+	/* Save the client certificate.
+	 * If there is a private key, always write a property for the
+	 * client certificate even if it is empty, so that the reader
+	 * doesn't have to read the private key file to determine if it
+	 * is a PKCS #12 one which serves also as client certificate.
+	 */
+	if (!write_object (s_8021x, ifcfg, secrets, blobs,
+	                   phase2
+	                       ? &setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CLIENT_CERT]
+	                       : &setting_8021x_scheme_vtable[NM_SETTING_802_1X_SCHEME_TYPE_CLIENT_CERT],
+	                   !!svGetValue (ifcfg, pk_otype->ifcfg_rh_key, &value_to_free),
+	                   error))
+		return FALSE;
 
 	return TRUE;
 }
@@ -1118,14 +1103,22 @@ write_wired_setting (NMConnection *connection, shvarFile *ifcfg, GError **error)
 			nm_setting_wired_get_s390_option (s_wired, i, &s390_key, &s390_val);
 
 			/* portname is handled separately */
-			if (!strcmp (s390_key, "portname") || !strcmp (s390_key, "ctcprot"))
+			if (NM_IN_STRSET (s390_key, "portname", "ctcprot"))
 				continue;
+
+			if (strchr (s390_key, '=')) {
+				/* this key cannot be expressed. But after all, it's not valid anyway
+				 * and the connection shouldn't even verify. */
+				continue;
+			}
 
 			if (!tmp)
 				tmp = g_string_sized_new (30);
 			else
 				g_string_append_c (tmp, ' ');
-			g_string_append_printf (tmp, "%s=%s", s390_key, s390_val);
+			nm_utils_escaped_tokens_escape_gstr (s390_key, NM_ASCII_SPACES, tmp);
+			g_string_append_c (tmp, '=');
+			nm_utils_escaped_tokens_escape_gstr (s390_val, NM_ASCII_SPACES, tmp);
 		}
 		if (tmp)
 			svSetValueStr (ifcfg, "OPTIONS", tmp->str);
@@ -1302,7 +1295,7 @@ write_wired_for_virtual (NMConnection *connection, shvarFile *ifcfg)
 		has_wired = TRUE;
 
 		device_mac = nm_setting_wired_get_mac_address (s_wired);
-		svSetValueStr (ifcfg, "HWADDR", device_mac);
+		svSetValue (ifcfg, "HWADDR", device_mac ?: "");
 
 		cloned_mac = nm_setting_wired_get_cloned_mac_address (s_wired);
 		svSetValueStr (ifcfg, "MACADDR", cloned_mac);
@@ -1856,6 +1849,7 @@ write_connection_setting (NMSettingConnection *s_con, shvarFile *ifcfg)
 	GString *str;
 	const char *master, *master_iface = NULL, *type;
 	int vint;
+	gint32 vint32;
 	NMSettingConnectionMdns mdns;
 	NMSettingConnectionLlmnr llmnr;
 	guint32 vuint32;
@@ -2021,6 +2015,19 @@ write_connection_setting (NMSettingConnection *s_con, shvarFile *ifcfg)
 
 	vint = nm_setting_connection_get_auth_retries (s_con);
 	svSetValueInt64_cond (ifcfg, "AUTH_RETRIES", vint >= 0, vint);
+
+	vint32 = nm_setting_connection_get_wait_device_timeout (s_con);
+	if (vint32 == -1)
+		svUnsetValue (ifcfg, "DEVTIMEOUT");
+	else if ((vint32 % 1000) == 0)
+		svSetValueInt64 (ifcfg, "DEVTIMEOUT", vint32 / 1000);
+	else {
+		char b[100];
+
+		svSetValueStr (ifcfg,
+		               "DEVTIMEOUT",
+		               nm_sprintf_buf (b, "%.3f", ((double) vint) / 1000.0));
+	}
 
 	mdns = nm_setting_connection_get_mdns (s_con);
 	if (mdns != NM_SETTING_CONNECTION_MDNS_DEFAULT) {
@@ -2797,9 +2804,16 @@ write_ip6_setting (NMConnection *connection,
 
 	value = nm_setting_ip_config_get_method (s_ip6);
 	g_assert (value);
+	svUnsetValue (ifcfg, "IPV6_DISABLED");
 	if (!strcmp (value, NM_SETTING_IP6_CONFIG_METHOD_IGNORE)) {
 		svSetValueStr (ifcfg, "IPV6INIT", "no");
 		svUnsetValue (ifcfg, "DHCPV6C");
+		return TRUE;
+	} else if (!strcmp (value, NM_SETTING_IP6_CONFIG_METHOD_DISABLED)) {
+		svSetValueStr (ifcfg, "IPV6_DISABLED", "yes");
+		svSetValueStr (ifcfg, "IPV6INIT", "no");
+		svUnsetValue (ifcfg, "DHCPV6C");
+		svUnsetValue (ifcfg, "IPV6_AUTOCONF");
 		return TRUE;
 	} else if (!strcmp (value, NM_SETTING_IP6_CONFIG_METHOD_AUTO)) {
 		svSetValueStr (ifcfg, "IPV6INIT", "yes");
@@ -3024,6 +3038,8 @@ static gboolean
 do_write_construct (NMConnection *connection,
                     const char *ifcfg_dir,
                     const char *filename,
+                    NMSIfcfgRHWriterAllowFilenameCb allow_filename_cb,
+                    gpointer allow_filename_user_data,
                     shvarFile **out_ifcfg,
                     GHashTable **out_blobs,
                     GHashTable **out_secrets,
@@ -3067,30 +3083,31 @@ do_write_construct (NMConnection *connection,
 
 		ifcfg_name = g_strdup (filename);
 	} else if (ifcfg_dir) {
-		char *escaped;
+		gs_free char *escaped = NULL;
+		int i_path;
 
 		escaped = escape_id (nm_setting_connection_get_id (s_con));
-		ifcfg_name = g_strdup_printf ("%s/ifcfg-%s", ifcfg_dir, escaped);
 
-		/* If a file with this path already exists then we need another name.
-		 * Multiple connections can have the same ID (ie if two connections with
-		 * the same ID are visible to different users) but of course can't have
-		 * the same path.
-		 */
-		if (g_file_test (ifcfg_name, G_FILE_TEST_EXISTS)) {
-			guint32 idx = 0;
+		for (i_path = 0; i_path < 10000; i_path++) {
+			gs_free char *path_candidate = NULL;
 
-			nm_clear_g_free (&ifcfg_name);
-			while (idx++ < 500) {
-				ifcfg_name = g_strdup_printf ("%s/ifcfg-%s-%u", ifcfg_dir, escaped, idx);
-				if (g_file_test (ifcfg_name, G_FILE_TEST_EXISTS) == FALSE)
-					break;
-				nm_clear_g_free (&ifcfg_name);
-			}
+			if (i_path == 0)
+				path_candidate = g_strdup_printf ("%s/ifcfg-%s", ifcfg_dir, escaped);
+			else
+				path_candidate = g_strdup_printf ("%s/ifcfg-%s-%d", ifcfg_dir, escaped, i_path);
+
+			if (   allow_filename_cb
+			    && !allow_filename_cb (path_candidate, allow_filename_user_data))
+				continue;
+
+			if (g_file_test (path_candidate, G_FILE_TEST_EXISTS))
+				continue;
+
+			ifcfg_name = g_steal_pointer (&path_candidate);
+			break;
 		}
-		g_free (escaped);
 
-		if (ifcfg_name == NULL) {
+		if (!ifcfg_name) {
 			g_set_error_literal (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_FAILED,
 			                     "Failed to find usable ifcfg file name");
 			return FALSE;
@@ -3329,54 +3346,12 @@ do_write_to_disk (NMConnection *connection,
 	return TRUE;
 }
 
-static gboolean
-do_write_reread (NMConnection *connection,
-                 const char *ifcfg_name,
-                 NMConnection **out_reread,
-                 gboolean *out_reread_same,
-                 GError **error)
-{
-	gs_unref_object NMConnection *reread = NULL;
-	gs_free_error GError *local = NULL;
-	gs_free char *unhandled = NULL;
-	gboolean reread_same = FALSE;
-
-	nm_assert (!out_reread || !*out_reread);
-
-	reread = connection_from_file (ifcfg_name, &unhandled, &local, NULL);
-
-	if (!reread) {
-		g_propagate_error (error, local);
-		local = NULL;
-		return FALSE;
-	}
-	if (unhandled) {
-		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_FAILED,
-		             "connection is unhandled");
-		return FALSE;
-	}
-	if (out_reread_same) {
-		if (nm_connection_compare (reread, connection, NM_SETTING_COMPARE_FLAG_EXACT))
-			reread_same = TRUE;
-
-		nm_assert (reread_same == nm_connection_compare (connection, reread, NM_SETTING_COMPARE_FLAG_EXACT));
-		nm_assert (reread_same == ({
-		                                gs_unref_hashtable GHashTable *_settings = NULL;
-
-		                                (   nm_connection_diff (reread, connection, NM_SETTING_COMPARE_FLAG_EXACT, &_settings)
-		                                 && !_settings);
-		                           }));
-	}
-
-	NM_SET_OUT (out_reread, g_steal_pointer (&reread));
-	NM_SET_OUT (out_reread_same, reread_same);
-	return TRUE;
-}
-
 gboolean
 nms_ifcfg_rh_writer_write_connection (NMConnection *connection,
                                       const char *ifcfg_dir,
                                       const char *filename,
+                                      NMSIfcfgRHWriterAllowFilenameCb allow_filename_cb,
+                                      gpointer allow_filename_user_data,
                                       char **out_filename,
                                       NMConnection **out_reread,
                                       gboolean *out_reread_same,
@@ -3389,13 +3364,14 @@ nms_ifcfg_rh_writer_write_connection (NMConnection *connection,
 	nm_auto_free_gstring GString *route6_content = NULL;
 	gs_unref_hashtable GHashTable *secrets = NULL;
 	gs_unref_hashtable GHashTable *blobs = NULL;
-	GError *local = NULL;
 
 	nm_assert (!out_reread || !*out_reread);
 
 	if (!do_write_construct (connection,
 	                         ifcfg_dir,
 	                         filename,
+	                         allow_filename_cb,
+	                         allow_filename_user_data,
 	                         &ifcfg,
 	                         &blobs,
 	                         &secrets,
@@ -3424,28 +3400,46 @@ nms_ifcfg_rh_writer_write_connection (NMConnection *connection,
 
 	/* Note that we just wrote the connection to disk, and re-read it from there.
 	 * That is racy if somebody else modifies the connection.
+	 * That race is why we must not tread a failure to re-read the profile
+	 * as an error.
 	 *
-	 * A better solution might be, to re-read the connection only based on the
-	 * in-memory representation of what we collected above. But the reader
+	 * FIXME: a much better solution might be, to re-read the connection only based
+	 * on the in-memory representation of what we collected above. But the reader
 	 * does not yet allow to inject the configuration. */
-	if (out_reread || out_reread_same) {
-		if (!do_write_reread (connection,
-		                      svFileGetName (ifcfg),
-		                      out_reread,
-		                      out_reread_same,
-		                      &local)) {
+	if (   out_reread
+	    || out_reread_same) {
+		gs_unref_object NMConnection *reread = NULL;
+		gboolean reread_same = FALSE;
+		gs_free_error GError *local = NULL;
+		gs_free char *unhandled = NULL;
+
+		reread = connection_from_file (svFileGetName (ifcfg),
+		                               &unhandled,
+		                               &local,
+		                               NULL);
+		nm_assert ((NM_IS_CONNECTION (reread) && !local) || (!reread && local));
+
+		if (!reread) {
 			_LOGW ("write: failure to re-read connection \"%s\": %s",
 			       svFileGetName (ifcfg), local->message);
-			g_clear_error (&local);
+		} else if (unhandled) {
+			g_clear_object (&reread);
+			_LOGW ("write: failure to re-read connection \"%s\": %s",
+			       svFileGetName (ifcfg), "connection is unhandled");
 		} else {
-			if (   out_reread_same
-			    && !*out_reread_same) {
-				_LOGD ("write: connection %s (%s) was modified by persisting it to \"%s\" ",
-				       nm_connection_get_id (connection),
-				       nm_connection_get_uuid (connection),
-				       svFileGetName (ifcfg));
+			if (out_reread_same) {
+				reread_same = nm_connection_compare (reread, connection, NM_SETTING_COMPARE_FLAG_EXACT);
+				if (!reread_same) {
+					_LOGD ("write: connection %s (%s) was modified by persisting it to \"%s\" ",
+					       nm_connection_get_id (connection),
+					       nm_connection_get_uuid (connection),
+					       svFileGetName (ifcfg));
+				}
 			}
 		}
+
+		NM_SET_OUT (out_reread, g_steal_pointer (&reread));
+		NM_SET_OUT (out_reread_same, reread_same);
 	}
 
 	/* Only return the filename if this was a newly written ifcfg */

@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* nm-linux-platform.c - Linux kernel & udev network configuration layer
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,6 +33,7 @@
 #include <linux/if_tun.h>
 #include <linux/if_tunnel.h>
 #include <linux/ip6_tunnel.h>
+#include <linux/tc_act/tc_mirred.h>
 #include <netinet/icmp6.h>
 #include <netinet/in.h>
 #include <poll.h>
@@ -81,6 +81,13 @@ enum {
 	__TCA_DEF_MAX
 };
 #define TCA_DEF_MAX (__TCA_DEF_MAX - 1)
+
+/*****************************************************************************/
+
+/* Compat with older kernels. */
+
+#define TCA_FQ_CODEL_CE_THRESHOLD 7
+#define TCA_FQ_CODEL_MEMORY_LIMIT 9
 
 /*****************************************************************************/
 
@@ -732,29 +739,27 @@ _timestamp_nl_to_ms (guint32 timestamp_nl, gint64 monotonic_ms)
 static guint32
 _addrtime_timestamp_to_nm (guint32 timestamp, gint32 *out_now_nm)
 {
-	struct timespec tp;
-	gint64 now_nl, now_nm, result;
-	int err;
+	gint64 now_nl;
+	gint64 now_nm;
+	gint64 result;
 
 	/* timestamp is unset. Default to 1. */
 	if (!timestamp) {
-		if (out_now_nm)
-			*out_now_nm = 0;
+		NM_SET_OUT (out_now_nm, 0);
 		return 1;
 	}
 
 	/* do all the calculations in milliseconds scale */
 
-	err = clock_gettime (CLOCK_MONOTONIC, &tp);
-	g_assert (err == 0);
 	now_nm = nm_utils_get_monotonic_timestamp_ms ();
-	now_nl = (((gint64) tp.tv_sec) * ((gint64) 1000)) +
-	         (tp.tv_nsec / (NM_UTILS_NS_PER_SECOND/1000));
+	now_nl = nm_utils_clock_gettime_ms (CLOCK_MONOTONIC);
+
+	nm_assert (now_nm >= 1000);
+	nm_assert (now_nl >= 0);
 
 	result = now_nm - (now_nl - _timestamp_nl_to_ms (timestamp, now_nl));
 
-	if (out_now_nm)
-		*out_now_nm = now_nm / 1000;
+	NM_SET_OUT (out_now_nm, now_nm / 1000);
 
 	/* converting the timestamp into nm_utils_get_monotonic_timestamp_ms() scale is
 	 * a good guess but fails in the following situations:
@@ -2579,6 +2584,25 @@ link_wireguard_change (NMPlatform *platform,
 
 /*****************************************************************************/
 
+static void
+_nmp_link_address_set (NMPLinkAddress *dst,
+                       const struct nlattr *nla)
+{
+	*dst = (NMPLinkAddress) {
+		.len = 0,
+	};
+	if (nla) {
+		int l = nla_len (nla);
+
+		if (   l > 0
+		    && l <= NM_UTILS_HWADDR_LEN_MAX) {
+			G_STATIC_ASSERT_EXPR (sizeof (dst->data) == NM_UTILS_HWADDR_LEN_MAX);
+			memcpy (dst->data, nla_data (nla), l);
+			dst->len = l;
+		}
+	}
+}
+
 /* Copied and heavily modified from libnl3's link_msg_parser(). */
 static NMPObject *
 _new_from_nl_link (NMPlatform *platform, const NMPCache *cache, struct nlmsghdr *nlh, gboolean id_only)
@@ -2622,6 +2646,7 @@ _new_from_nl_link (NMPlatform *platform, const NMPCache *cache, struct nlmsghdr 
 	const NMPObject *link_cached = NULL;
 	const NMPObject *lnk_data = NULL;
 	gboolean address_complete_from_cache = TRUE;
+	gboolean broadcast_complete_from_cache = TRUE;
 	gboolean lnk_data_complete_from_cache = TRUE;
 	gboolean need_ext_data = FALSE;
 	gboolean af_inet6_token_valid = FALSE;
@@ -2720,14 +2745,13 @@ _new_from_nl_link (NMPlatform *platform, const NMPCache *cache, struct nlmsghdr 
 	}
 
 	if (tb[IFLA_ADDRESS]) {
-		int l = nla_len (tb[IFLA_ADDRESS]);
-
-		if (l > 0 && l <= NM_UTILS_HWADDR_LEN_MAX) {
-			G_STATIC_ASSERT (NM_UTILS_HWADDR_LEN_MAX == sizeof (obj->link.addr.data));
-			memcpy (obj->link.addr.data, nla_data (tb[IFLA_ADDRESS]), l);
-			obj->link.addr.len = l;
-		}
+		_nmp_link_address_set (&obj->link.l_address, tb[IFLA_ADDRESS]);
 		address_complete_from_cache = FALSE;
+	}
+
+	if (tb[IFLA_BROADCAST]) {
+		_nmp_link_address_set (&obj->link.l_broadcast, tb[IFLA_BROADCAST]);
+		broadcast_complete_from_cache = FALSE;
 	}
 
 	if (tb[IFLA_AF_SPEC]) {
@@ -2803,6 +2827,7 @@ _new_from_nl_link (NMPlatform *platform, const NMPCache *cache, struct nlmsghdr 
 	    && (   lnk_data_complete_from_cache
 	        || need_ext_data
 	        || address_complete_from_cache
+	        || broadcast_complete_from_cache
 	        || !af_inet6_token_valid
 	        || !af_inet6_addr_gen_mode_valid
 	        || !tb[IFLA_STATS64])) {
@@ -2832,7 +2857,9 @@ _new_from_nl_link (NMPlatform *platform, const NMPCache *cache, struct nlmsghdr 
 			}
 
 			if (address_complete_from_cache)
-				obj->link.addr = link_cached->link.addr;
+				obj->link.l_address = link_cached->link.l_address;
+			if (broadcast_complete_from_cache)
+				obj->link.l_broadcast = link_cached->link.l_broadcast;
 			if (!af_inet6_token_valid)
 				obj->link.inet6_token = link_cached->link.inet6_token;
 			if (!af_inet6_addr_gen_mode_valid)
@@ -3481,6 +3508,7 @@ _new_from_nl_qdisc (struct nlmsghdr *nlh, gboolean id_only)
 {
 	static const struct nla_policy policy[] = {
 		[TCA_KIND] = { .type = NLA_STRING },
+		[TCA_OPTIONS] = { .type = NLA_NESTED },
 	};
 	struct nlattr *tb[G_N_ELEMENTS (policy)];
 	const struct tcmsg *tcm;
@@ -3505,6 +3533,50 @@ _new_from_nl_qdisc (struct nlmsghdr *nlh, gboolean id_only)
 	obj->qdisc.handle = tcm->tcm_handle;
 	obj->qdisc.parent = tcm->tcm_parent;
 	obj->qdisc.info = tcm->tcm_info;
+
+	if (nm_streq0 (obj->qdisc.kind, "fq_codel")) {
+		obj->qdisc.fq_codel.memory_limit = NM_PLATFORM_FQ_CODEL_MEMORY_LIMIT_UNSET;
+		obj->qdisc.fq_codel.ce_threshold = NM_PLATFORM_FQ_CODEL_CE_THRESHOLD_DISABLED;
+	}
+
+	if (tb[TCA_OPTIONS]) {
+		struct nlattr *options_attr;
+		int remaining;
+
+		nla_for_each_nested (options_attr, tb[TCA_OPTIONS], remaining) {
+			if (nla_len (options_attr) < sizeof (uint32_t))
+				continue;
+
+			if (nm_streq0 (obj->qdisc.kind, "fq_codel")) {
+				switch (nla_type (options_attr)) {
+				case TCA_FQ_CODEL_LIMIT:
+					obj->qdisc.fq_codel.limit = nla_get_u32 (options_attr);
+					break;
+				case TCA_FQ_CODEL_FLOWS:
+					obj->qdisc.fq_codel.flows = nla_get_u32 (options_attr);
+					break;
+				case TCA_FQ_CODEL_TARGET:
+					obj->qdisc.fq_codel.target = nla_get_u32 (options_attr);
+					break;
+				case TCA_FQ_CODEL_INTERVAL:
+					obj->qdisc.fq_codel.interval = nla_get_u32 (options_attr);
+					break;
+				case TCA_FQ_CODEL_QUANTUM:
+					obj->qdisc.fq_codel.quantum = nla_get_u32 (options_attr);
+					break;
+				case TCA_FQ_CODEL_CE_THRESHOLD:
+					obj->qdisc.fq_codel.ce_threshold = nla_get_u32 (options_attr);
+					break;
+				case TCA_FQ_CODEL_MEMORY_LIMIT:
+					obj->qdisc.fq_codel.memory_limit = nla_get_u32 (options_attr);
+					break;
+				case TCA_FQ_CODEL_ECN:
+					obj->qdisc.fq_codel.ecn = !!nla_get_u32 (options_attr);
+					break;
+				}
+			}
+		}
+	}
 
 	return obj;
 }
@@ -3628,7 +3700,7 @@ _nl_msg_new_link_set_afspec (struct nl_msg *msg,
 
 	return TRUE;
 nla_put_failure:
-	return FALSE;
+	g_return_val_if_reached (FALSE);
 }
 
 static gboolean
@@ -3779,7 +3851,7 @@ _nl_msg_new_link_set_linkinfo_vlan (struct nl_msg *msg,
 
 	return TRUE;
 nla_put_failure:
-	return FALSE;
+	g_return_val_if_reached (FALSE);
 }
 
 static struct nl_msg *
@@ -4161,6 +4233,7 @@ _nl_msg_new_qdisc (int nlmsg_type,
                    const NMPlatformQdisc *qdisc)
 {
 	nm_auto_nlmsg struct nl_msg *msg = NULL;
+	struct nlattr *tc_options;
 	const struct tcmsg tcm = {
 		.tcm_family = qdisc->addr_family,
 		.tcm_ifindex = qdisc->ifindex,
@@ -4176,55 +4249,34 @@ _nl_msg_new_qdisc (int nlmsg_type,
 
 	NLA_PUT_STRING (msg, TCA_KIND, qdisc->kind);
 
+	if (!(tc_options = nla_nest_start (msg, TCA_OPTIONS)))
+		goto nla_put_failure;
+
+	if (strcmp (qdisc->kind, "fq_codel") == 0) {
+		if (qdisc->fq_codel.limit)
+			NLA_PUT_U32 (msg, TCA_FQ_CODEL_LIMIT, qdisc->fq_codel.limit);
+		if (qdisc->fq_codel.flows)
+			NLA_PUT_U32 (msg, TCA_FQ_CODEL_FLOWS, qdisc->fq_codel.flows);
+		if (qdisc->fq_codel.target)
+			NLA_PUT_U32 (msg, TCA_FQ_CODEL_TARGET, qdisc->fq_codel.target);
+		if (qdisc->fq_codel.interval)
+			NLA_PUT_U32 (msg, TCA_FQ_CODEL_INTERVAL, qdisc->fq_codel.interval);
+		if (qdisc->fq_codel.quantum)
+			NLA_PUT_U32 (msg, TCA_FQ_CODEL_QUANTUM, qdisc->fq_codel.quantum);
+		if (qdisc->fq_codel.ce_threshold != NM_PLATFORM_FQ_CODEL_CE_THRESHOLD_DISABLED)
+			NLA_PUT_U32 (msg, TCA_FQ_CODEL_CE_THRESHOLD, qdisc->fq_codel.ce_threshold);
+		if (qdisc->fq_codel.memory_limit != NM_PLATFORM_FQ_CODEL_MEMORY_LIMIT_UNSET)
+			NLA_PUT_U32 (msg, TCA_FQ_CODEL_MEMORY_LIMIT, qdisc->fq_codel.memory_limit);
+		if (qdisc->fq_codel.ecn)
+			NLA_PUT_U32 (msg, TCA_FQ_CODEL_ECN, qdisc->fq_codel.ecn);
+	}
+
+	nla_nest_end (msg, tc_options);
+
 	return g_steal_pointer (&msg);
 
 nla_put_failure:
 	g_return_val_if_reached (NULL);
-}
-
-static gboolean
-_add_action_simple (struct nl_msg *msg,
-                    const NMPlatformActionSimple *simple)
-{
-	struct nlattr *act_options;
-	struct tc_defact sel = { 0, };
-
-	if (!(act_options = nla_nest_start (msg, TCA_ACT_OPTIONS)))
-		goto nla_put_failure;
-
-	NLA_PUT (msg, TCA_DEF_PARMS, sizeof (sel), &sel);
-	NLA_PUT (msg, TCA_DEF_DATA, sizeof (simple->sdata), simple->sdata);
-
-	nla_nest_end (msg, act_options);
-
-	return TRUE;
-
-nla_put_failure:
-	return FALSE;
-}
-
-static gboolean
-_add_action (struct nl_msg *msg,
-             const NMPlatformAction *action)
-{
-	struct nlattr *prio;
-
-	nm_assert (action || action->kind);
-
-	if (!(prio = nla_nest_start (msg, 1 /* priority */)))
-		goto nla_put_failure;
-
-	NLA_PUT_STRING (msg, TCA_ACT_KIND, action->kind);
-
-	if (nm_streq (action->kind, NM_PLATFORM_ACTION_KIND_SIMPLE))
-		_add_action_simple (msg, &action->simple);
-
-	nla_nest_end (msg, prio);
-
-	return TRUE;
-
-nla_put_failure:
-	return FALSE;
 }
 
 static struct nl_msg *
@@ -4256,8 +4308,52 @@ _nl_msg_new_tfilter (int nlmsg_type,
 	if (!(act_tab = nla_nest_start (msg, TCA_OPTIONS))) // 3 TCA_ACT_KIND TCA_ACT_KIND
 		goto nla_put_failure;
 
-	if (tfilter->action.kind)
-		_add_action (msg, &tfilter->action);
+	if (tfilter->action.kind) {
+		const NMPlatformAction *action = &tfilter->action;
+		struct nlattr *prio;
+		struct nlattr *act_options;
+
+		if (!(prio = nla_nest_start (msg, 1 /* priority */)))
+			goto nla_put_failure;
+
+		NLA_PUT_STRING (msg, TCA_ACT_KIND, action->kind);
+
+		if (nm_streq (action->kind, NM_PLATFORM_ACTION_KIND_SIMPLE)) {
+			const NMPlatformActionSimple *simple = &action->simple;
+			struct tc_defact sel = { 0, };
+
+			if (!(act_options = nla_nest_start (msg, TCA_ACT_OPTIONS)))
+				goto nla_put_failure;
+
+			NLA_PUT (msg, TCA_DEF_PARMS, sizeof (sel), &sel);
+			NLA_PUT (msg, TCA_DEF_DATA, sizeof (simple->sdata), simple->sdata);
+
+			nla_nest_end (msg, act_options);
+
+		} else if (nm_streq (action->kind, NM_PLATFORM_ACTION_KIND_MIRRED)) {
+			const NMPlatformActionMirred *mirred = &action->mirred;
+			struct tc_mirred sel = { 0, };
+
+			if (!(act_options = nla_nest_start (msg, TCA_ACT_OPTIONS)))
+				goto nla_put_failure;
+
+			if (mirred->egress && mirred->redirect)
+				sel.eaction = TCA_EGRESS_REDIR;
+			else if (mirred->egress && mirred->mirror)
+				sel.eaction = TCA_EGRESS_MIRROR;
+			else if (mirred->ingress && mirred->redirect)
+				sel.eaction = TCA_INGRESS_REDIR;
+			else if (mirred->ingress && mirred->mirror)
+				sel.eaction = TCA_INGRESS_MIRROR;
+			sel.ifindex = mirred->ifindex;
+
+			NLA_PUT (msg, TCA_MIRRED_PARMS, sizeof (sel), &sel);
+
+			nla_nest_end (msg, act_options);
+		}
+
+		nla_nest_end (msg, prio);
+	}
 
 	nla_nest_end (msg, tc_options);
 
@@ -4298,6 +4394,14 @@ _genl_sock (NMLinuxPlatform *platform)
 		} \
 	} G_STMT_END
 
+/*****************************************************************************/
+
+/* core sysctl-set functions can be called from a non-main thread.
+ * Hence, we require locking from nm-logging. Indicate that by
+ * setting NM_THREAD_SAFE_ON_MAIN_THREAD to zero. */
+#undef NM_THREAD_SAFE_ON_MAIN_THREAD
+#define NM_THREAD_SAFE_ON_MAIN_THREAD 0
+
 static void
 _log_dbg_sysctl_set_impl (NMPlatform *platform, const char *pathid, int dirfd, const char *path, const char *value)
 {
@@ -4308,18 +4412,18 @@ _log_dbg_sysctl_set_impl (NMPlatform *platform, const char *pathid, int dirfd, c
 	if (nm_utils_file_get_contents (dirfd, path, 1*1024*1024,
 	                                NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
 	                                &contents, NULL, &error) < 0) {
-		_LOGD ("sysctl: setting '%s' to '%s' (current value cannot be read: %s)", pathid, value_escaped, error->message);
+		_LOGD ("sysctl: setting '%s' to '%s' (current value cannot be read: %s)", pathid ?: path, value_escaped, error->message);
 		g_clear_error (&error);
 		return;
 	}
 
 	g_strstrip (contents);
 	if (nm_streq (contents, value))
-		_LOGD ("sysctl: setting '%s' to '%s' (current value is identical)", pathid, value_escaped);
+		_LOGD ("sysctl: setting '%s' to '%s' (current value is identical)", pathid ?: path, value_escaped);
 	else {
 		gs_free char *contents_escaped = g_strescape (contents, NULL);
 
-		_LOGD ("sysctl: setting '%s' to '%s' (current value is '%s')", pathid, value_escaped, contents_escaped);
+		_LOGD ("sysctl: setting '%s' to '%s' (current value is '%s')", pathid ?: path, value_escaped, contents_escaped);
 	}
 	g_free (contents);
 }
@@ -4332,9 +4436,12 @@ _log_dbg_sysctl_set_impl (NMPlatform *platform, const char *pathid, int dirfd, c
 	} G_STMT_END
 
 static gboolean
-sysctl_set (NMPlatform *platform, const char *pathid, int dirfd, const char *path, const char *value)
+sysctl_set_internal (NMPlatform *platform,
+                     const char *pathid,
+                     int dirfd,
+                     const char *path,
+                     const char *value)
 {
-	nm_auto_pop_netns NMPNetns *netns = NULL;
 	int fd, tries;
 	gssize nwrote;
 	gssize len;
@@ -4342,17 +4449,7 @@ sysctl_set (NMPlatform *platform, const char *pathid, int dirfd, const char *pat
 	gs_free char *actual_free = NULL;
 	int errsv;
 
-	g_return_val_if_fail (path != NULL, FALSE);
-	g_return_val_if_fail (value != NULL, FALSE);
-
-	ASSERT_SYSCTL_ARGS (pathid, dirfd, path);
-
 	if (dirfd < 0) {
-		if (!nm_platform_netns_push (platform, &netns)) {
-			errno = ENETDOWN;
-			return FALSE;
-		}
-
 		pathid = path;
 
 		fd = open (path, O_WRONLY | O_TRUNC | O_CLOEXEC);
@@ -4450,6 +4547,207 @@ sysctl_set (NMPlatform *platform, const char *pathid, int dirfd, const char *pat
 
 	/* success. errno is undefined (no need to set). */
 	return TRUE;
+}
+
+#undef NM_THREAD_SAFE_ON_MAIN_THREAD
+#define NM_THREAD_SAFE_ON_MAIN_THREAD 1
+
+/*****************************************************************************/
+
+static gboolean
+sysctl_set (NMPlatform *platform,
+            const char *pathid,
+            int dirfd,
+            const char *path,
+            const char *value)
+{
+	nm_auto_pop_netns NMPNetns *netns = NULL;
+
+	g_return_val_if_fail (path, FALSE);
+	g_return_val_if_fail (value, FALSE);
+
+	ASSERT_SYSCTL_ARGS (pathid, dirfd, path);
+
+	if (   dirfd < 0
+	    && !nm_platform_netns_push (platform, &netns)) {
+		errno = ENETDOWN;
+		return FALSE;
+	}
+
+	return sysctl_set_internal (platform, pathid, dirfd, path, value);
+}
+
+typedef struct {
+	NMPlatform *platform;
+	char *pathid;
+	int dirfd;
+	char *path;
+	char **values;
+	GCancellable *cancellable;
+	NMPlatformAsyncCallback callback;
+	gpointer callback_data;
+} SysctlAsyncInfo;
+
+static void
+sysctl_async_info_free (SysctlAsyncInfo *info)
+{
+	g_object_unref (info->platform);
+	g_free (info->pathid);
+	if (info->dirfd >= 0)
+		nm_close (info->dirfd);
+	g_free (info->path);
+	g_strfreev (info->values);
+	g_object_unref (info->cancellable);
+	g_slice_free (SysctlAsyncInfo, info);
+}
+
+static void
+sysctl_async_cb (GObject *object,
+                 GAsyncResult *res,
+                 gpointer user_data)
+{
+	NMPlatform *platform;
+	GTask *task = G_TASK (res);
+	SysctlAsyncInfo *info;
+	gs_free_error GError *error = NULL;
+	gs_free char *values_str = NULL;
+
+	info = g_task_get_task_data (task);
+
+	if (g_task_propagate_boolean (task, &error)) {
+		platform = info->platform;
+		_LOGD ("sysctl: successfully set-async '%s' to values '%s'",
+		       info->pathid ?: info->path,
+		       (values_str = g_strjoinv (", ", info->values)));
+	}
+
+	if (info->callback)
+		info->callback (error, info->callback_data);
+}
+
+static void
+sysctl_async_thread_fn (GTask *task,
+                        gpointer source_object,
+                        gpointer task_data,
+                        GCancellable *cancellable)
+{
+	nm_auto_pop_netns NMPNetns *netns = NULL;
+	SysctlAsyncInfo *info = task_data;
+	GError *error = NULL;
+	char **value;
+
+	if (g_task_return_error_if_cancelled (task))
+		return;
+
+	if (   info->dirfd < 0
+	    && !nm_platform_netns_push (info->platform, &netns)) {
+		g_set_error_literal (&error,
+		                     NM_UTILS_ERROR,
+		                     NM_UTILS_ERROR_UNKNOWN,
+		                     "sysctl: failed changing namespace");
+		g_task_return_error (task, error);
+		return;
+	}
+
+	for (value = info->values; *value; value++) {
+		if (!sysctl_set_internal (info->platform,
+		                          info->pathid,
+		                          info->dirfd,
+		                          info->path,
+		                          *value)) {
+			g_set_error (&error,
+			             NM_UTILS_ERROR,
+			             NM_UTILS_ERROR_UNKNOWN,
+			             "sysctl: failed setting '%s' to value '%s': %s",
+			             info->pathid ?: info->path,
+			             *value,
+			             nm_strerror_native (errno));
+			g_task_return_error (task, error);
+			return;
+		}
+		if (g_task_return_error_if_cancelled (task))
+			return;
+	}
+	g_task_return_boolean (task, TRUE);
+}
+
+static void
+sysctl_set_async_return_idle (gpointer user_data,
+                              GCancellable *cancellable)
+{
+	gs_unref_object NMPlatform *platform = NULL;
+	gs_free_error GError *cancelled_error = NULL;
+	gs_free_error GError *error = NULL;
+	NMPlatformAsyncCallback callback;
+	gpointer callback_data;
+
+	nm_utils_user_data_unpack (user_data, &platform, &callback, &callback_data, &error);
+	g_cancellable_set_error_if_cancelled (cancellable, &cancelled_error);
+	callback (cancelled_error ?: error, callback_data);
+}
+
+static void
+sysctl_set_async (NMPlatform *platform,
+                  const char *pathid,
+                  int dirfd,
+                  const char *path,
+                  const char *const *values,
+                  NMPlatformAsyncCallback callback,
+                  gpointer data,
+                  GCancellable *cancellable)
+{
+	SysctlAsyncInfo *info;
+	GTask *task;
+	int dirfd_dup, errsv;
+	gpointer packed;
+	GError *error = NULL;
+
+	g_return_if_fail (platform);
+	g_return_if_fail (path);
+	g_return_if_fail (values && values[0]);
+	g_return_if_fail (cancellable);
+	g_return_if_fail (!data || callback);
+
+	ASSERT_SYSCTL_ARGS (pathid, dirfd, path);
+
+	if (dirfd >= 0) {
+		dirfd_dup = fcntl (dirfd, F_DUPFD_CLOEXEC, 0);
+		if (dirfd_dup < 0) {
+			if (!callback)
+				return;
+			errsv = errno;
+			g_set_error (&error,
+			             NM_UTILS_ERROR,
+			             NM_UTILS_ERROR_UNKNOWN,
+			             "sysctl: failure duplicating directory fd: %s",
+			             nm_strerror_native (errsv));
+			packed = nm_utils_user_data_pack (g_object_ref (platform),
+			                                  callback,
+			                                  data,
+			                                  error);
+			nm_utils_invoke_on_idle (sysctl_set_async_return_idle,
+			                         packed,
+			                         cancellable);
+			return;
+		}
+	} else
+		dirfd_dup = -1;
+
+	info = g_slice_new0 (SysctlAsyncInfo);
+	info->platform = g_object_ref (platform);
+	info->pathid = g_strdup (pathid);
+	info->dirfd = dirfd_dup;
+	info->path = g_strdup (path);
+	info->values = g_strdupv ((char **) values);
+	info->callback = callback;
+	info->callback_data = data;
+	info->cancellable = g_object_ref (cancellable);
+
+	task = g_task_new (platform, cancellable, sysctl_async_cb, NULL);
+	g_task_set_task_data (task, info, (GDestroyNotify) sysctl_async_info_free);
+	g_task_set_return_on_cancel (task, FALSE);
+	g_task_run_in_thread (task, sysctl_async_thread_fn);
+	g_object_unref (task);
 }
 
 static GSList *sysctl_clear_cache_list;
@@ -5310,7 +5608,7 @@ cache_on_change (NMPlatform *platform,
 				 * Request it again. */
 				re_request_link = TRUE;
 			} else if (   obj_new->link.type == NM_LINK_TYPE_ETHERNET
-			           && obj_new->link.addr.len == 0) {
+			           && obj_new->link.l_address.len == 0) {
 				/* Due to a kernel bug, we sometimes receive spurious NEWLINK
 				 * messages after a wifi interface has disappeared. Since the
 				 * link is not present anymore we can't determine its type and
@@ -6170,8 +6468,8 @@ retry:
 	} else if (   NM_IN_SET (-((int) seq_result), ENFILE)
 	           && change_link_type == CHANGE_LINK_TYPE_SET_ADDRESS
 	           && (obj_cache = nmp_cache_lookup_link (nm_platform_get_cache (platform), ifindex))
-	           && obj_cache->link.addr.len == data->set_address.length
-	           && memcmp (obj_cache->link.addr.data, data->set_address.address, data->set_address.length) == 0) {
+	           && obj_cache->link.l_address.len == data->set_address.length
+	           && memcmp (obj_cache->link.l_address.data, data->set_address.address, data->set_address.length) == 0) {
 		/* workaround ENFILE which may be wrongly returned (bgo #770456).
 		 * If the MAC address is as expected, assume success? */
 		log_result = "success";
@@ -6409,7 +6707,8 @@ link_supports_carrier_detect (NMPlatform *platform, int ifindex)
 	 * us whether the device actually supports carrier detection in the first
 	 * place. We assume any device that does implements one of these two APIs.
 	 */
-	return nmp_utils_ethtool_supports_carrier_detect (ifindex) || nmp_utils_mii_supports_carrier_detect (ifindex);
+	return    nmp_utils_ethtool_supports_carrier_detect (ifindex)
+	       || nmp_utils_mii_supports_carrier_detect (ifindex);
 }
 
 static gboolean
@@ -6534,35 +6833,74 @@ nla_put_failure:
 	g_return_val_if_reached (FALSE);
 }
 
-static gboolean
-link_set_sriov_params (NMPlatform *platform,
-                       int ifindex,
-                       guint num_vfs,
-                       NMTernary autoprobe)
+static void
+sriov_idle_cb (gpointer user_data,
+               GCancellable *cancellable)
+{
+	gs_unref_object NMPlatform *platform = NULL;
+	gs_free_error GError *cancelled_error = NULL;
+	gs_free_error GError *error = NULL;
+	NMPlatformAsyncCallback callback;
+	gpointer callback_data;
+
+	g_cancellable_set_error_if_cancelled (cancellable, &cancelled_error);
+	nm_utils_user_data_unpack (user_data, &platform, &error, &callback, &callback_data);
+	callback (cancelled_error ?: error, callback_data);
+}
+
+static void
+link_set_sriov_params_async (NMPlatform *platform,
+                             int ifindex,
+                             guint num_vfs,
+                             NMTernary autoprobe,
+                             NMPlatformAsyncCallback callback,
+                             gpointer data,
+                             GCancellable *cancellable)
 {
 	nm_auto_pop_netns NMPNetns *netns = NULL;
+	gs_free_error GError *error = NULL;
 	nm_auto_close int dirfd = -1;
 	int current_autoprobe;
-	guint total;
+	guint i, total;
 	gint64 current_num;
 	char ifname[IFNAMSIZ];
+	gpointer packed;
+	const char *values[3];
 	char buf[64];
-	int errsv;
 
-	if (!nm_platform_netns_push (platform, &netns))
-		return FALSE;
+	g_return_if_fail (callback || !data);
+	g_return_if_fail (cancellable);
+
+	if (!nm_platform_netns_push (platform, &netns)) {
+		g_set_error_literal (&error,
+		                     NM_UTILS_ERROR,
+		                     NM_UTILS_ERROR_UNKNOWN,
+		                     "couldn't change namespace");
+		goto out_idle;
+	}
 
 	dirfd = nm_platform_sysctl_open_netdir (platform, ifindex, ifname);
-	if (!dirfd)
-		return FALSE;
+	if (!dirfd) {
+		g_set_error_literal (&error,
+		                     NM_UTILS_ERROR,
+		                     NM_UTILS_ERROR_UNKNOWN,
+		                     "couldn't open netdir");
+		goto out_idle;
+	}
 
 	total = nm_platform_sysctl_get_int_checked (platform,
 	                                            NMP_SYSCTL_PATHID_NETDIR (dirfd,
 	                                                                      ifname,
 	                                                                      "device/sriov_totalvfs"),
 	                                            10, 0, G_MAXUINT, 0);
-	if (errno)
-		return FALSE;
+	if (errno) {
+		g_set_error (&error,
+		             NM_UTILS_ERROR,
+		             NM_UTILS_ERROR_UNKNOWN,
+		             "failed reading sriov_totalvfs value: %s",
+		             nm_strerror_native (errno));
+		goto out_idle;
+	}
 	if (num_vfs > total) {
 		_LOGW ("link: %d only supports %u VFs (requested %u)", ifindex, total, num_vfs);
 		num_vfs = total;
@@ -6594,23 +6932,7 @@ link_set_sriov_params (NMPlatform *platform,
 
 	if (   current_num == num_vfs
 	    && (autoprobe == NM_TERNARY_DEFAULT || current_autoprobe == autoprobe))
-		return TRUE;
-
-	if (current_num != 0) {
-		/* We need to destroy all other VFs before changing any value */
-		if (!nm_platform_sysctl_set (NM_PLATFORM_GET,
-		                             NMP_SYSCTL_PATHID_NETDIR (dirfd,
-		                                                       ifname,
-		                                                      "device/sriov_numvfs"),
-		                             "0")) {
-			errsv = errno;
-			_LOGW ("link: couldn't reset SR-IOV num_vfs: %s", nm_strerror_native (errsv));
-			return FALSE;
-		}
-	}
-
-	if (num_vfs == 0)
-		return TRUE;
+		goto out_idle;
 
 	if (   NM_IN_SET (autoprobe, NM_TERNARY_TRUE, NM_TERNARY_FALSE)
 	    && current_autoprobe != autoprobe
@@ -6619,22 +6941,40 @@ link_set_sriov_params (NMPlatform *platform,
 	                                                          ifname,
 	                                                          "device/sriov_drivers_autoprobe"),
 	                                nm_sprintf_buf (buf, "%d", (int) autoprobe))) {
-		errsv = errno;
-		_LOGW ("link: couldn't set SR-IOV drivers-autoprobe to %d: %s", (int) autoprobe, nm_strerror_native (errsv));
-		return FALSE;
+		g_set_error (&error,
+		             NM_UTILS_ERROR,
+		             NM_UTILS_ERROR_UNKNOWN,
+		             "couldn't set SR-IOV drivers-autoprobe to %d: %s",
+		            (int) autoprobe, nm_strerror_native (errno));
+		goto out_idle;
 	}
 
-	if (!nm_platform_sysctl_set (NM_PLATFORM_GET,
-	                             NMP_SYSCTL_PATHID_NETDIR (dirfd,
-	                                                       ifname,
-	                                                       "device/sriov_numvfs"),
-	                             nm_sprintf_buf (buf, "%u", num_vfs))) {
-		errsv = errno;
-		_LOGW ("link: couldn't set SR-IOV num_vfs to %d: %s", num_vfs, nm_strerror_native (errsv));
-		return FALSE;
-	}
+	if (current_num == 0 && num_vfs == 0)
+		goto out_idle;
 
-	return TRUE;
+	i = 0;
+	if (current_num != 0)
+		values[i++] = "0";
+	if (num_vfs != 0)
+		values[i++] = nm_sprintf_bufa (32, "%u", num_vfs);
+	values[i++] = NULL;
+
+	sysctl_set_async (platform,
+	                  NMP_SYSCTL_PATHID_NETDIR (dirfd, ifname, "device/sriov_numvfs"),
+	                  values,
+	                  callback,
+	                  data,
+	                  cancellable);
+	return;
+
+out_idle:
+	if (callback) {
+		packed = nm_utils_user_data_pack (g_object_ref (platform),
+		                                  g_steal_pointer (&error),
+		                                  callback,
+		                                  data);
+		nm_utils_invoke_on_idle (sriov_idle_cb, packed, cancellable);
+	}
 }
 
 static gboolean
@@ -8167,6 +8507,9 @@ qdisc_add (NMPlatform *platform,
 	char s_buf[256];
 	nm_auto_nlmsg struct nl_msg *msg = NULL;
 
+	/* Note: @qdisc must not be copied or kept alive because the lifetime of qdisc.kind
+	 * is undefined. */
+
 	msg = _nl_msg_new_qdisc (RTM_NEWQDISC, flags, qdisc);
 
 	event_handler_read_netlink (platform, FALSE);
@@ -8207,6 +8550,9 @@ tfilter_add (NMPlatform *platform,
 	int nle;
 	char s_buf[256];
 	nm_auto_nlmsg struct nl_msg *msg = NULL;
+
+	/* Note: @tfilter must not be copied or kept alive because the lifetime of tfilter.kind
+	 * and tfilter.action.kind is undefined. */
 
 	msg = _nl_msg_new_tfilter (RTM_NEWTFILTER, flags, tfilter);
 
@@ -8913,6 +9259,7 @@ nm_linux_platform_class_init (NMLinuxPlatformClass *klass)
 	object_class->finalize = finalize;
 
 	platform_class->sysctl_set = sysctl_set;
+	platform_class->sysctl_set_async = sysctl_set_async;
 	platform_class->sysctl_get = sysctl_get;
 
 	platform_class->link_add = link_add;
@@ -8936,7 +9283,7 @@ nm_linux_platform_class_init (NMLinuxPlatformClass *klass)
 	platform_class->link_get_permanent_address = link_get_permanent_address;
 	platform_class->link_set_mtu = link_set_mtu;
 	platform_class->link_set_name = link_set_name;
-	platform_class->link_set_sriov_params = link_set_sriov_params;
+	platform_class->link_set_sriov_params_async = link_set_sriov_params_async;
 	platform_class->link_set_sriov_vfs = link_set_sriov_vfs;
 	platform_class->link_set_bridge_vlans = link_set_bridge_vlans;
 

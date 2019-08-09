@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* NetworkManager -- Network link manager
  *
  * This program is free software; you can redistribute it and/or modify
@@ -561,7 +560,7 @@ build_supplicant_config (NMDeviceEthernet *self,
 	mtu = nm_platform_link_get_mtu (nm_device_get_platform (NM_DEVICE (self)),
 	                                nm_device_get_ifindex (NM_DEVICE (self)));
 
-	config = nm_supplicant_config_new (FALSE, FALSE);
+	config = nm_supplicant_config_new (FALSE, FALSE, FALSE, FALSE);
 
 	security = nm_connection_get_setting_802_1x (connection);
 	if (!nm_supplicant_config_add_setting_8021x (config, security, con_uuid, mtu, TRUE, error)) {
@@ -1008,9 +1007,9 @@ pppoe_stage3_ip4_config_start (NMDeviceEthernet *self, NMDeviceStateReason *out_
 
 	if (priv->ppp_manager) {
 		nm_ppp_manager_set_route_parameters (priv->ppp_manager,
-		                                     nm_device_get_route_table (device, AF_INET, TRUE),
+		                                     nm_device_get_route_table (device, AF_INET),
 		                                     nm_device_get_route_metric (device, AF_INET),
-		                                     nm_device_get_route_table (device, AF_INET6, TRUE),
+		                                     nm_device_get_route_table (device, AF_INET6),
 		                                     nm_device_get_route_metric (device, AF_INET6));
 	}
 
@@ -1390,9 +1389,6 @@ complete_connection (NMDevice *device,
 {
 	NMSettingWired *s_wired;
 	NMSettingPppoe *s_pppoe;
-	const char *setting_mac;
-	const char *perm_hw_addr;
-	gboolean perm_hw_addr_is_fake;
 
 	s_pppoe = nm_connection_get_setting_pppoe (connection);
 
@@ -1401,6 +1397,12 @@ complete_connection (NMDevice *device,
 	 */
 	if (s_pppoe && !nm_setting_verify (NM_SETTING (s_pppoe), NULL, error))
 		return FALSE;
+
+	s_wired = nm_connection_get_setting_wired (connection);
+	if (!s_wired) {
+		s_wired = (NMSettingWired *) nm_setting_wired_new ();
+		nm_connection_add_setting (connection, NM_SETTING (s_wired));
+	}
 
 	/* Default to an ethernet-only connection, but if a PPPoE setting was given
 	 * then PPPoE should be our connection type.
@@ -1412,33 +1414,8 @@ complete_connection (NMDevice *device,
 	                           NULL,
 	                           s_pppoe ? _("PPPoE connection") : _("Wired connection"),
 	                           NULL,
+	                           nm_setting_wired_get_mac_address (s_wired) ? NULL : nm_device_get_iface (device),
 	                           s_pppoe ? FALSE : TRUE); /* No IPv6 by default yet for PPPoE */
-
-	s_wired = nm_connection_get_setting_wired (connection);
-	if (!s_wired) {
-		s_wired = (NMSettingWired *) nm_setting_wired_new ();
-		nm_connection_add_setting (connection, NM_SETTING (s_wired));
-	}
-
-	perm_hw_addr = nm_device_get_permanent_hw_address_full (device, TRUE, &perm_hw_addr_is_fake);
-	if (perm_hw_addr && !perm_hw_addr_is_fake) {
-		setting_mac = nm_setting_wired_get_mac_address (s_wired);
-		if (setting_mac) {
-			/* Make sure the setting MAC (if any) matches the device's permanent MAC */
-			if (!nm_utils_hwaddr_matches (setting_mac, -1, perm_hw_addr, -1)) {
-				g_set_error_literal (error,
-				                     NM_CONNECTION_ERROR,
-				                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
-				                     _("connection does not match device"));
-				g_prefix_error (error, "%s.%s: ", NM_SETTING_WIRED_SETTING_NAME, NM_SETTING_WIRED_MAC_ADDRESS);
-				return FALSE;
-			}
-		} else {
-			g_object_set (G_OBJECT (s_wired),
-			              NM_SETTING_WIRED_MAC_ADDRESS, perm_hw_addr,
-			              NULL);
-		}
-	}
 
 	return TRUE;
 }
@@ -1452,17 +1429,14 @@ new_default_connection (NMDevice *self)
 	gs_unref_hashtable GHashTable *existing_ids = NULL;
 	struct udev_device *dev;
 	const char *perm_hw_addr;
+	const char *iface;
 	const char *uprop = "0";
 	gs_free char *defname = NULL;
 	gs_free char *uuid = NULL;
 	guint i, n_connections;
 
-	if (nm_config_get_no_auto_default_for_device (nm_config_get (), self))
-		return NULL;
-
 	perm_hw_addr = nm_device_get_permanent_hw_address (self);
-	if (!perm_hw_addr)
-		return NULL;
+	iface = nm_device_get_iface (self);
 
 	connection = nm_simple_connection_new ();
 	setting = nm_setting_connection_new ();
@@ -1483,7 +1457,7 @@ new_default_connection (NMDevice *self)
 	uuid = _nm_utils_uuid_generate_from_strings ("default-wired",
 	                                             nm_utils_machine_id_str (),
 	                                             defname,
-	                                             perm_hw_addr,
+	                                             perm_hw_addr ?: iface,
 	                                             NULL);
 
 	g_object_set (setting,
@@ -1493,12 +1467,8 @@ new_default_connection (NMDevice *self)
 	              NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY, NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY_MIN,
 	              NM_SETTING_CONNECTION_UUID, uuid,
 	              NM_SETTING_CONNECTION_TIMESTAMP, (guint64) time (NULL),
+	              NM_SETTING_CONNECTION_INTERFACE_NAME, iface,
 	              NULL);
-
-	/* Lock the connection to the device */
-	setting = nm_setting_wired_new ();
-	g_object_set (setting, NM_SETTING_WIRED_MAC_ADDRESS, perm_hw_addr, NULL);
-	nm_connection_add_setting (connection, setting);
 
 	/* Check if we should create a Link-Local only connection */
 	dev = nm_platform_link_get_udev_device (nm_device_get_platform (NM_DEVICE (self)), nm_device_get_ip_ifindex (self));
@@ -1575,11 +1545,11 @@ update_connection (NMDevice *device, NMConnection *connection)
 		g_object_set (s_wired, NM_SETTING_WIRED_S390_SUBCHANNELS, priv->subchannels_dbus, NULL);
 	if (priv->s390_nettype)
 		g_object_set (s_wired, NM_SETTING_WIRED_S390_NETTYPE, priv->s390_nettype, NULL);
-	g_hash_table_iter_init (&iter, priv->s390_options);
-	while (g_hash_table_iter_next (&iter, &key, &value)) {
-		nm_setting_wired_add_s390_option (s_wired, (const char *) key, (const char *) value);
-	}
 
+	_nm_setting_wired_clear_s390_options (s_wired);
+	g_hash_table_iter_init (&iter, priv->s390_options);
+	while (g_hash_table_iter_next (&iter, &key, &value))
+		nm_setting_wired_add_s390_option (s_wired, (const char *) key, (const char *) value);
 }
 
 static void

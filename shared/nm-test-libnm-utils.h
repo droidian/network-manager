@@ -1,4 +1,3 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /*
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,22 +21,11 @@
 
 #include "nm-utils/nm-test-utils.h"
 
-#if (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_GLIB
-#include "nm-dbus-glib-types.h"
-#endif
-
-/*****************************************************************************/
-
 typedef struct {
 	GDBusConnection *bus;
 	GDBusProxy *proxy;
 	GPid pid;
 	int keepalive_fd;
-#if (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_GLIB
-	struct {
-		DBusGConnection *bus;
-	} libdbus;
-#endif
 } NMTstcServiceInfo;
 
 NMTstcServiceInfo *nmtstc_service_init (void);
@@ -62,18 +50,6 @@ static inline void _nmtstc_auto_service_cleanup (NMTstcServiceInfo **info)
 	}); \
 	NM_PRAGMA_WARNING_REENABLE
 
-/*****************************************************************************/
-
-#if (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_GLIB
-
-#include "nm-client.h"
-#include "nm-remote-settings.h"
-
-NMClient *nmtstc_nm_client_new (void);
-NMRemoteSettings *nmtstc_nm_remote_settings_new (void);
-
-#else
-
 NMDevice *nmtstc_service_add_device (NMTstcServiceInfo *info,
                                      NMClient *client,
                                      const char *method,
@@ -84,10 +60,6 @@ NMDevice * nmtstc_service_add_wired_device (NMTstcServiceInfo *sinfo,
                                             const char *ifname,
                                             const char *hwaddr,
                                             const char **subchannels);
-
-#endif
-
-/*****************************************************************************/
 
 void nmtstc_service_add_connection (NMTstcServiceInfo *sinfo,
                                     NMConnection *connection,
