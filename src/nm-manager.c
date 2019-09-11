@@ -1223,7 +1223,7 @@ impl_manager_reload (NMDBusObject *obj,
 		g_dbus_method_invocation_return_error_literal (invocation,
 		                                               NM_MANAGER_ERROR,
 		                                               NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                                               "Unable to authenticate request");
+		                                               NM_UTILS_ERROR_MSG_REQ_AUTH_FAILED);
 		return;
 	}
 
@@ -2032,7 +2032,6 @@ system_create_virtual_device (NMManager *self, NMConnection *connection)
 			         "couldn't create the device: %s",
 			         error->message);
 			g_error_free (error);
-			remove_device (self, device, FALSE);
 			return NULL;
 		}
 
@@ -2435,7 +2434,7 @@ device_auth_request_cb (NMDevice *device,
 	if (!subject) {
 		error = g_error_new_literal (NM_MANAGER_ERROR,
 		                             NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                             "Failed to get request UID.");
+		                             NM_UTILS_ERROR_MSG_REQ_UID_UKNOWN);
 		goto done;
 	}
 
@@ -2453,7 +2452,7 @@ device_auth_request_cb (NMDevice *device,
 	if (!chain) {
 		error = g_error_new_literal (NM_MANAGER_ERROR,
 		                             NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                             "Unable to authenticate request.");
+		                             NM_UTILS_ERROR_MSG_REQ_AUTH_FAILED);
 		goto done;
 	}
 
@@ -5129,7 +5128,7 @@ validate_activation_request (NMManager *self,
 		g_set_error_literal (error,
 		                     NM_MANAGER_ERROR,
 		                     NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                     "Failed to get request UID.");
+		                     NM_UTILS_ERROR_MSG_REQ_UID_UKNOWN);
 		return NULL;
 	}
 
@@ -5778,7 +5777,7 @@ impl_manager_deactivate_connection (NMDBusObject *obj,
 	if (!subject) {
 		error = g_error_new_literal (NM_MANAGER_ERROR,
 		                             NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                             "Failed to get request UID.");
+		                             NM_UTILS_ERROR_MSG_REQ_UID_UKNOWN);
 		goto done;
 	}
 
@@ -5794,7 +5793,7 @@ impl_manager_deactivate_connection (NMDBusObject *obj,
 	if (!chain) {
 		error = g_error_new_literal (NM_MANAGER_ERROR,
 		                             NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                             "Unable to authenticate request.");
+		                             NM_UTILS_ERROR_MSG_REQ_AUTH_FAILED);
 		goto done;
 	}
 
@@ -6176,7 +6175,7 @@ impl_manager_enable (NMDBusObject *obj,
 	if (!chain) {
 		error = g_error_new_literal (NM_MANAGER_ERROR,
 		                             NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                             "Unable to authenticate request.");
+		                             NM_UTILS_ERROR_MSG_REQ_AUTH_FAILED);
 		goto done;
 	}
 
@@ -6261,7 +6260,7 @@ impl_manager_get_permissions (NMDBusObject *obj,
 		g_dbus_method_invocation_return_error_literal (invocation,
 		                                               NM_MANAGER_ERROR,
 		                                               NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                                               "Unable to authenticate request.");
+		                                               NM_UTILS_ERROR_MSG_REQ_AUTH_FAILED);
 		return;
 	}
 
@@ -6478,7 +6477,7 @@ impl_manager_check_connectivity (NMDBusObject *obj,
 		g_dbus_method_invocation_return_error_literal(invocation,
 		                                              NM_MANAGER_ERROR,
 		                                              NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                                              "Unable to authenticate request.");
+		                                              NM_UTILS_ERROR_MSG_REQ_AUTH_FAILED);
 		return;
 	}
 
@@ -6920,7 +6919,7 @@ nm_manager_dbus_set_property_handle (NMDBusObject *obj,
 
 	subject = nm_auth_subject_new_unix_process_from_context (invocation);
 	if (!subject) {
-		error_message = "Could not determine request UID";
+		error_message = NM_UTILS_ERROR_MSG_REQ_UID_UKNOWN;
 		goto err;
 	}
 
@@ -7052,7 +7051,7 @@ impl_manager_checkpoint_create (NMDBusObject *obj,
 		g_dbus_method_invocation_return_error_literal (invocation,
 		                                               NM_MANAGER_ERROR,
 		                                               NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                                               "Unable to authenticate request.");
+		                                               NM_UTILS_ERROR_MSG_REQ_AUTH_FAILED);
 		return;
 	}
 
@@ -7085,7 +7084,7 @@ impl_manager_checkpoint_destroy (NMDBusObject *obj,
 		g_dbus_method_invocation_return_error_literal (invocation,
 		                                               NM_MANAGER_ERROR,
 		                                               NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                                               "Unable to authenticate request.");
+		                                               NM_UTILS_ERROR_MSG_REQ_AUTH_FAILED);
 		return;
 	}
 
@@ -7116,7 +7115,7 @@ impl_manager_checkpoint_rollback (NMDBusObject *obj,
 		g_dbus_method_invocation_return_error_literal (invocation,
 		                                               NM_MANAGER_ERROR,
 		                                               NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                                               "Unable to authenticate request.");
+		                                               NM_UTILS_ERROR_MSG_REQ_AUTH_FAILED);
 		return;
 	}
 
@@ -7148,7 +7147,7 @@ impl_manager_checkpoint_adjust_rollback_timeout (NMDBusObject *obj,
 		g_dbus_method_invocation_return_error_literal (invocation,
 		                                               NM_MANAGER_ERROR,
 		                                               NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                                               "Unable to authenticate request.");
+		                                               NM_UTILS_ERROR_MSG_REQ_AUTH_FAILED);
 		return;
 	}
 

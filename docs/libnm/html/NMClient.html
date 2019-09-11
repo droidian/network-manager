@@ -8,7 +8,7 @@
 <link rel="up" href="ch02.html" title="Client Object API Reference">
 <link rel="prev" href="ch02.html" title="Client Object API Reference">
 <link rel="next" href="NMSecretAgentOld.html" title="NMSecretAgentOld">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -2372,7 +2372,7 @@ methods such as <a class="link" href="NMDeviceEthernet.html#nm-device-ethernet-g
 <div class="refsect3">
 <a name="nm-client-get-devices.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a>
-containing all the <a href="NMDevice.html#NMDevice-struct"><span class="type">NMDevices</span></a>.  The returned array is owned by the
+containing all the <span class="type">NMDevices</span>.  The returned array is owned by the
 <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> object and should not be modified. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMDevice]</span></p>
 </div>
@@ -2408,7 +2408,7 @@ use device-specific methods such as <a class="link" href="NMDeviceEthernet.html#
 <div class="refsect3">
 <a name="nm-client-get-all-devices.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a>
-containing all the <a href="NMDevice.html#NMDevice-struct"><span class="type">NMDevices</span></a>.  The returned array is owned by the
+containing all the <span class="type">NMDevices</span>.  The returned array is owned by the
 <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> object and should not be modified. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMDevice]</span></p>
 </div>
@@ -4565,7 +4565,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-NETWORK:CAPS"></a>NM_CLIENT_PERMISSION_ENABLE_DISABLE_NETWORK</p></td>
 <td class="enum_member_description">
 <p>controls whether networking
- can be globally enabled or disabled</p>
+can be globally enabled or disabled</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4573,7 +4573,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-WIFI:CAPS"></a>NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIFI</p></td>
 <td class="enum_member_description">
 <p>controls whether Wi-Fi can be
- globally enabled or disabled</p>
+globally enabled or disabled</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4581,7 +4581,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-WWAN:CAPS"></a>NM_CLIENT_PERMISSION_ENABLE_DISABLE_WWAN</p></td>
 <td class="enum_member_description">
 <p>controls whether WWAN (3G) can be
- globally enabled or disabled</p>
+globally enabled or disabled</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4589,7 +4589,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-WIMAX:CAPS"></a>NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIMAX</p></td>
 <td class="enum_member_description">
 <p>controls whether WiMAX can be
- globally enabled or disabled</p>
+globally enabled or disabled</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4597,7 +4597,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-SLEEP-WAKE:CAPS"></a>NM_CLIENT_PERMISSION_SLEEP_WAKE</p></td>
 <td class="enum_member_description">
 <p>controls whether the client can ask
- NetworkManager to sleep and wake</p>
+NetworkManager to sleep and wake</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4605,7 +4605,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-NETWORK-CONTROL:CAPS"></a>NM_CLIENT_PERMISSION_NETWORK_CONTROL</p></td>
 <td class="enum_member_description">
 <p>controls whether networking connections
- can be started, stopped, and changed</p>
+can be started, stopped, and changed</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4613,7 +4613,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-WIFI-SHARE-PROTECTED:CAPS"></a>NM_CLIENT_PERMISSION_WIFI_SHARE_PROTECTED</p></td>
 <td class="enum_member_description">
 <p>controls whether a password
- protected Wi-Fi hotspot can be created</p>
+protected Wi-Fi hotspot can be created</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4621,7 +4621,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-WIFI-SHARE-OPEN:CAPS"></a>NM_CLIENT_PERMISSION_WIFI_SHARE_OPEN</p></td>
 <td class="enum_member_description">
 <p>controls whether an open Wi-Fi hotspot
- can be created</p>
+can be created</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4629,7 +4629,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-SETTINGS-MODIFY-SYSTEM:CAPS"></a>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_SYSTEM</p></td>
 <td class="enum_member_description">
 <p>controls whether connections
- that are available to all users can be modified</p>
+that are available to all users can be modified</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4637,7 +4637,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-SETTINGS-MODIFY-OWN:CAPS"></a>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_OWN</p></td>
 <td class="enum_member_description">
 <p>controls whether connections
- owned by the current user can be modified</p>
+owned by the current user can be modified</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4645,7 +4645,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-SETTINGS-MODIFY-HOSTNAME:CAPS"></a>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME</p></td>
 <td class="enum_member_description">
 <p>controls whether the
- persistent hostname can be changed</p>
+persistent hostname can be changed</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4653,7 +4653,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-SETTINGS-MODIFY-GLOBAL-DNS:CAPS"></a>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS</p></td>
 <td class="enum_member_description">
 <p>modify persistent global
- DNS configuration</p>
+DNS configuration</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4675,7 +4675,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-STATISTICS:CAPS"></a>NM_CLIENT_PERMISSION_ENABLE_DISABLE_STATISTICS</p></td>
 <td class="enum_member_description">
 <p>controls whether device
- statistics can be globally enabled or disabled</p>
+statistics can be globally enabled or disabled</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4683,7 +4683,7 @@ clients can obtain to perform certain tasks on behalf of the current user.</p>
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-CONNECTIVITY-CHECK:CAPS"></a>NM_CLIENT_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK</p></td>
 <td class="enum_member_description">
 <p>controls whether
- connectivity check can be enabled or disabled</p>
+connectivity check can be enabled or disabled</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4737,7 +4737,7 @@ the user requires to obtain a given <a class="link" href="NMClient.html#NMClient
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-RESULT-AUTH:CAPS"></a>NM_CLIENT_PERMISSION_RESULT_AUTH</p></td>
 <td class="enum_member_description">
 <p>authorization is necessary before the
- permission is available</p>
+permission is available</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4745,7 +4745,7 @@ the user requires to obtain a given <a class="link" href="NMClient.html#NMClient
 <td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-RESULT-NO:CAPS"></a>NM_CLIENT_PERMISSION_RESULT_NO</p></td>
 <td class="enum_member_description">
 <p>permission to perform the operation is
- denied by system policy</p>
+denied by system policy</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4779,7 +4779,7 @@ the user requires to obtain a given <a class="link" href="NMClient.html#NMClient
 <td class="enum_member_name"><p><a name="NM-CLIENT-ERROR-MANAGER-NOT-RUNNING:CAPS"></a>NM_CLIENT_ERROR_MANAGER_NOT_RUNNING</p></td>
 <td class="enum_member_description">
 <p>an operation that requires NetworkManager
-  failed because NetworkManager is not running</p>
+failed because NetworkManager is not running</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -4787,9 +4787,9 @@ the user requires to obtain a given <a class="link" href="NMClient.html#NMClient
 <td class="enum_member_name"><p><a name="NM-CLIENT-ERROR-OBJECT-CREATION-FAILED:CAPS"></a>NM_CLIENT_ERROR_OBJECT_CREATION_FAILED</p></td>
 <td class="enum_member_description">
 <p>NetworkManager claimed that an
-  operation succeeded, but the object that was allegedly created (eg,
-  <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a>, <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>) was apparently destroyed before
-  <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> could create a representation of it.</p>
+operation succeeded, but the object that was allegedly created (eg,
+<a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a>, <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>) was apparently destroyed before
+<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> could create a representation of it.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -5383,6 +5383,6 @@ user_function (<a class="link" href="NMClient.html" title="NMClient"><span class
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.29.1</div>
 </body>
 </html>

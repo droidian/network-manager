@@ -4407,11 +4407,11 @@ msgstr "La connessione di rete di base è stata interrotta"
 
 #: ../clients/common/nm-client-utils.c:369
 msgid "The VPN service stopped unexpectedly"
-msgstr "Ll servizio VPN è terminato inaspettatamente"
+msgstr "Il servizio VPN è terminato inaspettatamente"
 
 #: ../clients/common/nm-client-utils.c:370
 msgid "The VPN service returned invalid configuration"
-msgstr "Ll servizio VPN ha restituito una configurazione non valida"
+msgstr "Il servizio VPN ha restituito una configurazione non valida"
 
 #: ../clients/common/nm-client-utils.c:371
 msgid "The connection attempt timed out"
@@ -7223,7 +7223,7 @@ msgstr ""
 
 #: ../clients/common/settings-docs.h.in:99
 msgid ""
-"When a value grater than 0 is set, configures the device to use the "
+"When a value greater than 0 is set, configures the device to use the "
 "specified speed. If \"auto-negotiate\" is \"yes\" the specified speed will "
 "be the only one advertised during link negotiation: this works only for BASE-"
 "T 802.3 specifications and is useful for enforcing gigabit speeds, as in "

@@ -1,2 +1,2 @@
 version=3
-https://download.gnome.org/sources/NetworkManager/([\d\.]+)/NetworkManager-(.*)\.tar\.xz
+https://download.gnome.org/sources/NetworkManager/([\d\.]+[02468])/NetworkManager-(.*)\.tar\.xz

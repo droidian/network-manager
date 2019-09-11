@@ -2,12 +2,12 @@
 .\"     Title: nm-settings
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 08/06/2019
+.\"      Date: 09/05/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.20.0
+.\"    Source: NetworkManager 1.20.2
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.20\&.0" "Configuration"
+.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.20\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -4223,7 +4223,7 @@ uint32
 T}:T{
 0
 T}:T{
-When a value grater than 0 is set, configures the device to use the specified speed\&. If "auto\-negotiate" is "yes" the specified speed will be the only one advertised during link negotiation: this works only for BASE\-T 802\&.3 specifications and is useful for enforcing gigabit speeds, as in this case link negotiation is mandatory\&. If the value is unset (0, the default), the link configuration will be either skipped (if "auto\-negotiate" is "no", the default) or will be auto\-negotiated (if "auto\-negotiate" is "yes") and the local device will advertise all the supported speeds\&. In Mbit/s, ie 100 == 100Mbit/s\&. Must be set together with the "duplex" property when non\-zero\&. Before specifying a speed value be sure your device supports it\&.
+When a value greater than 0 is set, configures the device to use the specified speed\&. If "auto\-negotiate" is "yes" the specified speed will be the only one advertised during link negotiation: this works only for BASE\-T 802\&.3 specifications and is useful for enforcing gigabit speeds, as in this case link negotiation is mandatory\&. If the value is unset (0, the default), the link configuration will be either skipped (if "auto\-negotiate" is "no", the default) or will be auto\-negotiated (if "auto\-negotiate" is "yes") and the local device will advertise all the supported speeds\&. In Mbit/s, ie 100 == 100Mbit/s\&. Must be set together with the "duplex" property when non\-zero\&. Before specifying a speed value be sure your device supports it\&.
 T}
 T{
 wake\-on\-lan

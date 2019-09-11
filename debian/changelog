@@ -1,8 +1,18 @@
-network-manager (1.20.0-1ubuntu1) eoan; urgency=medium
+network-manager (1.20.2-1ubuntu1) UNRELEASED; urgency=medium
 
   * New upstream version, merged from Debian
+    - Don't ask wpa_supplicant to attempt to enable FT if the interface
+      doesn't support it.
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 09 Aug 2019 11:08:56 +0200
+
+network-manager (1.20.2-1) unstable; urgency=medium
+
+  * New upstream version 1.20.2
+  * Track stable releases in watch file
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 06 Sep 2019 10:43:28 +0200
 
 network-manager (1.20.0-1) unstable; urgency=medium
 

@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 08/06/2019
+.\"      Date: 09/05/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.20.0
+.\"    Source: NetworkManager 1.20.2
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.20\&.0" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.20\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -257,13 +257,13 @@ systemd\-resolved
 and
 unbound
 are caching local nameservers\&. Hence, when NetworkManager writes
-/var/run/NetworkManager/resolv\&.conf
+/run/NetworkManager/resolv\&.conf
 and
 /etc/resolv\&.conf
 (according to
 rc\-manager
 setting below), the name server there will be localhost only\&. NetworkManager also writes a file
-/var/run/NetworkManager/no\-stub\-resolv\&.conf
+/run/NetworkManager/no\-stub\-resolv\&.conf
 that contains the original name servers pushed to the DNS plugin\&.
 .RE
 .PP
@@ -272,14 +272,14 @@ that contains the original name servers pushed to the DNS plugin\&.
 Set the
 resolv\&.conf
 management mode\&. The default value depends on NetworkManager build options, and this version of NetworkManager was build with a default of "symlink"\&. Regardless of this setting, NetworkManager will always write resolv\&.conf to its runtime state directory
-/var/run/NetworkManager/resolv\&.conf\&.
+/run/NetworkManager/resolv\&.conf\&.
 .sp
 symlink: If
 /etc/resolv\&.conf
 is a regular file, NetworkManager will replace the file on update\&. If
 /etc/resolv\&.conf
 is instead a symlink, NetworkManager will leave it alone\&. Unless the symlink points to the internal file
-/var/run/NetworkManager/resolv\&.conf, in which case the symlink will be updated to emit an inotify notification\&. This allows the user to conveniently instruct NetworkManager not to manage
+/run/NetworkManager/resolv\&.conf, in which case the symlink will be updated to emit an inotify notification\&. This allows the user to conveniently instruct NetworkManager not to manage
 /etc/resolv\&.conf
 by replacing it with a symlink\&.
 .sp
