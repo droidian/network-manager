@@ -1,4 +1,4 @@
-network-manager (1.20.4-2ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.20.4-2ubuntu1) eoan; urgency=medium
 
   * New upstream version, merged from Debian
 
