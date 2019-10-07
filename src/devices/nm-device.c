@@ -3933,12 +3933,18 @@ device_link_changed (NMDevice *self)
 	if (priv->up && (!was_up || seen_down)) {
 		/* the link was down and just came up. That happens for example, while changing MTU.
 		 * We must restore IP configuration. */
-		if (!ip_config_merge_and_apply (self, AF_INET, TRUE))
-			_LOGW (LOGD_IP4, "failed applying IP4 config after link comes up again");
+		if (NM_IN_SET (priv->ip_state_4, NM_DEVICE_IP_STATE_CONF,
+		                                 NM_DEVICE_IP_STATE_DONE)) {
+			if (!ip_config_merge_and_apply (self, AF_INET, TRUE))
+				_LOGW (LOGD_IP4, "failed applying IP4 config after link comes up again");
+		}
 
 		priv->linklocal6_dad_counter = 0;
-		if (!ip_config_merge_and_apply (self, AF_INET6, TRUE))
-			_LOGW (LOGD_IP6, "failed applying IP6 config after link comes up again");
+		if (NM_IN_SET (priv->ip_state_6, NM_DEVICE_IP_STATE_CONF,
+		                                 NM_DEVICE_IP_STATE_DONE)) {
+			if (!ip_config_merge_and_apply (self, AF_INET6, TRUE))
+				_LOGW (LOGD_IP6, "failed applying IP6 config after link comes up again");
+		}
 	}
 
 	if (update_unmanaged_specs)
@@ -7733,8 +7739,8 @@ dhcp4_dad_cb (NMDevice *self, NMIP4Config **configs, gboolean success)
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
 
 	if (success) {
-		nm_dhcp_client_accept (priv->dhcp4.client, NULL);
-		nm_device_activate_schedule_ip_config_result (self, AF_INET, NM_IP_CONFIG_CAST (configs[1]));
+		nm_device_activate_schedule_ip_config_result (self, AF_INET,
+		                                              NM_IP_CONFIG_CAST (configs[1]));
 	} else {
 		nm_dhcp_client_decline (priv->dhcp4.client, "Address conflict detected", NULL);
 		nm_device_ip_method_failed (self, AF_INET,
@@ -9365,7 +9371,7 @@ _commit_mtu (NMDevice *self, const NMIP4Config *config)
 		s_ip6 = nm_device_get_applied_setting (self, NM_TYPE_SETTING_IP6_CONFIG);
 		if (   s_ip6
 		    && !NM_IN_STRSET (nm_setting_ip_config_get_method (s_ip6),
-		                      NM_SETTING_IP6_CONFIG_METHOD_IGNORE
+		                      NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
 		                      NM_SETTING_IP6_CONFIG_METHOD_DISABLED)) {
 			/* the interface has IPv6 enabled. The MTU with IPv6 cannot be smaller
 			 * then 1280.
@@ -10718,6 +10724,18 @@ activate_stage5_ip_config_result_4 (NMDevice *self)
 		if (!start_sharing (self, priv->ip_config_4, &error)) {
 			_LOGW (LOGD_SHARING, "Activation: Stage 5 of 5 (IPv4 Commit) start sharing failed: %s", error->message);
 			nm_device_ip_method_failed (self, AF_INET, NM_DEVICE_STATE_REASON_SHARED_START_FAILED);
+			return;
+		}
+	}
+
+	if (priv->dhcp4.client) {
+		gs_free_error GError *error = NULL;
+
+		if (!nm_dhcp_client_accept (priv->dhcp4.client, &error)) {
+			_LOGW (LOGD_DHCP4,
+			       "Activation: Stage 5 of 5 (IPv4 Commit) error accepting lease: %s",
+			       error->message);
+			nm_device_ip_method_failed (self, AF_INET, NM_DEVICE_STATE_REASON_DHCP_ERROR);
 			return;
 		}
 	}

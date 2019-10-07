@@ -8,7 +8,7 @@
 <link rel="up" href="ch02.html" title="Client Object API Reference">
 <link rel="prev" href="NMObject.html" title="NMObject">
 <link rel="next" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">
-<meta name="generator" content="GTK-Doc V1.29.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -276,8 +276,8 @@ errors in the "org.freedesktop.NetworkManager.AgentManager" namespace.</p>
 <td class="enum_member_name"><p><a name="NM-AGENT-MANAGER-ERROR-PERMISSION-DENIED:CAPS"></a>NM_AGENT_MANAGER_ERROR_PERMISSION_DENIED</p></td>
 <td class="enum_member_description">
 <p>The caller does not have permission
-to register a secret agent, or is trying to register the same secret agent
-twice.</p>
+  to register a secret agent, or is trying to register the same secret agent
+  twice.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -285,7 +285,7 @@ twice.</p>
 <td class="enum_member_name"><p><a name="NM-AGENT-MANAGER-ERROR-INVALID-IDENTIFIER:CAPS"></a>NM_AGENT_MANAGER_ERROR_INVALID_IDENTIFIER</p></td>
 <td class="enum_member_description">
 <p>The identifier is not a valid
-secret agent identifier.</p>
+  secret agent identifier.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -293,7 +293,7 @@ secret agent identifier.</p>
 <td class="enum_member_name"><p><a name="NM-AGENT-MANAGER-ERROR-NOT-REGISTERED:CAPS"></a>NM_AGENT_MANAGER_ERROR_NOT_REGISTERED</p></td>
 <td class="enum_member_description">
 <p>The caller tried to unregister an agent
-that was not registered.</p>
+  that was not registered.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -301,7 +301,7 @@ that was not registered.</p>
 <td class="enum_member_name"><p><a name="NM-AGENT-MANAGER-ERROR-NO-SECRETS:CAPS"></a>NM_AGENT_MANAGER_ERROR_NO_SECRETS</p></td>
 <td class="enum_member_description">
 <p>No secret agent returned secrets for this
-request</p>
+  request</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -351,7 +351,7 @@ methods, or may be returned from D-Bus operations (eg on <a class="link" href="N
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-SETTING-NOT-FOUND:CAPS"></a>NM_CONNECTION_ERROR_SETTING_NOT_FOUND</p></td>
 <td class="enum_member_description">
 <p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object
-did not contain the specified <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object</p>
+  did not contain the specified <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> object</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -359,7 +359,7 @@ did not contain the specified <a class="link" href="NMSetting.html" title="NMSet
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-PROPERTY-NOT-FOUND:CAPS"></a>NM_CONNECTION_ERROR_PROPERTY_NOT_FOUND</p></td>
 <td class="enum_member_description">
 <p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> did not contain the
-requested <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> property</p>
+  requested <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> property</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -367,7 +367,7 @@ requested <a class="link" href="NMSetting.html" title="NMSetting"><span class="t
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-PROPERTY-NOT-SECRET:CAPS"></a>NM_CONNECTION_ERROR_PROPERTY_NOT_SECRET</p></td>
 <td class="enum_member_description">
 <p>an operation which requires a secret
-was attempted on a non-secret property</p>
+  was attempted on a non-secret property</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -375,9 +375,9 @@ was attempted on a non-secret property</p>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-MISSING-SETTING:CAPS"></a>NM_CONNECTION_ERROR_MISSING_SETTING</p></td>
 <td class="enum_member_description">
 <p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object is missing an
-<a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> which is required for its configuration. The error message will
-always be prefixed with "&lt;setting-name&gt;: ", where "&lt;setting-name&gt;" is the
-name of the setting that is missing.</p>
+  <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> which is required for its configuration. The error message will
+  always be prefixed with "&lt;setting-name&gt;: ", where "&lt;setting-name&gt;" is the
+  name of the setting that is missing.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -385,9 +385,9 @@ name of the setting that is missing.</p>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-INVALID-SETTING:CAPS"></a>NM_CONNECTION_ERROR_INVALID_SETTING</p></td>
 <td class="enum_member_description">
 <p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object contains an
-invalid or inappropriate <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>. The error message will always be
-prefixed with "&lt;setting-name&gt;: ", where "&lt;setting-name&gt;" is the name of the
-setting that is invalid.</p>
+  invalid or inappropriate <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>. The error message will always be
+  prefixed with "&lt;setting-name&gt;: ", where "&lt;setting-name&gt;" is the name of the
+  setting that is invalid.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -395,10 +395,10 @@ setting that is invalid.</p>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-MISSING-PROPERTY:CAPS"></a>NM_CONNECTION_ERROR_MISSING_PROPERTY</p></td>
 <td class="enum_member_description">
 <p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object is invalid
-because it is missing a required property. The error message will always be
-prefixed with "&lt;setting-name&gt;.&lt;property-name&gt;: ", where "&lt;setting-name&gt;" is
-the name of the setting with the missing property, and "&lt;property-name&gt;" is
-the property that is missing.</p>
+  because it is missing a required property. The error message will always be
+  prefixed with "&lt;setting-name&gt;.&lt;property-name&gt;: ", where "&lt;setting-name&gt;" is
+  the name of the setting with the missing property, and "&lt;property-name&gt;" is
+  the property that is missing.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -406,10 +406,10 @@ the property that is missing.</p>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-ERROR-INVALID-PROPERTY:CAPS"></a>NM_CONNECTION_ERROR_INVALID_PROPERTY</p></td>
 <td class="enum_member_description">
 <p>the <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> object is invalid
-because a property has an invalid value. The error message will always be
-prefixed with "&lt;setting-name&gt;.&lt;property-name&gt;: ", where "&lt;setting-name&gt;" is
-the name of the setting with the invalid property, and "&lt;property-name&gt;" is
-the property that is invalid.</p>
+  because a property has an invalid value. The error message will always be
+  prefixed with "&lt;setting-name&gt;.&lt;property-name&gt;: ", where "&lt;setting-name&gt;" is
+  the name of the setting with the invalid property, and "&lt;property-name&gt;" is
+  the property that is invalid.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -448,7 +448,7 @@ and some <a class="link" href="NMSetting8021x.html" title="NMSetting8021x"><span
 <td class="enum_member_name"><p><a name="NM-CRYPTO-ERROR-INVALID-DATA:CAPS"></a>NM_CRYPTO_ERROR_INVALID_DATA</p></td>
 <td class="enum_member_description">
 <p>the certificate or key data provided
-was invalid</p>
+  was invalid</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -531,7 +531,7 @@ returned from D-Bus operations (where they correspond to errors in the
 <td class="enum_member_name"><p><a name="NM-DEVICE-ERROR-INCOMPATIBLE-CONNECTION:CAPS"></a>NM_DEVICE_ERROR_INCOMPATIBLE_CONNECTION</p></td>
 <td class="enum_member_description">
 <p>the specified connection is not
-compatible with this device.</p>
+  compatible with this device.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -546,7 +546,7 @@ compatible with this device.</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-ERROR-NOT-SOFTWARE:CAPS"></a>NM_DEVICE_ERROR_NOT_SOFTWARE</p></td>
 <td class="enum_member_description">
 <p>the requested operation is only valid on
-software devices.</p>
+  software devices.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -554,7 +554,7 @@ software devices.</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-ERROR-NOT-ALLOWED:CAPS"></a>NM_DEVICE_ERROR_NOT_ALLOWED</p></td>
 <td class="enum_member_description">
 <p>the requested operation is not allowed at
-this time.</p>
+  this time.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -562,8 +562,8 @@ this time.</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-ERROR-SPECIFIC-OBJECT-NOT-FOUND:CAPS"></a>NM_DEVICE_ERROR_SPECIFIC_OBJECT_NOT_FOUND</p></td>
 <td class="enum_member_description">
 <p>the "specific object" in the
-activation request (eg, the <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a> or <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a>) was not
-found.</p>
+  activation request (eg, the <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a> or <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a>) was not
+  found.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -578,7 +578,7 @@ found.</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-ERROR-MISSING-DEPENDENCIES:CAPS"></a>NM_DEVICE_ERROR_MISSING_DEPENDENCIES</p></td>
 <td class="enum_member_description">
 <p>the requested operation could not
-be completed due to missing dependencies.</p>
+  be completed due to missing dependencies.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -647,7 +647,7 @@ errors in that namespace.</p>
 <td class="enum_member_name"><p><a name="NM-MANAGER-ERROR-CONNECTION-NOT-AVAILABLE:CAPS"></a>NM_MANAGER_ERROR_CONNECTION_NOT_AVAILABLE</p></td>
 <td class="enum_member_description">
 <p>The requested connection cannot be
-activated at this time.</p>
+  activated at this time.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -655,7 +655,7 @@ activated at this time.</p>
 <td class="enum_member_name"><p><a name="NM-MANAGER-ERROR-CONNECTION-NOT-ACTIVE:CAPS"></a>NM_MANAGER_ERROR_CONNECTION_NOT_ACTIVE</p></td>
 <td class="enum_member_description">
 <p>The request could not be completed
-because a required connection is not active.</p>
+  because a required connection is not active.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -663,7 +663,7 @@ because a required connection is not active.</p>
 <td class="enum_member_name"><p><a name="NM-MANAGER-ERROR-CONNECTION-ALREADY-ACTIVE:CAPS"></a>NM_MANAGER_ERROR_CONNECTION_ALREADY_ACTIVE</p></td>
 <td class="enum_member_description">
 <p>The connection to be activated was
-already active on another device.</p>
+  already active on another device.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -671,7 +671,7 @@ already active on another device.</p>
 <td class="enum_member_name"><p><a name="NM-MANAGER-ERROR-DEPENDENCY-FAILED:CAPS"></a>NM_MANAGER_ERROR_DEPENDENCY_FAILED</p></td>
 <td class="enum_member_description">
 <p>An activation request failed due to a
-dependency being unavailable.</p>
+  dependency being unavailable.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -679,7 +679,7 @@ dependency being unavailable.</p>
 <td class="enum_member_name"><p><a name="NM-MANAGER-ERROR-ALREADY-ASLEEP-OR-AWAKE:CAPS"></a>NM_MANAGER_ERROR_ALREADY_ASLEEP_OR_AWAKE</p></td>
 <td class="enum_member_description">
 <p>The manager is already in the requested
-sleep/wake state.</p>
+  sleep/wake state.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -687,7 +687,7 @@ sleep/wake state.</p>
 <td class="enum_member_name"><p><a name="NM-MANAGER-ERROR-ALREADY-ENABLED-OR-DISABLED:CAPS"></a>NM_MANAGER_ERROR_ALREADY_ENABLED_OR_DISABLED</p></td>
 <td class="enum_member_description">
 <p>The network is already
-enabled/disabled.</p>
+  enabled/disabled.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -716,7 +716,7 @@ enabled/disabled.</p>
 <td class="enum_member_name"><p><a name="NM-MANAGER-ERROR-MISSING-PLUGIN:CAPS"></a>NM_MANAGER_ERROR_MISSING_PLUGIN</p></td>
 <td class="enum_member_description">
 <p>A plug-in was needed to complete the
-activation but is not available.</p>
+  activation but is not available.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -760,7 +760,7 @@ corresponding <a class="link" href="libnm-nm-errors.html#NMAgentManagerError" ti
 <td class="enum_member_name"><p><a name="NM-SECRET-AGENT-ERROR-PERMISSION-DENIED:CAPS"></a>NM_SECRET_AGENT_ERROR_PERMISSION_DENIED</p></td>
 <td class="enum_member_description">
 <p>the caller (ie, NetworkManager) is
-not authorized to make this request</p>
+  not authorized to make this request</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -768,7 +768,7 @@ not authorized to make this request</p>
 <td class="enum_member_name"><p><a name="NM-SECRET-AGENT-ERROR-INVALID-CONNECTION:CAPS"></a>NM_SECRET_AGENT_ERROR_INVALID_CONNECTION</p></td>
 <td class="enum_member_description">
 <p>the connection for which secrets
-were requested is invalid</p>
+  were requested is invalid</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -783,7 +783,7 @@ were requested is invalid</p>
 <td class="enum_member_name"><p><a name="NM-SECRET-AGENT-ERROR-AGENT-CANCELED:CAPS"></a>NM_SECRET_AGENT_ERROR_AGENT_CANCELED</p></td>
 <td class="enum_member_description">
 <p>the agent canceled the request
-because it was requested to do so by NetworkManager</p>
+  because it was requested to do so by NetworkManager</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -791,7 +791,7 @@ because it was requested to do so by NetworkManager</p>
 <td class="enum_member_name"><p><a name="NM-SECRET-AGENT-ERROR-NO-SECRETS:CAPS"></a>NM_SECRET_AGENT_ERROR_NO_SECRETS</p></td>
 <td class="enum_member_description">
 <p>the agent cannot find any secrets for this
-connection</p>
+  connection</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -840,7 +840,7 @@ D-Bus errors in that namespace.</p>
 <td class="enum_member_name"><p><a name="NM-SETTINGS-ERROR-NOT-SUPPORTED:CAPS"></a>NM_SETTINGS_ERROR_NOT_SUPPORTED</p></td>
 <td class="enum_member_description">
 <p>the requested operation is not supported by any
-active settings backend</p>
+  active settings backend</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -914,7 +914,7 @@ to errors in the "org.freedesktop.NetworkManager.VPN.Error" namespace.</p>
 <td class="enum_member_name"><p><a name="NM-VPN-PLUGIN-ERROR-STARTING-IN-PROGRESS:CAPS"></a>NM_VPN_PLUGIN_ERROR_STARTING_IN_PROGRESS</p></td>
 <td class="enum_member_description">
 <p>the plugin is already starting,
-and another connect request was received</p>
+  and another connect request was received</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -922,7 +922,7 @@ and another connect request was received</p>
 <td class="enum_member_name"><p><a name="NM-VPN-PLUGIN-ERROR-ALREADY-STARTED:CAPS"></a>NM_VPN_PLUGIN_ERROR_ALREADY_STARTED</p></td>
 <td class="enum_member_description">
 <p>the plugin is already connected, and
-another connect request was received</p>
+  another connect request was received</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -930,7 +930,7 @@ another connect request was received</p>
 <td class="enum_member_name"><p><a name="NM-VPN-PLUGIN-ERROR-STOPPING-IN-PROGRESS:CAPS"></a>NM_VPN_PLUGIN_ERROR_STOPPING_IN_PROGRESS</p></td>
 <td class="enum_member_description">
 <p>the plugin is already stopping,
-and another stop request was received</p>
+  and another stop request was received</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -938,7 +938,7 @@ and another stop request was received</p>
 <td class="enum_member_name"><p><a name="NM-VPN-PLUGIN-ERROR-ALREADY-STOPPED:CAPS"></a>NM_VPN_PLUGIN_ERROR_ALREADY_STOPPED</p></td>
 <td class="enum_member_description">
 <p>the plugin is already stopped, and
-another disconnect request was received</p>
+  another disconnect request was received</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -946,7 +946,7 @@ another disconnect request was received</p>
 <td class="enum_member_name"><p><a name="NM-VPN-PLUGIN-ERROR-WRONG-STATE:CAPS"></a>NM_VPN_PLUGIN_ERROR_WRONG_STATE</p></td>
 <td class="enum_member_description">
 <p>the operation could not be performed in
-this state</p>
+  this state</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -954,9 +954,9 @@ this state</p>
 <td class="enum_member_name"><p><a name="NM-VPN-PLUGIN-ERROR-BAD-ARGUMENTS:CAPS"></a>NM_VPN_PLUGIN_ERROR_BAD_ARGUMENTS</p></td>
 <td class="enum_member_description">
 <p>the operation could not be performed as
-the request contained malformed arguments, or arguments of unexpected type.
-Usually means that one of the VPN setting data items or secrets was not of
-the expected type (ie int, string, bool, etc).</p>
+  the request contained malformed arguments, or arguments of unexpected type.
+  Usually means that one of the VPN setting data items or secrets was not of
+  the expected type (ie int, string, bool, etc).</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -971,8 +971,8 @@ the expected type (ie int, string, bool, etc).</p>
 <td class="enum_member_name"><p><a name="NM-VPN-PLUGIN-ERROR-INVALID-CONNECTION:CAPS"></a>NM_VPN_PLUGIN_ERROR_INVALID_CONNECTION</p></td>
 <td class="enum_member_description">
 <p>the operation could not be performed
-because the connection was invalid.  Usually means that the connection's
-VPN setting was missing some required data item or secret.</p>
+  because the connection was invalid.  Usually means that the connection's
+  VPN setting was missing some required data item or secret.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -980,8 +980,8 @@ VPN setting was missing some required data item or secret.</p>
 <td class="enum_member_name"><p><a name="NM-VPN-PLUGIN-ERROR-INTERACTIVE-NOT-SUPPORTED:CAPS"></a>NM_VPN_PLUGIN_ERROR_INTERACTIVE_NOT_SUPPORTED</p></td>
 <td class="enum_member_description">
 <p>the operation could not be
-performed as the plugin does not support interactive operations, such as
-<code class="function">ConnectInteractive()</code> or <code class="function">NewSecrets()</code></p>
+  performed as the plugin does not support interactive operations, such as
+  <code class="function">ConnectInteractive()</code> or <code class="function">NewSecrets()</code></p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -998,6 +998,6 @@ performed as the plugin does not support interactive operations, such as
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29.1</div>
+<hr>Generated by GTK-Doc V1.29</div>
 </body>
 </html>

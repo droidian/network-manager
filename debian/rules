@@ -6,6 +6,8 @@ include /usr/share/dpkg/architecture.mk
 LDFLAGS=$(shell echo $$LDFLAGS | sed -e 's/-Wl,-Bsymbolic-functions//')
 export LDFLAGS
 
+export PYTHON=/usr/bin/python3
+
 PPPD_PLUGIN_DIR := $(shell dh_ppp --plugin-dir)
 
 %:

@@ -1,10 +1,35 @@
-network-manager (1.20.2-1ubuntu1) eoan; urgency=medium
+network-manager (1.20.4-2ubuntu1) UNRELEASED; urgency=medium
 
   * New upstream version, merged from Debian
-    - Don't ask wpa_supplicant to attempt to enable FT if the interface
-      doesn't support it.
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 11 Sep 2019 11:16:12 +0200
+
+network-manager (1.20.4-2) unstable; urgency=medium
+
+  * Install directories as created by upstream build system.
+    Drop network-manager.dirs and instead use the directories created by the
+    upstream build system. Fix permissions of /var/lib/NetworkManager to be
+    0700 as it contains possibly sensitive data and should not be
+    world-readable.
+  * Fix permissions of /var/lib/NetworkManager/secret_key on upgrades.
+    The file mode is supposed to be 0600. (Closes: #941609)
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 04 Oct 2019 00:30:01 +0200
+
+network-manager (1.20.4-1) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 1.20.4
+
+  [ Andreas Henriksson ]
+  * Switch build-dependencies to python3.
+    The tests are designed to work with either python2 or python3.
+    We should be able to simply switch build-dependencies to python3
+    equivalents. However if something transitively pulls in python2 the
+    AM_PATH_PYTHON autoconf macro will find python(2) binary, so we
+    explicitly set PYTHON=/usr/bin/python3. (Closes: #938944)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 30 Sep 2019 16:01:19 +0200
 
 network-manager (1.20.2-1) unstable; urgency=medium
 

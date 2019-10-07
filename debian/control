@@ -23,7 +23,7 @@ Build-Depends: debhelper-compat (= 12),
                libudev-dev (>= 175),
                libgirepository1.0-dev (>= 0.10.7-1~),
                gobject-introspection (>= 0.9.12-4~),
-               python-gi,
+               python3-gi,
                libpsl-dev (>= 0.1),
                libcurl4-gnutls-dev (>= 7.24.0),
                gtk-doc-tools,
@@ -39,7 +39,7 @@ Build-Depends: debhelper-compat (= 12),
                libbluetooth-dev (>= 5),
                valac (>= 0.17.1.24),
                dbus <!nocheck>,
-               python-dbus <!nocheck>
+               python3-dbus <!nocheck>
 Standards-Version: 4.3.0
 Rules-Requires-Root: no
 XS-Debian-Vcs-Git: https://salsa.debian.org/utopia-team/network-manager.git

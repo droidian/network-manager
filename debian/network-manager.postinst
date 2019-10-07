@@ -31,6 +31,9 @@ case "$1" in
             invoke-rc.d dbus force-reload || true
         fi
 
+        # This directory can contain sensitive data and should not be world-readable
+        chmod 0700 /var/lib/NetworkManager
+
         NIF=/etc/network/interfaces
         if [ -z "$2" ] && [ -f $NIF ]; then
             ifaces=`grep -v '^#' $NIF | awk '/iface/ {print $2}' | sort -u | sed -e 's/lo//' -e '/^$/d' -e 's/^/- /'`
@@ -60,6 +63,12 @@ case "$1" in
 			touch /etc/NetworkManager/conf.d/10-globally-managed-devices.conf
 		fi
 	fi
+
+        if dpkg --compare-versions "$2" lt-nl "1.20.4-2"; then
+            if [ -f /var/lib/NetworkManager/secret_key ]; then
+                chmod 0600 /var/lib/NetworkManager/secret_key
+            fi
+        fi
         ;;
 
     abort-upgrade|abort-deconfigure|abort-remove)
