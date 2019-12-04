@@ -8,6 +8,7 @@ __license__ = 'GPL v2 or later'
 import sys
 import os
 import os.path
+import re
 import time
 import subprocess
 import unittest
@@ -233,6 +234,10 @@ group=CCMP''' % SSID,
             # has a link-local address
             self.assertRegex(out, 'inet6 fe80::ff:fe00:[0-9a-z:]+/64 scope link')
 
+
+if re.search(b's390', subprocess.run(['dpkg', '--print-architecture'], capture_output=True).stdout):
+    print("s390 arch has no wireless support, skipping")
+    sys.exit(77)
 
 # write to stdout, not stderr
 runner = unittest.TextTestRunner(stream=sys.stdout, verbosity=2)

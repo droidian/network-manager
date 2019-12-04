@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if dpkg --print-architecture | grep s390; then
+    echo "Skipping rfkill tests on s390 (LP: #1855009)"
+    exit 77
+fi
+
 set -e
 
 echo "+++ Building / adding fake-rfkill.ko"

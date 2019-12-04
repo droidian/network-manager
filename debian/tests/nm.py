@@ -9,6 +9,7 @@ __license__ = 'GPL v2 or later'
 import sys
 import os
 import os.path
+import re
 import time
 import subprocess
 import socket
@@ -870,6 +871,10 @@ if __name__ == '__main__':
     if os.getuid() != 0:
         sys.stderr.write('This integration test suite needs to be run as root\n')
         sys.exit(1)
+
+    if re.search(b's390', subprocess.run(['dpkg', '--print-architecture'], capture_output=True).stdout):
+        print("s390 arch has no wireless support, skipping")
+        sys.exit(77)
 
     # write to stdout, not stderr
     runner = unittest.TextTestRunner(stream=sys.stdout, verbosity=2)
