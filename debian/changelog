@@ -1,3 +1,15 @@
+network-manager (1.20.4-2ubuntu3) focal; urgency=medium
+
+  * d/t/killswitches-no-urfkill, d/t/urfkill-integration,
+    d/t/wpa-dhclient, d/t/nm.py, d/t/control:
+    - skip tests on s390 due to missing wireless kernel support
+      (LP: #1855009)
+    - skip tests on i386 since there is no i386 kernel anymore,
+      so we can't build our custom rfkill test module
+      (LP: #1855183)
+
+ -- Dan Streetman <ddstreet@canonical.com>  Wed, 04 Dec 2019 12:17:37 -0500
+
 network-manager (1.20.4-2ubuntu2) eoan; urgency=medium
 
   * debian/patches/git_wpa_sae.patch:
