@@ -5,6 +5,11 @@ if dpkg --print-architecture | grep s390; then
     exit 77
 fi
 
+if dpkg --print-architecture | grep i386; then
+    echo "Skipping rfkill tests on i386 (LP: #1855183)"
+    exit 77
+fi
+
 set -e
 
 make -f debian/tests/Makefile fake-rfkill
