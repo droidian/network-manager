@@ -2,12 +2,12 @@
 .\"     Title: nm-settings
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 09/30/2019
+.\"      Date: 11/06/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.20.4
+.\"    Source: NetworkManager 1.20.6
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.20\&.4" "Configuration"
+.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.20\&.6" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -403,6 +403,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 altsubject\-matches
@@ -520,6 +521,15 @@ T}:T{
 \ \&
 T}:T{
 Identity string for EAP authentication methods\&.  Often the user\*(Aqs user or login name\&.
+T}
+T{
+optional
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+Whether the 802\&.1X authentication is optional\&. If TRUE, the activation will continue even after a timeout or an authentication failure\&. Setting the property to TRUE is currently allowed only for Ethernet connections\&. If set to FALSE, the activation can continue only after a successful authentication\&.
 T}
 T{
 pac\-file

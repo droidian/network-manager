@@ -1685,6 +1685,7 @@ NM_SETTING_802_1X_PIN
 NM_SETTING_802_1X_PIN_FLAGS
 NM_SETTING_802_1X_SYSTEM_CA_CERTS
 NM_SETTING_802_1X_AUTH_TIMEOUT
+NM_SETTING_802_1X_OPTIONAL
 NMSetting8021x
 nm_setting_802_1x_new
 nm_setting_802_1x_check_cert_scheme
@@ -1773,6 +1774,7 @@ nm_setting_802_1x_get_phase2_private_key_password_flags
 nm_setting_802_1x_get_phase2_private_key_format
 nm_setting_802_1x_get_phase1_auth_flags
 nm_setting_802_1x_get_auth_timeout
+nm_setting_802_1x_get_optional
 <SUBSECTION Standard>
 NMSetting8021xClass
 NM_IS_SETTING_802_1X
@@ -3951,6 +3953,7 @@ NM_AVAILABLE_IN_1_18
 NM_DEPRECATED_IN_1_20
 NM_DEPRECATED_IN_1_20_FOR
 NM_AVAILABLE_IN_1_20
+NM_AVAILABLE_IN_1_20_6
 </SECTION>
 
 <SECTION>

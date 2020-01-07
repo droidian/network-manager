@@ -1,28 +1,18 @@
-network-manager (1.20.4-2ubuntu3) focal; urgency=medium
-
-  * d/t/killswitches-no-urfkill, d/t/urfkill-integration,
-    d/t/wpa-dhclient, d/t/nm.py, d/t/control:
-    - skip tests on s390 due to missing wireless kernel support
-      (LP: #1855009)
-    - skip tests on i386 since there is no i386 kernel anymore,
-      so we can't build our custom rfkill test module
-      (LP: #1855183)
-
- -- Dan Streetman <ddstreet@canonical.com>  Wed, 04 Dec 2019 12:17:37 -0500
-
-network-manager (1.20.4-2ubuntu2) eoan; urgency=medium
-
-  * debian/patches/git_wpa_sae.patch:
-    - PMF can be used with SAE, allow it, fixes WPA3 handling
-      (lp: #1844422)
-
- -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 11 Oct 2019 00:06:27 +0200
-
-network-manager (1.20.4-2ubuntu1) eoan; urgency=medium
+network-manager (1.20.6-1ubuntu1) UNRELEASED; urgency=medium
 
   * New upstream version, merged from Debian
+  * debian/patches/git_wpa_sae.patch:
+    - removed, included in the new version
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 11 Sep 2019 11:16:12 +0200
+ -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 07 Jan 2020 16:53:10 +0100
+
+network-manager (1.20.6-1) unstable; urgency=medium
+
+  * New upstream version 1.20.6
+    - Add support for iwd 1.0. (Closes: #944259)
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 06 Nov 2019 22:32:54 +0100
 
 network-manager (1.20.4-2) unstable; urgency=medium
 

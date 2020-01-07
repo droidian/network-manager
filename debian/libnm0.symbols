@@ -12,6 +12,7 @@ libnm.so.0 libnm0 #MINVER#
  libnm_1_16_0@libnm_1_16_0 1.16.0
  libnm_1_18_0@libnm_1_18_0 1.18.0
  libnm_1_20_0@libnm_1_20_0 1.19.90
+ libnm_1_20_6@libnm_1_20_6 1.20.6
  libnm_1_2_0@libnm_1_2_0 1.1.90
  libnm_1_2_4@libnm_1_2_4 1.2.4
  libnm_1_4_0@libnm_1_4_0 1.4.0
@@ -637,6 +638,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_802_1x_get_num_altsubject_matches@libnm_1_0_0 1.0.0
  nm_setting_802_1x_get_num_eap_methods@libnm_1_0_0 1.0.0
  nm_setting_802_1x_get_num_phase2_altsubject_matches@libnm_1_0_0 1.0.0
+ nm_setting_802_1x_get_optional@libnm_1_20_6 1.20.6
  nm_setting_802_1x_get_pac_file@libnm_1_0_0 1.0.0
  nm_setting_802_1x_get_password@libnm_1_0_0 1.0.0
  nm_setting_802_1x_get_password_flags@libnm_1_0_0 1.0.0

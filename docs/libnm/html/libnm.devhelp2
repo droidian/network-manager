@@ -757,6 +757,7 @@
     <keyword type="function" name="nm_setting_802_1x_get_phase2_private_key_format ()" link="NMSetting8021x.html#nm-setting-802-1x-get-phase2-private-key-format"/>
     <keyword type="function" name="nm_setting_802_1x_get_phase1_auth_flags ()" link="NMSetting8021x.html#nm-setting-802-1x-get-phase1-auth-flags" since="1.8"/>
     <keyword type="function" name="nm_setting_802_1x_get_auth_timeout ()" link="NMSetting8021x.html#nm-setting-802-1x-get-auth-timeout" since="1.8"/>
+    <keyword type="function" name="nm_setting_802_1x_get_optional ()" link="NMSetting8021x.html#nm-setting-802-1x-get-optional" since="1.20.6"/>
     <keyword type="macro" name="NM_SETTING_802_1X_CERT_SCHEME_PREFIX_PATH" link="NMSetting8021x.html#NM-SETTING-802-1X-CERT-SCHEME-PREFIX-PATH:CAPS"/>
     <keyword type="macro" name="NM_SETTING_802_1X_CERT_SCHEME_PREFIX_PKCS11" link="NMSetting8021x.html#NM-SETTING-802-1X-CERT-SCHEME-PREFIX-PKCS11:CAPS"/>
     <keyword type="enum" name="enum NMSetting8021xCKFormat" link="NMSetting8021x.html#NMSetting8021xCKFormat"/>
@@ -807,6 +808,7 @@
     <keyword type="macro" name="NM_SETTING_802_1X_PIN_FLAGS" link="NMSetting8021x.html#NM-SETTING-802-1X-PIN-FLAGS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_802_1X_SYSTEM_CA_CERTS" link="NMSetting8021x.html#NM-SETTING-802-1X-SYSTEM-CA-CERTS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_802_1X_AUTH_TIMEOUT" link="NMSetting8021x.html#NM-SETTING-802-1X-AUTH-TIMEOUT:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_802_1X_OPTIONAL" link="NMSetting8021x.html#NM-SETTING-802-1X-OPTIONAL:CAPS"/>
     <keyword type="struct" name="NMSetting8021x" link="NMSetting8021x.html#NMSetting8021x-struct"/>
     <keyword type="property" name="The “altsubject-matches” property" link="NMSetting8021x.html#NMSetting8021x--altsubject-matches"/>
     <keyword type="property" name="The “anonymous-identity” property" link="NMSetting8021x.html#NMSetting8021x--anonymous-identity"/>
@@ -821,6 +823,7 @@
     <keyword type="property" name="The “domain-suffix-match” property" link="NMSetting8021x.html#NMSetting8021x--domain-suffix-match"/>
     <keyword type="property" name="The “eap” property" link="NMSetting8021x.html#NMSetting8021x--eap"/>
     <keyword type="property" name="The “identity” property" link="NMSetting8021x.html#NMSetting8021x--identity"/>
+    <keyword type="property" name="The “optional” property" link="NMSetting8021x.html#NMSetting8021x--optional"/>
     <keyword type="property" name="The “pac-file” property" link="NMSetting8021x.html#NMSetting8021x--pac-file"/>
     <keyword type="property" name="The “password” property" link="NMSetting8021x.html#NMSetting8021x--password"/>
     <keyword type="property" name="The “password-flags” property" link="NMSetting8021x.html#NMSetting8021x--password-flags"/>
@@ -3157,6 +3160,7 @@
     <keyword type="macro" name="NM_AVAILABLE_IN_1_18" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-18:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_20" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-20:CAPS"/>
     <keyword type="macro" name="NM_AVAILABLE_IN_1_20" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-20:CAPS"/>
+    <keyword type="macro" name="NM_AVAILABLE_IN_1_20_6" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-20-6:CAPS"/>
     <keyword type="macro" name="NM_VPN_SERVICE_PLUGIN_DBUS_SERVICE_NAME" link="libnm-nm-vpn-service-plugin.html#NM-VPN-SERVICE-PLUGIN-DBUS-SERVICE-NAME:CAPS"/>
     <keyword type="macro" name="NM_VPN_SERVICE_PLUGIN_DBUS_WATCH_PEER" link="libnm-nm-vpn-service-plugin.html#NM-VPN-SERVICE-PLUGIN-DBUS-WATCH-PEER:CAPS"/>
     <keyword type="macro" name="NM_VPN_SERVICE_PLUGIN_STATE" link="libnm-nm-vpn-service-plugin.html#NM-VPN-SERVICE-PLUGIN-STATE:CAPS"/>
@@ -3722,6 +3726,7 @@
     <keyword type="constant" name="NMU_SEC_WPA_ENTERPRISE" link="libnm-nm-utils.html#NMU-SEC-WPA-ENTERPRISE:CAPS"/>
     <keyword type="constant" name="NMU_SEC_WPA2_PSK" link="libnm-nm-utils.html#NMU-SEC-WPA2-PSK:CAPS"/>
     <keyword type="constant" name="NMU_SEC_WPA2_ENTERPRISE" link="libnm-nm-utils.html#NMU-SEC-WPA2-ENTERPRISE:CAPS"/>
+    <keyword type="constant" name="NMU_SEC_SAE" link="libnm-nm-utils.html#NMU-SEC-SAE:CAPS"/>
     <keyword type="constant" name="NM_VPN_EDITOR_PLUGIN_CAPABILITY_NONE" link="NMVpnEditorPlugin.html#NM-VPN-EDITOR-PLUGIN-CAPABILITY-NONE:CAPS"/>
     <keyword type="constant" name="NM_VPN_EDITOR_PLUGIN_CAPABILITY_IMPORT" link="NMVpnEditorPlugin.html#NM-VPN-EDITOR-PLUGIN-CAPABILITY-IMPORT:CAPS"/>
     <keyword type="constant" name="NM_VPN_EDITOR_PLUGIN_CAPABILITY_EXPORT" link="NMVpnEditorPlugin.html#NM-VPN-EDITOR-PLUGIN-CAPABILITY-EXPORT:CAPS"/>

@@ -46,6 +46,8 @@ lookaside file, or it can be owned by a secret agent."/>
 <property name="pin-flags" variable="(none)" format="" values="" default="" example="" description="The property is not handled by ifcfg-rh plugin."/>
 <property name="system-ca-certs" variable="(none)" format="" values="" default="" example="" description="The property is not handled by ifcfg-rh plugin."/>
 <property name="auth-timeout" variable="IEEE_8021X_AUTH_TIMEOUT(+)" format="" values="" default="0" example="" description="Timeout in seconds for the 802.1X authentication. Zero means the global default or 25."/>
+<property name="optional" variable="IEEE_8021X_OPTIONAL(+)
+default=no" format="" values="" default="" example="" description="whether the 802.1X authentication is optional"/>
 </setting>
 <setting name="adsl">
 </setting>

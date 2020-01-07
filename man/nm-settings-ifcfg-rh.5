@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 09/30/2019
+.\"      Date: 11/06/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.20.4
+.\"    Source: NetworkManager 1.20.6
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.20\&.4" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.20\&.6" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -405,6 +405,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 eap
@@ -755,6 +756,15 @@ T}:T{
 0
 T}:T{
 Timeout in seconds for the 802\&.1X authentication\&. Zero means the global default or 25\&.
+T}
+T{
+optional
+T}:T{
+IEEE_8021X_OPTIONAL\fI(+)\fR default=no
+T}:T{
+\ \&
+T}:T{
+whether the 802\&.1X authentication is optional
 T}
 .TE
 .sp 1

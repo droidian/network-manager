@@ -132,6 +132,12 @@
 <td>Identity string for EAP authentication methods.  Often the user's user or login name.</td>
 </tr>
 <tr>
+<td><pre class="screen">optional</pre></td>
+<td><pre class="screen">boolean</pre></td>
+<td><pre class="screen">FALSE</pre></td>
+<td>Whether the 802.1X authentication is optional. If TRUE, the activation will continue even after a timeout or an authentication failure. Setting the property to TRUE is currently allowed only for Ethernet connections. If set to FALSE, the activation can continue only after a successful authentication.</td>
+</tr>
+<tr>
 <td><pre class="screen">pac-file</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
