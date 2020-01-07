@@ -1,20 +1,6 @@
-/* nmcli - command-line tool to control NetworkManager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2010 - 2018 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2010 - 2018 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -657,6 +643,7 @@ _metagen_con_active_general_get_fcn (NMC_META_GENERIC_INFO_GET_FCN_ARGS)
 	case NMC_GENERIC_INFO_TYPE_CON_ACTIVE_GENERAL_UUID:
 		return nm_active_connection_get_uuid (ac);
 	case NMC_GENERIC_INFO_TYPE_CON_ACTIVE_GENERAL_DEVICES:
+	case NMC_GENERIC_INFO_TYPE_CON_ACTIVE_GENERAL_IP_IFACE:
 		{
 			GString *str = NULL;
 			const GPtrArray *devices;
@@ -665,10 +652,15 @@ _metagen_con_active_general_get_fcn (NMC_META_GENERIC_INFO_GET_FCN_ARGS)
 			devices = nm_active_connection_get_devices (ac);
 			if (devices) {
 				for (i = 0; i < devices->len; i++) {
-					NMDevice *device = devices->pdata[i];
+					NMDevice *device = g_ptr_array_index (devices, i);
 					const char *iface;
 
-					iface = nm_device_get_iface (device);
+					if (info->info_type == NMC_GENERIC_INFO_TYPE_CON_ACTIVE_GENERAL_DEVICES) {
+						iface = nm_device_get_iface (device);
+					} else {
+						iface = nm_device_get_ip_iface (device);
+					}
+
 					if (!iface)
 						continue;
 					if (!s) {
@@ -720,6 +712,7 @@ const NmcMetaGenericInfo *const metagen_con_active_general[_NMC_GENERIC_INFO_TYP
 	_METAGEN_CON_ACTIVE_GENERAL (NMC_GENERIC_INFO_TYPE_CON_ACTIVE_GENERAL_NAME,        "NAME"),
 	_METAGEN_CON_ACTIVE_GENERAL (NMC_GENERIC_INFO_TYPE_CON_ACTIVE_GENERAL_UUID,        "UUID"),
 	_METAGEN_CON_ACTIVE_GENERAL (NMC_GENERIC_INFO_TYPE_CON_ACTIVE_GENERAL_DEVICES,     "DEVICES"),
+	_METAGEN_CON_ACTIVE_GENERAL (NMC_GENERIC_INFO_TYPE_CON_ACTIVE_GENERAL_IP_IFACE,    "IP-IFACE"),
 	_METAGEN_CON_ACTIVE_GENERAL (NMC_GENERIC_INFO_TYPE_CON_ACTIVE_GENERAL_STATE,       "STATE"),
 	_METAGEN_CON_ACTIVE_GENERAL (NMC_GENERIC_INFO_TYPE_CON_ACTIVE_GENERAL_DEFAULT,     "DEFAULT"),
 	_METAGEN_CON_ACTIVE_GENERAL (NMC_GENERIC_INFO_TYPE_CON_ACTIVE_GENERAL_DEFAULT6,    "DEFAULT6"),
@@ -2933,7 +2926,8 @@ do_connection_up (NmCli *nmc, int argc, char **argv)
 			pwds = *argv;
 		}
 		else if (!nmc->complete) {
-			g_printerr (_("Unknown parameter: %s\n"), *argv);
+			g_string_printf (nmc->return_text, _("Error: invalid extra argument '%s'."), *argv);
+			return NMC_RESULT_ERROR_USER_INPUT;
 		}
 
 		next_arg (nmc, &argc, &argv, NULL);
@@ -3135,7 +3129,7 @@ do_connection_down (NmCli *nmc, int argc, char **argv)
 		}
 		if (arg_num == 0) {
 			g_string_printf (nmc->return_text, _("Error: No connection specified."));
-			NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
+			return NMC_RESULT_ERROR_USER_INPUT;
 		}
 	}
 
@@ -3153,7 +3147,7 @@ do_connection_down (NmCli *nmc, int argc, char **argv)
 			arg_ptr++;
 			if (!arg_num) {
 				g_string_printf (nmc->return_text, _("Error: %s argument is missing."), selector);
-				NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
+				return NMC_RESULT_ERROR_USER_INPUT;
 			}
 		}
 
@@ -3174,7 +3168,7 @@ do_connection_down (NmCli *nmc, int argc, char **argv)
 
 	if (!found_active_cons) {
 		g_string_printf (nmc->return_text, _("Error: no active connection provided."));
-		NMC_RETURN (nmc, NMC_RESULT_ERROR_NOT_FOUND);
+		return NMC_RESULT_ERROR_NOT_FOUND;
 	}
 	nm_assert (found_active_cons->len > 0);
 
@@ -3320,6 +3314,21 @@ get_valid_settings_array (const char *con_type)
 	return NULL;
 }
 
+static char *
+_construct_property_name (const char *setting_name,
+                          const char *property_name,
+                          NMMetaAccessorModifier modifier)
+{
+	return g_strdup_printf ("%s%s.%s\n",
+	                        (  modifier == NM_META_ACCESSOR_MODIFIER_ADD
+	                         ? "+"
+	                         : (  modifier == NM_META_ACCESSOR_MODIFIER_DEL
+	                            ? "-"
+	                            : "")),
+	                        setting_name,
+	                        property_name);
+}
+
 /* get_valid_properties_string:
  * @array: base properties for the current connection type
  * @array_slv: slave properties (or ipv4/ipv6 ones) for the current connection type
@@ -3337,7 +3346,7 @@ get_valid_settings_array (const char *con_type)
 static char *
 get_valid_properties_string (const NMMetaSettingValidPartItem *const*array,
                              const NMMetaSettingValidPartItem *const*array_slv,
-                             char modifier,
+                             NMMetaAccessorModifier modifier,
                              const char *prefix,
                              const char *postfix)
 {
@@ -3379,32 +3388,26 @@ get_valid_properties_string (const NMMetaSettingValidPartItem *const*array,
 
 			/* Search the array with the arguments of the current property */
 			for (j = 0; j < setting_info->properties_num; j++) {
-				char *new;
+				gs_free char *ss1 = NULL;
 				const char *arg_name;
 
 				arg_name = setting_info->properties[j]->property_name;
 
 				/* If required, expand the alias too */
-				if (!postfix && setting_info->alias) {
-					if (modifier)
-						g_string_append_c (str, modifier);
-					new = g_strdup_printf ("%s.%s\n",
-					                       setting_info->alias,
-					                       arg_name);
-					g_string_append (str, new);
-					g_free (new);
+				if (   !postfix
+				    && setting_info->alias) {
+					gs_free char *ss2 = NULL;
+
+					ss2 = _construct_property_name (setting_info->alias, arg_name, modifier);
+					g_string_append (str, ss2);
 				}
 
-				if (postfix && !g_str_has_prefix (arg_name, postfix))
+				if (   postfix
+				    && !g_str_has_prefix (arg_name, postfix))
 					continue;
 
-				if (modifier)
-					g_string_append_c (str, modifier);
-				new = g_strdup_printf ("%s.%s\n",
-				                       prop_name,
-				                       arg_name);
-				g_string_append (str, new);
-				g_free (new);
+				ss1 = _construct_property_name (prop_name, arg_name, modifier);
+				g_string_append (str, ss1);
 			}
 		}
 	}
@@ -3723,50 +3726,56 @@ static char *
 unique_master_iface_ifname (const GPtrArray *connections,
                             const char *try_name)
 {
-	NMConnection *connection;
 	char *new_name;
-	unsigned num = 1;
-	int i = 0;
-	const char *ifname = NULL;
+	guint num = 0;
+	guint i;
 
 	new_name = g_strdup (try_name);
-	while (i < connections->len) {
-		connection = NM_CONNECTION (connections->pdata[i]);
-		ifname = nm_connection_get_interface_name (connection);
-		if (g_strcmp0 (new_name, ifname) == 0) {
+
+again:
+	for (i = 0; i < connections->len; i++) {
+		NMConnection *connection = connections->pdata[i];
+
+		if (nm_streq0 (new_name, nm_connection_get_interface_name (connection))) {
+			num++;
 			g_free (new_name);
-			new_name = g_strdup_printf ("%s%d", try_name, num++);
-			i = 0;
-		} else
-			i++;
+			new_name = g_strdup_printf ("%s%u", try_name, num);
+			goto again;
+		}
 	}
 	return new_name;
 }
 
 static void
-set_default_interface_name (NmCli *nmc, NMSettingConnection *s_con)
+set_default_interface_name (NmCli *nmc,
+                            NMSettingConnection *s_con)
 {
-	const GPtrArray *connections;
-	char *ifname = NULL;
-	const char *con_type = nm_setting_connection_get_connection_type (s_con);
+	const char *default_name;
+	const char *con_type;
 
 	if (nm_setting_connection_get_interface_name (s_con))
 		return;
 
-	connections = nm_client_get_connections (nmc->client);
+	con_type = nm_setting_connection_get_connection_type (s_con);
 
 	/* Set a sensible bond/team/bridge interface name by default */
-	if (g_strcmp0 (con_type, NM_SETTING_BOND_SETTING_NAME) == 0)
-		ifname = unique_master_iface_ifname (connections, "nm-bond");
-	else if (g_strcmp0 (con_type, NM_SETTING_TEAM_SETTING_NAME) == 0)
-		ifname = unique_master_iface_ifname (connections, "nm-team");
-	else if (g_strcmp0 (con_type, NM_SETTING_BRIDGE_SETTING_NAME) == 0)
-		ifname = unique_master_iface_ifname (connections, "nm-bridge");
+	if (nm_streq0 (con_type, NM_SETTING_BOND_SETTING_NAME))
+		default_name = "nm-bond";
+	else if (nm_streq0 (con_type, NM_SETTING_TEAM_SETTING_NAME))
+		default_name = "nm-team";
+	else if (nm_streq0 (con_type, NM_SETTING_BRIDGE_SETTING_NAME))
+		default_name = "nm-bridge";
 	else
-		return;
+		default_name = NULL;
 
-	g_object_set (s_con, NM_SETTING_CONNECTION_INTERFACE_NAME, ifname, NULL);
-	g_free (ifname);
+	if (default_name) {
+		const GPtrArray *connections;
+		gs_free char *ifname = NULL;
+
+		connections = nm_client_get_connections (nmc->client);
+		ifname = unique_master_iface_ifname (connections, default_name);
+		g_object_set (s_con, NM_SETTING_CONNECTION_INTERFACE_NAME, ifname, NULL);
+	}
 }
 
 /*****************************************************************************/
@@ -4004,7 +4013,7 @@ set_property (NMClient *client,
               const char *setting_name,
               const char *property,
               const char *value,
-              char modifier,
+              NMMetaAccessorModifier modifier,
               GError **error)
 {
 	gs_free char *property_name = NULL;
@@ -4012,7 +4021,9 @@ set_property (NMClient *client,
 	NMSetting *setting;
 
 	nm_assert (setting_name && setting_name[0]);
-	nm_assert (NM_IN_SET (modifier, '\0', '+', '-'));
+	nm_assert (NM_IN_SET (modifier, NM_META_ACCESSOR_MODIFIER_SET,
+	                                NM_META_ACCESSOR_MODIFIER_ADD,
+	                                NM_META_ACCESSOR_MODIFIER_DEL));
 
 	setting = nm_connection_get_setting_by_name (connection, setting_name);
 	if (!setting) {
@@ -4032,14 +4043,15 @@ set_property (NMClient *client,
 	if (!nmc_setting_set_property (client,
 	                               setting,
 	                               property_name,
-	                               (  (modifier == '-' && !value)
-	                                ? '\0'
+	                               (  (   modifier == NM_META_ACCESSOR_MODIFIER_DEL
+	                                   && !value)
+	                                ? NM_META_ACCESSOR_MODIFIER_SET
 	                                : modifier),
 	                               value,
 	                               &local)) {
 		g_set_error (error, NMCLI_ERROR, NMC_RESULT_ERROR_USER_INPUT,
 		             _("Error: failed to %s %s.%s: %s."),
-		             (  modifier != '-'
+		             (  modifier != NM_META_ACCESSOR_MODIFIER_DEL
 		              ? "modify"
 		              : "remove a value from"),
 		             setting_name,
@@ -4069,8 +4081,15 @@ set_option (NmCli *nmc, NMConnection *connection, const NMMetaAbstractInfo *abst
 	if (option && option->check_and_set) {
 		return option->check_and_set (nmc, connection, option, value, error);
 	} else if (value) {
-		return set_property (nmc->client, connection, setting_name, property_name,
-		                     value, inf_flags & NM_META_PROPERTY_INF_FLAG_MULTI ? '+' : '\0', error);
+		return set_property (nmc->client,
+		                     connection,
+		                     setting_name,
+		                     property_name,
+		                     value,
+		                       inf_flags & NM_META_PROPERTY_INF_FLAG_MULTI
+		                     ? NM_META_ACCESSOR_MODIFIER_ADD
+		                     : NM_META_ACCESSOR_MODIFIER_SET,
+		                     error);
 	} else if (inf_flags & NM_META_PROPERTY_INF_FLAG_REQD) {
 		g_set_error (error, NMCLI_ERROR, NMC_RESULT_ERROR_USER_INPUT,
 	                     _("Error: '%s' is mandatory."), option_name);
@@ -4191,9 +4210,13 @@ set_connection_type (NmCli *nmc, NMConnection *con, const OptionInfo *option, co
 	}
 
 	if (slave_type) {
-		if (!set_property (nmc->client, con, NM_SETTING_CONNECTION_SETTING_NAME,
-		                   NM_SETTING_CONNECTION_SLAVE_TYPE, slave_type,
-		                   '\0', error)) {
+		if (!set_property (nmc->client,
+		                   con,
+		                   NM_SETTING_CONNECTION_SETTING_NAME,
+		                   NM_SETTING_CONNECTION_SLAVE_TYPE,
+		                   slave_type,
+		                   NM_META_ACCESSOR_MODIFIER_SET,
+		                   error)) {
 			return FALSE;
 		}
 		enable_options (NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_MASTER, master);
@@ -4208,7 +4231,13 @@ set_connection_type (NmCli *nmc, NMConnection *con, const OptionInfo *option, co
 		                 NM_SETTING_CONNECTION_INTERFACE_NAME);
 	}
 
-	if (!set_property (nmc->client, con, option->setting_info->general->setting_name, option->property, value, '\0', error))
+	if (!set_property (nmc->client,
+	                   con,
+	                   option->setting_info->general->setting_name,
+	                   option->property,
+	                   value,
+	                   NM_META_ACCESSOR_MODIFIER_SET,
+	                   error))
 		return FALSE;
 
 	if (!con_settings (con, &type_settings, &slv_settings, error))
@@ -4237,7 +4266,13 @@ set_connection_iface (NmCli *nmc, NMConnection *con, const OptionInfo *option, c
 		}
 	}
 
-	return set_property (nmc->client, con, option->setting_info->general->setting_name, option->property, value, '\0', error);
+	return set_property (nmc->client,
+	                     con,
+	                     option->setting_info->general->setting_name,
+	                     option->property,
+	                     value,
+	                     NM_META_ACCESSOR_MODIFIER_SET,
+	                     error);
 }
 
 static gboolean
@@ -4260,13 +4295,23 @@ set_connection_master (NmCli *nmc, NMConnection *con, const OptionInfo *option, 
 	connections = nm_client_get_connections (nmc->client);
 	value = normalized_master_for_slave (connections, value, slave_type, &slave_type);
 
-	if (!set_property (nmc->client, con, NM_SETTING_CONNECTION_SETTING_NAME,
-	                   NM_SETTING_CONNECTION_SLAVE_TYPE, slave_type,
-	                   '\0', error)) {
+	if (!set_property (nmc->client,
+	                   con,
+	                   NM_SETTING_CONNECTION_SETTING_NAME,
+	                   NM_SETTING_CONNECTION_SLAVE_TYPE,
+	                   slave_type,
+	                   NM_META_ACCESSOR_MODIFIER_SET,
+	                   error)) {
 		return FALSE;
 	}
 
-	return set_property (nmc->client, con, option->setting_info->general->setting_name, option->property, value, '\0', error);
+	return set_property (nmc->client,
+	                     con,
+	                     option->setting_info->general->setting_name,
+	                     option->property,
+	                     value,
+	                     NM_META_ACCESSOR_MODIFIER_SET,
+	                     error);
 }
 
 static gboolean
@@ -4380,7 +4425,13 @@ set_bluetooth_type (NmCli *nmc, NMConnection *con, const OptionInfo *option, con
 		return FALSE;
 	}
 
-	return set_property (nmc->client, con, option->setting_info->general->setting_name, option->property, value, '\0', error);
+	return set_property (nmc->client,
+	                     con,
+	                     option->setting_info->general->setting_name,
+	                     option->property,
+	                     value,
+	                     NM_META_ACCESSOR_MODIFIER_SET,
+	                     error);
 }
 
 static gboolean
@@ -4399,8 +4450,13 @@ set_ip4_address (NmCli *nmc, NMConnection *con, const OptionInfo *option, const 
 		              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_MANUAL,
 		              NULL);
 	}
-	return set_property (nmc->client, con, option->setting_info->general->setting_name, option->property, value,
-	                     '+', error);
+	return set_property (nmc->client,
+	                     con,
+	                     option->setting_info->general->setting_name,
+	                     option->property,
+	                     value,
+	                     NM_META_ACCESSOR_MODIFIER_ADD,
+	                     error);
 }
 
 static gboolean
@@ -4419,8 +4475,13 @@ set_ip6_address (NmCli *nmc, NMConnection *con, const OptionInfo *option, const 
 		              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_MANUAL,
 		              NULL);
 	}
-	return set_property (nmc->client, con, option->setting_info->general->setting_name, option->property, value,
-	                     '+', error);
+	return set_property (nmc->client,
+	                     con,
+	                     option->setting_info->general->setting_name,
+	                     option->property,
+	                     value,
+	                     NM_META_ACCESSOR_MODIFIER_ADD,
+	                     error);
 }
 
 /*****************************************************************************/
@@ -4492,7 +4553,7 @@ option_relevant (NMConnection *connection, const NMMetaAbstractInfo *abstract_in
 
 static void
 complete_property_name (NmCli *nmc, NMConnection *connection,
-                        char modifier,
+                        NMMetaAccessorModifier modifier,
                         const char *prefix,
                         const char *postfix)
 {
@@ -4515,7 +4576,7 @@ complete_property_name (NmCli *nmc, NMConnection *connection,
 	if (word_list)
 		g_print ("%s", word_list);
 
-	if (modifier != '\0')
+	if (modifier != NM_META_ACCESSOR_MODIFIER_SET)
 		return;
 
 	for (s = 0; s < _NM_META_SETTING_TYPE_NUM; s++) {
@@ -4644,20 +4705,18 @@ nmc_read_connection_properties (NmCli *nmc,
                                 char ***argv,
                                 GError **error)
 {
-	const char *option;
-	const char *value = NULL;
-	GError *local = NULL;
-
 	/* First check if we have a slave-type, as this would mean we will not
 	 * have ip properties but possibly others, slave-type specific.
 	 */
 	/* Go through arguments and set properties */
 	do {
-		const NMMetaAbstractInfo *chosen = NULL;
-		gs_strfreev char **strv = NULL;
 		const NMMetaSettingValidPartItem *const*type_settings;
 		const NMMetaSettingValidPartItem *const*slv_settings;
-		char modifier = '\0';
+		NMMetaAccessorModifier modifier;
+		const char *option_orig;
+		const char *option;
+		const char *value = NULL;
+		const char *tmp;
 
 		if (!con_settings (connection, &type_settings, &slv_settings, error))
 			return FALSE;
@@ -4665,54 +4724,58 @@ nmc_read_connection_properties (NmCli *nmc,
 		ensure_settings (connection, slv_settings);
 		ensure_settings (connection, type_settings);
 
-		option = **argv;
-		if (!option) {
+		option_orig = **argv;
+		if (!option_orig) {
 			g_set_error_literal (error, NMCLI_ERROR, NMC_RESULT_ERROR_USER_INPUT,
 			                     _("Error: <setting>.<property> argument is missing."));
 			return FALSE;
 		}
 
-		if (option[0] == '+' || option[0] == '-')
-			modifier = *option;
+		switch (option_orig[0]) {
+		case '+': modifier = NM_META_ACCESSOR_MODIFIER_ADD; option = &option_orig[1]; break;
+		case '-': modifier = NM_META_ACCESSOR_MODIFIER_DEL; option = &option_orig[1]; break;
+		default:  modifier = NM_META_ACCESSOR_MODIFIER_SET; option = option_orig;     break;
+		}
 
-		strv = g_strsplit (option, ".", 2);
-		if (g_strv_length (strv) == 2) {
+		if ((tmp = strchr (option, '.'))) {
+			gs_free char *option_sett = g_strndup (option, tmp - option);
+			const char *option_prop = &tmp[1];
+			const char *option_sett_expanded;
+			GError *local = NULL;
+
 			/* This seems like a <setting>.<property> (such as "connection.id" or "bond.mode"),
 			 * optionally prefixed with "+| or "-". */
-			char *setting = strv[0];
-			const char *setting_name;
 
-			if (modifier)
-				setting++;
+			if (   *argc == 1
+			    && nmc->complete)
+				complete_property_name (nmc, connection, modifier, option_sett, option_prop);
 
-			if (*argc == 1 && nmc->complete)
-				complete_property_name (nmc, connection, modifier, setting, strv[1]);
-
-			setting_name = check_valid_name (setting, type_settings, slv_settings, &local);
-			if (!setting_name) {
+			option_sett_expanded = check_valid_name (option_sett, type_settings, slv_settings, &local);
+			if (!option_sett_expanded) {
 				g_set_error (error, NMCLI_ERROR, NMC_RESULT_ERROR_USER_INPUT,
 				             _("Error: invalid or not allowed setting '%s': %s."),
-				             setting, local->message);
+				             option_sett, local->message);
 				g_clear_error (&local);
 				return FALSE;
 			}
 
 			(*argc)--;
 			(*argv)++;
-			if (!get_value (&value, argc, argv, option, error))
+			if (!get_value (&value, argc, argv, option_orig, error))
 				return FALSE;
 
 			if (!*argc && nmc->complete) {
-				complete_property (nmc, setting, strv[1], value ?: "", connection);
+				complete_property (nmc, option_sett, option_prop, value ?: "", connection);
 				return TRUE;
 			}
 
-			if (!set_property (nmc->client, connection, setting_name, strv[1], value, modifier, error))
+			if (!set_property (nmc->client, connection, option_sett_expanded, option_prop, value, modifier, error))
 				return FALSE;
 		} else {
-			NMMetaSettingType s;
+			const NMMetaAbstractInfo *chosen = NULL;
 			const char *chosen_setting_name = NULL;
 			const char *chosen_option = NULL;
+			NMMetaSettingType s;
 
 			/* Let's see if this is an property alias (such as "id", "mode", "type" or "con-name")*/
 			for (s = 0; s < _NM_META_SETTING_TYPE_NUM; s++) {
@@ -4768,8 +4831,6 @@ nmc_read_connection_properties (NmCli *nmc,
 			}
 
 			if (!chosen) {
-				if (modifier)
-					option++;
 				if (*argc == 1 && nmc->complete)
 					complete_property_name (nmc, connection, modifier, option, NULL);
 				g_set_error (error, NMCLI_ERROR, NMC_RESULT_ERROR_USER_INPUT,
@@ -4782,7 +4843,7 @@ nmc_read_connection_properties (NmCli *nmc,
 
 			(*argc)--;
 			(*argv)++;
-			if (!get_value (&value, argc, argv, option, error))
+			if (!get_value (&value, argc, argv, option_orig, error))
 				return FALSE;
 
 			if (!*argc && nmc->complete)
@@ -5270,11 +5331,12 @@ read_properties:
 		const char *ifname = nm_setting_connection_get_interface_name (s_con);
 		const char *type = nm_setting_connection_get_connection_type (s_con);
 		const char *slave_type = nm_setting_connection_get_slave_type (s_con);
-		char *try_name, *default_name;
 
 		/* If only bother when there's a type, which is not guaranteed at this point.
 		 * Otherwise the validation will fail anyway. */
 		if (type) {
+			gs_free char *try_name = NULL;
+			gs_free char *default_name = NULL;
 			const GPtrArray *connections;
 
 			connections = nm_client_get_connections (nmc->client);
@@ -5282,9 +5344,7 @@ read_properties:
 			           ? g_strdup_printf ("%s-%s", get_name_alias_toplevel (type, slave_type), ifname)
 			           : g_strdup (get_name_alias_toplevel (type, slave_type));
 			default_name = nmc_unique_connection_name (connections, try_name);
-			g_free (try_name);
 			g_object_set (s_con, NM_SETTING_CONNECTION_ID, default_name, NULL);
-			g_free (default_name);
 		}
 	}
 
@@ -6980,8 +7040,8 @@ property_edit_submenu (NmCli *nmc,
 			                                       curr_setting,
 			                                       prop_name,
 			                                         (cmdsub == NMC_EDITOR_SUB_CMD_SET)
-			                                       ? '\0'
-			                                       : '+',
+			                                       ? NM_META_ACCESSOR_MODIFIER_SET
+			                                       : NM_META_ACCESSOR_MODIFIER_ADD,
 			                                       prop_val_user,
 			                                       &tmp_err);
 			if (!set_result) {
@@ -6997,7 +7057,12 @@ property_edit_submenu (NmCli *nmc,
 			                              _("Edit '%s' value: "),
 			                              prop_name);
 
-			if (!nmc_setting_set_property (nmc->client, curr_setting, prop_name, '\0', prop_val_user, &tmp_err)) {
+			if (!nmc_setting_set_property (nmc->client,
+			                               curr_setting,
+			                               prop_name,
+			                               NM_META_ACCESSOR_MODIFIER_SET,
+			                               prop_val_user,
+			                               &tmp_err)) {
 				g_print (_("Error: failed to set '%s' property: %s\n"), prop_name, tmp_err->message);
 				g_clear_error (&tmp_err);
 			}
@@ -7008,8 +7073,8 @@ property_edit_submenu (NmCli *nmc,
 			                               curr_setting,
 			                               prop_name,
 			                               (  cmd_property_arg
-			                                ? '-'
-			                                : '\0'),
+			                                ? NM_META_ACCESSOR_MODIFIER_DEL
+			                                : NM_META_ACCESSOR_MODIFIER_SET),
 			                               cmd_property_arg,
 			                               &tmp_err)) {
 				g_print (_("Error: %s\n"), tmp_err->message);
@@ -7363,7 +7428,12 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 					                              _("Enter '%s' value: "),
 					                              prop_name);
 
-					if (!nmc_setting_set_property (nmc->client, menu_ctx.curr_setting, prop_name, '+', prop_val_user, &tmp_err)) {
+					if (!nmc_setting_set_property (nmc->client,
+					                               menu_ctx.curr_setting,
+					                               prop_name,
+					                               NM_META_ACCESSOR_MODIFIER_ADD,
+					                               prop_val_user,
+					                               &tmp_err)) {
 						g_print (_("Error: failed to set '%s' property: %s\n"), prop_name, tmp_err->message);
 						g_clear_error (&tmp_err);
 					}
@@ -7427,7 +7497,9 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 				if (!nmc_setting_set_property (nmc->client,
 				                               ss,
 				                               prop_name,
-				                               cmd_arg_v ? '+' : '\0',
+				                                 cmd_arg_v
+				                               ? NM_META_ACCESSOR_MODIFIER_ADD
+				                               : NM_META_ACCESSOR_MODIFIER_SET,
 				                               cmd_arg_v,
 				                               &tmp_err)) {
 					g_print (_("Error: failed to set '%s' property: %s\n"),
@@ -7526,7 +7598,12 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 					if (!prop_name)
 						break;
 
-					if (!nmc_setting_set_property (nmc->client, menu_ctx.curr_setting, prop_name, '\0', NULL, &tmp_err)) {
+					if (!nmc_setting_set_property (nmc->client,
+					                               menu_ctx.curr_setting,
+					                               prop_name,
+					                               NM_META_ACCESSOR_MODIFIER_SET,
+					                               NULL,
+					                               &tmp_err)) {
 						g_print (_("Error: failed to remove value of '%s': %s\n"), prop_name,
 						         tmp_err->message);
 						g_clear_error (&tmp_err);
@@ -7572,11 +7649,16 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 					}
 				} else {
 					gs_free char *prop_name = NULL;
-					gs_free GError *tmp_err = NULL;
+					gs_free_error GError *tmp_err = NULL;
 
 					prop_name = is_property_valid (ss, cmd_arg_p, &tmp_err);
 					if (prop_name) {
-						if (!nmc_setting_set_property (nmc->client, ss, prop_name, '\0', NULL, &tmp_err)) {
+						if (!nmc_setting_set_property (nmc->client,
+						                               ss,
+						                               prop_name,
+						                               NM_META_ACCESSOR_MODIFIER_SET,
+						                               NULL,
+						                               &tmp_err)) {
 							g_print (_("Error: failed to remove value of '%s': %s\n"),
 							         prop_name,
 							         tmp_err->message);
@@ -7931,6 +8013,7 @@ editor_menu_main (NmCli *nmc, NMConnection *connection, const char *connection_t
 				ap_nsp = ap_nsp && ap_nsp[0] == '/' ? ap_nsp + 1 : ap_nsp;
 
 			if (is_connection_dirty (connection, rem_con)) {
+				/* TRANSLATORS: do not translate 'save', leave it as it is */
 				g_print (_("Error: connection is not saved. Type 'save' first.\n"));
 				break;
 			}
@@ -8220,7 +8303,7 @@ do_connection_edit (NmCli *nmc, int argc, char **argv)
 	else {
 		if (!nmc_parse_args (exp_args, TRUE, &argc, &argv, &error)) {
 			g_string_assign (nmc->return_text, error->message);
-			NMC_RETURN (nmc, error->code);
+			return error->code;
 		}
 	}
 
@@ -8250,7 +8333,7 @@ do_connection_edit (NmCli *nmc, int argc, char **argv)
 		} else {
 			g_string_printf (nmc->return_text,
 			                 _("Error: only one of 'id', 'filename', uuid, or 'path' can be provided."));
-			NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
+			return NMC_RESULT_ERROR_USER_INPUT;
 		}
 	}
 
@@ -8264,7 +8347,7 @@ do_connection_edit (NmCli *nmc, int argc, char **argv)
 
 		if (!found_con) {
 			g_string_printf (nmc->return_text, _("Error: Unknown connection '%s'."), con);
-			NMC_RETURN (nmc, NMC_RESULT_ERROR_NOT_FOUND);
+			return NMC_RESULT_ERROR_NOT_FOUND;
 		}
 
 		/* Duplicate the connection and use that so that we need not
@@ -8354,10 +8437,13 @@ do_connection_edit (NmCli *nmc, int argc, char **argv)
 	else
 		g_print (_("Adding a new '%s' connection"), connection_type);
 	g_print ("\n\n");
+	/* TRANSLATORS: do not translate 'help', leave it as it is */
 	g_print (_("Type 'help' or '?' for available commands."));
 	g_print ("\n");
+	/* TRANSLATORS: do not translate 'print', leave it as it is */
 	g_print (_("Type 'print' to show all the connection properties."));
 	g_print ("\n");
+	/* TRANSLATORS: do not translate 'describe', leave it as it is */
 	g_print (_("Type 'describe [<setting>.<prop>]' for detailed property description."));
 	g_print ("\n\n");
 
@@ -8418,7 +8504,7 @@ do_connection_modify (NmCli *nmc,
 	connection = get_connection (nmc, &argc, &argv, NULL, NULL, NULL, &error);
 	if (!connection) {
 		g_string_printf (nmc->return_text, _("Error: %s."), error->message);
-		NMC_RETURN (nmc, error->code);
+		return error->code;
 	}
 
 	rc = nm_client_get_connection_by_uuid (nmc->client,
@@ -8426,12 +8512,12 @@ do_connection_modify (NmCli *nmc,
 	if (!rc) {
 		g_string_printf (nmc->return_text, _("Error: Unknown connection '%s'."),
 		                 nm_connection_get_uuid (connection));
-		NMC_RETURN (nmc, NMC_RESULT_ERROR_NOT_FOUND);
+		return NMC_RESULT_ERROR_NOT_FOUND;
 	}
 
 	if (!nmc_read_connection_properties (nmc, NM_CONNECTION (rc), &argc, &argv, &error)) {
 		g_string_assign (nmc->return_text, error->message);
-		NMC_RETURN (nmc, error->code);
+		return error->code;
 	}
 
 	if (nmc->complete)
@@ -8509,7 +8595,7 @@ do_connection_clone (NmCli *nmc, int argc, char **argv)
 	connection = get_connection (nmc, argc_ptr, argv_ptr, NULL, NULL, NULL, &error);
 	if (!connection) {
 		g_string_printf (nmc->return_text, _("Error: %s."), error->message);
-		NMC_RETURN (nmc, error->code);
+		return error->code;
 	}
 
 	if (nmc->complete)
@@ -8522,12 +8608,12 @@ do_connection_clone (NmCli *nmc, int argc, char **argv)
 		                                         _("New connection name: "));
 	} else {
 		g_string_printf (nmc->return_text, _("Error: <new name> argument is missing."));
-		NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
+		return NMC_RESULT_ERROR_USER_INPUT;
 	}
 
 	if (next_arg (nmc->ask ? NULL : nmc, argc_ptr, argv_ptr, NULL) == 0) {
 		g_string_printf (nmc->return_text, _("Error: unknown extra argument: '%s'."), *argv);
-		NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
+		return NMC_RESULT_ERROR_USER_INPUT;
 	}
 
 	new_connection = nm_simple_connection_new_clone (connection);
@@ -8769,17 +8855,24 @@ do_connection_monitor (NmCli *nmc, int argc, char **argv)
 static NMCResultCode
 do_connection_reload (NmCli *nmc, int argc, char **argv)
 {
-	GError *error = NULL;
+	gs_unref_variant GVariant *result = NULL;
+	gs_free_error GError *error = NULL;
 
 	next_arg (nmc, &argc, &argv, NULL);
 	if (nmc->complete)
 		return nmc->return_value;
 
-	if (!nm_client_reload_connections (nmc->client, NULL, &error)) {
+	result = nmc_dbus_call_sync (nmc,
+	                             "/org/freedesktop/NetworkManager/Settings",
+	                             "org.freedesktop.NetworkManager.Settings",
+	                             "ReloadConnections",
+	                             g_variant_new ("()"),
+	                             G_VARIANT_TYPE("(b)"),
+	                             &error);
+	if (error) {
 		g_string_printf (nmc->return_text, _("Error: failed to reload connections: %s."),
 		                 nmc_error_get_simple_message (error));
 		nmc->return_value = NMC_RESULT_ERROR_UNKNOWN;
-		g_clear_error (&error);
 	}
 
 	return nmc->return_value;
@@ -8858,7 +8951,7 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 			filename = nm_strstrip (filename_ask);
 		} else {
 			g_string_printf (nmc->return_text, _("Error: No arguments provided."));
-			NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
+			return NMC_RESULT_ERROR_USER_INPUT;
 		}
 	}
 
@@ -8874,7 +8967,7 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 			argv++;
 			if (!argc) {
 				g_string_printf (nmc->return_text, _("Error: %s argument is missing."), *(argv-1));
-				NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
+				return NMC_RESULT_ERROR_USER_INPUT;
 			}
 
 			if (   argc == 1
@@ -8895,7 +8988,7 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 			argv++;
 			if (!argc) {
 				g_string_printf (nmc->return_text, _("Error: %s argument is missing."), *(argv-1));
-				NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
+				return NMC_RESULT_ERROR_USER_INPUT;
 			}
 			if (argc == 1 && nmc->complete)
 				nmc->return_value = NMC_RESULT_COMPLETE_FILE;
@@ -8904,8 +8997,8 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 			else
 				g_printerr (_("Warning: 'file' already specified, ignoring extra one.\n"));
 		} else {
-			g_string_printf (nmc->return_text, _("Unknown parameter: %s"), *argv);
-			NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
+			g_string_printf (nmc->return_text, _("Error: invalid extra argument '%s'."), *argv);
+			return NMC_RESULT_ERROR_USER_INPUT;
 		}
 
 		next_arg (nmc, &argc, &argv, NULL);
@@ -8916,11 +9009,11 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 
 	if (!type) {
 		g_string_printf (nmc->return_text, _("Error: 'type' argument is required."));
-		NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
+		return NMC_RESULT_ERROR_USER_INPUT;
 	}
 	if (!filename) {
 		g_string_printf (nmc->return_text, _("Error: 'file' argument is required."));
-		NMC_RETURN (nmc, NMC_RESULT_ERROR_USER_INPUT);
+		return NMC_RESULT_ERROR_USER_INPUT;
 	}
 
 	if (nm_streq (type, "wireguard"))
@@ -8929,7 +9022,7 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 		service_type = nm_vpn_plugin_info_list_find_service_type (nm_vpn_get_plugin_infos (), type);
 		if (!service_type) {
 			g_string_printf (nmc->return_text, _("Error: failed to find VPN plugin for %s."), type);
-			NMC_RETURN (nmc, NMC_RESULT_ERROR_UNKNOWN);
+			return NMC_RESULT_ERROR_UNKNOWN;
 		}
 
 		/* Import VPN configuration */
@@ -8937,7 +9030,7 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 		if (!plugin) {
 			g_string_printf (nmc->return_text, _("Error: failed to load VPN plugin: %s."),
 			                 error->message);
-			NMC_RETURN (nmc, NMC_RESULT_ERROR_UNKNOWN);
+			return NMC_RESULT_ERROR_UNKNOWN;
 		}
 
 		connection = nm_vpn_editor_plugin_import (plugin, filename, &error);
@@ -8946,7 +9039,7 @@ do_connection_import (NmCli *nmc, int argc, char **argv)
 	if (!connection) {
 		g_string_printf (nmc->return_text, _("Error: failed to import '%s': %s."),
 		                 filename, error->message);
-		NMC_RETURN (nmc, NMC_RESULT_ERROR_UNKNOWN);
+		return NMC_RESULT_ERROR_UNKNOWN;
 	}
 
 	add_connection (nmc->client,
@@ -9169,7 +9262,7 @@ static const NMCCommand connection_cmds[] = {
 	{ "add",      do_connection_add,        usage_connection_add,      TRUE,   TRUE },
 	{ "edit",     do_connection_edit,       usage_connection_edit,     TRUE,   TRUE },
 	{ "delete",   do_connection_delete,     usage_connection_delete,   TRUE,   TRUE },
-	{ "reload",   do_connection_reload,     usage_connection_reload,   TRUE,   TRUE },
+	{ "reload",   do_connection_reload,     usage_connection_reload,   FALSE,  FALSE },
 	{ "load",     do_connection_load,       usage_connection_load,     TRUE,   TRUE },
 	{ "modify",   do_connection_modify,     usage_connection_modify,   TRUE,   TRUE },
 	{ "clone",    do_connection_clone,      usage_connection_clone,    TRUE,   TRUE },

@@ -1,20 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2018 Lubomir Rintel <lkundrak@v3.sk>
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2018 Lubomir Rintel <lkundrak@v3.sk>
  */
 
 #include "nm-default.h"
@@ -131,12 +117,8 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 	NMDevice *lowpan_device = NULL;
 	NMActStageReturn ret = NM_ACT_STAGE_RETURN_FAILURE;
 
-	ret = NM_DEVICE_CLASS (nm_device_wpan_parent_class)->act_stage1_prepare (device, out_failure_reason);
-	if (ret != NM_ACT_STAGE_RETURN_SUCCESS)
-		return ret;
-
 	platform = nm_device_get_platform (device);
-	g_return_val_if_fail (platform, NM_ACT_STAGE_RETURN_FAILURE);
+	nm_assert (NM_IS_PLATFORM (platform));
 
 	ifindex = nm_device_get_ifindex (device);
 
@@ -147,7 +129,11 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 	g_return_val_if_fail (s_wpan, NM_ACT_STAGE_RETURN_FAILURE);
 
 	hwaddr = nm_platform_link_get_address (platform, ifindex, &hwaddr_len);
-	g_return_val_if_fail (hwaddr, NM_ACT_STAGE_RETURN_FAILURE);
+
+	if (!hwaddr) {
+		*out_failure_reason = NM_DEVICE_STATE_REASON_CONFIG_FAILED;
+		return NM_ACT_STAGE_RETURN_FAILURE;
+	}
 
 	/* As of kernel 4.16, the 6LoWPAN devices layered on top of WPANs
 	 * need to be DOWN as well as the WPAN device itself in order to
@@ -156,8 +142,9 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 	                                                NM_LINK_TYPE_6LOWPAN,
 	                                                hwaddr,
 	                                                hwaddr_len);
-	if (lowpan_plink && NM_FLAGS_HAS (lowpan_plink->n_ifi_flags, IFF_UP)) {
-		lowpan_device = nm_manager_get_device_by_ifindex (nm_manager_get (),
+	if (   lowpan_plink
+	    && NM_FLAGS_HAS (lowpan_plink->n_ifi_flags, IFF_UP)) {
+		lowpan_device = nm_manager_get_device_by_ifindex (NM_MANAGER_GET,
 		                                                  lowpan_plink->ifindex);
 	}
 
@@ -192,6 +179,7 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 	}
 
 	ret = NM_ACT_STAGE_RETURN_SUCCESS;
+
 out:
 	nm_device_bring_up (device, TRUE, NULL);
 

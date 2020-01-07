@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2005 - 2017 Red Hat, Inc.
+ * Copyright (C) 2005 - 2017 Red Hat, Inc.
  */
 
 #ifndef __NM_UTILS_PRIVATE_H__
@@ -61,41 +47,16 @@ gboolean _nm_utils_wps_method_validate (NMSettingWirelessSecurityWpsMethod wps_m
 
 /* D-Bus transform funcs */
 
-GVariant *_nm_utils_hwaddr_cloned_get (const NMSettInfoSetting *sett_info,
-                                       guint property_idx,
-                                       NMConnection *connection,
-                                       NMSetting *setting,
-                                       NMConnectionSerializationFlags flags,
-                                       const NMConnectionSerializationOptions *options);
-gboolean    _nm_utils_hwaddr_cloned_set (NMSetting     *setting,
-                                         GVariant      *connection_dict,
-                                         const char    *property,
-                                         GVariant      *value,
-                                         NMSettingParseFlags parse_flags,
-                                         GError       **error);
-gboolean    _nm_utils_hwaddr_cloned_not_set (NMSetting *setting,
-                                             GVariant      *connection_dict,
-                                             const char    *property,
-                                             NMSettingParseFlags parse_flags,
-                                             GError       **error);
-GVariant *  _nm_utils_hwaddr_cloned_data_synth (const NMSettInfoSetting *sett_info,
-                                                guint property_idx,
-                                                NMConnection *connection,
-                                                NMSetting *setting,
-                                                NMConnectionSerializationFlags flags,
-                                                const NMConnectionSerializationOptions *options);
-gboolean    _nm_utils_hwaddr_cloned_data_set (NMSetting *setting,
-                                              GVariant *connection_dict,
-                                              const char *property,
-                                              GVariant *value,
-                                              NMSettingParseFlags parse_flags,
-                                              GError **error);
+extern const NMSettInfoPropertType nm_sett_info_propert_type_strdict;
 
-GVariant *  _nm_utils_hwaddr_to_dbus   (const GValue *prop_value);
-void        _nm_utils_hwaddr_from_dbus (GVariant *dbus_value,
-                                        GValue *prop_value);
+extern const NMSettInfoPropertType nm_sett_info_propert_type_mac_addrees;
 
-GVariant *  _nm_utils_strdict_to_dbus   (const GValue *prop_value);
+extern const NMSettInfoPropertType nm_sett_info_propert_type_cloned_mac_address;
+
+extern const NMSettInfoPropertType nm_sett_info_propert_type_assigned_mac_address;
+
+extern const NMSettInfoPropertType nm_sett_info_propert_type_bridge_vlans;
+
 void        _nm_utils_strdict_from_dbus (GVariant *dbus_value,
                                          GValue *prop_value);
 
@@ -111,19 +72,6 @@ void        _nm_utils_format_variant_attributes_full (GString *str,
                                                       char key_value_separator);
 gboolean    _nm_sriov_vf_parse_vlans (NMSriovVF *vf, const char *str, GError **error);
 
-GVariant *  _nm_utils_bridge_vlans_to_dbus (const NMSettInfoSetting *sett_info,
-                                            guint property_idx,
-                                            NMConnection *connection,
-                                            NMSetting *setting,
-                                            NMConnectionSerializationFlags flags,
-                                            const NMConnectionSerializationOptions *options);
-
-gboolean    _nm_utils_bridge_vlans_from_dbus (NMSetting *setting,
-                                              GVariant *connection_dict,
-                                              const char *property,
-                                              GVariant *value,
-                                              NMSettingParseFlags parse_flags,
-                                              GError **error);
 gboolean    _nm_utils_bridge_vlan_verify_list (GPtrArray *vlans,
                                                gboolean check_normalizable,
                                                GError **error,

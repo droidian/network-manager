@@ -1,20 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2017 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2017 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -112,7 +98,9 @@ link_changed (NMDevice *device,
 {
 	NMDeviceOvsInterfacePrivate *priv = NM_DEVICE_OVS_INTERFACE_GET_PRIVATE (device);
 
-	if (pllink && priv->waiting_for_interface) {
+	if (   pllink
+	    && priv->waiting_for_interface
+	    && nm_device_get_state (device) == NM_DEVICE_STATE_IP_CONFIG) {
 		priv->waiting_for_interface = FALSE;
 		nm_device_bring_up (device, TRUE, NULL);
 		nm_device_activate_schedule_stage3_ip_config_start (device);
@@ -156,6 +144,15 @@ can_unmanaged_external_down (NMDevice *self)
 	return FALSE;
 }
 
+static void
+deactivate (NMDevice *device)
+{
+	NMDeviceOvsInterface *self = NM_DEVICE_OVS_INTERFACE (device);
+	NMDeviceOvsInterfacePrivate *priv = NM_DEVICE_OVS_INTERFACE_GET_PRIVATE (self);
+
+	priv->waiting_for_interface = FALSE;
+}
+
 /*****************************************************************************/
 
 static void
@@ -185,6 +182,7 @@ nm_device_ovs_interface_class_init (NMDeviceOvsInterfaceClass *klass)
 	device_class->connection_type_check_compatible = NM_SETTING_OVS_INTERFACE_SETTING_NAME;
 	device_class->link_types = NM_DEVICE_DEFINE_LINK_TYPES (NM_LINK_TYPE_OPENVSWITCH);
 
+	device_class->deactivate = deactivate;
 	device_class->get_type_description = get_type_description;
 	device_class->create_and_realize = create_and_realize;
 	device_class->get_generic_capabilities = get_generic_capabilities;

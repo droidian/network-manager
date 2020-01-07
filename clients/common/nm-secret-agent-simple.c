@@ -1,19 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright 2011-2015 Red Hat, Inc.
- * Copyright 2011 Giovanni Campagna <scampa.giovanni@gmail.com>
+ * Copyright (C) 2011 - 2015 Red Hat, Inc.
+ * Copyright (C) 2011 Giovanni Campagna <scampa.giovanni@gmail.com>
  */
 
 /**
@@ -317,7 +305,7 @@ add_wireless_secrets (RequestData *request,
 	if (!key_mgmt)
 		return FALSE;
 
-	if (NM_IN_STRSET (key_mgmt, "wpa-none", "wpa-psk", "sae")) {
+	if (NM_IN_STRSET (key_mgmt, "wpa-psk", "sae")) {
 		secret = _secret_real_new_plain (NM_SECRET_AGENT_SECRET_TYPE_SECRET,
 		                                 _("Password"),
 		                                 NM_SETTING (s_wsec),

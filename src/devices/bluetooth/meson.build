@@ -1,16 +1,12 @@
 sources = files(
-  'nm-bluez-device.c',
   'nm-bluez-manager.c',
-  'nm-bluez4-adapter.c',
-  'nm-bluez4-manager.c',
-  'nm-bluez5-manager.c',
   'nm-bt-error.c',
   'nm-device-bt.c',
 )
 
 deps = [
+  daemon_nm_default_dep,
   libnm_wwan_dep,
-  nm_dep,
 ]
 
 if enable_bluez5_dun
@@ -19,9 +15,21 @@ if enable_bluez5_dun
   deps += bluez5_dep
 endif
 
+libnm_device_plugin_bluetooth_static = static_library(
+  'nm-device-plugin-bluetooth-static',
+  sources: sources,
+  dependencies: deps,
+  c_args: daemon_c_flags,
+)
+
+libnm_device_plugin_bluetooth_static_dep = declare_dependency(
+  link_whole: libnm_device_plugin_bluetooth_static,
+)
+
+deps += libnm_device_plugin_bluetooth_static_dep
+
 libnm_device_plugin_bluetooth = shared_module(
   'nm-device-plugin-bluetooth',
-  sources: sources,
   dependencies: deps,
   link_args: ldflags_linker_script_devices,
   link_depends: linker_script_devices,
@@ -38,9 +46,13 @@ test(
   args: [libnm_device_plugin_bluetooth.full_path(), linker_script_devices],
 )
 
-# FIXME: check_so_symbols replacement
-'''
-check-local-devices-bluetooth: src/devices/bluetooth/libnm-device-plugin-bluetooth.la
-  $(srcdir)/tools/check-exports.sh $(builddir)/src/devices/bluetooth/.libs/libnm-device-plugin-bluetooth.so "$(srcdir)/linker-script-devices.ver"
-  $(call check_so_symbols,$(builddir)/src/devices/bluetooth/.libs/libnm-device-plugin-bluetooth.so)
-'''
+if enable_tests
+  test_unit = 'nm-bt-test'
+
+  executable(
+    test_unit,
+    'tests/' + test_unit + '.c',
+    dependencies: [ libnetwork_manager_test_dep, deps ],
+    c_args: test_c_flags,
+  )
+endif

@@ -57,6 +57,7 @@
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Real">Real</link>                  readable   b
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Ip4Connectivity">Ip4Connectivity</link>       readable   u
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Ip6Connectivity">Ip6Connectivity</link>       readable   u
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.InterfaceFlags">InterfaceFlags</link>        readable   u
 </synopsis>
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device">
@@ -506,6 +507,18 @@ Ip6Connectivity  readable   u
 <para>        The result of the last IPv6 connectivity check.
 </para><para>        Since: 1.16
 </para><para>        Returns: <link linkend="NMConnectivityState">NMConnectivityState</link>
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device.InterfaceFlags">
+  <title>The "InterfaceFlags" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device.InterfaceFlags"><primary sortas=".Device:InterfaceFlags">org.freedesktop.NetworkManager.Device:InterfaceFlags</primary></indexterm>
+<programlisting>
+InterfaceFlags  readable   u
+</programlisting>
+<para>        The flags of the network interface. See
+        <link linkend="NMDeviceInterfaceFlags">NMDeviceInterfaceFlags</link> for
+        the currently defined flags.
+</para><para>        Since: 1.22
 </para>
 </refsect2>
 </refsect1>

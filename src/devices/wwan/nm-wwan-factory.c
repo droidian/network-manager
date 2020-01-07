@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2014 Red Hat, Inc.
  */
 
@@ -77,11 +63,10 @@ modem_added_cb (NMModemManager *manager,
                 gpointer user_data)
 {
 	NMWwanFactory *self = NM_WWAN_FACTORY (user_data);
-	NMDevice *device;
+	gs_unref_object NMDevice *device = NULL;
 	const char *driver;
 
-	/* Do nothing if the modem was consumed by some other plugin */
-	if (nm_device_factory_emit_component_added (NM_DEVICE_FACTORY (self), G_OBJECT (modem)))
+	if (nm_modem_is_claimed (modem))
 		return;
 
 	driver = nm_modem_get_driver (modem);
@@ -90,17 +75,16 @@ modem_added_cb (NMModemManager *manager,
 	 * it.  The rfcomm port (and thus the modem) gets created automatically
 	 * by the Bluetooth code during the connection process.
 	 */
-	if (driver && strstr (driver, "bluetooth")) {
-		nm_log_info (LOGD_MB, "ignoring modem '%s' (no associated Bluetooth device)",
-		             nm_modem_get_control_port (modem));
+	if (   driver
+	    && strstr (driver, "bluetooth")) {
+		nm_log_dbg (LOGD_MB, "WWAN factory ignores bluetooth modem '%s' which should be handled by bluetooth plugin",
+		            nm_modem_get_control_port (modem));
 		return;
 	}
 
 	/* Make the new modem device */
 	device = nm_device_modem_new (modem);
-	g_assert (device);
 	g_signal_emit_by_name (self, NM_DEVICE_FACTORY_DEVICE_ADDED, device);
-	g_object_unref (device);
 }
 
 static NMDevice *

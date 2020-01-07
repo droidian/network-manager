@@ -158,8 +158,11 @@ plugins-=remove-me
       <varlistentry>
         <term><varname>auth-polkit</varname></term>
         <listitem><para>Whether the system uses PolicyKit for authorization.
-        If <literal>false</literal>, all requests will be allowed. If
-        <literal>true</literal>, non-root requests are authorized using PolicyKit.
+        If <literal>true</literal>, non-root requests are authorized using PolicyKit.
+        Requests from root (user ID zero) are always granted without asking PolicyKit.
+        If <literal>false</literal>, all requests will be allowed and PolicyKit is
+        not used. If set to <literal>root-only</literal> PolicyKit is not used and
+        all requests except root are denied.
         The default value is <literal>&NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT_TEXT;</literal>.
         </para></listitem>
       </varlistentry>
@@ -713,6 +716,14 @@ ipv6.ip6-privacy=0
           <term><varname>ipv4.dhcp-client-id</varname></term>
         </varlistentry>
         <varlistentry>
+          <term><varname>ipv4.dhcp-iaid</varname></term>
+          <listitem><para>If left unspecified, it defaults to "ifname".</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><varname>ipv4.dhcp-hostname-flags</varname></term>
+          <listitem><para>If left unspecified, the value 3 (fqdn-encoded,fqdn-serv-update) is used.</para></listitem>
+        </varlistentry>
+        <varlistentry>
           <term><varname>ipv4.dhcp-timeout</varname></term>
           <listitem><para>If left unspecified, the default value for
            the interface type is used.</para></listitem>
@@ -735,6 +746,14 @@ ipv6.ip6-privacy=0
         <varlistentry>
           <term><varname>ipv6.dhcp-duid</varname></term>
           <listitem><para>If left unspecified, it defaults to "lease".</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><varname>ipv6.dhcp-iaid</varname></term>
+          <listitem><para>If left unspecified, it defaults to "ifname".</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><varname>ipv6.dhcp-hostname-flags</varname></term>
+          <listitem><para>If left unspecified, the value 1 (fqdn-serv-update) is used.</para></listitem>
         </varlistentry>
         <varlistentry>
           <term><varname>ipv6.dhcp-timeout</varname></term>

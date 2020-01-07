@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2005 - 2014 Red Hat, Inc.
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
@@ -65,6 +51,7 @@ typedef struct Supplicant {
 
 	/* signal handler ids */
 	gulong iface_state_id;
+	gulong auth_state_id;
 
 	/* Timeouts and idles */
 	guint con_timeout_id;
@@ -86,6 +73,7 @@ typedef enum {
 
 typedef struct _NMDeviceEthernetPrivate {
 	guint32             speed;
+	gulong              carrier_id;
 
 	Supplicant          supplicant;
 	guint               supplicant_timeout_id;
@@ -415,11 +403,68 @@ supplicant_interface_release (NMDeviceEthernet *self)
 	nm_clear_g_source (&priv->supplicant_timeout_id);
 	nm_clear_g_source (&priv->supplicant.con_timeout_id);
 	nm_clear_g_signal_handler (priv->supplicant.iface, &priv->supplicant.iface_state_id);
+	nm_clear_g_signal_handler (priv->supplicant.iface, &priv->supplicant.auth_state_id);
 
 	if (priv->supplicant.iface) {
 		nm_supplicant_interface_disconnect (priv->supplicant.iface);
 		g_clear_object (&priv->supplicant.iface);
 	}
+}
+
+static void
+supplicant_auth_state_changed (NMSupplicantInterface *iface,
+                               GParamSpec *pspec,
+                               NMDeviceEthernet *self)
+{
+	NMDeviceEthernetPrivate *priv = NM_DEVICE_ETHERNET_GET_PRIVATE (self);
+	NMSupplicantAuthState state;
+
+	state = nm_supplicant_interface_get_auth_state (priv->supplicant.iface);
+	_LOGD (LOGD_CORE, "supplicant auth state changed to %u", (unsigned) state);
+
+	if (state == NM_SUPPLICANT_AUTH_STATE_SUCCESS) {
+		nm_clear_g_signal_handler (priv->supplicant.iface, &priv->supplicant.iface_state_id);
+		nm_device_update_dynamic_ip_setup (NM_DEVICE (self));
+	}
+}
+
+static gboolean
+wired_auth_is_optional (NMDeviceEthernet *self)
+{
+	NMSetting8021x *s_8021x;
+
+	s_8021x = nm_device_get_applied_setting (NM_DEVICE (self), NM_TYPE_SETTING_802_1X);
+	g_return_val_if_fail (s_8021x, FALSE);
+	return nm_setting_802_1x_get_optional (s_8021x);
+}
+
+static void
+wired_auth_cond_fail (NMDeviceEthernet *self, NMDeviceStateReason reason)
+{
+	NMDeviceEthernetPrivate *priv = NM_DEVICE_ETHERNET_GET_PRIVATE (self);
+	NMDevice *device = NM_DEVICE (self);
+
+	if (wired_auth_is_optional (self)) {
+		_LOGI (LOGD_DEVICE | LOGD_ETHER,
+		       "Activation: (ethernet) 802.1X authentication is optional, continuing after a failure");
+		if (NM_IN_SET (nm_device_get_state (device),
+		               NM_DEVICE_STATE_CONFIG,
+		               NM_DEVICE_STATE_NEED_AUTH))
+			nm_device_activate_schedule_stage3_ip_config_start (device);
+
+		if (!priv->supplicant.auth_state_id) {
+			priv->supplicant.auth_state_id = g_signal_connect (priv->supplicant.iface,
+			                                                   "notify::" NM_SUPPLICANT_INTERFACE_AUTH_STATE,
+			                                                   G_CALLBACK (supplicant_auth_state_changed),
+			                                                   self);
+		}
+		return;
+	}
+
+	supplicant_interface_release (self);
+	nm_device_state_changed (NM_DEVICE (self),
+	                         NM_DEVICE_STATE_FAILED,
+	                         reason);
 }
 
 static void
@@ -451,11 +496,12 @@ wired_secrets_cb (NMActRequest *req,
 
 	if (error) {
 		_LOGW (LOGD_ETHER, "%s", error->message);
-		nm_device_state_changed (device,
-		                         NM_DEVICE_STATE_FAILED,
-		                         NM_DEVICE_STATE_REASON_NO_SECRETS);
-	} else
-		nm_device_activate_schedule_stage1_device_prepare (device);
+		wired_auth_cond_fail (self, NM_DEVICE_STATE_REASON_NO_SECRETS);
+		return;
+	}
+
+	supplicant_interface_release (self);
+	nm_device_activate_schedule_stage1_device_prepare (device);
 }
 
 static void
@@ -496,19 +542,17 @@ link_timeout_cb (gpointer user_data)
 {
 	NMDeviceEthernet *self = NM_DEVICE_ETHERNET (user_data);
 	NMDeviceEthernetPrivate *priv = NM_DEVICE_ETHERNET_GET_PRIVATE (self);
-	NMDevice *dev = NM_DEVICE (self);
+	NMDevice *device = NM_DEVICE (self);
 	NMActRequest *req;
 	NMConnection *applied_connection;
 	const char *setting_name;
 
 	priv->supplicant_timeout_id = 0;
 
-	req = nm_device_get_act_request (dev);
+	req = nm_device_get_act_request (device);
 
-	if (nm_device_get_state (dev) == NM_DEVICE_STATE_ACTIVATED) {
-		nm_device_state_changed (dev,
-		                         NM_DEVICE_STATE_FAILED,
-		                         NM_DEVICE_STATE_REASON_SUPPLICANT_TIMEOUT);
+	if (nm_device_get_state (device) == NM_DEVICE_STATE_ACTIVATED) {
+		wired_auth_cond_fail (self, NM_DEVICE_STATE_REASON_SUPPLICANT_TIMEOUT);
 		return FALSE;
 	}
 
@@ -516,7 +560,7 @@ link_timeout_cb (gpointer user_data)
 	 * ARE checked - we are likely to have wrong key.  Ask the user for
 	 * another one.
 	 */
-	if (nm_device_get_state (dev) != NM_DEVICE_STATE_CONFIG)
+	if (nm_device_get_state (device) != NM_DEVICE_STATE_CONFIG)
 		goto time_out;
 
 	nm_active_connection_clear_secrets (NM_ACTIVE_CONNECTION (req));
@@ -528,16 +572,17 @@ link_timeout_cb (gpointer user_data)
 
 	_LOGI (LOGD_DEVICE | LOGD_ETHER,
 	       "Activation: (ethernet) disconnected during authentication, asking for new key.");
-	supplicant_interface_release (self);
+	if (!wired_auth_is_optional (self))
+		supplicant_interface_release (self);
 
-	nm_device_state_changed (dev, NM_DEVICE_STATE_NEED_AUTH, NM_DEVICE_STATE_REASON_SUPPLICANT_DISCONNECT);
+	nm_device_state_changed (device, NM_DEVICE_STATE_NEED_AUTH, NM_DEVICE_STATE_REASON_SUPPLICANT_DISCONNECT);
 	wired_secrets_get_secrets (self, setting_name, NM_SECRET_AGENT_GET_SECRETS_FLAG_REQUEST_NEW);
 
 	return FALSE;
 
 time_out:
 	_LOGW (LOGD_DEVICE | LOGD_ETHER, "link timed out.");
-	nm_device_state_changed (dev, NM_DEVICE_STATE_FAILED, NM_DEVICE_STATE_REASON_SUPPLICANT_DISCONNECT);
+	wired_auth_cond_fail (self, NM_DEVICE_STATE_REASON_SUPPLICANT_DISCONNECT);
 
 	return FALSE;
 }
@@ -652,11 +697,8 @@ supplicant_iface_state_cb (NMSupplicantInterface *iface,
 	case NM_SUPPLICANT_INTERFACE_STATE_DOWN:
 		supplicant_interface_release (self);
 
-		if ((devstate == NM_DEVICE_STATE_ACTIVATED) || nm_device_is_activating (device)) {
-			nm_device_state_changed (device,
-			                         NM_DEVICE_STATE_FAILED,
-			                         NM_DEVICE_STATE_REASON_SUPPLICANT_FAILED);
-		}
+		if ((devstate == NM_DEVICE_STATE_ACTIVATED) || nm_device_is_activating (device))
+			wired_auth_cond_fail (self, NM_DEVICE_STATE_REASON_SUPPLICANT_FAILED);
 		break;
 	default:
 		break;
@@ -685,6 +727,15 @@ handle_auth_or_fail (NMDeviceEthernet *self,
 		return NM_ACT_STAGE_RETURN_FAILURE;
 	}
 
+	_LOGI (LOGD_DEVICE | LOGD_ETHER, "Activation: (ethernet) asking for new secrets");
+
+	/* Don't tear down supplicant if the authentication is optional
+	 * because in case of a failure in getting new secrets we want to
+	 * keep the supplicant alive.
+	 */
+	if (!wired_auth_is_optional (self))
+		supplicant_interface_release (self);
+
 	wired_secrets_get_secrets (self, setting_name,
 	                             NM_SECRET_AGENT_GET_SECRETS_FLAG_ALLOW_INTERACTION
 	                           | (new_secrets ? NM_SECRET_AGENT_GET_SECRETS_FLAG_REQUEST_NEW : 0));
@@ -710,12 +761,8 @@ supplicant_connection_timeout_cb (gpointer user_data)
 	_LOGW (LOGD_DEVICE | LOGD_ETHER,
 	       "Activation: (ethernet) association took too long.");
 
-	supplicant_interface_release (self);
 	req = nm_device_get_act_request (device);
-	g_assert (req);
-
 	connection = nm_act_request_get_settings_connection (req);
-	g_assert (connection);
 
 	/* Ask for new secrets only if we've never activated this connection
 	 * before.  If we've connected before, don't bother the user with dialogs,
@@ -724,10 +771,8 @@ supplicant_connection_timeout_cb (gpointer user_data)
 	if (nm_settings_connection_get_timestamp (connection, &timestamp))
 		new_secrets = !timestamp;
 
-	if (handle_auth_or_fail (self, req, new_secrets) == NM_ACT_STAGE_RETURN_POSTPONE)
-		_LOGW (LOGD_DEVICE | LOGD_ETHER, "Activation: (ethernet) asking for new secrets");
-	else
-		nm_device_state_changed (device, NM_DEVICE_STATE_FAILED, NM_DEVICE_STATE_REASON_NO_SECRETS);
+	if (handle_auth_or_fail (self, req, new_secrets) == NM_ACT_STAGE_RETURN_FAILURE)
+		wired_auth_cond_fail (self, NM_DEVICE_STATE_REASON_NO_SECRETS);
 
 	return FALSE;
 }
@@ -794,14 +839,19 @@ link_negotiation_set (NMDevice *device)
 		autoneg = nm_setting_wired_get_auto_negotiate (s_wired);
 		speed = nm_setting_wired_get_speed (s_wired);
 		duplex = link_duplex_to_platform (nm_setting_wired_get_duplex (s_wired));
-		if (!autoneg && !speed && !duplex) {
+		if (   !autoneg
+		    && !speed
+		    && !duplex) {
 			_LOGD (LOGD_DEVICE, "set-link: ignore link negotiation");
 			return;
 		}
 	}
 
-	if (!nm_platform_ethtool_get_link_settings (nm_device_get_platform (device), nm_device_get_ifindex (device),
-	                                            &link_autoneg, &link_speed, &link_duplex)) {
+	if (!nm_platform_ethtool_get_link_settings (nm_device_get_platform (device),
+	                                            nm_device_get_ifindex (device),
+	                                            &link_autoneg,
+	                                            &link_speed,
+	                                            &link_duplex)) {
 		_LOGW (LOGD_DEVICE, "set-link: unable to retrieve link negotiation");
 		return;
 	}
@@ -814,16 +864,18 @@ link_negotiation_set (NMDevice *device)
 		return;
 	}
 
-	if (autoneg && !speed && !duplex)
+	if (   autoneg
+	    && !speed
+	    && !duplex)
 		_LOGD (LOGD_DEVICE, "set-link: configure auto-negotiation");
 	else {
 		_LOGD (LOGD_DEVICE, "set-link: configure %snegotiation (%u Mbit%s - %s duplex%s)",
 		       autoneg ? "auto-" : "static ",
 		       speed ?: link_speed,
 		       speed ? "" : "*",
-		       duplex
-		         ? nm_platform_link_duplex_type_to_string (duplex)
-		         : nm_platform_link_duplex_type_to_string (link_duplex),
+		         duplex
+		       ? nm_platform_link_duplex_type_to_string (duplex)
+		       : nm_platform_link_duplex_type_to_string (link_duplex),
 		       duplex ? "" : "*");
 	}
 
@@ -844,45 +896,44 @@ pppoe_reconnect_delay (gpointer user_data)
 	NMDeviceEthernetPrivate *priv = NM_DEVICE_ETHERNET_GET_PRIVATE (self);
 
 	priv->pppoe_wait_id = 0;
+	priv->last_pppoe_time = 0;
 	_LOGI (LOGD_DEVICE, "PPPoE reconnect delay complete, resuming connection...");
-	nm_device_activate_schedule_stage2_device_config (NM_DEVICE (self));
-	return FALSE;
+	nm_device_activate_schedule_stage1_device_prepare (NM_DEVICE (self));
+	return G_SOURCE_REMOVE;
 }
 
 static NMActStageReturn
-act_stage1_prepare (NMDevice *dev, NMDeviceStateReason *out_failure_reason)
+act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
-	NMDeviceEthernet *self = NM_DEVICE_ETHERNET (dev);
+	NMDeviceEthernet *self = NM_DEVICE_ETHERNET (device);
 	NMDeviceEthernetPrivate *priv = NM_DEVICE_ETHERNET_GET_PRIVATE (self);
-	NMActStageReturn ret;
 
-	ret = NM_DEVICE_CLASS (nm_device_ethernet_parent_class)->act_stage1_prepare (dev, out_failure_reason);
-	if (ret != NM_ACT_STAGE_RETURN_SUCCESS)
-		return ret;
-
-	link_negotiation_set (dev);
-
-	if (!nm_device_hw_addr_set_cloned (dev, nm_device_get_applied_connection (dev), FALSE))
-		return NM_ACT_STAGE_RETURN_FAILURE;
+	link_negotiation_set (device);
 
 	/* If we're re-activating a PPPoE connection a short while after
 	 * a previous PPPoE connection was torn down, wait a bit to allow the
 	 * remote side to handle the disconnection.  Otherwise the peer may
 	 * get confused and fail to negotiate the new connection. (rh #1023503)
+	 *
+	 * FIXME(shutdown): when exiting, we also need to wait before quiting,
+	 * at least for additional NM_SHUTDOWN_TIMEOUT_MS seconds because
+	 * otherwise after restart the device won't work for the first seconds.
 	 */
-	if (priv->last_pppoe_time) {
+	if (priv->last_pppoe_time != 0) {
 		gint32 delay = nm_utils_get_monotonic_timestamp_s () - priv->last_pppoe_time;
 
 		if (   delay < PPPOE_RECONNECT_DELAY
-		    && nm_device_get_applied_setting (dev, NM_TYPE_SETTING_PPPOE)) {
-			_LOGI (LOGD_DEVICE, "delaying PPPoE reconnect for %d seconds to ensure peer is ready...",
-			       delay);
-			g_assert (!priv->pppoe_wait_id);
-			priv->pppoe_wait_id = g_timeout_add_seconds (delay,
-			                                             pppoe_reconnect_delay,
-			                                             self);
+		    && nm_device_get_applied_setting (device, NM_TYPE_SETTING_PPPOE)) {
+			if (priv->pppoe_wait_id == 0) {
+				_LOGI (LOGD_DEVICE, "delaying PPPoE reconnect for %d seconds to ensure peer is ready...",
+				       delay);
+				priv->pppoe_wait_id = g_timeout_add_seconds (delay,
+				                                             pppoe_reconnect_delay,
+				                                             self);
+			}
 			return NM_ACT_STAGE_RETURN_POSTPONE;
 		}
+		nm_clear_g_source (&priv->pppoe_wait_id);
 		priv->last_pppoe_time = 0;
 	}
 
@@ -890,7 +941,7 @@ act_stage1_prepare (NMDevice *dev, NMDeviceStateReason *out_failure_reason)
 }
 
 static NMActStageReturn
-nm_8021x_stage2_config (NMDeviceEthernet *self, NMDeviceStateReason *out_failure_reason)
+supplicant_check_secrets_needed (NMDeviceEthernet *self, NMDeviceStateReason *out_failure_reason)
 {
 	NMDeviceEthernetPrivate *priv = NM_DEVICE_ETHERNET_GET_PRIVATE (self);
 	NMConnection *connection;
@@ -899,7 +950,6 @@ nm_8021x_stage2_config (NMDeviceEthernet *self, NMDeviceStateReason *out_failure
 	NMActStageReturn ret = NM_ACT_STAGE_RETURN_FAILURE;
 
 	connection = nm_device_get_applied_connection (NM_DEVICE (self));
-
 	g_return_val_if_fail (connection, NM_ACT_STAGE_RETURN_FAILURE);
 
 	security = nm_connection_get_setting_802_1x (connection);
@@ -936,6 +986,44 @@ nm_8021x_stage2_config (NMDeviceEthernet *self, NMDeviceStateReason *out_failure
 	}
 
 	return ret;
+}
+
+static void
+carrier_changed (NMSupplicantInterface *iface,
+                 GParamSpec *pspec,
+                 NMDeviceEthernet *self)
+{
+	NMDeviceEthernetPrivate *priv = NM_DEVICE_ETHERNET_GET_PRIVATE (self);
+	NMDeviceStateReason reason;
+	NMActStageReturn ret;
+
+	if (nm_device_has_carrier (NM_DEVICE (self))) {
+		_LOGD (LOGD_DEVICE | LOGD_ETHER, "got carrier, initializing supplicant");
+		nm_clear_g_signal_handler (self, &priv->carrier_id);
+		ret = supplicant_check_secrets_needed (self, &reason);
+		if (ret == NM_ACT_STAGE_RETURN_FAILURE) {
+			nm_device_state_changed (NM_DEVICE (self),
+			                         NM_DEVICE_STATE_FAILED,
+			                         reason);
+		}
+	}
+}
+
+static NMActStageReturn
+nm_8021x_stage2_config (NMDeviceEthernet *self, NMDeviceStateReason *out_failure_reason)
+{
+	NMDeviceEthernetPrivate *priv = NM_DEVICE_ETHERNET_GET_PRIVATE (self);
+
+	if (!nm_device_has_carrier (NM_DEVICE (self))) {
+		_LOGD (LOGD_DEVICE | LOGD_ETHER, "delay supplicant initialization until carrier goes up");
+		priv->carrier_id = g_signal_connect (self,
+		                                     "notify::" NM_DEVICE_CARRIER,
+		                                     G_CALLBACK (carrier_changed),
+		                                     self);
+		return NM_ACT_STAGE_RETURN_POSTPONE;
+	}
+
+	return supplicant_check_secrets_needed (self, out_failure_reason);
 }
 
 /*****************************************************************************/
@@ -1335,13 +1423,15 @@ act_stage3_ip_config_start (NMDevice *device,
 }
 
 static guint32
-get_configured_mtu (NMDevice *device, NMDeviceMtuSource *out_source)
+get_configured_mtu (NMDevice *device,
+                    NMDeviceMtuSource *out_source,
+                    gboolean *out_force)
 {
 	/* MTU only set for plain ethernet */
 	if (NM_DEVICE_ETHERNET_GET_PRIVATE ((NMDeviceEthernet *) device)->ppp_manager)
 		return 0;
 
-	return nm_device_get_configured_mtu_for_wired (device, out_source);
+	return nm_device_get_configured_mtu_for_wired (device, out_source, out_force);
 }
 
 static void
@@ -1353,6 +1443,7 @@ deactivate (NMDevice *device)
 	GError *error = NULL;
 
 	nm_clear_g_source (&priv->pppoe_wait_id);
+	nm_clear_g_signal_handler (self, &priv->carrier_id);
 
 	if (priv->ppp_manager) {
 		nm_ppp_manager_stop (priv->ppp_manager, NULL, NULL, NULL);
@@ -1644,6 +1735,7 @@ static void
 reapply_connection (NMDevice *device, NMConnection *con_old, NMConnection *con_new)
 {
 	NMDeviceEthernet *self = NM_DEVICE_ETHERNET (device);
+	NMDeviceState state = nm_device_get_state (device);
 
 	NM_DEVICE_CLASS (nm_device_ethernet_parent_class)->reapply_connection (device,
 	                                                                       con_old,
@@ -1651,8 +1743,10 @@ reapply_connection (NMDevice *device, NMConnection *con_old, NMConnection *con_n
 
 	_LOGD (LOGD_DEVICE, "reapplying wired settings");
 
-	link_negotiation_set (device);
-	wake_on_lan_enable (device);
+	if (state >= NM_DEVICE_STATE_PREPARE)
+		link_negotiation_set (device);
+	if (state >= NM_DEVICE_STATE_CONFIG)
+		wake_on_lan_enable (device);
 }
 
 static void
@@ -1668,6 +1762,8 @@ dispose (GObject *object)
 	nm_clear_g_source (&priv->pppoe_wait_id);
 
 	nm_clear_g_source (&priv->dcb_timeout_id);
+
+	nm_clear_g_signal_handler (self, &priv->carrier_id);
 
 	G_OBJECT_CLASS (nm_device_ethernet_parent_class)->dispose (object);
 }
@@ -1763,6 +1859,7 @@ nm_device_ethernet_class_init (NMDeviceEthernetClass *klass)
 	device_class->new_default_connection = new_default_connection;
 
 	device_class->act_stage1_prepare = act_stage1_prepare;
+	device_class->act_stage1_prepare_set_hwaddr_ethernet = TRUE;
 	device_class->act_stage2_config = act_stage2_config;
 	device_class->act_stage3_ip_config_start = act_stage3_ip_config_start;
 	device_class->get_configured_mtu = get_configured_mtu;

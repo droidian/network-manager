@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2010 - 2014 Red Hat, Inc.
- *
+ * Copyright (C) 2010 - 2014 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -24,8 +10,9 @@
 
 #include "nm-test-libnm-utils.h"
 
-static GMainLoop *loop = NULL;
-static NMTstcServiceInfo *sinfo;
+static struct {
+	GMainLoop *loop;
+} gl = { };
 
 /*****************************************************************************/
 
@@ -61,7 +48,8 @@ devices_notify_cb (NMClient *c,
 static void
 test_device_added (void)
 {
-	NMClient *client;
+	nmtstc_auto_service_cleanup NMTstcServiceInfo *sinfo = NULL;
+	gs_unref_object NMClient *client = NULL;
 	const GPtrArray *devices;
 	NMDevice *device;
 	gboolean notified = FALSE;
@@ -71,8 +59,7 @@ test_device_added (void)
 	if (!nmtstc_service_available (sinfo))
 		return;
 
-	client = nm_client_new (NULL, &error);
-	g_assert_no_error (error);
+	client = nmtstc_client_new (TRUE);
 
 	devices = nm_client_get_devices (client);
 	g_assert (devices->len == 0);
@@ -103,9 +90,6 @@ test_device_added (void)
 	nm_device_delete (device, NULL, &error);
 	g_assert_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_NOT_SOFTWARE);
 	g_clear_error (&error);
-
-	g_object_unref (client);
-	g_clear_pointer (&sinfo, nmtstc_service_cleanup);
 }
 
 /*****************************************************************************/
@@ -142,6 +126,8 @@ devices_sai_notify_cb (NMClient *c,
 	const GPtrArray *devices;
 	NMDevice *device;
 
+	g_assert_cmpstr (pspec->name, ==, "devices");
+
 	devices = nm_client_get_devices (c);
 	g_assert (devices);
 	g_assert_cmpint (devices->len, ==, 1);
@@ -157,18 +143,17 @@ devices_sai_notify_cb (NMClient *c,
 static void
 test_device_added_signal_after_init (void)
 {
-	NMClient *client;
+	nmtstc_auto_service_cleanup NMTstcServiceInfo *sinfo = NULL;
+	gs_unref_object NMClient *client = NULL;
 	const GPtrArray *devices;
 	NMDevice *device;
 	guint result = 0;
-	GError *error = NULL;
 
 	sinfo = nmtstc_service_init ();
 	if (!nmtstc_service_available (sinfo))
 		return;
 
-	client = nm_client_new (NULL, &error);
-	g_assert_no_error (error);
+	client = nmtstc_client_new (TRUE);
 
 	devices = nm_client_get_devices (client);
 	g_assert (devices->len == 0);
@@ -195,8 +180,8 @@ test_device_added_signal_after_init (void)
 	g_signal_handlers_disconnect_by_func (client, device_sai_added_cb, &result);
 	g_signal_handlers_disconnect_by_func (client, devices_sai_notify_cb, &result);
 
-	g_assert ((result & SIGNAL_MASK) == SIGNAL_FIRST);
-	g_assert ((result & NOTIFY_MASK) == NOTIFY_SECOND);
+	g_assert ((result & SIGNAL_MASK) == SIGNAL_SECOND);
+	g_assert ((result & NOTIFY_MASK) == NOTIFY_FIRST);
 
 	devices = nm_client_get_devices (client);
 	g_assert (devices);
@@ -205,9 +190,6 @@ test_device_added_signal_after_init (void)
 	device = g_ptr_array_index (devices, 0);
 	g_assert (device);
 	g_assert_cmpstr (nm_device_get_iface (device), ==, "eth0");
-
-	g_object_unref (client);
-	g_clear_pointer (&sinfo, nmtstc_service_cleanup);
 }
 
 /*****************************************************************************/
@@ -307,19 +289,19 @@ wifi_ap_remove_notify_cb (NMDeviceWifi *w,
 static void
 test_wifi_ap_added_removed (void)
 {
-	NMClient *client;
+	nmtstc_auto_service_cleanup NMTstcServiceInfo *sinfo = NULL;
+	gs_unref_object NMClient *client = NULL;
 	NMDeviceWifi *wifi;
-	WifiApInfo info = { loop, FALSE, FALSE, 0, 0 };
+	WifiApInfo info = { gl.loop, FALSE, FALSE, 0, 0 };
 	GVariant *ret;
 	GError *error = NULL;
-	char *expected_path = NULL;
+	gs_free char *expected_path = NULL;
 
 	sinfo = nmtstc_service_init ();
 	if (!nmtstc_service_available (sinfo))
 		return;
 
-	client = nm_client_new (NULL, &error);
-	g_assert_no_error (error);
+	client = nmtstc_client_new (TRUE);
 
 	/*************************************/
 	/* Add the wifi device */
@@ -358,8 +340,8 @@ test_wifi_ap_added_removed (void)
 	info.quit_count++;
 
 	/* Wait for libnm to find the AP */
-	info.quit_id = g_timeout_add_seconds (5, loop_quit, loop);
-	g_main_loop_run (loop);
+	info.quit_id = g_timeout_add_seconds (5, loop_quit, gl.loop);
+	g_main_loop_run (gl.loop);
 
 	g_assert (info.signaled);
 	g_assert (info.notified);
@@ -397,8 +379,8 @@ test_wifi_ap_added_removed (void)
 	info.quit_count++;
 
 	/* Wait for libnm to find the AP */
-	info.quit_id = g_timeout_add_seconds (5, loop_quit, loop);
-	g_main_loop_run (loop);
+	info.quit_id = g_timeout_add_seconds (5, loop_quit, gl.loop);
+	g_main_loop_run (gl.loop);
 
 	g_assert (info.signaled);
 	g_assert (info.notified);
@@ -406,212 +388,6 @@ test_wifi_ap_added_removed (void)
 	g_signal_handlers_disconnect_by_func (wifi, wifi_ap_remove_notify_cb, &info);
 
 	g_free (info.ap_path);
-	g_free (expected_path);
-
-	g_object_unref (client);
-	g_clear_pointer (&sinfo, nmtstc_service_cleanup);
-}
-
-/*****************************************************************************/
-
-static const char *expected_nsp_name = "Clear";
-
-typedef struct {
-	GMainLoop *loop;
-	gboolean found;
-	char *nsp_path;
-	gboolean signaled;
-	gboolean notified;
-	guint quit_id;
-	guint quit_count;
-} WimaxNspInfo;
-
-static void
-wimax_check_quit (WimaxNspInfo *info)
-{
-	info->quit_count--;
-	if (info->quit_count == 0) {
-		g_source_remove (info->quit_id);
-		info->quit_id = 0;
-		g_main_loop_quit (info->loop);
-	}
-}
-
-static void
-got_nsp_path (WimaxNspInfo *info, const char *path)
-{
-	if (info->nsp_path)
-		g_assert_cmpstr (info->nsp_path, ==, path);
-	else
-		info->nsp_path = g_strdup (path);
-}
-
-static void
-wimax_nsp_added_cb (NMDeviceWimax *w,
-                    NMWimaxNsp *nsp,
-                    WimaxNspInfo *info)
-{
-	g_assert (nsp);
-	g_assert_cmpstr (nm_wimax_nsp_get_name (nsp), ==, expected_nsp_name);
-	got_nsp_path (info, nm_object_get_path (NM_OBJECT (nsp)));
-
-	info->signaled = TRUE;
-	wimax_check_quit (info);
-}
-
-static void
-wimax_nsp_add_notify_cb (NMDeviceWimax *w,
-                         GParamSpec *pspec,
-                         WimaxNspInfo *info)
-{
-	const GPtrArray *nsps;
-	NMWimaxNsp *nsp;
-
-	nsps = nm_device_wimax_get_nsps (w);
-	g_assert (nsps);
-	g_assert_cmpint (nsps->len, ==, 1);
-
-	nsp = g_ptr_array_index (nsps, 0);
-	g_assert (nsp);
-	g_assert_cmpstr (nm_wimax_nsp_get_name (nsp), ==, expected_nsp_name);
-	got_nsp_path (info, nm_object_get_path (NM_OBJECT (nsp)));
-
-	info->notified = TRUE;
-	wimax_check_quit (info);
-}
-
-static void
-wimax_nsp_removed_cb (NMDeviceWimax *w,
-                      NMWimaxNsp *nsp,
-                      WimaxNspInfo *info)
-{
-	g_assert (nsp);
-	g_assert_cmpstr (info->nsp_path, ==, nm_object_get_path (NM_OBJECT (nsp)));
-
-	info->signaled = TRUE;
-	wimax_check_quit (info);
-}
-
-static void
-wimax_nsp_remove_notify_cb (NMDeviceWimax *w,
-                            GParamSpec *pspec,
-                            WimaxNspInfo *info)
-{
-	const GPtrArray *nsps;
-
-	nsps = nm_device_wimax_get_nsps (w);
-	g_assert (nsps->len == 0);
-
-	info->notified = TRUE;
-	wimax_check_quit (info);
-}
-
-static void
-test_wimax_nsp_added_removed (void)
-{
-	NMClient *client;
-	NMDeviceWimax *wimax;
-	WimaxNspInfo info = { loop, FALSE, FALSE, 0, 0 };
-	GVariant *ret;
-	GError *error = NULL;
-	char *expected_path = NULL;
-
-	sinfo = nmtstc_service_init ();
-	if (!nmtstc_service_available (sinfo))
-		return;
-
-	client = nm_client_new (NULL, &error);
-	g_assert_no_error (error);
-
-	/*************************************/
-	/* Add the wimax device */
-	wimax = (NMDeviceWimax *) nmtstc_service_add_device (sinfo, client, "AddWimaxDevice", "wmx0");
-	g_assert (NM_IS_DEVICE_WIMAX (wimax));
-
-	/*************************************/
-	/* Add the wimax NSP */
-	info.signaled =  FALSE;
-	info.notified = FALSE;
-	info.quit_id = 0;
-
-	ret = g_dbus_proxy_call_sync (sinfo->proxy,
-	                              "AddWimaxNsp",
-	                              g_variant_new ("(ss)", "wmx0", expected_nsp_name),
-	                              G_DBUS_CALL_FLAGS_NO_AUTO_START,
-	                              3000,
-	                              NULL,
-	                              &error);
-	g_assert_no_error (error);
-	g_assert (ret);
-	g_assert_cmpstr (g_variant_get_type_string (ret), ==, "(o)");
-	g_variant_get (ret, "(o)", &expected_path);
-	g_variant_unref (ret);
-
-	g_signal_connect (wimax,
-	                  "nsp-added",
-	                  (GCallback) wimax_nsp_added_cb,
-	                  &info);
-	info.quit_count = 1;
-
-	g_signal_connect (wimax,
-	                  "notify::nsps",
-	                  (GCallback) wimax_nsp_add_notify_cb,
-	                  &info);
-	info.quit_count++;
-
-	/* Wait for libnm to find the AP */
-	info.quit_id = g_timeout_add_seconds (5, loop_quit, loop);
-	g_main_loop_run (loop);
-
-	g_assert (info.signaled);
-	g_assert (info.notified);
-	g_assert (info.nsp_path);
-	g_assert_cmpstr (info.nsp_path, ==, expected_path);
-	g_signal_handlers_disconnect_by_func (wimax, wimax_nsp_added_cb, &info);
-	g_signal_handlers_disconnect_by_func (wimax, wimax_nsp_add_notify_cb, &info);
-
-	/*************************************/
-	/* Remove the wimax NSP */
-	info.signaled =  FALSE;
-	info.notified = FALSE;
-	info.quit_id = 0;
-
-	ret = g_dbus_proxy_call_sync (sinfo->proxy,
-	                              "RemoveWimaxNsp",
-	                              g_variant_new ("(so)", "wmx0", expected_path),
-	                              G_DBUS_CALL_FLAGS_NO_AUTO_START,
-	                              3000,
-	                              NULL,
-	                              &error);
-	g_assert_no_error (error);
-	g_clear_pointer (&ret, g_variant_unref);
-
-	g_signal_connect (wimax,
-	                  "nsp-removed",
-	                  (GCallback) wimax_nsp_removed_cb,
-	                  &info);
-	info.quit_count = 1;
-
-	g_signal_connect (wimax,
-	                  "notify::nsps",
-	                  (GCallback) wimax_nsp_remove_notify_cb,
-	                  &info);
-	info.quit_count++;
-
-	/* Wait for libnm to find the AP */
-	info.quit_id = g_timeout_add_seconds (5, loop_quit, loop);
-	g_main_loop_run (loop);
-
-	g_assert (info.signaled);
-	g_assert (info.notified);
-	g_signal_handlers_disconnect_by_func (wimax, wimax_nsp_removed_cb, &info);
-	g_signal_handlers_disconnect_by_func (wimax, wimax_nsp_remove_notify_cb, &info);
-
-	g_free (info.nsp_path);
-	g_free (expected_path);
-
-	g_object_unref (client);
-	g_clear_pointer (&sinfo, nmtstc_service_cleanup);
 }
 
 /*****************************************************************************/
@@ -671,25 +447,11 @@ da_devices_notify_cb (NMClient *c,
 }
 
 static void
-new_client_cb (GObject *object,
-               GAsyncResult *result,
-               gpointer user_data)
-{
-	NMClient **out_client = user_data;
-	GError *error = NULL;
-
-	*out_client = nm_client_new_finish (result, &error);
-	g_assert_no_error (error);
-	g_assert (*out_client != NULL);
-
-	g_main_loop_quit (loop);
-}
-
-static void
 test_devices_array (void)
 {
-	NMClient *client = NULL;
-	DaInfo info = { loop };
+	nmtstc_auto_service_cleanup NMTstcServiceInfo *sinfo = NULL;
+	gs_unref_object NMClient *client = NULL;
+	DaInfo info = { gl.loop };
 	NMDevice *wlan0, *eth0, *eth1, *device;
 	const GPtrArray *devices;
 	GError *error = NULL;
@@ -699,10 +461,7 @@ test_devices_array (void)
 	if (!nmtstc_service_available (sinfo))
 		return;
 
-	/* Make sure that we test the async codepath in at least one test... */
-	nm_client_new_async (NULL, new_client_cb, &client);
-	g_main_loop_run (loop);
-	g_assert (client != NULL);
+	client = nmtstc_client_new (TRUE);
 
 	/*************************************/
 	/* Add some devices */
@@ -752,8 +511,8 @@ test_devices_array (void)
 	info.quit_count = 2;
 
 	/* Wait for libnm to notice the changes */
-	info.quit_id = g_timeout_add_seconds (5, loop_quit, loop);
-	g_main_loop_run (loop);
+	info.quit_id = g_timeout_add_seconds (5, loop_quit, gl.loop);
+	g_main_loop_run (gl.loop);
 
 	g_assert_cmpint (info.quit_count, ==, 0);
 	g_signal_handlers_disconnect_by_func (client, da_device_removed_cb, &info);
@@ -771,9 +530,6 @@ test_devices_array (void)
 	device = nm_client_get_device_by_iface (client, "eth1");
 	g_assert (NM_IS_DEVICE_ETHERNET (device));
 	g_assert (device == eth1);
-
-	g_object_unref (client);
-	g_clear_pointer (&sinfo, nmtstc_service_cleanup);
 }
 
 static void
@@ -784,20 +540,20 @@ nm_running_changed (GObject *client,
 	int *running_changed = user_data;
 
 	(*running_changed)++;
-	g_main_loop_quit (loop);
+	g_main_loop_quit (gl.loop);
 }
 
 static void
 test_client_nm_running (void)
 {
+	nmtstc_auto_service_cleanup NMTstcServiceInfo *sinfo = NULL;
 	gs_unref_object NMClient *client1 = NULL;
 	gs_unref_object NMClient *client2 = NULL;
 	guint quit_id;
 	int running_changed = 0;
 	GError *error = NULL;
 
-	client1 = nm_client_new (NULL, &error);
-	g_assert_no_error (error);
+	client1 = nmtstc_client_new (TRUE);
 
 	g_assert (!nm_client_get_nm_running (client1));
 	g_assert_cmpstr (nm_client_get_version (client1), ==, NULL);
@@ -817,8 +573,7 @@ test_client_nm_running (void)
 	if (!nmtstc_service_available (sinfo))
 		return;
 
-	client2 = nm_client_new (NULL, &error);
-	g_assert_no_error (error);
+	client2 = nmtstc_client_new (FALSE);
 
 	/* client2 should know that NM is running, but the previously-created
 	 * client1 hasn't gotten the news yet.
@@ -828,8 +583,8 @@ test_client_nm_running (void)
 
 	g_signal_connect (client1, "notify::" NM_CLIENT_NM_RUNNING,
 	                  G_CALLBACK (nm_running_changed), &running_changed);
-	quit_id = g_timeout_add_seconds (5, loop_quit, loop);
-	g_main_loop_run (loop);
+	quit_id = g_timeout_add_seconds (5, loop_quit, gl.loop);
+	g_main_loop_run (gl.loop);
 	g_assert_cmpint (running_changed, ==, 1);
 	g_assert (nm_client_get_nm_running (client1));
 	g_source_remove (quit_id);
@@ -839,8 +594,8 @@ test_client_nm_running (void)
 
 	g_assert (nm_client_get_nm_running (client1));
 
-	quit_id = g_timeout_add_seconds (5, loop_quit, loop);
-	g_main_loop_run (loop);
+	quit_id = g_timeout_add_seconds (5, loop_quit, gl.loop);
+	g_main_loop_run (gl.loop);
 	g_assert_cmpint (running_changed, ==, 2);
 	g_assert (!nm_client_get_nm_running (client1));
 	g_source_remove (quit_id);
@@ -851,6 +606,9 @@ typedef struct {
 	NMActiveConnection *ac;
 
 	int remaining;
+
+	NMDevice *device;
+	gulong ac_signal_id;
 } TestACInfo;
 
 static void
@@ -877,13 +635,18 @@ assert_ac_and_device (NMClient *client)
 	device = devices->pdata[0];
 	if (device != ac_device && devices->len > 1)
 		device = devices->pdata[1];
-	device_ac = nm_device_get_active_connection (device);
-	g_assert (device_ac != NULL);
 
 	g_assert_cmpstr (nm_object_get_path (NM_OBJECT (device)), ==, nm_object_get_path (NM_OBJECT (ac_device)));
 	g_assert (device == ac_device);
-	g_assert_cmpstr (nm_object_get_path (NM_OBJECT (ac)), ==, nm_object_get_path (NM_OBJECT (device_ac)));
-	g_assert (ac == device_ac);
+
+	device_ac = nm_device_get_active_connection (device);
+	if (!device_ac) {
+		/* the stub NetworkManager service starts activating in an idle handler (delayed). That means, the
+		 * device may not yet refer to the active connection at this point. */
+	} else {
+		g_assert_cmpstr (nm_object_get_path (NM_OBJECT (ac)), ==, nm_object_get_path (NM_OBJECT (device_ac)));
+		g_assert (ac == device_ac);
+	}
 }
 
 static void
@@ -940,18 +703,17 @@ device_ac_changed_cb (GObject *device,
 static void
 test_active_connections (void)
 {
-	NMClient *client;
+	nmtstc_auto_service_cleanup NMTstcServiceInfo *sinfo = NULL;
+	gs_unref_object NMClient *client = NULL;
 	NMDevice *device;
 	NMConnection *conn;
-	TestACInfo info = { loop, NULL, 0 };
-	GError *error = NULL;
+	TestACInfo info = { gl.loop, NULL, 0 };
 
 	sinfo = nmtstc_service_init ();
 	if (!nmtstc_service_available (sinfo))
 		return;
 
-	client = nm_client_new (NULL, &error);
-	g_assert_no_error (error);
+	client = nmtstc_client_new (TRUE);
 
 	/* Tell the test service to add a new device */
 	device = nmtstc_service_add_device (sinfo, client, "AddWiredDevice", "eth0");
@@ -968,30 +730,25 @@ test_active_connections (void)
 
 	/* Two signals plus activate_cb */
 	info.remaining = 3;
-	g_main_loop_run (loop);
+	g_main_loop_run (gl.loop);
 	g_signal_handlers_disconnect_by_func (client, client_acs_changed_cb, &info);
 	g_signal_handlers_disconnect_by_func (device, device_ac_changed_cb, &info);
 
 	g_assert (info.ac != NULL);
 
 	g_object_unref (info.ac);
-	g_object_unref (client);
+	g_clear_object (&client);
 
 	/* Ensure that we can correctly resolve the recursive property link between the
 	 * AC and the Device in a newly-created client.
 	 */
-	client = nm_client_new (NULL, &error);
-	g_assert_no_error (error);
+	client = nmtstc_client_new (TRUE);
 	assert_ac_and_device (client);
-	g_object_unref (client);
+	g_clear_object (&client);
 
-	client = NULL;
-	nm_client_new_async (NULL, new_client_cb, &client);
-	g_main_loop_run (loop);
+	client = nmtstc_client_new (TRUE);
 	assert_ac_and_device (client);
-	g_object_unref (client);
-
-	g_clear_pointer (&sinfo, nmtstc_service_cleanup);
+	g_clear_object (&client);
 }
 
 static void
@@ -1019,9 +776,12 @@ client_devices_changed_cb (GObject *client,
 	g_assert_cmpstr (nm_device_get_iface (device), ==, "eth0.1");
 
 	if (!nm_device_get_active_connection (device)) {
+		g_assert (info->ac_signal_id == 0);
 		info->remaining++;
-		g_signal_connect (device, "notify::" NM_DEVICE_ACTIVE_CONNECTION,
-		                  G_CALLBACK (device_ac_changed_cb), info);
+		info->device = device;
+		g_object_add_weak_pointer (G_OBJECT (device), (gpointer *) &info->device);
+		info->ac_signal_id = g_signal_connect (device, "notify::" NM_DEVICE_ACTIVE_CONNECTION,
+		                                       G_CALLBACK (device_ac_changed_cb), info);
 	}
 
 	info->remaining--;
@@ -1070,20 +830,19 @@ activate_cb (GObject *object,
 static void
 test_activate_virtual (void)
 {
-	NMClient *client;
+	nmtstc_auto_service_cleanup NMTstcServiceInfo *sinfo = NULL;
+	gs_unref_object NMClient *client = NULL;
 	NMConnection *conn;
 	NMSettingConnection *s_con;
 	NMSettingVlan *s_vlan;
-	TestACInfo info = { loop, NULL, 0 };
-	TestConnectionInfo conn_info = { loop, NULL };
-	GError *error = NULL;
+	TestACInfo info = { gl.loop, NULL, 0 };
+	TestConnectionInfo conn_info = { gl.loop, NULL };
 
 	sinfo = nmtstc_service_init ();
 	if (!nmtstc_service_available (sinfo))
 		return;
 
-	client = nm_client_new (NULL, &error);
-	g_assert_no_error (error);
+	client = nmtstc_client_new (TRUE);
 
 	nmtstc_service_add_device (sinfo, client, "AddWiredDevice", "eth0");
 
@@ -1099,7 +858,7 @@ test_activate_virtual (void)
 
 	nm_client_add_connection_async (client, conn, TRUE,
 	                                NULL, add_connection_cb, &conn_info);
-	g_main_loop_run (loop);
+	g_main_loop_run (gl.loop);
 	g_object_unref (conn);
 	conn = NM_CONNECTION (conn_info.remote);
 
@@ -1119,72 +878,27 @@ test_activate_virtual (void)
 	 */
 	info.remaining = 3;
 
-	g_main_loop_run (loop);
+	g_main_loop_run (gl.loop);
 	g_signal_handlers_disconnect_by_func (client, client_acs_changed_cb, &info);
 	g_signal_handlers_disconnect_by_func (client, client_devices_changed_cb, &info);
 
 	g_assert (info.ac != NULL);
+	g_clear_object (&info.ac);
 
-	g_object_unref (info.ac);
-	g_object_unref (client);
-
-	g_clear_pointer (&sinfo, nmtstc_service_cleanup);
-}
-
-static void
-activate_failed_cb (GObject *object,
-                    GAsyncResult *result,
-                    gpointer user_data)
-{
-	NMClient *client = NM_CLIENT (object);
-	NMActiveConnection *ac;
-	GError *error = NULL;
-
-	ac = nm_client_activate_connection_finish (client, result, &error);
-	g_assert (ac == NULL);
-	g_assert_error (error, NM_CLIENT_ERROR, NM_CLIENT_ERROR_OBJECT_CREATION_FAILED);
-	g_clear_error (&error);
-
-	g_main_loop_quit (loop);
-}
-
-static void
-test_activate_failed (void)
-{
-	NMClient *client;
-	NMDevice *device;
-	NMConnection *conn;
-	GError *error = NULL;
-
-	sinfo = nmtstc_service_init ();
-	if (!nmtstc_service_available (sinfo))
-		return;
-
-	client = nm_client_new (NULL, &error);
-	g_assert_no_error (error);
-
-	device = nmtstc_service_add_device (sinfo, client, "AddWiredDevice", "eth0");
-
-	/* Note that test-networkmanager-service.py checks for this exact name */
-	conn = nmtst_create_minimal_connection ("object-creation-failed-test", NULL,
-	                                        NM_SETTING_WIRED_SETTING_NAME, NULL);
-
-	nm_client_add_and_activate_connection_async (client, conn, device, NULL,
-	                                             NULL, activate_failed_cb, NULL);
-	g_main_loop_run (loop);
-
-	g_object_unref (conn);
-	g_object_unref (client);
-
-	g_clear_pointer (&sinfo, nmtstc_service_cleanup);
+	if (info.device) {
+		g_object_remove_weak_pointer (G_OBJECT (info.device), (gpointer *) &info.device);
+		nm_clear_g_signal_handler (info.device, &info.ac_signal_id);
+	}
 }
 
 static void
 test_device_connection_compatibility (void)
 {
-	NMClient *client;
-	NMDevice *device1, *device2;
-	NMConnection *conn;
+	nmtstc_auto_service_cleanup NMTstcServiceInfo *sinfo = NULL;
+	gs_unref_object NMClient *client = NULL;
+	gs_unref_object NMConnection *conn = NULL;
+	NMDevice *device1;
+	NMDevice *device2;
 	NMSettingWired *s_wired;
 	GError *error = NULL;
 	const char *subchannels[] = { "0.0.8000", "0.0.8001", "0.0.8002", NULL };
@@ -1197,8 +911,7 @@ test_device_connection_compatibility (void)
 	if (!nmtstc_service_available (sinfo))
 		return;
 
-	client = nm_client_new (NULL, &error);
-	g_assert_no_error (error);
+	client = nmtstc_client_new (TRUE);
 
 	/* Create two devices */
 	device1 = nmtstc_service_add_wired_device (sinfo, client, "eth0", hw_addr1, subchannels);
@@ -1246,11 +959,6 @@ test_device_connection_compatibility (void)
 	nm_device_connection_compatible (device1, conn, &error);
 	g_assert_error (error, NM_DEVICE_ERROR, NM_DEVICE_ERROR_INCOMPATIBLE_CONNECTION);
 	g_clear_error (&error);
-
-	g_object_unref (conn);
-	g_object_unref (client);
-
-	g_clear_pointer (&sinfo, nmtstc_service_cleanup);
 }
 
 /*****************************************************************************/
@@ -1283,7 +991,6 @@ test_connection_invalid (void)
 	NMSettingConnection *s_con;
 	gs_unref_object NMClient *client = NULL;
 	const GPtrArray *connections;
-	gs_free_error GError *error = NULL;
 	gs_free char *path0 = NULL;
 	gs_free char *path1 = NULL;
 	gs_free char *path2 = NULL;
@@ -1292,6 +999,8 @@ test_connection_invalid (void)
 	gsize n_found;
 	gssize idx[4];
 	gs_unref_variant GVariant *variant = NULL;
+
+	g_assert (g_main_loop_get_context (gl.loop) == (g_main_context_get_thread_default () ?: g_main_context_default ()));
 
 	/**************************************************************************
 	 * Add three connections before starting libnm. One valid, two invalid.
@@ -1334,8 +1043,7 @@ test_connection_invalid (void)
 	                                       FALSE,
 	                                       &path2);
 
-	client = nm_client_new (NULL, &error);
-	g_assert_no_error (error);
+	client = nmtstc_client_new (TRUE);
 
 	connections = nm_client_get_connections (client);
 	g_assert (connections);
@@ -1370,7 +1078,7 @@ test_connection_invalid (void)
 	                               FALSE,
 	                               &path3);
 
-	nmtst_main_loop_run (loop, 1000);
+	nmtst_main_loop_run (gl.loop, 1000);
 
 	connections = nm_client_get_connections (client);
 	g_assert (connections);
@@ -1406,7 +1114,7 @@ test_connection_invalid (void)
 	                                          variant,
 	                                          FALSE);
 
-	nmtst_main_loop_run (loop, 100);
+	nmtst_main_loop_run (gl.loop, 100);
 
 	connections = nm_client_get_connections (client);
 	g_assert (connections);
@@ -1444,7 +1152,7 @@ test_connection_invalid (void)
 	                                          variant,
 	                                          FALSE);
 
-	nmtst_main_loop_run (loop, 100);
+	nmtst_main_loop_run (gl.loop, 100);
 
 	connections = nm_client_get_connections (client);
 	g_assert (connections);
@@ -1479,7 +1187,7 @@ test_connection_invalid (void)
 	                                  connection,
 	                                  FALSE);
 
-	nmtst_main_loop_run (loop, 100);
+	nmtst_main_loop_run (gl.loop, 100);
 
 	connections = nm_client_get_connections (client);
 	g_assert (connections);
@@ -1521,7 +1229,7 @@ test_connection_invalid (void)
 	                                  connection,
 	                                  FALSE);
 
-	nmtst_main_loop_run (loop, 100);
+	nmtst_main_loop_run (gl.loop, 100);
 
 	connections = nm_client_get_connections (client);
 	g_assert (connections);
@@ -1563,7 +1271,7 @@ test_connection_invalid (void)
 	                                  connection,
 	                                  FALSE);
 
-	nmtst_main_loop_run (loop, 100);
+	nmtst_main_loop_run (gl.loop, 100);
 
 	connections = nm_client_get_connections (client);
 	g_assert (connections);
@@ -1602,17 +1310,15 @@ main (int argc, char **argv)
 
 	nmtst_init (&argc, &argv, TRUE);
 
-	loop = g_main_loop_new (NULL, FALSE);
+	gl.loop = g_main_loop_new (NULL, FALSE);
 
 	g_test_add_func ("/libnm/device-added", test_device_added);
 	g_test_add_func ("/libnm/device-added-signal-after-init", test_device_added_signal_after_init);
 	g_test_add_func ("/libnm/wifi-ap-added-removed", test_wifi_ap_added_removed);
-	g_test_add_func ("/libnm/wimax-nsp-added-removed", test_wimax_nsp_added_removed);
 	g_test_add_func ("/libnm/devices-array", test_devices_array);
 	g_test_add_func ("/libnm/client-nm-running", test_client_nm_running);
 	g_test_add_func ("/libnm/active-connections", test_active_connections);
 	g_test_add_func ("/libnm/activate-virtual", test_activate_virtual);
-	g_test_add_func ("/libnm/activate-failed", test_activate_failed);
 	g_test_add_func ("/libnm/device-connection-compatibility", test_device_connection_compatibility);
 	g_test_add_func ("/libnm/connection/invalid", test_connection_invalid);
 

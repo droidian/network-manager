@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2009 - 2014 Red Hat, Inc.
  * Copyright (C) 2009 Novell, Inc.
  */
@@ -110,6 +96,8 @@ typedef struct _NMModemPrivate {
 	/* PPP stats */
 	guint32 in_bytes;
 	guint32 out_bytes;
+
+	bool claimed:1;
 } NMModemPrivate;
 
 G_DEFINE_TYPE (NMModem, nm_modem, G_TYPE_OBJECT)
@@ -186,6 +174,53 @@ nm_modem_state_to_string (NMModemState state)
 		return state_table[state];
 	return NULL;
 }
+
+/*****************************************************************************/
+
+gboolean
+nm_modem_is_claimed (NMModem *self)
+{
+	g_return_val_if_fail (NM_IS_MODEM (self), FALSE);
+
+	return NM_MODEM_GET_PRIVATE (self)->claimed;
+}
+
+NMModem *
+nm_modem_claim (NMModem *self)
+{
+	NMModemPrivate *priv;
+
+	g_return_val_if_fail (NM_IS_MODEM (self), NULL);
+
+	priv = NM_MODEM_GET_PRIVATE (self);
+
+	g_return_val_if_fail (!priv->claimed, NULL);
+
+	priv->claimed = TRUE;
+	return g_object_ref (self);
+}
+
+void
+nm_modem_unclaim (NMModem *self)
+{
+	NMModemPrivate *priv;
+
+	g_return_if_fail (NM_IS_MODEM (self));
+
+	priv = NM_MODEM_GET_PRIVATE (self);
+
+	g_return_if_fail (priv->claimed);
+
+	/* we don't actually unclaim the instance. This instance should not be re-used
+	 * by another owner, that is because we only claim modems as we receive them.
+	 * There is no mechanism that somebody else would later re-use them again.
+	 *
+	 * // priv->claimed = FALSE; */
+
+	g_object_unref (self);
+}
+
+/*****************************************************************************/
 
 NMModemState
 nm_modem_get_state (NMModem *self)
@@ -875,7 +910,9 @@ nm_modem_stage3_ip6_config_start (NMModem *self,
 }
 
 guint32
-nm_modem_get_configured_mtu (NMDevice *self, NMDeviceMtuSource *out_source)
+nm_modem_get_configured_mtu (NMDevice *self,
+                             NMDeviceMtuSource *out_source,
+                             gboolean *out_force)
 {
 	NMConnection *connection;
 	NMSetting *setting;
@@ -974,9 +1011,9 @@ nm_modem_get_secrets (NMModem *self,
 /*****************************************************************************/
 
 static NMActStageReturn
-act_stage1_prepare (NMModem *modem,
-                    NMConnection *connection,
-                    NMDeviceStateReason *out_failure_reason)
+modem_act_stage1_prepare (NMModem *modem,
+                          NMConnection *connection,
+                          NMDeviceStateReason *out_failure_reason)
 {
 	NM_SET_OUT (out_failure_reason, NM_DEVICE_STATE_REASON_UNKNOWN);
 	return NM_ACT_STAGE_RETURN_FAILURE;
@@ -993,6 +1030,8 @@ nm_modem_act_stage1_prepare (NMModem *self,
 	NMSecretAgentGetSecretsFlags flags = NM_SECRET_AGENT_GET_SECRETS_FLAG_ALLOW_INTERACTION;
 	NMConnection *connection;
 
+	g_return_val_if_fail (NM_IS_ACT_REQUEST (req), NM_ACT_STAGE_RETURN_FAILURE);
+
 	if (priv->act_request)
 		g_object_unref (priv->act_request);
 	priv->act_request = g_object_ref (req);
@@ -1003,7 +1042,7 @@ nm_modem_act_stage1_prepare (NMModem *self,
 	setting_name = nm_connection_need_secrets (connection, &hints);
 	if (!setting_name) {
 		nm_assert (!hints);
-		return NM_MODEM_GET_CLASS (self)->act_stage1_prepare (self, connection, out_failure_reason);
+		return NM_MODEM_GET_CLASS (self)->modem_act_stage1_prepare (self, connection, out_failure_reason);
 	}
 
 	/* Secrets required... */
@@ -1027,19 +1066,18 @@ nm_modem_act_stage1_prepare (NMModem *self,
 
 /*****************************************************************************/
 
-NMActStageReturn
-nm_modem_act_stage2_config (NMModem *self,
-                            NMActRequest *req,
-                            NMDeviceStateReason *out_failure_reason)
+void
+nm_modem_act_stage2_config (NMModem *self)
 {
-	NMModemPrivate *priv = NM_MODEM_GET_PRIVATE (self);
+	NMModemPrivate *priv;
 
+	g_return_if_fail (NM_IS_MODEM (self));
+
+	priv = NM_MODEM_GET_PRIVATE (self);
 	/* Clear secrets tries counter since secrets were successfully used
 	 * already if we get here.
 	 */
 	priv->secrets_tries = 0;
-
-	return NM_ACT_STAGE_RETURN_SUCCESS;
 }
 
 /*****************************************************************************/
@@ -1798,7 +1836,7 @@ nm_modem_class_init (NMModemClass *klass)
 	object_class->dispose = dispose;
 	object_class->finalize = finalize;
 
-	klass->act_stage1_prepare = act_stage1_prepare;
+	klass->modem_act_stage1_prepare = modem_act_stage1_prepare;
 	klass->stage3_ip6_config_request = stage3_ip6_config_request;
 	klass->deactivate_cleanup = deactivate_cleanup;
 

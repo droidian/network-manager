@@ -1,21 +1,7 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2007 - 2008 Novell, Inc.
- * Copyright 2007 - 2013 Red Hat, Inc.
+ * Copyright (C) 2007 - 2008 Novell, Inc.
+ * Copyright (C) 2007 - 2013 Red Hat, Inc.
  */
 
 #ifndef __NM_DEVICE_H__
@@ -46,7 +32,10 @@ G_BEGIN_DECLS
 #define NM_DEVICE_CAPABILITIES "capabilities"
 #define NM_DEVICE_REAL "real"
 #define NM_DEVICE_MANAGED "managed"
+
+_NM_DEPRECATED_SYNC_WRITABLE_PROPERTY
 #define NM_DEVICE_AUTOCONNECT "autoconnect"
+
 #define NM_DEVICE_FIRMWARE_MISSING "firmware-missing"
 #define NM_DEVICE_NM_PLUGIN_MISSING "nm-plugin-missing"
 #define NM_DEVICE_IP4_CONFIG "ip4-config"
@@ -65,36 +54,12 @@ G_BEGIN_DECLS
 #define NM_DEVICE_LLDP_NEIGHBORS "lldp-neighbors"
 #define NM_DEVICE_IP4_CONNECTIVITY "ip4-connectivity"
 #define NM_DEVICE_IP6_CONNECTIVITY "ip6-connectivity"
+#define NM_DEVICE_INTERFACE_FLAGS "interface-flags"
 
 /**
  * NMDevice:
  */
-struct _NMDevice {
-	NMObject parent;
-};
-
-typedef struct {
-	NMObjectClass parent;
-
-	/* Signals */
-	void (*state_changed) (NMDevice *device,
-	                       NMDeviceState new_state,
-	                       NMDeviceState old_state,
-	                       NMDeviceStateReason reason);
-
-	/* Methods */
-	gboolean (*connection_compatible) (NMDevice *device,
-	                                   NMConnection *connection,
-	                                   GError **error);
-
-	const char * (*get_type_description) (NMDevice *device);
-	const char * (*get_hw_address) (NMDevice *device);
-
-	GType (*get_setting_type) (NMDevice *device);
-
-	/*< private >*/
-	gpointer padding[8];
-} NMDeviceClass;
+typedef struct _NMDeviceClass NMDeviceClass;
 
 typedef struct _NMLldpNeighbor NMLldpNeighbor;
 
@@ -111,10 +76,18 @@ const char *         nm_device_get_type_description (NMDevice *device);
 const char *         nm_device_get_hw_address       (NMDevice *device);
 NMDeviceCapabilities nm_device_get_capabilities     (NMDevice *device);
 gboolean             nm_device_get_managed          (NMDevice *device);
+
 NM_AVAILABLE_IN_1_2
+NM_DEPRECATED_IN_1_22
+_NM_DEPRECATED_SYNC_METHOD
 void                 nm_device_set_managed          (NMDevice *device, gboolean managed);
+
 gboolean             nm_device_get_autoconnect      (NMDevice *device);
+
+NM_DEPRECATED_IN_1_22
+_NM_DEPRECATED_SYNC_METHOD
 void                 nm_device_set_autoconnect      (NMDevice *device, gboolean autoconnect);
+
 gboolean             nm_device_get_firmware_missing (NMDevice *device);
 NM_AVAILABLE_IN_1_2
 gboolean             nm_device_get_nm_plugin_missing (NMDevice *device);
@@ -141,9 +114,13 @@ NM_AVAILABLE_IN_1_2
 NMMetered            nm_device_get_metered           (NMDevice  *device);
 NM_AVAILABLE_IN_1_2
 GPtrArray *          nm_device_get_lldp_neighbors    (NMDevice *device);
+NM_AVAILABLE_IN_1_22
+NMDeviceInterfaceFlags nm_device_get_interface_flags (NMDevice *device);
+
 char **              nm_device_disambiguate_names    (NMDevice **devices,
                                                       int        num_devices);
 NM_AVAILABLE_IN_1_2
+_NM_DEPRECATED_SYNC_METHOD
 gboolean             nm_device_reapply              (NMDevice *device,
                                                      NMConnection *connection,
                                                      guint64 version_id,
@@ -164,6 +141,7 @@ gboolean             nm_device_reapply_finish       (NMDevice *device,
                                                      GError **error);
 
 NM_AVAILABLE_IN_1_2
+_NM_DEPRECATED_SYNC_METHOD
 NMConnection        *nm_device_get_applied_connection (NMDevice *device,
                                                        guint32 flags,
                                                        guint64 *version_id,
@@ -181,6 +159,7 @@ NMConnection        *nm_device_get_applied_connection_finish (NMDevice *device,
                                                               guint64 *version_id,
                                                               GError **error);
 
+_NM_DEPRECATED_SYNC_METHOD
 gboolean             nm_device_disconnect           (NMDevice *device,
                                                      GCancellable *cancellable,
                                                      GError **error);
@@ -192,6 +171,7 @@ gboolean             nm_device_disconnect_finish    (NMDevice *device,
                                                      GAsyncResult *result,
                                                      GError **error);
 
+_NM_DEPRECATED_SYNC_METHOD
 gboolean             nm_device_delete               (NMDevice *device,
                                                      GCancellable *cancellable,
                                                      GError **error);

@@ -284,6 +284,8 @@ MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 MM_GLIB_CFLAGS = @MM_GLIB_CFLAGS@
 MM_GLIB_LIBS = @MM_GLIB_LIBS@
+MOBILE_BROADBAND_PROVIDER_INFO_CFLAGS = @MOBILE_BROADBAND_PROVIDER_INFO_CFLAGS@
+MOBILE_BROADBAND_PROVIDER_INFO_LIBS = @MOBILE_BROADBAND_PROVIDER_INFO_LIBS@
 MOC = @MOC@
 MSGFMT = @MSGFMT@
 MSGFMT_015 = @MSGFMT_015@
@@ -495,7 +497,6 @@ IGNORE_HFILES = \
 	nm-object-private.h \
 	nm-property-compare.h \
 	nm-remote-connection-private.h \
-	nm-remote-settings.h \
 	nm-setting-private.h \
 	nm-utils-private.h \
 	nm-core-tests-enum-types.h \

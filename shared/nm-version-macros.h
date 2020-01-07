@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2011, 2015 Red Hat, Inc.
+ * Copyright (C) 2011, 2015 Red Hat, Inc.
  */
 
 #ifndef __NM_VERSION_MACROS_H__
@@ -36,7 +22,7 @@
  * Evaluates to the minor version number of NetworkManager which this source
  * is compiled against.
  */
-#define NM_MINOR_VERSION (20)
+#define NM_MINOR_VERSION (22)
 
 /**
  * NM_MICRO_VERSION:
@@ -44,7 +30,7 @@
  * Evaluates to the micro version number of NetworkManager which this source
  * compiled against.
  */
-#define NM_MICRO_VERSION (4)
+#define NM_MICRO_VERSION (2)
 
 /**
  * NM_CHECK_VERSION:
@@ -76,7 +62,8 @@
 #define NM_VERSION_1_16   (NM_ENCODE_VERSION (1, 16, 0))
 #define NM_VERSION_1_18   (NM_ENCODE_VERSION (1, 18, 0))
 #define NM_VERSION_1_20   (NM_ENCODE_VERSION (1, 20, 0))
-#define NM_VERSION_1_20_2 (NM_ENCODE_VERSION (1, 20, 2))
+#define NM_VERSION_1_22   (NM_ENCODE_VERSION (1, 22, 0))
+#define NM_VERSION_1_22_2 (NM_ENCODE_VERSION (1, 22, 2))
 
 /* For releases, NM_API_VERSION is equal to NM_VERSION.
  *

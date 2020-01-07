@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2005 - 2017 Red Hat, Inc.
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
@@ -67,9 +53,6 @@ nm_device_state_reason_check (NMDeviceStateReason reason)
 }
 
 #define NM_PENDING_ACTION_AUTOACTIVATE              "autoactivate"
-#define NM_PENDING_ACTION_DHCP4                     "dhcp4"
-#define NM_PENDING_ACTION_DHCP6                     "dhcp6"
-#define NM_PENDING_ACTION_AUTOCONF6                 "autoconf6"
 #define NM_PENDING_ACTION_RECHECK_AVAILABLE         "recheck-available"
 #define NM_PENDING_ACTION_CARRIER_WAIT              "carrier-wait"
 #define NM_PENDING_ACTION_WAITING_FOR_SUPPLICANT    "waiting-for-supplicant"
@@ -149,6 +132,7 @@ nm_device_state_reason_check (NMDeviceStateReason reason)
 
 #define NM_DEVICE_IP4_CONNECTIVITY           "ip4-connectivity"
 #define NM_DEVICE_IP6_CONNECTIVITY           "ip6-connectivity"
+#define NM_DEVICE_INTERFACE_FLAGS            "interface-flags"
 
 #define NM_TYPE_DEVICE            (nm_device_get_type ())
 #define NM_DEVICE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_DEVICE, NMDevice))
@@ -238,6 +222,10 @@ typedef struct _NMDeviceClass {
 	const char *connection_type_check_compatible;
 
 	const NMLinkType *link_types;
+
+	/* if the device MTU is set based on parent's one, this specifies
+	 * a delta in the MTU allowed value due the encapsulation overhead */
+	guint16 mtu_parent_delta;
 
 	/* Whether the device type is a master-type. This depends purely on the
 	 * type (NMDeviceClass), not the actual device instance. */
@@ -335,7 +323,9 @@ typedef struct _NMDeviceClass {
 	                                  NMSettingsConnection *sett_conn,
 	                                  char **specific_object);
 
-	guint32     (*get_configured_mtu) (NMDevice *self, NMDeviceMtuSource *out_source);
+	guint32     (*get_configured_mtu) (NMDevice *self,
+	                                   NMDeviceMtuSource *out_source,
+	                                   gboolean *out_force);
 
 	/* allow the subclass to overwrite the routing table. This is mainly useful
 	 * to change from partial mode (route-table=0) to full-sync mode (route-table=254). */
@@ -429,23 +419,6 @@ typedef struct _NMDeviceClass {
 	                                           int new_ifindex,
 	                                           NMDevice *new_parent);
 
-	/**
-	 * component_added:
-	 * @self: the #NMDevice
-	 * @component: the component (device, modem, etc) which was added
-	 *
-	 * Notifies @self that a new component that a device might be interested
-	 * in was detected by some device factory. It may include an object of
-	 * %GObject subclass to help the devices decide whether it claims that
-	 * particular object itself and the emitting factory should not.
-	 *
-	 * Returns: %TRUE if the component was claimed exclusively and no further
-	 * devices should be notified of the new component.  %FALSE to indicate
-	 * that the component was not exclusively claimed and other devices should
-	 * be notified.
-	 */
-	gboolean        (* component_added) (NMDevice *self, GObject *component);
-
 	gboolean        (* owns_iface) (NMDevice *self, const char *iface);
 
 	NMConnection *  (* new_default_connection) (NMDevice *self);
@@ -466,10 +439,15 @@ typedef struct _NMDeviceClass {
 	guint32         (* get_dhcp_timeout) (NMDevice *self,
 	                                      int addr_family);
 
+	gboolean        (* get_guessed_metered) (NMDevice *self);
+
 	/* Controls, whether to call act_stage2_config() callback also for assuming
 	 * a device or for external activations. In this case, act_stage2_config() must
 	 * take care not to touch the device's configuration. */
 	bool act_stage2_config_also_for_external_or_assume:1;
+
+	bool act_stage1_prepare_set_hwaddr_ethernet:1;
+
 } NMDeviceClass;
 
 typedef void (*NMDeviceAuthRequestFunc) (NMDevice *device,
@@ -819,7 +797,7 @@ gboolean   nm_device_check_connection_available (NMDevice *device,
                                                  const char *specific_object,
                                                  GError **error);
 
-gboolean nm_device_notify_component_added (NMDevice *device, GObject *component);
+void nm_device_notify_availability_maybe_changed (NMDevice *self);
 
 gboolean nm_device_owns_iface (NMDevice *device, const char *iface);
 
@@ -879,12 +857,22 @@ void nm_device_check_connectivity_cancel (NMDeviceConnectivityHandle *handle);
 NMConnectivityState nm_device_get_connectivity_state (NMDevice *self, int addr_family);
 
 typedef struct _NMBtVTableNetworkServer NMBtVTableNetworkServer;
+
+typedef void (*NMBtVTableRegisterCallback) (GError *error,
+                                            gpointer user_data);
+
 struct _NMBtVTableNetworkServer {
 	gboolean (*is_available) (const NMBtVTableNetworkServer *vtable,
-	                          const char *addr);
+	                          const char *addr,
+	                          NMDevice *device_accept_busy);
+
 	gboolean (*register_bridge) (const NMBtVTableNetworkServer *vtable,
 	                             const char *addr,
-	                             NMDevice *device);
+	                             NMDevice *device,
+	                             GCancellable *cancellable,
+	                             NMBtVTableRegisterCallback callback,
+	                             gpointer callback_user_data,
+	                             GError **error);
 	gboolean (*unregister_bridge) (const NMBtVTableNetworkServer *vtable,
 	                               NMDevice *device);
 };

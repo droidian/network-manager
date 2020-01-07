@@ -30,7 +30,12 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CAPABILITY_TEAM</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>Teams can be managed</para><para></para></entry>
+              <entry role="enum_member_description"><para>Teams can be managed. This means the team device plugin is loaded.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CAPABILITY_OVS</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>OpenVSwitch can be managed. This means the OVS device plugin is loaded. Since: 1.24, 1.22.2</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -441,6 +446,11 @@
               <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_MESH</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x00001000</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>device supports acting as a mesh point. Since: 1.20.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_WIFI_DEVICE_CAP_IBSS_RSN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00002000</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>device supports WPA2/RSN in an IBSS network. Since: 1.22.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -1188,7 +1198,7 @@
     <indexterm zone="NMMetered">
       <primary>NMMetered</primary>
     </indexterm>
-    <para><para>Since: 1.2</para><para></para></para>
+    <para><para>The NMMetered enum has two different purposes: one is to configure "connection.metered" setting of a connection profile in <link linkend="NMSettingConnection,">NMSettingConnection,</link> and the other is to express the actual metered state of the <link linkend="NMDevice">NMDevice</link> at a given moment.</para><para>For the connection profile only <link linkend="NM_METERED_UNKNOWN,">NM_METERED_UNKNOWN,</link> <link linkend="NM_METERED_NO">NM_METERED_NO</link> and <link linkend="NM_METERED_YES">NM_METERED_YES</link> are allowed.</para><para>The device's metered state at runtime is determined by the profile which is currently active. If the profile explicitly specifies <link linkend="NM_METERED_NO">NM_METERED_NO</link> or <link linkend="NM_METERED_YES,">NM_METERED_YES,</link> then the device's metered state is as such. If the connection profile leaves it undecided at <link linkend="NM_METERED_UNKNOWN">NM_METERED_UNKNOWN</link> (the default), then NetworkManager tries to guess the metered state, for example based on the device type or on DHCP options (like Android devices exposing a "ANDROID_METERED" DHCP vendor option). This then leads to either <link linkend="NM_METERED_GUESS_NO">NM_METERED_GUESS_NO</link> or <link linkend="NM_METERED_GUESS_YES">NM_METERED_GUESS_YES</link>.</para><para>Most applications probably should treat the runtime state <link linkend="NM_METERED_GUESS_YES">NM_METERED_GUESS_YES</link> like <link linkend="NM_METERED_YES,">NM_METERED_YES,</link> and all other states as not metered.</para><para>Note that the per-device metered states are then combined to a global metered state. This is basically the metered state of the device with the best default route. However, that generalization of a global metered state may not be correct if the default routes for IPv4 and IPv6 are on different devices, or if policy routing is configured. In general, the global metered state tries to express whether the traffic is likely metered, but since that depends on the traffic itself, there is not one answer in all cases. Hence, an application may want to consider the per-device's metered states.</para><para>Since: 1.2</para><para></para></para>
     <refsect3 role="enum_members">
       <title>Values</title>
       <informaltable role="enum_members_table" pgwide="1" frame="none">
@@ -1205,12 +1215,12 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_METERED_YES</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>Metered, the value was statically set</para><para></para></entry>
+              <entry role="enum_member_description"><para>Metered, the value was explicitly configured</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_METERED_NO</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>Not metered, the value was statically set</para><para></para></entry>
+              <entry role="enum_member_description"><para>Not metered, the value was explicitly configured</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_METERED_GUESS_YES</para><para></para></entry>
@@ -1886,6 +1896,91 @@
               <entry role="enum_member_name"><para>NM_TERNARY_TRUE</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>the option is enabled.</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMManagerReloadFlags" role="enum">
+    <title>enum NMManagerReloadFlags</title>
+    <indexterm zone="NMManagerReloadFlags">
+      <primary>NMManagerReloadFlags</primary>
+    </indexterm>
+    <para><para>Flags for the manager Reload() call.</para><para>Since: 1.22</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_MANAGER_RELOAD_FLAG_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>an alias for numeric zero, no flags set. This reloads everything that is supported and is identical to a SIGHUP.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_MANAGER_RELOAD_FLAG_CONF</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>reload the NetworkManager.conf configuration from disk. Note that this does not include connections, which can be reloaded via Setting's ReloadConnections().</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_MANAGER_RELOAD_FLAG_DNS_RC</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>update DNS configuration, which usually involves writing /etc/resolv.conf anew.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_MANAGER_RELOAD_FLAG_DNS_FULL</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x4</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>means to restart the DNS plugin. This is for example useful when using dnsmasq plugin, which uses additional configuration in /etc/NetworkManager/dnsmasq.d. If you edit those files, you can restart the DNS plugin. This action shortly interrupts name resolution.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_MANAGER_RELOAD_FLAG_ALL</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x7</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>all flags.</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMDeviceInterfaceFlags" role="enum">
+    <title>enum NMDeviceInterfaceFlags</title>
+    <indexterm zone="NMDeviceInterfaceFlags">
+      <primary>NMDeviceInterfaceFlags</primary>
+    </indexterm>
+    <para><para>Flags for a network interface.</para><para>Since: 1.22</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_INTERFACE_FLAG_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>an alias for numeric zero, no flags set.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_INTERFACE_FLAG_UP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the interface is enabled from the administrative point of view. Corresponds to kernel IFF_UP.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_INTERFACE_FLAG_LOWER_UP</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the physical link is up. Corresponds to kernel IFF_LOWER_UP.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_INTERFACE_FLAG_CARRIER</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x10000</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the interface has carrier. In most cases this is equal to the value of @NM_DEVICE_INTERFACE_FLAG_LOWER_UP. However some devices have a non-standard carrier detection mechanism.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>

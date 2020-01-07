@@ -562,6 +562,12 @@ Example: </strong></span>IEEE_8021X_PRIVATE_KEY=/home/joe/mykey.p12</td>
 <td align="left">0</td>
 <td align="left">Timeout in seconds for the 802.1X authentication. Zero means the global default or 25.</td>
 </tr>
+<tr>
+<td align="left">optional</td>
+<td align="left">IEEE_8021X_OPTIONAL<span class="emphasis"><em>(+)</em></span> default=no</td>
+<td align="left"> </td>
+<td align="left">whether the 802.1X authentication is optional</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -1408,7 +1414,9 @@ Example: </strong></span>IPV6_DEFAULTGW=abbe::1</td>
 <td align="left">never-default</td>
 <td align="left">IPV6_DEFROUTE<span class="emphasis"><em>(+)</em></span>, (and IPV6_DEFAULTGW, IPV6_DEFAULTDEV in /etc/sysconfig/network)</td>
 <td align="left">IPV6_DEFROUTE=yes (when no variable specified)</td>
-<td align="left">IPV6_DEFROUTE=no tells NetworkManager that this connection should not be assigned the default IPv6 route. IPV6_DEFROUTE has the opposite meaning as 'never-default' property.</td>
+<td align="left">IPV6_DEFROUTE=no tells NetworkManager that this connection should not be assigned the default IPv6 route. IPV6_DEFROUTE has the opposite meaning as 'never-default' property.<span class="bold"><strong>
+
+Example: </strong></span>DHCPV6_HOSTNAME_FLAGS=5 */ </td>
 </tr>
 <tr>
 <td align="left">may-fail</td>

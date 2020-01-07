@@ -40,6 +40,10 @@
 #endif
 #endif /* NM_IGNORED */
 
+#ifndef DEFAULT_USER_PATH
+#  define DEFAULT_USER_PATH DEFAULT_PATH
+#endif
+
 bool is_path(const char *p) _pure_;
 int path_split_and_make_absolute(const char *p, char ***ret);
 bool path_is_absolute(const char *p) _pure_;

@@ -1,19 +1,5 @@
-/* NetworkManager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2014 - 2018 Red Hat, Inc.
  */
 
@@ -36,7 +22,6 @@
 
 enum {
 	DEVICE_ADDED,
-	COMPONENT_ADDED,
 	LAST_SIGNAL
 };
 
@@ -45,17 +30,6 @@ static guint signals[LAST_SIGNAL] = { 0 };
 G_DEFINE_ABSTRACT_TYPE (NMDeviceFactory, nm_device_factory, G_TYPE_OBJECT)
 
 /*****************************************************************************/
-
-gboolean
-nm_device_factory_emit_component_added (NMDeviceFactory *factory, GObject *component)
-{
-	gboolean consumed = FALSE;
-
-	g_return_val_if_fail (NM_IS_DEVICE_FACTORY (factory), FALSE);
-
-	g_signal_emit (factory, signals[COMPONENT_ADDED], 0, component, &consumed);
-	return consumed;
-}
 
 static void
 nm_device_factory_get_supported_types (NMDeviceFactory *factory,
@@ -195,16 +169,8 @@ nm_device_factory_class_init (NMDeviceFactoryClass *klass)
 	signals[DEVICE_ADDED] = g_signal_new (NM_DEVICE_FACTORY_DEVICE_ADDED,
 	                                      G_OBJECT_CLASS_TYPE (object_class),
 	                                      G_SIGNAL_RUN_FIRST,
-	                                      G_STRUCT_OFFSET (NMDeviceFactoryClass, device_added),
-	                                      NULL, NULL, NULL,
+	                                      0, NULL, NULL, NULL,
 	                                      G_TYPE_NONE, 1, NM_TYPE_DEVICE);
-
-	signals[COMPONENT_ADDED] = g_signal_new (NM_DEVICE_FACTORY_COMPONENT_ADDED,
-	                                         G_OBJECT_CLASS_TYPE (object_class),
-	                                         G_SIGNAL_RUN_LAST,
-	                                         G_STRUCT_OFFSET (NMDeviceFactoryClass, component_added),
-	                                         g_signal_accumulator_true_handled, NULL, NULL,
-	                                         G_TYPE_BOOLEAN, 1, G_TYPE_OBJECT);
 }
 
 /*****************************************************************************/

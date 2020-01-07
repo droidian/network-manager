@@ -4,7 +4,7 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "shared/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.20.4',
+  version: '1.22.2',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -65,6 +65,27 @@ libnm_pkgincludedir = join_paths(nm_includedir, libnm_name)
 
 nm_debug = get_option('buildtype').contains('debug')
 
+gnome = import('gnome')
+i18n = import('i18n')
+pkg = import('pkgconfig')
+
+source_root = meson.current_source_dir()
+build_root = meson.current_build_dir()
+
+po_dir = join_paths(meson.source_root(), 'po')
+
+intltool_merge = find_program('intltool-merge')
+intltool_cache = join_paths(po_dir, '.intltool-merge-cache')
+intltool_desktop_cmd = [intltool_merge, '-d', '-u', '-c', intltool_cache, po_dir, '@INPUT@', '@OUTPUT@']
+intltool_xml_cmd = [intltool_merge, '-x', '-u', '-c', intltool_cache, po_dir, '@INPUT@', '@OUTPUT@']
+
+top_inc = include_directories('.')
+
+perl = find_program('perl')
+xsltproc = find_program('xsltproc')
+
+check_exports = find_program(join_paths(source_root, 'tools', 'check-exports.sh'))
+
 cc = meson.get_compiler('c')
 
 config_h = configuration_data()
@@ -116,18 +137,18 @@ common_ldflags = []
 
 enable_ld_gc = get_option('ld_gc')
 if enable_ld_gc
-  test_cflags = [
+  test_c_flags = [
     '-fdata-sections',
     '-ffunction-sections',
   ]
 
   test_ldflags = ['-Wl,--gc-sections']
 
-  foreach cflag: test_cflags + test_ldflags
+  foreach cflag: test_c_flags + test_ldflags
     assert(cc.has_argument(cflag), 'Unused symbol eviction requested but not supported. Use -Dld_gc=false to build without it.')
   endforeach
 
-  common_flags += test_cflags
+  common_flags += test_c_flags
   common_ldflags += test_ldflags
 endif
 
@@ -172,9 +193,9 @@ endif
 add_project_arguments(common_flags, language: 'c')
 add_project_link_arguments(common_ldflags, language: 'c')
 
-linker_script_binary   = join_paths(meson.source_root(), 'linker-script-binary.ver')
-linker_script_devices  = join_paths(meson.source_root(), 'linker-script-devices.ver')
-linker_script_settings = join_paths(meson.source_root(), 'linker-script-settings.ver')
+linker_script_binary   = join_paths(source_root, 'linker-script-binary.ver')
+linker_script_devices  = join_paths(source_root, 'linker-script-devices.ver')
+linker_script_settings = join_paths(source_root, 'linker-script-settings.ver')
 
 ldflags_linker_script_binary   = [ '-Wl,--version-script,@0@'.format(linker_script_binary) ]
 ldflags_linker_script_devices  = [ '-Wl,--version-script,@0@'.format(linker_script_devices) ]
@@ -259,9 +280,7 @@ config_h.set_quoted('NM_DIST_VERSION', dist_version)
 enable_wifi = get_option('wifi')
 
 enable_iwd = get_option('iwd')
-if enable_iwd
-  assert(enable_wifi, 'Enabling iwd support requires Wi-Fi support as well')
-endif
+assert((not enable_iwd) or enable_wifi, 'Enabling iwd support requires Wi-Fi support as well')
 config_h.set10('WITH_IWD', enable_iwd)
 
 enable_wext = get_option('wext')
@@ -295,19 +314,19 @@ if enable_introspection
   assert(gir_dep.found(), 'introspection support was requested, but the gobject-introspection library is not available. Use -Dintrospection=false to build without it.')
 endif
 
-udev_dir = get_option('udev_dir')
-install_udev_dir = (udev_dir != 'no')
+udev_udevdir = get_option('udev_dir')
+install_udevdir = (udev_udevdir != 'no')
 
-if install_udev_dir and udev_dir == ''
-  udev_dir = dependency('udev').get_pkgconfig_variable('udevdir')
+if install_udevdir and udev_udevdir == ''
+  udev_udevdir = dependency('udev').get_pkgconfig_variable('udevdir')
 endif
 
-systemd_system_unit_dir = get_option('systemdsystemunitdir')
-install_systemd_unit_dir = (systemd_system_unit_dir != 'no')
+systemd_systemdsystemunitdir = get_option('systemdsystemunitdir')
+install_systemdunitdir = (systemd_systemdsystemunitdir != 'no')
 
-if install_systemd_unit_dir and systemd_system_unit_dir == ''
+if install_systemdunitdir and systemd_systemdsystemunitdir == ''
   assert(systemd_dep.found(), 'systemd required but not found, please provide a valid systemd user unit dir or disable it')
-  systemd_system_unit_dir = systemd_dep.get_pkgconfig_variable('systemdsystemunitdir')
+  systemd_systemdsystemunitdir = systemd_dep.get_pkgconfig_variable('systemdsystemunitdir')
 endif
 
 enable_systemd_journal = get_option('systemd_journal')
@@ -442,11 +461,14 @@ config_h.set10('WITH_JSON_VALIDATION', enable_json_validation)
 enable_polkit = get_option('polkit')
 if enable_polkit
   # FIXME: policydir should be relative to `datadir`, not `prefix`. Fixed in https://gitlab.freedesktop.org/polkit/polkit/merge_requests/2
-  polkit_dir = dependency('polkit-gobject-1').get_pkgconfig_variable('policydir', define_variable: ['prefix', nm_prefix])
+  polkit_gobject_policydir = dependency('polkit-gobject-1').get_pkgconfig_variable('policydir', define_variable: ['prefix', nm_prefix])
 endif
 
-config_default_main_auth_polkit = enable_polkit.to_string()
-config_h.set_quoted('NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT', config_default_main_auth_polkit)
+config_auth_polkit_default = get_option('config_auth_polkit_default')
+if config_auth_polkit_default == 'default'
+  config_auth_polkit_default = (enable_polkit ? 'true' : 'false')
+endif
+config_h.set_quoted('NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT', config_auth_polkit_default)
 
 enable_modify_system = get_option('modify_system')
 
@@ -456,14 +478,18 @@ if enable_polkit_agent
 endif
 config_h.set10('WITH_POLKIT_AGENT', enable_polkit_agent)
 
-crypto_gnutls_dep = dependency('gnutls', version: '>= 2.12', required: false)
-crypto_nss_dep = dependency('nss', required: false)
 
 crypto = get_option('crypto')
 if crypto == 'nss'
-  assert(crypto_nss_dep.found(), 'Requires gnutls crypto support')
+    crypto_dep = dependency('nss', required: false)
+    assert(crypto_dep.found(), 'Requires nss crypto support')
 elif crypto == 'gnutls'
-  assert(crypto_gnutls_dep.found(), 'Requires gnutls crypto support')
+    crypto_dep = dependency(
+      'gnutls',
+      version: '>= 2.12',
+      required: false,
+    )
+    assert(crypto_dep.found(), 'Requires gnutls crypto support')
 else
   error('bug')
 endif
@@ -471,11 +497,11 @@ endif
 dbus_conf_dir = get_option('dbus_conf_dir')
 if dbus_conf_dir == ''
   assert(dbus_dep.found(), 'D-Bus required but not found, please provide a valid system bus config dir')
-  dbus_conf_dir = join_paths(dbus_dep.get_pkgconfig_variable('sysconfdir'), 'dbus-1', 'system.d')
+  dbus_conf_dir = join_paths(dbus_dep.get_pkgconfig_variable('sysconfdir', define_variable: ['sysconfdir', nm_sysconfdir]), 'dbus-1', 'system.d')
 endif
 
-dbus_ifaces_dir = dbus_dep.get_pkgconfig_variable('interfaces_dir',  define_variable: ['datadir', nm_datadir])
-dbus_sys_dir = dbus_dep.get_pkgconfig_variable('system_bus_services_dir', define_variable: ['datadir', nm_datadir])
+dbus_interfaces_dir = dbus_dep.get_pkgconfig_variable('interfaces_dir',  define_variable: ['datadir', nm_datadir])
+dbus_system_bus_services_dir = dbus_dep.get_pkgconfig_variable('system_bus_services_dir', define_variable: ['datadir', nm_datadir])
 
 # pppd
 enable_ppp = get_option('ppp')
@@ -502,6 +528,9 @@ config_h.set10('WITH_PPP', enable_ppp)
 enable_modem_manager = get_option('modem_manager')
 if enable_modem_manager
   mm_glib_dep = dependency('mm-glib', version: '>= 0.7.991')
+
+  mobile_broadband_provider_info_database = dependency('mobile-broadband-provider-info').get_pkgconfig_variable('database')
+  config_h.set_quoted('MOBILE_BROADBAND_PROVIDER_INFO_DATABASE', mobile_broadband_provider_info_database)
 endif
 
 # Bluez5 DUN support
@@ -635,9 +664,10 @@ if enable_libpsl
 endif
 config_h.set10('WITH_LIBPSL', enable_libpsl)
 
+libcurl_dep = dependency('libcurl', version: '>= 7.24.0', required: false)
+
 enable_concheck = get_option('concheck')
 if enable_concheck
-  libcurl_dep = dependency('libcurl', version: '>= 7.24.0', required: false)
   assert(libcurl_dep.found(), 'concheck requires libcurl library. Use -Dconcheck=false to disable it')
 endif
 config_h.set10('WITH_CONCHECK', enable_concheck)
@@ -666,6 +696,11 @@ enable_nmtui = get_option('nmtui')
 if enable_nmtui
   newt_dep = dependency('libnewt', version: '>= 0.52.15', required: false)
   assert(newt_dep.found(), 'You must have libnewt installed to build nmtui. Use -Dnmtui=false to disable it')
+endif
+
+enable_nm_cloud_setup = get_option('nm_cloud_setup')
+if enable_nm_cloud_setup
+  assert(libcurl_dep.found(), 'nm-cloud-setup requires libcurl library. Use -Dnm_cloud_setup=false to disable it')
 endif
 
 more_asserts = get_option('more_asserts')
@@ -715,7 +750,7 @@ endif
 tests = get_option('tests')
 enable_tests = (tests != 'no')
 require_root_tests = (tests == 'root')
-test_script = find_program(join_paths(meson.source_root(), 'tools', 'run-nm-test.sh'))
+test_script = find_program(join_paths(source_root, 'tools', 'run-nm-test.sh'))
 
 # valgrind
 locations = get_option('valgrind')
@@ -728,13 +763,13 @@ endif
 if enable_valgrind
   valgrind_suppressions_path = get_option('valgrind_suppressions')
   if valgrind_suppressions_path == ''
-    valgrind_suppressions_path = join_paths(meson.source_root(), 'valgrind.suppressions')
+    valgrind_suppressions_path = join_paths(source_root, 'valgrind.suppressions')
   endif
 endif
 
 test_args = [
   '--called-from-make',
-  meson.build_root(),
+  build_root,
   '',
   enable_valgrind ? valgrind.path() : '',
   enable_valgrind ? valgrind_suppressions_path : '',
@@ -747,6 +782,27 @@ python = py3.find_python()
 if python.found()
   config_h.set_quoted('TEST_NM_PYTHON', python.path())
 endif
+
+data_conf = configuration_data()
+data_conf.set('DISTRO_NETWORK_SERVICE',                  (enable_ifcfg_rh ? 'network.service' : ''))
+data_conf.set('NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT',    config_default_logging_audit)
+data_conf.set('NM_CONFIG_DEFAULT_LOGGING_BACKEND_TEXT',  config_logging_backend_default)
+data_conf.set('NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT_TEXT', config_auth_polkit_default)
+data_conf.set('NM_CONFIG_DEFAULT_MAIN_DHCP',             config_dhcp_default)
+data_conf.set('NM_CONFIG_DEFAULT_MAIN_RC_MANAGER',       config_dns_rc_manager_default)
+data_conf.set('NM_MAJOR_VERSION',                        nm_major_version)
+data_conf.set('NM_MICRO_VERSION',                        nm_micro_version)
+data_conf.set('NM_MINOR_VERSION',                        nm_minor_version)
+data_conf.set('NM_MODIFY_SYSTEM_POLICY',                 (enable_modify_system ? 'yes' : 'auth_admin_keep'))
+data_conf.set('NM_VERSION',                              nm_version)
+data_conf.set('VERSION',                                 nm_version)
+data_conf.set('bindir',                                  nm_bindir)
+data_conf.set('libexecdir',                              nm_libexecdir)
+data_conf.set('localstatedir',                           nm_localstatedir)
+data_conf.set('nmrundir',                                nm_pkgrundir)
+data_conf.set('nmstatedir',                              nm_pkgstatedir)
+data_conf.set('sbindir',                                 nm_sbindir)
+data_conf.set('sysconfdir',                              nm_sysconfdir)
 
 # check if we can build setting property documentation
 '''
@@ -780,38 +836,7 @@ else
 fi
 '''
 
-gnome = import('gnome')
-i18n = import('i18n')
-pkg = import('pkgconfig')
-
-po_dir = join_paths(meson.source_root(), 'po')
-
-intltool_merge = find_program('intltool-merge')
-intltool_cache = join_paths(po_dir, '.intltool-merge-cache')
-intltool_desktop_cmd = [intltool_merge, '-d', '-u', '-c', intltool_cache, po_dir, '@INPUT@', '@OUTPUT@']
-intltool_xml_cmd = [intltool_merge, '-x', '-u', '-c', intltool_cache, po_dir, '@INPUT@', '@OUTPUT@']
-
-perl = find_program('perl')
-xsltproc = find_program('xsltproc')
-
-check_exports = find_program(join_paths(meson.source_root(), 'tools', 'check-exports.sh'))
-
 content_files = []
-
-# FIXME: every plugin calls to this:
-'''
-set_sanitizer_env = \
-        [ -n "$(SANITIZER_ENV)" ] && export $(SANITIZER_ENV) ; \
-        if [ -n "$(1)" ] && echo $(CFLAGS) | grep -e -fsanitize=address ; then \
-                export LD_PRELOAD="$${LD_PRELOAD}:$$(ldd $(1) | grep libasan\.so\.. -o | head -n 1)"; \
-        fi
-
-check_so_symbols = \
-        $(call set_sanitizer_env,$(1)); \
-        LD_BIND_NOW=1 LD_PRELOAD=$${LD_PRELOAD}:$(1) $(builddir)/src/NetworkManager --version >/dev/null
-'''
-
-top_inc = include_directories('.')
 
 subdir('introspection')
 subdir('shared')
@@ -832,6 +857,11 @@ subdir('examples/C/glib')
 enable_qt = get_option('qt')
 if enable_qt
   add_languages('cpp')
+
+  qt_core_dep = dependency('QtCore', version: '>= 4')
+  qt_dbus_dep = dependency('QtDBus')
+  qt_network_dep = dependency('QtNetwork')
+
   subdir('examples/C/qt')
 endif
 
@@ -844,11 +874,9 @@ if enable_docs
   subdir('docs')
 endif
 
-config = 'config.h'
-
 configure_file(
-  input: config + '.meson',
-  output: config,
+  input: 'config.h.meson',
+  output: '@BASENAME@',
   configuration: config_h,
 )
 
@@ -865,8 +893,8 @@ config_extra_h.set_quoted('NMPLUGINDIR',       nm_plugindir)
 config_extra_h.set_quoted('NMRUNDIR',          nm_pkgrundir)
 config_extra_h.set_quoted('NMSTATEDIR',        nm_pkgstatedir)
 config_extra_h.set_quoted('NMVPNDIR',          nm_vpndir)
-config_extra_h.set_quoted('NM_BUILD_BUILDDIR', meson.build_root())
-config_extra_h.set_quoted('NM_BUILD_SRCDIR',   meson.source_root())
+config_extra_h.set_quoted('NM_BUILD_BUILDDIR', build_root)
+config_extra_h.set_quoted('NM_BUILD_SRCDIR',   source_root)
 if enable_ppp
     config_extra_h.set_quoted('PPPD_PLUGIN_DIR', pppd_plugin_dir)
 endif
@@ -876,7 +904,7 @@ config_extra_h.set_quoted('SYSCONFDIR',        nm_sysconfdir)
 
 configure_file(
   input: 'config-extra.h.meson',
-  output: 'config-extra.h',
+  output: '@BASENAME@',
   configuration: config_extra_h,
 )
 
@@ -887,14 +915,18 @@ meson.add_install_script(
   nm_pkgconfdir,
   nm_pkglibdir,
   nm_pkgstatedir,
-  enable_docs ? 'install_docs' : '',
   nm_mandir,
+  nm_sysconfdir,
+  enable_docs ? '1' : '0',
+  enable_ifcfg_rh ? '1' : '0',
+  enable_nm_cloud_setup ? '1' : '0',
+  install_systemdunitdir ? '1' : '0',
 )
 
 output = '\nSystem paths:\n'
 output += '  prefix: ' + nm_prefix + '\n'
 output += '  exec_prefix: ' + nm_prefix + '\n'
-output += '  systemdunitdir: ' + systemd_system_unit_dir + '\n'
+output += '  systemdunitdir: ' + systemd_systemdsystemunitdir + '\n'
 output += '  nmbinary: ' + nm_pkgsbindir + '\n'
 output += '  nmconfdir: ' + nm_pkgconfdir + '\n'
 output += '  nmlibdir: ' + nm_pkglibdir + '\n'
@@ -906,10 +938,15 @@ output += '  nmplugindir: ' + nm_plugindir + '\n'
 output += '\nPlatform:\n'
 output += '  session tracking: ' + ','.join(session_trackers) + '\n'
 output += '  suspend/resume: ' + suspend_resume + '\n'
-output += '  policykit: ' + enable_polkit.to_string()
+output += '  policykit: ' + enable_polkit.to_string() + ' (default: ' + config_auth_polkit_default + ')'
 if enable_polkit
-  modify = (enable_modify_system ? 'permissive' : 'restrictive')
-  output += ' (' + modify + ' modify.system) (default: main.auth-polkit=true)'
+  output += ' ('
+  if enable_modify_system
+    output += 'permissive'
+  else
+    output += 'restrictive'
+  endif
+  output += ' modify.system)'
 endif
 output += '\n'
 output += '  polkit agent: ' + enable_polkit_agent.to_string() + '\n'
@@ -933,6 +970,7 @@ output += '  libteamdctl: ' + enable_teamdctl.to_string() + '\n'
 output += '  ovs: ' + enable_ovs.to_string() + '\n'
 output += '  nmcli: ' + enable_nmcli.to_string() + '\n'
 output += '  nmtui: ' + enable_nmtui.to_string() + '\n'
+output += '  nm-cloud-setup: ' + enable_nm_cloud_setup.to_string() + '\n'
 output += '\nConfiguration_plugins (main.plugins=' + config_plugins_default + ')\n'
 output += '  ifcfg-rh: ' + enable_ifcfg_rh.to_string() + '\n'
 output += '  ifupdown: ' + enable_ifupdown.to_string() + '\n'
@@ -959,7 +997,7 @@ output += '  code coverage: ' + get_option('b_coverage').to_string() + '\n'
 output += '  LTO: ' + enable_lto.to_string() + '\n'
 output += '  Linker garbage collection: ' + enable_ld_gc.to_string() + '\n'
 output += '  JSON validation for libnm: ' + enable_json_validation.to_string() + '\n'
-output += '  crypto: ' + crypto + ' (have-gnutls: ' + crypto_gnutls_dep.found().to_string() + ', have-nss: ' + crypto_nss_dep.found().to_string() + ')\n'
+output += '  crypto: ' + crypto + '\n'
 output += '  sanitizers: ' + get_option('b_sanitize') + '\n'
 output += '  Mozilla Public Suffix List: ' + enable_libpsl.to_string() + '\n'
 output += '  vapi: ' + enable_vapi.to_string() + '\n'

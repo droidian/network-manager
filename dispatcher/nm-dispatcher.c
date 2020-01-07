@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2008 - 2012 Red Hat, Inc.
  */
 
@@ -619,24 +605,22 @@ find_scripts (Request *request)
 
 	g_hash_table_iter_init (&iter, scripts);
 	while (g_hash_table_iter_next (&iter, (gpointer *) &filename, (gpointer *) &path)) {
-		struct stat st;
-		char *link_target;
-		int err;
+		gs_free char *link_target = NULL;
 		const char *err_msg = NULL;
+		struct stat st;
+		int err;
 
 		link_target = g_file_read_link (path, NULL);
-		if (g_strcmp0 (link_target, "/dev/null") == 0) {
-			g_free (link_target);
+		if (nm_streq0 (link_target, "/dev/null"))
 			continue;
-		}
-		g_free (link_target);
 
 		err = stat (path, &st);
 		if (err)
 			_LOG_R_W (request, "find-scripts: Failed to stat '%s': %d", path, err);
-		else if (!S_ISREG (st.st_mode))
-			; /* silently skip. */
-		else if (!check_permissions (&st, &err_msg))
+		else if (   !S_ISREG (st.st_mode)
+		         || st.st_size == 0) {
+			/* silently skip. */
+		} else if (!check_permissions (&st, &err_msg))
 			_LOG_R_W (request, "find-scripts: Cannot execute '%s': %s", path, err_msg);
 		else {
 			/* success */
@@ -652,14 +636,15 @@ static gboolean
 script_must_wait (const char *path)
 {
 	gs_free char *link = NULL;
-	gs_free char *dir = NULL;
-	gs_free char *real = NULL;
-	char *tmp;
-
 
 	link = g_file_read_link (path, NULL);
 	if (link) {
+		gs_free char *dir = NULL;
+		nm_auto_free char *real = NULL;
+
 		if (!g_path_is_absolute (link)) {
+			char *tmp;
+
 			dir = g_path_get_dirname (path);
 			tmp = g_build_path ("/", dir, link, NULL);
 			g_free (link);
@@ -669,7 +654,7 @@ script_must_wait (const char *path)
 
 		dir = g_path_get_dirname (link);
 		real = realpath (dir, NULL);
-		if (real && !g_str_has_suffix (real, "/no-wait.d"))
+		if (NM_STR_HAS_SUFFIX (real, "/no-wait.d"))
 			return FALSE;
 	}
 

@@ -193,7 +193,9 @@ LoadConnections (IN  as filenames,
                  OUT b  status,
                  OUT as failures);
 </programlisting>
-<para>        Loads or reloads the indicated connections from disk. You should call this
+<para>          Note that before 1.20, NetworkManager had a bug and this <parameter>status</parameter> value was wrong. It is better to assume success if the method does not return with a D-Bus error. On top of that, you can look at <parameter>failures</parameter> to know whether any of the requested files failed.
+        <parameter>failures</parameter>: Paths of connection files that could not be loaded.
+</para><para>        Loads or reloads the indicated connections from disk. You should call this
         after making changes directly to an on-disk connection file to make sure
         that NetworkManager sees the changes. (If "monitor-connection-files" in
         NetworkManager.conf is "true", then this will have no real effect, but is
@@ -211,7 +213,7 @@ LoadConnections (IN  as filenames,
 </varlistentry>
 <varlistentry>
   <term><literal>OUT as <parameter>failures</parameter></literal>:</term>
-  <listitem><para>Paths of connection files that could not be loaded.</para></listitem>
+  <listitem><para></para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -230,7 +232,7 @@ ReloadConnections (OUT b status);
 <variablelist role="params">
 <varlistentry>
   <term><literal>OUT b <parameter>status</parameter></literal>:</term>
-  <listitem><para>Success or failure.</para></listitem>
+  <listitem><para>This always returns <constant>TRUE</constant>.</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>

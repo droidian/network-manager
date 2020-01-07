@@ -1,21 +1,7 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2004 - 2018 Red Hat, Inc.
- * Copyright 2005 - 2008 Novell, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2004 - 2018 Red Hat, Inc.
+ * Copyright (C) 2005 - 2008 Novell, Inc.
  */
 
 #include "nm-default.h"
@@ -243,102 +229,6 @@ nm_ethernet_address_is_valid (gconstpointer addr, gssize len)
 	}
 
 	return TRUE;
-}
-
-gconstpointer
-nm_utils_ipx_address_clear_host_address (int family, gpointer dst, gconstpointer src, guint8 plen)
-{
-	g_return_val_if_fail (dst, NULL);
-
-	switch (family) {
-	case AF_INET:
-		g_return_val_if_fail (plen <= 32, NULL);
-
-		if (!src) {
-			/* allow "self-assignment", by specifying %NULL as source. */
-			src = dst;
-		}
-
-		*((guint32 *) dst) = nm_utils_ip4_address_clear_host_address (*((guint32 *) src), plen);
-		break;
-	case AF_INET6:
-		nm_utils_ip6_address_clear_host_address (dst, src, plen);
-		break;
-	default:
-		g_return_val_if_reached (NULL);
-	}
-	return dst;
-}
-
-/* nm_utils_ip4_address_clear_host_address:
- * @addr: source ip6 address
- * @plen: prefix length of network
- *
- * returns: the input address, with the host address set to 0.
- */
-in_addr_t
-nm_utils_ip4_address_clear_host_address (in_addr_t addr, guint8 plen)
-{
-	return addr & _nm_utils_ip4_prefix_to_netmask (plen);
-}
-
-/* nm_utils_ip6_address_clear_host_address:
- * @dst: destination output buffer, will contain the network part of the @src address
- * @src: source ip6 address
- * @plen: prefix length of network
- *
- * Note: this function is self assignment safe, to update @src inplace, set both
- * @dst and @src to the same destination or set @src NULL.
- */
-const struct in6_addr *
-nm_utils_ip6_address_clear_host_address (struct in6_addr *dst, const struct in6_addr *src, guint8 plen)
-{
-	g_return_val_if_fail (plen <= 128, NULL);
-	g_return_val_if_fail (dst, NULL);
-
-	if (!src)
-		src = dst;
-
-	if (plen < 128) {
-		guint nbytes = plen / 8;
-		guint nbits = plen % 8;
-
-		if (nbytes && dst != src)
-			memcpy (dst, src, nbytes);
-		if (nbits) {
-			dst->s6_addr[nbytes] = (src->s6_addr[nbytes] & (0xFF << (8 - nbits)));
-			nbytes++;
-		}
-		if (nbytes <= 15)
-			memset (&dst->s6_addr[nbytes], 0, 16 - nbytes);
-	} else if (src != dst)
-		*dst = *src;
-
-	return dst;
-}
-
-int
-nm_utils_ip6_address_same_prefix_cmp (const struct in6_addr *addr_a, const struct in6_addr *addr_b, guint8 plen)
-{
-	int nbytes;
-	guint8 va, vb, m;
-
-	if (plen >= 128)
-		NM_CMP_DIRECT_MEMCMP (addr_a, addr_b, sizeof (struct in6_addr));
-	else {
-		nbytes = plen / 8;
-		if (nbytes)
-			NM_CMP_DIRECT_MEMCMP (addr_a, addr_b, nbytes);
-
-		plen = plen % 8;
-		if (plen != 0) {
-			m = ~((1 << (8 - plen)) - 1);
-			va = ((((const guint8 *) addr_a))[nbytes]) & m;
-			vb = ((((const guint8 *) addr_b))[nbytes]) & m;
-			NM_CMP_DIRECT (va, vb);
-		}
-	}
-	return 0;
 }
 
 /*****************************************************************************/
@@ -1113,7 +1003,7 @@ const char *const NM_PATHS_DEFAULT[] = {
 };
 
 const char *
-nm_utils_find_helper(const char *progname, const char *try_first, GError **error)
+nm_utils_find_helper (const char *progname, const char *try_first, GError **error)
 {
 	return nm_utils_file_search_in_paths (progname, try_first, NM_PATHS_DEFAULT, G_FILE_TEST_IS_EXECUTABLE, NULL, NULL, error);
 }
@@ -2431,8 +2321,8 @@ again:
 		 * where our configured SYSCONFDIR is.  Alternatively, it might be in
 		 * LOCALSTATEDIR /lib/dbus/machine-id.
 		 */
-		if (   nm_utils_file_get_contents (-1, "/etc/machine-id", 100*1024, 0, &content, NULL, NULL) >= 0
-		    || nm_utils_file_get_contents (-1, LOCALSTATEDIR"/lib/dbus/machine-id", 100*1024, 0, &content, NULL, NULL) >= 0) {
+		if (   nm_utils_file_get_contents (-1, "/etc/machine-id",                   100*1024, 0, &content, NULL, NULL, NULL)
+		    || nm_utils_file_get_contents (-1, LOCALSTATEDIR"/lib/dbus/machine-id", 100*1024, 0, &content, NULL, NULL, NULL)) {
 			g_strstrip (content);
 			if (nm_utils_hexstr2bin_full (content,
 			                              FALSE,
@@ -2615,13 +2505,14 @@ _host_id_read (guint8 **out_host_id,
 	GError *error = NULL;
 	gboolean success;
 
-	if (nm_utils_file_get_contents (-1,
-	                                SECRET_KEY_FILE,
-	                                10*1024,
-	                                NM_UTILS_FILE_GET_CONTENTS_FLAG_SECRET,
-	                                (char **) &file_content.str,
-	                                &file_content.len,
-	                                &error) < 0) {
+	if (!nm_utils_file_get_contents (-1,
+	                                 SECRET_KEY_FILE,
+	                                 10*1024,
+	                                 NM_UTILS_FILE_GET_CONTENTS_FLAG_SECRET,
+	                                 &file_content.str,
+	                                 &file_content.len,
+	                                 NULL,
+	                                 &error)) {
 		if (!nm_utils_error_is_notfound (error)) {
 			nm_log_warn (LOGD_CORE, "secret-key: failure reading secret key in \"%s\": %s (generate new key)",
 			             SECRET_KEY_FILE, error->message);
@@ -2699,6 +2590,7 @@ _host_id_read (guint8 **out_host_id,
 		                                        (const char *) new_content,
 		                                        len,
 		                                        0600,
+		                                        NULL,
 		                                        &error)) {
 			nm_log_warn (LOGD_CORE, "secret-key: failure to persist secret key in \"%s\" (%s) (use non-persistent key)",
 			             SECRET_KEY_FILE, error->message);
@@ -2809,9 +2701,14 @@ again:
 		NMUuid uuid;
 		gboolean is_fake = FALSE;
 
-		nm_utils_file_get_contents (-1, "/proc/sys/kernel/random/boot_id", 0,
+		nm_utils_file_get_contents (-1,
+		                            "/proc/sys/kernel/random/boot_id",
+		                            0,
 		                            NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
-		                            &contents, NULL, NULL);
+		                            &contents,
+		                            NULL,
+		                            NULL,
+		                            NULL);
 		if (   !contents
 		    || !_nm_utils_uuid_parse (nm_strstrip (contents), &uuid)) {
 			/* generate a random UUID instead. */
@@ -3625,12 +3522,7 @@ nm_utils_create_dhcp_iaid (gboolean legacy_unstable_byteorder,
 
 /**
  * nm_utils_dhcp_client_id_systemd_node_specific_full:
- * @legacy_unstable_byteorder: historically, the code would generate a iaid
- *   dependent on host endianness. This is undesirable, if backward compatibility
- *   are not a concern, generate stable endianness.
- * @interface_id: a binary identifier that is hashed into the DUID.
- *   Comonly this is the interface-name, but it may be the MAC address.
- * @interface_id_len: the length of @interface_id.
+ * @iaid: the IAID (identity association identifier) in native byte order
  * @machine_id: the binary identifier for the machine. It is hashed
  *   into the DUID. It commonly is /etc/machine-id (parsed in binary as NMUuid).
  * @machine_id_len: the length of the @machine_id.
@@ -3642,9 +3534,7 @@ nm_utils_create_dhcp_iaid (gboolean legacy_unstable_byteorder,
  * Returns: a %GBytes of generated client-id. This function cannot fail.
  */
 GBytes *
-nm_utils_dhcp_client_id_systemd_node_specific_full (gboolean legacy_unstable_byteorder,
-                                                    const guint8 *interface_id,
-                                                    gsize interface_id_len,
+nm_utils_dhcp_client_id_systemd_node_specific_full (guint32 iaid,
                                                     const guint8 *machine_id,
                                                     gsize machine_id_len)
 {
@@ -3665,24 +3555,15 @@ nm_utils_dhcp_client_id_systemd_node_specific_full (gboolean legacy_unstable_byt
 		} duid;
 	} *client_id;
 	guint64 u64;
-	guint32 u32;
 
-	g_return_val_if_fail (interface_id, NULL);
-	g_return_val_if_fail (interface_id_len > 0, NULL);
 	g_return_val_if_fail (machine_id, NULL);
 	g_return_val_if_fail (machine_id_len > 0, NULL);
 
 	client_id = g_malloc (sizeof (*client_id));
 
 	client_id->type = 255;
-
-	u32 = nm_utils_create_dhcp_iaid (legacy_unstable_byteorder,
-	                                 interface_id,
-	                                 interface_id_len);
-	unaligned_write_be32 (&client_id->iaid, u32);
-
+	unaligned_write_be32 (&client_id->iaid, iaid);
 	unaligned_write_be16 (&client_id->duid.type, DUID_TYPE_EN);
-
 	unaligned_write_be32 (&client_id->duid.en.pen, SYSTEMD_PEN);
 
 	u64 = htole64 (c_siphash_hash (HASH_KEY, machine_id, machine_id_len));
@@ -3693,14 +3574,9 @@ nm_utils_dhcp_client_id_systemd_node_specific_full (gboolean legacy_unstable_byt
 }
 
 GBytes *
-nm_utils_dhcp_client_id_systemd_node_specific (gboolean legacy_unstable_byteorder,
-                                               const char *ifname)
+nm_utils_dhcp_client_id_systemd_node_specific (guint32 iaid)
 {
-	g_return_val_if_fail (ifname && ifname[0], NULL);
-
-	return nm_utils_dhcp_client_id_systemd_node_specific_full (legacy_unstable_byteorder,
-	                                                           (const guint8 *) ifname,
-	                                                           strlen (ifname),
+	return nm_utils_dhcp_client_id_systemd_node_specific_full (iaid,
 	                                                           (const guint8 *) nm_utils_machine_id_bin (),
 	                                                           sizeof (NMUuid));
 }
@@ -3747,66 +3623,6 @@ nm_utils_g_value_set_strv (GValue *value, GPtrArray *strings)
 	strv[i] = NULL;
 
 	g_value_take_boxed (value, strv);
-}
-
-/*****************************************************************************/
-
-static gboolean
-debug_key_matches (const char *key,
-                   const char *token,
-                   guint        length)
-{
-	/* may not call GLib functions: see note in g_parse_debug_string() */
-	for (; length; length--, key++, token++) {
-		char k = (*key   == '_') ? '-' : g_ascii_tolower (*key  );
-		char t = (*token == '_') ? '-' : g_ascii_tolower (*token);
-
-		if (k != t)
-			return FALSE;
-	}
-
-	return *key == '\0';
-}
-
-/**
- * nm_utils_parse_debug_string:
- * @string: the string to parse
- * @keys: the debug keys
- * @nkeys: number of entries in @keys
- *
- * Similar to g_parse_debug_string(), but does not special
- * case "help" or "all".
- *
- * Returns: the flags
- */
-guint
-nm_utils_parse_debug_string (const char *string,
-                             const GDebugKey *keys,
-                             guint nkeys)
-{
-	guint i;
-	guint result = 0;
-	const char *q;
-
-	if (string == NULL)
-		return 0;
-
-	while (*string) {
-		q = strpbrk (string, ":;, \t");
-		if (!q)
-			q = string + strlen (string);
-
-		for (i = 0; i < nkeys; i++) {
-			if (debug_key_matches (keys[i].key, string, q - string))
-				result |= keys[i].value;
-		}
-
-		string = q;
-		if (*string)
-			string++;
-	}
-
-	return result;
 }
 
 /*****************************************************************************/

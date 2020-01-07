@@ -418,6 +418,13 @@
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings.property.802-1x.optional"></a>optional</td>
+<td align="left">boolean</td>
+<td align="left">FALSE</td>
+<td>Whether the 802.1X authentication is optional. If TRUE, the activation will continue even after a timeout or an authentication failure. Setting the property to TRUE is currently allowed only for Ethernet connections. If set to FALSE, the activation can continue only after a successful authentication.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings.property.802-1x.pac-file"></a>pac-file</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -491,14 +498,14 @@
 <a name="nm-settings.property.802-1x.phase2-auth"></a>phase2-auth</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>Specifies the allowed "phase 2" inner non-EAP authentication methods when an EAP method that uses an inner TLS tunnel is specified in the "eap" property.  Recognized non-EAP "phase 2" methods are "pap", "chap", "mschap", "mschapv2", "gtc", "otp", "md5", and "tls". Each "phase 2" inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details.</td>
+<td>Specifies the allowed "phase 2" inner non-EAP authentication method when an EAP method that uses an inner TLS tunnel is specified in the "eap" property.  Recognized non-EAP "phase 2" methods are "pap", "chap", "mschap", "mschapv2", "gtc", "otp", "md5", and "tls". Each "phase 2" inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.802-1x.phase2-autheap"></a>phase2-autheap</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>Specifies the allowed "phase 2" inner EAP-based authentication methods when an EAP method that uses an inner TLS tunnel is specified in the "eap" property.  Recognized EAP-based "phase 2" methods are "md5", "mschapv2", "otp", "gtc", and "tls". Each "phase 2" inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details.</td>
+<td>Specifies the allowed "phase 2" inner EAP-based authentication method when an EAP method that uses an inner TLS tunnel is specified in the "eap" property.  Recognized EAP-based "phase 2" methods are "md5", "mschapv2", "otp", "gtc", and "tls". Each "phase 2" inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1206,6 +1213,13 @@
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings.property.gsm.auto-config"></a>auto-config</td>
+<td align="left">boolean</td>
+<td align="left">FALSE</td>
+<td>When TRUE, the settings such as APN, username, or password will default to values that match the network the modem will register to in the Mobile Broadband Provider database.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings.property.gsm.device-id"></a>device-id</td>
 <td align="left">string</td>
 <td align="left"> </td>
@@ -1409,6 +1423,20 @@
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings.property.ipv4.dhcp-hostname-flags"></a>dhcp-hostname-flags</td>
+<td align="left">uint32</td>
+<td align="left">0</td>
+<td>Flags for the DHCP hostname and FQDN. Currently this property only includes flags to control the FQDN flags set in the DHCP FQDN option. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4).  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.ipv4.dhcp-iaid"></a>dhcp-iaid</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>A string containing the "Identity Association Identifier" (IAID) used by the DHCP client. The property is a 32-bit decimal value or a special value among "mac", "perm-mac", "ifname" and "stable". When set to "mac" (or "perm-mac"), the last 4 bytes of the current (or permanent) MAC address are used as IAID. When set to "ifname", the IAID is computed by hashing the interface name. The special value "stable" can be used to generate an IAID based on the stable-id (see connection.stable-id), a per-host key and the interface name. When the property is unset, the value from global configuration is used; if no global default is set then the IAID is assumed to be "ifname". Note that at the moment this property is ignored for IPv6 by dhclient, which always derives the IAID from the MAC address.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings.property.ipv4.dhcp-send-hostname"></a>dhcp-send-hostname</td>
 <td align="left">boolean</td>
 <td align="left">TRUE</td>
@@ -1581,6 +1609,20 @@
 <td align="left">string</td>
 <td align="left"> </td>
 <td>If the "dhcp-send-hostname" property is TRUE, then the specified name will be sent to the DHCP server when acquiring a lease. This property and "dhcp-fqdn" are mutually exclusive and cannot be set at the same time.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.ipv6.dhcp-hostname-flags"></a>dhcp-hostname-flags</td>
+<td align="left">uint32</td>
+<td align="left">0</td>
+<td>Flags for the DHCP hostname and FQDN. Currently this property only includes flags to control the FQDN flags set in the DHCP FQDN option. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4).  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.ipv6.dhcp-iaid"></a>dhcp-iaid</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>A string containing the "Identity Association Identifier" (IAID) used by the DHCP client. The property is a 32-bit decimal value or a special value among "mac", "perm-mac", "ifname" and "stable". When set to "mac" (or "perm-mac"), the last 4 bytes of the current (or permanent) MAC address are used as IAID. When set to "ifname", the IAID is computed by hashing the interface name. The special value "stable" can be used to generate an IAID based on the stable-id (see connection.stable-id), a per-host key and the interface name. When the property is unset, the value from global configuration is used; if no global default is set then the IAID is assumed to be "ifname". Note that at the moment this property is ignored for IPv6 by dhclient, which always derives the IAID from the MAC address.</td>
 </tr>
 <tr>
 <td align="left">
@@ -3649,7 +3691,7 @@
 <a name="nm-settings.property.802-11-wireless-security.key-mgmt"></a>key-mgmt</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>Key management used for the connection.  One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa-none" (Ad-Hoc WPA-PSK), "wpa-psk" (infrastructure WPA-PSK), "sae" (SAE) or "wpa-eap" (WPA-Enterprise). This property must be set for any Wi-Fi connection that uses security.</td>
+<td>Key management used for the connection.  One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa-psk" (infrastructure WPA-PSK), "sae" (SAE) or "wpa-eap" (WPA-Enterprise).  This property must be set for any Wi-Fi connection that uses security.</td>
 </tr>
 <tr>
 <td align="left">

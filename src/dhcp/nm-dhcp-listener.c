@@ -1,19 +1,6 @@
-/* This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2014 - 2016 Red Hat, Inc.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2014 - 2016 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -38,7 +25,7 @@
 
 /*****************************************************************************/
 
-const NMDhcpClientFactory *const _nm_dhcp_manager_factories[5] = {
+const NMDhcpClientFactory *const _nm_dhcp_manager_factories[6] = {
 	/* the order here matters, as we will try the plugins in this order to find
 	 * the first available plugin. */
 
@@ -52,6 +39,7 @@ const NMDhcpClientFactory *const _nm_dhcp_manager_factories[5] = {
 	&_nm_dhcp_client_factory_dhcpcd,
 #endif
 	&_nm_dhcp_client_factory_internal,
+	&_nm_dhcp_client_factory_systemd,
 	&_nm_dhcp_client_factory_nettools,
 };
 

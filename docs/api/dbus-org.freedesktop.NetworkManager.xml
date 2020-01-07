@@ -699,7 +699,8 @@ WwanHardwareEnabled  readable   b
 <programlisting>
 WimaxEnabled  readwrite  b
 </programlisting>
-<para>        Indicates if WiMAX devices are currently enabled or not.
+<para>        DEPRECATED. Doesn't have any meaning and is around only for
+        compatibility reasons.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.WimaxHardwareEnabled">
@@ -708,8 +709,8 @@ WimaxEnabled  readwrite  b
 <programlisting>
 WimaxHardwareEnabled  readable   b
 </programlisting>
-<para>        Indicates if the WiMAX hardware is currently enabled, i.e. the state of
-        the RF kill switch.
+<para>        DEPRECATED. Doesn't have any meaning and is around only for
+        compatibility reasons.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager.ActiveConnections">

@@ -1,19 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2008 - 2018 Red Hat, Inc.
+ * Copyright (C) 2008 - 2018 Red Hat, Inc.
  */
 
 #ifndef __NM_GLIB_H__
@@ -568,6 +555,49 @@ _nm_g_value_unset (GValue *value)
 }
 #define g_value_unset _nm_g_value_unset
 #endif
+
+/* G_PID_FORMAT was added only in 2.53.5. Define it ourself.
+ *
+ * If this was about "pid_t", we would check SIZEOF_PID_T, and set
+ * PRIi32/PRIi16, like systemd does. But it's actually about
+ * GPid, which glib typedefs as an "int".
+ *
+ * There is a test_gpid() that check that GPid is really a typedef
+ * for int. */
+#undef G_PID_FORMAT
+#define G_PID_FORMAT "i"
+
+/*****************************************************************************/
+
+#if !GLIB_CHECK_VERSION (2, 57, 2)
+#define G_SOURCE_FUNC(f) ((GSourceFunc) (void (*)(void)) (f))
+#endif
+
+/*****************************************************************************/
+
+/* Glib implements g_atomic_pointer_compare_and_exchange() as a macro.
+ * For one, to inline the atomic operation and also to perform some type checks
+ * on the arguments.
+ * Depending on compiler and glib version, glib passes the arguments as they
+ * are to __atomic_compare_exchange_n(). Some clang version don't accept const
+ * pointers there. Reimplement the macro to get that right, but with stronger
+ * type checks (as we use typeof()). Had one job. */
+static inline gboolean
+_g_atomic_pointer_compare_and_exchange (volatile void *atomic,
+                                        gconstpointer oldval,
+                                        gconstpointer newval)
+{
+	return g_atomic_pointer_compare_and_exchange ((void **) atomic, (void *) oldval, (void *) newval);
+}
+#undef g_atomic_pointer_compare_and_exchange
+#define g_atomic_pointer_compare_and_exchange(atomic, oldval, newval) \
+	({ \
+		typeof (atomic) const _atomic = (atomic); \
+		typeof (*_atomic) const _oldval = (oldval); \
+		typeof (*_atomic) const _newval = (newval); \
+		\
+		_g_atomic_pointer_compare_and_exchange (_atomic, _oldval, _newval); \
+	})
 
 /*****************************************************************************/
 

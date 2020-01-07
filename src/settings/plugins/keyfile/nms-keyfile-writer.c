@@ -1,19 +1,5 @@
-/* NetworkManager system settings service - keyfile plugin
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2008 Novell, Inc.
  * Copyright (C) 2008 - 2015 Red Hat, Inc.
  */
@@ -130,8 +116,12 @@ cert_writer (NMConnection *connection,
 		 * being sure that the entire profile can be written and all circumstances are good to
 		 * proceed. That means, while writing we must only collect the blogs in-memory, and write
 		 * them all in the end together (or not at all). */
-		success = nm_utils_file_set_contents (new_path, (const char *) blob_data,
-		                                      blob_len, 0600, &local);
+		success = nm_utils_file_set_contents (new_path,
+		                                      (const char *) blob_data,
+		                                      blob_len,
+		                                      0600,
+		                                      NULL,
+		                                      &local);
 		if (success) {
 			/* Write the path value to the keyfile.
 			 * We know, that basename(new_path) starts with a UUID, hence no conflict with "data:;base64,"  */
@@ -344,7 +334,12 @@ _internal_write_connection (NMConnection *connection,
 		}
 	}
 
-	nm_utils_file_set_contents (path, kf_content_buf, kf_content_len, 0600, &local_err);
+	nm_utils_file_set_contents (path,
+	                            kf_content_buf,
+	                            kf_content_len,
+	                            0600,
+	                            NULL,
+	                            &local_err);
 	if (local_err) {
 		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_FAILED,
 		             "error writing to file '%s': %s",

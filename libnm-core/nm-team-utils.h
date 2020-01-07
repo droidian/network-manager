@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2019 Red Hat, Inc.
+ * Copyright (C) 2019 Red Hat, Inc.
  */
 
 #ifndef __NM_TEAM_UITLS_H__
@@ -25,6 +11,7 @@
 #endif
 
 #include "nm-glib-aux/nm-value-type.h"
+#include "nm-core-internal.h"
 
 struct _NMSetting;
 
@@ -291,17 +278,10 @@ NMTeamSetting *_nm_setting_get_team_setting (struct _NMSetting *setting);
 
 /*****************************************************************************/
 
-#include "nm-connection.h"
-#include "nm-core-internal.h"
-
-GVariant *_nm_team_settings_property_to_dbus (const NMSettInfoSetting *sett_info,
-                                              guint property_idx,
-                                              NMConnection *connection,
-                                              NMSetting *setting,
-                                              NMConnectionSerializationFlags flags,
-                                              const NMConnectionSerializationOptions *options);
-
-void _nm_team_settings_property_from_dbus_link_watchers (GVariant *dbus_value,
-                                                         GValue *prop_value);
+extern const NMSettInfoPropertType nm_sett_info_propert_type_team_b;
+extern const NMSettInfoPropertType nm_sett_info_propert_type_team_i;
+extern const NMSettInfoPropertType nm_sett_info_propert_type_team_s;
+extern const NMSettInfoPropertType nm_sett_info_propert_type_team_as;
+extern const NMSettInfoPropertType nm_sett_info_propert_type_team_link_watchers;
 
 #endif /* __NM_TEAM_UITLS_H__ */

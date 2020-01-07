@@ -91,10 +91,13 @@ import itertools
 import subprocess
 import shlex
 import re
+import fcntl
 import dbus
 import time
+import random
 import dbus.service
 import dbus.mainloop.glib
+import io
 
 ###############################################################################
 
@@ -171,19 +174,81 @@ class Util:
         return "'" + s.replace("'", "'\"'\"'") + "'"
 
     @staticmethod
-    def popen_wait(p, timeout = None):
-        # wait() has a timeout argument only since 3.3
-        if Util.python_has_version(3, 3):
-            return p.wait(timeout)
-        if timeout is None:
-            return p.wait()
+    def popen_wait(p, timeout = 0):
+        (res, b_stdout, b_stderr) = Util.popen_wait_read(p, timeout = timeout, read_std_pipes = False)
+        return res
+
+    @staticmethod
+    def popen_wait_read(p, timeout = 0, read_std_pipes = True):
         start = NM.utils_get_timestamp_msec()
+        delay = 0.0005
+        b_stdout = b''
+        b_stderr = b''
+        res = None
         while True:
+            if read_std_pipes:
+                b_stdout += Util.buffer_read(p.stdout)
+                b_stderr += Util.buffer_read(p.stderr)
             if p.poll() is not None:
-                return p.returncode
-            if start + (timeout * 1000) < NM.utils_get_timestamp_msec():
-                raise Exception("timeout expired")
-            time.sleep(0.05)
+                res = p.returncode
+                break
+            if timeout == 0:
+                break
+            assert(timeout > 0)
+            remaining = timeout - ((NM.utils_get_timestamp_msec() - start) / 1000.0)
+            if remaining <= 0:
+                break
+            delay = min(delay * 2, remaining, 0.05)
+            time.sleep(delay)
+        return (res, b_stdout, b_stderr)
+
+    @staticmethod
+    def buffer_read(buf):
+        b = b''
+        while True:
+            try:
+                b1 = buf.read()
+            except io.BlockingIOError:
+                b1 = b''
+            except IOError:
+                b1 = b''
+            if not b1:
+                return b
+            b += b1
+
+    @staticmethod
+    def buffer_set_nonblock(buf):
+        fd = buf.fileno()
+        fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+        fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
+    @staticmethod
+    def random_job(jobs):
+        jobs = list(jobs)
+        l = len(jobs)
+        t = l * (l + 1) / 2
+        while True:
+            # we return a random jobs from the list, but the indexes at the front of
+            # the list are more likely. The idea is, that those jobs were started first,
+            # and are expected to complete first. As we poll, we want to check more frequently
+            # on the elements at the beginning of the list...
+            #
+            # Let's assign probabilities with an arithmetic series.
+            # That is, if there are 16 jobs, then the first gets weighted
+            # with 16, the second with 15, then 14, and so on, until the
+            # last has weight 1. That means, the first element is 16 times
+            # more probable than the last.
+            # Element at idx (starting with 0) is picked with probability
+            #    1 / (l*(l+1)/2) * (l - idx)
+            r = random.random() * t
+            idx = 0
+            rx = 0
+            while True:
+                rx += (l - idx)
+                if rx >= r or idx == l - 1:
+                    yield jobs[idx]
+                    break
+                idx += 1
 
     @staticmethod
     def iter_single(itr, min_num = 1, max_num = 1):
@@ -213,6 +278,9 @@ class Util:
     def replace_text(text, replace_arr):
         if not replace_arr:
             return text
+        needs_encode = Util.python_has_version(3) and Util.is_string(text)
+        if needs_encode:
+            text = text.encode('utf-8')
         text = [text]
         for replace in replace_arr:
             try:
@@ -236,7 +304,17 @@ class Util:
                     text2.append( (v_replace,) )
                     text2.append(t3)
             text = text2
-        return b''.join([(t[0] if isinstance(t, tuple) else t) for t in text])
+        bb = b''.join([(t[0] if isinstance(t, tuple) else t) for t in text])
+        if needs_encode:
+            bb = bb.decode('utf-8')
+        return bb
+
+    @staticmethod
+    def replace_text_sort_list(lst, replace_arr):
+        lst = [ (Util.replace_text(elem, replace_arr), elem) for elem in lst ]
+        lst = sorted(lst)
+        lst = [ tup[1] for tup in lst ]
+        return list(lst)
 
     @staticmethod
     def debug_dbus_interface():
@@ -336,7 +414,7 @@ class NMStubServer:
             if (NM.utils_get_timestamp_msec() - start) >= 4000:
                 p.stdin.close()
                 p.kill()
-                Util.popen_wait(p, 1000)
+                Util.popen_wait(p, 1)
                 raise Exception("after starting stub service the D-Bus name was not claimed in time")
 
         self._nmobj = nmobj
@@ -344,14 +422,17 @@ class NMStubServer:
         self._p = p
 
     def shutdown(self):
+        conn = self._conn
+        p = self._p
         self._nmobj = None
         self._nmiface = None
         self._conn = None
-        self._p.stdin.close()
-        self._p.kill()
-        Util.popen_wait(self._p, 1000)
         self._p = None
-        if self._conn_get_main_object(self._conn) is not None:
+        p.stdin.close()
+        p.kill()
+        if Util.popen_wait(p, 1) is None:
+            raise Exception("Stub service did not exit in time")
+        if self._conn_get_main_object(conn) is not None:
             raise Exception("Stub service is not still here although it should shut down")
 
     class _MethodProxy:
@@ -366,11 +447,8 @@ class NMStubServer:
             if kwargs:
                 # for convenience, we allow the caller to specify arguments
                 # as kwargs. In this case, we construct a a{sv} array as last argument.
-                kwargs2 = {}
                 args = list(args)
-                args.append(kwargs2)
-                for k in kwargs.keys():
-                    kwargs2[k] = kwargs[k]
+                args.append(kwargs)
             return method(*args)
 
     def __getattr__(self, member):
@@ -381,9 +459,16 @@ class NMStubServer:
     def addConnection(self, connection, do_verify_strict = True):
         return self.op_AddConnection(connection, do_verify_strict)
 
+    def findConnections(self, **kwargs):
+        if kwargs:
+            lst = self.op_FindConnections(**kwargs)
+        else:
+            lst = self.op_FindConnections( { } )
+        return list([ (str(elem[0]), str(elem[1]), str(elem[2])) for elem in lst ])
+
     def findConnectionUuid(self, con_id, required = True):
         try:
-            u = Util.iter_single(self.op_FindConnections(con_id = con_id))[1]
+            u = Util.iter_single(self.findConnections(con_id = con_id))[1]
             assert u, ("Invalid uuid %s" % (u))
         except Exception as e:
             if not required:
@@ -409,36 +494,76 @@ class AsyncProcess():
     def __init__(self,
                  args,
                  env,
-                 complete_cb):
-        self._args = args
+                 complete_cb,
+                 max_waittime_msec = 20000):
+        self._args = list(args)
         self._env = env
         self._complete_cb = complete_cb
+        self._max_waittime_msec = max_waittime_msec
 
     def start(self):
         if not hasattr(self, '_p'):
+            self._p_start_timestamp = NM.utils_get_timestamp_msec()
+            self._p_stdout_buf = b''
+            self._p_stderr_buf = b''
             self._p = subprocess.Popen(self._args,
                                        stdout = subprocess.PIPE,
                                        stderr = subprocess.PIPE,
                                        env = self._env)
+            Util.buffer_set_nonblock(self._p.stdout)
+            Util.buffer_set_nonblock(self._p.stderr)
 
-    def wait(self):
+    def _timeout_remaining_time(self):
+        # note that we call this during poll() and wait_and_complete().
+        # we don't know the exact time when the process terminated,
+        # so this is only approximately correct, if we call poll/wait
+        # frequently.
+        # Worst case, we will think that the process did not time out,
+        # when in fact it was running longer than max-waittime.
+        return self._max_waittime_msec - (NM.utils_get_timestamp_msec() - self._p_start_timestamp)
 
+    def poll(self, timeout = 0):
         self.start()
 
-        Util.popen_wait(self._p, 2000)
+        (return_code, b_stdout, b_stderr) = Util.popen_wait_read(self._p, timeout)
 
-        (returncode, stdout, stderr) = (self._p.returncode, self._p.stdout.read(), self._p.stderr.read())
+        self._p_stdout_buf += b_stdout
+        self._p_stderr_buf += b_stderr
 
-        self._p.stdout.close()
-        self._p.stderr.close()
+        if     return_code is None \
+           and self._timeout_remaining_time() <= 0:
+            raise Exception("process is still running after timeout: %s" % (' '.join(self._args)))
+        return return_code
+
+    def wait_and_complete(self):
+        self.start()
+
+        p = self._p
         self._p = None
 
-        self._complete_cb(self, returncode, stdout, stderr)
+        (return_code, b_stdout, b_stderr) = Util.popen_wait_read(p, max(0, self._timeout_remaining_time()) / 1000)
+        (stdout, stderr) = (p.stdout.read(), p.stderr.read())
+        p.stdout.close()
+        p.stderr.close()
+
+        stdout = self._p_stdout_buf + b_stdout + stdout
+        stderr = self._p_stderr_buf + b_stderr + stderr
+        del self._p_stdout_buf
+        del self._p_stderr_buf
+
+        if return_code is None:
+            print(stdout)
+            print(stderr)
+            raise Exception("process did not complete in time: %s" % (' '.join(self._args)))
+
+        self._complete_cb(self, return_code, stdout, stderr)
 
 ###############################################################################
 
 class NmTestBase(unittest.TestCase):
     pass
+
+MAX_JOBS = 15
 
 class TestNmcli(NmTestBase):
 
@@ -479,6 +604,7 @@ class TestNmcli(NmTestBase):
                      expected_stderr = _DEFAULT_ARG,
                      replace_stdout = None,
                      replace_stderr = None,
+                     replace_cmd = None,
                      sort_lines_stdout = False,
                      extra_env = None,
                      sync_barrier = False):
@@ -493,6 +619,7 @@ class TestNmcli(NmTestBase):
                              expected_stderr,
                              replace_stdout,
                              replace_stderr,
+                             replace_cmd,
                              sort_lines_stdout,
                              extra_env,
                              sync_barrier,
@@ -510,6 +637,7 @@ class TestNmcli(NmTestBase):
                    expected_stderr = _DEFAULT_ARG,
                    replace_stdout = None,
                    replace_stderr = None,
+                   replace_cmd = None,
                    sort_lines_stdout = False,
                    extra_env = None,
                    sync_barrier = None):
@@ -536,6 +664,7 @@ class TestNmcli(NmTestBase):
                              expected_stderr,
                              replace_stdout,
                              replace_stderr,
+                             replace_cmd,
                              sort_lines_stdout,
                              extra_env,
                              sync_barrier,
@@ -551,6 +680,7 @@ class TestNmcli(NmTestBase):
                     expected_stderr,
                     replace_stdout,
                     replace_stderr,
+                    replace_cmd,
                     sort_lines_stdout,
                     extra_env,
                     sync_barrier,
@@ -603,6 +733,7 @@ class TestNmcli(NmTestBase):
         env['TERM'] = 'linux'
         env['ASAN_OPTIONS'] = 'detect_leaks=0'
         env['XDG_CONFIG_HOME'] = PathConfiguration.srcdir()
+        env['NM_TEST_CALLING_NUM'] = str(calling_num)
         if fatal_warnings is _DEFAULT_ARG or fatal_warnings:
             env['G_DEBUG'] = 'fatal-warnings'
 
@@ -612,6 +743,8 @@ class TestNmcli(NmTestBase):
             replace_stdout = list(replace_stdout)
         if replace_stderr is not None:
             replace_stderr = list(replace_stderr)
+        if replace_cmd is not None:
+            replace_cmd = list(replace_cmd)
 
         if check_on_disk is _DEFAULT_ARG:
             check_on_disk = (    expected_returncode is _DEFAULT_ARG
@@ -623,6 +756,9 @@ class TestNmcli(NmTestBase):
             expected_stdout = None
         if expected_stderr is _DEFAULT_ARG:
             expected_stderr = None
+
+        results_idx = len(self._results)
+        self._results.append(None)
 
         def complete_cb(async_job,
                         returncode,
@@ -668,7 +804,8 @@ class TestNmcli(NmTestBase):
                    self.assertEqual(returncode, -5)
 
             if check_on_disk:
-                cmd = '$NMCLI %s' % (' '.join([Util.quote(a) for a in args[1:]])),
+                cmd = '$NMCLI %s' % (' '.join([Util.quote(a) for a in args[1:]]))
+                cmd = Util.replace_text(cmd, replace_cmd)
 
                 content = ('location: %s\n' % (calling_location)).encode('utf8') + \
                           ('cmd: %s\n' % (cmd)).encode('utf8') + \
@@ -685,11 +822,11 @@ class TestNmcli(NmTestBase):
                 content = ('size: %s\n' % (len(content))).encode('utf8') + \
                           content
 
-                self._results.append({
+                self._results[results_idx] = {
                     'test_name'        : test_name,
                     'ignore_l10n_diff' : ignore_l10n_diff,
                     'content'          : content,
-                })
+                }
 
         async_job = AsyncProcess(args = args,
                                  env = env,
@@ -697,20 +834,46 @@ class TestNmcli(NmTestBase):
 
         self._async_jobs.append(async_job)
 
-        if sync_barrier:
-            self.async_wait()
-        else:
-            self.async_start()
+        self.async_start(wait_all = sync_barrier)
 
-    def async_start(self):
-        # limit number parallel running jobs
-        for async_job in self._async_jobs[0:15]:
-            async_job.start()
+    def async_start(self, wait_all = False):
+
+        while True:
+
+            while True:
+                for async_job in list(self._async_jobs[0:MAX_JOBS]):
+                    async_job.start()
+                # start up to MAX_JOBS jobs, but poll() and complete those
+                # that are already exited. Retry, until there are no more
+                # jobs to start, or until MAX_JOBS are running.
+                jobs_running = []
+                for async_job in list(self._async_jobs[0:MAX_JOBS]):
+                    if async_job.poll() is not None:
+                        self._async_jobs.remove(async_job)
+                        async_job.wait_and_complete()
+                        continue
+                    jobs_running.append(async_job)
+                if len(jobs_running) >= len(self._async_jobs):
+                    break
+                if len(jobs_running) >= MAX_JOBS:
+                    break
+
+            if not jobs_running:
+                return
+            if not wait_all:
+                return
+
+            # in a loop, indefinitely poll the running jobs until we find one that
+            # completes. Note that poll() itself will raise an exception if a
+            # jobs times out.
+            for async_job in Util.random_job(jobs_running):
+                if async_job.poll(timeout = 0.03) is not None:
+                    self._async_jobs.remove(async_job)
+                    async_job.wait_and_complete()
+                    break
 
     def async_wait(self):
-        while self._async_jobs:
-            self.async_start()
-            self._async_jobs.pop(0).wait()
+        return self.async_start(wait_all = True)
 
     def _nm_test_pre(self):
         self._calling_num = {}
@@ -889,38 +1052,38 @@ class TestNmcli(NmTestBase):
     def test_003(self):
         self.init_001()
 
-        replace_stdout = []
+        replace_uuids = []
 
-        replace_stdout.append((Util.memoize_nullary(lambda: self.srv.findConnectionUuid('con-xx1')), 'UUID-con-xx1-REPLACED-REPLACED-REPLA'))
+        replace_uuids.append((Util.memoize_nullary(lambda: self.srv.findConnectionUuid('con-xx1')), 'UUID-con-xx1-REPLACED-REPLACED-REPLA'))
 
         self.call_nmcli(['c', 'add', 'type', 'ethernet', 'ifname', '*', 'con-name', 'con-xx1'],
-                        replace_stdout = replace_stdout)
+                        replace_stdout = replace_uuids)
 
         self.call_nmcli_l(['c', 's'],
-                          replace_stdout = replace_stdout)
+                          replace_stdout = replace_uuids)
 
-        replace_stdout.append((Util.memoize_nullary(lambda: self.srv.findConnectionUuid('con-gsm1')), 'UUID-con-gsm1-REPLACED-REPLACED-REPL'))
+        replace_uuids.append((Util.memoize_nullary(lambda: self.srv.findConnectionUuid('con-gsm1')), 'UUID-con-gsm1-REPLACED-REPLACED-REPL'))
 
         self.call_nmcli(['connection', 'add', 'type', 'gsm', 'autoconnect', 'no', 'con-name', 'con-gsm1', 'ifname', '*', 'apn', 'xyz.con-gsm1', 'serial.baud', '5', 'serial.send-delay', '100', 'serial.pari', '1', 'ipv4.dns-options', ' '],
-                        replace_stdout = replace_stdout)
+                        replace_stdout = replace_uuids)
 
-        replace_stdout.append((Util.memoize_nullary(lambda: self.srv.findConnectionUuid('ethernet')), 'UUID-ethernet-REPLACED-REPLACED-REPL'))
+        replace_uuids.append((Util.memoize_nullary(lambda: self.srv.findConnectionUuid('ethernet')), 'UUID-ethernet-REPLACED-REPLACED-REPL'))
 
         self.call_nmcli(['c', 'add', 'type', 'ethernet', 'ifname', '*'],
-                        replace_stdout = replace_stdout)
+                        replace_stdout = replace_uuids)
 
         self.call_nmcli_l(['c', 's'],
-                          replace_stdout = replace_stdout)
+                          replace_stdout = replace_uuids)
 
         self.call_nmcli_l(['-f', 'ALL', 'c', 's'],
-                          replace_stdout = replace_stdout)
+                          replace_stdout = replace_uuids)
 
         self.call_nmcli_l(['--complete-args', '-f', 'ALL', 'c', 's', ''],
-                          replace_stdout = replace_stdout,
+                          replace_stdout = replace_uuids,
                           sort_lines_stdout = True)
 
         self.call_nmcli_l(['con', 's', 'con-gsm1'],
-                          replace_stdout = replace_stdout)
+                          replace_stdout = replace_uuids)
 
         # activate the same profile on multiple devices. Our stub-implmentation
         # is fine with that... although NetworkManager service would reject
@@ -936,37 +1099,41 @@ class TestNmcli(NmTestBase):
             self.call_nmcli(['con', 'up', 'ethernet', 'ifname', dev])
 
             self.call_nmcli_l(['con'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(['-f', 'ALL', 'con'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(['-f', 'ALL', 'con', 's', '-a'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(['-f', 'ACTIVE-PATH,DEVICE,UUID', 'con', 's', '-act'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(['-f', 'UUID,NAME', 'con', 's', '--active'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(['-f', 'ALL', 'con', 's', 'ethernet'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(['-f', 'GENERAL.STATE', 'con', 's', 'ethernet'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(['con', 's', 'ethernet'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
+            self.call_nmcli_l(['-f', 'ALL', 'dev', 'status'],
+                              replace_stdout = replace_uuids)
+
+            # test invalid call ('s' abbrevates 'status' and not 'show'
             self.call_nmcli_l(['-f', 'ALL', 'dev', 's', 'eth0'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(['-f', 'ALL', 'dev', 'show', 'eth0'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(['-f', 'ALL', '-t', 'dev', 'show', 'eth0'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
         self.async_wait()
 
@@ -981,30 +1148,30 @@ class TestNmcli(NmTestBase):
 
             for mode in Util.iter_nmcli_output_modes():
                 self.call_nmcli_l(mode + ['-f', 'ALL', 'con'],
-                                  replace_stdout = replace_stdout)
+                                  replace_stdout = replace_uuids)
 
                 self.call_nmcli_l(mode + ['-f', 'UUID,TYPE', 'con'],
-                                  replace_stdout = replace_stdout)
+                                  replace_stdout = replace_uuids)
 
                 self.call_nmcli_l(mode + ['con', 's', 'ethernet'],
-                                  replace_stdout = replace_stdout)
+                                  replace_stdout = replace_uuids)
 
                 self.call_nmcli_l(mode + ['c', 's', '/org/freedesktop/NetworkManager/ActiveConnection/1'],
-                                  replace_stdout = replace_stdout)
+                                  replace_stdout = replace_uuids)
 
                 self.call_nmcli_l(mode + ['-f', 'all', 'dev', 'show', 'eth0'],
-                                  replace_stdout = replace_stdout)
+                                  replace_stdout = replace_uuids)
 
     @nm_test
     def test_004(self):
         self.init_001()
 
-        replace_stdout = []
+        replace_uuids = []
 
-        replace_stdout.append((Util.memoize_nullary(lambda: self.srv.findConnectionUuid('con-xx1')), 'UUID-con-xx1-REPLACED-REPLACED-REPLA'))
+        replace_uuids.append((Util.memoize_nullary(lambda: self.srv.findConnectionUuid('con-xx1')), 'UUID-con-xx1-REPLACED-REPLACED-REPLA'))
 
         self.call_nmcli(['c', 'add', 'type', 'wifi', 'ifname', '*', 'ssid', 'foobar', 'con-name', 'con-xx1'],
-                        replace_stdout = replace_stdout)
+                        replace_stdout = replace_uuids)
 
         self.call_nmcli(['connection', 'mod', 'con-xx1', 'ip.gateway', ''])
         self.call_nmcli(['connection', 'mod', 'con-xx1', 'ipv4.gateway', '172.16.0.1'], lang = 'pl')
@@ -1013,29 +1180,29 @@ class TestNmcli(NmTestBase):
         self.call_nmcli(['connection', 'mod', 'con-xx1', '802-11-wireless.band', 'a'])
         self.call_nmcli(['connection', 'mod', 'con-xx1', 'ipv4.addresses', '192.168.77.5/24', 'ipv4.routes', '2.3.4.5/32 192.168.77.1', 'ipv6.addresses', '1:2:3:4::6/64', 'ipv6.routes', '1:2:3:4:5:6::5/128'])
         self.call_nmcli_l(['con', 's', 'con-xx1'],
-                          replace_stdout = replace_stdout)
+                          replace_stdout = replace_uuids)
 
         self.async_wait()
 
-        replace_stdout.append((Util.memoize_nullary(lambda: self.srv.findConnectionUuid('con-vpn-1')), 'UUID-con-vpn-1-REPLACED-REPLACED-REP'))
+        replace_uuids.append((Util.memoize_nullary(lambda: self.srv.findConnectionUuid('con-vpn-1')), 'UUID-con-vpn-1-REPLACED-REPLACED-REP'))
 
         self.call_nmcli(['connection', 'add', 'type', 'vpn', 'con-name', 'con-vpn-1', 'ifname', '*', 'vpn-type', 'openvpn', 'vpn.data', 'key1 = val1,   key2  = val2, key3=val3'],
-                        replace_stdout = replace_stdout)
+                        replace_stdout = replace_uuids)
 
         self.call_nmcli_l(['con', 's'],
-                          replace_stdout = replace_stdout)
+                          replace_stdout = replace_uuids)
         self.call_nmcli_l(['con', 's', 'con-vpn-1'],
-                          replace_stdout = replace_stdout)
+                          replace_stdout = replace_uuids)
 
         self.call_nmcli(['con', 'up', 'con-xx1'])
         self.call_nmcli_l(['con', 's'],
-                          replace_stdout = replace_stdout)
+                          replace_stdout = replace_uuids)
 
         self.call_nmcli(['con', 'up', 'con-vpn-1'])
         self.call_nmcli_l(['con', 's'],
-                          replace_stdout = replace_stdout)
+                          replace_stdout = replace_uuids)
         self.call_nmcli_l(['con', 's', 'con-vpn-1'],
-                          replace_stdout = replace_stdout)
+                          replace_stdout = replace_uuids)
 
         self.async_wait()
 
@@ -1043,75 +1210,82 @@ class TestNmcli(NmTestBase):
                              'VpnState',
                              dbus.UInt32(NM.VpnConnectionState.ACTIVATED))
 
+        uuids = Util.replace_text_sort_list([ c[1] for c in self.srv.findConnections() ], replace_uuids)
+
         for mode in Util.iter_nmcli_output_modes():
 
             self.call_nmcli_l(mode + ['con', 's', 'con-vpn-1'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
             self.call_nmcli_l(mode + ['con', 's', 'con-vpn-1'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(mode + ['-f', 'ALL', 'con', 's', 'con-vpn-1'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             # This only filters 'vpn' settings from the connection profile.
             # Contrary to '-f GENERAL' below, it does not show the properties of
             # the activated VPN connection. This is a nmcli bug.
             self.call_nmcli_l(mode + ['-f', 'VPN', 'con', 's', 'con-vpn-1'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(mode + ['-f', 'GENERAL', 'con', 's', 'con-vpn-1'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(mode + ['dev', 's'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(mode + ['-f', 'all', 'dev', 'status'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(mode + ['dev', 'show'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(mode + ['-f', 'all', 'dev', 'show'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(mode + ['dev', 'show', 'wlan0'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(mode + ['-f', 'all', 'dev', 'show', 'wlan0'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(mode + ['-f', 'GENERAL,GENERAL.HWADDR,WIFI-PROPERTIES', 'dev', 'show', 'wlan0'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(mode + ['-f', 'GENERAL,GENERAL.HWADDR,WIFI-PROPERTIES', 'dev', 'show', 'wlan0'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(mode + ['-f', 'DEVICE,TYPE,DBUS-PATH', 'dev'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(mode + ['-f', 'ALL', 'device', 'wifi', 'list' ],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
             self.call_nmcli_l(mode + ['-f', 'COMMON', 'device', 'wifi', 'list' ],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
             self.call_nmcli_l(mode + ['-f', 'NAME,SSID,SSID-HEX,BSSID,MODE,CHAN,FREQ,RATE,SIGNAL,BARS,SECURITY,WPA-FLAGS,RSN-FLAGS,DEVICE,ACTIVE,IN-USE,DBUS-PATH',
                               'device', 'wifi', 'list'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
             self.call_nmcli_l(mode + ['-f', 'ALL', 'device', 'wifi', 'list', 'bssid', 'C0:E2:BE:E8:EF:B6'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
             self.call_nmcli_l(mode + ['-f', 'COMMON', 'device', 'wifi', 'list', 'bssid', 'C0:E2:BE:E8:EF:B6'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
             self.call_nmcli_l(mode + ['-f', 'NAME,SSID,SSID-HEX,BSSID,MODE,CHAN,FREQ,RATE,SIGNAL,BARS,SECURITY,WPA-FLAGS,RSN-FLAGS,DEVICE,ACTIVE,IN-USE,DBUS-PATH',
                               'device', 'wifi', 'list', 'bssid', 'C0:E2:BE:E8:EF:B6'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
             self.call_nmcli_l(mode + ['-f', 'ALL', 'device', 'show', 'wlan0' ],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
             self.call_nmcli_l(mode + ['-f', 'COMMON', 'device', 'show', 'wlan0' ],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
             self.call_nmcli_l(mode + ['-f', 'GENERAL,CAPABILITIES,WIFI-PROPERTIES,AP,WIRED-PROPERTIES,WIMAX-PROPERTIES,NSP,IP4,DHCP4,IP6,DHCP6,BOND,TEAM,BRIDGE,VLAN,BLUETOOTH,CONNECTIONS', 'device', 'show', 'wlan0' ],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
 
             self.call_nmcli_l(mode + ['dev', 'lldp', 'list', 'ifname', 'eth0'],
-                              replace_stdout = replace_stdout)
+                              replace_stdout = replace_uuids)
+
+            self.call_nmcli_l(mode + ['-f', 'connection.id,connection.uuid,connection.type,connection.interface-name,802-3-ethernet.mac-address,vpn.user-name', 'connection', 'show' ] + uuids,
+                              replace_stdout = replace_uuids,
+                              replace_cmd = replace_uuids)
+
 
 ###############################################################################
 

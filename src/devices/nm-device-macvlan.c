@@ -1,20 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2013 - 2015 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2013 - 2015 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -48,6 +34,7 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMDeviceMacvlan,
 
 typedef struct {
 	gulong parent_state_id;
+	gulong parent_mtu_id;
 	NMPlatformLnkMacvlan props;
 } NMDeviceMacvlanPrivate;
 
@@ -135,6 +122,17 @@ parent_state_changed (NMDevice *parent,
 }
 
 static void
+parent_mtu_maybe_changed (NMDevice *parent,
+                          GParamSpec *pspec,
+                          gpointer user_data)
+{
+	/* the MTU of a macvlan/macvtap device is limited by the parent's MTU.
+	 *
+	 * When the parent's MTU changes, try to re-set the MTU. */
+	nm_device_commit_mtu (user_data);
+}
+
+static void
 parent_changed_notify (NMDevice *device,
                        int old_ifindex,
                        NMDevice *old_parent,
@@ -150,12 +148,15 @@ parent_changed_notify (NMDevice *device,
 	 *  because NMDevice's dispose() will unset the parent, which in turn calls
 	 *  parent_changed_notify(). */
 	nm_clear_g_signal_handler (old_parent, &priv->parent_state_id);
+	nm_clear_g_signal_handler (old_parent, &priv->parent_mtu_id);
 
 	if (new_parent) {
 		priv->parent_state_id = g_signal_connect (new_parent,
 		                                          NM_DEVICE_STATE_CHANGED,
 		                                          G_CALLBACK (parent_state_changed),
 		                                          device);
+		priv->parent_mtu_id = g_signal_connect (new_parent, "notify::" NM_DEVICE_MTU,
+		                                        G_CALLBACK (parent_mtu_maybe_changed), device);
 
 		/* Set parent-dependent unmanaged flag */
 		nm_device_set_unmanaged_by_flags (device,
@@ -270,7 +271,7 @@ create_and_realize (NMDevice *device,
 /*****************************************************************************/
 
 static NMDeviceCapabilities
-get_generic_capabilities (NMDevice *dev)
+get_generic_capabilities (NMDevice *device)
 {
 	/* We assume MACVLAN interfaces always support carrier detect */
 	return NM_DEVICE_CAP_CARRIER_DETECT | NM_DEVICE_CAP_IS_SOFTWARE;
@@ -415,20 +416,6 @@ update_connection (NMDevice *device, NMConnection *connection)
 	              NULL);
 }
 
-static NMActStageReturn
-act_stage1_prepare (NMDevice *dev, NMDeviceStateReason *out_failure_reason)
-{
-	NMActStageReturn ret;
-
-	ret = NM_DEVICE_CLASS (nm_device_macvlan_parent_class)->act_stage1_prepare (dev, out_failure_reason);
-	if (ret != NM_ACT_STAGE_RETURN_SUCCESS)
-		return ret;
-
-	if (!nm_device_hw_addr_set_cloned (dev, nm_device_get_applied_connection (dev), FALSE))
-		return NM_ACT_STAGE_RETURN_FAILURE;
-	return NM_ACT_STAGE_RETURN_SUCCESS;
-}
-
 /*****************************************************************************/
 
 static void
@@ -475,6 +462,17 @@ nm_device_macvlan_init (NMDeviceMacvlan *self)
 {
 }
 
+static void
+dispose (GObject *object)
+{
+	NMDeviceMacvlanPrivate *priv = NM_DEVICE_MACVLAN_GET_PRIVATE (object);
+
+	G_OBJECT_CLASS (nm_device_macvlan_parent_class)->dispose (object);
+
+	nm_assert (priv->parent_state_id == 0);
+	nm_assert (priv->parent_mtu_id == 0);
+}
+
 static const NMDBusInterfaceInfoExtended interface_info_device_macvlan = {
 	.parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT (
 		NM_DBUS_INTERFACE_DEVICE_MACVLAN,
@@ -498,6 +496,7 @@ nm_device_macvlan_class_init (NMDeviceMacvlanClass *klass)
 	NMDBusObjectClass *dbus_object_class = NM_DBUS_OBJECT_CLASS (klass);
 	NMDeviceClass *device_class = NM_DEVICE_CLASS (klass);
 
+	object_class->dispose = dispose;
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
 
@@ -506,13 +505,14 @@ nm_device_macvlan_class_init (NMDeviceMacvlanClass *klass)
 	device_class->connection_type_supported = NM_SETTING_MACVLAN_SETTING_NAME;
 	device_class->connection_type_check_compatible = NM_SETTING_MACVLAN_SETTING_NAME;
 	device_class->link_types = NM_DEVICE_DEFINE_LINK_TYPES (NM_LINK_TYPE_MACVLAN, NM_LINK_TYPE_MACVTAP);
+	device_class->mtu_parent_delta = 0;
 
-	device_class->act_stage1_prepare = act_stage1_prepare;
+	device_class->act_stage1_prepare_set_hwaddr_ethernet = TRUE;
 	device_class->check_connection_compatible = check_connection_compatible;
 	device_class->complete_connection = complete_connection;
 	device_class->create_and_realize = create_and_realize;
 	device_class->get_generic_capabilities = get_generic_capabilities;
-	device_class->get_configured_mtu = nm_device_get_configured_mtu_for_wired;
+	device_class->get_configured_mtu = nm_device_get_configured_mtu_wired_parent;
 	device_class->is_available = is_available;
 	device_class->link_changed = link_changed;
 	device_class->parent_changed_notify = parent_changed_notify;

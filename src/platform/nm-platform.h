@@ -1,19 +1,5 @@
-/* nm-platform.c - Handle runtime kernel networking configuration
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2009 - 2018 Red Hat, Inc.
  */
 
@@ -320,6 +306,8 @@ typedef enum {
 	guint32 n_ifa_flags; \
 	\
 	guint8 plen; \
+	\
+	bool external:1; \
 	;
 
 /**
@@ -508,7 +496,7 @@ struct _NMPlatformIP4Route {
 
 	/* The bitwise inverse of the route scope rtm_scope. It is inverted so that the
 	 * default value (RT_SCOPE_NOWHERE) is zero. Use nm_platform_route_scope_inv()
-	 * to convert back and forth between the inverese representation and the
+	 * to convert back and forth between the inverse representation and the
 	 * real value.
 	 *
 	 * rtm_scope is part of the primary key for IPv4 routes. When deleting a route,
@@ -1353,6 +1341,12 @@ gboolean nm_platform_sysctl_ip_conf_set_int64 (NMPlatform *self,
 gboolean nm_platform_sysctl_ip_conf_set_ipv6_hop_limit_safe (NMPlatform *self,
                                                              const char *iface,
                                                              int value);
+gboolean nm_platform_sysctl_ip_neigh_set_ipv6_reachable_time (NMPlatform *self,
+                                                              const char *iface,
+                                                              guint value_ms);
+gboolean nm_platform_sysctl_ip_neigh_set_ipv6_retrans_time (NMPlatform *self,
+                                                            const char *iface,
+                                                            guint value_ms);
 int nm_platform_sysctl_ip_conf_get_rp_filter_ipv4 (NMPlatform *platform,
                                                    const char *iface,
                                                    gboolean consider_all,

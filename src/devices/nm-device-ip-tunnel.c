@@ -1,20 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2015 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2015 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -854,7 +840,9 @@ create_and_realize (NMDevice *device,
 }
 
 static guint32
-get_configured_mtu (NMDevice *device, NMDeviceMtuSource *out_source)
+get_configured_mtu (NMDevice *device,
+                    NMDeviceMtuSource *out_source,
+                    gboolean *out_force)
 {
 	return nm_device_get_configured_mtu_from_connection (device,
 	                                                     NM_TYPE_SETTING_IP_TUNNEL,
@@ -965,21 +953,6 @@ set_property (GObject *object, guint prop_id,
 	}
 }
 
-static NMActStageReturn
-act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
-{
-	NMActStageReturn ret;
-
-	ret = NM_DEVICE_CLASS (nm_device_ip_tunnel_parent_class)->act_stage1_prepare (device, out_failure_reason);
-	if (ret != NM_ACT_STAGE_RETURN_SUCCESS)
-		return ret;
-
-	if (!nm_device_hw_addr_set_cloned (device, nm_device_get_applied_connection (device), FALSE))
-		return NM_ACT_STAGE_RETURN_FAILURE;
-
-	return NM_ACT_STAGE_RETURN_SUCCESS;
-}
-
 /*****************************************************************************/
 
 static void
@@ -1066,7 +1039,7 @@ nm_device_ip_tunnel_class_init (NMDeviceIPTunnelClass *klass)
 	                                                        NM_LINK_TYPE_IPIP,
 	                                                        NM_LINK_TYPE_SIT);
 
-	device_class->act_stage1_prepare = act_stage1_prepare;
+	device_class->act_stage1_prepare_set_hwaddr_ethernet = TRUE;
 	device_class->link_changed = link_changed;
 	device_class->can_reapply_change = can_reapply_change;
 	device_class->complete_connection = complete_connection;

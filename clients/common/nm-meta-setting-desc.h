@@ -1,20 +1,6 @@
-/* nmcli - command-line tool to control NetworkManager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2010 - 2018 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2010 - 2018 Red Hat, Inc.
  */
 
 #ifndef __NM_META_SETTING_DESC_H__
@@ -102,6 +88,7 @@ typedef enum {
 	NM_META_COLOR_DEVICE_FIRMWARE_MISSING,
 	NM_META_COLOR_DEVICE_PLUGIN_MISSING,
 	NM_META_COLOR_DEVICE_UNAVAILABLE,
+	NM_META_COLOR_DEVICE_DISABLED,
 	NM_META_COLOR_DEVICE_UNKNOWN,
 	NM_META_COLOR_MANAGER_RUNNING,
 	NM_META_COLOR_MANAGER_STARTING,
@@ -128,6 +115,12 @@ typedef enum {
 	NM_META_COLOR_ENABLED,
 	_NM_META_COLOR_NUM
 } NMMetaColor;
+
+typedef enum {
+	NM_META_ACCESSOR_MODIFIER_SET,
+	NM_META_ACCESSOR_MODIFIER_ADD,
+	NM_META_ACCESSOR_MODIFIER_DEL,
+} NMMetaAccessorModifier;
 
 typedef enum {
 	NM_META_ACCESSOR_GET_TYPE_PRETTY,
@@ -210,7 +203,7 @@ struct _NMMetaPropertyType {
 	                     const NMMetaEnvironment *environment,
 	                     gpointer environment_user_data,
 	                     NMSetting *setting,
-	                     char modifier,
+	                     NMMetaAccessorModifier modifier,
 	                     const char *value,
 	                     GError **error);
 

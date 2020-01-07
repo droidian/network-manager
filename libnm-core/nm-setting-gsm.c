@@ -1,21 +1,7 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2007 - 2013 Red Hat, Inc.
- * Copyright 2007 - 2008 Novell, Inc.
+ * Copyright (C) 2007 - 2013 Red Hat, Inc.
+ * Copyright (C) 2007 - 2008 Novell, Inc.
  */
 
 #include "nm-default.h"
@@ -38,6 +24,7 @@
 /*****************************************************************************/
 
 NM_GOBJECT_PROPERTIES_DEFINE_BASE (
+	PROP_AUTO_CONFIG,
 	PROP_NUMBER,
 	PROP_USERNAME,
 	PROP_PASSWORD,
@@ -54,6 +41,8 @@ NM_GOBJECT_PROPERTIES_DEFINE_BASE (
 );
 
 typedef struct {
+	gboolean auto_config;
+
 	char *number; /* For dialing, duh */
 	char *username;
 	char *password;
@@ -79,6 +68,22 @@ G_DEFINE_TYPE (NMSettingGsm, nm_setting_gsm, NM_TYPE_SETTING)
 #define NM_SETTING_GSM_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_GSM, NMSettingGsmPrivate))
 
 /*****************************************************************************/
+
+/**
+ * nm_setting_gsm_get_auto_config:
+ * @setting: the #NMSettingGsm
+ *
+ * Returns: the #NMSettingGsm:auto-config property of the setting
+ *
+ * Since: 1.22
+ **/
+gboolean
+nm_setting_gsm_get_auto_config (NMSettingGsm *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_GSM (setting), FALSE);
+
+	return NM_SETTING_GSM_GET_PRIVATE (setting)->auto_config;
+}
 
 /**
  * nm_setting_gsm_get_number:
@@ -287,10 +292,10 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 	}
 
 	if (priv->apn) {
-		guint32 apn_len = strlen (priv->apn);
-		guint32 i;
+		gsize apn_len = strlen (priv->apn);
+		gsize i;
 
-		if (apn_len < 1 || apn_len > 64) {
+		if (apn_len > 64) {
 			g_set_error (error,
 			             NM_CONNECTION_ERROR,
 			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
@@ -334,7 +339,8 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		}
 	}
 
-	if (priv->username && !strlen (priv->username)) {
+	if (   priv->username
+	    && priv->username[0] == '\0') {
 		g_set_error_literal (error,
 		                     NM_CONNECTION_ERROR,
 		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
@@ -344,8 +350,8 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 	}
 
 	if (priv->network_id) {
-		guint32 nid_len = strlen (priv->network_id);
-		guint32 i;
+		gsize nid_len = strlen (priv->network_id);
+		gsize i;
 
 		/* Accept both 5 and 6 digit MCC/MNC codes */
 		if ((nid_len < 5) || (nid_len > 6)) {
@@ -414,6 +420,16 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		}
 	}
 
+	if (   priv->auto_config
+	    && (priv->apn || priv->username || priv->password)) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("can't be enabled when manual configuration is present"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_GSM_SETTING_NAME, NM_SETTING_GSM_AUTO_CONFIG);
+		return NM_SETTING_VERIFY_NORMALIZABLE_ERROR;
+	}
+
 	return TRUE;
 }
 
@@ -454,6 +470,9 @@ get_property (GObject *object, guint prop_id,
 	NMSettingGsm *setting = NM_SETTING_GSM (object);
 
 	switch (prop_id) {
+	case PROP_AUTO_CONFIG:
+		g_value_set_boolean (value, nm_setting_gsm_get_auto_config (setting));
+		break;
 	case PROP_NUMBER:
 		g_value_set_string (value, nm_setting_gsm_get_number (setting));
 		break;
@@ -507,6 +526,9 @@ set_property (GObject *object, guint prop_id,
 	char *tmp;
 
 	switch (prop_id) {
+	case PROP_AUTO_CONFIG:
+		priv->auto_config = g_value_get_boolean (value);
+		break;
 	case PROP_NUMBER:
 		g_free (priv->number);
 		priv->number = g_value_dup_string (value);
@@ -621,6 +643,21 @@ nm_setting_gsm_class_init (NMSettingGsmClass *klass)
 	setting_class->verify         = verify;
 	setting_class->verify_secrets = verify_secrets;
 	setting_class->need_secrets   = need_secrets;
+
+	/**
+	 * NMSettingGsm:auto-config:
+	 *
+	 * When %TRUE, the settings such as APN, username, or password will
+	 * default to values that match the network the modem will register
+	 * to in the Mobile Broadband Provider database.
+	 *
+	 * Since: 1.22
+	 **/
+	obj_properties[PROP_AUTO_CONFIG] =
+	    g_param_spec_boolean (NM_SETTING_GSM_AUTO_CONFIG, "", "",
+	                          FALSE,
+	                          G_PARAM_READWRITE |
+	                          G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMSettingGsm:number:
@@ -810,17 +847,8 @@ nm_setting_gsm_class_init (NMSettingGsmClass *klass)
 	                       G_PARAM_STATIC_STRINGS);
 
 	/* Ignore incoming deprecated properties */
-	_properties_override_add_dbus_only (properties_override,
-	                                    "allowed-bands",
-	                                    G_VARIANT_TYPE_UINT32,
-	                                    NULL,
-	                                    NULL);
-
-	_properties_override_add_dbus_only (properties_override,
-	                                    "network-type",
-	                                    G_VARIANT_TYPE_INT32,
-	                                    NULL,
-	                                    NULL);
+	_nm_properties_override_dbus (properties_override, "allowed-bands", &nm_sett_info_propert_type_deprecated_ignore_u);
+	_nm_properties_override_dbus (properties_override, "network-type", &nm_sett_info_propert_type_deprecated_ignore_i);
 
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 

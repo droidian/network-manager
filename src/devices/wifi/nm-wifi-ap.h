@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2004 - 2017 Red Hat, Inc.
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
@@ -95,6 +81,7 @@ gboolean          nm_wifi_ap_get_fake                 (const NMWifiAP *ap);
 gboolean          nm_wifi_ap_set_fake                 (NMWifiAP *ap,
                                                        gboolean fake);
 NM80211ApFlags    nm_wifi_ap_get_flags                (const NMWifiAP *self);
+gboolean          nm_wifi_ap_get_metered              (const NMWifiAP *self);
 
 const char       *nm_wifi_ap_to_string                (const NMWifiAP *self,
                                                        char *str_buf,

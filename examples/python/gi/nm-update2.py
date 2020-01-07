@@ -1,20 +1,7 @@
 #!/usr/bin/env python
+# SPDX-License-Identifier: GPL-2.0+
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-#
-# Copyright 2019 Red Hat, Inc.
+# Copyright (C) 2019 Red Hat, Inc.
 #
 
 import sys
@@ -40,8 +27,13 @@ def con_to_str(con):
     return '"%s" (%s)' % (s_con.get_id(), s_con.get_uuid())
 
 def usage():
-    print('Usage: %s [[id] <id>]' % (sys.argv[0]))
-    print('       %s [[uuid] <uuid>]' % (sys.argv[0]))
+    arg0 = sys.argv[0]
+    arg0_spaced = ' ' * len(arg0)
+    print('Usage: %s [ [id] <id> | [uuid] <uuid> ] \\' % (arg0))
+    print('       %s [ --to-disk | --in-memory | --in-memory-detached | --in-memory-only ] \\' % (arg0_spaced))
+    print('       %s [ --block-autoconnect ] \\' % (arg0_spaced))
+    print('       %s [ --volatile ] \\' % (arg0_spaced))
+    print('       %s [ --no-reapply ] \\' % (arg0_spaced))
     return 1
 
 def die(msg, print_usage=False):

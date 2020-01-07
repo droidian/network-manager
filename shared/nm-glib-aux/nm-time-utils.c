@@ -1,21 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2018 Red Hat, Inc.
+// SPDX-License-Identifier: LGPL-2.1+
+/*
+ * Copyright (C) 2018 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -234,12 +219,17 @@ nm_utils_get_monotonic_timestamp_s (void)
  * @timestamp_ns_per_tick: How many nanoseconds make one unit of @timestamp? E.g. if
  *   @timestamp is in unit seconds, pass %NM_UTILS_NS_PER_SECOND; if @timestamp is
  *   in nanoseconds, pass 1; if @timestamp is in milliseconds, pass %NM_UTILS_NS_PER_SECOND/1000.
+ *   This must be a multiple of 10, and between 1 and %NM_UTILS_NS_PER_SECOND.
  *
  * Returns: the monotonic-timestamp as CLOCK_BOOTTIME, as returned by clock_gettime().
  *   The unit is the same as the passed in @timestamp based on @timestamp_ns_per_tick.
  *   E.g. if you passed @timestamp in as seconds, it will return boottime in seconds.
- *   If @timestamp is non-positive, it returns -1. Note that a (valid) monotonic-timestamp
- *   is always positive.
+ *
+ *   Note that valid monotonic-timestamps are always positive numbers (counting roughly since
+ *   the application is running). However, it might make sense to calculate a timestamp from
+ *   before the application was running, hence negative @timestamp is allowed. The result
+ *   in that case might also be a negative timestamp (in CLOCK_BOOTTIME), which would indicate
+ *   that the timestamp lies in the past before the machine was booted.
  *
  * On older kernels that don't support CLOCK_BOOTTIME, the returned time is instead CLOCK_MONOTONIC.
  **/
@@ -256,9 +246,6 @@ nm_utils_monotonic_timestamp_as_boottime (gint64 timestamp, gint64 timestamp_ns_
 	                          timestamp_ns_per_tick % 10 == 0),
 	                      -1);
 
-	/* Check that the timestamp is in a valid range. */
-	g_return_val_if_fail (timestamp >= 0, -1);
-
 	/* if the caller didn't yet ever fetch a monotonic-timestamp, he cannot pass any meaningful
 	 * value (because he has no idea what these timestamps would be). That would be a bug. */
 	nm_assert (g_atomic_pointer_get (&p_global_state));
@@ -270,10 +257,58 @@ nm_utils_monotonic_timestamp_as_boottime (gint64 timestamp, gint64 timestamp_ns_
 	/* calculate the offset of monotonic-timestamp to boottime. offset_s is <= 1. */
 	offset = p->offset_sec * (NM_UTILS_NS_PER_SECOND / timestamp_ns_per_tick);
 
-	/* check for overflow. */
-	g_return_val_if_fail (offset > 0 || timestamp < G_MAXINT64 + offset, G_MAXINT64);
+	nm_assert (offset <= 0 && offset > G_MININT64);
+
+	/* check for overflow (note that offset is non-positive). */
+	g_return_val_if_fail (timestamp < G_MAXINT64 + offset, G_MAXINT64);
 
 	return timestamp - offset;
+}
+
+/**
+ * nm_utils_monotonic_timestamp_from_boottime:
+ * @boottime: the timestamp from CLOCK_BOOTTIME (or CLOCK_MONOTONIC, if
+ *   kernel does not support CLOCK_BOOTTIME and monotonic timestamps are based
+ *   on CLOCK_MONOTONIC).
+ * @timestamp_ns_per_tick: the scale in which @boottime is. If @boottime is in
+ *   nano seconds, this should be 1. If it is in milli seconds, this should be
+ *   %NM_UTILS_NS_PER_SECOND/1000, etc.
+ *
+ * Returns: the same timestamp in monotonic timestamp scale.
+ *
+ * Note that commonly monotonic timestamps are positive. But they may not
+ * be positive in this case. That's when boottime is taken from a time before
+ * the monotonic timestamps started counting. So, that means a zero or negative
+ * value is still a valid timestamp.
+ *
+ * This is the inverse of nm_utils_monotonic_timestamp_as_boottime().
+ */
+gint64
+nm_utils_monotonic_timestamp_from_boottime (guint64 boottime, gint64 timestamp_ns_per_tick)
+{
+	const GlobalState *p;
+	gint64 offset;
+
+	/* only support ns-per-tick being a multiple of 10. */
+	g_return_val_if_fail (timestamp_ns_per_tick == 1
+	                      || (timestamp_ns_per_tick > 0 &&
+	                          timestamp_ns_per_tick <= NM_UTILS_NS_PER_SECOND &&
+	                          timestamp_ns_per_tick % 10 == 0),
+	                      -1);
+
+	p = _t_get_global_state ();
+
+	nm_assert (p->offset_sec <= 0);
+
+	/* calculate the offset of monotonic-timestamp to boottime. offset_s is <= 1. */
+	offset = p->offset_sec * (NM_UTILS_NS_PER_SECOND / timestamp_ns_per_tick);
+
+	nm_assert (offset <= 0 && offset > G_MININT64);
+
+	/* check for overflow (note that offset is non-positive). */
+	g_return_val_if_fail (boottime < G_MAXINT64, G_MAXINT64);
+
+	return (gint64) boottime + offset;
 }
 
 gint64

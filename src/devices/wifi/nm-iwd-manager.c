@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2017 Intel Corporation
  */
 
@@ -150,6 +136,11 @@ agent_dbus_method_cb (GDBusConnection *connection,
 	network = g_dbus_object_manager_get_interface (priv->object_manager,
 	                                               network_path,
 	                                               NM_IWD_NETWORK_INTERFACE);
+	if (!network) {
+		_LOGE ("unable to find the network object");
+		return;
+	}
+
 
 	device_path = get_property_string_or_null (G_DBUS_PROXY (network), "Device");
 	if (!device_path) {
@@ -271,8 +262,21 @@ register_agent (NMIwdManager *self)
 	GDBusInterface *agent_manager;
 
 	agent_manager = g_dbus_object_manager_get_interface (priv->object_manager,
-	                                                     "/",
+	                                                     "/net/connman/iwd",
 	                                                     NM_IWD_AGENT_MANAGER_INTERFACE);
+
+	if (!agent_manager) {
+		/* IWD prior to 1.0 dated 30 October, 2019 has the agent manager on a
+		 * different path. */
+		agent_manager = g_dbus_object_manager_get_interface (priv->object_manager,
+		                                                     "/",
+		                                                     NM_IWD_AGENT_MANAGER_INTERFACE);
+	}
+
+	if (!agent_manager) {
+		_LOGE ("unable to register the IWD Agent: PSK/8021x Wi-Fi networks may not work");
+		return;
+	}
 
 	/* Register our agent */
 	g_dbus_proxy_call (G_DBUS_PROXY (agent_manager),
@@ -894,7 +898,7 @@ nm_iwd_manager_init (NMIwdManager *self)
 {
 	NMIwdManagerPrivate *priv = NM_IWD_MANAGER_GET_PRIVATE (self);
 
-	priv->manager = g_object_ref (nm_manager_get ());
+	priv->manager = g_object_ref (NM_MANAGER_GET);
 	g_signal_connect (priv->manager, NM_MANAGER_DEVICE_ADDED,
 	                  G_CALLBACK (device_added), self);
 

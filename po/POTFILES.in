@@ -106,6 +106,7 @@ libnm-core/nm-team-utils.c
 libnm-core/nm-utils.c
 libnm-core/nm-vpn-editor-plugin.c
 libnm-core/nm-vpn-plugin-info.c
+libnm/nm-client.c
 libnm/nm-device-6lowpan.c
 libnm/nm-device-adsl.c
 libnm/nm-device-bond.c
@@ -131,10 +132,8 @@ libnm/nm-device-wifi.c
 libnm/nm-device-wimax.c
 libnm/nm-device-wpan.c
 libnm/nm-device.c
-libnm/nm-manager.c
 libnm/nm-object.c
 libnm/nm-remote-connection.c
-libnm/nm-remote-settings.c
 libnm/nm-vpn-plugin-old.c
 libnm/nm-vpn-service-plugin.c
 data/org.freedesktop.NetworkManager.policy.in.in
@@ -148,7 +147,7 @@ src/dhcp/nm-dhcp-dhclient-utils.c
 src/dhcp/nm-dhcp-manager.c
 src/dns/nm-dns-manager.c
 src/devices/adsl/nm-device-adsl.c
-src/devices/bluetooth/nm-bluez-device.c
+src/devices/bluetooth/nm-bluez-manager.c
 src/devices/bluetooth/nm-device-bt.c
 src/devices/nm-device-6lowpan.c
 src/devices/nm-device-bond.c

@@ -2,12 +2,12 @@
 .\"     Title: nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 09/30/2019
+.\"      Date: 12/24/2019
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.20.4
+.\"    Source: NetworkManager 1.22.2
 .\"  Language: English
 .\"
-.TH "NMCLI" "1" "" "NetworkManager 1\&.20\&.4" "General Commands Manual"
+.TH "NMCLI" "1" "" "NetworkManager 1\&.22\&.2" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -99,6 +99,10 @@ The actual colors used are configured as described in
 COLORS
 section for a list of color names supported by
 \fBnmcli\fR\&.
+.sp
+If the environment variable
+NO_COLOR
+is set (to any value), then coloring is disabled with mode "auto"\&. Explicitly enabling coloring overrides the environment variable\&.
 .RE
 .PP
 \fB\-\-complete\-args\fR
@@ -590,25 +594,27 @@ option is not specified, the default timeout will be 10 seconds\&.
 .RS 4
 Add, modify or remove properties in the connection profile\&.
 .sp
-To set the property just specify the property name followed by the value\&. An empty value ("") removes the property value\&.
+To set the property just specify the property name followed by the value\&. An empty value ("") resets the property value to the default\&.
 .sp
 In addition to the properties, you can also use short names for some of the properties\&. Consult the
 PROPERTY ALIASES
 section for details\&.
 .sp
-If you want to append an item to the existing value, use
+If you want to append an item or a flag to the existing value, use
 +
-prefix for the property name\&. If you want to remove just one item from container\-type property, use
+prefix for the property name or alias\&. If you want to remove items from a container\-type or flag property, use
 \-
-prefix for the property name and specify a value or an zero\-based index of the item to remove (or option name for properties with named options) as
-\fIvalue\fR\&. The
+prefix\&. For certain properties you can also remove elements by specifying the zero\-based index(es)\&. The
 +
 and
 \-
-modifies only have a real effect for multi\-value (container) properties like
+modifiers only have a real effect for properties that support them\&. These are for example multi\-value (container) properties or flags like
 ipv4\&.dns,
+ip4,
 ipv4\&.addresses,
-bond\&.options, etc\&.
+bond\&.options,
+802\-1x\&.phase1\-auth\-flags
+etc\&.
 .sp
 See
 \fBnm-settings\fR(5)
@@ -1273,6 +1279,11 @@ parameters in order to scan more SSIDs\&.
 This command does not show the APs, use
 \fBnmcli device wifi list\fR
 for that\&.
+.RE
+.PP
+\fBwifi\fR \fBshow\-password\fR [\fBifname\fR\ \fIifname\fR]
+.RS 4
+Show the details of the active Wi\-Fi networks, including the secrets\&.
 .RE
 .PP
 \fBlldp\fR [\fBlist\fR\ [\fBifname\fR\ \fIifname\fR]]
@@ -2559,6 +2570,11 @@ Warning of a missing device plugin\&.
 \fBdevice\-unavailable\fR
 .RS 4
 Device that is not available for activation\&.
+.RE
+.PP
+\fBdevice\-disabled\fR
+.RS 4
+Device is disabled by software or hardware kill switch\&.
 .RE
 .PP
 \fBmanager\-running\fR

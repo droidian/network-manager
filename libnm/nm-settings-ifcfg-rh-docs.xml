@@ -46,6 +46,8 @@ lookaside file, or it can be owned by a secret agent."/>
 <property name="pin-flags" variable="(none)" format="" values="" default="" example="" description="The property is not handled by ifcfg-rh plugin."/>
 <property name="system-ca-certs" variable="(none)" format="" values="" default="" example="" description="The property is not handled by ifcfg-rh plugin."/>
 <property name="auth-timeout" variable="IEEE_8021X_AUTH_TIMEOUT(+)" format="" values="" default="0" example="" description="Timeout in seconds for the 802.1X authentication. Zero means the global default or 25."/>
+<property name="optional" variable="IEEE_8021X_OPTIONAL(+)
+default=no" format="" values="" default="" example="" description="whether the 802.1X authentication is optional"/>
 </setting>
 <setting name="adsl">
 </setting>
@@ -217,7 +219,9 @@ but in route6-* file instead in the form of command line for &apos;ip route add&
 <property name="ignore-auto-routes" variable="IPV6_PEERROUTES(+)" format="" values="" default="yes" example="" description="IPV6_PEERROUTES has the opposite meaning as &apos;ignore-auto-routes&apos; property."/>
 <property name="ignore-auto-dns" variable="IPV6_PEERDNS(+)" format="" values="" default="yes" example="" description="IPV6_PEERDNS has the opposite meaning as &apos;ignore-auto-dns&apos; property."/>
 <property name="dhcp-hostname" variable="DHCPV6_HOSTNAME" format="" values="" default="" example="" description="Hostname to send the DHCP server."/>
-<property name="never-default" variable="IPV6_DEFROUTE(+), (and IPV6_DEFAULTGW, IPV6_DEFAULTDEV in /etc/sysconfig/network)" format="" values="" default="IPV6_DEFROUTE=yes (when no variable specified)" example="" description="IPV6_DEFROUTE=no tells NetworkManager that this connection
+<property name="never-default" variable="IPV6_DEFROUTE(+), (and IPV6_DEFAULTGW, IPV6_DEFAULTDEV in /etc/sysconfig/network)" format="" values="" default="IPV6_DEFROUTE=yes (when no variable specified)" example="DHCPV6_HOSTNAME_FLAGS=5
+*/
+" description="IPV6_DEFROUTE=no tells NetworkManager that this connection
 should not be assigned the default IPv6 route. IPV6_DEFROUTE has the opposite
 meaning as &apos;never-default&apos; property."/>
 <property name="may-fail" variable="IPV6_FAILURE_FATAL(+)" format="" values="" default="no" example="" description="IPV6_FAILURE_FATAL has the opposite meaning as &apos;may-fail&apos; property."/>

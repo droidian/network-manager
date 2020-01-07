@@ -1,21 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2017 Red Hat, Inc.
+// SPDX-License-Identifier: LGPL-2.1+
+/*
+ * Copyright (C) 2017 Red Hat, Inc.
  */
 
 #ifndef __NM_HASH_UTILS_H__
@@ -293,12 +278,28 @@ gboolean nm_pstr_equal (gconstpointer a, gconstpointer b);
 
 /*****************************************************************************/
 
+/* nm_pint_*() are for hashing keys that are pointers to int values,
+ * that is, "const int *" types. */
+
+guint nm_pint_hash (gconstpointer p);
+gboolean nm_pint_equals (gconstpointer a, gconstpointer b);
+
+/*****************************************************************************/
+
 /* this hashes/compares the pointer value that we point to. Basically,
- * (((const void *const*) a) == ((const void *const*) b)). */
+ * (*((const void *const*) a) == *((const void *const*) b)). */
 
 guint nm_pdirect_hash (gconstpointer p);
 
 gboolean nm_pdirect_equal (gconstpointer a, gconstpointer b);
+
+/* this hashes/compares the direct pointer value by following pointers to
+ * pointers 2 times.
+ * (**((const void *const*const*) a) == **((const void *const*const*) b)). */
+
+guint nm_ppdirect_hash (gconstpointer p);
+
+gboolean nm_ppdirect_equal (gconstpointer a, gconstpointer b);
 
 /*****************************************************************************/
 
@@ -311,15 +312,15 @@ gboolean nm_pdirect_equal (gconstpointer a, gconstpointer b);
  *
  * Note that there is a chance that two different pointer values hash to the same obfuscated
  * value. So beware of that when reviewing logs. However, such a collision is very unlikely. */
-#define nm_hash_obfuscate_ptr(static_seed, val) \
-	({ \
-		NMHashState _h; \
-		const void *_val_obf_ptr = (val); \
-		\
-		nm_hash_init (&_h, (static_seed)); \
-		nm_hash_update_val (&_h, _val_obf_ptr); \
-		nm_hash_complete_u64 (&_h); \
-	})
+static inline guint64
+nm_hash_obfuscate_ptr (guint static_seed, gconstpointer val)
+{
+	NMHashState h;
+
+	nm_hash_init (&h, static_seed);
+	nm_hash_update_val (&h, val);
+	return nm_hash_complete_u64 (&h);
+}
 
 /* if you want to log obfuscated pointer for a certain context (like, NMPRuleManager
  * logging user-tags), then you are advised to use nm_hash_obfuscate_ptr() with your

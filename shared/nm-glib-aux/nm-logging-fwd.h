@@ -1,26 +1,11 @@
-/* NetworkManager -- Network link manager
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: LGPL-2.1+
+/*
  * Copyright (C) 2006 - 2018 Red Hat, Inc.
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
 
-#ifndef __NM_LOGGING_DEFINES_H__
-#define __NM_LOGGING_DEFINES_H__
+#ifndef __NM_LOGGING_FWD_H__
+#define __NM_LOGGING_FWD_H__
 
 /* Log domains */
 
@@ -127,6 +112,19 @@ nm_log_level_from_syslog (int syslog_level)
 	}
 }
 
+static inline int
+nm_log_level_to_syslog (NMLogLevel nm_level)
+{
+	switch (nm_level) {
+	case LOGL_ERR:    return 3; /* LOG_ERR */
+	case LOGL_WARN:   return 4; /* LOG_WARN */
+	case LOGL_INFO:   return 5; /* LOG_NOTICE */
+	case LOGL_DEBUG:  return 6; /* LOG_INFO */
+	case LOGL_TRACE:  return 7; /* LOG_DEBUG */
+	default:          return 0; /* LOG_EMERG */
+	}
+}
+
 /*****************************************************************************/
 
 struct timespec;
@@ -137,4 +135,120 @@ extern void _nm_utils_monotonic_timestamp_initialized (const struct timespec *tp
                                                        gint64 offset_sec,
                                                        gboolean is_boottime);
 
-#endif /* __NM_LOGGING_DEFINES_H__ */
+/*****************************************************************************/
+
+#define _LOGL_TRACE LOGL_TRACE
+#define _LOGL_DEBUG LOGL_DEBUG
+#define _LOGL_INFO  LOGL_INFO
+#define _LOGL_WARN  LOGL_WARN
+#define _LOGL_ERR   LOGL_ERR
+
+/* This is the default definition of _NMLOG_ENABLED(). Special implementations
+ * might want to undef this and redefine it. */
+#define _NMLOG_ENABLED(level) ( nm_logging_enabled ((level), (_NMLOG_DOMAIN)) )
+
+#define _LOGT(...)          _NMLOG (_LOGL_TRACE, __VA_ARGS__)
+#define _LOGD(...)          _NMLOG (_LOGL_DEBUG, __VA_ARGS__)
+#define _LOGI(...)          _NMLOG (_LOGL_INFO , __VA_ARGS__)
+#define _LOGW(...)          _NMLOG (_LOGL_WARN , __VA_ARGS__)
+#define _LOGE(...)          _NMLOG (_LOGL_ERR  , __VA_ARGS__)
+
+#define _LOGT_ENABLED(...)  _NMLOG_ENABLED (_LOGL_TRACE, ##__VA_ARGS__)
+#define _LOGD_ENABLED(...)  _NMLOG_ENABLED (_LOGL_DEBUG, ##__VA_ARGS__)
+#define _LOGI_ENABLED(...)  _NMLOG_ENABLED (_LOGL_INFO , ##__VA_ARGS__)
+#define _LOGW_ENABLED(...)  _NMLOG_ENABLED (_LOGL_WARN , ##__VA_ARGS__)
+#define _LOGE_ENABLED(...)  _NMLOG_ENABLED (_LOGL_ERR  , ##__VA_ARGS__)
+
+#define _LOGT_err(errsv, ...) _NMLOG_err (errsv, _LOGL_TRACE, __VA_ARGS__)
+#define _LOGD_err(errsv, ...) _NMLOG_err (errsv, _LOGL_DEBUG, __VA_ARGS__)
+#define _LOGI_err(errsv, ...) _NMLOG_err (errsv, _LOGL_INFO , __VA_ARGS__)
+#define _LOGW_err(errsv, ...) _NMLOG_err (errsv, _LOGL_WARN , __VA_ARGS__)
+#define _LOGE_err(errsv, ...) _NMLOG_err (errsv, _LOGL_ERR  , __VA_ARGS__)
+
+/* _LOGT() and _LOGt() both log with level TRACE, but the latter is disabled by default,
+ * unless building with --with-more-logging. */
+#if NM_MORE_LOGGING
+#define _LOGt_ENABLED(...)    _NMLOG_ENABLED (_LOGL_TRACE, ##__VA_ARGS__)
+#define _LOGt(...)            _NMLOG (_LOGL_TRACE, __VA_ARGS__)
+#define _LOGt_err(errsv, ...) _NMLOG_err (errsv, _LOGL_TRACE, __VA_ARGS__)
+#else
+/* still call the logging macros to get compile time checks, but they will be optimized out. */
+#define _LOGt_ENABLED(...)    ( FALSE && (_NMLOG_ENABLED (_LOGL_TRACE, ##__VA_ARGS__)) )
+#define _LOGt(...)            G_STMT_START { if (FALSE) { _NMLOG (_LOGL_TRACE, __VA_ARGS__); } } G_STMT_END
+#define _LOGt_err(errsv, ...) G_STMT_START { if (FALSE) { _NMLOG_err (errsv, _LOGL_TRACE, __VA_ARGS__); } } G_STMT_END
+#endif
+
+/*****************************************************************************/
+
+/* Some implementation define a second set of logging macros, for a separate
+ * use. As with the _LOGD() macro family above, the exact implementation
+ * depends on the file that uses them.
+ * Still, it encourages a common pattern to have the common set of macros
+ * like _LOG2D(), _LOG2I(), etc. and have _LOG2t() which by default
+ * is disabled at compile time. */
+
+#define _NMLOG2_ENABLED(level) ( nm_logging_enabled ((level), (_NMLOG2_DOMAIN)) )
+
+#define _LOG2T(...)          _NMLOG2 (_LOGL_TRACE, __VA_ARGS__)
+#define _LOG2D(...)          _NMLOG2 (_LOGL_DEBUG, __VA_ARGS__)
+#define _LOG2I(...)          _NMLOG2 (_LOGL_INFO , __VA_ARGS__)
+#define _LOG2W(...)          _NMLOG2 (_LOGL_WARN , __VA_ARGS__)
+#define _LOG2E(...)          _NMLOG2 (_LOGL_ERR  , __VA_ARGS__)
+
+#define _LOG2T_ENABLED(...)  _NMLOG2_ENABLED (_LOGL_TRACE, ##__VA_ARGS__)
+#define _LOG2D_ENABLED(...)  _NMLOG2_ENABLED (_LOGL_DEBUG, ##__VA_ARGS__)
+#define _LOG2I_ENABLED(...)  _NMLOG2_ENABLED (_LOGL_INFO , ##__VA_ARGS__)
+#define _LOG2W_ENABLED(...)  _NMLOG2_ENABLED (_LOGL_WARN , ##__VA_ARGS__)
+#define _LOG2E_ENABLED(...)  _NMLOG2_ENABLED (_LOGL_ERR  , ##__VA_ARGS__)
+
+#define _LOG2T_err(errsv, ...) _NMLOG2_err (errsv, _LOGL_TRACE, __VA_ARGS__)
+#define _LOG2D_err(errsv, ...) _NMLOG2_err (errsv, _LOGL_DEBUG, __VA_ARGS__)
+#define _LOG2I_err(errsv, ...) _NMLOG2_err (errsv, _LOGL_INFO , __VA_ARGS__)
+#define _LOG2W_err(errsv, ...) _NMLOG2_err (errsv, _LOGL_WARN , __VA_ARGS__)
+#define _LOG2E_err(errsv, ...) _NMLOG2_err (errsv, _LOGL_ERR  , __VA_ARGS__)
+
+#if NM_MORE_LOGGING
+#define _LOG2t_ENABLED(...)    _NMLOG2_ENABLED (_LOGL_TRACE, ##__VA_ARGS__)
+#define _LOG2t(...)            _NMLOG2 (_LOGL_TRACE, __VA_ARGS__)
+#define _LOG2t_err(errsv, ...) _NMLOG2_err (errsv, _LOGL_TRACE, __VA_ARGS__)
+#else
+/* still call the logging macros to get compile time checks, but they will be optimized out. */
+#define _LOG2t_ENABLED(...)    ( FALSE && (_NMLOG2_ENABLED (_LOGL_TRACE, ##__VA_ARGS__)) )
+#define _LOG2t(...)            G_STMT_START { if (FALSE) { _NMLOG2 (_LOGL_TRACE, __VA_ARGS__); } } G_STMT_END
+#define _LOG2t_err(errsv, ...) G_STMT_START { if (FALSE) { _NMLOG2_err (errsv, _LOGL_TRACE, __VA_ARGS__); } } G_STMT_END
+#endif
+
+#define _NMLOG3_ENABLED(level) ( nm_logging_enabled ((level), (_NMLOG3_DOMAIN)) )
+
+#define _LOG3T(...)          _NMLOG3 (_LOGL_TRACE, __VA_ARGS__)
+#define _LOG3D(...)          _NMLOG3 (_LOGL_DEBUG, __VA_ARGS__)
+#define _LOG3I(...)          _NMLOG3 (_LOGL_INFO , __VA_ARGS__)
+#define _LOG3W(...)          _NMLOG3 (_LOGL_WARN , __VA_ARGS__)
+#define _LOG3E(...)          _NMLOG3 (_LOGL_ERR  , __VA_ARGS__)
+
+#define _LOG3T_ENABLED(...)  _NMLOG3_ENABLED (_LOGL_TRACE, ##__VA_ARGS__)
+#define _LOG3D_ENABLED(...)  _NMLOG3_ENABLED (_LOGL_DEBUG, ##__VA_ARGS__)
+#define _LOG3I_ENABLED(...)  _NMLOG3_ENABLED (_LOGL_INFO , ##__VA_ARGS__)
+#define _LOG3W_ENABLED(...)  _NMLOG3_ENABLED (_LOGL_WARN , ##__VA_ARGS__)
+#define _LOG3E_ENABLED(...)  _NMLOG3_ENABLED (_LOGL_ERR  , ##__VA_ARGS__)
+
+#define _LOG3T_err(errsv, ...) _NMLOG3_err (errsv, _LOGL_TRACE, __VA_ARGS__)
+#define _LOG3D_err(errsv, ...) _NMLOG3_err (errsv, _LOGL_DEBUG, __VA_ARGS__)
+#define _LOG3I_err(errsv, ...) _NMLOG3_err (errsv, _LOGL_INFO , __VA_ARGS__)
+#define _LOG3W_err(errsv, ...) _NMLOG3_err (errsv, _LOGL_WARN , __VA_ARGS__)
+#define _LOG3E_err(errsv, ...) _NMLOG3_err (errsv, _LOGL_ERR  , __VA_ARGS__)
+
+#if NM_MORE_LOGGING
+#define _LOG3t_ENABLED(...)    _NMLOG3_ENABLED (_LOGL_TRACE, ##__VA_ARGS__)
+#define _LOG3t(...)            _NMLOG3 (_LOGL_TRACE, __VA_ARGS__)
+#define _LOG3t_err(errsv, ...) _NMLOG3_err (errsv, _LOGL_TRACE, __VA_ARGS__)
+#else
+/* still call the logging macros to get compile time checks, but they will be optimized out. */
+#define _LOG3t_ENABLED(...)    ( FALSE && (_NMLOG3_ENABLED (_LOGL_TRACE, ##__VA_ARGS__)) )
+#define _LOG3t(...)            G_STMT_START { if (FALSE) { _NMLOG3 (_LOGL_TRACE, __VA_ARGS__); } } G_STMT_END
+#define _LOG3t_err(errsv, ...) G_STMT_START { if (FALSE) { _NMLOG3_err (errsv, _LOGL_TRACE, __VA_ARGS__); } } G_STMT_END
+#endif
+
+/*****************************************************************************/
+
+#endif /* __NM_LOGGING_FWD_H__ */

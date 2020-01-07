@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2009 - 2014 Red Hat, Inc.
  * Copyright (C) 2009 Novell, Inc.
  * Copyright (C) 2009 - 2013 Canonical Ltd.
@@ -145,6 +131,20 @@ remove_one_modem (gpointer key, gpointer value, gpointer user_data)
 {
 	nm_modem_emit_removed (NM_MODEM (value));
 	return TRUE;
+}
+
+/*****************************************************************************/
+
+NMModem **
+nm_modem_manager_get_modems (NMModemManager *self,
+                             guint *out_len)
+{
+	g_return_val_if_fail (NM_IS_MODEM_MANAGER (self), NULL);
+
+	return (NMModem **) nm_utils_hash_values_to_array (NM_MODEM_MANAGER_GET_PRIVATE (self)->modems,
+	                                                   NULL,
+	                                                   NULL,
+	                                                   out_len);
 }
 
 /*****************************************************************************/

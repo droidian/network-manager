@@ -15,10 +15,7 @@
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMWimaxNsp.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMWimaxNsp.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
-                  <a href="#NMWimaxNsp.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMWimaxNsp.properties" class="shortcut">Properties</a></span>
+                  <a href="#NMWimaxNsp.description" class="shortcut">Description</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -85,34 +82,6 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="NMWimaxNsp.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
-<td class="property_name"><a class="link" href="NMWimaxNsp.html#NMWimaxNsp--name" title="The “name” property">name</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a class="link" href="libnm-nm-dbus-interface.html#NMWimaxNspNetworkType" title="enum NMWimaxNspNetworkType"><span class="type">NMWimaxNspNetworkType</span></a></td>
-<td class="property_name"><a class="link" href="NMWimaxNsp.html#NMWimaxNsp--network-type" title="The “network-type” property">network-type</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
-<td class="property_name"><a class="link" href="NMWimaxNsp.html#NMWimaxNsp--signal-quality" title="The “signal-quality” property">signal-quality</a></td>
-<td class="property_flags">Read</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
 <a name="NMWimaxNsp.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -132,25 +101,8 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMWimaxNsp.html#NM-WIMAX-NSP-NETWORK-TYPE:CAPS" title="NM_WIMAX_NSP_NETWORK_TYPE">NM_WIMAX_NSP_NETWORK_TYPE</a></td>
 </tr>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMWimaxNsp.html#NMWimaxNsp-struct" title="NMWimaxNsp">NMWimaxNsp</a></td>
-</tr>
 </tbody>
 </table></div>
-</div>
-<div class="refsect1">
-<a name="NMWimaxNsp.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
-        <span class="lineart">╰──</span> NMWimaxNsp
-</pre>
-</div>
-<div class="refsect1">
-<a name="NMWimaxNsp.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
-<p>
-NMWimaxNsp implements
- <a href="https://developer.gnome.org/gio/unstable/GInitable.html#GInitable-struct">GInitable</a> and  <a href="https://developer.gnome.org/gio/unstable/GAsyncInitable.html#GAsyncInitable-struct">GAsyncInitable</a>.</p>
 </div>
 <div class="refsect1">
 <a name="NMWimaxNsp.description"></a><h2>Description</h2>
@@ -161,6 +113,10 @@ NMWimaxNsp implements
 <a name="nm-wimax-nsp-get-name"></a><h3>nm_wimax_nsp_get_name ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_wimax_nsp_get_name (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_wimax_nsp_get_name</code> has been deprecated since version 1.22. and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported by NetworkManager since 1.2.0</p>
+</div>
 <p>Gets the name of the wimax NSP</p>
 <div class="refsect3">
 <a name="nm-wimax-nsp-get-name.parameters"></a><h4>Parameters</h4>
@@ -187,6 +143,10 @@ nm_wimax_nsp_get_name (<em class="parameter"><code><a class="link" href="NMWimax
 <a name="nm-wimax-nsp-get-signal-quality"></a><h3>nm_wimax_nsp_get_signal_quality ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
 nm_wimax_nsp_get_signal_quality (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_wimax_nsp_get_signal_quality</code> has been deprecated since version 1.22. and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported by NetworkManager since 1.2.0</p>
+</div>
 <p>Gets the WPA signal quality of the wimax NSP.</p>
 <div class="refsect3">
 <a name="nm-wimax-nsp-get-signal-quality.parameters"></a><h4>Parameters</h4>
@@ -213,6 +173,10 @@ nm_wimax_nsp_get_signal_quality (<em class="parameter"><code><a class="link" hre
 <a name="nm-wimax-nsp-get-network-type"></a><h3>nm_wimax_nsp_get_network_type ()</h3>
 <pre class="programlisting"><a class="link" href="libnm-nm-dbus-interface.html#NMWimaxNspNetworkType" title="enum NMWimaxNspNetworkType"><span class="returnvalue">NMWimaxNspNetworkType</span></a>
 nm_wimax_nsp_get_network_type (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_wimax_nsp_get_network_type</code> has been deprecated since version 1.22. and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported by NetworkManager since 1.2.0</p>
+</div>
 <p>Gets the network type of the wimax NSP.</p>
 <div class="refsect3">
 <a name="nm-wimax-nsp-get-network-type.parameters"></a><h4>Parameters</h4>
@@ -240,6 +204,10 @@ nm_wimax_nsp_get_network_type (<em class="parameter"><code><a class="link" href=
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *
 nm_wimax_nsp_filter_connections (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>,
                                  <em class="parameter"><code>const <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *connections</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_wimax_nsp_filter_connections</code> has been deprecated since version 1.22. and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported by NetworkManager since 1.2.0</p>
+</div>
 <p>Filters a given array of connections for a given <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> object and
 return connections which may be activated with the NSP.  Any returned
 connections will match the <em class="parameter"><code>nsp</code></em>
@@ -282,6 +250,10 @@ be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Ar
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_wimax_nsp_connection_valid (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>,
                                <em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_wimax_nsp_connection_valid</code> has been deprecated since version 1.22. and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported by NetworkManager since 1.2.0</p>
+</div>
 <p>Validates a given connection against a given WiMAX NSP to ensure that the
 connection may be activated with that NSP.  The connection must match the
 <em class="parameter"><code>nsp</code></em>
@@ -335,38 +307,6 @@ against</p></td>
 <a name="NM-WIMAX-NSP-NETWORK-TYPE:CAPS"></a><h3>NM_WIMAX_NSP_NETWORK_TYPE</h3>
 <pre class="programlisting">#define NM_WIMAX_NSP_NETWORK_TYPE   "network-type"
 </pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMWimaxNsp-struct"></a><h3>NMWimaxNsp</h3>
-<pre class="programlisting">typedef struct _NMWimaxNsp NMWimaxNsp;</pre>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMWimaxNsp.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMWimaxNsp--name"></a><h3>The <code class="literal">“name”</code> property</h3>
-<pre class="programlisting">  “name”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
-<p>The name of the WiMAX NSP.</p>
-<p>Flags: Read</p>
-<p>Default value: NULL</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMWimaxNsp--network-type"></a><h3>The <code class="literal">“network-type”</code> property</h3>
-<pre class="programlisting">  “network-type”             <a class="link" href="libnm-nm-dbus-interface.html#NMWimaxNspNetworkType" title="enum NMWimaxNspNetworkType"><span class="type">NMWimaxNspNetworkType</span></a></pre>
-<p>The network type of the WiMAX NSP.</p>
-<p>Flags: Read</p>
-<p>Default value: NM_WIMAX_NSP_NETWORK_TYPE_UNKNOWN</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMWimaxNsp--signal-quality"></a><h3>The <code class="literal">“signal-quality”</code> property</h3>
-<pre class="programlisting">  “signal-quality”           <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
-<p>The signal quality of the WiMAX NSP.</p>
-<p>Flags: Read</p>
-<p>Allowed values: &lt;= 100</p>
-<p>Default value: 0</p>
 </div>
 </div>
 </div>

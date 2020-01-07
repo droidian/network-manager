@@ -1408,7 +1408,9 @@ type 'aay' representing an array of IPv6 addresses.</p>
 <pre class="programlisting"><span class="returnvalue">char</span> **
 nm_utils_ip6_dns_from_variant (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>);</pre>
 <p>Utility function to convert a <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> of type 'aay' representing a list of
-IPv6 addresses into an array of IP address strings.</p>
+IPv6 addresses into an array of IP address strings. Each "ay" entry must be
+a IPv6 address in binary form (16 bytes long). Invalid entries are silently
+ignored.</p>
 <div class="refsect3">
 <a name="nm-utils-ip6-dns-from-variant.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -3496,6 +3498,13 @@ generating the dynamic WEP keys automatically</p>
 <td class="enum_member_name"><p><a name="NMU-SEC-WPA2-ENTERPRISE:CAPS"></a>NMU_SEC_WPA2_ENTERPRISE</p></td>
 <td class="enum_member_description">
 <p>WPA2 is used with 802.1x authentication</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NMU-SEC-SAE:CAPS"></a>NMU_SEC_SAE</p></td>
+<td class="enum_member_description">
+<p>is used with WPA3 Enterprise</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>

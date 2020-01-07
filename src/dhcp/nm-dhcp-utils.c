@@ -1,19 +1,6 @@
-/* This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2005 - 2010 Red Hat, Inc.
- *
  */
 
 #include "nm-default.h"
@@ -25,6 +12,7 @@
 
 #include "nm-dhcp-utils.h"
 #include "nm-utils.h"
+#include "nm-config.h"
 #include "NetworkManagerUtils.h"
 #include "platform/nm-platform.h"
 #include "nm-dhcp-client-logging.h"
@@ -762,3 +750,55 @@ nm_dhcp_utils_client_id_string_to_bytes (const char *client_id)
 	return bytes;
 }
 
+/**
+ * nm_dhcp_utils_get_leasefile_path:
+ * @addr_family: the IP address family
+ * @plugin_name: the name of the plugin part of the lease file name
+ * @iface: the interface name to which the lease relates to
+ * @uuid: uuid of the connection to which the lease relates to
+ * @out_leasefile_path: will store the computed lease file path
+ *
+ * Constructs the lease file name on the basis of the calling plugin,
+ * interface name and connection uuid. Then returns in @out_leasefile_path
+ * the full path of the lease filename.
+ *
+ * Returns: TRUE if the lease file already exists, FALSE otherwise.
+ */
+gboolean
+nm_dhcp_utils_get_leasefile_path (int addr_family,
+                                  const char *plugin_name,
+                                  const char *iface,
+                                  const char *uuid,
+                                  char **out_leasefile_path)
+{
+	gs_free char *rundir_path = NULL;
+	gs_free char *statedir_path = NULL;
+
+	rundir_path = g_strdup_printf (NMRUNDIR "/%s%s-%s-%s.lease",
+	                               plugin_name,
+	                               addr_family == AF_INET6 ? "6" : "",
+	                               uuid,
+	                               iface);
+
+	if (g_file_test (rundir_path, G_FILE_TEST_EXISTS)) {
+		*out_leasefile_path = g_steal_pointer (&rundir_path);
+		return TRUE;
+	}
+
+	statedir_path = g_strdup_printf (NMSTATEDIR "/%s%s-%s-%s.lease",
+	                                 plugin_name,
+	                                 addr_family == AF_INET6 ? "6" : "",
+	                                 uuid,
+	                                 iface);
+
+	if (g_file_test (statedir_path, G_FILE_TEST_EXISTS)) {
+		*out_leasefile_path = g_steal_pointer (&statedir_path);
+		return TRUE;
+	}
+
+	if (nm_config_get_configure_and_quit (nm_config_get ()) == NM_CONFIG_CONFIGURE_AND_QUIT_INITRD)
+		*out_leasefile_path = g_steal_pointer (&rundir_path);
+	else
+		*out_leasefile_path = g_steal_pointer (&statedir_path);
+	return FALSE;
+}

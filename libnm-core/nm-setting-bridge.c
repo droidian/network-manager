@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2011 - 2017 Red Hat, Inc.
+ * Copyright (C) 2011 - 2017 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -223,8 +209,8 @@ _nm_bridge_vlan_dup_and_seal (const NMBridgeVlan *vlan)
 /**
  * nm_bridge_vlan_get_vid_range:
  * @vlan: the #NMBridgeVlan
- * @vid_start: location to store the VLAN id range start.
- * @vid_end: location to store the VLAN id range end
+ * @vid_start: (out): location to store the VLAN id range start.
+ * @vid_end: (out): location to store the VLAN id range end
  *
  * Gets the VLAN id range.
  *
@@ -1223,12 +1209,7 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	                         G_PARAM_READWRITE |
 	                         NM_SETTING_PARAM_INFERRABLE |
 	                         G_PARAM_STATIC_STRINGS);
-
-	_properties_override_add_transform (properties_override,
-	                                    obj_properties[PROP_MAC_ADDRESS],
-	                                    G_VARIANT_TYPE_BYTESTRING,
-	                                    _nm_utils_hwaddr_to_dbus,
-	                                    _nm_utils_hwaddr_from_dbus);
+	_nm_properties_override_gobj (properties_override, obj_properties[PROP_MAC_ADDRESS], &nm_sett_info_propert_type_mac_addrees);
 
 	/**
 	 * NMSettingBridge:stp:
@@ -1480,13 +1461,7 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	                        G_PARAM_READWRITE |
 	                        NM_SETTING_PARAM_INFERRABLE |
 	                        G_PARAM_STATIC_STRINGS);
-
-	_properties_override_add_override (properties_override,
-	                                   obj_properties[PROP_VLANS],
-	                                   G_VARIANT_TYPE ("aa{sv}"),
-	                                   _nm_utils_bridge_vlans_to_dbus,
-	                                   _nm_utils_bridge_vlans_from_dbus,
-	                                   NULL);
+	_nm_properties_override_gobj (properties_override, obj_properties[PROP_VLANS], &nm_sett_info_propert_type_bridge_vlans);
 
 	/* ---dbus---
 	 * property: interface-name
@@ -1496,11 +1471,7 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	 *   bridge's interface name.
 	 * ---end---
 	 */
-	_properties_override_add_dbus_only (properties_override,
-	                                    "interface-name",
-	                                    G_VARIANT_TYPE_STRING,
-	                                    _nm_setting_get_deprecated_virtual_interface_name,
-	                                    NULL);
+	_nm_properties_override_dbus (properties_override, "interface-name", &nm_sett_info_propert_type_deprecated_interface_name);
 
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 

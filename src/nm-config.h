@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2011 Red Hat, Inc.
  * Copyright (C) 2013 Thomas Bechtold <thomasbechtold@jpberlin.de>
  */
@@ -163,6 +149,8 @@ gboolean nm_config_get_is_debug (NMConfig *config);
 
 gboolean nm_config_get_first_start (NMConfig *config);
 
+const char *nm_config_get_no_auto_default_file (NMConfig *config);
+
 void nm_config_set_values (NMConfig *self,
                            GKeyFile *keyfile_intern_new,
                            gboolean allow_write,
@@ -231,7 +219,6 @@ extern char *_nm_config_match_env;
 
 #define NM_CONFIG_DEVICE_STATE_DIR ""NMRUNDIR"/devices"
 
-#define NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT_BOOL     (nm_streq (""NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT, "true"))
 #define NM_CONFIG_DEFAULT_LOGGING_AUDIT_BOOL        (nm_streq (""NM_CONFIG_DEFAULT_LOGGING_AUDIT, "true"))
 
 typedef enum {

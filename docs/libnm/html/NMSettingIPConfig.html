@@ -84,6 +84,14 @@
 </tr>
 <tr>
 <td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPConfig.html#nm-ip-address-cmp-full" title="nm_ip_address_cmp_full ()">nm_ip_address_cmp_full</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
 <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="returnvalue">NMIPAddress</span></a> *
 </td>
 <td class="function_name">
@@ -1108,6 +1116,21 @@
 <a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-dhcp-timeout" title="nm_setting_ip_config_get_dhcp_timeout ()">nm_setting_ip_config_get_dhcp_timeout</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-dhcp-iaid" title="nm_setting_ip_config_get_dhcp_iaid ()">nm_setting_ip_config_get_dhcp_iaid</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="NMSettingIPConfig.html#NMDhcpHostnameFlags" title="enum NMDhcpHostnameFlags"><span class="returnvalue">NMDhcpHostnameFlags</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-dhcp-hostname-flags" title="nm_setting_ip_config_get_dhcp_hostname_flags ()">nm_setting_ip_config_get_dhcp_hostname_flags</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -1135,6 +1158,17 @@
 <td class="property_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname" title="The “dhcp-hostname” property">dhcp-hostname</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
+<td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname-flags" title="The “dhcp-hostname-flags” property">dhcp-hostname-flags</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<td class="property_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-iaid" title="The “dhcp-iaid” property">dhcp-iaid</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
@@ -1231,32 +1265,16 @@
 <td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ADDRESS-ATTRIBUTE-LABEL:CAPS" title="NM_IP_ADDRESS_ATTRIBUTE_LABEL">NM_IP_ADDRESS_ATTRIBUTE_LABEL</a></td>
 </tr>
 <tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-TABLE:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_TABLE">NM_IP_ROUTE_ATTRIBUTE_TABLE</a></td>
-</tr>
-<tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-SRC:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_SRC">NM_IP_ROUTE_ATTRIBUTE_SRC</a></td>
-</tr>
-<tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-FROM:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_FROM">NM_IP_ROUTE_ATTRIBUTE_FROM</a></td>
-</tr>
-<tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-TOS:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_TOS">NM_IP_ROUTE_ATTRIBUTE_TOS</a></td>
-</tr>
-<tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-ONLINK:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_ONLINK">NM_IP_ROUTE_ATTRIBUTE_ONLINK</a></td>
-</tr>
-<tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-WINDOW:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_WINDOW">NM_IP_ROUTE_ATTRIBUTE_WINDOW</a></td>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NMIPAddressCmpFlags" title="enum NMIPAddressCmpFlags">NMIPAddressCmpFlags</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-CWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_CWND">NM_IP_ROUTE_ATTRIBUTE_CWND</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-FROM:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_FROM">NM_IP_ROUTE_ATTRIBUTE_FROM</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -1265,14 +1283,6 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-INITRWND:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_INITRWND">NM_IP_ROUTE_ATTRIBUTE_INITRWND</a></td>
-</tr>
-<tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-MTU:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_MTU">NM_IP_ROUTE_ATTRIBUTE_MTU</a></td>
-</tr>
-<tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-WINDOW:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW">NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -1289,6 +1299,38 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-MTU:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU">NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-LOCK-WINDOW:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW">NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-MTU:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_MTU">NM_IP_ROUTE_ATTRIBUTE_MTU</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-ONLINK:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_ONLINK">NM_IP_ROUTE_ATTRIBUTE_ONLINK</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-SCOPE:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_SCOPE">NM_IP_ROUTE_ATTRIBUTE_SCOPE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-SRC:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_SRC">NM_IP_ROUTE_ATTRIBUTE_SRC</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-TABLE:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_TABLE">NM_IP_ROUTE_ATTRIBUTE_TABLE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-TOS:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_TOS">NM_IP_ROUTE_ATTRIBUTE_TOS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-WINDOW:CAPS" title="NM_IP_ROUTE_ATTRIBUTE_WINDOW">NM_IP_ROUTE_ATTRIBUTE_WINDOW</a></td>
 </tr>
 <tr>
 <td class="datatype_keyword">enum</td>
@@ -1356,6 +1398,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DHCP-HOSTNAME-FLAGS:CAPS" title="NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS">NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-NEVER-DEFAULT:CAPS" title="NM_SETTING_IP_CONFIG_NEVER_DEFAULT">NM_SETTING_IP_CONFIG_NEVER_DEFAULT</a></td>
 </tr>
 <tr>
@@ -1369,6 +1415,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DHCP-TIMEOUT:CAPS" title="NM_SETTING_IP_CONFIG_DHCP_TIMEOUT">NM_SETTING_IP_CONFIG_DHCP_TIMEOUT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DHCP-IAID:CAPS" title="NM_SETTING_IP_CONFIG_DHCP_IAID">NM_SETTING_IP_CONFIG_DHCP_IAID</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -1438,6 +1488,10 @@
 <td class="datatype_keyword"> </td>
 <td class="function_name"><a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig-struct" title="NMSettingIPConfig">NMSettingIPConfig</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NMDhcpHostnameFlags" title="enum NMDhcpHostnameFlags">NMDhcpHostnameFlags</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -1448,6 +1502,8 @@
     <span class="lineart">├──</span> NMIPRoute
     <span class="lineart">╰──</span> NMIPRoutingRule
     <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GFlags</a>
+    <span class="lineart">├──</span> NMDhcpHostnameFlags
+    <span class="lineart">├──</span> NMIPAddressCmpFlags
     <span class="lineart">╰──</span> NMIPRoutingRuleAsStringFlags
     <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
@@ -1646,6 +1702,52 @@ to.</p></td>
 <div class="refsect3">
 <a name="nm-ip-address-equal.returns"></a><h4>Returns</h4>
 <p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the objects contain the same values, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if they do not.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-ip-address-cmp-full"></a><h3>nm_ip_address_cmp_full ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+nm_ip_address_cmp_full (<em class="parameter"><code>const <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *a</code></em>,
+                        <em class="parameter"><code>const <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> *b</code></em>,
+                        <em class="parameter"><code><a class="link" href="NMSettingIPConfig.html#NMIPAddressCmpFlags" title="enum NMIPAddressCmpFlags"><span class="type">NMIPAddressCmpFlags</span></a> cmp_flags</code></em>);</pre>
+<p>Note that with <em class="parameter"><code>cmp_flags</code></em>
+ <a class="link" href="NMSettingIPConfig.html#NM-IP-ADDRESS-CMP-FLAGS-WITH-ATTRS:CAPS"><span class="type">NM_IP_ADDRESS_CMP_FLAGS_WITH_ATTRS</span></a>, there
+is no total order for comparing GVariant. That means, if the two addresses
+only differ by their attributes, the sort order is undefined and the return
+value only indicates equality.</p>
+<div class="refsect3">
+<a name="nm-ip-address-cmp-full.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>a</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>b</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> to compare <em class="parameter"><code>address</code></em>
+to.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cmp_flags</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html#NMIPAddressCmpFlags" title="enum NMIPAddressCmpFlags"><span class="type">NMIPAddressCmpFlags</span></a> that indicate what to compare.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-ip-address-cmp-full.returns"></a><h4>Returns</h4>
+<p> 0 if the two objects have the same values (according to their flags)
+or a integer indicating the compare order.</p>
 </div>
 </div>
 <hr>
@@ -5727,6 +5829,63 @@ the particular kind of device.</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-config-get-dhcp-iaid"></a><h3>nm_setting_ip_config_get_dhcp_iaid ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_ip_config_get_dhcp_iaid (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
+<p>Returns the value contained in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-iaid" title="The “dhcp-iaid” property"><span class="type">“dhcp-iaid”</span></a>
+property.</p>
+<div class="refsect3">
+<a name="nm-setting-ip-config-get-dhcp-iaid.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-ip-config-get-dhcp-iaid.returns"></a><h4>Returns</h4>
+<p> the configured DHCP IAID (Identity Association Identifier)</p>
+</div>
+<p class="since">Since: 1.22</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip-config-get-dhcp-hostname-flags"></a><h3>nm_setting_ip_config_get_dhcp_hostname_flags ()</h3>
+<pre class="programlisting"><a class="link" href="NMSettingIPConfig.html#NMDhcpHostnameFlags" title="enum NMDhcpHostnameFlags"><span class="returnvalue">NMDhcpHostnameFlags</span></a>
+nm_setting_ip_config_get_dhcp_hostname_flags
+                               (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
+<p>Returns the value contained in the <a class="link" href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname-flags" title="The “dhcp-hostname-flags” property"><span class="type">“dhcp-hostname-flags”</span></a>
+property.</p>
+<div class="refsect3">
+<a name="nm-setting-ip-config-get-dhcp-hostname-flags.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-ip-config-get-dhcp-hostname-flags.returns"></a><h4>Returns</h4>
+<p> flags for the DHCP hostname and FQDN</p>
+</div>
+<p class="since">Since: 1.22</p>
+</div>
 </div>
 <div class="refsect1">
 <a name="NMSettingIPConfig.other_details"></a><h2>Types and Values</h2>
@@ -5737,44 +5896,50 @@ the particular kind of device.</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="NM-IP-ROUTE-ATTRIBUTE-TABLE:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_TABLE</h3>
-<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_TABLE          "table"
-</pre>
+<a name="NMIPAddressCmpFlags"></a><h3>enum NMIPAddressCmpFlags</h3>
+<p>Compare flags for <a class="link" href="NMSettingIPConfig.html#nm-ip-address-cmp-full" title="nm_ip_address_cmp_full ()"><code class="function">nm_ip_address_cmp_full()</code></a>.</p>
+<div class="refsect3">
+<a name="NMIPAddressCmpFlags.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="NM-IP-ADDRESS-CMP-FLAGS-NONE:CAPS"></a>NM_IP_ADDRESS_CMP_FLAGS_NONE</p></td>
+<td class="enum_member_description">
+<p>no flags.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-IP-ADDRESS-CMP-FLAGS-WITH-ATTRS:CAPS"></a>NM_IP_ADDRESS_CMP_FLAGS_WITH_ATTRS</p></td>
+<td class="enum_member_description">
+<p>when comparing two addresses,
+  also consider their attributes. Warning: note that attributes are GVariants
+  and they don't have a total order. In other words, if the address differs only
+  by their attributes, the returned compare order is not total. In that case,
+  the return value merely indicates equality (zero) or inequality.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.22</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="NM-IP-ROUTE-ATTRIBUTE-SRC:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_SRC</h3>
-<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_SRC            "src"
+<a name="NM-IP-ROUTE-ATTRIBUTE-CWND:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_CWND</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_CWND           "cwnd"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-IP-ROUTE-ATTRIBUTE-FROM:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_FROM</h3>
 <pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_FROM           "from"
-</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NM-IP-ROUTE-ATTRIBUTE-TOS:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_TOS</h3>
-<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_TOS            "tos"
-</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NM-IP-ROUTE-ATTRIBUTE-ONLINK:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_ONLINK</h3>
-<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_ONLINK         "onlink"
-</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NM-IP-ROUTE-ATTRIBUTE-WINDOW:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_WINDOW</h3>
-<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_WINDOW         "window"
-</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NM-IP-ROUTE-ATTRIBUTE-CWND:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_CWND</h3>
-<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_CWND           "cwnd"
 </pre>
 </div>
 <hr>
@@ -5787,18 +5952,6 @@ the particular kind of device.</p>
 <div class="refsect2">
 <a name="NM-IP-ROUTE-ATTRIBUTE-INITRWND:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_INITRWND</h3>
 <pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_INITRWND       "initrwnd"
-</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NM-IP-ROUTE-ATTRIBUTE-MTU:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_MTU</h3>
-<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_MTU            "mtu"
-</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NM-IP-ROUTE-ATTRIBUTE-LOCK-WINDOW:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW</h3>
-<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW    "lock-window"
 </pre>
 </div>
 <hr>
@@ -5823,6 +5976,54 @@ the particular kind of device.</p>
 <div class="refsect2">
 <a name="NM-IP-ROUTE-ATTRIBUTE-LOCK-MTU:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU</h3>
 <pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU       "lock-mtu"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-LOCK-WINDOW:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW    "lock-window"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-MTU:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_MTU</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_MTU            "mtu"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-ONLINK:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_ONLINK</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_ONLINK         "onlink"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-SCOPE:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_SCOPE</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_SCOPE          "scope"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-SRC:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_SRC</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_SRC            "src"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-TABLE:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_TABLE</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_TABLE          "table"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-TOS:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_TOS</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_TOS            "tos"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-IP-ROUTE-ATTRIBUTE-WINDOW:CAPS"></a><h3>NM_IP_ROUTE_ATTRIBUTE_WINDOW</h3>
+<pre class="programlisting">#define NM_IP_ROUTE_ATTRIBUTE_WINDOW         "window"
 </pre>
 </div>
 <hr>
@@ -5886,109 +6087,121 @@ the particular kind of device.</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-METHOD:CAPS"></a><h3>NM_SETTING_IP_CONFIG_METHOD</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_METHOD             "method"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_METHOD              "method"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-DNS:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DNS</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DNS                "dns"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DNS                 "dns"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-DNS-SEARCH:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DNS_SEARCH</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DNS_SEARCH         "dns-search"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DNS_SEARCH          "dns-search"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-DNS-OPTIONS:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DNS_OPTIONS</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DNS_OPTIONS        "dns-options"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DNS_OPTIONS         "dns-options"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-DNS-PRIORITY:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DNS_PRIORITY</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DNS_PRIORITY       "dns-priority"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DNS_PRIORITY        "dns-priority"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-ADDRESSES:CAPS"></a><h3>NM_SETTING_IP_CONFIG_ADDRESSES</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_ADDRESSES          "addresses"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_ADDRESSES           "addresses"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-GATEWAY:CAPS"></a><h3>NM_SETTING_IP_CONFIG_GATEWAY</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_GATEWAY            "gateway"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_GATEWAY             "gateway"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-ROUTES:CAPS"></a><h3>NM_SETTING_IP_CONFIG_ROUTES</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_ROUTES             "routes"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_ROUTES              "routes"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-ROUTE-METRIC:CAPS"></a><h3>NM_SETTING_IP_CONFIG_ROUTE_METRIC</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_ROUTE_METRIC       "route-metric"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_ROUTE_METRIC        "route-metric"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-ROUTE-TABLE:CAPS"></a><h3>NM_SETTING_IP_CONFIG_ROUTE_TABLE</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_ROUTE_TABLE        "route-table"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_ROUTE_TABLE         "route-table"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-IGNORE-AUTO-ROUTES:CAPS"></a><h3>NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES "ignore-auto-routes"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES  "ignore-auto-routes"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-IGNORE-AUTO-DNS:CAPS"></a><h3>NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS    "ignore-auto-dns"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS     "ignore-auto-dns"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-DHCP-HOSTNAME:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DHCP_HOSTNAME</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DHCP_HOSTNAME      "dhcp-hostname"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DHCP_HOSTNAME       "dhcp-hostname"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-DHCP-SEND-HOSTNAME:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DHCP_SEND_HOSTNAME</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DHCP_SEND_HOSTNAME "dhcp-send-hostname"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DHCP_SEND_HOSTNAME  "dhcp-send-hostname"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-CONFIG-DHCP-HOSTNAME-FLAGS:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS</h3>
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS "dhcp-hostname-flags"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-NEVER-DEFAULT:CAPS"></a><h3>NM_SETTING_IP_CONFIG_NEVER_DEFAULT</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_NEVER_DEFAULT      "never-default"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_NEVER_DEFAULT       "never-default"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-MAY-FAIL:CAPS"></a><h3>NM_SETTING_IP_CONFIG_MAY_FAIL</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_MAY_FAIL           "may-fail"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_MAY_FAIL            "may-fail"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-DAD-TIMEOUT:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DAD_TIMEOUT</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DAD_TIMEOUT        "dad-timeout"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DAD_TIMEOUT         "dad-timeout"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-DHCP-TIMEOUT:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DHCP_TIMEOUT</h3>
-<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DHCP_TIMEOUT       "dhcp-timeout"
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DHCP_TIMEOUT        "dhcp-timeout"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP-CONFIG-DHCP-IAID:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DHCP_IAID</h3>
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_DHCP_IAID           "dhcp-iaid"
 </pre>
 </div>
 <hr>
@@ -6092,6 +6305,75 @@ the particular kind of device.</p>
 <a name="NMSettingIPConfig-struct"></a><h3>NMSettingIPConfig</h3>
 <pre class="programlisting">typedef struct _NMSettingIPConfig NMSettingIPConfig;</pre>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMDhcpHostnameFlags"></a><h3>enum NMDhcpHostnameFlags</h3>
+<p><a class="link" href="NMSettingIPConfig.html#NMDhcpHostnameFlags" title="enum NMDhcpHostnameFlags"><span class="type">NMDhcpHostnameFlags</span></a> describe flags related to the DHCP hostname and
+FQDN.</p>
+<div class="refsect3">
+<a name="NMDhcpHostnameFlags.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DHCP-HOSTNAME-FLAG-NONE:CAPS"></a>NM_DHCP_HOSTNAME_FLAG_NONE</p></td>
+<td class="enum_member_description">
+<p>no flag set. The default value from
+  Networkmanager global configuration is used. If such value is unset
+  or still zero, the DHCP request will use standard FQDN flags, i.e.
+  <a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-FQDN-SERV-UPDATE:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE</code></a> and
+  <a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-FQDN-ENCODED:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED</code></a> for IPv4 and
+  <a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-FQDN-SERV-UPDATE:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE</code></a> for IPv6.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DHCP-HOSTNAME-FLAG-FQDN-SERV-UPDATE:CAPS"></a>NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE</p></td>
+<td class="enum_member_description">
+<p>whether the server should
+  do the A RR (FQDN-to-address) DNS updates.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DHCP-HOSTNAME-FLAG-FQDN-ENCODED:CAPS"></a>NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED</p></td>
+<td class="enum_member_description">
+<p>if set, the FQDN is encoded
+  using canonical wire format. Otherwise it uses the deprecated
+  ASCII encoding. This flag is allowed only for DHCPv4.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DHCP-HOSTNAME-FLAG-FQDN-NO-UPDATE:CAPS"></a>NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE</p></td>
+<td class="enum_member_description">
+<p>when not set, request the
+  server to perform updates (the PTR RR and possibly the A RR
+  based on the <a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-FQDN-SERV-UPDATE:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE</code></a> flag). If
+  this is set, the <a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-FQDN-SERV-UPDATE:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE</code></a> flag
+  should be cleared.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DHCP-HOSTNAME-FLAG-FQDN-CLEAR-FLAGS:CAPS"></a>NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS</p></td>
+<td class="enum_member_description">
+<p>when set, no FQDN flags are
+  sent in the DHCP FQDN option. When cleared and all other FQDN
+  flags are zero, standard FQDN flags are sent. This flag is
+  incompatible with any other FQDN flag.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.22</p>
+</div>
 </div>
 <div class="refsect1">
 <a name="NMSettingIPConfig.property-details"></a><h2>Property Details</h2>
@@ -6128,6 +6410,51 @@ This property and <a class="link" href="NMSettingIP4Config.html#NMSettingIP4Conf
 cannot be set at the same time.</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIPConfig--dhcp-hostname-flags"></a><h3>The <code class="literal">“dhcp-hostname-flags”</code> property</h3>
+<pre class="programlisting">  “dhcp-hostname-flags”      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
+<p>Flags for the DHCP hostname and FQDN.</p>
+<p>Currently this property only includes flags to control the FQDN flags
+set in the DHCP FQDN option. Supported FQDN flags are
+<a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-FQDN-SERV-UPDATE:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE</code></a>,
+<a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-FQDN-ENCODED:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED</code></a> and
+<a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-FQDN-NO-UPDATE:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE</code></a>.  When no FQDN flag is set and
+<a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-FQDN-CLEAR-FLAGS:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS</code></a> is set, the DHCP FQDN option will
+contain no flag. Otherwise, if no FQDN flag is set and
+<a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-FQDN-CLEAR-FLAGS:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS</code></a> is not set, the standard FQDN flags
+are set in the request:
+<a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-FQDN-SERV-UPDATE:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE</code></a>,
+<a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-FQDN-ENCODED:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED</code></a> for IPv4 and
+<a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-FQDN-SERV-UPDATE:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE</code></a> for IPv6.</p>
+<p>When this property is set to the default value <a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-NONE:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_NONE</code></a>,
+a global default is looked up in NetworkManager configuration. If that value
+is unset or also <a class="link" href="NMSettingIPConfig.html#NM-DHCP-HOSTNAME-FLAG-NONE:CAPS"><code class="literal">NM_DHCP_HOSTNAME_FLAG_NONE</code></a>, then the standard FQDN flags
+described above are sent in the DHCP requests.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.22</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIPConfig--dhcp-iaid"></a><h3>The <code class="literal">“dhcp-iaid”</code> property</h3>
+<pre class="programlisting">  “dhcp-iaid”                <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<p>A string containing the "Identity Association Identifier" (IAID) used
+by the DHCP client. The property is a 32-bit decimal value or a
+special value among "mac", "perm-mac", "ifname" and "stable". When
+set to "mac" (or "perm-mac"), the last 4 bytes of the current (or
+permanent) MAC address are used as IAID. When set to "ifname", the
+IAID is computed by hashing the interface name. The special value
+"stable" can be used to generate an IAID based on the stable-id (see
+connection.stable-id), a per-host key and the interface name. When
+the property is unset, the value from global configuration is used;
+if no global default is set then the IAID is assumed to be
+"ifname". Note that at the moment this property is ignored for IPv6
+by dhclient, which always derives the IAID from the MAC address.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.22</p>
 </div>
 <hr>
 <div class="refsect2">

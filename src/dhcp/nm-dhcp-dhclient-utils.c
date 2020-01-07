@@ -1,18 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
  * Copyright (C) 2011 Red Hat, Inc.
  */
 
@@ -106,21 +93,11 @@ grab_request_options (GPtrArray *store, const char* line)
 }
 
 static void
-add_hostname4 (GString *str, const char *hostname, gboolean use_fqdn)
-{
-	if (hostname) {
-		if (use_fqdn) {
-			g_string_append_printf (str, FQDN_FORMAT "\n", hostname);
-			g_string_append (str,
-			                 "send fqdn.encoded on;\n"
-			                 "send fqdn.server-update on;\n");
-		} else
-			g_string_append_printf (str, HOSTNAME4_FORMAT "\n", hostname);
-	}
-}
-
-static void
-add_ip4_config (GString *str, GBytes *client_id, const char *hostname, gboolean use_fqdn)
+add_ip4_config (GString *str,
+                GBytes *client_id,
+                const char *hostname,
+                gboolean use_fqdn,
+                NMDhcpHostnameFlags hostname_flags)
 {
 	if (client_id) {
 		const char *p;
@@ -128,7 +105,7 @@ add_ip4_config (GString *str, GBytes *client_id, const char *hostname, gboolean 
 		guint i;
 
 		p = g_bytes_get_data (client_id, &l);
-		g_assert (p);
+		nm_assert (p);
 
 		/* Allow type 0 (non-hardware address) to be represented as a string
 		 * as long as all the characters are printable.
@@ -156,7 +133,27 @@ add_ip4_config (GString *str, GBytes *client_id, const char *hostname, gboolean 
 		g_string_append (str, "; # added by NetworkManager\n");
 	}
 
-	add_hostname4 (str, hostname, use_fqdn);
+	if (hostname) {
+		if (use_fqdn) {
+			g_string_append_printf (str, FQDN_FORMAT "\n", hostname);
+
+			g_string_append_printf (str, FQDN_TAG_PREFIX "encoded %s;\n",
+			                          (hostname_flags & NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED)
+			                        ? "on"
+			                        : "off");
+
+			g_string_append_printf (str, FQDN_TAG_PREFIX "server-update %s;\n",
+			                          (hostname_flags & NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE)
+			                        ? "on"
+			                        : "off");
+
+			g_string_append_printf (str, FQDN_TAG_PREFIX "no-client-update %s;\n",
+			                          (hostname_flags & NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE)
+			                        ? "on"
+			                        : "off");
+		} else
+			g_string_append_printf (str, HOSTNAME4_FORMAT "\n", hostname);
+	}
 
 	g_string_append_c (str, '\n');
 
@@ -172,12 +169,16 @@ add_ip4_config (GString *str, GBytes *client_id, const char *hostname, gboolean 
 }
 
 static void
-add_hostname6 (GString *str, const char *hostname)
+add_hostname6 (GString *str,
+               const char *hostname,
+               NMDhcpHostnameFlags hostname_flags)
 {
 	if (hostname) {
 		g_string_append_printf (str, FQDN_FORMAT "\n", hostname);
-		g_string_append (str,
-		                 "send fqdn.server-update on;\n");
+		if (hostname_flags & NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE)
+			g_string_append (str, FQDN_TAG_PREFIX "server-update on;\n");
+		if (hostname_flags & NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE)
+			g_string_append (str, FQDN_TAG_PREFIX "no-client-update on;\n");
 		g_string_append_c (str, '\n');
 	}
 }
@@ -284,6 +285,7 @@ nm_dhcp_dhclient_create_config (const char *interface,
                                 const char *hostname,
                                 guint32 timeout,
                                 gboolean use_fqdn,
+                                NMDhcpHostnameFlags hostname_flags,
                                 const char *orig_path,
                                 const char *orig_contents,
                                 GBytes **out_new_client_id)
@@ -304,11 +306,13 @@ nm_dhcp_dhclient_create_config (const char *interface,
 	if (orig_contents) {
 		gs_free const char **lines = NULL;
 		gsize line_i;
-		int nest = 0;
+		nm_auto_free_gstring GString *blocks_stack = NULL;
+		guint blocks_skip = 0;
 		gboolean in_alsoreq = FALSE;
 		gboolean in_req = FALSE;
 		char intf[IFNAMSIZ];
 
+		blocks_stack = g_string_new (NULL);
 		g_string_append_printf (new_contents, _("# Merged from %s\n\n"), orig_path);
 		intf[0] = '\0';
 
@@ -326,19 +330,38 @@ nm_dhcp_dhclient_create_config (const char *interface,
 			if (in_req) {
 				/* pass */
 			} else if (strchr (p, '{')) {
-				nest++;
-				if (   !intf[0]
-				    && NM_STR_HAS_PREFIX (p, "interface"))
-					if (read_interface (p, intf, sizeof (intf)))
-						continue;
+				if (   NM_STR_HAS_PREFIX (p, "lease")
+				    || NM_STR_HAS_PREFIX (p, "alias")
+				    || NM_STR_HAS_PREFIX (p, "interface")
+				    || NM_STR_HAS_PREFIX (p, "pseudo")) {
+					/* skip over these blocks, except 'interface' when it
+					 * matches the current interface */
+					blocks_skip++;
+					g_string_append_c (blocks_stack, 'b');
+					if (   !intf[0]
+					    && NM_STR_HAS_PREFIX (p, "interface")) {
+						if (read_interface (p, intf, sizeof (intf)))
+							continue;
+					}
+				} else {
+					/* allow other blocks (conditionals) */
+					if (!strchr (p, '}')) /* '} else {'  */
+						g_string_append_c (blocks_stack, 'c');
+				}
 			} else if (strchr (p, '}')) {
-				if (nest)
-					nest--;
-				intf[0] = '\0';
-				continue;
+				if (blocks_stack->len > 0) {
+					if (blocks_stack->str[blocks_stack->len - 1] == 'b') {
+						g_string_truncate (blocks_stack, blocks_stack->len - 1);
+						nm_assert(blocks_skip > 0);
+						blocks_skip--;
+						intf[0] = '\0';
+						continue;
+					}
+					g_string_truncate (blocks_stack, blocks_stack->len - 1);
+				}
 			}
 
-			if (nest && !intf[0])
+			if (blocks_skip > 0 && !intf[0])
 				continue;
 
 			if (intf[0] && !nm_streq (intf, interface))
@@ -429,7 +452,7 @@ nm_dhcp_dhclient_create_config (const char *interface,
 	}
 
 	if (addr_family == AF_INET) {
-		add_ip4_config (new_contents, client_id, hostname, use_fqdn);
+		add_ip4_config (new_contents, client_id, hostname, use_fqdn, hostname_flags);
 		add_request (reqs, "rfc3442-classless-static-routes");
 		add_request (reqs, "ms-classless-static-routes");
 		add_request (reqs, "static-routes");
@@ -437,7 +460,7 @@ nm_dhcp_dhclient_create_config (const char *interface,
 		add_request (reqs, "ntp-servers");
 		add_request (reqs, "root-path");
 	} else {
-		add_hostname6 (new_contents, hostname);
+		add_hostname6 (new_contents, hostname, hostname_flags);
 		add_request (reqs, "dhcp6.name-servers");
 		add_request (reqs, "dhcp6.domain-search");
 

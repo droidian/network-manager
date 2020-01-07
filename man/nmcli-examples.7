@@ -2,12 +2,12 @@
 .\"     Title: nmcli-examples
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 09/30/2019
+.\"      Date: 12/24/2019
 .\"    Manual: Examples
-.\"    Source: NetworkManager 1.20.4
+.\"    Source: NetworkManager 1.22.2
 .\"  Language: English
 .\"
-.TH "NMCLI\-EXAMPLES" "7" "" "NetworkManager 1\&.20\&.4" "Examples"
+.TH "NMCLI\-EXAMPLES" "7" "" "NetworkManager 1\&.22\&.2" "Examples"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -689,6 +689,46 @@ nmcli> \fBquit\fR
 .\}
 .PP
 Example session in the nmcli interactive connection editor\&. The scenario creates an Ethernet connection profile with static addressing (IPs and DNS)\&.
+.PP
+\fBExample\ \&16.\ \&Bluetooth connection profiles\fR
+.PP
+NetworkManger supports both connecting to NAP and DUN devices as a client\&. It also supports sharing the network via a NAP server\&.
+.PP
+For NAP client connections, NetworkManager automatically creates a suitable in\-memory profile for paired devices if none is available\&. You may use that generated profile directly, but you may also modify and persist it, which will prevent to automatically re\-create it\&. You may also create a profile from scratch\&. For example, the following uses DHCP and IPv6 autoconf for address configuration:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \fBnmcli connection add type bluetooth con\-name "Profile for My Bluetooth Device (NAP)" autoconnect no bluetooth\&.type panu bluetooth\&.bdaddr "$BDADDR"\fR
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+For DUN connections, the user needs to configure modem settings and hence no profile gets created automatically\&. The modem settings depend on your device and you either need a "gsm" or a "csma" section\&. For example,
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \fBnmcli connection add type bluetooth con\-name "Profile for My Bluetooth Device (DUN)" autoconnect no bluetooth\&.type dun bluetooth\&.bdaddr "$BDADDR" gsm\&.apn apn\&.com\fR
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+Finally, you can create a bluetooth hotspot\&. BlueZ implements those as a bridge device, so such profiles also have a bridge section\&. Also, you probably want to set IP methods as "shared", so that clients get automatic IP addressing\&. Note that the "shared" IPv4 method requires dnsmasq to be available\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \fBnmcli connection add type bluetooth con\-name "My Bluetooth Hotspot" autoconnect no ifname btnap0 bluetooth\&.type nap ipv4\&.method shared ipv6\&.method shared\fR
+.fi
+.if n \{\
+.RE
+.\}
 .SH "SEE ALSO"
 .PP
 \fBnmcli\fR(1),

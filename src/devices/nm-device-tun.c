@@ -1,20 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2013 - 2015 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2013 - 2015 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -351,18 +337,17 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
 	NMDeviceTun *self = NM_DEVICE_TUN (device);
 	NMDeviceTunPrivate *priv = NM_DEVICE_TUN_GET_PRIVATE (self);
-	NMActStageReturn ret;
 
-	ret = NM_DEVICE_CLASS (nm_device_tun_parent_class)->act_stage1_prepare (device, out_failure_reason);
-	if (ret != NM_ACT_STAGE_RETURN_SUCCESS)
-		return ret;
-
-	/* Nothing to do for TUN devices */
-	if (priv->props.type == IFF_TUN)
-		return NM_ACT_STAGE_RETURN_SUCCESS;
-
-	if (!nm_device_hw_addr_set_cloned (device, nm_device_get_applied_connection (device), FALSE))
-		return NM_ACT_STAGE_RETURN_FAILURE;
+	if (priv->props.type == IFF_TUN) {
+		/* Nothing to do for TUN devices */
+	} else {
+		if (!nm_device_hw_addr_set_cloned (device,
+		                                   nm_device_get_applied_connection (device),
+		                                   FALSE)) {
+			*out_failure_reason = NM_DEVICE_STATE_REASON_CONFIG_FAILED;
+			return NM_ACT_STAGE_RETURN_FAILURE;
+		}
+	}
 
 	return NM_ACT_STAGE_RETURN_SUCCESS;
 }

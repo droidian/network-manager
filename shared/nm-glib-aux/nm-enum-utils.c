@@ -1,21 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2017 Red Hat, Inc.
+// SPDX-License-Identifier: LGPL-2.1+
+/*
+ * Copyright (C) 2017 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -225,7 +210,7 @@ _nm_utils_enum_from_str_full (GType type,
                               char **err_token,
                               const NMUtilsEnumValueInfo *value_infos)
 {
-	GTypeClass *klass;
+	nm_auto_unref_gtypeclass GTypeClass *klass = NULL;
 	gboolean ret = FALSE;
 	int value = 0;
 	gs_free char *str_clone = NULL;
@@ -317,7 +302,6 @@ _nm_utils_enum_from_str_full (GType type,
 
 	NM_SET_OUT (err_token, !ret && s[0] ? g_strdup (s) : NULL);
 	NM_SET_OUT (out_value, ret ? value : 0);
-	g_type_class_unref (klass);
 	return ret;
 }
 

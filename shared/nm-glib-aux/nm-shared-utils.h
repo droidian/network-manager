@@ -1,21 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2016 Red Hat, Inc.
+// SPDX-License-Identifier: LGPL-2.1+
+/*
+ * Copyright (C) 2016 Red Hat, Inc.
  */
 
 #ifndef __NM_SHARED_UTILS_H__
@@ -102,6 +87,16 @@ nm_utils_addr_family_to_size (int addr_family)
 	case AF_INET6: return sizeof (struct in6_addr);
 	}
 	g_return_val_if_reached (0);
+}
+
+static inline int
+nm_utils_addr_family_from_size (gsize len)
+{
+	switch (len) {
+	case sizeof (in_addr_t):       return AF_INET;
+	case sizeof (struct in6_addr): return AF_INET6;
+	}
+	return AF_UNSPEC;
 }
 
 #define nm_assert_addr_family(addr_family) \
@@ -537,15 +532,29 @@ nm_utils_escaped_tokens_escape_gstr (const char *str,
 guint32 _nm_utils_ip4_prefix_to_netmask (guint32 prefix);
 guint32 _nm_utils_ip4_get_default_prefix (guint32 ip);
 
+gconstpointer          nm_utils_ipx_address_clear_host_address (int family, gpointer dst, gconstpointer src, guint8 plen);
+in_addr_t              nm_utils_ip4_address_clear_host_address (in_addr_t addr, guint8 plen);
+const struct in6_addr *nm_utils_ip6_address_clear_host_address (struct in6_addr *dst, const struct in6_addr *src, guint8 plen);
+int nm_utils_ip6_address_same_prefix_cmp (const struct in6_addr *addr_a, const struct in6_addr *addr_b, guint8 plen);
+
 gboolean nm_utils_ip_is_site_local (int addr_family,
                                     const void *address);
 
 /*****************************************************************************/
 
-gboolean nm_utils_parse_inaddr_bin  (int addr_family,
-                                     const char *text,
-                                     int *out_addr_family,
-                                     gpointer out_addr);
+gboolean nm_utils_parse_inaddr_bin_full (int addr_family,
+                                         gboolean accept_legacy,
+                                         const char *text,
+                                         int *out_addr_family,
+                                         gpointer out_addr);
+static inline gboolean
+nm_utils_parse_inaddr_bin (int addr_family,
+                           const char *text,
+                           int *out_addr_family,
+                           gpointer out_addr)
+{
+	return nm_utils_parse_inaddr_bin_full (addr_family, FALSE, text, out_addr_family, out_addr);
+}
 
 gboolean nm_utils_parse_inaddr (int addr_family,
                                 const char *text,
@@ -652,8 +661,9 @@ _nm_g_slice_free_fcn_define (8)
 _nm_g_slice_free_fcn_define (10)
 _nm_g_slice_free_fcn_define (12)
 _nm_g_slice_free_fcn_define (16)
+_nm_g_slice_free_fcn_define (32)
 
-#define _nm_g_slice_free_fcn1(mem_size) \
+#define nm_g_slice_free_fcn1(mem_size) \
 	({ \
 		void (*_fcn) (gpointer); \
 		\
@@ -666,7 +676,8 @@ _nm_g_slice_free_fcn_define (16)
 		                      || ((mem_size) ==  8) \
 		                      || ((mem_size) == 10) \
 		                      || ((mem_size) == 12) \
-		                      || ((mem_size) == 16)); \
+		                      || ((mem_size) == 16) \
+		                      || ((mem_size) == 32)); \
 		switch ((mem_size)) { \
 		case  1: _fcn = _nm_g_slice_free_fcn_1;  break; \
 		case  2: _fcn = _nm_g_slice_free_fcn_2;  break; \
@@ -675,6 +686,7 @@ _nm_g_slice_free_fcn_define (16)
 		case 10: _fcn = _nm_g_slice_free_fcn_10; break; \
 		case 12: _fcn = _nm_g_slice_free_fcn_12; break; \
 		case 16: _fcn = _nm_g_slice_free_fcn_16; break; \
+		case 32: _fcn = _nm_g_slice_free_fcn_32; break; \
 		default: g_assert_not_reached (); _fcn = NULL; break; \
 		} \
 		_fcn; \
@@ -688,13 +700,37 @@ _nm_g_slice_free_fcn_define (16)
  * Returns: a function pointer with GDestroyNotify signature
  *   for g_slice_free(type,*).
  *
- * Only certain types are implemented. You'll get an assertion
- * using the wrong type. */
-#define nm_g_slice_free_fcn(type) (_nm_g_slice_free_fcn1 (sizeof (type)))
+ * Only certain types are implemented. You'll get a compile time
+ * error for the wrong types. */
+#define nm_g_slice_free_fcn(type) (nm_g_slice_free_fcn1 (sizeof (type)))
 
 #define nm_g_slice_free_fcn_gint64 (nm_g_slice_free_fcn (gint64))
 
 /*****************************************************************************/
+
+static inline void
+nm_g_set_error_take (GError **error, GError *error_take)
+{
+	if (!error_take)
+		g_return_if_reached ();
+	if (!error) {
+		g_error_free (error_take);
+		return;
+	}
+	if (*error) {
+		g_error_free (error_take);
+		g_return_if_reached ();
+	}
+	*error = error_take;
+}
+
+#define nm_g_set_error_take_lazy(error, error_take_lazy) \
+	G_STMT_START { \
+		GError **_error = (error); \
+		\
+		if (_error) \
+			nm_g_set_error_take (_error, (error_take_lazy)); \
+	} G_STMT_END
 
 /**
  * NMUtilsError:
@@ -750,6 +786,17 @@ GQuark nm_utils_error_quark (void);
 void nm_utils_error_set_cancelled (GError **error,
                                    gboolean is_disposing,
                                    const char *instance_name);
+
+static inline GError *
+nm_utils_error_new_cancelled (gboolean is_disposing,
+                              const char *instance_name)
+{
+	GError *error = NULL;
+
+	nm_utils_error_set_cancelled (&error, is_disposing, instance_name);
+	return error;
+}
+
 gboolean nm_utils_error_is_cancelled (GError *error,
                                       gboolean consider_is_disposing);
 
@@ -791,6 +838,11 @@ nm_utils_error_set_literal (GError **error, int error_code, const char *literal)
 		                                   _bstrerr, \
 		                                   sizeof (_bstrerr))); \
 	} G_STMT_END
+
+#define nm_utils_error_new(error_code, ...) \
+	(   (NM_NARG (__VA_ARGS__) == 1) \
+	 ? g_error_new_literal (NM_UTILS_ERROR, (error_code), _NM_UTILS_MACRO_FIRST (__VA_ARGS__)) \
+	 : g_error_new         (NM_UTILS_ERROR, (error_code), __VA_ARGS__))
 
 /*****************************************************************************/
 
@@ -906,6 +958,82 @@ nm_g_variant_unref_floating (GVariant *var)
 		g_variant_unref (var);
 }
 
+static inline void
+nm_g_source_destroy_and_unref (GSource *source)
+{
+	g_source_destroy (source);
+	g_source_unref (source);
+}
+
+#define nm_clear_g_source_inst(ptr) (nm_clear_pointer ((ptr), nm_g_source_destroy_and_unref))
+
+NM_AUTO_DEFINE_FCN0 (GSource *, _nm_auto_destroy_and_unref_gsource, nm_g_source_destroy_and_unref);
+#define nm_auto_destroy_and_unref_gsource nm_auto(_nm_auto_destroy_and_unref_gsource)
+
+NM_AUTO_DEFINE_FCN0 (GMainContext *, _nm_auto_pop_gmaincontext, g_main_context_pop_thread_default)
+#define nm_auto_pop_gmaincontext nm_auto (_nm_auto_pop_gmaincontext)
+
+GSource *nm_g_idle_source_new (int priority,
+                               GSourceFunc func,
+                               gpointer user_data,
+                               GDestroyNotify destroy_notify);
+
+GSource *nm_g_timeout_source_new (guint timeout_ms,
+                                  int priority,
+                                  GSourceFunc func,
+                                  gpointer user_data,
+                                  GDestroyNotify destroy_notify);
+
+GSource *nm_g_unix_signal_source_new (int signum,
+                                      int priority,
+                                      GSourceFunc handler,
+                                      gpointer user_data,
+                                      GDestroyNotify notify);
+
+static inline GSource *
+nm_g_source_attach (GSource *source,
+                    GMainContext *context)
+{
+	g_source_attach (source, context);
+	return source;
+}
+
+NM_AUTO_DEFINE_FCN0 (GMainContext *, _nm_auto_unref_gmaincontext, g_main_context_unref)
+#define nm_auto_unref_gmaincontext nm_auto (_nm_auto_unref_gmaincontext)
+
+static inline GMainContext *
+nm_g_main_context_push_thread_default (GMainContext *context)
+{
+	/* This function is to work together with nm_auto_pop_gmaincontext. */
+	if (G_UNLIKELY (!context))
+		context = g_main_context_default ();
+	g_main_context_push_thread_default (context);
+	return context;
+}
+
+static inline GMainContext *
+nm_g_main_context_push_thread_default_if_necessary (GMainContext *context)
+{
+	GMainContext *cur_context;
+
+	cur_context = g_main_context_get_thread_default ();
+	if (cur_context == context)
+		return NULL;
+
+	if (G_UNLIKELY (!cur_context)) {
+		cur_context = g_main_context_default ();
+		if (cur_context == context)
+			return NULL;
+	} else if (G_UNLIKELY (!context)) {
+		context = g_main_context_default ();
+		if (cur_context == context)
+			return NULL;
+	}
+
+	g_main_context_push_thread_default (context);
+	return context;
+}
+
 /*****************************************************************************/
 
 static inline int
@@ -966,6 +1094,11 @@ gpointer *nm_utils_hash_keys_to_array (GHashTable *hash,
                                        gpointer user_data,
                                        guint *out_len);
 
+gpointer *nm_utils_hash_values_to_array (GHashTable *hash,
+                                         GCompareDataFunc compare_func,
+                                         gpointer user_data,
+                                         guint *out_len);
+
 static inline const char **
 nm_utils_strdict_get_keys (const GHashTable *hash,
                            gboolean sorted,
@@ -990,7 +1123,9 @@ nm_utils_strv_make_deep_copied_nonnull (const char **strv)
 	return nm_utils_strv_make_deep_copied (strv) ?: g_new0 (char *, 1);
 }
 
-char **nm_utils_strv_dup (gpointer strv, gssize len);
+char **nm_utils_strv_dup (gpointer strv,
+                          gssize len,
+                          gboolean deep_copied);
 
 /*****************************************************************************/
 
@@ -998,6 +1133,8 @@ GSList *nm_utils_g_slist_find_str (const GSList *list,
                                    const char *needle);
 
 int nm_utils_g_slist_strlist_cmp (const GSList *a, const GSList *b);
+
+char *nm_utils_g_slist_strlist_join (const GSList *a, const char *separator);
 
 /*****************************************************************************/
 
@@ -1160,6 +1297,15 @@ nm_utils_dbus_normalize_object_path (const char *path)
 
 guint64 nm_utils_get_start_time_for_pid (pid_t pid, char *out_state, pid_t *out_ppid);
 
+static inline gboolean
+nm_utils_process_state_is_dead (char pstate)
+{
+	/* "/proc/[pid]/stat" returns a state as the 3rd fields (see `man 5 proc`).
+	 * Some of these states indicate the the process is effectively dead (or a zombie).
+	 */
+	return NM_IN_SET (pstate, 'Z', 'x', 'X');
+}
+
 /*****************************************************************************/
 
 gpointer _nm_utils_user_data_pack (int nargs, gconstpointer *args);
@@ -1180,6 +1326,10 @@ typedef void (*NMUtilsInvokeOnIdleCallback) (gpointer callback_user_data,
 void nm_utils_invoke_on_idle (NMUtilsInvokeOnIdleCallback callback,
                               gpointer callback_user_data,
                               GCancellable *cancellable);
+
+/*****************************************************************************/
+
+GSource *nm_utils_g_main_context_create_integrate_source (GMainContext *internal);
 
 /*****************************************************************************/
 
@@ -1251,5 +1401,35 @@ guint8 *nm_utils_hexstr2bin_alloc (const char *hexstr,
                                    const char *delimiter_candidates,
                                    gsize required_len,
                                    gsize *out_len);
+
+/*****************************************************************************/
+
+static inline GTask *
+nm_g_task_new (gpointer source_object,
+               GCancellable *cancellable,
+               gpointer source_tag,
+               GAsyncReadyCallback callback,
+               gpointer callback_data)
+{
+	GTask *task;
+
+	task = g_task_new (source_object, cancellable, callback, callback_data);
+	if (source_tag)
+		g_task_set_source_tag (task, source_tag);
+	return task;
+}
+
+static inline gboolean
+nm_g_task_is_valid (gpointer task,
+                    gpointer source_object,
+                    gpointer source_tag)
+{
+	return    g_task_is_valid (task, source_object)
+	       && g_task_get_source_tag (task) == source_tag;
+}
+
+guint nm_utils_parse_debug_string (const char *string,
+                                   const GDebugKey *keys,
+                                   guint nkeys);
 
 #endif /* __NM_SHARED_UTILS_H__ */

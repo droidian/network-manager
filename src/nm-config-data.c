@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2011 Red Hat, Inc.
  * Copyright (C) 2013 Thomas Bechtold <thomasbechtold@jpberlin.de>
  */
@@ -95,8 +81,12 @@ typedef struct {
 	int autoconnect_retries_default;
 
 	struct {
+
+		/* from /var/lib/NetworkManager/no-auto-default.state */
 		char **arr;
 		GSList *specs;
+
+		/* from main.no-auto-default setting in NetworkManager.conf. */
 		GSList *specs_config;
 	} no_auto_default;
 
@@ -396,6 +386,61 @@ _nm_config_data_get_keyfile_user (const NMConfigData *self)
 
 /*****************************************************************************/
 
+static NMAuthPolkitMode
+nm_auth_polkit_mode_from_string (const char *str)
+{
+	int as_bool;
+
+	if (!str)
+		return NM_AUTH_POLKIT_MODE_UNKNOWN;
+
+	if (nm_streq (str, "root-only"))
+		return NM_AUTH_POLKIT_MODE_ROOT_ONLY;
+
+	as_bool = _nm_utils_ascii_str_to_bool (str, -1);
+	if (as_bool != -1) {
+		return   as_bool
+		       ? NM_AUTH_POLKIT_MODE_USE_POLKIT
+		       : NM_AUTH_POLKIT_MODE_ALLOW_ALL;
+	}
+
+	return NM_AUTH_POLKIT_MODE_UNKNOWN;
+}
+
+static NMAuthPolkitMode
+_config_data_get_main_auth_polkit (const NMConfigData *self,
+                                   gboolean *out_invalid_config)
+{
+	NMAuthPolkitMode auth_polkit_mode;
+	const char *str;
+
+	str = nm_config_data_get_value (self,
+	                                NM_CONFIG_KEYFILE_GROUP_MAIN,
+	                                NM_CONFIG_KEYFILE_KEY_MAIN_AUTH_POLKIT,
+	                                  NM_CONFIG_GET_VALUE_STRIP
+	                                | NM_CONFIG_GET_VALUE_NO_EMPTY);
+	auth_polkit_mode = nm_auth_polkit_mode_from_string (str);
+	if (auth_polkit_mode == NM_AUTH_POLKIT_MODE_UNKNOWN) {
+		NM_SET_OUT (out_invalid_config, (str != NULL));
+		auth_polkit_mode = nm_auth_polkit_mode_from_string (NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT);
+		if (auth_polkit_mode == NM_AUTH_POLKIT_MODE_UNKNOWN) {
+			nm_assert_not_reached ();
+			auth_polkit_mode = NM_AUTH_POLKIT_MODE_ROOT_ONLY;
+		}
+	} else
+		NM_SET_OUT (out_invalid_config, FALSE);
+
+	return auth_polkit_mode;
+}
+
+NMAuthPolkitMode
+nm_config_data_get_main_auth_polkit (const NMConfigData *self)
+{
+	return _config_data_get_main_auth_polkit (self, NULL);
+}
+
+/*****************************************************************************/
+
 /**
  * nm_config_data_get_groups:
  * @self: the #NMConfigData instance
@@ -614,6 +659,7 @@ void
 nm_config_data_log (const NMConfigData *self,
                     const char *prefix,
                     const char *key_prefix,
+                    const char *no_auto_default_file,
                     /* FILE* */ gpointer print_stream)
 {
 	const NMConfigDataPrivate *priv;
@@ -704,6 +750,16 @@ nm_config_data_log (const NMConfigData *self,
 			value = g_key_file_get_value (priv->keyfile, group, key, NULL);
 			_LOG (stream, prefix, "%s%s=%s", key_prefix, key, value);
 		}
+	}
+
+	_LOG (stream, prefix, "");
+	_LOG (stream, prefix, "# no-auto-default file \"%s\"", no_auto_default_file);
+	{
+		gs_free char *msg = NULL;
+
+		msg = nm_utils_g_slist_strlist_join (priv->no_auto_default.specs, ",");
+		if (msg)
+			_LOG (stream, prefix, "# no-auto-default specs \"%s\"", msg);
 	}
 
 #undef _LOG
@@ -1551,6 +1607,26 @@ nm_config_data_diff (NMConfigData *old_data, NMConfigData *new_data)
 
 /*****************************************************************************/
 
+void
+nm_config_data_get_warnings (const NMConfigData *self,
+                             GPtrArray *warnings)
+{
+	gboolean invalid;
+
+	nm_assert (NM_IS_CONFIG_DATA (self));
+	nm_assert (warnings);
+
+	_config_data_get_main_auth_polkit (self, &invalid);
+	if (invalid) {
+		g_ptr_array_add (warnings,
+		                 g_strdup_printf ("invalid setting for %s.%s (should be one of \"true\", \"false\", \"root-only\")",
+		                                  NM_CONFIG_KEYFILE_GROUP_MAIN,
+		                                  NM_CONFIG_KEYFILE_KEY_MAIN_AUTH_POLKIT));
+	}
+}
+
+/*****************************************************************************/
+
 static void
 get_property (GObject *object,
               guint prop_id,
@@ -1662,7 +1738,7 @@ set_property (GObject *object,
 				specs = g_slist_prepend (specs, spec);
 			}
 
-			priv->no_auto_default.arr = nm_utils_strv_dup (value_arr, j);
+			priv->no_auto_default.arr = nm_utils_strv_dup (value_arr, j, TRUE);
 			priv->no_auto_default.specs = g_slist_reverse (specs);
 		}
 		break;

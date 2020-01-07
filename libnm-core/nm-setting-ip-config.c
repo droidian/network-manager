@@ -1,21 +1,7 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2007 - 2017 Red Hat, Inc.
- * Copyright 2007 - 2008 Novell, Inc.
+ * Copyright (C) 2007 - 2017 Red Hat, Inc.
+ * Copyright (C) 2007 - 2008 Novell, Inc.
  */
 
 #include "nm-default.h"
@@ -303,49 +289,62 @@ nm_ip_address_unref (NMIPAddress *address)
 }
 
 /**
- * _nm_ip_address_equal:
- * @address: the #NMIPAddress
- * @other: the #NMIPAddress to compare @address to.
- * @consider_attributes: whether to check for equality of attributes too.
+ * nm_ip_address_cmp_full:
+ * @a: the #NMIPAddress
+ * @b: the #NMIPAddress to compare @address to.
+ * @cmp_flags: the #NMIPAddressCmpFlags that indicate what to compare.
  *
- * Determines if two #NMIPAddress objects are equal.
+ * Note that with @cmp_flags #NM_IP_ADDRESS_CMP_FLAGS_WITH_ATTRS, there
+ * is no total order for comparing GVariant. That means, if the two addresses
+ * only differ by their attributes, the sort order is undefined and the return
+ * value only indicates equality.
  *
- * Returns: %TRUE if the objects contain the same values, %FALSE if they do not.
+ * Returns: 0 if the two objects have the same values (according to their flags)
+ *   or a integer indicating the compare order.
  **/
-static gboolean
-_nm_ip_address_equal (NMIPAddress *address, NMIPAddress *other, gboolean consider_attributes)
+int
+nm_ip_address_cmp_full (const NMIPAddress *a, const NMIPAddress *b, NMIPAddressCmpFlags cmp_flags)
 {
-	g_return_val_if_fail (address != NULL, FALSE);
-	g_return_val_if_fail (address->refcount > 0, FALSE);
+	g_return_val_if_fail (!a || a->refcount > 0, 0);
+	g_return_val_if_fail (!b || b->refcount > 0, 0);
+	g_return_val_if_fail (!NM_FLAGS_ANY (cmp_flags, ~NM_IP_ADDRESS_CMP_FLAGS_WITH_ATTRS), 0);
 
-	g_return_val_if_fail (other != NULL, FALSE);
-	g_return_val_if_fail (other->refcount > 0, FALSE);
+	NM_CMP_SELF (a, b);
 
-	if (   address->family != other->family
-	    || address->prefix != other->prefix
-	    || strcmp (address->address, other->address) != 0)
-		return FALSE;
-	if (consider_attributes) {
+	NM_CMP_FIELD (a, b, family);
+	NM_CMP_FIELD (a, b, prefix);
+	NM_CMP_FIELD_STR (a, b, address);
+
+	if (NM_FLAGS_HAS (cmp_flags, NM_IP_ADDRESS_CMP_FLAGS_WITH_ATTRS)) {
 		GHashTableIter iter;
 		const char *key;
 		GVariant *value, *value2;
 		guint n;
 
-		n = address->attributes ? g_hash_table_size (address->attributes) : 0;
-		if (n != (other->attributes ? g_hash_table_size (other->attributes) : 0))
-			return FALSE;
-		if (n) {
-			g_hash_table_iter_init (&iter, address->attributes);
+		n = a->attributes ? g_hash_table_size (a->attributes) : 0u;
+		NM_CMP_DIRECT (n, (b->attributes ? g_hash_table_size (b->attributes) : 0u));
+
+		if (n > 0) {
+			g_hash_table_iter_init (&iter, a->attributes);
 			while (g_hash_table_iter_next (&iter, (gpointer *) &key, (gpointer *) &value)) {
-				value2 = g_hash_table_lookup (other->attributes, key);
+				value2 = g_hash_table_lookup (b->attributes, key);
+				/* We cannot really compare GVariants, because g_variant_compare() does
+				 * not work in general. So, don't bother. NM_IP_ADDRESS_CMP_FLAGS_WITH_ATTRS is
+				 * documented to not provide a total order for the attribute contents.
+				 *
+				 * Theoretically, we can implement also a total order. However we should
+				 * not do that by default because it would require us to sort the keys
+				 * first. Most callers don't care about total order, so they shouldn't
+				 * pay the overhead. */
 				if (!value2)
-					return FALSE;
+					return -2;
 				if (!g_variant_equal (value, value2))
-					return FALSE;
+					return -2;
 			}
 		}
 	}
-	return TRUE;
+
+	return 0;
 }
 
 /**
@@ -361,7 +360,7 @@ _nm_ip_address_equal (NMIPAddress *address, NMIPAddress *other, gboolean conside
 gboolean
 nm_ip_address_equal (NMIPAddress *address, NMIPAddress *other)
 {
-	return _nm_ip_address_equal (address, other, FALSE);
+	return nm_ip_address_cmp_full (address, other, NM_IP_ADDRESS_CMP_FLAGS_NONE) == 0;
 }
 
 /**
@@ -792,8 +791,8 @@ nm_ip_route_equal_full (NMIPRoute *route, NMIPRoute *other, guint cmp_flags)
 		GVariant *value, *value2;
 		guint n;
 
-		n = route->attributes ? g_hash_table_size (route->attributes) : 0;
-		if (n != (other->attributes ? g_hash_table_size (other->attributes) : 0))
+		n = route->attributes ? g_hash_table_size (route->attributes) : 0u;
+		if (n != (other->attributes ? g_hash_table_size (other->attributes) : 0u))
 			return FALSE;
 		if (n) {
 			g_hash_table_iter_init (&iter, route->attributes);
@@ -1211,21 +1210,22 @@ nm_ip_route_set_attribute (NMIPRoute *route, const char *name, GVariant *value)
 }
 
 static const NMVariantAttributeSpec *const ip_route_attribute_spec[] = {
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_TABLE,         G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_SRC,           G_VARIANT_TYPE_STRING,  .v4 = TRUE, .v6 = TRUE, .str_type = 'a', ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_FROM,          G_VARIANT_TYPE_STRING,              .v6 = TRUE, .str_type = 'p', ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_TOS,           G_VARIANT_TYPE_BYTE,    .v4 = TRUE,                              ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_ONLINK,        G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_WINDOW,        G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
 	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_CWND,          G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_FROM,          G_VARIANT_TYPE_STRING,              .v6 = TRUE, .str_type = 'p', ),
 	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_INITCWND,      G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
 	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_INITRWND,      G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_MTU,           G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW,   G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
 	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_LOCK_CWND,     G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
 	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND, G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
 	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_LOCK_INITRWND, G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
 	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU,      G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_LOCK_WINDOW,   G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_MTU,           G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_ONLINK,        G_VARIANT_TYPE_BOOLEAN, .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_SCOPE,         G_VARIANT_TYPE_BYTE,    .v4 = TRUE,                              ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_SRC,           G_VARIANT_TYPE_STRING,  .v4 = TRUE, .v6 = TRUE, .str_type = 'a', ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_TABLE,         G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_TOS,           G_VARIANT_TYPE_BYTE,    .v4 = TRUE,                              ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE (NM_IP_ROUTE_ATTRIBUTE_WINDOW,        G_VARIANT_TYPE_UINT32,  .v4 = TRUE, .v6 = TRUE,                  ),
 	NULL,
 };
 
@@ -1264,21 +1264,16 @@ nm_ip_route_attribute_validate  (const char *name,
                                  gboolean *known,
                                  GError **error)
 {
-	const NMVariantAttributeSpec *const *iter;
-	const NMVariantAttributeSpec *spec = NULL;
+	const NMVariantAttributeSpec *spec;
 
 	g_return_val_if_fail (name, FALSE);
 	g_return_val_if_fail (value, FALSE);
 	g_return_val_if_fail (family == AF_INET || family == AF_INET6, FALSE);
 	g_return_val_if_fail (!error || !*error, FALSE);
 
-	for (iter = ip_route_attribute_spec; *iter; iter++) {
-		if (nm_streq (name, (*iter)->name)) {
-			spec = *iter;
-			break;
-		}
-	}
-
+	spec = _nm_variant_attribute_spec_find_binary_search (ip_route_attribute_spec,
+	                                                      G_N_ELEMENTS (ip_route_attribute_spec) - 1,
+	                                                      name);
 	if (!spec) {
 		NM_SET_OUT (known, FALSE);
 		g_set_error_literal (error,
@@ -1312,8 +1307,6 @@ nm_ip_route_attribute_validate  (const char *name,
 
 	if (g_variant_type_equal (spec->type, G_VARIANT_TYPE_STRING)) {
 		const char *string = g_variant_get_string (value, NULL);
-		gs_free char *string_free = NULL;
-		char *sep;
 
 		switch (spec->str_type) {
 		case 'a': /* IP address */
@@ -1328,30 +1321,35 @@ nm_ip_route_attribute_validate  (const char *name,
 				return FALSE;
 			}
 			break;
-		case 'p': /* IP address + optional prefix */
-			string_free = g_strdup (string);
-			sep = strchr (string_free, '/');
-			if (sep) {
-				*sep = 0;
-				if (_nm_utils_ascii_str_to_int64 (sep + 1, 10, 1, family == AF_INET ? 32 : 128, -1) < 0) {
+		case 'p': /* IP address + optional prefix */ {
+			gs_free char *addr_free = NULL;
+			const char *addr = string;
+			const char *str;
+
+			str = strchr (addr, '/');
+			if (str) {
+				addr = nm_strndup_a (200, addr, str - addr, &addr_free);
+				str++;
+				if (_nm_utils_ascii_str_to_int64 (str, 10, 0, family == AF_INET ? 32 : 128, -1) < 0) {
 					g_set_error (error,
 					             NM_CONNECTION_ERROR,
 					             NM_CONNECTION_ERROR_FAILED,
-					             _("invalid prefix %s"), sep + 1);
+					             _("invalid prefix %s"), str);
 					return FALSE;
 				}
 			}
-			if (!nm_utils_ipaddr_valid (family, string_free)) {
+			if (!nm_utils_ipaddr_valid (family, addr)) {
 				g_set_error (error,
 				             NM_CONNECTION_ERROR,
 				             NM_CONNECTION_ERROR_FAILED,
 				             family == AF_INET ?
 				                 _("'%s' is not a valid IPv4 address") :
 				                 _("'%s' is not a valid IPv6 address"),
-				             string_free);
+				             string);
 				return FALSE;
 			}
 			break;
+		}
 		default:
 			break;
 		}
@@ -3110,7 +3108,8 @@ nm_ip_routing_rule_from_string (const char *str,
 			goto next_words_consumed;
 		}
 		if (NM_IN_STRSET (word0, "not")) {
-			/* we accept multiple "not" specifiers. */
+			/* we accept multiple "not" specifiers. "not not" still means
+			 * not. */
 			val_invert = TRUE;
 			goto next_words_consumed;
 		}
@@ -3460,14 +3459,14 @@ nm_ip_routing_rule_to_string (const NMIPRoutingRule *self,
 
 	str = g_string_sized_new (30);
 
-	if (self->invert)
-		g_string_append (str, "not");
-
 	if (self->priority_has) {
 		g_string_append_printf (nm_gstring_add_space_delimiter (str),
 		                        "priority %u",
 		                        (guint) self->priority);
 	}
+
+	if (self->invert)
+		g_string_append (nm_gstring_add_space_delimiter (str), "not");
 
 	_rr_string_append_inet_addr (str,
 	                             TRUE,
@@ -3589,11 +3588,13 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMSettingIPConfig,
 	PROP_IGNORE_AUTO_ROUTES,
 	PROP_IGNORE_AUTO_DNS,
 	PROP_DHCP_HOSTNAME,
+	PROP_DHCP_HOSTNAME_FLAGS,
 	PROP_DHCP_SEND_HOSTNAME,
 	PROP_NEVER_DEFAULT,
 	PROP_MAY_FAIL,
 	PROP_DAD_TIMEOUT,
 	PROP_DHCP_TIMEOUT,
+	PROP_DHCP_IAID,
 );
 
 typedef struct {
@@ -3616,6 +3617,8 @@ typedef struct {
 	gboolean may_fail;
 	int dad_timeout;
 	int dhcp_timeout;
+	char *dhcp_iaid;
+	guint dhcp_hostname_flags;
 } NMSettingIPConfigPrivate;
 
 G_DEFINE_ABSTRACT_TYPE (NMSettingIPConfig, nm_setting_ip_config, NM_TYPE_SETTING)
@@ -4851,6 +4854,25 @@ nm_setting_ip_config_get_dad_timeout (NMSettingIPConfig *setting)
 }
 
 /**
+ * nm_setting_ip_config_get_dhcp_hostname_flags:
+ * @setting: the #NMSettingIPConfig
+ *
+ * Returns the value contained in the #NMSettingIPConfig:dhcp-hostname-flags
+ * property.
+ *
+ * Returns: flags for the DHCP hostname and FQDN
+ *
+ * Since: 1.22
+ */
+NMDhcpHostnameFlags
+nm_setting_ip_config_get_dhcp_hostname_flags (NMSettingIPConfig *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_IP_CONFIG (setting), NM_DHCP_HOSTNAME_FLAG_NONE);
+
+	return NM_SETTING_IP_CONFIG_GET_PRIVATE (setting)->dhcp_hostname_flags;
+}
+
+/**
  * nm_setting_ip_config_get_dhcp_timeout:
  * @setting: the #NMSettingIPConfig
  *
@@ -4868,6 +4890,25 @@ nm_setting_ip_config_get_dhcp_timeout (NMSettingIPConfig *setting)
 	g_return_val_if_fail (NM_IS_SETTING_IP_CONFIG (setting), 0);
 
 	return NM_SETTING_IP_CONFIG_GET_PRIVATE (setting)->dhcp_timeout;
+}
+
+/**
+ * nm_setting_ip_config_get_dhcp_iaid:
+ * @setting: the #NMSettingIPConfig
+ *
+ * Returns the value contained in the #NMSettingIPConfig:dhcp-iaid
+ * property.
+ *
+ * Returns: the configured DHCP IAID (Identity Association Identifier)
+ *
+ * Since: 1.22
+ **/
+const char *
+nm_setting_ip_config_get_dhcp_iaid (NMSettingIPConfig *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_IP_CONFIG (setting), NULL);
+
+	return NM_SETTING_IP_CONFIG_GET_PRIVATE (setting)->dhcp_iaid;
 }
 
 static gboolean
@@ -5001,15 +5042,6 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 			g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), NM_SETTING_IP_CONFIG_ROUTES);
 			return FALSE;
 		}
-		if (nm_ip_route_get_prefix (route) == 0) {
-			g_set_error (error,
-			             NM_CONNECTION_ERROR,
-			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-			             _("%d. route cannot be a default route"),
-			             (int) (i + 1));
-			g_prefix_error (error, "%s.%s: ", nm_setting_get_name (setting), NM_SETTING_IP_CONFIG_ROUTES);
-			return FALSE;
-		}
 	}
 
 	if (priv->routing_rules) {
@@ -5039,6 +5071,43 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		}
 	}
 
+	if (   priv->dhcp_iaid
+	    && !_nm_utils_iaid_verify (priv->dhcp_iaid, NULL)) {
+		g_set_error (error,
+		             NM_CONNECTION_ERROR,
+		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		             _("'%s' is not a valid IAID"),
+		             priv->dhcp_iaid);
+		g_prefix_error (error, "%s.%s: ",
+		                nm_setting_get_name (setting),
+		                NM_SETTING_IP_CONFIG_DHCP_IAID);
+		return FALSE;
+	}
+
+	/* Validate DHCP hostname flags */
+	if (   priv->dhcp_hostname_flags != NM_DHCP_HOSTNAME_FLAG_NONE
+	    && !priv->dhcp_send_hostname) {
+		g_set_error (error,
+		             NM_CONNECTION_ERROR,
+		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		             _("the property cannot be set when '%s' is disabled"),
+		             NM_SETTING_IP_CONFIG_DHCP_SEND_HOSTNAME);
+		g_prefix_error (error, "%s.%s: ",
+		                nm_setting_get_name (setting),
+		                NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS);
+		return FALSE;
+	}
+
+	if (!_nm_utils_validate_dhcp_hostname_flags (priv->dhcp_hostname_flags,
+	                                             NM_SETTING_IP_CONFIG_GET_FAMILY (setting),
+	                                             error)) {
+		g_prefix_error (error, "%s.%s: ",
+		                nm_setting_get_name (setting),
+		                NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS);
+		return FALSE;
+	}
+
+	/* Normalizable errors */
 	if (priv->gateway && priv->never_default) {
 		g_set_error (error,
 		             NM_CONNECTION_ERROR,
@@ -5073,7 +5142,9 @@ compare_property (const NMSettInfoSetting *sett_info,
 			if (a_priv->addresses->len != b_priv->addresses->len)
 				return FALSE;
 			for (i = 0; i < a_priv->addresses->len; i++) {
-				if (!_nm_ip_address_equal (a_priv->addresses->pdata[i], b_priv->addresses->pdata[i], TRUE))
+				if (nm_ip_address_cmp_full (a_priv->addresses->pdata[i],
+				                            b_priv->addresses->pdata[i],
+				                            NM_IP_ADDRESS_CMP_FLAGS_WITH_ATTRS) != 0)
 					return FALSE;
 			}
 		}
@@ -5213,12 +5284,12 @@ _nm_sett_info_property_override_create_array_ip_config (void)
 {
 	GArray *properties_override = _nm_sett_info_property_override_create_array ();
 
-	_properties_override_add_override (properties_override,
-	                                   obj_properties[PROP_GATEWAY],
-	                                   G_VARIANT_TYPE_STRING,
-	                                   NULL,
-	                                   ip_gateway_set,
-	                                   NULL);
+	_nm_properties_override_gobj (properties_override,
+	                              obj_properties[PROP_GATEWAY],
+	                              NM_SETT_INFO_PROPERT_TYPE (
+	                                  .dbus_type     = G_VARIANT_TYPE_STRING,
+	                                  .from_dbus_fcn = ip_gateway_set,
+	                              ));
 
 	/* ---dbus---
 	 * property: routing-rules
@@ -5226,11 +5297,13 @@ _nm_sett_info_property_override_create_array_ip_config (void)
 	 * description: Array of dictionaries for routing rules.
 	 * ---end---
 	 */
-	_properties_override_add_dbus_only (properties_override,
-	                                    NM_SETTING_IP_CONFIG_ROUTING_RULES,
-	                                    G_VARIANT_TYPE ("aa{sv}"),
-	                                    _routing_rules_dbus_only_synth,
-	                                    _routing_rules_dbus_only_set);
+	_nm_properties_override_dbus (properties_override,
+	                              NM_SETTING_IP_CONFIG_ROUTING_RULES,
+	                              NM_SETT_INFO_PROPERT_TYPE (
+	                                  .dbus_type     = NM_G_VARIANT_TYPE ("aa{sv}"),
+	                                  .to_dbus_fcn   = _routing_rules_dbus_only_synth,
+	                                  .from_dbus_fcn = _routing_rules_dbus_only_set,
+	                              ));
 
 	return properties_override;
 }
@@ -5302,6 +5375,12 @@ get_property (GObject *object, guint prop_id,
 		break;
 	case PROP_DHCP_TIMEOUT:
 		g_value_set_int (value, nm_setting_ip_config_get_dhcp_timeout (setting));
+		break;
+	case PROP_DHCP_IAID:
+		g_value_set_string (value, nm_setting_ip_config_get_dhcp_iaid (setting));
+		break;
+	case PROP_DHCP_HOSTNAME_FLAGS:
+		g_value_set_uint (value, nm_setting_ip_config_get_dhcp_hostname_flags (setting));
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -5403,6 +5482,12 @@ set_property (GObject *object, guint prop_id,
 	case PROP_DHCP_TIMEOUT:
 		priv->dhcp_timeout = g_value_get_int (value);
 		break;
+	case PROP_DHCP_IAID:
+		priv->dhcp_iaid = g_value_dup_string (value);
+		break;
+	case PROP_DHCP_HOSTNAME_FLAGS:
+		priv->dhcp_hostname_flags = g_value_get_uint (value);
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -5432,6 +5517,7 @@ finalize (GObject *object)
 	g_free (priv->method);
 	g_free (priv->gateway);
 	g_free (priv->dhcp_hostname);
+	g_free (priv->dhcp_iaid);
 
 	g_ptr_array_unref (priv->dns);
 	g_ptr_array_unref (priv->dns_search);
@@ -5793,6 +5879,62 @@ nm_setting_ip_config_class_init (NMSettingIPConfigClass *klass)
 	                      G_PARAM_READWRITE |
 	                      NM_SETTING_PARAM_FUZZY_IGNORE |
 	                      G_PARAM_STATIC_STRINGS);
+
+	/**
+	 * NMSettingIPConfig:dhcp-iaid:
+	 *
+	 * A string containing the "Identity Association Identifier" (IAID) used
+	 * by the DHCP client. The property is a 32-bit decimal value or a
+	 * special value among "mac", "perm-mac", "ifname" and "stable". When
+	 * set to "mac" (or "perm-mac"), the last 4 bytes of the current (or
+	 * permanent) MAC address are used as IAID. When set to "ifname", the
+	 * IAID is computed by hashing the interface name. The special value
+	 * "stable" can be used to generate an IAID based on the stable-id (see
+	 * connection.stable-id), a per-host key and the interface name. When
+	 * the property is unset, the value from global configuration is used;
+	 * if no global default is set then the IAID is assumed to be
+	 * "ifname". Note that at the moment this property is ignored for IPv6
+	 * by dhclient, which always derives the IAID from the MAC address.
+	 *
+	 * Since: 1.22
+	 **/
+	obj_properties[PROP_DHCP_IAID] =
+	    g_param_spec_string (NM_SETTING_IP_CONFIG_DHCP_IAID, "", "",
+	                         NULL,
+	                         G_PARAM_READWRITE |
+	                         G_PARAM_STATIC_STRINGS);
+
+	/**
+	 * NMSettingIPConfig:dhcp-hostname-flags:
+	 *
+	 * Flags for the DHCP hostname and FQDN.
+	 *
+	 * Currently this property only includes flags to control the FQDN flags
+	 * set in the DHCP FQDN option. Supported FQDN flags are
+	 * %NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE,
+	 * %NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED and
+	 * %NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE.  When no FQDN flag is set and
+	 * %NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS is set, the DHCP FQDN option will
+	 * contain no flag. Otherwise, if no FQDN flag is set and
+	 * %NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS is not set, the standard FQDN flags
+	 * are set in the request:
+	 * %NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE,
+	 * %NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED for IPv4 and
+	 * %NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE for IPv6.
+	 *
+	 * When this property is set to the default value %NM_DHCP_HOSTNAME_FLAG_NONE,
+	 * a global default is looked up in NetworkManager configuration. If that value
+	 * is unset or also %NM_DHCP_HOSTNAME_FLAG_NONE, then the standard FQDN flags
+	 * described above are sent in the DHCP requests.
+	 *
+	 * Since: 1.22
+	 */
+	obj_properties[PROP_DHCP_HOSTNAME_FLAGS] =
+	    g_param_spec_uint (NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS, "", "",
+	                       0, G_MAXUINT32,
+	                       NM_DHCP_HOSTNAME_FLAG_NONE,
+	                       G_PARAM_READWRITE |
+	                       G_PARAM_STATIC_STRINGS);
 
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 }

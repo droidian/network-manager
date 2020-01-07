@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 09/30/2019
+.\"      Date: 12/24/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.20.4
+.\"    Source: NetworkManager 1.22.2
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.20\&.4" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.22\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -405,6 +405,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 eap
@@ -755,6 +756,15 @@ T}:T{
 0
 T}:T{
 Timeout in seconds for the 802\&.1X authentication\&. Zero means the global default or 25\&.
+T}
+T{
+optional
+T}:T{
+IEEE_8021X_OPTIONAL\fI(+)\fR default=no
+T}:T{
+\ \&
+T}:T{
+whether the 802\&.1X authentication is optional
 T}
 .TE
 .sp 1
@@ -1953,7 +1963,9 @@ IPV6_DEFROUTE\fI(+)\fR, (and IPV6_DEFAULTGW, IPV6_DEFAULTDEV in /etc/sysconfig/n
 T}:T{
 IPV6_DEFROUTE=yes (when no variable specified)
 T}:T{
-IPV6_DEFROUTE=no tells NetworkManager that this connection should not be assigned the default IPv6 route\&. IPV6_DEFROUTE has the opposite meaning as \*(Aqnever\-default\*(Aq property\&.
+IPV6_DEFROUTE=no tells NetworkManager that this connection should not be assigned the default IPv6 route\&. IPV6_DEFROUTE has the opposite meaning as \*(Aqnever\-default\*(Aq property\&.\fB
+
+Example: \fRDHCPV6_HOSTNAME_FLAGS=5 */
 T}
 T{
 may\-fail

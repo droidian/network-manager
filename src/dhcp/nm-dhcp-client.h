@@ -1,17 +1,5 @@
-/* This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2005 - 2010 Red Hat, Inc.
  */
 
@@ -46,6 +34,9 @@
 #define NM_DHCP_CLIENT_ROUTE_TABLE      "route-table"
 #define NM_DHCP_CLIENT_TIMEOUT          "timeout"
 #define NM_DHCP_CLIENT_UUID             "uuid"
+#define NM_DHCP_CLIENT_IAID             "iaid"
+#define NM_DHCP_CLIENT_IAID_EXPLICIT    "iaid-explicit"
+#define NM_DHCP_CLIENT_HOSTNAME_FLAGS   "hostname-flags"
 
 #define NM_DHCP_CLIENT_SIGNAL_STATE_CHANGED "state-changed"
 #define NM_DHCP_CLIENT_SIGNAL_PREFIX_DELEGATED "prefix-delegated"
@@ -142,9 +133,15 @@ void nm_dhcp_client_set_route_metric (NMDhcpClient *self, guint32 route_metric);
 
 guint32 nm_dhcp_client_get_timeout (NMDhcpClient *self);
 
+guint32 nm_dhcp_client_get_iaid (NMDhcpClient *self);
+
+gboolean nm_dhcp_client_get_iaid_explicit (NMDhcpClient *self);
+
 GBytes *nm_dhcp_client_get_client_id (NMDhcpClient *self);
 
 const char *nm_dhcp_client_get_hostname (NMDhcpClient *self);
+
+NMDhcpHostnameFlags nm_dhcp_client_get_hostname_flags (NMDhcpClient *self);
 
 gboolean nm_dhcp_client_get_info_only (NMDhcpClient *self);
 
@@ -202,20 +199,28 @@ void nm_dhcp_client_set_client_id_bin (NMDhcpClient *self,
                                        const guint8 *client_id,
                                        gsize len);
 
+void nm_dhcp_client_emit_ipv6_prefix_delegated (NMDhcpClient *self,
+                                                const NMPlatformIP6Address *prefix);
+
 /*****************************************************************************
  * Client data
  *****************************************************************************/
 
 typedef struct {
-	GType (*get_type)(void);
+	GType (*get_type) (void);
+	GType (*get_type_per_addr_family) (int addr_family);
 	const char *name;
 	const char *(*get_path) (void);
+	bool experimental:1;
 } NMDhcpClientFactory;
+
+GType nm_dhcp_nettools_get_type (void);
 
 extern const NMDhcpClientFactory _nm_dhcp_client_factory_dhcpcanon;
 extern const NMDhcpClientFactory _nm_dhcp_client_factory_dhclient;
 extern const NMDhcpClientFactory _nm_dhcp_client_factory_dhcpcd;
 extern const NMDhcpClientFactory _nm_dhcp_client_factory_internal;
+extern const NMDhcpClientFactory _nm_dhcp_client_factory_systemd;
 extern const NMDhcpClientFactory _nm_dhcp_client_factory_nettools;
 
 #endif /* __NETWORKMANAGER_DHCP_CLIENT_H__ */

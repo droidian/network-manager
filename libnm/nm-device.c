@@ -1,21 +1,7 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2007 - 2008 Novell, Inc.
- * Copyright 2007 - 2018 Red Hat, Inc.
+ * Copyright (C) 2007 - 2008 Novell, Inc.
+ * Copyright (C) 2007 - 2018 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -24,7 +10,7 @@
 
 #include <libudev.h>
 
-#include "nm-libnm-utils.h"
+#include "nm-glib-aux/nm-dbus-aux.h"
 #include "nm-dbus-interface.h"
 #include "nm-active-connection.h"
 #include "nm-device-bt.h"
@@ -41,58 +27,9 @@
 #include "nm-setting-connection.h"
 #include "nm-udev-aux/nm-udev-utils.h"
 
-#include "introspection/org.freedesktop.NetworkManager.Device.h"
+/*****************************************************************************/
 
-static gboolean connection_compatible (NMDevice *device, NMConnection *connection, GError **error);
-static NMLldpNeighbor *nm_lldp_neighbor_dup (NMLldpNeighbor *neighbor);
-
-G_DEFINE_ABSTRACT_TYPE (NMDevice, nm_device, NM_TYPE_OBJECT);
-
-#define NM_DEVICE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_DEVICE, NMDevicePrivate))
-
-typedef struct {
-	NMDBusDevice *proxy;
-
-	char *iface;
-	char *ip_iface;
-	NMDeviceType device_type;
-	char *udi;
-	char *driver;
-	char *driver_version;
-	char *firmware_version;
-	char *type_description;
-	NMMetered metered;
-	NMDeviceCapabilities capabilities;
-	gboolean real;
-	gboolean managed;
-	gboolean firmware_missing;
-	gboolean nm_plugin_missing;
-	gboolean autoconnect;
-	NMIPConfig *ip4_config;
-	NMDhcpConfig *dhcp4_config;
-	NMIPConfig *ip6_config;
-	NMDhcpConfig *dhcp6_config;
-	NMConnectivityState ip4_connectivity;
-	NMConnectivityState ip6_connectivity;
-	NMDeviceState state;
-	NMDeviceState last_seen_state;
-	NMDeviceStateReason reason;
-
-	NMActiveConnection *active_connection;
-	GPtrArray *available_connections;
-
-	struct udev *udev;
-	char *product;
-	char *vendor, *short_vendor;
-	char *description, *bus_name;
-
-	char *physical_port_id;
-	guint32 mtu;
-	GPtrArray *lldp_neighbors;
-} NMDevicePrivate;
-
-enum {
-	PROP_0,
+NM_GOBJECT_PROPERTIES_DEFINE (NMDevice,
 	PROP_INTERFACE,
 	PROP_UDI,
 	PROP_DRIVER,
@@ -122,9 +59,8 @@ enum {
 	PROP_LLDP_NEIGHBORS,
 	PROP_IP4_CONNECTIVITY,
 	PROP_IP6_CONNECTIVITY,
-
-	LAST_PROP
-};
+	PROP_INTERFACE_FLAGS,
+);
 
 enum {
 	STATE_CHANGED,
@@ -134,6 +70,64 @@ enum {
 
 static guint signals[LAST_SIGNAL] = { 0 };
 
+enum {
+	PROPERTY_O_IDX_ACTIVE_CONNECTION,
+	PROPERTY_O_IDX_IP4_CONFIG,
+	PROPERTY_O_IDX_IP6_CONFIG,
+	PROPERTY_O_IDX_DHCP4_CONFIG,
+	PROPERTY_O_IDX_DHCP6_CONFIG,
+	_PROPERTY_O_IDX_NUM,
+};
+
+typedef struct _NMDevicePrivate {
+	NMLDBusPropertyO property_o[_PROPERTY_O_IDX_NUM];
+	NMLDBusPropertyAO available_connections;
+	GPtrArray *lldp_neighbors;
+	char *driver;
+	char *driver_version;
+	char *interface;
+	char *ip_interface;
+	char *firmware_version;
+	char *physical_port_id;
+	char *udi;
+	guint32 capabilities;
+	guint32 device_type;
+	guint32 ip4_connectivity;
+	guint32 ip6_connectivity;
+	guint32 metered;
+	guint32 mtu;
+	guint32 state;
+	guint32 state_reason;
+	guint32 interface_flags;
+	bool firmware_missing;
+	bool nm_plugin_missing;
+	bool autoconnect;
+	bool managed;
+	bool real;
+
+	guint32 old_state;
+
+	struct udev *udev;
+	char *type_description;
+	char *product;
+	char *vendor;
+	char *short_vendor;
+	char *description;
+	char *bus_name;
+
+} NMDevicePrivate;
+
+G_DEFINE_ABSTRACT_TYPE (NMDevice, nm_device, NM_TYPE_OBJECT);
+
+#define NM_DEVICE_GET_PRIVATE(self) _NM_GET_PRIVATE_PTR(self, NMDevice, NM_IS_DEVICE, NMObject)
+
+/*****************************************************************************/
+
+static gboolean connection_compatible (NMDevice *device, NMConnection *connection, GError **error);
+static NMLldpNeighbor *nm_lldp_neighbor_dup (NMLldpNeighbor *neighbor);
+
+/*****************************************************************************/
+
 struct _NMLldpNeighbor {
 	guint refcount;
 	GHashTable *attrs;
@@ -141,123 +135,131 @@ struct _NMLldpNeighbor {
 
 G_DEFINE_BOXED_TYPE (NMLldpNeighbor, nm_lldp_neighbor, nm_lldp_neighbor_dup, nm_lldp_neighbor_unref)
 
-static void
-nm_device_init (NMDevice *device)
-{
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (device);
-
-	priv->ip4_connectivity = NM_CONNECTIVITY_UNKNOWN;
-	priv->ip6_connectivity = NM_CONNECTIVITY_UNKNOWN;
-	priv->state = NM_DEVICE_STATE_UNKNOWN;
-	priv->reason = NM_DEVICE_STATE_REASON_NONE;
-	priv->lldp_neighbors = g_ptr_array_new ();
-}
-
-static gboolean
-demarshal_state_reason (NMObject *object, GParamSpec *pspec, GVariant *value, gpointer field)
-{
-	guint32 *reason_field = field;
-
-	g_variant_get (value, "(uu)", NULL, reason_field);
-	_nm_object_queue_notify (object, NM_DEVICE_STATE_REASON);
-	return TRUE;
-}
-
-static gboolean
-demarshal_lldp_neighbors (NMObject *object, GParamSpec *pspec, GVariant *value, gpointer field)
-{
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (object);
-	GVariantIter iter, attrs_iter;
-	GVariant *variant, *attr_variant;
-	const char *attr_name;
-
-	g_return_val_if_fail (g_variant_is_of_type (value, G_VARIANT_TYPE ("aa{sv}")), FALSE);
-
-	g_ptr_array_unref (priv->lldp_neighbors);
-	priv->lldp_neighbors = g_ptr_array_new_with_free_func ((GDestroyNotify) nm_lldp_neighbor_unref);
-	g_variant_iter_init (&iter, value);
-
-	while (g_variant_iter_next (&iter, "@a{sv}", &variant)) {
-		NMLldpNeighbor *neigh;
-
-		neigh = nm_lldp_neighbor_new ();
-		g_variant_iter_init (&attrs_iter, variant);
-
-		while (g_variant_iter_next (&attrs_iter, "{&sv}", &attr_name, &attr_variant))
-			g_hash_table_insert (neigh->attrs, g_strdup (attr_name), attr_variant);
-
-		g_variant_unref (variant);
-		g_ptr_array_add (priv->lldp_neighbors, neigh);
-	}
-
-	_nm_object_queue_notify (object, NM_DEVICE_LLDP_NEIGHBORS);
-
-	return TRUE;
-}
+/*****************************************************************************/
 
 static void
-device_state_reason_changed (GObject *object, GParamSpec *pspec, gpointer user_data);
-
-static void
-init_dbus (NMObject *object)
+nm_device_init (NMDevice *self)
 {
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (object);
-	const NMPropertiesInfo property_info[] = {
-		{ NM_DEVICE_UDI,               &priv->udi },
-		{ NM_DEVICE_INTERFACE,         &priv->iface },
-		{ NM_DEVICE_DEVICE_TYPE,       &priv->device_type },
-		{ NM_DEVICE_IP_INTERFACE,      &priv->ip_iface },
-		{ NM_DEVICE_DRIVER,            &priv->driver },
-		{ NM_DEVICE_DRIVER_VERSION,    &priv->driver_version },
-		{ NM_DEVICE_FIRMWARE_VERSION,  &priv->firmware_version },
-		{ NM_DEVICE_CAPABILITIES,      &priv->capabilities },
-		{ NM_DEVICE_REAL,              &priv->real },
-		{ NM_DEVICE_MANAGED,           &priv->managed },
-		{ NM_DEVICE_AUTOCONNECT,       &priv->autoconnect },
-		{ NM_DEVICE_FIRMWARE_MISSING,  &priv->firmware_missing },
-		{ NM_DEVICE_NM_PLUGIN_MISSING, &priv->nm_plugin_missing },
-		{ NM_DEVICE_IP4_CONFIG,        &priv->ip4_config, NULL, NM_TYPE_IP4_CONFIG },
-		{ NM_DEVICE_DHCP4_CONFIG,      &priv->dhcp4_config, NULL, NM_TYPE_DHCP4_CONFIG },
-		{ NM_DEVICE_IP6_CONFIG,        &priv->ip6_config, NULL, NM_TYPE_IP6_CONFIG },
-		{ NM_DEVICE_DHCP6_CONFIG,      &priv->dhcp6_config, NULL, NM_TYPE_DHCP6_CONFIG },
-		{ NM_DEVICE_IP4_CONNECTIVITY,  &priv->ip4_connectivity },
-		{ NM_DEVICE_IP6_CONNECTIVITY,  &priv->ip6_connectivity },
-		{ NM_DEVICE_STATE,             &priv->state },
-		{ NM_DEVICE_STATE_REASON,      &priv->reason, demarshal_state_reason },
-		{ NM_DEVICE_ACTIVE_CONNECTION, &priv->active_connection, NULL, NM_TYPE_ACTIVE_CONNECTION },
-		{ NM_DEVICE_AVAILABLE_CONNECTIONS, &priv->available_connections, NULL, NM_TYPE_REMOTE_CONNECTION },
-		{ NM_DEVICE_PHYSICAL_PORT_ID,  &priv->physical_port_id },
-		{ NM_DEVICE_MTU,               &priv->mtu },
-		{ NM_DEVICE_METERED,           &priv->metered },
-		{ NM_DEVICE_LLDP_NEIGHBORS,    &priv->lldp_neighbors, demarshal_lldp_neighbors },
+	NMDevicePrivate *priv;
 
-		/* Properties that exist in D-Bus but that we don't track */
-		{ "ip4-address", NULL },
+	priv = G_TYPE_INSTANCE_GET_PRIVATE (self, NM_TYPE_DEVICE, NMDevicePrivate);
 
-		{ NULL },
-	};
+	self->_priv = priv;
 
-	NM_OBJECT_CLASS (nm_device_parent_class)->init_dbus (object);
-
-	priv->proxy = NMDBUS_DEVICE (_nm_object_get_proxy (object, NM_DBUS_INTERFACE_DEVICE));
-	_nm_object_register_properties (object,
-	                                NM_DBUS_INTERFACE_DEVICE,
-	                                property_info);
-
-	g_signal_connect (priv->proxy, "notify::state-reason",
-	                  G_CALLBACK (device_state_reason_changed), object);
+	priv->old_state = NM_DEVICE_STATE_UNKNOWN;
 }
 
+/*****************************************************************************/
+
 static void
-device_state_reason_changed (GObject *object, GParamSpec *pspec, gpointer user_data)
+_notify_event_state_changed (NMClient *client,
+                             NMClientNotifyEventWithPtr *notify_event)
 {
-	NMDevice *self = NM_DEVICE (user_data);
+	gs_unref_object NMDevice *self = notify_event->user_data;
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
 
-	g_signal_emit (self, signals[STATE_CHANGED], 0,
-	               priv->state, priv->last_seen_state, priv->reason);
-	priv->last_seen_state = priv->state;
+	NML_NMCLIENT_LOG_T (_nm_object_get_client (self),
+	                    "[%s] emit Device's StateChanged signal %u -> %u, reason: %u",
+	                    _nm_object_get_path (self),
+	                    (guint) priv->old_state,
+	                    (guint) priv->state,
+	                    (guint) priv->state_reason);
+
+	g_signal_emit (self,
+	               signals[STATE_CHANGED],
+	               0,
+	               (guint) priv->state,
+	               (guint) priv->old_state,
+	               (guint) priv->state_reason);
 }
+
+static NMLDBusNotifyUpdatePropFlags
+_notify_update_prop_state_reason (NMClient *client,
+                                  NMLDBusObject *dbobj,
+                                  const NMLDBusMetaIface *meta_iface,
+                                  guint dbus_property_idx,
+                                  GVariant *value)
+{
+	NMDevice *self = NM_DEVICE (dbobj->nmobj);
+	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
+	guint32 new_state = NM_DEVICE_STATE_UNKNOWN;
+	guint32 reason = NM_DEVICE_STATE_REASON_NONE;
+
+	/* We ignore the "State" property and the "StateChanged" signal of the device.
+	 * This information is redundant to the "StateReason" property, and we rely
+	 * on that one alone. In the best case, the information is identical. If it
+	 * would not be, then we stick to the information from "StateReason" property. */
+
+	if (value)
+		g_variant_get (value, "(uu)", &new_state, &reason);
+
+	if (   priv->state == new_state
+	    && priv->state_reason == reason) {
+		/* no changes. */
+		return NML_DBUS_NOTIFY_UPDATE_PROP_FLAGS_NONE;
+	}
+
+	if (priv->state != new_state) {
+		priv->old_state = priv->state;
+		priv->state = new_state;
+		_nm_client_queue_notify_object (client,
+		                                self,
+		                                obj_properties[PROP_STATE]);
+	}
+
+	if (priv->state_reason != reason) {
+		priv->state_reason = reason;
+		_nm_client_queue_notify_object (client,
+		                                self,
+		                                obj_properties[PROP_STATE_REASON]);
+	}
+
+	_nm_client_notify_event_queue_with_ptr (client,
+	                                        NM_CLIENT_NOTIFY_EVENT_PRIO_GPROP + 1,
+	                                        _notify_event_state_changed,
+	                                        g_object_ref (self));
+
+	return NML_DBUS_NOTIFY_UPDATE_PROP_FLAGS_NONE;
+}
+
+static NMLDBusNotifyUpdatePropFlags
+_notify_update_prop_lldp_neighbors (NMClient *client,
+                                    NMLDBusObject *dbobj,
+                                    const NMLDBusMetaIface *meta_iface,
+                                    guint dbus_property_idx,
+                                    GVariant *value)
+{
+	NMDevice *self = NM_DEVICE (dbobj->nmobj);
+	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
+	gs_unref_ptrarray GPtrArray *old = NULL;
+	gs_unref_ptrarray GPtrArray *new = NULL;
+	GVariantIter *attrs_iter;
+	GVariantIter iter;
+
+	new = g_ptr_array_new_with_free_func ((GDestroyNotify) nm_lldp_neighbor_unref);
+
+	if (value) {
+		g_variant_iter_init (&iter, value);
+		while (g_variant_iter_next (&iter, "a{sv}", &attrs_iter)) {
+			GVariant *attr_variant;
+			const char *attr_name;
+			NMLldpNeighbor *neigh;
+
+			neigh = nm_lldp_neighbor_new ();
+			while (g_variant_iter_next (attrs_iter, "{&sv}", &attr_name, &attr_variant))
+				g_hash_table_insert (neigh->attrs, g_strdup (attr_name), attr_variant);
+			g_ptr_array_add (new, neigh);
+
+			g_variant_iter_free (attrs_iter);
+		}
+	}
+
+	old = g_steal_pointer (&priv->lldp_neighbors);
+	priv->lldp_neighbors = g_steal_pointer (&new);
+	return NML_DBUS_NOTIFY_UPDATE_PROP_FLAGS_NOTIFY;
+}
+
+/*****************************************************************************/
 
 static NMDeviceType
 coerce_type (NMDeviceType type)
@@ -299,37 +301,33 @@ coerce_type (NMDeviceType type)
 	return NM_DEVICE_TYPE_UNKNOWN;
 }
 
+/*****************************************************************************/
+
 static void
-dispose (GObject *object)
+register_client (NMObject *nmobj,
+                 NMClient *client,
+                 NMLDBusObject *dbobj)
 {
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (object);
+	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (nmobj);
 
-	g_clear_object (&priv->ip4_config);
-	g_clear_object (&priv->dhcp4_config);
-	g_clear_object (&priv->ip6_config);
-	g_clear_object (&priv->dhcp6_config);
-	g_clear_object (&priv->active_connection);
+	priv->udev = _nm_client_get_udev (client);
+	if (priv->udev)
+		udev_ref (priv->udev);
 
-	udev_unref (priv->udev);
-	priv->udev = NULL;
-
-	g_clear_pointer (&priv->available_connections, g_ptr_array_unref);
-	g_clear_pointer (&priv->lldp_neighbors, g_ptr_array_unref);
-
-	if (priv->proxy)
-		g_signal_handlers_disconnect_by_func (priv->proxy, device_state_reason_changed, object);
-	g_clear_object (&priv->proxy);
-
-	G_OBJECT_CLASS (nm_device_parent_class)->dispose (object);
+	NM_OBJECT_CLASS (nm_device_parent_class)->register_client (nmobj, client, dbobj);
 }
+
+/*****************************************************************************/
 
 static void
 finalize (GObject *object)
 {
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (object);
 
-	g_free (priv->iface);
-	g_free (priv->ip_iface);
+	g_clear_pointer (&priv->lldp_neighbors, g_ptr_array_unref);
+
+	g_free (priv->interface);
+	g_free (priv->ip_interface);
 	g_free (priv->udi);
 	g_free (priv->driver);
 	g_free (priv->driver_version);
@@ -341,6 +339,8 @@ finalize (GObject *object)
 	g_free (priv->bus_name);
 	g_free (priv->type_description);
 	g_free (priv->physical_port_id);
+
+	nm_clear_pointer (&priv->udev, udev_unref);
 
 	G_OBJECT_CLASS (nm_device_parent_class)->finalize (object);
 }
@@ -441,6 +441,9 @@ get_property (GObject *object,
 	case PROP_IP6_CONNECTIVITY:
 		g_value_set_enum (value, nm_device_get_connectivity (device, AF_INET6));
 		break;
+	case PROP_INTERFACE_FLAGS:
+		g_value_set_uint (value, nm_device_get_interface_flags (device));
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -458,11 +461,6 @@ set_property (GObject *object,
 	gboolean b;
 
 	switch (prop_id) {
-	case PROP_MANAGED:
-		b = g_value_get_boolean (value);
-		if (priv->managed != b)
-			nm_device_set_managed (NM_DEVICE (object), b);
-		break;
 	case PROP_AUTOCONNECT:
 		b = g_value_get_boolean (value);
 		if (priv->autoconnect != b)
@@ -474,37 +472,87 @@ set_property (GObject *object,
 	}
 }
 
+/* TODO: statistics interface not yet implemented. */
+const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_statistics = NML_DBUS_META_IFACE_INIT (
+	NM_DBUS_INTERFACE_DEVICE_STATISTICS,
+	NULL,
+	NML_DBUS_META_INTERFACE_PRIO_NONE,
+	NML_DBUS_META_IFACE_DBUS_PROPERTIES (
+		NML_DBUS_META_PROPERTY_INIT_TODO ("RefreshRateMs", "u" ),
+		NML_DBUS_META_PROPERTY_INIT_TODO ("RxBytes",       "t" ),
+		NML_DBUS_META_PROPERTY_INIT_TODO ("TxBytes",       "t" ),
+	),
+);
+
+const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device = NML_DBUS_META_IFACE_INIT_PROP (
+	NM_DBUS_INTERFACE_DEVICE,
+	nm_device_get_type,
+	NML_DBUS_META_INTERFACE_PRIO_PARENT_TYPE,
+	NML_DBUS_META_IFACE_DBUS_PROPERTIES (
+		NML_DBUS_META_PROPERTY_INIT_O_PROP  ("ActiveConnection",     PROP_ACTIVE_CONNECTION,     NMDevicePrivate, property_o[PROPERTY_O_IDX_ACTIVE_CONNECTION], nm_active_connection_get_type, .is_always_ready = TRUE ),
+		NML_DBUS_META_PROPERTY_INIT_B       ("Autoconnect",          PROP_AUTOCONNECT,           NMDevicePrivate, autoconnect                                                                                          ),
+		NML_DBUS_META_PROPERTY_INIT_AO_PROP ("AvailableConnections", PROP_AVAILABLE_CONNECTIONS, NMDevicePrivate, available_connections,                        nm_remote_connection_get_type, .is_always_ready = TRUE ),
+		NML_DBUS_META_PROPERTY_INIT_U       ("Capabilities",         PROP_CAPABILITIES,          NMDevicePrivate, capabilities                                                                                         ),
+		NML_DBUS_META_PROPERTY_INIT_U       ("DeviceType",           PROP_DEVICE_TYPE,           NMDevicePrivate, device_type                                                                                          ),
+		NML_DBUS_META_PROPERTY_INIT_O_PROP  ("Dhcp4Config",          PROP_DHCP4_CONFIG,          NMDevicePrivate, property_o[PROPERTY_O_IDX_DHCP4_CONFIG],      nm_dhcp4_config_get_type                               ),
+		NML_DBUS_META_PROPERTY_INIT_O_PROP  ("Dhcp6Config",          PROP_DHCP6_CONFIG,          NMDevicePrivate, property_o[PROPERTY_O_IDX_DHCP6_CONFIG],      nm_dhcp6_config_get_type                               ),
+		NML_DBUS_META_PROPERTY_INIT_S       ("Driver",               PROP_DRIVER,                NMDevicePrivate, driver                                                                                               ),
+		NML_DBUS_META_PROPERTY_INIT_S       ("DriverVersion",        PROP_DRIVER_VERSION,        NMDevicePrivate, driver_version                                                                                       ),
+		NML_DBUS_META_PROPERTY_INIT_B       ("FirmwareMissing",      PROP_FIRMWARE_MISSING,      NMDevicePrivate, firmware_missing                                                                                     ),
+		NML_DBUS_META_PROPERTY_INIT_S       ("FirmwareVersion",      PROP_FIRMWARE_VERSION,      NMDevicePrivate, firmware_version                                                                                     ),
+		NML_DBUS_META_PROPERTY_INIT_S       ("Interface",            PROP_INTERFACE,             NMDevicePrivate, interface                                                                                            ),
+		NML_DBUS_META_PROPERTY_INIT_U       ("InterfaceFlags",       PROP_INTERFACE_FLAGS,       NMDevicePrivate, interface_flags                                                                                      ),
+		NML_DBUS_META_PROPERTY_INIT_IGNORE  ("Ip4Address",           "u"                                                                                                                                               ),
+		NML_DBUS_META_PROPERTY_INIT_O_PROP  ("Ip4Config",            PROP_IP4_CONFIG,            NMDevicePrivate, property_o[PROPERTY_O_IDX_IP4_CONFIG],        nm_ip4_config_get_type                                 ),
+		NML_DBUS_META_PROPERTY_INIT_U       ("Ip4Connectivity",      PROP_IP4_CONNECTIVITY,      NMDevicePrivate, ip4_connectivity                                                                                     ),
+		NML_DBUS_META_PROPERTY_INIT_O_PROP  ("Ip6Config",            PROP_IP6_CONFIG,            NMDevicePrivate, property_o[PROPERTY_O_IDX_IP6_CONFIG],        nm_ip6_config_get_type                                 ),
+		NML_DBUS_META_PROPERTY_INIT_U       ("Ip6Connectivity",      PROP_IP6_CONNECTIVITY,      NMDevicePrivate, ip6_connectivity                                                                                     ),
+		NML_DBUS_META_PROPERTY_INIT_S       ("IpInterface",          PROP_IP_INTERFACE,          NMDevicePrivate, ip_interface                                                                                         ),
+		NML_DBUS_META_PROPERTY_INIT_FCN     ("LldpNeighbors",        PROP_LLDP_NEIGHBORS,        "aa{sv}",        _notify_update_prop_lldp_neighbors                                                                   ),
+		NML_DBUS_META_PROPERTY_INIT_B       ("Managed",              PROP_MANAGED,               NMDevicePrivate, managed                                                                                              ),
+		NML_DBUS_META_PROPERTY_INIT_U       ("Metered",              PROP_METERED,               NMDevicePrivate, metered                                                                                              ),
+		NML_DBUS_META_PROPERTY_INIT_U       ("Mtu",                  PROP_MTU,                   NMDevicePrivate, mtu                                                                                                  ),
+		NML_DBUS_META_PROPERTY_INIT_B       ("NmPluginMissing",      PROP_NM_PLUGIN_MISSING,     NMDevicePrivate, nm_plugin_missing                                                                                    ),
+		NML_DBUS_META_PROPERTY_INIT_S       ("PhysicalPortId",       PROP_PHYSICAL_PORT_ID,      NMDevicePrivate, physical_port_id                                                                                     ),
+		NML_DBUS_META_PROPERTY_INIT_B       ("Real",                 PROP_REAL,                  NMDevicePrivate, real                                                                                                 ),
+		NML_DBUS_META_PROPERTY_INIT_IGNORE  ("State",                "u"                                                                                                                                               ),
+		NML_DBUS_META_PROPERTY_INIT_FCN     ("StateReason",          PROP_STATE_REASON,          "(uu)",          _notify_update_prop_state_reason                                                                     ),
+		NML_DBUS_META_PROPERTY_INIT_S       ("Udi",                  PROP_UDI,                   NMDevicePrivate, udi                                                                                                  ),
+	),
+	.base_struct_offset = G_STRUCT_OFFSET (NMDevice, _priv),
+);
+
 static void
-nm_device_class_init (NMDeviceClass *device_class)
+nm_device_class_init (NMDeviceClass *klass)
 {
-	GObjectClass *object_class = G_OBJECT_CLASS (device_class);
-	NMObjectClass *nm_object_class = NM_OBJECT_CLASS (device_class);
+	GObjectClass *object_class = G_OBJECT_CLASS (klass);
+	NMObjectClass *nm_object_class = NM_OBJECT_CLASS (klass);
 
-	g_type_class_add_private (device_class, sizeof (NMDevicePrivate));
+	g_type_class_add_private (klass, sizeof (NMDevicePrivate));
 
-	/* virtual methods */
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
-	object_class->dispose = dispose;
-	object_class->finalize = finalize;
+	object_class->finalize     = finalize;
 
-	nm_object_class->init_dbus = init_dbus;
+	nm_object_class->register_client   = register_client;
 
-	device_class->connection_compatible = connection_compatible;
+	_NM_OBJECT_CLASS_INIT_PRIV_PTR_INDIRECT (nm_object_class, NMDevice);
 
-	/* properties */
+	_NM_OBJECT_CLASS_INIT_PROPERTY_O_FIELDS_N (nm_object_class, NMDevicePrivate, property_o);
+	_NM_OBJECT_CLASS_INIT_PROPERTY_AO_FIELDS_1 (nm_object_class, NMDevicePrivate, available_connections);
+
+	klass->connection_compatible = connection_compatible;
 
 	/**
 	 * NMDevice:interface:
 	 *
 	 * The interface of the device.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_INTERFACE,
-		 g_param_spec_string (NM_DEVICE_INTERFACE, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_INTERFACE] =
+	    g_param_spec_string (NM_DEVICE_INTERFACE, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:ip-interface:
@@ -512,25 +560,23 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 * The IP interface of the device which should be used for all IP-related
 	 * operations like addressing and routing.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_IP_INTERFACE,
-		 g_param_spec_string (NM_DEVICE_IP_INTERFACE, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_IP_INTERFACE] =
+	    g_param_spec_string (NM_DEVICE_IP_INTERFACE, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:device-type:
 	 *
 	 * The numeric type of the device.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_DEVICE_TYPE,
-		 g_param_spec_enum (NM_DEVICE_DEVICE_TYPE, "", "",
-		                    NM_TYPE_DEVICE_TYPE,
-		                    NM_DEVICE_TYPE_UNKNOWN,
-		                    G_PARAM_READABLE |
-		                    G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_DEVICE_TYPE] =
+	    g_param_spec_enum (NM_DEVICE_DEVICE_TYPE, "", "",
+	                       NM_TYPE_DEVICE_TYPE,
+	                       NM_DEVICE_TYPE_UNKNOWN,
+	                       G_PARAM_READABLE |
+	                       G_PARAM_STATIC_STRINGS);
 	/**
 	 * NMDevice:udi:
 	 *
@@ -541,61 +587,56 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 * such as Bluez or ModemManager, and clients can use this property to
 	 * request more information about the device from those services.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_UDI,
-		 g_param_spec_string (NM_DEVICE_UDI, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_UDI] =
+	    g_param_spec_string (NM_DEVICE_UDI, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:driver:
 	 *
 	 * The driver of the device.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_DRIVER,
-		 g_param_spec_string (NM_DEVICE_DRIVER, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_DRIVER] =
+	    g_param_spec_string (NM_DEVICE_DRIVER, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:driver-version:
 	 *
 	 * The version of the device driver.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_DRIVER_VERSION,
-		 g_param_spec_string (NM_DEVICE_DRIVER_VERSION, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_DRIVER_VERSION] =
+	    g_param_spec_string (NM_DEVICE_DRIVER_VERSION, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:firmware-version:
 	 *
 	 * The firmware version of the device.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_FIRMWARE_VERSION,
-		 g_param_spec_string (NM_DEVICE_FIRMWARE_VERSION, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_FIRMWARE_VERSION] =
+	    g_param_spec_string (NM_DEVICE_FIRMWARE_VERSION, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:capabilities:
 	 *
 	 * The capabilities of the device.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_CAPABILITIES,
-		 g_param_spec_flags (NM_DEVICE_CAPABILITIES, "", "",
-		                     NM_TYPE_DEVICE_CAPABILITIES,
-		                     NM_DEVICE_CAP_NONE,
-		                     G_PARAM_READABLE |
-		                     G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_CAPABILITIES] =
+	    g_param_spec_flags (NM_DEVICE_CAPABILITIES, "", "",
+	                        NM_TYPE_DEVICE_CAPABILITIES,
+	                        NM_DEVICE_CAP_NONE,
+	                        G_PARAM_READABLE |
+	                        G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:real:
@@ -606,36 +647,35 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 *
 	 * Since: 1.2
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_REAL,
-		 g_param_spec_boolean (NM_DEVICE_REAL, "", "",
-		                       FALSE,
-		                       G_PARAM_READABLE |
-		                       G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_REAL] =
+	    g_param_spec_boolean (NM_DEVICE_REAL, "", "",
+	                          FALSE,
+	                          G_PARAM_READABLE |
+	                          G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:managed:
 	 *
 	 * Whether the device is managed by NetworkManager.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_MANAGED,
-		 g_param_spec_boolean (NM_DEVICE_MANAGED, "", "",
-		                       FALSE,
-		                       G_PARAM_READABLE |
-		                       G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_MANAGED] =
+	    g_param_spec_boolean (NM_DEVICE_MANAGED, "", "",
+	                          FALSE,
+	                          G_PARAM_READABLE |
+	                          G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:autoconnect:
 	 *
 	 * Whether the device can auto-activate a connection.
+	 *
+	 * The property setter is a synchronous D-Bus call. This is deprecated since 1.22.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_AUTOCONNECT,
-		 g_param_spec_boolean (NM_DEVICE_AUTOCONNECT, "", "",
-		                       TRUE,
-		                       G_PARAM_READWRITE |
-		                       G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_AUTOCONNECT] =
+	    g_param_spec_boolean (NM_DEVICE_AUTOCONNECT, "", "",
+	                          FALSE,
+	                          G_PARAM_READWRITE |
+	                          G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:firmware-missing:
@@ -643,12 +683,11 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 * When %TRUE indicates the device is likely missing firmware required
 	 * for its operation.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_FIRMWARE_MISSING,
-		 g_param_spec_boolean (NM_DEVICE_FIRMWARE_MISSING, "", "",
-		                       FALSE,
-		                       G_PARAM_READABLE |
-		                       G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_FIRMWARE_MISSING] =
+	    g_param_spec_boolean (NM_DEVICE_FIRMWARE_MISSING, "", "",
+	                          FALSE,
+	                          G_PARAM_READABLE |
+	                          G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:nm-plugin-missing:
@@ -658,60 +697,55 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 *
 	 * Since: 1.2
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_NM_PLUGIN_MISSING,
-		 g_param_spec_boolean (NM_DEVICE_NM_PLUGIN_MISSING, "", "",
-		                       FALSE,
-		                       G_PARAM_READABLE |
-		                       G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_NM_PLUGIN_MISSING] =
+	    g_param_spec_boolean (NM_DEVICE_NM_PLUGIN_MISSING, "", "",
+	                          FALSE,
+	                          G_PARAM_READABLE |
+	                          G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:ip4-config:
 	 *
 	 * The #NMIP4Config of the device.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_IP4_CONFIG,
-		 g_param_spec_object (NM_DEVICE_IP4_CONFIG, "", "",
-		                      NM_TYPE_IP_CONFIG,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_IP4_CONFIG] =
+	    g_param_spec_object (NM_DEVICE_IP4_CONFIG, "", "",
+	                         NM_TYPE_IP_CONFIG,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:dhcp4-config:
 	 *
 	 * The IPv4 #NMDhcpConfig of the device.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_DHCP4_CONFIG,
-		 g_param_spec_object (NM_DEVICE_DHCP4_CONFIG, "", "",
-		                      NM_TYPE_DHCP_CONFIG,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_DHCP4_CONFIG] =
+	    g_param_spec_object (NM_DEVICE_DHCP4_CONFIG, "", "",
+	                         NM_TYPE_DHCP_CONFIG,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:ip6-config:
 	 *
 	 * The IPv6 #NMIPConfig of the device.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_IP6_CONFIG,
-		 g_param_spec_object (NM_DEVICE_IP6_CONFIG, "", "",
-		                      NM_TYPE_IP_CONFIG,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_IP6_CONFIG] =
+	    g_param_spec_object (NM_DEVICE_IP6_CONFIG, "", "",
+	                         NM_TYPE_IP_CONFIG,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:dhcp6-config:
 	 *
 	 * The IPv6 #NMDhcpConfig of the device.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_DHCP6_CONFIG,
-		 g_param_spec_object (NM_DEVICE_DHCP6_CONFIG, "", "",
-		                      NM_TYPE_DHCP_CONFIG,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_DHCP6_CONFIG] =
+	    g_param_spec_object (NM_DEVICE_DHCP6_CONFIG, "", "",
+	                         NM_TYPE_DHCP_CONFIG,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:ip4-connectivity:
@@ -720,13 +754,12 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 *
 	 * Since: 1.16
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_IP4_CONNECTIVITY,
-		 g_param_spec_enum (NM_DEVICE_IP4_CONNECTIVITY, "", "",
-		                    NM_TYPE_CONNECTIVITY_STATE,
-		                    NM_CONNECTIVITY_UNKNOWN,
-		                    G_PARAM_READABLE |
-		                    G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_IP4_CONNECTIVITY] =
+	    g_param_spec_enum (NM_DEVICE_IP4_CONNECTIVITY, "", "",
+	                       NM_TYPE_CONNECTIVITY_STATE,
+	                       NM_CONNECTIVITY_UNKNOWN,
+	                       G_PARAM_READABLE |
+	                       G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:ip6-connectivity:
@@ -735,86 +768,79 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 *
 	 * Since: 1.16
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_IP6_CONNECTIVITY,
-		 g_param_spec_enum (NM_DEVICE_IP6_CONNECTIVITY, "", "",
-		                    NM_TYPE_CONNECTIVITY_STATE,
-		                    NM_CONNECTIVITY_UNKNOWN,
-		                    G_PARAM_READABLE |
-		                    G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_IP6_CONNECTIVITY] =
+	    g_param_spec_enum (NM_DEVICE_IP6_CONNECTIVITY, "", "",
+	                       NM_TYPE_CONNECTIVITY_STATE,
+	                       NM_CONNECTIVITY_UNKNOWN,
+	                       G_PARAM_READABLE |
+	                       G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:state:
 	 *
 	 * The state of the device.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_STATE,
-		 g_param_spec_enum (NM_DEVICE_STATE, "", "",
-		                    NM_TYPE_DEVICE_STATE,
-		                    NM_DEVICE_STATE_UNKNOWN,
-		                    G_PARAM_READABLE |
-		                    G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_STATE] =
+	    g_param_spec_enum (NM_DEVICE_STATE, "", "",
+	                       NM_TYPE_DEVICE_STATE,
+	                       NM_DEVICE_STATE_UNKNOWN,
+	                       G_PARAM_READABLE |
+	                       G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:state-reason:
 	 *
 	 * The reason for the device state.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_STATE_REASON,
-		 g_param_spec_uint (NM_DEVICE_STATE_REASON, "", "",
-		                    0, G_MAXUINT32, 0,
-		                    G_PARAM_READABLE |
-		                    G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_STATE_REASON] =
+	    g_param_spec_uint (NM_DEVICE_STATE_REASON, "", "",
+	                       0, G_MAXUINT32, 0,
+	                       G_PARAM_READABLE |
+	                       G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:active-connection:
 	 *
 	 * The #NMActiveConnection object that "owns" this device during activation.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_ACTIVE_CONNECTION,
-		 g_param_spec_object (NM_DEVICE_ACTIVE_CONNECTION, "", "",
-		                      NM_TYPE_ACTIVE_CONNECTION,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_ACTIVE_CONNECTION] =
+	    g_param_spec_object (NM_DEVICE_ACTIVE_CONNECTION, "", "",
+	                         NM_TYPE_ACTIVE_CONNECTION,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:available-connections: (type GPtrArray(NMRemoteConnection))
 	 *
 	 * The available connections of the device
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_AVAILABLE_CONNECTIONS,
-		 g_param_spec_boxed (NM_DEVICE_AVAILABLE_CONNECTIONS, "", "",
-		                     G_TYPE_PTR_ARRAY,
-		                     G_PARAM_READABLE |
-		                     G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_AVAILABLE_CONNECTIONS] =
+	    g_param_spec_boxed (NM_DEVICE_AVAILABLE_CONNECTIONS, "", "",
+	                        G_TYPE_PTR_ARRAY,
+	                        G_PARAM_READABLE |
+	                        G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:vendor:
 	 *
 	 * The vendor string of the device.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_VENDOR,
-		 g_param_spec_string (NM_DEVICE_VENDOR, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_VENDOR] =
+	    g_param_spec_string (NM_DEVICE_VENDOR, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:product:
 	 *
 	 * The product string of the device.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_PRODUCT,
-		 g_param_spec_string (NM_DEVICE_PRODUCT, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_PRODUCT] =
+	    g_param_spec_string (NM_DEVICE_PRODUCT, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:physical-port-id:
@@ -822,24 +848,22 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 * The physical port ID of the device. (See
 	 * nm_device_get_physical_port_id().)
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_PHYSICAL_PORT_ID,
-		 g_param_spec_string (NM_DEVICE_PHYSICAL_PORT_ID, "", "",
-		                      NULL,
-		                      G_PARAM_READABLE |
-		                      G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_PHYSICAL_PORT_ID] =
+	    g_param_spec_string (NM_DEVICE_PHYSICAL_PORT_ID, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:mtu:
 	 *
 	 * The MTU of the device.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_MTU,
-		 g_param_spec_uint (NM_DEVICE_MTU, "", "",
-		                    0, G_MAXUINT32, 1500,
-		                    G_PARAM_READABLE |
-		                    G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_MTU] =
+	    g_param_spec_uint (NM_DEVICE_MTU, "", "",
+	                       0, G_MAXUINT32, 0,
+	                       G_PARAM_READABLE |
+	                       G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:metered:
@@ -848,26 +872,37 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 *
 	 * Since: 1.2
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_METERED,
-		 g_param_spec_uint (NM_DEVICE_METERED, "", "",
-		                    0, G_MAXUINT32, NM_METERED_UNKNOWN,
-		                    G_PARAM_READABLE |
-		                    G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_METERED] =
+	    g_param_spec_uint (NM_DEVICE_METERED, "", "",
+	                       0, G_MAXUINT32, NM_METERED_UNKNOWN,
+	                       G_PARAM_READABLE |
+	                       G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDevice:lldp-neighbors:
 	 *
 	 * The LLDP neighbors.
 	 **/
-	g_object_class_install_property
-	    (object_class, PROP_LLDP_NEIGHBORS,
-	     g_param_spec_boxed (NM_DEVICE_LLDP_NEIGHBORS, "", "",
-	                         G_TYPE_PTR_ARRAY,
-	                         G_PARAM_READABLE |
-	                         G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_LLDP_NEIGHBORS] =
+	    g_param_spec_boxed (NM_DEVICE_LLDP_NEIGHBORS, "", "",
+	                        G_TYPE_PTR_ARRAY,
+	                        G_PARAM_READABLE |
+	                        G_PARAM_STATIC_STRINGS);
 
-	/* signals */
+	/**
+	 * NMDevice:interface-flags:
+	 *
+	 * The interface flags.
+	 *
+	 * Since: 1.22
+	 **/
+	obj_properties[PROP_INTERFACE_FLAGS] =
+	    g_param_spec_uint (NM_DEVICE_INTERFACE_FLAGS, "", "",
+	                       0, G_MAXUINT32, 0,
+	                       G_PARAM_READABLE |
+	                       G_PARAM_STATIC_STRINGS);
+
+	_nml_dbus_meta_class_init_with_properties (object_class, &_nml_dbus_meta_iface_nm_device);
 
 	/**
 	 * NMDevice::state-changed:
@@ -879,13 +914,12 @@ nm_device_class_init (NMDeviceClass *device_class)
 	 * Notifies the state change of a #NMDevice.
 	 **/
 	signals[STATE_CHANGED] =
-		g_signal_new ("state-changed",
-		              G_OBJECT_CLASS_TYPE (object_class),
-		              G_SIGNAL_RUN_FIRST,
-		              G_STRUCT_OFFSET (NMDeviceClass, state_changed),
-		              NULL, NULL, NULL,
-		              G_TYPE_NONE, 3,
-		              G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT);
+	    g_signal_new ("state-changed",
+	                  G_OBJECT_CLASS_TYPE (object_class),
+	                  G_SIGNAL_RUN_FIRST,
+	                  0, NULL, NULL, NULL,
+	                  G_TYPE_NONE, 3,
+	                  G_TYPE_UINT, G_TYPE_UINT, G_TYPE_UINT);
 }
 
 /**
@@ -902,7 +936,7 @@ nm_device_get_iface (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->iface);
+	return _nml_coerce_property_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->interface);
 }
 
 /**
@@ -920,7 +954,7 @@ nm_device_get_ip_iface (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->ip_iface);
+	return _nml_coerce_property_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->ip_interface);
 }
 
 /**
@@ -954,7 +988,7 @@ nm_device_get_udi (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->udi);
+	return _nml_coerce_property_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->udi);
 }
 
 /**
@@ -971,7 +1005,7 @@ nm_device_get_driver (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->driver);
+	return _nml_coerce_property_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->driver);
 }
 
 /**
@@ -988,7 +1022,7 @@ nm_device_get_driver_version (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->driver_version);
+	return _nml_coerce_property_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->driver_version);
 }
 
 /**
@@ -1005,7 +1039,7 @@ nm_device_get_firmware_version (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->firmware_version);
+	return _nml_coerce_property_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->firmware_version);
 }
 
 /**
@@ -1030,7 +1064,7 @@ nm_device_get_type_description (NMDevice *device)
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
 	if (priv->type_description)
-		return nm_str_not_empty (priv->type_description);
+		return _nml_coerce_property_str_not_empty (priv->type_description);
 
 	if (NM_DEVICE_GET_CLASS (device)->get_type_description) {
 		desc = NM_DEVICE_GET_CLASS (device)->get_type_description (device);
@@ -1043,7 +1077,7 @@ nm_device_get_type_description (NMDevice *device)
 		typename += 8;
 	priv->type_description = g_ascii_strdown (typename, -1);
 
-	return nm_str_not_empty (priv->type_description);
+	return _nml_coerce_property_str_not_empty (priv->type_description);
 }
 
 /**
@@ -1106,20 +1140,30 @@ nm_device_get_managed (NMDevice *device)
  * Enables or disables management of  #NMDevice by NetworkManager.
  *
  * Since: 1.2
+ *
+ * Deprecated: 1.22, use nm_device_set_managed_async() or GDBusConnection
+ *
+ * This function is deprecated because it calls a synchronous D-Bus method
+ * and modifies the content of the NMClient cache client side. Also, it does
+ * not emit a property changed signal.
  **/
 void
 nm_device_set_managed (NMDevice *device, gboolean managed)
 {
 	g_return_if_fail (NM_IS_DEVICE (device));
 
+	/* FIXME(libnm-async-api): add nm_device_set_managed_async(). */
+
 	managed = !!managed;
 
 	NM_DEVICE_GET_PRIVATE (device)->managed = managed;
 
-	_nm_object_set_property (NM_OBJECT (device),
-	                         NM_DBUS_INTERFACE_DEVICE,
-	                         "Managed",
-	                         "b", managed);
+	_nm_client_set_property_sync_legacy (_nm_object_get_client (device),
+	                                     _nm_object_get_path (device),
+	                                     NM_DBUS_INTERFACE_DEVICE,
+	                                     "Managed",
+	                                     "b",
+	                                     managed);
 }
 
 /**
@@ -1144,18 +1188,27 @@ nm_device_get_autoconnect (NMDevice *device)
  * @autoconnect: %TRUE to enable autoconnecting
  *
  * Enables or disables automatic activation of the #NMDevice.
+ *
+ * Deprecated: 1.22, use nm_device_set_autoconnect_async() or GDBusConnection
+ *
+ * This function is deprecated because it calls a synchronous D-Bus method
+ * and modifies the content of the NMClient cache client side.
  **/
 void
 nm_device_set_autoconnect (NMDevice *device, gboolean autoconnect)
 {
 	g_return_if_fail (NM_IS_DEVICE (device));
 
+	/* FIXME(libnm-async-api): add nm_device_set_autoconnect_async(). */
+
 	NM_DEVICE_GET_PRIVATE (device)->autoconnect = autoconnect;
 
-	_nm_object_set_property (NM_OBJECT (device),
-	                         NM_DBUS_INTERFACE_DEVICE,
-	                         "Autoconnect",
-	                         "b", autoconnect);
+	_nm_client_set_property_sync_legacy (_nm_object_get_client (device),
+	                                     _nm_object_get_path (device),
+	                                     NM_DBUS_INTERFACE_DEVICE,
+	                                     "AutoConnect",
+	                                     "b",
+	                                     autoconnect);
 }
 
 /**
@@ -1211,7 +1264,7 @@ nm_device_get_ip4_config (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return NM_DEVICE_GET_PRIVATE (device)->ip4_config;
+	return nml_dbus_property_o_get_obj (&NM_DEVICE_GET_PRIVATE (device)->property_o[PROPERTY_O_IDX_IP4_CONFIG]);
 }
 
 /**
@@ -1231,7 +1284,7 @@ nm_device_get_dhcp4_config (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return NM_DEVICE_GET_PRIVATE (device)->dhcp4_config;
+	return nml_dbus_property_o_get_obj (&NM_DEVICE_GET_PRIVATE (device)->property_o[PROPERTY_O_IDX_DHCP4_CONFIG]);
 }
 
 /**
@@ -1250,7 +1303,7 @@ nm_device_get_ip6_config (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return NM_DEVICE_GET_PRIVATE (device)->ip6_config;
+	return nml_dbus_property_o_get_obj (&NM_DEVICE_GET_PRIVATE (device)->property_o[PROPERTY_O_IDX_IP6_CONFIG]);
 }
 
 /**
@@ -1270,7 +1323,7 @@ nm_device_get_dhcp6_config (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return NM_DEVICE_GET_PRIVATE (device)->dhcp6_config;
+	return nml_dbus_property_o_get_obj (&NM_DEVICE_GET_PRIVATE (device)->property_o[PROPERTY_O_IDX_DHCP6_CONFIG]);
 }
 
 /**
@@ -1304,6 +1357,24 @@ nm_device_get_connectivity (NMDevice *device, int addr_family)
 }
 
 /**
+ * nm_device_get_interface_flags:
+ * @device: a #NMDevice
+ *
+ * Gets the interface flags of the device.
+ *
+ * Returns: the flags
+ *
+ * Since: 1.22
+ **/
+NMDeviceInterfaceFlags
+nm_device_get_interface_flags (NMDevice *device)
+{
+	g_return_val_if_fail (NM_IS_DEVICE (device), NM_DEVICE_INTERFACE_FLAG_NONE);
+
+	return NM_DEVICE_GET_PRIVATE (device)->interface_flags;
+}
+
+/**
  * nm_device_get_state:
  * @device: a #NMDevice
  *
@@ -1332,7 +1403,7 @@ nm_device_get_state_reason (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NM_DEVICE_STATE_REASON_UNKNOWN);
 
-	return NM_DEVICE_GET_PRIVATE (device)->reason;
+	return NM_DEVICE_GET_PRIVATE (device)->state_reason;
 }
 
 /**
@@ -1347,9 +1418,14 @@ nm_device_get_state_reason (NMDevice *device)
 NMActiveConnection *
 nm_device_get_active_connection (NMDevice *device)
 {
+	NMActiveConnection *ac;
+
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return NM_DEVICE_GET_PRIVATE (device)->active_connection;
+	ac = nml_dbus_property_o_get_obj (&NM_DEVICE_GET_PRIVATE (device)->property_o[PROPERTY_O_IDX_ACTIVE_CONNECTION]);
+
+	nm_assert (!ac || NM_IS_ACTIVE_CONNECTION (ac));
+	return ac;
 }
 
 /**
@@ -1368,7 +1444,7 @@ nm_device_get_available_connections (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return NM_DEVICE_GET_PRIVATE (device)->available_connections;
+	return nml_dbus_property_ao_get_objs_as_ptrarray (&NM_DEVICE_GET_PRIVATE (device)->available_connections);
 }
 
 static const char *
@@ -1471,7 +1547,8 @@ get_bus_name (NMDevice *device)
 {
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (device);
 	struct udev_device *udevice;
-	const char *ifname, *bus;
+	const char *ifname;
+	const char *bus;
 
 	if (priv->bus_name)
 		goto out;
@@ -1509,31 +1586,18 @@ out:
 		return NULL;
 }
 
-void
-_nm_device_set_udev (NMDevice *device, struct udev *udev)
-{
-	NMDevicePrivate *priv;
-
-	nm_assert (NM_IS_DEVICE (device));
-	nm_assert (udev);
-
-	priv = NM_DEVICE_GET_PRIVATE (device);
-
-	nm_assert (!priv->udev);
-
-	priv->udev = udev_ref (udev);
-}
-
 static char *
 _get_udev_property (NMDevice *device,
                     const char *enc_prop,  /* ID_XXX_ENC */
                     const char *db_prop)   /* ID_XXX_FROM_DATABASE */
 {
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (device);
-	struct udev_device *udev_device, *tmpdev;
+	struct udev_device *udev_device;
+	struct udev_device *tmpdev;
 	const char *ifname;
 	guint32 count = 0;
-	char *enc_value = NULL, *db_value = NULL;
+	char *enc_value = NULL;
+	char *db_value = NULL;
 
 	if (!priv->udev)
 		return NULL;
@@ -1895,7 +1959,7 @@ nm_device_get_physical_port_id (NMDevice *device)
 {
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	return nm_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->physical_port_id);
+	return _nml_coerce_property_str_not_empty (NM_DEVICE_GET_PRIVATE (device)->physical_port_id);
 }
 
 /**
@@ -1950,9 +2014,14 @@ NM_BACKPORT_SYMBOL (libnm_1_0_6, NMMetered, nm_device_get_metered, (NMDevice *de
 GPtrArray *
 nm_device_get_lldp_neighbors (NMDevice *device)
 {
-       g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
+	NMDevicePrivate *priv;
 
-       return NM_DEVICE_GET_PRIVATE (device)->lldp_neighbors;
+	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
+
+	priv = NM_DEVICE_GET_PRIVATE (device);
+	if (!priv->lldp_neighbors)
+		priv->lldp_neighbors = g_ptr_array_new_with_free_func ((GDestroyNotify) nm_lldp_neighbor_unref);
+	return priv->lldp_neighbors;
 }
 
 /**
@@ -2007,6 +2076,8 @@ nm_device_is_software (NMDevice *device)
  * Returns: %TRUE on success, %FALSE on error, in which case @error will be set.
  *
  * Since: 1.2
+ *
+ * Deprecated: 1.22, use nm_device_reapply_async() or GDBusConnection
  **/
 gboolean
 nm_device_reapply (NMDevice *device,
@@ -2016,40 +2087,31 @@ nm_device_reapply (NMDevice *device,
                    GCancellable *cancellable,
                    GError **error)
 {
-	GVariant *dict = NULL;
-	gboolean ret;
+	GVariant *arg_connection = NULL;
 
 	g_return_val_if_fail (NM_IS_DEVICE (device), FALSE);
+	g_return_val_if_fail (!connection || NM_IS_CONNECTION (connection), FALSE);
+	g_return_val_if_fail (!cancellable || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (!error || !*error, FALSE);
 
 	if (connection)
-		dict = nm_connection_to_dbus (connection, NM_CONNECTION_SERIALIZE_ALL);
-	if (!dict)
-		dict = g_variant_new_array (G_VARIANT_TYPE ("{sa{sv}}"), NULL, 0);
+		arg_connection = nm_connection_to_dbus (connection, NM_CONNECTION_SERIALIZE_ALL);
+	if (!arg_connection)
+		arg_connection = g_variant_new_array (G_VARIANT_TYPE ("{sa{sv}}"), NULL, 0);
 
-	ret = nmdbus_device_call_reapply_sync (NM_DEVICE_GET_PRIVATE (device)->proxy,
-	                                       dict, version_id, flags, cancellable, error);
-	if (error && *error)
-		g_dbus_error_strip_remote_error (*error);
-	return ret;
-}
-
-static void
-device_reapply_cb (GObject *proxy,
-                   GAsyncResult *result,
-                   gpointer user_data)
-{
-	GSimpleAsyncResult *simple = user_data;
-	GError *error = NULL;
-
-	if (nmdbus_device_call_reapply_finish (NMDBUS_DEVICE (proxy), result, &error))
-		g_simple_async_result_set_op_res_gboolean (simple, TRUE);
-	else {
-		g_dbus_error_strip_remote_error (error);
-		g_simple_async_result_take_error (simple, error);
-	}
-
-	g_simple_async_result_complete (simple);
-	g_object_unref (simple);
+	return _nm_client_dbus_call_sync_void (_nm_object_get_client (device),
+	                                       cancellable,
+	                                       _nm_object_get_path (device),
+	                                       NM_DBUS_INTERFACE_DEVICE,
+	                                       "Reapply",
+	                                       g_variant_new ("(@a{sa{sv}}tu)",
+	                                                      arg_connection,
+	                                                      version_id,
+	                                                      flags),
+	                                       G_DBUS_CALL_FLAGS_NONE,
+	                                       NM_DBUS_DEFAULT_TIMEOUT_MSEC,
+	                                       TRUE,
+	                                       error);
 }
 
 /**
@@ -2080,24 +2142,34 @@ nm_device_reapply_async (NMDevice *device,
                          GAsyncReadyCallback callback,
                          gpointer user_data)
 {
-	GVariant *dict = NULL;
-	GSimpleAsyncResult *simple;
+	GVariant *arg_connection = NULL;
 
 	g_return_if_fail (NM_IS_DEVICE (device));
+	g_return_if_fail (!connection || NM_IS_CONNECTION (connection));
+	g_return_if_fail (!cancellable || G_IS_CANCELLABLE (cancellable));
 
 	if (connection)
-		dict = nm_connection_to_dbus (connection, NM_CONNECTION_SERIALIZE_ALL);
-	if (!dict)
-		dict = g_variant_new_array (G_VARIANT_TYPE ("{sa{sv}}"), NULL, 0);
+		arg_connection = nm_connection_to_dbus (connection, NM_CONNECTION_SERIALIZE_ALL);
+	if (!arg_connection)
+		arg_connection = g_variant_new_array (G_VARIANT_TYPE ("{sa{sv}}"), NULL, 0);
 
-	simple = g_simple_async_result_new (G_OBJECT (device), callback, user_data,
-	                                    nm_device_reapply_async);
-	if (cancellable)
-		g_simple_async_result_set_check_cancellable (simple, cancellable);
-
-	nmdbus_device_call_reapply (NM_DEVICE_GET_PRIVATE (device)->proxy,
-	                            dict, version_id, flags, cancellable,
-	                            device_reapply_cb, simple);
+	_nm_client_dbus_call (_nm_object_get_client (device),
+	                      device,
+	                      nm_device_reapply_async,
+	                      cancellable,
+	                      callback,
+	                      user_data,
+	                      _nm_object_get_path (device),
+	                      NM_DBUS_INTERFACE_DEVICE,
+	                      "Reapply",
+	                      g_variant_new ("(@a{sa{sv}}tu)",
+	                                     arg_connection,
+	                                     version_id,
+	                                     flags),
+	                      G_VARIANT_TYPE ("()"),
+	                      G_DBUS_CALL_FLAGS_NONE,
+	                      NM_DBUS_DEFAULT_TIMEOUT_MSEC,
+	                      nm_dbus_connection_call_finish_void_strip_dbus_error_cb);
 }
 
 /**
@@ -2118,15 +2190,10 @@ nm_device_reapply_finish (NMDevice *device,
                           GAsyncResult *result,
                           GError **error)
 {
-	GSimpleAsyncResult *simple;
+	g_return_val_if_fail (NM_IS_DEVICE (device), FALSE);
+	g_return_val_if_fail (nm_g_task_is_valid (result, device, nm_device_reapply_async), FALSE);
 
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (device), nm_device_reapply_async), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (simple, error))
-		return FALSE;
-	else
-		return g_simple_async_result_get_op_res_gboolean (simple);
+	return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 /*****************************************************************************/
@@ -2149,6 +2216,8 @@ nm_device_reapply_finish (NMDevice *device,
  * to nm_connection_verify().
  *
  * Since: 1.2
+ *
+ * Deprecated: 1.22, use nm_device_get_applied_connection_async() or GDBusConnection
  **/
 NMConnection *
 nm_device_get_applied_connection (NMDevice *device,
@@ -2157,78 +2226,40 @@ nm_device_get_applied_connection (NMDevice *device,
                                   GCancellable *cancellable,
                                   GError **error)
 {
-	gs_unref_variant GVariant *dict = NULL;
-	guint64 my_version_id;
-	gboolean success;
+	gs_unref_variant GVariant *ret = NULL;
+	gs_unref_variant GVariant *v_connection = NULL;
+	guint64 v_version_id;
 	NMConnection *connection;
 
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 	g_return_val_if_fail (!cancellable || G_IS_CANCELLABLE (cancellable), NULL);
 	g_return_val_if_fail (!error || !*error, NULL);
 
-	success = nmdbus_device_call_get_applied_connection_sync (NM_DEVICE_GET_PRIVATE (device)->proxy,
-	                                                          flags, &dict, &my_version_id, cancellable, error);
-	if (!success) {
-		if (error && *error)
-			g_dbus_error_strip_remote_error (*error);
+	ret = _nm_client_dbus_call_sync (_nm_object_get_client (device),
+	                                 cancellable,
+	                                 _nm_object_get_path (device),
+	                                 NM_DBUS_INTERFACE_DEVICE,
+	                                 "GetAppliedConnection",
+	                                 g_variant_new ("(u)", flags),
+	                                 G_VARIANT_TYPE ("(a{sa{sv}}t)"),
+	                                 G_DBUS_CALL_FLAGS_NONE,
+	                                 NM_DBUS_DEFAULT_TIMEOUT_MSEC,
+	                                 TRUE,
+	                                 error);
+	if (!ret)
 		return NULL;
-	}
 
-	connection = _nm_simple_connection_new_from_dbus (dict, NM_SETTING_PARSE_FLAGS_BEST_EFFORT, error);
+	g_variant_get (ret,
+	               "(@a{sa{sv}}t)",
+	               &v_connection,
+	               &v_version_id);
+
+	connection = _nm_simple_connection_new_from_dbus (v_connection, NM_SETTING_PARSE_FLAGS_BEST_EFFORT, error);
 	if (!connection)
 		return NULL;
 
-	NM_SET_OUT (version_id, my_version_id);
+	NM_SET_OUT (version_id, v_version_id);
 	return connection;
-}
-
-typedef struct {
-	NMConnection *connection;
-	guint64 version_id;
-} GetAppliedConnectionData;
-
-static void
-device_get_applied_connection_data_free (gpointer user_data)
-{
-	GetAppliedConnectionData *data = user_data;
-
-	g_return_if_fail (data);
-
-	g_object_unref (data->connection);
-	g_slice_free (GetAppliedConnectionData, data);
-}
-
-static void
-device_get_applied_connection_cb (GObject *proxy,
-                                  GAsyncResult *result,
-                                  gpointer user_data)
-{
-	gs_unref_object GSimpleAsyncResult *simple = user_data;
-	gs_unref_variant GVariant *dict = NULL;
-	guint64 my_version_id;
-	GError *error = NULL;
-	NMConnection *connection;
-	GetAppliedConnectionData *data;
-
-	if (!nmdbus_device_call_get_applied_connection_finish (NMDBUS_DEVICE (proxy), &dict, &my_version_id, result, &error)) {
-		g_dbus_error_strip_remote_error (error);
-		g_simple_async_result_take_error (simple, error);
-		goto out;
-	}
-
-	connection = _nm_simple_connection_new_from_dbus (dict, NM_SETTING_PARSE_FLAGS_BEST_EFFORT, &error);
-	if (!connection) {
-		g_simple_async_result_take_error (simple, error);
-		goto out;
-	}
-
-	data = g_slice_new (GetAppliedConnectionData);
-	data->connection = connection;
-	data->version_id = my_version_id;
-	g_simple_async_result_set_op_res_gpointer (simple, data, device_get_applied_connection_data_free);
-
-out:
-	g_simple_async_result_complete (simple);
 }
 
 /**
@@ -2250,19 +2281,23 @@ nm_device_get_applied_connection_async  (NMDevice *device,
                                          GAsyncReadyCallback callback,
                                          gpointer user_data)
 {
-	GSimpleAsyncResult *simple;
-
 	g_return_if_fail (NM_IS_DEVICE (device));
 	g_return_if_fail (!cancellable || G_IS_CANCELLABLE (cancellable));
 
-	simple = g_simple_async_result_new (G_OBJECT (device), callback, user_data,
-	                                    nm_device_get_applied_connection_async);
-	if (cancellable)
-		g_simple_async_result_set_check_cancellable (simple, cancellable);
-
-	nmdbus_device_call_get_applied_connection (NM_DEVICE_GET_PRIVATE (device)->proxy,
-	                                           flags, cancellable,
-	                                           device_get_applied_connection_cb, simple);
+	_nm_client_dbus_call (_nm_object_get_client (device),
+	                      device,
+	                      nm_device_get_applied_connection_async,
+	                      cancellable,
+	                      callback,
+	                      user_data,
+	                      _nm_object_get_path (device),
+	                      NM_DBUS_INTERFACE_DEVICE,
+	                      "GetAppliedConnection",
+	                      g_variant_new ("(u)", flags),
+	                      G_VARIANT_TYPE ("(a{sa{sv}}t)"),
+	                      G_DBUS_CALL_FLAGS_NONE,
+	                      NM_DBUS_DEFAULT_TIMEOUT_MSEC,
+	                      nm_dbus_connection_call_finish_variant_strip_dbus_error_cb);
 }
 
 /**
@@ -2289,23 +2324,30 @@ nm_device_get_applied_connection_finish (NMDevice *device,
                                          guint64 *version_id,
                                          GError **error)
 {
-	GSimpleAsyncResult *simple;
-	GetAppliedConnectionData *data;
+	gs_unref_variant GVariant *ret = NULL;
+	gs_unref_variant GVariant *v_connection = NULL;
+	guint64 v_version_id;
+	NMConnection *connection;
 
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (device), nm_device_get_applied_connection_async), NULL);
+	g_return_val_if_fail (nm_g_task_is_valid (result, device, nm_device_get_applied_connection_async), NULL);
 	g_return_val_if_fail (!error || !*error, NULL);
 
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (simple, error))
+	ret = g_task_propagate_pointer (G_TASK (result), error);
+	if (!ret)
 		return NULL;
 
-	data = g_simple_async_result_get_op_res_gpointer (simple);
-	g_return_val_if_fail (data, NULL);
-	g_return_val_if_fail (NM_IS_CONNECTION (data->connection), NULL);
+	g_variant_get (ret,
+	               "(@a{sa{sv}}t)",
+	               &v_connection,
+	               &v_version_id);
 
-	NM_SET_OUT (version_id, data->version_id);
-	return g_object_ref (data->connection);
+	connection = _nm_simple_connection_new_from_dbus (v_connection, NM_SETTING_PARSE_FLAGS_BEST_EFFORT, error);
+	if (!connection)
+		return NULL;
+
+	NM_SET_OUT (version_id, v_version_id);
+	return connection;
 }
 
 /*****************************************************************************/
@@ -2321,40 +2363,28 @@ nm_device_get_applied_connection_finish (NMDevice *device,
  * request.
  *
  * Returns: %TRUE on success, %FALSE on error, in which case @error will be set.
+ *
+ * Deprecated: 1.22, use nm_device_disconnect_async() or GDBusConnection
  **/
 gboolean
 nm_device_disconnect (NMDevice *device,
                       GCancellable *cancellable,
                       GError **error)
 {
-	gboolean ret;
-
 	g_return_val_if_fail (NM_IS_DEVICE (device), FALSE);
+	g_return_val_if_fail (!cancellable || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (!error || !*error, FALSE);
 
-	ret = nmdbus_device_call_disconnect_sync (NM_DEVICE_GET_PRIVATE (device)->proxy,
-	                                          cancellable, error);
-	if (error && *error)
-		g_dbus_error_strip_remote_error (*error);
-	return ret;
-}
-
-static void
-device_disconnect_cb (GObject *proxy,
-                      GAsyncResult *result,
-                      gpointer user_data)
-{
-	GSimpleAsyncResult *simple = user_data;
-	GError *error = NULL;
-
-	if (nmdbus_device_call_disconnect_finish (NMDBUS_DEVICE (proxy), result, &error))
-		g_simple_async_result_set_op_res_gboolean (simple, TRUE);
-	else {
-		g_dbus_error_strip_remote_error (error);
-		g_simple_async_result_take_error (simple, error);
-	}
-
-	g_simple_async_result_complete (simple);
-	g_object_unref (simple);
+	return _nm_client_dbus_call_sync_void (_nm_object_get_client (device),
+	                                       cancellable,
+	                                       _nm_object_get_path (device),
+	                                       NM_DBUS_INTERFACE_DEVICE,
+	                                       "Disconnect",
+	                                       g_variant_new ("()"),
+	                                       G_DBUS_CALL_FLAGS_NONE,
+	                                       NM_DBUS_DEFAULT_TIMEOUT_MSEC,
+	                                       TRUE,
+	                                       error);
 }
 
 /**
@@ -2374,18 +2404,23 @@ nm_device_disconnect_async (NMDevice *device,
                             GAsyncReadyCallback callback,
                             gpointer user_data)
 {
-	GSimpleAsyncResult *simple;
-
 	g_return_if_fail (NM_IS_DEVICE (device));
+	g_return_if_fail (!cancellable || G_IS_CANCELLABLE (cancellable));
 
-	simple = g_simple_async_result_new (G_OBJECT (device), callback, user_data,
-	                                    nm_device_disconnect_async);
-	if (cancellable)
-		g_simple_async_result_set_check_cancellable (simple, cancellable);
-
-	nmdbus_device_call_disconnect (NM_DEVICE_GET_PRIVATE (device)->proxy,
-	                               cancellable,
-	                               device_disconnect_cb, simple);
+	_nm_client_dbus_call (_nm_object_get_client (device),
+	                      device,
+	                      nm_device_disconnect_async,
+	                      cancellable,
+	                      callback,
+	                      user_data,
+	                      _nm_object_get_path (device),
+	                      NM_DBUS_INTERFACE_DEVICE,
+	                      "Disconnect",
+	                      g_variant_new ("()"),
+	                      G_VARIANT_TYPE ("()"),
+	                      G_DBUS_CALL_FLAGS_NONE,
+	                      NM_DBUS_DEFAULT_TIMEOUT_MSEC,
+	                      nm_dbus_connection_call_finish_void_strip_dbus_error_cb);
 }
 
 /**
@@ -2404,15 +2439,10 @@ nm_device_disconnect_finish (NMDevice *device,
                              GAsyncResult *result,
                              GError **error)
 {
-	GSimpleAsyncResult *simple;
+	g_return_val_if_fail (NM_IS_DEVICE (device), FALSE);
+	g_return_val_if_fail (nm_g_task_is_valid (result, device, nm_device_disconnect_async), FALSE);
 
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (device), nm_device_disconnect_async), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (simple, error))
-		return FALSE;
-	else
-		return g_simple_async_result_get_op_res_gboolean (simple);
+	return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 /**
@@ -2425,40 +2455,28 @@ nm_device_disconnect_finish (NMDevice *device,
  *
  * Returns: %TRUE on success, %FALSE on error, in which case @error
  * will be set.
+ *
+ * Deprecated: 1.22, use nm_device_delete_async() or GDBusConnection
  **/
 gboolean
 nm_device_delete (NMDevice *device,
                   GCancellable *cancellable,
                   GError **error)
 {
-	gboolean ret;
-
 	g_return_val_if_fail (NM_IS_DEVICE (device), FALSE);
+	g_return_val_if_fail (!cancellable || G_IS_CANCELLABLE (cancellable), FALSE);
+	g_return_val_if_fail (!error || !*error, FALSE);
 
-	ret = nmdbus_device_call_delete_sync (NM_DEVICE_GET_PRIVATE (device)->proxy,
-	                                      cancellable, error);
-	if (error && *error)
-		g_dbus_error_strip_remote_error (*error);
-	return ret;
-}
-
-static void
-device_delete_cb (GObject *proxy,
-                  GAsyncResult *result,
-                  gpointer user_data)
-{
-	GSimpleAsyncResult *simple = user_data;
-	GError *error = NULL;
-
-	if (nmdbus_device_call_delete_finish (NMDBUS_DEVICE (proxy), result, &error))
-		g_simple_async_result_set_op_res_gboolean (simple, TRUE);
-	else {
-		g_dbus_error_strip_remote_error (error);
-		g_simple_async_result_take_error (simple, error);
-	}
-
-	g_simple_async_result_complete (simple);
-	g_object_unref (simple);
+	return _nm_client_dbus_call_sync_void (_nm_object_get_client (device),
+	                                       cancellable,
+	                                       _nm_object_get_path (device),
+	                                       NM_DBUS_INTERFACE_DEVICE,
+	                                       "Delete",
+	                                       g_variant_new ("()"),
+	                                       G_DBUS_CALL_FLAGS_NONE,
+	                                       NM_DBUS_DEFAULT_TIMEOUT_MSEC,
+	                                       TRUE,
+	                                       error);
 }
 
 /**
@@ -2477,18 +2495,23 @@ nm_device_delete_async (NMDevice *device,
                         GAsyncReadyCallback callback,
                         gpointer user_data)
 {
-	GSimpleAsyncResult *simple;
-
 	g_return_if_fail (NM_IS_DEVICE (device));
+	g_return_if_fail (!cancellable || G_IS_CANCELLABLE (cancellable));
 
-	simple = g_simple_async_result_new (G_OBJECT (device), callback, user_data,
-	                                    nm_device_delete_async);
-	if (cancellable)
-		g_simple_async_result_set_check_cancellable (simple, cancellable);
-
-	nmdbus_device_call_delete (NM_DEVICE_GET_PRIVATE (device)->proxy,
-	                           cancellable,
-	                           device_delete_cb, simple);
+	_nm_client_dbus_call (_nm_object_get_client (device),
+	                      device,
+	                      nm_device_delete_async,
+	                      cancellable,
+	                      callback,
+	                      user_data,
+	                      _nm_object_get_path (device),
+	                      NM_DBUS_INTERFACE_DEVICE,
+	                      "Delete",
+	                      g_variant_new ("()"),
+	                      G_VARIANT_TYPE ("()"),
+	                      G_DBUS_CALL_FLAGS_NONE,
+	                      NM_DBUS_DEFAULT_TIMEOUT_MSEC,
+	                      nm_dbus_connection_call_finish_void_strip_dbus_error_cb);
 }
 
 /**
@@ -2507,15 +2530,10 @@ nm_device_delete_finish (NMDevice *device,
                          GAsyncResult *result,
                          GError **error)
 {
-	GSimpleAsyncResult *simple;
+	g_return_val_if_fail (NM_IS_DEVICE (device), FALSE);
+	g_return_val_if_fail (nm_g_task_is_valid (result, device, nm_device_delete_async), FALSE);
 
-	g_return_val_if_fail (g_simple_async_result_is_valid (result, G_OBJECT (device), nm_device_delete_async), FALSE);
-
-	simple = G_SIMPLE_ASYNC_RESULT (result);
-	if (g_simple_async_result_propagate_error (simple, error))
-		return FALSE;
-	else
-		return g_simple_async_result_get_op_res_gboolean (simple);
+	return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 /**

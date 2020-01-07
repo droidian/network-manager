@@ -1,26 +1,16 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT SC WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2008 - 2018 Red Hat, Inc.
- *
+ * Copyright (C) 2008 - 2018 Red Hat, Inc.
  */
 
 #define NM_GLIB_COMPAT_H_TEST
 
 #include "nm-default.h"
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <glib-unix.h>
 
 #include "nm-std-aux/c-list-util.h"
 #include "nm-glib-aux/nm-enum-utils.h"
@@ -1755,7 +1745,7 @@ test_setting_gsm_apn_bad_chars (void)
 
 	/* 0 characters long */
 	g_object_set (s_gsm, NM_SETTING_GSM_APN, "", NULL);
-	g_assert (!nm_setting_verify (NM_SETTING (s_gsm), NULL, NULL));
+	g_assert (nm_setting_verify (NM_SETTING (s_gsm), NULL, NULL));
 
 	/* 65-character long */
 	g_object_set (s_gsm, NM_SETTING_GSM_APN, "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl1", NULL);
@@ -3061,11 +3051,13 @@ test_connection_diff_a_only (void)
 			{ NM_SETTING_IP_CONFIG_DHCP_TIMEOUT,       NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_DHCP_SEND_HOSTNAME, NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_DHCP_HOSTNAME,      NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS,NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP4_CONFIG_DHCP_FQDN,         NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_NEVER_DEFAULT,      NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_MAY_FAIL,           NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_DAD_TIMEOUT,        NM_SETTING_DIFF_RESULT_IN_A },
 			{ NM_SETTING_IP_CONFIG_DNS_PRIORITY,       NM_SETTING_DIFF_RESULT_IN_A },
+			{ NM_SETTING_IP_CONFIG_DHCP_IAID,          NM_SETTING_DIFF_RESULT_IN_A },
 			{ NULL, NM_SETTING_DIFF_RESULT_UNKNOWN },
 		} },
 	};
@@ -3964,6 +3956,16 @@ test_hwaddr_equal (void)
 	g_assert (nm_utils_hwaddr_matches (null_binary, sizeof (null_binary), null_string, -1));
 	g_assert (nm_utils_hwaddr_matches (null_binary, sizeof (null_binary), null_binary, sizeof (null_binary)));
 	g_assert (nm_utils_hwaddr_matches (null_binary, sizeof (null_binary), NULL, ETH_ALEN));
+
+	g_assert (nm_utils_hwaddr_matches (NULL, -1, NULL, -1));
+	g_assert (!nm_utils_hwaddr_matches (NULL, -1, string, -1));
+	g_assert (!nm_utils_hwaddr_matches (string, -1, NULL, -1));
+	g_assert (!nm_utils_hwaddr_matches (NULL, -1, null_string, -1));
+	g_assert (!nm_utils_hwaddr_matches (null_string, -1, NULL, -1));
+	g_assert (!nm_utils_hwaddr_matches (NULL, -1, binary, sizeof (binary)));
+	g_assert (!nm_utils_hwaddr_matches (binary, sizeof (binary), NULL, -1));
+	g_assert (!nm_utils_hwaddr_matches (NULL, -1, null_binary, sizeof (null_binary)));
+	g_assert (!nm_utils_hwaddr_matches (null_binary, sizeof (null_binary), NULL, -1));
 }
 
 static void
@@ -6562,6 +6564,11 @@ test_nm_utils_ascii_str_to_int64 (void)
 	test_nm_utils_ascii_str_to_int64_do ("080",  0, G_MININT64, G_MAXINT64, -1, EINVAL, -1);
 	test_nm_utils_ascii_str_to_int64_do ("070",  0, G_MININT64, G_MAXINT64, -1, 0, 7*8);
 	test_nm_utils_ascii_str_to_int64_do ("0x70",  0, G_MININT64, G_MAXINT64, -1, 0, 0x70);
+
+	g_assert_cmpint (21, ==, _nm_utils_ascii_str_to_int64 ("025", 0, 0, 1000, -1));
+	g_assert_cmpint (21, ==, _nm_utils_ascii_str_to_int64 ("0025", 0, 0, 1000, -1));
+	g_assert_cmpint (25, ==, _nm_utils_ascii_str_to_int64 ("025", 10, 0, 1000, -1));
+	g_assert_cmpint (25, ==, _nm_utils_ascii_str_to_int64 ("0025", 10, 0, 1000, -1));
 }
 
 /*****************************************************************************/
@@ -7980,6 +7987,33 @@ test_route_attributes_format (void)
 
 /*****************************************************************************/
 
+static void
+test_variant_attribute_spec (void)
+{
+	const NMVariantAttributeSpec *const *const specs_list[] = {
+		nm_ip_route_get_variant_attribute_spec (),
+	};
+	int i_specs;
+
+	for (i_specs = 0; i_specs < G_N_ELEMENTS (specs_list); i_specs++) {
+		const NMVariantAttributeSpec *const *const specs = specs_list[i_specs];
+		gsize len;
+		gsize i;
+
+		g_assert (specs);
+
+		len = NM_PTRARRAY_LEN (specs);
+		g_assert_cmpint (len, >, 0u);
+
+		_nmtst_variant_attribute_spec_assert_sorted (specs, len);
+		for (i = 0; i < len; i++)
+			g_assert (specs[i] == _nm_variant_attribute_spec_find_binary_search (specs, len, specs[i]->name));
+		g_assert (!_nm_variant_attribute_spec_find_binary_search (specs, len, "bogus"));
+	}
+}
+
+/*****************************************************************************/
+
 static gboolean
 do_test_nm_set_out_called (int *call_count)
 {
@@ -8098,6 +8132,191 @@ test_ethtool_offload (void)
 	g_assert (d);
 	g_assert_cmpint (d->id, ==, NM_ETHTOOL_ID_FEATURE_RXHASH);
 	g_assert_cmpstr (d->optname, ==, NM_ETHTOOL_OPTNAME_FEATURE_RXHASH);
+}
+
+/*****************************************************************************/
+
+typedef struct {
+	GMainLoop *loop1;
+	GMainContext *c2;
+	GSource *extra_sources[2];
+	bool got_signal[5];
+	int fd_2;
+} IntegData;
+
+static gboolean
+_test_integrate_cb_handle (IntegData *d, int signal)
+{
+	int i;
+
+	g_assert (d);
+	g_assert (signal >= 0);
+	g_assert (signal < G_N_ELEMENTS (d->got_signal));
+
+	g_assert (!d->got_signal[signal]);
+	d->got_signal[signal] = TRUE;
+
+	for (i = 0; i < G_N_ELEMENTS (d->got_signal); i++) {
+		if (!d->got_signal[i])
+			break;
+	}
+	if (i == G_N_ELEMENTS (d->got_signal))
+		g_main_loop_quit (d->loop1);
+	return G_SOURCE_REMOVE;
+}
+
+static gboolean
+_test_integrate_cb_timeout_1 (gpointer user_data)
+{
+	return _test_integrate_cb_handle (user_data, 0);
+}
+
+static gboolean
+_test_integrate_cb_fd_2 (int fd,
+                         GIOCondition condition,
+                         gpointer user_data)
+
+{
+	IntegData *d = user_data;
+
+	g_assert (d->got_signal[1]);
+	g_assert (d->got_signal[2]);
+	g_assert (d->got_signal[3]);
+	g_assert (d->extra_sources[0]);
+	g_assert (d->extra_sources[1]);
+
+	return _test_integrate_cb_handle (d, 4);
+}
+
+static gboolean
+_test_integrate_cb_idle_2 (gpointer user_data)
+{
+	IntegData *d = user_data;
+	GSource *extra_source;
+
+	g_assert (d->got_signal[1]);
+	g_assert (d->got_signal[2]);
+	g_assert (d->extra_sources[0]);
+	g_assert (!d->extra_sources[1]);
+
+	extra_source = g_unix_fd_source_new (d->fd_2, G_IO_IN);
+	g_source_set_callback (extra_source, G_SOURCE_FUNC (_test_integrate_cb_fd_2), d, NULL);
+	g_source_attach (extra_source, d->c2);
+
+	d->extra_sources[1] = extra_source;
+
+	return _test_integrate_cb_handle (d, 3);
+}
+
+static gboolean
+_test_integrate_cb_idle_1 (gpointer user_data)
+{
+	IntegData *d = user_data;
+	GSource *extra_source;
+
+	g_assert (d->got_signal[2]);
+	g_assert (!d->extra_sources[0]);
+
+	extra_source = g_idle_source_new ();
+	g_source_set_callback (extra_source, _test_integrate_cb_idle_2, d, NULL);
+	g_source_attach (extra_source, d->c2);
+
+	d->extra_sources[0] = extra_source;
+
+	return _test_integrate_cb_handle (d, 1);
+}
+
+static gboolean
+_test_integrate_cb_fd_1 (int fd,
+                         GIOCondition condition,
+                         gpointer user_data)
+
+{
+	IntegData *d = user_data;
+
+	g_assert (!d->got_signal[1]);
+	return _test_integrate_cb_handle (d, 2);
+}
+
+static gboolean
+_test_integrate_maincontext_cb_idle1 (gpointer user_data)
+{
+	guint32 *p_count = user_data;
+
+	g_assert (*p_count < 5);
+	(*p_count)++;
+	return G_SOURCE_CONTINUE;
+}
+
+static void
+test_integrate_maincontext (gconstpointer test_data)
+{
+	const guint TEST_IDX = GPOINTER_TO_UINT (test_data);
+	GMainContext *c1 = g_main_context_default ();
+	nm_auto_unref_gmaincontext GMainContext *c2 = g_main_context_new ();
+	nm_auto_destroy_and_unref_gsource GSource *integ_source = NULL;
+
+	integ_source = nm_utils_g_main_context_create_integrate_source (c2);
+	g_source_attach (integ_source, c1);
+
+	if (TEST_IDX == 1) {
+		nm_auto_destroy_and_unref_gsource GSource *idle_source_1 = NULL;
+		guint32 count = 0;
+
+		idle_source_1 = g_idle_source_new ();
+		g_source_set_callback (idle_source_1, _test_integrate_maincontext_cb_idle1, &count, NULL);
+		g_source_attach (idle_source_1, c2);
+
+		nmtst_main_context_iterate_until (c1, 2000, count == 5);
+	}
+
+	if (TEST_IDX == 2) {
+		nm_auto_destroy_and_unref_gsource GSource *main_timeout_source = NULL;
+		nm_auto_destroy_and_unref_gsource GSource *timeout_source_1 = NULL;
+		nm_auto_destroy_and_unref_gsource GSource *idle_source_1 = NULL;
+		nm_auto_destroy_and_unref_gsource GSource *fd_source_1 = NULL;
+		nm_auto_unref_gmainloop GMainLoop *loop1 = NULL;
+		nm_auto_close int fd_1 = -1;
+		nm_auto_close int fd_2 = -1;
+		IntegData d;
+		int i;
+
+		main_timeout_source = g_timeout_source_new (3000);
+		g_source_set_callback (main_timeout_source, nmtst_g_source_assert_not_called, NULL, NULL);
+		g_source_attach (main_timeout_source, c1);
+
+		loop1 = g_main_loop_new (c1, FALSE);
+
+		d = (IntegData) {
+			.loop1 = loop1,
+			.c2    = c2,
+		};
+
+		fd_1 = open ("/dev/null", O_RDONLY | O_CLOEXEC);
+		g_assert (fd_1 >= 0);
+		fd_source_1 = g_unix_fd_source_new (fd_1, G_IO_IN);
+		g_source_set_callback (fd_source_1, G_SOURCE_FUNC (_test_integrate_cb_fd_1), &d, NULL);
+		g_source_attach (fd_source_1, c2);
+
+		fd_2 = open ("/dev/null", O_RDONLY | O_CLOEXEC);
+		g_assert (fd_2 >= 0);
+		d.fd_2 = fd_2;
+
+		idle_source_1 = g_idle_source_new ();
+		g_source_set_callback (idle_source_1, _test_integrate_cb_idle_1, &d, NULL);
+		g_source_attach (idle_source_1, c2);
+
+		timeout_source_1 = g_timeout_source_new (5);
+		g_source_set_callback (timeout_source_1, _test_integrate_cb_timeout_1, &d, NULL);
+		g_source_attach (timeout_source_1, c2);
+
+		g_main_loop_run (loop1);
+
+		for (i = 0; i < G_N_ELEMENTS (d.extra_sources); i++) {
+			g_assert (d.extra_sources[i]);
+			nm_clear_pointer (&d.extra_sources[i], nm_g_source_destroy_and_unref);
+		}
+	}
 }
 
 /*****************************************************************************/
@@ -8257,10 +8476,14 @@ int main (int argc, char **argv)
 	g_test_add_func ("/core/general/nm-set-out", test_nm_set_out);
 	g_test_add_func ("/core/general/route_attributes/parse", test_route_attributes_parse);
 	g_test_add_func ("/core/general/route_attributes/format", test_route_attributes_format);
+	g_test_add_func ("/core/general/test_variant_attribute_spec", test_variant_attribute_spec);
 
 	g_test_add_func ("/core/general/get_start_time_for_pid", test_get_start_time_for_pid);
 	g_test_add_func ("/core/general/test_nm_va_args_macros", test_nm_va_args_macros);
 	g_test_add_func ("/core/general/test_ethtool_offload", test_ethtool_offload);
+
+	g_test_add_data_func ("/core/general/test_integrate_maincontext/1", GUINT_TO_POINTER (1), test_integrate_maincontext);
+	g_test_add_data_func ("/core/general/test_integrate_maincontext/2", GUINT_TO_POINTER (2), test_integrate_maincontext);
 
 	return g_test_run ();
 }

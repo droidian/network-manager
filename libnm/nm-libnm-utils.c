@@ -1,26 +1,126 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2007 - 2008 Novell, Inc.
- * Copyright 2007 - 2018 Red Hat, Inc.
+ * Copyright (C) 2007 - 2008 Novell, Inc.
+ * Copyright (C) 2007 - 2018 Red Hat, Inc.
  */
 
 #include "nm-default.h"
 
 #include "nm-libnm-utils.h"
+
+#include "nm-glib-aux/nm-time-utils.h"
+#include "nm-libnm-core-intern/nm-common-macros.h"
+#include "nm-object.h"
+
+/*****************************************************************************/
+
+volatile int _nml_dbus_log_level = 0;
+
+int
+_nml_dbus_log_level_init (void)
+{
+	const GDebugKey keys[] = {
+		{ "trace",   _NML_DBUS_LOG_LEVEL_TRACE },
+		{ "debug",   _NML_DBUS_LOG_LEVEL_DEBUG },
+		{ "warning", _NML_DBUS_LOG_LEVEL_WARN },
+		{ "error",   _NML_DBUS_LOG_LEVEL_ERROR },
+	};
+	int l;
+
+	l =   _NML_DBUS_LOG_LEVEL_INITIALIZED
+	    | nm_utils_parse_debug_string (g_getenv ("LIBNM_CLIENT_DEBUG"),
+	                                   keys,
+	                                   G_N_ELEMENTS (keys));
+
+	if (!g_atomic_int_compare_and_exchange (&_nml_dbus_log_level, 0, l))
+		l = g_atomic_int_get (&_nml_dbus_log_level);
+
+	nm_assert (l & _NML_DBUS_LOG_LEVEL_INITIALIZED);
+	return l;
+}
+
+void
+_nml_dbus_log (NMLDBusLogLevel level,
+               const char *fmt,
+               ...) {
+	NMLDBusLogLevel configured_log_level;
+	gs_free char *msg = NULL;
+	va_list args;
+	const char *prefix = "";
+	gint64 ts;
+
+	/* we only call _nml_dbus_log() after nml_dbus_log_enabled(), which already does
+	 * an atomic access to the variable. Since the value is only initialized once and
+	 * never changes, we can just access it without additional locking. */
+	configured_log_level = _nml_dbus_log_level;
+
+	nm_assert (level & configured_log_level);
+
+	va_start (args, fmt);
+	msg = g_strdup_vprintf (fmt, args);
+	va_end (args);
+
+	switch (level) {
+	case NML_DBUS_LOG_LEVEL_TRACE:
+		prefix = "<trace> ";
+		break;
+	case NML_DBUS_LOG_LEVEL_DEBUG:
+		prefix = "<debug> ";
+		break;
+	case NML_DBUS_LOG_LEVEL_WARN:
+		prefix = "<warn > ";
+		if (NM_FLAGS_HAS (configured_log_level, _NML_DBUS_LOG_LEVEL_WARN)) {
+			g_warning ("libnm-dbus: %s%s", prefix, msg);
+			return;
+		}
+		break;
+	case NML_DBUS_LOG_LEVEL_ERROR:
+		prefix = "<error> ";
+		if (NM_FLAGS_HAS (configured_log_level, _NML_DBUS_LOG_LEVEL_ERROR)) {
+			g_critical ("libnm-dbus: %s%s", prefix, msg);
+			return;
+		}
+		if (NM_FLAGS_HAS (configured_log_level, _NML_DBUS_LOG_LEVEL_WARN)) {
+			g_warning ("libnm-dbus: %s%s", prefix, msg);
+			return;
+		}
+		break;
+	default:
+		break;
+	}
+
+	ts = nm_utils_clock_gettime_ns (CLOCK_BOOTTIME);
+
+	g_printerr ("libnm-dbus: %s[%"G_GINT64_FORMAT".%05"G_GINT64_FORMAT"] %s\n",
+	            prefix,
+	            ts / NM_UTILS_NS_PER_SECOND,
+	            (ts / (NM_UTILS_NS_PER_SECOND / 10000)) % 10000,
+	            msg);
+}
+
+/*****************************************************************************/
+
+/* Stolen from dbus-glib */
+char *
+nm_utils_wincaps_to_dash (const char *caps)
+{
+	const char *p;
+	GString *str;
+
+	str = g_string_new (NULL);
+	p = caps;
+	while (*p) {
+		if (g_ascii_isupper (*p)) {
+			if (str->len > 0 && (str->len < 2 || str->str[str->len-2] != '-'))
+				g_string_append_c (str, '-');
+			g_string_append_c (str, g_ascii_tolower (*p));
+		} else
+			g_string_append_c (str, *p);
+		++p;
+	}
+
+	return g_string_free (str, FALSE);
+}
 
 /*****************************************************************************/
 
@@ -559,4 +659,289 @@ nm_utils_fixup_product_string (const char *desc)
 	nm_assert (g_utf8_validate (desc_full, -1, NULL));
 
 	return desc_full;
+}
+
+/*****************************************************************************/
+
+NMClientPermission
+nm_permission_to_client (const char *nm)
+{
+	static const struct {
+		const char *name;
+		NMClientPermission perm;
+	} list[] = {
+		{ NM_AUTH_PERMISSION_CHECKPOINT_ROLLBACK,               NM_CLIENT_PERMISSION_CHECKPOINT_ROLLBACK               },
+		{ NM_AUTH_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK, NM_CLIENT_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK },
+		{ NM_AUTH_PERMISSION_ENABLE_DISABLE_NETWORK,            NM_CLIENT_PERMISSION_ENABLE_DISABLE_NETWORK            },
+		{ NM_AUTH_PERMISSION_ENABLE_DISABLE_STATISTICS,         NM_CLIENT_PERMISSION_ENABLE_DISABLE_STATISTICS         },
+		{ NM_AUTH_PERMISSION_ENABLE_DISABLE_WIFI,               NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIFI               },
+		{ NM_AUTH_PERMISSION_ENABLE_DISABLE_WIMAX,              NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIMAX              },
+		{ NM_AUTH_PERMISSION_ENABLE_DISABLE_WWAN,               NM_CLIENT_PERMISSION_ENABLE_DISABLE_WWAN               },
+		{ NM_AUTH_PERMISSION_NETWORK_CONTROL,                   NM_CLIENT_PERMISSION_NETWORK_CONTROL                   },
+		{ NM_AUTH_PERMISSION_RELOAD,                            NM_CLIENT_PERMISSION_RELOAD                            },
+		{ NM_AUTH_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS,        NM_CLIENT_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS        },
+		{ NM_AUTH_PERMISSION_SETTINGS_MODIFY_HOSTNAME,          NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME          },
+		{ NM_AUTH_PERMISSION_SETTINGS_MODIFY_OWN,               NM_CLIENT_PERMISSION_SETTINGS_MODIFY_OWN               },
+		{ NM_AUTH_PERMISSION_SETTINGS_MODIFY_SYSTEM,            NM_CLIENT_PERMISSION_SETTINGS_MODIFY_SYSTEM            },
+		{ NM_AUTH_PERMISSION_SLEEP_WAKE,                        NM_CLIENT_PERMISSION_SLEEP_WAKE                        },
+		{ NM_AUTH_PERMISSION_WIFI_SCAN,                         NM_CLIENT_PERMISSION_WIFI_SCAN                         },
+		{ NM_AUTH_PERMISSION_WIFI_SHARE_OPEN,                   NM_CLIENT_PERMISSION_WIFI_SHARE_OPEN                   },
+		{ NM_AUTH_PERMISSION_WIFI_SHARE_PROTECTED,              NM_CLIENT_PERMISSION_WIFI_SHARE_PROTECTED              },
+	};
+	gssize idx;
+
+#if NM_MORE_ASSERTS > 10
+	{
+		static gboolean checked = FALSE;
+		int i, j;
+
+		if (!checked) {
+			checked = TRUE;
+
+			for (i = 0; i < G_N_ELEMENTS (list); i++) {
+
+				nm_assert (list[i].perm != NM_CLIENT_PERMISSION_NONE);
+				nm_assert (list[i].name && list[i].name[0]);
+				if (i > 0) {
+					if (strcmp (list[i - 1].name, list[i].name) >= 0) {
+						g_error ("list is not sorted by name: #%d (%s) should be after #%d (%s)",
+						         i - 1, list[i - 1].name, i, list[i].name);
+					}
+				}
+				for (j = i + 1; j < G_N_ELEMENTS (list); j++) {
+					nm_assert (list[i].perm != list[j].perm);
+				}
+			}
+		}
+	}
+#endif
+
+	if (nm) {
+		idx = nm_utils_array_find_binary_search (list,
+		                                         sizeof (list[0]),
+		                                         G_N_ELEMENTS (list),
+		                                         &nm,
+		                                         nm_strcmp_p_with_data,
+		                                         NULL);
+		if (idx >= 0)
+			return list[idx].perm;
+	}
+	return NM_CLIENT_PERMISSION_NONE;
+}
+
+NMClientPermissionResult
+nm_permission_result_to_client (const char *nm)
+{
+	if (!nm)
+		return NM_CLIENT_PERMISSION_RESULT_UNKNOWN;
+	if (nm_streq (nm, "yes"))
+		return NM_CLIENT_PERMISSION_RESULT_YES;
+	if (nm_streq (nm, "no"))
+		return NM_CLIENT_PERMISSION_RESULT_NO;
+	if (nm_streq (nm, "auth"))
+		return NM_CLIENT_PERMISSION_RESULT_AUTH;
+	return NM_CLIENT_PERMISSION_RESULT_UNKNOWN;
+}
+
+/*****************************************************************************/
+
+const NMLDBusMetaIface *const _nml_dbus_meta_ifaces[] = {
+	&_nml_dbus_meta_iface_nm,
+	&_nml_dbus_meta_iface_nm_accesspoint,
+	&_nml_dbus_meta_iface_nm_agentmanager,
+	&_nml_dbus_meta_iface_nm_checkpoint,
+	&_nml_dbus_meta_iface_nm_connection_active,
+	&_nml_dbus_meta_iface_nm_dhcp4config,
+	&_nml_dbus_meta_iface_nm_dhcp6config,
+	&_nml_dbus_meta_iface_nm_device,
+	&_nml_dbus_meta_iface_nm_device_adsl,
+	&_nml_dbus_meta_iface_nm_device_bluetooth,
+	&_nml_dbus_meta_iface_nm_device_bond,
+	&_nml_dbus_meta_iface_nm_device_bridge,
+	&_nml_dbus_meta_iface_nm_device_dummy,
+	&_nml_dbus_meta_iface_nm_device_generic,
+	&_nml_dbus_meta_iface_nm_device_iptunnel,
+	&_nml_dbus_meta_iface_nm_device_infiniband,
+	&_nml_dbus_meta_iface_nm_device_lowpan,
+	&_nml_dbus_meta_iface_nm_device_macsec,
+	&_nml_dbus_meta_iface_nm_device_macvlan,
+	&_nml_dbus_meta_iface_nm_device_modem,
+	&_nml_dbus_meta_iface_nm_device_olpcmesh,
+	&_nml_dbus_meta_iface_nm_device_ovsbridge,
+	&_nml_dbus_meta_iface_nm_device_ovsinterface,
+	&_nml_dbus_meta_iface_nm_device_ovsport,
+	&_nml_dbus_meta_iface_nm_device_ppp,
+	&_nml_dbus_meta_iface_nm_device_statistics,
+	&_nml_dbus_meta_iface_nm_device_team,
+	&_nml_dbus_meta_iface_nm_device_tun,
+	&_nml_dbus_meta_iface_nm_device_veth,
+	&_nml_dbus_meta_iface_nm_device_vlan,
+	&_nml_dbus_meta_iface_nm_device_vxlan,
+	&_nml_dbus_meta_iface_nm_device_wifip2p,
+	&_nml_dbus_meta_iface_nm_device_wireguard,
+	&_nml_dbus_meta_iface_nm_device_wired,
+	&_nml_dbus_meta_iface_nm_device_wireless,
+	&_nml_dbus_meta_iface_nm_device_wpan,
+	&_nml_dbus_meta_iface_nm_dnsmanager,
+	&_nml_dbus_meta_iface_nm_ip4config,
+	&_nml_dbus_meta_iface_nm_ip6config,
+	&_nml_dbus_meta_iface_nm_settings,
+	&_nml_dbus_meta_iface_nm_settings_connection,
+	&_nml_dbus_meta_iface_nm_vpn_connection,
+	&_nml_dbus_meta_iface_nm_wifip2ppeer,
+};
+
+#define COMMON_PREFIX "org.freedesktop.NetworkManager"
+
+static int
+_strcmp_common_prefix (gconstpointer a, gconstpointer b, gpointer user_data)
+{
+	const NMLDBusMetaIface *iface = a;
+	const char *dbus_iface_name = b;
+
+	nm_assert (g_str_has_prefix (iface->dbus_iface_name, COMMON_PREFIX));
+
+	return strcmp (&iface->dbus_iface_name[NM_STRLEN (COMMON_PREFIX)], dbus_iface_name);
+}
+
+const NMLDBusMetaIface *
+nml_dbus_meta_iface_get (const char *dbus_iface_name)
+{
+	gssize idx;
+
+	nm_assert (dbus_iface_name);
+
+	G_STATIC_ASSERT_EXPR (G_STRUCT_OFFSET (NMLDBusMetaIface, dbus_iface_name) == 0);
+
+	/* we assume that NetworkManager only uses unique interface names. E.g. one
+	 * interface name always has one particular meaning (and offers one set of
+	 * properties, signals and methods). This is a convenient assumption, and
+	 * we sure would never violate it when extending NM's D-Bus API. */
+
+	if (NM_STR_HAS_PREFIX (dbus_iface_name, COMMON_PREFIX)) {
+		/* optimize, that in fact all our interfaces have the same prefix. */
+		idx = nm_utils_ptrarray_find_binary_search ((gconstpointer *) _nml_dbus_meta_ifaces,
+		                                            G_N_ELEMENTS (_nml_dbus_meta_ifaces),
+		                                            &dbus_iface_name[NM_STRLEN (COMMON_PREFIX)],
+		                                            _strcmp_common_prefix,
+		                                            NULL,
+		                                            NULL,
+		                                            NULL);
+	} else
+		return NULL;
+
+	if (idx < 0)
+		return NULL;
+	return _nml_dbus_meta_ifaces[idx];
+}
+
+const NMLDBusMetaProperty *
+nml_dbus_meta_property_get (const NMLDBusMetaIface *meta_iface,
+                            const char *dbus_property_name,
+                            guint *out_idx)
+{
+	gssize idx;
+
+	nm_assert (meta_iface);
+	nm_assert (dbus_property_name);
+
+	idx = nm_utils_array_find_binary_search (meta_iface->dbus_properties,
+	                                         sizeof (meta_iface->dbus_properties[0]),
+	                                         meta_iface->n_dbus_properties,
+	                                         &dbus_property_name,
+	                                         nm_strcmp_p_with_data,
+	                                         NULL);
+	if (idx < 0) {
+		NM_SET_OUT (out_idx, meta_iface->n_dbus_properties);
+		return NULL;
+	}
+	NM_SET_OUT (out_idx, idx);
+	return &meta_iface->dbus_properties[idx];
+}
+
+void
+_nml_dbus_meta_class_init_with_properties_impl (GObjectClass *object_class,
+                                                const NMLDBusMetaIface *const*meta_ifaces)
+{
+	int i_iface;
+
+	nm_assert (G_IS_OBJECT_CLASS (object_class));
+	nm_assert (meta_ifaces);
+	nm_assert (meta_ifaces[0]);
+
+	for (i_iface = 0; meta_ifaces[i_iface]; i_iface++) {
+		const NMLDBusMetaIface *meta_iface = meta_ifaces[i_iface];
+		guint8 *reverse_idx;
+		guint8 i;
+
+		nm_assert (g_type_is_a (meta_iface->get_type_fcn (), G_OBJECT_CLASS_TYPE (object_class)));
+		nm_assert (meta_iface->n_obj_properties > 0);
+		nm_assert (meta_iface->obj_properties);
+		nm_assert (meta_iface->obj_properties_reverse_idx[0] == 0);
+		nm_assert (meta_iface->obj_properties == meta_ifaces[0]->obj_properties);
+
+		if (i_iface == 0)
+			g_object_class_install_properties (object_class, meta_iface->n_obj_properties, (GParamSpec **) meta_iface->obj_properties);
+
+		reverse_idx = (guint8 *) meta_iface->obj_properties_reverse_idx;
+
+		for (i = 0; i < meta_iface->n_obj_properties; i++)
+			reverse_idx[i] = 0xFFu;
+		for (i = 0; i < meta_iface->n_dbus_properties; i++) {
+			const NMLDBusMetaProperty *mpr = &meta_iface->dbus_properties[i];
+
+			if (   mpr->obj_properties_idx != 0
+			    && !mpr->obj_property_no_reverse_idx) {
+				nm_assert (mpr->obj_properties_idx < meta_iface->n_obj_properties);
+				nm_assert (reverse_idx[mpr->obj_properties_idx] == 0xFFu);
+
+				reverse_idx[mpr->obj_properties_idx] = i;
+			}
+		}
+	}
+}
+
+gboolean
+nm_utils_g_param_spec_is_default (const GParamSpec *pspec)
+{
+	g_return_val_if_fail (pspec, FALSE);
+
+	if (pspec->value_type == G_TYPE_BOOLEAN)
+		return ((((GParamSpecBoolean *) pspec)->default_value) == FALSE);
+	if (pspec->value_type == G_TYPE_UCHAR)
+		return ((((GParamSpecUChar *) pspec)->default_value) == 0u);
+	if (pspec->value_type == G_TYPE_INT)
+		return ((((GParamSpecInt *) pspec)->default_value) == 0);
+	if (pspec->value_type == G_TYPE_UINT)
+		return ((((GParamSpecUInt *) pspec)->default_value) == 0u);
+	if (pspec->value_type == G_TYPE_INT64)
+		return ((((GParamSpecInt64 *) pspec)->default_value) == 0);
+	if (pspec->value_type == G_TYPE_UINT64)
+		return ((((GParamSpecUInt64 *) pspec)->default_value) == 0u);
+	if (g_type_is_a (pspec->value_type, G_TYPE_ENUM))
+		return ((((GParamSpecEnum *) pspec)->default_value) == 0);
+	if (g_type_is_a (pspec->value_type, G_TYPE_FLAGS))
+		return ((((GParamSpecFlags *) pspec)->default_value) == 0u);
+	if (pspec->value_type == G_TYPE_STRING)
+		return ((((GParamSpecString *) pspec)->default_value) == NULL);
+	if (NM_IN_SET (pspec->value_type, G_TYPE_BYTES,
+	                                  G_TYPE_PTR_ARRAY,
+	                                  G_TYPE_ARRAY,
+	                                  G_TYPE_HASH_TABLE,
+	                                  G_TYPE_STRV)) {
+		/* boxed types have NULL default. */
+		g_return_val_if_fail (G_IS_PARAM_SPEC_BOXED (pspec), FALSE);
+		g_return_val_if_fail (G_TYPE_IS_BOXED (pspec->value_type), FALSE);
+		return TRUE;
+	}
+	if (g_type_is_a (pspec->value_type, NM_TYPE_OBJECT)) {
+		/* object types have NULL default. */
+		g_return_val_if_fail (G_IS_PARAM_SPEC_OBJECT (pspec), FALSE);
+		g_return_val_if_fail (G_TYPE_IS_OBJECT (pspec->value_type), FALSE);
+		return TRUE;
+	}
+
+	/* This function is only used for asserting/testing. It thus
+	 * strictly asserts and only support argument types that we expect. */
+	g_return_val_if_reached (FALSE);
 }

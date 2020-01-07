@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2013 - 2016 Canonical Ltd.
  */
 
@@ -1114,9 +1100,9 @@ create_connect_properties (NMConnection *connection)
 }
 
 static NMActStageReturn
-act_stage1_prepare (NMModem *modem,
-                    NMConnection *connection,
-                    NMDeviceStateReason *out_failure_reason)
+modem_act_stage1_prepare (NMModem *modem,
+                          NMConnection *connection,
+                          NMDeviceStateReason *out_failure_reason)
 {
 	NMModemOfono *self = NM_MODEM_OFONO (modem);
 	NMModemOfonoPrivate *priv = NM_MODEM_OFONO_GET_PRIVATE (self);
@@ -1308,6 +1294,6 @@ nm_modem_ofono_class_init (NMModemOfonoClass *klass)
 	modem_class->deactivate_cleanup = deactivate_cleanup;
 	modem_class->check_connection_compatible_with_modem = check_connection_compatible_with_modem;
 
-	modem_class->act_stage1_prepare = act_stage1_prepare;
+	modem_class->modem_act_stage1_prepare = modem_act_stage1_prepare;
 	modem_class->static_stage3_ip4_config_start = static_stage3_ip4_config_start;
 }

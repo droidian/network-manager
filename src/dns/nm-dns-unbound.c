@@ -1,21 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
  * Copyright (C) 2014 Red Hat, Inc.
  * Author: Pavel Šimerda <psimerda@redhat.com>
  */
+
 #include "nm-default.h"
 
 #include "nm-dns-unbound.h"
@@ -40,9 +28,11 @@ static gboolean
 update (NMDnsPlugin *plugin,
         const NMGlobalDnsConfig *global_config,
         const CList *ip_config_lst_head,
-        const char *hostname)
+        const char *hostname,
+        GError **error)
 {
 	char *argv[] = { DNSSEC_TRIGGER_PATH, "--async", "--update", NULL };
+	gs_free_error GError *local = NULL;
 	int status;
 
 	/* TODO: We currently call a script installed with the dnssec-trigger
@@ -54,21 +44,19 @@ update (NMDnsPlugin *plugin,
 	 * without calling custom scripts. The dnssec-trigger functionality
 	 * may be eventually merged into NetworkManager.
 	 */
-	if (!g_spawn_sync ("/", argv, NULL, 0, NULL, NULL, NULL, NULL, &status, NULL))
+	if (!g_spawn_sync ("/", argv, NULL, 0, NULL, NULL, NULL, NULL, &status, &local)) {
+		nm_utils_error_set (error, NM_UTILS_ERROR_UNKNOWN,
+		                    "error spawning dns-trigger: %s",
+		                    local->message);
 		return FALSE;
-	return (status == 0);
-}
-
-static gboolean
-is_caching (NMDnsPlugin *plugin)
-{
+	}
+	if (status != 0) {
+		nm_utils_error_set (error, NM_UTILS_ERROR_UNKNOWN,
+		                    "dns-trigger exited with error code %d",
+		                    status);
+		return FALSE;
+	}
 	return TRUE;
-}
-
-static const char *
-get_name (NMDnsPlugin *plugin)
-{
-	return "unbound";
 }
 
 /*****************************************************************************/
@@ -89,7 +77,7 @@ nm_dns_unbound_class_init (NMDnsUnboundClass *klass)
 {
 	NMDnsPluginClass *plugin_class = NM_DNS_PLUGIN_CLASS (klass);
 
-	plugin_class->update = update;
-	plugin_class->is_caching = is_caching;
-	plugin_class->get_name = get_name;
+	plugin_class->plugin_name = "unbound";
+	plugin_class->is_caching  = TRUE;
+	plugin_class->update      = update;
 }

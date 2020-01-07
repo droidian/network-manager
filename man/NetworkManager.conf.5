@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 09/30/2019
+.\"      Date: 12/24/2019
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.20.4
+.\"    Source: NetworkManager 1.22.2
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.20\&.4" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.22\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -126,8 +126,10 @@ This setting is deprecated and has no effect\&.
 \fIauth\-polkit\fR
 .RS 4
 Whether the system uses PolicyKit for authorization\&. If
-false, all requests will be allowed\&. If
-true, non\-root requests are authorized using PolicyKit\&. The default value is
+true, non\-root requests are authorized using PolicyKit\&. Requests from root (user ID zero) are always granted without asking PolicyKit\&. If
+false, all requests will be allowed and PolicyKit is not used\&. If set to
+root\-only
+PolicyKit is not used and all requests except root are denied\&. The default value is
 true\&.
 .RE
 .PP
@@ -696,6 +698,16 @@ If configured explicitly to 0, the MTU is not reconfigured during device activat
 .RS 4
 .RE
 .PP
+\fIipv4\&.dhcp\-iaid\fR
+.RS 4
+If left unspecified, it defaults to "ifname"\&.
+.RE
+.PP
+\fIipv4\&.dhcp\-hostname\-flags\fR
+.RS 4
+If left unspecified, the value 3 (fqdn\-encoded,fqdn\-serv\-update) is used\&.
+.RE
+.PP
 \fIipv4\&.dhcp\-timeout\fR
 .RS 4
 If left unspecified, the default value for the interface type is used\&.
@@ -718,6 +730,16 @@ If left unspecified, routes are only added to the main table\&. Note that this i
 \fIipv6\&.dhcp\-duid\fR
 .RS 4
 If left unspecified, it defaults to "lease"\&.
+.RE
+.PP
+\fIipv6\&.dhcp\-iaid\fR
+.RS 4
+If left unspecified, it defaults to "ifname"\&.
+.RE
+.PP
+\fIipv6\&.dhcp\-hostname\-flags\fR
+.RS 4
+If left unspecified, the value 1 (fqdn\-serv\-update) is used\&.
 .RE
 .PP
 \fIipv6\&.dhcp\-timeout\fR

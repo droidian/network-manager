@@ -85,6 +85,7 @@
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Real" title='The "Real" property'>Real</a>                  readable   b
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Ip4Connectivity" title='The "Ip4Connectivity" property'>Ip4Connectivity</a>       readable   u
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Ip6Connectivity" title='The "Ip6Connectivity" property'>Ip6Connectivity</a>       readable   u
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.InterfaceFlags" title='The "InterfaceFlags" property'>InterfaceFlags</a>        readable   u
 </pre>
 </div>
 <div class="refsect1">
@@ -559,6 +560,19 @@ Ip6Connectivity  readable   u
 <p>        Since: 1.16
 </p>
 <p>        Returns: <a class="link" href="nm-dbus-types.html#NMConnectivityState" title="enum NMConnectivityState">NMConnectivityState</a>
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-property-org-freedesktop-NetworkManager-Device.InterfaceFlags"></a><h3>The "InterfaceFlags" property</h3>
+<pre class="programlisting">
+InterfaceFlags  readable   u
+</pre>
+<p>        The flags of the network interface. See
+        <a class="link" href="nm-dbus-types.html#NMDeviceInterfaceFlags" title="enum NMDeviceInterfaceFlags">NMDeviceInterfaceFlags</a> for
+        the currently defined flags.
+</p>
+<p>        Since: 1.22
 </p>
 </div>
 </div>

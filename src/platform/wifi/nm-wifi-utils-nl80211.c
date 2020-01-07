@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2005 - 2018 Red Hat, Inc.
  * Copyright (C) 2006 - 2008 Novell, Inc.
  * Copyright (C) 2011 Intel Corporation. All rights reserved.
@@ -912,6 +898,9 @@ static int nl80211_wiphy_info_handler (struct nl_msg *msg, void *arg)
 
 	if (tb[NL80211_ATTR_WOWLAN_TRIGGERS_SUPPORTED])
 		info->can_wowlan = TRUE;
+
+	if (tb[NL80211_ATTR_SUPPORT_IBSS_RSN])
+		info->caps |= NM_WIFI_DEVICE_CAP_IBSS_RSN;
 
 	info->success = TRUE;
 

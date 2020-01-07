@@ -7,8 +7,8 @@ dnl  - add corresponding NM_VERSION_x_y_z macros in
 dnl    "shared/nm-version-macros.h.in"
 dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
-m4_define([nm_minor_version], [20])
-m4_define([nm_micro_version], [4])
+m4_define([nm_minor_version], [22])
+m4_define([nm_micro_version], [2])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
 
@@ -614,18 +614,18 @@ AM_CONDITIONAL(WITH_JSON_VALIDATION, test "${enable_json_validation}" != "no")
 # default configuration for main.auth-polkit. User can always enable/disable polkit
 # authorization via config.
 AC_ARG_ENABLE(polkit,
-              AS_HELP_STRING([--enable-polkit=yes|no],
+              AS_HELP_STRING([--enable-polkit=yes|no|root-only],
                              [set default value for auth-polkit configuration option. This value can be overwritten by NM configuration. 'disabled' is an alias for 'no']),
               [enable_polkit=${enableval}], [enable_polkit=yes])
-if (test "${enable_polkit}" != "no" -a "${enable_polkit}" != "disabled"); then
+if test "${enable_polkit}" == "root-only" ; then
+	enable_polkit='root-only'
+elif test "${enable_polkit}" != "no" -a "${enable_polkit}" != "disabled" ; then
 	enable_polkit=true
-	AC_DEFINE(NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT, "true", [The default value of the auth-polkit configuration option])
-	AC_SUBST(NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT_TEXT, true)
 else
 	enable_polkit=false
-	AC_DEFINE(NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT, "false", [The default value of the auth-polkit configuration option])
-	AC_SUBST(NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT_TEXT, false)
 fi
+AC_DEFINE_UNQUOTED(NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT, "$enable_polkit", [The default value of the auth-polkit configuration option])
+AC_SUBST(NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT_TEXT, "$enable_polkit")
 
 PKG_CHECK_MODULES(POLKIT, [polkit-agent-1 >= 0.97], [have_pk_agent=yes],[have_pk_agent=no])
 AC_ARG_ENABLE(polkit-agent,
@@ -747,9 +747,19 @@ if (test "${with_modem_manager_1}" != "no"); then
 		fi
 	else
 		with_modem_manager_1="yes"
+
+		PKG_CHECK_MODULES(MOBILE_BROADBAND_PROVIDER_INFO, [mobile-broadband-provider-info],
+		                  [MOBILE_BROADBAND_PROVIDER_INFO_DATABASE=`$PKG_CONFIG --variable=database mobile-broadband-provider-info`],
+		                  [MOBILE_BROADBAND_PROVIDER_INFO_DATABASE="$prefix/share/mobile-broadband-provider-info/serviceproviders.xml"])
+		AC_DEFINE_UNQUOTED([MOBILE_BROADBAND_PROVIDER_INFO_DATABASE],
+		                   ["$MOBILE_BROADBAND_PROVIDER_INFO_DATABASE"],
+		                   [Mobile Broadband Service Provider Information Database location])
 	fi
 fi
 AM_CONDITIONAL(WITH_MODEM_MANAGER_1, test "${with_modem_manager_1}" = "yes")
+
+
+
 
 # Bluez5 DUN support
 PKG_CHECK_MODULES(BLUEZ5, [bluez >= 5], [have_bluez5=yes],[have_bluez5=no])
@@ -1003,6 +1013,17 @@ else
 	build_nmcli=no
 fi
 AM_CONDITIONAL(BUILD_NMCLI, test "$build_nmcli" = yes)
+
+AC_ARG_WITH(nm-cloud-setup,
+            AS_HELP_STRING([--with-nm-cloud-setup=yes|no], [Build nm-cloud-setup, a tool for automatically configure networking in cloud (EXPERIMENTAL!)]))
+if test "$with_nm_cloud_setup" != no; then
+	PKG_CHECK_MODULES(LIBCURL, [libcurl >= 7.24.0], [have_libcurl=yes], [have_libcurl=no])
+	if test "$have_libcurl" != "yes"; then
+		AC_MSG_ERROR(--with-nm-cloud-setup requires libcurl library.)
+	fi
+	with_nm_cloud_setup=yes
+fi
+AM_CONDITIONAL(BUILD_NM_CLOUD_SETUP, test "$with_nm_cloud_setup" == yes)
 
 AC_ARG_WITH(nmtui,
             AS_HELP_STRING([--with-nmtui=yes|no], [Build nmtui]))
@@ -1293,6 +1314,7 @@ echo "  libteamdctl: $enable_teamdctl"
 echo "  ovs: $enable_ovs"
 echo "  nmcli: $build_nmcli"
 echo "  nmtui: $build_nmtui"
+echo "  nm-cloud-setup: $with_nm_cloud_setup"
 echo "  iwd: $ac_with_iwd"
 echo
 
