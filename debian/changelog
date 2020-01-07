@@ -1,10 +1,18 @@
-network-manager (1.20.6-1ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.20.8-1ubuntu1) UNRELEASED; urgency=medium
 
   * New upstream version, merged from Debian
   * debian/patches/git_wpa_sae.patch:
     - removed, included in the new version
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 07 Jan 2020 16:53:10 +0100
+
+network-manager (1.20.8-1) unstable; urgency=medium
+
+  * New upstream version 1.20.8
+  * Rebase patches
+  * Bump Standards Version to 4.4.1
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 25 Nov 2019 19:23:25 +0100
 
 network-manager (1.20.6-1) unstable; urgency=medium
 
