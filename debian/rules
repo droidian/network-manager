@@ -6,12 +6,16 @@ include /usr/share/dpkg/architecture.mk
 LDFLAGS=$(shell echo $$LDFLAGS | sed -e 's/-Wl,-Bsymbolic-functions//')
 export LDFLAGS
 
+ifeq ($(shell dpkg-vendor --is Ubuntu && echo yes) $(DEB_HOST_ARCH), yes i386)
+   BUILD_PACKAGES += -Nnetwork-manager
+endif
+
 export PYTHON=/usr/bin/python3
 
 PPPD_PLUGIN_DIR := $(shell dh_ppp --plugin-dir)
 
 %:
-	dh $@ --with gir,ppp
+	dh $@ --with gir,ppp $(BUILD_PACKAGES)
 
 autoreconf:
 	gtkdocize --copy
