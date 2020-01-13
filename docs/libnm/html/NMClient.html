@@ -16,10 +16,7 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMClient.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMClient.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
-                  <a href="#NMClient.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMClient.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
-                  <a href="#NMClient.signals" class="shortcut">Signals</a></span>
+                  <a href="#NMClient.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -121,6 +118,37 @@
 </td>
 </tr>
 <tr>
+<td class="function_type">
+<a href="https://developer.gnome.org/gio/unstable/GDBusConnection.html#GDBusConnection-struct"><span class="returnvalue">GDBusConnection</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="NMClient.html#nm-client-get-dbus-connection" title="nm_client_get_dbus_connection ()">nm_client_get_dbus_connection</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-The-Main-Event-Loop.html#GMainContext"><span class="returnvalue">GMainContext</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="NMClient.html#nm-client-get-main-context" title="nm_client_get_main_context ()">nm_client_get_main_context</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct"><span class="returnvalue">GObject</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="NMClient.html#nm-client-get-context-busy-watcher" title="nm_client_get_context_busy_watcher ()">nm_client_get_context_busy_watcher</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMClient.html#nm-client-get-dbus-name-owner" title="nm_client_get_dbus_name_owner ()">nm_client_get_dbus_name_owner</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
 <td class="function_type">const <span class="returnvalue">char</span> *
 </td>
 <td class="function_name">
@@ -153,10 +181,25 @@
 </tr>
 <tr>
 <td class="function_type">
+<a class="link" href="libnm-nm-dbus-interface.html#NMMetered" title="enum NMMetered"><span class="returnvalue">NMMetered</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMClient.html#nm-client-get-metered" title="nm_client_get_metered ()">nm_client_get_metered</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="NMClient.html#nm-client-networking-get-enabled" title="nm_client_networking_get_enabled ()">nm_client_networking_get_enabled</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="NMClient.html#nm-client-get-capabilities" title="nm_client_get_capabilities ()">nm_client_get_capabilities</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -678,221 +721,21 @@
 <a class="link" href="NMClient.html#nm-client-checkpoint-adjust-rollback-timeout-finish" title="nm_client_checkpoint_adjust_rollback_timeout_finish ()">nm_client_checkpoint_adjust_rollback_timeout_finish</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
-<a name="NMClient.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody>
 <tr>
-<td class="property_type">
-<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *</td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--activating-connection" title="The “activating-connection” property">activating-connection</a></td>
-<td class="property_flags">Read</td>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMClient.html#nm-client-reload" title="nm_client_reload ()">nm_client_reload</a> <span class="c_punctuation">()</span>
+</td>
 </tr>
 <tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--active-connections" title="The “active-connections” property">active-connections</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--all-devices" title="The “all-devices” property">all-devices</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--can-modify" title="The “can-modify” property">can-modify</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--checkpoints" title="The “checkpoints” property">checkpoints</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--connections" title="The “connections” property">connections</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a class="link" href="libnm-nm-dbus-interface.html#NMConnectivityState" title="enum NMConnectivityState"><span class="type">NMConnectivityState</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--connectivity" title="The “connectivity” property">connectivity</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--connectivity-check-available" title="The “connectivity-check-available” property">connectivity-check-available</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--connectivity-check-enabled" title="The “connectivity-check-enabled” property">connectivity-check-enabled</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--devices" title="The “devices” property">devices</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--dns-configuration" title="The “dns-configuration” property">dns-configuration</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--dns-mode" title="The “dns-mode” property">dns-mode</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--dns-rc-manager" title="The “dns-rc-manager” property">dns-rc-manager</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--hostname" title="The “hostname” property">hostname</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--metered" title="The “metered” property">metered</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--networking-enabled" title="The “networking-enabled” property">networking-enabled</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--nm-running" title="The “nm-running” property">nm-running</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type">
-<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *</td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--primary-connection" title="The “primary-connection” property">primary-connection</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--startup" title="The “startup” property">startup</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a class="link" href="libnm-nm-dbus-interface.html#NMState" title="enum NMState"><span class="type">NMState</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--state" title="The “state” property">state</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--version" title="The “version” property">version</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--wimax-enabled" title="The “wimax-enabled” property">wimax-enabled</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--wimax-hardware-enabled" title="The “wimax-hardware-enabled” property">wimax-hardware-enabled</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--wireless-enabled" title="The “wireless-enabled” property">wireless-enabled</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--wireless-hardware-enabled" title="The “wireless-hardware-enabled” property">wireless-hardware-enabled</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--wwan-enabled" title="The “wwan-enabled” property">wwan-enabled</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMClient.html#NMClient--wwan-hardware-enabled" title="The “wwan-hardware-enabled” property">wwan-hardware-enabled</a></td>
-<td class="property_flags">Read</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
-<a name="NMClient.signals"></a><h2>Signals</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="signals_return">
-<col width="300px" class="signals_name">
-<col width="200px" class="signals_flags">
-</colgroup>
-<tbody>
-<tr>
-<td class="signal_type"><span class="returnvalue">void</span></td>
-<td class="signal_name"><a class="link" href="NMClient.html#NMClient-active-connection-added" title="The “active-connection-added” signal">active-connection-added</a></td>
-<td class="signal_flags"><a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
-</tr>
-<tr>
-<td class="signal_type"><span class="returnvalue">void</span></td>
-<td class="signal_name"><a class="link" href="NMClient.html#NMClient-active-connection-removed" title="The “active-connection-removed” signal">active-connection-removed</a></td>
-<td class="signal_flags"><a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
-</tr>
-<tr>
-<td class="signal_type"><span class="returnvalue">void</span></td>
-<td class="signal_name"><a class="link" href="NMClient.html#NMClient-any-device-added" title="The “any-device-added” signal">any-device-added</a></td>
-<td class="signal_flags"><a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
-</tr>
-<tr>
-<td class="signal_type"><span class="returnvalue">void</span></td>
-<td class="signal_name"><a class="link" href="NMClient.html#NMClient-any-device-removed" title="The “any-device-removed” signal">any-device-removed</a></td>
-<td class="signal_flags"><a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
-</tr>
-<tr>
-<td class="signal_type"><span class="returnvalue">void</span></td>
-<td class="signal_name"><a class="link" href="NMClient.html#NMClient-connection-added" title="The “connection-added” signal">connection-added</a></td>
-<td class="signal_flags"><a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
-</tr>
-<tr>
-<td class="signal_type"><span class="returnvalue">void</span></td>
-<td class="signal_name"><a class="link" href="NMClient.html#NMClient-connection-removed" title="The “connection-removed” signal">connection-removed</a></td>
-<td class="signal_flags"><a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
-</tr>
-<tr>
-<td class="signal_type"><span class="returnvalue">void</span></td>
-<td class="signal_name"><a class="link" href="NMClient.html#NMClient-device-added" title="The “device-added” signal">device-added</a></td>
-<td class="signal_flags"><a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
-</tr>
-<tr>
-<td class="signal_type"><span class="returnvalue">void</span></td>
-<td class="signal_name"><a class="link" href="NMClient.html#NMClient-device-removed" title="The “device-removed” signal">device-removed</a></td>
-<td class="signal_flags"><a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
-</tr>
-<tr>
-<td class="signal_type"><span class="returnvalue">void</span></td>
-<td class="signal_name"><a class="link" href="NMClient.html#NMClient-permission-changed" title="The “permission-changed” signal">permission-changed</a></td>
-<td class="signal_flags"><a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
+<td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMClient.html#nm-client-reload-finish" title="nm_client_reload_finish ()">nm_client_reload_finish</a> <span class="c_punctuation">()</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -923,6 +766,14 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-DBUS-CONNECTION:CAPS" title="NM_CLIENT_DBUS_CONNECTION">NM_CLIENT_DBUS_CONNECTION</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-DBUS-NAME-OWNER:CAPS" title="NM_CLIENT_DBUS_NAME_OWNER">NM_CLIENT_DBUS_NAME_OWNER</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-NETWORKING-ENABLED:CAPS" title="NM_CLIENT_NETWORKING_ENABLED">NM_CLIENT_NETWORKING_ENABLED</a></td>
 </tr>
 <tr>
@@ -931,19 +782,19 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-WIRELESS-HARDWARE-ENABLED:CAPS" title="NM_CLIENT_WIRELESS_HARDWARE_ENABLED">NM_CLIENT_WIRELESS_HARDWARE_ENABLED</a></td>
-</tr>
-<tr>
-<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-WWAN-ENABLED:CAPS" title="NM_CLIENT_WWAN_ENABLED">NM_CLIENT_WWAN_ENABLED</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-WWAN-HARDWARE-ENABLED:CAPS" title="NM_CLIENT_WWAN_HARDWARE_ENABLED">NM_CLIENT_WWAN_HARDWARE_ENABLED</a></td>
+<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-WIMAX-ENABLED:CAPS" title="NM_CLIENT_WIMAX_ENABLED">NM_CLIENT_WIMAX_ENABLED</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-WIMAX-ENABLED:CAPS" title="NM_CLIENT_WIMAX_ENABLED">NM_CLIENT_WIMAX_ENABLED</a></td>
+<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-WIRELESS-HARDWARE-ENABLED:CAPS" title="NM_CLIENT_WIRELESS_HARDWARE_ENABLED">NM_CLIENT_WIRELESS_HARDWARE_ENABLED</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-WWAN-HARDWARE-ENABLED:CAPS" title="NM_CLIENT_WWAN_HARDWARE_ENABLED">NM_CLIENT_WWAN_HARDWARE_ENABLED</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -956,6 +807,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-CONNECTIVITY:CAPS" title="NM_CLIENT_CONNECTIVITY">NM_CLIENT_CONNECTIVITY</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-CONNECTIVITY-CHECK-URI:CAPS" title="NM_CLIENT_CONNECTIVITY_CHECK_URI">NM_CLIENT_CONNECTIVITY_CHECK_URI</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -1011,6 +866,14 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-CHECKPOINTS:CAPS" title="NM_CLIENT_CHECKPOINTS">NM_CLIENT_CHECKPOINTS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-CAPABILITIES:CAPS" title="NM_CLIENT_CAPABILITIES">NM_CLIENT_CAPABILITIES</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-DEVICE-ADDED:CAPS" title="NM_CLIENT_DEVICE_ADDED">NM_CLIENT_DEVICE_ADDED</a></td>
 </tr>
 <tr>
@@ -1061,10 +924,6 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMClient.html#NM-CLIENT-ERROR:CAPS" title="NM_CLIENT_ERROR">NM_CLIENT_ERROR</a></td>
 </tr>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMClient.html#NMClient-struct" title="NMClient">NMClient</a></td>
-</tr>
 </tbody>
 </table></div>
 </div>
@@ -1076,15 +935,7 @@
     <span class="lineart">├──</span> NMClientError
     <span class="lineart">├──</span> NMClientPermission
     <span class="lineart">╰──</span> NMClientPermissionResult
-    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> NMClient
 </pre>
-</div>
-<div class="refsect1">
-<a name="NMClient.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
-<p>
-NMClient implements
- <a href="https://developer.gnome.org/gio/unstable/GInitable.html#GInitable-struct">GInitable</a> and  <a href="https://developer.gnome.org/gio/unstable/GAsyncInitable.html#GAsyncInitable-struct">GAsyncInitable</a>.</p>
 </div>
 <div class="refsect1">
 <a name="NMClient.description"></a><h2>Description</h2>
@@ -1377,6 +1228,141 @@ nm_client_new_finish (<em class="parameter"><code><a href="https://developer.gno
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-client-get-dbus-connection"></a><h3>nm_client_get_dbus_connection ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/gio/unstable/GDBusConnection.html#GDBusConnection-struct"><span class="returnvalue">GDBusConnection</span></a> *
+nm_client_get_dbus_connection (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<p>Gets the <a href="https://developer.gnome.org/gio/unstable/GDBusConnection.html#GDBusConnection-struct"><code class="literal">GDBusConnection</code></a> of the instance. This can be either passed when
+constructing the instance (as "dbus-connection" property), or it will be
+automatically initialized during async/sync init.</p>
+<div class="refsect3">
+<a name="nm-client-get-dbus-connection.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>client</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-client-get-dbus-connection.returns"></a><h4>Returns</h4>
+<p>the D-Bus connection of the client, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if none is set. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.22</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-main-context"></a><h3>nm_client_get_main_context ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-The-Main-Event-Loop.html#GMainContext"><span class="returnvalue">GMainContext</span></a> *
+nm_client_get_main_context (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *self</code></em>);</pre>
+<p>The <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> instance is permanently associated with the current
+thread default <a href="https://developer.gnome.org/glib/unstable/glib-The-Main-Event-Loop.html#GMainContext"><span class="type">GMainContext</span></a>, referenced the time when the instance
+was created. To receive events, the user must iterate this context
+and can use it to synchronize access to the client.</p>
+<p>Note that even after <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> instance got destroyed, there might
+still be pending sources registered in the context. That means, to fully
+clean up, the user must continue iterating the context as long as
+the <a class="link" href="NMClient.html#nm-client-get-context-busy-watcher" title="nm_client_get_context_busy_watcher ()"><code class="function">nm_client_get_context_busy_watcher()</code></a> object is alive.</p>
+<div class="refsect3">
+<a name="nm-client-get-main-context.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>self</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-client-get-main-context.returns"></a><h4>Returns</h4>
+<p>the <a href="https://developer.gnome.org/glib/unstable/glib-The-Main-Event-Loop.html#GMainContext"><span class="type">GMainContext</span></a> of the client. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.22</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-context-busy-watcher"></a><h3>nm_client_get_context_busy_watcher ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct"><span class="returnvalue">GObject</span></a> *
+nm_client_get_context_busy_watcher (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *self</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-client-get-context-busy-watcher.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>self</p></td>
+<td class="parameter_description"><p>the NMClient instance.</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-client-get-context-busy-watcher.returns"></a><h4>Returns</h4>
+<p>a GObject that stays alive as long as there are pending
+D-Bus operations.</p>
+<p>NMClient will schedule asynchronous D-Bus requests which will complete on
+the GMainContext associated with the instance. When destroying the NMClient
+instance, those requests are cancelled right away, however their pending requests are
+still outstanding and queued in the GMainContext. These outstanding callbacks
+keep the GMainContext alive. In order to fully release all resources,
+the user must keep iterating the main context until all these callbacks
+are handled. Of course, at this point no more actual callbacks will be invoked
+for the user, those are all internally cancelled.</p>
+<p>This just leaves one problem: how long does the user need to keep the
+GMainContext running to ensure everything is cleaned up? The answer is
+this GObject. Subscribe a weak reference to the returned object and keep
+iterating the main context until the object got unreferenced.</p>
+<p>Note that after the NMClient instance gets destroyed, the remaining callbacks
+will be invoked right away. That means, the user won't have to iterate the
+main context much longer. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.22</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-get-dbus-name-owner"></a><h3>nm_client_get_dbus_name_owner ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_client_get_dbus_name_owner (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-client-get-dbus-name-owner.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>client</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-client-get-dbus-name-owner.returns"></a><h4>Returns</h4>
+<p>the current name owner of the D-Bus service of NetworkManager. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.22</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-client-get-version"></a><h3>nm_client_get_version ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_client_get_version (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
@@ -1482,6 +1468,32 @@ nm_client_get_nm_running (<em class="parameter"><code><a class="link" href="NMCl
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-client-get-metered"></a><h3>nm_client_get_metered ()</h3>
+<pre class="programlisting"><a class="link" href="libnm-nm-dbus-interface.html#NMMetered" title="enum NMMetered"><span class="returnvalue">NMMetered</span></a>
+nm_client_get_metered (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-client-get-metered.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>client</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-client-get-metered.returns"></a><h4>Returns</h4>
+<p> whether the default route is metered.</p>
+</div>
+<p class="since">Since: 1.22</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-client-networking-get-enabled"></a><h3>nm_client_networking_get_enabled ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_client_networking_get_enabled (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
@@ -1508,11 +1520,56 @@ nm_client_networking_get_enabled (<em class="parameter"><code><a class="link" hr
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-client-get-capabilities"></a><h3>nm_client_get_capabilities ()</h3>
+<pre class="programlisting">const <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a> *
+nm_client_get_capabilities (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                            <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> *length</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-client-get-capabilities.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>client</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> instance</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>the number of returned capabilities. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-client-get-capabilities.returns"></a><h4>Returns</h4>
+<p>the
+list of capabilities reported by the server or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+if the capabilities are unknown.
+The numeric values correspond to <a class="link" href="libnm-nm-dbus-interface.html#NMCapability" title="enum NMCapability"><span class="type">NMCapability</span></a> enum.
+The array is terminated by a numeric zero sentinel
+at position <em class="parameter"><code>length</code></em>
+. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=length]</span></p>
+</div>
+<p class="since">Since: 1.24, 1.22.2</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-client-networking-set-enabled"></a><h3>nm_client_networking_set_enabled ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_client_networking_set_enabled (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
                                   <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>,
                                   <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_client_networking_set_enabled</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>, use <code class="function">nm_client_networking_set_enabled_async()</code> or GDBusConnection</p>
+</div>
 <p>Enables or disables networking.  When networking is disabled, all controlled
 interfaces are disconnected and deactivated.  When networking is enabled,
 all controlled interfaces are available for activation.</p>
@@ -1580,6 +1637,10 @@ nm_client_wireless_get_enabled (<em class="parameter"><code><a class="link" href
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_client_wireless_set_enabled (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
                                 <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_client_wireless_set_enabled</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>, use <code class="function">nm_client_wireless_set_enabled_async()</code> or GDBusConnection</p>
+</div>
 <p>Enables or disables wireless devices.</p>
 <div class="refsect3">
 <a name="nm-client-wireless-set-enabled.parameters"></a><h4>Parameters</h4>
@@ -1663,6 +1724,7 @@ nm_client_wwan_get_enabled (<em class="parameter"><code><a class="link" href="NM
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_client_wwan_set_enabled (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
                             <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);</pre>
+<div class="warning"><p><code class="literal">nm_client_wwan_set_enabled</code> is deprecated and should not be used in newly-written code.</p></div>
 <p>Enables or disables WWAN devices.</p>
 <div class="refsect3">
 <a name="nm-client-wwan-set-enabled.parameters"></a><h4>Parameters</h4>
@@ -1718,6 +1780,10 @@ nm_client_wwan_hardware_get_enabled (<em class="parameter"><code><a class="link"
 <a name="nm-client-wimax-get-enabled"></a><h3>nm_client_wimax_get_enabled ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_client_wimax_get_enabled (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_client_wimax_get_enabled</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>This function always returns FALSE because WiMax is no longer supported</p>
+</div>
 <p>Determines whether WiMAX is enabled.</p>
 <div class="refsect3">
 <a name="nm-client-wimax-get-enabled.parameters"></a><h4>Parameters</h4>
@@ -1745,6 +1811,10 @@ nm_client_wimax_get_enabled (<em class="parameter"><code><a class="link" href="N
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_client_wimax_set_enabled (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
                              <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_client_wimax_set_enabled</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>This function does nothing because WiMax is no longer supported</p>
+</div>
 <p>Enables or disables WiMAX devices.</p>
 <div class="refsect3">
 <a name="nm-client-wimax-set-enabled.parameters"></a><h4>Parameters</h4>
@@ -1774,6 +1844,10 @@ nm_client_wimax_set_enabled (<em class="parameter"><code><a class="link" href="N
 <a name="nm-client-wimax-hardware-get-enabled"></a><h3>nm_client_wimax_hardware_get_enabled ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_client_wimax_hardware_get_enabled (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_client_wimax_hardware_get_enabled</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>This function always returns FALSE because WiMax is no longer supported</p>
+</div>
 <p>Determines whether the WiMAX hardware is enabled.</p>
 <div class="refsect3">
 <a name="nm-client-wimax-hardware-get-enabled.parameters"></a><h4>Parameters</h4>
@@ -1860,6 +1934,7 @@ nm_client_connectivity_check_get_enabled
 nm_client_connectivity_check_set_enabled
                                (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
                                 <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> enabled</code></em>);</pre>
+<div class="warning"><p><code class="literal">nm_client_connectivity_check_set_enabled</code> is deprecated and should not be used in newly-written code.</p></div>
 <p>Enable or disable connectivity checking.  Note that if a
 connectivity checking URI has not been configured, this will not
 have any effect.</p>
@@ -1924,6 +1999,10 @@ nm_client_get_logging (<em class="parameter"><code><a class="link" href="NMClien
                        <em class="parameter"><code><span class="type">char</span> **level</code></em>,
                        <em class="parameter"><code><span class="type">char</span> **domains</code></em>,
                        <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_client_get_logging</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>, use <code class="function">nm_client_get_logging_async()</code> or GDBusConnection</p>
+</div>
 <p>Gets NetworkManager current logging level and domains.</p>
 <div class="refsect3">
 <a name="nm-client-get-logging.parameters"></a><h4>Parameters</h4>
@@ -1971,6 +2050,10 @@ nm_client_set_logging (<em class="parameter"><code><a class="link" href="NMClien
                        <em class="parameter"><code>const <span class="type">char</span> *level</code></em>,
                        <em class="parameter"><code>const <span class="type">char</span> *domains</code></em>,
                        <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_client_set_logging</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>, use <code class="function">nm_client_set_logging_async()</code> or GDBusConnection</p>
+</div>
 <p>Sets NetworkManager logging level and/or domains.</p>
 <div class="refsect3">
 <a name="nm-client-set-logging.parameters"></a><h4>Parameters</h4>
@@ -2081,6 +2164,10 @@ connectivity state first before returning any information.</p>
 nm_client_check_connectivity (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
                               <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                               <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_client_check_connectivity</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>, use <a class="link" href="NMClient.html#nm-client-check-connectivity-async" title="nm_client_check_connectivity_async ()"><code class="function">nm_client_check_connectivity_async()</code></a> or GDBusConnection</p>
+</div>
 <p>Updates the network connectivity state and returns the (new)
 current state. Contrast <a class="link" href="NMClient.html#nm-client-get-connectivity" title="nm_client_get_connectivity ()"><code class="function">nm_client_get_connectivity()</code></a>, which returns
 the most recent known state without re-checking.</p>
@@ -2214,6 +2301,10 @@ nm_client_save_hostname (<em class="parameter"><code><a class="link" href="NMCli
                          <em class="parameter"><code>const <span class="type">char</span> *hostname</code></em>,
                          <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                          <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_client_save_hostname</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>, use <a class="link" href="NMClient.html#nm-client-save-hostname-async" title="nm_client_save_hostname_async ()"><code class="function">nm_client_save_hostname_async()</code></a> or GDBusConnection</p>
+</div>
 <p>Requests that the machine's persistent hostname be set to the specified value
 or cleared.</p>
 <div class="refsect3">
@@ -2558,7 +2649,7 @@ any. </p>
 nm_client_get_activating_connection (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
 <p>Gets the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> corresponding to a
 currently-activating connection that is expected to become the new
-<a class="link" href="NMClient.html#NMClient--primary-connection" title="The “primary-connection” property"><span class="type">“primary-connection”</span></a> upon successful activation.</p>
+<a href="NMClient.html#NMClient--primary-connection"><span class="type">“primary-connection”</span></a> upon successful activation.</p>
 <div class="refsect3">
 <a name="nm-client-get-activating-connection.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -2608,7 +2699,7 @@ in <em class="parameter"><code>connection</code></em>
 picks the best available connection for the device and activates it.</p>
 <p>Note that the callback is invoked when NetworkManager has started activating
 the new connection, not when it finishes. You can use the returned
-<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <a class="link" href="NMActiveConnection.html#NMActiveConnection--state" title="The “state” property"><span class="type">“state”</span></a>) to
+<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <a href="NMActiveConnection.html#NMActiveConnection--state"><span class="type">“state”</span></a>) to
 track the activation to its completion.</p>
 <div class="refsect3">
 <a name="nm-client-activate-connection-async.parameters"></a><h4>Parameters</h4>
@@ -2728,7 +2819,7 @@ activated as with <a class="link" href="NMClient.html#nm-client-activate-connect
 VPN connections at this time.</p>
 <p>Note that the callback is invoked when NetworkManager has started activating
 the new connection, not when it finishes. You can used the returned
-<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <a class="link" href="NMActiveConnection.html#NMActiveConnection--state" title="The “state” property"><span class="type">“state”</span></a>) to
+<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <a href="NMActiveConnection.html#NMActiveConnection--state"><span class="type">“state”</span></a>) to
 track the activation to its completion.</p>
 <div class="refsect3">
 <a name="nm-client-add-and-activate-connection-async.parameters"></a><h4>Parameters</h4>
@@ -2767,7 +2858,8 @@ wired and mobile broadband connections, and the value of <a href="https://develo
 path of a <a class="link" href="NMAccessPoint.html" title="NMAccessPoint"><span class="type">NMAccessPoint</span></a> or <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> owned by <em class="parameter"><code>device</code></em>
 , which you can
 get using <a class="link" href="NMObject.html#nm-object-get-path" title="nm_object_get_path ()"><code class="function">nm_object_get_path()</code></a>, and which will be used to complete the
-details of the newly added connection. </p></td>
+details of the newly added connection.
+If the variant is floating, it will be consumed. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -2856,7 +2948,7 @@ activated as with <a class="link" href="NMClient.html#nm-client-activate-connect
 VPN connections at this time.</p>
 <p>Note that the callback is invoked when NetworkManager has started activating
 the new connection, not when it finishes. You can used the returned
-<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <a class="link" href="NMActiveConnection.html#NMActiveConnection--state" title="The “state” property"><span class="type">“state”</span></a>) to
+<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <a href="NMActiveConnection.html#NMActiveConnection--state"><span class="type">“state”</span></a>) to
 track the activation to its completion.</p>
 <p>This is identitcal to <a class="link" href="NMClient.html#nm-client-add-and-activate-connection-async" title="nm_client_add_and_activate_connection_async ()"><code class="function">nm_client_add_and_activate_connection_async()</code></a> but takes
 a further <em class="parameter"><code>options</code></em>
@@ -2999,6 +3091,10 @@ nm_client_deactivate_connection (<em class="parameter"><code><a class="link" hre
                                  <em class="parameter"><code><a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *active</code></em>,
                                  <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                  <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_client_deactivate_connection</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>, use <a class="link" href="NMClient.html#nm-client-deactivate-connection-async" title="nm_client_deactivate_connection_async ()"><code class="function">nm_client_deactivate_connection_async()</code></a> or GDBusConnection</p>
+</div>
 <p>Deactivates an active <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>.</p>
 <div class="refsect3">
 <a name="nm-client-deactivate-connection.parameters"></a><h4>Parameters</h4>
@@ -3524,6 +3620,10 @@ nm_client_load_connections (<em class="parameter"><code><a class="link" href="NM
                             <em class="parameter"><code><span class="type">char</span> ***failures</code></em>,
                             <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                             <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_client_load_connections</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>, use <a class="link" href="NMClient.html#nm-client-load-connections-async" title="nm_client_load_connections_async ()"><code class="function">nm_client_load_connections_async()</code></a> or GDBusConnection</p>
+</div>
 <p>Requests that the remote settings service load or reload the given files,
 adding or updating the connections described within.</p>
 <p>The changes to the indicated files will not yet be reflected in
@@ -3576,9 +3676,19 @@ filenames that failed to load. </p></td>
 </div>
 <div class="refsect3">
 <a name="nm-client-load-connections.returns"></a><h4>Returns</h4>
-<p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if NetworkManager at least tried to load <em class="parameter"><code>filenames</code></em>
-,
-<a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if an error occurred (eg, permission denied).</p>
+<p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> on success.</p>
+<p>Warning: before libnm 1.22, the boolean return value was inconsistent.
+That is made worse, because when running against certain server versions
+before 1.20, the server would return wrong values for success/failure.
+This means, if you use this function in libnm before 1.22, you are advised
+to ignore the boolean return value and only look at <em class="parameter"><code>failures</code></em>
+and <em class="parameter"><code>error</code></em>
+.
+With libnm &gt;= 1.22, the boolean return value corresponds to whether <em class="parameter"><code>error</code></em>
+was
+set. Note that even in the success case, you might have individual <em class="parameter"><code>failures</code></em>
+.
+With 1.22, the return value is consistent with <a class="link" href="NMClient.html#nm-client-load-connections-finish" title="nm_client_load_connections_finish ()"><code class="function">nm_client_load_connections_finish()</code></a>.</p>
 </div>
 </div>
 <hr>
@@ -3677,9 +3787,9 @@ nm_client_load_connections_finish (<em class="parameter"><code><a class="link" h
 </div>
 <div class="refsect3">
 <a name="nm-client-load-connections-finish.returns"></a><h4>Returns</h4>
-<p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if NetworkManager at least tried to load <em class="parameter"><code>filenames</code></em>
-,
-<a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if an error occurred (eg, permission denied).</p>
+<p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> on success.
+Note that even in the success case, you might have individual <em class="parameter"><code>failures</code></em>
+.</p>
 </div>
 </div>
 <hr>
@@ -3689,6 +3799,10 @@ nm_client_load_connections_finish (<em class="parameter"><code><a class="link" h
 nm_client_reload_connections (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
                               <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                               <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<div class="warning">
+<p><code class="literal">nm_client_reload_connections</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>, use <a class="link" href="NMClient.html#nm-client-reload-connections-async" title="nm_client_reload_connections_async ()"><code class="function">nm_client_reload_connections_async()</code></a> or GDBusConnection</p>
+</div>
 <p>Requests that the remote settings service reload all connection
 files from disk, adding, updating, and removing connections until
 the in-memory state matches the on-disk state.</p>
@@ -4328,30 +4442,138 @@ nm_client_checkpoint_adjust_rollback_timeout_finish
 </div>
 <p class="since">Since: 1.12</p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-reload"></a><h3>nm_client_reload ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+nm_client_reload (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                  <em class="parameter"><code><a class="link" href="libnm-nm-dbus-interface.html#NMManagerReloadFlags" title="enum NMManagerReloadFlags"><span class="type">NMManagerReloadFlags</span></a> flags</code></em>,
+                  <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a> *cancellable</code></em>,
+                  <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
+                  <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+<p>Reload NetworkManager's configuration and perform certain updates, like
+flushing caches or rewriting external state to disk. This is similar to
+sending SIGHUP to NetworkManager but it allows for more fine-grained control
+over what to reload (see <em class="parameter"><code>flags</code></em>
+). It also allows non-root access via
+PolicyKit and contrary to signals it is synchronous.</p>
+<div class="refsect3">
+<a name="nm-client-reload.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>client</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMClient.html" title="NMClient"><code class="literal">NMClient</code></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>flags</p></td>
+<td class="parameter_description"><p>flags indicating what to reload.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>cancellable</p></td>
+<td class="parameter_description"><p>a <a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>callback</p></td>
+<td class="parameter_description"><p>callback to be called when the add operation completes. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>caller-specific data passed to <em class="parameter"><code>callback</code></em>
+. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.22</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-client-reload-finish"></a><h3>nm_client_reload_finish ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+nm_client_reload_finish (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>,
+                         <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GAsyncResult.html#GAsyncResult-struct"><span class="type">GAsyncResult</span></a> *result</code></em>,
+                         <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>Gets the result of a call to <a class="link" href="NMClient.html#nm-client-reload" title="nm_client_reload ()"><code class="function">nm_client_reload()</code></a>.</p>
+<div class="refsect3">
+<a name="nm-client-reload-finish.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>client</p></td>
+<td class="parameter_description"><p>an <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>result</p></td>
+<td class="parameter_description"><p>the result passed to the <a href="https://developer.gnome.org/gio/unstable/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>error</p></td>
+<td class="parameter_description"><p>location for a <a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-client-reload-finish.returns"></a><h4>Returns</h4>
+<p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> on success or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> on failure.</p>
+</div>
+<p class="since">Since: 1.22</p>
+</div>
 </div>
 <div class="refsect1">
 <a name="NMClient.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="NM-CLIENT-VERSION:CAPS"></a><h3>NM_CLIENT_VERSION</h3>
-<pre class="programlisting">#define NM_CLIENT_VERSION "version"
+<pre class="programlisting">#define NM_CLIENT_VERSION         "version"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-STATE:CAPS"></a><h3>NM_CLIENT_STATE</h3>
-<pre class="programlisting">#define NM_CLIENT_STATE "state"
+<pre class="programlisting">#define NM_CLIENT_STATE           "state"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-STARTUP:CAPS"></a><h3>NM_CLIENT_STARTUP</h3>
-<pre class="programlisting">#define NM_CLIENT_STARTUP "startup"
+<pre class="programlisting">#define NM_CLIENT_STARTUP         "startup"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-NM-RUNNING:CAPS"></a><h3>NM_CLIENT_NM_RUNNING</h3>
-<pre class="programlisting">#define NM_CLIENT_NM_RUNNING "nm-running"
+<pre class="programlisting">#define NM_CLIENT_NM_RUNNING      "nm-running"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-DBUS-CONNECTION:CAPS"></a><h3>NM_CLIENT_DBUS_CONNECTION</h3>
+<pre class="programlisting">#define NM_CLIENT_DBUS_CONNECTION "dbus-connection"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-DBUS-NAME-OWNER:CAPS"></a><h3>NM_CLIENT_DBUS_NAME_OWNER</h3>
+<pre class="programlisting">#define NM_CLIENT_DBUS_NAME_OWNER "dbus-name-owner"
 </pre>
 </div>
 <hr>
@@ -4359,12 +4581,28 @@ nm_client_checkpoint_adjust_rollback_timeout_finish
 <a name="NM-CLIENT-NETWORKING-ENABLED:CAPS"></a><h3>NM_CLIENT_NETWORKING_ENABLED</h3>
 <pre class="programlisting">#define NM_CLIENT_NETWORKING_ENABLED "networking-enabled"
 </pre>
+<div class="warning"><p><code class="literal">NM_CLIENT_NETWORKING_ENABLED</code> is deprecated and should not be used in newly-written code.</p></div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-WIRELESS-ENABLED:CAPS"></a><h3>NM_CLIENT_WIRELESS_ENABLED</h3>
 <pre class="programlisting">#define NM_CLIENT_WIRELESS_ENABLED "wireless-enabled"
 </pre>
+<div class="warning"><p><code class="literal">NM_CLIENT_WIRELESS_ENABLED</code> is deprecated and should not be used in newly-written code.</p></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-WWAN-ENABLED:CAPS"></a><h3>NM_CLIENT_WWAN_ENABLED</h3>
+<pre class="programlisting">#define NM_CLIENT_WWAN_ENABLED "wwan-enabled"
+</pre>
+<div class="warning"><p><code class="literal">NM_CLIENT_WWAN_ENABLED</code> is deprecated and should not be used in newly-written code.</p></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-WIMAX-ENABLED:CAPS"></a><h3>NM_CLIENT_WIMAX_ENABLED</h3>
+<pre class="programlisting">#define NM_CLIENT_WIMAX_ENABLED "wimax-enabled"
+</pre>
+<div class="warning"><p><code class="literal">NM_CLIENT_WIMAX_ENABLED</code> is deprecated and should not be used in newly-written code.</p></div>
 </div>
 <hr>
 <div class="refsect2">
@@ -4374,20 +4612,8 @@ nm_client_checkpoint_adjust_rollback_timeout_finish
 </div>
 <hr>
 <div class="refsect2">
-<a name="NM-CLIENT-WWAN-ENABLED:CAPS"></a><h3>NM_CLIENT_WWAN_ENABLED</h3>
-<pre class="programlisting">#define NM_CLIENT_WWAN_ENABLED "wwan-enabled"
-</pre>
-</div>
-<hr>
-<div class="refsect2">
 <a name="NM-CLIENT-WWAN-HARDWARE-ENABLED:CAPS"></a><h3>NM_CLIENT_WWAN_HARDWARE_ENABLED</h3>
 <pre class="programlisting">#define NM_CLIENT_WWAN_HARDWARE_ENABLED "wwan-hardware-enabled"
-</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NM-CLIENT-WIMAX-ENABLED:CAPS"></a><h3>NM_CLIENT_WIMAX_ENABLED</h3>
-<pre class="programlisting">#define NM_CLIENT_WIMAX_ENABLED "wimax-enabled"
 </pre>
 </div>
 <hr>
@@ -4410,6 +4636,12 @@ nm_client_checkpoint_adjust_rollback_timeout_finish
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-CLIENT-CONNECTIVITY-CHECK-URI:CAPS"></a><h3>NM_CLIENT_CONNECTIVITY_CHECK_URI</h3>
+<pre class="programlisting">#define NM_CLIENT_CONNECTIVITY_CHECK_URI "connectivity-check-uri"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-CLIENT-CONNECTIVITY-CHECK-AVAILABLE:CAPS"></a><h3>NM_CLIENT_CONNECTIVITY_CHECK_AVAILABLE</h3>
 <pre class="programlisting">#define NM_CLIENT_CONNECTIVITY_CHECK_AVAILABLE "connectivity-check-available"
 </pre>
@@ -4419,6 +4651,7 @@ nm_client_checkpoint_adjust_rollback_timeout_finish
 <a name="NM-CLIENT-CONNECTIVITY-CHECK-ENABLED:CAPS"></a><h3>NM_CLIENT_CONNECTIVITY_CHECK_ENABLED</h3>
 <pre class="programlisting">#define NM_CLIENT_CONNECTIVITY_CHECK_ENABLED "connectivity-check-enabled"
 </pre>
+<div class="warning"><p><code class="literal">NM_CLIENT_CONNECTIVITY_CHECK_ENABLED</code> is deprecated and should not be used in newly-written code.</p></div>
 </div>
 <hr>
 <div class="refsect2">
@@ -4484,6 +4717,18 @@ nm_client_checkpoint_adjust_rollback_timeout_finish
 <div class="refsect2">
 <a name="NM-CLIENT-DNS-CONFIGURATION:CAPS"></a><h3>NM_CLIENT_DNS_CONFIGURATION</h3>
 <pre class="programlisting">#define NM_CLIENT_DNS_CONFIGURATION "dns-configuration"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-CHECKPOINTS:CAPS"></a><h3>NM_CLIENT_CHECKPOINTS</h3>
+<pre class="programlisting">#define NM_CLIENT_CHECKPOINTS "checkpoints"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CLIENT-CAPABILITIES:CAPS"></a><h3>NM_CLIENT_CAPABILITIES</h3>
+<pre class="programlisting">#define NM_CLIENT_CAPABILITIES "capabilities"
 </pre>
 </div>
 <hr>
@@ -4802,583 +5047,6 @@ the user requires to obtain a given <a class="link" href="NMClient.html#NMClient
 <a name="NM-CLIENT-ERROR:CAPS"></a><h3>NM_CLIENT_ERROR</h3>
 <pre class="programlisting">#define NM_CLIENT_ERROR nm_client_error_quark ()
 </pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient-struct"></a><h3>NMClient</h3>
-<pre class="programlisting">typedef struct _NMClient NMClient;</pre>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMClient.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMClient--activating-connection"></a><h3>The <code class="literal">“activating-connection”</code> property</h3>
-<pre class="programlisting">  “activating-connection”    <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *</pre>
-<p>The <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> of the activating connection that is
-likely to become the new <a class="link" href="NMClient.html#NMClient--primary-connection" title="The “primary-connection” property"><span class="type">“primary-connection”</span></a>.</p>
-<p>Flags: Read</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--active-connections"></a><h3>The <code class="literal">“active-connections”</code> property</h3>
-<pre class="programlisting">  “active-connections”       <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
-<p>The active connections.</p>
-<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMActiveConnection)]</span></p>
-<p>Flags: Read</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--all-devices"></a><h3>The <code class="literal">“all-devices”</code> property</h3>
-<pre class="programlisting">  “all-devices”              <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
-<p>List of both real devices and device placeholders.</p>
-<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMDevice)]</span></p>
-<p>Flags: Read</p>
-<p class="since">Since: 1.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--can-modify"></a><h3>The <code class="literal">“can-modify”</code> property</h3>
-<pre class="programlisting">  “can-modify”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>If <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, adding and modifying connections is supported.</p>
-<p>Flags: Read</p>
-<p>Default value: FALSE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--checkpoints"></a><h3>The <code class="literal">“checkpoints”</code> property</h3>
-<pre class="programlisting">  “checkpoints”              <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
-<p>The list of active checkpoints.</p>
-<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMCheckpoint)]</span></p>
-<p>Flags: Read</p>
-<p class="since">Since: 1.12</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--connections"></a><h3>The <code class="literal">“connections”</code> property</h3>
-<pre class="programlisting">  “connections”              <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
-<p>The list of configured connections that are available to the user. (Note
-that this differs from the underlying D-Bus property, which may also
-contain the object paths of connections that the user does not have
-permission to read the details of.)</p>
-<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMRemoteConnection)]</span></p>
-<p>Flags: Read</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--connectivity"></a><h3>The <code class="literal">“connectivity”</code> property</h3>
-<pre class="programlisting">  “connectivity”             <a class="link" href="libnm-nm-dbus-interface.html#NMConnectivityState" title="enum NMConnectivityState"><span class="type">NMConnectivityState</span></a></pre>
-<p>The network connectivity state.</p>
-<p>Flags: Read</p>
-<p>Default value: NM_CONNECTIVITY_UNKNOWN</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--connectivity-check-available"></a><h3>The <code class="literal">“connectivity-check-available”</code> property</h3>
-<pre class="programlisting">  “connectivity-check-available” <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Flags: Read</p>
-<p>Default value: FALSE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--connectivity-check-enabled"></a><h3>The <code class="literal">“connectivity-check-enabled”</code> property</h3>
-<pre class="programlisting">  “connectivity-check-enabled” <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Flags: Read / Write</p>
-<p>Default value: FALSE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--devices"></a><h3>The <code class="literal">“devices”</code> property</h3>
-<pre class="programlisting">  “devices”                  <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
-<p>List of real network devices.  Does not include placeholder devices.</p>
-<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMDevice)]</span></p>
-<p>Flags: Read</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--dns-configuration"></a><h3>The <code class="literal">“dns-configuration”</code> property</h3>
-<pre class="programlisting">  “dns-configuration”        <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
-<p>The current DNS configuration, represented as an array
-of <a class="link" href="NMClient.html#NMDnsEntry"><span class="type">NMDnsEntry</span></a> objects.</p>
-<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMDnsEntry)]</span></p>
-<p>Flags: Read</p>
-<p class="since">Since: 1.6</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--dns-mode"></a><h3>The <code class="literal">“dns-mode”</code> property</h3>
-<pre class="programlisting">  “dns-mode”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
-<p>The current DNS processing mode.</p>
-<p>Flags: Read</p>
-<p>Default value: ""</p>
-<p class="since">Since: 1.6</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--dns-rc-manager"></a><h3>The <code class="literal">“dns-rc-manager”</code> property</h3>
-<pre class="programlisting">  “dns-rc-manager”           <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
-<p>The current resolv.conf management mode.</p>
-<p>Flags: Read</p>
-<p>Default value: ""</p>
-<p class="since">Since: 1.6</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--hostname"></a><h3>The <code class="literal">“hostname”</code> property</h3>
-<pre class="programlisting">  “hostname”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
-<p>The machine hostname stored in persistent configuration. This can be
-modified by calling <a class="link" href="NMClient.html#nm-client-save-hostname" title="nm_client_save_hostname ()"><code class="function">nm_client_save_hostname()</code></a>.</p>
-<p>Flags: Read</p>
-<p>Default value: NULL</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--metered"></a><h3>The <code class="literal">“metered”</code> property</h3>
-<pre class="programlisting">  “metered”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
-<p>Whether the connectivity is metered.</p>
-<p>Flags: Read</p>
-<p>Default value: 0</p>
-<p class="since">Since: 1.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--networking-enabled"></a><h3>The <code class="literal">“networking-enabled”</code> property</h3>
-<pre class="programlisting">  “networking-enabled”       <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Whether networking is enabled.</p>
-<p>Flags: Read / Write</p>
-<p>Default value: TRUE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--nm-running"></a><h3>The <code class="literal">“nm-running”</code> property</h3>
-<pre class="programlisting">  “nm-running”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Whether the daemon is running.</p>
-<p>Flags: Read</p>
-<p>Default value: FALSE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--primary-connection"></a><h3>The <code class="literal">“primary-connection”</code> property</h3>
-<pre class="programlisting">  “primary-connection”       <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *</pre>
-<p>The <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> of the device with the default route;
-see <a class="link" href="NMClient.html#nm-client-get-primary-connection" title="nm_client_get_primary_connection ()"><code class="function">nm_client_get_primary_connection()</code></a> for more details.</p>
-<p>Flags: Read</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--startup"></a><h3>The <code class="literal">“startup”</code> property</h3>
-<pre class="programlisting">  “startup”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Whether the daemon is still starting up.</p>
-<p>Flags: Read</p>
-<p>Default value: FALSE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--state"></a><h3>The <code class="literal">“state”</code> property</h3>
-<pre class="programlisting">  “state”                    <a class="link" href="libnm-nm-dbus-interface.html#NMState" title="enum NMState"><span class="type">NMState</span></a></pre>
-<p>The current daemon state.</p>
-<p>Flags: Read</p>
-<p>Default value: NM_STATE_UNKNOWN</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--version"></a><h3>The <code class="literal">“version”</code> property</h3>
-<pre class="programlisting">  “version”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
-<p>The NetworkManager version.</p>
-<p>Flags: Read</p>
-<p>Default value: NULL</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--wimax-enabled"></a><h3>The <code class="literal">“wimax-enabled”</code> property</h3>
-<pre class="programlisting">  “wimax-enabled”            <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Whether WiMAX functionality is enabled.</p>
-<p>Flags: Read / Write</p>
-<p>Default value: FALSE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--wimax-hardware-enabled"></a><h3>The <code class="literal">“wimax-hardware-enabled”</code> property</h3>
-<pre class="programlisting">  “wimax-hardware-enabled”   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Whether the WiMAX hardware is enabled.</p>
-<p>Flags: Read</p>
-<p>Default value: FALSE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--wireless-enabled"></a><h3>The <code class="literal">“wireless-enabled”</code> property</h3>
-<pre class="programlisting">  “wireless-enabled”         <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Whether wireless is enabled.</p>
-<p>Flags: Read / Write</p>
-<p>Default value: FALSE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--wireless-hardware-enabled"></a><h3>The <code class="literal">“wireless-hardware-enabled”</code> property</h3>
-<pre class="programlisting">  “wireless-hardware-enabled” <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Whether the wireless hardware is enabled.</p>
-<p>Flags: Read</p>
-<p>Default value: TRUE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--wwan-enabled"></a><h3>The <code class="literal">“wwan-enabled”</code> property</h3>
-<pre class="programlisting">  “wwan-enabled”             <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Whether WWAN functionality is enabled.</p>
-<p>Flags: Read / Write</p>
-<p>Default value: FALSE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient--wwan-hardware-enabled"></a><h3>The <code class="literal">“wwan-hardware-enabled”</code> property</h3>
-<pre class="programlisting">  “wwan-hardware-enabled”    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Whether the WWAN hardware is enabled.</p>
-<p>Flags: Read</p>
-<p>Default value: FALSE</p>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMClient.signal-details"></a><h2>Signal Details</h2>
-<div class="refsect2">
-<a name="NMClient-active-connection-added"></a><h3>The <code class="literal">“active-connection-added”</code> signal</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>
-user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>           *client,
-               <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *active_connection,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)</pre>
-<p>Notifies that a <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> has been added.</p>
-<div class="refsect3">
-<a name="NMClient-active-connection-added.parameters"></a><h4>Parameters</h4>
-<div class="informaltable"><table class="informaltable" width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody>
-<tr>
-<td class="parameter_name"><p>client</p></td>
-<td class="parameter_description"><p>the settings object that received the signal</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>active_connection</p></td>
-<td class="parameter_description"><p>the new active connection</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<p>Flags: <a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient-active-connection-removed"></a><h3>The <code class="literal">“active-connection-removed”</code> signal</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>
-user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>           *client,
-               <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> *active_connection,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)</pre>
-<p>Notifies that a <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> has been removed.</p>
-<div class="refsect3">
-<a name="NMClient-active-connection-removed.parameters"></a><h4>Parameters</h4>
-<div class="informaltable"><table class="informaltable" width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody>
-<tr>
-<td class="parameter_name"><p>client</p></td>
-<td class="parameter_description"><p>the settings object that received the signal</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>active_connection</p></td>
-<td class="parameter_description"><p>the removed active connection</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<p>Flags: <a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient-any-device-added"></a><h3>The <code class="literal">“any-device-added”</code> signal</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>
-user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client,
-               <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct"><span class="type">GObject</span></a>  *device,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>  user_data)</pre>
-<p>Notifies that a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> is added.  This signal is emitted for both
-regular devices and placeholder devices.</p>
-<div class="refsect3">
-<a name="NMClient-any-device-added.parameters"></a><h4>Parameters</h4>
-<div class="informaltable"><table class="informaltable" width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody>
-<tr>
-<td class="parameter_name"><p>client</p></td>
-<td class="parameter_description"><p>the client that received the signal</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>device</p></td>
-<td class="parameter_description"><p>the new device. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMDevice]</span></td>
-</tr>
-<tr>
-<td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<p>Flags: <a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient-any-device-removed"></a><h3>The <code class="literal">“any-device-removed”</code> signal</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>
-user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client,
-               <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct"><span class="type">GObject</span></a>  *device,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>  user_data)</pre>
-<p>Notifies that a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> is removed.  This signal is emitted for both
-regular devices and placeholder devices.</p>
-<div class="refsect3">
-<a name="NMClient-any-device-removed.parameters"></a><h4>Parameters</h4>
-<div class="informaltable"><table class="informaltable" width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody>
-<tr>
-<td class="parameter_name"><p>client</p></td>
-<td class="parameter_description"><p>the client that received the signal</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>device</p></td>
-<td class="parameter_description"><p>the removed device. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMDevice]</span></td>
-</tr>
-<tr>
-<td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<p>Flags: <a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient-connection-added"></a><h3>The <code class="literal">“connection-added”</code> signal</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>
-user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>           *client,
-               <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)</pre>
-<p>Notifies that a <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> has been added.</p>
-<div class="refsect3">
-<a name="NMClient-connection-added.parameters"></a><h4>Parameters</h4>
-<div class="informaltable"><table class="informaltable" width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody>
-<tr>
-<td class="parameter_name"><p>client</p></td>
-<td class="parameter_description"><p>the settings object that received the signal</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>the new connection</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<p>Flags: <a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient-connection-removed"></a><h3>The <code class="literal">“connection-removed”</code> signal</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>
-user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>           *client,
-               <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> *connection,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)</pre>
-<p>Notifies that a <a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> has been removed.</p>
-<div class="refsect3">
-<a name="NMClient-connection-removed.parameters"></a><h4>Parameters</h4>
-<div class="informaltable"><table class="informaltable" width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody>
-<tr>
-<td class="parameter_name"><p>client</p></td>
-<td class="parameter_description"><p>the settings object that received the signal</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>connection</p></td>
-<td class="parameter_description"><p>the removed connection</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<p>Flags: <a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient-device-added"></a><h3>The <code class="literal">“device-added”</code> signal</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>
-user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client,
-               <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct"><span class="type">GObject</span></a>  *device,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>  user_data)</pre>
-<p>Notifies that a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> is added.  This signal is not emitted for
-placeholder devices.</p>
-<div class="refsect3">
-<a name="NMClient-device-added.parameters"></a><h4>Parameters</h4>
-<div class="informaltable"><table class="informaltable" width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody>
-<tr>
-<td class="parameter_name"><p>client</p></td>
-<td class="parameter_description"><p>the client that received the signal</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>device</p></td>
-<td class="parameter_description"><p>the new device. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMDevice]</span></td>
-</tr>
-<tr>
-<td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<p>Flags: <a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient-device-removed"></a><h3>The <code class="literal">“device-removed”</code> signal</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>
-user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client,
-               <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct"><span class="type">GObject</span></a>  *device,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>  user_data)</pre>
-<p>Notifies that a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> is removed.  This signal is not emitted for
-placeholder devices.</p>
-<div class="refsect3">
-<a name="NMClient-device-removed.parameters"></a><h4>Parameters</h4>
-<div class="informaltable"><table class="informaltable" width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody>
-<tr>
-<td class="parameter_name"><p>client</p></td>
-<td class="parameter_description"><p>the client that received the signal</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>device</p></td>
-<td class="parameter_description"><p>the removed device. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> NMDevice]</span></td>
-</tr>
-<tr>
-<td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<p>Flags: <a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMClient-permission-changed"></a><h3>The <code class="literal">“permission-changed”</code> signal</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>
-user_function (<a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>     permission,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>     result,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>  user_data)</pre>
-<p>Notifies that a permission has changed</p>
-<div class="refsect3">
-<a name="NMClient-permission-changed.parameters"></a><h4>Parameters</h4>
-<div class="informaltable"><table class="informaltable" width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody>
-<tr>
-<td class="parameter_name"><p>client</p></td>
-<td class="parameter_description"><p>the client that received the signal</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>permission</p></td>
-<td class="parameter_description"><p>a permission from <a class="link" href="NMClient.html#NMClientPermission" title="enum NMClientPermission"><span class="type">NMClientPermission</span></a></p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>result</p></td>
-<td class="parameter_description"><p>the permission's result, one of <a class="link" href="NMClient.html#NMClientPermissionResult" title="enum NMClientPermissionResult"><span class="type">NMClientPermissionResult</span></a></p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>user_data</p></td>
-<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<p>Flags: <a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
 </div>
 </div>
 </div>

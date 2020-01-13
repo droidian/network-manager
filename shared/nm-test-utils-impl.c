@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2010 - 2015 Red Hat, Inc.
- *
+ * Copyright (C) 2010 - 2015 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -419,4 +405,193 @@ nmtstc_service_update_connection_variant (NMTstcServiceInfo *sinfo,
 	g_assert_no_error (error);
 	g_assert (g_variant_is_of_type (result, G_VARIANT_TYPE ("()")));
 	g_variant_unref (result);
+}
+
+/*****************************************************************************/
+
+typedef struct {
+	GMainLoop *loop;
+	NMClient *client;
+} NMTstcClientNewData;
+
+static void
+_nmtstc_client_new_cb (GObject *source_object,
+                       GAsyncResult *res,
+                       gpointer user_data)
+{
+	NMTstcClientNewData *d = user_data;
+	gs_free_error GError *error = NULL;
+
+	g_assert (!d->client);
+
+	d->client = nm_client_new_finish (res,
+	                                  nmtst_get_rand_bool () ? &error : NULL);
+
+	nmtst_assert_success (NM_IS_CLIENT (d->client), error);
+
+	g_main_loop_quit (d->loop);
+}
+
+static NMClient *
+_nmtstc_client_new (gboolean sync)
+{
+	gs_free_error GError *error = NULL;
+	NMClient *client;
+
+	/* Create a NMClient instance synchronously, and arbitrarily use either
+	 * the sync or async constructor.
+	 *
+	 * Note that the sync and async construct differ in one important aspect:
+	 * the async constructor iterates the current g_main_context_get_thread_default(),
+	 * while the sync constructor does not! Aside from that, both should behave
+	 * pretty much the same way. */
+
+	if (sync) {
+		nm_auto_destroy_and_unref_gsource GSource *source = NULL;
+
+		if (nmtst_get_rand_bool ()) {
+			/* the current main context must not be iterated! */
+			source = g_idle_source_new ();
+			g_source_set_callback (source, nmtst_g_source_assert_not_called, NULL, NULL);
+			g_source_attach (source, g_main_context_get_thread_default ());
+		}
+
+		if (nmtst_get_rand_bool ()) {
+			gboolean success;
+
+			client = g_object_new (NM_TYPE_CLIENT, NULL);
+			g_assert (NM_IS_CLIENT (client));
+
+			success = g_initable_init (G_INITABLE (client),
+			                           NULL,
+			                           nmtst_get_rand_bool () ? &error : NULL);
+			nmtst_assert_success (success, error);
+		} else {
+			client = nm_client_new (NULL,
+			                        nmtst_get_rand_bool () ? &error : NULL);
+		}
+	} else {
+		nm_auto_unref_gmainloop GMainLoop *loop = NULL;
+		NMTstcClientNewData d = { .loop = NULL, };
+
+		loop = g_main_loop_new (g_main_context_get_thread_default (), FALSE);
+
+		d.loop = loop;
+		nm_client_new_async (NULL,
+		                     _nmtstc_client_new_cb,
+		                     &d);
+		g_main_loop_run (loop);
+		g_assert (NM_IS_CLIENT (d.client));
+		client = d.client;
+	}
+
+	nmtst_assert_success (NM_IS_CLIENT (client), error);
+	return client;
+}
+
+typedef struct {
+	GMainLoop *loop;
+	NMClient *client;
+	bool sync;
+} NewSyncInsideDispatchedData;
+
+static gboolean
+_nmtstc_client_new_inside_loop_do (gpointer user_data)
+{
+	NewSyncInsideDispatchedData *d = user_data;
+
+	g_assert (d->loop);
+	g_assert (!d->client);
+
+	d->client = nmtstc_client_new (d->sync);
+	g_main_loop_quit (d->loop);
+	return G_SOURCE_CONTINUE;
+}
+
+static NMClient *
+_nmtstc_client_new_inside_loop (gboolean sync)
+{
+	GMainContext *context = g_main_context_get_thread_default ();
+	nm_auto_unref_gmainloop GMainLoop *loop = g_main_loop_new (context, FALSE);
+	NewSyncInsideDispatchedData d = {
+		.sync = sync,
+		.loop = loop,
+	};
+	nm_auto_destroy_and_unref_gsource GSource *source = NULL;
+
+	source = g_idle_source_new ();
+	g_source_set_callback (source, _nmtstc_client_new_inside_loop_do, &d, NULL);
+	g_source_attach (source, context);
+
+	g_main_loop_run (loop);
+	g_assert (NM_IS_CLIENT (d.client));
+	return d.client;
+}
+
+static NMClient *
+_nmtstc_client_new_extra_context (void)
+{
+	GMainContext *inner_context;
+	NMClient *client;
+	GSource *source;
+	guint key_idx;
+
+	inner_context = g_main_context_new ();
+	g_main_context_push_thread_default (inner_context);
+
+	client = nmtstc_client_new (TRUE);
+
+	source = nm_utils_g_main_context_create_integrate_source (inner_context);
+
+	g_main_context_pop_thread_default (inner_context);
+	g_main_context_unref (inner_context);
+
+	g_source_attach (source, g_main_context_get_thread_default ());
+
+	for (key_idx = 0; TRUE; key_idx++) {
+		char s[100];
+
+		/* nmtstc_client_new() may call _nmtstc_client_new_extra_context() repeatedly. We
+		 * need to attach the source to a previously unused key. */
+		nm_sprintf_buf (s, "nm-test-extra-context-%u", key_idx);
+		if (!g_object_get_data (G_OBJECT (client), s)) {
+			g_object_set_data_full (G_OBJECT (client),
+			                        s,
+			                        source,
+			                        (GDestroyNotify) nm_g_source_destroy_and_unref);
+			break;
+		}
+	}
+
+	return client;
+}
+
+NMClient *
+nmtstc_client_new (gboolean allow_iterate_main_context)
+{
+	gboolean inside_loop;
+	gboolean sync;
+
+	if (nmtst_get_rand_uint32 () % 5 == 0)
+		return _nmtstc_client_new_extra_context ();
+
+	if (!allow_iterate_main_context) {
+		sync = TRUE;
+		inside_loop = FALSE;
+	} else {
+		/* The caller allows to iterate the main context. That that point,
+		 * we can both use the synchronous and the asynchronous initialization,
+		 * both should yield the same result. Choose one randomly. */
+		sync = nmtst_get_rand_bool ();
+		inside_loop = ((nmtst_get_rand_uint32 () % 3) == 0);
+	}
+
+	if (inside_loop) {
+		/* Create the client on an idle handler of the current context.
+		 * In practice, it should make no difference, which this check
+		 * tries to prove. */
+		return _nmtstc_client_new_inside_loop (sync);
+	}
+
+	return _nmtstc_client_new (sync);
 }

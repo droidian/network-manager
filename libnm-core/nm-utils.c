@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2005 - 2017 Red Hat, Inc.
+ * Copyright (C) 2005 - 2017 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -814,7 +800,7 @@ _nm_utils_hash_values_to_slist (GHashTable *hash)
 	return list;
 }
 
-GVariant *
+static GVariant *
 _nm_utils_strdict_to_dbus (const GValue *prop_value)
 {
 	GHashTable *hash;
@@ -839,9 +825,15 @@ _nm_utils_strdict_to_dbus (const GValue *prop_value)
 	if (len == 1)
 		g_variant_builder_add (&builder, "{ss}", key, value);
 	else {
-		gs_free NMUtilsNamedValue *idx = NULL;
+		gs_free NMUtilsNamedValue *idx_free = NULL;
+		NMUtilsNamedValue *idx;
 
-		idx = g_new (NMUtilsNamedValue, len);
+		if (len > 300 / sizeof (NMUtilsNamedValue)) {
+			idx_free = g_new (NMUtilsNamedValue, len);
+			idx = idx_free;
+		} else
+			idx = g_alloca (sizeof (NMUtilsNamedValue) * len);
+
 		i = 0;
 		do {
 			idx[i].name = key;
@@ -875,6 +867,12 @@ _nm_utils_strdict_from_dbus (GVariant *dbus_value,
 
 	g_value_take_boxed (prop_value, hash);
 }
+
+const NMSettInfoPropertType nm_sett_info_propert_type_strdict = {
+	.dbus_type           = NM_G_VARIANT_TYPE ("a{ss}"),
+	.gprop_to_dbus_fcn   = _nm_utils_strdict_to_dbus,
+	.gprop_from_dbus_fcn = _nm_utils_strdict_from_dbus,
+};
 
 GHashTable *
 _nm_utils_copy_strdict (GHashTable *strdict)
@@ -1215,46 +1213,30 @@ nm_utils_security_valid (NMUtilsSecurityType type,
 		break;
 	case NMU_SEC_WPA_PSK:
 		if (adhoc)
-			return FALSE;  /* FIXME: Kernel WPA Ad-Hoc support is buggy */
+			return FALSE;
 		if (!(wifi_caps & NM_WIFI_DEVICE_CAP_WPA))
 			return FALSE;
 		if (have_ap) {
-			/* Ad-Hoc WPA APs won't necessarily have the PSK flag set, and
-			 * they don't have any pairwise ciphers. */
-			if (adhoc) {
-				/* coverity[dead_error_line] */
-				if (   (ap_wpa & NM_802_11_AP_SEC_GROUP_TKIP)
+			if (ap_wpa & NM_802_11_AP_SEC_KEY_MGMT_PSK) {
+				if (   (ap_wpa & NM_802_11_AP_SEC_PAIR_TKIP)
 				    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_TKIP))
 					return TRUE;
-				if (   (ap_wpa & NM_802_11_AP_SEC_GROUP_CCMP)
+				if (   (ap_wpa & NM_802_11_AP_SEC_PAIR_CCMP)
 				    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
 					return TRUE;
-			} else {
-				if (ap_wpa & NM_802_11_AP_SEC_KEY_MGMT_PSK) {
-					if (   (ap_wpa & NM_802_11_AP_SEC_PAIR_TKIP)
-					    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_TKIP))
-						return TRUE;
-					if (   (ap_wpa & NM_802_11_AP_SEC_PAIR_CCMP)
-					    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
-						return TRUE;
-				}
 			}
 			return FALSE;
 		}
 		break;
 	case NMU_SEC_WPA2_PSK:
-		if (adhoc)
-			return FALSE;  /* FIXME: Kernel WPA Ad-Hoc support is buggy */
 		if (!(wifi_caps & NM_WIFI_DEVICE_CAP_RSN))
 			return FALSE;
 		if (have_ap) {
-			/* Ad-Hoc WPA APs won't necessarily have the PSK flag set, and
-			 * they don't have any pairwise ciphers, nor any RSA flags yet. */
 			if (adhoc) {
-				/* coverity[dead_error_line] */
-				if (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_TKIP)
-					return TRUE;
-				if (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP)
+				if (!(wifi_caps & NM_WIFI_DEVICE_CAP_IBSS_RSN))
+					return FALSE;
+				if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_CCMP)
+				    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
 					return TRUE;
 			} else {
 				if (ap_rsn & NM_802_11_AP_SEC_KEY_MGMT_PSK) {
@@ -1296,18 +1278,24 @@ nm_utils_security_valid (NMUtilsSecurityType type,
 		}
 		break;
 	case NMU_SEC_SAE:
-		if (adhoc)
-			return FALSE;
 		if (!(wifi_caps & NM_WIFI_DEVICE_CAP_RSN))
 			return FALSE;
 		if (have_ap) {
-			if (ap_rsn & NM_802_11_AP_SEC_KEY_MGMT_SAE) {
-				if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_TKIP)
-				    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_TKIP))
-					return TRUE;
+			if (adhoc) {
+				if (!(wifi_caps & NM_WIFI_DEVICE_CAP_IBSS_RSN))
+					return FALSE;
 				if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_CCMP)
 				    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
 					return TRUE;
+			} else {
+				if (ap_rsn & NM_802_11_AP_SEC_KEY_MGMT_SAE) {
+					if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_TKIP)
+					    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_TKIP))
+						return TRUE;
+					if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_CCMP)
+					    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
+						return TRUE;
+				}
 			}
 			return FALSE;
 		}
@@ -1740,7 +1728,9 @@ nm_utils_ip6_dns_to_variant (char **dns)
  * @value: a #GVariant of type 'aay'
  *
  * Utility function to convert a #GVariant of type 'aay' representing a list of
- * IPv6 addresses into an array of IP address strings.
+ * IPv6 addresses into an array of IP address strings. Each "ay" entry must be
+ * a IPv6 address in binary form (16 bytes long). Invalid entries are silently
+ * ignored.
  *
  * Returns: (transfer full) (type utf8): a %NULL-terminated array of IP address strings.
  **/
@@ -1762,14 +1752,9 @@ nm_utils_ip6_dns_from_variant (GVariant *value)
 		gsize length;
 		const struct in6_addr *ip = g_variant_get_fixed_array (ip_var, &length, 1);
 
-		if (length != sizeof (struct in6_addr)) {
-			g_warning ("%s: ignoring invalid IP6 address of length %d",
-			           __func__, (int) length);
-			g_variant_unref (ip_var);
-			continue;
-		}
+		if (length == sizeof (struct in6_addr))
+			dns[i++] = nm_utils_inet6_ntop_dup (ip);
 
-		dns[i++] = nm_utils_inet6_ntop_dup (ip);
 		g_variant_unref (ip_var);
 	}
 	dns[i] = NULL;
@@ -4291,14 +4276,15 @@ nm_utils_hwaddr_matches (gconstpointer hwaddr1,
 	gsize l;
 
 	if (hwaddr1_len == -1) {
-		g_return_val_if_fail (hwaddr1 != NULL, FALSE);
-
-		if (!hwaddr_aton (hwaddr1, buf1, sizeof (buf1), &l)) {
+		if (hwaddr1 == NULL) {
+			hwaddr1_len = 0;
+		} else if (hwaddr_aton (hwaddr1, buf1, sizeof (buf1), &l)) {
+			hwaddr1 = buf1;
+			hwaddr1_len = l;
+		} else {
 			g_return_val_if_fail ((hwaddr2_len == -1 && hwaddr2) || (hwaddr2_len > 0 && hwaddr2_len <= NM_UTILS_HWADDR_LEN_MAX), FALSE);
 			return FALSE;
 		}
-		hwaddr1 = buf1;
-		hwaddr1_len = l;
 	} else {
 		g_return_val_if_fail (hwaddr1_len > 0 && hwaddr1_len <= NM_UTILS_HWADDR_LEN_MAX, FALSE);
 
@@ -4309,9 +4295,9 @@ nm_utils_hwaddr_matches (gconstpointer hwaddr1,
 	}
 
 	if (hwaddr2_len == -1) {
-		g_return_val_if_fail (hwaddr2 != NULL, FALSE);
-
-		if (!hwaddr_aton (hwaddr2, buf2, sizeof (buf2), &l))
+		if (hwaddr2 == NULL)
+			l = 0;
+		else if (!hwaddr_aton (hwaddr2, buf2, sizeof (buf2), &l))
 			return FALSE;
 		if (l != hwaddr1_len)
 			return FALSE;
@@ -4353,7 +4339,7 @@ _nm_utils_hwaddr_to_dbus_impl (const char *str)
 	return g_variant_new_fixed_array (G_VARIANT_TYPE_BYTE, buf, len, 1);
 }
 
-GVariant *
+static GVariant *
 _nm_utils_hwaddr_cloned_get (const NMSettInfoSetting *sett_info,
                              guint property_idx,
                              NMConnection *connection,
@@ -4369,7 +4355,7 @@ _nm_utils_hwaddr_cloned_get (const NMSettInfoSetting *sett_info,
 	return _nm_utils_hwaddr_to_dbus_impl (addr);
 }
 
-gboolean
+static gboolean
 _nm_utils_hwaddr_cloned_set (NMSetting     *setting,
                              GVariant      *connection_dict,
                              const char    *property,
@@ -4401,7 +4387,7 @@ _nm_utils_hwaddr_cloned_set (NMSetting     *setting,
 	return TRUE;
 }
 
-gboolean
+static gboolean
 _nm_utils_hwaddr_cloned_not_set (NMSetting *setting,
                                  GVariant      *connection_dict,
                                  const char    *property,
@@ -4412,7 +4398,14 @@ _nm_utils_hwaddr_cloned_not_set (NMSetting *setting,
 	return TRUE;
 }
 
-GVariant *
+const NMSettInfoPropertType nm_sett_info_propert_type_cloned_mac_address = {
+	.dbus_type             = G_VARIANT_TYPE_BYTESTRING,
+	.to_dbus_fcn           = _nm_utils_hwaddr_cloned_get,
+	.from_dbus_fcn         = _nm_utils_hwaddr_cloned_set,
+	.missing_from_dbus_fcn = _nm_utils_hwaddr_cloned_not_set,
+};
+
+static GVariant *
 _nm_utils_hwaddr_cloned_data_synth (const NMSettInfoSetting *sett_info,
                                     guint property_idx,
                                     NMConnection *connection,
@@ -4451,7 +4444,7 @@ _nm_utils_hwaddr_cloned_data_synth (const NMSettInfoSetting *sett_info,
 	       : NULL;
 }
 
-gboolean
+static gboolean
 _nm_utils_hwaddr_cloned_data_set (NMSetting *setting,
                                   GVariant *connection_dict,
                                   const char *property,
@@ -4471,13 +4464,19 @@ _nm_utils_hwaddr_cloned_data_set (NMSetting *setting,
 	return TRUE;
 }
 
-GVariant *
+const NMSettInfoPropertType nm_sett_info_propert_type_assigned_mac_address = {
+	.dbus_type     = G_VARIANT_TYPE_STRING,
+	.to_dbus_fcn   = _nm_utils_hwaddr_cloned_data_synth,
+	.from_dbus_fcn = _nm_utils_hwaddr_cloned_data_set,
+};
+
+static GVariant *
 _nm_utils_hwaddr_to_dbus (const GValue *prop_value)
 {
 	return _nm_utils_hwaddr_to_dbus_impl (g_value_get_string (prop_value));
 }
 
-void
+static void
 _nm_utils_hwaddr_from_dbus (GVariant *dbus_value,
                             GValue *prop_value)
 {
@@ -4488,6 +4487,12 @@ _nm_utils_hwaddr_from_dbus (GVariant *dbus_value,
 	str = length ? nm_utils_hwaddr_ntoa (array, length) : NULL;
 	g_value_take_string (prop_value, str);
 }
+
+const NMSettInfoPropertType nm_sett_info_propert_type_mac_addrees = {
+	.dbus_type           = G_VARIANT_TYPE_BYTESTRING,
+	.gprop_to_dbus_fcn   = _nm_utils_hwaddr_to_dbus,
+	.gprop_from_dbus_fcn = _nm_utils_hwaddr_from_dbus,
+};
 
 /*****************************************************************************/
 
@@ -5550,6 +5555,48 @@ attribute_unescape (const char *start, const char *end)
 	return ret;
 }
 
+gboolean
+_nmtst_variant_attribute_spec_assert_sorted (const NMVariantAttributeSpec *const*array,
+                                             gsize len)
+{
+	gsize i;
+
+	g_assert (array);
+	g_assert (len > 0);
+	g_assert_cmpint(len, ==, NM_PTRARRAY_LEN (array));
+
+	for (i = 0; i < len; i++) {
+		nm_assert (array[i]->name);
+		nm_assert (array[i]->name[0]);
+		if (i > 0)
+			nm_assert (strcmp (array[i - 1]->name, array[i]->name) < 0);
+	}
+	nm_assert (!array[i]);
+
+	return TRUE;
+}
+
+const NMVariantAttributeSpec *
+_nm_variant_attribute_spec_find_binary_search (const NMVariantAttributeSpec *const*array,
+                                               gsize len,
+                                               const char *name)
+{
+	gssize idx;
+
+	G_STATIC_ASSERT_EXPR (G_STRUCT_OFFSET (NMVariantAttributeSpec, name) == 0);
+
+	idx = nm_utils_ptrarray_find_binary_search ((gconstpointer *) array,
+	                                            len,
+	                                            &name,
+	                                            nm_strcmp_p_with_data,
+	                                            NULL,
+	                                            NULL,
+	                                            NULL);
+	if (idx < 0)
+		return NULL;
+	return array[idx];
+}
+
 /**
  * nm_utils_parse_variant_attributes:
  * @string: the input string
@@ -5860,6 +5907,14 @@ nm_utils_version (void)
 
 /*****************************************************************************/
 
+NM_UTILS_FLAGS2STR_DEFINE (nm_bluetooth_capability_to_string, NMBluetoothCapabilities,
+	NM_UTILS_FLAGS2STR (NM_BT_CAPABILITY_NONE, "NONE"),
+	NM_UTILS_FLAGS2STR (NM_BT_CAPABILITY_DUN, "DUN"),
+	NM_UTILS_FLAGS2STR (NM_BT_CAPABILITY_NAP, "NAP"),
+)
+
+/*****************************************************************************/
+
 /**
  * nm_utils_base64secret_decode:
  * @base64_key: the (possibly invalid) base64 encode key.
@@ -5929,7 +5984,7 @@ nm_utils_base64secret_normalize (const char *base64_key,
 	return TRUE;
 }
 
-GVariant *
+static GVariant *
 _nm_utils_bridge_vlans_to_dbus (const NMSettInfoSetting *sett_info,
                                 guint property_idx,
                                 NMConnection *connection,
@@ -5971,7 +6026,7 @@ _nm_utils_bridge_vlans_to_dbus (const NMSettInfoSetting *sett_info,
 	return g_variant_builder_end (&builder);
 }
 
-gboolean
+static gboolean
 _nm_utils_bridge_vlans_from_dbus (NMSetting *setting,
                                   GVariant *connection_dict,
                                   const char *property,
@@ -6024,6 +6079,12 @@ _nm_utils_bridge_vlans_from_dbus (NMSetting *setting,
 
 	return TRUE;
 }
+
+const NMSettInfoPropertType nm_sett_info_propert_type_bridge_vlans = {
+	.dbus_type     = NM_G_VARIANT_TYPE ("aa{sv}"),
+	.to_dbus_fcn   = _nm_utils_bridge_vlans_to_dbus,
+	.from_dbus_fcn = _nm_utils_bridge_vlans_from_dbus,
+};
 
 gboolean
 _nm_utils_bridge_vlan_verify_list (GPtrArray *vlans,
@@ -6103,28 +6164,77 @@ _nm_utils_bridge_vlan_verify_list (GPtrArray *vlans,
 }
 
 gboolean
-nm_utils_connection_is_adhoc_wpa (NMConnection *connection)
+_nm_utils_iaid_verify (const char *str, gint64 *out_value)
 {
-	NMSettingWireless *s_wifi;
-	NMSettingWirelessSecurity *s_wsec;
-	const char *key_mgmt;
-	const char *mode;
+	gint64 iaid;
 
-	s_wifi = nm_connection_get_setting_wireless (connection);
-	if (!s_wifi)
+	NM_SET_OUT (out_value, -1);
+
+	if (!str || !str[0])
 		return FALSE;
 
-	mode = nm_setting_wireless_get_mode (s_wifi);
-	if (!nm_streq0 (mode, NM_SETTING_WIRELESS_MODE_ADHOC))
-		return FALSE;
+	if (NM_IAID_IS_SPECIAL (str))
+		return TRUE;
 
-	s_wsec = nm_connection_get_setting_wireless_security (connection);
-	if (!s_wsec)
-		return FALSE;
+	if (   NM_STRCHAR_ALL (str, ch, ch >= '0' && ch <= '9')
+	    && (str[0] != '0' || str[1] == '\0')
+	    && (iaid = _nm_utils_ascii_str_to_int64 (str, 10, 0, G_MAXUINT32, -1)) != -1) {
+		NM_SET_OUT (out_value, iaid);
+		return TRUE;
+	}
 
-	key_mgmt = nm_setting_wireless_security_get_key_mgmt (s_wsec);
-	if (!nm_streq0 (key_mgmt, "wpa-none"))
+	return FALSE;
+}
+
+gboolean
+_nm_utils_validate_dhcp_hostname_flags (NMDhcpHostnameFlags flags,
+                                        int addr_family,
+                                        GError **error)
+{
+	NMDhcpHostnameFlags unknown;
+
+	unknown = flags;
+	unknown &= ~(  NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED
+	             | NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE
+	             | NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE
+	             | NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS);
+	if (unknown) {
+		g_set_error (error,
+		             NM_CONNECTION_ERROR,
+		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		             _("unknown flags 0x%x"), (guint) unknown);
 		return FALSE;
+	}
+
+	if (NM_FLAGS_ALL (flags,
+	                    NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE
+	                  | NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE)) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("'fqdn-no-update' and 'fqdn-serv-update' flags cannot be set at the same time"));
+		return FALSE;
+	}
+
+	if (   NM_FLAGS_HAS (flags, NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS)
+	    && NM_FLAGS_ANY (flags,  NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE
+	                           | NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED
+	                           | NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE)) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("'fqdn-clear-flags' flag is incompatible with other FQDN flags"));
+		return FALSE;
+	}
+
+	if (   addr_family == AF_INET6
+	    && (flags & NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED)) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("DHCPv6 does not support the E (encoded) FQDN flag"));
+		return FALSE;
+	}
 
 	return TRUE;
 }

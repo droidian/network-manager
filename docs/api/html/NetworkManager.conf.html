@@ -151,8 +151,11 @@ plugins-=remove-me
 <tr>
 <td><p><span class="term"><code class="varname">auth-polkit</code></span></p></td>
 <td><p>Whether the system uses PolicyKit for authorization.
-        If <code class="literal">false</code>, all requests will be allowed. If
-        <code class="literal">true</code>, non-root requests are authorized using PolicyKit.
+        If <code class="literal">true</code>, non-root requests are authorized using PolicyKit.
+        Requests from root (user ID zero) are always granted without asking PolicyKit.
+        If <code class="literal">false</code>, all requests will be allowed and PolicyKit is
+        not used. If set to <code class="literal">root-only</code> PolicyKit is not used and
+        all requests except root are denied.
         The default value is <code class="literal">true</code>.
         </p></td>
 </tr>
@@ -684,6 +687,14 @@ ipv6.ip6-privacy=0
 <td></td>
 </tr>
 <tr>
+<td><p><span class="term"><code class="varname">ipv4.dhcp-iaid</code></span></p></td>
+<td><p>If left unspecified, it defaults to "ifname".</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">ipv4.dhcp-hostname-flags</code></span></p></td>
+<td><p>If left unspecified, the value 3 (fqdn-encoded,fqdn-serv-update) is used.</p></td>
+</tr>
+<tr>
 <td><p><span class="term"><code class="varname">ipv4.dhcp-timeout</code></span></p></td>
 <td><p>If left unspecified, the default value for
            the interface type is used.</p></td>
@@ -707,6 +718,14 @@ ipv6.ip6-privacy=0
 <tr>
 <td><p><span class="term"><code class="varname">ipv6.dhcp-duid</code></span></p></td>
 <td><p>If left unspecified, it defaults to "lease".</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">ipv6.dhcp-iaid</code></span></p></td>
+<td><p>If left unspecified, it defaults to "ifname".</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">ipv6.dhcp-hostname-flags</code></span></p></td>
+<td><p>If left unspecified, the value 1 (fqdn-serv-update) is used.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">ipv6.dhcp-timeout</code></span></p></td>

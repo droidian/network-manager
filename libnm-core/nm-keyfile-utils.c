@@ -1,20 +1,6 @@
-/* NetworkManager system settings service
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2010 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2010 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -49,18 +35,28 @@
  * to detect parsing failures.
  *
  * Returns: either %TRUE or %FALSE if the key exists and is parsable as a boolean.
- *   Otherwise, @default_value.
+ *   Otherwise, @default_value. Sets errno to ENODATA, EINVAL or 0, depending on whether
+ *   the key exists, whether the value is invalid, or success.
  */
 int
 nm_key_file_get_boolean (GKeyFile *kf, const char *group, const char *key, int default_value)
 {
+	int v;
 	gs_free char *value = NULL;
 
 	value = g_key_file_get_value (kf, group, key, NULL);
 
-	if (!value)
+	if (!value) {
+		errno = ENODATA;
 		return default_value;
-	return _nm_utils_ascii_str_to_bool (value, default_value);
+	}
+	v = _nm_utils_ascii_str_to_bool (value, -1);
+	if (v != -1) {
+		errno = 0;
+		return v;
+	}
+	errno = EINVAL;
+	return default_value;
 }
 
 /*****************************************************************************/

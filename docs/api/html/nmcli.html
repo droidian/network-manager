@@ -82,6 +82,9 @@
           <span class="citerefentry"><span class="refentrytitle">terminal-colors.d</span>(5)</span>.
           Please refer to the <a class="link" href="nmcli.html#colors" title="Colors">Colors</a> section for a
           list of color names supported by <span class="command"><strong>nmcli</strong></span>.</p>
+<p>If the environment variable <code class="literal">NO_COLOR</code> is set (to any value),
+          then coloring is disabled with mode "auto". Explicitly enabling coloring overrides
+          the environment variable.</p>
 </td>
 </tr>
 <tr>
@@ -603,19 +606,21 @@
 <td>
 <p>Add, modify or remove properties in the connection profile.</p>
 <p>To set the property just specify the property name followed by the
-          value. An empty value (<code class="literal">""</code>) removes the property value.</p>
+          value. An empty value (<code class="literal">""</code>) resets the property value to
+          the default.</p>
 <p>In addition to the properties, you can also use short names for some of
           the properties. Consult the <a class="link" href="nmcli.html#property_aliases" title="Property Aliases">Property Aliases</a>
           section for details.</p>
-<p>If you want to append an item to the existing value, use
-          <code class="literal">+</code> prefix for the property name. If you want to remove just
-          one item from container-type property, use <code class="literal">-</code> prefix for
-          the property name and specify a value or an zero-based index of the item to
-          remove (or option name for properties with named options) as
-          <em class="replaceable"><code>value</code></em>. The <code class="literal">+</code> and <code class="literal">-</code>
-          modifies only have a real effect for multi-value (container)
-          properties like <code class="literal">ipv4.dns</code>, <code class="literal">ipv4.addresses</code>,
-          <code class="literal">bond.options</code>, etc.</p>
+<p>If you want to append an item or a flag to the existing value, use
+          <code class="literal">+</code> prefix for the property name or alias. If you want to
+          remove items from a container-type or flag property, use <code class="literal">-</code> prefix.
+          For certain properties you can also remove elements by specifying the zero-based
+          index(es).
+          The <code class="literal">+</code> and <code class="literal">-</code> modifiers
+          only have a real effect for properties that support them.
+          These are for example multi-value (container) properties or flags like <code class="literal">ipv4.dns</code>,
+          <code class="literal">ip4</code>, <code class="literal">ipv4.addresses</code>, <code class="literal">bond.options</code>,
+          <code class="literal">802-1x.phase1-auth-flags</code> etc.</p>
 <p>See <span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span> for complete reference of setting and property names, their descriptions
           and default values. The <em class="replaceable"><code>setting</code></em> and
           <em class="replaceable"><code>property</code></em> can be abbreviated provided they are unique.</p>
@@ -1163,6 +1168,15 @@
 <p>This command does not show the APs, use <span class="command"><strong>nmcli device wifi list</strong></span>
           for that.</p>
 </td>
+</tr>
+<tr>
+<td><p><span class="term">
+          <span class="command"><strong>wifi</strong></span>
+          <span class="command"><strong>show-password</strong></span>
+           [<code class="option">ifname</code> <em class="replaceable"><code>ifname</code></em>]
+        </span></p></td>
+<td><p>Show the details of the active Wi-Fi networks, including the
+          secrets.</p></td>
 </tr>
 <tr>
 <td><p><span class="term">
@@ -2157,6 +2171,10 @@ It's equivalent to the <code class="literal">+bond.options 'option=value'</code>
 <tr>
 <td><p><span class="term"><code class="option">device-unavailable</code></span></p></td>
 <td><p>Device that is not available for activation.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">device-disabled</code></span></p></td>
+<td><p>Device is disabled by software or hardware kill switch.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="option">manager-running</code></span></p></td>

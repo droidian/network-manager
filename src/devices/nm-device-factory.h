@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2007 - 2014 Red Hat, Inc.
  */
 
@@ -36,7 +22,6 @@
 #define NM_IS_DEVICE_FACTORY_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_DEVICE_FACTORY))
 #define NM_DEVICE_FACTORY_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_DEVICE_FACTORY, NMDeviceFactoryClass))
 
-#define NM_DEVICE_FACTORY_COMPONENT_ADDED "component-added"
 #define NM_DEVICE_FACTORY_DEVICE_ADDED    "device-added"
 
 typedef struct {
@@ -131,36 +116,6 @@ typedef struct {
 	                               NMConnection *connection,
 	                               gboolean *out_ignore);
 
-	/* Signals */
-
-	/**
-	 * device_added:
-	 * @factory: the #NMDeviceFactory
-	 * @device: the new #NMDevice subclass
-	 *
-	 * The factory emits this signal if it finds a new device by itself.
-	 */
-	void       (*device_added)    (NMDeviceFactory *factory, NMDevice *device);
-
-	/**
-	 * component_added:
-	 * @factory: the #NMDeviceFactory
-	 * @component: a new component which existing devices may wish to claim
-	 *
-	 * The factory emits this signal when an appearance of some component
-	 * native to it could be interesting to some of the already existing devices.
-	 * The devices then indicate if they took interest in claiming the component.
-	 *
-	 * For example, the WWAN factory may indicate that a new modem is available,
-	 * which an existing Bluetooth device may wish to claim. It emits a signal
-	 * passing the modem instance around to see if any device claims it.
-	 * If no device claims the component, the plugin is allowed to create a new
-	 * #NMDevice instance for that component and emit the "device-added" signal.
-	 *
-	 * Returns: %TRUE if the component was claimed by a device, %FALSE if not
-	 */
-	gboolean   (*component_added) (NMDeviceFactory *factory, GObject *component);
-
 } NMDeviceFactoryClass;
 
 GType      nm_device_factory_get_type    (void);
@@ -201,10 +156,6 @@ NMDevice * nm_device_factory_create_device (NMDeviceFactory *factory,
                                             NMConnection *connection,
                                             gboolean *out_ignore,
                                             GError **error);
-
-/* For use by implementations */
-gboolean   nm_device_factory_emit_component_added (NMDeviceFactory *factory,
-                                                   GObject *component);
 
 #define NM_DEVICE_FACTORY_DECLARE_LINK_TYPES(...) \
 	{ static NMLinkType const _link_types_declared[] = { __VA_ARGS__, NM_LINK_TYPE_NONE }; _link_types = _link_types_declared; }

@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2017 Red Hat, Inc.
  */
 
@@ -73,6 +59,7 @@ NM_DEVICE_FACTORY_DECLARE_TYPES (
 G_MODULE_EXPORT NMDeviceFactory *
 nm_device_factory_create (GError **error)
 {
+	nm_manager_set_capability (NM_MANAGER_GET, NM_CAPABILITY_OVS);
 	return (NMDeviceFactory *) g_object_new (NM_TYPE_OVS_FACTORY, NULL);
 }
 
@@ -83,7 +70,7 @@ new_device_from_type (const char *name, NMDeviceType device_type)
 	const char *type_desc;
 	NMLinkType link_type = NM_LINK_TYPE_NONE;
 
-	if (nm_manager_get_device (nm_manager_get (), name, device_type))
+	if (nm_manager_get_device (NM_MANAGER_GET, name, device_type))
 		return NULL;
 
 	if (device_type == NM_DEVICE_TYPE_OVS_INTERFACE) {
@@ -130,7 +117,7 @@ ovsdb_device_removed (NMOvsdb *ovsdb, const char *name, NMDeviceType device_type
 	NMDevice *device;
 	NMDeviceState device_state;
 
-	device = nm_manager_get_device (nm_manager_get (), name, device_type);
+	device = nm_manager_get_device (NM_MANAGER_GET, name, device_type);
 	if (!device)
 		return;
 
@@ -158,7 +145,7 @@ ovsdb_interface_failed (NMOvsdb *ovsdb,
 
 	_LOGI (name, connection_uuid, "ovs interface \"%s\" (%s) failed: %s", name, connection_uuid, error);
 
-	device = nm_manager_get_device (nm_manager_get (), name, NM_DEVICE_TYPE_OVS_INTERFACE);
+	device = nm_manager_get_device (NM_MANAGER_GET, name, NM_DEVICE_TYPE_OVS_INTERFACE);
 	if (!device)
 		return;
 

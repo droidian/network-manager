@@ -602,6 +602,30 @@ Connection 'ethernet-4' (de89cdeb-a3e1-4d53-8fa0-c22546c775f4) successfully
       </p>
 </div>
 </div>
+<br class="example-break"><div class="example">
+<a name="id-1.2.5.6.18"></a><p class="title"><b>Example 16. Bluetooth connection profiles</b></p>
+<div class="example-contents">
+<p>NetworkManger supports both connecting to NAP and DUN devices as a client. It also
+        supports sharing the network via a NAP server.
+      </p>
+<p>For NAP client connections, NetworkManager automatically creates a suitable in-memory profile
+        for paired devices if none is available. You may use that generated profile directly, but you may also modify
+        and persist it, which will prevent to automatically re-create it. You may also create a profile from scratch.
+        For example, the following uses DHCP and IPv6 autoconf for address configuration:
+      </p>
+<pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli connection add type bluetooth con-name "Profile for My Bluetooth Device (NAP)" autoconnect no bluetooth.type panu bluetooth.bdaddr "$BDADDR"</code></strong></pre>
+<p>For DUN connections, the user needs to configure modem settings and hence no profile
+        gets created automatically. The modem settings depend on your device and you either need
+        a "gsm" or a "csma" section. For example,
+      </p>
+<pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli connection add type bluetooth con-name "Profile for My Bluetooth Device (DUN)" autoconnect no bluetooth.type dun bluetooth.bdaddr "$BDADDR" gsm.apn apn.com</code></strong></pre>
+<p>Finally, you can create a bluetooth hotspot. BlueZ implements those as a bridge device,
+        so such profiles also have a bridge section. Also, you probably want to set IP methods as "shared",
+        so that clients get automatic IP addressing. Note that the "shared" IPv4 method requires dnsmasq to be available.
+      </p>
+<pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli connection add type bluetooth con-name "My Bluetooth Hotspot" autoconnect no ifname btnap0 bluetooth.type nap ipv4.method shared ipv6.method shared</code></strong></pre>
+</div>
+</div>
 <br class="example-break">
 </div>
 <div class="refsect1">

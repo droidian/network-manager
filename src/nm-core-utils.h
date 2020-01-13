@@ -1,21 +1,7 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2004 - 2016 Red Hat, Inc.
- * Copyright 2005 - 2008 Novell, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2004 - 2016 Red Hat, Inc.
+ * Copyright (C) 2005 - 2008 Novell, Inc.
  */
 
 #ifndef __NM_CORE_UTILS_H__
@@ -402,14 +388,11 @@ guint32 nm_utils_create_dhcp_iaid (gboolean legacy_unstable_byteorder,
                                    const guint8 *interface_id,
                                    gsize interface_id_len);
 
-GBytes *nm_utils_dhcp_client_id_systemd_node_specific_full (gboolean legacy_unstable_byteorder,
-                                                            const guint8 *interface_id,
-                                                            gsize interface_id_len,
+GBytes *nm_utils_dhcp_client_id_systemd_node_specific_full (guint32 iaid,
                                                             const guint8 *machine_id,
                                                             gsize machine_id_len);
 
-GBytes *nm_utils_dhcp_client_id_systemd_node_specific (gboolean legacy_unstable_byteorder,
-                                                       const char *ifname);
+GBytes *nm_utils_dhcp_client_id_systemd_node_specific (guint32 iaid);
 
 /*****************************************************************************/
 
@@ -438,10 +421,6 @@ NMUtilsTestFlags nm_utils_get_testing (void);
 void _nm_utils_set_testing (NMUtilsTestFlags flags);
 
 void nm_utils_g_value_set_strv (GValue *value, GPtrArray *strings);
-
-guint nm_utils_parse_debug_string (const char *string,
-                                   const GDebugKey *keys,
-                                   guint nkeys);
 
 void nm_utils_ifname_cpy (char *dst, const char *name);
 

@@ -1,14 +1,6 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program. If not, see
- * <http://www.gnu.org/licenses/>.
- *
- * Copyright 2018 Red Hat, Inc.
+ * Copyright (C) 2018 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -107,13 +99,15 @@ nm_sriov_vf_new (guint index)
 {
 	NMSriovVF *vf;
 
-	vf = g_slice_new0 (NMSriovVF);
-	vf->refcount = 1;
-	vf->index = index;
-	vf->attributes = g_hash_table_new_full (nm_str_hash,
-	                                        g_str_equal,
-	                                        g_free,
-	                                        (GDestroyNotify) g_variant_unref);
+	vf = g_slice_new (NMSriovVF);
+	*vf = (NMSriovVF) {
+		.refcount   = 1,
+		.index      = index,
+		.attributes = g_hash_table_new_full (nm_str_hash,
+		                                     g_str_equal,
+		                                     g_free,
+		                                     (GDestroyNotify) g_variant_unref),
+	};
 	return vf;
 }
 
@@ -155,7 +149,7 @@ nm_sriov_vf_unref (NMSriovVF *vf)
 		if (vf->vlans)
 			g_hash_table_unref (vf->vlans);
 		g_free (vf->vlan_ids);
-		g_slice_free (NMSriovVF, vf);
+		nm_g_slice_free (vf);
 	}
 }
 
@@ -229,10 +223,12 @@ vf_add_vlan (NMSriovVF *vf,
 {
 	VFVlan *vlan;
 
-	vlan = g_slice_new0 (VFVlan);
-	vlan->id = vlan_id;
-	vlan->qos = qos;
-	vlan->protocol = protocol;
+	vlan = g_slice_new (VFVlan);
+	*vlan = (VFVlan) {
+		.id       = vlan_id,
+		.qos      = qos,
+		.protocol = protocol,
+	};
 
 	if (!vf->vlans)
 		vf->vlans = _vf_vlan_create_hash ();
@@ -558,7 +554,7 @@ vlan_id_compare (gconstpointer a, gconstpointer b, gpointer user_data)
  *
  * Returns the VLANs currently configured on the VF.
  *
- * Returns: (transfer none): a list of VLAN ids configured on the VF.
+ * Returns: (transfer none) (array length=length): a list of VLAN ids configured on the VF.
  *
  * Since: 1.14
  */
@@ -1334,13 +1330,13 @@ nm_setting_sriov_class_init (NMSettingSriovClass *klass)
 	                        G_PARAM_READWRITE |
 	                        NM_SETTING_PARAM_INFERRABLE |
 	                        G_PARAM_STATIC_STRINGS);
-
-	_properties_override_add_override (properties_override,
-	                                   obj_properties[PROP_VFS],
-	                                   G_VARIANT_TYPE ("aa{sv}"),
-	                                   vfs_to_dbus,
-	                                   vfs_from_dbus,
-	                                   NULL);
+	_nm_properties_override_gobj (properties_override,
+	                              obj_properties[PROP_VFS],
+	                              NM_SETT_INFO_PROPERT_TYPE (
+	                                  .dbus_type     = NM_G_VARIANT_TYPE ("aa{sv}"),
+	                                  .to_dbus_fcn   = vfs_to_dbus,
+	                                  .from_dbus_fcn = vfs_from_dbus,
+	                              ));
 
 	/**
 	 * NMSettingSriov:autoprobe-drivers

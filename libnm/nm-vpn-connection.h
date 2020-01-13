@@ -1,21 +1,7 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2007 - 2008 Novell, Inc.
- * Copyright 2007 - 2010 Red Hat, Inc.
+ * Copyright (C) 2007 - 2008 Novell, Inc.
+ * Copyright (C) 2007 - 2010 Red Hat, Inc.
  */
 
 #ifndef __NM_VPN_CONNECTION_H__
@@ -43,31 +29,7 @@ G_BEGIN_DECLS
 /**
  * NMVpnConnection:
  */
-struct _NMVpnConnection {
-	NMActiveConnection parent;
-};
-
-typedef struct {
-	NMActiveConnectionClass parent;
-
-	/* Signals */
-
-	/* NMVpnConnectionStateReason got deprecated in 1.8.0. Thus, vpn_state_changed()
-	 * uses a deprecated type and is itself deprecated.
-	 *
-	 * If you use this signal slot, you are advised to cast the reason
-	 * to the NMActiveConnectionStateReason type, which is fully compatible.
-	 */
-	G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-	NM_DEPRECATED_IN_1_8
-	void (*vpn_state_changed) (NMVpnConnection *connection,
-	                           NMVpnConnectionState state,
-	                           NMVpnConnectionStateReason reason);
-	G_GNUC_END_IGNORE_DEPRECATIONS
-
-	/*< private >*/
-	gpointer padding[4];
-} NMVpnConnectionClass;
+typedef struct _NMVpnConnectionClass NMVpnConnectionClass;
 
 GType nm_vpn_connection_get_type (void);
 

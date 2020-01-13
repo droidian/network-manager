@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2011 Red Hat, Inc.
  * Copyright (C) 2013 Thomas Bechtold <thomasbechtold@jpberlin.de>
  */
@@ -342,6 +328,12 @@ gboolean
 nm_config_get_first_start (NMConfig *config)
 {
 	return NM_CONFIG_GET_PRIVATE (config)->cli.first_start;
+}
+
+const char *
+nm_config_get_no_auto_default_file (NMConfig *config)
+{
+	return NM_CONFIG_GET_PRIVATE (config)->no_auto_default_file;
 }
 
 /*****************************************************************************/
@@ -1218,7 +1210,7 @@ read_entire_config (const NMConfigCmdLineOptions *cli,
                     const char *system_config_dir,
                     char **out_config_main_file,
                     char **out_config_description,
-                    char ***out_warnings,
+                    GPtrArray *warnings,
                     GError **error)
 {
 	gs_unref_keyfile GKeyFile *keyfile = NULL;
@@ -1228,14 +1220,13 @@ read_entire_config (const NMConfigCmdLineOptions *cli,
 	guint i;
 	gs_free char *o_config_main_file = NULL;
 	const char *run_config_dir = "";
-	gs_unref_ptrarray GPtrArray *warnings = NULL;
 
-	g_return_val_if_fail (config_dir, NULL);
-	g_return_val_if_fail (system_config_dir, NULL);
-	g_return_val_if_fail (!out_config_main_file || !*out_config_main_file, FALSE);
-	g_return_val_if_fail (!out_config_description || !*out_config_description, NULL);
-	g_return_val_if_fail (!error || !*error, FALSE);
-	g_return_val_if_fail (out_warnings && !*out_warnings, FALSE);
+	nm_assert (config_dir);
+	nm_assert (system_config_dir);
+	nm_assert (!out_config_main_file || !*out_config_main_file);
+	nm_assert (!out_config_description || !*out_config_description);
+	nm_assert (!error || !*error);
+	nm_assert (warnings);
 
 	if (   (""RUN_CONFIG_DIR)[0] == '/'
 	    && !nm_streq (RUN_CONFIG_DIR, system_config_dir)
@@ -1244,7 +1235,6 @@ read_entire_config (const NMConfigCmdLineOptions *cli,
 
 	/* create a default configuration file. */
 	keyfile = nm_config_create_keyfile ();
-	warnings = g_ptr_array_new_with_free_func (g_free);
 
 	system_confs = _get_config_dir_files (system_config_dir);
 	confs = _get_config_dir_files (config_dir);
@@ -1333,10 +1323,6 @@ read_entire_config (const NMConfigCmdLineOptions *cli,
 		*out_config_description = g_string_free (str, FALSE);
 	}
 	NM_SET_OUT (out_config_main_file, g_steal_pointer (&o_config_main_file));
-
-	g_ptr_array_add (warnings, NULL);
-	*out_warnings = (char **) g_ptr_array_free (warnings, warnings->len == 1);
-	g_steal_pointer (&warnings);
 
 	return g_steal_pointer (&keyfile);
 }
@@ -2580,7 +2566,7 @@ nm_config_reload (NMConfig *self, NMConfigChangeFlags reload_flags, gboolean emi
 	char *config_description = NULL;
 	gs_strfreev char **no_auto_default = NULL;
 	gboolean intern_config_needs_rewrite;
-	gs_strfreev char **warnings = NULL;
+	gs_unref_ptrarray GPtrArray *warnings = NULL;
 	guint i;
 
 	g_return_if_fail (NM_IS_CONFIG (self));
@@ -2597,6 +2583,8 @@ nm_config_reload (NMConfig *self, NMConfigChangeFlags reload_flags, gboolean emi
 		return;
 	}
 
+	warnings = g_ptr_array_new_with_free_func (g_free);
+
 	/* pass on the original command line options. This means, that
 	 * options specified at command line cannot ever be reloaded from
 	 * file. That seems desirable.
@@ -2606,18 +2594,13 @@ nm_config_reload (NMConfig *self, NMConfigChangeFlags reload_flags, gboolean emi
 	                              priv->system_config_dir,
 	                              &config_main_file,
 	                              &config_description,
-	                              &warnings,
+	                              warnings,
 	                              &error);
 	if (!keyfile) {
 		_LOGE ("Failed to reload the configuration: %s", error->message);
 		g_clear_error (&error);
 		_set_config_data (self, NULL, reload_flags);
 		return;
-	}
-
-	if (emit_warnings && warnings) {
-		for (i = 0; warnings[i]; i++)
-			_LOGW ("%s", warnings[i]);
 	}
 
 	no_auto_default = no_auto_default_from_file (priv->no_auto_default_file);
@@ -2636,6 +2619,13 @@ nm_config_reload (NMConfig *self, NMConfigChangeFlags reload_flags, gboolean emi
 	                               (const char *const*) no_auto_default,
 	                               keyfile,
 	                               keyfile_intern);
+
+	if (emit_warnings) {
+		nm_config_data_get_warnings (priv->config_data_orig, warnings);
+		for (i = 0; i < warnings->len; i++)
+			_LOGW ("%s", (const char *) warnings->pdata[i]);
+	}
+
 	g_free (config_main_file);
 	g_free (config_description);
 	g_key_file_unref (keyfile);
@@ -2703,7 +2693,7 @@ _set_config_data (NMConfig *self, NMConfigData *new_data, NMConfigChangeFlags re
 		_LOGI ("signal: %s (%s)",
 		       nm_config_change_flags_to_string (changes, NULL, 0),
 		       nm_config_data_get_config_description (new_data));
-		nm_config_data_log (new_data, "CONFIG: ", "  ", NULL);
+		nm_config_data_log (new_data, "CONFIG: ", "  ", priv->no_auto_default_file, NULL);
 		priv->config_data = new_data;
 	} else if (had_new_data)
 		_LOGI ("signal: %s (no changes from disk)", nm_config_change_flags_to_string (changes, NULL, 0));
@@ -2787,7 +2777,7 @@ init_sync (GInitable *initable, GCancellable *cancellable, GError **error)
 	gs_free char *config_main_file = NULL;
 	gs_free char *config_description = NULL;
 	gs_strfreev char **no_auto_default = NULL;
-	gs_strfreev char **warnings = NULL;
+	gs_unref_ptrarray GPtrArray *warnings = NULL;
 	gs_free char *configure_and_quit = NULL;
 	gboolean intern_config_needs_rewrite;
 	const char *s;
@@ -2814,12 +2804,14 @@ init_sync (GInitable *initable, GCancellable *cancellable, GError **error)
 	else
 		priv->intern_config_file = g_strdup (DEFAULT_INTERN_CONFIG_FILE);
 
+	warnings = g_ptr_array_new_with_free_func (g_free);
+
 	keyfile = read_entire_config (&priv->cli,
 	                              priv->config_dir,
 	                              priv->system_config_dir,
 	                              &config_main_file,
 	                              &config_description,
-	                              &warnings,
+	                              warnings,
 	                              error);
 	if (!keyfile)
 		return FALSE;
@@ -2865,8 +2857,13 @@ init_sync (GInitable *initable, GCancellable *cancellable, GError **error)
 	                                             keyfile,
 	                                             keyfile_intern);
 
+	nm_config_data_get_warnings (priv->config_data_orig, warnings);
+
 	priv->config_data = g_object_ref (priv->config_data_orig);
-	priv->warnings = g_steal_pointer (&warnings);
+	if (warnings->len > 0) {
+		g_ptr_array_add (warnings, NULL);
+		priv->warnings = (char **) g_ptr_array_free (g_steal_pointer (&warnings), FALSE);
+	}
 	return TRUE;
 }
 

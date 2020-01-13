@@ -1,21 +1,7 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2007 - 2013 Red Hat, Inc.
- * Copyright 2007 - 2008 Novell, Inc.
+ * Copyright (C) 2007 - 2013 Red Hat, Inc.
+ * Copyright (C) 2007 - 2008 Novell, Inc.
  */
 
 #include "nm-default.h"
@@ -1749,13 +1735,13 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	                         G_PARAM_READWRITE |
 	                         NM_SETTING_PARAM_INFERRABLE |
 	                         G_PARAM_STATIC_STRINGS);
-
-	_properties_override_add_override (properties_override,
-	                                   obj_properties[PROP_INTERFACE_NAME],
-	                                   G_VARIANT_TYPE_STRING,
-	                                   NULL,
-	                                   nm_setting_connection_set_interface_name,
-	                                   nm_setting_connection_no_interface_name);
+	_nm_properties_override_gobj (properties_override,
+	                              obj_properties[PROP_INTERFACE_NAME],
+	                              NM_SETT_INFO_PROPERT_TYPE (
+	                                  .dbus_type             = G_VARIANT_TYPE_STRING,
+	                                  .from_dbus_fcn         = nm_setting_connection_set_interface_name,
+	                                  .missing_from_dbus_fcn = nm_setting_connection_no_interface_name,
+	                              ));
 
 	/**
 	 * NMSettingConnection:type:
@@ -1934,13 +1920,12 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	                         G_PARAM_CONSTRUCT |
 	                         NM_SETTING_PARAM_FUZZY_IGNORE |
 	                         G_PARAM_STATIC_STRINGS);
-
-	_properties_override_add_override (properties_override,
-	                                   obj_properties[PROP_TIMESTAMP],
-	                                   G_VARIANT_TYPE_UINT64,
-	                                   _to_dbus_fcn_timestamp,
-	                                   NULL,
-	                                   NULL);
+	_nm_properties_override_gobj (properties_override,
+	                              obj_properties[PROP_TIMESTAMP],
+	                              NM_SETT_INFO_PROPERT_TYPE (
+	                                  .dbus_type   = G_VARIANT_TYPE_UINT64,
+	                                  .to_dbus_fcn = _to_dbus_fcn_timestamp,
+	                              ));
 
 	/**
 	 * NMSettingConnection:read-only:

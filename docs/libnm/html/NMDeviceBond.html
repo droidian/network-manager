@@ -15,10 +15,7 @@
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMDeviceBond.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMDeviceBond.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
-                  <a href="#NMDeviceBond.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMDeviceBond.properties" class="shortcut">Properties</a></span>
+                  <a href="#NMDeviceBond.description" class="shortcut">Description</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -68,35 +65,6 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="NMDeviceBond.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMDeviceBond.html#NMDeviceBond--carrier" title="The “carrier” property">carrier</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
-<td class="property_name"><a class="link" href="NMDeviceBond.html#NMDeviceBond--hw-address" title="The “hw-address” property">hw-address</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
-<td class="property_name"><a class="link" href="NMDeviceBond.html#NMDeviceBond--slaves" title="The “slaves” property">slaves</a></td>
-<td class="property_flags">Read</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
 <a name="NMDeviceBond.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -116,26 +84,8 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDeviceBond.html#NM-DEVICE-BOND-SLAVES:CAPS" title="NM_DEVICE_BOND_SLAVES">NM_DEVICE_BOND_SLAVES</a></td>
 </tr>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMDeviceBond.html#NMDeviceBond-struct" title="NMDeviceBond">NMDeviceBond</a></td>
-</tr>
 </tbody>
 </table></div>
-</div>
-<div class="refsect1">
-<a name="NMDeviceBond.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
-        <span class="lineart">╰──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
-            <span class="lineart">╰──</span> NMDeviceBond
-</pre>
-</div>
-<div class="refsect1">
-<a name="NMDeviceBond.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
-<p>
-NMDeviceBond implements
- <a href="https://developer.gnome.org/gio/unstable/GInitable.html#GInitable-struct">GInitable</a> and  <a href="https://developer.gnome.org/gio/unstable/GAsyncInitable.html#GAsyncInitable-struct">GAsyncInitable</a>.</p>
 </div>
 <div class="refsect1">
 <a name="NMDeviceBond.description"></a><h2>Description</h2>
@@ -244,37 +194,6 @@ copy used by the device, and must not be modified. </p>
 <a name="NM-DEVICE-BOND-SLAVES:CAPS"></a><h3>NM_DEVICE_BOND_SLAVES</h3>
 <pre class="programlisting">#define NM_DEVICE_BOND_SLAVES      "slaves"
 </pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMDeviceBond-struct"></a><h3>NMDeviceBond</h3>
-<pre class="programlisting">typedef struct _NMDeviceBond NMDeviceBond;</pre>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMDeviceBond.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMDeviceBond--carrier"></a><h3>The <code class="literal">“carrier”</code> property</h3>
-<pre class="programlisting">  “carrier”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Whether the device has carrier.</p>
-<p>Flags: Read</p>
-<p>Default value: FALSE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMDeviceBond--hw-address"></a><h3>The <code class="literal">“hw-address”</code> property</h3>
-<pre class="programlisting">  “hw-address”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
-<p>The hardware (MAC) address of the device.</p>
-<p>Flags: Read</p>
-<p>Default value: NULL</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMDeviceBond--slaves"></a><h3>The <code class="literal">“slaves”</code> property</h3>
-<pre class="programlisting">  “slaves”                   <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
-<p>The devices enslaved to the bond device.</p>
-<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMDevice)]</span></p>
-<p>Flags: Read</p>
 </div>
 </div>
 </div>

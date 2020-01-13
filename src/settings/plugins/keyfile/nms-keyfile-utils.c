@@ -1,20 +1,6 @@
-/* NetworkManager system settings service
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2010 - 2018 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2010 - 2018 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -206,7 +192,7 @@ nms_keyfile_nmmeta_read_from_file (const char *full_filename,
 	return TRUE;
 }
 
-gboolean
+int
 nms_keyfile_nmmeta_write (const char *dirname,
                           const char *uuid,
                           const char *loaded_path,
@@ -216,6 +202,7 @@ nms_keyfile_nmmeta_write (const char *dirname,
 {
 	gs_free char *full_filename_tmp = NULL;
 	gs_free char *full_filename = NULL;
+	int errsv;
 
 	nm_assert (dirname && dirname[0] == '/');
 	nm_assert (   nm_utils_is_uuid (uuid)
@@ -231,13 +218,15 @@ nms_keyfile_nmmeta_write (const char *dirname,
 	(void) unlink (full_filename_tmp);
 
 	if (!loaded_path) {
-		gboolean success = TRUE;
-
 		full_filename_tmp[strlen (full_filename_tmp) - 1] = '\0';
-		if (unlink (full_filename_tmp) != 0)
-			success = NM_IN_SET (errno, ENOENT);
+		errsv = 0;
+		if (unlink (full_filename_tmp) != 0) {
+			errsv = -NM_ERRNO_NATIVE (errno);
+			if (errsv == -ENOENT)
+				errsv = 0;
+		}
 		NM_SET_OUT (out_full_filename, g_steal_pointer (&full_filename_tmp));
-		return success;
+		return errsv;
 	}
 
 	if (loaded_path_allow_relative) {
@@ -266,29 +255,36 @@ nms_keyfile_nmmeta_write (const char *dirname,
 
 		contents = g_key_file_to_data (kf, &length, NULL);
 
-		if (!nm_utils_file_set_contents (full_filename, contents, length, 0600, NULL)) {
+		if (!nm_utils_file_set_contents (full_filename,
+		                                 contents,
+		                                 length,
+		                                 0600,
+		                                 &errsv,
+		                                 NULL)) {
 			NM_SET_OUT (out_full_filename, g_steal_pointer (&full_filename_tmp));
-			return FALSE;
+			return -NM_ERRNO_NATIVE (errsv);
 		}
 	} else {
 		/* we only have the "loaded_path" to store. That is commonly used for the tombstones to
 		 * link to /dev/null. A symlink is sufficient to store that ammount of information.
 		 * No need to bother with a keyfile. */
 		if (symlink (loaded_path, full_filename_tmp) != 0) {
+			errsv = -NM_ERRNO_NATIVE (errno);
 			full_filename_tmp[strlen (full_filename_tmp) - 1] = '\0';
 			NM_SET_OUT (out_full_filename, g_steal_pointer (&full_filename_tmp));
-			return FALSE;
+			return errsv;
 		}
 
 		if (rename (full_filename_tmp, full_filename) != 0) {
+			errsv = -NM_ERRNO_NATIVE (errno);
 			(void) unlink (full_filename_tmp);
 			NM_SET_OUT (out_full_filename, g_steal_pointer (&full_filename));
-			return FALSE;
+			return errsv;
 		}
 	}
 
 	NM_SET_OUT (out_full_filename, g_steal_pointer (&full_filename));
-	return TRUE;
+	return 0;
 }
 
 /*****************************************************************************/

@@ -1,32 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * shvar.h
- *
- * Interface for non-destructively reading/writing files containing
- * only shell variable declarations and full-line comments.
- *
- * Includes explicit inheritance mechanism intended for use with
- * Red Hat Linux ifcfg-* files.  There is no protection against
- * inheritance loops; they will generally cause stack overflows.
- * Furthermore, they are only intended for one level of inheritance;
- * the value setting algorithm assumes this.
- *
- * Copyright 1999 Red Hat, Inc.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * Copyright (C) 1999 Red Hat, Inc.
  */
+
 #ifndef _SHVAR_H
 #define _SHVAR_H
 
@@ -96,6 +72,7 @@ gboolean svGetValueEnum (shvarFile *s, const char *key,
 gboolean svSetValue (shvarFile *s, const char *key, const char *value);
 gboolean svSetValueStr (shvarFile *s, const char *key, const char *value);
 gboolean svSetValueBoolean (shvarFile *s, const char *key, gboolean value);
+gboolean svSetValueBoolean_cond_true (shvarFile *s, const char *key, gboolean value);
 gboolean svSetValueInt64 (shvarFile *s, const char *key, gint64 value);
 gboolean svSetValueInt64_cond (shvarFile *s, const char *key, gboolean do_set, gint64 value);
 gboolean svSetValueEnum (shvarFile *s, const char *key, GType gtype, int value);

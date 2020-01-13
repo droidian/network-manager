@@ -1,20 +1,6 @@
-/* nmcli - command-line tool to control NetworkManager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2010 - 2015 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2010 - 2015 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -532,7 +518,7 @@ gboolean
 nmc_setting_set_property (NMClient *client,
                           NMSetting *setting,
                           const char *prop,
-                          char modifier,
+                          NMMetaAccessorModifier modifier,
                           const char *value,
                           GError **error)
 {
@@ -542,20 +528,14 @@ nmc_setting_set_property (NMClient *client,
 
 	g_return_val_if_fail (NM_IS_SETTING (setting), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-	g_return_val_if_fail (NM_IN_SET (modifier, '\0', '-', '+'), FALSE);
+	g_return_val_if_fail (NM_IN_SET (modifier, NM_META_ACCESSOR_MODIFIER_SET, NM_META_ACCESSOR_MODIFIER_DEL, NM_META_ACCESSOR_MODIFIER_ADD), FALSE);
 
 	if (!(property_info = nm_meta_property_info_find_by_setting (setting, prop)))
 		goto out_fail_read_only;
 	if (!property_info->property_type->set_fcn)
 		goto out_fail_read_only;
 
-	if (   NM_IN_SET (modifier, '+', '-')
-	    && !value) {
-		/* nothing to do. */
-		return TRUE;
-	}
-
-	if (   modifier == '-'
+	if (   modifier == NM_META_ACCESSOR_MODIFIER_DEL
 	    && !property_info->property_type->set_supports_remove) {
 		/* The property is a plain property. It does not support '-'.
 		 *
@@ -576,6 +556,13 @@ nmc_setting_set_property (NMClient *client,
 		default:
 			break;
 		}
+	}
+
+	if (   NM_IN_SET (modifier, NM_META_ACCESSOR_MODIFIER_ADD, NM_META_ACCESSOR_MODIFIER_DEL)
+	    && (   !value
+	        || !value[0])) {
+		/* nothing to do. */
+		return TRUE;
 	}
 
 	g_object_freeze_notify (G_OBJECT (setting));

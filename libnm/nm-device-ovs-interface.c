@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2017 Red Hat, Inc.
+ * Copyright (C) 2017 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -26,9 +12,8 @@
 #include "nm-setting-ovs-port.h"
 #include "nm-setting-connection.h"
 
-/**
- * NMDeviceOvsInterface:
- */
+/*****************************************************************************/
+
 struct _NMDeviceOvsInterface {
 	NMDevice parent;
 };
@@ -83,6 +68,12 @@ static void
 nm_device_ovs_interface_init (NMDeviceOvsInterface *device)
 {
 }
+
+const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_ovsinterface = NML_DBUS_META_IFACE_INIT (
+	NM_DBUS_INTERFACE_DEVICE_OVS_INTERFACE,
+	nm_device_ovs_interface_get_type,
+	NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_HIGH,
+);
 
 static void
 nm_device_ovs_interface_class_init (NMDeviceOvsInterfaceClass *ovs_interface_class)

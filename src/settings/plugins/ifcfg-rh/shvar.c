@@ -1,25 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * shvar.c
- *
- * Implementation of non-destructively reading/writing files containing
- * only shell variable declarations and full-line comments.
- *
- * Copyright 1999,2000 Red Hat, Inc.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+ * Copyright (C) 1999, 2000 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -790,7 +771,7 @@ svOpenFileInternal (const char *name, gboolean create, GError **error)
 	shvarFile *s;
 	gboolean closefd = FALSE;
 	int errsv = 0;
-	char *arena;
+	gs_free char *arena = NULL;
 	const char *p, *q;
 	gs_free_error GError *local = NULL;
 	nm_auto_close int fd = -1;
@@ -816,13 +797,14 @@ svOpenFileInternal (const char *name, gboolean create, GError **error)
 		return NULL;
 	}
 
-	if (nm_utils_fd_get_contents (closefd ? nm_steal_fd (&fd) : fd,
-	                              closefd,
-	                              10 * 1024 * 1024,
-	                              NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
-	                              &arena,
-	                              NULL,
-	                              &local) < 0) {
+	if (!nm_utils_fd_get_contents (closefd ? nm_steal_fd (&fd) : fd,
+	                               closefd,
+	                               10 * 1024 * 1024,
+	                               NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
+	                               &arena,
+	                               NULL,
+	                               NULL,
+	                               &local)) {
 		if (create)
 			return svFile_new (name);
 
@@ -839,7 +821,6 @@ svOpenFileInternal (const char *name, gboolean create, GError **error)
 		c_list_link_tail (&s->lst_head, &line_new_parse (p, q - p)->lst);
 	if (p[0])
 		c_list_link_tail (&s->lst_head, &line_new_parse (p, strlen (p))->lst);
-	g_free (arena);
 
 	/* closefd is set if we opened the file read-only, so go ahead and
 	 * close it, because we can't write to it anyway */
@@ -1354,6 +1335,12 @@ gboolean
 svSetValueBoolean (shvarFile *s, const char *key, gboolean value)
 {
 	return svSetValue (s, key, value ? "yes" : "no");
+}
+
+gboolean
+svSetValueBoolean_cond_true (shvarFile *s, const char *key, gboolean value)
+{
+	return svSetValue (s, key, value ? "yes" : NULL);
 }
 
 gboolean

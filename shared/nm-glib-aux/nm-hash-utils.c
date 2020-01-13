@@ -1,21 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2017 Red Hat, Inc.
+// SPDX-License-Identifier: LGPL-2.1+
+/*
+ * Copyright (C) 2017 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -201,6 +186,26 @@ nm_pstr_equal (gconstpointer a, gconstpointer b)
 }
 
 guint
+nm_pint_hash (gconstpointer p)
+{
+	const int *s = p;
+
+	if (!s)
+		return nm_hash_static (298377461u);
+	return nm_hash_val (1208815757u, *s);
+}
+
+gboolean
+nm_pint_equals (gconstpointer a, gconstpointer b)
+{
+	const int *s1 = a;
+	const int *s2 = a;
+
+	return    s1 == s2
+	       || (s1 && s2 && *s1 == *s2);
+}
+
+guint
 nm_pdirect_hash (gconstpointer p)
 {
 	const void *const*s = p;
@@ -220,4 +225,35 @@ nm_pdirect_equal (gconstpointer a, gconstpointer b)
 	       || (   s1
 	           && s2
 	           && *s1 == *s2);
+}
+
+guint
+nm_ppdirect_hash (gconstpointer p)
+{
+	const void *const*const*s = p;
+
+	if (!s)
+		return nm_hash_static (396534869u);
+	if (!*s)
+		return nm_hash_static (1476102263u);
+	return nm_direct_hash (**s);
+}
+
+gboolean
+nm_ppdirect_equal (gconstpointer a, gconstpointer b)
+{
+	const void *const*const*s1 = a;
+	const void *const*const*s2 = b;
+
+	if (s1 == s2)
+		return TRUE;
+	if (!s1 || !s2)
+		return FALSE;
+
+	if (*s1 == *s2)
+		return TRUE;
+	if (!*s1 || !*s2)
+		return FALSE;
+
+	return **s1 == **s2;
 }

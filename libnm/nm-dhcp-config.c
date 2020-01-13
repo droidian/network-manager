@@ -1,21 +1,7 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2008 - 2014 Red Hat, Inc.
- * Copyright 2008 Novell, Inc.
+ * Copyright (C) 2008 - 2014 Red Hat, Inc.
+ * Copyright (C) 2008 Novell, Inc.
  */
 
 #include "nm-default.h"
@@ -28,66 +14,63 @@
 #include "nm-object-private.h"
 #include "nm-utils.h"
 
-G_DEFINE_ABSTRACT_TYPE (NMDhcpConfig, nm_dhcp_config, NM_TYPE_OBJECT)
+/*****************************************************************************/
 
-#define NM_DHCP_CONFIG_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_DHCP_CONFIG, NMDhcpConfigPrivate))
+NM_GOBJECT_PROPERTIES_DEFINE (NMDhcpConfig,
+	PROP_FAMILY,
+	PROP_OPTIONS,
+);
 
-typedef struct {
+typedef struct _NMDhcpConfigPrivate {
 	GHashTable *options;
 } NMDhcpConfigPrivate;
 
-enum {
-	PROP_0,
-	PROP_FAMILY,
-	PROP_OPTIONS,
+G_DEFINE_ABSTRACT_TYPE (NMDhcpConfig, nm_dhcp_config, NM_TYPE_OBJECT)
 
-	LAST_PROP
-};
+#define NM_DHCP_CONFIG_GET_PRIVATE(self) _NM_GET_PRIVATE_PTR(self, NMDhcpConfig, NM_IS_DHCP_CONFIG, NMObject)
 
-static void
-nm_dhcp_config_init (NMDhcpConfig *config)
+/*****************************************************************************/
+
+static NMLDBusNotifyUpdatePropFlags
+_notify_update_prop_options (NMClient *client,
+                             NMLDBusObject *dbobj,
+                             const NMLDBusMetaIface *meta_iface,
+                             guint dbus_property_idx,
+                             GVariant *value)
 {
-	NMDhcpConfigPrivate *priv = NM_DHCP_CONFIG_GET_PRIVATE (config);
-
-	priv->options = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, g_free);
-}
-
-static gboolean
-demarshal_dhcp_options (NMObject *object, GParamSpec *pspec, GVariant *value, gpointer field)
-{
-	NMDhcpConfigPrivate *priv = NM_DHCP_CONFIG_GET_PRIVATE (object);
-	GVariantIter iter;
-	const char *key;
-	GVariant *opt;
+	NMDhcpConfig *self = NM_DHCP_CONFIG (dbobj->nmobj);
+	NMDhcpConfigPrivate *priv = NM_DHCP_CONFIG_GET_PRIVATE (self);
 
 	g_hash_table_remove_all (priv->options);
 
-	g_variant_iter_init (&iter, value);
-	while (g_variant_iter_next (&iter, "{&sv}", &key, &opt)) {
-		g_hash_table_insert (priv->options, g_strdup (key), g_variant_dup_string (opt, NULL));
-		g_variant_unref (opt);
+	if (value) {
+		GVariantIter iter;
+		const char *key;
+		GVariant *opt;
+
+		g_variant_iter_init (&iter, value);
+		while (g_variant_iter_next (&iter, "{&sv}", &key, &opt)) {
+			if (g_variant_is_of_type (opt, G_VARIANT_TYPE_STRING))
+				g_hash_table_insert (priv->options, g_strdup (key), g_variant_dup_string (opt, NULL));
+			g_variant_unref (opt);
+		}
 	}
 
-	_nm_object_queue_notify (object, NM_DHCP_CONFIG_OPTIONS);
-	return TRUE;
+	return NML_DBUS_NOTIFY_UPDATE_PROP_FLAGS_NOTIFY;
 }
 
+/*****************************************************************************/
+
 static void
-init_dbus (NMObject *object)
+nm_dhcp_config_init (NMDhcpConfig *self)
 {
-	NMDhcpConfigPrivate *priv = NM_DHCP_CONFIG_GET_PRIVATE (object);
-	const NMPropertiesInfo property_info[] = {
-		{ NM_DHCP_CONFIG_OPTIONS, &priv->options, demarshal_dhcp_options },
-		{ NULL },
-	};
+	NMDhcpConfigPrivate *priv;
 
-	NM_OBJECT_CLASS (nm_dhcp_config_parent_class)->init_dbus (object);
+	priv = G_TYPE_INSTANCE_GET_PRIVATE (self, NM_TYPE_DHCP_CONFIG, NMDhcpConfigPrivate);
 
-	_nm_object_register_properties (object,
-	                                (NM_IS_DHCP4_CONFIG (object) ?
-	                                 NM_DBUS_INTERFACE_DHCP4_CONFIG :
-	                                 NM_DBUS_INTERFACE_DHCP6_CONFIG),
-	                                property_info);
+	self->_priv = priv;
+
+	priv->options = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, g_free);
 }
 
 static void
@@ -95,8 +78,7 @@ finalize (GObject *object)
 {
 	NMDhcpConfigPrivate *priv = NM_DHCP_CONFIG_GET_PRIVATE (object);
 
-	if (priv->options)
-		g_hash_table_destroy (priv->options);
+	g_hash_table_destroy (priv->options);
 
 	G_OBJECT_CLASS (nm_dhcp_config_parent_class)->finalize (object);
 }
@@ -122,21 +104,35 @@ get_property (GObject *object,
 	}
 }
 
+const NMLDBusMetaIface _nml_dbus_meta_iface_nm_dhcp4config = NML_DBUS_META_IFACE_INIT_PROP (
+	NM_DBUS_INTERFACE_DHCP4_CONFIG,
+	nm_dhcp4_config_get_type,
+	NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_HIGH,
+	NML_DBUS_META_IFACE_DBUS_PROPERTIES (
+		NML_DBUS_META_PROPERTY_INIT_FCN ("Options", PROP_OPTIONS, "a{sv}", _notify_update_prop_options ),
+	),
+	.base_struct_offset = G_STRUCT_OFFSET (NMDhcpConfig, _priv),
+);
+
+const NMLDBusMetaIface _nml_dbus_meta_iface_nm_dhcp6config = NML_DBUS_META_IFACE_INIT_PROP (
+	NM_DBUS_INTERFACE_DHCP6_CONFIG,
+	nm_dhcp6_config_get_type,
+	NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_HIGH,
+	NML_DBUS_META_IFACE_DBUS_PROPERTIES (
+		NML_DBUS_META_PROPERTY_INIT_FCN ("Options", PROP_OPTIONS, "a{sv}", _notify_update_prop_options ),
+	),
+	.base_struct_offset = G_STRUCT_OFFSET (NMDhcpConfig, _priv),
+);
+
 static void
 nm_dhcp_config_class_init (NMDhcpConfigClass *config_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (config_class);
-	NMObjectClass *nm_object_class = NM_OBJECT_CLASS (config_class);
 
 	g_type_class_add_private (config_class, sizeof (NMDhcpConfigPrivate));
 
-	/* virtual methods */
 	object_class->get_property = get_property;
-	object_class->finalize = finalize;
-
-	nm_object_class->init_dbus = init_dbus;
-
-	/* properties */
+	object_class->finalize     = finalize;
 
 	/**
 	 * NMDhcpConfig:family:
@@ -144,24 +140,25 @@ nm_dhcp_config_class_init (NMDhcpConfigClass *config_class)
 	 * The IP address family of the configuration; either
 	 * <literal>AF_INET</literal> or <literal>AF_INET6</literal>.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_FAMILY,
-		 g_param_spec_int (NM_DHCP_CONFIG_FAMILY, "", "",
-		                   0, 255, AF_UNSPEC,
-		                   G_PARAM_READABLE |
-		                   G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_FAMILY] =
+	    g_param_spec_int (NM_DHCP_CONFIG_FAMILY, "", "",
+	                      0, 255, AF_UNSPEC,
+	                      G_PARAM_READABLE |
+	                      G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMDhcpConfig:options: (type GHashTable(utf8,utf8)):
 	 *
 	 * The #GHashTable containing options of the configuration.
 	 **/
-	g_object_class_install_property
-		(object_class, PROP_OPTIONS,
-		 g_param_spec_boxed (NM_DHCP_CONFIG_OPTIONS, "", "",
-		                     G_TYPE_HASH_TABLE,
-		                     G_PARAM_READABLE |
-		                     G_PARAM_STATIC_STRINGS));
+	obj_properties[PROP_OPTIONS] =
+	    g_param_spec_boxed (NM_DHCP_CONFIG_OPTIONS, "", "",
+	                        G_TYPE_HASH_TABLE,
+	                        G_PARAM_READABLE |
+	                        G_PARAM_STATIC_STRINGS);
+
+	_nml_dbus_meta_class_init_with_properties (object_class, &_nml_dbus_meta_iface_nm_dhcp4config,
+	                                                         &_nml_dbus_meta_iface_nm_dhcp6config);
 }
 
 /**

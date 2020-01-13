@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2004 - 2017 Red Hat, Inc.
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
@@ -67,10 +53,12 @@ struct _NMWifiAPPrivate {
 	NM80211ApSecurityFlags wpa_flags;  /* WPA-related flags */
 	NM80211ApSecurityFlags rsn_flags;  /* RSN (WPA2) -related flags */
 
+	bool               metered:1;
+
 	/* Non-scanned attributes */
-	bool                fake:1;       /* Whether or not the AP is from a scan */
-	bool                hotspot:1;    /* Whether the AP is a local device's hotspot network */
-	gint32              last_seen;    /* Timestamp when the AP was seen lastly (obtained via nm_utils_get_monotonic_timestamp_s()) */
+	bool               fake:1;       /* Whether or not the AP is from a scan */
+	bool               hotspot:1;    /* Whether the AP is a local device's hotspot network */
+	gint32             last_seen;    /* Timestamp when the AP was seen lastly (obtained via nm_utils_get_monotonic_timestamp_s()) */
 };
 
 typedef struct _NMWifiAPPrivate NMWifiAPPrivate;
@@ -406,6 +394,12 @@ nm_wifi_ap_set_last_seen (NMWifiAP *ap, gint32 last_seen)
 	return FALSE;
 }
 
+gboolean
+nm_wifi_ap_get_metered (const NMWifiAP *self)
+{
+	return NM_WIFI_AP_GET_PRIVATE (self)->metered;
+}
+
 /*****************************************************************************/
 
 static NM80211ApSecurityFlags
@@ -731,44 +725,50 @@ get_max_rate_vht (const guint8 *bytes, guint len, guint32 *out_maxrate)
 /* Management Frame Information Element IDs, ieee80211_eid */
 #define WLAN_EID_HT_CAPABILITY       45
 #define WLAN_EID_VHT_CAPABILITY     191
+#define WLAN_EID_VENDOR_SPECIFIC    221
 
-static guint32
-get_max_rate (const guint8 *bytes, gsize len)
+static void
+parse_ies (const guint8 *bytes, gsize len, guint32 *out_max_rate, gboolean *out_metered)
 {
 	guint8 id, elem_len;
-	guint32 max_rate = 0;
+	guint32 m;
+
+	*out_max_rate = 0;
+	*out_metered = FALSE;
 
 	while (len) {
-		guint32 m;
-
 		if (len < 2)
-			return 0;
+			break;
 
 		id = *bytes++;
 		elem_len = *bytes++;
 		len -= 2;
 
 		if (elem_len > len)
-			return 0;
+			break;
 
 		switch (id) {
 		case WLAN_EID_HT_CAPABILITY:
-			if (!get_max_rate_ht (bytes, elem_len, &m))
-				return 0;
-			max_rate = NM_MAX (max_rate, m);
+			if (get_max_rate_ht (bytes, elem_len, &m))
+				*out_max_rate = NM_MAX (*out_max_rate, m);
 			break;
 		case WLAN_EID_VHT_CAPABILITY:
-			if (!get_max_rate_vht (bytes, elem_len, &m))
-				return 0;
-			max_rate = NM_MAX (max_rate, m);
+			if (get_max_rate_vht (bytes, elem_len, &m))
+				*out_max_rate = NM_MAX (*out_max_rate, m);
+			break;
+		case WLAN_EID_VENDOR_SPECIFIC:
+			if (   len == 8
+			    && bytes[0] == 0x00            /* OUI: Microsoft */
+			    && bytes[1] == 0x50
+			    && bytes[2] == 0xf2
+			    && bytes[3] == 0x11)           /* OUI type: Network cost */
+				*out_metered = (bytes[7] > 1); /* Cost level > 1 */
 			break;
 		}
 
 		len -= elem_len;
 		bytes += elem_len;
 	}
-
-	return max_rate;
 }
 
 /*****************************************************************************/
@@ -788,7 +788,8 @@ nm_wifi_ap_update_from_properties (NMWifiAP *ap,
 	gint16 i16;
 	guint16 u16;
 	gboolean changed = FALSE;
-	guint32 max_rate;
+	gboolean metered;
+	guint32 max_rate, rate;
 
 	g_return_val_if_fail (NM_IS_WIFI_AP (ap), FALSE);
 	g_return_val_if_fail (properties, FALSE);
@@ -869,9 +870,12 @@ nm_wifi_ap_update_from_properties (NMWifiAP *ap,
 	v = g_variant_lookup_value (properties, "IEs", G_VARIANT_TYPE_BYTESTRING);
 	if (v) {
 		bytes = g_variant_get_fixed_array (v, &len, 1);
-		max_rate = NM_MAX (max_rate, get_max_rate (bytes, len));
+		parse_ies (bytes, len, &rate, &metered);
+		max_rate = NM_MAX (max_rate, rate);
 		g_variant_unref (v);
+		priv->metered = metered;
 	}
+
 	if (max_rate)
 		changed |= nm_wifi_ap_set_max_bitrate (ap, max_rate / 1000);
 
@@ -1002,7 +1006,7 @@ nm_wifi_ap_to_string (const NMWifiAP *self,
 		export_path = "/";
 
 	g_snprintf (str_buf, buf_len,
-	            "%17s %-35s [ %c %3u %3u%% %c W:%04X R:%04X ] %3us sup:%s [nm:%s]",
+	            "%17s %-35s [ %c %3u %3u%% %c%c W:%04X R:%04X ] %3us sup:%s [nm:%s]",
 	            priv->address ?: "(none)",
 	            (ssid_to_free = _nm_utils_ssid_to_string (priv->ssid)),
 	            (priv->mode == NM_802_11_MODE_ADHOC
@@ -1017,6 +1021,7 @@ nm_wifi_ap_to_string (const NMWifiAP *self,
 	            chan,
 	            priv->strength,
 	            priv->flags & NM_802_11_AP_FLAGS_PRIVACY ? 'P' : '_',
+	            priv->metered ? 'M' : '_',
 	            priv->wpa_flags & 0xFFFF,
 	            priv->rsn_flags & 0xFFFF,
 	            priv->last_seen > 0 ? ((now_s > 0 ? now_s : nm_utils_get_monotonic_timestamp_s ()) - priv->last_seen) : -1,
@@ -1232,7 +1237,7 @@ nm_wifi_ap_new_fake_from_connection (NMConnection *connection)
 	const char *mode, *band, *key_mgmt;
 	guint32 channel;
 	NM80211ApSecurityFlags flags;
-	gboolean psk = FALSE, eap = FALSE;
+	gboolean psk = FALSE, eap = FALSE, adhoc = FALSE;
 
 	g_return_val_if_fail (connection != NULL, NULL);
 
@@ -1252,9 +1257,10 @@ nm_wifi_ap_new_fake_from_connection (NMConnection *connection)
 	if (mode) {
 		if (!strcmp (mode, "infrastructure"))
 			nm_wifi_ap_set_mode (ap, NM_802_11_MODE_INFRA);
-		else if (!strcmp (mode, "adhoc"))
+		else if (!strcmp (mode, "adhoc")) {
 			nm_wifi_ap_set_mode (ap, NM_802_11_MODE_ADHOC);
-		else if (!strcmp (mode, "mesh"))
+			adhoc = TRUE;
+		} else if (!strcmp (mode, "mesh"))
 			nm_wifi_ap_set_mode (ap, NM_802_11_MODE_MESH);
 		else if (!strcmp (mode, "ap")) {
 			nm_wifi_ap_set_mode (ap, NM_802_11_MODE_INFRA);
@@ -1293,7 +1299,7 @@ nm_wifi_ap_new_fake_from_connection (NMConnection *connection)
 
 	psk = !strcmp (key_mgmt, "wpa-psk");
 	eap = !strcmp (key_mgmt, "wpa-eap");
-	if (psk || eap) {
+	if (!adhoc && (psk || eap)) {
 		if (has_proto (s_wireless_sec, PROTO_WPA)) {
 			flags = priv->wpa_flags | (eap ? NM_802_11_AP_SEC_KEY_MGMT_802_1X : NM_802_11_AP_SEC_KEY_MGMT_PSK);
 			nm_wifi_ap_set_wpa_flags (ap, flags);
@@ -1305,42 +1311,27 @@ nm_wifi_ap_new_fake_from_connection (NMConnection *connection)
 
 		add_pair_ciphers (ap, s_wireless_sec);
 		add_group_ciphers (ap, s_wireless_sec);
-	} else if (!strcmp (key_mgmt, "wpa-none")) {
-		guint32 i;
-
-		/* Ad-Hoc has special requirements: proto=WPA, pairwise=(none), and
-		 * group=TKIP/CCMP (but not both).
+	} else if (adhoc && psk) {
+		/* Ad-Hoc has special requirements: proto=RSN, pairwise=CCMP and
+		 * group=CCMP.
 		 */
-
 		flags = priv->wpa_flags | NM_802_11_AP_SEC_KEY_MGMT_PSK;
 
-		/* Clear ciphers; pairwise must be unset anyway, and group gets set below */
+		/* Clear ciphers; only CCMP is supported */
 		flags &= ~(  NM_802_11_AP_SEC_PAIR_WEP40
 		           | NM_802_11_AP_SEC_PAIR_WEP104
 		           | NM_802_11_AP_SEC_PAIR_TKIP
-		           | NM_802_11_AP_SEC_PAIR_CCMP
 		           | NM_802_11_AP_SEC_GROUP_WEP40
 		           | NM_802_11_AP_SEC_GROUP_WEP104
-		           | NM_802_11_AP_SEC_GROUP_TKIP
-		           | NM_802_11_AP_SEC_GROUP_CCMP);
+		           | NM_802_11_AP_SEC_GROUP_TKIP);
 
-		for (i = 0; i < nm_setting_wireless_security_get_num_groups (s_wireless_sec); i++) {
-			if (!strcmp (nm_setting_wireless_security_get_group (s_wireless_sec, i), "ccmp")) {
-				flags |= NM_802_11_AP_SEC_GROUP_CCMP;
-				break;
-			}
-		}
+		flags |= NM_802_11_AP_SEC_PAIR_CCMP;
+		flags |= NM_802_11_AP_SEC_GROUP_CCMP;
+		nm_wifi_ap_set_rsn_flags (ap, flags);
 
-		/* Default to TKIP since not all WPA-capable cards can do CCMP */
-		if (!(flags & NM_802_11_AP_SEC_GROUP_CCMP))
-			flags |= NM_802_11_AP_SEC_GROUP_TKIP;
-
-		nm_wifi_ap_set_wpa_flags (ap, flags);
-
-		/* Don't use Ad-Hoc RSN yet */
-		nm_wifi_ap_set_rsn_flags (ap, NM_802_11_AP_SEC_NONE);
+		/* Don't use Ad-Hoc WPA (WPA-none) anymore */
+		nm_wifi_ap_set_wpa_flags (ap, NM_802_11_AP_SEC_NONE);
 	}
-
 done:
 	return ap;
 

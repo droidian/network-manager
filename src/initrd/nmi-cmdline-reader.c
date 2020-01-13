@@ -1,20 +1,5 @@
-/* NetworkManager initrd configuration generator
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: LGPL-2.1+
+/*
  * Copyright (C) 2018 Red Hat, Inc.
  */
 
@@ -47,6 +32,50 @@ _connection_matches_type (gpointer key, gpointer value, gpointer user_data)
 }
 
 static NMConnection *
+add_conn (GHashTable *connections,
+          const char *basename,
+          const char *id,
+          const char *ifname,
+          const char *type_name,
+          NMConnectionMultiConnect multi_connect)
+{
+	NMConnection *connection;
+	NMSetting *setting;
+
+	connection = nm_simple_connection_new ();
+	g_hash_table_insert (connections, g_strdup (basename), connection);
+
+	/* Start off assuming dynamic IP configurations. */
+
+	setting = nm_setting_ip4_config_new ();
+	nm_connection_add_setting (connection, setting);
+	g_object_set (setting,
+	              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO,
+	              NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE,
+	              NULL);
+
+	setting = nm_setting_ip6_config_new ();
+	nm_connection_add_setting (connection, setting);
+	g_object_set (setting,
+	              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO,
+	              NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE,
+	              NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE, (int) NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64,
+	              NULL);
+
+	setting = nm_setting_connection_new ();
+	nm_connection_add_setting (connection, setting);
+	g_object_set (setting,
+	              NM_SETTING_CONNECTION_ID, id,
+	              NM_SETTING_CONNECTION_UUID, nm_utils_uuid_generate_a (),
+	              NM_SETTING_CONNECTION_INTERFACE_NAME, ifname,
+	              NM_SETTING_CONNECTION_TYPE, type_name,
+	              NM_SETTING_CONNECTION_MULTI_CONNECT, multi_connect,
+	              NULL);
+
+	return connection;
+}
+
+static NMConnection *
 get_conn (GHashTable *connections, const char *ifname, const char *type_name)
 {
 	NMConnection *connection;
@@ -76,40 +105,15 @@ get_conn (GHashTable *connections, const char *ifname, const char *type_name)
 		                                (gpointer) type_name);
 	}
 
-	if (connection) {
-		setting = (NMSetting *)nm_connection_get_setting_connection (connection);
-	} else {
-		connection = nm_simple_connection_new ();
-		g_hash_table_insert (connections, g_strdup (basename), connection);
-
-		/* Start off assuming dynamic IP configurations. */
-
-		setting = nm_setting_ip4_config_new ();
-		nm_connection_add_setting (connection, setting);
-		g_object_set (setting,
-		              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO,
-		              NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE,
-		              NULL);
-
-		setting = nm_setting_ip6_config_new ();
-		nm_connection_add_setting (connection, setting);
-		g_object_set (setting,
-		              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO,
-		              NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE,
-		              NULL);
-
-		setting = nm_setting_connection_new ();
-		nm_connection_add_setting (connection, setting);
-		g_object_set (setting,
-		              NM_SETTING_CONNECTION_ID, ifname ?: "Wired Connection",
-		              NM_SETTING_CONNECTION_UUID, nm_utils_uuid_generate_a (),
-		              NM_SETTING_CONNECTION_INTERFACE_NAME, ifname,
-		              NM_SETTING_CONNECTION_MULTI_CONNECT, multi_connect,
-		              NULL);
-
+	if (!connection) {
 		if (!type_name)
 			type_name = NM_SETTING_WIRED_SETTING_NAME;
+
+		connection = add_conn (connections, basename,
+		                       ifname ?: "Wired Connection",
+		                       ifname, type_name, multi_connect);
 	}
+	setting = (NMSetting *)nm_connection_get_setting_connection (connection);
 
 	if (type_name) {
 		g_object_set (setting, NM_SETTING_CONNECTION_TYPE, type_name, NULL);
@@ -252,7 +256,8 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 		}
 	}
 
-	if (ifname == NULL && g_strcmp0 (kind, "ibft") == 0) {
+	if (ifname == NULL && (   g_strcmp0 (kind, "fw") == 0
+	                       || g_strcmp0 (kind, "ibft") == 0)) {
 		GHashTableIter iter;
 		const char *mac;
 		GHashTable *nic;
@@ -281,6 +286,13 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 
 			g_hash_table_insert (connections,
 			                     g_strdup_printf ("ibft%s", index),
+			                     connection);
+		}
+
+		connection = nmi_dt_reader_parse (sysfs_dir);
+		if (connection) {
+			g_hash_table_insert (connections,
+			                     g_strdup ("ofw"),
 			                     connection);
 		}
 
@@ -480,7 +492,10 @@ parse_ip (GHashTable *connections, const char *sysfs_dir, char *argument)
 }
 
 static void
-parse_master (GHashTable *connections, char *argument, const char *type_name)
+parse_master (GHashTable *connections,
+              char *argument,
+              const char *type_name,
+              const char *default_name)
 {
 	NMConnection *connection;
 	NMSettingConnection *s_con;
@@ -496,7 +511,7 @@ parse_master (GHashTable *connections, char *argument, const char *type_name)
 
 	master = get_word (&argument, ':');
 	if (!master)
-		master = master_to_free = g_strdup_printf ("%s0", type_name);
+		master = master_to_free = g_strdup_printf ("%s0", default_name ?: type_name);
 	slaves = get_word (&argument, ':');
 
 	connection = get_conn (connections, master, type_name);
@@ -633,6 +648,13 @@ parse_bootdev (GHashTable *connections, char *argument)
 	NMSettingConnection *s_con;
 
 	connection = get_conn (connections, NULL, NULL);
+
+	if (   nm_connection_get_interface_name (connection)
+	    && strcmp (nm_connection_get_interface_name (connection), argument) != 0) {
+		/* If the default connection already has an interface name,
+		 * we should not overwrite it. Create a new one instead. */
+		connection = get_conn (connections, argument, NULL);
+	}
 
 	s_con = nm_connection_get_setting_connection (connection);
 	g_object_set (s_con,
@@ -803,11 +825,11 @@ nmi_cmdline_reader_parse (const char *sysfs_dir, const char *const*argv)
 		else if (strcmp (tag, "rd.route") == 0)
 			parse_rd_route (connections, argument);
 		else if (strcmp (tag, "bridge") == 0)
-			parse_master (connections, argument, NM_SETTING_BRIDGE_SETTING_NAME);
+			parse_master (connections, argument, NM_SETTING_BRIDGE_SETTING_NAME, "br");
 		else if (strcmp (tag, "bond") == 0)
-			parse_master (connections, argument, NM_SETTING_BOND_SETTING_NAME);
+			parse_master (connections, argument, NM_SETTING_BOND_SETTING_NAME, NULL);
 		else if (strcmp (tag, "team") == 0)
-			parse_master (connections, argument, NM_SETTING_TEAM_SETTING_NAME);
+			parse_master (connections, argument, NM_SETTING_TEAM_SETTING_NAME, NULL);
 		else if (strcmp (tag, "vlan") == 0)
 			parse_vlan (connections, argument);
 		else if (strcmp (tag, "bootdev") == 0)
@@ -846,8 +868,19 @@ nmi_cmdline_reader_parse (const char *sysfs_dir, const char *const*argv)
 		}
 
 		connection = get_conn (connections, NULL, NM_SETTING_WIRED_SETTING_NAME);
-
 		s_wired = nm_connection_get_setting_wired (connection);
+
+		if (   nm_connection_get_interface_name (connection)
+		    || (   nm_setting_wired_get_mac_address (s_wired)
+		        && !nm_utils_hwaddr_matches (nm_setting_wired_get_mac_address (s_wired), -1,
+		                                     bootif, -1))) {
+			connection = add_conn (connections, "bootif_connection", "BOOTIF Connection",
+			                       NULL, NM_SETTING_WIRED_SETTING_NAME,
+			                       NM_CONNECTION_MULTI_CONNECT_SINGLE);
+			s_wired = (NMSettingWired *) nm_setting_wired_new ();
+			nm_connection_add_setting (connection, (NMSetting *) s_wired);
+		}
+
 		g_object_set (s_wired,
 		              NM_SETTING_WIRED_MAC_ADDRESS, bootif,
 		              NULL);

@@ -94,6 +94,9 @@ int n_dhcp4_client_config_dup(NDhcp4ClientConfig *config, NDhcp4ClientConfig **d
         dup->n_mac = config->n_mac;
         memcpy(dup->broadcast_mac, config->broadcast_mac, sizeof(dup->broadcast_mac));
         dup->n_broadcast_mac = config->n_broadcast_mac;
+        dup->log.level = config->log.level;
+        dup->log.func = config->log.func;
+        dup->log.data = config->log.data;
 
         r = n_dhcp4_client_config_set_client_id(dup,
                                                 config->client_id,
@@ -248,6 +251,15 @@ _c_public_ int n_dhcp4_client_config_set_client_id(NDhcp4ClientConfig *config, c
         return 0;
 }
 
+_c_public_ void n_dhcp4_client_config_set_log_level(NDhcp4ClientConfig *config, int level) {
+        config->log.level = level;
+}
+
+_c_public_ void n_dhcp4_client_config_set_log_func(NDhcp4ClientConfig *config, NDhcp4LogFunc func, void *data) {
+        config->log.func = func;
+        config->log.data = data;
+}
+
 /**
  * n_dhcp4_c_event_node_new() - allocate new event
  * @nodep:                      output argument for new event
@@ -376,8 +388,14 @@ _c_public_ int n_dhcp4_client_new(NDhcp4Client **clientp, NDhcp4ClientConfig *co
                 return -errno;
 
         client->fd_timer = timerfd_create(CLOCK_BOOTTIME, TFD_CLOEXEC | TFD_NONBLOCK);
-        if (client->fd_timer < 0)
-                return -errno;
+        if (client->fd_timer < 0) {
+                if (errno != EINVAL)
+                        return -errno;
+                client->fd_timer = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC | TFD_NONBLOCK);
+                if (client->fd_timer < 0)
+                        return -errno;
+                client->timerfd_is_monotonic = true;
+        }
 
         ev.data.u32 = N_DHCP4_CLIENT_EPOLL_TIMER;
         r = epoll_ctl(client->fd_epoll, EPOLL_CTL_ADD, client->fd_timer, &ev);
@@ -487,8 +505,24 @@ void n_dhcp4_client_arm_timer(NDhcp4Client *client) {
                 n_dhcp4_client_probe_get_timeout(client->current_probe, &timeout);
 
         if (timeout != client->scheduled_timeout) {
+                uint64_t scheduled_timeout = timeout;
+                int flags = TFD_TIMER_ABSTIME;
+
+                if (   timeout != 0
+                    && client->timerfd_is_monotonic) {
+                        uint64_t now;
+
+                        /* the timerfd ticks with CLOCK_MONOTONIC. Calculate and set the relative
+                         * timeout. */
+                        now = n_dhcp4_gettime(CLOCK_BOOTTIME);
+                        if (timeout <= now)
+                                timeout = 1;
+                        else
+                                timeout = timeout - now;
+                        flags = 0;
+                }
                 r = timerfd_settime(client->fd_timer,
-                                    TFD_TIMER_ABSTIME,
+                                    flags,
                                     &(struct itimerspec){
                                         .it_value = {
                                                 .tv_sec = timeout / UINT64_C(1000000000),
@@ -498,7 +532,7 @@ void n_dhcp4_client_arm_timer(NDhcp4Client *client) {
                                     NULL);
                 c_assert(r >= 0);
 
-                client->scheduled_timeout = timeout;
+                client->scheduled_timeout = scheduled_timeout;
         }
 }
 
@@ -647,7 +681,12 @@ _c_public_ int n_dhcp4_client_dispatch(NDhcp4Client *client) {
 
                                 /* continue normally */
                         } else if (r) {
-                                c_assert(r < _N_DHCP4_E_INTERNAL);
+                                if (r >= _N_DHCP4_E_INTERNAL) {
+                                        n_dhcp4_c_log(client->config, LOG_ERR,
+                                                      "invalid internal error code %d after dispatch",
+                                                      r);
+                                        return N_DHCP4_E_INTERNAL;
+                                }
                                 return r;
                         }
                 }

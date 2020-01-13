@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2014 Red Hat, Inc.
+ * Copyright (C) 2014 Red Hat, Inc.
  */
 
 #ifndef __NM_TEST_UTILS_H__
@@ -1023,6 +1009,34 @@ _nmtst_main_loop_quit_on_notify (GObject *object, GParamSpec *pspec, gpointer us
 	g_main_loop_quit (loop);
 }
 #define nmtst_main_loop_quit_on_notify ((GCallback) _nmtst_main_loop_quit_on_notify)
+
+static inline gboolean
+_nmtst_main_context_iterate_until_timeout (gpointer user_data)
+{
+	gboolean *p_had_pointer = user_data;
+
+	g_assert (!*p_had_pointer);
+	*p_had_pointer = TRUE;
+	return G_SOURCE_CONTINUE;
+}
+
+#define nmtst_main_context_iterate_until(context, timeout_ms, condition) \
+	G_STMT_START { \
+		nm_auto_destroy_and_unref_gsource GSource *_source = NULL; \
+		GMainContext *_context = (context); \
+		gboolean _had_timeout = FALSE; \
+		\
+		_source = g_timeout_source_new (timeout_ms); \
+		g_source_set_callback (_source, _nmtst_main_context_iterate_until_timeout, &_had_timeout, NULL); \
+		g_source_attach (_source, _context); \
+		\
+		while (TRUE) { \
+			if (condition) \
+				break; \
+			g_main_context_iteration (_context, TRUE); \
+			g_assert (!_had_timeout && #condition); \
+		} \
+	} G_STMT_END
 
 /*****************************************************************************/
 
@@ -2293,6 +2307,15 @@ nmtst_keyfile_get_num_keys (GKeyFile *keyfile,
 	g_assert_cmpint (NM_PTRARRAY_LEN (keys), ==, l);
 
 	return l;
+}
+
+/*****************************************************************************/
+
+static inline gboolean
+nmtst_g_source_assert_not_called (gpointer user_data)
+{
+	g_assert_not_reached ();
+	return G_SOURCE_CONTINUE;
 }
 
 /*****************************************************************************/

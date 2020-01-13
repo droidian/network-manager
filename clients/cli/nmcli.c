@@ -1,22 +1,7 @@
-/* nmcli - command-line tool to control NetworkManager
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Jiri Klimes <jklimes@redhat.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2010 - 2018 Red Hat, Inc.
+ * Copyright (C) 2010 - 2018 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -65,6 +50,7 @@
 	[NM_META_COLOR_DEVICE_FIRMWARE_MISSING]  = "31", \
 	[NM_META_COLOR_DEVICE_PLUGIN_MISSING]    = "31", \
 	[NM_META_COLOR_DEVICE_UNAVAILABLE]       =  "2", \
+	[NM_META_COLOR_DEVICE_DISABLED]          = "31", \
 	[NM_META_COLOR_MANAGER_RUNNING]          = "32", \
 	[NM_META_COLOR_MANAGER_STARTING]         = "33", \
 	[NM_META_COLOR_MANAGER_STOPPED]          = "31", \
@@ -470,6 +456,12 @@ check_colors (NmcColorOption color_option,
 		return FALSE;
 	}
 
+	if (   color_option == NMC_USE_COLOR_AUTO
+	    && g_getenv ("NO_COLOR")) {
+		/* https://no-color.org/ */
+		return FALSE;
+	}
+
 	term = g_getenv ("TERM");
 
 	if (color_option == NMC_USE_COLOR_AUTO) {
@@ -571,6 +563,7 @@ parse_color_scheme (char *palette_buffer,
 		[NM_META_COLOR_DEVICE_FIRMWARE_MISSING]  = "device-firmware-missing",
 		[NM_META_COLOR_DEVICE_PLUGIN_MISSING]    = "device-plugin-missing",
 		[NM_META_COLOR_DEVICE_UNAVAILABLE]       = "device-unavailable",
+		[NM_META_COLOR_DEVICE_DISABLED]          = "device-disabled",
 		[NM_META_COLOR_DEVICE_UNKNOWN]           = "device-unknown",
 		[NM_META_COLOR_MANAGER_RUNNING]          = "manager-running",
 		[NM_META_COLOR_MANAGER_STARTING]         = "manager-starting",

@@ -1,0 +1,36 @@
+From: Beniamino Galvani <bgalvani@redhat.com>
+Date: Tue, 7 Jan 2020 12:03:21 +0100
+Subject: dhcp: nettools: handle 'retracted' event as 'expired'
+
+The 'retracted' event is emitted when the client receives a NAK in the
+rebooting, requesting, renewing or rebinding state, while 'expired'
+means that the client wasn't able to renew the lease before expiry.
+
+In both cases the old lease is no longer valid and n-dhcp4 keep trying
+to get a lease, so the two events should be handlded in the same way.
+
+Note that the systemd client doesn't have a 'retracted' event and
+considers all NAKs as 'expired' events.
+
+(cherry picked from commit 2523000b36b113fd7b94ae6b7178f6fd33908ef9)
+(cherry picked from commit 92b382e2f85b0870b553358cec0209a0a0e3ce31)
+---
+ src/dhcp/nm-dhcp-nettools.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/dhcp/nm-dhcp-nettools.c b/src/dhcp/nm-dhcp-nettools.c
+index 1f76c64..b4c0a45 100644
+--- a/src/dhcp/nm-dhcp-nettools.c
++++ b/src/dhcp/nm-dhcp-nettools.c
+@@ -1028,10 +1028,10 @@ dhcp4_event_handle (NMDhcpNettools *self,
+ 			_LOGW ("selecting lease failed: %d", r);
+ 		}
+ 		break;
++	case N_DHCP4_CLIENT_EVENT_RETRACTED:
+ 	case N_DHCP4_CLIENT_EVENT_EXPIRED:
+ 		nm_dhcp_client_set_state (NM_DHCP_CLIENT (self), NM_DHCP_STATE_EXPIRE, NULL, NULL);
+ 		break;
+-	case N_DHCP4_CLIENT_EVENT_RETRACTED:
+ 	case N_DHCP4_CLIENT_EVENT_CANCELLED:
+ 		nm_dhcp_client_set_state (NM_DHCP_CLIENT (self), NM_DHCP_STATE_FAIL, NULL, NULL);
+ 		break;

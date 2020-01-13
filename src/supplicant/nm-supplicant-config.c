@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2006 - 2012 Red Hat, Inc.
  * Copyright (C) 2007 - 2008 Novell, Inc.
  */
@@ -598,20 +584,20 @@ nm_supplicant_config_add_bgscan (NMSupplicantConfig *self,
 	 * (b) since EAP/802.1x isn't used and thus there are fewer steps to fail
 	 * during a roam, we can wait longer before scanning for roam candidates.
 	 */
-	bgscan = "simple:30:-80:86400";
+	bgscan = "simple:30:-70:86400";
 
-	/* If using WPA Enterprise or Dynamic WEP use a shorter bgscan interval on
-	 * the assumption that this is a multi-AP ESS in which we want more reliable
-	 * roaming between APs.  Thus trigger scans when the signal is still somewhat
-	 * OK so we have an up-to-date roam candidate list when the signal gets bad.
+	/* If using WPA Enterprise, Dynamic WEP or we have seen more than one AP use
+	 * a shorter bgscan interval on the assumption that this is a multi-AP ESS
+	 * in which we want more reliable roaming between APs. Thus trigger scans
+	 * when the signal is still somewhat OK so we have an up-to-date roam
+	 * candidate list when the signal gets bad.
 	 */
-	s_wsec = nm_connection_get_setting_wireless_security (connection);
-	if (s_wsec) {
-		if (NM_IN_STRSET (nm_setting_wireless_security_get_key_mgmt (s_wsec),
-		                  "ieee8021x",
-		                  "wpa-eap"))
-			bgscan = "simple:30:-65:300";
-	}
+	if (   nm_setting_wireless_get_num_seen_bssids (s_wifi) > 1
+	    || (   (s_wsec = nm_connection_get_setting_wireless_security (connection))
+	        && NM_IN_STRSET (nm_setting_wireless_security_get_key_mgmt (s_wsec),
+	                         "ieee8021x",
+	                         "wpa-eap")))
+		bgscan = "simple:30:-65:300";
 
 	return nm_supplicant_config_add_option (self, "bgscan", bgscan, -1, FALSE, error);
 }
@@ -897,8 +883,7 @@ nm_supplicant_config_add_setting_wireless_security (NMSupplicantConfig *self,
 	}
 
 	/* Only WPA-specific things when using WPA */
-	if (   !strcmp (key_mgmt, "wpa-none")
-	    || !strcmp (key_mgmt, "wpa-psk")
+	if (   !strcmp (key_mgmt, "wpa-psk")
 	    || !strcmp (key_mgmt, "wpa-eap")
 	    || !strcmp (key_mgmt, "sae")) {
 		if (!ADD_STRING_LIST_VAL (self, setting, wireless_security, proto, protos, "proto", ' ', TRUE, NULL, error))
@@ -909,7 +894,6 @@ nm_supplicant_config_add_setting_wireless_security (NMSupplicantConfig *self,
 			return FALSE;
 
 		if (   set_pmf
-		    && !nm_streq (key_mgmt, "wpa-none")
 		    && NM_IN_SET (pmf,
 		                  NM_SETTING_WIRELESS_SECURITY_PMF_DISABLE,
 		                  NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED)) {

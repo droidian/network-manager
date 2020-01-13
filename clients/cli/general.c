@@ -1,20 +1,6 @@
-/* nmcli - command-line tool to control NetworkManager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2010 - 2018 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2010 - 2018 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -367,6 +353,38 @@ usage_general_permissions (void)
 }
 
 static void
+usage_general_reload (void)
+{
+	g_printerr (_("Usage: nmcli general reload { ARGUMENTS | help }\n"
+	              "\n"
+	              "ARGUMENTS := [<flag>[,<flag>...]]\n"
+	              "\n"
+	              "Reload NetworkManager's configuration and perform certain updates, like\n"
+	              "flushing caches or rewriting external state to disk. This is similar to\n"
+	              "sending SIGHUP to NetworkManager but it allows for more fine-grained\n"
+	              "control over what to reload through the flags argument. It also allows\n"
+	              "non-root access via PolicyKit and contrary to signals it is synchronous.\n"
+	              "\n"
+	              "Available flags are:\n"
+	              "\n"
+	              "  'conf'        Reload the NetworkManager.conf configuration from\n"
+	              "                disk. Note that this does not include connections, which\n"
+	              "                can be reloaded through 'nmcli connection reload' instead.\n"
+	              "\n"
+	              "  'dns-rc'      Update DNS configuration, which usually involves writing\n"
+	              "                /etc/resolv.conf anew.\n"
+	              "\n"
+	              "  'dns-full'    Restart the DNS plugin. This is for example useful when\n"
+	              "                using dnsmasq plugin, which uses additional configuration\n"
+	              "                in /etc/NetworkManager/dnsmasq.d. If you edit those files,\n"
+	              "                you can restart the DNS plugin. This action shortly\n"
+	              "                interrupts name resolution.\n"
+	              "\n"
+	              "With no flags, everything that is supported is reloaded, which is\n"
+	              "identical to sending a SIGHUP.\n"));
+}
+
+static void
 usage_general_logging (void)
 {
 	g_printerr (_("Usage: nmcli general logging { ARGUMENTS | help }\n"
@@ -582,6 +600,9 @@ permission_changed (NMClient *client,
 	if (got_permissions (nmc)) {
 		/* Defer the printing, so that we have a chance to process the other
 		 * permission-changed signals. */
+		g_signal_handlers_disconnect_by_func (nmc->client,
+		                                      G_CALLBACK (permission_changed),
+		                                      nmc);
 		g_idle_remove_by_data (nmc);
 		g_idle_add (print_permissions, nmc);
 	}
@@ -598,7 +619,7 @@ show_nm_permissions (NmCli *nmc)
 
 	/* The client didn't get the permissions reply yet. Subscribe to changes. */
 	g_signal_connect (nmc->client, NM_CLIENT_PERMISSION_CHANGED,
-                          G_CALLBACK (permission_changed), nmc);
+	                  G_CALLBACK (permission_changed), nmc);
 
 	if (nmc->timeout == -1)
 		nmc->timeout = 10;
@@ -606,6 +627,70 @@ show_nm_permissions (NmCli *nmc)
 
 	nmc->should_wait++;
 	return TRUE;
+}
+
+static NMCResultCode
+do_general_reload (NmCli *nmc, int argc, char **argv)
+{
+	gs_unref_variant GVariant *result = NULL;
+	gs_free_error GError *error = NULL;
+	gs_free const char **values = NULL;
+	gs_free char *err_token = NULL;
+	gs_free char *joined = NULL;
+	int flags = 0;
+
+	next_arg (nmc, &argc, &argv, NULL);
+
+	if (nmc->complete) {
+		if (argc == 0)
+			return nmc->return_value;
+
+		if (argc == 1) {
+			values = nm_utils_enum_get_values (nm_manager_reload_flags_get_type (),
+			                                   NM_MANAGER_RELOAD_FLAG_CONF,
+			                                   NM_MANAGER_RELOAD_FLAG_ALL);
+			nmc_complete_strv (*argv, -1, values);
+		}
+		return nmc->return_value;
+	}
+
+	if (argc > 0) {
+		if (!nm_utils_enum_from_str (nm_manager_reload_flags_get_type (), *argv, &flags, &err_token)) {
+			values = nm_utils_enum_get_values (nm_manager_reload_flags_get_type (),
+			                                   NM_MANAGER_RELOAD_FLAG_CONF,
+			                                   NM_MANAGER_RELOAD_FLAG_ALL);
+			joined = g_strjoinv (",", (char **) values);
+			g_string_printf (nmc->return_text,
+			                 _("Error: invalid reload flag '%s'. Allowed flags are: %s"),
+			                 err_token,
+			                 joined);
+			return NMC_RESULT_ERROR_USER_INPUT;
+		}
+		argc--;
+		argv++;
+	}
+
+	if (argc > 0) {
+		g_string_printf (nmc->return_text, _("Error: extra argument '%s'"), *argv);
+		return NMC_RESULT_ERROR_USER_INPUT;
+	}
+
+	result = nmc_dbus_call_sync (nmc,
+	                             "/org/freedesktop/NetworkManager",
+	                             "org.freedesktop.NetworkManager",
+	                             "Reload",
+	                             g_variant_new ("(u)", flags),
+	                             G_VARIANT_TYPE("()"),
+	                             &error);
+
+	if (error) {
+		g_string_printf (nmc->return_text,
+		                 _("Error: failed to reload: %s"),
+		                 nmc_error_get_simple_message (error));
+		return NMC_RESULT_ERROR_UNKNOWN;
+	}
+
+	return nmc->return_value;
 }
 
 static NMCResultCode
@@ -785,6 +870,7 @@ static const NMCCommand general_cmds[] = {
 	{ "hostname",     do_general_hostname,     usage_general_hostname,     TRUE,   TRUE },
 	{ "permissions",  do_general_permissions,  usage_general_permissions,  TRUE,   TRUE },
 	{ "logging",      do_general_logging,      usage_general_logging,      TRUE,   TRUE },
+	{ "reload",       do_general_reload,       usage_general_reload,       FALSE,  FALSE },
 	{ NULL,           do_general_status,       usage_general,              TRUE,   TRUE },
 };
 
@@ -1158,6 +1244,41 @@ device_overview (NmCli *nmc, NMDevice *device)
 		g_string_append_printf (outbuf, "%s, ", tmp);
 		g_free (tmp);
 	}
+
+	switch (nm_device_get_device_type (device)) {
+	case NM_DEVICE_TYPE_WIFI:
+	case NM_DEVICE_TYPE_OLPC_MESH:
+	case NM_DEVICE_TYPE_WIFI_P2P:
+		if (!nm_client_wireless_get_enabled (nmc->client)) {
+			tmp = nmc_colorize (&nmc->nmc_config, NM_META_COLOR_DEVICE_DISABLED, _("sw disabled"));
+			g_string_append_printf (outbuf, "%s, ", tmp);
+			g_free (tmp);
+		}
+		if (!nm_client_wireless_hardware_get_enabled (nmc->client)) {
+			tmp = nmc_colorize (&nmc->nmc_config, NM_META_COLOR_DEVICE_DISABLED, _("hw disabled"));
+			g_string_append_printf (outbuf, "%s, ", tmp);
+			g_free (tmp);
+		}
+		break;
+	case NM_DEVICE_TYPE_MODEM:
+		if (  nm_device_modem_get_current_capabilities (NM_DEVICE_MODEM (device))
+		    & (NM_DEVICE_MODEM_CAPABILITY_GSM_UMTS | NM_DEVICE_MODEM_CAPABILITY_CDMA_EVDO)) {
+			if (!nm_client_wwan_get_enabled (nmc->client)) {
+				tmp = nmc_colorize (&nmc->nmc_config, NM_META_COLOR_DEVICE_DISABLED, _("sw disabled"));
+				g_string_append_printf (outbuf, "%s, ", tmp);
+				g_free (tmp);
+			}
+			if (!nm_client_wwan_hardware_get_enabled (nmc->client)) {
+				tmp = nmc_colorize (&nmc->nmc_config, NM_META_COLOR_DEVICE_DISABLED, _("hw disabled"));
+				g_string_append_printf (outbuf, "%s, ", tmp);
+				g_free (tmp);
+			}
+		}
+		break;
+	default:
+		break;
+	}
+
 	if (nm_device_is_software (device))
 		g_string_append_printf (outbuf, "%s, ", _("sw"));
 	else
@@ -1296,11 +1417,20 @@ do_overview (NmCli *nmc, int argc, char **argv)
 
 		state = nm_device_get_state (devices[i]);
 		color = nmc_device_state_to_color (state);
-		tmp = nmc_colorize (&nmc->nmc_config, color, "%s: %s%s%s",
-		                    nm_device_get_iface (devices[i]),
-		                    gettext (nmc_device_state_to_string (state)),
-		                    ac ? " to " : "",
-		                    ac ? nm_active_connection_get_id (ac) : "");
+		if (ac) {
+			/* TRANSLATORS: prints header line for activated device in plain `nmcli` overview output as
+			 * "<interface-name>: <device-state> to <connection-id>" */
+			tmp = nmc_colorize (&nmc->nmc_config, color, C_("nmcli-overview", "%s: %s to %s"),
+			                    nm_device_get_iface (devices[i]),
+			                    gettext (nmc_device_state_to_string (state)),
+			                    nm_active_connection_get_id (ac));
+		} else {
+			/* TRANSLATORS: prints header line for not active device in plain `nmcli` overview output as
+			 * "<interface-name>: <device-state>" */
+			tmp = nmc_colorize (&nmc->nmc_config, color, C_("nmcli-overview", "%s: %s"),
+			                    nm_device_get_iface (devices[i]),
+			                    gettext (nmc_device_state_to_string (state)));
+		}
 		g_print ("%s\n", tmp);
 		g_free (tmp);
 

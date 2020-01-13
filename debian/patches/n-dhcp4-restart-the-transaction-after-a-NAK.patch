@@ -1,0 +1,70 @@
+From: Beniamino Galvani <bgalvani@redhat.com>
+Date: Tue, 7 Jan 2020 12:02:55 +0100
+Subject: n-dhcp4: restart the transaction after a NAK
+
+It is not enough to set the INIT state after a NAK; a timeout
+(ns_deferred) must be set so that it is added to the event fd. The
+client retries immediately the first time, so that in the successful
+case it gets an address quickly. To avoid flooding the network in case
+of servers always replying with NAKs, next attempts are done with
+intervals from 2 seconds to 5 minutes using exponential backoff. See
+also systemd commit [1].
+
+[1] https://github.com/systemd/systemd/commit/1d1a3e0afb85478cda43670b8ed92a6db6c83f3e
+
+https://gitlab.freedesktop.org/NetworkManager/NetworkManager/issues/325
+(cherry picked from commit 218782a9a3c326f5c8cc3ea40dc0cd039060b188)
+(cherry picked from commit ae5b9343d2e52917546f228b7a4d3c7fc4fa98ec)
+---
+ shared/n-dhcp4/src/n-dhcp4-c-probe.c | 10 ++++++----
+ shared/n-dhcp4/src/n-dhcp4-private.h |  1 +
+ 2 files changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/shared/n-dhcp4/src/n-dhcp4-c-probe.c b/shared/n-dhcp4/src/n-dhcp4-c-probe.c
+index 4fb7d38..82a089e 100644
+--- a/shared/n-dhcp4/src/n-dhcp4-c-probe.c
++++ b/shared/n-dhcp4/src/n-dhcp4-c-probe.c
+@@ -946,7 +946,7 @@ static int n_dhcp4_client_probe_transition_ack(NDhcp4ClientProbe *probe, NDhcp4I
+                 n_dhcp4_client_lease_unref(probe->current_lease);
+                 probe->current_lease = n_dhcp4_client_lease_ref(lease);
+                 probe->state = N_DHCP4_CLIENT_PROBE_STATE_BOUND;
+-
++                probe->ns_nak_restart_delay = 0;
+                 break;
+ 
+         case N_DHCP4_CLIENT_PROBE_STATE_REQUESTING:
+@@ -969,7 +969,7 @@ static int n_dhcp4_client_probe_transition_ack(NDhcp4ClientProbe *probe, NDhcp4I
+                 node->event.granted.lease = n_dhcp4_client_lease_ref(lease);
+                 probe->current_lease = n_dhcp4_client_lease_ref(lease);
+                 probe->state = N_DHCP4_CLIENT_PROBE_STATE_GRANTED;
+-
++                probe->ns_nak_restart_delay = 0;
+                 break;
+ 
+         case N_DHCP4_CLIENT_PROBE_STATE_INIT:
+@@ -1004,9 +1004,11 @@ static int n_dhcp4_client_probe_transition_nak(NDhcp4ClientProbe *probe) {
+                         return r;
+ 
+                 probe->state = N_DHCP4_CLIENT_PROBE_STATE_INIT;
+-
++                probe->ns_deferred = n_dhcp4_gettime(CLOCK_BOOTTIME) + probe->ns_nak_restart_delay;
++                probe->ns_nak_restart_delay = c_clamp(probe->ns_nak_restart_delay * 2,
++                                                      UINT64_C(1000000000 * 2),
++                                                      UINT64_C(1000000000 * 300));
+                 break;
+-
+         case N_DHCP4_CLIENT_PROBE_STATE_SELECTING:
+         case N_DHCP4_CLIENT_PROBE_STATE_INIT_REBOOT:
+         case N_DHCP4_CLIENT_PROBE_STATE_INIT:
+diff --git a/shared/n-dhcp4/src/n-dhcp4-private.h b/shared/n-dhcp4/src/n-dhcp4-private.h
+index fcfb0f3..c092ae8 100644
+--- a/shared/n-dhcp4/src/n-dhcp4-private.h
++++ b/shared/n-dhcp4/src/n-dhcp4-private.h
+@@ -352,6 +352,7 @@ struct NDhcp4ClientProbe {
+         unsigned int state;                     /* current probe state */
+         uint64_t ns_deferred;                   /* timeout for deferred action */
+         uint64_t ns_reinit;
++        uint64_t ns_nak_restart_delay;          /* restart delay after a nak */
+         NDhcp4ClientLease *current_lease;       /* current lease */
+ 
+         NDhcp4CConnection connection;           /* client connection wrapper */

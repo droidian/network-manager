@@ -480,6 +480,14 @@
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMTernary" title="enum NMTernary">NMTernary</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMManagerReloadFlags" title="enum NMManagerReloadFlags">NMManagerReloadFlags</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMDeviceInterfaceFlags" title="enum NMDeviceInterfaceFlags">NMDeviceInterfaceFlags</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -507,8 +515,10 @@
     <span class="lineart">├──</span> NMBluetoothCapabilities
     <span class="lineart">├──</span> NMCheckpointCreateFlags
     <span class="lineart">├──</span> NMDeviceCapabilities
+    <span class="lineart">├──</span> NMDeviceInterfaceFlags
     <span class="lineart">├──</span> NMDeviceModemCapabilities
     <span class="lineart">├──</span> NMDeviceWifiCapabilities
+    <span class="lineart">├──</span> NMManagerReloadFlags
     <span class="lineart">├──</span> NMSecretAgentCapabilities
     <span class="lineart">├──</span> NMSecretAgentGetSecretsFlags
     <span class="lineart">├──</span> NMSettingsAddConnection2Flags
@@ -893,13 +903,24 @@ extensions.</p>
 <col class="enum_members_description">
 <col width="200px" class="enum_members_annotations">
 </colgroup>
-<tbody><tr>
+<tbody>
+<tr>
 <td class="enum_member_name"><p><a name="NM-CAPABILITY-TEAM:CAPS"></a>NM_CAPABILITY_TEAM</p></td>
 <td class="enum_member_description">
-<p>Teams can be managed</p>
+<p>Teams can be managed. This means the team device plugin
+  is loaded.</p>
 </td>
 <td class="enum_member_annotations"> </td>
-</tr></tbody>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CAPABILITY-OVS:CAPS"></a>NM_CAPABILITY_OVS</p></td>
+<td class="enum_member_description">
+<p>OpenVSwitch can be managed. This means the OVS device plugin
+  is loaded. Since: 1.24, 1.22.2</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
 </table></div>
 </div>
 </div>
@@ -1448,6 +1469,13 @@ GSM/UMTS, or LTE network access protocols</p>
 <td class="enum_member_name"><p><a name="NM-WIFI-DEVICE-CAP-MESH:CAPS"></a>NM_WIFI_DEVICE_CAP_MESH</p></td>
 <td class="enum_member_description">
 <p>device supports acting as a mesh point. Since: 1.20.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-WIFI-DEVICE-CAP-IBSS-RSN:CAPS"></a>NM_WIFI_DEVICE_CAP_IBSS_RSN</p></td>
+<td class="enum_member_description">
+<p>device supports WPA2/RSN in an IBSS network. Since: 1.22.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2444,6 +2472,28 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <hr>
 <div class="refsect2">
 <a name="NMMetered"></a><h3>enum NMMetered</h3>
+<p>The NMMetered enum has two different purposes: one is to configure
+"connection.metered" setting of a connection profile in <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a>, and
+the other is to express the actual metered state of the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> at a given moment.</p>
+<p>For the connection profile only <a class="link" href="libnm-nm-dbus-interface.html#NM-METERED-UNKNOWN:CAPS"><span class="type">NM_METERED_UNKNOWN</span></a>, <a class="link" href="libnm-nm-dbus-interface.html#NM-METERED-NO:CAPS"><span class="type">NM_METERED_NO</span></a>
+and <a class="link" href="libnm-nm-dbus-interface.html#NM-METERED-YES:CAPS"><span class="type">NM_METERED_YES</span></a> are allowed.</p>
+<p>The device's metered state at runtime is determined by the profile
+which is currently active. If the profile explicitly specifies <a class="link" href="libnm-nm-dbus-interface.html#NM-METERED-NO:CAPS"><span class="type">NM_METERED_NO</span></a>
+or <a class="link" href="libnm-nm-dbus-interface.html#NM-METERED-YES:CAPS"><span class="type">NM_METERED_YES</span></a>, then the device's metered state is as such.
+If the connection profile leaves it undecided at <a class="link" href="libnm-nm-dbus-interface.html#NM-METERED-UNKNOWN:CAPS"><span class="type">NM_METERED_UNKNOWN</span></a> (the default),
+then NetworkManager tries to guess the metered state, for example based on the
+device type or on DHCP options (like Android devices exposing a "ANDROID_METERED"
+DHCP vendor option). This then leads to either <a class="link" href="libnm-nm-dbus-interface.html#NM-METERED-GUESS-NO:CAPS"><span class="type">NM_METERED_GUESS_NO</span></a> or <a class="link" href="libnm-nm-dbus-interface.html#NM-METERED-GUESS-YES:CAPS"><span class="type">NM_METERED_GUESS_YES</span></a>.</p>
+<p>Most applications probably should treat the runtime state <a class="link" href="libnm-nm-dbus-interface.html#NM-METERED-GUESS-YES:CAPS"><span class="type">NM_METERED_GUESS_YES</span></a>
+like <a class="link" href="libnm-nm-dbus-interface.html#NM-METERED-YES:CAPS"><span class="type">NM_METERED_YES</span></a>, and all other states as not metered.</p>
+<p>Note that the per-device metered states are then combined to a global metered
+state. This is basically the metered state of the device with the best default
+route. However, that generalization of a global metered state may not be correct
+if the default routes for IPv4 and IPv6 are on different devices, or if policy
+routing is configured. In general, the global metered state tries to express whether
+the traffic is likely metered, but since that depends on the traffic itself,
+there is not one answer in all cases. Hence, an application may want to consider
+the per-device's metered states.</p>
 <div class="refsect3">
 <a name="NMMetered.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -2463,14 +2513,14 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <tr>
 <td class="enum_member_name"><p><a name="NM-METERED-YES:CAPS"></a>NM_METERED_YES</p></td>
 <td class="enum_member_description">
-<p>Metered, the value was statically set</p>
+<p>Metered, the value was explicitly configured</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-METERED-NO:CAPS"></a>NM_METERED_NO</p></td>
 <td class="enum_member_description">
-<p>Not metered, the value was statically set</p>
+<p>Not metered, the value was explicitly configured</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3542,6 +3592,118 @@ VPN plugin authentication dialogs.</p>
 </table></div>
 </div>
 <p class="since">Since: 1.14</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMManagerReloadFlags"></a><h3>enum NMManagerReloadFlags</h3>
+<p>Flags for the manager <code class="function">Reload()</code> call.</p>
+<div class="refsect3">
+<a name="NMManagerReloadFlags.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="NM-MANAGER-RELOAD-FLAG-NONE:CAPS"></a>NM_MANAGER_RELOAD_FLAG_NONE</p></td>
+<td class="enum_member_description">
+<p>an alias for numeric zero, no flags set. This
+  reloads everything that is supported and is identical to a SIGHUP.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-MANAGER-RELOAD-FLAG-CONF:CAPS"></a>NM_MANAGER_RELOAD_FLAG_CONF</p></td>
+<td class="enum_member_description">
+<p>reload the NetworkManager.conf configuration
+  from disk. Note that this does not include connections, which can be
+  reloaded via Setting's <code class="function">ReloadConnections()</code>.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-MANAGER-RELOAD-FLAG-DNS-RC:CAPS"></a>NM_MANAGER_RELOAD_FLAG_DNS_RC</p></td>
+<td class="enum_member_description">
+<p>update DNS configuration, which usually
+  involves writing /etc/resolv.conf anew.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-MANAGER-RELOAD-FLAG-DNS-FULL:CAPS"></a>NM_MANAGER_RELOAD_FLAG_DNS_FULL</p></td>
+<td class="enum_member_description">
+<p>means to restart the DNS plugin. This
+  is for example useful when using dnsmasq plugin, which uses additional
+  configuration in /etc/NetworkManager/dnsmasq.d. If you edit those files,
+  you can restart the DNS plugin. This action shortly interrupts name
+  resolution.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-MANAGER-RELOAD-FLAG-ALL:CAPS"></a>NM_MANAGER_RELOAD_FLAG_ALL</p></td>
+<td class="enum_member_description">
+<p>all flags.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.22</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceInterfaceFlags"></a><h3>enum NMDeviceInterfaceFlags</h3>
+<p>Flags for a network interface.</p>
+<div class="refsect3">
+<a name="NMDeviceInterfaceFlags.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-INTERFACE-FLAG-NONE:CAPS"></a>NM_DEVICE_INTERFACE_FLAG_NONE</p></td>
+<td class="enum_member_description">
+<p>an alias for numeric zero, no flags set.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-INTERFACE-FLAG-UP:CAPS"></a>NM_DEVICE_INTERFACE_FLAG_UP</p></td>
+<td class="enum_member_description">
+<p>the interface is enabled from the
+  administrative point of view. Corresponds to kernel IFF_UP.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-INTERFACE-FLAG-LOWER-UP:CAPS"></a>NM_DEVICE_INTERFACE_FLAG_LOWER_UP</p></td>
+<td class="enum_member_description">
+<p>the physical link is up. Corresponds
+  to kernel IFF_LOWER_UP.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-INTERFACE-FLAG-CARRIER:CAPS"></a>NM_DEVICE_INTERFACE_FLAG_CARRIER</p></td>
+<td class="enum_member_description">
+<p>the interface has carrier. In most
+  cases this is equal to the value of <em class="parameter"><code>NM_DEVICE_INTERFACE_FLAG_LOWER_UP</code></em>
+.
+  However some devices have a non-standard carrier detection mechanism.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p class="since">Since: 1.22</p>
 </div>
 </div>
 </div>

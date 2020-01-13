@@ -1,21 +1,7 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (C) 2010 Dan Williams <dcbw@redhat.com>
  * Copyright (C) 2016 Sjoerd Simons <sjoerd@luon.net>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
  */
 
 #include "nm-default.h"
@@ -351,7 +337,8 @@ static gboolean
 update (NMDnsPlugin *plugin,
         const NMGlobalDnsConfig *global_config,
         const CList *ip_config_lst_head,
-        const char *hostname)
+        const char *hostname,
+        GError **error)
 {
 	NMDnsSystemdResolved *self = NM_DNS_SYSTEMD_RESOLVED (plugin);
 	gs_unref_hashtable GHashTable *interfaces = NULL;
@@ -397,20 +384,6 @@ update (NMDnsPlugin *plugin,
 	send_updates (self);
 
 	return TRUE;
-}
-
-/*****************************************************************************/
-
-static gboolean
-is_caching (NMDnsPlugin *plugin)
-{
-	return TRUE;
-}
-
-static const char *
-get_name (NMDnsPlugin *plugin)
-{
-	return "systemd-resolved";
 }
 
 /*****************************************************************************/
@@ -566,7 +539,7 @@ nm_dns_systemd_resolved_class_init (NMDnsSystemdResolvedClass *dns_class)
 
 	object_class->dispose = dispose;
 
-	plugin_class->is_caching = is_caching;
-	plugin_class->update = update;
-	plugin_class->get_name = get_name;
+	plugin_class->plugin_name = "systemd-resolved";
+	plugin_class->is_caching  = TRUE;
+	plugin_class->update      = update;
 }

@@ -1,20 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2017 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2017 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -102,6 +88,7 @@ enslave_slave (NMDevice *device, NMDevice *slave, NMConnection *connection, gboo
 {
 	NMActiveConnection *ac_port = NULL;
 	NMActiveConnection *ac_bridge = NULL;
+	NMDevice *bridge_device;
 
 	if (!configure)
 		return TRUE;
@@ -111,10 +98,14 @@ enslave_slave (NMDevice *device, NMDevice *slave, NMConnection *connection, gboo
 	if (!ac_bridge)
 		ac_bridge = ac_port;
 
+	bridge_device = nm_active_connection_get_device (ac_bridge);
+
 	nm_ovsdb_add_interface (nm_ovsdb_get (),
 	                        nm_active_connection_get_applied_connection (ac_bridge),
 	                        nm_device_get_applied_connection (device),
 	                        nm_device_get_applied_connection (slave),
+	                        bridge_device,
+	                        slave,
 	                        add_iface_cb, g_object_ref (slave));
 
 	return TRUE;

@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2014 - 2018 Red Hat, Inc.
+ * Copyright (C) 2014 - 2018 Red Hat, Inc.
  */
 
 #ifndef NM_CORE_NM_INTERNAL_H
@@ -142,6 +128,25 @@ _nm_setting_secret_flags_valid (NMSettingSecretFlags flags)
 {
 	return !NM_FLAGS_ANY (flags, ~NM_SETTING_SECRET_FLAG_ALL);
 }
+
+/*****************************************************************************/
+
+const char *nm_bluetooth_capability_to_string (NMBluetoothCapabilities capabilities, char *buf, gsize len);
+
+/*****************************************************************************/
+
+#define NM_DHCP_HOSTNAME_FLAGS_FQDN_MASK        \
+    (  NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED       \
+     | NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE   \
+     | NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE     \
+     | NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS)
+
+#define NM_DHCP_HOSTNAME_FLAGS_FQDN_DEFAULT_IP4 \
+    (  NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED       \
+     | NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE)
+
+#define NM_DHCP_HOSTNAME_FLAGS_FQDN_DEFAULT_IP6 \
+    NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE
 
 /*****************************************************************************/
 
@@ -720,10 +725,9 @@ typedef GVariant *(*NMSettInfoPropGPropToDBusFcn)       (const GValue *from);
 typedef void      (*NMSettInfoPropGPropFromDBusFcn)     (GVariant *from,
                                                          GValue *to);
 
-struct _NMSettInfoProperty {
-	const char *name;
-	GParamSpec *param_spec;
+const NMSettInfoSetting *nmtst_sett_info_settings (void);
 
+typedef struct {
 	const GVariantType *dbus_type;
 
 	NMSettInfoPropToDBusFcn            to_dbus_fcn;
@@ -734,6 +738,14 @@ struct _NMSettInfoProperty {
 	 * on the GValue value of the GObject property. */
 	NMSettInfoPropGPropToDBusFcn       gprop_to_dbus_fcn;
 	NMSettInfoPropGPropFromDBusFcn     gprop_from_dbus_fcn;
+} NMSettInfoPropertType;
+
+struct _NMSettInfoProperty {
+	const char *name;
+
+	GParamSpec *param_spec;
+
+	const NMSettInfoPropertType *property_type;
 };
 
 typedef struct {
@@ -875,4 +887,18 @@ gboolean nm_utils_connection_is_adhoc_wpa (NMConnection *connection);
 
 const char *nm_utils_wifi_freq_to_band (guint32 freq);
 
+gboolean _nm_utils_iaid_verify (const char *str, gint64 *out_value);
+
+gboolean _nm_utils_validate_dhcp_hostname_flags (NMDhcpHostnameFlags flags,
+                                                 int addr_family,
+                                                 GError **error);
+
+/*****************************************************************************/
+
+gboolean _nmtst_variant_attribute_spec_assert_sorted (const NMVariantAttributeSpec *const*array,
+                                                      gsize len);
+
+const NMVariantAttributeSpec *_nm_variant_attribute_spec_find_binary_search (const NMVariantAttributeSpec *const*array,
+                                                                             gsize len,
+                                                                             const char *name);
 #endif

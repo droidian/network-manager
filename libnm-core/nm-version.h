@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2011, 2015 Red Hat, Inc.
+ * Copyright (C) 2011, 2015 Red Hat, Inc.
  */
 
 #ifndef NM_VERSION_H
@@ -215,11 +201,58 @@
 # define NM_AVAILABLE_IN_1_20
 #endif
 
-#if NM_VERSION_MAX_ALLOWED < NM_VERSION_1_20_6
-# define NM_AVAILABLE_IN_1_20_6          G_UNAVAILABLE(1,20.6)
+#if NM_VERSION_MIN_REQUIRED >= NM_VERSION_1_22
+# define NM_DEPRECATED_IN_1_22           G_DEPRECATED
+# define NM_DEPRECATED_IN_1_22_FOR(f)    G_DEPRECATED_FOR(f)
 #else
-# define NM_AVAILABLE_IN_1_20_6
+# define NM_DEPRECATED_IN_1_22
+# define NM_DEPRECATED_IN_1_22_FOR(f)
 #endif
 
+#if NM_VERSION_MAX_ALLOWED < NM_VERSION_1_22
+# define NM_AVAILABLE_IN_1_22            G_UNAVAILABLE(1,22)
+#else
+# define NM_AVAILABLE_IN_1_22
+#endif
+
+#if NM_VERSION_MIN_REQUIRED >= NM_VERSION_1_22_2
+# define NM_DEPRECATED_IN_1_22_2           G_DEPRECATED
+# define NM_DEPRECATED_IN_1_22_2_FOR(f)    G_DEPRECATED_FOR(f)
+#else
+# define NM_DEPRECATED_IN_1_22_2
+# define NM_DEPRECATED_IN_1_22_2_FOR(f)
+#endif
+
+#if NM_VERSION_MAX_ALLOWED < NM_VERSION_1_22_2
+# define NM_AVAILABLE_IN_1_22_2            G_UNAVAILABLE(1,22.2)
+#else
+# define NM_AVAILABLE_IN_1_22_2
+#endif
+
+/*
+ * Synchronous API for calling D-Bus in libnm is deprecated. See
+ * https://developer.gnome.org/libnm/stable/usage.html#sync-api
+ *
+ * Note that "deprecated" here does not really mean that the API is going
+ * to be removed. We don't break API. Just comment that it is awkward and
+ * discouraged. The user may:
+ *
+ *   - continue to use this API. It's deprecated, awkward and discouraged,
+ *     but if it works for you, that's fine.
+ *
+ *   - use asynchronous API. That's the only sensible way to use D-Bus.
+ *     If libnm lacks a certain asynchronous counterpart, it should be
+ *     added.
+ *
+ *   - use GDBusConnection directly. There really isn't anything wrong
+ *     with D-Bus or GDBusConnection. This deprecated API is just a wrapper
+ *     around g_dbus_connection_call_sync(). You may call it directly
+ *     without feeling dirty.
+ *
+ * We don't want to force users away from this API, for that reason the
+ * macro does not yet expand to G_DEPRECATED.
+ */
+#define _NM_DEPRECATED_SYNC_METHOD            /*NM_DEPRECATED_IN_1_22*/
+#define _NM_DEPRECATED_SYNC_WRITABLE_PROPERTY /*NM_DEPRECATED_IN_1_22*/
 
 #endif  /* NM_VERSION_H */

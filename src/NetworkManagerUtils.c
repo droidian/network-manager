@@ -1,21 +1,7 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2004 - 2016 Red Hat, Inc.
- * Copyright 2005 - 2008 Novell, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2004 - 2016 Red Hat, Inc.
+ * Copyright (C) 2005 - 2008 Novell, Inc.
  */
 
 #include "nm-default.h"
@@ -359,11 +345,12 @@ check_ip6_method (NMConnection *orig,
 		 */
 		allow = TRUE;
 	} else if (   NM_IN_STRSET (orig_ip6_method, NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL,
+	                                             NM_SETTING_IP6_CONFIG_METHOD_DISABLED,
 	                                             NM_SETTING_IP6_CONFIG_METHOD_AUTO)
 	           && nm_streq0 (candidate_ip6_method, NM_SETTING_IP6_CONFIG_METHOD_IGNORE)) {
-		/* If the generated connection method is 'link-local' or 'auto' and the candidate
-		 * method is 'ignore' we can take the connection, because NM didn't simply take care
-		 * of IPv6.
+		/* If the generated connection method is 'link-local', disabled' or 'auto' and
+		 * the candidate method is 'ignore' we can take the connection, because NM didn't
+		 * simply take care of IPv6.
 		 */
 		allow = TRUE;
 	}
@@ -959,9 +946,10 @@ nm_ip_routing_rule_to_platform (const NMIPRoutingRule *rule,
 
 struct _NMShutdownWaitObjHandle {
 	CList lst;
-	GObject *watched_obj;
+	gpointer watched_obj;
 	char *msg_reason;
 	bool free_msg_reason:1;
+	bool is_cancellable:1;
 };
 
 static CList _shutdown_waitobj_lst_head;
@@ -980,7 +968,7 @@ _shutdown_waitobj_unregister (NMShutdownWaitObjHandle *handle)
 
 static void
 _shutdown_waitobj_cb (gpointer user_data,
-                       GObject *where_the_object_was)
+                      GObject *where_the_object_was)
 {
 	NMShutdownWaitObjHandle *handle = user_data;
 
@@ -993,6 +981,9 @@ _shutdown_waitobj_cb (gpointer user_data,
  * nm_shutdown_wait_obj_register_full:
  * @watched_obj: the object to watch. Takes a weak reference on the object
  *   to be notified when it gets destroyed.
+ *   If wait_type is %NM_SHUTDOWN_WAIT_TYPE_HANDLE, this must be %NULL.
+ * @wait_type: whether @watched_obj is just a plain GObject or a GCancellable
+ *   that should be cancelled.
  * @msg_reason: a reason message, for debugging and logging purposes.
  * @free_msg_reason: if %TRUE, then ownership of @msg_reason will be taken
  *   and the string will be freed with g_free() afterwards. If %FALSE,
@@ -1006,21 +997,43 @@ _shutdown_waitobj_cb (gpointer user_data,
  * the reference-counter of @watched_obj as signal, that the object
  * is still used.
  *
+ * If @wait_type is %NM_SHUTDOWN_WAIT_TYPE_CANCELLABLE, then during shutdown
+ * (after %NM_SHUTDOWN_TIMEOUT_MS), the cancellable will be cancelled to notify
+ * the source of the shutdown. Note that otherwise, in this mode also @watched_obj
+ * is only tracked with a weak-pointer. Especially, it does not register to the
+ * "cancelled" signal to automatically unregister (otherwise, you would never
+ * know whether the returned NMShutdownWaitObjHandle is still valid.
+ *
  * FIXME(shutdown): proper shutdown is not yet implemented, and registering
  *   an object (currently) has no effect.
+ *
+ * FIXME(shutdown): during shutdown, after %NM_SHUTDOWN_TIMEOUT_MS timeout, cancel
+ *   all remaining %NM_SHUTDOWN_WAIT_TYPE_CANCELLABLE instances. Also, when somebody
+ *   enqueues a cancellable after that point, cancel it right away on an idle handler.
  *
  * Returns: a handle to unregister the object. The caller may choose to ignore
  *   the handle, in which case, the object will be automatically unregistered,
  *   once it gets destroyed.
+ *   Note that the handle is only valid as long as @watched_obj exists. If
+ *   you plan to use it, ensure that you take care of not using it after
+ *   destroying @watched_obj.
  */
 NMShutdownWaitObjHandle *
-nm_shutdown_wait_obj_register_full (GObject *watched_obj,
+nm_shutdown_wait_obj_register_full (gpointer watched_obj,
+                                    NMShutdownWaitType wait_type,
                                     char *msg_reason,
                                     gboolean free_msg_reason)
 {
 	NMShutdownWaitObjHandle *handle;
 
-	g_return_val_if_fail (G_IS_OBJECT (watched_obj), NULL);
+	if (wait_type == NM_SHUTDOWN_WAIT_TYPE_OBJECT)
+		g_return_val_if_fail (G_IS_OBJECT (watched_obj), NULL);
+	else if (wait_type == NM_SHUTDOWN_WAIT_TYPE_CANCELLABLE)
+		g_return_val_if_fail (G_IS_CANCELLABLE (watched_obj), NULL);
+	else if (wait_type == NM_SHUTDOWN_WAIT_TYPE_HANDLE)
+		g_return_val_if_fail (!watched_obj, NULL);
+	else
+		g_return_val_if_reached (NULL);
 
 	if (G_UNLIKELY (!_shutdown_waitobj_lst_head.next))
 		c_list_init (&_shutdown_waitobj_lst_head);
@@ -1033,9 +1046,11 @@ nm_shutdown_wait_obj_register_full (GObject *watched_obj,
 		.watched_obj     = watched_obj,
 		.msg_reason      = msg_reason,
 		.free_msg_reason = free_msg_reason,
+		.is_cancellable  = (wait_type == NM_SHUTDOWN_WAIT_TYPE_CANCELLABLE),
 	};
 	c_list_link_tail (&_shutdown_waitobj_lst_head, &handle->lst);
-	g_object_weak_ref (watched_obj, _shutdown_waitobj_cb, handle);
+	if (watched_obj)
+		g_object_weak_ref (watched_obj, _shutdown_waitobj_cb, handle);
 	return handle;
 }
 
@@ -1044,10 +1059,11 @@ nm_shutdown_wait_obj_unregister (NMShutdownWaitObjHandle *handle)
 {
 	g_return_if_fail (handle);
 
-	nm_assert (G_IS_OBJECT (handle->watched_obj));
+	nm_assert (!handle->watched_obj || G_IS_OBJECT (handle->watched_obj));
 	nm_assert (nm_c_list_contains_entry (&_shutdown_waitobj_lst_head, handle, lst));
 
-	g_object_weak_unref (handle->watched_obj, _shutdown_waitobj_cb, handle);
+	if (handle->watched_obj)
+		g_object_weak_unref (handle->watched_obj, _shutdown_waitobj_cb, handle);
 	_shutdown_waitobj_unregister (handle);
 }
 

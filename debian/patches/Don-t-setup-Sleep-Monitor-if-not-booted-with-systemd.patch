@@ -16,10 +16,10 @@ Closes: #742933
  1 file changed, 5 insertions(+)
 
 diff --git a/src/nm-sleep-monitor.c b/src/nm-sleep-monitor.c
-index c97f6f7..5ea0a64 100644
+index c16dc07..cb2ca21 100644
 --- a/src/nm-sleep-monitor.c
 +++ b/src/nm-sleep-monitor.c
-@@ -22,6 +22,7 @@
+@@ -10,6 +10,7 @@
  
  #include <sys/stat.h>
  #include <gio/gunixfdlist.h>
@@ -27,7 +27,7 @@ index c97f6f7..5ea0a64 100644
  
  #include "nm-core-internal.h"
  #include "NetworkManagerUtils.h"
-@@ -341,6 +342,10 @@ on_proxy_acquired (GObject *object,
+@@ -329,6 +330,10 @@ on_proxy_acquired (GObject *object,
  static void
  nm_sleep_monitor_init (NMSleepMonitor *self)
  {

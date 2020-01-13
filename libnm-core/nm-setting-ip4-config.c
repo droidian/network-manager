@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2014 Red Hat, Inc.
+ * Copyright (C) 2014 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -205,6 +191,18 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
 		                     _("property cannot be set when dhcp-hostname is also set"));
 		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP4_CONFIG_SETTING_NAME, NM_SETTING_IP4_CONFIG_DHCP_FQDN);
+		return FALSE;
+	}
+
+	if (   NM_FLAGS_ANY (nm_setting_ip_config_get_dhcp_hostname_flags (s_ip),
+	                     NM_DHCP_HOSTNAME_FLAGS_FQDN_MASK)
+	    && !priv->dhcp_fqdn) {
+		/* Currently we send a FQDN option only when ipv4.dhcp-fqdn is set */
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("FQDN flags requires a FQDN set"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_IP4_CONFIG_SETTING_NAME, NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS);
 		return FALSE;
 	}
 
@@ -777,6 +775,13 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *klass)
 	 * ---end---
 	 */
 
+	/* ---ifcfg-rh---
+	 * property: dhcp-hostname-flags
+	 * variable: DHCP_HOSTNAME_FLAGS
+	 * description: flags for the DHCP hostname and FQDN properties
+	 * example: DHCP_HOSTNAME_FLAGS=5
+	 */
+
 	/**
 	 * NMSettingIP4Config:dhcp-fqdn:
 	 *
@@ -810,12 +815,14 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *klass)
 	 *   integers)
 	 * ---end---
 	 */
-	_properties_override_add_transform (properties_override,
-	                                    g_object_class_find_property (G_OBJECT_CLASS (setting_class),
-	                                                                  NM_SETTING_IP_CONFIG_DNS),
-	                                    G_VARIANT_TYPE ("au"),
-	                                    ip4_dns_to_dbus,
-	                                    ip4_dns_from_dbus);
+	_nm_properties_override_gobj (properties_override,
+	                              g_object_class_find_property (G_OBJECT_CLASS (setting_class),
+	                                                            NM_SETTING_IP_CONFIG_DNS),
+	                              NM_SETT_INFO_PROPERT_TYPE (
+	                                  .dbus_type           = NM_G_VARIANT_TYPE ("au"),
+	                                  .gprop_to_dbus_fcn   = ip4_dns_to_dbus,
+	                                  .gprop_from_dbus_fcn = ip4_dns_from_dbus,
+	                              ));
 
 	/* ---dbus---
 	 * property: addresses
@@ -832,19 +839,20 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *klass)
 	 *   for that subnet.
 	 * ---end---
 	 */
-	_properties_override_add_override (properties_override,
-	                                   g_object_class_find_property (G_OBJECT_CLASS (setting_class),
-	                                                                 NM_SETTING_IP_CONFIG_ADDRESSES),
-	                                   G_VARIANT_TYPE ("aau"),
-	                                   ip4_addresses_get,
-	                                   ip4_addresses_set,
-	                                   NULL);
-
-	_properties_override_add_dbus_only (properties_override,
-	                                    "address-labels",
-	                                    G_VARIANT_TYPE_STRING_ARRAY,
-	                                    ip4_address_labels_get,
-	                                    NULL);
+	_nm_properties_override_gobj (properties_override,
+	                              g_object_class_find_property (G_OBJECT_CLASS (setting_class),
+	                                                            NM_SETTING_IP_CONFIG_ADDRESSES),
+	                              NM_SETT_INFO_PROPERT_TYPE (
+	                                  .dbus_type     = NM_G_VARIANT_TYPE ("aau"),
+	                                  .to_dbus_fcn   = ip4_addresses_get,
+	                                  .from_dbus_fcn = ip4_addresses_set,
+	                              ));
+	_nm_properties_override_dbus (properties_override,
+	                              "address-labels",
+	                              NM_SETT_INFO_PROPERT_TYPE (
+	                                  .dbus_type   = G_VARIANT_TYPE_STRING_ARRAY,
+	                                  .to_dbus_fcn = ip4_address_labels_get,
+	                              ));
 
 	/* ---dbus---
 	 * property: address-data
@@ -855,11 +863,13 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *klass)
 	 *   also exist on some addresses.
 	 * ---end---
 	 */
-	_properties_override_add_dbus_only (properties_override,
-	                                    "address-data",
-	                                    G_VARIANT_TYPE ("aa{sv}"),
-	                                    ip4_address_data_get,
-	                                    ip4_address_data_set);
+	_nm_properties_override_dbus (properties_override,
+	                              "address-data",
+	                              NM_SETT_INFO_PROPERT_TYPE (
+	                                  .dbus_type     = NM_G_VARIANT_TYPE ("aa{sv}"),
+	                                  .to_dbus_fcn   = ip4_address_data_get,
+	                                  .from_dbus_fcn = ip4_address_data_set,
+	                              ));
 
 	/* ---dbus---
 	 * property: routes
@@ -878,13 +888,14 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *klass)
 	 *   property.)
 	 * ---end---
 	 */
-	_properties_override_add_override (properties_override,
-	                                   g_object_class_find_property (G_OBJECT_CLASS (setting_class),
-	                                                                 NM_SETTING_IP_CONFIG_ROUTES),
-	                                   G_VARIANT_TYPE ("aau"),
-	                                   ip4_routes_get,
-	                                   ip4_routes_set,
-	                                   NULL);
+	_nm_properties_override_gobj (properties_override,
+	                              g_object_class_find_property (G_OBJECT_CLASS (setting_class),
+	                                                            NM_SETTING_IP_CONFIG_ROUTES),
+	                              NM_SETT_INFO_PROPERT_TYPE (
+	                                  .dbus_type     = NM_G_VARIANT_TYPE ("aau"),
+	                                  .to_dbus_fcn   = ip4_routes_get,
+	                                  .from_dbus_fcn = ip4_routes_set,
+	                              ));
 
 	/* ---dbus---
 	 * property: route-data
@@ -899,11 +910,13 @@ nm_setting_ip4_config_class_init (NMSettingIP4ConfigClass *klass)
 	 *   also exist on some routes.
 	 * ---end---
 	 */
-	_properties_override_add_dbus_only (properties_override,
-	                                    "route-data",
-	                                    G_VARIANT_TYPE ("aa{sv}"),
-	                                    ip4_route_data_get,
-	                                    ip4_route_data_set);
+	_nm_properties_override_dbus (properties_override,
+	                              "route-data",
+	                              NM_SETT_INFO_PROPERT_TYPE (
+	                                  .dbus_type     = NM_G_VARIANT_TYPE ("aa{sv}"),
+	                                  .to_dbus_fcn   = ip4_route_data_get,
+	                                  .from_dbus_fcn = ip4_route_data_set,
+	                              ));
 
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 

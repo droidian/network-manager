@@ -1,21 +1,7 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2004 - 2016 Red Hat, Inc.
- * Copyright 2005 - 2008 Novell, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2004 - 2016 Red Hat, Inc.
+ * Copyright (C) 2005 - 2008 Novell, Inc.
  */
 
 #ifndef __NETWORKMANAGER_UTILS_H__
@@ -87,13 +73,56 @@ NMPlatformRoutingRule *nm_ip_routing_rule_to_platform (const NMIPRoutingRule *ru
 #define NM_SHUTDOWN_TIMEOUT_MS            1500
 #define NM_SHUTDOWN_TIMEOUT_MS_WATCHDOG    500
 
+typedef enum {
+	/* There is no watched_obj argument, and the shutdown is delayed until the user
+	 * explicitly calls unregister on the returned handle. */
+	NM_SHUTDOWN_WAIT_TYPE_HANDLE,
+
+	/* The watched_obj argument is a GObject, and shutdown is delayed until the object
+	 * gets destroyed (or unregistered). */
+	NM_SHUTDOWN_WAIT_TYPE_OBJECT,
+
+	/* The watched_obj argument is a GCancellable, and shutdown is delayed until the object
+	 * gets destroyed (or unregistered). Note that after NM_SHUTDOWN_TIMEOUT_MS, the
+	 * cancellable will be cancelled to notify listeners about the shutdown. */
+	NM_SHUTDOWN_WAIT_TYPE_CANCELLABLE,
+} NMShutdownWaitType;
+
 typedef struct _NMShutdownWaitObjHandle NMShutdownWaitObjHandle;
 
-NMShutdownWaitObjHandle *nm_shutdown_wait_obj_register_full (GObject *watched_obj,
+NMShutdownWaitObjHandle *nm_shutdown_wait_obj_register_full (gpointer watched_obj,
+                                                             NMShutdownWaitType wait_type,
                                                              char *msg_reason,
                                                              gboolean free_msg_reason);
 
-#define nm_shutdown_wait_obj_register(watched_obj, msg_reason) nm_shutdown_wait_obj_register_full((watched_obj), (""msg_reason""), FALSE)
+static inline NMShutdownWaitObjHandle *
+nm_shutdown_wait_obj_register_object_full (gpointer watched_obj,
+                                           char *msg_reason,
+                                           gboolean free_msg_reason)
+{
+	return nm_shutdown_wait_obj_register_full (watched_obj, NM_SHUTDOWN_WAIT_TYPE_OBJECT, msg_reason, free_msg_reason);
+}
+
+#define nm_shutdown_wait_obj_register_object(watched_obj, msg_reason) nm_shutdown_wait_obj_register_object_full((watched_obj), (""msg_reason""), FALSE)
+
+static inline NMShutdownWaitObjHandle *
+nm_shutdown_wait_obj_register_handle_full (char *msg_reason,
+                                           gboolean free_msg_reason)
+{
+	return nm_shutdown_wait_obj_register_full (NULL, NM_SHUTDOWN_WAIT_TYPE_HANDLE, msg_reason, free_msg_reason);
+}
+
+#define nm_shutdown_wait_obj_register_handle(msg_reason) nm_shutdown_wait_obj_register_handle_full((""msg_reason""), FALSE)
+
+static inline NMShutdownWaitObjHandle *
+nm_shutdown_wait_obj_register_cancellable_full (GCancellable *watched_obj,
+                                                char *msg_reason,
+                                                gboolean free_msg_reason)
+{
+	return nm_shutdown_wait_obj_register_full (watched_obj, NM_SHUTDOWN_WAIT_TYPE_CANCELLABLE, msg_reason, free_msg_reason);
+}
+
+#define nm_shutdown_wait_obj_register_cancellable(watched_obj, msg_reason) nm_shutdown_wait_obj_register_cancellable_full((watched_obj), (""msg_reason""), FALSE)
 
 void nm_shutdown_wait_obj_unregister (NMShutdownWaitObjHandle *handle);
 

@@ -1,22 +1,7 @@
-/* NetworkManager -- Network link manager
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2012 Colin Walters <walters@verbum.org>.
- * (C) Copyright 2014 Red Hat, Inc.
+// SPDX-License-Identifier: LGPL-2.1+
+/*
+ * Copyright (C) 2012 Colin Walters <walters@verbum.org>.
+ * Copyright (C) 2014 Red Hat, Inc.
  */
 
 #ifndef __NM_MACROS_INTERNAL_H__
@@ -323,6 +308,12 @@ _nm_auto_protect_errno (int *p_saved_errno)
 
 NM_AUTO_DEFINE_FCN0 (GSource *, _nm_auto_unref_gsource, g_source_unref);
 #define nm_auto_unref_gsource nm_auto(_nm_auto_unref_gsource)
+
+NM_AUTO_DEFINE_FCN0 (guint, _nm_auto_remove_source, g_source_remove);
+#define nm_auto_remove_source nm_auto(_nm_auto_remove_source)
+
+NM_AUTO_DEFINE_FCN0 (GIOChannel *, _nm_auto_unref_io_channel, g_io_channel_unref)
+#define nm_auto_unref_io_channel nm_auto(_nm_auto_unref_io_channel)
 
 NM_AUTO_DEFINE_FCN0 (GMainLoop *, _nm_auto_unref_gmainloop, g_main_loop_unref);
 #define nm_auto_unref_gmainloop nm_auto(_nm_auto_unref_gmainloop)
@@ -642,6 +633,13 @@ NM_G_ERROR_MSG (GError *error)
 #else
 #define _NM_ENSURE_TYPE(type, value) (value)
 #define _NM_ENSURE_TYPE_CONST(type, value) ((const type) (value))
+#endif
+
+#if _NM_CC_SUPPORT_GENERIC && ( !defined (__clang__) || __clang_major__ > 3 )
+#define NM_STRUCT_OFFSET_ENSURE_TYPE(type, container, field) (_Generic ( (&(((container *) NULL)->field))[0] , \
+                                                                        type: G_STRUCT_OFFSET (container, field)))
+#else
+#define NM_STRUCT_OFFSET_ENSURE_TYPE(type, container, field) G_STRUCT_OFFSET (container, field)
 #endif
 
 #if _NM_CC_SUPPORT_GENERIC
@@ -1045,7 +1043,7 @@ _nm_gobject_notify_together_impl (obj_type *obj, guint n, const property_enums_t
 		g_object_thaw_notify ((GObject *) obj); \
 } \
 \
-static inline void \
+_nm_unused static inline void \
 _notify (obj_type *obj, property_enums_type prop) \
 { \
 	_nm_gobject_notify_together_impl (obj, 1, &prop); \
@@ -1269,6 +1267,25 @@ nm_clear_g_cancellable_disconnect (GCancellable *cancellable, gulong *cancellabl
 }
 
 /*****************************************************************************/
+
+static inline const char *
+nm_dbus_path_not_empty (const char *str)
+{
+	nm_assert (!str || str[0] == '/');
+	return !str || (str[0] == '/' && str[1] == '\0')
+	       ? NULL
+	       : str;
+}
+
+/*****************************************************************************/
+
+/* GVariantType is basically a C string. But G_VARIANT_TYPE() is not suitable
+ * to initialize a static variable (because it evaluates a function check that
+ * the string is valid). Add an alternative macro that does the plain cast.
+ *
+ * Here you loose the assertion check that G_VARIANT_TYPE() to ensure the
+ * string is valid. */
+#define NM_G_VARIANT_TYPE(fmt) ((const GVariantType *) (""fmt""))
 
 static inline GVariant *
 nm_g_variant_ref (GVariant *v)
@@ -1988,5 +2005,19 @@ nm_close (int fd)
 }
 
 #define NM_PID_T_INVAL ((pid_t) -1)
+
+/*****************************************************************************/
+
+NM_AUTO_DEFINE_FCN_VOID0 (GMutex *, _nm_auto_unlock_g_mutex, g_mutex_unlock)
+
+#define nm_auto_unlock_g_mutex nm_auto (_nm_auto_unlock_g_mutex)
+
+#define _NM_G_MUTEX_LOCKED(lock, uniq) \
+	nm_auto_unlock_g_mutex GMutex *NM_UNIQ_T(nm_lock, uniq) = (lock)
+
+#define NM_G_MUTEX_LOCKED(lock) \
+	_NM_G_MUTEX_LOCKED (lock, NM_UNIQ)
+
+/*****************************************************************************/
 
 #endif /* __NM_MACROS_INTERNAL_H__ */

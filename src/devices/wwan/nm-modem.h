@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2009 - 2011 Red Hat, Inc.
  * Copyright (C) 2009 Novell, Inc.
  */
@@ -136,9 +122,9 @@ typedef struct {
 	                                            NMConnection *const*existing_connections,
 	                                            GError **error);
 
-	NMActStageReturn (*act_stage1_prepare)     (NMModem *modem,
-	                                            NMConnection *connection,
-	                                            NMDeviceStateReason *out_failure_reason);
+	NMActStageReturn (*modem_act_stage1_prepare) (NMModem *modem,
+	                                              NMConnection *connection,
+	                                              NMDeviceStateReason *out_failure_reason);
 
 	NMActStageReturn (*static_stage3_ip4_config_start) (NMModem *self,
 	                                                    NMActRequest *req,
@@ -166,6 +152,10 @@ typedef struct {
 } NMModemClass;
 
 GType nm_modem_get_type (void);
+
+gboolean nm_modem_is_claimed (NMModem *modem);
+NMModem *nm_modem_claim (NMModem *modem);
+void nm_modem_unclaim (NMModem *modem);
 
 const char *nm_modem_get_path            (NMModem *modem);
 const char *nm_modem_get_uid             (NMModem *modem);
@@ -222,9 +212,7 @@ NMActStageReturn nm_modem_act_stage1_prepare (NMModem *modem,
                                               NMActRequest *req,
                                               NMDeviceStateReason *out_failure_reason);
 
-NMActStageReturn nm_modem_act_stage2_config (NMModem *modem,
-                                             NMActRequest *req,
-                                             NMDeviceStateReason *out_failure_reason);
+void nm_modem_act_stage2_config (NMModem *modem);
 
 NMActStageReturn nm_modem_stage3_ip4_config_start (NMModem *modem,
                                                    NMDevice *device,
@@ -287,7 +275,7 @@ void nm_modem_emit_ip6_config_result (NMModem *self,
 
 const char *nm_modem_ip_type_to_string (NMModemIPType ip_type);
 
-guint32 nm_modem_get_configured_mtu (NMDevice *self, NMDeviceMtuSource *out_source);
+guint32 nm_modem_get_configured_mtu (NMDevice *self, NMDeviceMtuSource *out_source, gboolean *out_force);
 
 void _nm_modem_set_operator_code (NMModem *self, const char *operator_code);
 void _nm_modem_set_apn           (NMModem *self, const char *apn);

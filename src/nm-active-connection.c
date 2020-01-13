@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2008 - 2014 Red Hat, Inc.
  */
 
@@ -721,7 +707,7 @@ nm_active_connection_set_device (NMActiveConnection *self, NMDevice *device)
 		                  G_CALLBACK (device_metered_changed), self);
 
 		if (priv->activation_type != NM_ACTIVATION_TYPE_EXTERNAL) {
-			priv->pending_activation_id = g_strdup_printf (NM_PENDING_ACTIONPREFIX_ACTIVATION"%p", (void *)self);
+			priv->pending_activation_id = g_strdup_printf (NM_PENDING_ACTIONPREFIX_ACTIVATION"%"G_GUINT64_FORMAT, priv->version_id);
 			nm_device_add_pending_action (device, priv->pending_activation_id, TRUE);
 		}
 	} else {

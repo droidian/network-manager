@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2006 - 2017 Red Hat, Inc.
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
@@ -1557,7 +1543,7 @@ p2p_props_changed_cb (GDBusProxy *proxy,
 	if (g_variant_lookup (changed_properties, "Group", "&o", &path)) {
 		if (priv->group_proxy && g_strcmp0 (path, g_dbus_proxy_get_object_path (priv->group_proxy)) == 0) {
 			/* We already have the proxy, nothing to do. */
-		} else if (path && g_strcmp0 (path, "/") != 0) {
+		} else if (nm_dbus_path_not_empty (path)) {
 			if (priv->group_proxy != NULL) {
 				_LOGW ("P2P: Unexpected update of the group object path");
 				priv->group_proxy_acquired = FALSE;

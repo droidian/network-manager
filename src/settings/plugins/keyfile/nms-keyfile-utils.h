@@ -1,20 +1,6 @@
-/* NetworkManager system settings service
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2010 - 2018 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2010 - 2018 Red Hat, Inc.
  */
 
 #ifndef __NMS_KEYFILE_UTILS_H__
@@ -66,12 +52,12 @@ gboolean nms_keyfile_nmmeta_read_from_file (const char *full_filename,
                                             char **out_loaded_path,
                                             char **out_shadowed_storage);
 
-gboolean nms_keyfile_nmmeta_write (const char *dirname,
-                                   const char *uuid,
-                                   const char *loaded_path,
-                                   gboolean loaded_path_allow_relative,
-                                   const char *shadowed_storage,
-                                   char **out_full_filename);
+int nms_keyfile_nmmeta_write (const char *dirname,
+                              const char *uuid,
+                              const char *loaded_path,
+                              gboolean loaded_path_allow_relative,
+                              const char *shadowed_storage,
+                              char **out_full_filename);
 
 /*****************************************************************************/
 

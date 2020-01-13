@@ -1,26 +1,11 @@
-/* NetworkManager -- Network link manager
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Dan Williams <dcbw@redhat.com>
  * Sjoerd Simons <sjoerd.simons@collabora.co.uk>
  * Daniel Drake <dsd@laptop.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2005 - 2014 Red Hat, Inc.
- * (C) Copyright 2008 Collabora Ltd.
- * (C) Copyright 2009 One Laptop per Child
+ * Copyright (C) 2005 - 2014 Red Hat, Inc.
+ * Copyright (C) 2008 Collabora Ltd.
+ * Copyright (C) 2009 One Laptop per Child
  */
 
 #include "nm-default.h"
@@ -58,7 +43,7 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMDeviceOlpcMesh,
 typedef struct {
 	NMDevice *companion;
 	NMManager *manager;
-	gboolean  stage1_waiting;
+	bool stage1_waiting:1;
 } NMDeviceOlpcMeshPrivate;
 
 struct _NMDeviceOlpcMesh {
@@ -145,12 +130,7 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
 	NMDeviceOlpcMesh *self = NM_DEVICE_OLPC_MESH (device);
 	NMDeviceOlpcMeshPrivate *priv = NM_DEVICE_OLPC_MESH_GET_PRIVATE (self);
-	NMActStageReturn ret;
 	gboolean scanning;
-
-	ret = NM_DEVICE_CLASS (nm_device_olpc_mesh_parent_class)->act_stage1_prepare (device, out_failure_reason);
-	if (ret != NM_ACT_STAGE_RETURN_SUCCESS)
-		return ret;
 
 	/* disconnect companion device, if it is connected */
 	if (nm_device_get_act_request (NM_DEVICE (priv->companion))) {
@@ -171,6 +151,7 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 		return NM_ACT_STAGE_RETURN_POSTPONE;
 	}
 
+	priv->stage1_waiting = FALSE;
 	return NM_ACT_STAGE_RETURN_SUCCESS;
 }
 
@@ -273,10 +254,9 @@ companion_notify_cb (NMDeviceWifi *companion, GParamSpec *pspec, gpointer user_d
 		return;
 
 	g_object_get (companion, NM_DEVICE_WIFI_SCANNING, &scanning, NULL);
-
 	if (!scanning) {
 		priv->stage1_waiting = FALSE;
-		nm_device_activate_schedule_stage2_device_config (NM_DEVICE (self));
+		nm_device_activate_schedule_stage1_device_prepare (NM_DEVICE (self));
 	}
 }
 
@@ -469,7 +449,7 @@ constructed (GObject *object)
 
 	G_OBJECT_CLASS (nm_device_olpc_mesh_parent_class)->constructed (object);
 
-	priv->manager = g_object_ref (nm_manager_get ());
+	priv->manager = g_object_ref (NM_MANAGER_GET);
 
 	g_signal_connect (priv->manager, NM_MANAGER_DEVICE_ADDED, G_CALLBACK (device_added_cb), self);
 	g_signal_connect (priv->manager, NM_MANAGER_DEVICE_REMOVED, G_CALLBACK (device_removed_cb), self);

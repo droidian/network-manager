@@ -15,11 +15,7 @@
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMVpnConnection.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMVpnConnection.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
-                  <a href="#NMVpnConnection.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMVpnConnection.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
-                  <a href="#NMVpnConnection.signals" class="shortcut">Signals</a></span>
+                  <a href="#NMVpnConnection.description" class="shortcut">Description</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -62,44 +58,6 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="NMVpnConnection.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
-<td class="property_name"><a class="link" href="NMVpnConnection.html#NMVpnConnection--banner" title="The “banner” property">banner</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type"><a href="/usr/share/gtk-doc/html/NetworkManager/nm-vpn-dbus-types.html#NMVpnConnectionState"><span class="type">NMVpnConnectionState</span></a></td>
-<td class="property_name"><a class="link" href="NMVpnConnection.html#NMVpnConnection--vpn-state" title="The “vpn-state” property">vpn-state</a></td>
-<td class="property_flags">Read</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
-<a name="NMVpnConnection.signals"></a><h2>Signals</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="signals_return">
-<col width="300px" class="signals_name">
-<col width="200px" class="signals_flags">
-</colgroup>
-<tbody><tr>
-<td class="signal_type"><span class="returnvalue">void</span></td>
-<td class="signal_name"><a class="link" href="NMVpnConnection.html#NMVpnConnection-vpn-state-changed" title="The “vpn-state-changed” signal">vpn-state-changed</a></td>
-<td class="signal_flags"><a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></td>
-</tr></tbody>
-</table></div>
-</div>
-<div class="refsect1">
 <a name="NMVpnConnection.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -115,26 +73,8 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMVpnConnection.html#NM-VPN-CONNECTION-BANNER:CAPS" title="NM_VPN_CONNECTION_BANNER">NM_VPN_CONNECTION_BANNER</a></td>
 </tr>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMVpnConnection.html#NMVpnConnection-struct" title="NMVpnConnection">NMVpnConnection</a></td>
-</tr>
 </tbody>
 </table></div>
-</div>
-<div class="refsect1">
-<a name="NMVpnConnection.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
-        <span class="lineart">╰──</span> <a class="link" href="NMActiveConnection.html" title="NMActiveConnection">NMActiveConnection</a>
-            <span class="lineart">╰──</span> NMVpnConnection
-</pre>
-</div>
-<div class="refsect1">
-<a name="NMVpnConnection.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
-<p>
-NMVpnConnection implements
- <a href="https://developer.gnome.org/gio/unstable/GInitable.html#GInitable-struct">GInitable</a> and  <a href="https://developer.gnome.org/gio/unstable/GAsyncInitable.html#GAsyncInitable-struct">GAsyncInitable</a>.</p>
 </div>
 <div class="refsect1">
 <a name="NMVpnConnection.description"></a><h2>Description</h2>
@@ -206,41 +146,6 @@ string used by the connection, and must not be modified.</p>
 <a name="NM-VPN-CONNECTION-BANNER:CAPS"></a><h3>NM_VPN_CONNECTION_BANNER</h3>
 <pre class="programlisting">#define NM_VPN_CONNECTION_BANNER "banner"
 </pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMVpnConnection-struct"></a><h3>NMVpnConnection</h3>
-<pre class="programlisting">typedef struct _NMVpnConnection NMVpnConnection;</pre>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMVpnConnection.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMVpnConnection--banner"></a><h3>The <code class="literal">“banner”</code> property</h3>
-<pre class="programlisting">  “banner”                   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
-<p>The VPN login banner of the active VPN connection.</p>
-<p>Flags: Read</p>
-<p>Default value: NULL</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMVpnConnection--vpn-state"></a><h3>The <code class="literal">“vpn-state”</code> property</h3>
-<pre class="programlisting">  “vpn-state”                <a href="/usr/share/gtk-doc/html/NetworkManager/nm-vpn-dbus-types.html#NMVpnConnectionState"><span class="type">NMVpnConnectionState</span></a></pre>
-<p>The VPN state of the active VPN connection.</p>
-<p>Flags: Read</p>
-<p>Default value: NM_VPN_CONNECTION_STATE_UNKNOWN</p>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMVpnConnection.signal-details"></a><h2>Signal Details</h2>
-<div class="refsect2">
-<a name="NMVpnConnection-vpn-state-changed"></a><h3>The <code class="literal">“vpn-state-changed”</code> signal</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>
-user_function (<a class="link" href="NMVpnConnection.html" title="NMVpnConnection"><span class="type">NMVpnConnection</span></a> *nmvpnconnection,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>            arg1,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a>            arg2,
-               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>         user_data)</pre>
-<p>Flags: <a href="https://developer.gnome.org/gobject/unstable/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">Run First</a></p>
 </div>
 </div>
 </div>

@@ -1,20 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2011 - 2018 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2011 - 2018 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -76,15 +62,10 @@ static NMActStageReturn
 act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
 	nm_auto_close int dirfd = -1;
-	NMActStageReturn ret;
 	NMSettingInfiniband *s_infiniband;
 	char ifname_verified[IFNAMSIZ];
 	const char *transport_mode;
 	gboolean ok;
-
-	ret = NM_DEVICE_CLASS (nm_device_infiniband_parent_class)->act_stage1_prepare (device, out_failure_reason);
-	if (ret != NM_ACT_STAGE_RETURN_SUCCESS)
-		return ret;
 
 	s_infiniband = nm_device_get_applied_setting (device, NM_TYPE_SETTING_INFINIBAND);
 
@@ -94,7 +75,7 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 
 	dirfd = nm_platform_sysctl_open_netdir (nm_device_get_platform (device), nm_device_get_ifindex (device), ifname_verified);
 	if (dirfd < 0) {
-		if (!strcmp (transport_mode, "datagram"))
+		if (nm_streq (transport_mode, "datagram"))
 			return NM_ACT_STAGE_RETURN_SUCCESS;
 		else {
 			NM_SET_OUT (out_failure_reason, NM_DEVICE_STATE_REASON_INFINIBAND_MODE);
@@ -116,7 +97,9 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 }
 
 static guint32
-get_configured_mtu (NMDevice *device, NMDeviceMtuSource *out_source)
+get_configured_mtu (NMDevice *device,
+                    NMDeviceMtuSource *out_source,
+                    gboolean *out_force)
 {
 	return nm_device_get_configured_mtu_from_connection (device,
 	                                                     NM_TYPE_SETTING_INFINIBAND,
@@ -205,6 +188,32 @@ update_connection (NMDevice *device, NMConnection *connection)
 			transport_mode = "datagram";
 	}
 	g_object_set (G_OBJECT (s_infiniband), NM_SETTING_INFINIBAND_TRANSPORT_MODE, transport_mode, NULL);
+}
+
+static gboolean
+can_reapply_change (NMDevice *device,
+                    const char *setting_name,
+                    NMSetting *s_old,
+                    NMSetting *s_new,
+                    GHashTable *diffs,
+                    GError **error)
+{
+	NMDeviceClass *device_class;
+
+	if (nm_streq (setting_name, NM_SETTING_INFINIBAND_SETTING_NAME)) {
+		return nm_device_hash_check_invalid_keys (diffs,
+		                                          NM_SETTING_INFINIBAND_SETTING_NAME,
+		                                          error,
+		                                          NM_SETTING_INFINIBAND_MTU); /* reapplied with IP config */
+	}
+
+	device_class = NM_DEVICE_CLASS (nm_device_infiniband_parent_class);
+	return device_class->can_reapply_change (device,
+	                                         setting_name,
+	                                         s_old,
+	                                         s_new,
+	                                         diffs,
+	                                         error);
 }
 
 static gboolean
@@ -359,6 +368,7 @@ nm_device_infiniband_class_init (NMDeviceInfinibandClass *klass)
 	device_class->connection_type_check_compatible = NM_SETTING_INFINIBAND_SETTING_NAME;
 	device_class->link_types = NM_DEVICE_DEFINE_LINK_TYPES (NM_LINK_TYPE_INFINIBAND);
 
+	device_class->can_reapply_change = can_reapply_change;
 	device_class->create_and_realize = create_and_realize;
 	device_class->unrealize = unrealize;
 	device_class->get_generic_capabilities = get_generic_capabilities;

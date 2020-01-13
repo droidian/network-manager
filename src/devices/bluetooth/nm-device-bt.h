@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2009 Red Hat, Inc.
  */
 
@@ -21,7 +7,6 @@
 #define __NETWORKMANAGER_DEVICE_BT_H__
 
 #include "devices/nm-device.h"
-#include "nm-bluez-device.h"
 
 #define NM_TYPE_DEVICE_BT                   (nm_device_bt_get_type ())
 #define NM_DEVICE_BT(obj)                   (G_TYPE_CHECK_INSTANCE_CAST ((obj), NM_TYPE_DEVICE_BT, NMDeviceBt))
@@ -30,9 +15,11 @@
 #define NM_IS_DEVICE_BT_CLASS(klass)        (G_TYPE_CHECK_CLASS_TYPE ((klass),  NM_TYPE_DEVICE_BT))
 #define NM_DEVICE_BT_GET_CLASS(obj)         (G_TYPE_INSTANCE_GET_CLASS ((obj),  NM_TYPE_DEVICE_BT, NMDeviceBtClass))
 
-#define NM_DEVICE_BT_NAME         "name"
+#define NM_DEVICE_BT_BDADDR       "bt-bdaddr"
+#define NM_DEVICE_BT_BZ_MGR       "bt-bz-mgr"
 #define NM_DEVICE_BT_CAPABILITIES "bt-capabilities"
-#define NM_DEVICE_BT_DEVICE       "bt-device"
+#define NM_DEVICE_BT_DBUS_PATH    "bt-dbus-path"
+#define NM_DEVICE_BT_NAME         "bt-name"
 
 #define NM_DEVICE_BT_PPP_STATS    "ppp-stats"
 
@@ -41,18 +28,33 @@ typedef struct _NMDeviceBtClass NMDeviceBtClass;
 
 GType nm_device_bt_get_type (void);
 
-NMDevice *nm_device_bt_new (NMBluezDevice *bt_device,
-                            const char *udi,
-                            const char *bdaddr,
-                            const char *name,
-                            guint32 capabilities);
+struct _NMBluezManager;
 
-guint32 nm_device_bt_get_capabilities (NMDeviceBt *device);
+NMDeviceBt *nm_device_bt_new (struct _NMBluezManager *bz_mgr,
+                              const char *dbus_path,
+                              const char *bdaddr,
+                              const char *name,
+                              NMBluetoothCapabilities capabilities);
+
+gboolean _nm_device_bt_for_same_device (NMDeviceBt *device,
+                                        const char *dbus_path,
+                                        const char *bdaddr,
+                                        const char *name,
+                                        NMBluetoothCapabilities capabilities);
+
+NMBluetoothCapabilities nm_device_bt_get_capabilities (NMDeviceBt *device);
 
 struct _NMModem;
 
 gboolean nm_device_bt_modem_added (NMDeviceBt *device,
                                    struct _NMModem *modem,
                                    const char *driver);
+
+void _nm_device_bt_notify_removed (NMDeviceBt *self);
+
+void _nm_device_bt_notify_set_name (NMDeviceBt *self, const char *name);
+
+void _nm_device_bt_notify_set_connected (NMDeviceBt *self,
+                                         gboolean connected);
 
 #endif /* __NETWORKMANAGER_DEVICE_BT_H__ */

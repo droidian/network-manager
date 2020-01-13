@@ -1,20 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2011 - 2012 Red Hat, Inc.
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2011 - 2012 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -477,14 +463,6 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
 	NMDevice *parent_device;
 	NMSettingVlan *s_vlan;
-	NMActStageReturn ret;
-
-	ret = NM_DEVICE_CLASS (nm_device_vlan_parent_class)->act_stage1_prepare (device, out_failure_reason);
-	if (ret != NM_ACT_STAGE_RETURN_SUCCESS)
-		return ret;
-
-	if (!nm_device_hw_addr_set_cloned (device, nm_device_get_applied_connection (device), FALSE))
-		return NM_ACT_STAGE_RETURN_FAILURE;
 
 	/* Change MAC address to parent's one if needed */
 	parent_device = nm_device_parent_get_device (device);
@@ -497,7 +475,8 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 	if (s_vlan) {
 		gs_free NMVlanQosMapping *ingress_map = NULL;
 		gs_free NMVlanQosMapping *egress_map = NULL;
-		guint n_ingress_map = 0, n_egress_map = 0;
+		guint n_ingress_map = 0;
+		guint n_egress_map = 0;
 
 		_nm_setting_vlan_get_priorities (s_vlan,
 		                                 NM_VLAN_INGRESS_MAP,
@@ -520,27 +499,7 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 		                              n_egress_map);
 	}
 
-	return ret;
-}
-
-static guint32
-get_configured_mtu (NMDevice *self, NMDeviceMtuSource *out_source)
-{
-	guint32 mtu = 0;
-	int ifindex;
-
-	mtu = nm_device_get_configured_mtu_for_wired (self, out_source);
-	if (*out_source != NM_DEVICE_MTU_SOURCE_NONE)
-		return mtu;
-
-	/* Inherit the MTU from parent device, if any */
-	ifindex = nm_device_parent_get_ifindex (self);
-	if (ifindex > 0) {
-		mtu = nm_platform_link_get_mtu (nm_device_get_platform (NM_DEVICE (self)), ifindex);
-		*out_source = NM_DEVICE_MTU_SOURCE_PARENT;
-	}
-
-	return mtu;
+	return NM_ACT_STAGE_RETURN_SUCCESS;
 }
 
 /*****************************************************************************/
@@ -598,13 +557,15 @@ nm_device_vlan_class_init (NMDeviceVlanClass *klass)
 	device_class->connection_type_supported = NM_SETTING_VLAN_SETTING_NAME;
 	device_class->connection_type_check_compatible = NM_SETTING_VLAN_SETTING_NAME;
 	device_class->link_types = NM_DEVICE_DEFINE_LINK_TYPES (NM_LINK_TYPE_VLAN);
+	device_class->mtu_parent_delta = 0; /* VLANs can have the same MTU of parent */
 
 	device_class->create_and_realize = create_and_realize;
 	device_class->link_changed = link_changed;
 	device_class->unrealize_notify = unrealize_notify;
 	device_class->get_generic_capabilities = get_generic_capabilities;
+	device_class->act_stage1_prepare_set_hwaddr_ethernet = TRUE;
 	device_class->act_stage1_prepare = act_stage1_prepare;
-	device_class->get_configured_mtu = get_configured_mtu;
+	device_class->get_configured_mtu = nm_device_get_configured_mtu_wired_parent;
 	device_class->is_available = is_available;
 	device_class->parent_changed_notify = parent_changed_notify;
 

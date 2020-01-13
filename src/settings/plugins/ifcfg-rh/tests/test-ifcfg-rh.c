@@ -1,19 +1,5 @@
-/* NetworkManager system settings service - keyfile plugin
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2008 - 2011 Red Hat, Inc.
  */
 
@@ -901,6 +887,7 @@ test_read_wired_dhcp (void)
 	NMSettingConnection *s_con;
 	NMSettingWired *s_wired;
 	NMSettingIPConfig *s_ip4;
+	NMSettingIPConfig *s_ip6;
 	char *unmanaged = NULL;
 	char expected_mac_address[ETH_ALEN] = { 0x00, 0x11, 0x22, 0x33, 0x44, 0xee };
 	const char *mac;
@@ -930,11 +917,23 @@ test_read_wired_dhcp (void)
 	s_ip4 = nm_connection_get_setting_ip4_config (connection);
 	g_assert (s_ip4);
 	g_assert_cmpstr (nm_setting_ip_config_get_method (s_ip4), ==, NM_SETTING_IP4_CONFIG_METHOD_AUTO);
-	g_assert_cmpstr (nm_setting_ip_config_get_dhcp_hostname (s_ip4), ==, "foobar");
+	g_assert_cmpstr (nm_setting_ip4_config_get_dhcp_fqdn (NM_SETTING_IP4_CONFIG (s_ip4)), ==, "foo.bar");
 	g_assert (nm_setting_ip_config_get_ignore_auto_dns (s_ip4));
 	g_assert_cmpuint (nm_setting_ip_config_get_num_dns (s_ip4), ==, 2);
 	g_assert_cmpstr (nm_setting_ip_config_get_dns (s_ip4, 0), ==, "4.2.2.1");
 	g_assert_cmpstr (nm_setting_ip_config_get_dns (s_ip4, 1), ==, "4.2.2.2");
+	g_assert_cmpuint (nm_setting_ip_config_get_dhcp_hostname_flags (s_ip4),
+	                  ==,
+	                  NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED | NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE);
+
+	/* ===== IPv6 SETTING ===== */
+	s_ip6 = nm_connection_get_setting_ip6_config (connection);
+	g_assert (s_ip6);
+	g_assert_cmpstr (nm_setting_ip_config_get_method (s_ip6), ==, NM_SETTING_IP6_CONFIG_METHOD_DHCP);
+	g_assert_cmpstr (nm_setting_ip_config_get_dhcp_hostname (s_ip6), ==, "foo.bar");
+	g_assert_cmpuint (nm_setting_ip_config_get_dhcp_hostname_flags (s_ip6),
+	                  ==,
+	                  NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS);
 
 	g_object_unref (connection);
 }
@@ -1348,6 +1347,7 @@ test_read_wired_static_routes (void)
 	nmtst_assert_route_attribute_boolean (ip4_route, NM_IP_ROUTE_ATTRIBUTE_LOCK_MTU, TRUE);
 	nmtst_assert_route_attribute_boolean (ip4_route, NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND, TRUE);
 	nmtst_assert_route_attribute_string (ip4_route, NM_IP_ROUTE_ATTRIBUTE_SRC, "1.1.1.1");
+	nmtst_assert_route_attribute_byte (ip4_route, NM_IP_ROUTE_ATTRIBUTE_SCOPE, 10);
 
 	ip4_route = nm_setting_ip_config_get_route (s_ip4, 2);
 	g_assert (ip4_route);
@@ -1365,6 +1365,7 @@ test_read_wired_static_routes (void)
 	nmtst_assert_route_attribute_boolean (ip4_route, NM_IP_ROUTE_ATTRIBUTE_LOCK_INITCWND, TRUE);
 	nmtst_assert_route_attribute_string (ip4_route, NM_IP_ROUTE_ATTRIBUTE_SRC, "1.1.1.1");
 	nmtst_assert_route_attribute_boolean (ip4_route, NM_IP_ROUTE_ATTRIBUTE_ONLINK, TRUE);
+	nmtst_assert_route_attribute_byte (ip4_route, NM_IP_ROUTE_ATTRIBUTE_SCOPE, 253);
 
 	g_object_unref (connection);
 }
@@ -1520,10 +1521,8 @@ test_read_wired_ipv6_manual (void)
 	NMIPAddress *ip6_addr;
 	NMIPRoute *ip6_route;
 
-	NMTST_EXPECT_NM_WARN ("*ignoring manual default route*");
 	connection = _connection_from_file (TEST_IFCFG_DIR"/ifcfg-test-wired-ipv6-manual",
 	                                    NULL, TYPE_ETHERNET, &unmanaged);
-	g_test_assert_expected_messages ();
 	g_assert (!unmanaged);
 
 	/* ===== CONNECTION SETTING ===== */
@@ -1581,7 +1580,7 @@ test_read_wired_ipv6_manual (void)
 	g_assert_cmpint (nm_ip_address_get_prefix (ip6_addr), ==, 96);
 
 	/* Routes */
-	g_assert_cmpint (nm_setting_ip_config_get_num_routes (s_ip6), ==, 3);
+	g_assert_cmpint (nm_setting_ip_config_get_num_routes (s_ip6), ==, 4);
 	/* Route #1 */
 	ip6_route = nm_setting_ip_config_get_route (s_ip6, 0);
 	g_assert (ip6_route);
@@ -1592,12 +1591,19 @@ test_read_wired_ipv6_manual (void)
 	/* Route #2 */
 	ip6_route = nm_setting_ip_config_get_route (s_ip6, 1);
 	g_assert (ip6_route);
+	g_assert_cmpstr (nm_ip_route_get_dest (ip6_route), ==, "::");
+	g_assert_cmpint (nm_ip_route_get_prefix (ip6_route), ==, 0);
+	g_assert_cmpstr (nm_ip_route_get_next_hop (ip6_route), ==, "dead::beaf");
+	g_assert_cmpint (nm_ip_route_get_metric (ip6_route), ==, -1);
+	/* Route #3 */
+	ip6_route = nm_setting_ip_config_get_route (s_ip6, 2);
+	g_assert (ip6_route);
 	g_assert_cmpstr (nm_ip_route_get_dest (ip6_route), ==, "abbe::cafe");
 	g_assert_cmpint (nm_ip_route_get_prefix (ip6_route), ==, 64);
 	g_assert_cmpstr (nm_ip_route_get_next_hop (ip6_route), ==, NULL);
 	g_assert_cmpint (nm_ip_route_get_metric (ip6_route), ==, 777);
-	/* Route #3 */
-	ip6_route = nm_setting_ip_config_get_route (s_ip6, 2);
+	/* Route #4 */
+	ip6_route = nm_setting_ip_config_get_route (s_ip6, 3);
 	g_assert (ip6_route);
 	g_assert_cmpstr (nm_ip_route_get_dest (ip6_route), ==, "aaaa::cccc");
 	g_assert_cmpint (nm_ip_route_get_prefix (ip6_route), ==, 64);
@@ -3128,17 +3134,17 @@ test_read_wifi_wpa_psk_adhoc (void)
 
 	s_wsec = nm_connection_get_setting_wireless_security (connection);
 	g_assert (s_wsec);
-	g_assert_cmpstr (nm_setting_wireless_security_get_key_mgmt (s_wsec), ==, "wpa-none");
+	g_assert_cmpstr (nm_setting_wireless_security_get_key_mgmt (s_wsec), ==, "wpa-psk");
 	g_assert_cmpstr (nm_setting_wireless_security_get_psk (s_wsec), ==, "I wonder what the king is doing tonight?");
 
-	/* Pairwise cipher is unused in adhoc mode */
-	g_assert_cmpint (nm_setting_wireless_security_get_num_pairwise (s_wsec), ==, 0);
+	g_assert_cmpint (nm_setting_wireless_security_get_num_pairwise (s_wsec), ==, 1);
+	g_assert_cmpstr (nm_setting_wireless_security_get_pairwise (s_wsec, 0), ==, "ccmp");
 
 	g_assert_cmpint (nm_setting_wireless_security_get_num_groups (s_wsec), ==, 1);
 	g_assert_cmpstr (nm_setting_wireless_security_get_group (s_wsec, 0), ==, "ccmp");
 
 	g_assert_cmpint (nm_setting_wireless_security_get_num_protos (s_wsec), ==, 1);
-	g_assert_cmpstr (nm_setting_wireless_security_get_proto (s_wsec, 0), ==, "wpa");
+	g_assert_cmpstr (nm_setting_wireless_security_get_proto (s_wsec, 0), ==, "rsn");
 
 	/* ===== IPv4 SETTING ===== */
 
@@ -4464,9 +4470,11 @@ test_write_wired_dhcp (void)
 	g_object_set (s_ip4,
 	              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO,
 	              NM_SETTING_IP4_CONFIG_DHCP_CLIENT_ID, "random-client-id-00:22:33",
-	              NM_SETTING_IP_CONFIG_DHCP_HOSTNAME, "awesome-hostname",
+	              NM_SETTING_IP4_CONFIG_DHCP_FQDN, "awesome.hostname",
+	              NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS, (guint) NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED,
 	              NM_SETTING_IP_CONFIG_IGNORE_AUTO_ROUTES, TRUE,
 	              NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS, TRUE,
+	              NM_SETTING_IP_CONFIG_DHCP_IAID, "2864434397",
 	              NULL);
 
 	nmtst_assert_connection_verifies (connection);
@@ -4476,8 +4484,10 @@ test_write_wired_dhcp (void)
 	nm_connection_add_setting (connection, NM_SETTING (s_ip6));
 
 	g_object_set (s_ip6,
-	              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
+	              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_DHCP,
 	              NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE,
+	              NM_SETTING_IP_CONFIG_DHCP_HOSTNAME, "awesome.hostname",
+	              NM_SETTING_IP_CONFIG_DHCP_HOSTNAME_FLAGS, (guint) NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE,
 	              NULL);
 
 	_writer_new_connection (connection,
@@ -6455,12 +6465,13 @@ test_write_wifi_wpa_psk_adhoc (void)
 	nm_connection_add_setting (connection, NM_SETTING (s_wsec));
 
 	g_object_set (s_wsec,
-	              NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, "wpa-none",
+	              NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, "wpa-psk",
 	              NM_SETTING_WIRELESS_SECURITY_PSK, "7d308b11df1b4243b0f78e5f3fc68cdbb9a264ed0edf4c188edf329ff5b467f0",
 	              NULL);
 
-	nm_setting_wireless_security_add_proto (s_wsec, "wpa");
-	nm_setting_wireless_security_add_group (s_wsec, "tkip");
+	nm_setting_wireless_security_add_proto (s_wsec, "rsn");
+	nm_setting_wireless_security_add_pairwise (s_wsec, "ccmp");
+	nm_setting_wireless_security_add_group (s_wsec, "ccmp");
 
 	/* IP4 setting */
 	s_ip4 = (NMSettingIPConfig *) nm_setting_ip4_config_new ();

@@ -12,10 +12,10 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=512286
  1 file changed, 115 insertions(+)
 
 diff --git a/src/nm-manager.c b/src/nm-manager.c
-index d112fcf..267a5a8 100644
+index 3696c78..abd71c4 100644
 --- a/src/nm-manager.c
 +++ b/src/nm-manager.c
-@@ -60,6 +60,8 @@
+@@ -50,6 +50,8 @@
  #include "nm-dispatcher.h"
  #include "NetworkManagerUtils.h"
  
@@ -24,7 +24,7 @@ index d112fcf..267a5a8 100644
  /*****************************************************************************/
  
  typedef struct {
-@@ -198,6 +200,10 @@ typedef struct {
+@@ -188,6 +190,10 @@ typedef struct {
  	GFileMonitor *fw_monitor;
  	guint fw_changed_id;
  
@@ -35,7 +35,7 @@ index d112fcf..267a5a8 100644
  	guint timestamp_update_id;
  
  	guint devices_inited_id;
-@@ -1436,6 +1442,27 @@ find_best_device_state (NMManager *manager)
+@@ -1426,6 +1432,27 @@ find_best_device_state (NMManager *manager)
  	return best_state;
  }
  
@@ -63,7 +63,7 @@ index d112fcf..267a5a8 100644
  static void
  nm_manager_update_metered (NMManager *self)
  {
-@@ -1482,6 +1509,9 @@ nm_manager_update_state (NMManager *self)
+@@ -1472,6 +1499,9 @@ nm_manager_update_state (NMManager *self)
  	else
  		new_state = find_best_device_state (self);
  
@@ -73,7 +73,7 @@ index d112fcf..267a5a8 100644
  	if (   new_state >= NM_STATE_CONNECTED_LOCAL
  	    && priv->connectivity_state == NM_CONNECTIVITY_FULL) {
  		new_state = NM_STATE_CONNECTED_GLOBAL;
-@@ -6491,6 +6521,62 @@ impl_manager_check_connectivity (NMDBusObject *obj,
+@@ -6536,6 +6566,62 @@ impl_manager_check_connectivity (NMDBusObject *obj,
  	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_NETWORK_CONTROL, TRUE);
  }
  
@@ -136,7 +136,7 @@ index d112fcf..267a5a8 100644
  static void
  start_factory (NMDeviceFactory *factory, gpointer user_data)
  {
-@@ -6664,6 +6750,9 @@ nm_manager_start (NMManager *self, GError **error)
+@@ -6709,6 +6795,9 @@ nm_manager_start (NMManager *self, GError **error)
  	nm_clear_g_source (&priv->devices_inited_id);
  	priv->devices_inited_id = g_idle_add_full (G_PRIORITY_LOW + 10, devices_inited_cb, self, NULL);
  
@@ -146,7 +146,7 @@ index d112fcf..267a5a8 100644
  	return TRUE;
  }
  
-@@ -7512,6 +7601,22 @@ nm_manager_init (NMManager *self)
+@@ -7557,6 +7646,22 @@ nm_manager_init (NMManager *self)
  		       KERNEL_FIRMWARE_DIR);
  	}
  
@@ -169,7 +169,7 @@ index d112fcf..267a5a8 100644
  	/* Update timestamps in active connections */
  	priv->timestamp_update_id = g_timeout_add_seconds (300, (GSourceFunc) periodic_update_active_connection_timestamps, self);
  
-@@ -7794,6 +7899,16 @@ dispose (GObject *object)
+@@ -7839,6 +7944,16 @@ dispose (GObject *object)
  		g_clear_object (&priv->fw_monitor);
  	}
  

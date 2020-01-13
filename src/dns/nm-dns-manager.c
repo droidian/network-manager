@@ -1,23 +1,8 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2004 - 2005 Colin Walters <walters@redhat.com>
  * Copyright (C) 2004 - 2017 Red Hat, Inc.
  * Copyright (C) 2005 - 2008 Novell, Inc.
- *   and others
  */
 
 #include "nm-default.h"
@@ -62,10 +47,6 @@
 #ifndef NETCONFIG_PATH
 #define NETCONFIG_PATH "/sbin/netconfig"
 #endif
-
-#define PLUGIN_RATELIMIT_INTERVAL    30
-#define PLUGIN_RATELIMIT_BURST       5
-#define PLUGIN_RATELIMIT_DELAY       300
 
 /*****************************************************************************/
 
@@ -1441,13 +1422,15 @@ update_dns (NMDnsManager *self,
 		nm_dns_plugin_update (priv->sd_resolve_plugin,
 		                      global_config,
 		                      _ip_config_lst_head (self),
-		                      priv->hostname);
+		                      priv->hostname,
+		                      NULL);
 	}
 
 	/* Let any plugins do their thing first */
 	if (priv->plugin) {
 		NMDnsPlugin *plugin = priv->plugin;
 		const char *plugin_name = nm_dns_plugin_get_name (plugin);
+		gs_free_error GError *plugin_error = NULL;
 
 		if (nm_dns_plugin_is_caching (plugin)) {
 			if (no_caching) {
@@ -1462,8 +1445,9 @@ update_dns (NMDnsManager *self,
 		if (!nm_dns_plugin_update (plugin,
 		                           global_config,
 		                           _ip_config_lst_head (self),
-		                           priv->hostname)) {
-			_LOGW ("update-dns: plugin %s update failed", plugin_name);
+		                           priv->hostname,
+		                           &plugin_error)) {
+			_LOGW ("update-dns: plugin %s update failed: %s", plugin_name, plugin_error->message);
 
 			/* If the plugin failed to update, we shouldn't write out a local
 			 * caching DNS configuration to resolv.conf.
@@ -1567,66 +1551,7 @@ update_dns (NMDnsManager *self,
 	return !update || result == SR_SUCCESS;
 }
 
-static void
-plugin_failed (NMDnsPlugin *plugin, gpointer user_data)
-{
-	NMDnsManager *self = NM_DNS_MANAGER (user_data);
-	GError *error = NULL;
-
-	/* Errors with non-caching plugins aren't fatal */
-	if (!nm_dns_plugin_is_caching (plugin))
-		return;
-
-	/* Disable caching until the next DNS update */
-	if (!update_dns (self, TRUE, &error)) {
-		_LOGW ("could not commit DNS changes: %s", error->message);
-		g_clear_error (&error);
-	}
-}
-
-static gboolean
-plugin_child_quit_update_dns (gpointer user_data)
-{
-	GError *error = NULL;
-	NMDnsManager *self = NM_DNS_MANAGER (user_data);
-
-	/* Let the plugin try to spawn the child again */
-	if (!update_dns (self, FALSE, &error)) {
-		_LOGW ("could not commit DNS changes: %s", error->message);
-		g_clear_error (&error);
-	}
-
-	return G_SOURCE_REMOVE;
-}
-
-static void
-plugin_child_quit (NMDnsPlugin *plugin, int exit_status, gpointer user_data)
-{
-	NMDnsManager *self = NM_DNS_MANAGER (user_data);
-	NMDnsManagerPrivate *priv = NM_DNS_MANAGER_GET_PRIVATE (self);
-	gint64 ts = nm_utils_get_monotonic_timestamp_ms ();
-
-	_LOGW ("plugin %s child quit unexpectedly", nm_dns_plugin_get_name (plugin));
-
-	if (   !priv->plugin_ratelimit.ts
-	    || (ts - priv->plugin_ratelimit.ts) / 1000 > PLUGIN_RATELIMIT_INTERVAL) {
-		priv->plugin_ratelimit.ts = ts;
-		priv->plugin_ratelimit.num_restarts = 0;
-	} else {
-		priv->plugin_ratelimit.num_restarts++;
-		if (priv->plugin_ratelimit.num_restarts > PLUGIN_RATELIMIT_BURST) {
-			plugin_failed (plugin, self);
-			_LOGW ("plugin %s child respawning too fast, delaying update for %u seconds",
-			        nm_dns_plugin_get_name (plugin), PLUGIN_RATELIMIT_DELAY);
-			priv->plugin_ratelimit.timer = g_timeout_add_seconds (PLUGIN_RATELIMIT_DELAY,
-			                                                      plugin_child_quit_update_dns,
-			                                                      self);
-			return;
-		}
-	}
-
-	plugin_child_quit_update_dns (self);
-}
+/*****************************************************************************/
 
 static void
 _ip_config_dns_priority_changed (gpointer config,
@@ -1856,15 +1781,14 @@ _clear_plugin (NMDnsManager *self)
 {
 	NMDnsManagerPrivate *priv = NM_DNS_MANAGER_GET_PRIVATE (self);
 
+	priv->plugin_ratelimit.ts = 0;
+	nm_clear_g_source (&priv->plugin_ratelimit.timer);
+
 	if (priv->plugin) {
-		g_signal_handlers_disconnect_by_func (priv->plugin, plugin_failed, self);
-		g_signal_handlers_disconnect_by_func (priv->plugin, plugin_child_quit, self);
 		nm_dns_plugin_stop (priv->plugin);
 		g_clear_object (&priv->plugin);
 		return TRUE;
 	}
-	priv->plugin_ratelimit.ts = 0;
-	nm_clear_g_source (&priv->plugin_ratelimit.timer);
 	return FALSE;
 }
 
@@ -2082,12 +2006,6 @@ again:
 		}
 	} else if (nm_clear_g_object (&priv->sd_resolve_plugin))
 		systemd_resolved_changed = TRUE;
-
-	if (   plugin_changed
-	    && priv->plugin) {
-		g_signal_connect (priv->plugin, NM_DNS_PLUGIN_FAILED, G_CALLBACK (plugin_failed), self);
-		g_signal_connect (priv->plugin, NM_DNS_PLUGIN_CHILD_QUIT, G_CALLBACK (plugin_child_quit), self);
-	}
 
 	g_object_freeze_notify (G_OBJECT (self));
 

@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2010 - 2014 Red Hat, Inc.
- *
+ * Copyright (C) 2010 - 2014 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -248,8 +234,9 @@ test_setup (TestSecretAgentData *sadata, gconstpointer test_data)
 	if (!sadata->sinfo)
 		return;
 
-	sadata->client = nm_client_new (NULL, &error);
-	g_assert_no_error (error);
+	g_assert (g_main_context_get_thread_default () == NULL);
+
+	sadata->client = nmtstc_client_new (TRUE);
 
 	sadata->loop = g_main_loop_new (NULL, FALSE);
 	sadata->timeout_id = g_timeout_add_seconds (5, timeout_assert, NULL);

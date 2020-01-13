@@ -1,19 +1,5 @@
-/* nm-ndisc.h - Perform IPv6 neighbor discovery
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2013 Red Hat, Inc.
  */
 
@@ -112,6 +98,8 @@ typedef enum {
 	NM_NDISC_CONFIG_DNS_DOMAINS                         = 1 << 5,
 	NM_NDISC_CONFIG_HOP_LIMIT                           = 1 << 6,
 	NM_NDISC_CONFIG_MTU                                 = 1 << 7,
+	NM_NDISC_CONFIG_REACHABLE_TIME                      = 1 << 8,
+	NM_NDISC_CONFIG_RETRANS_TIMER                       = 1 << 9,
 } NMNDiscConfigMap;
 
 typedef enum {
@@ -137,6 +125,8 @@ typedef struct {
 	NMNDiscDHCPLevel dhcp_level;
 	guint32 mtu;
 	int hop_limit;
+	guint32 reachable_time_ms;
+	guint32 retrans_timer_ms;
 
 	guint gateways_n;
 	guint addresses_n;

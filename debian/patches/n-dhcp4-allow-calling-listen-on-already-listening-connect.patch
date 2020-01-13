@@ -1,0 +1,29 @@
+From: Beniamino Galvani <bgalvani@redhat.com>
+Date: Tue, 7 Jan 2020 12:01:39 +0100
+Subject: n-dhcp4: allow calling listen() on already listening connection
+
+When the client enters the INIT state, it calls listen() on the
+connection connection to create the packet socket. However, if the
+client is coming from the REBOOTING state after a NAK, the connection
+is already in the listening state; do nothing in such case.
+
+(cherry picked from commit 4bcdc3c1ebe3e2e8a967ff067ecb2a8cbfc2f6ab)
+(cherry picked from commit 2e1d3ae572a753f0181760d9fa41558d33849b09)
+---
+ shared/n-dhcp4/src/n-dhcp4-c-connection.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/shared/n-dhcp4/src/n-dhcp4-c-connection.c b/shared/n-dhcp4/src/n-dhcp4-c-connection.c
+index e51a3e3..f3ae44e 100644
+--- a/shared/n-dhcp4/src/n-dhcp4-c-connection.c
++++ b/shared/n-dhcp4/src/n-dhcp4-c-connection.c
+@@ -139,6 +139,9 @@ int n_dhcp4_c_connection_listen(NDhcp4CConnection *connection) {
+         _c_cleanup_(c_closep) int fd_packet = -1;
+         int r;
+ 
++        if (connection->state == N_DHCP4_C_CONNECTION_STATE_PACKET)
++                return 0;
++
+         c_assert(connection->state == N_DHCP4_C_CONNECTION_STATE_INIT ||
+                  connection->state == N_DHCP4_C_CONNECTION_STATE_DRAINING ||
+                  connection->state == N_DHCP4_C_CONNECTION_STATE_UDP);

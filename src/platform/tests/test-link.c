@@ -1,19 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2016 Red Hat, Inc.
+ * Copyright (C) 2016 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -476,9 +463,9 @@ _system (const char *cmd)
 static void
 test_bond (void)
 {
-	if (nmtstp_is_root_test () &&
-	    !g_file_test ("/proc/1/net/bonding", G_FILE_TEST_IS_DIR) &&
-	    _system("modprobe --show bonding") != 0) {
+	if (   nmtstp_is_root_test ()
+	    && !g_file_test ("/proc/1/net/bonding", G_FILE_TEST_IS_DIR)
+	    && _system("modprobe --show bonding") != 0) {
 		g_test_skip ("Skipping test for bonding: bonding module not available");
 		return;
 	}
@@ -489,6 +476,20 @@ test_bond (void)
 static void
 test_team (void)
 {
+	int r;
+
+	if (nmtstp_is_root_test ()) {
+		r = nm_platform_link_team_add (NM_PLATFORM_GET, "nm-team-check", NULL);
+
+		if (r < 0) {
+			g_assert_cmpint (r, ==, -EOPNOTSUPP);
+			g_test_skip ("Skipping test for teaming: team module not functioning");
+			return;
+		}
+
+		nmtstp_link_delete (NM_PLATFORM_GET, -1, -1, "nm-team-check", FALSE);
+	}
+
 	test_software (NM_LINK_TYPE_TEAM, "team");
 }
 
@@ -2886,9 +2887,14 @@ test_sysctl_rename (void)
 	case 0: {
 		gs_free char *c = NULL;
 
-		if (nm_utils_file_get_contents (dirfd, "ifindex", 1*1024*1024,
-		                                NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
-		                                &c, NULL, NULL) < 0)
+		if (!nm_utils_file_get_contents (dirfd,
+		                                 "ifindex",
+		                                 1*1024*1024,
+		                                 NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
+		                                 &c,
+		                                 NULL,
+		                                 NULL,
+		                                 NULL))
 			g_assert_not_reached();
 		g_assert_cmpint (ifindex[0], ==, (int) _nm_utils_ascii_str_to_int64 (c, 10, 0, G_MAXINT, -1));
 		break;
@@ -2952,9 +2958,14 @@ test_sysctl_netns_switch (void)
 	{
 		gs_free char *c = NULL;
 
-		if (nm_utils_file_get_contents (dirfd, "ifindex", 0,
-		                                NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
-		                                &c, NULL, NULL) < 0)
+		if (!nm_utils_file_get_contents (dirfd,
+		                                 "ifindex",
+		                                 0,
+		                                 NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
+		                                 &c,
+		                                 NULL,
+		                                 NULL,
+		                                 NULL))
 			g_assert_not_reached();
 		g_assert_cmpint (ifindex, ==, (int) _nm_utils_ascii_str_to_int64 (c, 10, 0, G_MAXINT, -1));
 	}
@@ -2997,11 +3008,14 @@ test_sysctl_netns_switch (void)
 	{
 		gs_free char *c = NULL;
 
-		if (nm_utils_file_get_contents (-1,
-		                                nm_sprintf_bufa (100, "/sys/class/net/%s/ifindex", IFNAME),
-		                                0,
-		                                NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
-		                                &c, NULL, NULL) < 0)
+		if (!nm_utils_file_get_contents (-1,
+		                                 nm_sprintf_bufa (100, "/sys/class/net/%s/ifindex", IFNAME),
+		                                 0,
+		                                 NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
+		                                 &c,
+		                                 NULL,
+		                                 NULL,
+		                                 NULL))
 			ifindex_tmp = -1;
 		else
 			ifindex_tmp = _nm_utils_ascii_str_to_int64 (c, 10, 0, G_MAXINT, -2);

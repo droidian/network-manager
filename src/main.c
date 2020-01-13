@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2004 - 2017 Red Hat, Inc.
  * Copyright (C) 2005 - 2008 Novell, Inc.
  */
@@ -102,7 +88,7 @@ _init_nm_debug (NMConfig *config)
 	debug = nm_config_data_get_value (nm_config_get_data_orig (config),
 	                                  NM_CONFIG_KEYFILE_GROUP_MAIN,
 	                                  NM_CONFIG_KEYFILE_KEY_MAIN_DEBUG,
-	                                  NM_MANAGER_RELOAD_FLAGS_NONE);
+	                                  NM_CONFIG_GET_VALUE_NONE);
 
 	flags  = nm_utils_parse_debug_string (env, keys, G_N_ELEMENTS (keys));
 	flags |= nm_utils_parse_debug_string (debug, keys, G_N_ELEMENTS (keys));
@@ -168,6 +154,7 @@ print_config (NMConfigCmdLineOptions *config_cli)
 	gs_unref_object NMConfig *config = NULL;
 	gs_free_error GError *error = NULL;
 	NMConfigData *config_data;
+	const char *const*warnings;
 
 	nm_logging_setup ("OFF", "ALL", NULL, NULL);
 
@@ -179,7 +166,14 @@ print_config (NMConfigCmdLineOptions *config_cli)
 
 	config_data = nm_config_get_data (config);
 	fprintf (stdout, "# NetworkManager configuration: %s\n", nm_config_data_get_config_description (config_data));
-	nm_config_data_log (config_data, "", "", stdout);
+	nm_config_data_log (config_data, "", "", nm_config_get_no_auto_default_file (config), stdout);
+
+	warnings = nm_config_get_warnings (config);
+	if (warnings && warnings[0])
+		fprintf (stdout, "\n");
+	for ( ; warnings && warnings[0]; warnings++)
+		fprintf (stdout, "# WARNING: %s\n", warnings[0]);
+
 	return 0;
 }
 
@@ -386,7 +380,7 @@ main (int argc, char *argv[])
 	             nm_config_get_first_start (config) ? "for the first time" : "after a restart");
 
 	nm_log_info (LOGD_CORE, "Read config: %s", nm_config_data_get_config_description (nm_config_get_data (config)));
-	nm_config_data_log (nm_config_get_data (config), "CONFIG: ", "  ", NULL);
+	nm_config_data_log (nm_config_get_data (config), "CONFIG: ", "  ", nm_config_get_no_auto_default_file (config), NULL);
 
 	if (error_invalid_logging_config) {
 		nm_log_warn (LOGD_CORE, "config: invalid logging configuration: %s", error_invalid_logging_config->message);
@@ -424,10 +418,7 @@ main (int argc, char *argv[])
 
 	NM_UTILS_KEEP_ALIVE (config, nm_netns_get (), "NMConfig-depends-on-NMNetns");
 
-	nm_auth_manager_setup (nm_config_data_get_value_boolean (nm_config_get_data_orig (config),
-	                                                         NM_CONFIG_KEYFILE_GROUP_MAIN,
-	                                                         NM_CONFIG_KEYFILE_KEY_MAIN_AUTH_POLKIT,
-	                                                         NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT_BOOL));
+	nm_auth_manager_setup (nm_config_data_get_main_auth_polkit (nm_config_get_data_orig (config)));
 
 	manager = nm_manager_setup ();
 

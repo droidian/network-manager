@@ -1,21 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2014 Red Hat, Inc.
+// SPDX-License-Identifier: LGPL-2.1+
+/*
+ * Copyright (C) 2014 Red Hat, Inc.
  */
 
 #ifndef __NM_C_LIST_H__
@@ -31,6 +16,12 @@
 		\
 		_what && c_list_contains (list, &_what->member); \
 	})
+
+/* iterate over the list backwards. */
+#define nm_c_list_for_each_entry_prev(_iter, _list, _m) \
+	for (_iter = c_list_entry ((_list)->prev, __typeof__ (*_iter), _m); \
+	     &(_iter)->_m != (_list); \
+	     _iter = c_list_entry ((_iter)->_m.prev, __typeof__ (*_iter), _m))
 
 /*****************************************************************************/
 
@@ -88,8 +79,25 @@ nm_c_list_elem_free_all (CList *head, GDestroyNotify free_fcn)
 		nm_c_list_elem_free_full (elem, free_fcn);
 }
 
+#define nm_c_list_elem_find_first(head, arg, predicate) \
+	({ \
+		CList *const _head = (head); \
+		NMCListElem *_result = NULL; \
+		NMCListElem *_elem; \
+		\
+		c_list_for_each_entry (_elem, _head, lst) { \
+			void *const arg = _elem->data; \
+			\
+			if (predicate) { \
+				_result = _elem; \
+				break; \
+			} \
+		} \
+		_result; \
+	})
+
 /**
- * nm_c_list_elem_find_first:
+ * nm_c_list_elem_find_first_ptr:
  * @head: the @CList head of a list containing #NMCListElem elements.
  *   Note that the head is not itself part of the list.
  * @needle: the needle pointer.
@@ -100,15 +108,9 @@ nm_c_list_elem_free_all (CList *head, GDestroyNotify free_fcn)
  * Returns: the found list element or %NULL if not found.
  */
 static inline NMCListElem *
-nm_c_list_elem_find_first (CList *head, gconstpointer needle)
+nm_c_list_elem_find_first_ptr (CList *head, gconstpointer needle)
 {
-	NMCListElem *elem;
-
-	c_list_for_each_entry (elem, head, lst) {
-		if (elem->data == needle)
-			return elem;
-	}
-	return NULL;
+	return nm_c_list_elem_find_first (head, x, x == needle);
 }
 
 /*****************************************************************************/

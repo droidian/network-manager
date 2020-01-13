@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2004 - 2013 Red Hat, Inc.
  * Copyright (C) 2007 - 2008 Novell, Inc.
  */
@@ -179,7 +165,7 @@ static void
 _clear_ip6_subnet (gpointer key, gpointer value, gpointer user_data)
 {
 	NMPlatformIP6Address *subnet = value;
-	NMDevice *device = nm_manager_get_device_by_ifindex (nm_manager_get (),
+	NMDevice *device = nm_manager_get_device_by_ifindex (NM_MANAGER_GET,
 	                                                     GPOINTER_TO_INT (key));
 
 	if (device) {
@@ -1886,7 +1872,7 @@ device_state_changed (NMDevice *device,
 
 			switch (nm_device_state_reason_check (reason)) {
 			case NM_DEVICE_STATE_REASON_USER_REQUESTED:
-				 blocked_reason = NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_USER_REQUEST;
+				blocked_reason = NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_USER_REQUEST;
 				break;
 			case NM_DEVICE_STATE_REASON_DEPENDENCY_FAILED:
 				blocked_reason = NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_FAILED;

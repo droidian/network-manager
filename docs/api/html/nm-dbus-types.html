@@ -42,7 +42,8 @@
 <col class="enum_members_description">
 <col>
 </colgroup>
-<tbody><tr>
+<tbody>
+<tr>
 <td class="enum_member_name">
 <p>NM_CAPABILITY_TEAM</p>
 <p></p>
@@ -52,11 +53,27 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>Teams can be managed</p>
+<p>Teams can be managed. This means the team device plugin is loaded.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
-</tr></tbody>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CAPABILITY_OVS</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">2</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>OpenVSwitch can be managed. This means the OVS device plugin is loaded. Since: 1.24, 1.22.2</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
 </table></div>
 </div>
 </div>
@@ -1076,6 +1093,21 @@
 </td>
 <td class="enum_member_description">
 <p>device supports acting as a mesh point. Since: 1.20.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_WIFI_DEVICE_CAP_IBSS_RSN</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x00002000</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>device supports WPA2/RSN in an IBSS network. Since: 1.22.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -2963,6 +2995,11 @@
 <hr>
 <div class="refsect2">
 <a name="NMMetered"></a><h3>enum NMMetered</h3>
+<p>The NMMetered enum has two different purposes: one is to configure "connection.metered" setting of a connection profile in NMSettingConnection, and the other is to express the actual metered state of the <a href="/usr/share/gtk-doc/html/libnm/NMDevice.html#NMDevice-struct">NMDevice</a> at a given moment.</p>
+<p>For the connection profile only NM_METERED_UNKNOWN, NM_METERED_NO and NM_METERED_YES are allowed.</p>
+<p>The device's metered state at runtime is determined by the profile which is currently active. If the profile explicitly specifies NM_METERED_NO or NM_METERED_YES, then the device's metered state is as such. If the connection profile leaves it undecided at NM_METERED_UNKNOWN (the default), then NetworkManager tries to guess the metered state, for example based on the device type or on DHCP options (like Android devices exposing a "ANDROID_METERED" DHCP vendor option). This then leads to either NM_METERED_GUESS_NO or NM_METERED_GUESS_YES.</p>
+<p>Most applications probably should treat the runtime state NM_METERED_GUESS_YES like NM_METERED_YES, and all other states as not metered.</p>
+<p>Note that the per-device metered states are then combined to a global metered state. This is basically the metered state of the device with the best default route. However, that generalization of a global metered state may not be correct if the default routes for IPv4 and IPv6 are on different devices, or if policy routing is configured. In general, the global metered state tries to express whether the traffic is likely metered, but since that depends on the traffic itself, there is not one answer in all cases. Hence, an application may want to consider the per-device's metered states.</p>
 <p>Since: 1.2</p>
 <p></p>
 <div class="refsect3">
@@ -3000,7 +3037,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>Metered, the value was statically set</p>
+<p>Metered, the value was explicitly configured</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -3015,7 +3052,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>Not metered, the value was statically set</p>
+<p>Not metered, the value was explicitly configured</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -4516,6 +4553,181 @@
 </td>
 <td class="enum_member_description">
 <p>the option is enabled.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMManagerReloadFlags"></a><h3>enum NMManagerReloadFlags</h3>
+<p>Flags for the manager Reload() call.</p>
+<p>Since: 1.22</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.17.2.31.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_MANAGER_RELOAD_FLAG_NONE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>an alias for numeric zero, no flags set. This reloads everything that is supported and is identical to a SIGHUP.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_MANAGER_RELOAD_FLAG_CONF</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x1</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>reload the NetworkManager.conf configuration from disk. Note that this does not include connections, which can be reloaded via Setting's ReloadConnections().</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_MANAGER_RELOAD_FLAG_DNS_RC</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x2</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>update DNS configuration, which usually involves writing /etc/resolv.conf anew.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_MANAGER_RELOAD_FLAG_DNS_FULL</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x4</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>means to restart the DNS plugin. This is for example useful when using dnsmasq plugin, which uses additional configuration in /etc/NetworkManager/dnsmasq.d. If you edit those files, you can restart the DNS plugin. This action shortly interrupts name resolution.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_MANAGER_RELOAD_FLAG_ALL</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x7</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>all flags.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMDeviceInterfaceFlags"></a><h3>enum NMDeviceInterfaceFlags</h3>
+<p>Flags for a network interface.</p>
+<p>Since: 1.22</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.17.2.32.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_INTERFACE_FLAG_NONE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>an alias for numeric zero, no flags set.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_INTERFACE_FLAG_UP</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x1</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the interface is enabled from the administrative point of view. Corresponds to kernel IFF_UP.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_INTERFACE_FLAG_LOWER_UP</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x2</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the physical link is up. Corresponds to kernel IFF_LOWER_UP.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_INTERFACE_FLAG_CARRIER</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x10000</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the interface has carrier. In most cases this is equal to the value of @NM_DEVICE_INTERFACE_FLAG_LOWER_UP. However some devices have a non-standard carrier detection mechanism.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>

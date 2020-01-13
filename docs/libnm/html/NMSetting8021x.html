@@ -1199,9 +1199,10 @@
 <div class="refsect1">
 <a name="NMSetting8021x.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
-    <span class="lineart">├──</span> NMSetting8021xAuthFlags
     <span class="lineart">├──</span> NMSetting8021xCKFormat
     <span class="lineart">╰──</span> NMSetting8021xCKScheme
+    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GFlags</a>
+    <span class="lineart">╰──</span> NMSetting8021xAuthFlags
     <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
         <span class="lineart">╰──</span> NMSetting8021x
@@ -4096,7 +4097,7 @@ nm_setting_802_1x_get_optional (<em class="parameter"><code><a class="link" href
 <p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the activation should proceed even when the 802.1X
 authentication fails; <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</p>
 </div>
-<p class="since">Since: 1.20.6</p>
+<p class="since">Since: 1.22</p>
 </div>
 </div>
 <div class="refsect1">
@@ -4216,6 +4217,8 @@ URI of an object on a PKCS<span class="type">11</span> token</p>
 <a name="NMSetting8021xAuthFlags"></a><h3>enum NMSetting8021xAuthFlags</h3>
 <p><a class="link" href="NMSetting8021x.html#NMSetting8021xAuthFlags" title="enum NMSetting8021xAuthFlags"><span class="type">NMSetting8021xAuthFlags</span></a> values indicate which authentication settings
 should be used.</p>
+<p>Before 1.22, this was wrongly marked as a enum and not as a flags
+type.</p>
 <div class="refsect3">
 <a name="NMSetting8021xAuthFlags.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -4705,7 +4708,7 @@ If set to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macro
 authentication.</p>
 <p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
-<p class="since">Since: 1.20.6</p>
+<p class="since">Since: 1.22</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -4814,7 +4817,7 @@ server certificate's altSubjectName is performed.</p>
 <div class="refsect2">
 <a name="NMSetting8021x--phase2-auth"></a><h3>The <code class="literal">“phase2-auth”</code> property</h3>
 <pre class="programlisting">  “phase2-auth”              <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
-<p>Specifies the allowed "phase 2" inner non-EAP authentication methods when
+<p>Specifies the allowed "phase 2" inner non-EAP authentication method when
 an EAP method that uses an inner TLS tunnel is specified in the
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--eap" title="The “eap” property"><span class="type">“eap”</span></a> property.  Recognized non-EAP "phase 2" methods are
 "pap", "chap", "mschap", "mschapv2", "gtc", "otp", "md5", and "tls".
@@ -4827,7 +4830,7 @@ authentication; see the wpa_supplicant documentation for more details.</p>
 <div class="refsect2">
 <a name="NMSetting8021x--phase2-autheap"></a><h3>The <code class="literal">“phase2-autheap”</code> property</h3>
 <pre class="programlisting">  “phase2-autheap”           <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
-<p>Specifies the allowed "phase 2" inner EAP-based authentication methods
+<p>Specifies the allowed "phase 2" inner EAP-based authentication method
 when an EAP method that uses an inner TLS tunnel is specified in the
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--eap" title="The “eap” property"><span class="type">“eap”</span></a> property.  Recognized EAP-based "phase 2" methods are
 "md5", "mschapv2", "otp", "gtc", and "tls". Each "phase 2" inner method

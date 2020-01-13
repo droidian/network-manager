@@ -50,6 +50,7 @@ override_dh_auto_configure:
 		--with-libaudit \
 		--with-iwd \
 		--without-dhcpcanon \
+		--without-nm-cloud-setup \
 		--enable-polkit \
 		--enable-polkit-agent \
 		--enable-ppp \

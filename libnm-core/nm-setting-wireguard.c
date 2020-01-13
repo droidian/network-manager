@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2018 - 2019 Red Hat, Inc.
+ * Copyright (C) 2018 - 2019 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -2585,11 +2571,13 @@ nm_setting_wireguard_class_init (NMSettingWireGuardClass *klass)
 	 * description: Array of dictionaries for the WireGuard peers.
 	 * ---end---
 	 */
-	_properties_override_add_dbus_only (properties_override,
-	                                    NM_SETTING_WIREGUARD_PEERS,
-	                                    G_VARIANT_TYPE ("aa{sv}"),
-	                                    _peers_dbus_only_synth,
-	                                    _peers_dbus_only_set);
+	_nm_properties_override_dbus (properties_override,
+	                              NM_SETTING_WIREGUARD_PEERS,
+	                              NM_SETT_INFO_PROPERT_TYPE (
+	                                  .dbus_type     = NM_G_VARIANT_TYPE ("aa{sv}"),
+	                                  .to_dbus_fcn   = _peers_dbus_only_synth,
+	                                  .from_dbus_fcn = _peers_dbus_only_set,
+	                              ));
 
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 

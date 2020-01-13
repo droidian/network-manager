@@ -1,19 +1,5 @@
-/* NetworkManager -- Network link manager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2005 - 2017 Red Hat, Inc.
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
@@ -411,7 +397,9 @@ set_current_ap (NMDeviceWifi *self, NMWifiAP *new_ap, gboolean recheck_available
 		NM80211Mode mode = nm_wifi_ap_get_mode (old_ap);
 
 		/* Remove any AP from the internal list if it was created by NM or isn't known to the supplicant */
-		if (mode == NM_802_11_MODE_ADHOC || mode == NM_802_11_MODE_AP || nm_wifi_ap_get_fake (old_ap))
+		if (   NM_IN_SET (mode, NM_802_11_MODE_ADHOC,
+		                        NM_802_11_MODE_AP)
+		    || nm_wifi_ap_get_fake (old_ap))
 			ap_add_remove (self, FALSE, old_ap, recheck_available_connections);
 		g_object_unref (old_ap);
 	}
@@ -645,36 +633,6 @@ deactivate_reset_hw_addr (NMDevice *device)
 }
 
 static gboolean
-is_adhoc_wpa (NMConnection *connection)
-{
-	NMSettingWireless *s_wifi;
-	NMSettingWirelessSecurity *s_wsec;
-	const char *mode, *key_mgmt;
-
-	/* The kernel doesn't support Ad-Hoc WPA connections well at this time,
-	 * and turns them into open networks.  It's been this way since at least
-	 * 2.6.30 or so; until that's fixed, disable WPA-protected Ad-Hoc networks.
-	 */
-
-	s_wifi = nm_connection_get_setting_wireless (connection);
-	g_return_val_if_fail (s_wifi != NULL, FALSE);
-
-	mode = nm_setting_wireless_get_mode (s_wifi);
-	if (g_strcmp0 (mode, NM_SETTING_WIRELESS_MODE_ADHOC) != 0)
-		return FALSE;
-
-	s_wsec = nm_connection_get_setting_wireless_security (connection);
-	if (!s_wsec)
-		return FALSE;
-
-	key_mgmt = nm_setting_wireless_security_get_key_mgmt (s_wsec);
-	if (g_strcmp0 (key_mgmt, "wpa-none") != 0)
-		return FALSE;
-
-	return TRUE;
-}
-
-static gboolean
 check_connection_compatible (NMDevice *device, NMConnection *connection, GError **error)
 {
 	NMDeviceWifi *self = NM_DEVICE_WIFI (device);
@@ -717,12 +675,6 @@ check_connection_compatible (NMDevice *device, NMConnection *connection, GError 
 	} else if (mac) {
 		nm_utils_error_set_literal (error, NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY,
 		                            "device has no valid MAC address as required by profile");
-		return FALSE;
-	}
-
-	if (is_adhoc_wpa (connection)) {
-		nm_utils_error_set_literal (error, NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY,
-		                            "Ad-Hoc WPA networks are not supported");
 		return FALSE;
 	}
 
@@ -951,19 +903,6 @@ complete_connection (NMDevice *device,
 		                                     nm_wifi_utils_is_manf_default_ssid (ssid),
 		                                     error))
 			return FALSE;
-	}
-
-	/* The kernel doesn't support Ad-Hoc WPA connections well at this time,
-	 * and turns them into open networks.  It's been this way since at least
-	 * 2.6.30 or so; until that's fixed, disable WPA-protected Ad-Hoc networks.
-	 */
-	if (is_adhoc_wpa (connection)) {
-		g_set_error_literal (error,
-		                     NM_CONNECTION_ERROR,
-		                     NM_CONNECTION_ERROR_INVALID_SETTING,
-		                     _("WPA Ad-Hoc disabled due to kernel bugs"));
-		g_prefix_error (error, "%s: ", NM_SETTING_WIRELESS_SECURITY_SETTING_NAME);
-		return FALSE;
 	}
 
 	ssid_utf8 = _nm_utils_ssid_to_utf8 (ssid);
@@ -1278,7 +1217,8 @@ scanning_prohibited (NMDeviceWifi *self, gboolean periodic)
 	/* Don't scan when a an AP or Ad-Hoc connection is active as it will
 	 * disrupt connected clients or peers.
 	 */
-	if (priv->mode == NM_802_11_MODE_ADHOC || priv->mode == NM_802_11_MODE_AP)
+	if (NM_IN_SET (priv->mode, NM_802_11_MODE_ADHOC,
+	                           NM_802_11_MODE_AP))
 		return TRUE;
 
 	switch (nm_device_get_state (NM_DEVICE (self))) {
@@ -1781,8 +1721,10 @@ wifi_secrets_cb (NMActRequest *req,
 		nm_device_state_changed (device,
 		                         NM_DEVICE_STATE_FAILED,
 		                         NM_DEVICE_STATE_REASON_NO_SECRETS);
-	} else
-		nm_device_activate_schedule_stage1_device_prepare (device);
+		return;
+	}
+
+	nm_device_activate_schedule_stage1_device_prepare (device);
 }
 
 static void
@@ -1801,10 +1743,11 @@ supplicant_iface_wps_credentials_cb (NMSupplicantInterface *iface,
                                      NMDeviceWifi *self)
 {
 	NMActRequest *req;
-	GVariant *val, *secrets = NULL;
+	gs_unref_variant GVariant *val_key = NULL;
+	gs_unref_variant GVariant *secrets = NULL;
+	gs_free_error GError *error = NULL;
 	const char *array;
 	gsize psk_len = 0;
-	GError *error = NULL;
 
 	if (nm_device_get_state (NM_DEVICE (self)) != NM_DEVICE_STATE_NEED_AUTH) {
 		_LOGI (LOGD_DEVICE | LOGD_WIFI, "WPS: The connection can't be updated with credentials");
@@ -1816,11 +1759,11 @@ supplicant_iface_wps_credentials_cb (NMSupplicantInterface *iface,
 	req = nm_device_get_act_request (NM_DEVICE (self));
 	g_return_if_fail (NM_IS_ACT_REQUEST (req));
 
-	val = g_variant_lookup_value (credentials, "Key", G_VARIANT_TYPE_BYTESTRING);
-	if (val) {
+	val_key = g_variant_lookup_value (credentials, "Key", G_VARIANT_TYPE_BYTESTRING);
+	if (val_key) {
 		char psk[64];
 
-		array = g_variant_get_fixed_array (val, &psk_len, 1);
+		array = g_variant_get_fixed_array (val_key, &psk_len, 1);
 		if (psk_len >= 8 && psk_len <= 63) {
 			memcpy (psk, array, psk_len);
 			psk[psk_len] = '\0';
@@ -1833,22 +1776,22 @@ supplicant_iface_wps_credentials_cb (NMSupplicantInterface *iface,
 		}
 		if (!secrets)
 			_LOGW (LOGD_DEVICE | LOGD_WIFI, "WPS: ignore invalid PSK");
-		g_variant_unref (val);
 	}
-	if (secrets) {
-		if (nm_settings_connection_new_secrets (nm_act_request_get_settings_connection (req),
-		                                        nm_act_request_get_applied_connection (req),
-		                                        NM_SETTING_WIRELESS_SECURITY_SETTING_NAME,
-		                                        secrets,
-		                                        &error)) {
-			wifi_secrets_cancel (self);
-			nm_device_activate_schedule_stage1_device_prepare (NM_DEVICE (self));
-		} else {
-			_LOGW (LOGD_DEVICE | LOGD_WIFI, "WPS: Could not update the connection with credentials: %s", error->message);
-			g_error_free (error);
-		}
-		g_variant_unref (secrets);
+
+	if (!secrets)
+		return;
+
+	if (!nm_settings_connection_new_secrets (nm_act_request_get_settings_connection (req),
+	                                         nm_act_request_get_applied_connection (req),
+	                                         NM_SETTING_WIRELESS_SECURITY_SETTING_NAME,
+	                                         secrets,
+	                                         &error)) {
+		_LOGW (LOGD_DEVICE | LOGD_WIFI, "WPS: Could not update the connection with credentials: %s", error->message);
+		return;
 	}
+
+	wifi_secrets_cancel (self);
+	nm_device_activate_schedule_stage1_device_prepare (NM_DEVICE (self));
 }
 
 static gboolean
@@ -2458,9 +2401,9 @@ supplicant_connection_timeout_cb (gpointer user_data)
 	connection = nm_act_request_get_applied_connection (req);
 	g_assert (connection);
 
-	if (   priv->mode == NM_802_11_MODE_ADHOC
-	    || priv->mode == NM_802_11_MODE_MESH
-	    || priv->mode == NM_802_11_MODE_AP) {
+	if (NM_IN_SET (priv->mode, NM_802_11_MODE_ADHOC,
+	                           NM_802_11_MODE_MESH,
+	                           NM_802_11_MODE_AP)) {
 		/* In Ad-Hoc and AP modes there's nothing to check the encryption key
 		 * (if any), so supplicant timeouts here are almost certainly the wifi
 		 * driver being really stupid.
@@ -2666,17 +2609,13 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
 	NMDeviceWifi *self = NM_DEVICE_WIFI (device);
 	NMDeviceWifiPrivate *priv = NM_DEVICE_WIFI_GET_PRIVATE (self);
-	NMActStageReturn ret;
 	NMWifiAP *ap = NULL;
+	gs_unref_object NMWifiAP *ap_fake = NULL;
 	NMActRequest *req;
 	NMConnection *connection;
 	NMSettingWireless *s_wireless;
 	const char *mode;
 	const char *ap_path;
-
-	ret = NM_DEVICE_CLASS (nm_device_wifi_parent_class)->act_stage1_prepare (device, out_failure_reason);
-	if (ret != NM_ACT_STAGE_RETURN_SUCCESS)
-		return ret;
 
 	req = nm_device_get_act_request (NM_DEVICE (self));
 	g_return_val_if_fail (req, NM_ACT_STAGE_RETURN_FAILURE);
@@ -2703,62 +2642,49 @@ act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 		priv->mode = NM_802_11_MODE_MESH;
 	_notify (self, PROP_MODE);
 
-	/* The kernel doesn't support Ad-Hoc WPA connections well at this time,
-	 * and turns them into open networks.  It's been this way since at least
-	 * 2.6.30 or so; until that's fixed, disable WPA-protected Ad-Hoc networks.
-	 */
-	if (is_adhoc_wpa (connection)) {
-		_LOGW (LOGD_WIFI, "Ad-Hoc WPA disabled due to kernel bugs");
-		NM_SET_OUT (out_failure_reason, NM_DEVICE_STATE_REASON_SUPPLICANT_CONFIG_FAILED);
-		return NM_ACT_STAGE_RETURN_FAILURE;
-	}
-
 	/* expire the temporary MAC address used during scanning */
 	priv->hw_addr_scan_expire = 0;
 
 	/* Set spoof MAC to the interface */
-	if (!nm_device_hw_addr_set_cloned (device, connection, TRUE))
+	if (!nm_device_hw_addr_set_cloned (device, connection, TRUE)) {
+		*out_failure_reason = NM_DEVICE_STATE_REASON_CONFIG_FAILED;
 		return NM_ACT_STAGE_RETURN_FAILURE;
+	}
 
 	/* AP and Mesh modes never use a specific object or existing scanned AP */
-	if (priv->mode != NM_802_11_MODE_AP && priv->mode != NM_802_11_MODE_MESH) {
+	if (!NM_IN_SET (priv->mode, NM_802_11_MODE_AP,
+	                            NM_802_11_MODE_MESH)) {
 		ap_path = nm_active_connection_get_specific_object (NM_ACTIVE_CONNECTION (req));
-		ap = ap_path ? nm_wifi_ap_lookup_for_device (NM_DEVICE (self), ap_path) : NULL;
-		if (ap)
-			goto done;
-
+		ap =   ap_path
+		     ? nm_wifi_ap_lookup_for_device (NM_DEVICE (self), ap_path)
+		     : NULL;
+	}
+	if (!ap)
 		ap = nm_wifi_aps_find_first_compatible (&priv->aps_lst_head, connection);
+
+	if (!ap) {
+		/* If the user is trying to connect to an AP that NM doesn't yet know about
+		 * (hidden network or something), starting a Hotspot or joining a Mesh,
+		 * create a fake APfrom the security settings in the connection.  This "fake"
+		 * AP gets used until the real one is found in the scan list (Ad-Hoc or Hidden),
+		 * or until the device is deactivated (Hotspot).
+		 */
+		ap_fake = nm_wifi_ap_new_fake_from_connection (connection);
+		if (!ap_fake)
+			g_return_val_if_reached (NM_ACT_STAGE_RETURN_FAILURE);
+
+		if (nm_wifi_ap_is_hotspot (ap_fake))
+			nm_wifi_ap_set_address (ap_fake, nm_device_get_hw_address (device));
+
+		g_object_freeze_notify (G_OBJECT (self));
+		ap_add_remove (self, TRUE, ap_fake, TRUE);
+		g_object_thaw_notify (G_OBJECT (self));
+		ap = ap_fake;
 	}
 
-	if (ap) {
-		nm_active_connection_set_specific_object (NM_ACTIVE_CONNECTION (req),
-		                                          nm_dbus_object_get_path (NM_DBUS_OBJECT (ap)));
-		goto done;
-	}
-
-	/* If the user is trying to connect to an AP that NM doesn't yet know about
-	 * (hidden network or something), starting a Hotspot or joining a Mesh,
-	 * create a fake APfrom the security settings in the connection.  This "fake"
-	 * AP gets used until the real one is found in the scan list (Ad-Hoc or Hidden),
-	 * or until the device is deactivated (Hotspot).
-	 */
-	ap = nm_wifi_ap_new_fake_from_connection (connection);
-	g_return_val_if_fail (ap != NULL, NM_ACT_STAGE_RETURN_FAILURE);
-
-	if (nm_wifi_ap_is_hotspot (ap))
-		nm_wifi_ap_set_address (ap, nm_device_get_hw_address (device));
-
-	g_object_freeze_notify (G_OBJECT (self));
-	ap_add_remove (self, TRUE, ap, TRUE);
-	g_object_thaw_notify (G_OBJECT (self));
 	set_current_ap (self, ap, FALSE);
 	nm_active_connection_set_specific_object (NM_ACTIVE_CONNECTION (req),
 	                                          nm_dbus_object_get_path (NM_DBUS_OBJECT (ap)));
-	g_object_unref (ap);
-	return NM_ACT_STAGE_RETURN_SUCCESS;
-
-done:
-	set_current_ap (self, ap, TRUE);
 	return NM_ACT_STAGE_RETURN_SUCCESS;
 }
 
@@ -2893,8 +2819,8 @@ act_stage2_config (NMDevice *device, NMDeviceStateReason *out_failure_reason)
 	 * if the user didn't specify one and we didn't find an AP that matched
 	 * the connection, just pick a frequency the device supports.
 	 */
-	if (   ap_mode == NM_802_11_MODE_ADHOC
-	    || ap_mode == NM_802_11_MODE_MESH
+	if (   NM_IN_SET (ap_mode, NM_802_11_MODE_ADHOC,
+	                           NM_802_11_MODE_MESH)
 	    || nm_wifi_ap_is_hotspot (ap))
 		ensure_hotspot_frequency (self, s_wireless, ap);
 
@@ -2969,7 +2895,9 @@ act_stage3_ip_config_start (NMDevice *device,
 }
 
 static guint32
-get_configured_mtu (NMDevice *device, NMDeviceMtuSource *out_source)
+get_configured_mtu (NMDevice *device,
+                    NMDeviceMtuSource *out_source,
+                    gboolean *out_force)
 {
 	return nm_device_get_configured_mtu_from_connection (device,
 	                                                     NM_TYPE_SETTING_WIRELESS,
@@ -3240,6 +3168,15 @@ set_enabled (NMDevice *device, gboolean enabled)
 }
 
 static gboolean
+get_guessed_metered (NMDevice *device)
+{
+	NMDeviceWifi *self = NM_DEVICE_WIFI (device);
+	NMDeviceWifiPrivate *priv = NM_DEVICE_WIFI_GET_PRIVATE (self);
+
+	return priv->current_ap && nm_wifi_ap_get_metered (priv->current_ap);
+}
+
+static gboolean
 can_reapply_change (NMDevice *device,
                     const char *setting_name,
                     NMSetting *s_old,
@@ -3272,6 +3209,7 @@ static void
 reapply_connection (NMDevice *device, NMConnection *con_old, NMConnection *con_new)
 {
 	NMDeviceWifi *self = NM_DEVICE_WIFI (device);
+	NMDeviceState state = nm_device_get_state (device);
 
 	NM_DEVICE_CLASS (nm_device_wifi_parent_class)->reapply_connection (device,
 	                                                                   con_old,
@@ -3279,7 +3217,8 @@ reapply_connection (NMDevice *device, NMConnection *con_old, NMConnection *con_n
 
 	_LOGD (LOGD_DEVICE, "reapplying wireless settings");
 
-	if (!wake_on_wlan_enable (self))
+	if (   state >= NM_DEVICE_STATE_CONFIG
+	    && !wake_on_wlan_enable (self))
 		_LOGW (LOGD_DEVICE | LOGD_WIFI, "Cannot configure WoWLAN.");
 }
 
@@ -3449,6 +3388,7 @@ nm_device_wifi_class_init (NMDeviceWifiClass *klass)
 	device_class->check_connection_available = check_connection_available;
 	device_class->complete_connection = complete_connection;
 	device_class->get_enabled = get_enabled;
+	device_class->get_guessed_metered = get_guessed_metered;
 	device_class->set_enabled = set_enabled;
 
 	device_class->act_stage1_prepare = act_stage1_prepare;

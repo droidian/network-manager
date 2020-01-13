@@ -1,19 +1,5 @@
-/* NetworkManager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2005 - 2017 Red Hat, Inc.
  * Copyright (C) 2006 - 2008 Novell, Inc.
  */
@@ -718,9 +704,19 @@ nm_ip4_config_add_dependent_routes (NMIP4Config *self,
 		/* The destination network depends on the peer-address. */
 		network = nm_utils_ip4_address_clear_host_address (my_addr->peer_address, my_addr->plen);
 
+		if (my_addr->external)
+			continue;
+
 		if (_ipv4_is_zeronet (network)) {
 			/* Kernel doesn't add device-routes for destinations that
 			 * start with 0.x.y.z. Skip them. */
+			continue;
+		}
+
+		if (   my_addr->plen == 32
+		    && my_addr->address == my_addr->peer_address) {
+			/* Kernel doesn't add device-routes for /32 addresses unless
+			 * they have a peer. */
 			continue;
 		}
 
@@ -866,8 +862,13 @@ _nm_ip_config_merge_route_attributes (int addr_family,
 	GET_ATTR (NM_IP_ROUTE_ATTRIBUTE_TABLE, table, UINT32, uint32, 0);
 	r->table_coerced = nm_platform_route_table_coerce (table ?: (route_table ?: RT_TABLE_MAIN));
 
-	if (addr_family == AF_INET)
+	if (addr_family == AF_INET) {
+		guint8 scope;
+
 		GET_ATTR (NM_IP_ROUTE_ATTRIBUTE_TOS,        r4->tos,           BYTE,     byte, 0);
+		GET_ATTR (NM_IP_ROUTE_ATTRIBUTE_SCOPE,      scope,             BYTE,     byte, RT_SCOPE_NOWHERE);
+		r4->scope_inv = nm_platform_route_scope_inv (scope);
+	}
 
 	GET_ATTR (NM_IP_ROUTE_ATTRIBUTE_ONLINK,         onlink,            BOOLEAN,  boolean, FALSE);
 
@@ -993,8 +994,6 @@ nm_ip4_config_merge_setting (NMIP4Config *self,
 
 		route.plen = nm_ip_route_get_prefix (s_route);
 		nm_assert (route.plen <= 32);
-		if (route.plen == 0)
-			continue;
 
 		nm_ip_route_get_next_hop_binary (s_route, &route.gateway);
 		if (nm_ip_route_get_metric (s_route) == -1)
@@ -1179,8 +1178,17 @@ nm_ip4_config_merge (NMIP4Config *dst,
 	g_object_freeze_notify (G_OBJECT (dst));
 
 	/* addresses */
-	nm_ip_config_iter_ip4_address_for_each (&ipconf_iter, src, &address)
-		_add_address (dst, NMP_OBJECT_UP_CAST (address), NULL);
+	nm_ip_config_iter_ip4_address_for_each (&ipconf_iter, src, &address) {
+		if (   NM_FLAGS_HAS (merge_flags, NM_IP_CONFIG_MERGE_EXTERNAL)
+		    && !address->external) {
+			NMPlatformIP4Address a;
+
+			a = *address;
+			a.external = TRUE;
+			_add_address (dst, NULL, &a);
+		} else
+			_add_address (dst, NMP_OBJECT_UP_CAST (address), NULL);
+	}
 
 	/* nameservers */
 	if (!NM_FLAGS_HAS (merge_flags, NM_IP_CONFIG_MERGE_NO_DNS)) {

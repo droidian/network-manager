@@ -1,19 +1,5 @@
-/* NetworkManager system settings service - keyfile plugin
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2008 - 2009 Novell, Inc.
  * Copyright (C) 2008 - 2017 Red Hat, Inc.
  */
@@ -248,15 +234,16 @@ static gpointer
 build_route (KeyfileReaderInfo *info,
              const char *property_name,
              int family,
-             const char *dest_str, guint32 plen,
-             const char *gateway_str, const char *metric_str)
+             const char *dest_str,
+             guint32 plen,
+             const char *gateway_str,
+             const char *metric_str)
 {
 	NMIPRoute *route;
 	guint32 u32;
 	gint64 metric = -1;
 	GError *error = NULL;
 
-	g_return_val_if_fail (plen, NULL);
 	g_return_val_if_fail (dest_str, NULL);
 
 	/* Next hop */
@@ -294,7 +281,10 @@ build_route (KeyfileReaderInfo *info,
 		metric = u32;
 	}
 
-	route = nm_ip_route_new (family, dest_str, plen, gateway_str,
+	route = nm_ip_route_new (family,
+	                         dest_str,
+	                         plen,
+	                         gateway_str,
 	                         metric,
 	                         &error);
 	if (!route) {
@@ -517,8 +507,7 @@ read_one_ip_address_or_route (KeyfileReaderInfo *info,
 
 	/* parse plen, fallback to defaults */
 	if (plen_str) {
-		if (   !get_one_int (info, property_name, plen_str, ipv6 ? 128 : 32, &plen)
-		    || (route && plen == 0)) {
+		if (!get_one_int (info, property_name, plen_str, ipv6 ? 128 : 32, &plen)) {
 			plen = DEFAULT_PREFIX (route, ipv6);
 			if (   info->error
 			    || !handle_warn (info, property_name, NM_KEYFILE_WARN_SEVERITY_WARN,
@@ -536,12 +525,19 @@ read_one_ip_address_or_route (KeyfileReaderInfo *info,
 
 	/* build the appropriate data structure for NetworkManager settings */
 	if (route) {
-		result = build_route (info, property_name,
+		result = build_route (info,
+		                      property_name,
 		                      ipv6 ? AF_INET6 : AF_INET,
-		                      address_str, plen, gateway_str, metric_str);
+		                      address_str,
+		                      plen,
+		                      gateway_str,
+		                      metric_str);
 	} else {
-		result = build_address (info, ipv6 ? AF_INET6 : AF_INET,
-		                        address_str, plen, property_name);
+		result = build_address (info,
+		                        ipv6 ? AF_INET6 : AF_INET,
+		                        address_str,
+		                        plen,
+		                        property_name);
 		if (!result)
 			return NULL;
 		if (gateway_str)

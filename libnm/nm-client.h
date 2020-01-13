@@ -1,21 +1,7 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2007 - 2008 Novell, Inc.
- * Copyright 2007 - 2014 Red Hat, Inc.
+ * Copyright (C) 2007 - 2008 Novell, Inc.
+ * Copyright (C) 2007 - 2014 Red Hat, Inc.
  */
 
 #ifndef __NM_CLIENT_H__
@@ -36,21 +22,35 @@ G_BEGIN_DECLS
 #define NM_IS_CLIENT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NM_TYPE_CLIENT))
 #define NM_CLIENT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), NM_TYPE_CLIENT, NMClientClass))
 
-#define NM_CLIENT_VERSION "version"
-#define NM_CLIENT_STATE "state"
-#define NM_CLIENT_STARTUP "startup"
-#define NM_CLIENT_NM_RUNNING "nm-running"
+#define NM_CLIENT_VERSION         "version"
+#define NM_CLIENT_STATE           "state"
+#define NM_CLIENT_STARTUP         "startup"
+#define NM_CLIENT_NM_RUNNING      "nm-running"
+#define NM_CLIENT_DBUS_CONNECTION "dbus-connection"
+#define NM_CLIENT_DBUS_NAME_OWNER "dbus-name-owner"
+
+_NM_DEPRECATED_SYNC_WRITABLE_PROPERTY
 #define NM_CLIENT_NETWORKING_ENABLED "networking-enabled"
+
+_NM_DEPRECATED_SYNC_WRITABLE_PROPERTY
 #define NM_CLIENT_WIRELESS_ENABLED "wireless-enabled"
-#define NM_CLIENT_WIRELESS_HARDWARE_ENABLED "wireless-hardware-enabled"
+_NM_DEPRECATED_SYNC_WRITABLE_PROPERTY
 #define NM_CLIENT_WWAN_ENABLED "wwan-enabled"
-#define NM_CLIENT_WWAN_HARDWARE_ENABLED "wwan-hardware-enabled"
+_NM_DEPRECATED_SYNC_WRITABLE_PROPERTY
 #define NM_CLIENT_WIMAX_ENABLED "wimax-enabled"
+
+#define NM_CLIENT_WIRELESS_HARDWARE_ENABLED "wireless-hardware-enabled"
+#define NM_CLIENT_WWAN_HARDWARE_ENABLED "wwan-hardware-enabled"
 #define NM_CLIENT_WIMAX_HARDWARE_ENABLED "wimax-hardware-enabled"
+
 #define NM_CLIENT_ACTIVE_CONNECTIONS "active-connections"
 #define NM_CLIENT_CONNECTIVITY "connectivity"
+#define NM_CLIENT_CONNECTIVITY_CHECK_URI "connectivity-check-uri"
 #define NM_CLIENT_CONNECTIVITY_CHECK_AVAILABLE "connectivity-check-available"
+
+_NM_DEPRECATED_SYNC_WRITABLE_PROPERTY
 #define NM_CLIENT_CONNECTIVITY_CHECK_ENABLED "connectivity-check-enabled"
+
 #define NM_CLIENT_PRIMARY_CONNECTION "primary-connection"
 #define NM_CLIENT_ACTIVATING_CONNECTION "activating-connection"
 #define NM_CLIENT_DEVICES "devices"
@@ -62,6 +62,8 @@ G_BEGIN_DECLS
 #define NM_CLIENT_DNS_MODE "dns-mode"
 #define NM_CLIENT_DNS_RC_MANAGER "dns-rc-manager"
 #define NM_CLIENT_DNS_CONFIGURATION "dns-configuration"
+#define NM_CLIENT_CHECKPOINTS "checkpoints"
+#define NM_CLIENT_CAPABILITIES "capabilities"
 
 #define NM_CLIENT_DEVICE_ADDED "device-added"
 #define NM_CLIENT_DEVICE_REMOVED "device-removed"
@@ -200,27 +202,7 @@ gboolean            nm_dns_entry_get_vpn (NMDnsEntry *entry);
 /**
  * NMClient:
  */
-struct _NMClient {
-	GObject parent;
-};
-
-typedef struct {
-	GObjectClass parent;
-
-	/* Signals */
-	void (*device_added) (NMClient *client, NMDevice *device);
-	void (*device_removed) (NMClient *client, NMDevice *device);
-	void (*any_device_added) (NMClient *client, NMDevice *device);
-	void (*any_device_removed) (NMClient *client, NMDevice *device);
-	void (*permission_changed) (NMClient *client,
-	                            NMClientPermission permission,
-	                            NMClientPermissionResult result);
-	void (*connection_added)   (NMClient *client, NMRemoteConnection *connection);
-	void (*connection_removed) (NMClient *client, NMRemoteConnection *connection);
-
-	/*< private >*/
-	gpointer padding[6];
-} NMClientClass;
+typedef struct _NMClientClass NMClientClass;
 
 GType nm_client_get_type (void);
 
@@ -233,26 +215,59 @@ void      nm_client_new_async  (GCancellable         *cancellable,
 NMClient *nm_client_new_finish (GAsyncResult         *result,
                                 GError              **error);
 
+NM_AVAILABLE_IN_1_22
+GDBusConnection *nm_client_get_dbus_connection (NMClient *client);
+
+NM_AVAILABLE_IN_1_22
+GMainContext *nm_client_get_main_context (NMClient *self);
+
+NM_AVAILABLE_IN_1_22
+GObject *nm_client_get_context_busy_watcher (NMClient *self);
+
+NM_AVAILABLE_IN_1_22
+const char *nm_client_get_dbus_name_owner (NMClient *client);
+
 const char *nm_client_get_version    (NMClient *client);
 NMState     nm_client_get_state      (NMClient *client);
 gboolean    nm_client_get_startup    (NMClient *client);
 gboolean    nm_client_get_nm_running (NMClient *client);
 
+NM_AVAILABLE_IN_1_22
+NMMetered   nm_client_get_metered (NMClient *client);
+
 gboolean nm_client_networking_get_enabled (NMClient *client);
+
+NM_AVAILABLE_IN_1_22_2
+const guint32 *nm_client_get_capabilities (NMClient *client,
+                                           gsize *length);
+
+_NM_DEPRECATED_SYNC_METHOD
 gboolean nm_client_networking_set_enabled (NMClient *client,
                                            gboolean enabled,
                                            GError **error);
 
 gboolean nm_client_wireless_get_enabled (NMClient *client);
+
+_NM_DEPRECATED_SYNC_METHOD
 void     nm_client_wireless_set_enabled (NMClient *client, gboolean enabled);
+
 gboolean nm_client_wireless_hardware_get_enabled (NMClient *client);
 
 gboolean nm_client_wwan_get_enabled (NMClient *client);
+
+_NM_DEPRECATED_SYNC_METHOD
 void     nm_client_wwan_set_enabled (NMClient *client, gboolean enabled);
+
 gboolean nm_client_wwan_hardware_get_enabled (NMClient *client);
 
+NM_DEPRECATED_IN_1_22
 gboolean nm_client_wimax_get_enabled (NMClient *client);
+
+NM_DEPRECATED_IN_1_22
+_NM_DEPRECATED_SYNC_METHOD
 void     nm_client_wimax_set_enabled (NMClient *client, gboolean enabled);
+
+NM_DEPRECATED_IN_1_22
 gboolean nm_client_wimax_hardware_get_enabled (NMClient *client);
 
 NM_AVAILABLE_IN_1_10
@@ -262,16 +277,20 @@ NM_AVAILABLE_IN_1_10
 gboolean nm_client_connectivity_check_get_enabled (NMClient *client);
 
 NM_AVAILABLE_IN_1_10
+_NM_DEPRECATED_SYNC_METHOD
 void     nm_client_connectivity_check_set_enabled (NMClient *client,
                                                    gboolean enabled);
 
 NM_AVAILABLE_IN_1_20
 const char *nm_client_connectivity_check_get_uri (NMClient *client);
 
+_NM_DEPRECATED_SYNC_METHOD
 gboolean nm_client_get_logging (NMClient *client,
                                 char **level,
                                 char **domains,
                                 GError **error);
+
+_NM_DEPRECATED_SYNC_METHOD
 gboolean nm_client_set_logging (NMClient *client,
                                 const char *level,
                                 const char *domains,
@@ -282,9 +301,12 @@ NMClientPermissionResult nm_client_get_permission_result (NMClient *client,
 
 NMConnectivityState nm_client_get_connectivity          (NMClient *client);
 
+_NM_DEPRECATED_SYNC_METHOD
+NM_DEPRECATED_IN_1_22
 NMConnectivityState nm_client_check_connectivity        (NMClient *client,
                                                          GCancellable *cancellable,
                                                          GError **error);
+
 void                nm_client_check_connectivity_async  (NMClient *client,
                                                          GCancellable *cancellable,
                                                          GAsyncReadyCallback callback,
@@ -293,10 +315,12 @@ NMConnectivityState nm_client_check_connectivity_finish (NMClient *client,
                                                          GAsyncResult *result,
                                                          GError **error);
 
+_NM_DEPRECATED_SYNC_METHOD
 gboolean nm_client_save_hostname        (NMClient *client,
                                          const char *hostname,
                                          GCancellable *cancellable,
                                          GError **error);
+
 void     nm_client_save_hostname_async  (NMClient *client,
                                          const char *hostname,
                                          GCancellable *cancellable,
@@ -358,10 +382,12 @@ NMActiveConnection *nm_client_add_and_activate_connection2_finish (NMClient *cli
                                                                    GVariant **out_result,
                                                                    GError **error);
 
+_NM_DEPRECATED_SYNC_METHOD
 gboolean nm_client_deactivate_connection        (NMClient *client,
                                                  NMActiveConnection *active,
                                                  GCancellable *cancellable,
                                                  GError **error);
+
 void     nm_client_deactivate_connection_async  (NMClient *client,
                                                  NMActiveConnection *active,
                                                  GCancellable *cancellable,
@@ -405,11 +431,13 @@ NMRemoteConnection *nm_client_add_connection2_finish (NMClient *client,
                                                       GVariant **out_result,
                                                       GError **error);
 
+_NM_DEPRECATED_SYNC_METHOD
 gboolean nm_client_load_connections        (NMClient *client,
                                             char **filenames,
                                             char ***failures,
                                             GCancellable *cancellable,
                                             GError **error);
+
 void     nm_client_load_connections_async  (NMClient *client,
                                             char **filenames,
                                             GCancellable *cancellable,
@@ -420,9 +448,11 @@ gboolean nm_client_load_connections_finish (NMClient *client,
                                             GAsyncResult *result,
                                             GError **error);
 
+_NM_DEPRECATED_SYNC_METHOD
 gboolean nm_client_reload_connections        (NMClient *client,
                                               GCancellable *cancellable,
                                               GError **error);
+
 void     nm_client_reload_connections_async  (NMClient *client,
                                               GCancellable *cancellable,
                                               GAsyncReadyCallback callback,
@@ -488,6 +518,17 @@ NM_AVAILABLE_IN_1_12
 gboolean nm_client_checkpoint_adjust_rollback_timeout_finish (NMClient *client,
                                                               GAsyncResult *result,
                                                               GError **error);
+
+NM_AVAILABLE_IN_1_22
+void nm_client_reload (NMClient *client,
+                       NMManagerReloadFlags flags,
+                       GCancellable *cancellable,
+                       GAsyncReadyCallback callback,
+                       gpointer user_data);
+NM_AVAILABLE_IN_1_22
+gboolean nm_client_reload_finish (NMClient *client,
+                                  GAsyncResult *result,
+                                  GError **error);
 
 G_END_DECLS
 

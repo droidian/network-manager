@@ -1,21 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2016 Red Hat, Inc.
+// SPDX-License-Identifier: LGPL-2.1+
+/*
+ * Copyright (C) 2016 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -26,6 +11,7 @@
 #include <poll.h>
 #include <fcntl.h>
 #include <sys/syscall.h>
+#include <glib-unix.h>
 
 #include "nm-errno.h"
 
@@ -555,6 +541,102 @@ _nm_utils_ip4_prefix_to_netmask (guint32 prefix)
 	return prefix < 32 ? ~htonl(0xFFFFFFFF >> prefix) : 0xFFFFFFFF;
 }
 
+gconstpointer
+nm_utils_ipx_address_clear_host_address (int family, gpointer dst, gconstpointer src, guint8 plen)
+{
+	g_return_val_if_fail (dst, NULL);
+
+	switch (family) {
+	case AF_INET:
+		g_return_val_if_fail (plen <= 32, NULL);
+
+		if (!src) {
+			/* allow "self-assignment", by specifying %NULL as source. */
+			src = dst;
+		}
+
+		*((guint32 *) dst) = nm_utils_ip4_address_clear_host_address (*((guint32 *) src), plen);
+		break;
+	case AF_INET6:
+		nm_utils_ip6_address_clear_host_address (dst, src, plen);
+		break;
+	default:
+		g_return_val_if_reached (NULL);
+	}
+	return dst;
+}
+
+/* nm_utils_ip4_address_clear_host_address:
+ * @addr: source ip6 address
+ * @plen: prefix length of network
+ *
+ * returns: the input address, with the host address set to 0.
+ */
+in_addr_t
+nm_utils_ip4_address_clear_host_address (in_addr_t addr, guint8 plen)
+{
+	return addr & _nm_utils_ip4_prefix_to_netmask (plen);
+}
+
+/* nm_utils_ip6_address_clear_host_address:
+ * @dst: destination output buffer, will contain the network part of the @src address
+ * @src: source ip6 address
+ * @plen: prefix length of network
+ *
+ * Note: this function is self assignment safe, to update @src inplace, set both
+ * @dst and @src to the same destination or set @src NULL.
+ */
+const struct in6_addr *
+nm_utils_ip6_address_clear_host_address (struct in6_addr *dst, const struct in6_addr *src, guint8 plen)
+{
+	g_return_val_if_fail (plen <= 128, NULL);
+	g_return_val_if_fail (dst, NULL);
+
+	if (!src)
+		src = dst;
+
+	if (plen < 128) {
+		guint nbytes = plen / 8;
+		guint nbits = plen % 8;
+
+		if (nbytes && dst != src)
+			memcpy (dst, src, nbytes);
+		if (nbits) {
+			dst->s6_addr[nbytes] = (src->s6_addr[nbytes] & (0xFF << (8 - nbits)));
+			nbytes++;
+		}
+		if (nbytes <= 15)
+			memset (&dst->s6_addr[nbytes], 0, 16 - nbytes);
+	} else if (src != dst)
+		*dst = *src;
+
+	return dst;
+}
+
+int
+nm_utils_ip6_address_same_prefix_cmp (const struct in6_addr *addr_a, const struct in6_addr *addr_b, guint8 plen)
+{
+	int nbytes;
+	guint8 va, vb, m;
+
+	if (plen >= 128)
+		NM_CMP_DIRECT_MEMCMP (addr_a, addr_b, sizeof (struct in6_addr));
+	else {
+		nbytes = plen / 8;
+		if (nbytes)
+			NM_CMP_DIRECT_MEMCMP (addr_a, addr_b, nbytes);
+
+		plen = plen % 8;
+		if (plen != 0) {
+			m = ~((1 << (8 - plen)) - 1);
+			va = ((((const guint8 *) addr_a))[nbytes]) & m;
+			vb = ((((const guint8 *) addr_b))[nbytes]) & m;
+			NM_CMP_DIRECT (va, vb);
+		}
+	}
+	return 0;
+}
+
 /**
  * _nm_utils_ip4_get_default_prefix:
  * @ip: an IPv4 address (in network byte order)
@@ -601,11 +683,80 @@ nm_utils_ip_is_site_local (int addr_family,
 
 /*****************************************************************************/
 
+static gboolean
+_parse_legacy_addr4 (const char *text, in_addr_t *out_addr)
+{
+	gs_free char *s_free = NULL;
+	struct in_addr a1;
+	guint8 bin[sizeof (a1)];
+	char *s;
+	int i;
+
+	if (inet_aton (text, &a1) != 1)
+		return FALSE;
+
+	/* OK, inet_aton() accepted the format. That's good, because we want
+	 * to accept IPv4 addresses in octal format, like 255.255.000.000.
+	 * That's what "legacy" means here. inet_pton() doesn't accept those.
+	 *
+	 * But inet_aton() also ignores trailing garbage and formats with fewer than
+	 * 4 digits. That is just too crazy and we don't do that. Perform additional checks
+	 * and reject some forms that inet_aton() accepted.
+	 *
+	 * Note that we still should (of course) accept everything that inet_pton()
+	 * accepts. However this code never gets called if inet_pton() succeeds
+	 * (see below, aside the assertion code). */
+
+	if (NM_STRCHAR_ANY (text, ch, (   !(ch >= '0' && ch <= '9')
+	                               && !NM_IN_SET (ch, '.', 'x')))) {
+		/* We only accepts '.', digits, and 'x' for "0x". */
+		return FALSE;
+	}
+
+	s = nm_memdup_maybe_a (300, text, strlen (text) + 1, &s_free);
+
+	for (i = 0; i < G_N_ELEMENTS (bin); i++) {
+		char *current_token = s;
+		gint32 v;
+
+		s = strchr (s, '.');
+		if (s) {
+			s[0] = '\0';
+			s++;
+		}
+
+		if ((i == G_N_ELEMENTS (bin) - 1) != (s == NULL)) {
+			/* Exactly for the last digit, we expect to have no more following token.
+			 * But this isn't the case. Abort. */
+			return FALSE;
+		}
+
+		v = _nm_utils_ascii_str_to_int64 (current_token, 0, 0, 0xFF, -1);
+		if (v == -1) {
+			/* we do accept octal and hex (even with leading "0x"). But something
+			 * about this token is wrong. */
+			return FALSE;
+		}
+
+		bin[i] = v;
+	}
+
+	if (memcmp (bin, &a1, sizeof (bin)) != 0) {
+		/* our parsing did not agree with what inet_aton() gave. Something
+		 * is wrong. Abort. */
+		return FALSE;
+	}
+
+	*out_addr = a1.s_addr;
+	return TRUE;
+}
+
 gboolean
-nm_utils_parse_inaddr_bin (int addr_family,
-                           const char *text,
-                           int *out_addr_family,
-                           gpointer out_addr)
+nm_utils_parse_inaddr_bin_full (int addr_family,
+                                gboolean accept_legacy,
+                                const char *text,
+                                int *out_addr_family,
+                                gpointer out_addr)
 {
 	NMIPAddr addrbin;
 
@@ -617,8 +768,26 @@ nm_utils_parse_inaddr_bin (int addr_family,
 	} else
 		g_return_val_if_fail (NM_IN_SET (addr_family, AF_INET, AF_INET6), FALSE);
 
-	if (inet_pton (addr_family, text, &addrbin) != 1)
-		return FALSE;
+	if (inet_pton (addr_family, text, &addrbin) != 1) {
+		if (   accept_legacy
+		    && addr_family == AF_INET
+		    && _parse_legacy_addr4 (text, &addrbin.addr4)) {
+			/* The address is in some legacy format which inet_aton() accepts, but not inet_pton().
+			 * Most likely octal digits (leading zeros). We accept the address. */
+		} else
+			return FALSE;
+	}
+
+#if NM_MORE_ASSERTS > 10
+	if (addr_family == AF_INET) {
+		in_addr_t a;
+
+		/* The legacy parser should accept everything that inet_pton() accepts too. Meaning,
+		 * it should strictly parse *more* formats. And of course, parse it the same way. */
+		nm_assert (_parse_legacy_addr4 (text, &a));
+		nm_assert (addrbin.addr4 == a);
+	}
+#endif
 
 	NM_SET_OUT (out_addr_family, addr_family);
 	if (out_addr)
@@ -2302,6 +2471,44 @@ nm_utils_hash_keys_to_array (GHashTable *hash,
 	return keys;
 }
 
+gpointer *
+nm_utils_hash_values_to_array (GHashTable *hash,
+                               GCompareDataFunc compare_func,
+                               gpointer user_data,
+                               guint *out_len)
+{
+	GHashTableIter iter;
+	gpointer value;
+	gpointer *arr;
+	guint i, len;
+
+	if (   !hash
+	    || (len = g_hash_table_size (hash)) == 0u) {
+		NM_SET_OUT (out_len, 0);
+		return NULL;
+	}
+
+	arr = g_new (gpointer, ((gsize) len) + 1);
+	i = 0;
+	g_hash_table_iter_init (&iter, hash);
+	while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &value))
+		arr[i++] = value;
+
+	nm_assert (i == len);
+	arr[len] = NULL;
+
+	if (   len > 1
+	    && compare_func) {
+		g_qsort_with_data (arr,
+		                   len,
+		                   sizeof (gpointer),
+		                   compare_func,
+		                   user_data);
+	}
+
+	return arr;
+}
+
 gboolean
 nm_utils_hashtable_same_keys (const GHashTable *a,
                               const GHashTable *b)
@@ -2370,6 +2577,10 @@ nm_utils_strv_make_deep_copied_n (const char **strv, gsize len)
  *   is negative or zero (in which case %NULL will be returned).
  * @len: the length of strings in @str. If negative, strv is assumed
  *   to be a NULL terminated array.
+ * @deep_copied: if %TRUE, clones the individual strings. In that case,
+ *   the returned array must be freed with g_strfreev(). Otherwise, the
+ *   strings themself are not copied. You must take care of who owns the
+ *   strings yourself.
  *
  * Like g_strdupv(), with two differences:
  *
@@ -2384,10 +2595,13 @@ nm_utils_strv_make_deep_copied_n (const char **strv, gsize len)
  * array with g_strfreev(). Allowing that would be error prone.
  *
  * Returns: (transfer full): a clone of the strv array. Always
- *   %NULL terminated.
+ *   %NULL terminated. Depending on @deep_copied, the strings are
+ *   cloned or not.
  */
 char **
-nm_utils_strv_dup (gpointer strv, gssize len)
+nm_utils_strv_dup (gpointer strv,
+                   gssize len,
+                   gboolean deep_copied)
 {
 	gsize i, l;
 	char **v;
@@ -2415,7 +2629,10 @@ nm_utils_strv_dup (gpointer strv, gssize len)
 			g_return_val_if_reached (v);
 		}
 
-		v[i] = g_strdup (src[i]);
+		if (deep_copied)
+			v[i] = g_strdup (src[i]);
+		else
+			v[i] = (char *) src[i];
 	}
 	v[l] = NULL;
 	return v;
@@ -2657,7 +2874,9 @@ nm_utils_get_start_time_for_pid (pid_t pid, char *out_state, pid_t *out_ppid)
 
 	g_return_val_if_fail (pid > 0, 0);
 
-	nm_sprintf_buf (filename, "/proc/%"G_GUINT64_FORMAT"/stat", (guint64) pid);
+	G_STATIC_ASSERT_EXPR (sizeof (GPid) >= sizeof (pid_t));
+
+	nm_sprintf_buf (filename, "/proc/%"G_PID_FORMAT"/stat", (GPid) pid);
 
 	if (!g_file_get_contents (filename, &contents, &length, NULL))
 		goto fail;
@@ -2843,6 +3062,24 @@ nm_utils_g_slist_strlist_cmp (const GSList *a, const GSList *b)
 		a = a->next;
 		b = b->next;
 	}
+}
+
+char *
+nm_utils_g_slist_strlist_join (const GSList *a, const char *separator)
+{
+	GString *str = NULL;
+
+	if (!a)
+		return NULL;
+
+	for (; a; a = a->next) {
+		if (!str)
+			str = g_string_new (NULL);
+		else
+			g_string_append (str, separator);
+		g_string_append (str, a->data);
+	}
+	return g_string_free (str, FALSE);
 }
 
 /*****************************************************************************/
@@ -3274,4 +3511,479 @@ nm_utils_gvariant_vardict_filter_drop_one (GVariant *src,
 	return nm_utils_gvariant_vardict_filter (src,
 	                                         _gvariant_vardict_filter_drop_one,
 	                                         (gpointer) key);
+}
+
+/*****************************************************************************/
+
+static gboolean
+debug_key_matches (const char *key,
+                   const char *token,
+                   guint        length)
+{
+	/* may not call GLib functions: see note in g_parse_debug_string() */
+	for (; length; length--, key++, token++) {
+		char k = (*key   == '_') ? '-' : g_ascii_tolower (*key  );
+		char t = (*token == '_') ? '-' : g_ascii_tolower (*token);
+
+		if (k != t)
+			return FALSE;
+	}
+
+	return *key == '\0';
+}
+
+/**
+ * nm_utils_parse_debug_string:
+ * @string: the string to parse
+ * @keys: the debug keys
+ * @nkeys: number of entries in @keys
+ *
+ * Similar to g_parse_debug_string(), but does not special
+ * case "help" or "all".
+ *
+ * Returns: the flags
+ */
+guint
+nm_utils_parse_debug_string (const char *string,
+                             const GDebugKey *keys,
+                             guint nkeys)
+{
+	guint i;
+	guint result = 0;
+	const char *q;
+
+	if (string == NULL)
+		return 0;
+
+	while (*string) {
+		q = strpbrk (string, ":;, \t");
+		if (!q)
+			q = string + strlen (string);
+
+		for (i = 0; i < nkeys; i++) {
+			if (debug_key_matches (keys[i].key, string, q - string))
+				result |= keys[i].value;
+		}
+
+		string = q;
+		if (*string)
+			string++;
+	}
+
+	return result;
+}
+
+/*****************************************************************************/
+
+GSource *
+nm_g_idle_source_new (int priority,
+                      GSourceFunc func,
+                      gpointer user_data,
+                      GDestroyNotify destroy_notify)
+{
+	GSource *source;
+
+	source = g_idle_source_new ();
+	if (priority != G_PRIORITY_DEFAULT)
+		g_source_set_priority (source, priority);
+	g_source_set_callback (source, func, user_data, destroy_notify);
+	return source;
+}
+
+GSource *
+nm_g_timeout_source_new (guint timeout_ms,
+                         int priority,
+                         GSourceFunc func,
+                         gpointer user_data,
+                         GDestroyNotify destroy_notify)
+{
+	GSource *source;
+
+	source = g_timeout_source_new (timeout_ms);
+	if (priority != G_PRIORITY_DEFAULT)
+		g_source_set_priority (source, priority);
+	g_source_set_callback (source, func, user_data, destroy_notify);
+	return source;
+}
+
+GSource *
+nm_g_unix_signal_source_new (int signum,
+                             int priority,
+                             GSourceFunc handler,
+                             gpointer user_data,
+                             GDestroyNotify notify)
+{
+	GSource *source;
+
+	source = g_unix_signal_source_new (signum);
+
+	if (priority != G_PRIORITY_DEFAULT)
+		g_source_set_priority (source, priority);
+	g_source_set_callback (source, handler, user_data, notify);
+	return source;
+}
+
+/*****************************************************************************/
+
+#define _CTX_LOG(fmt, ...) \
+	G_STMT_START { \
+		if (FALSE) { \
+			gint64 _ts = g_get_monotonic_time () / 100; \
+			\
+			g_printerr (">>>> [%"G_GINT64_FORMAT".%05"G_GINT64_FORMAT"] [src:%p]: " fmt "\n", \
+			            _ts / 10000, \
+			            _ts % 10000, \
+			            (ctx_src), \
+			            ##__VA_ARGS__); \
+		} \
+	} G_STMT_END
+
+typedef struct {
+	int fd;
+	guint events;
+	guint registered_events;
+	union {
+		int one;
+		int *many;
+	} idx;
+	gpointer tag;
+	bool stale:1;
+	bool has_many_idx:1;
+} PollData;
+
+typedef struct {
+	GSource source;
+	GMainContext *context;
+	GHashTable *fds;
+	GPollFD *fds_arr;
+	int fds_len;
+	int max_priority;
+	bool acquired:1;
+} CtxIntegSource;
+
+static void
+_poll_data_free (gpointer user_data)
+{
+	PollData *poll_data = user_data;
+
+	if (poll_data->has_many_idx)
+		g_free (poll_data->idx.many);
+	nm_g_slice_free (poll_data);
+}
+
+static void
+_ctx_integ_source_reacquire (CtxIntegSource *ctx_src)
+{
+	if (G_LIKELY (   ctx_src->acquired
+	              && g_main_context_is_owner (ctx_src->context)))
+		return;
+
+	/* the parent context now iterates on a different thread.
+	 * We need to release and reacquire the inner context. */
+
+	if (ctx_src->acquired)
+		g_main_context_release (ctx_src->context);
+
+	if (G_UNLIKELY (!g_main_context_acquire (ctx_src->context))) {
+		/* Nobody is supposed to reacquire the context while we use it. This is a bug
+		 * of the user. */
+		ctx_src->acquired = FALSE;
+		g_return_if_reached ();
+	}
+	ctx_src->acquired = TRUE;
+}
+
+static gboolean
+_ctx_integ_source_prepare (GSource *source,
+                           int *out_timeout)
+{
+	CtxIntegSource *ctx_src = ((CtxIntegSource *) source);
+	int max_priority;
+	int timeout = -1;
+	gboolean any_ready;
+	int fds_allocated;
+	int fds_len_old;
+	gs_free GPollFD *fds_arr_old = NULL;
+	GHashTableIter h_iter;
+	PollData *poll_data;
+	gboolean fds_changed;
+	int i;
+
+	_CTX_LOG ("prepare...");
+
+	_ctx_integ_source_reacquire (ctx_src);
+
+	any_ready = g_main_context_prepare (ctx_src->context, &max_priority);
+
+	fds_arr_old = g_steal_pointer (&ctx_src->fds_arr);
+	fds_len_old = ctx_src->fds_len;
+
+	fds_allocated = NM_MAX (1, fds_len_old); /* there is at least the wakeup's FD */
+	ctx_src->fds_arr = g_new (GPollFD, fds_allocated);
+
+	while ((ctx_src->fds_len = g_main_context_query (ctx_src->context,
+	                                                 max_priority,
+	                                                 &timeout,
+	                                                 ctx_src->fds_arr,
+	                                                 fds_allocated)) > fds_allocated) {
+		fds_allocated = ctx_src->fds_len;
+		g_free (ctx_src->fds_arr);
+		ctx_src->fds_arr = g_new (GPollFD, fds_allocated);
+	}
+
+	fds_changed = FALSE;
+	if (fds_len_old != ctx_src->fds_len)
+		fds_changed = TRUE;
+	else {
+		for (i = 0; i < ctx_src->fds_len; i++) {
+			if (   fds_arr_old[i].fd != ctx_src->fds_arr[i].fd
+			    || fds_arr_old[i].events != ctx_src->fds_arr[i].events) {
+				fds_changed = TRUE;
+				break;
+			}
+		}
+	}
+
+	if (G_UNLIKELY (fds_changed)) {
+
+		g_hash_table_iter_init (&h_iter, ctx_src->fds);
+		while (g_hash_table_iter_next (&h_iter, (gpointer *) &poll_data, NULL))
+			poll_data->stale = TRUE;
+
+		for (i = 0; i < ctx_src->fds_len; i++) {
+			const GPollFD *fd = &ctx_src->fds_arr[i];
+
+			poll_data = g_hash_table_lookup (ctx_src->fds, &fd->fd);
+
+			if (G_UNLIKELY (!poll_data)) {
+				poll_data = g_slice_new (PollData);
+				*poll_data = (PollData) {
+					.fd                = fd->fd,
+					.idx.one           = i,
+					.has_many_idx      = FALSE,
+					.events            = fd->events,
+					.registered_events = 0,
+					.tag               = NULL,
+					.stale             = FALSE,
+				};
+				g_hash_table_add (ctx_src->fds, poll_data);
+				nm_assert (poll_data == g_hash_table_lookup (ctx_src->fds, &fd->fd));
+				continue;
+			}
+
+			if (G_LIKELY (poll_data->stale)) {
+				if (poll_data->has_many_idx) {
+					g_free (poll_data->idx.many);
+					poll_data->has_many_idx = FALSE;
+				}
+				poll_data->events = fd->events;
+				poll_data->idx.one = i;
+				poll_data->stale = FALSE;
+				continue;
+			}
+
+			/* How odd. We have duplicate FDs. In fact, currently g_main_context_query() always
+			 * coalesces the FDs and this cannot happen. However, that is not documented behavior,
+			 * so we should not rely on that. So we need to keep a list of indexes... */
+			poll_data->events |= fd->events;
+			if (!poll_data->has_many_idx) {
+				int idx0;
+
+				idx0 = poll_data->idx.one;
+				poll_data->has_many_idx = TRUE;
+				poll_data->idx.many = g_new (int, 4);
+				poll_data->idx.many[0] = 2; /* number allocated */
+				poll_data->idx.many[1] = 2; /* number used */
+				poll_data->idx.many[2] = idx0;
+				poll_data->idx.many[3] = i;
+			} else {
+				if (poll_data->idx.many[0] == poll_data->idx.many[1]) {
+					poll_data->idx.many[0] *= 2;
+					poll_data->idx.many = g_realloc (poll_data->idx.many, sizeof (int) * (2 + poll_data->idx.many[0]));
+				}
+				poll_data->idx.many[2 + poll_data->idx.many[1]] = i;
+				poll_data->idx.many[1]++;
+			}
+
+		}
+
+		g_hash_table_iter_init (&h_iter, ctx_src->fds);
+		while (g_hash_table_iter_next (&h_iter, (gpointer *) &poll_data, NULL)) {
+			if (poll_data->stale) {
+				nm_assert (poll_data->tag);
+				nm_assert (poll_data->events == poll_data->registered_events);
+				_CTX_LOG ("prepare: remove poll fd=%d, events=0x%x", poll_data->fd, poll_data->events);
+				g_source_remove_unix_fd (&ctx_src->source, poll_data->tag);
+				g_hash_table_iter_remove (&h_iter);
+				continue;
+			}
+			if (!poll_data->tag) {
+				_CTX_LOG ("prepare: add poll fd=%d, events=0x%x", poll_data->fd, poll_data->events);
+				poll_data->registered_events = poll_data->events;
+				poll_data->tag = g_source_add_unix_fd (&ctx_src->source, poll_data->fd, poll_data->registered_events);
+				continue;
+			}
+			if (poll_data->registered_events != poll_data->events) {
+				_CTX_LOG ("prepare: update poll fd=%d, events=0x%x", poll_data->fd, poll_data->events);
+				poll_data->registered_events = poll_data->events;
+				g_source_modify_unix_fd (&ctx_src->source, poll_data->tag, poll_data->registered_events);
+			}
+		}
+	}
+
+	NM_SET_OUT (out_timeout, timeout);
+	ctx_src->max_priority = max_priority;
+
+	_CTX_LOG ("prepare: done, any-ready=%d, timeout=%d, max-priority=%d", any_ready, timeout, max_priority);
+
+	/* we always need to poll, because we have some file descriptors. */
+	return FALSE;
+}
+
+static gboolean
+_ctx_integ_source_check (GSource *source)
+{
+	CtxIntegSource *ctx_src = ((CtxIntegSource *) source);
+	GHashTableIter h_iter;
+	gboolean some_ready;
+	PollData *poll_data;
+
+	nm_assert (ctx_src->context);
+
+	_CTX_LOG ("check");
+
+	_ctx_integ_source_reacquire (ctx_src);
+
+	g_hash_table_iter_init (&h_iter, ctx_src->fds);
+	while (g_hash_table_iter_next (&h_iter, (gpointer *) &poll_data, NULL)) {
+		guint revents;
+
+		revents = g_source_query_unix_fd (&ctx_src->source, poll_data->tag);
+		if (G_UNLIKELY (poll_data->has_many_idx)) {
+			int num = poll_data->idx.many[1];
+			int *p_idx = &poll_data->idx.many[2];
+
+			for (; num > 0; num--, p_idx++)
+				ctx_src->fds_arr[*p_idx].revents = revents;
+		} else
+			ctx_src->fds_arr[poll_data->idx.one].revents = revents;
+	}
+
+	some_ready = g_main_context_check (ctx_src->context,
+	                                   ctx_src->max_priority,
+	                                   ctx_src->fds_arr,
+	                                   ctx_src->fds_len);
+
+	_CTX_LOG ("check (some-ready=%d)...", some_ready);
+
+	return some_ready;
+}
+
+static gboolean
+_ctx_integ_source_dispatch (GSource *source,
+                            GSourceFunc callback,
+                            gpointer user_data)
+{
+	CtxIntegSource *ctx_src = ((CtxIntegSource *) source);
+
+	nm_assert (ctx_src->context);
+
+	_ctx_integ_source_reacquire (ctx_src);
+
+	_CTX_LOG ("dispatch");
+
+	g_main_context_dispatch (ctx_src->context);
+
+	return G_SOURCE_CONTINUE;
+}
+
+static void
+_ctx_integ_source_finalize (GSource *source)
+{
+	CtxIntegSource *ctx_src = ((CtxIntegSource *) source);
+	GHashTableIter h_iter;
+	PollData *poll_data;
+
+	g_return_if_fail (ctx_src->context);
+
+	_CTX_LOG ("finalize...");
+
+	g_hash_table_iter_init (&h_iter, ctx_src->fds);
+	while (g_hash_table_iter_next (&h_iter, (gpointer *) &poll_data, NULL)) {
+		nm_assert (poll_data->tag);
+		_CTX_LOG ("prepare: remove poll fd=%d, events=0x%x", poll_data->fd, poll_data->events);
+		g_source_remove_unix_fd (&ctx_src->source, poll_data->tag);
+		g_hash_table_iter_remove (&h_iter);
+	}
+
+	nm_clear_pointer (&ctx_src->fds, g_hash_table_unref);
+	nm_clear_g_free (&ctx_src->fds_arr);
+	ctx_src->fds_len = 0;
+
+	if (ctx_src->acquired) {
+		ctx_src->acquired = FALSE;
+		g_main_context_release (ctx_src->context);
+	}
+
+	nm_clear_pointer (&ctx_src->context, g_main_context_unref);
+}
+
+static GSourceFuncs ctx_integ_source_funcs = {
+	.prepare  = _ctx_integ_source_prepare,
+	.check    = _ctx_integ_source_check,
+	.dispatch = _ctx_integ_source_dispatch,
+	.finalize = _ctx_integ_source_finalize,
+};
+
+/**
+ * nm_utils_g_main_context_create_integrate_source:
+ * @inner_context: the inner context that will be integrated to an
+ *   outer #GMainContext.
+ *
+ * By integrating the inner context with an outer context, when iterating the outer
+ * context sources on the inner context will be dispatched. Note that while the
+ * created source exists, the @inner_context will be acquired. The user gets restricted
+ * what to do with the inner context. In particular while the inner context is integrated,
+ * the user should not acquire the inner context again or explicitly iterate it. What
+ * the user of course still can (and wants to) do is attaching new sources to the inner
+ * context.
+ *
+ * Note that GSource has a priority. While each context dispatches events based on
+ * their source's priorities, the outer context dispatches to the inner context
+ * only with one priority (the priority of the created source). That is, the sources
+ * from the two contexts are kept separate and are not sorted by their priorities.
+ *
+ * Returns: a newly created GSource that should be attached to the
+ *   outer context.
+ */
+GSource *
+nm_utils_g_main_context_create_integrate_source (GMainContext *inner_context)
+{
+	CtxIntegSource *ctx_src;
+
+	g_return_val_if_fail (inner_context, NULL);
+
+	if (!g_main_context_acquire (inner_context)) {
+		/* We require to acquire the context while it's integrated. We need to keep it acquired
+		 * for the entire duration.
+		 *
+		 * This is also necessary because g_source_attach() only wakes up the context, if
+		 * the context is currently acquired. */
+		g_return_val_if_reached (NULL);
+	}
+
+	ctx_src = (CtxIntegSource *) g_source_new (&ctx_integ_source_funcs, sizeof (CtxIntegSource));
+
+	g_source_set_name (&ctx_src->source, "ContextIntegrateSource");
+
+	ctx_src->context = g_main_context_ref (inner_context);
+	ctx_src->fds = g_hash_table_new_full (nm_pint_hash, nm_pint_equals, _poll_data_free, NULL);
+	ctx_src->fds_len = 0;
+	ctx_src->fds_arr = NULL;
+	ctx_src->acquired = TRUE;
+	ctx_src->max_priority = G_MAXINT;
+
+	_CTX_LOG ("create new integ-source for %p", inner_context);
+
+	return &ctx_src->source;
 }

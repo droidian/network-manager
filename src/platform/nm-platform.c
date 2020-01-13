@@ -1,19 +1,5 @@
-/* nm-platform.c - Handle runtime kernel networking configuration
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2012 - 2018 Red Hat, Inc.
  */
 
@@ -608,6 +594,54 @@ nm_platform_sysctl_ip_conf_set_ipv6_hop_limit_safe (NMPlatform *self,
 	}
 
 	return TRUE;
+}
+
+gboolean
+nm_platform_sysctl_ip_neigh_set_ipv6_reachable_time (NMPlatform *self,
+                                                     const char *iface,
+                                                     guint value_ms)
+{
+	char path[NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE];
+	char str[128];
+	guint clamped;
+
+	_CHECK_SELF (self, klass, FALSE);
+
+	if (!value_ms)
+		return TRUE;
+
+	/* RFC 4861 says the value can't be greater than one hour.
+	 * Also use a reasonable lower threshold. */
+	clamped = NM_CLAMP (value_ms, 100, 3600000);
+	nm_sprintf_buf (path, "/proc/sys/net/ipv6/neigh/%s/base_reachable_time_ms", iface);
+	nm_sprintf_buf (str, "%u", clamped);
+	if (!nm_platform_sysctl_set (self, NMP_SYSCTL_PATHID_ABSOLUTE (path), str))
+		return FALSE;
+
+	/* Set stale time in the same way as kernel */
+	nm_sprintf_buf (path, "/proc/sys/net/ipv6/neigh/%s/gc_stale_time", iface);
+	nm_sprintf_buf (str, "%u", clamped * 3 / 1000);
+
+	return nm_platform_sysctl_set (self, NMP_SYSCTL_PATHID_ABSOLUTE (path), str);
+}
+
+gboolean
+nm_platform_sysctl_ip_neigh_set_ipv6_retrans_time (NMPlatform *self,
+                                                   const char *iface,
+                                                   guint value_ms)
+{
+	char path[NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE];
+	char str[128];
+
+	_CHECK_SELF (self, klass, FALSE);
+
+	if (!value_ms)
+		return TRUE;
+
+	nm_sprintf_buf (path, "/proc/sys/net/ipv6/neigh/%s/retrans_time_ms", iface);
+	nm_sprintf_buf (str, "%u", NM_CLAMP (value_ms, 10, 3600000));
+
+	return nm_platform_sysctl_set (self, NMP_SYSCTL_PATHID_ABSOLUTE (path), str);
 }
 
 /**
@@ -4104,10 +4138,11 @@ nm_platform_ip4_address_sync (NMPlatform *self,
 		}
 	}
 	ip4_addr_subnets_destroy_index (plat_subnets, plat_addresses);
-	ip4_addr_subnets_destroy_index (known_subnets, known_addresses);
 
 	if (!known_addresses)
 		return TRUE;
+
+	ip4_addr_subnets_destroy_index (known_subnets, known_addresses);
 
 	ifa_flags =   nm_platform_kernel_support_get (NM_PLATFORM_KERNEL_SUPPORT_TYPE_EXTENDED_IFA_FLAGS)
 	            ? IFA_F_NOPREFIXROUTE
@@ -6049,13 +6084,14 @@ nm_platform_ip4_address_to_string (const NMPlatformIP4Address *address, char *bu
 	str_time_p = _lifetime_summary_to_string (now, address->timestamp, address->preferred, address->lifetime, str_time, sizeof (str_time));
 
 	g_snprintf (buf, len,
-	            "%s/%d lft %s pref %s%s%s%s%s%s src %s",
+	            "%s/%d lft %s pref %s%s%s%s%s%s src %s%s",
 	            s_address, address->plen, str_lft_p, str_pref_p, str_time_p,
 	            str_peer ?: "",
 	            str_dev,
 	            _to_string_ifa_flags (address->n_ifa_flags, s_flags, sizeof (s_flags)),
 	            str_label,
-	            nmp_utils_ip_config_source_to_string (address->addr_source, s_source, sizeof (s_source)));
+	            nmp_utils_ip_config_source_to_string (address->addr_source, s_source, sizeof (s_source)),
+	            address->external ? " ext" : "");
 	g_free (str_peer);
 	return buf;
 }
@@ -6156,12 +6192,13 @@ nm_platform_ip6_address_to_string (const NMPlatformIP6Address *address, char *bu
 	str_time_p = _lifetime_summary_to_string (now, address->timestamp, address->preferred, address->lifetime, str_time, sizeof (str_time));
 
 	g_snprintf (buf, len,
-	            "%s/%d lft %s pref %s%s%s%s%s src %s",
+	            "%s/%d lft %s pref %s%s%s%s%s src %s%s",
 	            s_address, address->plen, str_lft_p, str_pref_p, str_time_p,
 	            str_peer ?: "",
 	            str_dev,
 	            _to_string_ifa_flags (address->n_ifa_flags, s_flags, sizeof (s_flags)),
-	            nmp_utils_ip_config_source_to_string (address->addr_source, s_source, sizeof (s_source)));
+	            nmp_utils_ip_config_source_to_string (address->addr_source, s_source, sizeof (s_source)),
+	            address->external ? " ext" : "");
 	g_free (str_peer);
 	return buf;
 }
@@ -7267,7 +7304,8 @@ nm_platform_ip4_address_hash_update (const NMPlatformIP4Address *obj, NMHashStat
 	                     obj->n_ifa_flags,
 	                     obj->plen,
 	                     obj->address,
-	                     obj->peer_address);
+	                     obj->peer_address,
+	                     NM_HASH_COMBINE_BOOLS (guint8, obj->external));
 	nm_hash_update_strarr (h, obj->label);
 }
 
@@ -7285,6 +7323,7 @@ nm_platform_ip4_address_cmp (const NMPlatformIP4Address *a, const NMPlatformIP4A
 	NM_CMP_FIELD (a, b, preferred);
 	NM_CMP_FIELD (a, b, n_ifa_flags);
 	NM_CMP_FIELD_STR (a, b, label);
+	NM_CMP_FIELD_UNSAFE (a, b, external);
 	return 0;
 }
 
@@ -7300,7 +7339,8 @@ nm_platform_ip6_address_hash_update (const NMPlatformIP6Address *obj, NMHashStat
 	                     obj->n_ifa_flags,
 	                     obj->plen,
 	                     obj->address,
-	                     obj->peer_address);
+	                     obj->peer_address,
+	                     NM_HASH_COMBINE_BOOLS (guint8, obj->external));
 }
 
 int
@@ -7320,6 +7360,7 @@ nm_platform_ip6_address_cmp (const NMPlatformIP6Address *a, const NMPlatformIP6A
 	NM_CMP_FIELD (a, b, lifetime);
 	NM_CMP_FIELD (a, b, preferred);
 	NM_CMP_FIELD (a, b, n_ifa_flags);
+	NM_CMP_FIELD_UNSAFE (a, b, external);
 	return 0;
 }
 

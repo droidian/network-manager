@@ -1,25 +1,10 @@
-/* NetworkManager system settings service
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Søren Sandmann <sandmann@daimi.au.dk>
  * Dan Williams <dcbw@redhat.com>
  * Tambet Ingo <tambet@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2007 - 2011 Red Hat, Inc.
- * (C) Copyright 2008 Novell, Inc.
+ * Copyright (C) 2007 - 2011 Red Hat, Inc.
+ * Copyright (C) 2008 Novell, Inc.
  */
 
 #include "nm-default.h"
@@ -2487,17 +2472,6 @@ nm_settings_add_connection_dbus (NMSettings *self,
 		goto done;
 	}
 
-	/* FIXME: The kernel doesn't support Ad-Hoc WPA connections well at this time,
-	 * and turns them into open networks.  It's been this way since at least
-	 * 2.6.30 or so; until that's fixed, disable WPA-protected Ad-Hoc networks.
-	 */
-	if (nm_utils_connection_is_adhoc_wpa (connection)) {
-		error = g_error_new_literal (NM_SETTINGS_ERROR,
-		                             NM_SETTINGS_ERROR_INVALID_CONNECTION,
-		                             "WPA Ad-Hoc disabled due to kernel bugs");
-		goto done;
-	}
-
 	if (!nm_auth_is_subject_in_acl_set_error (connection,
 	                                          subject,
 	                                          NM_SETTINGS_ERROR,
@@ -2776,9 +2750,10 @@ impl_settings_load_connections (NMDBusObject *obj,
 		for (i = 0; i < n_entries; i++) {
 			NMSettingsPluginConnectionLoadEntry *entry = &entries[i];
 
-			if (!entry->handled)
+			if (!entry->handled) {
 				_LOGW ("load: no settings plugin could load \"%s\"", entry->filename);
-			else if (entry->error) {
+				nm_assert (!entry->error);
+			} else if (entry->error) {
 				_LOGW ("load: failure to load \"%s\": %s", entry->filename, entry->error->message);
 				g_clear_error (&entry->error);
 			} else
@@ -2847,6 +2822,7 @@ impl_settings_reload_connections (NMDBusObject *obj,
 
 	nm_audit_log_connection_op (NM_AUDIT_OP_CONNS_RELOAD, NULL, TRUE, NULL, invocation, NULL);
 
+	/* We MUST return %TRUE here, otherwise older libnm versions might misbehave. */
 	g_dbus_method_invocation_return_value (invocation, g_variant_new ("(b)", TRUE));
 }
 
@@ -3140,9 +3116,9 @@ add_plugin (NMSettings *self,
 
 	priv->plugins = g_slist_append (priv->plugins, g_object_ref (plugin));
 
-	nm_shutdown_wait_obj_register_full (G_OBJECT (plugin),
-	                                    g_strdup_printf ("%s-settings-plugin", pname),
-	                                    TRUE);
+	nm_shutdown_wait_obj_register_object_full (plugin,
+	                                           g_strdup_printf ("%s-settings-plugin", pname),
+	                                           TRUE);
 
 	_LOGI ("Loaded settings plugin: %s (%s%s%s)",
 	       pname,
@@ -3455,14 +3431,27 @@ device_realized (NMDevice *device, GParamSpec *pspec, NMSettings *self)
 	 */
 	if (   !NM_DEVICE_GET_CLASS (device)->new_default_connection
 	    || !nm_device_get_managed (device, FALSE)
-	    || g_object_get_qdata (G_OBJECT (device), _default_wired_connection_quark ())
-	    || have_connection_for_device (self, device)
-	    || nm_config_get_no_auto_default_for_device (priv->config, device))
+	    || g_object_get_qdata (G_OBJECT (device), _default_wired_connection_quark ()))
 		return;
 
-	connection = nm_device_new_default_connection (device);
-	if (!connection)
+	if (nm_config_get_no_auto_default_for_device (priv->config, device)) {
+		_LOGT ("auto-default: cannot create auto-default connection for device %s: disabled by \"no-auto-default\"",
+		       nm_device_get_iface (device));
 		return;
+	}
+
+	if (have_connection_for_device (self, device)) {
+		_LOGT ("auto-default: cannot create auto-default connection for device %s: already has a profile",
+		       nm_device_get_iface (device));
+		return;
+	}
+
+	connection = nm_device_new_default_connection (device);
+	if (!connection) {
+		_LOGT ("auto-default: cannot create auto-default connection for device %s",
+		       nm_device_get_iface (device));
+		return;
+	}
 
 	_LOGT ("auto-default: creating in-memory connection %s (%s) for device %s",
 	       nm_connection_get_uuid (connection),

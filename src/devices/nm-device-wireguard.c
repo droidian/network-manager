@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2018 Javier Arteaga <jarteaga@jbeta.is>
+ * Copyright (C) 2018 Javier Arteaga <jarteaga@jbeta.is>
  */
 
 #include "nm-default.h"
@@ -1276,8 +1262,10 @@ _secrets_cb (NMActRequest *req,
 		nm_device_state_changed (device,
 		                         NM_DEVICE_STATE_FAILED,
 		                         NM_DEVICE_STATE_REASON_NO_SECRETS);
-	} else
-		nm_device_activate_schedule_stage1_device_prepare (device);
+		return;
+	}
+
+	nm_device_activate_schedule_stage1_device_prepare (device);
 }
 
 static void
@@ -1518,17 +1506,6 @@ link_config_delayed_resolver_cb (gpointer user_data)
 }
 
 static NMActStageReturn
-act_stage1_prepare (NMDevice *device, NMDeviceStateReason *out_failure_reason)
-{
-	NMDeviceWireGuardPrivate *priv = NM_DEVICE_WIREGUARD_GET_PRIVATE (device);
-
-	priv->auto_default_route_initialized = FALSE;
-	priv->auto_default_route_priority_initialized = FALSE;
-
-	return NM_DEVICE_CLASS (nm_device_wireguard_parent_class)->act_stage1_prepare (device, out_failure_reason);
-}
-
-static NMActStageReturn
 act_stage2_config (NMDevice *device,
                    NMDeviceStateReason *out_failure_reason)
 {
@@ -1714,7 +1691,7 @@ act_stage3_ip_config_start (NMDevice *device,
 }
 
 static guint32
-get_configured_mtu (NMDevice *device, NMDeviceMtuSource *out_source)
+get_configured_mtu (NMDevice *device, NMDeviceMtuSource *out_source, gboolean *out_force)
 {
 	/* When "MTU" for `wg-quick up` is unset, it calls `ip route get` for
 	 * each configured endpoint, to determine the suitable MTU how to reach
@@ -1810,23 +1787,27 @@ reapply_connection (NMDevice *device,
 	NMDeviceWireGuardPrivate *priv = NM_DEVICE_WIREGUARD_GET_PRIVATE (self);
 	gs_unref_object NMIPConfig *ip4_config = NULL;
 	gs_unref_object NMIPConfig *ip6_config = NULL;
-
-	priv->auto_default_route_refresh = TRUE;
-
-	ip4_config = _get_dev2_ip_config (self, AF_INET);
-	ip6_config = _get_dev2_ip_config (self, AF_INET6);
-
-	nm_device_set_dev2_ip_config (device, AF_INET, ip4_config);
-	nm_device_set_dev2_ip_config (device, AF_INET6, ip6_config);
+	NMDeviceState state = nm_device_get_state (device);
 
 	NM_DEVICE_CLASS (nm_device_wireguard_parent_class)->reapply_connection (device,
 	                                                                        con_old,
 	                                                                        con_new);
 
-	link_config (NM_DEVICE_WIREGUARD (device),
-	             "reapply",
-	             LINK_CONFIG_MODE_REAPPLY,
-	             NULL);
+	if (state >= NM_DEVICE_STATE_CONFIG) {
+		priv->auto_default_route_refresh = TRUE;
+		link_config (NM_DEVICE_WIREGUARD (device),
+		             "reapply",
+		             LINK_CONFIG_MODE_REAPPLY,
+		             NULL);
+	}
+
+	if (state >= NM_DEVICE_STATE_IP_CONFIG) {
+		ip4_config = _get_dev2_ip_config (self, AF_INET);
+		ip6_config = _get_dev2_ip_config (self, AF_INET6);
+
+		nm_device_set_dev2_ip_config (device, AF_INET, ip4_config);
+		nm_device_set_dev2_ip_config (device, AF_INET6, ip6_config);
+	}
 }
 
 /*****************************************************************************/
@@ -1968,7 +1949,6 @@ nm_device_wireguard_class_init (NMDeviceWireGuardClass *klass)
 	device_class->connection_type_check_compatible = NM_SETTING_WIREGUARD_SETTING_NAME;
 	device_class->link_types = NM_DEVICE_DEFINE_LINK_TYPES (NM_LINK_TYPE_WIREGUARD);
 
-	device_class->act_stage1_prepare = act_stage1_prepare;
 	device_class->state_changed = device_state_changed;
 	device_class->create_and_realize = create_and_realize;
 	device_class->act_stage2_config = act_stage2_config;

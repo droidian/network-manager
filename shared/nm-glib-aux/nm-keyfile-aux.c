@@ -1,21 +1,6 @@
-/* NetworkManager -- Network link manager
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * (C) Copyright 2019 Red Hat, Inc.
+// SPDX-License-Identifier: LGPL-2.1+
+/*
+ * Copyright (C) 2019 Red Hat, Inc.
  */
 
 #include "nm-default.h"
@@ -186,7 +171,6 @@ nm_key_file_db_destroy (NMKeyFileDB *self)
 void
 nm_key_file_db_start (NMKeyFileDB *self)
 {
-	int r;
 	gs_free char *contents = NULL;
 	gsize contents_len;
 	gs_free_error GError *error = NULL;
@@ -196,14 +180,14 @@ nm_key_file_db_start (NMKeyFileDB *self)
 
 	self->is_started = TRUE;
 
-	r = nm_utils_file_get_contents (-1,
-	                                self->filename,
-	                                20*1024*1024,
-	                                NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
-	                                &contents,
-	                                &contents_len,
-	                                &error);
-	if (r < 0) {
+	if (!nm_utils_file_get_contents (-1,
+	                                 self->filename,
+	                                 20*1024*1024,
+	                                 NM_UTILS_FILE_GET_CONTENTS_FLAG_NONE,
+	                                 &contents,
+	                                 &contents_len,
+	                                 NULL,
+	                                 &error)) {
 		_LOGD ("failed to read \"%s\": %s", self->filename, error->message);
 		return;
 	}

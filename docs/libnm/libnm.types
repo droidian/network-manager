@@ -34,6 +34,7 @@ nm_device_ethernet_get_type
 nm_device_generic_get_type
 nm_device_get_type
 nm_device_infiniband_get_type
+nm_device_interface_flags_get_type
 nm_device_ip_tunnel_get_type
 nm_device_macsec_get_type
 nm_device_macvlan_get_type
@@ -58,7 +59,9 @@ nm_device_wimax_get_type
 nm_device_wireguard_get_type
 nm_device_wpan_get_type
 nm_dhcp_config_get_type
+nm_dhcp_hostname_flags_get_type
 nm_dns_entry_get_type
+nm_ip_address_cmp_flags_get_type
 nm_ip_address_get_type
 nm_ip_config_get_type
 nm_ip_route_get_type
@@ -68,6 +71,7 @@ nm_ip_tunnel_flags_get_type
 nm_ip_tunnel_mode_get_type
 nm_lldp_neighbor_get_type
 nm_manager_error_get_type
+nm_manager_reload_flags_get_type
 nm_metered_get_type
 nm_object_get_type
 nm_remote_connection_get_type

@@ -56,6 +56,7 @@ ifaces = [
 ifaces_xmls = []
 sources = []
 introspection_files = []
+headers = []
 
 # FIXME?: DBUS_INTERFACE_DOCS/docbook files are generated in
 # "meson.current_build_dir()" instead of "meson.source_root()/docs/api"
@@ -76,7 +77,7 @@ foreach iface: ifaces
   if gio_unix_dep.version().version_compare('>= 2.51.3')
     dbus_iface_xml_path = join_paths(meson.current_build_dir(), 'dbus-' + iface_xml)
   else
-    dbus_iface_xml_path = join_paths(meson.build_root(), 'dbus-' + iface_xml)
+    dbus_iface_xml_path = join_paths(build_root, 'dbus-' + iface_xml)
   endif
 
   content_files += dbus_iface_xml_path
@@ -85,13 +86,14 @@ foreach iface: ifaces
   # older versions
   if meson.version().version_compare('>= 0.46.0')
     introspection_files += [ [res[2], dbus_iface_xml_path] ]
+    headers += res[1]
   endif
 
 endforeach
 
 install_data(
   ifaces_xmls,
-  install_dir: dbus_ifaces_dir,
+  install_dir: dbus_interfaces_dir,
 )
 
 libnmdbus = static_library(
@@ -102,9 +104,7 @@ libnmdbus = static_library(
 )
 
 libnmdbus_dep = declare_dependency(
-  # FIXME: only headers should be added here to resolve dependencies on
-  #        libNetworkManagerBase and libNetworkManager
-  #sources: sources,
+  sources: headers,
   include_directories: include_directories('.'),
   link_with: libnmdbus,
 )

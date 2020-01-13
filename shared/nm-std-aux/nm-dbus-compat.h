@@ -1,19 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Copyright 2015 Red Hat, Inc.
+ * Copyright (C) 2015 Red Hat, Inc.
  */
 
 #ifndef __NM_DBUS_COMPAT_H__
@@ -43,6 +30,8 @@
 #define DBUS_INTERFACE_PROPERTIES     "org.freedesktop.DBus.Properties"
 /** The interface supported by most dbus peers */
 #define DBUS_INTERFACE_PEER           "org.freedesktop.DBus.Peer"
+
+#define DBUS_INTERFACE_OBJECT_MANAGER "org.freedesktop.DBus.ObjectManager"
 
 /** This is a special interface whose methods can only be invoked
  * by the local implementation (messages from remote apps aren't

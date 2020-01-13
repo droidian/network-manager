@@ -15,10 +15,7 @@
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMDhcpConfig.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMDhcpConfig.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
-                  <a href="#NMDhcpConfig.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMDhcpConfig.properties" class="shortcut">Properties</a></span>
+                  <a href="#NMDhcpConfig.description" class="shortcut">Description</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch04.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -69,29 +66,6 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="NMDhcpConfig.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
-<td class="property_name"><a class="link" href="NMDhcpConfig.html#NMDhcpConfig--family" title="The “family” property">family</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *</td>
-<td class="property_name"><a class="link" href="NMDhcpConfig.html#NMDhcpConfig--options" title="The “options” property">options</a></td>
-<td class="property_flags">Read</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
 <a name="NMDhcpConfig.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -99,10 +73,6 @@
 <col class="description">
 </colgroup>
 <tbody>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMDhcpConfig.html#NMDhcpConfig-struct" title="NMDhcpConfig">NMDhcpConfig</a></td>
-</tr>
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDhcpConfig.html#NM-DHCP-CONFIG-FAMILY:CAPS" title="NM_DHCP_CONFIG_FAMILY">NM_DHCP_CONFIG_FAMILY</a></td>
@@ -113,19 +83,6 @@
 </tr>
 </tbody>
 </table></div>
-</div>
-<div class="refsect1">
-<a name="NMDhcpConfig.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
-        <span class="lineart">╰──</span> NMDhcpConfig
-</pre>
-</div>
-<div class="refsect1">
-<a name="NMDhcpConfig.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
-<p>
-NMDhcpConfig implements
- <a href="https://developer.gnome.org/gio/unstable/GInitable.html#GInitable-struct">GInitable</a> and  <a href="https://developer.gnome.org/gio/unstable/GAsyncInitable.html#GAsyncInitable-struct">GAsyncInitable</a>.</p>
 </div>
 <div class="refsect1">
 <a name="NMDhcpConfig.description"></a><h2>Description</h2>
@@ -226,11 +183,6 @@ configuration, and must not be modified.</p>
 <div class="refsect1">
 <a name="NMDhcpConfig.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
-<a name="NMDhcpConfig-struct"></a><h3>NMDhcpConfig</h3>
-<pre class="programlisting">typedef struct _NMDhcpConfig NMDhcpConfig;</pre>
-</div>
-<hr>
-<div class="refsect2">
 <a name="NM-DHCP-CONFIG-FAMILY:CAPS"></a><h3>NM_DHCP_CONFIG_FAMILY</h3>
 <pre class="programlisting">#define NM_DHCP_CONFIG_FAMILY  "family"
 </pre>
@@ -240,24 +192,6 @@ configuration, and must not be modified.</p>
 <a name="NM-DHCP-CONFIG-OPTIONS:CAPS"></a><h3>NM_DHCP_CONFIG_OPTIONS</h3>
 <pre class="programlisting">#define NM_DHCP_CONFIG_OPTIONS "options"
 </pre>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMDhcpConfig.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMDhcpConfig--family"></a><h3>The <code class="literal">“family”</code> property</h3>
-<pre class="programlisting">  “family”                   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
-<p>The IP address family of the configuration; either
-<code class="literal">AF_INET</code> or <code class="literal">AF_INET6</code>.</p>
-<p>Flags: Read</p>
-<p>Allowed values: [0,255]</p>
-<p>Default value: 0</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMDhcpConfig--options"></a><h3>The <code class="literal">“options”</code> property</h3>
-<pre class="programlisting">  “options”                  <a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *</pre>
-<p>Flags: Read</p>
 </div>
 </div>
 </div>

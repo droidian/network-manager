@@ -1,21 +1,7 @@
+// SPDX-License-Identifier: LGPL-2.1+
 /*
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110-1301 USA.
- *
- * Copyright 2007 - 2013 Red Hat, Inc.
- * Copyright 2007 - 2008 Novell, Inc.
+ * Copyright (C) 2007 - 2013 Red Hat, Inc.
+ * Copyright (C) 2007 - 2008 Novell, Inc.
  */
 
 #include "nm-default.h"
@@ -2440,7 +2426,7 @@ nm_setting_802_1x_get_auth_timeout (NMSetting8021x *setting)
  * Returns: %TRUE if the activation should proceed even when the 802.1X
  *     authentication fails; %FALSE otherwise
  *
- * Since: 1.20.6
+ * Since: 1.22
  **/
 gboolean
 nm_setting_802_1x_get_optional (NMSetting8021x *setting)
@@ -3849,7 +3835,7 @@ nm_setting_802_1x_class_init (NMSetting8021xClass *klass)
 	/**
 	 * NMSetting8021x:phase2-auth:
 	 *
-	 * Specifies the allowed "phase 2" inner non-EAP authentication methods when
+	 * Specifies the allowed "phase 2" inner non-EAP authentication method when
 	 * an EAP method that uses an inner TLS tunnel is specified in the
 	 * #NMSetting8021x:eap property.  Recognized non-EAP "phase 2" methods are
 	 * "pap", "chap", "mschap", "mschapv2", "gtc", "otp", "md5", and "tls".
@@ -3874,7 +3860,7 @@ nm_setting_802_1x_class_init (NMSetting8021xClass *klass)
 	/**
 	 * NMSetting8021x:phase2-autheap:
 	 *
-	 * Specifies the allowed "phase 2" inner EAP-based authentication methods
+	 * Specifies the allowed "phase 2" inner EAP-based authentication method
 	 * when an EAP method that uses an inner TLS tunnel is specified in the
 	 * #NMSetting8021x:eap property.  Recognized EAP-based "phase 2" methods are
 	 * "md5", "mschapv2", "otp", "gtc", and "tls". Each "phase 2" inner method
@@ -4449,7 +4435,7 @@ nm_setting_802_1x_class_init (NMSetting8021xClass *klass)
 	 * If set to %FALSE, the activation can continue only after a successful
 	 * authentication.
 	 *
-	 * Since: 1.20.6
+	 * Since: 1.22
 	 **/
 	/* ---ifcfg-rh---
 	 * property: optional

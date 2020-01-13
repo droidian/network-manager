@@ -15,10 +15,7 @@
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMObject.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMObject.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_interfaces">  <span class="dim">|</span> 
-                  <a href="#NMObject.implemented-interfaces" class="shortcut">Implemented Interfaces</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMObject.properties" class="shortcut">Properties</a></span>
+                  <a href="#NMObject.description" class="shortcut">Description</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -51,88 +48,17 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="NMObject.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/gio/unstable/GDBusConnection.html#GDBusConnection-struct"><span class="type">GDBusConnection</span></a> *</td>
-<td class="property_name"><a class="link" href="NMObject.html#NMObject--dbus-connection" title="The “dbus-connection” property">dbus-connection</a></td>
-<td class="property_flags">Read</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/gio/unstable/GDBusObject.html#GDBusObject-struct"><span class="type">GDBusObject</span></a> *</td>
-<td class="property_name"><a class="link" href="NMObject.html#NMObject--dbus-object" title="The “dbus-object” property">dbus-object</a></td>
-<td class="property_flags">Write / Construct Only</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/gio/unstable/GDBusObjectManager.html#GDBusObjectManager-struct"><span class="type">GDBusObjectManager</span></a> *</td>
-<td class="property_name"><a class="link" href="NMObject.html#NMObject--dbus-object-manager" title="The “dbus-object-manager” property">dbus-object-manager</a></td>
-<td class="property_flags">Write / Construct Only</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
-<td class="property_name"><a class="link" href="NMObject.html#NMObject--path" title="The “path” property">path</a></td>
-<td class="property_flags">Read</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
 <a name="NMObject.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="name">
 <col class="description">
 </colgroup>
-<tbody>
-<tr>
+<tbody><tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMObject.html#NM-OBJECT-PATH:CAPS" title="NM_OBJECT_PATH">NM_OBJECT_PATH</a></td>
-</tr>
-<tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMObject.html#NM-OBJECT-DBUS-CONNECTION:CAPS" title="NM_OBJECT_DBUS_CONNECTION">NM_OBJECT_DBUS_CONNECTION</a></td>
-</tr>
-<tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="NMObject.html#NM-OBJECT-DBUS-OBJECT-MANAGER:CAPS" title="NM_OBJECT_DBUS_OBJECT_MANAGER">NM_OBJECT_DBUS_OBJECT_MANAGER</a></td>
-</tr>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMObject.html#NMObject-struct" title="NMObject">NMObject</a></td>
-</tr>
-</tbody>
+</tr></tbody>
 </table></div>
-</div>
-<div class="refsect1">
-<a name="NMObject.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> NMObject
-        <span class="lineart">├──</span> <a class="link" href="NMAccessPoint.html" title="NMAccessPoint">NMAccessPoint</a>
-        <span class="lineart">├──</span> <a class="link" href="NMActiveConnection.html" title="NMActiveConnection">NMActiveConnection</a>
-        <span class="lineart">├──</span> <a class="link" href="NMCheckpoint.html" title="NMCheckpoint">NMCheckpoint</a>
-        <span class="lineart">├──</span> <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
-        <span class="lineart">├──</span> <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig">NMDhcpConfig</a>
-        <span class="lineart">├──</span> <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
-        <span class="lineart">├──</span> <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection">NMRemoteConnection</a>
-        <span class="lineart">├──</span> <a class="link" href="NMWifiP2PPeer.html" title="NMWifiP2PPeer">NMWifiP2PPeer</a>
-        <span class="lineart">╰──</span> <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp">NMWimaxNsp</a>
-</pre>
-</div>
-<div class="refsect1">
-<a name="NMObject.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
-<p>
-NMObject implements
- <a href="https://developer.gnome.org/gio/unstable/GInitable.html#GInitable-struct">GInitable</a> and  <a href="https://developer.gnome.org/gio/unstable/GAsyncInitable.html#GAsyncInitable-struct">GAsyncInitable</a>.</p>
 </div>
 <div class="refsect1">
 <a name="NMObject.description"></a><h2>Description</h2>
@@ -172,57 +98,6 @@ object, and must not be modified.</p>
 <a name="NM-OBJECT-PATH:CAPS"></a><h3>NM_OBJECT_PATH</h3>
 <pre class="programlisting">#define NM_OBJECT_PATH "path"
 </pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NM-OBJECT-DBUS-CONNECTION:CAPS"></a><h3>NM_OBJECT_DBUS_CONNECTION</h3>
-<pre class="programlisting">#define NM_OBJECT_DBUS_CONNECTION "dbus-connection"
-</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NM-OBJECT-DBUS-OBJECT-MANAGER:CAPS"></a><h3>NM_OBJECT_DBUS_OBJECT_MANAGER</h3>
-<pre class="programlisting">#define NM_OBJECT_DBUS_OBJECT_MANAGER "dbus-object-manager"
-</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMObject-struct"></a><h3>NMObject</h3>
-<pre class="programlisting">typedef struct _NMObject NMObject;</pre>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMObject.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMObject--dbus-connection"></a><h3>The <code class="literal">“dbus-connection”</code> property</h3>
-<pre class="programlisting">  “dbus-connection”          <a href="https://developer.gnome.org/gio/unstable/GDBusConnection.html#GDBusConnection-struct"><span class="type">GDBusConnection</span></a> *</pre>
-<p>The <a href="https://developer.gnome.org/gio/unstable/GDBusConnection.html#GDBusConnection-struct"><span class="type">GDBusConnection</span></a> of the object.</p>
-<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
-<p>Flags: Read</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMObject--dbus-object"></a><h3>The <code class="literal">“dbus-object”</code> property</h3>
-<pre class="programlisting">  “dbus-object”              <a href="https://developer.gnome.org/gio/unstable/GDBusObject.html#GDBusObject-struct"><span class="type">GDBusObject</span></a> *</pre>
-<p>The <a href="https://developer.gnome.org/gio/unstable/GDBusObject.html#GDBusObject-struct"><span class="type">GDBusObject</span></a> of the object.</p>
-<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
-<p>Flags: Write / Construct Only</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMObject--dbus-object-manager"></a><h3>The <code class="literal">“dbus-object-manager”</code> property</h3>
-<pre class="programlisting">  “dbus-object-manager”      <a href="https://developer.gnome.org/gio/unstable/GDBusObjectManager.html#GDBusObjectManager-struct"><span class="type">GDBusObjectManager</span></a> *</pre>
-<p>The <a href="https://developer.gnome.org/gio/unstable/GDBusObjectManager.html#GDBusObjectManager-struct"><span class="type">GDBusObjectManager</span></a> of the object.</p>
-<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
-<p>Flags: Write / Construct Only</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMObject--path"></a><h3>The <code class="literal">“path”</code> property</h3>
-<pre class="programlisting">  “path”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
-<p>The D-Bus object path.</p>
-<p>Flags: Read</p>
-<p>Default value: NULL</p>
 </div>
 </div>
 </div>

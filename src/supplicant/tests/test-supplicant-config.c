@@ -1,19 +1,5 @@
-/* NetworkManager
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
+// SPDX-License-Identifier: GPL-2.0+
+/*
  * Copyright (C) 2008 - 2011 Red Hat, Inc.
  */
 
@@ -236,7 +222,7 @@ test_wifi_wep_key (const char *detail,
 	gs_unref_bytes GBytes *ssid = g_bytes_new (ssid_data, sizeof (ssid_data));
 	const char *bssid_str = "11:22:33:44:55:66";
 	gs_unref_bytes GBytes *wep_key_bytes = g_bytes_new (expected, expected_size);
-	const char *bgscan_data = "simple:30:-80:86400";
+	const char *bgscan_data = "simple:30:-70:86400";
 	gs_unref_bytes GBytes *bgscan = g_bytes_new (bgscan_data, strlen (bgscan_data));
 
 	connection = new_basic_connection ("Test Wifi WEP Key", ssid, test_bssid ? bssid_str : NULL);
@@ -264,7 +250,7 @@ test_wifi_wep_key (const char *detail,
 	NMTST_EXPECT_NM_INFO ("Config: added 'wep_key0' value *");
 	NMTST_EXPECT_NM_INFO ("Config: added 'wep_tx_keyidx' value '0'");
 	if (!test_bssid)
-		NMTST_EXPECT_NM_INFO ("Config: added 'bgscan' value 'simple:30:-80:86400'*");
+		NMTST_EXPECT_NM_INFO ("Config: added 'bgscan' value 'simple:30:-70:86400'*");
 
 	config_dict = build_supplicant_config (connection, 1500, 0, TRUE, TRUE);
 	g_test_assert_expected_messages ();
