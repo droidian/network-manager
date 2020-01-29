@@ -1,8 +1,8 @@
-network-manager (1.22.4-1ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.22.4-1ubuntu1) focal; urgency=medium
 
   * New upstream version, merged from Debian
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 29 Jan 2020 10:37:03 +0100
+ -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 29 Jan 2020 10:37:31 +0100
 
 network-manager (1.22.4-1) unstable; urgency=medium
 
