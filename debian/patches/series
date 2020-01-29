@@ -1,8 +1,6 @@
 Force-online-state-with-unmanaged-devices.patch
 Don-t-setup-Sleep-Monitor-if-not-booted-with-systemd.patch
-n-dhcp4-allow-calling-listen-on-already-listening-connect.patch
-n-dhcp4-restart-the-transaction-after-a-NAK.patch
-dhcp-nettools-handle-retracted-event-as-expired.patch
+n-dhcp4-fix-integer-context-in-n_dhcp4_client_probe_trans.patch
 
 # Ubuntu patches
 Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch

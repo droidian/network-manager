@@ -1,10 +1,17 @@
-network-manager (1.22.2-2ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.22.4-1ubuntu1) UNRELEASED; urgency=medium
 
   * New upstream version, merged from Debian
-  * debian/patches/libnm-Check-self-still-NMManager-or-not.patch:
-    - removed undocumented change that doesn't apply after refactoring
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 13 Jan 2020 16:10:02 +0100
+ -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 29 Jan 2020 10:37:03 +0100
+
+network-manager (1.22.4-1) unstable; urgency=medium
+
+  * New upstream version 1.22.4
+  * Rebase patches
+  * n-dhcp4: fix integer context in n_dhcp4_client_probe_transition_nak() on
+    32 bit
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 15 Jan 2020 03:00:29 +0100
 
 network-manager (1.22.2-2) unstable; urgency=medium
 
