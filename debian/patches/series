@@ -6,3 +6,5 @@ n-dhcp4-fix-integer-context-in-n_dhcp4_client_probe_trans.patch
 Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
 Update-dnsmasq-parameters.patch
 Disable-core-with-expect.patch
+
+gitlab_connection_ready.patch
