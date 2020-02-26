@@ -1,4 +1,4 @@
-network-manager (1.22.8-1ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.22.8-1ubuntu1) focal; urgency=medium
 
   * Update to the current stable version, merging from Debian
   * debian/patches/gitlab_connection_ready.patch:
@@ -7,7 +7,7 @@ network-manager (1.22.8-1ubuntu1) UNRELEASED; urgency=medium
     - remove this old patch, it has no bug reference and build is working
       correctly on the described architectures in Debian.
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 26 Feb 2020 16:29:15 +0100
+ -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 26 Feb 2020 16:35:27 +0100
 
 network-manager (1.22.8-1) unstable; urgency=medium
 
