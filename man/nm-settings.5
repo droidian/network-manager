@@ -2,12 +2,12 @@
 .\"     Title: nm-settings
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/10/2020
+.\"      Date: 02/18/2020
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.22.4
+.\"    Source: NetworkManager 1.22.8
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.22\&.4" "Configuration"
+.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.22\&.8" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -186,7 +186,7 @@ int32
 T}:T{
 \-1
 T}:T{
-Whether Link\-Local Multicast Name Resolution (LLMNR) is enabled for the connection\&. LLMNR is a protocol based on the Domain Name System (DNS) packet format that allows both IPv4 and IPv6 hosts to perform name resolution for hosts on the same local link\&. The permitted values are: yes: register hostname and resolving for the connection, no: disable LLMNR for the interface, resolve: do not register hostname but allow resolving of LLMNR host names\&. This feature requires a plugin which supports LLMNR\&. One such plugin is dns\-systemd\-resolved\&.
+Whether Link\-Local Multicast Name Resolution (LLMNR) is enabled for the connection\&. LLMNR is a protocol based on the Domain Name System (DNS) packet format that allows both IPv4 and IPv6 hosts to perform name resolution for hosts on the same local link\&. The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable LLMNR for the interface, "resolve" (1) do not register hostname but allow resolving of LLMNR host names If unspecified, "default" ultimately depends on the DNS plugin (which for systemd\-resolved currently means "yes")\&. This feature requires a plugin which supports LLMNR\&. Otherwise the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
 T}
 T{
 master
@@ -204,7 +204,7 @@ int32
 T}:T{
 \-1
 T}:T{
-Whether mDNS is enabled for the connection\&. The permitted values are: yes: register hostname and resolving for the connection, no: disable mDNS for the interface, resolve: do not register hostname but allow resolving of mDNS host names\&. This feature requires a plugin which supports mDNS\&. One such plugin is dns\-systemd\-resolved\&.
+Whether mDNS is enabled for the connection\&. The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable mDNS for the interface, "resolve" (1) do not register hostname but allow resolving of mDNS host names and "default" (\-1) to allow lookup of a global default in NetworkManager\&.conf\&. If unspecified, "default" ultimately depends on the DNS plugin (which for systemd\-resolved currently means "no")\&. This feature requires a plugin which supports mDNS\&. Otherwise the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
 T}
 T{
 metered
@@ -1829,7 +1829,7 @@ int32
 T}:T{
 0
 T}:T{
-A timeout for a DHCP transaction in seconds\&.
+A timeout for a DHCP transaction in seconds\&. If zero (the default), a globally configured default is used\&. If still unspecified, a device specific timeout is used (usually 45 seconds)\&. Set to 2147483647 (MAXINT32) for infinity\&.
 T}
 T{
 dns
@@ -1856,7 +1856,7 @@ int32
 T}:T{
 0
 T}:T{
-DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower value is better (higher priority)\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&.  To prioritize a given server over another one within the same connection, just specify them in the desired order\&.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred\&.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used\&. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd\-resolved, each connection is used to query domains in its search list\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins\&.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored\&.
+DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower value is better (higher priority)\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&.  To prioritize a given server over another one within the same connection, just specify them in the desired order\&.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd\-resolved, each connection is used to query domains in its search list\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins\&.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored\&.
 T}
 T{
 dns\-search
@@ -2000,6 +2000,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 addr\-gen\-mode
@@ -2089,7 +2090,7 @@ int32
 T}:T{
 0
 T}:T{
-A timeout for a DHCP transaction in seconds\&.
+A timeout for a DHCP transaction in seconds\&. If zero (the default), a globally configured default is used\&. If still unspecified, a device specific timeout is used (usually 45 seconds)\&. Set to 2147483647 (MAXINT32) for infinity\&.
 T}
 T{
 dns
@@ -2116,7 +2117,7 @@ int32
 T}:T{
 0
 T}:T{
-DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower value is better (higher priority)\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&.  To prioritize a given server over another one within the same connection, just specify them in the desired order\&.  When multiple devices have configurations with the same priority, the one with an active default route will be preferred\&.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least a negative priority, only DNS servers from connections with the lowest priority value will be used\&. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd\-resolved, each connection is used to query domains in its search list\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins\&.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored\&.
+DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower value is better (higher priority)\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&.  To prioritize a given server over another one within the same connection, just specify them in the desired order\&.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd\-resolved, each connection is used to query domains in its search list\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins\&.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored\&.
 T}
 T{
 dns\-search
@@ -2189,6 +2190,15 @@ T}:T{
 FALSE
 T}:T{
 If TRUE, this connection will never be the default connection for this IP type, meaning it will never be assigned the default route by NetworkManager\&.
+T}
+T{
+ra\-timeout
+T}:T{
+int32
+T}:T{
+0
+T}:T{
+A timeout for waiting Router Advertisements in seconds\&. If zero (the default), a globally configured default is used\&. If still unspecified, the timeout depends on the sysctl settings of the device\&. Set to 2147483647 (MAXINT32) for infinity\&.
 T}
 T{
 route\-data

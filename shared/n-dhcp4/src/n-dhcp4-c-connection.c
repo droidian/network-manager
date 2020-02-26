@@ -89,7 +89,7 @@ void n_dhcp4_c_connection_deinit(NDhcp4CConnection *connection) {
 }
 
 static void n_dhcp4_c_connection_outgoing_set_secs(NDhcp4Outgoing *message) {
-        uint32_t secs;
+        uint64_t secs;
 
         /*
          * This function sets the `secs` field for outgoing messages. It
@@ -125,12 +125,12 @@ static void n_dhcp4_c_connection_outgoing_set_secs(NDhcp4Outgoing *message) {
          *
          * Note: Some DHCP relays reject a `secs` value of 0 (which might look
          *       like it is uninitialized). Hence, we always clamp the value to
-         *       the range `[1, INF[`.
+         *       the range `[1, 65535]`.
          */
 
         secs = message->userdata.base_time - message->userdata.start_time;
         secs /= 1000ULL * 1000ULL * 1000ULL; /* nsecs to secs */
-        secs = secs ?: 1; /* clamp to `[1, INF[` */
+        secs = C_CLAMP(secs, 1, UINT16_MAX);
 
         n_dhcp4_outgoing_set_secs(message, secs);
 }
@@ -1104,12 +1104,13 @@ int n_dhcp4_c_connection_start_request(NDhcp4CConnection *connection,
         if (request->userdata.start_time == 0)
                 request->userdata.start_time = timestamp;
 
-        n_dhcp4_outgoing_free(connection->request);
-        connection->request = request;
+        connection->request = n_dhcp4_outgoing_free(connection->request);
 
         r = n_dhcp4_c_connection_send_request(connection, request, timestamp);
         if (r)
                 return r;
+
+        connection->request = request;
 
         return 0;
 }

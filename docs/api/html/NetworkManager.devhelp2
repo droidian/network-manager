@@ -487,6 +487,7 @@
     <keyword type="property" name="The &quot;MaxBitrate&quot; property" link="gdbus-org.freedesktop.NetworkManager.AccessPoint.html#gdbus-property-org-freedesktop-NetworkManager-AccessPoint.MaxBitrate"/>
     <keyword type="property" name="The &quot;Strength&quot; property" link="gdbus-org.freedesktop.NetworkManager.AccessPoint.html#gdbus-property-org-freedesktop-NetworkManager-AccessPoint.Strength"/>
     <keyword type="property" name="The &quot;LastSeen&quot; property" link="gdbus-org.freedesktop.NetworkManager.AccessPoint.html#gdbus-property-org-freedesktop-NetworkManager-AccessPoint.LastSeen"/>
+    <keyword type="property" name="The &quot;Name&quot; property" link="gdbus-org.freedesktop.NetworkManager.WifiP2PPeer.html#gdbus-property-org-freedesktop-NetworkManager-WifiP2PPeer.Name"/>
     <keyword type="property" name="The &quot;Flags&quot; property" link="gdbus-org.freedesktop.NetworkManager.WifiP2PPeer.html#gdbus-property-org-freedesktop-NetworkManager-WifiP2PPeer.Flags"/>
     <keyword type="property" name="The &quot;Manufacturer&quot; property" link="gdbus-org.freedesktop.NetworkManager.WifiP2PPeer.html#gdbus-property-org-freedesktop-NetworkManager-WifiP2PPeer.Manufacturer"/>
     <keyword type="property" name="The &quot;Model&quot; property" link="gdbus-org.freedesktop.NetworkManager.WifiP2PPeer.html#gdbus-property-org-freedesktop-NetworkManager-WifiP2PPeer.Model"/>

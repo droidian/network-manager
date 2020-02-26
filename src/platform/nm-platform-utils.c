@@ -155,7 +155,7 @@ again:
 		const char *ifname = known_ifnames[try_count % 2];
 
 		nm_assert (ifindex > 0);
-		nm_assert (ifname && nm_utils_is_valid_iface_name (ifname, NULL));
+		nm_assert (ifname && nm_utils_ifname_valid_kernel (ifname, NULL));
 		nm_assert (fd >= 0);
 
 		memset (&ifr, 0, sizeof (ifr));
@@ -343,6 +343,7 @@ ethtool_get_stringset (SocketHandle *shandle, int stringset_id)
 		.info.reserved = 0,
 		.info.sset_mask = (1ULL << stringset_id),
 	};
+	const guint32 *pdata;
 	gs_free struct ethtool_gstrings *gstrings = NULL;
 	gsize gstrings_len;
 	guint32 i, len;
@@ -352,7 +353,9 @@ ethtool_get_stringset (SocketHandle *shandle, int stringset_id)
 	if (!sset_info.info.sset_mask)
 		return NULL;
 
-	len = sset_info.info.data[0];
+	pdata = (guint32 *) sset_info.info.data;
+
+	len = *pdata;
 
 	gstrings_len = sizeof (*gstrings) + (len * ETH_GSTRING_LEN);
 	gstrings = g_malloc0 (gstrings_len);
@@ -838,6 +841,7 @@ nmp_utils_ethtool_get_permanent_address (int ifindex,
 		.e.cmd = ETHTOOL_GPERMADDR,
 		.e.size = NM_UTILS_HWADDR_LEN_MAX,
 	};
+	const guint8 *pdata;
 
 	guint i;
 
@@ -851,20 +855,22 @@ nmp_utils_ethtool_get_permanent_address (int ifindex,
 	if (edata.e.size < 1)
 		return FALSE;
 
-	if (NM_IN_SET (edata.e.data[0], 0, 0xFF)) {
+	pdata = (const guint8 *) edata.e.data;
+
+	if (NM_IN_SET (pdata[0], 0, 0xFF)) {
 		/* Some drivers might return a permanent address of all zeros.
 		 * Reject that (rh#1264024)
 		 *
 		 * Some drivers return a permanent address of all ones. Reject that too */
 		for (i = 1; i < edata.e.size; i++) {
-			if (edata.e.data[0] != edata.e.data[i])
+			if (pdata[0] != pdata[i])
 				goto not_all_0or1;
 		}
 		return FALSE;
 	}
 
 not_all_0or1:
-	memcpy (buf, edata.e.data, edata.e.size);
+	memcpy (buf, pdata, edata.e.size);
 	*length = edata.e.size;
 	return TRUE;
 }
@@ -1410,7 +1416,7 @@ nmp_utils_sysctl_open_netdir (int ifindex,
 				return -1;
 		}
 
-		nm_assert (nm_utils_is_valid_iface_name (ifname, NULL));
+		nm_assert (nm_utils_ifname_valid_kernel (ifname, NULL));
 
 		if (g_strlcpy (&sysdir[NM_STRLEN (SYS_CLASS_NET)], ifname, IFNAMSIZ) >= IFNAMSIZ)
 			g_return_val_if_reached (-1);

@@ -1411,6 +1411,15 @@ Example: </strong></span>IPV6_DEFAULTGW=abbe::1</td>
 <td align="left">Hostname to send the DHCP server.</td>
 </tr>
 <tr>
+<td align="left">dhcp-timeout</td>
+<td align="left">IPV6_DHCP_TIMEOUT<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">A timeout after which the DHCP transaction fails in case of no response.<span class="bold"><strong>
+
+Example: </strong></span>IPV6_DHCP_TIMEOUT=10</td>
+</tr>
+<tr>
 <td align="left">never-default</td>
 <td align="left">IPV6_DEFROUTE<span class="emphasis"><em>(+)</em></span>, (and IPV6_DEFAULTGW, IPV6_DEFAULTDEV in /etc/sysconfig/network)</td>
 <td align="left">IPV6_DEFROUTE=yes (when no variable specified)</td>
@@ -1485,6 +1494,15 @@ Allowed values: </strong></span>IPV6_ADDR_GEN_MODE: eui64, stable-privacy</td>
 <td align="left">The IPv6 tokenized interface identifier token<span class="bold"><strong>
 
 Example: </strong></span>IPV6_TOKEN=::53</td>
+</tr>
+<tr>
+<td align="left">dhcp-timeout</td>
+<td align="left">IPV6_RA_TIMEOUT<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">A timeout for waiting Router Advertisements in seconds.<span class="bold"><strong>
+
+Example: </strong></span>IPV6_RA_TIMEOUT=10</td>
 </tr>
 <tr>
 <td align="left">dhcp-duid</td>

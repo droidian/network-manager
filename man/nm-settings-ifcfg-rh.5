@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/10/2020
+.\"      Date: 02/18/2020
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.22.4
+.\"    Source: NetworkManager 1.22.8
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.22\&.4" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.22\&.8" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1870,6 +1870,8 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
 l l l l.
 T{
 method
@@ -1955,6 +1957,17 @@ T}:T{
 \ \&
 T}:T{
 Hostname to send the DHCP server\&.
+T}
+T{
+dhcp\-timeout
+T}:T{
+IPV6_DHCP_TIMEOUT\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+A timeout after which the DHCP transaction fails in case of no response\&.\fB
+
+Example: \fRIPV6_DHCP_TIMEOUT=10
 T}
 T{
 never\-default
@@ -2052,6 +2065,17 @@ T}:T{
 The IPv6 tokenized interface identifier token\fB
 
 Example: \fRIPV6_TOKEN=::53
+T}
+T{
+dhcp\-timeout
+T}:T{
+IPV6_RA_TIMEOUT\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+A timeout for waiting Router Advertisements in seconds\&.\fB
+
+Example: \fRIPV6_RA_TIMEOUT=10
 T}
 T{
 dhcp\-duid

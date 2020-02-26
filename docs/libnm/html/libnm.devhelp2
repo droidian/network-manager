@@ -1206,11 +1206,13 @@
     <keyword type="function" name="nm_setting_ip6_config_get_addr_gen_mode ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-get-addr-gen-mode" since="1.2"/>
     <keyword type="function" name="nm_setting_ip6_config_get_token ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-get-token" since="1.4"/>
     <keyword type="function" name="nm_setting_ip6_config_get_dhcp_duid ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-get-dhcp-duid" since="1.12"/>
+    <keyword type="function" name="nm_setting_ip6_config_get_ra_timeout ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-get-ra-timeout" since="1.24, 1.22.8"/>
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_SETTING_NAME" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-SETTING-NAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_IP6_PRIVACY" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-IP6-PRIVACY:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-ADDR-GEN-MODE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_TOKEN" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-TOKEN:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_DHCP_DUID" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-DHCP-DUID:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_IP6_CONFIG_RA_TIMEOUT" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-RA-TIMEOUT:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_METHOD_IGNORE" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-METHOD-IGNORE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_METHOD_AUTO" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-METHOD-AUTO:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP6_CONFIG_METHOD_DHCP" link="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-METHOD-DHCP:CAPS"/>
@@ -1224,6 +1226,7 @@
     <keyword type="property" name="The “addr-gen-mode” property" link="NMSettingIP6Config.html#NMSettingIP6Config--addr-gen-mode"/>
     <keyword type="property" name="The “dhcp-duid” property" link="NMSettingIP6Config.html#NMSettingIP6Config--dhcp-duid"/>
     <keyword type="property" name="The “ip6-privacy” property" link="NMSettingIP6Config.html#NMSettingIP6Config--ip6-privacy"/>
+    <keyword type="property" name="The “ra-timeout” property" link="NMSettingIP6Config.html#NMSettingIP6Config--ra-timeout"/>
     <keyword type="property" name="The “token” property" link="NMSettingIP6Config.html#NMSettingIP6Config--token"/>
     <keyword type="function" name="nm_ip_address_new ()" link="NMSettingIPConfig.html#nm-ip-address-new"/>
     <keyword type="function" name="nm_ip_address_new_binary ()" link="NMSettingIPConfig.html#nm-ip-address-new-binary"/>
@@ -2936,6 +2939,7 @@
     <keyword type="macro" name="NM_AVAILABLE_IN_1_22" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-22:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_22_2" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-22-2:CAPS"/>
     <keyword type="macro" name="NM_AVAILABLE_IN_1_22_2" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-22-2:CAPS"/>
+    <keyword type="macro" name="NM_AVAILABLE_IN_1_22_8" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-22-8:CAPS"/>
     <keyword type="macro" name="NM_VPN_SERVICE_PLUGIN_DBUS_SERVICE_NAME" link="libnm-nm-vpn-service-plugin.html#NM-VPN-SERVICE-PLUGIN-DBUS-SERVICE-NAME:CAPS"/>
     <keyword type="macro" name="NM_VPN_SERVICE_PLUGIN_DBUS_WATCH_PEER" link="libnm-nm-vpn-service-plugin.html#NM-VPN-SERVICE-PLUGIN-DBUS-WATCH-PEER:CAPS"/>
     <keyword type="macro" name="NM_VPN_SERVICE_PLUGIN_STATE" link="libnm-nm-vpn-service-plugin.html#NM-VPN-SERVICE-PLUGIN-STATE:CAPS"/>

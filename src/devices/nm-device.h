@@ -53,6 +53,7 @@ nm_device_state_reason_check (NMDeviceStateReason reason)
 }
 
 #define NM_PENDING_ACTION_AUTOACTIVATE              "autoactivate"
+#define NM_PENDING_ACTION_IN_STATE_CHANGE           "in-state-change"
 #define NM_PENDING_ACTION_RECHECK_AVAILABLE         "recheck-available"
 #define NM_PENDING_ACTION_CARRIER_WAIT              "carrier-wait"
 #define NM_PENDING_ACTION_WAITING_FOR_SUPPLICANT    "waiting-for-supplicant"
@@ -436,10 +437,12 @@ typedef struct _NMDeviceClass {
 	                                        NMConnection *con_old,
 	                                        NMConnection *con_new);
 
-	guint32         (* get_dhcp_timeout) (NMDevice *self,
-	                                      int addr_family);
+	guint32         (* get_dhcp_timeout_for_device) (NMDevice *self,
+	                                                 int addr_family);
 
 	gboolean        (* get_guessed_metered) (NMDevice *self);
+
+	gboolean        (* can_update_from_platform_link) (NMDevice *self, const NMPlatformLink *plink);
 
 	/* Controls, whether to call act_stage2_config() callback also for assuming
 	 * a device or for external activations. In this case, act_stage2_config() must

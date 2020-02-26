@@ -973,6 +973,14 @@ NM_AUTO_DEFINE_FCN0 (GSource *, _nm_auto_destroy_and_unref_gsource, nm_g_source_
 NM_AUTO_DEFINE_FCN0 (GMainContext *, _nm_auto_pop_gmaincontext, g_main_context_pop_thread_default)
 #define nm_auto_pop_gmaincontext nm_auto (_nm_auto_pop_gmaincontext)
 
+static inline gboolean
+nm_source_func_unref_gobject (gpointer user_data)
+{
+	nm_assert (G_IS_OBJECT (user_data));
+	g_object_unref (user_data);
+	return G_SOURCE_REMOVE;
+}
+
 GSource *nm_g_idle_source_new (int priority,
                                GSourceFunc func,
                                gpointer user_data,
@@ -1431,5 +1439,18 @@ nm_g_task_is_valid (gpointer task,
 guint nm_utils_parse_debug_string (const char *string,
                                    const GDebugKey *keys,
                                    guint nkeys);
+
+/*****************************************************************************/
+
+typedef enum {
+	NMU_IFACE_KERNEL = 0,
+	NMU_IFACE_OVS,
+} NMUtilsIfaceType;
+
+gboolean nm_utils_ifname_valid_kernel (const char *name, GError **error);
+
+gboolean nm_utils_ifname_valid (const char* name,
+                                NMUtilsIfaceType type,
+                                GError **error);
 
 #endif /* __NM_SHARED_UTILS_H__ */

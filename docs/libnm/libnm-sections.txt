@@ -1516,6 +1516,7 @@ NMLDBusPropertVTableO
 NMLDBusPropertyO
 nml_dbus_property_o_get_obj
 nml_dbus_property_o_is_ready
+nml_dbus_property_o_is_ready_fully
 nml_dbus_property_o_clear
 nml_dbus_property_o_clear_many
 nml_dbus_property_o_notify_changed_many
@@ -2703,6 +2704,7 @@ NM_SETTING_IP6_CONFIG_IP6_PRIVACY
 NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE
 NM_SETTING_IP6_CONFIG_TOKEN
 NM_SETTING_IP6_CONFIG_DHCP_DUID
+NM_SETTING_IP6_CONFIG_RA_TIMEOUT
 NM_SETTING_IP6_CONFIG_METHOD_IGNORE
 NM_SETTING_IP6_CONFIG_METHOD_AUTO
 NM_SETTING_IP6_CONFIG_METHOD_DHCP
@@ -2718,6 +2720,7 @@ nm_setting_ip6_config_get_ip6_privacy
 nm_setting_ip6_config_get_addr_gen_mode
 nm_setting_ip6_config_get_token
 nm_setting_ip6_config_get_dhcp_duid
+nm_setting_ip6_config_get_ra_timeout
 <SUBSECTION Standard>
 NMSettingIP6ConfigClass
 NM_IS_SETTING_IP6_CONFIG
@@ -4062,6 +4065,7 @@ NM_AVAILABLE_IN_1_22
 NM_DEPRECATED_IN_1_22_2
 NM_DEPRECATED_IN_1_22_2_FOR
 NM_AVAILABLE_IN_1_22_2
+NM_AVAILABLE_IN_1_22_8
 </SECTION>
 
 <SECTION>

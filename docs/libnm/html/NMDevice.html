@@ -1345,7 +1345,7 @@ not part of an active connection. </p>
 <a name="nm-device-get-available-connections"></a><h3>nm_device_get_available_connections ()</h3>
 <pre class="programlisting">const <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *
 nm_device_get_available_connections (<em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>);</pre>
-<p>Gets the <a href="NMRemoteConnection.html#NMRemoteConnection-struct"><span class="type">NMRemoteConnections</span></a> currently known to the daemon that could
+<p>Gets the <span class="type">NMRemoteConnections</span> currently known to the daemon that could
 be activated on <em class="parameter"><code>device</code></em>
 .</p>
 <div class="refsect3">
@@ -1366,7 +1366,7 @@ be activated on <em class="parameter"><code>device</code></em>
 <div class="refsect3">
 <a name="nm-device-get-available-connections.returns"></a><h4>Returns</h4>
 <p>the <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a>
-containing <a href="NMRemoteConnection.html#NMRemoteConnection-struct"><span class="type">NMRemoteConnections</span></a>. This is the internal copy used by
+containing <span class="type">NMRemoteConnections</span>. This is the internal copy used by
 the connection, and must not be modified. </p>
 <p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMRemoteConnection]</span></p>
 </div>
@@ -1378,7 +1378,7 @@ the connection, and must not be modified. </p>
 nm_device_get_physical_port_id (<em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>);</pre>
 <p>Gets the physical port ID of the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a>. If non-<a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, this is
 an opaque string that can be used to recognize when
-seemingly-unrelated <a href="NMDevice.html#NMDevice-struct"><span class="type">NMDevices</span></a> are actually just different virtual
+seemingly-unrelated <span class="type">NMDevices</span> are actually just different virtual
 ports on a single physical port. (Eg, NPAR / SR-IOV.)</p>
 <div class="refsect3">
 <a name="nm-device-get-physical-port-id.parameters"></a><h4>Parameters</h4>
@@ -1452,7 +1452,7 @@ nm_device_is_real (<em class="parameter"><code><a class="link" href="NMDevice.ht
 <a name="nm-device-is-real.returns"></a><h4>Returns</h4>
 <p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the device exists, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it is a placeholder device
 that could be automatically created by NetworkManager if one of its
-<a href="NMDevice.html#NMDevice--available-connections"><span class="type">“available-connections”</span></a> was activated.</p>
+<span class="type">“available-connections”</span> was activated.</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
