@@ -1,16 +1,24 @@
-network-manager (1.22.4-1ubuntu2) focal; urgency=medium
+network-manager (1.22.8-1ubuntu1) UNRELEASED; urgency=medium
 
+  * Update to the current stable version, merging from Debian
   * debian/patches/gitlab_connection_ready.patch:
-    - backport an upstream candidate fix for test regressions from
-      the current version
+    - removed, the change is in the new version
+ -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 26 Feb 2020 16:29:15 +0100
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 05 Feb 2020 15:18:58 +0100
+network-manager (1.22.8-1) unstable; urgency=medium
 
-network-manager (1.22.4-1ubuntu1) focal; urgency=medium
+  * New upstream version 1.22.8
+  * Update symbols file for libnm0
 
-  * New upstream version, merged from Debian
+ -- Michael Biebl <biebl@debian.org>  Thu, 20 Feb 2020 00:27:58 +0100
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 29 Jan 2020 10:37:31 +0100
+network-manager (1.22.6-1) unstable; urgency=medium
+
+  * New upstream version 1.22.6
+  * Bump Standards-Version to 4.5.0
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 31 Jan 2020 18:14:59 +0100
 
 network-manager (1.22.4-1) unstable; urgency=medium
 
@@ -46,7 +54,7 @@ network-manager (1.22.0-1) unstable; urgency=medium
   * New upstream version 1.22.0
   * Rebase patches
   * Explicitly disable (experimental) nm-cloud-setup tool
-  * Update symbols file for linm0
+  * Update symbols file for libnm0
 
  -- Michael Biebl <biebl@debian.org>  Wed, 18 Dec 2019 19:05:33 +0100
 

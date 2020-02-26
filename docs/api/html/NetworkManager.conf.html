@@ -328,6 +328,9 @@ no-auto-default=*
         setting below), the name server there will be localhost only.
         NetworkManager also writes a file <code class="filename">/run/NetworkManager/no-stub-resolv.conf</code>
         that contains the original name servers pushed to the DNS plugin.</p>
+<p>When using <code class="literal">dnsmasq</code> and <code class="literal">systemd-resolved</code>
+        per-connection added dns servers will always be queried using
+        the device the connection has been activated on.</p>
 </td>
 </tr>
 <tr>
@@ -640,11 +643,11 @@ ipv6.ip6-privacy=0
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">connection.llmnr</code></span></p></td>
-<td></td>
+<td><p>If unspecified, the ultimate default values depends on the DNS plugin. With systemd-resolved the default currently is "yes" (2) and for all other plugins "no" (0).</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">connection.mdns</code></span></p></td>
-<td></td>
+<td><p>If unspecified, the ultimate default values depends on the DNS plugin. With systemd-resolved the default currently is "no" (0) and for all other plugins also "no" (0).</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">connection.stable-id</code></span></p></td>
@@ -714,6 +717,10 @@ ipv6.ip6-privacy=0
             is different from explicitly selecting the main table 254, because of how NetworkManager
             removes extraneous routes from the tables.
           </p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">ipv6.ra-timeout</code></span></p></td>
+<td><p>If left unspecified, the default value depends on the sysctl solicitation settings.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">ipv6.dhcp-duid</code></span></p></td>
@@ -1066,6 +1073,19 @@ managed=1
 <col>
 </colgroup>
 <tbody>
+<tr>
+<td><p><span class="term"><code class="varname">enabled</code></span></p></td>
+<td><p>Whether connectivity check is enabled.
+          Note that to enable connectivity check, a valid uri must
+          also be configured. The value defaults to true, but since
+          the uri is unset by default, connectivity check may be disabled.
+          The main purpose of this option is to have a single flag
+          to disable connectivity check. Note that this setting can
+          also be set via D-Bus API at runtime. In that case, the value gets
+          stored in <code class="filename">/var/lib/NetworkManager/NetworkManager-intern.conf</code>
+          file.
+          </p></td>
+</tr>
 <tr>
 <td><p><span class="term"><code class="varname">uri</code></span></p></td>
 <td><p>The URI of a web page to periodically

@@ -973,20 +973,6 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		return FALSE;
 	}
 
-	if (priv->interface_name) {
-		GError *tmp_error = NULL;
-
-		if (!nm_utils_is_valid_iface_name (priv->interface_name, &tmp_error)) {
-			g_set_error (error,
-			             NM_CONNECTION_ERROR,
-			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-			             "'%s': %s", priv->interface_name, tmp_error->message);
-			g_prefix_error (error, "%s.%s: ", NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_INTERFACE_NAME);
-			g_error_free (tmp_error);
-			return FALSE;
-		}
-	}
-
 	type = priv->type;
 	if (!type) {
 		if (   !connection
@@ -1041,6 +1027,34 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 				_set_error_missing_base_setting (error, type);
 				return FALSE;
 			}
+		}
+	}
+
+	if (priv->interface_name) {
+		GError *tmp_error = NULL;
+		gboolean valid_ifname = FALSE;
+
+		/* do not perform a interface name length check for OVS connection types
+		 * as they don't have a corresponding kernel link that enforces the 15 bytes limit.
+		 * Here we're whitelisting the OVS interface type as well, even if most OVS
+		 * iface types do have the limit, to let the OVS specific nm-setting verify whether the iface name
+		 * is good or not according to the internal type (internal, patch, ...) */
+		if (NM_IN_STRSET (type,
+		                  NM_SETTING_OVS_BRIDGE_SETTING_NAME,
+		                  NM_SETTING_OVS_PORT_SETTING_NAME,
+		                  NM_SETTING_OVS_INTERFACE_SETTING_NAME))
+			valid_ifname = nm_utils_ifname_valid (priv->interface_name, NMU_IFACE_OVS, &tmp_error);
+		else
+			valid_ifname = nm_utils_ifname_valid (priv->interface_name, NMU_IFACE_KERNEL, &tmp_error);
+
+		if (!valid_ifname) {
+			g_set_error (error,
+			             NM_CONNECTION_ERROR,
+			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+			             "'%s': %s", priv->interface_name, tmp_error->message);
+			g_prefix_error (error, "%s.%s: ", NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_INTERFACE_NAME);
+			g_error_free (tmp_error);
+			return FALSE;
 		}
 	}
 
@@ -1276,7 +1290,7 @@ nm_setting_connection_set_interface_name (NMSetting *setting,
 	 * overridden by a valid connection.interface-name.
 	 */
 	interface_name = find_virtual_interface_name (connection_dict);
-	if (!interface_name || nm_utils_is_valid_iface_name (interface_name, NULL))
+	if (!interface_name || nm_utils_ifname_valid_kernel (interface_name, NULL))
 		interface_name = g_variant_get_string (value, NULL);
 
 	g_object_set (G_OBJECT (setting),
@@ -2173,13 +2187,16 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	 *
 	 * Whether mDNS is enabled for the connection.
 	 *
-	 * The permitted values are: yes: register hostname and resolving
-	 * for the connection, no: disable mDNS for the interface, resolve:
-	 * do not register hostname but allow resolving of mDNS host names.
+	 * The permitted values are: "yes" (2) register hostname and resolving
+	 * for the connection, "no" (0) disable mDNS for the interface, "resolve"
+	 * (1) do not register hostname but allow resolving of mDNS host names
+	 * and "default" (-1) to allow lookup of a global default in NetworkManager.conf.
+	 * If unspecified, "default" ultimately depends on the DNS plugin (which
+	 * for systemd-resolved currently means "no").
 	 *
-	 * This feature requires a plugin which supports mDNS. One such
-	 * plugin is dns-systemd-resolved.
-	 *
+	 * This feature requires a plugin which supports mDNS. Otherwise the
+	 * setting has no effect. One such plugin is dns-systemd-resolved.
+*
 	 * Since: 1.12
 	 **/
 	/* ---ifcfg-rh---
@@ -2206,12 +2223,14 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	 * System (DNS) packet format that allows both IPv4 and IPv6 hosts
 	 * to perform name resolution for hosts on the same local link.
 	 *
-	 * The permitted values are: yes: register hostname and resolving
-	 * for the connection, no: disable LLMNR for the interface, resolve:
-	 * do not register hostname but allow resolving of LLMNR host names.
+	 * The permitted values are: "yes" (2) register hostname and resolving
+	 * for the connection, "no" (0) disable LLMNR for the interface, "resolve"
+	 * (1) do not register hostname but allow resolving of LLMNR host names
+	 * If unspecified, "default" ultimately depends on the DNS plugin (which
+	 * for systemd-resolved currently means "yes").
 	 *
-	 * This feature requires a plugin which supports LLMNR. One such
-	 * plugin is dns-systemd-resolved.
+	 * This feature requires a plugin which supports LLMNR. Otherwise the
+	 * setting has no effect. One such plugin is dns-systemd-resolved.
 	 *
 	 * Since: 1.14
 	 **/

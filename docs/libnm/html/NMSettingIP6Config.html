@@ -79,6 +79,14 @@
 <a class="link" href="NMSettingIP6Config.html#nm-setting-ip6-config-get-dhcp-duid" title="nm_setting_ip6_config_get_dhcp_duid ()">nm_setting_ip6_config_get_dhcp_duid</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
+<tr>
+<td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint32"><span class="returnvalue">gint32</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIP6Config.html#nm-setting-ip6-config-get-ra-timeout" title="nm_setting_ip6_config_get_ra_timeout ()">nm_setting_ip6_config_get_ra_timeout</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -106,6 +114,11 @@
 <td class="property_type"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6ConfigPrivacy" title="enum NMSettingIP6ConfigPrivacy"><span class="type">NMSettingIP6ConfigPrivacy</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--ip6-privacy" title="The “ip6-privacy” property">ip6-privacy</a></td>
 <td class="property_flags">Read / Write / Construct</td>
+</tr>
+<tr>
+<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
+<td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--ra-timeout" title="The “ra-timeout” property">ra-timeout</a></td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
@@ -143,6 +156,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-DHCP-DUID:CAPS" title="NM_SETTING_IP6_CONFIG_DHCP_DUID">NM_SETTING_IP6_CONFIG_DHCP_DUID</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-RA-TIMEOUT:CAPS" title="NM_SETTING_IP6_CONFIG_RA_TIMEOUT">NM_SETTING_IP6_CONFIG_RA_TIMEOUT</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -342,6 +359,33 @@ sent to the DHCPv6 servers.</p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-ip6-config-get-ra-timeout"></a><h3>nm_setting_ip6_config_get_ra_timeout ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint32"><span class="returnvalue">gint32</span></a>
+nm_setting_ip6_config_get_ra_timeout (<em class="parameter"><code><a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-ip6-config-get-ra-timeout.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-ip6-config-get-ra-timeout.returns"></a><h4>Returns</h4>
+<p> The configured <a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-RA-TIMEOUT:CAPS" title="NM_SETTING_IP6_CONFIG_RA_TIMEOUT"><code class="literal">NM_SETTING_IP6_CONFIG_RA_TIMEOUT</code></a> value with the
+timeout for router advertisements in seconds.</p>
+</div>
+<p class="since">Since: 1.24, 1.22.8</p>
+</div>
 </div>
 <div class="refsect1">
 <a name="NMSettingIP6Config.other_details"></a><h2>Types and Values</h2>
@@ -372,6 +416,12 @@ sent to the DHCPv6 servers.</p>
 <div class="refsect2">
 <a name="NM-SETTING-IP6-CONFIG-DHCP-DUID:CAPS"></a><h3>NM_SETTING_IP6_CONFIG_DHCP_DUID</h3>
 <pre class="programlisting">#define NM_SETTING_IP6_CONFIG_DHCP_DUID "dhcp-duid"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-IP6-CONFIG-RA-TIMEOUT:CAPS"></a><h3>NM_SETTING_IP6_CONFIG_RA_TIMEOUT</h3>
+<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_RA_TIMEOUT "ra-timeout"
 </pre>
 </div>
 <hr>
@@ -612,6 +662,19 @@ that can be enabled with the "addr-gen-mode" property's "stable-privacy"
 setting as another way of avoiding host tracking with IPv6 addresses.</p>
 <p>Flags: Read / Write / Construct</p>
 <p>Default value: NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSettingIP6Config--ra-timeout"></a><h3>The <code class="literal">“ra-timeout”</code> property</h3>
+<pre class="programlisting">  “ra-timeout”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
+<p>A timeout for waiting Router Advertisements in seconds. If zero (the default), a
+globally configured default is used. If still unspecified, the timeout depends on the
+sysctl settings of the device.</p>
+<p>Set to 2147483647 (MAXINT32) for infinity.</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: &gt;= 0</p>
+<p>Default value: 0</p>
+<p class="since">Since: 1.24, 1.22.8</p>
 </div>
 <hr>
 <div class="refsect2">

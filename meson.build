@@ -4,7 +4,7 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "shared/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.22.4',
+  version: '1.22.8',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -598,7 +598,7 @@ foreach prog_name : ['resolvconf', 'netconfig']
       prog = find_program(prog_name,
                           '/usr/' + prog_name,
                           '/usr/sbin/' + prog_name,
-                          '/usr/local/sbin' + prog_name,
+                          '/usr/local/sbin/' + prog_name,
                           required : false)
       if prog.found()
         prog_path = prog.path()
