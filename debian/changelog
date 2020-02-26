@@ -3,6 +3,10 @@ network-manager (1.22.8-1ubuntu1) UNRELEASED; urgency=medium
   * Update to the current stable version, merging from Debian
   * debian/patches/gitlab_connection_ready.patch:
     - removed, the change is in the new version
+  * debian/patches/Disable-core-with-expect.patch
+    - remove this old patch, it has no bug reference and build is working
+      correctly on the described architectures in Debian.
+
  -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 26 Feb 2020 16:29:15 +0100
 
 network-manager (1.22.8-1) unstable; urgency=medium
