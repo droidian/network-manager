@@ -4,7 +4,7 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "shared/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.22.8',
+  version: '1.22.10',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -163,16 +163,27 @@ endif
 
 if nm_debug
   common_flags += cc.get_supported_arguments([
+    '-Wall',
+    '-Wextra',
     '-Wdeclaration-after-statement',
     '-Wfloat-equal',
-    '-Wimplicit-fallthrough',
+    '-Wformat-nonliteral',
+    '-Wformat-security',
+    '-Wimplicit-function-declaration',
     '-Winit-self',
     '-Wlogical-op',
     '-Wmissing-declarations',
     '-Wmissing-include-dirs',
     '-Wmissing-prototypes',
+    '-Wpointer-arith',
+    '-Wshadow',
+    '-Wshift-negative-value',
+    '-Wstrict-prototypes',
+    '-Wundef',
+    '-Wvla',
     '-Wno-duplicate-decl-specifier',
     '-Wno-format-truncation',
+    '-Wno-format-y2k',
     '-Wno-gnu-variable-sized-type-not-at-end',
     '-Wno-missing-field-initializers',
     '-Wno-pragmas',
@@ -188,6 +199,28 @@ if nm_debug
     '-Wunknown-attributes',
     '-fno-strict-aliasing',
   ])
+
+  if cc.has_argument('-Wimplicit-fallthrough')
+    if cc.compiles('''
+                   int main(int argc, char **argv) {
+                       int r = 0;
+                       switch (argc) {
+                       case 0:
+                           r++;
+                           /* fall-through */
+                       case 1:
+                           r++;
+                           break;
+                       }
+                       return r;
+                   }
+                   ''',
+                   args: '-Werror=implicit-fallthrough',
+                   name: '-Werror=implicit-fallthrough')
+      common_flags += '-Wimplicit-fallthrough'
+    endif
+  endif
+
 endif
 
 add_project_arguments(common_flags, language: 'c')

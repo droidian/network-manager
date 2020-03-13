@@ -1452,7 +1452,7 @@ nm_device_is_real (<em class="parameter"><code><a class="link" href="NMDevice.ht
 <a name="nm-device-is-real.returns"></a><h4>Returns</h4>
 <p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the device exists, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it is a placeholder device
 that could be automatically created by NetworkManager if one of its
-<span class="type">“available-connections”</span> was activated.</p>
+<a href="/usr/share/gtk-doc/html/libnm-glib/NMDevice.html#NMDevice--available-connections"><span class="type">“available-connections”</span></a> was activated.</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -2331,7 +2331,7 @@ incompatible with the device. To get the full list of connections see
 </tr>
 <tr>
 <td class="parameter_name"><p>connections</p></td>
-<td class="parameter_description"><p>an array of <span class="type">NMConnections</span> to filter. </p></td>
+<td class="parameter_description"><p>an array of <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> to filter. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></td>
 </tr>
 </tbody>
@@ -2340,7 +2340,7 @@ incompatible with the device. To get the full list of connections see
 <div class="refsect3">
 <a name="nm-device-filter-connections.returns"></a><h4>Returns</h4>
 <p>an array of
-<span class="type">NMConnections</span> that could be activated with the given <em class="parameter"><code>device</code></em>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> that could be activated with the given <em class="parameter"><code>device</code></em>
 .  The array
 should be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#g-ptr-array-unref"><code class="function">g_ptr_array_unref()</code></a> when it is no longer required. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>
