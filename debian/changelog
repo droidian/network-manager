@@ -1,13 +1,16 @@
-network-manager (1.22.8-1ubuntu1) focal; urgency=medium
+network-manager (1.22.10-1ubuntu1) UNRELEASED; urgency=medium
 
   * Update to the current stable version, merging from Debian
-  * debian/patches/gitlab_connection_ready.patch:
-    - removed, the change is in the new version
-  * debian/patches/Disable-core-with-expect.patch
-    - remove this old patch, it has no bug reference and build is working
-      correctly on the described architectures in Debian.
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 26 Feb 2020 16:35:27 +0100
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 13 Mar 2020 16:27:29 +0100
+
+network-manager (1.22.10-1) unstable; urgency=medium
+
+  * New upstream version 1.22.10
+  * Mark network-manager-dev as Architecture: all and Multi-Arch: foreign
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 13 Mar 2020 00:58:03 +0100
 
 network-manager (1.22.8-1) unstable; urgency=medium
 

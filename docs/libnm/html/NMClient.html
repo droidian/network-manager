@@ -2649,7 +2649,7 @@ any. </p>
 nm_client_get_activating_connection (<em class="parameter"><code><a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> *client</code></em>);</pre>
 <p>Gets the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> corresponding to a
 currently-activating connection that is expected to become the new
-<span class="type">“primary-connection”</span> upon successful activation.</p>
+<a href="/usr/share/gtk-doc/html/libnm-glib/NMClient.html#NMClient--primary-connection"><span class="type">“primary-connection”</span></a> upon successful activation.</p>
 <div class="refsect3">
 <a name="nm-client-get-activating-connection.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -2699,7 +2699,7 @@ in <em class="parameter"><code>connection</code></em>
 picks the best available connection for the device and activates it.</p>
 <p>Note that the callback is invoked when NetworkManager has started activating
 the new connection, not when it finishes. You can use the returned
-<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <span class="type">“state”</span>) to
+<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <a href="/usr/share/gtk-doc/html/libnm-glib/NMActiveConnection.html#NMActiveConnection--state"><span class="type">“state”</span></a>) to
 track the activation to its completion.</p>
 <div class="refsect3">
 <a name="nm-client-activate-connection-async.parameters"></a><h4>Parameters</h4>
@@ -2819,7 +2819,7 @@ activated as with <a class="link" href="NMClient.html#nm-client-activate-connect
 VPN connections at this time.</p>
 <p>Note that the callback is invoked when NetworkManager has started activating
 the new connection, not when it finishes. You can used the returned
-<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <span class="type">“state”</span>) to
+<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <a href="/usr/share/gtk-doc/html/libnm-glib/NMActiveConnection.html#NMActiveConnection--state"><span class="type">“state”</span></a>) to
 track the activation to its completion.</p>
 <div class="refsect3">
 <a name="nm-client-add-and-activate-connection-async.parameters"></a><h4>Parameters</h4>
@@ -2948,7 +2948,7 @@ activated as with <a class="link" href="NMClient.html#nm-client-activate-connect
 VPN connections at this time.</p>
 <p>Note that the callback is invoked when NetworkManager has started activating
 the new connection, not when it finishes. You can used the returned
-<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <span class="type">“state”</span>) to
+<a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> object (in particular, <a href="/usr/share/gtk-doc/html/libnm-glib/NMActiveConnection.html#NMActiveConnection--state"><span class="type">“state”</span></a>) to
 track the activation to its completion.</p>
 <p>This is identitcal to <a class="link" href="NMClient.html#nm-client-add-and-activate-connection-async" title="nm_client_add_and_activate_connection_async ()"><code class="function">nm_client_add_and_activate_connection_async()</code></a> but takes
 a further <em class="parameter"><code>options</code></em>
