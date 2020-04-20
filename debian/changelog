@@ -1,3 +1,11 @@
+network-manager (1.22.10-1ubuntu2) focal; urgency=medium
+
+  * d/t/killswitches-no-urfkill
+    - Call udevadm settle before nmcli radio wifi
+      To make sure that change is updated. (LP: #1733321)
+
+ -- Seyeong Kim <seyeong.kim@canonical.com>  Mon, 20 Apr 2020 22:40:44 -0700
+
 network-manager (1.22.10-1ubuntu1) focal; urgency=medium
 
   * Update to the current stable version, merging from Debian
