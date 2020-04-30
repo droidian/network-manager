@@ -1,3 +1,9 @@
+network-manager (1.22.10-1ubuntu3) groovy; urgency=medium
+
+  * No-change rebuild to bump Groovy version number.
+
+ -- Dan Streetman <ddstreet@canonical.com>  Thu, 30 Apr 2020 07:47:49 -0400
+
 network-manager (1.22.10-1ubuntu2) focal; urgency=medium
 
   * d/t/killswitches-no-urfkill
