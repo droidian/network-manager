@@ -24,7 +24,6 @@
 #define NM_DEVICE_WIFI_SCANNING            "scanning"
 #define NM_DEVICE_WIFI_LAST_SCAN           "last-scan"
 
-#define NM_DEVICE_WIFI_SCANNING_PROHIBITED    "scanning-prohibited"
 #define NM_DEVICE_WIFI_P2P_DEVICE_CREATED     "p2p-device-created"
 
 typedef struct _NMDeviceWifi NMDeviceWifi;
@@ -39,5 +38,13 @@ const CList *_nm_device_wifi_get_aps (NMDeviceWifi *self);
 void _nm_device_wifi_request_scan (NMDeviceWifi *self,
                                    GVariant *options,
                                    GDBusMethodInvocation *invocation);
+
+GPtrArray *nmtst_ssids_options_to_ptrarray (GVariant *value, GError **error);
+
+gboolean nm_device_wifi_get_scanning (NMDeviceWifi *self);
+
+void nm_device_wifi_scanning_prohibited_track (NMDeviceWifi *self,
+                                               gpointer tag,
+                                               gboolean temporarily_prohibited);
 
 #endif /* __NETWORKMANAGER_DEVICE_WIFI_H__ */

@@ -29,8 +29,7 @@
 #include "settings/nm-settings.h"
 #include "settings/nm-settings-connection.h"
 #include "settings/nm-agent-manager.h"
-#include "nm-dhcp4-config.h"
-#include "nm-dhcp6-config.h"
+#include "nm-dhcp-config.h"
 #include "nm-config.h"
 #include "nm-netns.h"
 #include "nm-hostname-manager.h"
@@ -184,7 +183,7 @@ clear_ip6_prefix_delegation (gpointer data)
 	char sbuf[NM_UTILS_INET_ADDRSTRLEN];
 
 	_LOGD (LOGD_IP6, "ipv6-pd: undelegating prefix %s/%d",
-	       nm_utils_inet6_ntop (&delegation->prefix.address, sbuf),
+	       _nm_utils_inet6_ntop (&delegation->prefix.address, sbuf),
 	       delegation->prefix.plen);
 
 	g_hash_table_foreach (delegation->subnets, _clear_ip6_subnet, NULL);
@@ -195,7 +194,7 @@ static void
 expire_ip6_delegations (NMPolicy *self)
 {
 	NMPolicyPrivate *priv = NM_POLICY_GET_PRIVATE (self);
-	guint32 now = nm_utils_get_monotonic_timestamp_s ();
+	guint32 now = nm_utils_get_monotonic_timestamp_sec ();
 	IP6PrefixDelegation *delegation = NULL;
 	guint i;
 
@@ -225,7 +224,7 @@ ip6_subnet_from_delegation (IP6PrefixDelegation *delegation, NMDevice *device)
 		/* Check for out-of-prefixes condition. */
 		if (delegation->next_subnet >= (1 << (64 - delegation->prefix.plen))) {
 			_LOGD (LOGD_IP6, "ipv6-pd: no more prefixes in %s/%d",
-			       nm_utils_inet6_ntop (&delegation->prefix.address, sbuf),
+			       _nm_utils_inet6_ntop (&delegation->prefix.address, sbuf),
 			       delegation->prefix.plen);
 			return FALSE;
 		}
@@ -253,7 +252,7 @@ ip6_subnet_from_delegation (IP6PrefixDelegation *delegation, NMDevice *device)
 	subnet->preferred = delegation->prefix.preferred;
 
 	_LOGD (LOGD_IP6, "ipv6-pd: %s allocated from a /%d prefix on %s",
-	       nm_utils_inet6_ntop (&subnet->address, sbuf),
+	       _nm_utils_inet6_ntop (&subnet->address, sbuf),
 	       delegation->prefix.plen,
 	       nm_device_get_iface (device));
 
@@ -327,7 +326,7 @@ device_ip6_prefix_delegated (NMDevice *device,
 	char sbuf[NM_UTILS_INET_ADDRSTRLEN];
 
 	_LOGI (LOGD_IP6, "ipv6-pd: received a prefix %s/%d from %s",
-	       nm_utils_inet6_ntop (&prefix->address, sbuf),
+	       _nm_utils_inet6_ntop (&prefix->address, sbuf),
 	       prefix->plen,
 	       nm_device_get_iface (device));
 
@@ -692,6 +691,7 @@ update_system_hostname (NMPolicy *self, const char *msg)
 	const NMPlatformIP4Address *addr4;
 	const NMPlatformIP6Address *addr6;
 	NMDevice *device;
+	NMDhcpConfig *dhcp_config;
 
 	g_return_if_fail (self != NULL);
 
@@ -745,12 +745,10 @@ update_system_hostname (NMPolicy *self, const char *msg)
 	}
 
 	if (priv->default_ac4) {
-		NMDhcp4Config *dhcp4_config;
-
 		/* Grab a hostname out of the device's DHCP4 config */
-		dhcp4_config = nm_device_get_dhcp4_config (get_default_device (self, AF_INET));
-		if (dhcp4_config) {
-			dhcp_hostname = nm_dhcp4_config_get_option (dhcp4_config, "host_name");
+		dhcp_config = nm_device_get_dhcp_config (get_default_device (self, AF_INET), AF_INET);
+		if (dhcp_config) {
+			dhcp_hostname = nm_dhcp_config_get_option (dhcp_config, "host_name");
 			if (dhcp_hostname && dhcp_hostname[0]) {
 				p = nm_str_skip_leading_spaces (dhcp_hostname);
 				if (p[0]) {
@@ -765,12 +763,10 @@ update_system_hostname (NMPolicy *self, const char *msg)
 	}
 
 	if (priv->default_ac6) {
-		NMDhcp6Config *dhcp6_config;
-
 		/* Grab a hostname out of the device's DHCP6 config */
-		dhcp6_config = nm_device_get_dhcp6_config (get_default_device (self, AF_INET6));
-		if (dhcp6_config) {
-			dhcp_hostname = nm_dhcp6_config_get_option (dhcp6_config, "host_name");
+		dhcp_config = nm_device_get_dhcp_config (get_default_device (self, AF_INET6), AF_INET6);
+		if (dhcp_config) {
+			dhcp_hostname = nm_dhcp_config_get_option (dhcp_config, "host_name");
 			if (dhcp_hostname && dhcp_hostname[0]) {
 				p = nm_str_skip_leading_spaces (dhcp_hostname);
 				if (p[0]) {
@@ -1007,21 +1003,6 @@ update_ip4_routing (NMPolicy *self, gboolean force_update)
 }
 
 static void
-update_ip6_dns_delegation (NMPolicy *self)
-{
-	NMPolicyPrivate *priv = NM_POLICY_GET_PRIVATE (self);
-	NMDevice *device;
-	NMActiveConnection *ac;
-	const CList *tmp_list;
-
-	nm_manager_for_each_active_connection (priv->manager, ac, tmp_list) {
-		device = nm_active_connection_get_device (ac);
-		if (device && nm_device_needs_ip6_subnet (device))
-			nm_device_copy_ip6_dns_config (device, get_default_device (self, AF_INET6));
-	}
-}
-
-static void
 update_ip6_prefix_delegation (NMPolicy *self)
 {
 	NMPolicyPrivate *priv = NM_POLICY_GET_PRIVATE (self);
@@ -1089,8 +1070,9 @@ update_ip6_routing (NMPolicy *self, gboolean force_update)
 }
 
 static void
-update_ip_dns (NMPolicy *self, int addr_family)
+update_ip_dns (NMPolicy *self, int addr_family, NMDevice *changed_device)
 {
+	NMPolicyPrivate *priv = NM_POLICY_GET_PRIVATE (self);
 	gpointer ip_config;
 	const char *ip_iface = NULL;
 	NMVpnConnection *vpn = NULL;
@@ -1105,25 +1087,39 @@ update_ip_dns (NMPolicy *self, int addr_family)
 		 */
 		_dns_manager_set_ip_config (NM_POLICY_GET_PRIVATE (self)->dns_manager,
 		                            ip_config,
-		                            vpn
+		                              (   vpn
+		                               || (device && nm_device_is_vpn (device)))
 		                            ? NM_DNS_IP_CONFIG_TYPE_VPN
 		                            : NM_DNS_IP_CONFIG_TYPE_BEST_DEVICE,
 		                            device);
 	}
 
-	if (addr_family == AF_INET6)
-		update_ip6_dns_delegation (self);
+	if (addr_family == AF_INET6) {
+		NMActiveConnection *ac;
+		const CList *tmp_list;
+
+		/* Tell devices needing a subnet about the new DNS configuration */
+		nm_manager_for_each_active_connection (priv->manager, ac, tmp_list) {
+			device = nm_active_connection_get_device (ac);
+			if (   device
+			    && device != changed_device
+			    && nm_device_needs_ip6_subnet (device))
+				nm_device_copy_ip6_dns_config (device, get_default_device (self, AF_INET6));
+		}
+	}
 }
 
 static void
-update_routing_and_dns (NMPolicy *self, gboolean force_update)
+update_routing_and_dns (NMPolicy *self,
+                        gboolean force_update,
+                        NMDevice *changed_device)
 {
 	NMPolicyPrivate *priv = NM_POLICY_GET_PRIVATE (self);
 
 	nm_dns_manager_begin_updates (priv->dns_manager, __func__);
 
-	update_ip_dns (self, AF_INET);
-	update_ip_dns (self, AF_INET6);
+	update_ip_dns (self, AF_INET, changed_device);
+	update_ip_dns (self, AF_INET6, changed_device);
 
 	update_ip4_routing (self, force_update);
 	update_ip6_routing (self, force_update);
@@ -1549,7 +1545,7 @@ reset_connections_retries (gpointer user_data)
 	priv->reset_retries_id = 0;
 
 	min_stamp = 0;
-	now = nm_utils_get_monotonic_timestamp_s ();
+	now = nm_utils_get_monotonic_timestamp_sec ();
 	connections = nm_settings_get_connections (priv->settings, NULL);
 	for (i = 0; connections[i]; i++) {
 		NMSettingsConnection *connection = connections[i];
@@ -1594,7 +1590,7 @@ _connection_autoconnect_retries_set (NMPolicy *self,
 			gint32 retry_time = nm_settings_connection_autoconnect_retries_blocked_until (connection);
 
 			g_warn_if_fail (retry_time != 0);
-			priv->reset_retries_id = g_timeout_add_seconds (MAX (0, retry_time - nm_utils_get_monotonic_timestamp_s ()), reset_connections_retries, self);
+			priv->reset_retries_id = g_timeout_add_seconds (MAX (0, retry_time - nm_utils_get_monotonic_timestamp_sec ()), reset_connections_retries, self);
 		}
 	}
 }
@@ -1633,7 +1629,8 @@ activate_slave_connections (NMPolicy *self, NMDevice *device)
 		}
 
 		subject = nm_active_connection_get_subject (NM_ACTIVE_CONNECTION (req));
-		internal_activation = subject && nm_auth_subject_is_internal (subject);
+		internal_activation =    subject
+		                      && (nm_auth_subject_get_subject_type (subject) == NM_AUTH_SUBJECT_TYPE_INTERNAL);
 	}
 
 	changed = FALSE;
@@ -1857,14 +1854,14 @@ device_state_changed (NMDevice *device,
 		if (ip6_config)
 			_dns_manager_set_ip_config (priv->dns_manager, NM_IP_CONFIG_CAST (ip6_config), NM_DNS_IP_CONFIG_TYPE_DEFAULT, device);
 
-		update_routing_and_dns (self, FALSE);
+		update_routing_and_dns (self, FALSE, device);
 
 		nm_dns_manager_end_updates (priv->dns_manager, __func__);
 		break;
 	case NM_DEVICE_STATE_UNMANAGED:
 	case NM_DEVICE_STATE_UNAVAILABLE:
 		if (old_state > NM_DEVICE_STATE_DISCONNECTED)
-			update_routing_and_dns (self, FALSE);
+			update_routing_and_dns (self, FALSE, device);
 		break;
 	case NM_DEVICE_STATE_DEACTIVATING:
 		if (sett_conn) {
@@ -1899,7 +1896,7 @@ device_state_changed (NMDevice *device,
 			reset_autoconnect_all (self, device, FALSE);
 
 		if (old_state > NM_DEVICE_STATE_DISCONNECTED)
-			update_routing_and_dns (self, FALSE);
+			update_routing_and_dns (self, FALSE, device);
 
 		/* Device is now available for auto-activation */
 		schedule_activate_check (self, device);
@@ -1930,7 +1927,7 @@ device_state_changed (NMDevice *device,
 		if (   s_con
 		    && nm_setting_connection_get_num_secondaries (s_con) > 0) {
 			/* Make routes and DNS up-to-date before activating dependent connections */
-			update_routing_and_dns (self, FALSE);
+			update_routing_and_dns (self, FALSE, device);
 
 			/* Activate secondary (VPN) connections */
 			if (!activate_secondary_connections (self,
@@ -1986,7 +1983,7 @@ device_ip_config_changed (NMDevice *device,
 			if (old_config)
 				nm_dns_manager_set_ip_config (priv->dns_manager, old_config, NM_DNS_IP_CONFIG_TYPE_REMOVED);
 		}
-		update_ip_dns (self, addr_family);
+		update_ip_dns (self, addr_family, device);
 		if (addr_family == AF_INET)
 			update_ip4_routing (self, TRUE);
 		else
@@ -2108,7 +2105,7 @@ vpn_connection_activated (NMPolicy *self, NMVpnConnection *vpn)
 	if (ip6_config)
 		nm_dns_manager_set_ip_config (priv->dns_manager, NM_IP_CONFIG_CAST (ip6_config), NM_DNS_IP_CONFIG_TYPE_VPN);
 
-	update_routing_and_dns (self, TRUE);
+	update_routing_and_dns (self, TRUE, NULL);
 
 	nm_dns_manager_end_updates (priv->dns_manager, __func__);
 }
@@ -2130,7 +2127,7 @@ vpn_connection_deactivated (NMPolicy *self, NMVpnConnection *vpn)
 	if (ip6_config)
 		nm_dns_manager_set_ip_config (priv->dns_manager, NM_IP_CONFIG_CAST (ip6_config), NM_DNS_IP_CONFIG_TYPE_REMOVED);
 
-	update_routing_and_dns (self, TRUE);
+	update_routing_and_dns (self, TRUE, NULL);
 
 	nm_dns_manager_end_updates (priv->dns_manager, __func__);
 }
@@ -2498,7 +2495,8 @@ nm_policy_get_activating_ip6_ac (NMPolicy *self)
 
 /*****************************************************************************/
 
-NM_UTILS_LOOKUP_STR_DEFINE_STATIC (_hostname_mode_to_string, NMPolicyHostnameMode,
+static
+NM_UTILS_LOOKUP_STR_DEFINE (_hostname_mode_to_string, NMPolicyHostnameMode,
 	NM_UTILS_LOOKUP_DEFAULT_NM_ASSERT ("unknown"),
 	NM_UTILS_LOOKUP_STR_ITEM (NM_POLICY_HOSTNAME_MODE_NONE,  "none"),
 	NM_UTILS_LOOKUP_STR_ITEM (NM_POLICY_HOSTNAME_MODE_DHCP,  "dhcp"),
@@ -2670,7 +2668,7 @@ dispose (GObject *object)
 	nm_clear_g_object (&priv->default_ac6);
 	nm_clear_g_object (&priv->activating_ac4);
 	nm_clear_g_object (&priv->activating_ac6);
-	g_clear_pointer (&priv->pending_active_connections, g_hash_table_unref);
+	nm_clear_pointer (&priv->pending_active_connections, g_hash_table_unref);
 
 	c_list_for_each_entry_safe (data, data_safe, &priv->pending_activation_checks, pending_lst)
 		activate_data_free (data);
@@ -2708,9 +2706,9 @@ dispose (GObject *object)
 	nm_clear_g_source (&priv->reset_retries_id);
 	nm_clear_g_source (&priv->schedule_activate_all_id);
 
-	g_clear_pointer (&priv->orig_hostname, g_free);
-	g_clear_pointer (&priv->cur_hostname, g_free);
-	g_clear_pointer (&priv->last_hostname, g_free);
+	nm_clear_g_free (&priv->orig_hostname);
+	nm_clear_g_free (&priv->cur_hostname);
+	nm_clear_g_free (&priv->last_hostname);
 
 	if (priv->hostname_manager) {
 		g_signal_handlers_disconnect_by_data (priv->hostname_manager, priv);

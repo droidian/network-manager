@@ -14,7 +14,7 @@
 #include "devices/nm-device.h"
 #include "NetworkManagerUtils.h"
 #include "nm-core-internal.h"
-#include "nm-keyfile-internal.h"
+#include "nm-keyfile/nm-keyfile-internal.h"
 
 #define DEFAULT_CONFIG_MAIN_FILE        NMCONFDIR "/NetworkManager.conf"
 #define DEFAULT_CONFIG_DIR              NMCONFDIR "/conf.d"
@@ -274,7 +274,7 @@ nm_config_get_warnings (NMConfig *config)
 void
 nm_config_clear_warnings (NMConfig *config)
 {
-	g_clear_pointer (&NM_CONFIG_GET_PRIVATE (config)->warnings, g_strfreev);
+	nm_clear_pointer (&NM_CONFIG_GET_PRIVATE (config)->warnings, g_strfreev);
 }
 
 NMConfigData *
@@ -481,17 +481,17 @@ nm_config_set_no_auto_default_for_device (NMConfig *self, NMDevice *device)
 static void
 _nm_config_cmd_line_options_clear (NMConfigCmdLineOptions *cli)
 {
-	g_clear_pointer (&cli->config_main_file, g_free);
-	g_clear_pointer (&cli->config_dir, g_free);
-	g_clear_pointer (&cli->system_config_dir, g_free);
-	g_clear_pointer (&cli->no_auto_default_file, g_free);
-	g_clear_pointer (&cli->intern_config_file, g_free);
-	g_clear_pointer (&cli->state_file, g_free);
-	g_clear_pointer (&cli->plugins, g_free);
+	nm_clear_g_free (&cli->config_main_file);
+	nm_clear_g_free (&cli->config_dir);
+	nm_clear_g_free (&cli->system_config_dir);
+	nm_clear_g_free (&cli->no_auto_default_file);
+	nm_clear_g_free (&cli->intern_config_file);
+	nm_clear_g_free (&cli->state_file);
+	nm_clear_g_free (&cli->plugins);
 	cli->configure_and_quit = NM_CONFIG_CONFIGURE_AND_QUIT_DISABLED;
 	cli->is_debug = FALSE;
-	g_clear_pointer (&cli->connectivity_uri, g_free);
-	g_clear_pointer (&cli->connectivity_response, g_free);
+	nm_clear_g_free (&cli->connectivity_uri);
+	nm_clear_g_free (&cli->connectivity_response);
 	cli->connectivity_interval = -1;
 	cli->first_start = FALSE;
 }
@@ -2193,7 +2193,8 @@ _nm_config_state_set (NMConfig *self,
 #define DEVICE_RUN_STATE_KEYFILE_KEY_DEVICE_ROOT_PATH           "root-path"
 #define DEVICE_RUN_STATE_KEYFILE_KEY_DEVICE_NEXT_SERVER         "next-server"
 
-NM_UTILS_LOOKUP_STR_DEFINE_STATIC (_device_state_managed_type_to_str, NMConfigDeviceStateManagedType,
+static
+NM_UTILS_LOOKUP_STR_DEFINE (_device_state_managed_type_to_str, NMConfigDeviceStateManagedType,
 	NM_UTILS_LOOKUP_DEFAULT_NM_ASSERT ("unknown"),
 	NM_UTILS_LOOKUP_STR_ITEM (NM_CONFIG_DEVICE_STATE_MANAGED_TYPE_UNKNOWN,   "unknown"),
 	NM_UTILS_LOOKUP_STR_ITEM (NM_CONFIG_DEVICE_STATE_MANAGED_TYPE_UNMANAGED, "unmanaged"),
@@ -2898,7 +2899,7 @@ nm_config_new (const NMConfigCmdLineOptions *cli, char **atomic_section_prefixes
 static void
 finalize (GObject *gobject)
 {
-	NMConfigPrivate *priv = NM_CONFIG_GET_PRIVATE ((NMConfig *) gobject);
+	NMConfigPrivate *priv = NM_CONFIG_GET_PRIVATE (gobject);
 
 	state_free (priv->state);
 

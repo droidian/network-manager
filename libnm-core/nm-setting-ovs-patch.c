@@ -81,8 +81,8 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		return FALSE;
 	}
 
-	if (   !nm_utils_ipaddr_valid (AF_INET, self->peer)
-	    && !nm_utils_ipaddr_valid (AF_INET6, self->peer)) {
+	if (   !nm_utils_ipaddr_is_valid (AF_INET, self->peer)
+	    && !nm_utils_ipaddr_is_valid (AF_INET6, self->peer)) {
 		g_set_error (error,
 		             NM_CONNECTION_ERROR,
 		             NM_CONNECTION_ERROR_INVALID_PROPERTY,
@@ -188,7 +188,6 @@ nm_setting_ovs_patch_class_init (NMSettingOvsPatchClass *klass)
 	    g_param_spec_string (NM_SETTING_OVS_PATCH_PEER, "", "",
 	                         NULL,
 	                         G_PARAM_READWRITE |
-	                         G_PARAM_CONSTRUCT |
 	                         NM_SETTING_PARAM_INFERRABLE |
 	                         G_PARAM_STATIC_STRINGS);
 

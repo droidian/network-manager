@@ -6,7 +6,7 @@ XSBC-Original-Maintainer: Utopia Maintenance Team <pkg-utopia-maintainers@lists.
 Uploaders: Michael Biebl <biebl@debian.org>,
  Sjoerd Simons <sjoerd@debian.org>,
  Aron Xu <aron@debian.org>
-Build-Depends: debhelper-compat (= 12),
+Build-Depends: debhelper-compat (= 13),
                automake (>= 1.12),
                pkg-config,
                intltool,

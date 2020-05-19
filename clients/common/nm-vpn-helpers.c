@@ -368,13 +368,13 @@ nm_vpn_wireguard_import (const char *filename,
 			memcpy (ifname, cstr, len);
 			ifname[len] = '\0';
 
-			if (nm_utils_ifname_valid_kernel (ifname, NULL))
+			if (nm_utils_ifname_valid (ifname, NMU_IFACE_KERNEL, NULL))
 				ifname_valid = TRUE;
 		}
 	}
 	if (!ifname_valid) {
 		nm_utils_error_set_literal (error, NM_UTILS_ERROR_UNKNOWN,
-		                            _("The WireGuard config file must be a valid interface name followed by \".conf\""));
+		                            _("The name of the WireGuard config must be a valid interface name followed by \".conf\""));
 		return FALSE;
 	}
 
@@ -524,7 +524,6 @@ nm_vpn_wireguard_import (const char *filename,
 				char *value_word;
 
 				while (value_split_word (&value, &value_word)) {
-					char addr_s[NM_CONST_MAX (INET_ADDRSTRLEN, INET6_ADDRSTRLEN)];
 					GPtrArray **p_data_dns;
 					NMIPAddr addr_bin;
 					int addr_family;
@@ -541,8 +540,8 @@ nm_vpn_wireguard_import (const char *filename,
 					if (!*p_data_dns)
 						*p_data_dns = g_ptr_array_new_with_free_func (g_free);
 
-					inet_ntop (addr_family, &addr_bin, addr_s, sizeof (addr_s));
-					g_ptr_array_add (*p_data_dns, g_strdup (addr_s));
+					g_ptr_array_add (*p_data_dns,
+					                 nm_utils_inet_ntop_dup (addr_family, &addr_bin));
 				}
 				continue;
 			}
@@ -745,6 +744,14 @@ fail_invalid_secret:
 		              data_addr ? method_manual : method_disabled,
 		              NULL);
 
+		/* For WireGuard profiles, always set dns-priority to a negative value,
+		 * so that DNS servers on other profiles get ignored. This is also what
+		 * wg-quick does, by calling `resolvconf -x`. */
+		g_object_set (s_ip,
+		              NM_SETTING_IP_CONFIG_DNS_PRIORITY,
+		              (int) -10,
+		              NULL);
+
 		if (data_addr) {
 			for (i = 0; i < data_addr->len; i++)
 				nm_setting_ip_config_add_address (s_ip, data_addr->pdata[i]);
@@ -752,6 +759,10 @@ fail_invalid_secret:
 		if (data_dns) {
 			for (i = 0; i < data_dns->len; i++)
 				nm_setting_ip_config_add_dns (s_ip, data_dns->pdata[i]);
+
+			/* the wg-quick file cannot handle search domains. When configuring a DNS server
+			 * in the wg-quick file, assume that the user want to use it for all searches. */
+			nm_setting_ip_config_add_dns_search (s_ip, "~");
 		}
 
 		if (data_table == _TABLE_AUTO) {
@@ -765,9 +776,10 @@ fail_invalid_secret:
 			 *   yourself to "ipv4.routes" and "ipv6.routes".
 			 *
 			 * - With "auto", wg-quick also configures policy routing to handle default-routes (/0) to
-			 *   avoid routing loops. That is not yet solved by NetworkManager, you need to configure
-			 *   that explicitly (for example, by adding a direct route to the gateway on the interface
-			 *   that has the default-route, or by using a script (possibly dispatcher script).
+			 *   avoid routing loops.
+			 *   The imported connection profile will have wireguard.ip4-auto-default-route and
+			 *   wireguard.ip6-auto-default-route set to "default". It will thus configure wg-quick's
+			 *   policy routing if the profile has any AllowedIPs ranges with /0.
 			 */
 		} else if (data_table == _TABLE_OFF) {
 			if (is_v4) {

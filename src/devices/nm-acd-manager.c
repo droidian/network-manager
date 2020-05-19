@@ -38,8 +38,7 @@ struct _NMAcdManager {
 	GHashTable    *addresses;
 	guint          completed;
 	NAcd          *acd;
-	GIOChannel    *channel;
-	guint          event_id;
+	GSource       *event_source;
 
 	NMAcdCallbacks callbacks;
 	gpointer user_data;
@@ -82,7 +81,20 @@ _acd_event_to_string (unsigned int event)
 	return NULL;
 }
 
-#define acd_event_to_string_a(event) NM_UTILS_LOOKUP_STR_A (_acd_event_to_string, event)
+#define ACD_EVENT_TO_STRING_BUF_SIZE 50
+
+static const char *
+_acd_event_to_string_buf (unsigned event, char buffer[static ACD_EVENT_TO_STRING_BUF_SIZE])
+{
+	const char *s;
+
+	s = _acd_event_to_string (event);
+	if (s)
+		return s;
+
+	g_snprintf (buffer, ACD_EVENT_TO_STRING_BUF_SIZE, "(%u)", event);
+	return buffer;
+}
 
 static const char *
 acd_error_to_string (int error)
@@ -157,7 +169,9 @@ nm_acd_manager_add_address (NMAcdManager *self, in_addr_t address)
 }
 
 static gboolean
-acd_event (GIOChannel *source, GIOCondition condition, gpointer data)
+acd_event (int fd,
+           GIOCondition condition,
+           gpointer data)
 {
 	NMAcdManager *self = data;
 	NAcdEvent *event;
@@ -171,6 +185,7 @@ acd_event (GIOChannel *source, GIOCondition condition, gpointer data)
 
 	while (   !n_acd_pop_event (self->acd, &event)
 	       && event) {
+		char to_string_buffer[ACD_EVENT_TO_STRING_BUF_SIZE];
 		gs_free char *hwaddr_str = NULL;
 		gboolean check_probing_done = FALSE;
 
@@ -183,12 +198,12 @@ acd_event (GIOChannel *source, GIOCondition condition, gpointer data)
 				r = n_acd_probe_announce (info->probe, N_ACD_DEFEND_ONCE);
 				if (r) {
 					_LOGW ("couldn't announce address %s on interface '%s': %s",
-					       nm_utils_inet4_ntop (info->address, address_str),
+					       _nm_utils_inet4_ntop (info->address, address_str),
 					       nm_platform_link_get_name (NM_PLATFORM_GET, self->ifindex),
 					       acd_error_to_string (r));
 				} else {
 					_LOGD ("announcing address %s",
-					       nm_utils_inet4_ntop (info->address, address_str));
+					       _nm_utils_inet4_ntop (info->address, address_str));
 				}
 			}
 			check_probing_done = TRUE;
@@ -201,20 +216,20 @@ acd_event (GIOChannel *source, GIOCondition condition, gpointer data)
 		case N_ACD_EVENT_DEFENDED:
 			n_acd_probe_get_userdata (event->defended.probe, (void **) &info);
 			_LOGD ("defended address %s from host %s",
-			       nm_utils_inet4_ntop (info->address, address_str),
+			       _nm_utils_inet4_ntop (info->address, address_str),
 			       (hwaddr_str = nm_utils_hwaddr_ntoa (event->defended.sender,
 			                                           event->defended.n_sender)));
 			break;
 		case N_ACD_EVENT_CONFLICT:
 			n_acd_probe_get_userdata (event->conflict.probe, (void **) &info);
 			_LOGW ("conflict for address %s detected with host %s on interface '%s'",
-			       nm_utils_inet4_ntop (info->address, address_str),
+			       _nm_utils_inet4_ntop (info->address, address_str),
 			       (hwaddr_str = nm_utils_hwaddr_ntoa (event->defended.sender,
 			                                           event->defended.n_sender)),
 			       nm_platform_link_get_name (NM_PLATFORM_GET, self->ifindex));
 			break;
 		default:
-			_LOGD ("unhandled event '%s'", acd_event_to_string_a (event->event));
+			_LOGD ("unhandled event '%s'", _acd_event_to_string_buf (event->event, to_string_buffer));
 			break;
 		}
 
@@ -248,7 +263,7 @@ acd_probe_add (NMAcdManager *self,
 	r = n_acd_probe_config_new (&probe_config);
 	if (r) {
 		_LOGW ("could not create probe config for %s on interface '%s': %s",
-		       nm_utils_inet4_ntop (info->address, sbuf),
+		       _nm_utils_inet4_ntop (info->address, sbuf),
 		       nm_platform_link_get_name (NM_PLATFORM_GET, self->ifindex),
 		       acd_error_to_string (r));
 		return FALSE;
@@ -260,7 +275,7 @@ acd_probe_add (NMAcdManager *self,
 	r = n_acd_probe (self->acd, &info->probe, probe_config);
 	if (r) {
 		_LOGW ("could not start probe for %s on interface '%s': %s",
-		       nm_utils_inet4_ntop (info->address, sbuf),
+		       _nm_utils_inet4_ntop (info->address, sbuf),
 		       nm_platform_link_get_name (NM_PLATFORM_GET, self->ifindex),
 		       acd_error_to_string (r));
 		n_acd_probe_config_free (probe_config);
@@ -334,11 +349,15 @@ nm_acd_manager_start_probe (NMAcdManager *self, guint timeout)
 	if (success)
 		self->state = STATE_PROBING;
 
-	nm_assert (!self->channel);
-	nm_assert (self->event_id == 0);
+	nm_assert (!self->event_source);
 	n_acd_get_fd (self->acd, &fd);
-	self->channel = g_io_channel_unix_new (fd);
-	self->event_id = g_io_add_watch (self->channel, G_IO_IN, acd_event, self);
+	self->event_source = nm_g_unix_fd_source_new (fd,
+	                                              G_IO_IN,
+	                                              G_PRIORITY_DEFAULT,
+	                                              acd_event,
+	                                              self,
+	                                              NULL);
+	g_source_attach (self->event_source, NULL);
 
 	return success ? 0 : -NME_UNSPEC;
 }
@@ -412,20 +431,24 @@ nm_acd_manager_announce_addresses (NMAcdManager *self)
 			r = n_acd_probe_announce (info->probe, N_ACD_DEFEND_ONCE);
 			if (r) {
 				_LOGW ("couldn't announce address %s on interface '%s': %s",
-				       nm_utils_inet4_ntop (info->address, sbuf),
+				       _nm_utils_inet4_ntop (info->address, sbuf),
 				       nm_platform_link_get_name (NM_PLATFORM_GET, self->ifindex),
 				       acd_error_to_string (r));
 				success = FALSE;
 			} else
-				_LOGD ("announcing address %s", nm_utils_inet4_ntop (info->address, sbuf));
+				_LOGD ("announcing address %s", _nm_utils_inet4_ntop (info->address, sbuf));
 		}
 	}
 
-	if (!self->channel) {
-		nm_assert (self->event_id == 0);
+	if (!self->event_source) {
 		n_acd_get_fd (self->acd, &fd);
-		self->channel = g_io_channel_unix_new (fd);
-		self->event_id = g_io_add_watch (self->channel, G_IO_IN, acd_event, self);
+		self->event_source = nm_g_unix_fd_source_new (fd,
+		                                              G_IO_IN,
+		                                              G_PRIORITY_DEFAULT,
+		                                              acd_event,
+		                                              self,
+		                                              NULL);
+		g_source_attach (self->event_source, NULL);
 	}
 
 	return success ? 0 : -NME_UNSPEC;
@@ -479,8 +502,7 @@ nm_acd_manager_free (NMAcdManager *self)
 		self->callbacks.user_data_destroy (self->user_data);
 
 	nm_clear_pointer (&self->addresses, g_hash_table_destroy);
-	nm_clear_pointer (&self->channel, g_io_channel_unref);
-	nm_clear_g_source (&self->event_id);
+	nm_clear_g_source_inst (&self->event_source);
 	nm_clear_pointer (&self->acd, n_acd_unref);
 
 	g_slice_free (NMAcdManager, self);

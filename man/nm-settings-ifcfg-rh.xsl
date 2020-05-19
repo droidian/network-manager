@@ -72,9 +72,7 @@
           Users can create or modify the <emphasis>ifcfg-rh</emphasis> connection files
           manually, even if that is not the recommended way of managing the profiles.
           However, if they choose to do that, they must inform NetworkManager about
-          their changes (see <emphasis>monitor-connection-file</emphasis> in
-          <citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum>
-          </citerefentry>, and <emphasis>nmcli con (re)load</emphasis>).
+          their changes (for example via <emphasis>nmcli con (re)load</emphasis>).
         </para>
         <formalpara>
           <title>Some <emphasis>ifcfg-rh</emphasis> configuration examples:</title>
@@ -243,7 +241,7 @@ DEVICETYPE=TeamPort
                   <listitem>
                     <para><literal>ONBOOT</literal> -
                     initscripts use ONBOOT=yes to mark the devices that are to be activated
-                    during boot. NetworkManager extents this to also mean that this profile
+                    during boot. NetworkManager extends this to also mean that this profile
                     can be used for auto-connecting at any time.</para>
                   </listitem>
                   <listitem>

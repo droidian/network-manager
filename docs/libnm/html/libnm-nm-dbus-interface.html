@@ -8,7 +8,7 @@
 <link rel="up" href="ch02.html" title="Client Object API Reference">
 <link rel="prev" href="libnm-nm-errors.html" title="nm-errors">
 <link rel="next" href="ch03.html" title="Connection and Setting API Reference">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -36,8 +36,8 @@
 <a name="libnm-nm-dbus-interface.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -163,6 +163,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-VLAN:CAPS" title="NM_DBUS_INTERFACE_DEVICE_VLAN">NM_DBUS_INTERFACE_DEVICE_VLAN</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-VRF:CAPS" title="NM_DBUS_INTERFACE_DEVICE_VRF">NM_DBUS_INTERFACE_DEVICE_VRF</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -488,6 +492,14 @@
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMDeviceInterfaceFlags" title="enum NMDeviceInterfaceFlags">NMDeviceInterfaceFlags</a></td>
 </tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMClientPermission" title="enum NMClientPermission">NMClientPermission</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NMClientPermissionResult" title="enum NMClientPermissionResult">NMClientPermissionResult</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -498,6 +510,8 @@
     <span class="lineart">├──</span> NMActiveConnectionState
     <span class="lineart">├──</span> NMActiveConnectionStateReason
     <span class="lineart">├──</span> NMCapability
+    <span class="lineart">├──</span> NMClientPermission
+    <span class="lineart">├──</span> NMClientPermissionResult
     <span class="lineart">├──</span> NMConnectionMultiConnect
     <span class="lineart">├──</span> NMConnectivityState
     <span class="lineart">├──</span> NMDeviceState
@@ -720,6 +734,12 @@
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-DBUS-INTERFACE-DEVICE-VRF:CAPS"></a><h3>NM_DBUS_INTERFACE_DEVICE_VRF</h3>
+<pre class="programlisting">#define NM_DBUS_INTERFACE_DEVICE_VRF           NM_DBUS_INTERFACE_DEVICE ".Vrf"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-DBUS-INTERFACE-DEVICE-VXLAN:CAPS"></a><h3>NM_DBUS_INTERFACE_DEVICE_VXLAN</h3>
 <pre class="programlisting">#define NM_DBUS_INTERFACE_DEVICE_VXLAN         NM_DBUS_INTERFACE_DEVICE ".Vxlan"
 </pre>
@@ -908,7 +928,7 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-CAPABILITY-TEAM:CAPS"></a>NM_CAPABILITY_TEAM</p></td>
 <td class="enum_member_description">
 <p>Teams can be managed. This means the team device plugin
-  is loaded.</p>
+is loaded.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -916,7 +936,7 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-CAPABILITY-OVS:CAPS"></a>NM_CAPABILITY_OVS</p></td>
 <td class="enum_member_description">
 <p>OpenVSwitch can be managed. This means the OVS device plugin
-  is loaded. Since: 1.24, 1.22.2</p>
+is loaded. Since: 1.24</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -941,11 +961,11 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-STATE-UNKNOWN:CAPS"></a>NM_STATE_UNKNOWN</p></td>
 <td class="enum_member_description">
 <p>Networking state is unknown. This indicates a daemon error
-   that makes it unable to reasonably assess the state. In such event the
-   applications are expected to assume Internet connectivity might be present
-   and not disable controls that require network access.
-   The graphical shells may hide the network accessibility indicator altogether
-   since no meaningful status indication can be provided.</p>
+that makes it unable to reasonably assess the state. In such event the
+applications are expected to assume Internet connectivity might be present
+and not disable controls that require network access.
+The graphical shells may hide the network accessibility indicator altogether
+since no meaningful status indication can be provided.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -953,7 +973,7 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-STATE-ASLEEP:CAPS"></a>NM_STATE_ASLEEP</p></td>
 <td class="enum_member_description">
 <p>Networking is not enabled, the system is being suspended or
-   resumed from suspend.</p>
+resumed from suspend.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -961,8 +981,8 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-STATE-DISCONNECTED:CAPS"></a>NM_STATE_DISCONNECTED</p></td>
 <td class="enum_member_description">
 <p>There is no active network connection.
-   The graphical shell should indicate  no network connectivity and the
-   applications should not attempt to access the network.</p>
+The graphical shell should indicate  no network connectivity and the
+applications should not attempt to access the network.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -970,7 +990,7 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-STATE-DISCONNECTING:CAPS"></a>NM_STATE_DISCONNECTING</p></td>
 <td class="enum_member_description">
 <p>Network connections are being cleaned up.
-   The applications should tear down their network sessions.</p>
+The applications should tear down their network sessions.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -978,8 +998,8 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-STATE-CONNECTING:CAPS"></a>NM_STATE_CONNECTING</p></td>
 <td class="enum_member_description">
 <p>A network connection is being started
-   The graphical shell should indicate the network is being connected while
-   the applications should still make no attempts to connect the network.</p>
+The graphical shell should indicate the network is being connected while
+the applications should still make no attempts to connect the network.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -987,8 +1007,8 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-STATE-CONNECTED-LOCAL:CAPS"></a>NM_STATE_CONNECTED_LOCAL</p></td>
 <td class="enum_member_description">
 <p>There is only local IPv4 and/or IPv6 connectivity,
-   but no default route to access the Internet. The graphical shell should
-   indicate no network connectivity.</p>
+but no default route to access the Internet. The graphical shell should
+indicate no network connectivity.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -996,9 +1016,9 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-STATE-CONNECTED-SITE:CAPS"></a>NM_STATE_CONNECTED_SITE</p></td>
 <td class="enum_member_description">
 <p>There is only site-wide IPv4 and/or IPv6 connectivity.
-   This means a default route is available, but the Internet connectivity check
-   (see "Connectivity" property) did not succeed. The graphical shell should
-   indicate limited network connectivity.</p>
+This means a default route is available, but the Internet connectivity check
+(see "Connectivity" property) did not succeed. The graphical shell should
+indicate limited network connectivity.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1006,8 +1026,8 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-STATE-CONNECTED-GLOBAL:CAPS"></a>NM_STATE_CONNECTED_GLOBAL</p></td>
 <td class="enum_member_description">
 <p>There is global IPv4 and/or IPv6 Internet connectivity
-   This means the Internet connectivity check succeeded, the graphical shell should
-   indicate full network connectivity.</p>
+This means the Internet connectivity check succeeded, the graphical shell should
+indicate full network connectivity.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1031,9 +1051,9 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-CONNECTIVITY-UNKNOWN:CAPS"></a>NM_CONNECTIVITY_UNKNOWN</p></td>
 <td class="enum_member_description">
 <p>Network connectivity is unknown. This means the
-  connectivity checks are disabled (e.g. on server installations) or has
-  not run yet. The graphical shell should assume the Internet connection
-  might be available and not present a captive portal window.</p>
+connectivity checks are disabled (e.g. on server installations) or has
+not run yet. The graphical shell should assume the Internet connection
+might be available and not present a captive portal window.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1041,9 +1061,9 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-CONNECTIVITY-NONE:CAPS"></a>NM_CONNECTIVITY_NONE</p></td>
 <td class="enum_member_description">
 <p>The host is not connected to any network. There's
-  no active connection that contains a default route to the internet and
-  thus it makes no sense to even attempt a connectivity check. The graphical
-  shell should use this state to indicate the network connection is unavailable.</p>
+no active connection that contains a default route to the internet and
+thus it makes no sense to even attempt a connectivity check. The graphical
+shell should use this state to indicate the network connection is unavailable.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1051,11 +1071,11 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-CONNECTIVITY-PORTAL:CAPS"></a>NM_CONNECTIVITY_PORTAL</p></td>
 <td class="enum_member_description">
 <p>The Internet connection is hijacked by a captive
-  portal gateway. The graphical shell may open a sandboxed web browser window
-  (because the captive portals typically attempt a man-in-the-middle attacks
-  against the https connections) for the purpose of authenticating to a gateway
-  and retrigger the connectivity check with <code class="function">CheckConnectivity()</code> when the
-  browser window is dismissed.</p>
+portal gateway. The graphical shell may open a sandboxed web browser window
+(because the captive portals typically attempt a man-in-the-middle attacks
+against the https connections) for the purpose of authenticating to a gateway
+and retrigger the connectivity check with <code class="function">CheckConnectivity()</code> when the
+browser window is dismissed.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1063,8 +1083,8 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-CONNECTIVITY-LIMITED:CAPS"></a>NM_CONNECTIVITY_LIMITED</p></td>
 <td class="enum_member_description">
 <p>The host is connected to a network, does not appear
-  to be able to reach the full Internet, but a captive portal has not been
-  detected.</p>
+to be able to reach the full Internet, but a captive portal has not been
+detected.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1072,7 +1092,7 @@ extensions.</p>
 <td class="enum_member_name"><p><a name="NM-CONNECTIVITY-FULL:CAPS"></a>NM_CONNECTIVITY_FULL</p></td>
 <td class="enum_member_description">
 <p>The host is connected to a network, and
-  appears to be able to reach the full Internet.</p>
+appears to be able to reach the full Internet.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1309,6 +1329,13 @@ GSM/UMTS, or LTE network access protocols</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-WIFI-P2P:CAPS"></a>NM_DEVICE_TYPE_WIFI_P2P</p></td>
 <td class="enum_member_description">
 <p>an 802.11 Wi-Fi P2P device (Since: 1.16)</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-VRF:CAPS"></a>NM_DEVICE_TYPE_VRF</p></td>
+<td class="enum_member_description">
+<p>A VRF (Virtual Routing and Forwarding) interface (Since: 1.24)</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1643,6 +1670,14 @@ supported</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-802-11-AP-SEC-KEY-MGMT-OWE:CAPS"></a>NM_802_11_AP_SEC_KEY_MGMT_OWE</p></td>
+<td class="enum_member_description">
+<p>WPA/RSN Opportunistic Wireless Encryption is
+supported</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -1671,8 +1706,8 @@ supported</p>
 <td class="enum_member_name"><p><a name="NM-802-11-MODE-ADHOC:CAPS"></a>NM_802_11_MODE_ADHOC</p></td>
 <td class="enum_member_description">
 <p>for both devices and access point objects, indicates
-  the object is part of an Ad-Hoc 802.11 network without a central
-  coordinating access point.</p>
+the object is part of an Ad-Hoc 802.11 network without a central
+coordinating access point.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1680,9 +1715,9 @@ supported</p>
 <td class="enum_member_name"><p><a name="NM-802-11-MODE-INFRA:CAPS"></a>NM_802_11_MODE_INFRA</p></td>
 <td class="enum_member_description">
 <p>the device or access point is in infrastructure mode.
-  For devices, this indicates the device is an 802.11 client/station.  For
-  access point objects, this indicates the object is an access point that
-  provides connectivity to clients.</p>
+For devices, this indicates the device is an 802.11 client/station.  For
+access point objects, this indicates the object is an access point that
+provides connectivity to clients.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1690,7 +1725,7 @@ supported</p>
 <td class="enum_member_name"><p><a name="NM-802-11-MODE-AP:CAPS"></a>NM_802_11_MODE_AP</p></td>
 <td class="enum_member_description">
 <p>the device is an access point/hotspot.  Not valid for
-  access point objects; used only for hotspot mode on the local machine.</p>
+access point objects; used only for hotspot mode on the local machine.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1870,7 +1905,7 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-STATE-UNMANAGED:CAPS"></a>NM_DEVICE_STATE_UNMANAGED</p></td>
 <td class="enum_member_description">
 <p>the device is recognized, but not managed by
-  NetworkManager</p>
+NetworkManager</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1878,9 +1913,9 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-STATE-UNAVAILABLE:CAPS"></a>NM_DEVICE_STATE_UNAVAILABLE</p></td>
 <td class="enum_member_description">
 <p>the device is managed by NetworkManager, but
-  is not available for use.  Reasons may include the wireless switched off,
-  missing firmware, no ethernet carrier, missing supplicant or modem manager,
-  etc.</p>
+is not available for use.  Reasons may include the wireless switched off,
+missing firmware, no ethernet carrier, missing supplicant or modem manager,
+etc.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1888,7 +1923,7 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-STATE-DISCONNECTED:CAPS"></a>NM_DEVICE_STATE_DISCONNECTED</p></td>
 <td class="enum_member_description">
 <p>the device can be activated, but is currently
-  idle and not connected to a network.</p>
+idle and not connected to a network.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1896,9 +1931,9 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-STATE-PREPARE:CAPS"></a>NM_DEVICE_STATE_PREPARE</p></td>
 <td class="enum_member_description">
 <p>the device is preparing the connection to the
-  network.  This may include operations like changing the MAC address,
-  setting physical link properties, and anything else required to connect
-  to the requested network.</p>
+network.  This may include operations like changing the MAC address,
+setting physical link properties, and anything else required to connect
+to the requested network.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1906,8 +1941,8 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-STATE-CONFIG:CAPS"></a>NM_DEVICE_STATE_CONFIG</p></td>
 <td class="enum_member_description">
 <p>the device is connecting to the requested network.
-  This may include operations like associating with the Wi-Fi AP, dialing
-  the modem, connecting to the remote Bluetooth device, etc.</p>
+This may include operations like associating with the Wi-Fi AP, dialing
+the modem, connecting to the remote Bluetooth device, etc.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1915,8 +1950,8 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-STATE-NEED-AUTH:CAPS"></a>NM_DEVICE_STATE_NEED_AUTH</p></td>
 <td class="enum_member_description">
 <p>the device requires more information to continue
-  connecting to the requested network.  This includes secrets like WiFi
-  passphrases, login passwords, PIN codes, etc.</p>
+connecting to the requested network.  This includes secrets like WiFi
+passphrases, login passwords, PIN codes, etc.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1924,7 +1959,7 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-STATE-IP-CONFIG:CAPS"></a>NM_DEVICE_STATE_IP_CONFIG</p></td>
 <td class="enum_member_description">
 <p>the device is requesting IPv4 and/or IPv6
-  addresses and routing information from the network.</p>
+addresses and routing information from the network.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1932,9 +1967,9 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-STATE-IP-CHECK:CAPS"></a>NM_DEVICE_STATE_IP_CHECK</p></td>
 <td class="enum_member_description">
 <p>the device is checking whether further action is
-  required for the requested network connection.  This may include checking
-  whether only local network access is available, whether a captive portal
-  is blocking access to the Internet, etc.</p>
+required for the requested network connection.  This may include checking
+whether only local network access is available, whether a captive portal
+is blocking access to the Internet, etc.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1942,8 +1977,8 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-STATE-SECONDARIES:CAPS"></a>NM_DEVICE_STATE_SECONDARIES</p></td>
 <td class="enum_member_description">
 <p>the device is waiting for a secondary
-  connection (like a VPN) which must activated before the device can be
-  activated</p>
+connection (like a VPN) which must activated before the device can be
+activated</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1951,7 +1986,7 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-STATE-ACTIVATED:CAPS"></a>NM_DEVICE_STATE_ACTIVATED</p></td>
 <td class="enum_member_description">
 <p>the device has a network connection, either local
-  or global.</p>
+or global.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1959,8 +1994,8 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-STATE-DEACTIVATING:CAPS"></a>NM_DEVICE_STATE_DEACTIVATING</p></td>
 <td class="enum_member_description">
 <p>a disconnection from the current network
-  connection was requested, and the device is cleaning up resources used for
-  that connection.  The network connection may still be valid.</p>
+connection was requested, and the device is cleaning up resources used for
+that connection.  The network connection may still be valid.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1968,7 +2003,7 @@ GPRS, EDGE, UMTS, HSDPA, HSUPA, or HSPA+ packet switched data capability</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-STATE-FAILED:CAPS"></a>NM_DEVICE_STATE_FAILED</p></td>
 <td class="enum_member_description">
 <p>the device failed to connect to the requested
-  network and is cleaning up the connection request</p>
+network and is cleaning up the connection request</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2559,8 +2594,8 @@ the per-device's metered states.</p>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-MULTI-CONNECT-DEFAULT:CAPS"></a>NM_CONNECTION_MULTI_CONNECT_DEFAULT</p></td>
 <td class="enum_member_description">
 <p>indicates that the per-connection
-  setting is unspecified. In this case, it will fallback to the default
-  value, which is <a class="link" href="libnm-nm-dbus-interface.html#NM-CONNECTION-MULTI-CONNECT-SINGLE:CAPS"><code class="literal">NM_CONNECTION_MULTI_CONNECT_SINGLE</code></a>.</p>
+setting is unspecified. In this case, it will fallback to the default
+value, which is <a class="link" href="libnm-nm-dbus-interface.html#NM-CONNECTION-MULTI-CONNECT-SINGLE:CAPS"><code class="literal">NM_CONNECTION_MULTI_CONNECT_SINGLE</code></a>.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2568,8 +2603,8 @@ the per-device's metered states.</p>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-MULTI-CONNECT-SINGLE:CAPS"></a>NM_CONNECTION_MULTI_CONNECT_SINGLE</p></td>
 <td class="enum_member_description">
 <p>the connection profile can only
-  be active once at each moment. Activating a profile that is already active,
-  will first deactivate it.</p>
+be active once at each moment. Activating a profile that is already active,
+will first deactivate it.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2577,9 +2612,9 @@ the per-device's metered states.</p>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-MULTI-CONNECT-MANUAL-MULTIPLE:CAPS"></a>NM_CONNECTION_MULTI_CONNECT_MANUAL_MULTIPLE</p></td>
 <td class="enum_member_description">
 <p>the profile can
-  be manually activated multiple times on different devices. However,
-  regarding autoconnect, the profile will autoconnect only if it is
-  currently not connected otherwise.</p>
+be manually activated multiple times on different devices. However,
+regarding autoconnect, the profile will autoconnect only if it is
+currently not connected otherwise.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2587,7 +2622,7 @@ the per-device's metered states.</p>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-MULTI-CONNECT-MULTIPLE:CAPS"></a>NM_CONNECTION_MULTI_CONNECT_MULTIPLE</p></td>
 <td class="enum_member_description">
 <p>the profile can autoactivate
-  and be manually activated multiple times together.</p>
+and be manually activated multiple times together.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2636,7 +2671,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-DEACTIVATING:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_DEACTIVATING</p></td>
 <td class="enum_member_description">
 <p>the network connection is being
-  torn down and cleaned up</p>
+torn down and cleaned up</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2644,7 +2679,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-DEACTIVATED:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_DEACTIVATED</p></td>
 <td class="enum_member_description">
 <p>the network connection is disconnected
-  and will be removed</p>
+and will be removed</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2669,7 +2704,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-UNKNOWN:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_UNKNOWN</p></td>
 <td class="enum_member_description">
 <p>The reason for the active connection
-  state change is unknown.</p>
+state change is unknown.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2677,7 +2712,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-NONE:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_NONE</p></td>
 <td class="enum_member_description">
 <p>No reason was given for the active
-  connection state change.</p>
+connection state change.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2685,7 +2720,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-USER-DISCONNECTED:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_USER_DISCONNECTED</p></td>
 <td class="enum_member_description">
 <p>The active connection changed
-  state because the user disconnected it.</p>
+state because the user disconnected it.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2693,7 +2728,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-DEVICE-DISCONNECTED:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_DISCONNECTED</p></td>
 <td class="enum_member_description">
 <p>The active connection
-  changed state because the device it was using was disconnected.</p>
+changed state because the device it was using was disconnected.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2701,7 +2736,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-SERVICE-STOPPED:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_STOPPED</p></td>
 <td class="enum_member_description">
 <p>The service providing the
-  VPN connection was stopped.</p>
+VPN connection was stopped.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2709,7 +2744,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-IP-CONFIG-INVALID:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_IP_CONFIG_INVALID</p></td>
 <td class="enum_member_description">
 <p>The IP config of the active
-  connection was invalid.</p>
+connection was invalid.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2717,7 +2752,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-CONNECT-TIMEOUT:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_CONNECT_TIMEOUT</p></td>
 <td class="enum_member_description">
 <p>The connection attempt to
-  the VPN service timed out.</p>
+the VPN service timed out.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2725,7 +2760,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-SERVICE-START-TIMEOUT:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_START_TIMEOUT</p></td>
 <td class="enum_member_description">
 <p>A timeout occurred
-  while starting the service providing the VPN connection.</p>
+while starting the service providing the VPN connection.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2733,7 +2768,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-SERVICE-START-FAILED:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_START_FAILED</p></td>
 <td class="enum_member_description">
 <p>Starting the service
-  providing the VPN connection failed.</p>
+providing the VPN connection failed.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2741,7 +2776,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-NO-SECRETS:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_NO_SECRETS</p></td>
 <td class="enum_member_description">
 <p>Necessary secrets for the
-  connection were not provided.</p>
+connection were not provided.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2749,7 +2784,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-LOGIN-FAILED:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_LOGIN_FAILED</p></td>
 <td class="enum_member_description">
 <p>Authentication to the
-  server failed.</p>
+server failed.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2757,7 +2792,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-CONNECTION-REMOVED:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_CONNECTION_REMOVED</p></td>
 <td class="enum_member_description">
 <p>The connection was
-  deleted from settings.</p>
+deleted from settings.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2765,7 +2800,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-DEPENDENCY-FAILED:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_DEPENDENCY_FAILED</p></td>
 <td class="enum_member_description">
 <p>Master connection of this
-  connection failed to activate.</p>
+connection failed to activate.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2773,7 +2808,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-DEVICE-REALIZE-FAILED:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_REALIZE_FAILED</p></td>
 <td class="enum_member_description">
 <p>Could not create the
-  software device link.</p>
+software device link.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2781,7 +2816,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVE-CONNECTION-STATE-REASON-DEVICE-REMOVED:CAPS"></a>NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_REMOVED</p></td>
 <td class="enum_member_description">
 <p>The device this connection
-  depended on disappeared.</p>
+depended on disappeared.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2807,8 +2842,8 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-SECRET-AGENT-GET-SECRETS-FLAG-NONE:CAPS"></a>NM_SECRET_AGENT_GET_SECRETS_FLAG_NONE</p></td>
 <td class="enum_member_description">
 <p>no special behavior; by default no
-  user interaction is allowed and requests for secrets are fulfilled from
-  persistent storage, or if no secrets are available an error is returned.</p>
+user interaction is allowed and requests for secrets are fulfilled from
+persistent storage, or if no secrets are available an error is returned.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2816,8 +2851,8 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-SECRET-AGENT-GET-SECRETS-FLAG-ALLOW-INTERACTION:CAPS"></a>NM_SECRET_AGENT_GET_SECRETS_FLAG_ALLOW_INTERACTION</p></td>
 <td class="enum_member_description">
 <p>allows the request to
-  interact with the user, possibly prompting via UI for secrets if any are
-  required, or if none are found in persistent storage.</p>
+interact with the user, possibly prompting via UI for secrets if any are
+required, or if none are found in persistent storage.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2825,9 +2860,9 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-SECRET-AGENT-GET-SECRETS-FLAG-REQUEST-NEW:CAPS"></a>NM_SECRET_AGENT_GET_SECRETS_FLAG_REQUEST_NEW</p></td>
 <td class="enum_member_description">
 <p>explicitly prompt for new
-  secrets from the user.  This flag signals that NetworkManager thinks any
-  existing secrets are invalid or wrong.  This flag implies that interaction
-  is allowed.</p>
+secrets from the user.  This flag signals that NetworkManager thinks any
+existing secrets are invalid or wrong.  This flag implies that interaction
+is allowed.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2835,9 +2870,9 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-SECRET-AGENT-GET-SECRETS-FLAG-USER-REQUESTED:CAPS"></a>NM_SECRET_AGENT_GET_SECRETS_FLAG_USER_REQUESTED</p></td>
 <td class="enum_member_description">
 <p>set if the request was
-  initiated by user-requested action via the D-Bus interface, as opposed to
-  automatically initiated by NetworkManager in response to (for example) scan
-  results or carrier changes.</p>
+initiated by user-requested action via the D-Bus interface, as opposed to
+automatically initiated by NetworkManager in response to (for example) scan
+results or carrier changes.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2845,8 +2880,8 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-SECRET-AGENT-GET-SECRETS-FLAG-WPS-PBC-ACTIVE:CAPS"></a>NM_SECRET_AGENT_GET_SECRETS_FLAG_WPS_PBC_ACTIVE</p></td>
 <td class="enum_member_description">
 <p>indicates that WPS enrollment
-  is active with PBC method. The agent may suggest that the user pushes a button
-  on the router instead of supplying a PSK.</p>
+is active with PBC method. The agent may suggest that the user pushes a button
+on the router instead of supplying a PSK.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2854,7 +2889,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-SECRET-AGENT-GET-SECRETS-FLAG-ONLY-SYSTEM:CAPS"></a>NM_SECRET_AGENT_GET_SECRETS_FLAG_ONLY_SYSTEM</p></td>
 <td class="enum_member_description">
 <p>Internal flag, not part of
-  the D-Bus API.</p>
+the D-Bus API.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2862,7 +2897,7 @@ network.</p>
 <td class="enum_member_name"><p><a name="NM-SECRET-AGENT-GET-SECRETS-FLAG-NO-ERRORS:CAPS"></a>NM_SECRET_AGENT_GET_SECRETS_FLAG_NO_ERRORS</p></td>
 <td class="enum_member_description">
 <p>Internal flag, not part of
-  the D-Bus API.</p>
+the D-Bus API.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3173,7 +3208,7 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-CHECKPOINT-CREATE-FLAG-DESTROY-ALL:CAPS"></a>NM_CHECKPOINT_CREATE_FLAG_DESTROY_ALL</p></td>
 <td class="enum_member_description">
 <p>when creating
-  a new checkpoint, destroy all existing ones.</p>
+a new checkpoint, destroy all existing ones.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3181,7 +3216,7 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-CHECKPOINT-CREATE-FLAG-DELETE-NEW-CONNECTIONS:CAPS"></a>NM_CHECKPOINT_CREATE_FLAG_DELETE_NEW_CONNECTIONS</p></td>
 <td class="enum_member_description">
 <p>upon rollback,
-  delete any new connection added after the checkpoint (Since: 1.6)</p>
+delete any new connection added after the checkpoint (Since: 1.6)</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3189,7 +3224,7 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-CHECKPOINT-CREATE-FLAG-DISCONNECT-NEW-DEVICES:CAPS"></a>NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES</p></td>
 <td class="enum_member_description">
 <p>upon rollback,
-  disconnect any new device appeared after the checkpoint (Since: 1.6)</p>
+disconnect any new device appeared after the checkpoint (Since: 1.6)</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3197,17 +3232,17 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-CHECKPOINT-CREATE-FLAG-ALLOW-OVERLAPPING:CAPS"></a>NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING</p></td>
 <td class="enum_member_description">
 <p>by default, creating
-  a checkpoint fails if there are already existing checkoints that
-  reference the same devices. With this flag, creation of such
-  checkpoints is allowed, however, if an older checkpoint
-  that references overlapping devices gets rolled back, it will
-  automatically destroy this checkpoint during rollback. This
-  allows to create several overlapping checkpoints in parallel,
-  and rollback to them at will. With the special case that
-  rolling back to an older checkpoint will invalidate all
-  overlapping younger checkpoints. This opts-in that the
-  checkpoint can be automatically destroyed by the rollback
-  of an older checkpoint. (Since: 1.12)</p>
+a checkpoint fails if there are already existing checkoints that
+reference the same devices. With this flag, creation of such
+checkpoints is allowed, however, if an older checkpoint
+that references overlapping devices gets rolled back, it will
+automatically destroy this checkpoint during rollback. This
+allows to create several overlapping checkpoints in parallel,
+and rollback to them at will. With the special case that
+rolling back to an older checkpoint will invalidate all
+overlapping younger checkpoints. This opts-in that the
+checkpoint can be automatically destroyed by the rollback
+of an older checkpoint. (Since: 1.12)</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3286,9 +3321,9 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-SETTINGS-CONNECTION-FLAG-UNSAVED:CAPS"></a>NM_SETTINGS_CONNECTION_FLAG_UNSAVED</p></td>
 <td class="enum_member_description">
 <p>the connection is not saved to disk.
-  That either means, that the connection is in-memory only and currently
-  is not backed by a file. Or, that the connection is backed by a file,
-  but has modifications in-memory that were not persisted to disk.</p>
+That either means, that the connection is in-memory only and currently
+is not backed by a file. Or, that the connection is backed by a file,
+but has modifications in-memory that were not persisted to disk.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3296,9 +3331,9 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-SETTINGS-CONNECTION-FLAG-NM-GENERATED:CAPS"></a>NM_SETTINGS_CONNECTION_FLAG_NM_GENERATED</p></td>
 <td class="enum_member_description">
 <p>A connection is "nm-generated" if
- it was generated by NetworkManger. If the connection gets modified or saved
- by the user, the flag gets cleared. A nm-generated is also unsaved
- and has no backing file as it is in-memory only.</p>
+it was generated by NetworkManger. If the connection gets modified or saved
+by the user, the flag gets cleared. A nm-generated is also unsaved
+and has no backing file as it is in-memory only.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3306,10 +3341,10 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-SETTINGS-CONNECTION-FLAG-VOLATILE:CAPS"></a>NM_SETTINGS_CONNECTION_FLAG_VOLATILE</p></td>
 <td class="enum_member_description">
 <p>The connection will be deleted
- when it disconnects. That is for in-memory connections (unsaved), which are
- currently active but deleted on disconnect. Volatile connections are
- always unsaved, but they are also no backing file on disk and are entirely
- in-memory only.</p>
+when it disconnects. That is for in-memory connections (unsaved), which are
+currently active but deleted on disconnect. Volatile connections are
+always unsaved, but they are also no backing file on disk and are entirely
+in-memory only.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3377,7 +3412,7 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVATION-STATE-FLAG-MASTER-HAS-SLAVES:CAPS"></a>NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES</p></td>
 <td class="enum_member_description">
 <p>The master has any slave devices attached.
-  This only makes sense if the device is a master.</p>
+This only makes sense if the device is a master.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3385,9 +3420,9 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVATION-STATE-FLAG-LIFETIME-BOUND-TO-PROFILE-VISIBILITY:CAPS"></a>NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY</p></td>
 <td class="enum_member_description">
 <p>the lifetime
-  of the activation is bound to the visilibity of the connection profile,
-  which in turn depends on "connection.permissions" and whether a session
-  for the user exists. Since: 1.16</p>
+of the activation is bound to the visilibity of the connection profile,
+which in turn depends on "connection.permissions" and whether a session
+for the user exists. Since: 1.16</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3434,9 +3469,9 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-SETTINGS-ADD-CONNECTION2-FLAG-BLOCK-AUTOCONNECT:CAPS"></a>NM_SETTINGS_ADD_CONNECTION2_FLAG_BLOCK_AUTOCONNECT</p></td>
 <td class="enum_member_description">
 <p>usually, when the connection
-  has autoconnect enabled and gets added, it becomes eligible to autoconnect
-  right away. Setting this flag, disables autoconnect until the connection
-  is manually activated.</p>
+has autoconnect enabled and gets added, it becomes eligible to autoconnect
+right away. Setting this flag, disables autoconnect until the connection
+is manually activated.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3475,16 +3510,16 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-SETTINGS-UPDATE2-FLAG-IN-MEMORY:CAPS"></a>NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY</p></td>
 <td class="enum_member_description">
 <p>makes the profile in-memory.
-  Note that such profiles are stored in keyfile format under /run.
-  If the file is already in-memory, the file in /run is updated in-place.
-  Otherwise, the previous storage for the profile is left unchanged
-  on disk, and the in-memory copy shadows it.
-  Note that the original filename of the previous persistent storage (if any)
-  is remembered. That means, when later persisting the profile again to disk,
-  the file on disk will be overwritten again.
-  Likewise, when finally deleting the profile, both the storage from /run
-  and persistent storage are deleted (or if the persistent storage does not
-  allow deletion, and nmmeta file is written to mark the UUID as deleted).</p>
+Note that such profiles are stored in keyfile format under /run.
+If the file is already in-memory, the file in /run is updated in-place.
+Otherwise, the previous storage for the profile is left unchanged
+on disk, and the in-memory copy shadows it.
+Note that the original filename of the previous persistent storage (if any)
+is remembered. That means, when later persisting the profile again to disk,
+the file on disk will be overwritten again.
+Likewise, when finally deleting the profile, both the storage from /run
+and persistent storage are deleted (or if the persistent storage does not
+allow deletion, and nmmeta file is written to mark the UUID as deleted).</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3492,12 +3527,12 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-SETTINGS-UPDATE2-FLAG-IN-MEMORY-DETACHED:CAPS"></a>NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED</p></td>
 <td class="enum_member_description">
 <p>this is almost the same
-  as <a class="link" href="libnm-nm-dbus-interface.html#NM-SETTINGS-UPDATE2-FLAG-IN-MEMORY:CAPS"><code class="literal">NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY</code></a>, with one difference: when later deleting
-  the profile, the original profile will not be deleted. Instead a nmmeta
-  file is written to /run to indicate that the profile is gone.
-  Note that if such a nmmeta tombstone file exists and hides a file in persistant
-  storage, then when re-adding the profile with the same UUID, then the original
-  storage is taken over again.</p>
+as <a class="link" href="libnm-nm-dbus-interface.html#NM-SETTINGS-UPDATE2-FLAG-IN-MEMORY:CAPS"><code class="literal">NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY</code></a>, with one difference: when later deleting
+the profile, the original profile will not be deleted. Instead a nmmeta
+file is written to /run to indicate that the profile is gone.
+Note that if such a nmmeta tombstone file exists and hides a file in persistant
+storage, then when re-adding the profile with the same UUID, then the original
+storage is taken over again.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3505,9 +3540,9 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-SETTINGS-UPDATE2-FLAG-IN-MEMORY-ONLY:CAPS"></a>NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY</p></td>
 <td class="enum_member_description">
 <p>this is like <a class="link" href="libnm-nm-dbus-interface.html#NM-SETTINGS-UPDATE2-FLAG-IN-MEMORY:CAPS"><code class="literal">NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY</code></a>,
-  but if the connection has a corresponding file on persistent storage, the file
-  will be deleted right away. If the profile is later again persisted to disk,
-  a new, unused filename will be chosen.</p>
+but if the connection has a corresponding file on persistent storage, the file
+will be deleted right away. If the profile is later again persisted to disk,
+a new, unused filename will be chosen.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3515,14 +3550,14 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-SETTINGS-UPDATE2-FLAG-VOLATILE:CAPS"></a>NM_SETTINGS_UPDATE2_FLAG_VOLATILE</p></td>
 <td class="enum_member_description">
 <p>This can be specified with either
-  <a class="link" href="libnm-nm-dbus-interface.html#NM-SETTINGS-UPDATE2-FLAG-IN-MEMORY:CAPS"><code class="literal">NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY</code></a>, <a class="link" href="libnm-nm-dbus-interface.html#NM-SETTINGS-UPDATE2-FLAG-IN-MEMORY-DETACHED:CAPS"><code class="literal">NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED</code></a>
-  or <a class="link" href="libnm-nm-dbus-interface.html#NM-SETTINGS-UPDATE2-FLAG-IN-MEMORY-ONLY:CAPS"><code class="literal">NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY</code></a>.
-  After making the connection in-memory only, the connection is marked
-  as volatile. That means, if the connection is currently not active
-  it will be deleted right away. Otherwise, it is marked to for deletion
-  once the connection deactivates. A volatile connection cannot autoactivate
-  again (because it's about to be deleted), but a manual activation will
-  clear the volatile flag.</p>
+<a class="link" href="libnm-nm-dbus-interface.html#NM-SETTINGS-UPDATE2-FLAG-IN-MEMORY:CAPS"><code class="literal">NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY</code></a>, <a class="link" href="libnm-nm-dbus-interface.html#NM-SETTINGS-UPDATE2-FLAG-IN-MEMORY-DETACHED:CAPS"><code class="literal">NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED</code></a>
+or <a class="link" href="libnm-nm-dbus-interface.html#NM-SETTINGS-UPDATE2-FLAG-IN-MEMORY-ONLY:CAPS"><code class="literal">NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY</code></a>.
+After making the connection in-memory only, the connection is marked
+as volatile. That means, if the connection is currently not active
+it will be deleted right away. Otherwise, it is marked to for deletion
+once the connection deactivates. A volatile connection cannot autoactivate
+again (because it's about to be deleted), but a manual activation will
+clear the volatile flag.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3530,9 +3565,9 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-SETTINGS-UPDATE2-FLAG-BLOCK-AUTOCONNECT:CAPS"></a>NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT</p></td>
 <td class="enum_member_description">
 <p>usually, when the connection
-  has autoconnect enabled and is modified, it becomes eligible to autoconnect
-  right away. Setting this flag, disables autoconnect until the connection
-  is manually activated.</p>
+has autoconnect enabled and is modified, it becomes eligible to autoconnect
+right away. Setting this flag, disables autoconnect until the connection
+is manually activated.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3540,12 +3575,12 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-SETTINGS-UPDATE2-FLAG-NO-REAPPLY:CAPS"></a>NM_SETTINGS_UPDATE2_FLAG_NO_REAPPLY</p></td>
 <td class="enum_member_description">
 <p>when a profile gets modified that is
-  currently active, then these changes don't take effect for the active
-  device unless the profile gets reactivated or the configuration reapplied.
-  There are two exceptions: by default "connection.zone" and "connection.metered"
-  properties take effect immediately. Specify this flag to prevent these
-  properties to take effect, so that the change is restricted to modify
-  the profile. Since: 1.20.</p>
+currently active, then these changes don't take effect for the active
+device unless the profile gets reactivated or the configuration reapplied.
+There are two exceptions: by default "connection.zone" and "connection.metered"
+properties take effect immediately. Specify this flag to prevent these
+properties to take effect, so that the change is restricted to modify
+the profile. Since: 1.20.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3610,7 +3645,7 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-MANAGER-RELOAD-FLAG-NONE:CAPS"></a>NM_MANAGER_RELOAD_FLAG_NONE</p></td>
 <td class="enum_member_description">
 <p>an alias for numeric zero, no flags set. This
-  reloads everything that is supported and is identical to a SIGHUP.</p>
+reloads everything that is supported and is identical to a SIGHUP.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3618,8 +3653,8 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-MANAGER-RELOAD-FLAG-CONF:CAPS"></a>NM_MANAGER_RELOAD_FLAG_CONF</p></td>
 <td class="enum_member_description">
 <p>reload the NetworkManager.conf configuration
-  from disk. Note that this does not include connections, which can be
-  reloaded via Setting's <code class="function">ReloadConnections()</code>.</p>
+from disk. Note that this does not include connections, which can be
+reloaded via Setting's <code class="function">ReloadConnections()</code>.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3627,7 +3662,7 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-MANAGER-RELOAD-FLAG-DNS-RC:CAPS"></a>NM_MANAGER_RELOAD_FLAG_DNS_RC</p></td>
 <td class="enum_member_description">
 <p>update DNS configuration, which usually
-  involves writing /etc/resolv.conf anew.</p>
+involves writing /etc/resolv.conf anew.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3635,10 +3670,10 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-MANAGER-RELOAD-FLAG-DNS-FULL:CAPS"></a>NM_MANAGER_RELOAD_FLAG_DNS_FULL</p></td>
 <td class="enum_member_description">
 <p>means to restart the DNS plugin. This
-  is for example useful when using dnsmasq plugin, which uses additional
-  configuration in /etc/NetworkManager/dnsmasq.d. If you edit those files,
-  you can restart the DNS plugin. This action shortly interrupts name
-  resolution.</p>
+is for example useful when using dnsmasq plugin, which uses additional
+configuration in /etc/NetworkManager/dnsmasq.d. If you edit those files,
+you can restart the DNS plugin. This action shortly interrupts name
+resolution.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3678,7 +3713,7 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-INTERFACE-FLAG-UP:CAPS"></a>NM_DEVICE_INTERFACE_FLAG_UP</p></td>
 <td class="enum_member_description">
 <p>the interface is enabled from the
-  administrative point of view. Corresponds to kernel IFF_UP.</p>
+administrative point of view. Corresponds to kernel IFF_UP.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3686,7 +3721,7 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-INTERFACE-FLAG-LOWER-UP:CAPS"></a>NM_DEVICE_INTERFACE_FLAG_LOWER_UP</p></td>
 <td class="enum_member_description">
 <p>the physical link is up. Corresponds
-  to kernel IFF_LOWER_UP.</p>
+to kernel IFF_LOWER_UP.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3694,9 +3729,9 @@ VPN plugin authentication dialogs.</p>
 <td class="enum_member_name"><p><a name="NM-DEVICE-INTERFACE-FLAG-CARRIER:CAPS"></a>NM_DEVICE_INTERFACE_FLAG_CARRIER</p></td>
 <td class="enum_member_description">
 <p>the interface has carrier. In most
-  cases this is equal to the value of <em class="parameter"><code>NM_DEVICE_INTERFACE_FLAG_LOWER_UP</code></em>
+cases this is equal to the value of <em class="parameter"><code>NM_DEVICE_INTERFACE_FLAG_LOWER_UP</code></em>
 .
-  However some devices have a non-standard carrier detection mechanism.</p>
+However some devices have a non-standard carrier detection mechanism.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3705,9 +3740,222 @@ VPN plugin authentication dialogs.</p>
 </div>
 <p class="since">Since: 1.22</p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMClientPermission"></a><h3>enum NMClientPermission</h3>
+<p><a class="link" href="libnm-nm-dbus-interface.html#NMClientPermission" title="enum NMClientPermission"><span class="type">NMClientPermission</span></a> values indicate various permissions that NetworkManager
+clients can obtain to perform certain tasks on behalf of the current user.</p>
+<div class="refsect3">
+<a name="NMClientPermission.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-NONE:CAPS"></a>NM_CLIENT_PERMISSION_NONE</p></td>
+<td class="enum_member_description">
+<p>unknown or no permission</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-NETWORK:CAPS"></a>NM_CLIENT_PERMISSION_ENABLE_DISABLE_NETWORK</p></td>
+<td class="enum_member_description">
+<p>controls whether networking
+can be globally enabled or disabled</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-WIFI:CAPS"></a>NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIFI</p></td>
+<td class="enum_member_description">
+<p>controls whether Wi-Fi can be
+globally enabled or disabled</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-WWAN:CAPS"></a>NM_CLIENT_PERMISSION_ENABLE_DISABLE_WWAN</p></td>
+<td class="enum_member_description">
+<p>controls whether WWAN (3G) can be
+globally enabled or disabled</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-WIMAX:CAPS"></a>NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIMAX</p></td>
+<td class="enum_member_description">
+<p>controls whether WiMAX can be
+globally enabled or disabled</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-SLEEP-WAKE:CAPS"></a>NM_CLIENT_PERMISSION_SLEEP_WAKE</p></td>
+<td class="enum_member_description">
+<p>controls whether the client can ask
+NetworkManager to sleep and wake</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-NETWORK-CONTROL:CAPS"></a>NM_CLIENT_PERMISSION_NETWORK_CONTROL</p></td>
+<td class="enum_member_description">
+<p>controls whether networking connections
+can be started, stopped, and changed</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-WIFI-SHARE-PROTECTED:CAPS"></a>NM_CLIENT_PERMISSION_WIFI_SHARE_PROTECTED</p></td>
+<td class="enum_member_description">
+<p>controls whether a password
+protected Wi-Fi hotspot can be created</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-WIFI-SHARE-OPEN:CAPS"></a>NM_CLIENT_PERMISSION_WIFI_SHARE_OPEN</p></td>
+<td class="enum_member_description">
+<p>controls whether an open Wi-Fi hotspot
+can be created</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-SETTINGS-MODIFY-SYSTEM:CAPS"></a>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_SYSTEM</p></td>
+<td class="enum_member_description">
+<p>controls whether connections
+that are available to all users can be modified</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-SETTINGS-MODIFY-OWN:CAPS"></a>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_OWN</p></td>
+<td class="enum_member_description">
+<p>controls whether connections
+owned by the current user can be modified</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-SETTINGS-MODIFY-HOSTNAME:CAPS"></a>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME</p></td>
+<td class="enum_member_description">
+<p>controls whether the
+persistent hostname can be changed</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-SETTINGS-MODIFY-GLOBAL-DNS:CAPS"></a>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS</p></td>
+<td class="enum_member_description">
+<p>modify persistent global
+DNS configuration</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-RELOAD:CAPS"></a>NM_CLIENT_PERMISSION_RELOAD</p></td>
+<td class="enum_member_description">
+<p>controls access to Reload.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-CHECKPOINT-ROLLBACK:CAPS"></a>NM_CLIENT_PERMISSION_CHECKPOINT_ROLLBACK</p></td>
+<td class="enum_member_description">
+<p>permission to create checkpoints.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-STATISTICS:CAPS"></a>NM_CLIENT_PERMISSION_ENABLE_DISABLE_STATISTICS</p></td>
+<td class="enum_member_description">
+<p>controls whether device
+statistics can be globally enabled or disabled</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-ENABLE-DISABLE-CONNECTIVITY-CHECK:CAPS"></a>NM_CLIENT_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK</p></td>
+<td class="enum_member_description">
+<p>controls whether
+connectivity check can be enabled or disabled</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-WIFI-SCAN:CAPS"></a>NM_CLIENT_PERMISSION_WIFI_SCAN</p></td>
+<td class="enum_member_description">
+<p>controls whether wifi scans can be performed</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-LAST:CAPS"></a>NM_CLIENT_PERMISSION_LAST</p></td>
+<td class="enum_member_description">
+<p>a reserved boundary value</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClientPermissionResult"></a><h3>enum NMClientPermissionResult</h3>
+<p><a class="link" href="libnm-nm-dbus-interface.html#NMClientPermissionResult" title="enum NMClientPermissionResult"><span class="type">NMClientPermissionResult</span></a> values indicate what authorizations and permissions
+the user requires to obtain a given <a class="link" href="libnm-nm-dbus-interface.html#NMClientPermission" title="enum NMClientPermission"><span class="type">NMClientPermission</span></a></p>
+<div class="refsect3">
+<a name="NMClientPermissionResult.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-RESULT-UNKNOWN:CAPS"></a>NM_CLIENT_PERMISSION_RESULT_UNKNOWN</p></td>
+<td class="enum_member_description">
+<p>unknown or no authorization</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-RESULT-YES:CAPS"></a>NM_CLIENT_PERMISSION_RESULT_YES</p></td>
+<td class="enum_member_description">
+<p>the permission is available</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-RESULT-AUTH:CAPS"></a>NM_CLIENT_PERMISSION_RESULT_AUTH</p></td>
+<td class="enum_member_description">
+<p>authorization is necessary before the
+permission is available</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CLIENT-PERMISSION-RESULT-NO:CAPS"></a>NM_CLIENT_PERMISSION_RESULT_NO</p></td>
+<td class="enum_member_description">
+<p>permission to perform the operation is
+denied by system policy</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

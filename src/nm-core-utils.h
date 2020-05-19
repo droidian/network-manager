@@ -267,6 +267,8 @@ gboolean nm_utils_machine_id_is_fake (void);
 
 const char *nm_utils_boot_id_str (void);
 const struct _NMUuid *nm_utils_boot_id_bin (void);
+const char *nm_utils_proc_cmdline (void);
+const char *const*nm_utils_proc_cmdline_split (void);
 
 gboolean nm_utils_host_id_get (const guint8 **out_host_id,
                                gsize *out_host_id_len);
@@ -316,7 +318,7 @@ gboolean nm_utils_ipv6_interface_identifier_get_from_token (NMUtilsIPv6IfaceId *
                                                            const char *token);
 
 const char *nm_utils_inet6_interface_identifier_to_token (NMUtilsIPv6IfaceId iid,
-                                                         char *buf);
+                                                          char buf[static INET6_ADDRSTRLEN]);
 
 gboolean nm_utils_get_ipv6_interface_identifier (NMLinkType link_type,
                                                  const guint8 *hwaddr,
@@ -470,6 +472,16 @@ const char *nm_activation_type_to_string (NMActivationType activation_type);
 /*****************************************************************************/
 
 const char *nm_utils_parse_dns_domain (const char *domain, gboolean *is_routing);
+
+/*****************************************************************************/
+
+void nm_wifi_utils_parse_ies (const guint8 *bytes,
+                              gsize len,
+                              guint32 *out_max_rate,
+                              gboolean *out_metered,
+                              gboolean *out_owe_transition_mode);
+
+guint8 nm_wifi_utils_level_to_quality (int val);
 
 /*****************************************************************************/
 

@@ -22,6 +22,18 @@
  * necessary for bridging connections.
  **/
 
+#define BRIDGE_AGEING_TIME_DEFAULT                300
+#define BRIDGE_FORWARD_DELAY_DEFAULT              15
+#define BRIDGE_HELLO_TIME_DEFAULT                 2
+#define BRIDGE_MAX_AGE_DEFAULT                    20
+#define BRIDGE_MULTICAST_QUERIER_DEFAULT          FALSE
+#define BRIDGE_MULTICAST_QUERY_USE_IFADDR_DEFAULT FALSE
+#define BRIDGE_MULTICAST_SNOOPING_DEFAULT         TRUE
+#define BRIDGE_PRIORITY_DEFAULT                   0x8000
+#define BRIDGE_STP_DEFAULT                        TRUE
+#define BRIDGE_VLAN_DEFAULT_PVID_DEFAULT          1
+#define BRIDGE_VLAN_STATS_ENABLED_DEFAULT         FALSE
+
 /*****************************************************************************/
 
 NM_GOBJECT_PROPERTIES_DEFINE (NMSettingBridge,
@@ -32,31 +44,57 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMSettingBridge,
 	PROP_HELLO_TIME,
 	PROP_MAX_AGE,
 	PROP_AGEING_TIME,
+	PROP_GROUP_ADDRESS,
 	PROP_GROUP_FORWARD_MASK,
+	PROP_MULTICAST_ROUTER,
+	PROP_MULTICAST_QUERIER,
+	PROP_MULTICAST_QUERY_USE_IFADDR,
 	PROP_MULTICAST_SNOOPING,
 	PROP_VLAN_FILTERING,
 	PROP_VLAN_DEFAULT_PVID,
+	PROP_VLAN_PROTOCOL,
+	PROP_VLAN_STATS_ENABLED,
 	PROP_VLANS,
 );
 
 typedef struct {
+	GPtrArray *vlans;
 	char *   mac_address;
-	gboolean stp;
+	char *   multicast_router;
+	char *   group_address;
+	char *   vlan_protocol;
+	guint32  ageing_time;
 	guint16  priority;
 	guint16  forward_delay;
 	guint16  hello_time;
 	guint16  max_age;
-	guint32  ageing_time;
-	guint16  group_forward_mask;
-	gboolean multicast_snooping;
-	gboolean vlan_filtering;
 	guint16  vlan_default_pvid;
-	GPtrArray *vlans;
+	guint16  group_forward_mask;
+	bool multicast_snooping:1;
+	bool vlan_filtering:1;
+	bool stp:1;
+	bool vlan_stats_enabled:1;
+	bool multicast_query_use_ifaddr:1;
+	bool multicast_querier:1;
 } NMSettingBridgePrivate;
+
+/**
+ * NMSettingBridge:
+ *
+ * Bridging Settings
+ */
+struct _NMSettingBridge {
+	NMSetting parent;
+	NMSettingBridgePrivate _priv;
+};
+
+struct _NMSettingBridgeClass {
+	NMSettingClass parent;
+};
 
 G_DEFINE_TYPE (NMSettingBridge, nm_setting_bridge, NM_TYPE_SETTING)
 
-#define NM_SETTING_BRIDGE_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_SETTING_BRIDGE, NMSettingBridgePrivate))
+#define NM_SETTING_BRIDGE_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMSettingBridge, NM_IS_SETTING_BRIDGE, NMSetting)
 
 /*****************************************************************************/
 
@@ -876,6 +914,102 @@ nm_setting_bridge_clear_vlans (NMSettingBridge *setting)
 	}
 }
 
+/**
+ * nm_setting_bridge_get_group_address:
+ * @setting: the #NMSettingBridge
+ *
+ * Returns: the #NMSettingBridge:group-address property of the setting
+ *
+ * Since 1.24
+ **/
+const char *
+nm_setting_bridge_get_group_address (const NMSettingBridge *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_BRIDGE (setting), NULL);
+
+	return NM_SETTING_BRIDGE_GET_PRIVATE (setting)->group_address;
+}
+
+/**
+ * nm_setting_bridge_get_vlan_protocol:
+ * @setting: the #NMSettingBridge
+ *
+ * Returns: the #NMSettingBridge:vlan-protocol property of the setting
+ *
+ * Since 1.24
+ **/
+const char *
+nm_setting_bridge_get_vlan_protocol (const NMSettingBridge *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_BRIDGE (setting), NULL);
+
+	return NM_SETTING_BRIDGE_GET_PRIVATE (setting)->vlan_protocol;
+}
+
+/**
+ * nm_setting_bridge_get_vlan_stats_enabled:
+ * @setting: the #NMSettingBridge
+ *
+ * Returns: the #NMSettingBridge:vlan-stats-enabled property of the setting
+ *
+ * Since 1.24
+ **/
+gboolean
+nm_setting_bridge_get_vlan_stats_enabled (const NMSettingBridge *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_BRIDGE (setting), FALSE);
+
+	return NM_SETTING_BRIDGE_GET_PRIVATE (setting)->vlan_stats_enabled;
+}
+
+/**
+ * nm_setting_bridge_get_multicast_router:
+ * @setting: the #NMSettingBridge
+ *
+ * Returns: the #NMSettingBridge:multicast-router property of the setting
+ *
+ * Since 1.24
+ **/
+const char *
+nm_setting_bridge_get_multicast_router (const NMSettingBridge *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_BRIDGE (setting), NULL);
+
+	return NM_SETTING_BRIDGE_GET_PRIVATE (setting)->multicast_router;
+}
+
+/**
+ * nm_setting_bridge_get_multicast_query_use_ifaddr:
+ * @setting: the #NMSettingBridge
+ *
+ * Returns: the #NMSettingBridge:multicast-query-use-ifaddr property of the setting
+ *
+ * Since 1.24
+ **/
+gboolean
+nm_setting_bridge_get_multicast_query_use_ifaddr (const NMSettingBridge *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_BRIDGE (setting), FALSE);
+
+	return NM_SETTING_BRIDGE_GET_PRIVATE (setting)->multicast_query_use_ifaddr;
+}
+
+/**
+ * nm_setting_bridge_get_multicast_querier:
+ * @setting: the #NMSettingBridge
+ *
+ * Returns: the #NMSettingBridge:multicast-querier property of the setting
+ *
+ * Since 1.24
+ **/
+gboolean
+nm_setting_bridge_get_multicast_querier (const NMSettingBridge *setting)
+{
+	g_return_val_if_fail (NM_IS_SETTING_BRIDGE (setting), FALSE);
+
+	return NM_SETTING_BRIDGE_GET_PRIVATE (setting)->multicast_querier;
+}
+
 /*****************************************************************************/
 
 static gboolean
@@ -966,6 +1100,55 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 	                                        NM_SETTING_BRIDGE_VLANS))
 		return FALSE;
 
+	if (   priv->group_address
+	    && !_nm_utils_hwaddr_link_local_valid (priv->group_address)) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("is not a valid link local MAC address"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_BRIDGE_SETTING_NAME, NM_SETTING_BRIDGE_GROUP_ADDRESS);
+		return FALSE;
+	}
+
+	if (   priv->vlan_protocol
+	    && !NM_IN_STRSET (priv->vlan_protocol,
+	                      "802.1Q",
+	                      "802.1ad")) {
+		g_set_error_literal (error,
+		                     NM_CONNECTION_ERROR,
+		                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+		                     _("is not a valid VLAN filtering protocol"));
+		g_prefix_error (error, "%s.%s: ", NM_SETTING_BRIDGE_SETTING_NAME, NM_SETTING_BRIDGE_VLAN_PROTOCOL);
+		return FALSE;
+	}
+
+	if (priv->multicast_router) {
+		if (!NM_IN_STRSET (priv->multicast_router,
+		                   "auto",
+		                   "enabled",
+		                   "disabled")) {
+			g_set_error_literal (error,
+			                     NM_CONNECTION_ERROR,
+			                     NM_CONNECTION_ERROR_INVALID_PROPERTY,
+			                     _("is not a valid option"));
+			g_prefix_error (error, "%s.%s: ", NM_SETTING_BRIDGE_SETTING_NAME, NM_SETTING_BRIDGE_MULTICAST_ROUTER);
+			return FALSE;
+		}
+
+		if (   NM_IN_STRSET (priv->multicast_router,
+		                     "auto",
+		                     "enabled")
+		    && !priv->multicast_snooping) {
+			g_set_error (error,
+			             NM_CONNECTION_ERROR,
+			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+			             _("'%s' option requires '%s' option to be enabled"),
+			             NM_SETTING_BRIDGE_MULTICAST_ROUTER, NM_SETTING_BRIDGE_MULTICAST_SNOOPING);
+			g_prefix_error (error, "%s.%s: ", NM_SETTING_BRIDGE_SETTING_NAME, NM_SETTING_BRIDGE_MULTICAST_ROUTER);
+			return FALSE;
+		}
+	}
+
 	/* Failures from here on are NORMALIZABLE... */
 
 	if (!_nm_utils_bridge_vlan_verify_list (priv->vlans,
@@ -1046,17 +1229,35 @@ get_property (GObject *object, guint prop_id,
 	case PROP_AGEING_TIME:
 		g_value_set_uint (value, priv->ageing_time);
 		break;
+	case PROP_GROUP_ADDRESS:
+		g_value_set_string (value, priv->group_address);
+		break;
 	case PROP_GROUP_FORWARD_MASK:
 		g_value_set_uint (value, priv->group_forward_mask);
 		break;
 	case PROP_MULTICAST_SNOOPING:
 		g_value_set_boolean (value, priv->multicast_snooping);
 		break;
+	case PROP_MULTICAST_ROUTER:
+		g_value_set_string (value, priv->multicast_router);
+		break;
+	case PROP_MULTICAST_QUERIER:
+		g_value_set_boolean (value, priv->multicast_querier);
+		break;
+	case PROP_MULTICAST_QUERY_USE_IFADDR:
+		g_value_set_boolean (value, priv->multicast_query_use_ifaddr);
+		break;
 	case PROP_VLAN_FILTERING:
 		g_value_set_boolean (value, priv->vlan_filtering);
 		break;
 	case PROP_VLAN_DEFAULT_PVID:
 		g_value_set_uint (value, priv->vlan_default_pvid);
+		break;
+	case PROP_VLAN_PROTOCOL:
+		g_value_set_string (value, priv->vlan_protocol);
+		break;
+	case PROP_VLAN_STATS_ENABLED:
+		g_value_set_boolean (value, priv->vlan_stats_enabled);
 		break;
 	case PROP_VLANS:
 		g_value_take_boxed (value, _nm_utils_copy_array (priv->vlans,
@@ -1099,17 +1300,39 @@ set_property (GObject *object, guint prop_id,
 	case PROP_AGEING_TIME:
 		priv->ageing_time = g_value_get_uint (value);
 		break;
+	case PROP_GROUP_ADDRESS:
+		g_free (priv->group_address);
+		priv->group_address = _nm_utils_hwaddr_canonical_or_invalid (g_value_get_string (value),
+		                                                             ETH_ALEN);
+		break;
 	case PROP_GROUP_FORWARD_MASK:
 		priv->group_forward_mask = (guint16) g_value_get_uint (value);
 		break;
 	case PROP_MULTICAST_SNOOPING:
 		priv->multicast_snooping = g_value_get_boolean (value);
 		break;
+	case PROP_MULTICAST_ROUTER:
+		g_free (priv->multicast_router);
+		priv->multicast_router = g_value_dup_string (value);
+		break;
+	case PROP_MULTICAST_QUERIER:
+		priv->multicast_querier = g_value_get_boolean (value);
+		break;
+	case PROP_MULTICAST_QUERY_USE_IFADDR:
+		priv->multicast_query_use_ifaddr = g_value_get_boolean (value);
+		break;
 	case PROP_VLAN_FILTERING:
 		priv->vlan_filtering = g_value_get_boolean (value);
 		break;
 	case PROP_VLAN_DEFAULT_PVID:
 		priv->vlan_default_pvid = g_value_get_uint (value);
+		break;
+	case PROP_VLAN_PROTOCOL:
+		g_free (priv->vlan_protocol);
+		priv->vlan_protocol = g_value_dup_string (value);
+		break;
+	case PROP_VLAN_STATS_ENABLED:
+		priv->vlan_stats_enabled = g_value_get_boolean (value);
 		break;
 	case PROP_VLANS:
 		g_ptr_array_unref (priv->vlans);
@@ -1131,6 +1354,18 @@ nm_setting_bridge_init (NMSettingBridge *setting)
 	NMSettingBridgePrivate *priv = NM_SETTING_BRIDGE_GET_PRIVATE (setting);
 
 	priv->vlans = g_ptr_array_new_with_free_func ((GDestroyNotify) nm_bridge_vlan_unref);
+
+	priv->ageing_time                = BRIDGE_AGEING_TIME_DEFAULT;
+	priv->forward_delay              = BRIDGE_FORWARD_DELAY_DEFAULT;
+	priv->hello_time                 = BRIDGE_HELLO_TIME_DEFAULT;
+	priv->max_age                    = BRIDGE_MAX_AGE_DEFAULT;
+	priv->multicast_snooping         = BRIDGE_MULTICAST_SNOOPING_DEFAULT;
+	priv->priority                   = BRIDGE_PRIORITY_DEFAULT;
+	priv->stp                        = BRIDGE_STP_DEFAULT;
+	priv->vlan_default_pvid          = BRIDGE_VLAN_DEFAULT_PVID_DEFAULT;
+	priv->vlan_stats_enabled         = BRIDGE_VLAN_STATS_ENABLED_DEFAULT;
+	priv->multicast_query_use_ifaddr = BRIDGE_MULTICAST_QUERY_USE_IFADDR_DEFAULT;
+	priv->multicast_querier          = BRIDGE_MULTICAST_QUERIER_DEFAULT;
 }
 
 /**
@@ -1152,6 +1387,9 @@ finalize (GObject *object)
 	NMSettingBridgePrivate *priv = NM_SETTING_BRIDGE_GET_PRIVATE (object);
 
 	g_free (priv->mac_address);
+	g_free (priv->multicast_router);
+	g_free (priv->group_address);
+	g_free (priv->vlan_protocol);
 	g_ptr_array_unref (priv->vlans);
 
 	G_OBJECT_CLASS (nm_setting_bridge_parent_class)->finalize (object);
@@ -1163,8 +1401,6 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	NMSettingClass *setting_class = NM_SETTING_CLASS (klass);
 	GArray *properties_override = _nm_sett_info_property_override_create_array ();
-
-	g_type_class_add_private (klass, sizeof (NMSettingBridgePrivate));
 
 	object_class->get_property = get_property;
 	object_class->set_property = set_property;
@@ -1209,7 +1445,7 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	                         G_PARAM_READWRITE |
 	                         NM_SETTING_PARAM_INFERRABLE |
 	                         G_PARAM_STATIC_STRINGS);
-	_nm_properties_override_gobj (properties_override, obj_properties[PROP_MAC_ADDRESS], &nm_sett_info_propert_type_mac_addrees);
+	_nm_properties_override_gobj (properties_override, obj_properties[PROP_MAC_ADDRESS], &nm_sett_info_propert_type_mac_address);
 
 	/**
 	 * NMSettingBridge:stp:
@@ -1225,9 +1461,8 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	 */
 	obj_properties[PROP_STP] =
 	    g_param_spec_boolean (NM_SETTING_BRIDGE_STP, "", "",
-	                          TRUE,
+	                          BRIDGE_STP_DEFAULT,
 	                          G_PARAM_READWRITE |
-	                          G_PARAM_CONSTRUCT |
 	                          NM_SETTING_PARAM_INFERRABLE |
 	                          G_PARAM_STATIC_STRINGS);
 
@@ -1248,9 +1483,8 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	 */
 	obj_properties[PROP_PRIORITY] =
 	    g_param_spec_uint (NM_SETTING_BRIDGE_PRIORITY, "", "",
-	                       0, G_MAXUINT16, 0x8000,
+	                       0, G_MAXUINT16, BRIDGE_PRIORITY_DEFAULT,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       NM_SETTING_PARAM_INFERRABLE |
 	                       G_PARAM_STATIC_STRINGS);
 
@@ -1269,9 +1503,8 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	 */
 	obj_properties[PROP_FORWARD_DELAY] =
 	    g_param_spec_uint (NM_SETTING_BRIDGE_FORWARD_DELAY, "", "",
-	                       0, NM_BR_MAX_FORWARD_DELAY, 15,
+	                       0, NM_BR_MAX_FORWARD_DELAY, BRIDGE_FORWARD_DELAY_DEFAULT,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       NM_SETTING_PARAM_INFERRABLE |
 	                       G_PARAM_STATIC_STRINGS);
 
@@ -1290,9 +1523,8 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	 */
 	obj_properties[PROP_HELLO_TIME] =
 	    g_param_spec_uint (NM_SETTING_BRIDGE_HELLO_TIME, "", "",
-	                       0, NM_BR_MAX_HELLO_TIME, 2,
+	                       0, NM_BR_MAX_HELLO_TIME, BRIDGE_HELLO_TIME_DEFAULT,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       NM_SETTING_PARAM_INFERRABLE |
 	                       G_PARAM_STATIC_STRINGS);
 
@@ -1311,9 +1543,8 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	 */
 	obj_properties[PROP_MAX_AGE] =
 	    g_param_spec_uint (NM_SETTING_BRIDGE_MAX_AGE, "", "",
-	                       0, NM_BR_MAX_MAX_AGE, 20,
+	                       0, NM_BR_MAX_MAX_AGE, BRIDGE_MAX_AGE_DEFAULT,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       NM_SETTING_PARAM_INFERRABLE |
 	                       G_PARAM_STATIC_STRINGS);
 
@@ -1332,9 +1563,8 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	 */
 	obj_properties[PROP_AGEING_TIME] =
 	    g_param_spec_uint (NM_SETTING_BRIDGE_AGEING_TIME, "", "",
-	                       NM_BR_MIN_AGEING_TIME, NM_BR_MAX_AGEING_TIME, 300,
+	                       NM_BR_MIN_AGEING_TIME, NM_BR_MAX_AGEING_TIME, BRIDGE_AGEING_TIME_DEFAULT,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       NM_SETTING_PARAM_INFERRABLE |
 	                       G_PARAM_STATIC_STRINGS);
 
@@ -1354,7 +1584,6 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	    g_param_spec_uint (NM_SETTING_BRIDGE_GROUP_FORWARD_MASK, "", "",
 	                       0, 0xFFFF, 0,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       NM_SETTING_PARAM_INFERRABLE |
 	                       G_PARAM_STATIC_STRINGS);
 
@@ -1378,9 +1607,8 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	 */
 	obj_properties[PROP_MULTICAST_SNOOPING] =
 	    g_param_spec_boolean (NM_SETTING_BRIDGE_MULTICAST_SNOOPING, "", "",
-	                          TRUE,
+	                          BRIDGE_MULTICAST_SNOOPING_DEFAULT,
 	                          G_PARAM_READWRITE |
-	                          G_PARAM_CONSTRUCT |
 	                          NM_SETTING_PARAM_INFERRABLE |
 	                          G_PARAM_STATIC_STRINGS);
 
@@ -1403,7 +1631,6 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	    g_param_spec_boolean (NM_SETTING_BRIDGE_VLAN_FILTERING, "", "",
 	                          FALSE,
 	                          G_PARAM_READWRITE |
-	                          G_PARAM_CONSTRUCT |
 	                          NM_SETTING_PARAM_INFERRABLE |
 	                          G_PARAM_STATIC_STRINGS);
 
@@ -1425,9 +1652,8 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	 */
 	obj_properties[PROP_VLAN_DEFAULT_PVID] =
 	    g_param_spec_uint (NM_SETTING_BRIDGE_VLAN_DEFAULT_PVID, "", "",
-	                       0, NM_BRIDGE_VLAN_VID_MAX, 1,
+	                       0, NM_BRIDGE_VLAN_VID_MAX, BRIDGE_VLAN_DEFAULT_PVID_DEFAULT,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       NM_SETTING_PARAM_INFERRABLE |
 	                       G_PARAM_STATIC_STRINGS);
 
@@ -1472,6 +1698,150 @@ nm_setting_bridge_class_init (NMSettingBridgeClass *klass)
 	 * ---end---
 	 */
 	_nm_properties_override_dbus (properties_override, "interface-name", &nm_sett_info_propert_type_deprecated_interface_name);
+
+	/**
+	 * NMSettingBridge:group-address:
+	 *
+	 * If specified, The MAC address of the multicast group this bridge uses for STP.
+	 *
+	 * The address must be a link-local address in standard Ethernet MAC address format,
+	 * ie an address of the form 01:80:C2:00:00:0X, with X in [0, 4..F].
+	 * If not specified the default value is 01:80:C2:00:00:00.
+	 *
+	 * Since: 1.24
+	 **/
+	/* ---ifcfg-rh---
+	 * property: group-address
+	 * variable: BRIDGING_OPTS: group_address=
+	 * description: STP group address.
+	 * example: BRIDGING_OPTS="group_address=01:80:C2:00:00:0A"
+	 * ---end---
+	 */
+	obj_properties[PROP_GROUP_ADDRESS] =
+	    g_param_spec_string (NM_SETTING_BRIDGE_GROUP_ADDRESS, "", "",
+	                         NULL,
+	                         G_PARAM_READWRITE |
+	                         NM_SETTING_PARAM_INFERRABLE |
+	                         G_PARAM_STATIC_STRINGS);
+	_nm_properties_override_gobj (properties_override, obj_properties[PROP_GROUP_ADDRESS], &nm_sett_info_propert_type_mac_address);
+
+	/**
+	 * NMSettingBridge:vlan-protocol:
+	 *
+	 * If specified, the protocol used for VLAN filtering.
+	 *
+	 * Supported values are: '802.1Q', '802.1ad'.
+	 * If not specified the default value is '802.1Q'.
+	 *
+	 * Since: 1.24
+	 **/
+	/* ---ifcfg-rh---
+	 * property: vlan-protocol
+	 * variable: BRIDGING_OPTS: vlan_protocol=
+	 * description: VLAN filtering protocol.
+	 * example: BRIDGING_OPTS="vlan_protocol=802.1Q"
+	 * ---end---
+	 *
+	 * Since: 1.24
+	 */
+	obj_properties[PROP_VLAN_PROTOCOL] =
+	    g_param_spec_string (NM_SETTING_BRIDGE_VLAN_PROTOCOL, "", "",
+	                         NULL,
+	                         G_PARAM_READWRITE |
+	                         NM_SETTING_PARAM_INFERRABLE |
+	                         G_PARAM_STATIC_STRINGS);
+
+	/**
+	 * NMSettingBridge:vlan-stats-enabled:
+	 *
+	 * Controls whether per-VLAN stats accounting is enabled.
+	 **/
+	/* ---ifcfg-rh---
+	 * property: vlan-stats-enabled
+	 * variable: BRIDGING_OPTS: vlan_stats_enabled=
+	 * default: 0
+	 * example: BRIDGING_OPTS="vlan_stats_enabled=1"
+	 * ---end---
+	 *
+	 * Since: 1.24
+	 */
+	obj_properties[PROP_VLAN_STATS_ENABLED] =
+	    g_param_spec_boolean (NM_SETTING_BRIDGE_VLAN_STATS_ENABLED, "", "",
+	                          BRIDGE_VLAN_STATS_ENABLED_DEFAULT,
+	                          G_PARAM_READWRITE |
+	                          NM_SETTING_PARAM_INFERRABLE |
+	                          G_PARAM_STATIC_STRINGS);
+
+	/**
+	 * NMSettingBridge:multicast-router:
+	 *
+	 * Sets bridge's multicast router.
+	 * multicast-snooping must be enabled for this option to work.
+	 *
+	 * Supported values are: 'auto', 'disabled', 'enabled'.
+	 * If not specified the default value is 'auto'.
+	 **/
+	/* ---ifcfg-rh---
+	 * property: multicast-router
+	 * variable: BRIDGING_OPTS: multicast_router=
+	 * values: auto, enabled, disabled
+	 * default: auto
+	 * example: BRIDGING_OPTS="multicast_router=enabled"
+	 * ---end---
+	 *
+	 * Since: 1.24
+	 */
+	obj_properties[PROP_MULTICAST_ROUTER] =
+	    g_param_spec_string (NM_SETTING_BRIDGE_MULTICAST_ROUTER, "", "",
+	                         NULL,
+	                         G_PARAM_READWRITE |
+	                         NM_SETTING_PARAM_INFERRABLE |
+	                         G_PARAM_STATIC_STRINGS);
+
+	/**
+	 * NMSettingBridge:multicast-query-use-ifaddr:
+	 *
+	 * If enabled the bridge's own IP address is used as
+	 * the source address for IGMP queries otherwise
+	 * the default of 0.0.0.0 is used.
+	 **/
+	/* ---ifcfg-rh---
+	 * property: multicast-query-use-ifaddr
+	 * variable: BRIDGING_OPTS: multicast_query_use_ifaddr=
+	 * default: 0
+	 * example: BRIDGING_OPTS="multicast_query-use_ifaddr=1"
+	 * ---end---
+	 *
+	 * Since: 1.24
+	 */
+	obj_properties[PROP_MULTICAST_QUERY_USE_IFADDR] =
+	    g_param_spec_boolean (NM_SETTING_BRIDGE_MULTICAST_QUERY_USE_IFADDR, "", "",
+	                          BRIDGE_MULTICAST_QUERY_USE_IFADDR_DEFAULT,
+	                          G_PARAM_READWRITE |
+	                          NM_SETTING_PARAM_INFERRABLE |
+	                          G_PARAM_STATIC_STRINGS);
+
+	/**
+	 * NMSettingBridge:multicast-querier:
+	 *
+	 * Enable or disable sending of multicast queries by the bridge.
+	 * If not specified the option is disabled.
+	 **/
+	/* ---ifcfg-rh---
+	 * property: multicast-querier
+	 * variable: BRIDGING_OPTS: multicast_querier=
+	 * default: 0
+	 * example: BRIDGING_OPTS="multicast_querier=1"
+	 * ---end---
+	 *
+	 * Since: 1.24
+	 */
+	obj_properties[PROP_MULTICAST_QUERIER] =
+	    g_param_spec_boolean (NM_SETTING_BRIDGE_MULTICAST_QUERIER, "", "",
+	                          BRIDGE_MULTICAST_QUERIER_DEFAULT,
+	                          G_PARAM_READWRITE |
+	                          NM_SETTING_PARAM_INFERRABLE |
+	                          G_PARAM_STATIC_STRINGS);
 
 	g_object_class_install_properties (object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 

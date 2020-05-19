@@ -7,8 +7,8 @@
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingVlan.html" title="NMSettingVlan">
-<link rel="next" href="NMSettingVxlan.html" title="NMSettingVxlan">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<link rel="next" href="NMSettingVrf.html" title="NMSettingVrf">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -22,7 +22,7 @@
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
 <td><a accesskey="p" href="NMSettingVlan.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="NMSettingVxlan.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="NMSettingVrf.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="NMSettingVpn"></a><div class="titlepage"></div>
@@ -37,8 +37,8 @@
 <a name="NMSettingVpn.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -232,8 +232,8 @@
 <a name="NMSettingVpn.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -452,6 +452,11 @@ nm_setting_vpn_add_data_item (<em class="parameter"><code><a class="link" href="
  internally in the
 setting which may be retrieved later.  Should not be used to store passwords
 or other secrets, which is what <a class="link" href="NMSettingVpn.html#nm-setting-vpn-add-secret" title="nm_setting_vpn_add_secret ()"><code class="function">nm_setting_vpn_add_secret()</code></a> is for.</p>
+<p>Before 1.24, <em class="parameter"><code>item</code></em>
+ must not be <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> and not an empty string. Since 1.24,
+<em class="parameter"><code>item</code></em>
+ can be set to an empty string. It can also be set to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to unset
+the key. In that case, the behavior is as if calling <a class="link" href="NMSettingVpn.html#nm-setting-vpn-remove-data-item" title="nm_setting_vpn_remove_data_item ()"><code class="function">nm_setting_vpn_remove_data_item()</code></a>.</p>
 <div class="refsect3">
 <a name="nm-setting-vpn-add-data-item.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -475,8 +480,8 @@ or other secrets, which is what <a class="link" href="NMSettingVpn.html#nm-setti
 <tr>
 <td class="parameter_name"><p>item</p></td>
 <td class="parameter_description"><p>the value to be referenced by <em class="parameter"><code>key</code></em>
-</p></td>
-<td class="parameter_annotations"> </td>
+. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -669,6 +674,11 @@ nm_setting_vpn_add_secret (<em class="parameter"><code><a class="link" href="NMS
  and <em class="parameter"><code>secret</code></em>
  internally in the
 setting which may be retrieved later.</p>
+<p>Before 1.24, <em class="parameter"><code>secret</code></em>
+ must not be <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> and not an empty string. Since 1.24,
+<em class="parameter"><code>secret</code></em>
+ can be set to an empty string. It can also be set to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to unset
+the key. In that case, the behavior is as if calling <a class="link" href="NMSettingVpn.html#nm-setting-vpn-remove-secret" title="nm_setting_vpn_remove_secret ()"><code class="function">nm_setting_vpn_remove_secret()</code></a>.</p>
 <div class="refsect3">
 <a name="nm-setting-vpn-add-secret.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -692,8 +702,8 @@ setting which may be retrieved later.</p>
 <tr>
 <td class="parameter_name"><p>secret</p></td>
 <td class="parameter_description"><p>the secret to be referenced by <em class="parameter"><code>key</code></em>
-</p></td>
-<td class="parameter_annotations"> </td>
+. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -931,6 +941,7 @@ nm_setting_vpn_get_timeout (<em class="parameter"><code><a class="link" href="NM
 <div class="refsect2">
 <a name="NMSettingVpn--data"></a><h3>The <code class="literal">“data”</code> property</h3>
 <pre class="programlisting">  “data”                     <a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *</pre>
+<p>Owner: NMSettingVpn</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -940,6 +951,7 @@ nm_setting_vpn_get_timeout (<em class="parameter"><code><a class="link" href="NM
 <p>If the VPN service supports persistence, and this property is <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>,
 the VPN will attempt to stay connected across link changes and outages,
 until explicitly disconnected.</p>
+<p>Owner: NMSettingVpn</p>
 <p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 </div>
@@ -947,6 +959,7 @@ until explicitly disconnected.</p>
 <div class="refsect2">
 <a name="NMSettingVpn--secrets"></a><h3>The <code class="literal">“secrets”</code> property</h3>
 <pre class="programlisting">  “secrets”                  <a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *</pre>
+<p>Owner: NMSettingVpn</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -956,6 +969,7 @@ until explicitly disconnected.</p>
 <p>D-Bus service name of the VPN plugin that this setting uses to connect to
 its network.  i.e. org.freedesktop.NetworkManager.vpnc for the vpnc
 plugin.</p>
+<p>Owner: NMSettingVpn</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -968,6 +982,7 @@ may take quite a long time to connect.
 Value of 0 means a default timeout, which is 60 seconds (unless overridden
 by vpn.timeout in configuration file). Values greater than zero mean
 timeout in seconds.</p>
+<p>Owner: NMSettingVpn</p>
 <p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
@@ -982,12 +997,13 @@ user, and the VPN requires each user to supply a different name, then
 leave this property empty.  If this property is empty, NetworkManager
 will automatically supply the username of the user which requested the
 VPN connection.</p>
+<p>Owner: NMSettingVpn</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

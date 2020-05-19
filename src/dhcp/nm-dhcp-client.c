@@ -925,7 +925,7 @@ nm_dhcp_client_handle_event (gpointer unused,
 		    && !ip_config) {
 			_LOGW ("client bound but IP config not received");
 			new_state = NM_DHCP_STATE_FAIL;
-			g_clear_pointer (&str_options, g_hash_table_unref);
+			nm_clear_pointer (&str_options, g_hash_table_unref);
 		}
 
 		nm_dhcp_client_set_state (self, new_state, ip_config, str_options);
@@ -940,7 +940,7 @@ static void
 get_property (GObject *object, guint prop_id,
               GValue *value, GParamSpec *pspec)
 {
-	NMDhcpClientPrivate *priv = NM_DHCP_CLIENT_GET_PRIVATE ((NMDhcpClient *) object);
+	NMDhcpClientPrivate *priv = NM_DHCP_CLIENT_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case PROP_IFACE:
@@ -989,7 +989,7 @@ static void
 set_property (GObject *object, guint prop_id,
               const GValue *value, GParamSpec *pspec)
 {
-	NMDhcpClientPrivate *priv = NM_DHCP_CLIENT_GET_PRIVATE ((NMDhcpClient *) object);
+	NMDhcpClientPrivate *priv = NM_DHCP_CLIENT_GET_PRIVATE (object);
 	guint flags;
 
 	switch (prop_id) {
@@ -1099,12 +1099,12 @@ dispose (GObject *object)
 	watch_cleanup (self);
 	timeout_cleanup (self);
 
-	g_clear_pointer (&priv->iface, g_free);
-	g_clear_pointer (&priv->hostname, g_free);
-	g_clear_pointer (&priv->uuid, g_free);
-	g_clear_pointer (&priv->client_id, g_bytes_unref);
-	g_clear_pointer (&priv->hwaddr, g_bytes_unref);
-	g_clear_pointer (&priv->bcast_hwaddr, g_bytes_unref);
+	nm_clear_g_free (&priv->iface);
+	nm_clear_g_free (&priv->hostname);
+	nm_clear_g_free (&priv->uuid);
+	nm_clear_pointer (&priv->client_id, g_bytes_unref);
+	nm_clear_pointer (&priv->hwaddr, g_bytes_unref);
+	nm_clear_pointer (&priv->bcast_hwaddr, g_bytes_unref);
 
 	G_OBJECT_CLASS (nm_dhcp_client_parent_class)->dispose (object);
 

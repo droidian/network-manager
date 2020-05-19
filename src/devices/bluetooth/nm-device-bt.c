@@ -484,7 +484,7 @@ modem_auth_result (NMModem *modem, GError *error, gpointer user_data)
 	}
 
 	priv->stage1_modem_prepare_state = NM_DEVICE_STAGE_STATE_INIT;
-	nm_device_activate_schedule_stage1_device_prepare (device);
+	nm_device_activate_schedule_stage1_device_prepare (device, FALSE);
 }
 
 static void
@@ -519,7 +519,7 @@ modem_prepare_result (NMModem *modem,
 	}
 
 	priv->stage1_modem_prepare_state = NM_DEVICE_STAGE_STATE_COMPLETED;
-	nm_device_activate_schedule_stage1_device_prepare (NM_DEVICE (self));
+	nm_device_activate_schedule_stage1_device_prepare (NM_DEVICE (self), FALSE);
 }
 
 static void
@@ -719,7 +719,7 @@ mm_modem_added_cb (NMModemManager *manager,
 	priv = NM_DEVICE_BT_GET_PRIVATE (self);
 
 	if (priv->stage1_bt_state == NM_DEVICE_STAGE_STATE_COMPLETED)
-		nm_device_activate_schedule_stage1_device_prepare (NM_DEVICE (self));
+		nm_device_activate_schedule_stage1_device_prepare (NM_DEVICE (self), FALSE);
 }
 
 /*****************************************************************************/
@@ -830,7 +830,7 @@ connect_bz_cb (NMBluezManager *bz_mgr,
 	NMDeviceBtPrivate *priv;
 	char sbuf[100];
 
-	if (nm_utils_error_is_cancelled (error, FALSE))
+	if (nm_utils_error_is_cancelled (error))
 		return;
 
 	self = user_data;
@@ -903,7 +903,7 @@ connect_bz_cb (NMBluezManager *bz_mgr,
 	}
 
 	priv->stage1_bt_state = NM_DEVICE_STAGE_STATE_COMPLETED;
-	nm_device_activate_schedule_stage1_device_prepare (NM_DEVICE (self));
+	nm_device_activate_schedule_stage1_device_prepare (NM_DEVICE (self), FALSE);
 }
 
 static NMActStageReturn
@@ -1153,7 +1153,7 @@ static void
 get_property (GObject *object, guint prop_id,
               GValue *value, GParamSpec *pspec)
 {
-	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE ((NMDeviceBt *) object);
+	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case PROP_BT_NAME:
@@ -1172,7 +1172,7 @@ static void
 set_property (GObject *object, guint prop_id,
               const GValue *value, GParamSpec *pspec)
 {
-	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE ((NMDeviceBt *) object);
+	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case PROP_BT_BZ_MGR:
@@ -1282,6 +1282,7 @@ dispose (GObject *object)
 
 	if (priv->modem_manager) {
 		g_signal_handlers_disconnect_by_func (priv->modem_manager, G_CALLBACK (mm_name_owner_changed_cb), self);
+		g_signal_handlers_disconnect_by_func (priv->modem_manager, G_CALLBACK (mm_modem_added_cb), self);
 		nm_modem_manager_name_owner_unref (priv->modem_manager);
 		g_clear_object (&priv->modem_manager);
 	}
@@ -1296,7 +1297,7 @@ dispose (GObject *object)
 static void
 finalize (GObject *object)
 {
-	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE ((NMDeviceBt *) object);
+	NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE (object);
 
 	g_free (priv->connect_rfcomm_iface);
 	g_free (priv->dbus_path);

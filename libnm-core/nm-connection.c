@@ -887,6 +887,7 @@ static gboolean
 _supports_addr_family (NMConnection *self, int family)
 {
 	const char *connection_type = nm_connection_get_connection_type (self);
+	NMSettingConnection *s_con;
 
 	g_return_val_if_fail (connection_type, TRUE);
 	if (strcmp (connection_type, NM_SETTING_OVS_INTERFACE_SETTING_NAME) == 0)
@@ -895,6 +896,9 @@ _supports_addr_family (NMConnection *self, int family)
 		return FALSE;
 	if (strcmp (connection_type, NM_SETTING_6LOWPAN_SETTING_NAME) == 0)
 		return family == AF_INET6 || family == AF_UNSPEC;
+	if (   (s_con = nm_connection_get_setting_connection (self))
+	    && (nm_streq0 (nm_setting_connection_get_slave_type (s_con), NM_SETTING_VRF_SETTING_NAME)))
+		return TRUE;
 
 	return !nm_setting_connection_get_master (nm_connection_get_setting_connection (self));
 }
@@ -995,7 +999,7 @@ _normalize_ip_config (NMConnection *self, GHashTable *parameters)
 
 				if (   inet_pton (AF_INET6, token, &i6_token) == 1
 				    && _nm_utils_inet6_is_token (&i6_token)) {
-					nm_utils_inet6_ntop (&i6_token, normalized);
+					_nm_utils_inet6_ntop (&i6_token, normalized);
 					if (g_strcmp0 (token, normalized)) {
 						g_object_set (s_ip6, NM_SETTING_IP6_CONFIG_TOKEN, normalized, NULL);
 						changed = TRUE;
@@ -1232,6 +1236,7 @@ _normalize_ovs_interface_type (NMConnection *self)
 		return FALSE;
 
 	v = _nm_setting_ovs_interface_verify_interface_type (s_ovs_interface,
+	                                                     nm_setting_ovs_interface_get_interface_type (s_ovs_interface),
 	                                                     self,
 	                                                     TRUE,
 	                                                     &modified,
@@ -1400,24 +1405,19 @@ nm_connection_verify (NMConnection *connection, GError **error)
 NMSettingVerifyResult
 _nm_connection_verify (NMConnection *connection, GError **error)
 {
-	NMConnectionPrivate *priv;
-	NMSettingConnection *s_con;
 	NMSettingIPConfig *s_ip4, *s_ip6;
 	NMSettingProxy *s_proxy;
-	GHashTableIter iter;
-	gpointer value;
-	GSList *all_settings = NULL, *setting_i;
+	gs_free NMSetting **settings = NULL;
 	gs_free_error GError *normalizable_error = NULL;
 	NMSettingVerifyResult normalizable_error_type = NM_SETTING_VERIFY_SUCCESS;
+	guint i;
 
 	g_return_val_if_fail (NM_IS_CONNECTION (connection), NM_SETTING_VERIFY_ERROR);
 	g_return_val_if_fail (!error || !*error, NM_SETTING_VERIFY_ERROR);
 
-	priv = NM_CONNECTION_GET_PRIVATE (connection);
-
-	/* First, make sure there's at least 'connection' setting */
-	s_con = nm_connection_get_setting_connection (connection);
-	if (!s_con) {
+	settings = nm_connection_get_settings (connection, NULL);
+	if (   !settings
+	    || !NM_IS_SETTING_CONNECTION (settings[0])) {
 		g_set_error_literal (error,
 		                     NM_CONNECTION_ERROR,
 		                     NM_CONNECTION_ERROR_MISSING_SETTING,
@@ -1426,24 +1426,12 @@ _nm_connection_verify (NMConnection *connection, GError **error)
 		return NM_SETTING_VERIFY_ERROR;
 	}
 
-	/* Build up the list of settings */
-	g_hash_table_iter_init (&iter, priv->settings);
-	while (g_hash_table_iter_next (&iter, NULL, &value)) {
-		/* Order NMSettingConnection so that it will be verified first.
-		 * The reason is, that errors in this setting might be more fundamental
-		 * and should be checked and reported with higher priority.
-		 */
-		if (value == s_con)
-			all_settings = g_slist_append (all_settings, value);
-		else
-			all_settings = g_slist_prepend (all_settings, value);
-	}
-	all_settings = g_slist_reverse (all_settings);
-
-	/* Now, run the verify function of each setting */
-	for (setting_i = all_settings; setting_i; setting_i = setting_i->next) {
+	for (i = 0; settings[i]; i++) {
 		GError *verify_error = NULL;
 		NMSettingVerifyResult verify_result;
+
+		nm_assert (NM_IS_SETTING (settings[i]));
+		nm_assert (NM_IS_SETTING_CONNECTION (settings[i]) == (i == 0));
 
 		/* verify all settings. We stop if we find the first non-normalizable
 		 * @NM_SETTING_VERIFY_ERROR. If we find normalizable errors we continue
@@ -1452,7 +1440,7 @@ _nm_connection_verify (NMConnection *connection, GError **error)
 		 * @NM_SETTING_VERIFY_NORMALIZABLE, so, if we encounter such an error type,
 		 * we remember it instead (to return it as output).
 		 **/
-		verify_result = _nm_setting_verify (NM_SETTING (setting_i->data), connection, &verify_error);
+		verify_result = _nm_setting_verify (settings[i], connection, &verify_error);
 		if (verify_result == NM_SETTING_VERIFY_NORMALIZABLE ||
 		    verify_result == NM_SETTING_VERIFY_NORMALIZABLE_ERROR) {
 			if (   verify_result == NM_SETTING_VERIFY_NORMALIZABLE_ERROR
@@ -1467,13 +1455,11 @@ _nm_connection_verify (NMConnection *connection, GError **error)
 			}
 		} else if (verify_result != NM_SETTING_VERIFY_SUCCESS) {
 			g_propagate_error (error, verify_error);
-			g_slist_free (all_settings);
 			g_return_val_if_fail (verify_result == NM_SETTING_VERIFY_ERROR, NM_SETTING_VERIFY_ERROR);
 			return NM_SETTING_VERIFY_ERROR;
 		}
 		g_clear_error (&verify_error);
 	}
-	g_slist_free (all_settings);
 
 	s_ip4 = nm_connection_get_setting_ip4_config (connection);
 	s_ip6 = nm_connection_get_setting_ip6_config (connection);
@@ -1928,7 +1914,7 @@ nm_connection_update_secrets (NMConnection *connection,
 		                                             error);
 		g_signal_handlers_unblock_by_func (setting, (GCallback) setting_changed_cb, connection);
 
-		g_clear_pointer (&setting_dict, g_variant_unref);
+		nm_clear_pointer (&setting_dict, g_variant_unref);
 
 		if (success_detail == NM_SETTING_UPDATE_SECRET_ERROR) {
 			nm_assert (!error || *error);
@@ -2262,39 +2248,33 @@ nm_connection_to_dbus_full (NMConnection *connection,
                             NMConnectionSerializationFlags flags,
                             const NMConnectionSerializationOptions *options)
 {
-	NMConnectionPrivate *priv;
 	GVariantBuilder builder;
-	GHashTableIter iter;
-	gpointer data;
-	GVariant *setting_dict, *ret;
+	gboolean any = FALSE;
+	gs_free NMSetting **settings = NULL;
+	guint settings_len;
+	guint i;
 
 	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
-	priv = NM_CONNECTION_GET_PRIVATE (connection);
 
-	g_variant_builder_init (&builder, NM_VARIANT_TYPE_CONNECTION);
-
-	/* Add each setting's hash to the main hash */
-
-	/* FIXME: the order of serialized settings must be stable. */
-
-	g_hash_table_iter_init (&iter, priv->settings);
-	while (g_hash_table_iter_next (&iter, NULL, &data)) {
-		NMSetting *setting = NM_SETTING (data);
+	settings = nm_connection_get_settings (connection, &settings_len);
+	for (i = 0; i < settings_len; i++) {
+		NMSetting *setting = settings[i];
+		GVariant *setting_dict;
 
 		setting_dict = _nm_setting_to_dbus (setting, connection, flags, options);
-		if (setting_dict)
-			g_variant_builder_add (&builder, "{s@a{sv}}", nm_setting_get_name (setting), setting_dict);
+		if (!setting_dict)
+			continue;
+		if (!any) {
+			any = TRUE;
+			g_variant_builder_init (&builder, NM_VARIANT_TYPE_CONNECTION);
+		}
+		g_variant_builder_add (&builder, "{s@a{sv}}", nm_setting_get_name (setting), setting_dict);
 	}
 
-	ret = g_variant_builder_end (&builder);
+	if (!any)
+		return NULL;
 
-	/* Don't send empty hashes */
-	if (g_variant_n_children (ret) == 0) {
-		g_variant_unref (ret);
-		ret = NULL;
-	}
-
-	return ret;
+	return g_variant_builder_end (&builder);
 }
 
 /**
@@ -2318,16 +2298,21 @@ nm_connection_is_type (NMConnection *connection, const char *type)
 }
 
 static int
-_for_each_sort (NMSetting **p_a, NMSetting **p_b, void *unused)
+_get_settings_sort (gconstpointer p_a, gconstpointer p_b, gpointer unused)
 {
-	NMSetting *a = *p_a;
-	NMSetting *b = *p_b;
-	int c;
+	NMSetting *a = *((NMSetting **) p_a);
+	NMSetting *b = *((NMSetting **) p_b);
 
-	c = _nm_setting_compare_priority (a, b);
-	if (c != 0)
-		return c;
-	return strcmp (nm_setting_get_name (a), nm_setting_get_name (b));
+	nm_assert (NM_IS_SETTING (a));
+	nm_assert (NM_IS_SETTING (b));
+	nm_assert (a != b);
+	nm_assert (G_OBJECT_TYPE (a) != G_OBJECT_TYPE (b));
+
+	NM_CMP_RETURN (_nm_setting_compare_priority (a, b));
+	NM_CMP_DIRECT_STRCMP (nm_setting_get_name (a), nm_setting_get_name (b));
+
+	nm_assert_not_reached ();
+	return 0;
 }
 
 /**
@@ -2350,38 +2335,12 @@ NMSetting **
 nm_connection_get_settings (NMConnection *connection,
                             guint *out_length)
 {
-	NMConnectionPrivate *priv;
-	NMSetting **arr;
-	GHashTableIter iter;
-	NMSetting *setting;
-	guint i, size;
-
 	g_return_val_if_fail (NM_IS_CONNECTION (connection), NULL);
 
-	priv = NM_CONNECTION_GET_PRIVATE (connection);
-
-	size = g_hash_table_size (priv->settings);
-
-	if (!size) {
-		NM_SET_OUT (out_length, 0);
-		return NULL;
-	}
-
-	arr = g_new (NMSetting *, size + 1);
-
-	g_hash_table_iter_init (&iter, priv->settings);
-	for (i = 0; g_hash_table_iter_next (&iter, NULL, (gpointer *) &setting); i++)
-		arr[i] = setting;
-	nm_assert (i == size);
-	arr[size] = NULL;
-
-	/* sort the settings. This has an effect on the order in which keyfile
-	 * prints them. */
-	if (size > 1)
-		g_qsort_with_data (arr, size, sizeof (NMSetting *), (GCompareDataFunc) _for_each_sort, NULL);
-
-	NM_SET_OUT (out_length, size);
-	return arr;
+	return (NMSetting **) nm_utils_hash_values_to_array (NM_CONNECTION_GET_PRIVATE (connection)->settings,
+	                                                     _get_settings_sort,
+	                                                     NULL,
+	                                                     out_length);
 }
 
 /**
@@ -2694,6 +2653,7 @@ nm_connection_is_virtual (NMConnection *connection)
 	                        NM_SETTING_TEAM_SETTING_NAME,
 	                        NM_SETTING_TUN_SETTING_NAME,
 	                        NM_SETTING_VLAN_SETTING_NAME,
+	                        NM_SETTING_VRF_SETTING_NAME,
 	                        NM_SETTING_VXLAN_SETTING_NAME,
 	                        NM_SETTING_WIREGUARD_SETTING_NAME))
 		return TRUE;

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0+
+// SPDX-License-Identifier: LGPL-2.1+
 /*
  * Copyright (C) 2008 - 2018 Red Hat, Inc.
  */
@@ -190,22 +190,6 @@ __g_test_add_data_func_full (const char     *testpath,
 #endif
 }
 #define g_test_add_data_func_full __g_test_add_data_func_full
-
-/*****************************************************************************/
-
-#if !GLIB_CHECK_VERSION (2, 34, 0)
-#define G_DEFINE_QUARK(QN, q_n)               \
-GQuark                                        \
-q_n##_quark (void)                            \
-{                                             \
-	static GQuark q;                          \
-                                              \
-	if G_UNLIKELY (q == 0)                    \
-		q = g_quark_from_static_string (#QN); \
-                                              \
-	return q;                                 \
-}
-#endif
 
 /*****************************************************************************/
 
@@ -598,6 +582,51 @@ _g_atomic_pointer_compare_and_exchange (volatile void *atomic,
 		\
 		_g_atomic_pointer_compare_and_exchange (_atomic, _oldval, _newval); \
 	})
+
+/*****************************************************************************/
+
+#if !GLIB_CHECK_VERSION (2, 58, 0)
+static inline gboolean
+g_hash_table_steal_extended (GHashTable    *hash_table,
+                             gconstpointer  lookup_key,
+                             gpointer      *stolen_key,
+                             gpointer      *stolen_value)
+{
+	g_assert (stolen_key);
+	g_assert (stolen_value);
+
+	if (g_hash_table_lookup_extended (hash_table, lookup_key, stolen_key, stolen_value)) {
+		g_hash_table_steal (hash_table, lookup_key);
+		return TRUE;
+	}
+	*stolen_key = NULL;
+	*stolen_value = NULL;
+	return FALSE;
+}
+#else
+#define g_hash_table_steal_extended(hash_table, lookup_key, stolen_key, stolen_value) \
+	({ \
+		gpointer *_stolen_key = (stolen_key); \
+		gpointer *_stolen_value = (stolen_value); \
+		\
+		/* we cannot allow NULL arguments, because then we would leak the values in
+		 * the compat implementation. */ \
+		g_assert (_stolen_key); \
+		g_assert (_stolen_value); \
+		\
+		G_GNUC_BEGIN_IGNORE_DEPRECATIONS \
+		g_hash_table_steal_extended (hash_table, lookup_key, _stolen_key, _stolen_value); \
+		G_GNUC_END_IGNORE_DEPRECATIONS \
+	})
+#endif
+
+/*****************************************************************************/
+
+__attribute__((__deprecated__("Don't use g_cancellable_reset(). Create a new cancellable instead.")))
+void _nm_g_cancellable_reset (GCancellable *cancellable);
+
+#undef g_cancellable_reset
+#define g_cancellable_reset(cancellable) _nm_g_cancellable_reset(cancellable)
 
 /*****************************************************************************/
 

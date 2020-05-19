@@ -1,3 +1,63 @@
+network-manager (1.24.0-1ubuntu1) UNRELEASED; urgency=medium
+
+  * Resynchronize on Debian, remaining changes:
+    - Use systemd-resolved instead of dnsmasq
+    - debian/control:
+      + Depend on isc-dhcp-client instead of recommends
+      + Recommend network-manager-pptp
+      + Suggest avahi-autoipd for IPv4LL support
+    - debian/rules, debian/network-manager.postinst:
+      + Don't restart NetworkManager on upgrade but recommend restarting
+        the computer
+    - debian/rules, debian/network-manager.postinst:
+      + Don't install sysvinit scripts or migrate from sysvinit
+    - debian/network-manager.postinst:
+      + Don't add the netdev group.
+      + drop in an empty override file for NetworkManager to manage all
+        devices for upgrade from any version, as long as there is no
+        netplan configuration yet.
+    - debian/network-manager.maintscript
+      + Remove /etc/dbus-1/system.d/nm-ofono.conf
+    - debian/default-wifi-powersave-on.conf, debian/rules:
+      + Install a config file to enable WiFi powersave
+    - Enable build tests
+    - Add autopkgtests
+    - debian/source_network-manager.py, debian/network-manager.install,
+      debian/network-manager.links: Add apport hook
+    - Add network-manager-config-connectivity-ubuntu package
+    - NetworkManager.conf: disable MAC randomization feature. There is no
+      easy way for desktop users to disable this feature yet. And there are
+      reports that it doesn't work well with some systems.
+    - Update Vcs links to point to Ubuntu branch
+    - Add patches. See patch descriptions for more details:
+      + Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
+      + Update-dnsmasq-parameters.patch
+      + Disable-general-with-expect.patch
+      + libnm-Check-self-still-NMManager-or-not.patch
+      + dns-manager-don-t-merge-split-DNS-search-domains.patch (but disabled)
+      + Read-system-connections-from-run.patch
+    - debian/tests/urfkill-integration - don't stop/start network manager
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 19 May 2020 17:07:30 +0200
+
+network-manager (1.24.0-1) unstable; urgency=medium
+
+  * New upstream version 1.24.0
+  * Rebase patches
+  * Drop Don-t-setup-Sleep-Monitor-if-not-booted-with-systemd.patch
+  * Bump debhelper-compat to 13
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 09 May 2020 21:12:22 +0200
+
+network-manager (1.23.90-1) unstable; urgency=medium
+
+  * New upstream version 1.23.90 (1.24 rc1)
+  * Rebase patches
+  * Update symbols file for libnm0
+  * Add Build-Depends-Package field to libnm0.symbols
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 12 Apr 2020 00:46:53 +0200
+
 network-manager (1.22.10-1ubuntu3) groovy; urgency=medium
 
   * No-change rebuild to bump Groovy version number.

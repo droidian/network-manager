@@ -1,6 +1,6 @@
-common_inc = include_directories('.')
+# SPDX-License-Identifier: LGPL-2.1+
 
-nm_polkit_listener = files('nm-polkit-listener.c')
+common_inc = include_directories('.')
 
 common_deps = [
   libnm_dep,
@@ -13,6 +13,7 @@ sources = files(
   'nm-client-utils.c',
   'nm-secret-agent-simple.c',
   'nm-vpn-helpers.c',
+  'nm-polkit-listener.c',
 )
 
 libnmc_base = static_library(

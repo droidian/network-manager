@@ -60,6 +60,7 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMDevice,
 	PROP_IP4_CONNECTIVITY,
 	PROP_IP6_CONNECTIVITY,
 	PROP_INTERFACE_FLAGS,
+	PROP_HW_ADDRESS,
 );
 
 enum {
@@ -85,6 +86,7 @@ typedef struct _NMDevicePrivate {
 	GPtrArray *lldp_neighbors;
 	char *driver;
 	char *driver_version;
+	char *hw_address;
 	char *interface;
 	char *ip_interface;
 	char *firmware_version;
@@ -104,6 +106,8 @@ typedef struct _NMDevicePrivate {
 	bool autoconnect;
 	bool managed;
 	bool real;
+
+	bool hw_address_is_new:1;
 
 	guint32 old_state;
 
@@ -158,7 +162,7 @@ _notify_event_state_changed (NMClient *client,
 	gs_unref_object NMDevice *self = notify_event->user_data;
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
 
-	NML_NMCLIENT_LOG_T (_nm_object_get_client (self),
+	NML_NMCLIENT_LOG_T (client,
 	                    "[%s] emit Device's StateChanged signal %u -> %u, reason: %u",
 	                    _nm_object_get_path (self),
 	                    (guint) priv->old_state,
@@ -296,6 +300,7 @@ coerce_type (NMDeviceType type)
 	case NM_DEVICE_TYPE_6LOWPAN:
 	case NM_DEVICE_TYPE_WIREGUARD:
 	case NM_DEVICE_TYPE_WIFI_P2P:
+	case NM_DEVICE_TYPE_VRF:
 		return type;
 	}
 	return NM_DEVICE_TYPE_UNKNOWN;
@@ -324,7 +329,7 @@ finalize (GObject *object)
 {
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (object);
 
-	g_clear_pointer (&priv->lldp_neighbors, g_ptr_array_unref);
+	nm_clear_pointer (&priv->lldp_neighbors, g_ptr_array_unref);
 
 	g_free (priv->interface);
 	g_free (priv->ip_interface);
@@ -339,6 +344,7 @@ finalize (GObject *object)
 	g_free (priv->bus_name);
 	g_free (priv->type_description);
 	g_free (priv->physical_port_id);
+	g_free (priv->hw_address);
 
 	nm_clear_pointer (&priv->udev, udev_unref);
 
@@ -444,6 +450,9 @@ get_property (GObject *object,
 	case PROP_INTERFACE_FLAGS:
 		g_value_set_uint (value, nm_device_get_interface_flags (device));
 		break;
+	case PROP_HW_ADDRESS:
+		g_value_set_string (value, nm_device_get_hw_address (device));
+		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -500,6 +509,7 @@ const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device = NML_DBUS_META_IFACE_INIT
 		NML_DBUS_META_PROPERTY_INIT_S       ("DriverVersion",        PROP_DRIVER_VERSION,        NMDevicePrivate, driver_version                                                                                       ),
 		NML_DBUS_META_PROPERTY_INIT_B       ("FirmwareMissing",      PROP_FIRMWARE_MISSING,      NMDevicePrivate, firmware_missing                                                                                     ),
 		NML_DBUS_META_PROPERTY_INIT_S       ("FirmwareVersion",      PROP_FIRMWARE_VERSION,      NMDevicePrivate, firmware_version                                                                                     ),
+		NML_DBUS_META_PROPERTY_INIT_FCN     ("HwAddress",            0,                          "s",             _nm_device_notify_update_prop_hw_address                                                             ),
 		NML_DBUS_META_PROPERTY_INIT_S       ("Interface",            PROP_INTERFACE,             NMDevicePrivate, interface                                                                                            ),
 		NML_DBUS_META_PROPERTY_INIT_U       ("InterfaceFlags",       PROP_INTERFACE_FLAGS,       NMDevicePrivate, interface_flags                                                                                      ),
 		NML_DBUS_META_PROPERTY_INIT_IGNORE  ("Ip4Address",           "u"                                                                                                                                               ),
@@ -902,6 +912,19 @@ nm_device_class_init (NMDeviceClass *klass)
 	                       G_PARAM_READABLE |
 	                       G_PARAM_STATIC_STRINGS);
 
+	/**
+	 * NMDevice:hw-address:
+	 *
+	 * The hardware address of the device.
+	 *
+	 * Since: 1.24
+	 **/
+	obj_properties[PROP_HW_ADDRESS] =
+	    g_param_spec_string (NM_DEVICE_HW_ADDRESS, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
+	                         G_PARAM_STATIC_STRINGS);
+
 	_nml_dbus_meta_class_init_with_properties (object_class, &_nml_dbus_meta_iface_nm_device);
 
 	/**
@@ -1080,6 +1103,50 @@ nm_device_get_type_description (NMDevice *device)
 	return _nml_coerce_property_str_not_empty (priv->type_description);
 }
 
+ NMLDBusNotifyUpdatePropFlags
+_nm_device_notify_update_prop_hw_address (NMClient *client,
+                                          NMLDBusObject *dbobj,
+                                          const NMLDBusMetaIface *meta_iface,
+                                          guint dbus_property_idx,
+                                          GVariant *value)
+{
+	NMDevice *self = NM_DEVICE (dbobj->nmobj);
+	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
+	gboolean is_new = (meta_iface == &_nml_dbus_meta_iface_nm_device);
+	gboolean changed = FALSE;
+
+	if (   !is_new
+	    && priv->hw_address_is_new) {
+		/* once the instance is marked to honor the new property, the
+		 * changed signal for the old variant gets ignored. */
+		goto out;
+	}
+
+	if (!value) {
+		if (nm_clear_g_free (&priv->hw_address))
+			changed = TRUE;
+		goto out;
+	}
+
+	priv->hw_address_is_new = is_new;
+
+	nm_utils_strdup_reset (&priv->hw_address,
+	                       _nml_coerce_property_str_not_empty (g_variant_get_string (value, NULL)));
+
+	/* always emit a changed signal here, even if "priv->hw_address" might be unchanged.
+	 * We want to emit the signal because we received a PropertiesChanged signal on D-Bus,
+	 * even if nothing actually changed. */
+	changed = TRUE;
+
+out:
+	if (changed) {
+		_nm_client_queue_notify_object (client,
+		                                self,
+		                                obj_properties[PROP_HW_ADDRESS]);
+	}
+	return NML_DBUS_NOTIFY_UPDATE_PROP_FLAGS_NONE;
+}
+
 /**
  * nm_device_get_hw_address:
  * @device: a #NMDevice
@@ -1092,12 +1159,15 @@ nm_device_get_type_description (NMDevice *device)
 const char *
 nm_device_get_hw_address (NMDevice *device)
 {
+	NMDevicePrivate *priv;
+
 	g_return_val_if_fail (NM_IS_DEVICE (device), NULL);
 
-	if (NM_DEVICE_GET_CLASS (device)->get_hw_address)
-		return NM_DEVICE_GET_CLASS (device)->get_hw_address (device);
+	priv = NM_DEVICE_GET_PRIVATE (device);
 
-	return NULL;
+	nm_assert (!nm_streq0 (priv->hw_address, ""));
+
+	return priv->hw_address;
 }
 
 /**
@@ -1141,8 +1211,9 @@ nm_device_get_managed (NMDevice *device)
  *
  * Since: 1.2
  *
- * Deprecated: 1.22, use nm_device_set_managed_async() or GDBusConnection
- *
+ * Deprecated: 1.22: Use the async command nm_client_dbus_set_property() on
+ * nm_object_get_path(), interface %NM_DBUS_INTERFACE_DEVICE to set the
+ * "Managed" property to a "(b)" boolean value.
  * This function is deprecated because it calls a synchronous D-Bus method
  * and modifies the content of the NMClient cache client side. Also, it does
  * not emit a property changed signal.
@@ -1151,8 +1222,6 @@ void
 nm_device_set_managed (NMDevice *device, gboolean managed)
 {
 	g_return_if_fail (NM_IS_DEVICE (device));
-
-	/* FIXME(libnm-async-api): add nm_device_set_managed_async(). */
 
 	managed = !!managed;
 
@@ -1189,8 +1258,8 @@ nm_device_get_autoconnect (NMDevice *device)
  *
  * Enables or disables automatic activation of the #NMDevice.
  *
- * Deprecated: 1.22, use nm_device_set_autoconnect_async() or GDBusConnection
- *
+ * Deprecated: 1.22: Use the async command nm_client_dbus_set_property() on
+ * nm_object_get_path(), %NM_DBUS_INTERFACE_DEVICE to set "AutoConnect" property to a "(b)" value.
  * This function is deprecated because it calls a synchronous D-Bus method
  * and modifies the content of the NMClient cache client side.
  **/
@@ -1198,8 +1267,6 @@ void
 nm_device_set_autoconnect (NMDevice *device, gboolean autoconnect)
 {
 	g_return_if_fail (NM_IS_DEVICE (device));
-
-	/* FIXME(libnm-async-api): add nm_device_set_autoconnect_async(). */
 
 	NM_DEVICE_GET_PRIVATE (device)->autoconnect = autoconnect;
 
@@ -1505,6 +1572,8 @@ get_type_name (NMDevice *device)
 		return _("WireGuard");
 	case NM_DEVICE_TYPE_WIFI_P2P:
 		return _("Wi-Fi P2P");
+	case NM_DEVICE_TYPE_VRF:
+		return _("VRF");
 	case NM_DEVICE_TYPE_GENERIC:
 	case NM_DEVICE_TYPE_UNUSED1:
 	case NM_DEVICE_TYPE_UNUSED2:
@@ -1726,7 +1795,7 @@ ensure_description (NMDevice *device)
 		g_object_get (device, "name", &priv->description, NULL);
 		if (priv->description && priv->description[0])
 			return;
-		g_clear_pointer (&priv->description, g_free);
+		nm_clear_g_free (&priv->description);
 	}
 
 	if (!priv->short_vendor) {
@@ -2077,7 +2146,7 @@ nm_device_is_software (NMDevice *device)
  *
  * Since: 1.2
  *
- * Deprecated: 1.22, use nm_device_reapply_async() or GDBusConnection
+ * Deprecated: 1.22: Use nm_device_reapply_async() or GDBusConnection.
  **/
 gboolean
 nm_device_reapply (NMDevice *device,
@@ -2217,7 +2286,7 @@ nm_device_reapply_finish (NMDevice *device,
  *
  * Since: 1.2
  *
- * Deprecated: 1.22, use nm_device_get_applied_connection_async() or GDBusConnection
+ * Deprecated: 1.22: Use nm_device_get_applied_connection_async() or GDBusConnection.
  **/
 NMConnection *
 nm_device_get_applied_connection (NMDevice *device,
@@ -2364,7 +2433,7 @@ nm_device_get_applied_connection_finish (NMDevice *device,
  *
  * Returns: %TRUE on success, %FALSE on error, in which case @error will be set.
  *
- * Deprecated: 1.22, use nm_device_disconnect_async() or GDBusConnection
+ * Deprecated: 1.22: Use nm_device_disconnect_async() or GDBusConnection.
  **/
 gboolean
 nm_device_disconnect (NMDevice *device,
@@ -2456,7 +2525,7 @@ nm_device_disconnect_finish (NMDevice *device,
  * Returns: %TRUE on success, %FALSE on error, in which case @error
  * will be set.
  *
- * Deprecated: 1.22, use nm_device_delete_async() or GDBusConnection
+ * Deprecated: 1.22: Use nm_device_delete_async() or GDBusConnection.
  **/
 gboolean
 nm_device_delete (NMDevice *device,

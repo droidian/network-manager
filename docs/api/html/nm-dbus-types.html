@@ -8,7 +8,7 @@
 <link rel="up" href="dbus-types.html" title="Types">
 <link rel="prev" href="dbus-types.html" title="Types">
 <link rel="next" href="secret-agents.html" title="Part IV. Secret Agent D-Bus API Reference">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -68,7 +68,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>OpenVSwitch can be managed. This means the OVS device plugin is loaded. Since: 1.24, 1.22.2</p>
+<p>OpenVSwitch can be managed. This means the OVS device plugin is loaded. Since: 1.24</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -789,6 +789,21 @@
 </td>
 <td class="auto-generated"> </td>
 </tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_DEVICE_TYPE_VRF</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">31</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>A VRF (Virtual Routing and Forwarding) interface (Since: 1.24)</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -1401,6 +1416,21 @@
 </td>
 <td class="enum_member_description">
 <p>WPA/RSN Simultaneous Authentication of Equals is supported</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_802_11_AP_SEC_KEY_MGMT_OWE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x00000800</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>WPA/RSN Opportunistic Wireless Encryption is supported</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -4736,8 +4766,376 @@
 </table></div>
 </div>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NMClientPermission"></a><h3>enum NMClientPermission</h3>
+<p><a class="link" href="nm-dbus-types.html#NMClientPermission" title="enum NMClientPermission">NMClientPermission</a> values indicate various permissions that NetworkManager clients can obtain to perform certain tasks on behalf of the current user.</p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.17.2.33.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_NONE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>unknown or no permission</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_ENABLE_DISABLE_NETWORK</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">1</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether networking can be globally enabled or disabled</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIFI</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">2</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether Wi-Fi can be globally enabled or disabled</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_ENABLE_DISABLE_WWAN</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">3</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether WWAN (3G) can be globally enabled or disabled</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIMAX</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">4</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether WiMAX can be globally enabled or disabled</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_SLEEP_WAKE</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">5</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether the client can ask NetworkManager to sleep and wake</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_NETWORK_CONTROL</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">6</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether networking connections can be started, stopped, and changed</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_WIFI_SHARE_PROTECTED</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">7</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether a password protected Wi-Fi hotspot can be created</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_WIFI_SHARE_OPEN</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">8</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether an open Wi-Fi hotspot can be created</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_SYSTEM</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">9</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether connections that are available to all users can be modified</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_OWN</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">10</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether connections owned by the current user can be modified</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">11</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether the persistent hostname can be changed</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">12</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>modify persistent global DNS configuration</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_RELOAD</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">13</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls access to Reload.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_CHECKPOINT_ROLLBACK</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">14</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>permission to create checkpoints.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_ENABLE_DISABLE_STATISTICS</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">15</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether device statistics can be globally enabled or disabled</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">16</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether connectivity check can be enabled or disabled</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_WIFI_SCAN</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">17</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>controls whether wifi scans can be performed</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMClientPermissionResult"></a><h3>enum NMClientPermissionResult</h3>
+<p><a class="link" href="nm-dbus-types.html#NMClientPermissionResult" title="enum NMClientPermissionResult">NMClientPermissionResult</a> values indicate what authorizations and permissions the user requires to obtain a given <a class="link" href="nm-dbus-types.html#NMClientPermission" title="enum NMClientPermission">NMClientPermission</a></p>
+<p></p>
+<div class="refsect3">
+<a name="id-1.4.17.2.34.4"></a><h4>Values</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col width="100px" class="enum_members_value">
+<col class="enum_members_description">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_RESULT_UNKNOWN</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>unknown or no authorization</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_RESULT_YES</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">1</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>the permission is available</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_RESULT_AUTH</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">2</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>authorization is necessary before the permission is available</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_CLIENT_PERMISSION_RESULT_NO</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">3</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>permission to perform the operation is denied by system policy</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

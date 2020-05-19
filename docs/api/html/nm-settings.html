@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nmtui.html" title="nmtui">
 <link rel="next" href="nm-settings-keyfile.html" title="nm-settings-keyfile">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -397,10 +397,17 @@
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings.property.802-1x.domain-match"></a>domain-match</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>Constraint for server domain name. If set, this list of FQDNs is used as a match requirement for dNSName element(s) of the certificate presented by the authentication server.  If a matching dNSName is found, this constraint is met.  If no dNSName values are present, this constraint is matched against SubjectName CN using the same comparison. Multiple valid FQDNs can be passed as a ";" delimited list.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings.property.802-1x.domain-suffix-match"></a>domain-suffix-match</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>Constraint for server domain name. If set, this FQDN is used as a suffix match requirement for dNSName element(s) of the certificate presented by the authentication server.  If a matching dNSName is found, this constraint is met.  If no dNSName values are present, this constraint is matched against SubjectName CN using same suffix match comparison.</td>
+<td>Constraint for server domain name. If set, this FQDN is used as a suffix match requirement for dNSName element(s) of the certificate presented by the authentication server.  If a matching dNSName is found, this constraint is met.  If no dNSName values are present, this constraint is matched against SubjectName CN using same suffix match comparison. Since version 1.24, multiple valid FQDNs can be passed as a ";" delimited list.</td>
 </tr>
 <tr>
 <td align="left">
@@ -558,10 +565,17 @@
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings.property.802-1x.phase2-domain-match"></a>phase2-domain-match</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>Constraint for server domain name. If set, this list of FQDNs is used as a match requirement for dNSName element(s) of the certificate presented by the authentication server during the inner "phase 2" authentication. If a matching dNSName is found, this constraint is met.  If no dNSName values are present, this constraint is matched against SubjectName CN using the same comparison. Multiple valid FQDNs can be passed as a ";" delimited list.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings.property.802-1x.phase2-domain-suffix-match"></a>phase2-domain-suffix-match</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>Constraint for server domain name. If set, this FQDN is used as a suffix match requirement for dNSName element(s) of the certificate presented by the authentication server during the inner "phase 2" authentication.  If a matching dNSName is found, this constraint is met.  If no dNSName values are present, this constraint is matched against SubjectName CN using same suffix match comparison.</td>
+<td>Constraint for server domain name. If set, this FQDN is used as a suffix match requirement for dNSName element(s) of the certificate presented by the authentication server during the inner "phase 2" authentication.  If a matching dNSName is found, this constraint is met.  If no dNSName values are present, this constraint is matched against SubjectName CN using same suffix match comparison. Since version 1.24, multiple valid FQDNs can be passed as a ";" delimited list.</td>
 </tr>
 <tr>
 <td align="left">
@@ -817,6 +831,13 @@
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings.property.bridge.group-address"></a>group-address</td>
+<td align="left">byte array</td>
+<td align="left"> </td>
+<td>If specified, The MAC address of the multicast group this bridge uses for STP. The address must be a link-local address in standard Ethernet MAC address format, ie an address of the form 01:80:C2:00:00:0X, with X in [0, 4..F]. If not specified the default value is 01:80:C2:00:00:00.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings.property.bridge.group-forward-mask"></a>group-forward-mask</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
@@ -852,6 +873,27 @@
 </tr>
 <tr>
 <td align="left">
+<a name="nm-settings.property.bridge.multicast-querier"></a>multicast-querier</td>
+<td align="left">boolean</td>
+<td align="left">FALSE</td>
+<td>Enable or disable sending of multicast queries by the bridge. If not specified the option is disabled.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.bridge.multicast-query-use-ifaddr"></a>multicast-query-use-ifaddr</td>
+<td align="left">boolean</td>
+<td align="left">FALSE</td>
+<td>If enabled the bridge's own IP address is used as the source address for IGMP queries otherwise the default of 0.0.0.0 is used.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.bridge.multicast-router"></a>multicast-router</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>Sets bridge's multicast router. multicast-snooping must be enabled for this option to work. Supported values are: 'auto', 'disabled', 'enabled'. If not specified the default value is 'auto'.</td>
+</tr>
+<tr>
+<td align="left">
 <a name="nm-settings.property.bridge.multicast-snooping"></a>multicast-snooping</td>
 <td align="left">boolean</td>
 <td align="left">TRUE</td>
@@ -884,6 +926,20 @@
 <td align="left">boolean</td>
 <td align="left">FALSE</td>
 <td>Control whether VLAN filtering is enabled on the bridge.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.bridge.vlan-protocol"></a>vlan-protocol</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>If specified, the protocol used for VLAN filtering. Supported values are: '802.1Q', '802.1ad'. If not specified the default value is '802.1Q'.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings.property.bridge.vlan-stats-enabled"></a>vlan-stats-enabled</td>
+<td align="left">boolean</td>
+<td align="left">FALSE</td>
+<td>Controls whether per-VLAN stats accounting is enabled.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1461,14 +1517,14 @@
 <a name="nm-settings.property.ipv4.dns-options"></a>dns-options</td>
 <td align="left">array of string</td>
 <td align="left"> </td>
-<td>Array of DNS options as described in man 5 resolv.conf. NULL means that the options are unset and left at the default. In this case NetworkManager will use default options. This is distinct from an empty list of properties.</td>
+<td>Array of DNS options as described in man 5 resolv.conf. NULL means that the options are unset and left at the default. In this case NetworkManager will use default options. This is distinct from an empty list of properties. The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6-bytestring", "ip6-dotint", "ndots", "no-check-names", "no-ip6-dotint", "no-reload", "no-tld-query", "rotate", "single-request", "single-request-reopen", "timeout", "trust-ad", "use-vc". The "trust-ad" setting is only honored if the profile contributes name servers to resolv.conf, and if all contributing profiles have "trust-ad" enabled.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.ipv4.dns-priority"></a>dns-priority</td>
 <td align="left">int32</td>
 <td align="left">0</td>
-<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
+<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1482,7 +1538,7 @@
 <a name="nm-settings.property.ipv4.gateway"></a>gateway</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>The gateway associated with this configuration. This is only meaningful if "addresses" is also set.</td>
+<td>The gateway associated with this configuration. This is only meaningful if "addresses" is also set. The gateway's main purpose is to control the next hop of the standard default route on the device. Hence, the gateway property conflicts with "never-default" and will be automatically dropped if the IP configuration is set to never-default. As an alternative to set the gateway, configure a static default route with /0 as prefix length.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1650,14 +1706,14 @@
 <a name="nm-settings.property.ipv6.dns-options"></a>dns-options</td>
 <td align="left">array of string</td>
 <td align="left"> </td>
-<td>Array of DNS options as described in man 5 resolv.conf. NULL means that the options are unset and left at the default. In this case NetworkManager will use default options. This is distinct from an empty list of properties.</td>
+<td>Array of DNS options as described in man 5 resolv.conf. NULL means that the options are unset and left at the default. In this case NetworkManager will use default options. This is distinct from an empty list of properties. The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6-bytestring", "ip6-dotint", "ndots", "no-check-names", "no-ip6-dotint", "no-reload", "no-tld-query", "rotate", "single-request", "single-request-reopen", "timeout", "trust-ad", "use-vc". The "trust-ad" setting is only honored if the profile contributes name servers to resolv.conf, and if all contributing profiles have "trust-ad" enabled.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings.property.ipv6.dns-priority"></a>dns-priority</td>
 <td align="left">int32</td>
 <td align="left">0</td>
-<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
+<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1671,7 +1727,7 @@
 <a name="nm-settings.property.ipv6.gateway"></a>gateway</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>The gateway associated with this configuration. This is only meaningful if "addresses" is also set.</td>
+<td>The gateway associated with this configuration. This is only meaningful if "addresses" is also set. The gateway's main purpose is to control the next hop of the standard default route on the device. Hence, the gateway property conflicts with "never-default" and will be automatically dropped if the IP configuration is set to never-default. As an alternative to set the gateway, configure a static default route with /0 as prefix length.</td>
 </tr>
 <tr>
 <td align="left">
@@ -2008,7 +2064,7 @@
 <hr>
 <div class="refsect2">
 <a name="id-1.2.7.4.23"></a><h3>match setting</h3>
-<p>Match settings..</p>
+<p>Match settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
 <col>
@@ -2581,7 +2637,7 @@
 <hr>
 <div class="refsect2">
 <a name="id-1.2.7.4.34"></a><h3>sriov setting</h3>
-<p>SR-IOV settings..</p>
+<p>SR-IOV settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
 <col>
@@ -2608,7 +2664,7 @@
 <a name="nm-settings.property.sriov.total-vfs"></a>total-vfs</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
-<td>The total number of virtual functions to create. Note that when the sriov setting is present NetworkManager enforces the number of virtual functions on the interface also when it is zero. To prevent any changes to SR-IOV parameters don't add a sriov setting to the connection.</td>
+<td>The total number of virtual functions to create. Note that when the sriov setting is present NetworkManager enforces the number of virtual functions on the interface (also when it is zero) during activation and resets it upon deactivation. To prevent any changes to SR-IOV parameters don't add a sriov setting to the connection.</td>
 </tr>
 <tr>
 <td align="left">
@@ -2623,7 +2679,7 @@
 <hr>
 <div class="refsect2">
 <a name="id-1.2.7.4.35"></a><h3>tc setting</h3>
-<p>Linux Traffic Control Settings..</p>
+<p>Linux Traffic Control Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
 <col>
@@ -3082,7 +3138,33 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.42"></a><h3>vxlan setting</h3>
+<a name="id-1.2.7.4.42"></a><h3>vrf setting</h3>
+<p>VRF settings.</p>
+<div class="informaltable"><table class="informaltable" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Key Name</th>
+<th>Value Type</th>
+<th>Default Value</th>
+<th>Value Description</th>
+</tr></thead>
+<tbody><tr>
+<td align="left">
+<a name="nm-settings.property.vrf.table"></a>table</td>
+<td align="left">uint32</td>
+<td align="left">0</td>
+<td>The routing table for this VRF.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="id-1.2.7.4.43"></a><h3>vxlan setting</h3>
 <p>VXLAN Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3215,7 +3297,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.43"></a><h3>wifi-p2p setting</h3>
+<a name="id-1.2.7.4.44"></a><h3>wifi-p2p setting</h3>
 <p>Wi-Fi P2P Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3257,7 +3339,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.44"></a><h3>wimax setting</h3>
+<a name="id-1.2.7.4.45"></a><h3>wimax setting</h3>
 <p>WiMax Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3292,7 +3374,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.45"></a><h3>802-3-ethernet setting</h3>
+<a name="id-1.2.7.4.46"></a><h3>802-3-ethernet setting</h3>
 <p>Wired Ethernet Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3418,7 +3500,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.46"></a><h3>wireguard setting</h3>
+<a name="id-1.2.7.4.47"></a><h3>wireguard setting</h3>
 <p>WireGuard Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3446,7 +3528,7 @@
 <a name="nm-settings.property.wireguard.ip4-auto-default-route"></a>ip4-auto-default-route</td>
 <td align="left">NMTernary (int32)</td>
 <td align="left"> </td>
-<td>Whether to enable special handling of the IPv4 default route. If enabled, the IPv4 default route will be placed to a dedicated routing-table and two policy routing rules will be added. The fwmark number is also used as routing-table for the default-route, and if fwmark is zero, a unused fwmark/table is chosen automatically. This corresponds to what wg-quick does with Table=auto. Leaving this at the default will enable this option automatically if ipv4.never-default is not set and there are any peers that use a default-route as allowed-ips.</td>
+<td>Whether to enable special handling of the IPv4 default route. If enabled, the IPv4 default route from wireguard.peer-routes will be placed to a dedicated routing-table and two policy routing rules will be added. The fwmark number is also used as routing-table for the default-route, and if fwmark is zero, an unused fwmark/table is chosen automatically. This corresponds to what wg-quick does with Table=auto and what WireGuard calls "Improved Rule-based Routing". Note that for this automatism to work, you usually don't want to set ipv4.gateway, because that will result in a conflicting default route. Leaving this at the default will enable this option automatically if ipv4.never-default is not set and there are any peers that use a default-route as allowed-ips.</td>
 </tr>
 <tr>
 <td align="left">
@@ -3474,7 +3556,7 @@
 <a name="nm-settings.property.wireguard.peer-routes"></a>peer-routes</td>
 <td align="left">boolean</td>
 <td align="left">TRUE</td>
-<td>Whether to automatically add routes for the AllowedIPs ranges of the peers. If TRUE (the default), NetworkManager will automatically add routes in the routing tables according to ipv4.route-table and ipv6.route-table. If FALSE, no such routes are added automatically. In this case, the user may want to configure static routes in ipv4.routes and ipv6.routes, respectively.</td>
+<td>Whether to automatically add routes for the AllowedIPs ranges of the peers. If TRUE (the default), NetworkManager will automatically add routes in the routing tables according to ipv4.route-table and ipv6.route-table. Usually you want this automatism enabled. If FALSE, no such routes are added automatically. In this case, the user may want to configure static routes in ipv4.routes and ipv6.routes, respectively. Note that if the peer's AllowedIPs is "0.0.0.0/0" or "::/0" and the profile's ipv4.never-default or ipv6.never-default setting is enabled, the peer route for this peer won't be added automatically.</td>
 </tr>
 <tr>
 <td align="left">
@@ -3502,7 +3584,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.47"></a><h3>802-11-wireless setting</h3>
+<a name="id-1.2.7.4.48"></a><h3>802-11-wireless setting</h3>
 <p>Wi-Fi Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3656,7 +3738,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.48"></a><h3>802-11-wireless-security setting</h3>
+<a name="id-1.2.7.4.49"></a><h3>802-11-wireless-security setting</h3>
 <p>Wi-Fi Security Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3698,7 +3780,7 @@
 <a name="nm-settings.property.802-11-wireless-security.key-mgmt"></a>key-mgmt</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>Key management used for the connection.  One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa-psk" (infrastructure WPA-PSK), "sae" (SAE) or "wpa-eap" (WPA-Enterprise).  This property must be set for any Wi-Fi connection that uses security.</td>
+<td>Key management used for the connection.  One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa-psk" (infrastructure WPA-PSK), "sae" (SAE), "owe" (Opportunistic Wireless Encryption) or "wpa-eap" (WPA-Enterprise).  This property must be set for any Wi-Fi connection that uses security.</td>
 </tr>
 <tr>
 <td align="left">
@@ -3817,7 +3899,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.7.4.49"></a><h3>wpan setting</h3>
+<a name="id-1.2.7.4.50"></a><h3>wpan setting</h3>
 <p>IEEE 802.15.4 (WPAN) MAC Settings.</p>
 <div class="informaltable"><table class="informaltable" border="1">
 <colgroup>
@@ -3909,6 +3991,6 @@
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

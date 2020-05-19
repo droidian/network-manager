@@ -106,6 +106,7 @@ PeerRemoved (o peer);
 HwAddress  readable   s
 </programlisting>
 <para>        The active hardware address of the device.
+</para><para>        DEPRECATED. Use the "HwAddress" property in "org.freedesktop.NetworkManager.Device" instead which exists since version NetworkManager 1.24.0.
 </para><para>        Since: 1.16
 </para>
 </refsect2>

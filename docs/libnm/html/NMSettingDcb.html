@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingCdma.html" title="NMSettingCdma">
 <link rel="next" href="NMSettingDummy.html" title="NMSettingDummy">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,8 +37,8 @@
 <a name="NMSettingDcb.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -237,12 +237,12 @@
 <td class="property_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fcoe-mode" title="The “app-fcoe-mode” property">app-fcoe-mode</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fcoe-priority" title="The “app-fcoe-priority” property">app-fcoe-priority</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a class="link" href="NMSettingDcb.html#NMSettingDcbFlags" title="enum NMSettingDcbFlags"><span class="type">NMSettingDcbFlags</span></a></td>
@@ -252,7 +252,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fip-priority" title="The “app-fip-priority” property">app-fip-priority</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a class="link" href="NMSettingDcb.html#NMSettingDcbFlags" title="enum NMSettingDcbFlags"><span class="type">NMSettingDcbFlags</span></a></td>
@@ -262,7 +262,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingDcb.html#NMSettingDcb--app-iscsi-priority" title="The “app-iscsi-priority” property">app-iscsi-priority</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
@@ -317,8 +317,8 @@
 <a name="NMSettingDcb.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -1257,6 +1257,7 @@ peer configuration advertisements</p>
 <p>Specifies the <a class="link" href="NMSettingDcb.html#NMSettingDcbFlags" title="enum NMSettingDcbFlags"><span class="type">NMSettingDcbFlags</span></a> for the DCB FCoE application.  Flags may
 be any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a>,
 <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ADVERTISE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ADVERTISE</code></a>, and <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-WILLING:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_WILLING</code></a>.</p>
+<p>Owner: NMSettingDcb</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1265,7 +1266,8 @@ be any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLA
 <pre class="programlisting">  “app-fcoe-mode”            <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The FCoE controller mode; either <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FCOE-MODE-FABRIC:CAPS" title="NM_SETTING_DCB_FCOE_MODE_FABRIC"><code class="literal">NM_SETTING_DCB_FCOE_MODE_FABRIC</code></a>
 (default) or <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FCOE-MODE-VN2VN:CAPS" title="NM_SETTING_DCB_FCOE_MODE_VN2VN"><code class="literal">NM_SETTING_DCB_FCOE_MODE_VN2VN</code></a>.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingDcb</p>
+<p>Flags: Read / Write</p>
 <p>Default value: "fabric"</p>
 </div>
 <hr>
@@ -1275,7 +1277,8 @@ be any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLA
 <p>The highest User Priority (0 - 7) which FCoE frames should use, or -1 for
 default priority.  Only used when the <a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fcoe-flags" title="The “app-fcoe-flags” property"><span class="type">“app-fcoe-flags”</span></a>
 property includes the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingDcb</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: [-1,7]</p>
 <p>Default value: -1</p>
 </div>
@@ -1286,6 +1289,7 @@ property includes the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLA
 <p>Specifies the <a class="link" href="NMSettingDcb.html#NMSettingDcbFlags" title="enum NMSettingDcbFlags"><span class="type">NMSettingDcbFlags</span></a> for the DCB FIP application.  Flags may
 be any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a>,
 <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ADVERTISE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ADVERTISE</code></a>, and <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-WILLING:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_WILLING</code></a>.</p>
+<p>Owner: NMSettingDcb</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1295,7 +1299,8 @@ be any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLA
 <p>The highest User Priority (0 - 7) which FIP frames should use, or -1 for
 default priority.  Only used when the <a class="link" href="NMSettingDcb.html#NMSettingDcb--app-fip-flags" title="The “app-fip-flags” property"><span class="type">“app-fip-flags”</span></a>
 property includes the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingDcb</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: [-1,7]</p>
 <p>Default value: -1</p>
 </div>
@@ -1306,6 +1311,7 @@ property includes the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLA
 <p>Specifies the <a class="link" href="NMSettingDcb.html#NMSettingDcbFlags" title="enum NMSettingDcbFlags"><span class="type">NMSettingDcbFlags</span></a> for the DCB iSCSI application.  Flags
 may be any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a>,
 <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ADVERTISE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ADVERTISE</code></a>, and <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-WILLING:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_WILLING</code></a>.</p>
+<p>Owner: NMSettingDcb</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1315,7 +1321,8 @@ may be any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB
 <p>The highest User Priority (0 - 7) which iSCSI frames should use, or -1
 for default priority. Only used when the <a class="link" href="NMSettingDcb.html#NMSettingDcb--app-iscsi-flags" title="The “app-iscsi-flags” property"><span class="type">“app-iscsi-flags”</span></a>
 property includes the <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a> flag.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingDcb</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: [-1,7]</p>
 <p>Default value: -1</p>
 </div>
@@ -1329,6 +1336,7 @@ the priority's assigned group that the priority may use.  The sum of all
 percentages for priorities which belong to the same group must total 100
 percents.</p>
 <p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GArray(guint)]</span></p>
+<p>Owner: NMSettingDcb</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1339,6 +1347,7 @@ percents.</p>
 Priority (0 - 7) and the value indicates whether or not the corresponding
 priority should transmit priority pause.</p>
 <p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GArray(gboolean)]</span></p>
+<p>Owner: NMSettingDcb</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1348,6 +1357,7 @@ priority should transmit priority pause.</p>
 <p>Specifies the <a class="link" href="NMSettingDcb.html#NMSettingDcbFlags" title="enum NMSettingDcbFlags"><span class="type">NMSettingDcbFlags</span></a> for DCB Priority Flow Control (PFC).
 Flags may be any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a>,
 <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ADVERTISE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ADVERTISE</code></a>, and <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-WILLING:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_WILLING</code></a>.</p>
+<p>Owner: NMSettingDcb</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1359,6 +1369,7 @@ Priority Group ID (0 - 7) and the value indicates the percentage of link
 bandwidth allocated to that group.  Allowed values are 0 - 100, and the
 sum of all values must total 100 percents.</p>
 <p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GArray(guint)]</span></p>
+<p>Owner: NMSettingDcb</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1368,6 +1379,7 @@ sum of all values must total 100 percents.</p>
 <p>Specifies the <a class="link" href="NMSettingDcb.html#NMSettingDcbFlags" title="enum NMSettingDcbFlags"><span class="type">NMSettingDcbFlags</span></a> for DCB Priority Groups.  Flags may be
 any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ENABLE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ENABLE</code></a>,
 <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-ADVERTISE:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_ADVERTISE</code></a>, and <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-WILLING:CAPS"><code class="literal">NM_SETTING_DCB_FLAG_WILLING</code></a>.</p>
+<p>Owner: NMSettingDcb</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1378,6 +1390,7 @@ any combination of <a class="link" href="NMSettingDcb.html#NM-SETTING-DCB-FLAG-E
 Priority (0 - 7) and the value indicates the Priority Group ID.  Allowed
 Priority Group ID values are 0 - 7 or 15 for the unrestricted group.</p>
 <p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GArray(guint)]</span></p>
+<p>Owner: NMSettingDcb</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1388,6 +1401,7 @@ Priority Group ID values are 0 - 7 or 15 for the unrestricted group.</p>
 Priority (0 - 7) and the value indicates whether or not the priority may
 use all of the bandwidth allocated to its assigned group.</p>
 <p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GArray(gboolean)]</span></p>
+<p>Owner: NMSettingDcb</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1398,11 +1412,12 @@ use all of the bandwidth allocated to its assigned group.</p>
 Priority (0 - 7) and the value indicates the traffic class (0 - 7) to
 which the priority is mapped.</p>
 <p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GArray(guint)]</span></p>
+<p>Owner: NMSettingDcb</p>
 <p>Flags: Read / Write</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

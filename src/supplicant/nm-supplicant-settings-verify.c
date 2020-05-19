@@ -56,7 +56,7 @@ static const char *const key_mgmt_allowed[] = { "WPA-PSK", "WPA-PSK-SHA256", "FT
                                                 "WPA-EAP", "WPA-EAP-SHA256", "FT-EAP", "FT-EAP-SHA384",
                                                 "FILS-SHA256", "FILS-SHA384",
                                                 "IEEE8021X", "SAE", "FT-SAE",
-                                                "NONE", NULL };
+                                                "OWE", "NONE", NULL };
 static const char *const auth_alg_allowed[] = { "OPEN", "SHARED", "LEAP", NULL };
 static const char *const eap_allowed[] =      { "LEAP", "MD5", "TLS", "PEAP", "TTLS", "SIM",
                                                 "PSK", "FAST", "PWD", NULL };
@@ -99,6 +99,7 @@ static const struct Opt opt_table[] = {
 	{ "subject_match",      TYPE_BYTES,   0, 0, FALSE,  NULL },
 	{ "altsubject_match",   TYPE_BYTES,   0, 0, FALSE,  NULL },
 	{ "domain_suffix_match",TYPE_BYTES,   0, 0, FALSE,  NULL },
+	{ "domain_match",       TYPE_BYTES,   0, 0, FALSE,  NULL },
 	{ "ca_cert",            TYPE_BYTES,   0, 65536, FALSE,  NULL },
 	{ "client_cert",        TYPE_BYTES,   0, 65536, FALSE,  NULL },
 	{ "private_key",        TYPE_BYTES,   0, 65536, FALSE,  NULL },
@@ -110,6 +111,7 @@ static const struct Opt opt_table[] = {
 	{ "subject_match2",     TYPE_BYTES,   0, 0, FALSE,  NULL },
 	{ "altsubject_match2",  TYPE_BYTES,   0, 0, FALSE,  NULL },
 	{ "domain_suffix_match2", TYPE_BYTES, 0, 0, FALSE,  NULL },
+	{ "domain_match2",      TYPE_BYTES,   0, 0, FALSE,  NULL },
 	{ "ca_cert2",           TYPE_BYTES,   0, 65536, FALSE,  NULL },
 	{ "client_cert2",       TYPE_BYTES,   0, 65536, FALSE,  NULL },
 	{ "private_key2",       TYPE_BYTES,   0, 65536, FALSE,  NULL },

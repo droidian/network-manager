@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 03/12/2020
+.\"      Date: 05/08/2020
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.22.10
+.\"    Source: NetworkManager 1.24.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.22\&.10" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.24\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -72,10 +72,7 @@ character can be used for comments, strings with spaces must be quoted, special 
 .PP
 Users can create or modify the
 \fIifcfg\-rh\fR
-connection files manually, even if that is not the recommended way of managing the profiles\&. However, if they choose to do that, they must inform NetworkManager about their changes (see
-\fImonitor\-connection\-file\fR
-in
-\fBnm-settings\fR(5), and
+connection files manually, even if that is not the recommended way of managing the profiles\&. However, if they choose to do that, they must inform NetworkManager about their changes (for example via
 \fInmcli con (re)load\fR)\&.
 .PP
 \fBSome ifcfg-rh configuration examples:\fR. 
@@ -285,7 +282,7 @@ PEERDNS
 .IP \(bu 2.3
 .\}
 ONBOOT
-\- initscripts use ONBOOT=yes to mark the devices that are to be activated during boot\&. NetworkManager extents this to also mean that this profile can be used for auto\-connecting at any time\&.
+\- initscripts use ONBOOT=yes to mark the devices that are to be activated during boot\&. NetworkManager extends this to also mean that this profile can be used for auto\-connecting at any time\&.
 .RE
 .sp
 .RS 4
@@ -372,6 +369,8 @@ T}:T{
 Description
 T}
 .T&
+l l l l
+l l l l
 l l l l
 l l l l
 l l l l
@@ -503,6 +502,15 @@ T}:T{
 Suffix to match domain of server certificate against\&.
 T}
 T{
+domain\-match
+T}:T{
+IEEE_8021X_DOMAIN_MATCH\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Value to match domain of server certificate against\&.
+T}
+T{
 client\-cert
 T}:T{
 IEEE_8021X_CLIENT_CERT\fI(+)\fR
@@ -615,6 +623,15 @@ T}:T{
 \ \&
 T}:T{
 Suffix to match domain of server certificate for phase 2 against\&.
+T}
+T{
+phase2\-domain\-match
+T}:T{
+IEEE_8021X_PHASE2_DOMAIN_MATCH\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+Value to match domain of server certificate for phase 2 against\&.
 T}
 T{
 phase2\-client\-cert
@@ -897,6 +914,12 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
 l l l l.
 T{
 mac\-address
@@ -1014,6 +1037,74 @@ T}:T{
 List of VLANs on the bridge\fB
 
 Example: \fRBRIDGE_VLANS="1 pvid untagged,20,300\-400 untagged"
+T}
+T{
+group\-address
+T}:T{
+BRIDGING_OPTS: group_address=
+T}:T{
+\ \&
+T}:T{
+STP group address\&.\fB
+
+Example: \fRBRIDGING_OPTS="group_address=01:80:C2:00:00:0A"
+T}
+T{
+vlan\-protocol
+T}:T{
+BRIDGING_OPTS: vlan_protocol=
+T}:T{
+\ \&
+T}:T{
+VLAN filtering protocol\&.\fB
+
+Example: \fRBRIDGING_OPTS="vlan_protocol=802\&.1Q"
+T}
+T{
+vlan\-stats\-enabled
+T}:T{
+BRIDGING_OPTS: vlan_stats_enabled=
+T}:T{
+0
+T}:T{
+\fB
+
+Example: \fRBRIDGING_OPTS="vlan_stats_enabled=1"
+T}
+T{
+multicast\-router
+T}:T{
+BRIDGING_OPTS: multicast_router=
+T}:T{
+auto
+T}:T{
+\fB
+
+Example: \fRBRIDGING_OPTS="multicast_router=enabled"\fB
+
+Allowed values: \fRauto, enabled, disabled
+T}
+T{
+multicast\-query\-use\-ifaddr
+T}:T{
+BRIDGING_OPTS: multicast_query_use_ifaddr=
+T}:T{
+0
+T}:T{
+\fB
+
+Example: \fRBRIDGING_OPTS="multicast_query\-use_ifaddr=1"
+T}
+T{
+multicast\-querier
+T}:T{
+BRIDGING_OPTS: multicast_querier=
+T}:T{
+0
+T}:T{
+\fB
+
+Example: \fRBRIDGING_OPTS="multicast_querier=1"
 T}
 .TE
 .sp 1
@@ -1162,7 +1253,7 @@ T}:T{
 T}:T{
 whether the profile can be active on multiple devices at a given moment\&. The values are numbers corresponding to #NMConnectionMultiConnect enum\&.\fB
 
-Example: \fRZONE=3
+Example: \fRMULTI_CONNECT=3
 T}
 T{
 zone
@@ -2580,7 +2671,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&25.\ \&wifi\-p2p setting
+.B Table\ \&25.\ \&vrf setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2602,7 +2693,29 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&26.\ \&802\-3\-ethernet setting
+.B Table\ \&26.\ \&wifi\-p2p setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+.
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&27.\ \&802\-3\-ethernet setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2751,7 +2864,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&27.\ \&wireguard setting
+.B Table\ \&28.\ \&wireguard setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2773,7 +2886,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&28.\ \&802\-11\-wireless\-security setting
+.B Table\ \&29.\ \&802\-11\-wireless\-security setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3020,7 +3133,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&29.\ \&802\-11\-wireless setting
+.B Table\ \&30.\ \&802\-11\-wireless setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3231,7 +3344,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&30.\ \&wpan setting
+.B Table\ \&31.\ \&wpan setting
 .TS
 allbox tab(:);
 lB lB lB lB.

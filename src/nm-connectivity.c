@@ -26,7 +26,8 @@
 
 /*****************************************************************************/
 
-NM_UTILS_LOOKUP_STR_DEFINE_STATIC (_state_to_string, int /*NMConnectivityState*/,
+static
+NM_UTILS_LOOKUP_STR_DEFINE (_state_to_string, int /*NMConnectivityState*/,
 	NM_UTILS_LOOKUP_DEFAULT_WARN ("???"),
 	NM_UTILS_LOOKUP_STR_ITEM (NM_CONNECTIVITY_UNKNOWN,  "UNKNOWN"),
 	NM_UTILS_LOOKUP_STR_ITEM (NM_CONNECTIVITY_NONE,     "NONE"),
@@ -415,13 +416,13 @@ _con_curl_timeout_cb (gpointer user_data)
 }
 
 static int
-multi_timer_cb (CURLM *multi, long timeout_ms, void *userdata)
+multi_timer_cb (CURLM *multi, long timeout_msec, void *userdata)
 {
 	NMConnectivityCheckHandle *cb_data = userdata;
 
 	nm_clear_g_source (&cb_data->concheck.curl_timer);
-	if (timeout_ms != -1)
-		cb_data->concheck.curl_timer = g_timeout_add (timeout_ms, _con_curl_timeout_cb, cb_data);
+	if (timeout_msec != -1)
+		cb_data->concheck.curl_timer = g_timeout_add (timeout_msec, _con_curl_timeout_cb, cb_data);
 	return 0;
 }
 
@@ -515,8 +516,12 @@ multi_socket_cb (CURL *e_handle, curl_socket_t fd, int what, void *userdata, voi
 			condition = 0;
 
 		if (condition) {
-			fdp->source = g_unix_fd_source_new (fd, condition);
-			g_source_set_callback (fdp->source, G_SOURCE_FUNC (_con_curl_socketevent_cb), fdp, NULL);
+			fdp->source = nm_g_unix_fd_source_new (fd,
+			                                       condition,
+			                                       G_PRIORITY_DEFAULT,
+			                                       _con_curl_socketevent_cb,
+			                                       fdp,
+			                                       NULL);
 			g_source_attach (fdp->source, NULL);
 		}
 	}

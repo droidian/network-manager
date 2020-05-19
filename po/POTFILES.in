@@ -56,8 +56,6 @@ libnm-core/nm-crypto-gnutls.c
 libnm-core/nm-crypto-nss.c
 libnm-core/nm-connection.c
 libnm-core/nm-dbus-utils.c
-libnm-core/nm-keyfile-utils.c
-libnm-core/nm-keyfile.c
 libnm-core/nm-setting-6lowpan.c
 libnm-core/nm-setting-8021x.c
 libnm-core/nm-setting-adsl.c
@@ -92,6 +90,7 @@ libnm-core/nm-setting-team.c
 libnm-core/nm-setting-tun.c
 libnm-core/nm-setting-user.c
 libnm-core/nm-setting-vlan.c
+libnm-core/nm-setting-vrf.c
 libnm-core/nm-setting-vpn.c
 libnm-core/nm-setting-vxlan.c
 libnm-core/nm-setting-wifi-p2p.c
@@ -126,6 +125,7 @@ libnm/nm-device-ovs-port.c
 libnm/nm-device-team.c
 libnm/nm-device-tun.c
 libnm/nm-device-vlan.c
+libnm/nm-device-vrf.c
 libnm/nm-device-vxlan.c
 libnm/nm-device-wifi-p2p.c
 libnm/nm-device-wifi.c
@@ -134,10 +134,13 @@ libnm/nm-device-wpan.c
 libnm/nm-device.c
 libnm/nm-object.c
 libnm/nm-remote-connection.c
+libnm/nm-secret-agent-old.c
 libnm/nm-vpn-plugin-old.c
 libnm/nm-vpn-service-plugin.c
 data/org.freedesktop.NetworkManager.policy.in.in
 shared/nm-glib-aux/nm-shared-utils.c
+shared/nm-keyfile/nm-keyfile-utils.c
+shared/nm-keyfile/nm-keyfile.c
 shared/nm-libnm-core-aux/nm-libnm-core-aux.c
 src/NetworkManagerUtils.c
 src/main.c
@@ -160,6 +163,7 @@ src/devices/nm-device-ip-tunnel.c
 src/devices/nm-device-macvlan.c
 src/devices/nm-device-tun.c
 src/devices/nm-device-vlan.c
+src/devices/nm-device-vrf.c
 src/devices/nm-device-vxlan.c
 src/devices/nm-device-wpan.c
 src/devices/team/nm-device-team.c

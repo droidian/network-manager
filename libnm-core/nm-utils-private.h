@@ -49,7 +49,7 @@ gboolean _nm_utils_wps_method_validate (NMSettingWirelessSecurityWpsMethod wps_m
 
 extern const NMSettInfoPropertType nm_sett_info_propert_type_strdict;
 
-extern const NMSettInfoPropertType nm_sett_info_propert_type_mac_addrees;
+extern const NMSettInfoPropertType nm_sett_info_propert_type_mac_address;
 
 extern const NMSettInfoPropertType nm_sett_info_propert_type_cloned_mac_address;
 
@@ -64,6 +64,8 @@ void        _nm_utils_bytes_from_dbus   (GVariant *dbus_value,
                                          GValue *prop_value);
 
 char *      _nm_utils_hwaddr_canonical_or_invalid (const char *mac, gssize length);
+
+gboolean    _nm_utils_hwaddr_link_local_valid (const char *mac);
 
 void        _nm_utils_format_variant_attributes_full (GString *str,
                                                       const NMUtilsNamedValue *values,

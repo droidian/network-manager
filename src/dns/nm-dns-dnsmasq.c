@@ -129,7 +129,7 @@ _gl_pid_kill_external_timeout_cb (gpointer user_data)
 		goto process_gone;
 	}
 
-	now = nm_utils_get_monotonic_timestamp_ms ();
+	now = nm_utils_get_monotonic_timestamp_msec ();
 
 	if (gl_pid.kill_external_data->started_at + WAIT_MSEC_AFTER_SIGTERM < now) {
 		if (!gl_pid.kill_external_data->sigkilled) {
@@ -240,7 +240,7 @@ handle_kill:
 	gl_pid.kill_external_data = g_slice_new (GlPidKillExternalData);
 	*gl_pid.kill_external_data = (GlPidKillExternalData) {
 		.shutdown_wait_handle = nm_shutdown_wait_obj_register_handle_full (g_strdup_printf ("kill-external-dnsmasq-process-%"G_PID_FORMAT, pid), TRUE),
-		.started_at           = nm_utils_get_monotonic_timestamp_ms (),
+		.started_at           = nm_utils_get_monotonic_timestamp_msec (),
 		.pid                  = pid,
 		.p_start_time         = p_start_time,
 	};
@@ -304,7 +304,7 @@ _gl_pid_spawn_notify (GlPidSpawnAsyncData *sdata,
 	if (error) {
 		nm_assert (pid == 0);
 		nm_assert (!p_exit_code);
-		if (!nm_utils_error_is_cancelled (error, FALSE))
+		if (!nm_utils_error_is_cancelled (error))
 			_LOGD ("spawn: dnsmasq failed: %s", error->message);
 	} else if (p_exit_code) {
 		/* the only caller already logged about this condition extensively. */
@@ -726,9 +726,9 @@ ip_addr_to_string (int addr_family, gconstpointer addr, const char *iface, char 
 		separator = "@";
 	} else {
 		if (IN6_IS_ADDR_V4MAPPED (addr))
-			nm_utils_inet4_ntop (((const struct in6_addr *) addr)->s6_addr32[3], buf2);
+			_nm_utils_inet4_ntop (((const struct in6_addr *) addr)->s6_addr32[3], buf2);
 		else
-			nm_utils_inet6_ntop (addr, buf2);
+			_nm_utils_inet6_ntop (addr, buf2);
 		/* Need to scope link-local addresses with %<zone-id>. Before dnsmasq 2.58,
 		 * only '@' was supported as delimiter. Since 2.58, '@' and '%' are
 		 * supported. Due to a bug, since 2.73 only '%' works properly as "server"
@@ -838,7 +838,7 @@ dnsmasq_update_done (GObject *source_object, GAsyncResult *res, gpointer user_da
 
 	response = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source_object), res, &error);
 
-	if (nm_utils_error_is_cancelled (error, FALSE))
+	if (nm_utils_error_is_cancelled (error))
 		return;
 
 	self = user_data;
@@ -987,7 +987,7 @@ spawn_notify (GCancellable *cancellable,
 	NMDnsDnsmasq *self;
 	NMDnsDnsmasqPrivate *priv;
 
-	if (nm_utils_error_is_cancelled (error, FALSE))
+	if (nm_utils_error_is_cancelled (error))
 		return;
 
 	self = notify_user_data;
@@ -1058,7 +1058,7 @@ start_dnsmasq (NMDnsDnsmasq *self, gboolean force_start, GError **error)
 		}
 	}
 
-	now = nm_utils_get_monotonic_timestamp_ms ();
+	now = nm_utils_get_monotonic_timestamp_msec ();
 	if (   force_start
 	    || priv->burst_start_at == 0
 	    || priv->burst_start_at + RATELIMIT_INTERVAL_MSEC <= now) {
@@ -1161,7 +1161,7 @@ dispose (GObject *object)
 
 	_main_cleanup (self, FALSE);
 
-	g_clear_pointer (&priv->set_server_ex_args, g_variant_unref);
+	nm_clear_pointer (&priv->set_server_ex_args, g_variant_unref);
 
 	G_OBJECT_CLASS (nm_dns_dnsmasq_parent_class)->dispose (object);
 

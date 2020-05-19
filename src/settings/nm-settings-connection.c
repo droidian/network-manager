@@ -18,12 +18,12 @@
 #include "nm-session-monitor.h"
 #include "nm-auth-manager.h"
 #include "nm-auth-utils.h"
-#include "nm-auth-subject.h"
 #include "nm-agent-manager.h"
 #include "NetworkManagerUtils.h"
 #include "nm-core-internal.h"
 #include "nm-audit-manager.h"
 #include "nm-settings.h"
+#include "nm-dbus-manager.h"
 #include "settings/plugins/keyfile/nms-keyfile-storage.h"
 
 #define AUTOCONNECT_RETRIES_UNSET        -2
@@ -409,10 +409,7 @@ nm_settings_connection_check_permission (NMSettingsConnection *self,
 		 * either.
 		 */
 		if (nm_setting_connection_get_permission (s_con, i, NULL, &puser, NULL)) {
-			NMSecretAgent *agent = nm_agent_manager_get_agent_by_user (priv->agent_mgr, puser);
-
-			if (   agent
-			    && nm_secret_agent_has_permission (agent, permission))
+			if (nm_agent_manager_has_agent_with_permission (priv->agent_mgr, puser, permission))
 				return TRUE;
 		}
 	}
@@ -1249,7 +1246,7 @@ _new_auth_subject (GDBusMethodInvocation *context, GError **error)
 {
 	NMAuthSubject *subject;
 
-	subject = nm_auth_subject_new_unix_process_from_context (context);
+	subject = nm_dbus_manager_new_auth_subject_from_context (context);
 	if (!subject) {
 		g_set_error_literal (error,
 		                     NM_SETTINGS_ERROR,
@@ -1971,7 +1968,8 @@ _nm_settings_connection_emit_signal_updated_internal (NMSettingsConnection *self
 
 /*****************************************************************************/
 
-NM_UTILS_FLAGS2STR_DEFINE_STATIC (_settings_connection_flags_to_string, NMSettingsConnectionIntFlags,
+static
+NM_UTILS_FLAGS2STR_DEFINE (_settings_connection_flags_to_string, NMSettingsConnectionIntFlags,
 	NM_UTILS_FLAGS2STR (NM_SETTINGS_CONNECTION_INT_FLAGS_NONE,          "none"),
 	NM_UTILS_FLAGS2STR (NM_SETTINGS_CONNECTION_INT_FLAGS_UNSAVED,       "unsaved"),
 	NM_UTILS_FLAGS2STR (NM_SETTINGS_CONNECTION_INT_FLAGS_NM_GENERATED,  "nm-generated"),
@@ -2365,7 +2363,7 @@ _autoconnect_retries_set (NMSettingsConnection *self,
 		 * the tracking of resetting the retry count in NMPolicy needs adjustment
 		 * in _connection_autoconnect_retries_set() (as it would need to re-evaluate
 		 * the next-timeout every time a connection gets blocked). */
-		priv->autoconnect_retries_blocked_until = nm_utils_get_monotonic_timestamp_s () + AUTOCONNECT_RESET_RETRIES_TIMER;
+		priv->autoconnect_retries_blocked_until = nm_utils_get_monotonic_timestamp_sec () + AUTOCONNECT_RESET_RETRIES_TIMER;
 	}
 }
 
@@ -2416,7 +2414,8 @@ nm_settings_connection_autoconnect_retries_blocked_until (NMSettingsConnection *
 	return NM_SETTINGS_CONNECTION_GET_PRIVATE (self)->autoconnect_retries_blocked_until;
 }
 
-NM_UTILS_FLAGS2STR_DEFINE_STATIC (_autoconnect_blocked_reason_to_string, NMSettingsAutoconnectBlockedReason,
+static
+NM_UTILS_FLAGS2STR_DEFINE (_autoconnect_blocked_reason_to_string, NMSettingsAutoconnectBlockedReason,
 	NM_UTILS_FLAGS2STR (NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_NONE, "none"),
 	NM_UTILS_FLAGS2STR (NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_USER_REQUEST, "user-request"),
 	NM_UTILS_FLAGS2STR (NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_FAILED, "failed"),
@@ -2612,14 +2611,14 @@ dispose (GObject *object)
 	nm_clear_pointer (&priv->system_secrets, g_variant_unref);
 	nm_clear_pointer (&priv->agent_secrets, g_variant_unref);
 
-	g_clear_pointer (&priv->seen_bssids, g_hash_table_destroy);
+	nm_clear_pointer (&priv->seen_bssids, g_hash_table_destroy);
 
 	g_clear_object (&priv->agent_mgr);
 
 	g_clear_object (&priv->connection);
 
-	g_clear_pointer (&priv->kf_db_timestamps, nm_key_file_db_unref);
-	g_clear_pointer (&priv->kf_db_seen_bssids, nm_key_file_db_unref);
+	nm_clear_pointer (&priv->kf_db_timestamps, nm_key_file_db_unref);
+	nm_clear_pointer (&priv->kf_db_seen_bssids, nm_key_file_db_unref);
 
 	G_OBJECT_CLASS (nm_settings_connection_parent_class)->dispose (object);
 

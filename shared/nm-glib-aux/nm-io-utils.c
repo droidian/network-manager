@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "nm-str-buf.h"
 #include "nm-shared-utils.h"
 #include "nm-secret-utils.h"
 #include "nm-errno.h"
@@ -50,32 +51,6 @@ _get_contents_error (GError **error, int errsv, int *out_errsv, const char *form
 		\
 		_get_contents_error (error, _errsv, out_errsv, __VA_ARGS__); \
 	})
-
-static char *
-_mem_realloc (char *old, gboolean do_bzero_mem, gsize cur_len, gsize new_len)
-{
-	char *new;
-
-	/* re-allocating to zero bytes is an odd case. We don't need it
-	 * and it's not supported. */
-	nm_assert (new_len > 0);
-
-	/* regardless of success/failure, @old will always be freed/consumed. */
-
-	if (do_bzero_mem && cur_len > 0) {
-		new = g_try_malloc (new_len);
-		if (new)
-			memcpy (new, old, NM_MIN (cur_len, new_len));
-		nm_explicit_bzero (old, cur_len);
-		g_free (old);
-	} else {
-		new = g_try_realloc (old, new_len);
-		if (!new)
-			g_free (old);
-	}
-
-	return new;
-}
 
 /**
  * nm_utils_fd_get_contents:
@@ -161,7 +136,7 @@ nm_utils_fd_get_contents (int fd,
 		str[n_read] = '\0';
 
 		if (n_read < n_stat) {
-			if (!(str = _mem_realloc (str, do_bzero_mem, n_stat + 1, n_read + 1)))
+			if (!(str = nm_secret_mem_try_realloc_take (str, do_bzero_mem, n_stat + 1, n_read + 1)))
 				return _get_contents_error (error, ENOMEM, out_errsv, "failure to reallocate buffer with %zu bytes", n_read + 1);
 		}
 		NM_SET_OUT (length, n_read);
@@ -222,7 +197,7 @@ nm_utils_fd_get_contents (int fd,
 					n_alloc = NM_MIN (n_read + 1, sizeof (buf));
 				}
 
-				if (!(str = _mem_realloc (str, do_bzero_mem, old_n_alloc, n_alloc))) {
+				if (!(str = nm_secret_mem_try_realloc_take (str, do_bzero_mem, old_n_alloc, n_alloc))) {
 					if (do_bzero_mem)
 						nm_explicit_bzero (buf, sizeof (buf));
 					return _get_contents_error (error, ENOMEM, out_errsv, "failure to allocate buffer of %zu bytes", n_alloc);
@@ -241,7 +216,7 @@ nm_utils_fd_get_contents (int fd,
 		else {
 			str[n_have] = '\0';
 			if (n_have + 1 < n_alloc) {
-				if (!(str = _mem_realloc (str, do_bzero_mem, n_alloc, n_have + 1)))
+				if (!(str = nm_secret_mem_try_realloc_take (str, do_bzero_mem, n_alloc, n_have + 1)))
 					return _get_contents_error (error, ENOMEM, out_errsv, "failure to truncate buffer to %zu bytes", n_have + 1);
 			}
 		}
@@ -437,4 +412,47 @@ nm_utils_file_stat (const char *filename, struct stat *out_st)
 	if (stat (filename, out_st ?: &st) != 0)
 		return -NM_ERRNO_NATIVE (errno);
 	return 0;
+}
+
+/**
+ * nm_utils_fd_read:
+ * @fd: the fd to read from.
+ * @out_string: (out): output string where read bytes will be stored.
+ *
+ * Returns: <0 on failure, which is -(errno).
+ *          0 on EOF.
+ *          >0 on success, which is the number of bytes read.  */
+gssize
+nm_utils_fd_read (int fd, NMStrBuf *out_string)
+{
+	gsize buf_available;
+	gssize n_read;
+	int errsv;
+
+	g_return_val_if_fail (fd >= 0, -1);
+	g_return_val_if_fail (out_string, -1);
+
+	/* If the buffer size is 0, we allocate NM_UTILS_GET_NEXT_REALLOC_SIZE_1000 (1000 bytes)
+	 * the first time. Afterwards, the buffer grows exponentially.
+	 *
+	 * Note that with @buf_available, we always would read as much buffer as we actually
+	 * have reserved. */
+	nm_str_buf_maybe_expand (out_string, NM_UTILS_GET_NEXT_REALLOC_SIZE_1000, FALSE);
+
+	buf_available = out_string->allocated - out_string->len;
+
+	n_read = read (fd,
+	               &((nm_str_buf_get_str_unsafe (out_string))[out_string->len]),
+	               buf_available);
+	if (n_read < 0) {
+		errsv = errno;
+		return -NM_ERRNO_NATIVE (errsv);
+	}
+
+	if (n_read > 0) {
+		nm_assert ((gsize) n_read <= buf_available);
+		nm_str_buf_set_size (out_string, out_string->len + (gsize) n_read, TRUE, FALSE);
+	}
+
+	return n_read;
 }

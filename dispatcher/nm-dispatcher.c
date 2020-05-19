@@ -482,7 +482,7 @@ check_filename (const char *file_name)
 static gboolean
 script_dispatch (ScriptInfo *script)
 {
-	GError *error = NULL;
+	gs_free_error GError *error = NULL;
 	char *argv[4];
 	Request *request = script->request;
 
@@ -491,27 +491,30 @@ script_dispatch (ScriptInfo *script)
 
 	script->dispatched = TRUE;
 
+	/* Only for "hostname" action we coerce the interface name to "none". We don't
+	 * do so for "connectivity-check" action. */
+
 	argv[0] = script->script;
-	argv[1] = request->iface ?: (!strcmp(request->action, NMD_ACTION_HOSTNAME) ? "none" : "");
+	argv[1] =    request->iface
+	          ?: (nm_streq (request->action, NMD_ACTION_HOSTNAME) ? "none" : "");
 	argv[2] = request->action;
 	argv[3] = NULL;
 
 	_LOG_S_T (script, "run script%s", script->wait ? "" : " (no-wait)");
 
-	if (g_spawn_async ("/", argv, request->envp, G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, &script->pid, &error)) {
-		script->watch_id = g_child_watch_add (script->pid, (GChildWatchFunc) script_watch_cb, script);
-		script->timeout_id = g_timeout_add_seconds (SCRIPT_TIMEOUT, script_timeout_cb, script);
-		if (!script->wait)
-			request->num_scripts_nowait++;
-		return TRUE;
-	} else {
+	if (!g_spawn_async ("/", argv, request->envp, G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, &script->pid, &error)) {
 		_LOG_S_W (script, "complete: failed to execute script: %s", error->message);
 		script->result = DISPATCH_RESULT_EXEC_FAILED;
 		script->error = g_strdup (error->message);
 		request->num_scripts_done++;
-		g_clear_error (&error);
 		return FALSE;
 	}
+
+	script->watch_id = g_child_watch_add (script->pid, (GChildWatchFunc) script_watch_cb, script);
+	script->timeout_id = g_timeout_add_seconds (SCRIPT_TIMEOUT, script_timeout_cb, script);
+	if (!script->wait)
+		request->num_scripts_nowait++;
+	return TRUE;
 }
 
 static gboolean
@@ -598,7 +601,7 @@ find_scripts (Request *request)
 	else
 		subdir = NULL;
 
-	scripts = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+	scripts = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, g_free);
 
 	_find_scripts (request, scripts, NMLIBDIR, subdir);
 	_find_scripts (request, scripts, NMCONFDIR, subdir);
@@ -1090,7 +1093,7 @@ done:
 	nm_clear_g_source (&signal_id_term);
 	nm_clear_g_source (&signal_id_int);
 	nm_clear_g_source (&gl.quit_id);
-	g_clear_pointer (&gl.loop, g_main_loop_unref);
+	nm_clear_pointer (&gl.loop, g_main_loop_unref);
 	g_clear_object (&gl.dbus_connection);
 
 	if (!gl.debug)

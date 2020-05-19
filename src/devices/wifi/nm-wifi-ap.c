@@ -10,15 +10,16 @@
 
 #include <stdlib.h>
 
-#include "nm-setting-wireless.h"
-
-#include "nm-wifi-utils.h"
 #include "NetworkManagerUtils.h"
-#include "nm-utils.h"
-#include "nm-core-internal.h"
-#include "platform/nm-platform.h"
 #include "devices/nm-device.h"
+#include "nm-core-internal.h"
 #include "nm-dbus-manager.h"
+#include "nm-glib-aux/nm-ref-string.h"
+#include "nm-setting-wireless.h"
+#include "nm-utils.h"
+#include "nm-wifi-utils.h"
+#include "platform/nm-platform.h"
+#include "supplicant/nm-supplicant-interface.h"
 
 #define PROTO_WPA "wpa"
 #define PROTO_RSN "rsn"
@@ -39,8 +40,6 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMWifiAP,
 );
 
 struct _NMWifiAPPrivate {
-	char *supplicant_path;   /* D-Bus object path of this AP from wpa_supplicant */
-
 	/* Scanned or cached values */
 	GBytes *           ssid;
 	char *             address;
@@ -48,6 +47,9 @@ struct _NMWifiAPPrivate {
 	guint8             strength;
 	guint32            freq;        /* Frequency in MHz; ie 2412 (== 2.412 GHz) */
 	guint32            max_bitrate; /* Maximum bitrate of the AP in Kbit/s (ie 54000 Kb/s == 54Mbit/s) */
+
+	gint64             last_seen_msec; /* Timestamp when the AP was seen lastly (in nm_utils_get_monotonic_timestamp_*() scale).
+	                                    * Note that this value might be negative! */
 
 	NM80211ApFlags         flags;      /* General flags */
 	NM80211ApSecurityFlags wpa_flags;  /* WPA-related flags */
@@ -58,7 +60,6 @@ struct _NMWifiAPPrivate {
 	/* Non-scanned attributes */
 	bool               fake:1;       /* Whether or not the AP is from a scan */
 	bool               hotspot:1;    /* Whether the AP is a local device's hotspot network */
-	gint32             last_seen;    /* Timestamp when the AP was seen lastly (obtained via nm_utils_get_monotonic_timestamp_s()) */
 };
 
 typedef struct _NMWifiAPPrivate NMWifiAPPrivate;
@@ -72,14 +73,6 @@ G_DEFINE_TYPE (NMWifiAP, nm_wifi_ap, NM_TYPE_DBUS_OBJECT)
 #define NM_WIFI_AP_GET_PRIVATE(self) _NM_GET_PRIVATE_PTR(self, NMWifiAP, NM_IS_WIFI_AP)
 
 /*****************************************************************************/
-
-const char *
-nm_wifi_ap_get_supplicant_path (NMWifiAP *ap)
-{
-	g_return_val_if_fail (NM_IS_WIFI_AP (ap), NULL);
-
-	return NM_WIFI_AP_GET_PRIVATE (ap)->supplicant_path;
-}
 
 GBytes *
 nm_wifi_ap_get_ssid (const NMWifiAP *ap)
@@ -148,11 +141,7 @@ nm_wifi_ap_set_ssid (NMWifiAP *ap, GBytes *ssid)
 static gboolean
 nm_wifi_ap_set_flags (NMWifiAP *ap, NM80211ApFlags flags)
 {
-	NMWifiAPPrivate *priv;
-
-	g_return_val_if_fail (NM_IS_WIFI_AP (ap), FALSE);
-
-	priv = NM_WIFI_AP_GET_PRIVATE (ap);
+	NMWifiAPPrivate *priv = NM_WIFI_AP_GET_PRIVATE (ap);
 
 	if (priv->flags != flags) {
 		priv->flags = flags;
@@ -165,11 +154,8 @@ nm_wifi_ap_set_flags (NMWifiAP *ap, NM80211ApFlags flags)
 static gboolean
 nm_wifi_ap_set_wpa_flags (NMWifiAP *ap, NM80211ApSecurityFlags flags)
 {
-	NMWifiAPPrivate *priv;
+	NMWifiAPPrivate *priv = NM_WIFI_AP_GET_PRIVATE (ap);
 
-	g_return_val_if_fail (NM_IS_WIFI_AP (ap), FALSE);
-
-	priv = NM_WIFI_AP_GET_PRIVATE (ap);
 	if (priv->wpa_flags != flags) {
 		priv->wpa_flags = flags;
 		_notify (ap, PROP_WPA_FLAGS);
@@ -181,11 +167,8 @@ nm_wifi_ap_set_wpa_flags (NMWifiAP *ap, NM80211ApSecurityFlags flags)
 static gboolean
 nm_wifi_ap_set_rsn_flags (NMWifiAP *ap, NM80211ApSecurityFlags flags)
 {
-	NMWifiAPPrivate *priv;
+	NMWifiAPPrivate *priv = NM_WIFI_AP_GET_PRIVATE (ap);
 
-	g_return_val_if_fail (NM_IS_WIFI_AP (ap), FALSE);
-
-	priv = NM_WIFI_AP_GET_PRIVATE (ap);
 	if (priv->rsn_flags != flags) {
 		priv->rsn_flags = flags;
 		_notify (ap, PROP_RSN_FLAGS);
@@ -203,11 +186,9 @@ nm_wifi_ap_get_address (const NMWifiAP *ap)
 }
 
 static gboolean
-nm_wifi_ap_set_address_bin (NMWifiAP *ap, const guint8 *addr /* ETH_ALEN bytes */)
+nm_wifi_ap_set_address_bin (NMWifiAP *ap, const guint8 addr[static 6 /* ETH_ALEN */])
 {
-	NMWifiAPPrivate *priv;
-
-	priv = NM_WIFI_AP_GET_PRIVATE (ap);
+	NMWifiAPPrivate *priv = NM_WIFI_AP_GET_PRIVATE (ap);
 
 	if (   !priv->address
 	    || !nm_utils_hwaddr_matches (addr, ETH_ALEN, priv->address, -1)) {
@@ -241,16 +222,14 @@ nm_wifi_ap_get_mode (NMWifiAP *ap)
 }
 
 static gboolean
-nm_wifi_ap_set_mode (NMWifiAP *ap, const NM80211Mode mode)
+nm_wifi_ap_set_mode (NMWifiAP *ap, NM80211Mode mode)
 {
-	NMWifiAPPrivate *priv;
+	NMWifiAPPrivate *priv = NM_WIFI_AP_GET_PRIVATE (ap);
 
-	g_return_val_if_fail (NM_IS_WIFI_AP (ap), FALSE);
-	g_return_val_if_fail (   mode == NM_802_11_MODE_ADHOC
-	                      || mode == NM_802_11_MODE_INFRA
-	                      || mode == NM_802_11_MODE_MESH, FALSE);
-
-	priv = NM_WIFI_AP_GET_PRIVATE (ap);
+	nm_assert (NM_IN_SET (mode, NM_802_11_MODE_UNKNOWN,
+	                            NM_802_11_MODE_ADHOC,
+	                            NM_802_11_MODE_INFRA,
+	                            NM_802_11_MODE_MESH));
 
 	if (priv->mode != mode) {
 		priv->mode = mode;
@@ -277,13 +256,9 @@ nm_wifi_ap_get_strength (NMWifiAP *ap)
 }
 
 gboolean
-nm_wifi_ap_set_strength (NMWifiAP *ap, const gint8 strength)
+nm_wifi_ap_set_strength (NMWifiAP *ap, gint8 strength)
 {
-	NMWifiAPPrivate *priv;
-
-	g_return_val_if_fail (NM_IS_WIFI_AP (ap), FALSE);
-
-	priv = NM_WIFI_AP_GET_PRIVATE (ap);
+	NMWifiAPPrivate *priv = NM_WIFI_AP_GET_PRIVATE (ap);
 
 	if (priv->strength != strength) {
 		priv->strength = strength;
@@ -303,13 +278,9 @@ nm_wifi_ap_get_freq (NMWifiAP *ap)
 
 gboolean
 nm_wifi_ap_set_freq (NMWifiAP *ap,
-                     const guint32 freq)
+                     guint32 freq)
 {
-	NMWifiAPPrivate *priv;
-
-	g_return_val_if_fail (NM_IS_WIFI_AP (ap), FALSE);
-
-	priv = NM_WIFI_AP_GET_PRIVATE (ap);
+	NMWifiAPPrivate *priv = NM_WIFI_AP_GET_PRIVATE (ap);
 
 	if (priv->freq != freq) {
 		priv->freq = freq;
@@ -378,16 +349,12 @@ nm_wifi_ap_get_flags (const NMWifiAP *ap)
 }
 
 static gboolean
-nm_wifi_ap_set_last_seen (NMWifiAP *ap, gint32 last_seen)
+nm_wifi_ap_set_last_seen (NMWifiAP *ap, gint32 last_seen_msec)
 {
-	NMWifiAPPrivate *priv;
+	NMWifiAPPrivate *priv = NM_WIFI_AP_GET_PRIVATE (ap);
 
-	g_return_val_if_fail (NM_IS_WIFI_AP (ap), FALSE);
-
-	priv = NM_WIFI_AP_GET_PRIVATE (ap);
-
-	if (priv->last_seen != last_seen) {
-		priv->last_seen = last_seen;
+	if (priv->last_seen_msec != last_seen_msec) {
+		priv->last_seen_msec = last_seen_msec;
 		_notify (ap, PROP_LAST_SEEN);
 		return TRUE;
 	}
@@ -402,501 +369,53 @@ nm_wifi_ap_get_metered (const NMWifiAP *self)
 
 /*****************************************************************************/
 
-static NM80211ApSecurityFlags
-security_from_vardict (GVariant *security)
-{
-	NM80211ApSecurityFlags flags = NM_802_11_AP_SEC_NONE;
-	const char **array, *tmp;
-
-	g_return_val_if_fail (g_variant_is_of_type (security, G_VARIANT_TYPE_VARDICT), NM_802_11_AP_SEC_NONE);
-
-	if (   g_variant_lookup (security, "KeyMgmt", "^a&s", &array)
-	    && array) {
-		if (g_strv_contains (array, "wpa-psk") ||
-		    g_strv_contains (array, "wpa-ft-psk"))
-			flags |= NM_802_11_AP_SEC_KEY_MGMT_PSK;
-		if (g_strv_contains (array, "wpa-eap") ||
-		    g_strv_contains (array, "wpa-ft-eap") ||
-		    g_strv_contains (array, "wpa-fils-sha256") ||
-		    g_strv_contains (array, "wpa-fils-sha384"))
-			flags |= NM_802_11_AP_SEC_KEY_MGMT_802_1X;
-		if (g_strv_contains (array, "sae"))
-			flags |= NM_802_11_AP_SEC_KEY_MGMT_SAE;
-		g_free (array);
-	}
-
-	if (   g_variant_lookup (security, "Pairwise", "^a&s", &array)
-	    && array) {
-		if (g_strv_contains (array, "tkip"))
-			flags |= NM_802_11_AP_SEC_PAIR_TKIP;
-		if (g_strv_contains (array, "ccmp"))
-			flags |= NM_802_11_AP_SEC_PAIR_CCMP;
-		g_free (array);
-	}
-
-	if (g_variant_lookup (security, "Group", "&s", &tmp)) {
-		if (strcmp (tmp, "wep40") == 0)
-			flags |= NM_802_11_AP_SEC_GROUP_WEP40;
-		if (strcmp (tmp, "wep104") == 0)
-			flags |= NM_802_11_AP_SEC_GROUP_WEP104;
-		if (strcmp (tmp, "tkip") == 0)
-			flags |= NM_802_11_AP_SEC_GROUP_TKIP;
-		if (strcmp (tmp, "ccmp") == 0)
-			flags |= NM_802_11_AP_SEC_GROUP_CCMP;
-	}
-
-	return flags;
-}
-
-/*****************************************************************************/
-
-static guint32
-get_max_rate_ht_20 (int mcs)
-{
-	switch (mcs) {
-	case 0:  return 6500000;
-	case 1:
-	case 8:  return 13000000;
-	case 2:
-	case 16: return 19500000;
-	case 3:
-	case 9:
-	case 24: return 26000000;
-	case 4:
-	case 10:
-	case 17: return 39000000;
-	case 5:
-	case 11:
-	case 25: return 52000000;
-	case 6:
-	case 18: return 58500000;
-	case 7:  return 65000000;
-	case 12:
-	case 19:
-	case 26: return 78000000;
-	case 13:
-	case 27: return 104000000;
-	case 14:
-	case 20: return 117000000;
-	case 15: return 130000000;
-	case 21:
-	case 28: return 156000000;
-	case 22: return 175500000;
-	case 23: return 195000000;
-	case 29: return 208000000;
-	case 30: return 234000000;
-	case 31: return 260000000;
-	}
-	return 0;
-}
-
-static guint32
-get_max_rate_ht_40 (int mcs)
-{
-	switch (mcs) {
-	case 0:  return 13500000;
-	case 1:
-	case 8:  return 27000000;
-	case 2:  return 40500000;
-	case 3:
-	case 9:
-	case 24: return 54000000;
-	case 4:
-	case 10:
-	case 17: return 81000000;
-	case 5:
-	case 11:
-	case 25: return 108000000;
-	case 6:
-	case 18: return 121500000;
-	case 7:  return 135000000;
-	case 12:
-	case 19:
-	case 26: return 162000000;
-	case 13:
-	case 27: return 216000000;
-	case 14:
-	case 20: return 243000000;
-	case 15: return 270000000;
-	case 16: return 40500000;
-	case 21:
-	case 28: return 324000000;
-	case 22: return 364500000;
-	case 23: return 405000000;
-	case 29: return 432000000;
-	case 30: return 486000000;
-	case 31: return 540000000;
-	}
-	return 0;
-}
-
-static guint32
-get_max_rate_vht_80_ss1 (int mcs)
-{
-	switch (mcs) {
-	case 0:  return 29300000;
-	case 1:  return 58500000;
-	case 2:  return 87800000;
-	case 3:  return 117000000;
-	case 4:  return 175500000;
-	case 5:  return 234000000;
-	case 6:  return 263300000;
-	case 7:  return 292500000;
-	case 8:  return 351000000;
-	case 9:  return 390000000;
-	}
-	return 0;
-}
-
-static guint32
-get_max_rate_vht_80_ss2 (int mcs)
-{
-	switch (mcs) {
-	case 0:  return 58500000;
-	case 1:  return 117000000;
-	case 2:  return 175500000;
-	case 3:  return 234000000;
-	case 4:  return 351000000;
-	case 5:  return 468000000;
-	case 6:  return 526500000;
-	case 7:  return 585000000;
-	case 8:  return 702000000;
-	case 9:  return 780000000;
-	}
-	return 0;
-}
-
-static guint32
-get_max_rate_vht_80_ss3 (int mcs)
-{
-	switch (mcs) {
-	case 0:  return 87800000;
-	case 1:  return 175500000;
-	case 2:  return 263300000;
-	case 3:  return 351000000;
-	case 4:  return 526500000;
-	case 5:  return 702000000;
-	case 6:  return 0;
-	case 7:  return 877500000;
-	case 8:  return 105300000;
-	case 9:  return 117000000;
-	}
-	return 0;
-}
-
-static guint32
-get_max_rate_vht_160_ss1 (int mcs)
-{
-	switch (mcs) {
-	case 0:  return 58500000;
-	case 1:  return 117000000;
-	case 2:  return 175500000;
-	case 3:  return 234000000;
-	case 4:  return 351000000;
-	case 5:  return 468000000;
-	case 6:  return 526500000;
-	case 7:  return 585000000;
-	case 8:  return 702000000;
-	case 9:  return 780000000;
-	}
-	return 0;
-}
-
-static guint32
-get_max_rate_vht_160_ss2 (int mcs)
-{
-	switch (mcs) {
-	case 0:  return 117000000;
-	case 1:  return 234000000;
-	case 2:  return 351000000;
-	case 3:  return 468000000;
-	case 4:  return 702000000;
-	case 5:  return 936000000;
-	case 6:  return 1053000000;
-	case 7:  return 1170000000;
-	case 8:  return 1404000000;
-	case 9:  return 1560000000;
-	}
-	return 0;
-}
-
-static guint32
-get_max_rate_vht_160_ss3 (int mcs)
-{
-	switch (mcs) {
-	case 0:  return 175500000;
-	case 1:  return 351000000;
-	case 2:  return 526500000;
-	case 3:  return 702000000;
-	case 4:  return 1053000000;
-	case 5:  return 1404000000;
-	case 6:  return 1579500000;
-	case 7:  return 1755000000;
-	case 8:  return 2106000000;
-	case 9:  return 0;
-	}
-	return 0;
-}
-
-static gboolean
-get_max_rate_ht (const guint8 *bytes, guint len, guint32 *out_maxrate)
-{
-	guint32 i;
-	guint8 ht_cap_info;
-	const guint8 *supported_mcs_set;
-	guint32 rate;
-
-	/* http://standards.ieee.org/getieee802/download/802.11-2012.pdf
-	 * https://mrncciew.com/2014/10/19/cwap-ht-capabilities-ie/
-	 */
-
-	if (len != 26)
-		return FALSE;
-
-	ht_cap_info = bytes[0];
-	supported_mcs_set = &bytes[3];
-	*out_maxrate = 0;
-
-	/* Find the maximum supported mcs rate */
-	for (i = 0; i <= 76; i++) {
-		unsigned int mcs_octet = i / 8;
-		unsigned int MCS_RATE_BIT = 1 << i % 8;
-
-		if (supported_mcs_set[mcs_octet] & MCS_RATE_BIT) {
-			/* Check for 40Mhz wide channel support */
-			if (ht_cap_info & (1 << 1))
-				rate = get_max_rate_ht_40 (i);
-			else
-				rate = get_max_rate_ht_20 (i);
-
-			if (rate > *out_maxrate)
-				*out_maxrate = rate;
-		}
-	}
-
-	return TRUE;
-}
-
-static gboolean
-get_max_rate_vht (const guint8 *bytes, guint len, guint32 *out_maxrate)
-{
-	guint32 mcs, m;
-	guint8 vht_cap, tx_map;
-
-	/* https://tda802dot11.blogspot.it/2014/10/vht-capabilities-element-vht.html
-	 * http://chimera.labs.oreilly.com/books/1234000001739/ch03.html#management_frames */
-
-	if (len != 12)
-		return FALSE;
-
-	vht_cap = bytes[0];
-	tx_map = bytes[8];
-
-	/* Check for mcs rates 8 and 9 support */
-	if (tx_map & 0x2a)
-		mcs = 9;
-	else if (tx_map & 0x15)
-		mcs = 8;
-	else
-		mcs = 7;
-
-	/* Check for 160Mhz wide channel support and
-	 * spatial stream support */
-	if (vht_cap & (1 << 2)) {
-		if (tx_map & 0x30)
-			m = get_max_rate_vht_160_ss3 (mcs);
-		else if (tx_map & 0x0C)
-			m = get_max_rate_vht_160_ss2 (mcs);
-		else
-			m = get_max_rate_vht_160_ss1 (mcs);
-	} else {
-		if (tx_map & 0x30)
-			m = get_max_rate_vht_80_ss3 (mcs);
-		else if (tx_map & 0x0C)
-			m = get_max_rate_vht_80_ss2 (mcs);
-		else
-			m = get_max_rate_vht_80_ss1 (mcs);
-	}
-
-	*out_maxrate = m;
-	return TRUE;
-}
-
-/* Management Frame Information Element IDs, ieee80211_eid */
-#define WLAN_EID_HT_CAPABILITY       45
-#define WLAN_EID_VHT_CAPABILITY     191
-#define WLAN_EID_VENDOR_SPECIFIC    221
-
-static void
-parse_ies (const guint8 *bytes, gsize len, guint32 *out_max_rate, gboolean *out_metered)
-{
-	guint8 id, elem_len;
-	guint32 m;
-
-	*out_max_rate = 0;
-	*out_metered = FALSE;
-
-	while (len) {
-		if (len < 2)
-			break;
-
-		id = *bytes++;
-		elem_len = *bytes++;
-		len -= 2;
-
-		if (elem_len > len)
-			break;
-
-		switch (id) {
-		case WLAN_EID_HT_CAPABILITY:
-			if (get_max_rate_ht (bytes, elem_len, &m))
-				*out_max_rate = NM_MAX (*out_max_rate, m);
-			break;
-		case WLAN_EID_VHT_CAPABILITY:
-			if (get_max_rate_vht (bytes, elem_len, &m))
-				*out_max_rate = NM_MAX (*out_max_rate, m);
-			break;
-		case WLAN_EID_VENDOR_SPECIFIC:
-			if (   len == 8
-			    && bytes[0] == 0x00            /* OUI: Microsoft */
-			    && bytes[1] == 0x50
-			    && bytes[2] == 0xf2
-			    && bytes[3] == 0x11)           /* OUI type: Network cost */
-				*out_metered = (bytes[7] > 1); /* Cost level > 1 */
-			break;
-		}
-
-		len -= elem_len;
-		bytes += elem_len;
-	}
-}
-
-/*****************************************************************************/
-
 gboolean
 nm_wifi_ap_update_from_properties (NMWifiAP *ap,
-                                   const char *supplicant_path,
-                                   GVariant *properties)
+                                   const NMSupplicantBssInfo *bss_info)
 {
 	NMWifiAPPrivate *priv;
-	const guint8 *bytes;
-	GVariant *v;
-	gsize len;
-	gsize i;
-	gboolean b = FALSE;
-	const char *s;
-	gint16 i16;
-	guint16 u16;
 	gboolean changed = FALSE;
-	gboolean metered;
-	guint32 max_rate, rate;
 
 	g_return_val_if_fail (NM_IS_WIFI_AP (ap), FALSE);
-	g_return_val_if_fail (properties, FALSE);
+	g_return_val_if_fail (bss_info, FALSE);
+	nm_assert (NM_IS_REF_STRING (bss_info->bss_path));
 
 	priv = NM_WIFI_AP_GET_PRIVATE (ap);
 
+	nm_assert (   !ap->_supplicant_path
+	           || ap->_supplicant_path == bss_info->bss_path);
+
 	g_object_freeze_notify (G_OBJECT (ap));
 
-	if (g_variant_lookup (properties, "Privacy", "b", &b) && b)
-		changed |= nm_wifi_ap_set_flags (ap, priv->flags | NM_802_11_AP_FLAGS_PRIVACY);
-
-	v = g_variant_lookup_value (properties, "WPS", G_VARIANT_TYPE_VARDICT);
-	if (v) {
-		if (g_variant_lookup (v, "Type", "&s", &s)) {
-			changed |= nm_wifi_ap_set_flags (ap, priv->flags | NM_802_11_AP_FLAGS_WPS);
-			if (strcmp (s, "pbc") == 0)
-				changed |= nm_wifi_ap_set_flags (ap, priv->flags | NM_802_11_AP_FLAGS_WPS_PBC);
-			else if (strcmp (s, "pin") == 0)
-				changed |= nm_wifi_ap_set_flags (ap, priv->flags | NM_802_11_AP_FLAGS_WPS_PIN);
-		}
-		g_variant_unref (v);
-	}
-
-	if (g_variant_lookup (properties, "Mode", "&s", &s)) {
-		if (!g_strcmp0 (s, "infrastructure"))
-			changed |= nm_wifi_ap_set_mode (ap, NM_802_11_MODE_INFRA);
-		else if (!g_strcmp0 (s, "ad-hoc"))
-			changed |= nm_wifi_ap_set_mode (ap, NM_802_11_MODE_ADHOC);
-		else if (!g_strcmp0 (s, "mesh"))
-			changed |= nm_wifi_ap_set_mode (ap, NM_802_11_MODE_MESH);
-	}
-
-	if (g_variant_lookup (properties, "Signal", "n", &i16))
-		changed |= nm_wifi_ap_set_strength (ap, nm_wifi_utils_level_to_quality (i16));
-
-	if (g_variant_lookup (properties, "Frequency", "q", &u16))
-		changed |= nm_wifi_ap_set_freq (ap, u16);
-
-	v = g_variant_lookup_value (properties, "SSID", G_VARIANT_TYPE_BYTESTRING);
-	if (v) {
-		bytes = g_variant_get_fixed_array (v, &len, 1);
-		len = MIN (32, len);
-
-		/* Stupid ieee80211 layer uses <hidden> */
-		if (   bytes
-		    && len
-		    && !(   NM_IN_SET (len, 8, 9)
-		         && memcmp (bytes, "<hidden>", len) == 0)
-		    && !nm_utils_is_empty_ssid (bytes, len)) {
-			/* good */
-		} else
-			len = 0;
-
-		changed |= nm_wifi_ap_set_ssid_arr (ap, bytes, len);
-
-		g_variant_unref (v);
-	}
-
-	v = g_variant_lookup_value (properties, "BSSID", G_VARIANT_TYPE_BYTESTRING);
-	if (v) {
-		bytes = g_variant_get_fixed_array (v, &len, 1);
-		if (   len == ETH_ALEN
-		    && memcmp (bytes, nm_ip_addr_zero.addr_eth, ETH_ALEN) != 0
-		    && memcmp (bytes, (char[ETH_ALEN]) { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }, ETH_ALEN) != 0)
-			changed |= nm_wifi_ap_set_address_bin (ap, bytes);
-		g_variant_unref (v);
-	}
-
-	max_rate = 0;
-	v = g_variant_lookup_value (properties, "Rates", G_VARIANT_TYPE ("au"));
-	if (v) {
-		const guint32 *rates = g_variant_get_fixed_array (v, &len, sizeof (guint32));
-
-		for (i = 0; i < len; i++)
-			max_rate = NM_MAX (max_rate, rates[i]);
-		g_variant_unref (v);
-	}
-	v = g_variant_lookup_value (properties, "IEs", G_VARIANT_TYPE_BYTESTRING);
-	if (v) {
-		bytes = g_variant_get_fixed_array (v, &len, 1);
-		parse_ies (bytes, len, &rate, &metered);
-		max_rate = NM_MAX (max_rate, rate);
-		g_variant_unref (v);
-		priv->metered = metered;
-	}
-
-	if (max_rate)
-		changed |= nm_wifi_ap_set_max_bitrate (ap, max_rate / 1000);
-
-	v = g_variant_lookup_value (properties, "WPA", G_VARIANT_TYPE_VARDICT);
-	if (v) {
-		changed |= nm_wifi_ap_set_wpa_flags (ap, priv->wpa_flags | security_from_vardict (v));
-		g_variant_unref (v);
-	}
-
-	v = g_variant_lookup_value (properties, "RSN", G_VARIANT_TYPE_VARDICT);
-	if (v) {
-		changed |= nm_wifi_ap_set_rsn_flags (ap, priv->rsn_flags | security_from_vardict (v));
-		g_variant_unref (v);
-	}
-
-	if (!priv->supplicant_path) {
-		priv->supplicant_path = g_strdup (supplicant_path);
+	if (!ap->_supplicant_path) {
+		ap->_supplicant_path = nm_ref_string_ref (bss_info->bss_path);
 		changed = TRUE;
 	}
 
-	changed |= nm_wifi_ap_set_last_seen (ap, nm_utils_get_monotonic_timestamp_s ());
+	changed |= nm_wifi_ap_set_flags (ap, bss_info->ap_flags);
+	changed |= nm_wifi_ap_set_mode (ap, bss_info->mode);
+	changed |= nm_wifi_ap_set_strength (ap, bss_info->signal_percent);
+	changed |= nm_wifi_ap_set_freq (ap, bss_info->frequency);
+	changed |= nm_wifi_ap_set_ssid (ap, bss_info->ssid);
+
+	if (bss_info->bssid_valid)
+		changed |= nm_wifi_ap_set_address_bin (ap, bss_info->bssid);
+	else {
+		/* we don't actually clear the value. */
+	}
+
+	changed |= nm_wifi_ap_set_max_bitrate (ap, bss_info->max_rate);
+
+	if (priv->metered != bss_info->metered) {
+		priv->metered = bss_info->metered;
+		changed = TRUE;
+	}
+
+	changed |= nm_wifi_ap_set_wpa_flags (ap, bss_info->wpa_flags);
+	changed |= nm_wifi_ap_set_rsn_flags (ap, bss_info->rsn_flags);
+
+	changed |= nm_wifi_ap_set_last_seen (ap, bss_info->last_seen_msec);
+
 	changed |= nm_wifi_ap_set_fake (ap, FALSE);
 
 	g_object_thaw_notify (G_OBJECT (ap));
@@ -984,20 +503,22 @@ const char *
 nm_wifi_ap_to_string (const NMWifiAP *self,
                       char *str_buf,
                       gulong buf_len,
-                      gint32 now_s)
+                      gint64 now_msec)
 {
 	const NMWifiAPPrivate *priv;
 	const char *supplicant_id = "-";
 	const char *export_path;
 	guint32 chan;
 	gs_free char *ssid_to_free = NULL;
+	char str_buf_ts[100];
 
 	g_return_val_if_fail (NM_IS_WIFI_AP (self), NULL);
 
 	priv = NM_WIFI_AP_GET_PRIVATE (self);
+
 	chan = nm_utils_wifi_freq_to_channel (priv->freq);
-	if (priv->supplicant_path)
-		supplicant_id = strrchr (priv->supplicant_path, '/') ?: supplicant_id;
+	if (self->_supplicant_path)
+		supplicant_id = strrchr (self->_supplicant_path->str, '/') ?: supplicant_id;
 
 	export_path = nm_dbus_object_get_path (NM_DBUS_OBJECT (self));
 	if (export_path)
@@ -1005,8 +526,10 @@ nm_wifi_ap_to_string (const NMWifiAP *self,
 	else
 		export_path = "/";
 
+	nm_utils_get_monotonic_timestamp_msec_cached (&now_msec);
+
 	g_snprintf (str_buf, buf_len,
-	            "%17s %-35s [ %c %3u %3u%% %c%c W:%04X R:%04X ] %3us sup:%s [nm:%s]",
+	            "%17s %-35s [ %c %3u %3u%% %c%c W:%04X R:%04X ] %s sup:%s [nm:%s]",
 	            priv->address ?: "(none)",
 	            (ssid_to_free = _nm_utils_ssid_to_string (priv->ssid)),
 	            (priv->mode == NM_802_11_MODE_ADHOC
@@ -1024,7 +547,12 @@ nm_wifi_ap_to_string (const NMWifiAP *self,
 	            priv->metered ? 'M' : '_',
 	            priv->wpa_flags & 0xFFFF,
 	            priv->rsn_flags & 0xFFFF,
-	            priv->last_seen > 0 ? ((now_s > 0 ? now_s : nm_utils_get_monotonic_timestamp_s ()) - priv->last_seen) : -1,
+	              priv->last_seen_msec != G_MININT64
+	            ? nm_sprintf_buf (str_buf_ts,
+	                              "%3u.%03us",
+	                              (guint) ((now_msec - priv->last_seen_msec) / 1000),
+	                              (guint) ((now_msec - priv->last_seen_msec) % 1000))
+	            : "        ",
 	            supplicant_id,
 	            export_path);
 	return str_buf;
@@ -1177,9 +705,9 @@ get_property (GObject *object, guint prop_id,
 		break;
 	case PROP_LAST_SEEN:
 		g_value_set_int (value,
-		                 priv->last_seen > 0
-		                     ? (int) nm_utils_monotonic_timestamp_as_boottime (priv->last_seen, NM_UTILS_NS_PER_SECOND)
-		                     : -1);
+		                   priv->last_seen_msec != G_MININT64
+		                 ? (int) NM_MAX (nm_utils_monotonic_timestamp_as_boottime (priv->last_seen_msec, NM_UTILS_NSEC_PER_MSEC) / 1000, 1)
+		                 : -1);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1204,26 +732,16 @@ nm_wifi_ap_init (NMWifiAP *self)
 	priv->flags = NM_802_11_AP_FLAGS_NONE;
 	priv->wpa_flags = NM_802_11_AP_SEC_NONE;
 	priv->rsn_flags = NM_802_11_AP_SEC_NONE;
-	priv->last_seen = -1;
+	priv->last_seen_msec = G_MININT64;
 }
 
 NMWifiAP *
-nm_wifi_ap_new_from_properties (const char *supplicant_path, GVariant *properties)
+nm_wifi_ap_new_from_properties (const NMSupplicantBssInfo *bss_info)
 {
 	NMWifiAP *ap;
 
-	g_return_val_if_fail (supplicant_path != NULL, NULL);
-	g_return_val_if_fail (properties != NULL, NULL);
-
-	ap = (NMWifiAP *) g_object_new (NM_TYPE_WIFI_AP, NULL);
-	nm_wifi_ap_update_from_properties (ap, supplicant_path, properties);
-
-	/* ignore APs with invalid or missing BSSIDs */
-	if (!nm_wifi_ap_get_address (ap)) {
-		g_object_unref (ap);
-		return NULL;
-	}
-
+	ap = g_object_new (NM_TYPE_WIFI_AP, NULL);
+	nm_wifi_ap_update_from_properties (ap, bss_info);
 	return ap;
 }
 
@@ -1349,7 +867,7 @@ finalize (GObject *object)
 	nm_assert (!self->wifi_device);
 	nm_assert (c_list_is_empty (&self->aps_lst));
 
-	g_free (priv->supplicant_path);
+	nm_ref_string_unref (self->_supplicant_path);
 	if (priv->ssid)
 		g_bytes_unref (priv->ssid);
 	g_free (priv->address);
@@ -1394,7 +912,8 @@ nm_wifi_ap_class_init (NMWifiAPClass *ap_class)
 	| NM_802_11_AP_SEC_GROUP_CCMP \
 	| NM_802_11_AP_SEC_KEY_MGMT_PSK \
 	| NM_802_11_AP_SEC_KEY_MGMT_802_1X \
-	| NM_802_11_AP_SEC_KEY_MGMT_SAE )
+	| NM_802_11_AP_SEC_KEY_MGMT_SAE \
+	| NM_802_11_AP_SEC_KEY_MGMT_OWE )
 
 	GObjectClass *object_class = G_OBJECT_CLASS (ap_class);
 	NMDBusObjectClass *dbus_object_class = NM_DBUS_OBJECT_CLASS (ap_class);
@@ -1510,20 +1029,6 @@ nm_wifi_aps_find_first_compatible (const CList *aps_lst_head,
 
 	c_list_for_each_entry (ap, aps_lst_head, aps_lst) {
 		if (nm_wifi_ap_check_compatible (ap, connection))
-			return ap;
-	}
-	return NULL;
-}
-
-NMWifiAP *
-nm_wifi_aps_find_by_supplicant_path (const CList *aps_lst_head, const char *path)
-{
-	NMWifiAP *ap;
-
-	g_return_val_if_fail (path != NULL, NULL);
-
-	c_list_for_each_entry (ap, aps_lst_head, aps_lst) {
-		if (nm_streq0 (path, nm_wifi_ap_get_supplicant_path (ap)))
 			return ap;
 	}
 	return NULL;

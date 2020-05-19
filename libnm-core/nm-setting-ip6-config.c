@@ -143,7 +143,7 @@ nm_setting_ip6_config_get_dhcp_duid (NMSettingIP6Config *setting)
  * Returns: The configured %NM_SETTING_IP6_CONFIG_RA_TIMEOUT value with the
  * timeout for router advertisements in seconds.
  *
- * Since: 1.24, 1.22.8
+ * Since: 1.24
  **/
 gint32
 nm_setting_ip6_config_get_ra_timeout (NMSettingIP6Config *setting)
@@ -254,7 +254,7 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 				return FALSE;
 			}
 
-			if (g_strcmp0 (priv->token, nm_utils_inet6_ntop (&i6_token, s_token)))
+			if (g_strcmp0 (priv->token, _nm_utils_inet6_ntop (&i6_token, s_token)))
 				token_needs_normalization = TRUE;
 		} else {
 			g_set_error_literal (error,
@@ -538,6 +538,10 @@ set_property (GObject *object, guint prop_id,
 static void
 nm_setting_ip6_config_init (NMSettingIP6Config *setting)
 {
+	NMSettingIP6ConfigPrivate *priv = NM_SETTING_IP6_CONFIG_GET_PRIVATE (setting);
+
+	priv->ip6_privacy   = NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN;
+	priv->addr_gen_mode = NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY;
 }
 
 /**
@@ -787,7 +791,6 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *klass)
 	                       NM_TYPE_SETTING_IP6_CONFIG_PRIVACY,
 	                       NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       G_PARAM_STATIC_STRINGS);
 
 	/**
@@ -836,7 +839,6 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *klass)
 	                      G_MININT, G_MAXINT,
 	                      NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY,
 	                      G_PARAM_READWRITE |
-	                      G_PARAM_CONSTRUCT |
 	                      G_PARAM_STATIC_STRINGS);
 
 	/**
@@ -870,7 +872,7 @@ nm_setting_ip6_config_class_init (NMSettingIP6ConfigClass *klass)
 	 *
 	 * Set to 2147483647 (MAXINT32) for infinity.
 	 *
-	 * Since: 1.24, 1.22.8
+	 * Since: 1.24
 	 **/
 	/* ---ifcfg-rh---
 	 * property: dhcp-timeout

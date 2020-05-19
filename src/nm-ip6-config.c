@@ -63,6 +63,7 @@ typedef struct {
 		NMIPConfigDedupMultiIdxType idx_ip6_routes_;
 		NMDedupMultiIdxType idx_ip6_routes;
 	};
+	NMIPConfigFlags config_flags;
 	bool ipv6_disabled;
 } NMIP6ConfigPrivate;
 
@@ -764,8 +765,8 @@ nm_ip6_config_create_setting (const NMIP6Config *self)
 	    && nm_setting_ip_config_get_num_addresses (s_ip6) > 0) {
 		g_object_set (s_ip6,
 		              NM_SETTING_IP_CONFIG_GATEWAY,
-		              nm_utils_inet6_ntop (&NMP_OBJECT_CAST_IP6_ROUTE (priv->best_default_route)->gateway,
-		                                   sbuf),
+		              _nm_utils_inet6_ntop (&NMP_OBJECT_CAST_IP6_ROUTE (priv->best_default_route)->gateway,
+		                                    sbuf),
 		              NULL);
 	}
 
@@ -807,7 +808,7 @@ nm_ip6_config_create_setting (const NMIP6Config *self)
 	for (i = 0; i < nnameservers; i++) {
 		const struct in6_addr *nameserver = nm_ip6_config_get_nameserver (self, i);
 
-		nm_setting_ip_config_add_dns (s_ip6, nm_utils_inet6_ntop (nameserver, sbuf));
+		nm_setting_ip_config_add_dns (s_ip6, _nm_utils_inet6_ntop (nameserver, sbuf));
 	}
 	for (i = 0; i < nsearches; i++) {
 		const char *search = nm_ip6_config_get_search (self, i);
@@ -875,7 +876,8 @@ nm_ip6_config_merge (NMIP6Config *dst,
 
 		nm_ip_config_iter_ip6_route_for_each (&ipconf_iter, src, &r_src) {
 			if (NM_PLATFORM_IP_ROUTE_IS_DEFAULT (r_src)) {
-				if (NM_FLAGS_HAS (merge_flags, NM_IP_CONFIG_MERGE_NO_DEFAULT_ROUTES))
+				if (   NM_FLAGS_HAS (merge_flags, NM_IP_CONFIG_MERGE_NO_DEFAULT_ROUTES)
+				    && !NM_FLAGS_HAS (src_priv->config_flags, NM_IP_CONFIG_FLAGS_IGNORE_MERGE_NO_DEFAULT_ROUTES))
 					continue;
 				if (default_route_metric_penalty) {
 					NMPlatformIP6Route r = *r_src;
@@ -2296,6 +2298,28 @@ nm_ip6_config_get_dns_option (const NMIP6Config *self, guint i)
 
 /*****************************************************************************/
 
+NMIPConfigFlags
+nm_ip6_config_get_config_flags (const NMIP6Config *self)
+{
+	return NM_IP6_CONFIG_GET_PRIVATE (self)->config_flags;
+}
+
+void
+nm_ip6_config_set_config_flags (NMIP6Config *self, NMIPConfigFlags flags, NMIPConfigFlags mask)
+{
+	NMIP6ConfigPrivate *priv = NM_IP6_CONFIG_GET_PRIVATE (self);
+
+	if (mask == 0) {
+		/* for convenience, accept 0 mask to set any flags. */
+		mask = flags;
+	}
+
+	nm_assert (!NM_FLAGS_ANY (flags, ~mask));
+	priv->config_flags = (flags & mask) | (priv->config_flags & ~mask);
+}
+
+/*****************************************************************************/
+
 void
 nm_ip6_config_set_dns_priority (NMIP6Config *self, int priority)
 {
@@ -2556,7 +2580,7 @@ get_property (GObject *object, guint prop_id,
 				g_variant_builder_init (&addr_builder, G_VARIANT_TYPE ("a{sv}"));
 				g_variant_builder_add (&addr_builder, "{sv}",
 				                       "address",
-				                       g_variant_new_string (nm_utils_inet6_ntop (&address->address, sbuf)));
+				                       g_variant_new_string (_nm_utils_inet6_ntop (&address->address, sbuf)));
 				g_variant_builder_add (&addr_builder, "{sv}",
 				                       "prefix",
 				                       g_variant_new_uint32 (address->plen));
@@ -2564,7 +2588,7 @@ get_property (GObject *object, guint prop_id,
 				    && !IN6_ARE_ADDR_EQUAL (&address->peer_address, &address->address)) {
 					g_variant_builder_add (&addr_builder, "{sv}",
 					                       "peer",
-					                       g_variant_new_string (nm_utils_inet6_ntop (&address->peer_address, sbuf)));
+					                       g_variant_new_string (_nm_utils_inet6_ntop (&address->peer_address, sbuf)));
 				}
 
 				g_variant_builder_add (&builder_data, "a{sv}", &addr_builder);
@@ -2609,14 +2633,14 @@ out_addresses_cached:
 			g_variant_builder_init (&route_builder, G_VARIANT_TYPE ("a{sv}"));
 			g_variant_builder_add (&route_builder, "{sv}",
 			                       "dest",
-			                       g_variant_new_string (nm_utils_inet6_ntop (&route->network, sbuf)));
+			                       g_variant_new_string (_nm_utils_inet6_ntop (&route->network, sbuf)));
 			g_variant_builder_add (&route_builder, "{sv}",
 			                       "prefix",
 			                       g_variant_new_uint32 (route->plen));
 			if (!IN6_IS_ADDR_UNSPECIFIED (&route->gateway)) {
 				g_variant_builder_add (&route_builder, "{sv}",
 				                       "next-hop",
-				                       g_variant_new_string (nm_utils_inet6_ntop (&route->gateway, sbuf)));
+				                       g_variant_new_string (_nm_utils_inet6_ntop (&route->gateway, sbuf)));
 			}
 
 			g_variant_builder_add (&route_builder, "{sv}",

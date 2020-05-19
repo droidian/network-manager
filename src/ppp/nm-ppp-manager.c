@@ -41,7 +41,8 @@
 
 #define NM_PPPD_PLUGIN PPPD_PLUGIN_DIR "/nm-pppd-plugin.so"
 
-static NM_CACHED_QUARK_FCN ("ppp-manager-secret-tries", ppp_manager_secret_tries_quark)
+static
+NM_CACHED_QUARK_FCN ("ppp-manager-secret-tries", ppp_manager_secret_tries_quark)
 
 /*****************************************************************************/
 
@@ -664,7 +665,8 @@ out:
 
 /*****************************************************************************/
 
-NM_UTILS_LOOKUP_STR_DEFINE_STATIC (pppd_exit_code_to_str, int,
+static
+NM_UTILS_LOOKUP_STR_DEFINE (pppd_exit_code_to_str, int,
 	NM_UTILS_LOOKUP_DEFAULT ("Unknown error"),
 	NM_UTILS_LOOKUP_STR_ITEM ( 1, "Fatal pppd error");
 	NM_UTILS_LOOKUP_STR_ITEM ( 2, "pppd options error"),
@@ -1259,7 +1261,7 @@ static void
 get_property (GObject *object, guint prop_id,
               GValue *value, GParamSpec *pspec)
 {
-	NMPPPManagerPrivate *priv = NM_PPP_MANAGER_GET_PRIVATE ((NMPPPManager *) object);
+	NMPPPManagerPrivate *priv = NM_PPP_MANAGER_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case PROP_PARENT_IFACE:
@@ -1275,7 +1277,7 @@ static void
 set_property (GObject *object, guint prop_id,
               const GValue *value, GParamSpec *pspec)
 {
-	NMPPPManagerPrivate *priv = NM_PPP_MANAGER_GET_PRIVATE ((NMPPPManager *) object);
+	NMPPPManagerPrivate *priv = NM_PPP_MANAGER_GET_PRIVATE (object);
 
 	switch (prop_id) {
 	case PROP_PARENT_IFACE:
@@ -1333,7 +1335,7 @@ dispose (GObject *object)
 static void
 finalize (GObject *object)
 {
-	NMPPPManagerPrivate *priv = NM_PPP_MANAGER_GET_PRIVATE ((NMPPPManager *) object);
+	NMPPPManagerPrivate *priv = NM_PPP_MANAGER_GET_PRIVATE (object);
 
 	g_free (priv->parent_iface);
 

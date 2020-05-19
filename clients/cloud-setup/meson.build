@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LGPL-2.1+
+
 name = 'nm-cloud-setup'
 
 if install_systemdunitdir
@@ -29,16 +31,15 @@ sources = files(
   'nmcs-provider.c',
 )
 
-deps = [
-  libnmc_base_dep,
-  libnmc_dep,
-  libcurl_dep,
-]
-
 executable(
   name,
   sources,
-  dependencies: deps,
+  dependencies: [
+    libnmc_base_dep,
+    libnmc_dep,
+    libcurl_dep,
+    libnm_libnm_aux_dep,
+  ],
   c_args: clients_c_flags +
           ['-DG_LOG_DOMAIN="@0@"'.format(name)],
   link_with: libnm_systemd_logging_stub,

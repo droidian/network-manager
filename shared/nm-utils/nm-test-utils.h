@@ -622,7 +622,7 @@ __nmtst_init (int *argc, char ***argv, gboolean assert_logging, const char *log_
 
 #ifdef __NETWORKMANAGER_UTILS_H__
 	/* ensure that monotonic timestamp is called (because it initially logs a line) */
-	nm_utils_get_monotonic_timestamp_s ();
+	nm_utils_get_monotonic_timestamp_sec ();
 #endif
 
 #ifdef NM_UTILS_H
@@ -848,11 +848,30 @@ nmtst_get_rand_uint32 (void)
 	return g_rand_int (nmtst_get_rand ());
 }
 
+static inline guint64
+nmtst_get_rand_uint64 (void)
+{
+	GRand *rand = nmtst_get_rand ();
+
+	return   (((guint64) g_rand_int (rand))      )
+	       | (((guint64) g_rand_int (rand)) << 32);
+}
+
 static inline guint
 nmtst_get_rand_uint (void)
 {
 	G_STATIC_ASSERT_EXPR (sizeof (guint32) == sizeof (guint));
 	return nmtst_get_rand_uint32 ();
+}
+
+static inline gsize
+nmtst_get_rand_size (void)
+{
+	G_STATIC_ASSERT_EXPR (   sizeof (gsize) == sizeof (guint32)
+	                      || sizeof (gsize) == sizeof (guint64));
+	if (sizeof (gsize) == sizeof (guint32))
+		return nmtst_get_rand_uint32 ();
+	return nmtst_get_rand_uint64 ();
 }
 
 static inline gboolean
@@ -967,6 +986,89 @@ nmtst_rand_perm_gslist (GRand *rand, GSList *list)
 
 /*****************************************************************************/
 
+/**
+ * nmtst_get_rand_word_length:
+ * @rand: (allow-none): #GRand instance or %NULL to use the singleton.
+ *
+ * Returns: a random integer >= 0, that most frequently is somewhere between
+ * 0 and 16, but (with decreasing) probability, it can be larger. This can
+ * be used when we generate random input for unit tests.
+ */
+static inline guint
+nmtst_get_rand_word_length (GRand *rand)
+{
+	guint n;
+
+	if (!rand)
+		rand = nmtst_get_rand ();
+
+	n = 0;
+	while (TRUE) {
+		guint32 rnd = g_rand_int (rand);
+		guint probability;
+
+		/* The following python code implements a random sample with this
+		 * distribution:
+		 *
+		 *    def random_histogram(n_tries, scale = None):
+		 *        def probability(n_tok):
+		 *            import math
+		 *            return max(2, math.floor(100 / (2*(n_tok+1))))
+		 *        def n_tokens():
+		 *            import random
+		 *            n_tok = 0
+		 *            while True:
+		 *                if random.randint(0, 0xFFFFFFFF) % probability(n_tok) == 0:
+		 *                   return n_tok
+		 *                n_tok += 1
+		 *        hist = []
+		 *        i = 0;
+		 *        while i < n_tries:
+		 *            n_tok = n_tokens()
+		 *            while n_tok >= len(hist):
+		 *                hist.append(0)
+		 *            hist[n_tok] = hist[n_tok] + 1
+		 *            i += 1
+		 *        if scale is not None:
+		 *            hist = list([round(x / n_tries * scale) for x in hist])
+		 *        return hist
+		 *
+		 * For example, random_histogram(n_tries = 1000000, scale = 1000) may give
+		 *
+		 *   IDX:  [ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
+		 *   SEEN: [20, 39, 59, 73, 80, 91, 92, 90, 91, 73, 73, 54, 55, 36, 24, 16, 16,  8,  4,  2,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0]
+		 *
+		 * which give a sense of the probability with this individual results are returned.
+		 */
+		probability = NM_MAX (2u, (100u / (2u * (n + 1u))));
+		if ((rnd % probability) == 0)
+			return n;
+		n++;
+	}
+}
+
+/*****************************************************************************/
+
+static inline gboolean
+nmtst_g_source_assert_not_called (gpointer user_data)
+{
+	g_assert_not_reached ();
+	return G_SOURCE_CONTINUE;
+}
+
+static inline gboolean
+nmtst_g_source_set_boolean_true (gpointer user_data)
+{
+	gboolean *ptr = user_data;
+
+	g_assert (ptr);
+	g_assert (!*ptr);
+	*ptr = TRUE;
+	return G_SOURCE_CONTINUE;
+}
+
+/*****************************************************************************/
+
 static inline gboolean
 _nmtst_main_loop_run_timeout (gpointer user_data)
 {
@@ -978,13 +1080,13 @@ _nmtst_main_loop_run_timeout (gpointer user_data)
 }
 
 static inline gboolean
-nmtst_main_loop_run (GMainLoop *loop, guint timeout_ms)
+nmtst_main_loop_run (GMainLoop *loop, guint timeout_msec)
 {
 	nm_auto_unref_gsource GSource *source = NULL;
 	GMainLoop *loopx = loop;
 
-	if (timeout_ms > 0) {
-		source = g_timeout_source_new (timeout_ms);
+	if (timeout_msec > 0) {
+		source = g_timeout_source_new (timeout_msec);
 		g_source_set_callback (source, _nmtst_main_loop_run_timeout, &loopx, NULL);
 		g_source_attach (source, g_main_loop_get_context (loop));
 	}
@@ -1010,33 +1112,120 @@ _nmtst_main_loop_quit_on_notify (GObject *object, GParamSpec *pspec, gpointer us
 }
 #define nmtst_main_loop_quit_on_notify ((GCallback) _nmtst_main_loop_quit_on_notify)
 
-static inline gboolean
-_nmtst_main_context_iterate_until_timeout (gpointer user_data)
-{
-	gboolean *p_had_pointer = user_data;
-
-	g_assert (!*p_had_pointer);
-	*p_had_pointer = TRUE;
-	return G_SOURCE_CONTINUE;
-}
-
-#define nmtst_main_context_iterate_until(context, timeout_ms, condition) \
-	G_STMT_START { \
+#define nmtst_main_context_iterate_until(context, timeout_msec, condition) \
+	({ \
 		nm_auto_destroy_and_unref_gsource GSource *_source = NULL; \
 		GMainContext *_context = (context); \
 		gboolean _had_timeout = FALSE; \
 		\
-		_source = g_timeout_source_new (timeout_ms); \
-		g_source_set_callback (_source, _nmtst_main_context_iterate_until_timeout, &_had_timeout, NULL); \
+		_source = g_timeout_source_new (timeout_msec); \
+		g_source_set_callback (_source, nmtst_g_source_set_boolean_true, &_had_timeout, NULL); \
 		g_source_attach (_source, _context); \
 		\
 		while (TRUE) { \
 			if (condition) \
 				break; \
 			g_main_context_iteration (_context, TRUE); \
-			g_assert (!_had_timeout && #condition); \
+			if (_had_timeout) \
+				break; \
 		} \
+		\
+		!_had_timeout; \
+	})
+
+#define nmtst_main_context_iterate_until_assert(context, timeout_msec, condition) \
+	G_STMT_START { \
+		if (!nmtst_main_context_iterate_until (context, timeout_msec, condition)) \
+			g_assert (FALSE && #condition); \
 	} G_STMT_END
+
+/*****************************************************************************/
+
+static inline void
+nmtst_main_context_assert_no_dispatch (GMainContext *context,
+                                       guint timeout_msec)
+{
+	nm_auto_destroy_and_unref_gsource GSource *source = NULL;
+	gboolean timeout_hit = FALSE;
+
+	source = g_timeout_source_new (timeout_msec);
+	g_source_set_callback (source, nmtst_g_source_set_boolean_true, &timeout_hit, NULL);
+	g_source_attach (source, context);
+
+	while (g_main_context_iteration (context, TRUE)) {
+		if (timeout_hit)
+			return;
+		g_assert_not_reached ();
+	}
+}
+
+/*****************************************************************************/
+
+typedef struct {
+	GMainLoop *_main_loop;
+	union {
+		GSList *_list;
+		const void *const is_waiting;
+	};
+} NMTstContextBusyWatcherData;
+
+static inline void
+_nmtst_context_busy_watcher_add_cb (gpointer data,
+                                    GObject *where_the_object_was)
+{
+	NMTstContextBusyWatcherData *watcher_data = data;
+	GSList *l;
+
+	g_assert (watcher_data);
+
+	l = g_slist_find (watcher_data->_list, where_the_object_was);
+	g_assert (l);
+
+	watcher_data->_list = g_slist_delete_link (watcher_data->_list, l);
+	if (!watcher_data->_list)
+		g_main_loop_quit (watcher_data->_main_loop);
+}
+
+static inline void
+nmtst_context_busy_watcher_add (NMTstContextBusyWatcherData *watcher_data,
+                                GObject *object)
+{
+	g_assert (watcher_data);
+	g_assert (G_IS_OBJECT (object));
+
+	if (!watcher_data->_main_loop) {
+		watcher_data->_main_loop = g_main_loop_new (g_main_context_get_thread_default (),
+		                                            FALSE);
+		g_assert (!watcher_data->_list);
+	} else {
+		g_assert (   g_main_loop_get_context (watcher_data->_main_loop)
+		          == (g_main_context_get_thread_default () ?: g_main_context_default ()));
+	}
+
+	g_object_weak_ref (object,
+	                   _nmtst_context_busy_watcher_add_cb,
+	                   watcher_data);
+	watcher_data->_list = g_slist_prepend (watcher_data->_list, object);
+}
+
+static inline void
+nmtst_context_busy_watcher_wait (NMTstContextBusyWatcherData *watcher_data)
+{
+	g_assert (watcher_data);
+
+	if (!watcher_data->_main_loop) {
+		g_assert (!watcher_data->_list);
+		return;
+	}
+
+	if (watcher_data->_list) {
+		if (!nmtst_main_loop_run (watcher_data->_main_loop, 5000))
+			g_error ("timeout running mainloop waiting for GObject to destruct");
+	}
+
+	g_assert (!watcher_data->_list);
+	nm_clear_pointer (&watcher_data->_main_loop, g_main_loop_unref);
+}
 
 /*****************************************************************************/
 
@@ -1155,15 +1344,6 @@ nmtst_uuid_generate (void)
 }
 
 #endif
-
-#define NMTST_SWAP(x, y) \
-	G_STMT_START { \
-		char __nmtst_swap_temp[sizeof((x)) == sizeof((y)) ? (signed) sizeof((x)) : -1]; \
-		\
-		memcpy(__nmtst_swap_temp, &(y),              sizeof (__nmtst_swap_temp)); \
-		memcpy(&(y),              &(x),              sizeof (__nmtst_swap_temp)); \
-		memcpy(&(x),              __nmtst_swap_temp, sizeof (__nmtst_swap_temp)); \
-	} G_STMT_END
 
 #define nmtst_assert_str_has_substr(str, substr) \
 	G_STMT_START { \
@@ -1362,14 +1542,26 @@ nmtst_file_get_contents (const char *filename)
 	return contents;
 }
 
-#define nmtst_file_set_contents(filename, content) \
+#define nmtst_file_set_contents_size(filename, content, size) \
 	G_STMT_START { \
 		GError *_error = NULL; \
 		gboolean _success; \
+		const char *_content = (content); \
+		gssize _size = (size); \
 		\
-		_success = g_file_set_contents ((filename), (content), -1, &_error); \
+		g_assert (_content); \
+		\
+		if (_size < 0) { \
+			g_assert (_size == -1); \
+			_size = strlen (_content); \
+		} \
+		\
+		_success = g_file_set_contents ((filename), _content, _size, &_error); \
 		nmtst_assert_success (_success, _error); \
 	} G_STMT_END
+
+#define nmtst_file_set_contents(filename, content) \
+	nmtst_file_set_contents_size (filename, content, -1)
 
 /*****************************************************************************/
 
@@ -1478,9 +1670,9 @@ nmtst_setting_ip_config_add_address (NMSettingIPConfig *s_ip,
 
 	g_assert (s_ip);
 
-	if (nm_utils_ipaddr_valid (AF_INET, address))
+	if (nm_utils_ipaddr_is_valid (AF_INET, address))
 		family = AF_INET;
-	else if (nm_utils_ipaddr_valid (AF_INET6, address))
+	else if (nm_utils_ipaddr_is_valid (AF_INET6, address))
 		family = AF_INET6;
 	else
 		g_assert_not_reached ();
@@ -1503,9 +1695,9 @@ nmtst_setting_ip_config_add_route (NMSettingIPConfig *s_ip,
 
 	g_assert (s_ip);
 
-	if (nm_utils_ipaddr_valid (AF_INET, dest))
+	if (nm_utils_ipaddr_is_valid (AF_INET, dest))
 		family = AF_INET;
-	else if (nm_utils_ipaddr_valid (AF_INET6, dest))
+	else if (nm_utils_ipaddr_is_valid (AF_INET6, dest))
 		family = AF_INET6;
 	else
 		g_assert_not_reached ();
@@ -1611,7 +1803,11 @@ nmtst_create_minimal_connection (const char *id, const char *uuid, const char *t
 	con = nm_connection_new ();
 #endif
 
+	g_assert (con);
+
 	s_con = NM_SETTING_CONNECTION (nm_setting_connection_new ());
+
+	g_assert (s_con);
 
 	g_object_set (s_con,
 	              NM_SETTING_CONNECTION_ID, id,
@@ -1959,14 +2155,14 @@ nmtst_assert_setting_is_equal (gconstpointer /* const NMSetting * */ a,
 	g_assert (NM_IS_SETTING (b));
 
 	if (NM_FLAGS_HAS (r, 0x4))
-		NMTST_SWAP (a, b);
+		NM_SWAP (a, b);
 
 	g_assert (nm_setting_compare ((NMSetting *) a,
 	                              (NMSetting *) b,
 	                              flags));
 
 	if (NM_FLAGS_HAS (r, 0x8))
-		NMTST_SWAP (a, b);
+		NM_SWAP (a, b);
 
 	g_assert (nm_setting_diff ((NMSetting *) a,
 	                           (NMSetting *) b,
@@ -2307,15 +2503,6 @@ nmtst_keyfile_get_num_keys (GKeyFile *keyfile,
 	g_assert_cmpint (NM_PTRARRAY_LEN (keys), ==, l);
 
 	return l;
-}
-
-/*****************************************************************************/
-
-static inline gboolean
-nmtst_g_source_assert_not_called (gpointer user_data)
-{
-	g_assert_not_reached ();
-	return G_SOURCE_CONTINUE;
 }
 
 /*****************************************************************************/

@@ -173,8 +173,8 @@ static GHashTable *factories_by_setting = NULL;
 static void __attribute__((destructor))
 _cleanup (void)
 {
-	g_clear_pointer (&factories_by_link, g_hash_table_unref);
-	g_clear_pointer (&factories_by_setting, g_hash_table_unref);
+	nm_clear_pointer (&factories_by_link, g_hash_table_unref);
+	nm_clear_pointer (&factories_by_setting, g_hash_table_unref);
 }
 
 NMDeviceFactory *
@@ -385,6 +385,7 @@ nm_device_factory_manager_load_factories (NMDeviceFactoryManagerFactoryFunc call
 	_ADD_INTERNAL (nm_tun_device_factory_get_type);
 	_ADD_INTERNAL (nm_veth_device_factory_get_type);
 	_ADD_INTERNAL (nm_vlan_device_factory_get_type);
+	_ADD_INTERNAL (nm_vrf_device_factory_get_type);
 	_ADD_INTERNAL (nm_vxlan_device_factory_get_type);
 	_ADD_INTERNAL (nm_wireguard_device_factory_get_type);
 	_ADD_INTERNAL (nm_wpan_device_factory_get_type);

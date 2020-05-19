@@ -181,9 +181,9 @@ ip4_process_dhclient_rfc3442_routes (const char *iface,
 			nm_ip4_config_add_route (ip4_config, &route, NULL);
 
 			_LOG2I (LOGD_DHCP4, iface, "  classless static route %s/%d gw %s",
-			        nm_utils_inet4_ntop (route.network, b1),
+			        _nm_utils_inet4_ntop (route.network, b1),
 			        route.plen,
-			        nm_utils_inet4_ntop (route.gateway, b2));
+			        _nm_utils_inet4_ntop (route.gateway, b2));
 		}
 	}
 
@@ -388,7 +388,7 @@ nm_dhcp_utils_ip4_config_from_options (NMDedupMultiIndex *multi_idx,
 
 	ip4_config = nm_ip4_config_new (multi_idx, ifindex);
 	memset (&address, 0, sizeof (address));
-	address.timestamp = nm_utils_get_monotonic_timestamp_s ();
+	address.timestamp = nm_utils_get_monotonic_timestamp_sec ();
 
 	str = g_hash_table_lookup (options, "ip_address");
 	if (str && (inet_pton (AF_INET, str, &addr) > 0))
@@ -414,7 +414,7 @@ nm_dhcp_utils_ip4_config_from_options (NMDedupMultiIndex *multi_idx,
 		process_classful_routes (iface, options, route_table, route_metric, ip4_config);
 
 	if (gateway) {
-		_LOG2I (LOGD_DHCP4, iface, "  gateway %s", nm_utils_inet4_ntop (gateway, sbuf));
+		_LOG2I (LOGD_DHCP4, iface, "  gateway %s", _nm_utils_inet4_ntop (gateway, sbuf));
 		gateway_has = TRUE;
 	} else {
 		/* If the gateway wasn't provided as a classless static route with a
@@ -601,7 +601,7 @@ nm_dhcp_utils_ip6_prefix_from_options (GHashTable *options)
 	address.address = tmp_addr;
 	address.addr_source = NM_IP_CONFIG_SOURCE_DHCP;
 	address.plen = prefix;
-	address.timestamp = nm_utils_get_monotonic_timestamp_s ();
+	address.timestamp = nm_utils_get_monotonic_timestamp_sec ();
 
 	str = g_hash_table_lookup (options, "max_life");
 	if (str)
@@ -630,7 +630,7 @@ nm_dhcp_utils_ip6_config_from_options (NMDedupMultiIndex *multi_idx,
 
 	memset (&address, 0, sizeof (address));
 	address.plen = 128;
-	address.timestamp = nm_utils_get_monotonic_timestamp_s ();
+	address.timestamp = nm_utils_get_monotonic_timestamp_sec ();
 
 	ip6_config = nm_ip6_config_new (multi_idx, ifindex);
 

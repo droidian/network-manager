@@ -975,7 +975,8 @@ modem_secrets_cb (NMActRequest *req,
 
 	priv->secrets_id = NULL;
 
-	if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+	if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED) ||
+	    g_error_matches (error, NM_AGENT_MANAGER_ERROR, NM_AGENT_MANAGER_ERROR_NO_SECRETS))
 		return;
 
 	if (error)
@@ -1710,7 +1711,7 @@ static void
 set_property (GObject *object, guint prop_id,
               const GValue *value, GParamSpec *pspec)
 {
-	NMModemPrivate *priv = NM_MODEM_GET_PRIVATE ((NMModem *) object);
+	NMModemPrivate *priv = NM_MODEM_GET_PRIVATE (object);
 	const char *s;
 
 	switch (prop_id) {
@@ -1747,7 +1748,7 @@ set_property (GObject *object, guint prop_id,
 		priv->ip_types = g_value_get_uint (value);
 		break;
 	case PROP_SIM_OPERATOR_ID:
-		g_clear_pointer (&priv->sim_operator_id, g_free);
+		nm_clear_g_free (&priv->sim_operator_id);
 		s = g_value_get_string (value);
 		if (s && s[0])
 			priv->sim_operator_id = g_strdup (s);
@@ -1796,7 +1797,7 @@ constructed (GObject *object)
 static void
 dispose (GObject *object)
 {
-	NMModemPrivate *priv = NM_MODEM_GET_PRIVATE ((NMModem *) object);
+	NMModemPrivate *priv = NM_MODEM_GET_PRIVATE (object);
 
 	g_clear_object (&priv->act_request);
 
@@ -1806,7 +1807,7 @@ dispose (GObject *object)
 static void
 finalize (GObject *object)
 {
-	NMModemPrivate *priv = NM_MODEM_GET_PRIVATE ((NMModem *) object);
+	NMModemPrivate *priv = NM_MODEM_GET_PRIVATE (object);
 
 	g_free (priv->uid);
 	g_free (priv->path);

@@ -8,7 +8,7 @@
 <link rel="up" href="index.html" title="libnm Reference Manual">
 <link rel="prev" href="object-tree.html" title="Object Hierarchy">
 <link rel="next" href="annotation-glossary.html" title="Annotation Glossary">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -413,6 +413,10 @@ NMClient:hostname, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
+NMClient:instance-flags, object property in NMDeviceOvs
+</dt>
+<dd></dd>
+<dt>
 NMClient:metered, object property in NMDeviceOvs
 </dt>
 <dd></dd>
@@ -422,6 +426,10 @@ NMClient:metered, object property in NMDeviceOvs
 <dd></dd>
 <dt>
 NMClient:nm-running, object property in NMDeviceOvs
+</dt>
+<dd></dd>
+<dt>
+NMClient:permissions-state, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
@@ -469,6 +477,10 @@ NMClient:nm-running, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMClient.html#NMClientInstanceFlags" title="enum NMClientInstanceFlags">NMClientInstanceFlags</a>, enum in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
 NMClientNotifyEvent, struct in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
 </dt>
 <dd></dd>
@@ -485,11 +497,11 @@ NMClientNotifyEventWithPtrCb, user_function in <a class="link" href="NMIPConfig.
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMClient.html#NMClientPermission" title="enum NMClientPermission">NMClientPermission</a>, enum in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+<a class="link" href="libnm-nm-dbus-interface.html#NMClientPermission" title="enum NMClientPermission">NMClientPermission</a>, enum in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMClient.html#NMClientPermissionResult" title="enum NMClientPermissionResult">NMClientPermissionResult</a>, enum in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+<a class="link" href="libnm-nm-dbus-interface.html#NMClientPermissionResult" title="enum NMClientPermissionResult">NMClientPermissionResult</a>, enum in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
 </dt>
 <dd></dd>
 <dt>
@@ -545,10 +557,6 @@ NMDevice6Lowpan, struct in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-NMDevice6Lowpan:hw-address, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
 NMDevice6Lowpan:parent, object property in NMDeviceOvs
 </dt>
 <dd></dd>
@@ -598,6 +606,10 @@ NMDevice6Lowpan:parent, object property in NMDeviceOvs
 <dd></dd>
 <dt>
 <a href="/usr/share/gtk-doc/html/libnm-glib/NMDevice.html#NMDevice--firmware-version">NMDevice:firmware-version</a>, object property in NMDeviceOvs
+</dt>
+<dd></dd>
+<dt>
+NMDevice:hw-address, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
@@ -693,10 +705,6 @@ NMDeviceBond, struct in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceBond.html#NMDeviceBond--hw-address">NMDeviceBond:hw-address</a>, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
 <a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceBond.html#NMDeviceBond--slaves">NMDeviceBond:slaves</a>, object property in NMDeviceOvs
 </dt>
 <dd></dd>
@@ -709,10 +717,6 @@ NMDeviceBridge, struct in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceBridge.html#NMDeviceBridge--hw-address">NMDeviceBridge:hw-address</a>, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
 <a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceBridge.html#NMDeviceBridge--slaves">NMDeviceBridge:slaves</a>, object property in NMDeviceOvs
 </dt>
 <dd></dd>
@@ -722,10 +726,6 @@ NMDeviceBt, struct in NMDeviceOvs
 <dd></dd>
 <dt>
 <a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceBt.html#NMDeviceBt--bt-capabilities">NMDeviceBt:bt-capabilities</a>, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
-<a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceBt.html#NMDeviceBt--hw-address">NMDeviceBt:hw-address</a>, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
@@ -745,10 +745,6 @@ NMDeviceDummy, struct in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-NMDeviceDummy:hw-address, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
 <a class="link" href="libnm-nm-errors.html#NMDeviceError" title="enum NMDeviceError">NMDeviceError</a>, enum in <a class="link" href="libnm-nm-errors.html" title="nm-errors">nm-errors</a>
 </dt>
 <dd></dd>
@@ -758,10 +754,6 @@ NMDeviceEthernet, struct in NMDeviceOvs
 <dd></dd>
 <dt>
 <a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceEthernet.html#NMDeviceEthernet--carrier">NMDeviceEthernet:carrier</a>, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
-<a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceEthernet.html#NMDeviceEthernet--hw-address">NMDeviceEthernet:hw-address</a>, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
@@ -781,10 +773,6 @@ NMDeviceGeneric, struct in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceGeneric.html#NMDeviceGeneric--hw-address">NMDeviceGeneric:hw-address</a>, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
 <a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceGeneric.html#NMDeviceGeneric--type-description">NMDeviceGeneric:type-description</a>, object property in NMDeviceOvs
 </dt>
 <dd></dd>
@@ -794,10 +782,6 @@ NMDeviceInfiniband, struct in NMDeviceOvs
 <dd></dd>
 <dt>
 <a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceInfiniband.html#NMDeviceInfiniband--carrier">NMDeviceInfiniband:carrier</a>, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
-<a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceInfiniband.html#NMDeviceInfiniband--hw-address">NMDeviceInfiniband:hw-address</a>, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
@@ -877,10 +861,6 @@ NMDeviceMacsec:es, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-NMDeviceMacsec:hw-address, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
 NMDeviceMacsec:icv-length, object property in NMDeviceOvs
 </dt>
 <dd></dd>
@@ -918,10 +898,6 @@ NMDeviceMacsec:window, object property in NMDeviceOvs
 <dd></dd>
 <dt>
 NMDeviceMacvlan, struct in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
-NMDeviceMacvlan:hw-address, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
@@ -981,10 +957,6 @@ NMDeviceOlpcMesh, struct in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceOlpcMesh.html#NMDeviceOlpcMesh--hw-address">NMDeviceOlpcMesh:hw-address</a>, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
 NMDeviceOvsBridge, struct in NMDeviceOvs
 </dt>
 <dd></dd>
@@ -1029,10 +1001,6 @@ NMDeviceTeam:config, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceTeam.html#NMDeviceTeam--hw-address">NMDeviceTeam:hw-address</a>, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
 <a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceTeam.html#NMDeviceTeam--slaves">NMDeviceTeam:slaves</a>, object property in NMDeviceOvs
 </dt>
 <dd></dd>
@@ -1042,10 +1010,6 @@ NMDeviceTun, struct in NMDeviceOvs
 <dd></dd>
 <dt>
 NMDeviceTun:group, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
-NMDeviceTun:hw-address, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
@@ -1081,15 +1045,19 @@ NMDeviceVlan, struct in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceVlan.html#NMDeviceVlan--hw-address">NMDeviceVlan:hw-address</a>, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
 <a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceVlan.html#NMDeviceVlan--parent">NMDeviceVlan:parent</a>, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
 <a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceVlan.html#NMDeviceVlan--vlan-id">NMDeviceVlan:vlan-id</a>, object property in NMDeviceOvs
+</dt>
+<dd></dd>
+<dt>
+NMDeviceVrf, struct in NMDeviceOvs
+</dt>
+<dd></dd>
+<dt>
+NMDeviceVrf:table, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
@@ -1110,10 +1078,6 @@ NMDeviceVxlan:dst-port, object property in NMDeviceOvs
 <dd></dd>
 <dt>
 NMDeviceVxlan:group, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
-NMDeviceVxlan:hw-address, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
@@ -1193,10 +1157,6 @@ NMDeviceWifi, struct in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-<a href="/usr/share/gtk-doc/html/libnm-glib/NMDeviceWifi.html#NMDeviceWifi--hw-address">NMDeviceWifi:hw-address</a>, object property in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
 NMDeviceWifi:last-scan, object property in NMDeviceOvs
 </dt>
 <dd></dd>
@@ -1226,10 +1186,6 @@ NMDeviceWifiP2P::peer-added, object signal in NMDeviceOvs
 <dd></dd>
 <dt>
 NMDeviceWifiP2P::peer-removed, object signal in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
-NMDeviceWifiP2P:hw-address, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
@@ -1298,10 +1254,6 @@ NMDeviceWireGuard:public-key, object property in NMDeviceOvs
 <dd></dd>
 <dt>
 NMDeviceWpan, struct in NMDeviceOvs
-</dt>
-<dd></dd>
-<dt>
-NMDeviceWpan:hw-address, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
@@ -1429,6 +1381,14 @@ NMLDBusPropertyO, struct in <a class="link" href="NMIPConfig.html" title="NMIPCo
 </dt>
 <dd></dd>
 <dt>
+NMLInitData, struct in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+nml_cleanup_context_busy_watcher_on_idle, function in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
 NML_DBUS_LOG, macro in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
 </dt>
 <dd></dd>
@@ -1458,6 +1418,10 @@ NML_DBUS_META_IFACE_DBUS_PROPERTIES, macro in <a class="link" href="NMIPConfig.h
 <dd></dd>
 <dt>
 nml_dbus_meta_iface_get, function in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+NML_DBUS_META_IFACE_INIT, macro in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
 </dt>
 <dd></dd>
 <dt>
@@ -1597,6 +1561,18 @@ nml_dbus_property_o_notify_changed_many, function in <a class="link" href="NMIPC
 </dt>
 <dd></dd>
 <dt>
+nml_init_data_new_async, function in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+nml_init_data_new_sync, function in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+nml_init_data_return, function in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
 NML_NMCLIENT_LOG, macro in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
 </dt>
 <dd></dd>
@@ -1701,6 +1677,10 @@ NMRemoteConnection:visible, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSecretAgentOld.html#NMSecretAgentOld--dbus-connection" title="The “dbus-connection” property">NMSecretAgentOld:dbus-connection</a>, object property in <a class="link" href="NMSecretAgentOld.html" title="NMSecretAgentOld">NMSecretAgentOld</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSecretAgentOld.html#NMSecretAgentOld--identifier" title="The “identifier” property">NMSecretAgentOld:identifier</a>, object property in <a class="link" href="NMSecretAgentOld.html" title="NMSecretAgentOld">NMSecretAgentOld</a>
 </dt>
 <dd></dd>
@@ -1774,6 +1754,10 @@ NMSetting6Lowpan:parent, object property in NMSettingOvs
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--client-cert-password-flags" title="The “client-cert-password-flags” property">NMSetting8021x:client-cert-password-flags</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NMSetting8021x--domain-match" title="The “domain-match” property">NMSetting8021x:domain-match</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -1866,6 +1850,10 @@ NMSetting6Lowpan:parent, object property in NMSettingOvs
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-client-cert-password-flags" title="The “phase2-client-cert-password-flags” property">NMSetting8021x:phase2-client-cert-password-flags</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-domain-match" title="The “phase2-domain-match” property">NMSetting8021x:phase2-domain-match</a>, object property in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -1985,55 +1973,79 @@ NMSetting6Lowpan:parent, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMSettingBridge.html#NMSettingBridge-struct" title="NMSettingBridge">NMSettingBridge</a>, struct in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+NMSettingBridge, struct in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMSettingBridge.html#NMSettingBridge--ageing-time" title="The “ageing-time” property">NMSettingBridge:ageing-time</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMSettingBridge.html#NMSettingBridge--ageing-time">NMSettingBridge:ageing-time</a>, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMSettingBridge.html#NMSettingBridge--forward-delay" title="The “forward-delay” property">NMSettingBridge:forward-delay</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMSettingBridge.html#NMSettingBridge--forward-delay">NMSettingBridge:forward-delay</a>, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMSettingBridge.html#NMSettingBridge--group-forward-mask" title="The “group-forward-mask” property">NMSettingBridge:group-forward-mask</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+NMSettingBridge:group-address, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMSettingBridge.html#NMSettingBridge--hello-time" title="The “hello-time” property">NMSettingBridge:hello-time</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+NMSettingBridge:group-forward-mask, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMSettingBridge.html#NMSettingBridge--mac-address" title="The “mac-address” property">NMSettingBridge:mac-address</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMSettingBridge.html#NMSettingBridge--hello-time">NMSettingBridge:hello-time</a>, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMSettingBridge.html#NMSettingBridge--max-age" title="The “max-age” property">NMSettingBridge:max-age</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMSettingBridge.html#NMSettingBridge--mac-address">NMSettingBridge:mac-address</a>, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMSettingBridge.html#NMSettingBridge--multicast-snooping" title="The “multicast-snooping” property">NMSettingBridge:multicast-snooping</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMSettingBridge.html#NMSettingBridge--max-age">NMSettingBridge:max-age</a>, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMSettingBridge.html#NMSettingBridge--priority" title="The “priority” property">NMSettingBridge:priority</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+NMSettingBridge:multicast-querier, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMSettingBridge.html#NMSettingBridge--stp" title="The “stp” property">NMSettingBridge:stp</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+NMSettingBridge:multicast-query-use-ifaddr, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMSettingBridge.html#NMSettingBridge--vlan-default-pvid" title="The “vlan-default-pvid” property">NMSettingBridge:vlan-default-pvid</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+NMSettingBridge:multicast-router, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMSettingBridge.html#NMSettingBridge--vlan-filtering" title="The “vlan-filtering” property">NMSettingBridge:vlan-filtering</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+NMSettingBridge:multicast-snooping, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMSettingBridge.html#NMSettingBridge--vlans" title="The “vlans” property">NMSettingBridge:vlans</a>, object property in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMSettingBridge.html#NMSettingBridge--priority">NMSettingBridge:priority</a>, object property in NMSettingOvs
+</dt>
+<dd></dd>
+<dt>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMSettingBridge.html#NMSettingBridge--stp">NMSettingBridge:stp</a>, object property in NMSettingOvs
+</dt>
+<dd></dd>
+<dt>
+NMSettingBridge:vlan-default-pvid, object property in NMSettingOvs
+</dt>
+<dd></dd>
+<dt>
+NMSettingBridge:vlan-filtering, object property in NMSettingOvs
+</dt>
+<dd></dd>
+<dt>
+NMSettingBridge:vlan-protocol, object property in NMSettingOvs
+</dt>
+<dd></dd>
+<dt>
+NMSettingBridge:vlan-stats-enabled, object property in NMSettingOvs
+</dt>
+<dd></dd>
+<dt>
+NMSettingBridge:vlans, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
@@ -3129,6 +3141,14 @@ NMSettingUser:data, object property in NMSettingOvs
 </dt>
 <dd></dd>
 <dt>
+NMSettingVrf, struct in NMSettingOvs
+</dt>
+<dd></dd>
+<dt>
+NMSettingVrf:table, object property in NMSettingOvs
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingVxlan.html#NMSettingVxlan-struct" title="NMSettingVxlan">NMSettingVxlan</a>, struct in <a class="link" href="NMSettingVxlan.html" title="NMSettingVxlan">NMSettingVxlan</a>
 </dt>
 <dd></dd>
@@ -3661,7 +3681,111 @@ NMVpnConnection:vpn-state, object property in NMDeviceOvs
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-vpn-plugin-info.html#NMVpnPluginInfo" title="NMVpnPluginInfo">NMVpnPluginInfo</a>, struct in <a class="link" href="libnm-nm-vpn-plugin-info.html" title="nm-vpn-plugin-info">nm-vpn-plugin-info</a>
+<a class="link" href="NMVpnEditorPlugin.html#NMVpnPluginInfo-struct" title="NMVpnPluginInfo">NMVpnPluginInfo</a>, struct in <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">NMVpnEditorPlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnEditorPlugin.html#NMVpnPluginInfo--filename" title="The “filename” property">NMVpnPluginInfo:filename</a>, object property in <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">NMVpnEditorPlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnEditorPlugin.html#NMVpnPluginInfo--keyfile" title="The “keyfile” property">NMVpnPluginInfo:keyfile</a>, object property in <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">NMVpnEditorPlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnEditorPlugin.html#NMVpnPluginInfo--name" title="The “name” property">NMVpnPluginInfo:name</a>, object property in <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin">NMVpnEditorPlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#NMVpnPluginOld-struct" title="NMVpnPluginOld">NMVpnPluginOld</a>, struct in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#NMVpnPluginOld-config" title="The “config” signal">NMVpnPluginOld::config</a>, object signal in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#NMVpnPluginOld-failure" title="The “failure” signal">NMVpnPluginOld::failure</a>, object signal in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#NMVpnPluginOld-ip4-config" title="The “ip4-config” signal">NMVpnPluginOld::ip4-config</a>, object signal in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#NMVpnPluginOld-ip6-config" title="The “ip6-config” signal">NMVpnPluginOld::ip6-config</a>, object signal in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#NMVpnPluginOld-login-banner" title="The “login-banner” signal">NMVpnPluginOld::login-banner</a>, object signal in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#NMVpnPluginOld-quit" title="The “quit” signal">NMVpnPluginOld::quit</a>, object signal in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#NMVpnPluginOld-secrets-required" title="The “secrets-required” signal">NMVpnPluginOld::secrets-required</a>, object signal in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#NMVpnPluginOld-state-changed" title="The “state-changed” signal">NMVpnPluginOld::state-changed</a>, object signal in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#NMVpnPluginOld--service-name" title="The “service-name” property">NMVpnPluginOld:service-name</a>, object property in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#NMVpnPluginOld--state" title="The “state” property">NMVpnPluginOld:state</a>, object property in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NMVpnServicePlugin-struct" title="NMVpnServicePlugin">NMVpnServicePlugin</a>, struct in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NMVpnServicePlugin-config" title="The “config” signal">NMVpnServicePlugin::config</a>, object signal in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NMVpnServicePlugin-failure" title="The “failure” signal">NMVpnServicePlugin::failure</a>, object signal in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NMVpnServicePlugin-ip4-config" title="The “ip4-config” signal">NMVpnServicePlugin::ip4-config</a>, object signal in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NMVpnServicePlugin-ip6-config" title="The “ip6-config” signal">NMVpnServicePlugin::ip6-config</a>, object signal in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NMVpnServicePlugin-login-banner" title="The “login-banner” signal">NMVpnServicePlugin::login-banner</a>, object signal in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NMVpnServicePlugin-quit" title="The “quit” signal">NMVpnServicePlugin::quit</a>, object signal in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NMVpnServicePlugin-secrets-required" title="The “secrets-required” signal">NMVpnServicePlugin::secrets-required</a>, object signal in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NMVpnServicePlugin-state-changed" title="The “state-changed” signal">NMVpnServicePlugin::state-changed</a>, object signal in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NMVpnServicePlugin--service-name" title="The “service-name” property">NMVpnServicePlugin:service-name</a>, object property in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NMVpnServicePlugin--state" title="The “state” property">NMVpnServicePlugin:state</a>, object property in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NMVpnServicePlugin--watch-peer" title="The “watch-peer” property">NMVpnServicePlugin:watch-peer</a>, object property in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4017,11 +4141,7 @@ nm_auto_unref_nml_dbusobj, macro in <a class="link" href="NMIPConfig.html" title
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-version.html#NM-AVAILABLE-IN-1-22-2:CAPS" title="NM_AVAILABLE_IN_1_22_2">NM_AVAILABLE_IN_1_22_2</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
-</dt>
-<dd></dd>
-<dt>
-<a class="link" href="libnm-nm-version.html#NM-AVAILABLE-IN-1-22-8:CAPS" title="NM_AVAILABLE_IN_1_22_8">NM_AVAILABLE_IN_1_22_8</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+<a class="link" href="libnm-nm-version.html#NM-AVAILABLE-IN-1-24:CAPS" title="NM_AVAILABLE_IN_1_24">NM_AVAILABLE_IN_1_24</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4293,11 +4413,27 @@ nm_auto_unref_nml_dbusobj, macro in <a class="link" href="NMIPConfig.html" title
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMClient.html#nm-client-dbus-call" title="nm_client_dbus_call ()">nm_client_dbus_call</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-client-dbus-call-finish" title="nm_client_dbus_call_finish ()">nm_client_dbus_call_finish</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMClient.html#NM-CLIENT-DBUS-CONNECTION:CAPS" title="NM_CLIENT_DBUS_CONNECTION">NM_CLIENT_DBUS_CONNECTION</a>, macro in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="NMClient.html#NM-CLIENT-DBUS-NAME-OWNER:CAPS" title="NM_CLIENT_DBUS_NAME_OWNER">NM_CLIENT_DBUS_NAME_OWNER</a>, macro in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-client-dbus-set-property" title="nm_client_dbus_set_property ()">nm_client_dbus_set_property</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-client-dbus-set-property-finish" title="nm_client_dbus_set_property_finish ()">nm_client_dbus_set_property_finish</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4421,6 +4557,10 @@ nm_auto_unref_nml_dbusobj, macro in <a class="link" href="NMIPConfig.html" title
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMClient.html#nm-client-get-instance-flags" title="nm_client_get_instance_flags ()">nm_client_get_instance_flags</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMClient.html#nm-client-get-logging" title="nm_client_get_logging ()">nm_client_get_logging</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
 </dt>
 <dd></dd>
@@ -4434,6 +4574,14 @@ nm_auto_unref_nml_dbusobj, macro in <a class="link" href="NMIPConfig.html" title
 <dd></dd>
 <dt>
 <a class="link" href="NMClient.html#nm-client-get-nm-running" title="nm_client_get_nm_running ()">nm_client_get_nm_running</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-client-get-object-by-path" title="nm_client_get_object_by_path ()">nm_client_get_object_by_path</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#nm-client-get-permissions-state" title="nm_client_get_permissions_state ()">nm_client_get_permissions_state</a>, function in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4458,6 +4606,14 @@ nm_auto_unref_nml_dbusobj, macro in <a class="link" href="NMIPConfig.html" title
 <dd></dd>
 <dt>
 <a class="link" href="NMClient.html#NM-CLIENT-HOSTNAME:CAPS" title="NM_CLIENT_HOSTNAME">NM_CLIENT_HOSTNAME</a>, macro in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#NM-CLIENT-INSTANCE-FLAGS:CAPS" title="NM_CLIENT_INSTANCE_FLAGS">NM_CLIENT_INSTANCE_FLAGS</a>, macro in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
+</dt>
+<dd></dd>
+<dt>
+NM_CLIENT_INSTANCE_FLAGS_ALL, macro in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4514,6 +4670,10 @@ NM_CLIENT_NOTIFY_EVENT_PRIO_BEFORE, macro in <a class="link" href="NMIPConfig.ht
 <dd></dd>
 <dt>
 NM_CLIENT_NOTIFY_EVENT_PRIO_GPROP, macro in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMClient.html#NM-CLIENT-PERMISSIONS-STATE:CAPS" title="NM_CLIENT_PERMISSIONS_STATE">NM_CLIENT_PERMISSIONS_STATE</a>, macro in <a class="link" href="NMClient.html" title="NMClient">NMClient</a>
 </dt>
 <dd></dd>
 <dt>
@@ -4925,6 +5085,14 @@ NM_CLIENT_NOTIFY_EVENT_PRIO_GPROP, macro in <a class="link" href="NMIPConfig.htm
 </dt>
 <dd></dd>
 <dt>
+nm_context_busy_watcher_integrate_source, function in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+nm_context_busy_watcher_quark, function in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="libnm-nm-errors.html#NM-CRYPTO-ERROR:CAPS" title="NM_CRYPTO_ERROR">NM_CRYPTO_ERROR</a>, macro in <a class="link" href="libnm-nm-errors.html" title="nm-errors">nm-errors</a>
 </dt>
 <dd></dd>
@@ -5046,6 +5214,10 @@ NM_CLIENT_NOTIFY_EVENT_PRIO_GPROP, macro in <a class="link" href="NMIPConfig.htm
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-VLAN:CAPS" title="NM_DBUS_INTERFACE_DEVICE_VLAN">NM_DBUS_INTERFACE_DEVICE_VLAN</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE-VRF:CAPS" title="NM_DBUS_INTERFACE_DEVICE_VRF">NM_DBUS_INTERFACE_DEVICE_VRF</a>, macro in <a class="link" href="libnm-nm-dbus-interface.html" title="nm-dbus-interface">nm-dbus-interface</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5329,15 +5501,15 @@ nm_dbus_path_not_empty, function in <a class="link" href="NMIPConfig.html" title
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-22-2:CAPS" title="NM_DEPRECATED_IN_1_22_2">NM_DEPRECATED_IN_1_22_2</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
-</dt>
-<dd></dd>
-<dt>
-<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-22-2-FOR:CAPS" title="NM_DEPRECATED_IN_1_22_2_FOR()">NM_DEPRECATED_IN_1_22_2_FOR</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
-</dt>
-<dd></dd>
-<dt>
 <a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-22-FOR:CAPS" title="NM_DEPRECATED_IN_1_22_FOR()">NM_DEPRECATED_IN_1_22_FOR</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-24:CAPS" title="NM_DEPRECATED_IN_1_24">NM_DEPRECATED_IN_1_24</a>, macro in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDevice6Lowpan.html#NM-DEPRECATED-IN-1-24-FOR:CAPS" title="NM_DEPRECATED_IN_1_24_FOR ()">NM_DEPRECATED_IN_1_24_FOR</a>, function in <a class="link" href="libnm-nm-version.html" title="nm-version">nm-version</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5366,10 +5538,6 @@ nm_dbus_path_not_empty, function in <a class="link" href="NMIPConfig.html" title
 <dd></dd>
 <dt>
 <a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-8-FOR:CAPS" title="NM_DEPRECATED_IN_1_8_FOR()">NM_DEPRECATED_IN_1_8_FOR</a>, macro in nm-vpn-dbus-interface
-</dt>
-<dd></dd>
-<dt>
-<a class="link" href="NMDevice6Lowpan.html#nm-device-6lowpan-get-hw-address" title="nm_device_6lowpan_get_hw_address ()">nm_device_6lowpan_get_hw_address</a>, function in <a class="link" href="NMDevice6Lowpan.html" title="NMDevice6Lowpan">NMDevice6Lowpan</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5534,10 +5702,6 @@ nm_dbus_path_not_empty, function in <a class="link" href="NMIPConfig.html" title
 <dd></dd>
 <dt>
 <a class="link" href="NMDevice.html#NM-DEVICE-DRIVER-VERSION:CAPS" title="NM_DEVICE_DRIVER_VERSION">NM_DEVICE_DRIVER_VERSION</a>, macro in <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
-</dt>
-<dd></dd>
-<dt>
-<a class="link" href="NMDeviceDummy.html#nm-device-dummy-get-hw-address" title="nm_device_dummy_get_hw_address ()">nm_device_dummy_get_hw_address</a>, function in <a class="link" href="NMDeviceDummy.html" title="NMDeviceDummy">NMDeviceDummy</a>
 </dt>
 <dd></dd>
 <dt>
@@ -5757,6 +5921,10 @@ nm_dbus_path_not_empty, function in <a class="link" href="NMIPConfig.html" title
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMDevice.html#NM-DEVICE-HW-ADDRESS:CAPS" title="NM_DEVICE_HW_ADDRESS">NM_DEVICE_HW_ADDRESS</a>, macro in <a class="link" href="NMDevice.html" title="NMDevice">NMDevice</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMDeviceInfiniband.html#NM-DEVICE-INFINIBAND-CARRIER:CAPS" title="NM_DEVICE_INFINIBAND_CARRIER">NM_DEVICE_INFINIBAND_CARRIER</a>, macro in <a class="link" href="NMDeviceInfiniband.html" title="NMDeviceInfiniband">NMDeviceInfiniband</a>
 </dt>
 <dd></dd>
@@ -5941,10 +6109,6 @@ nm_dbus_path_not_empty, function in <a class="link" href="NMIPConfig.html" title
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-hw-address" title="nm_device_macsec_get_hw_address ()">nm_device_macsec_get_hw_address</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
-</dt>
-<dd></dd>
-<dt>
 <a class="link" href="NMDeviceMacsec.html#nm-device-macsec-get-icv-length" title="nm_device_macsec_get_icv_length ()">nm_device_macsec_get_icv_length</a>, function in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
 </dt>
 <dd></dd>
@@ -6018,10 +6182,6 @@ nm_dbus_path_not_empty, function in <a class="link" href="NMIPConfig.html" title
 <dd></dd>
 <dt>
 <a class="link" href="NMDeviceMacsec.html#NM-DEVICE-MACSEC-WINDOW:CAPS" title="NM_DEVICE_MACSEC_WINDOW">NM_DEVICE_MACSEC_WINDOW</a>, macro in <a class="link" href="NMDeviceMacsec.html" title="NMDeviceMacsec">NMDeviceMacsec</a>
-</dt>
-<dd></dd>
-<dt>
-<a class="link" href="NMDeviceMacvlan.html#nm-device-macvlan-get-hw-address" title="nm_device_macvlan_get_hw_address ()">nm_device_macvlan_get_hw_address</a>, function in <a class="link" href="NMDeviceMacvlan.html" title="NMDeviceMacvlan">NMDeviceMacvlan</a>
 </dt>
 <dd></dd>
 <dt>
@@ -6233,10 +6393,6 @@ nm_dbus_path_not_empty, function in <a class="link" href="NMIPConfig.html" title
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMDeviceTun.html#nm-device-tun-get-hw-address" title="nm_device_tun_get_hw_address ()">nm_device_tun_get_hw_address</a>, function in <a class="link" href="NMDeviceTun.html" title="NMDeviceTun">NMDeviceTun</a>
-</dt>
-<dd></dd>
-<dt>
 <a class="link" href="NMDeviceTun.html#nm-device-tun-get-mode" title="nm_device_tun_get_mode ()">nm_device_tun_get_mode</a>, function in <a class="link" href="NMDeviceTun.html" title="NMDeviceTun">NMDeviceTun</a>
 </dt>
 <dd></dd>
@@ -6325,6 +6481,14 @@ nm_dbus_path_not_empty, function in <a class="link" href="NMIPConfig.html" title
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMDeviceVrf.html#nm-device-vrf-get-table" title="nm_device_vrf_get_table ()">nm_device_vrf_get_table</a>, function in <a class="link" href="NMDeviceVrf.html" title="NMDeviceVrf">NMDeviceVrf</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMDeviceVrf.html#NM-DEVICE-VRF-TABLE:CAPS" title="NM_DEVICE_VRF_TABLE">NM_DEVICE_VRF_TABLE</a>, macro in <a class="link" href="NMDeviceVrf.html" title="NMDeviceVrf">NMDeviceVrf</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMDeviceVxlan.html#NM-DEVICE-VXLAN-AGEING:CAPS" title="NM_DEVICE_VXLAN_AGEING">NM_DEVICE_VXLAN_AGEING</a>, macro in <a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan">NMDeviceVxlan</a>
 </dt>
 <dd></dd>
@@ -6350,10 +6514,6 @@ nm_dbus_path_not_empty, function in <a class="link" href="NMIPConfig.html" title
 <dd></dd>
 <dt>
 <a class="link" href="NMDeviceVxlan.html#nm-device-vxlan-get-group" title="nm_device_vxlan_get_group ()">nm_device_vxlan_get_group</a>, function in <a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan">NMDeviceVxlan</a>
-</dt>
-<dd></dd>
-<dt>
-<a class="link" href="NMDeviceVxlan.html#nm-device-vxlan-get-hw-address" title="nm_device_vxlan_get_hw_address ()">nm_device_vxlan_get_hw_address</a>, function in <a class="link" href="NMDeviceVxlan.html" title="NMDeviceVxlan">NMDeviceVxlan</a>
 </dt>
 <dd></dd>
 <dt>
@@ -6533,10 +6693,6 @@ nm_dbus_path_not_empty, function in <a class="link" href="NMIPConfig.html" title
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="NMDeviceWifiP2P.html#nm-device-wifi-p2p-get-hw-address" title="nm_device_wifi_p2p_get_hw_address ()">nm_device_wifi_p2p_get_hw_address</a>, function in <a class="link" href="NMDeviceWifiP2P.html" title="NMDeviceWifiP2P">NMDeviceWifiP2P</a>
-</dt>
-<dd></dd>
-<dt>
 <a class="link" href="NMDeviceWifiP2P.html#nm-device-wifi-p2p-get-peers" title="nm_device_wifi_p2p_get_peers ()">nm_device_wifi_p2p_get_peers</a>, function in <a class="link" href="NMDeviceWifiP2P.html" title="NMDeviceWifiP2P">NMDeviceWifiP2P</a>
 </dt>
 <dd></dd>
@@ -6686,10 +6842,6 @@ nm_dbus_path_not_empty, function in <a class="link" href="NMIPConfig.html" title
 <dd></dd>
 <dt>
 <a class="link" href="NMDeviceWireGuard.html#NM-DEVICE-WIREGUARD-PUBLIC-KEY:CAPS" title="NM_DEVICE_WIREGUARD_PUBLIC_KEY">NM_DEVICE_WIREGUARD_PUBLIC_KEY</a>, macro in <a class="link" href="NMDeviceWireGuard.html" title="NMDeviceWireGuard">NMDeviceWireGuard</a>
-</dt>
-<dd></dd>
-<dt>
-<a class="link" href="NMDeviceWpan.html#nm-device-wpan-get-hw-address" title="nm_device_wpan_get_hw_address ()">nm_device_wpan_get_hw_address</a>, function in <a class="link" href="NMDeviceWpan.html" title="NMDeviceWpan">NMDeviceWpan</a>
 </dt>
 <dd></dd>
 <dt>
@@ -7565,19 +7717,15 @@ nm_jansson_load, function in nm-json
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMObject.html#nm-object-get-client" title="nm_object_get_client ()">nm_object_get_client</a>, function in <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMObject.html#nm-object-get-path" title="nm_object_get_path ()">nm_object_get_path</a>, function in <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
 </dt>
 <dd></dd>
 <dt>
 <a class="link" href="NMObject.html#NM-OBJECT-PATH:CAPS" title="NM_OBJECT_PATH">NM_OBJECT_PATH</a>, macro in <a class="link" href="NMObject.html" title="NMObject">NMObject</a>
-</dt>
-<dd></dd>
-<dt>
-nm_permission_result_to_client, function in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
-</dt>
-<dd></dd>
-<dt>
-nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" title="NMIPConfig">NMIPConfig</a>
 </dt>
 <dd></dd>
 <dt>
@@ -7693,7 +7841,35 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSecretAgentOld.html#NM-SECRET-AGENT-OLD-DBUS-CONNECTION:CAPS" title="NM_SECRET_AGENT_OLD_DBUS_CONNECTION">NM_SECRET_AGENT_OLD_DBUS_CONNECTION</a>, macro in <a class="link" href="NMSecretAgentOld.html" title="NMSecretAgentOld">NMSecretAgentOld</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSecretAgentOld.html#nm-secret-agent-old-delete-secrets" title="nm_secret_agent_old_delete_secrets ()">nm_secret_agent_old_delete_secrets</a>, function in <a class="link" href="NMSecretAgentOld.html" title="NMSecretAgentOld">NMSecretAgentOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSecretAgentOld.html#nm-secret-agent-old-destroy" title="nm_secret_agent_old_destroy ()">nm_secret_agent_old_destroy</a>, function in <a class="link" href="NMSecretAgentOld.html" title="NMSecretAgentOld">NMSecretAgentOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSecretAgentOld.html#nm-secret-agent-old-enable" title="nm_secret_agent_old_enable ()">nm_secret_agent_old_enable</a>, function in <a class="link" href="NMSecretAgentOld.html" title="NMSecretAgentOld">NMSecretAgentOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSecretAgentOld.html#nm-secret-agent-old-get-context-busy-watcher" title="nm_secret_agent_old_get_context_busy_watcher ()">nm_secret_agent_old_get_context_busy_watcher</a>, function in <a class="link" href="NMSecretAgentOld.html" title="NMSecretAgentOld">NMSecretAgentOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSecretAgentOld.html#nm-secret-agent-old-get-dbus-connection" title="nm_secret_agent_old_get_dbus_connection ()">nm_secret_agent_old_get_dbus_connection</a>, function in <a class="link" href="NMSecretAgentOld.html" title="NMSecretAgentOld">NMSecretAgentOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSecretAgentOld.html#nm-secret-agent-old-get-dbus-name-owner" title="nm_secret_agent_old_get_dbus_name_owner ()">nm_secret_agent_old_get_dbus_name_owner</a>, function in <a class="link" href="NMSecretAgentOld.html" title="NMSecretAgentOld">NMSecretAgentOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSecretAgentOld.html#nm-secret-agent-old-get-main-context" title="nm_secret_agent_old_get_main_context ()">nm_secret_agent_old_get_main_context</a>, function in <a class="link" href="NMSecretAgentOld.html" title="NMSecretAgentOld">NMSecretAgentOld</a>
 </dt>
 <dd></dd>
 <dt>
@@ -7841,6 +8017,10 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-DOMAIN-MATCH:CAPS" title="NM_SETTING_802_1X_DOMAIN_MATCH">NM_SETTING_802_1X_DOMAIN_MATCH</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-DOMAIN-SUFFIX-MATCH:CAPS" title="NM_SETTING_802_1X_DOMAIN_SUFFIX_MATCH">NM_SETTING_802_1X_DOMAIN_SUFFIX_MATCH</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
@@ -7910,6 +8090,10 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-client-cert-uri" title="nm_setting_802_1x_get_client_cert_uri ()">nm_setting_802_1x_get_client_cert_uri</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-domain-match" title="nm_setting_802_1x_get_domain_match ()">nm_setting_802_1x_get_domain_match</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8038,6 +8222,10 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-client-cert-uri" title="nm_setting_802_1x_get_phase2_client_cert_uri ()">nm_setting_802_1x_get_phase2_client_cert_uri</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-domain-match" title="nm_setting_802_1x_get_phase2_domain_match ()">nm_setting_802_1x_get_phase2_domain_match</a>, function in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8206,6 +8394,10 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 <dd></dd>
 <dt>
 <a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-PHASE2-CLIENT-CERT-PASSWORD-FLAGS:CAPS" title="NM_SETTING_802_1X_PHASE2_CLIENT_CERT_PASSWORD_FLAGS">NM_SETTING_802_1X_PHASE2_CLIENT_CERT_PASSWORD_FLAGS</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-PHASE2-DOMAIN-MATCH:CAPS" title="NM_SETTING_802_1X_PHASE2_DOMAIN_MATCH">NM_SETTING_802_1X_PHASE2_DOMAIN_MATCH</a>, macro in <a class="link" href="NMSetting8021x.html" title="NMSetting8021x">NMSetting8021x</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8449,6 +8641,10 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingBond.html#nm-setting-bond-get-option-normalized" title="nm_setting_bond_get_option_normalized ()">nm_setting_bond_get_option_normalized</a>, function in <a class="link" href="NMSettingBond.html" title="NMSettingBond">NMSettingBond</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingBond.html#nm-setting-bond-get-valid-options" title="nm_setting_bond_get_valid_options ()">nm_setting_bond_get_valid_options</a>, function in <a class="link" href="NMSettingBond.html" title="NMSettingBond">NMSettingBond</a>
 </dt>
 <dd></dd>
@@ -8605,6 +8801,10 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingBridge.html#nm-setting-bridge-get-group-address" title="nm_setting_bridge_get_group_address ()">nm_setting_bridge_get_group_address</a>, function in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingBridge.html#nm-setting-bridge-get-group-forward-mask" title="nm_setting_bridge_get_group_forward_mask ()">nm_setting_bridge_get_group_forward_mask</a>, function in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
 </dt>
 <dd></dd>
@@ -8618,6 +8818,18 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingBridge.html#nm-setting-bridge-get-max-age" title="nm_setting_bridge_get_max_age ()">nm_setting_bridge_get_max_age</a>, function in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingBridge.html#nm-setting-bridge-get-multicast-querier" title="nm_setting_bridge_get_multicast_querier ()">nm_setting_bridge_get_multicast_querier</a>, function in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingBridge.html#nm-setting-bridge-get-multicast-query-use-ifaddr" title="nm_setting_bridge_get_multicast_query_use_ifaddr ()">nm_setting_bridge_get_multicast_query_use_ifaddr</a>, function in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingBridge.html#nm-setting-bridge-get-multicast-router" title="nm_setting_bridge_get_multicast_router ()">nm_setting_bridge_get_multicast_router</a>, function in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8649,6 +8861,18 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingBridge.html#nm-setting-bridge-get-vlan-protocol" title="nm_setting_bridge_get_vlan_protocol ()">nm_setting_bridge_get_vlan_protocol</a>, function in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingBridge.html#nm-setting-bridge-get-vlan-stats-enabled" title="nm_setting_bridge_get_vlan_stats_enabled ()">nm_setting_bridge_get_vlan_stats_enabled</a>, function in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingBridge.html#NM-SETTING-BRIDGE-GROUP-ADDRESS:CAPS" title="NM_SETTING_BRIDGE_GROUP_ADDRESS">NM_SETTING_BRIDGE_GROUP_ADDRESS</a>, macro in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingBridge.html#NM-SETTING-BRIDGE-GROUP-FORWARD-MASK:CAPS" title="NM_SETTING_BRIDGE_GROUP_FORWARD_MASK">NM_SETTING_BRIDGE_GROUP_FORWARD_MASK</a>, macro in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
 </dt>
 <dd></dd>
@@ -8662,6 +8886,18 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingBridge.html#NM-SETTING-BRIDGE-MAX-AGE:CAPS" title="NM_SETTING_BRIDGE_MAX_AGE">NM_SETTING_BRIDGE_MAX_AGE</a>, macro in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingBridge.html#NM-SETTING-BRIDGE-MULTICAST-QUERIER:CAPS" title="NM_SETTING_BRIDGE_MULTICAST_QUERIER">NM_SETTING_BRIDGE_MULTICAST_QUERIER</a>, macro in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingBridge.html#NM-SETTING-BRIDGE-MULTICAST-QUERY-USE-IFADDR:CAPS" title="NM_SETTING_BRIDGE_MULTICAST_QUERY_USE_IFADDR">NM_SETTING_BRIDGE_MULTICAST_QUERY_USE_IFADDR</a>, macro in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingBridge.html#NM-SETTING-BRIDGE-MULTICAST-ROUTER:CAPS" title="NM_SETTING_BRIDGE_MULTICAST_ROUTER">NM_SETTING_BRIDGE_MULTICAST_ROUTER</a>, macro in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
 </dt>
 <dd></dd>
 <dt>
@@ -8762,6 +8998,14 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingBridge.html#NM-SETTING-BRIDGE-VLAN-FILTERING:CAPS" title="NM_SETTING_BRIDGE_VLAN_FILTERING">NM_SETTING_BRIDGE_VLAN_FILTERING</a>, macro in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingBridge.html#NM-SETTING-BRIDGE-VLAN-PROTOCOL:CAPS" title="NM_SETTING_BRIDGE_VLAN_PROTOCOL">NM_SETTING_BRIDGE_VLAN_PROTOCOL</a>, macro in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingBridge.html#NM-SETTING-BRIDGE-VLAN-STATS-ENABLED:CAPS" title="NM_SETTING_BRIDGE_VLAN_STATS_ENABLED">NM_SETTING_BRIDGE_VLAN_STATS_ENABLED</a>, macro in <a class="link" href="NMSettingBridge.html" title="NMSettingBridge">NMSettingBridge</a>
 </dt>
 <dd></dd>
 <dt>
@@ -9269,6 +9513,10 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-NO-RELOAD:CAPS" title="NM_SETTING_DNS_OPTION_NO_RELOAD">NM_SETTING_DNS_OPTION_NO_RELOAD</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-NO-TLD-QUERY:CAPS" title="NM_SETTING_DNS_OPTION_NO_TLD_QUERY">NM_SETTING_DNS_OPTION_NO_TLD_QUERY</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
 </dt>
 <dd></dd>
@@ -9286,6 +9534,10 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 <dd></dd>
 <dt>
 <a class="link" href="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-TIMEOUT:CAPS" title="NM_SETTING_DNS_OPTION_TIMEOUT">NM_SETTING_DNS_OPTION_TIMEOUT</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-TRUST-AD:CAPS" title="NM_SETTING_DNS_OPTION_TRUST_AD">NM_SETTING_DNS_OPTION_TRUST_AD</a>, macro in <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig">NMSettingIPConfig</a>
 </dt>
 <dd></dd>
 <dt>
@@ -11449,6 +11701,22 @@ nm_permission_to_client, function in <a class="link" href="NMIPConfig.html" titl
 </dt>
 <dd></dd>
 <dt>
+<a class="link" href="NMSettingVrf.html#nm-setting-vrf-get-table" title="nm_setting_vrf_get_table ()">nm_setting_vrf_get_table</a>, function in <a class="link" href="NMSettingVrf.html" title="NMSettingVrf">NMSettingVrf</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingVrf.html#nm-setting-vrf-new" title="nm_setting_vrf_new ()">nm_setting_vrf_new</a>, function in <a class="link" href="NMSettingVrf.html" title="NMSettingVrf">NMSettingVrf</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingVrf.html#NM-SETTING-VRF-SETTING-NAME:CAPS" title="NM_SETTING_VRF_SETTING_NAME">NM_SETTING_VRF_SETTING_NAME</a>, macro in <a class="link" href="NMSettingVrf.html" title="NMSettingVrf">NMSettingVrf</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMSettingVrf.html#NM-SETTING-VRF-TABLE:CAPS" title="NM_SETTING_VRF_TABLE">NM_SETTING_VRF_TABLE</a>, macro in <a class="link" href="NMSettingVrf.html" title="NMSettingVrf">NMSettingVrf</a>
+</dt>
+<dd></dd>
+<dt>
 <a class="link" href="NMSettingVxlan.html#NM-SETTING-VXLAN-AGEING:CAPS" title="NM_SETTING_VXLAN_AGEING">NM_SETTING_VXLAN_AGEING</a>, macro in <a class="link" href="NMSettingVxlan.html" title="NMSettingVxlan">NMSettingVxlan</a>
 </dt>
 <dd></dd>
@@ -13273,27 +13541,127 @@ NM_VPN_PLUGIN_CONFIG_PROXY_PAC, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-vpn-plugin-info.html#NM-VPN-PLUGIN-INFO-FILENAME:CAPS" title="NM_VPN_PLUGIN_INFO_FILENAME">NM_VPN_PLUGIN_INFO_FILENAME</a>, macro in <a class="link" href="libnm-nm-vpn-plugin-info.html" title="nm-vpn-plugin-info">nm-vpn-plugin-info</a>
+<a class="link" href="NMVpnPluginInfo.html#NM-VPN-PLUGIN-INFO-FILENAME:CAPS" title="NM_VPN_PLUGIN_INFO_FILENAME">NM_VPN_PLUGIN_INFO_FILENAME</a>, macro in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-vpn-plugin-info.html#NM-VPN-PLUGIN-INFO-KEYFILE:CAPS" title="NM_VPN_PLUGIN_INFO_KEYFILE">NM_VPN_PLUGIN_INFO_KEYFILE</a>, macro in <a class="link" href="libnm-nm-vpn-plugin-info.html" title="nm-vpn-plugin-info">nm-vpn-plugin-info</a>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-get-aliases" title="nm_vpn_plugin_info_get_aliases ()">nm_vpn_plugin_info_get_aliases</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-vpn-plugin-info.html#NM-VPN-PLUGIN-INFO-KF-GROUP-CONNECTION:CAPS" title="NM_VPN_PLUGIN_INFO_KF_GROUP_CONNECTION">NM_VPN_PLUGIN_INFO_KF_GROUP_CONNECTION</a>, macro in <a class="link" href="libnm-nm-vpn-plugin-info.html" title="nm-vpn-plugin-info">nm-vpn-plugin-info</a>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-get-auth-dialog" title="nm_vpn_plugin_info_get_auth_dialog ()">nm_vpn_plugin_info_get_auth_dialog</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-vpn-plugin-info.html#NM-VPN-PLUGIN-INFO-KF-GROUP-GNOME:CAPS" title="NM_VPN_PLUGIN_INFO_KF_GROUP_GNOME">NM_VPN_PLUGIN_INFO_KF_GROUP_GNOME</a>, macro in <a class="link" href="libnm-nm-vpn-plugin-info.html" title="nm-vpn-plugin-info">nm-vpn-plugin-info</a>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-get-editor-plugin" title="nm_vpn_plugin_info_get_editor_plugin ()">nm_vpn_plugin_info_get_editor_plugin</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-vpn-plugin-info.html#NM-VPN-PLUGIN-INFO-KF-GROUP-LIBNM:CAPS" title="NM_VPN_PLUGIN_INFO_KF_GROUP_LIBNM">NM_VPN_PLUGIN_INFO_KF_GROUP_LIBNM</a>, macro in <a class="link" href="libnm-nm-vpn-plugin-info.html" title="nm-vpn-plugin-info">nm-vpn-plugin-info</a>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-get-filename" title="nm_vpn_plugin_info_get_filename ()">nm_vpn_plugin_info_get_filename</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-vpn-plugin-info.html#NM-VPN-PLUGIN-INFO-NAME:CAPS" title="NM_VPN_PLUGIN_INFO_NAME">NM_VPN_PLUGIN_INFO_NAME</a>, macro in <a class="link" href="libnm-nm-vpn-plugin-info.html" title="nm-vpn-plugin-info">nm-vpn-plugin-info</a>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-get-name" title="nm_vpn_plugin_info_get_name ()">nm_vpn_plugin_info_get_name</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-get-plugin" title="nm_vpn_plugin_info_get_plugin ()">nm_vpn_plugin_info_get_plugin</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-get-program" title="nm_vpn_plugin_info_get_program ()">nm_vpn_plugin_info_get_program</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-get-service" title="nm_vpn_plugin_info_get_service ()">nm_vpn_plugin_info_get_service</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#NM-VPN-PLUGIN-INFO-KEYFILE:CAPS" title="NM_VPN_PLUGIN_INFO_KEYFILE">NM_VPN_PLUGIN_INFO_KEYFILE</a>, macro in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#NM-VPN-PLUGIN-INFO-KF-GROUP-CONNECTION:CAPS" title="NM_VPN_PLUGIN_INFO_KF_GROUP_CONNECTION">NM_VPN_PLUGIN_INFO_KF_GROUP_CONNECTION</a>, macro in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#NM-VPN-PLUGIN-INFO-KF-GROUP-GNOME:CAPS" title="NM_VPN_PLUGIN_INFO_KF_GROUP_GNOME">NM_VPN_PLUGIN_INFO_KF_GROUP_GNOME</a>, macro in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#NM-VPN-PLUGIN-INFO-KF-GROUP-LIBNM:CAPS" title="NM_VPN_PLUGIN_INFO_KF_GROUP_LIBNM">NM_VPN_PLUGIN_INFO_KF_GROUP_LIBNM</a>, macro in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-add" title="nm_vpn_plugin_info_list_add ()">nm_vpn_plugin_info_list_add</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-find-by-filename" title="nm_vpn_plugin_info_list_find_by_filename ()">nm_vpn_plugin_info_list_find_by_filename</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-find-by-name" title="nm_vpn_plugin_info_list_find_by_name ()">nm_vpn_plugin_info_list_find_by_name</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-find-by-service" title="nm_vpn_plugin_info_list_find_by_service ()">nm_vpn_plugin_info_list_find_by_service</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-find-service-type" title="nm_vpn_plugin_info_list_find_service_type ()">nm_vpn_plugin_info_list_find_service_type</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-get-service-types" title="nm_vpn_plugin_info_list_get_service_types ()">nm_vpn_plugin_info_list_get_service_types</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-load" title="nm_vpn_plugin_info_list_load ()">nm_vpn_plugin_info_list_load</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-remove" title="nm_vpn_plugin_info_list_remove ()">nm_vpn_plugin_info_list_remove</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-load-editor-plugin" title="nm_vpn_plugin_info_load_editor_plugin ()">nm_vpn_plugin_info_load_editor_plugin</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-lookup-property" title="nm_vpn_plugin_info_lookup_property ()">nm_vpn_plugin_info_lookup_property</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#NM-VPN-PLUGIN-INFO-NAME:CAPS" title="NM_VPN_PLUGIN_INFO_NAME">NM_VPN_PLUGIN_INFO_NAME</a>, macro in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-new-from-file" title="nm_vpn_plugin_info_new_from_file ()">nm_vpn_plugin_info_new_from_file</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-new-search-file" title="nm_vpn_plugin_info_new_search_file ()">nm_vpn_plugin_info_new_search_file</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-new-with-data" title="nm_vpn_plugin_info_new_with_data ()">nm_vpn_plugin_info_new_with_data</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-set-editor-plugin" title="nm_vpn_plugin_info_set_editor_plugin ()">nm_vpn_plugin_info_set_editor_plugin</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-supports-hints" title="nm_vpn_plugin_info_supports_hints ()">nm_vpn_plugin_info_supports_hints</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-supports-multiple" title="nm_vpn_plugin_info_supports_multiple ()">nm_vpn_plugin_info_supports_multiple</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-validate-filename" title="nm_vpn_plugin_info_validate_filename ()">nm_vpn_plugin_info_validate_filename</a>, function in <a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo">NMVpnPluginInfo</a>
 </dt>
 <dd></dd>
 <dt>
@@ -13409,23 +13777,115 @@ NM_VPN_PLUGIN_IP6_CONFIG_PRESERVE_ROUTES, macro in nm-vpn-dbus-interface
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-vpn-plugin-old.html#NM-VPN-PLUGIN-OLD-DBUS-SERVICE-NAME:CAPS" title="NM_VPN_PLUGIN_OLD_DBUS_SERVICE_NAME">NM_VPN_PLUGIN_OLD_DBUS_SERVICE_NAME</a>, macro in <a class="link" href="libnm-nm-vpn-plugin-old.html" title="nm-vpn-plugin-old">nm-vpn-plugin-old</a>
+<a class="link" href="NMVpnPluginOld.html#NM-VPN-PLUGIN-OLD-DBUS-SERVICE-NAME:CAPS" title="NM_VPN_PLUGIN_OLD_DBUS_SERVICE_NAME">NM_VPN_PLUGIN_OLD_DBUS_SERVICE_NAME</a>, macro in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-vpn-plugin-old.html#NM-VPN-PLUGIN-OLD-STATE:CAPS" title="NM_VPN_PLUGIN_OLD_STATE">NM_VPN_PLUGIN_OLD_STATE</a>, macro in <a class="link" href="libnm-nm-vpn-plugin-old.html" title="nm-vpn-plugin-old">nm-vpn-plugin-old</a>
+<a class="link" href="NMVpnPluginOld.html#nm-vpn-plugin-old-disconnect" title="nm_vpn_plugin_old_disconnect ()">nm_vpn_plugin_old_disconnect</a>, function in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-vpn-service-plugin.html#NM-VPN-SERVICE-PLUGIN-DBUS-SERVICE-NAME:CAPS" title="NM_VPN_SERVICE_PLUGIN_DBUS_SERVICE_NAME">NM_VPN_SERVICE_PLUGIN_DBUS_SERVICE_NAME</a>, macro in <a class="link" href="libnm-nm-vpn-service-plugin.html" title="nm-vpn-service-plugin">nm-vpn-service-plugin</a>
+<a class="link" href="NMVpnPluginOld.html#nm-vpn-plugin-old-failure" title="nm_vpn_plugin_old_failure ()">nm_vpn_plugin_old_failure</a>, function in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-vpn-service-plugin.html#NM-VPN-SERVICE-PLUGIN-DBUS-WATCH-PEER:CAPS" title="NM_VPN_SERVICE_PLUGIN_DBUS_WATCH_PEER">NM_VPN_SERVICE_PLUGIN_DBUS_WATCH_PEER</a>, macro in <a class="link" href="libnm-nm-vpn-service-plugin.html" title="nm-vpn-service-plugin">nm-vpn-service-plugin</a>
+<a class="link" href="NMVpnPluginOld.html#nm-vpn-plugin-old-get-connection" title="nm_vpn_plugin_old_get_connection ()">nm_vpn_plugin_old_get_connection</a>, function in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
 </dt>
 <dd></dd>
 <dt>
-<a class="link" href="libnm-nm-vpn-service-plugin.html#NM-VPN-SERVICE-PLUGIN-STATE:CAPS" title="NM_VPN_SERVICE_PLUGIN_STATE">NM_VPN_SERVICE_PLUGIN_STATE</a>, macro in <a class="link" href="libnm-nm-vpn-service-plugin.html" title="nm-vpn-service-plugin">nm-vpn-service-plugin</a>
+<a class="link" href="NMVpnPluginOld.html#nm-vpn-plugin-old-get-secret-flags" title="nm_vpn_plugin_old_get_secret_flags ()">nm_vpn_plugin_old_get_secret_flags</a>, function in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#nm-vpn-plugin-old-get-state" title="nm_vpn_plugin_old_get_state ()">nm_vpn_plugin_old_get_state</a>, function in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#nm-vpn-plugin-old-read-vpn-details" title="nm_vpn_plugin_old_read_vpn_details ()">nm_vpn_plugin_old_read_vpn_details</a>, function in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#nm-vpn-plugin-old-secrets-required" title="nm_vpn_plugin_old_secrets_required ()">nm_vpn_plugin_old_secrets_required</a>, function in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#nm-vpn-plugin-old-set-config" title="nm_vpn_plugin_old_set_config ()">nm_vpn_plugin_old_set_config</a>, function in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#nm-vpn-plugin-old-set-ip4-config" title="nm_vpn_plugin_old_set_ip4_config ()">nm_vpn_plugin_old_set_ip4_config</a>, function in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#nm-vpn-plugin-old-set-ip6-config" title="nm_vpn_plugin_old_set_ip6_config ()">nm_vpn_plugin_old_set_ip6_config</a>, function in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#nm-vpn-plugin-old-set-login-banner" title="nm_vpn_plugin_old_set_login_banner ()">nm_vpn_plugin_old_set_login_banner</a>, function in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#nm-vpn-plugin-old-set-state" title="nm_vpn_plugin_old_set_state ()">nm_vpn_plugin_old_set_state</a>, function in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnPluginOld.html#NM-VPN-PLUGIN-OLD-STATE:CAPS" title="NM_VPN_PLUGIN_OLD_STATE">NM_VPN_PLUGIN_OLD_STATE</a>, macro in <a class="link" href="NMVpnPluginOld.html" title="NMVpnPluginOld">NMVpnPluginOld</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NM-VPN-SERVICE-PLUGIN-DBUS-SERVICE-NAME:CAPS" title="NM_VPN_SERVICE_PLUGIN_DBUS_SERVICE_NAME">NM_VPN_SERVICE_PLUGIN_DBUS_SERVICE_NAME</a>, macro in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NM-VPN-SERVICE-PLUGIN-DBUS-WATCH-PEER:CAPS" title="NM_VPN_SERVICE_PLUGIN_DBUS_WATCH_PEER">NM_VPN_SERVICE_PLUGIN_DBUS_WATCH_PEER</a>, macro in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#nm-vpn-service-plugin-disconnect" title="nm_vpn_service_plugin_disconnect ()">nm_vpn_service_plugin_disconnect</a>, function in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#nm-vpn-service-plugin-failure" title="nm_vpn_service_plugin_failure ()">nm_vpn_service_plugin_failure</a>, function in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#nm-vpn-service-plugin-get-connection" title="nm_vpn_service_plugin_get_connection ()">nm_vpn_service_plugin_get_connection</a>, function in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#nm-vpn-service-plugin-get-secret-flags" title="nm_vpn_service_plugin_get_secret_flags ()">nm_vpn_service_plugin_get_secret_flags</a>, function in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#nm-vpn-service-plugin-read-vpn-details" title="nm_vpn_service_plugin_read_vpn_details ()">nm_vpn_service_plugin_read_vpn_details</a>, function in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#nm-vpn-service-plugin-secrets-required" title="nm_vpn_service_plugin_secrets_required ()">nm_vpn_service_plugin_secrets_required</a>, function in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#nm-vpn-service-plugin-set-config" title="nm_vpn_service_plugin_set_config ()">nm_vpn_service_plugin_set_config</a>, function in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#nm-vpn-service-plugin-set-ip4-config" title="nm_vpn_service_plugin_set_ip4_config ()">nm_vpn_service_plugin_set_ip4_config</a>, function in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#nm-vpn-service-plugin-set-ip6-config" title="nm_vpn_service_plugin_set_ip6_config ()">nm_vpn_service_plugin_set_ip6_config</a>, function in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#nm-vpn-service-plugin-set-login-banner" title="nm_vpn_service_plugin_set_login_banner ()">nm_vpn_service_plugin_set_login_banner</a>, function in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#nm-vpn-service-plugin-shutdown" title="nm_vpn_service_plugin_shutdown ()">nm_vpn_service_plugin_shutdown</a>, function in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
+</dt>
+<dd></dd>
+<dt>
+<a class="link" href="NMVpnServicePlugin.html#NM-VPN-SERVICE-PLUGIN-STATE:CAPS" title="NM_VPN_SERVICE_PLUGIN_STATE">NM_VPN_SERVICE_PLUGIN_STATE</a>, macro in <a class="link" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">NMVpnServicePlugin</a>
 </dt>
 <dd></dd>
 <dt>
@@ -13679,6 +14139,6 @@ NM_VPN_PLUGIN_IP6_CONFIG_PRESERVE_ROUTES, macro in nm-vpn-dbus-interface
 <dd></dd>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

@@ -10,10 +10,10 @@ See also: https://blueprints.launchpad.net/ubuntu/+spec/foundations-p-dns-resolv
  src/dns/nm-dns-manager.c | 6 +++---
  2 files changed, 5 insertions(+), 5 deletions(-)
 
-Index: network-manager-1.22.2/src/dns/nm-dns-dnsmasq.c
+Index: network-manager-1.24.0/src/dns/nm-dns-dnsmasq.c
 ===================================================================
---- network-manager-1.22.2.orig/src/dns/nm-dns-dnsmasq.c
-+++ network-manager-1.22.2/src/dns/nm-dns-dnsmasq.c
+--- network-manager-1.24.0.orig/src/dns/nm-dns-dnsmasq.c
++++ network-manager-1.24.0/src/dns/nm-dns-dnsmasq.c
 @@ -494,8 +494,8 @@ _gl_pid_spawn_next_step (void)
  	argv[argv_idx++] = "--no-hosts"; /* don't use /etc/hosts to resolve */
  	argv[argv_idx++] = "--bind-interfaces";
@@ -25,11 +25,11 @@ Index: network-manager-1.22.2/src/dns/nm-dns-dnsmasq.c
  	argv[argv_idx++] = "--clear-on-reload"; /* clear cache when dns server changes */
  	argv[argv_idx++] = "--conf-file=/dev/null"; /* avoid loading /etc/dnsmasq.conf */
  	argv[argv_idx++] = "--proxy-dnssec"; /* Allow DNSSEC to pass through */
-Index: network-manager-1.22.2/src/dns/nm-dns-manager.c
+Index: network-manager-1.24.0/src/dns/nm-dns-manager.c
 ===================================================================
---- network-manager-1.22.2.orig/src/dns/nm-dns-manager.c
-+++ network-manager-1.22.2/src/dns/nm-dns-manager.c
-@@ -1469,12 +1469,12 @@ update_dns (NMDnsManager *self,
+--- network-manager-1.24.0.orig/src/dns/nm-dns-manager.c
++++ network-manager-1.24.0/src/dns/nm-dns-manager.c
+@@ -1526,12 +1526,12 @@ plugin_skip:
  	                            NM_CAST_STRV_CC (nameservers),
  	                            NM_CAST_STRV_CC (options));
  
@@ -44,7 +44,7 @@ Index: network-manager-1.22.2/src/dns/nm-dns-manager.c
  
  		if (NM_IS_DNS_SYSTEMD_RESOLVED (priv->plugin)) {
  			/* systemd-resolved uses a different link-local address */
-@@ -1757,7 +1757,7 @@ nm_dns_manager_stop (NMDnsManager *self)
+@@ -1825,7 +1825,7 @@ nm_dns_manager_stop (NMDnsManager *self)
  	_LOGT ("stopping...");
  
  	/* If we're quitting, leave a valid resolv.conf in place, not one

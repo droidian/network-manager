@@ -35,7 +35,7 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CAPABILITY_OVS</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>OpenVSwitch can be managed. This means the OVS device plugin is loaded. Since: 1.24, 1.22.2</para><para></para></entry>
+              <entry role="enum_member_description"><para>OpenVSwitch can be managed. This means the OVS device plugin is loaded. Since: 1.24</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -317,6 +317,11 @@
               <entry role="enum_member_value"><para>= <literal>30</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>an 802.11 Wi-Fi P2P device (Since: 1.16)</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_DEVICE_TYPE_VRF</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>31</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>A VRF (Virtual Routing and Forwarding) interface (Since: 1.24)</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -576,6 +581,11 @@
               <entry role="enum_member_name"><para>NM_802_11_AP_SEC_KEY_MGMT_SAE</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x00000400</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>WPA/RSN Simultaneous Authentication of Equals is supported</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_KEY_MGMT_OWE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00000800</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>WPA/RSN Opportunistic Wireless Encryption is supported</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -1981,6 +1991,156 @@
               <entry role="enum_member_name"><para>NM_DEVICE_INTERFACE_FLAG_CARRIER</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x10000</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>the interface has carrier. In most cases this is equal to the value of @NM_DEVICE_INTERFACE_FLAG_LOWER_UP. However some devices have a non-standard carrier detection mechanism.</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMClientPermission" role="enum">
+    <title>enum NMClientPermission</title>
+    <indexterm zone="NMClientPermission">
+      <primary>NMClientPermission</primary>
+    </indexterm>
+    <para><para><link linkend="NMClientPermission">NMClientPermission</link> values indicate various permissions that NetworkManager clients can obtain to perform certain tasks on behalf of the current user.</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>unknown or no permission</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_ENABLE_DISABLE_NETWORK</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether networking can be globally enabled or disabled</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIFI</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether Wi-Fi can be globally enabled or disabled</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_ENABLE_DISABLE_WWAN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether WWAN (3G) can be globally enabled or disabled</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIMAX</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>4</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether WiMAX can be globally enabled or disabled</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_SLEEP_WAKE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>5</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether the client can ask NetworkManager to sleep and wake</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_NETWORK_CONTROL</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>6</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether networking connections can be started, stopped, and changed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_WIFI_SHARE_PROTECTED</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>7</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether a password protected Wi-Fi hotspot can be created</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_WIFI_SHARE_OPEN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>8</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether an open Wi-Fi hotspot can be created</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_SYSTEM</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>9</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether connections that are available to all users can be modified</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_OWN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>10</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether connections owned by the current user can be modified</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>11</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether the persistent hostname can be changed</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>12</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>modify persistent global DNS configuration</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_RELOAD</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>13</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls access to Reload.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_CHECKPOINT_ROLLBACK</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>14</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>permission to create checkpoints.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_ENABLE_DISABLE_STATISTICS</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>15</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether device statistics can be globally enabled or disabled</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>16</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether connectivity check can be enabled or disabled</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_WIFI_SCAN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>17</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>controls whether wifi scans can be performed</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMClientPermissionResult" role="enum">
+    <title>enum NMClientPermissionResult</title>
+    <indexterm zone="NMClientPermissionResult">
+      <primary>NMClientPermissionResult</primary>
+    </indexterm>
+    <para><para><link linkend="NMClientPermissionResult">NMClientPermissionResult</link> values indicate what authorizations and permissions the user requires to obtain a given <link linkend="NMClientPermission">NMClientPermission</link></para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_RESULT_UNKNOWN</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>unknown or no authorization</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_RESULT_YES</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the permission is available</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_RESULT_AUTH</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>authorization is necessary before the permission is available</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_RESULT_NO</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>permission to perform the operation is denied by system policy</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>

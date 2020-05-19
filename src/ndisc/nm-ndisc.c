@@ -173,7 +173,7 @@ _get_exp (char *buf, gsize buf_size, gint64 now_ns, gint64 expiry_time)
 		return "permanent";
 	l = g_snprintf (buf, buf_size,
 	                "%.4f",
-	                ((double) ((expiry_time * NM_UTILS_NS_PER_SECOND) - now_ns)) / ((double) NM_UTILS_NS_PER_SECOND));
+	                ((double) ((expiry_time * NM_UTILS_NSEC_PER_SEC) - now_ns)) / ((double) NM_UTILS_NSEC_PER_SEC));
 	nm_assert (l < buf_size);
 	return buf;
 }
@@ -676,7 +676,7 @@ nm_ndisc_add_dns_domain (NMNDisc *ndisc, const NMNDiscDNSDomain *new)
 		_different_message = g_strcmp0 (priv->last_error, error->message) != 0; \
 		_NMLOG (_different_message ? LOGL_WARN : LOGL_DEBUG, __VA_ARGS__); \
 		if (_different_message) { \
-			g_clear_pointer (&priv->last_error, g_free); \
+			nm_clear_g_free (&priv->last_error); \
 			priv->last_error = g_strdup (error->message); \
 		} \
 	} G_STMT_END
@@ -697,13 +697,13 @@ send_rs_timeout (NMNDisc *ndisc)
 	if (klass->send_rs (ndisc, &error)) {
 		_LOGD ("router solicitation sent");
 		priv->solicitations_left--;
-		g_clear_pointer (&priv->last_error, g_free);
+		nm_clear_g_free (&priv->last_error);
 	} else {
 		_MAYBE_WARN ("failure sending router solicitation: %s", error->message);
 		g_clear_error (&error);
 	}
 
-	priv->last_rs = nm_utils_get_monotonic_timestamp_s ();
+	priv->last_rs = nm_utils_get_monotonic_timestamp_sec ();
 	if (priv->solicitations_left > 0) {
 		_LOGD ("scheduling router solicitation retry in %d seconds.",
 		       (int) priv->router_solicitation_interval);
@@ -727,7 +727,7 @@ solicit_routers (NMNDisc *ndisc)
 	if (priv->send_rs_id)
 		return;
 
-	now = nm_utils_get_monotonic_timestamp_s ();
+	now = nm_utils_get_monotonic_timestamp_sec ();
 	priv->solicitations_left = priv->router_solicitations;
 
 	t = (((gint64) priv->last_rs) + priv->router_solicitation_interval) - now;
@@ -748,10 +748,10 @@ announce_router (NMNDisc *ndisc)
 	if (!nm_ndisc_netns_push (ndisc, &netns))
 		return G_SOURCE_REMOVE;
 
-	priv->last_ra = nm_utils_get_monotonic_timestamp_s ();
+	priv->last_ra = nm_utils_get_monotonic_timestamp_sec ();
 	if (klass->send_ra (ndisc, &error)) {
 		_LOGD ("router advertisement sent");
-		g_clear_pointer (&priv->last_error, g_free);
+		nm_clear_g_free (&priv->last_error);
 	} else {
 		_MAYBE_WARN ("failure sending router advertisement: %s", error->message);
 		g_clear_error (&error);
@@ -788,7 +788,7 @@ announce_router_initial (NMNDisc *ndisc)
 	priv->announcements_left = NM_NDISC_ROUTER_ADVERTISEMENTS_DEFAULT;
 
 	/* Unschedule an unsolicited resend if we are allowed to send now. */
-	if (G_LIKELY (nm_utils_get_monotonic_timestamp_s () - priv->last_ra > NM_NDISC_ROUTER_ADVERT_DELAY))
+	if (G_LIKELY (nm_utils_get_monotonic_timestamp_sec () - priv->last_ra > NM_NDISC_ROUTER_ADVERT_DELAY))
 		nm_clear_g_source (&priv->send_ra_id);
 
 	/* Schedule the initial send rather early. Clamp the delay by minimal
@@ -807,7 +807,7 @@ announce_router_solicited (NMNDisc *ndisc)
 	_LOGD ("will send an solicited router advertisement");
 
 	/* Unschedule an unsolicited resend if we are allowed to send now. */
-	if (nm_utils_get_monotonic_timestamp_s () - priv->last_ra > NM_NDISC_ROUTER_ADVERT_DELAY)
+	if (nm_utils_get_monotonic_timestamp_sec () - priv->last_ra > NM_NDISC_ROUTER_ADVERT_DELAY)
 		nm_clear_g_source (&priv->send_ra_id);
 
 	if (!priv->send_ra_id) {
@@ -965,7 +965,7 @@ nm_ndisc_dad_failed (NMNDisc *ndisc, const struct in6_addr *address, gboolean em
 		if (IN6_ARE_ADDR_EQUAL (&item->address, address)) {
 			char sbuf[NM_UTILS_INET_ADDRSTRLEN];
 
-			_LOGD ("DAD failed for discovered address %s", nm_utils_inet6_ntop (address, sbuf));
+			_LOGD ("DAD failed for discovered address %s", _nm_utils_inet6_ntop (address, sbuf));
 			changed = TRUE;
 			if (!complete_address (ndisc, item)) {
 				g_array_remove_index (rdata->addresses, i);
@@ -1031,7 +1031,7 @@ _config_changed_log (NMNDisc *ndisc, NMNDiscConfigMap changed)
 	if (!_LOGD_ENABLED ())
 		return;
 
-	now_ns = nm_utils_get_monotonic_timestamp_ns ();
+	now_ns = nm_utils_get_monotonic_timestamp_nsec ();
 
 	priv = NM_NDISC_GET_PRIVATE (ndisc);
 	rdata = &priv->rdata;
@@ -1068,7 +1068,7 @@ _config_changed_log (NMNDisc *ndisc, NMNDiscConfigMap changed)
 
 		inet_ntop (AF_INET6, &route->network, addrstr, sizeof (addrstr));
 		_LOGD ("  route %s/%u via %s pref %s exp %s", addrstr, (guint) route->plen,
-		       nm_utils_inet6_ntop (&route->gateway, sbuf),
+		       _nm_utils_inet6_ntop (&route->gateway, sbuf),
 		       nm_icmpv6_router_pref_to_string (route->preference, str_pref, sizeof (str_pref)),
 		       get_exp (str_exp, now_ns, route));
 	}
@@ -1245,7 +1245,7 @@ timeout_cb (gpointer user_data)
 	NMNDisc *self = user_data;
 
 	NM_NDISC_GET_PRIVATE (self)->timeout_id = 0;
-	check_timestamps (self, nm_utils_get_monotonic_timestamp_s (), 0);
+	check_timestamps (self, nm_utils_get_monotonic_timestamp_sec (), 0);
 	return G_SOURCE_REMOVE;
 }
 
@@ -1256,7 +1256,7 @@ nm_ndisc_ra_received (NMNDisc *ndisc, gint32 now, NMNDiscConfigMap changed)
 
 	nm_clear_g_source (&priv->ra_timeout_id);
 	nm_clear_g_source (&priv->send_rs_id);
-	g_clear_pointer (&priv->last_error, g_free);
+	nm_clear_g_free (&priv->last_error);
 	check_timestamps (ndisc, now, changed);
 }
 
@@ -1265,7 +1265,7 @@ nm_ndisc_rs_received (NMNDisc *ndisc)
 {
 	NMNDiscPrivate *priv = NM_NDISC_GET_PRIVATE (ndisc);
 
-	g_clear_pointer (&priv->last_error, g_free);
+	nm_clear_g_free (&priv->last_error);
 	announce_router_solicited (ndisc);
 }
 
@@ -1370,7 +1370,7 @@ nm_ndisc_init (NMNDisc *ndisc)
 	priv->rdata.public.hop_limit = 64;
 
 	/* Start at very low number so that last_rs - router_solicitation_interval
-	 * is much lower than nm_utils_get_monotonic_timestamp_s() at startup.
+	 * is much lower than nm_utils_get_monotonic_timestamp_sec() at startup.
 	 */
 	priv->last_rs = G_MININT32;
 }
@@ -1384,7 +1384,7 @@ dispose (GObject *object)
 	nm_clear_g_source (&priv->ra_timeout_id);
 	nm_clear_g_source (&priv->send_rs_id);
 	nm_clear_g_source (&priv->send_ra_id);
-	g_clear_pointer (&priv->last_error, g_free);
+	nm_clear_g_free (&priv->last_error);
 
 	nm_clear_g_source (&priv->timeout_id);
 

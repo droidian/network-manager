@@ -8,13 +8,15 @@
 
 #include "nm-secret-utils.h"
 
+#include <malloc.h>
+
 /*****************************************************************************/
 
 void
 nm_explicit_bzero (void *s, gsize n)
 {
 	/* gracefully handle n == 0. This is important, callers rely on it. */
-	if (n == 0)
+	if (G_UNLIKELY (n == 0))
 		return;
 
 	nm_assert (s);
@@ -30,6 +32,30 @@ nm_explicit_bzero (void *s, gsize n)
 			*(p++) = '\0';
 	}
 #endif
+}
+
+void
+nm_free_secret (char *secret)
+{
+	gsize len;
+
+	if (!secret)
+		return;
+
+#if GLIB_CHECK_VERSION(2,44,0)
+	/* Here we mix malloc() and g_malloc() API. Usually we avoid this,
+	 * however since glib 2.44.0 we are in fact guaranteed that g_malloc()/g_free()
+	 * just wraps malloc()/free(), so this is actually fine.
+	 *
+	 * See https://gitlab.gnome.org/GNOME/glib/commit/3be6ed60aa58095691bd697344765e715a327fc1
+	 */
+	len = malloc_usable_size (secret);
+#else
+	len = strlen (secret);
+#endif
+
+	nm_explicit_bzero (secret, len);
+	g_free (secret);
 }
 
 /*****************************************************************************/

@@ -190,8 +190,6 @@ _value_strsplit (const char *value,
                  gsize *out_len)
 {
 	gs_free const char **strv = NULL;
-	gsize i;
-	gsize len;
 
 	/* FIXME: some modes should support backslash escaping.
 	 * In particular, to distinguish from _value_str_as_index_list(), which
@@ -200,43 +198,24 @@ _value_strsplit (const char *value,
 	/* note that all modes remove empty tokens (",", "a,,b", ",,"). */
 	switch (split_mode) {
 	case VALUE_STRSPLIT_MODE_OBJLIST:
-		strv = nm_utils_strsplit_set (value, ESCAPED_TOKENS_DELIMITERS);
+		strv = nm_utils_strsplit_set_full (value,
+		                                   ESCAPED_TOKENS_DELIMITERS,
+		                                   NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP);
 		break;
 	case VALUE_STRSPLIT_MODE_MULTILIST:
-		strv = nm_utils_strsplit_set (value, ESCAPED_TOKENS_WITH_SPACES_DELIMTERS);
+		strv = nm_utils_strsplit_set_full (value,
+		                                   ESCAPED_TOKENS_WITH_SPACES_DELIMTERS,
+		                                   NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP);
 		break;
 	case VALUE_STRSPLIT_MODE_ESCAPED_TOKENS:
 		strv = nm_utils_escaped_tokens_split (value, ESCAPED_TOKENS_DELIMITERS);
-		NM_SET_OUT (out_len, NM_PTRARRAY_LEN (strv));
-		return g_steal_pointer (&strv);
+		break;
 	case VALUE_STRSPLIT_MODE_ESCAPED_TOKENS_WITH_SPACES:
 		strv = nm_utils_escaped_tokens_split (value, ESCAPED_TOKENS_WITH_SPACES_DELIMTERS);
-		NM_SET_OUT (out_len, NM_PTRARRAY_LEN (strv));
-		return g_steal_pointer (&strv);
-	default:
-		nm_assert_not_reached ();
 		break;
 	}
 
-	NM_SET_OUT (out_len, 0);
-
-	if (!strv)
-		return NULL;
-
-	len = 0;
-	for (i = 0; strv[i]; i++) {
-		const char *s = strv[i];
-
-		s = nm_str_skip_leading_spaces (s);
-		if (s[0] == '\0')
-			continue;
-
-		g_strchomp ((char *) s);
-		strv[len++] = s;
-	}
-	strv[len] = NULL;
-
-	NM_SET_OUT (out_len, len);
+	NM_SET_OUT (out_len, NM_PTRARRAY_LEN (strv));
 	return g_steal_pointer (&strv);
 }
 
@@ -364,7 +343,7 @@ _parse_ip_route (int family,
 	for (i = 1; routev[i]; i++) {
 		gint64 tmp64;
 
-		if (nm_utils_ipaddr_valid (family, routev[i])) {
+		if (nm_utils_ipaddr_is_valid (family, routev[i])) {
 			if (metric != -1 || attrs) {
 				g_set_error (error, 1, 0, _("the next hop ('%s') must be first"), routev[i]);
 				return NULL;
@@ -638,6 +617,8 @@ _env_warn_fcn (const NMMetaEnvironment *environment,
 #define ARGS_SETTING_INIT_FCN \
 	const NMMetaSettingInfoEditor *setting_info, NMSetting *setting, NMMetaAccessorSettingInitType init_type
 
+static gboolean _set_fcn_optionlist (ARGS_SET_FCN);
+
 static gboolean
 _SET_FCN_DO_RESET_DEFAULT (const NMMetaPropertyInfo *property_info, NMMetaAccessorModifier modifier, const char *value)
 {
@@ -904,6 +885,10 @@ _get_fcn_gobject_impl (const NMMetaPropertyInfo *property_info,
 		GString *str;
 		gsize i;
 
+		nm_assert (   property_info->setting_info == &nm_meta_setting_infos_editor[NM_META_SETTING_TYPE_WIRED]
+		           && NM_IN_STRSET (property_info->property_name, NM_SETTING_WIRED_S390_OPTIONS));
+		nm_assert (property_info->property_type->set_fcn == _set_fcn_optionlist);
+
 		strdict = g_value_get_boxed (&val);
 		keys = nm_utils_strdict_get_keys (strdict, TRUE, NULL);
 		if (!keys)
@@ -911,12 +896,16 @@ _get_fcn_gobject_impl (const NMMetaPropertyInfo *property_info,
 
 		str = g_string_new (NULL);
 		for (i = 0; keys[i]; i++) {
+			const char *key = keys[i];
+			const char *v = g_hash_table_lookup (strdict, key);
+			gs_free char *escaped_key = NULL;
+			gs_free char *escaped_val = NULL;
+
 			if (str->len > 0)
 				g_string_append_c (str, ',');
-			g_string_append_printf (str,
-			                        "%s=%s",
-			                        keys[i],
-			                        (const char *) g_hash_table_lookup (strdict, keys[i]));
+			g_string_append (str, nm_utils_escaped_tokens_options_escape_key (key, &escaped_key));
+			g_string_append_c (str, '=');
+			g_string_append (str, nm_utils_escaped_tokens_options_escape_val (v, &escaped_val));
 		}
 		RETURN_STR_TO_FREE (g_string_free (str, FALSE));
 	}
@@ -1761,17 +1750,6 @@ secret_flags_to_string (guint32 flags, NMMetaAccessorGetType get_type)
 	return g_string_free (flag_str, FALSE);
 }
 
-static void
-vpn_data_item (const char *key, const char *value, gpointer user_data)
-{
-	GString *ret_str = (GString *) user_data;
-
-	if (ret_str->len != 0)
-		g_string_append (ret_str, ", ");
-
-	g_string_append_printf (ret_str, "%s = %s", key, value);
-}
-
 static const char *
 _multilist_do_validate (const NMMetaPropertyInfo *property_info,
                         NMSetting *setting,
@@ -1919,6 +1897,7 @@ _set_fcn_optionlist (ARGS_SET_FCN)
 {
 	gs_free const char **strv = NULL;
 	gs_free const char **strv_val = NULL;
+	gsize strv_len;
 	gsize i, nstrv;
 
 	nm_assert (!error || !*error);
@@ -1927,24 +1906,16 @@ _set_fcn_optionlist (ARGS_SET_FCN)
 		return _gobject_property_reset_default (setting, property_info->property_name);
 
 	nstrv = 0;
-	strv = nm_utils_strsplit_set (value, ",");
+	strv = nm_utils_escaped_tokens_options_split_list (value);
 	if (strv) {
-		strv_val = g_new (const char *, NM_PTRARRAY_LEN (strv));
+		strv_len = NM_PTRARRAY_LEN (strv);
+
+		strv_val = g_new (const char *, strv_len);
 		for (i = 0; strv[i]; i++) {
 			const char *opt_name;
 			const char *opt_value;
 
-			opt_name = nm_str_skip_leading_spaces (strv[i]);
-
-			/* FIXME: support backslash escaping for the option list. */
-			opt_value = strchr (opt_name, '=');
-			if (opt_value) {
-				((char *) opt_value)[0] = '\0';
-				opt_value++;
-				opt_value = nm_str_skip_leading_spaces (opt_value);
-				g_strchomp ((char *) opt_value);
-			}
-			g_strchomp ((char *) opt_name);
+			nm_utils_escaped_tokens_options_split ((char *) strv[i], &opt_name, &opt_value);
 
 			if (   property_info->property_type->values_fcn
 			    || property_info->property_typ_data->values_static) {
@@ -2315,33 +2286,41 @@ static gconstpointer
 _get_fcn_bond_options (ARGS_GET_FCN)
 {
 	NMSettingBond *s_bond = NM_SETTING_BOND (setting);
-	GString *bond_options_s;
-	int i;
+	GString *str;
+	guint32 i, len;
 
 	RETURN_UNSUPPORTED_GET_TYPE ();
 
-	bond_options_s = g_string_new (NULL);
-	for (i = 0; i < nm_setting_bond_get_num_options (s_bond); i++) {
-		const char *key, *value;
-		gs_free char *tmp_value = NULL;
+	str = g_string_new (NULL);
+	len = nm_setting_bond_get_num_options (s_bond);
+	for (i = 0; i < len; i++) {
+		const char *key;
+		const char *val;
+		gs_free char *val_tmp = NULL;
 		char *p;
+		gs_free char *escaped_key = NULL;
+		gs_free char *escaped_val = NULL;
 
-		nm_setting_bond_get_option (s_bond, i, &key, &value);
+		nm_setting_bond_get_option (s_bond, i, &key, &val);
 
-		if (nm_streq0 (key, NM_SETTING_BOND_OPTION_ARP_IP_TARGET)) {
-			value = tmp_value = g_strdup (value);
-			for (p = tmp_value; p && *p; p++) {
+		if (nm_streq (key, NM_SETTING_BOND_OPTION_ARP_IP_TARGET)) {
+			val_tmp = g_strdup (val);
+			for (p = val_tmp; p && *p; p++) {
 				if (*p == ',')
 					*p = ' ';
 			}
+			val = val_tmp;
 		}
 
-		g_string_append_printf (bond_options_s, "%s=%s,", key, value);
+		if (str->len > 0u)
+			g_string_append_c (str, ',');
+		g_string_append (str, nm_utils_escaped_tokens_options_escape_key (key, &escaped_key));
+		g_string_append_c (str, '=');
+		g_string_append (str, nm_utils_escaped_tokens_options_escape_val (val, &escaped_val));
 	}
-	g_string_truncate (bond_options_s, bond_options_s->len-1);  /* chop off trailing ',' */
 
-	NM_SET_OUT (out_is_default, bond_options_s->len == 0);
-	RETURN_STR_TO_FREE (g_string_free (bond_options_s, FALSE));
+	NM_SET_OUT (out_is_default, str->len == 0);
+	RETURN_STR_TO_FREE (g_string_free (str, FALSE));
 }
 
 static gboolean
@@ -3316,14 +3295,20 @@ _set_fcn_ip_config_gateway (ARGS_SET_FCN)
 
 	value = nm_strstrip_avoid_copy_a (300, value, &value_to_free);
 
-	if (!nm_utils_ipaddr_valid (addr_family, value)) {
+	if (!nm_utils_ipaddr_is_valid (addr_family, value)) {
 		g_set_error (error, NM_UTILS_ERROR, NM_UTILS_ERROR_INVALID_ARGUMENT,
 		             _("invalid gateway address '%s'"),
 		             value);
 		return FALSE;
 	}
 
-	g_object_set (setting, property_info->property_name, value, NULL);
+	/* Since commit c1907a218a6b6bfe8175eb6ed87a523aaabc69ae, having a gateway and never-default=yes
+	 * will be normalized away. That means, when we set a gateway, we also want to unset never-default,
+	 * otherwise the operation gets silently reverted. */
+	g_object_set (setting,
+	              property_info->property_name, value,
+	              NM_SETTING_IP_CONFIG_NEVER_DEFAULT, FALSE,
+	              NULL);
 	return TRUE;
 }
 
@@ -3815,32 +3800,36 @@ _set_fcn_vlan_xgress_priority_map (ARGS_SET_FCN)
 	return TRUE;
 }
 
-static gconstpointer
-_get_fcn_vpn_data (ARGS_GET_FCN)
+static void
+_vpn_options_callback (const char *key, const char *val, gpointer user_data)
 {
-	NMSettingVpn *s_vpn = NM_SETTING_VPN (setting);
-	GString *data_item_str;
+	GString *str = user_data;
+	gs_free char *escaped_key = NULL;
+	gs_free char *escaped_val = NULL;
 
-	RETURN_UNSUPPORTED_GET_TYPE ();
+	if (str->len > 0u)
+		g_string_append (str, ", ");
 
-	data_item_str = g_string_new (NULL);
-	nm_setting_vpn_foreach_data_item (s_vpn, &vpn_data_item, data_item_str);
-	NM_SET_OUT (out_is_default, data_item_str->len == 0);
-	RETURN_STR_TO_FREE (g_string_free (data_item_str, FALSE));
+	g_string_append (str, nm_utils_escaped_tokens_options_escape_key (key, &escaped_key));
+	g_string_append (str, " = ");
+	g_string_append (str, nm_utils_escaped_tokens_options_escape_val (val, &escaped_val));
 }
 
 static gconstpointer
-_get_fcn_vpn_secrets (ARGS_GET_FCN)
+_get_fcn_vpn_options (ARGS_GET_FCN)
 {
 	NMSettingVpn *s_vpn = NM_SETTING_VPN (setting);
-	GString *secret_str;
+	GString *str;
 
 	RETURN_UNSUPPORTED_GET_TYPE ();
 
-	secret_str = g_string_new (NULL);
-	nm_setting_vpn_foreach_secret (s_vpn, &vpn_data_item, secret_str);
-	NM_SET_OUT (out_is_default, secret_str->len == 0);
-	RETURN_STR_TO_FREE (g_string_free (secret_str, FALSE));
+	str = g_string_new (NULL);
+	if (nm_streq (property_info->property_name, NM_SETTING_VPN_SECRETS))
+		nm_setting_vpn_foreach_secret (s_vpn, _vpn_options_callback, str);
+	else
+		nm_setting_vpn_foreach_data_item (s_vpn, _vpn_options_callback, str);
+	NM_SET_OUT (out_is_default, str->len == 0);
+	RETURN_STR_TO_FREE (g_string_free (str, FALSE));
 }
 
 static gboolean
@@ -4119,7 +4108,6 @@ _get_fcn_ethtool (ARGS_GET_FCN)
 	else {
 		s = NULL;
 		NM_SET_OUT (out_is_default, TRUE);
-		*out_flags |= NM_META_ACCESSOR_GET_OUT_FLAGS_HIDE;
 	}
 
 	if (s && get_type == NM_META_ACCESSOR_GET_TYPE_PRETTY)
@@ -4562,6 +4550,9 @@ static const NMMetaPropertyInfo *const property_infos_802_1X[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_DOMAIN_SUFFIX_MATCH,
 	    .property_type =                &_pt_gobject_string,
 	),
+	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_DOMAIN_MATCH,
+	    .property_type =                &_pt_gobject_string,
+	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_CLIENT_CERT,
 	    .describe_message =
 	        N_("Enter file path to client certificate (optionally prefixed with file://).\n"
@@ -4657,6 +4648,9 @@ static const NMMetaPropertyInfo *const property_infos_802_1X[] = {
 	    ),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PHASE2_DOMAIN_SUFFIX_MATCH,
+	    .property_type =                &_pt_gobject_string,
+	),
+	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PHASE2_DOMAIN_MATCH,
 	    .property_type =                &_pt_gobject_string,
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_802_1X_PHASE2_CLIENT_CERT,
@@ -4901,11 +4895,23 @@ static const NMMetaPropertyInfo *const property_infos_BRIDGE[] = {
 	    .prompt =                       N_("MAC address ageing time [300]"),
 	    .property_type =                &_pt_gobject_int,
 	),
+	PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_GROUP_ADDRESS,
+	    .property_type =                &_pt_gobject_mac,
+	    .hide_if_default =              TRUE,
+	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_GROUP_FORWARD_MASK,
 	    .is_cli_option =                TRUE,
 	    .property_alias =               "group-forward-mask",
 	    .prompt =                       N_("Group forward mask [0]"),
 	    .property_type =                &_pt_gobject_int,
+	),
+	PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_MULTICAST_QUERIER,
+	    .property_type =                &_pt_gobject_bool,
+	    .hide_if_default =              TRUE,
+	),
+	PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_MULTICAST_QUERY_USE_IFADDR,
+	    .property_type =                &_pt_gobject_bool,
+	    .hide_if_default =              TRUE,
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_MULTICAST_SNOOPING,
 	    .is_cli_option =                TRUE,
@@ -4913,11 +4919,32 @@ static const NMMetaPropertyInfo *const property_infos_BRIDGE[] = {
 	    .prompt =                       N_("Enable IGMP snooping [no]"),
 	    .property_type =                &_pt_gobject_bool,
 	),
+	PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_MULTICAST_ROUTER,
+	    .property_type =                &_pt_gobject_string,
+	    .hide_if_default =              TRUE,
+	    .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
+	        .values_static =            NM_MAKE_STRV ("auto",
+	                                                  "disabled",
+	                                                  "enabled"),
+	    ),
+	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_VLAN_FILTERING,
 	    .property_type =                &_pt_gobject_bool,
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_VLAN_DEFAULT_PVID,
 	    .property_type =                &_pt_gobject_int,
+	),
+	PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_VLAN_STATS_ENABLED,
+	    .property_type =                &_pt_gobject_bool,
+	    .hide_if_default =              TRUE,
+	),
+	PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_VLAN_PROTOCOL,
+	    .property_type =                &_pt_gobject_string,
+	    .hide_if_default =              TRUE,
+	    .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
+	        .values_static =            NM_MAKE_STRV ("802.1Q",
+	                                                  "802.1ad"),
+	    ),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_VLANS,
 	    .property_type =                &_pt_objlist,
@@ -5123,7 +5150,8 @@ static const NMMetaPropertyInfo *const property_infos_CONNECTION[] = {
 	                                                  NM_SETTING_BRIDGE_SETTING_NAME,
 	                                                  NM_SETTING_OVS_BRIDGE_SETTING_NAME,
 	                                                  NM_SETTING_OVS_PORT_SETTING_NAME,
-	                                                  NM_SETTING_TEAM_SETTING_NAME),
+	                                                  NM_SETTING_TEAM_SETTING_NAME,
+	                                                  NM_SETTING_VRF_SETTING_NAME),
 	    ),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES,
@@ -5297,6 +5325,7 @@ static const NMMetaPropertyInfo *const property_infos_DCB[] = {
 #define PROPERTY_INFO_ETHTOOL(xname) \
 	PROPERTY_INFO (NM_ETHTOOL_OPTNAME_##xname, NULL, \
 	    .property_type = &_pt_ethtool, \
+	    .hide_if_default = TRUE, \
 	    .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (ethtool, \
 	        .ethtool_id = NM_ETHTOOL_ID_##xname, \
 	    ), \
@@ -6877,25 +6906,23 @@ static const NMMetaPropertyInfo *const property_infos_VPN[] = {
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_VPN_DATA,
 	    .property_type = DEFINE_PROPERTY_TYPE (
-	        .get_fcn =                  _get_fcn_vpn_data,
+	        .get_fcn =                  _get_fcn_vpn_options,
 	        .set_fcn =                  _set_fcn_optionlist,
 	        .set_supports_remove =      TRUE,
 	    ),
 	    .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (optionlist,
 	        .set_fcn =                  _optionlist_set_fcn_vpn_data,
-	        .no_empty_value =           TRUE,
 	    ),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_VPN_SECRETS,
 	    .is_secret =                    TRUE,
 	    .property_type = DEFINE_PROPERTY_TYPE (
-	        .get_fcn =                  _get_fcn_vpn_secrets,
+	        .get_fcn =                  _get_fcn_vpn_options,
 	        .set_fcn =                  _set_fcn_optionlist,
 	        .set_supports_remove =      TRUE,
 	    ),
 	    .property_typ_data = DEFINE_PROPERTY_TYP_DATA_SUBTYPE (optionlist,
 	        .set_fcn =                  _optionlist_set_fcn_vpn_secrets,
-	        .no_empty_value =           TRUE,
 	    ),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_VPN_PERSISTENT,
@@ -6906,6 +6933,20 @@ static const NMMetaPropertyInfo *const property_infos_VPN[] = {
 	),
 	NULL
 };
+
+#undef  _CURRENT_NM_META_SETTING_TYPE
+#define _CURRENT_NM_META_SETTING_TYPE NM_META_SETTING_TYPE_VRF
+static const NMMetaPropertyInfo *const property_infos_VRF[] = {
+	PROPERTY_INFO_WITH_DESC (NM_SETTING_VRF_TABLE,
+	    .is_cli_option =                TRUE,
+	    .property_alias =               "table",
+	    .inf_flags =                    NM_META_PROPERTY_INF_FLAG_REQD,
+	    .prompt =                       N_("Table [0]"),
+	    .property_type =                &_pt_gobject_int,
+	),
+	NULL
+};
+
 
 #undef  _CURRENT_NM_META_SETTING_TYPE
 #define _CURRENT_NM_META_SETTING_TYPE NM_META_SETTING_TYPE_VXLAN
@@ -7318,7 +7359,7 @@ static const NMMetaPropertyInfo *const property_infos_WIRELESS_SECURITY[] = {
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,
 	    .property_type =                &_pt_gobject_string,
 	    .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
-	        .values_static =            NM_MAKE_STRV ("none", "ieee8021x", "wpa-psk", "wpa-eap", "sae"),
+	        .values_static =            NM_MAKE_STRV ("none", "ieee8021x", "wpa-psk", "wpa-eap", "sae", "owe"),
 	    ),
 	),
 	PROPERTY_INFO_WITH_DESC (NM_SETTING_WIRELESS_SECURITY_WEP_TX_KEYIDX,
@@ -7691,6 +7732,7 @@ _setting_init_fcn_wireless (ARGS_SETTING_INIT_FCN)
 #define SETTING_PRETTY_NAME_USER                N_("User settings")
 #define SETTING_PRETTY_NAME_VLAN                N_("VLAN connection")
 #define SETTING_PRETTY_NAME_VPN                 N_("VPN connection")
+#define SETTING_PRETTY_NAME_VRF                 N_("VRF connection")
 #define SETTING_PRETTY_NAME_VXLAN               N_("VXLAN connection")
 #define SETTING_PRETTY_NAME_WIFI_P2P            N_("Wi-Fi P2P connection")
 #define SETTING_PRETTY_NAME_WIMAX               N_("WiMAX connection")
@@ -7931,6 +7973,13 @@ const NMMetaSettingInfoEditor nm_meta_setting_infos_editor[] = {
 	        NM_META_SETTING_VALID_PART_ITEM (VPN,                   TRUE),
 	    ),
 	),
+	SETTING_INFO (VRF,
+	    .valid_parts = NM_META_SETTING_VALID_PARTS (
+	        NM_META_SETTING_VALID_PART_ITEM (CONNECTION,            TRUE),
+	        NM_META_SETTING_VALID_PART_ITEM (VRF,                   TRUE),
+	    ),
+	),
+
 	SETTING_INFO (VXLAN,
 	    .valid_parts = NM_META_SETTING_VALID_PARTS (
 	        NM_META_SETTING_VALID_PART_ITEM (CONNECTION,            TRUE),
@@ -8055,6 +8104,10 @@ nm_meta_setting_info_valid_parts_for_slave_type (const char *slave_type, const c
 		NM_SET_OUT (out_slave_name, "team-slave");
 		return valid_settings_slave_team;
 	}
+	if (nm_streq (slave_type, NM_SETTING_VRF_SETTING_NAME)) {
+		NM_SET_OUT (out_slave_name, "vrf-slave");
+		return valid_settings_noslave;
+	}
 	return NULL;
 }
 
@@ -8115,6 +8168,8 @@ _meta_type_property_info_get_fcn (const NMMetaAbstractInfo *abstract_info,
                                   gpointer *out_to_free)
 {
 	const NMMetaPropertyInfo *info = (const NMMetaPropertyInfo *) abstract_info;
+	gboolean is_default_local = FALSE;
+	gconstpointer r;
 
 	nm_assert (!out_to_free || !*out_to_free);
 	nm_assert (out_flags && !*out_flags);
@@ -8132,15 +8187,25 @@ _meta_type_property_info_get_fcn (const NMMetaAbstractInfo *abstract_info,
 		return _get_text_hidden (get_type);
 	}
 
-	return info->property_type->get_fcn (info,
-	                                     environment,
-	                                     environment_user_data,
-	                                     target,
-	                                     get_type,
-	                                     get_flags,
-	                                     out_flags,
-	                                     out_is_default,
-	                                     out_to_free);
+	if (   info->hide_if_default
+	    && !out_is_default)
+		out_is_default = &is_default_local;
+
+	r = info->property_type->get_fcn (info,
+	                                  environment,
+	                                  environment_user_data,
+	                                  target,
+	                                  get_type,
+	                                  get_flags,
+	                                  out_flags,
+	                                  out_is_default,
+	                                  out_to_free);
+
+	if (   info->hide_if_default
+	    && *out_is_default)
+		*out_flags |= NM_META_ACCESSOR_GET_OUT_FLAGS_HIDE;
+
+	return r;
 
 }
 

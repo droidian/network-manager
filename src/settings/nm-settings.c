@@ -22,7 +22,7 @@
 
 #include "nm-libnm-core-intern/nm-common-macros.h"
 #include "nm-glib-aux/nm-keyfile-aux.h"
-#include "nm-keyfile-internal.h"
+#include "nm-keyfile/nm-keyfile-internal.h"
 #include "nm-dbus-interface.h"
 #include "nm-connection.h"
 #include "nm-setting-8021x.h"
@@ -54,7 +54,7 @@
 #include "nm-settings-plugin.h"
 #include "nm-dbus-manager.h"
 #include "nm-auth-utils.h"
-#include "nm-auth-subject.h"
+#include "nm-libnm-core-intern/nm-auth-subject.h"
 #include "nm-session-monitor.h"
 #include "plugins/keyfile/nms-keyfile-plugin.h"
 #include "plugins/keyfile/nms-keyfile-storage.h"
@@ -67,7 +67,11 @@
 
 /*****************************************************************************/
 
-static NM_CACHED_QUARK_FCN ("default-wired-connection", _default_wired_connection_quark)
+static
+NM_CACHED_QUARK_FCN ("default-wired-connection", _default_wired_connection_quark)
+
+static
+NM_CACHED_QUARK_FCN ("default-wired-connection-blocked", _default_wired_connection_blocked_quark)
 
 /*****************************************************************************/
 
@@ -548,7 +552,7 @@ _startup_complete_check (NMSettings *self,
 		goto ready;
 
 	if (!now_us)
-		now_us = nm_utils_get_monotonic_timestamp_us ();
+		now_us = nm_utils_get_monotonic_timestamp_usec ();
 
 	next_expiry = 0;
 
@@ -654,7 +658,7 @@ _startup_complete_notify_connection (NMSettings *self,
 		} else
 			scd = g_hash_table_lookup (priv->startup_complete_idx, &sett_conn);
 		if (!scd) {
-			now_us = nm_utils_get_monotonic_timestamp_us ();
+			now_us = nm_utils_get_monotonic_timestamp_usec ();
 			scd = g_slice_new (StartupCompleteData);
 			*scd = (StartupCompleteData) {
 				.sett_conn = g_object_ref (sett_conn),
@@ -2574,7 +2578,7 @@ settings_add_connection_helper (NMSettings *self,
 		return;
 	}
 
-	subject = nm_auth_subject_new_unix_process_from_context (context);
+	subject = nm_dbus_manager_new_auth_subject_from_context (context);
 	if (!subject) {
 		g_dbus_method_invocation_return_error_literal (context,
 		                                               NM_SETTINGS_ERROR,
@@ -2918,7 +2922,7 @@ impl_settings_get_connection_by_uuid (NMDBusObject *obj,
 		goto error;
 	}
 
-	subject = nm_auth_subject_new_unix_process_from_context (invocation);
+	subject = nm_dbus_manager_new_auth_subject_from_context (invocation);
 	if (!subject) {
 		error = g_error_new_literal (NM_SETTINGS_ERROR,
 		                             NM_SETTINGS_ERROR_PERMISSION_DENIED,
@@ -3431,8 +3435,12 @@ device_realized (NMDevice *device, GParamSpec *pspec, NMSettings *self)
 	 */
 	if (   !NM_DEVICE_GET_CLASS (device)->new_default_connection
 	    || !nm_device_get_managed (device, FALSE)
-	    || g_object_get_qdata (G_OBJECT (device), _default_wired_connection_quark ()))
+	    || g_object_get_qdata (G_OBJECT (device), _default_wired_connection_blocked_quark ()))
 		return;
+
+	/* we only check once whether to create the auto-default connection. If we reach this point,
+	 * we mark the creation of the default-wired-connection as blocked. */
+	g_object_set_qdata (G_OBJECT (device), _default_wired_connection_blocked_quark (), device);
 
 	if (nm_config_get_no_auto_default_for_device (priv->config, device)) {
 		_LOGT ("auto-default: cannot create auto-default connection for device %s: disabled by \"no-auto-default\"",

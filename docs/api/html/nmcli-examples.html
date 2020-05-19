@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nmcli.html" title="nmcli">
 <link rel="next" href="nmtui.html" title="nmtui">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -71,7 +71,14 @@
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.3"></a><p class="title"><b>Example 2. Showing general information and properties for a Wi-Fi interface</b></p>
+<a name="id-1.2.5.6.3"></a><p class="title"><b>Example 2. Connect to a password-protected wifi network</b></p>
+<div class="example-contents">
+<pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli device wifi connect "$SSID" password "$PASSWORD"</code></strong></pre>
+<pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli --ask device wifi connect "$SSID"</code></strong></pre>
+</div>
+</div>
+<br class="example-break"><div class="example">
+<a name="id-1.2.5.6.4"></a><p class="title"><b>Example 3. Showing general information and properties for a Wi-Fi interface</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli -p -f general,wifi-properties device show wlan0</code></strong>
 ===========================================================================
@@ -113,7 +120,7 @@ WIFI-PROPERTIES.ADHOC:    yes
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.4"></a><p class="title"><b>Example 3. Listing NetworkManager polkit permissions</b></p>
+<a name="id-1.2.5.6.5"></a><p class="title"><b>Example 4. Listing NetworkManager polkit permissions</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli general permissions</code></strong>
 PERMISSION                                                VALUE
@@ -146,7 +153,7 @@ org.freedesktop.NetworkManager.reload                     auth</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.5"></a><p class="title"><b>Example 4. Listing NetworkManager log level and domains</b></p>
+<a name="id-1.2.5.6.6"></a><p class="title"><b>Example 5. Listing NetworkManager log level and domains</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli general logging</code></strong>
 LEVEL  DOMAINS
@@ -160,7 +167,7 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.6"></a><p class="title"><b>Example 5. Changing NetworkManager logging</b></p>
+<a name="id-1.2.5.6.7"></a><p class="title"><b>Example 6. Changing NetworkManager logging</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli g log level DEBUG domains CORE,ETHER,IP</code></strong>
 <code class="prompt">$ </code><strong class="userinput"><code>nmcli g log level INFO domains DEFAULT</code></strong></pre>
@@ -173,7 +180,7 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.7"></a><p class="title"><b>Example 6. Activating a VPN connection profile requiring interactive password input</b></p>
+<a name="id-1.2.5.6.8"></a><p class="title"><b>Example 7. Activating a VPN connection profile requiring interactive password input</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli --ask con up my-vpn-con</code></strong></pre>
 <p>
@@ -188,7 +195,7 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.8"></a><p class="title"><b>Example 7. Adding a bonding master and two slave connection profiles</b></p>
+<a name="id-1.2.5.6.9"></a><p class="title"><b>Example 8. Adding a bonding master and two slave connection profiles</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type bond ifname mybond0 mode active-backup</code></strong>
 <code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet ifname eth1 master mybond0</code></strong>
@@ -204,7 +211,7 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.9"></a><p class="title"><b>Example 8. Adding a team master and two slave connection profiles</b></p>
+<a name="id-1.2.5.6.10"></a><p class="title"><b>Example 9. Adding a team master and two slave connection profiles</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type team con-name Team1 ifname Team1 config team1-master-json.conf</code></strong>
 <code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name Team1-slave1 ifname em1 master Team1</code></strong>
@@ -232,7 +239,7 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.10"></a><p class="title"><b>Example 9. Adding a bridge and two slave profiles</b></p>
+<a name="id-1.2.5.6.11"></a><p class="title"><b>Example 10. Adding a bridge and two slave profiles</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type bridge con-name TowerBridge ifname TowerBridge</code></strong>
 <code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name br-slave-1 ifname ens3 master TowerBridge</code></strong>
@@ -251,7 +258,7 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.11"></a><p class="title"><b>Example 10. Adding an ethernet connection profile with manual IP configuration</b></p>
+<a name="id-1.2.5.6.12"></a><p class="title"><b>Example 11. Adding an ethernet connection profile with manual IP configuration</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add con-name my-con-em1 ifname em1 type ethernet \
   ip4 192.168.100.100/24 gw4 192.168.100.1 ip4 1.2.3.4 ip6 abbe::cafe</code></strong>
@@ -274,7 +281,7 @@ B,DISPATCH</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.12"></a><p class="title"><b>Example 11. Convenient field values retrieval for scripting</b></p>
+<a name="id-1.2.5.6.13"></a><p class="title"><b>Example 12. Convenient field values retrieval for scripting</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli -g ip4.address connection show my-con-eth0</code></strong>
 192.168.1.12/24</pre>
@@ -294,7 +301,7 @@ IP4:192.168.1.12/24:192.168.1.1::192.168.1.1::</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.13"></a><p class="title"><b>Example 12. Adding an Ethernet connection and configuring SR-IOV VFs</b></p>
+<a name="id-1.2.5.6.14"></a><p class="title"><b>Example 13. Adding an Ethernet connection and configuring SR-IOV VFs</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli con add type ethernet con-name EthernetPF ifname em1</code></strong>
 <code class="prompt">$ </code><strong class="userinput"><code>nmcli con modify EthernetPF sriov.total-vfs 3 sriov.autoprobe-drivers false</code></strong>
@@ -314,7 +321,7 @@ IP4:192.168.1.12/24:192.168.1.1::192.168.1.1::</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.14"></a><p class="title"><b>Example 13. Escaping colon characters in tabular mode</b></p>
+<a name="id-1.2.5.6.15"></a><p class="title"><b>Example 14. Escaping colon characters in tabular mode</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli -t -f general -e yes -m tab dev show eth0</code></strong>
 GENERAL:eth0:ethernet:Intel Corporation:82567LM Gigabit Network Connection:
@@ -329,7 +336,7 @@ nager/ActiveConnection/9</pre>
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.15"></a><p class="title"><b>Example 14. nmcli usage in a NetworkManager dispatcher script to make Ethernet and Wi-Fi mutually exclusive</b></p>
+<a name="id-1.2.5.6.16"></a><p class="title"><b>Example 15. nmcli usage in a NetworkManager dispatcher script to make Ethernet and Wi-Fi mutually exclusive</b></p>
 <div class="example-contents">
 <pre class="programlisting">
 #!/bin/bash
@@ -367,7 +374,7 @@ fi
 </div>
 <br class="example-break"><p><span class="bold"><strong>Example sessions of interactive connection editor</strong></span></p>
 <div class="example">
-<a name="id-1.2.5.6.17"></a><p class="title"><b>Example 15. Adding an ethernet connection profile in interactive editor (a)</b></p>
+<a name="id-1.2.5.6.18"></a><p class="title"><b>Example 16. Adding an ethernet connection profile in interactive editor (a)</b></p>
 <div class="example-contents">
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>nmcli connection edit type ethernet</code></strong>
 
@@ -603,7 +610,7 @@ Connection 'ethernet-4' (de89cdeb-a3e1-4d53-8fa0-c22546c775f4) successfully
 </div>
 </div>
 <br class="example-break"><div class="example">
-<a name="id-1.2.5.6.18"></a><p class="title"><b>Example 16. Bluetooth connection profiles</b></p>
+<a name="id-1.2.5.6.19"></a><p class="title"><b>Example 17. Bluetooth connection profiles</b></p>
 <div class="example-contents">
 <p>NetworkManger supports both connecting to NAP and DUN devices as a client. It also
         supports sharing the network via a NAP server.
@@ -642,6 +649,6 @@ Connection 'ethernet-4' (de89cdeb-a3e1-4d53-8fa0-c22546c775f4) successfully
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

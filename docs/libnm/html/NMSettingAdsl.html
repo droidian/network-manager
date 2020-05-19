@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSetting8021x.html" title="NMSetting8021x">
 <link rel="next" href="NMSettingBluetooth.html" title="NMSettingBluetooth">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,8 +37,8 @@
 <a name="NMSettingAdsl.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -159,8 +159,8 @@
 <a name="NMSettingAdsl.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -514,6 +514,7 @@ nm_setting_adsl_get_password_flags (<em class="parameter"><code><a class="link" 
 <a name="NMSettingAdsl--encapsulation"></a><h3>The <code class="literal">“encapsulation”</code> property</h3>
 <pre class="programlisting">  “encapsulation”            <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Encapsulation of ADSL connection.  Can be "vcmux" or "llc".</p>
+<p>Owner: NMSettingAdsl</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -522,6 +523,7 @@ nm_setting_adsl_get_password_flags (<em class="parameter"><code><a class="link" 
 <a name="NMSettingAdsl--password"></a><h3>The <code class="literal">“password”</code> property</h3>
 <pre class="programlisting">  “password”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Password used to authenticate with the ADSL service.</p>
+<p>Owner: NMSettingAdsl</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -530,6 +532,7 @@ nm_setting_adsl_get_password_flags (<em class="parameter"><code><a class="link" 
 <a name="NMSettingAdsl--password-flags"></a><h3>The <code class="literal">“password-flags”</code> property</h3>
 <pre class="programlisting">  “password-flags”           <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
 <p>Flags indicating how to handle the <a class="link" href="NMSettingAdsl.html#NMSettingAdsl--password" title="The “password” property"><span class="type">“password”</span></a> property.</p>
+<p>Owner: NMSettingAdsl</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -537,6 +540,7 @@ nm_setting_adsl_get_password_flags (<em class="parameter"><code><a class="link" 
 <a name="NMSettingAdsl--protocol"></a><h3>The <code class="literal">“protocol”</code> property</h3>
 <pre class="programlisting">  “protocol”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>ADSL connection protocol.  Can be "pppoa", "pppoe" or "ipoatm".</p>
+<p>Owner: NMSettingAdsl</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -545,6 +549,7 @@ nm_setting_adsl_get_password_flags (<em class="parameter"><code><a class="link" 
 <a name="NMSettingAdsl--username"></a><h3>The <code class="literal">“username”</code> property</h3>
 <pre class="programlisting">  “username”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Username used to authenticate with the ADSL service.</p>
+<p>Owner: NMSettingAdsl</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -553,6 +558,7 @@ nm_setting_adsl_get_password_flags (<em class="parameter"><code><a class="link" 
 <a name="NMSettingAdsl--vci"></a><h3>The <code class="literal">“vci”</code> property</h3>
 <pre class="programlisting">  “vci”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>VCI of ADSL connection</p>
+<p>Owner: NMSettingAdsl</p>
 <p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 65536</p>
 <p>Default value: 0</p>
@@ -562,6 +568,7 @@ nm_setting_adsl_get_password_flags (<em class="parameter"><code><a class="link" 
 <a name="NMSettingAdsl--vpi"></a><h3>The <code class="literal">“vpi”</code> property</h3>
 <pre class="programlisting">  “vpi”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>VPI of ADSL connection</p>
+<p>Owner: NMSettingAdsl</p>
 <p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 65536</p>
 <p>Default value: 0</p>
@@ -569,6 +576,6 @@ nm_setting_adsl_get_password_flags (<em class="parameter"><code><a class="link" 
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

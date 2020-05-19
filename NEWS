@@ -1,69 +1,40 @@
-===============================================
-NetworkManager-1.22.10
-Overview of changes since NetworkManager-1.22.8
-===============================================
+=============================================
+NetworkManager-1.24
+Overview of changes since NetworkManager-1.22
+=============================================
 
-This is a new stable release of NetworkManager.  Notable changes include:
-
-* core: periodically cleanup stale device state files from /run.
-* dhcp: fix crash in nettools client.
-* bond: fixed the validation of the miimon option.
-* Various minor bug fixes and improvements.
-
-===============================================
-NetworkManager-1.22.8
-Overview of changes since NetworkManager-1.22.6
-===============================================
-
-This is a new stable release of NetworkManager.  Notable changes include:
-
-* Added configuration option to customize IPv6 RA timeout.
-* Internal DHCP client will now request a lease renewal using the previously obtained IP address when expired.
-* Removed length limitation for OVS Bridge, Patches and Interfaces (only Patch types) names.
-* Fixed initialization of 'secs' DHCP header field, this caused some DHCP relays to drop packets.
-* Fixed failure when creating team interfaces using 'nmstate'.
-* Various bug fixes and improvements.
-
-===============================================
-NetworkManager-1.22.6
-Overview of changes since NetworkManager-1.22.4
-===============================================
-
-This is a new stable release of NetworkManager.  Notable changes include:
-
-* Various fixes for the internal DHCP client.
-* Updated translations (fr,ja,zh-CN).
-* Slave devices now do not get created/activated if master is missing.
-* Fixed 'startup-complete' bug where NetworkManager would reach the network-online.target
-  even when not all the connections had been tried..
-
-===============================================
-NetworkManager-1.22.4
-Overview of changes since NetworkManager-1.22.2
-===============================================
-
-This is a new stable release of NetworkManager.  Notable changes include:
-
-* Fix behavior of internal DHCP client when the server sends a NAK.
-* Support 31-bit prefixes on IPv4 point-to-point links according to
+* Add support for virtual routing and forwarding (VRF) interfaces.
+* Add support for Opportunistic Wireless Encryption mode (OWE) for Wi-Fi networks.
+* Add support for 31-bit prefixes on IPv4 point-to-point links according to
   RFC 3021.
-* Fix memory leak parsing RequestScan D-Bus method arguments.
-
-===============================================
-NetworkManager-1.22.2
-Overview of changes since NetworkManager-1.22.0
-===============================================
-
-This is a new stable release of NetworkManager.  Notable changes include:
-
-* Fix multiple issues in the internal DHCP client, including wrong
-  parsing of search domains and classless routes options, and failures
-  in obtaining and renewing the lease with certain server
-  configurations.
+* Drop dependencies for libpolkit-agent-1 and libpolkit-gobject-1.
+* nmcli:
+  - support setting removal via new command
+    `nmcli connection modify $CON_NAME remove $setting`.
+  - support backslash escape sequences for "vpn.data", "vpn.secrets",
+    "bond.options", and "ethernet.s390-options".
+* bridge: support new options "bridge.multicast-querier", "bridge.multicast-query-use-ifaddr",
+  "bridge.multicast-router", "bridge.vlan-stats-enabled", "bridge.vlan-protocol",
+  "bridge.group-address".
+* IPv6 SLAAC: add support for "ipv6.ra-timeout" setting
+* IPv6 DHCP: add support for "ipv6.dhcp-timeout" setting
+* WWAN: NetworkManager now detects if a PIN-protected SIM card has been
+  externally unlocked and automatically tries to activate a suitable
+  connection on the modem.
+* OVS:
+  - add support for changing MTU of OVS interfaces.
+  - remove length limitation for OVS Bridge, Patches and Interfaces
+    (only Patch types) names.
+* VPN: accept empty values for VPN data items and secrets.
+* All nm-devices now expose the 'HwAddress' property via D-Bus.
+* Slave devices now do not get created/activated if master is missing.
+* Fixed multiple issues in the internal "nettools" DHCP client.
 * Export NM_CAPABILITY_OVS capability on D-Bus and in libnm to
   indicate that the OVS plugin is loaded.
-* Fix libnm annotations for nm_sriov_vf_get_vlan_ids() to allow the
-  usage of the function through GObject introspection.
+* Fixes for importing WireGuard profiles in nmcli and better handle
+  configurations that enable ip4-auto-default-route with an explicit
+  gateway.
+* Various bug fixes and improvements.
 
 =============================================
 NetworkManager-1.22

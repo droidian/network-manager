@@ -5,7 +5,6 @@
 #include "nm-http-client.h"
 
 #include <curl/curl.h>
-#include <glib-unix.h>
 
 #include "nm-cloud-setup-utils.h"
 
@@ -164,7 +163,7 @@ _ehandle_complete (EHandleData *edata,
 	                                    &edata->cancellable_id);
 
 	if (error_take) {
-		if (nm_utils_error_is_cancelled (error_take, FALSE))
+		if (nm_utils_error_is_cancelled (error_take))
 			_LOG2T (edata, "cancelled");
 		else
 			_LOG2D (edata, "failed with %s", error_take->message);
@@ -423,7 +422,7 @@ _poll_get_probe_finish_fcn (GObject *source,
 	                                     &local_error);
 
 	if (!success) {
-		if (nm_utils_error_is_cancelled (local_error, FALSE)) {
+		if (nm_utils_error_is_cancelled (local_error)) {
 			g_propagate_error (error, g_steal_pointer (&local_error));
 			return TRUE;
 		}
@@ -636,8 +635,12 @@ _mhandle_socketfunction_cb (CURL *e_handle, curl_socket_t fd, int what, void *us
 			condition = 0;
 
 		if (condition) {
-			priv->mhandle_source_socket = g_unix_fd_source_new (fd, condition);
-			g_source_set_callback (priv->mhandle_source_socket, G_SOURCE_FUNC (_mhandle_socket_cb), self, NULL);
+			priv->mhandle_source_socket = nm_g_unix_fd_source_new (fd,
+			                                                       condition,
+			                                                       G_PRIORITY_DEFAULT,
+			                                                       _mhandle_socket_cb,
+			                                                       self,
+			                                                       NULL);
 			g_source_attach (priv->mhandle_source_socket, priv->context);
 		}
 	}

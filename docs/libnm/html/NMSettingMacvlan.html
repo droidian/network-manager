@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingMacsec.html" title="NMSettingMacsec">
 <link rel="next" href="NMSettingMatch.html" title="NMSettingMatch">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,8 +37,8 @@
 <a name="NMSettingMacvlan.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -95,23 +95,23 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingMacvlan.html#NMSettingMacvlan--mode" title="The “mode” property">mode</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingMacvlan.html#NMSettingMacvlan--parent" title="The “parent” property">parent</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingMacvlan.html#NMSettingMacvlan--promiscuous" title="The “promiscuous” property">promiscuous</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingMacvlan.html#NMSettingMacvlan--tap" title="The “tap” property">tap</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 </tbody>
 </table></div>
@@ -120,8 +120,8 @@
 <a name="NMSettingMacvlan.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -401,7 +401,8 @@ nm_setting_macvlan_get_tap (<em class="parameter"><code><a class="link" href="NM
 <pre class="programlisting">  “mode”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>The macvlan mode, which specifies the communication mechanism between multiple
 macvlans on the same lower device.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingMacvlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -413,7 +414,8 @@ macvlans on the same lower device.</p>
 from which this MAC-VLAN interface should be created.  If this property is
 not specified, the connection must contain an <a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="type">NMSettingWired</span></a> setting
 with a <a class="link" href="NMSettingWired.html#NMSettingWired--mac-address" title="The “mac-address” property"><span class="type">“mac-address”</span></a> property.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingMacvlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -422,7 +424,8 @@ with a <a class="link" href="NMSettingWired.html#NMSettingWired--mac-address" ti
 <a name="NMSettingMacvlan--promiscuous"></a><h3>The <code class="literal">“promiscuous”</code> property</h3>
 <pre class="programlisting">  “promiscuous”              <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Whether the interface should be put in promiscuous mode.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingMacvlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: TRUE</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -431,13 +434,14 @@ with a <a class="link" href="NMSettingWired.html#NMSettingWired--mac-address" ti
 <a name="NMSettingMacvlan--tap"></a><h3>The <code class="literal">“tap”</code> property</h3>
 <pre class="programlisting">  “tap”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Whether the interface should be a MACVTAP.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingMacvlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 <p class="since">Since: 1.2</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

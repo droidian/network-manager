@@ -27,6 +27,7 @@
 #include "socket-util.h"
 #include "string-table.h"
 #include "util.h"
+#include "web-util.h"
 
 #define MAX_MAC_ADDR_LEN INFINIBAND_ALEN
 
@@ -67,6 +68,7 @@ struct sd_dhcp6_client {
         size_t req_opts_allocated;
         size_t req_opts_len;
         char *fqdn;
+        char *mudurl;
         sd_event_source *receive_message;
         usec_t retransmit_time;
         uint8_t retransmit_count;
@@ -369,6 +371,17 @@ int sd_dhcp6_client_set_request_option(sd_dhcp6_client *client, uint16_t option)
         return 0;
 }
 
+int sd_dhcp6_client_set_request_mud_url(sd_dhcp6_client *client, char *mudurl) {
+
+        assert_return(client, -EINVAL);
+        assert_return(client->state == DHCP6_STATE_STOPPED, -EBUSY);
+        assert_return(mudurl, -EINVAL);
+        assert_return(strlen(mudurl) <= 255, -EINVAL);
+        assert_return(http_url_is_valid(mudurl), -EINVAL);
+
+        return free_and_strdup(&client->mudurl, mudurl);
+}
+
 int sd_dhcp6_client_get_prefix_delegation(sd_dhcp6_client *client, int *delegation) {
         assert_return(client, -EINVAL);
         assert_return(delegation, -EINVAL);
@@ -490,6 +503,14 @@ static int client_send_message(sd_dhcp6_client *client, usec_t time_now) {
         case DHCP6_STATE_INFORMATION_REQUEST:
                 message->type = DHCP6_INFORMATION_REQUEST;
 
+                if (client->mudurl) {
+                        r = dhcp6_option_append(&opt, &optlen,
+                                                SD_DHCP6_OPTION_MUD_URL, strlen(client->mudurl),
+                                                client->mudurl);
+                        if (r < 0)
+                                return r;
+                }
+
                 break;
 
         case DHCP6_STATE_SOLICITATION:
@@ -509,6 +530,14 @@ static int client_send_message(sd_dhcp6_client *client, usec_t time_now) {
 
                 if (client->fqdn) {
                         r = dhcp6_option_append_fqdn(&opt, &optlen, client->fqdn);
+                        if (r < 0)
+                                return r;
+                }
+
+                if (client->mudurl) {
+                        r = dhcp6_option_append(&opt, &optlen,
+                                                SD_DHCP6_OPTION_MUD_URL, strlen(client->mudurl),
+                                                client->mudurl);
                         if (r < 0)
                                 return r;
                 }
@@ -551,6 +580,14 @@ static int client_send_message(sd_dhcp6_client *client, usec_t time_now) {
                                 return r;
                 }
 
+                if (client->mudurl) {
+                        r = dhcp6_option_append(&opt, &optlen,
+                                                SD_DHCP6_OPTION_MUD_URL, strlen(client->mudurl),
+                                                client->mudurl);
+                        if (r < 0)
+                                return r;
+                }
+
                 if (FLAGS_SET(client->request, DHCP6_REQUEST_IA_PD)) {
                         r = dhcp6_option_append_pd(opt, optlen, &client->lease->pd, NULL);
                         if (r < 0)
@@ -573,6 +610,14 @@ static int client_send_message(sd_dhcp6_client *client, usec_t time_now) {
 
                 if (client->fqdn) {
                         r = dhcp6_option_append_fqdn(&opt, &optlen, client->fqdn);
+                        if (r < 0)
+                                return r;
+                }
+
+                if (client->mudurl) {
+                        r = dhcp6_option_append(&opt, &optlen,
+                                                SD_DHCP6_OPTION_MUD_URL, strlen(client->mudurl),
+                                                client->mudurl);
                         if (r < 0)
                                 return r;
                 }
@@ -681,8 +726,7 @@ static int client_timeout_resend_expire(sd_event_source *s, uint64_t usec, void 
 }
 
 static usec_t client_timeout_compute_random(usec_t val) {
-        return val - val / 10 +
-                (random_u32() % (2 * USEC_PER_SEC)) * val / 10 / USEC_PER_SEC;
+        return val - (random_u32() % USEC_PER_SEC) * val / 10 / USEC_PER_SEC;
 }
 
 static int client_timeout_resend(sd_event_source *s, uint64_t usec, void *userdata) {
@@ -692,7 +736,6 @@ static int client_timeout_resend(sd_event_source *s, uint64_t usec, void *userda
         usec_t max_retransmit_duration = 0;
         uint8_t max_retransmit_count = 0;
         char time_string[FORMAT_TIMESPAN_MAX];
-        uint32_t expire = 0;
 
         assert(s);
         assert(client);
@@ -741,8 +784,9 @@ static int client_timeout_resend(sd_event_source *s, uint64_t usec, void *userda
                 max_retransmit_time = DHCP6_REB_MAX_RT;
 
                 if (event_source_is_enabled(client->timeout_resend_expire) <= 0) {
-                        r = dhcp6_lease_ia_rebind_expire(&client->lease->ia,
-                                                         &expire);
+                        uint32_t expire = 0;
+
+                        r = dhcp6_lease_ia_rebind_expire(&client->lease->ia, &expire);
                         if (r < 0) {
                                 client_stop(client, r);
                                 return 0;
@@ -757,7 +801,7 @@ static int client_timeout_resend(sd_event_source *s, uint64_t usec, void *userda
                 return 0;
         }
 
-        if (max_retransmit_count &&
+        if (max_retransmit_count > 0 &&
             client->retransmit_count >= max_retransmit_count) {
                 client_stop(client, SD_DHCP6_CLIENT_EVENT_RETRANS_MAX);
                 return 0;
@@ -771,7 +815,7 @@ static int client_timeout_resend(sd_event_source *s, uint64_t usec, void *userda
         if (r >= 0)
                 client->retransmit_count++;
 
-        if (!client->retransmit_time) {
+        if (client->retransmit_time == 0) {
                 client->retransmit_time =
                         client_timeout_compute_random(init_retransmit_time);
 
@@ -779,7 +823,7 @@ static int client_timeout_resend(sd_event_source *s, uint64_t usec, void *userda
                         client->retransmit_time += init_retransmit_time / 10;
 
         } else {
-                if (max_retransmit_time &&
+                if (max_retransmit_time > 0 &&
                     client->retransmit_time > max_retransmit_time / 2)
                         client->retransmit_time = client_timeout_compute_random(max_retransmit_time);
                 else
@@ -797,7 +841,7 @@ static int client_timeout_resend(sd_event_source *s, uint64_t usec, void *userda
         if (r < 0)
                 goto error;
 
-        if (max_retransmit_duration && event_source_is_enabled(client->timeout_resend_expire) <= 0) {
+        if (max_retransmit_duration > 0 && event_source_is_enabled(client->timeout_resend_expire) <= 0) {
 
                 log_dhcp6_client(client, "Max retransmission duration %"PRIu64" secs",
                                  max_retransmit_duration / USEC_PER_SEC);
@@ -1528,6 +1572,7 @@ static sd_dhcp6_client *dhcp6_client_free(sd_dhcp6_client *client) {
 
         free(client->req_opts);
         free(client->fqdn);
+        free(client->mudurl);
         return mfree(client);
 }
 

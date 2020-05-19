@@ -12,7 +12,7 @@
 
 /*****************************************************************************/
 
-typedef struct NMAuthChain NMAuthChain;
+typedef struct _NMAuthChain NMAuthChain;
 
 typedef void (*NMAuthChainResultFunc) (NMAuthChain *chain,
                                        GDBusMethodInvocation *context,
@@ -26,6 +26,10 @@ NMAuthChain *nm_auth_chain_new_subject (NMAuthSubject *subject,
                                         GDBusMethodInvocation *context,
                                         NMAuthChainResultFunc done_func,
                                         gpointer user_data);
+
+GCancellable *nm_auth_chain_get_cancellable (NMAuthChain *self);
+void nm_auth_chain_set_cancellable (NMAuthChain *self,
+                                    GCancellable *cancellable);
 
 gpointer nm_auth_chain_get_data (NMAuthChain *chain, const char *tag);
 
@@ -52,6 +56,8 @@ void nm_auth_chain_add_call_unsafe (NMAuthChain *chain,
 void nm_auth_chain_destroy (NMAuthChain *chain);
 
 NMAuthSubject *nm_auth_chain_get_subject (NMAuthChain *self);
+
+GDBusMethodInvocation *nm_auth_chain_get_context (NMAuthChain *self);
 
 /*****************************************************************************/
 

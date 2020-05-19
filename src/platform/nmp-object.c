@@ -233,13 +233,13 @@ nm_sock_addr_union_to_string (const NMSockAddrUnion *sa,
 	case AF_INET:
 		g_snprintf (buf, len,
 		            "%s:%u",
-		            nm_utils_inet4_ntop (sa->in.sin_addr.s_addr, s_addr),
+		            _nm_utils_inet4_ntop (sa->in.sin_addr.s_addr, s_addr),
 		            (guint) htons (sa->in.sin_port));
 		break;
 	case AF_INET6:
 		g_snprintf (buf, len,
 		            "[%s%s]:%u",
-		            nm_utils_inet6_ntop (&sa->in6.sin6_addr, s_addr),
+		            _nm_utils_inet6_ntop (&sa->in6.sin6_addr, s_addr),
 		            (  sa->in6.sin6_scope_id != 0
 		             ? nm_sprintf_buf (s_scope_id, "%u", sa->in6.sin6_scope_id)
 		             : ""),
@@ -525,11 +525,11 @@ _vlan_xgress_qos_mappings_cpy (guint *dst_n_map,
                                const NMVlanQosMapping *src_map)
 {
 	if (src_n_map == 0) {
-		g_clear_pointer (dst_map, g_free);
+		nm_clear_g_free (dst_map);
 		*dst_n_map = 0;
 	} else if (   src_n_map != *dst_n_map
 	           || _vlan_xgress_qos_mappings_cmp (src_n_map, *dst_map, src_map) != 0) {
-		g_clear_pointer (dst_map, g_free);
+		nm_clear_g_free (dst_map);
 		*dst_n_map = src_n_map;
 		if (src_n_map > 0)
 			*dst_map = nm_memdup (src_map, sizeof (*src_map) * src_n_map);
@@ -1082,10 +1082,10 @@ _vt_cmd_plobj_to_string_id_##type (const NMPlatformObject *_obj, char *buf, gsiz
 	return buf; \
 }
 _vt_cmd_plobj_to_string_id (link,        NMPlatformLink,       "%d",            obj->ifindex);
-_vt_cmd_plobj_to_string_id (ip4_address, NMPlatformIP4Address, "%d: %s/%d%s%s", obj->ifindex, nm_utils_inet4_ntop ( obj->address, buf1), obj->plen,
+_vt_cmd_plobj_to_string_id (ip4_address, NMPlatformIP4Address, "%d: %s/%d%s%s", obj->ifindex, _nm_utils_inet4_ntop ( obj->address, buf1), obj->plen,
                                                                obj->peer_address != obj->address ? "," : "",
-                                                               obj->peer_address != obj->address ? nm_utils_inet4_ntop (nm_utils_ip4_address_clear_host_address (obj->peer_address, obj->plen), buf2) : "");
-_vt_cmd_plobj_to_string_id (ip6_address, NMPlatformIP6Address, "%d: %s",        obj->ifindex, nm_utils_inet6_ntop (&obj->address, buf1));
+                                                               obj->peer_address != obj->address ? _nm_utils_inet4_ntop (nm_utils_ip4_address_clear_host_address (obj->peer_address, obj->plen), buf2) : "");
+_vt_cmd_plobj_to_string_id (ip6_address, NMPlatformIP6Address, "%d: %s",        obj->ifindex, _nm_utils_inet6_ntop (&obj->address, buf1));
 _vt_cmd_plobj_to_string_id (qdisc,       NMPlatformQdisc,      "%d: %d",        obj->ifindex, obj->parent);
 _vt_cmd_plobj_to_string_id (tfilter,     NMPlatformTfilter,    "%d: %d",        obj->ifindex, obj->parent);
 
@@ -1405,15 +1405,15 @@ nmp_object_id_cmp (const NMPObject *obj1, const NMPObject *obj2)
 		nm_assert (klass2);
 		NM_CMP_DIRECT (klass->obj_type, klass2->obj_type);
 		/* resort to pointer comparison */
-		if (klass < klass2)
-			return -1;
-		return 1;
+		NM_CMP_DIRECT_PTR (klass, klass2);
+		return 0;
 	}
 
 	if (!klass->cmd_plobj_id_cmp) {
 		/* the klass doesn't implement ID cmp(). That means, different objects
 		 * never compare equal, but the cmp() according to their pointer value. */
-		return (obj1 < obj2) ? -1 : 1;
+		NM_CMP_DIRECT_PTR (obj1, obj2);
+		return 0;
 	}
 
 	return klass->cmd_plobj_id_cmp (&obj1->object, &obj2->object);
@@ -3291,7 +3291,7 @@ const NMPClass _nmp_classes[NMP_OBJECT_TYPE_MAX] = {
 		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_LNK_MACVTAP,
 		.sizeof_data                        = sizeof (NMPObjectLnkMacvtap),
-		.sizeof_public                      = sizeof (NMPlatformLnkMacvtap),
+		.sizeof_public                      = sizeof (NMPlatformLnkMacvlan),
 		.obj_type_name                      = "macvtap",
 		.lnk_link_type                      = NM_LINK_TYPE_MACVTAP,
 		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_macvlan_to_string,
@@ -3336,6 +3336,18 @@ const NMPClass _nmp_classes[NMP_OBJECT_TYPE_MAX] = {
 		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_vlan_hash_update,
 		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_vlan_cmp,
 	},
+	[NMP_OBJECT_TYPE_LNK_VRF - 1] = {
+		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
+		.obj_type                           = NMP_OBJECT_TYPE_LNK_VRF,
+		.sizeof_data                        = sizeof (NMPObjectLnkVrf),
+		.sizeof_public                      = sizeof (NMPlatformLnkVrf),
+		.obj_type_name                      = "vrf",
+		.lnk_link_type                      = NM_LINK_TYPE_VRF,
+		.cmd_plobj_to_string                = (const char *(*) (const NMPlatformObject *obj, char *buf, gsize len)) nm_platform_lnk_vrf_to_string,
+		.cmd_plobj_hash_update              = (void (*) (const NMPlatformObject *obj, NMHashState *h)) nm_platform_lnk_vrf_hash_update,
+		.cmd_plobj_cmp                      = (int (*) (const NMPlatformObject *obj1, const NMPlatformObject *obj2)) nm_platform_lnk_vrf_cmp,
+	},
+
 	[NMP_OBJECT_TYPE_LNK_VXLAN - 1] = {
 		.parent                             = DEDUP_MULTI_OBJ_CLASS_INIT(),
 		.obj_type                           = NMP_OBJECT_TYPE_LNK_VXLAN,

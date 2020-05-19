@@ -8,7 +8,7 @@
 <link rel="up" href="ref-overview.html" title="Overview">
 <link rel="prev" href="ref-overview.html" title="Overview">
 <link rel="next" href="ch02.html" title="Client Object API Reference">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -73,18 +73,18 @@
 10
 11
 12</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;glib.h&gt;</span>
-<span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;NetworkManager.h&gt;</span>
+        <td class="listing_code"><pre class="programlisting"><span class="cp">#include</span> <span class="cpf">&lt;glib.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;NetworkManager.h&gt;</span><span class="cp"></span>
 
-<span class="type">int</span>
-<span class="function">main</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="normal"> argc</span><span class="symbol">,</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">argv</span><span class="symbol">[])</span>
-<span class="cbracket">{</span>
-<span class="normal">    </span><span class="usertype">NMClient</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">client</span><span class="symbol">;</span>
+<span class="kt">int</span>
+<span class="nf">main</span> <span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+	<span class="n">NMClient</span> <span class="o">*</span><span class="n">client</span><span class="p">;</span>
 
-<span class="normal">    client </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="NMClient.html#nm-client-new">nm_client_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
-<span class="normal">    </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">client</span><span class="symbol">)</span>
-<span class="normal">        </span><span class="function"><a href="https://developer.gnome.org/glib/unstable/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"NetworkManager version: %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="NMClient.html#nm-client-get-version">nm_client_get_version</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">client</span><span class="symbol">));</span>
-<span class="cbracket">}</span></pre></td>
+	<span class="n">client</span> <span class="o">=</span> <span class="n">nm_client_new</span> <span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">client</span><span class="p">)</span>
+		<span class="n">g_print</span> <span class="p">(</span><span class="s">&quot;NetworkManager version: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">nm_client_get_version</span> <span class="p">(</span><span class="n">client</span><span class="p">));</span>
+<span class="p">}</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -96,7 +96,7 @@
         </p>
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>cc $(pkg-config --libs --cflags libnm) -o hello-nm hello-nm.c</code></strong>
   <code class="prompt">$ </code><strong class="userinput"><code>./hello-nm</code></strong>
-  NetworkManager version: 1.22.10
+  NetworkManager version: 1.24.0
 
   <code class="prompt">$ </code></pre>
 <p>
@@ -114,9 +114,9 @@
         <td class="listing_lines" align="right"><pre>1
 2
 3</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="function">PKG_CHECK_MODULES</span><span class="symbol">(</span><span class="normal">LIBNM</span><span class="symbol">,</span><span class="normal"> libnm </span><span class="symbol">&gt;=</span><span class="normal"> </span><span class="number">1.8</span><span class="symbol">)</span>
-<span class="normal">LIBNM_CFLAGS</span><span class="symbol">=</span><span class="string">"$LIBNM_CFLAGS -DNM_VERSION_MIN_REQUIRED=NM_VERSION_1_8"</span>
-<span class="normal">LIBNM_CFLAGS</span><span class="symbol">=</span><span class="string">"$LIBNM_CFLAGS -DNM_VERSION_MAX_ALLOWED=NM_VERSION_1_8"</span></pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="n">PKG_CHECK_MODULES</span><span class="p">(</span><span class="n">LIBNM</span><span class="p">,</span> <span class="n">libnm</span> <span class="o">&gt;=</span> <span class="mf">1.8</span><span class="p">)</span>
+<span class="n">LIBNM_CFLAGS</span><span class="o">=</span><span class="s">&quot;$LIBNM_CFLAGS -DNM_VERSION_MIN_REQUIRED=NM_VERSION_1_8&quot;</span>
+<span class="n">LIBNM_CFLAGS</span><span class="o">=</span><span class="s">&quot;$LIBNM_CFLAGS -DNM_VERSION_MAX_ALLOWED=NM_VERSION_1_8&quot;</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -137,12 +137,12 @@
 4
 5
 6</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="normal">import gi</span>
-<span class="normal">gi</span><span class="symbol">.</span><span class="function">require_version</span><span class="symbol">(</span><span class="string">'NM'</span><span class="symbol">,</span><span class="normal"> </span><span class="string">'1.0'</span><span class="symbol">)</span>
-<span class="usertype">from</span><span class="normal"> gi</span><span class="symbol">.</span><span class="normal">repository import NM</span>
+        <td class="listing_code"><pre class="programlisting"><span class="n">import</span> <span class="n">gi</span>
+<span class="n">gi</span><span class="p">.</span><span class="n">require_version</span><span class="p">(</span><span class="err">&#39;</span><span class="n">NM</span><span class="err">&#39;</span><span class="p">,</span> <span class="err">&#39;</span><span class="mf">1.0</span><span class="err">&#39;</span><span class="p">)</span>
+<span class="n">from</span> <span class="n">gi</span><span class="p">.</span><span class="n">repository</span> <span class="n">import</span> <span class="n">NM</span>
 
-<span class="normal">client </span><span class="symbol">=</span><span class="normal"> NM</span><span class="symbol">.</span><span class="normal">Client</span><span class="symbol">.</span><span class="function">new</span><span class="symbol">(</span><span class="normal">None</span><span class="symbol">)</span>
-<span class="function">print</span><span class="normal"> </span><span class="symbol">(</span><span class="string">"NetworkManager version "</span><span class="normal"> </span><span class="symbol">+</span><span class="normal"> client</span><span class="symbol">.</span><span class="function">get_version</span><span class="symbol">())</span></pre></td>
+<span class="n">client</span> <span class="o">=</span> <span class="n">NM</span><span class="p">.</span><span class="n">Client</span><span class="p">.</span><span class="n">new</span><span class="p">(</span><span class="n">None</span><span class="p">)</span>
+<span class="n">print</span> <span class="p">(</span><span class="s">&quot;NetworkManager version &quot;</span> <span class="o">+</span> <span class="n">client</span><span class="p">.</span><span class="n">get_version</span><span class="p">())</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -271,6 +271,6 @@
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

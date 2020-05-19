@@ -102,6 +102,8 @@ under [vpn] section."/>
 <property name="secrets" variable="separate variables named after keys of the dictionary" format="" values="" default="" example="password=Popocatepetl" description="The keys of the secrets dictionary are used as variable names directly
 under [vpn-secrets] section."/>
 </setting>
+<setting name="vrf">
+</setting>
 <setting name="vxlan">
 </setting>
 <setting name="wifi-p2p">

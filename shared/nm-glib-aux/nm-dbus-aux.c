@@ -56,7 +56,7 @@ nm_dbus_connection_call_get_name_owner (GDBusConnection *dbus_connection,
 /*****************************************************************************/
 
 static void
-_nm_dbus_connection_call_get_all_cb (GObject *source,
+_nm_dbus_connection_call_default_cb (GObject *source,
                                      GAsyncResult *res,
                                      gpointer user_data)
 {
@@ -96,100 +96,36 @@ nm_dbus_connection_call_get_all (GDBusConnection *dbus_connection,
 	                        G_DBUS_CALL_FLAGS_NONE,
 	                        timeout_msec,
 	                        cancellable,
-	                        _nm_dbus_connection_call_get_all_cb,
+	                        _nm_dbus_connection_call_default_cb,
 	                        nm_utils_user_data_pack (user_data, callback));
 }
 
-/*****************************************************************************/
-
-typedef struct {
-	NMDBusConnectionSignalObjectMangerCb callback;
-	gpointer user_data;
-	GDestroyNotify user_data_free_func;
-} SubscribeObjectManagerData;
-
-static void
-_subscribe_object_manager_cb (GDBusConnection *connection,
-                              const char *sender_name,
-                              const char *arg_object_path,
-                              const char *interface_name,
-                              const char *signal_name,
-                              GVariant *parameters,
-                              gpointer user_data)
+void nm_dbus_connection_call_set (GDBusConnection *dbus_connection,
+                                  const char *bus_name,
+                                  const char *object_path,
+                                  const char *interface_name,
+                                  const char *property_name,
+                                  GVariant *value,
+                                  int timeout_msec,
+                                  GCancellable *cancellable,
+                                  NMDBusConnectionCallDefaultCb callback,
+                                  gpointer user_data)
 {
-	const SubscribeObjectManagerData *d = user_data;
-
-	nm_assert (nm_streq0 (interface_name, DBUS_INTERFACE_OBJECT_MANAGER));
-
-	if (nm_streq (signal_name, "InterfacesAdded")) {
-		gs_unref_variant GVariant *interfaces_and_properties = NULL;
-		const char *object_path;
-
-		if (!g_variant_is_of_type (parameters, G_VARIANT_TYPE ("(oa{sa{sv}})")))
-			return;
-
-		g_variant_get (parameters,
-		               "(&o@a{sa{sv}})",
-		               &object_path,
-		               &interfaces_and_properties);
-
-		d->callback (object_path, interfaces_and_properties, NULL, d->user_data);
-		return;
-	}
-
-	if (nm_streq (signal_name, "InterfacesRemoved")) {
-		gs_free const char **interfaces = NULL;
-		const char *object_path;
-
-		if (!g_variant_is_of_type (parameters, G_VARIANT_TYPE ("(oas)")))
-			return;
-
-		g_variant_get (parameters,
-		               "(&o^a&s)",
-		               &object_path,
-		               &interfaces);
-
-		d->callback (object_path, NULL, interfaces, d->user_data);
-		return;
-	}
-}
-
-static void
-_subscribe_object_manager_data_free (gpointer ptr)
-{
-	SubscribeObjectManagerData *d = ptr;
-
-	if (d->user_data_free_func)
-		d->user_data_free_func (d->user_data);
-	nm_g_slice_free (d);
-}
-
-guint
-nm_dbus_connection_signal_subscribe_object_manager (GDBusConnection *dbus_connection,
-                                                    const char *service_name,
-                                                    const char *object_path,
-                                                    NMDBusConnectionSignalObjectMangerCb callback,
-                                                    gpointer user_data,
-                                                    GDestroyNotify user_data_free_func)
-{
-	SubscribeObjectManagerData *d;
-
-	g_return_val_if_fail (callback, 0);
-
-	d = g_slice_new (SubscribeObjectManagerData);
-	*d = (SubscribeObjectManagerData) {
-		.callback            = callback,
-		.user_data           = user_data,
-		.user_data_free_func = user_data_free_func,
-	};
-
-	return nm_dbus_connection_signal_subscribe_object_manager_plain (dbus_connection,
-	                                                                 service_name,
-	                                                                 object_path,
-	                                                                 NULL,
-	                                                                 _subscribe_object_manager_cb,
-	                                                                 d,
-	                                                                 _subscribe_object_manager_data_free);
+	g_dbus_connection_call (dbus_connection,
+	                        bus_name,
+	                        object_path,
+	                        DBUS_INTERFACE_PROPERTIES,
+	                        "Set",
+	                        g_variant_new ("(ssv)",
+	                                       interface_name,
+	                                       property_name,
+	                                       value),
+	                        G_VARIANT_TYPE ("()"),
+	                        G_DBUS_CALL_FLAGS_NONE,
+	                        timeout_msec,
+	                        cancellable,
+	                        callback ? _nm_dbus_connection_call_default_cb : NULL,
+	                        callback ? nm_utils_user_data_pack (user_data, callback) : NULL);
 }
 
 /*****************************************************************************/
@@ -269,10 +205,9 @@ _call_finish_cb (GObject *source,
 		return;
 	}
 
-	if (!return_void) {
-		nm_assert (!g_variant_is_of_type (ret, G_VARIANT_TYPE ("()")));
+	if (!return_void)
 		g_task_return_pointer (task, g_steal_pointer (&ret), (GDestroyNotify) g_variant_unref);
-	} else {
+	else {
 		nm_assert (g_variant_is_of_type (ret, G_VARIANT_TYPE ("()")));
 		g_task_return_boolean (task, TRUE);
 	}
@@ -317,7 +252,6 @@ nm_dbus_connection_call_finish_void_strip_dbus_error_cb (GObject *source,
  *
  * - user_data must be a GTask, whose reference will be consumed by the
  *   callback.
- * - the return GVariant must not be an empty tuple "()".
  * - the GTask is returned either with error or with a pointer containing the GVariant.
  */
 void

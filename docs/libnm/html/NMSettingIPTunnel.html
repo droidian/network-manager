@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingIPConfig.html" title="NMSettingIPConfig">
 <link rel="next" href="NMSettingMacsec.html" title="NMSettingMacsec">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,8 +37,8 @@
 <a name="NMSettingIPTunnel.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -163,7 +163,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--encapsulation-limit" title="The “encapsulation-limit” property">encapsulation-limit</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
@@ -173,7 +173,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--flow-label" title="The “flow-label” property">flow-label</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
@@ -195,7 +195,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--mtu" title="The “mtu” property">mtu</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
@@ -212,7 +212,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--path-mtu-discovery" title="The “path-mtu-discovery” property">path-mtu-discovery</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
@@ -223,12 +223,12 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--tos" title="The “tos” property">tos</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--ttl" title="The “ttl” property">ttl</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 </tbody>
 </table></div>
@@ -237,8 +237,8 @@
 <a name="NMSettingIPTunnel.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -817,7 +817,8 @@ nm_setting_ip_tunnel_get_flags (<em class="parameter"><code><a class="link" href
 <pre class="programlisting">  “encapsulation-limit”      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>How many additional levels of encapsulation are permitted to be prepended
 to packets. This property applies only to IPv6 tunnels.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingIPTunnel</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 255</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
@@ -831,6 +832,7 @@ to packets. This property applies only to IPv6 tunnels.</p>
 <a class="link" href="NMSettingIPTunnel.html#NM-IP-TUNNEL-FLAG-IP6-USE-ORIG-FLOWLABEL:CAPS"><code class="literal">NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FLOWLABEL</code></a>, <a class="link" href="NMSettingIPTunnel.html#NM-IP-TUNNEL-FLAG-IP6-MIP6-DEV:CAPS"><code class="literal">NM_IP_TUNNEL_FLAG_IP6_MIP6_DEV</code></a>,
 <a class="link" href="NMSettingIPTunnel.html#NM-IP-TUNNEL-FLAG-IP6-RCV-DSCP-COPY:CAPS"><code class="literal">NM_IP_TUNNEL_FLAG_IP6_RCV_DSCP_COPY</code></a>, <a class="link" href="NMSettingIPTunnel.html#NM-IP-TUNNEL-FLAG-IP6-USE-ORIG-FWMARK:CAPS"><code class="literal">NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FWMARK</code></a>.
 They are valid only for IPv6 tunnels.</p>
+<p>Owner: NMSettingIPTunnel</p>
 <p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.12</p>
@@ -841,7 +843,8 @@ They are valid only for IPv6 tunnels.</p>
 <pre class="programlisting">  “flow-label”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>The flow label to assign to tunnel packets. This property applies only to
 IPv6 tunnels.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingIPTunnel</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 1048575</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
@@ -852,6 +855,7 @@ IPv6 tunnels.</p>
 <pre class="programlisting">  “input-key”                <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The key used for tunnel input packets; the property is valid only for
 certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
+<p>Owner: NMSettingIPTunnel</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
@@ -862,6 +866,7 @@ certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
 <pre class="programlisting">  “local”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The local endpoint of the tunnel; the value can be empty, otherwise it
 must contain an IPv4 or IPv6 address.</p>
+<p>Owner: NMSettingIPTunnel</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
@@ -872,6 +877,7 @@ must contain an IPv4 or IPv6 address.</p>
 <pre class="programlisting">  “mode”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>The tunneling mode, for example <a class="link" href="libnm-nm-dbus-interface.html#NM-IP-TUNNEL-MODE-IPIP:CAPS"><code class="literal">NM_IP_TUNNEL_MODE_IPIP</code></a> or
 <a class="link" href="libnm-nm-dbus-interface.html#NM-IP-TUNNEL-MODE-GRE:CAPS"><code class="literal">NM_IP_TUNNEL_MODE_GRE</code></a>.</p>
+<p>Owner: NMSettingIPTunnel</p>
 <p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
@@ -882,7 +888,8 @@ must contain an IPv4 or IPv6 address.</p>
 <pre class="programlisting">  “mtu”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>If non-zero, only transmit packets of the specified size or smaller,
 breaking larger packets up into multiple fragments.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingIPTunnel</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -892,6 +899,7 @@ breaking larger packets up into multiple fragments.</p>
 <pre class="programlisting">  “output-key”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The key used for tunnel output packets; the property is valid only for
 certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
+<p>Owner: NMSettingIPTunnel</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
@@ -903,6 +911,7 @@ certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
 <p>If given, specifies the parent interface name or parent connection UUID
 the new device will be bound to so that tunneled packets will only be
 routed via that interface.</p>
+<p>Owner: NMSettingIPTunnel</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
@@ -912,7 +921,8 @@ routed via that interface.</p>
 <a name="NMSettingIPTunnel--path-mtu-discovery"></a><h3>The <code class="literal">“path-mtu-discovery”</code> property</h3>
 <pre class="programlisting">  “path-mtu-discovery”       <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Whether to enable Path MTU Discovery on this tunnel.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingIPTunnel</p>
+<p>Flags: Read / Write</p>
 <p>Default value: TRUE</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -922,6 +932,7 @@ routed via that interface.</p>
 <pre class="programlisting">  “remote”                   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The remote endpoint of the tunnel; the value must contain an IPv4 or IPv6
 address.</p>
+<p>Owner: NMSettingIPTunnel</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
@@ -932,7 +943,8 @@ address.</p>
 <pre class="programlisting">  “tos”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>The type of service (IPv4) or traffic class (IPv6) field to be set on
 tunneled packets.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingIPTunnel</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 255</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
@@ -943,7 +955,8 @@ tunneled packets.</p>
 <pre class="programlisting">  “ttl”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>The TTL to assign to tunneled packets. 0 is a special value meaning that
 packets inherit the TTL value.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingIPTunnel</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 255</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
@@ -951,6 +964,6 @@ packets inherit the TTL value.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

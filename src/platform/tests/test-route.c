@@ -19,7 +19,7 @@
 
 static void
 _wait_for_ipv4_addr_device_route (NMPlatform *platform,
-                                  gint64 timeout_ms,
+                                  gint64 timeout_msec,
                                   int ifindex,
                                   in_addr_t addr,
                                   guint8 plen)
@@ -55,7 +55,7 @@ _wait_for_ipv4_addr_device_route (NMPlatform *platform,
 
 static void
 _wait_for_ipv6_addr_non_tentative (NMPlatform *platform,
-                                   gint64 timeout_ms,
+                                   gint64 timeout_msec,
                                    int ifindex,
                                    guint addr_n,
                                    const struct in6_addr *addrs)
@@ -67,7 +67,7 @@ _wait_for_ipv6_addr_non_tentative (NMPlatform *platform,
 	 * small amount of time, which prevents the immediate addition of the route
 	 * with RTA_PREFSRC */
 
-	NMTST_WAIT_ASSERT (timeout_ms, {
+	NMTST_WAIT_ASSERT (timeout_msec, {
 		gboolean should_wait = FALSE;
 		const NMPlatformIP6Address *plt_addr;
 
@@ -544,6 +544,7 @@ test_ip4_route_options (gconstpointer test_data)
 		                                       a->address,
 		                                       a->plen,
 		                                       a->peer_address,
+		                                       nm_platform_ip4_broadcast_address_create (a->address, a->plen),
 		                                       a->lifetime,
 		                                       a->preferred,
 		                                       a->n_ifa_flags,
@@ -1238,7 +1239,7 @@ again_uid_range:
 	rr->uid_range.end   = nmtst_rand_select (0u, uids.uid, uids.euid);
 	if (rr->uid_range_has) {
 		if (rr->uid_range.end < rr->uid_range.start)
-			NMTST_SWAP (rr->uid_range.start, rr->uid_range.end);
+			NM_SWAP (rr->uid_range.start, rr->uid_range.end);
 		if (   rr->uid_range.start == ((guint32) -1)
 		    || rr->uid_range.end   == ((guint32) -1))
 			goto again_uid_range;
@@ -1258,7 +1259,7 @@ again_uid_range:
 				range->start = nmtst_rand_select (1u, 0xFFFEu, ((p      ) % 0xFFFEu) + 1);
 				range->end   = nmtst_rand_select (1u, 0xFFFEu, ((p >> 16) % 0xFFFEu) + 1, range->start);
 				if (range->end < range->start)
-					NMTST_SWAP (range->start, range->end);
+					NM_SWAP (range->start, range->end);
 			}
 		}
 	}

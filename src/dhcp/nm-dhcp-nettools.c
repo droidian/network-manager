@@ -49,8 +49,7 @@ typedef struct {
 	NDhcp4Client *client;
 	NDhcp4ClientProbe *probe;
 	NDhcp4ClientLease *lease;
-	GIOChannel *channel;
-	guint event_id;
+	GSource *event_source;
 	char *lease_file;
 } NMDhcpNettoolsPrivate;
 
@@ -376,8 +375,8 @@ lease_parse_address (NDhcp4ClientLease *lease,
 		 * Here we still do it... it seems safe enough. */
 		nm_assert (nettools_basetime > 0);
 		nm_assert (nettools_lifetime >= nettools_basetime);
-		nm_assert (((nettools_lifetime - nettools_basetime) % NM_UTILS_NS_PER_SECOND) == 0);
-		nm_assert ((nettools_lifetime - nettools_basetime) / NM_UTILS_NS_PER_SECOND <= G_MAXUINT32);
+		nm_assert (((nettools_lifetime - nettools_basetime) % NM_UTILS_NSEC_PER_SEC) == 0);
+		nm_assert ((nettools_lifetime - nettools_basetime) / NM_UTILS_NSEC_PER_SEC <= G_MAXUINT32);
 
 		if (nettools_lifetime <= nettools_basetime) {
 			/* A lease time of 0 is allowed on some dhcp servers, so, let's accept it. */
@@ -387,7 +386,7 @@ lease_parse_address (NDhcp4ClientLease *lease,
 
 			/* we "ceil" the value to the next second. In practice, we don't expect any sub-second values
 			 * from n-dhcp4 anyway, so this should have no effect. */
-			lifetime += NM_UTILS_NS_PER_SECOND - 1;
+			lifetime += NM_UTILS_NSEC_PER_SEC - 1;
 		}
 
 		ts = nm_utils_monotonic_timestamp_from_boottime (nettools_basetime, 1);
@@ -395,11 +394,11 @@ lease_parse_address (NDhcp4ClientLease *lease,
 		/* the timestamp must be positive, because we only started nettools DHCP client
 		 * after obtaining the first monotonic timestamp. Hence, the lease must have been
 		 * received afterwards. */
-		nm_assert (ts >= NM_UTILS_NS_PER_SECOND);
+		nm_assert (ts >= NM_UTILS_NSEC_PER_SEC);
 
-		a_timestamp = ts / NM_UTILS_NS_PER_SECOND;
-		a_lifetime = NM_MIN (lifetime / NM_UTILS_NS_PER_SECOND, NM_PLATFORM_LIFETIME_PERMANENT - 1);
-		a_expiry = time (NULL) + ((lifetime - (nm_utils_clock_gettime_ns (CLOCK_BOOTTIME) - nettools_basetime)) / NM_UTILS_NS_PER_SECOND);
+		a_timestamp = ts / NM_UTILS_NSEC_PER_SEC;
+		a_lifetime = NM_MIN (lifetime / NM_UTILS_NSEC_PER_SEC, NM_PLATFORM_LIFETIME_PERMANENT - 1);
+		a_expiry = time (NULL) + ((lifetime - (nm_utils_clock_gettime_nsec (CLOCK_BOOTTIME) - nettools_basetime)) / NM_UTILS_NSEC_PER_SEC);
 	}
 
 	if (!lease_get_in_addr (lease, NM_DHCP_OPTION_DHCP4_SUBNET_MASK, &a_netmask)) {
@@ -407,7 +406,7 @@ lease_parse_address (NDhcp4ClientLease *lease,
 		return FALSE;
 	}
 
-	nm_utils_inet4_ntop (a_address.s_addr, addr_str);
+	_nm_utils_inet4_ntop (a_address.s_addr, addr_str);
 	a_plen = nm_utils_ip4_netmask_to_prefix (a_netmask.s_addr);
 
 	nm_dhcp_option_add_option (options,
@@ -417,7 +416,7 @@ lease_parse_address (NDhcp4ClientLease *lease,
 	nm_dhcp_option_add_option (options,
 	                           _nm_dhcp_option_dhcp4_options,
 	                           NM_DHCP_OPTION_DHCP4_SUBNET_MASK,
-	                           nm_utils_inet4_ntop (a_netmask.s_addr, addr_str));
+	                           _nm_utils_inet4_ntop (a_netmask.s_addr, addr_str));
 
 	nm_dhcp_option_add_option_u64 (options,
 	                               _nm_dhcp_option_dhcp4_options,
@@ -434,7 +433,7 @@ lease_parse_address (NDhcp4ClientLease *lease,
 
 	n_dhcp4_client_lease_get_siaddr (lease, &a_next_server);
 	if (a_next_server.s_addr != INADDR_ANY) {
-		nm_utils_inet4_ntop (a_next_server.s_addr, addr_str);
+		_nm_utils_inet4_ntop (a_next_server.s_addr, addr_str);
 		nm_dhcp_option_add_option (options,
 		                           _nm_dhcp_option_dhcp4_options,
 		                           NM_DHCP_OPTION_DHCP4_NM_NEXT_SERVER,
@@ -475,7 +474,7 @@ lease_parse_domain_name_servers (NDhcp4ClientLease *lease,
 
 	while (lease_option_next_in_addr (&addr, &data, &n_data)) {
 
-		nm_utils_inet4_ntop (addr.s_addr, addr_str);
+		_nm_utils_inet4_ntop (addr.s_addr, addr_str);
 		g_string_append (nm_gstring_add_space_delimiter (str), addr_str);
 
 		if (   addr.s_addr == 0
@@ -521,8 +520,8 @@ lease_parse_routes (NDhcp4ClientLease *lease,
 
 		while (lease_option_next_route (&dest, &plen, &gateway, TRUE, &data, &n_data)) {
 
-			nm_utils_inet4_ntop (dest.s_addr, dest_str);
-			nm_utils_inet4_ntop (gateway.s_addr, gateway_str);
+			_nm_utils_inet4_ntop (dest.s_addr, dest_str);
+			_nm_utils_inet4_ntop (gateway.s_addr, gateway_str);
 
 			g_string_append_printf (nm_gstring_add_space_delimiter (str),
 			                        "%s/%d %s",
@@ -565,8 +564,8 @@ lease_parse_routes (NDhcp4ClientLease *lease,
 
 		while (lease_option_next_route (&dest, &plen, &gateway, FALSE, &data, &n_data)) {
 
-			nm_utils_inet4_ntop (dest.s_addr, dest_str);
-			nm_utils_inet4_ntop (gateway.s_addr, gateway_str);
+			_nm_utils_inet4_ntop (dest.s_addr, dest_str);
+			_nm_utils_inet4_ntop (gateway.s_addr, gateway_str);
 
 			g_string_append_printf (nm_gstring_add_space_delimiter (str),
 			                        "%s/%d %s",
@@ -611,7 +610,7 @@ lease_parse_routes (NDhcp4ClientLease *lease,
 		nm_gstring_prepare (&str);
 
 		while (lease_option_next_in_addr (&gateway, &data, &n_data)) {
-			s = nm_utils_inet4_ntop (gateway.s_addr, gateway_str);
+			s = _nm_utils_inet4_ntop (gateway.s_addr, gateway_str);
 			g_string_append (nm_gstring_add_space_delimiter (str), s);
 
 			if (gateway.s_addr == 0) {
@@ -710,7 +709,7 @@ lease_parse_ntps (NDhcp4ClientLease *lease,
 	nm_gstring_prepare (&str);
 
 	while (lease_option_next_in_addr (&addr, &data, &n_data)) {
-		nm_utils_inet4_ntop (addr.s_addr, addr_str);
+		_nm_utils_inet4_ntop (addr.s_addr, addr_str);
 		g_string_append (nm_gstring_add_space_delimiter (str), addr_str);
 	}
 
@@ -967,7 +966,7 @@ lease_save (NMDhcpNettools *self, NDhcp4ClientLease *lease, const char *lease_fi
 		return;
 
 	g_string_append_printf (new_contents,
-	                        "ADDRESS=%s\n", nm_utils_inet4_ntop (a_address.s_addr, sbuf));
+	                        "ADDRESS=%s\n", _nm_utils_inet4_ntop (a_address.s_addr, sbuf));
 
 	if (!g_file_set_contents (lease_file,
 	                          new_contents->str,
@@ -1054,7 +1053,7 @@ dhcp4_event_handle (NMDhcpNettools *self,
 }
 
 static gboolean
-dhcp4_event_cb (GIOChannel *source,
+dhcp4_event_cb (int fd,
                 GIOCondition condition,
                 gpointer data)
 {
@@ -1073,7 +1072,7 @@ dhcp4_event_cb (GIOChannel *source,
 		 * a predefined number of times (possibly infinite).
 		 */
 		_LOGE ("error %d dispatching events", r);
-		priv->event_id = 0;
+		nm_clear_g_source_inst (&priv->event_source);
 		nm_dhcp_client_set_state (NM_DHCP_CLIENT (self), NM_DHCP_STATE_FAIL, NULL, NULL);
 		return G_SOURCE_REMOVE;
 	}
@@ -1199,8 +1198,14 @@ nettools_create (NMDhcpNettools *self,
 	client = NULL;
 
 	n_dhcp4_client_get_fd (priv->client, &fd);
-	priv->channel = g_io_channel_unix_new (fd);
-	priv->event_id = g_io_add_watch (priv->channel, G_IO_IN, dhcp4_event_cb, self);
+
+	priv->event_source = nm_g_unix_fd_source_new (fd,
+	                                              G_IO_IN,
+	                                              G_PRIORITY_DEFAULT,
+	                                              dhcp4_event_cb,
+	                                              self,
+	                                              NULL);
+	g_source_attach (priv->event_source, NULL);
 
 	return TRUE;
 }
@@ -1427,11 +1432,10 @@ nm_dhcp_nettools_init (NMDhcpNettools *self)
 static void
 dispose (GObject *object)
 {
-	NMDhcpNettoolsPrivate *priv = NM_DHCP_NETTOOLS_GET_PRIVATE ((NMDhcpNettools *) object);
+	NMDhcpNettoolsPrivate *priv = NM_DHCP_NETTOOLS_GET_PRIVATE (object);
 
 	nm_clear_pointer (&priv->lease_file, g_free);
-	nm_clear_pointer (&priv->channel, g_io_channel_unref);
-	nm_clear_g_source (&priv->event_id);
+	nm_clear_g_source_inst (&priv->event_source);
 	nm_clear_pointer (&priv->lease, n_dhcp4_client_lease_unref);
 	nm_clear_pointer (&priv->probe, n_dhcp4_client_probe_free);
 	nm_clear_pointer (&priv->client, n_dhcp4_client_unref);
