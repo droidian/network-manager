@@ -29,6 +29,7 @@
 #include "random-util.h"
 #include "string-util.h"
 #include "strv.h"
+#include "web-util.h"
 
 #define MAX_CLIENT_ID_LEN (sizeof(uint32_t) + MAX_DUID_LEN)  /* Arbitrary limit */
 #define MAX_MAC_ADDR_LEN CONST_MAX(INFINIBAND_ALEN, ETH_ALEN)
@@ -85,13 +86,15 @@ struct sd_dhcp_client {
         size_t client_id_len;
         char *hostname;
         char *vendor_class_identifier;
+        char *mudurl;
         char **user_class;
         uint32_t mtu;
         uint32_t xid;
         usec_t start_time;
         uint64_t attempt;
         uint64_t max_attempts;
-        OrderedHashmap *options;
+        OrderedHashmap *extra_options;
+        OrderedHashmap *vendor_options;
         usec_t request_sent;
         sd_event_source *timeout_t1;
         sd_event_source *timeout_t2;
@@ -497,6 +500,18 @@ int sd_dhcp_client_set_vendor_class_identifier(
         return free_and_strdup(&client->vendor_class_identifier, vci);
 }
 
+int sd_dhcp_client_set_mud_url(
+                sd_dhcp_client *client,
+                const char *mudurl) {
+
+        assert_return(client, -EINVAL);
+        assert_return(mudurl, -EINVAL);
+        assert_return(strlen(mudurl) <= 255, -EINVAL);
+        assert_return(http_url_is_valid(mudurl), -EINVAL);
+
+        return free_and_strdup(&client->mudurl, mudurl);
+}
+
 int sd_dhcp_client_set_user_class(
                 sd_dhcp_client *client,
                 const char* const* user_class) {
@@ -545,22 +560,41 @@ int sd_dhcp_client_set_max_attempts(sd_dhcp_client *client, uint64_t max_attempt
         return 0;
 }
 
-int sd_dhcp_client_set_dhcp_option(sd_dhcp_client *client, sd_dhcp_option *v) {
+int sd_dhcp_client_add_option(sd_dhcp_client *client, sd_dhcp_option *v) {
         int r;
 
         assert_return(client, -EINVAL);
         assert_return(v, -EINVAL);
 
-        r = ordered_hashmap_ensure_allocated(&client->options, &dhcp_option_hash_ops);
+        r = ordered_hashmap_ensure_allocated(&client->extra_options, &dhcp_option_hash_ops);
         if (r < 0)
                 return r;
 
-        r = ordered_hashmap_put(client->options, UINT_TO_PTR(v->option), v);
+        r = ordered_hashmap_put(client->extra_options, UINT_TO_PTR(v->option), v);
         if (r < 0)
                 return r;
 
         sd_dhcp_option_ref(v);
         return 0;
+}
+
+int sd_dhcp_client_add_vendor_option(sd_dhcp_client *client, sd_dhcp_option *v) {
+        int r;
+
+        assert_return(client, -EINVAL);
+        assert_return(v, -EINVAL);
+
+        r = ordered_hashmap_ensure_allocated(&client->vendor_options, &dhcp_option_hash_ops);
+        if (r < 0)
+                return -ENOMEM;
+
+        r = ordered_hashmap_put(client->vendor_options, v, v);
+        if (r < 0)
+                return r;
+
+        sd_dhcp_option_ref(v);
+
+        return 1;
 }
 
 int sd_dhcp_client_get_lease(sd_dhcp_client *client, sd_dhcp_lease **ret) {
@@ -648,7 +682,7 @@ static int client_message_init(
         assert(ret);
         assert(_optlen);
         assert(_optoffset);
-        assert(IN_SET(type, DHCP_DISCOVER, DHCP_REQUEST, DHCP_RELEASE));
+        assert(IN_SET(type, DHCP_DISCOVER, DHCP_REQUEST, DHCP_RELEASE, DHCP_DECLINE));
 
         optlen = DHCP_MIN_OPTIONS_SIZE;
         size = sizeof(DHCPPacket) + optlen;
@@ -880,6 +914,15 @@ static int client_send_discover(sd_dhcp_client *client) {
                         return r;
         }
 
+        if (client->mudurl) {
+                r = dhcp_option_append(&discover->dhcp, optlen, &optoffset, 0,
+                                       SD_DHCP_OPTION_MUD_URL,
+                                       strlen(client->mudurl),
+                                       client->mudurl);
+                if (r < 0)
+                        return r;
+        }
+
         if (client->user_class) {
                 r = dhcp_option_append(&discover->dhcp, optlen, &optoffset, 0,
                                        SD_DHCP_OPTION_USER_CLASS,
@@ -889,9 +932,18 @@ static int client_send_discover(sd_dhcp_client *client) {
                         return r;
         }
 
-        ORDERED_HASHMAP_FOREACH(j, client->options, i) {
+        ORDERED_HASHMAP_FOREACH(j, client->extra_options, i) {
                 r = dhcp_option_append(&discover->dhcp, optlen, &optoffset, 0,
                                        j->option, j->length, j->data);
+                if (r < 0)
+                        return r;
+        }
+
+        if (!ordered_hashmap_isempty(client->vendor_options)) {
+                r = dhcp_option_append(
+                                &discover->dhcp, optlen, &optoffset, 0,
+                                SD_DHCP_OPTION_VENDOR_SPECIFIC,
+                                ordered_hashmap_size(client->vendor_options), client->vendor_options);
                 if (r < 0)
                         return r;
         }
@@ -1007,6 +1059,16 @@ static int client_send_request(sd_dhcp_client *client) {
                 if (r < 0)
                         return r;
         }
+
+        if (client->mudurl) {
+                r = dhcp_option_append(&request->dhcp, optlen, &optoffset, 0,
+                                       SD_DHCP_OPTION_MUD_URL,
+                                       strlen(client->mudurl),
+                                       client->mudurl);
+                if (r < 0)
+                        return r;
+        }
+
 
         r = dhcp_option_append(&request->dhcp, optlen, &optoffset, 0,
                                SD_DHCP_OPTION_END, 0, NULL);
@@ -1971,6 +2033,48 @@ int sd_dhcp_client_send_release(sd_dhcp_client *client) {
         return 0;
 }
 
+int sd_dhcp_client_send_decline(sd_dhcp_client *client) {
+        assert_return(client, -EINVAL);
+        assert_return(client->state != DHCP_STATE_STOPPED, -ESTALE);
+        assert_return(client->lease, -EUNATCH);
+
+        _cleanup_free_ DHCPPacket *release = NULL;
+        size_t optoffset, optlen;
+        int r;
+
+        r = client_message_init(client, &release, DHCP_DECLINE, &optlen, &optoffset);
+        if (r < 0)
+                return r;
+
+        release->dhcp.ciaddr = client->lease->address;
+        memcpy(&release->dhcp.chaddr, &client->mac_addr, client->mac_addr_len);
+
+        r = dhcp_option_append(&release->dhcp, optlen, &optoffset, 0,
+                               SD_DHCP_OPTION_END, 0, NULL);
+        if (r < 0)
+                return r;
+
+        r = dhcp_network_send_udp_socket(client->fd,
+                                         client->lease->server_address,
+                                         DHCP_PORT_SERVER,
+                                         &release->dhcp,
+                                         sizeof(DHCPMessage) + optoffset);
+        if (r < 0)
+                return r;
+
+        log_dhcp_client(client, "DECLINE");
+
+        client_stop(client, SD_DHCP_CLIENT_EVENT_STOP);
+
+        if (client->state != DHCP_STATE_STOPPED) {
+                r = sd_dhcp_client_start(client);
+                if (r < 0)
+                        return r;
+        }
+
+        return 0;
+}
+
 int sd_dhcp_client_stop(sd_dhcp_client *client) {
         DHCP_CLIENT_DONT_DESTROY(client);
 
@@ -2035,8 +2139,10 @@ static sd_dhcp_client *dhcp_client_free(sd_dhcp_client *client) {
         free(client->req_opts);
         free(client->hostname);
         free(client->vendor_class_identifier);
+        free(client->mudurl);
         client->user_class = strv_free(client->user_class);
-        ordered_hashmap_free(client->options);
+        ordered_hashmap_free(client->extra_options);
+        ordered_hashmap_free(client->vendor_options);
         return mfree(client);
 }
 

@@ -26,11 +26,6 @@ from __future__ import print_function
 #    # The important part is that translations work. Test
 #    #  $ LANG=pl_PL.UTF-8 ./clients/cli/nmcli --version
 #    # also ensure that `locale -a` reports the Polish locale.
-#  $ rm -rf  clients/tests/test-client.check-on-disk/*.expected
-#    # (step seldom required)
-#    # Sometimes, if you want to be sure that the test would generate
-#    # exactly the same .expected files, purge the previous version first.
-#    # This is only necessary, when you remove test from this file.
 #  $ NM_TEST_REGENERATE=1 make check-local-clients-tests-test-client
 #    # Set NM_TEST_REGENERATE=1 to regenerate all files.
 #  $ git diff ... ; git add ...
@@ -136,6 +131,43 @@ _UNSTABLE_OUTPUT = object()
 ###############################################################################
 
 class Util:
+
+    _signal_no_lookup = {
+         1: "SIGHUP",
+         2: "SIGINT",
+         3: "SIGQUIT",
+         4: "SIGILL",
+         5: "SIGTRAP",
+         6: "SIGABRT",
+         8: "SIGFPE",
+         9: "SIGKILL",
+        11: "SIGSEGV",
+        12: "SIGSYS",
+        13: "SIGPIPE",
+        14: "SIGALRM",
+        15: "SIGTERM",
+        16: "SIGURG",
+        17: "SIGSTOP",
+        18: "SIGTSTP",
+        19: "SIGCONT",
+        20: "SIGCHLD",
+        21: "SIGTTIN",
+        22: "SIGTTOU",
+        23: "SIGPOLL",
+        24: "SIGXCPU",
+        25: "SIGXFSZ",
+        26: "SIGVTALRM",
+        27: "SIGPROF",
+        30: "SIGUSR1",
+        31: "SIGUSR2",
+    }
+
+    @classmethod
+    def signal_no_to_str(cls, signal):
+        s = cls._signal_no_lookup.get(signal, None)
+        if s is None:
+            return "<unknown %d>" % (signal)
+        return s
 
     @staticmethod
     def python_has_version(major, minor = 0):
@@ -807,10 +839,15 @@ class TestNmcli(NmTestBase):
                 cmd = '$NMCLI %s' % (' '.join([Util.quote(a) for a in args[1:]]))
                 cmd = Util.replace_text(cmd, replace_cmd)
 
+                if returncode < 0:
+                    returncode_str = '%d (SIGNAL %s)' % (returncode, Util.signal_no_to_str(-returncode))
+                else:
+                    returncode_str = '%d' % (returncode)
+
                 content = ('location: %s\n' % (calling_location)).encode('utf8') + \
                           ('cmd: %s\n' % (cmd)).encode('utf8') + \
                           ('lang: %s\n' % (lang)).encode('utf8') + \
-                          ('returncode: %d\n' % (returncode)).encode('utf8')
+                          ('returncode: %s\n' % (returncode_str)).encode('utf8')
                 if len(stdout) > 0:
                     content += ('stdout: %d bytes\n>>>\n' % (len(stdout))).encode('utf8') + \
                                stdout + \

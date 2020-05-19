@@ -101,6 +101,10 @@ typedef struct _NmcConfig {
 	const char *palette[_NM_META_COLOR_NUM];          /* Color palette */
 } NmcConfig;
 
+typedef struct {
+	pid_t pid;
+} NmcPagerData;
+
 typedef struct _NmcOutputData {
 	GPtrArray *output_data;                           /* GPtrArray of arrays of NmcOutputField structs - accumulates data for output */
 } NmcOutputData;
@@ -111,7 +115,8 @@ typedef struct _NmCli {
 
 	NMCResultCode return_value;                       /* Return code of nmcli */
 	GString *return_text;                             /* Reason text */
-	pid_t pager_pid;                                  /* PID of a pager, if one was spawned */
+
+	NmcPagerData pager_data;
 
 	int timeout;                                      /* Operation timeout */
 
@@ -135,7 +140,7 @@ typedef struct _NmCli {
 	char *palette_buffer;                             /* Buffer with sequences for terminal-colors.d(5)-based coloring. */
 } NmCli;
 
-extern NmCli nm_cli;
+extern const NmCli *const nm_cli_global_readline;
 
 /* Error quark for GError domain */
 #define NMCLI_ERROR (nmcli_error_quark ())
@@ -148,7 +153,8 @@ void     nmc_clear_sigint (void);
 void     nmc_set_sigquit_internal (void);
 void     nmc_exit (void);
 
-void nm_cli_spawn_pager (NmCli *nmc);
+void nm_cli_spawn_pager (const NmcConfig *nmc_config,
+                         NmcPagerData *pager_data);
 
 void nmc_empty_output_fields (NmcOutputData *output_data);
 
@@ -157,5 +163,28 @@ void nmc_empty_output_fields (NmcOutputData *output_data);
 	nm_auto (nmc_empty_output_fields) NmcOutputData out = { \
 		.output_data = g_ptr_array_new_full (20, g_free), \
 	}
+
+/*****************************************************************************/
+
+struct _NMCCommand;
+
+typedef struct _NMCCommand {
+	const char *cmd;
+	void (*func) (const struct _NMCCommand *cmd, NmCli *nmc, int argc, const char *const*argv);
+	void (*usage) (void);
+	bool needs_client;
+	bool needs_nm_running;
+} NMCCommand;
+
+void nmc_command_func_agent      (const NMCCommand *cmd, NmCli *nmc, int argc, const char *const*argv);
+void nmc_command_func_general    (const NMCCommand *cmd, NmCli *nmc, int argc, const char *const*argv);
+void nmc_command_func_networking (const NMCCommand *cmd, NmCli *nmc, int argc, const char *const*argv);
+void nmc_command_func_radio      (const NMCCommand *cmd, NmCli *nmc, int argc, const char *const*argv);
+void nmc_command_func_monitor    (const NMCCommand *cmd, NmCli *nmc, int argc, const char *const*argv);
+void nmc_command_func_overview   (const NMCCommand *cmd, NmCli *nmc, int argc, const char *const*argv);
+void nmc_command_func_connection (const NMCCommand *cmd, NmCli *nmc, int argc, const char *const*argv);
+void nmc_command_func_device     (const NMCCommand *cmd, NmCli *nmc, int argc, const char *const*argv);
+
+/*****************************************************************************/
 
 #endif /* NMC_NMCLI_H */

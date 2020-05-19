@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingIP4Config.html" title="NMSettingIP4Config">
 <link rel="next" href="NMSettingIPConfig.html" title="NMSettingIPConfig">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,8 +37,8 @@
 <a name="NMSettingIP6Config.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -102,7 +102,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--addr-gen-mode" title="The “addr-gen-mode” property">addr-gen-mode</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
@@ -113,7 +113,7 @@
 <tr>
 <td class="property_type"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6ConfigPrivacy" title="enum NMSettingIP6ConfigPrivacy"><span class="type">NMSettingIP6ConfigPrivacy</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--ip6-privacy" title="The “ip6-privacy” property">ip6-privacy</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
@@ -133,8 +133,8 @@
 <a name="NMSettingIP6Config.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -384,7 +384,7 @@ nm_setting_ip6_config_get_ra_timeout (<em class="parameter"><code><a class="link
 <p> The configured <a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-RA-TIMEOUT:CAPS" title="NM_SETTING_IP6_CONFIG_RA_TIMEOUT"><code class="literal">NM_SETTING_IP6_CONFIG_RA_TIMEOUT</code></a> value with the
 timeout for router advertisements in seconds.</p>
 </div>
-<p class="since">Since: 1.24, 1.22.8</p>
+<p class="since">Since: 1.24</p>
 </div>
 </div>
 <div class="refsect1">
@@ -605,7 +605,8 @@ from older versions.</p>
 <p>Note that this setting is distinct from the Privacy Extensions as
 configured by "ip6-privacy" property and it does not affect the
 temporary addresses configured with this option.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingIP6Config</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 1</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -638,6 +639,7 @@ option will be picked among a static timespan of three years (the upper bound
 of the interval is the same constant timestamp used in "llt").</p>
 <p>When the property is unset, the global value provided for "ipv6.dhcp-duid" is
 used. If no global value is provided, the default "lease" value is assumed.</p>
+<p>Owner: NMSettingIP6Config</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.12</p>
@@ -660,7 +662,8 @@ global configuration "ipv6.ip6-privacy".</p>
 <p>Note that this setting is distinct from the Stable Privacy addresses
 that can be enabled with the "addr-gen-mode" property's "stable-privacy"
 setting as another way of avoiding host tracking with IPv6 addresses.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingIP6Config</p>
+<p>Flags: Read / Write</p>
 <p>Default value: NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN</p>
 </div>
 <hr>
@@ -671,10 +674,11 @@ setting as another way of avoiding host tracking with IPv6 addresses.</p>
 globally configured default is used. If still unspecified, the timeout depends on the
 sysctl settings of the device.</p>
 <p>Set to 2147483647 (MAXINT32) for infinity.</p>
+<p>Owner: NMSettingIP6Config</p>
 <p>Flags: Read / Write</p>
 <p>Allowed values: &gt;= 0</p>
 <p>Default value: 0</p>
-<p class="since">Since: 1.24, 1.22.8</p>
+<p class="since">Since: 1.24</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -682,6 +686,7 @@ sysctl settings of the device.</p>
 <pre class="programlisting">  “token”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Configure the token for draft-chown-6man-tokenised-ipv6-identifiers-02
 IPv6 tokenized interface identifiers. Useful with eui64 addr-gen-mode.</p>
+<p>Owner: NMSettingIP6Config</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.4</p>
@@ -689,6 +694,6 @@ IPv6 tokenized interface identifiers. Useful with eui64 addr-gen-mode.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

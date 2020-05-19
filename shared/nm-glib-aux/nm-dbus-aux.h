@@ -128,16 +128,27 @@ void nm_dbus_connection_call_get_all (GDBusConnection *dbus_connection,
                                       NMDBusConnectionCallDefaultCb callback,
                                       gpointer user_data);
 
+void nm_dbus_connection_call_set (GDBusConnection *dbus_connection,
+                                  const char *bus_name,
+                                  const char *object_path,
+                                  const char *interface_name,
+                                  const char *property_name,
+                                  GVariant *value,
+                                  int timeout_msec,
+                                  GCancellable *cancellable,
+                                  NMDBusConnectionCallDefaultCb callback,
+                                  gpointer user_data);
+
 /*****************************************************************************/
 
 static inline guint
-nm_dbus_connection_signal_subscribe_object_manager_plain (GDBusConnection *dbus_connection,
-                                                          const char *service_name,
-                                                          const char *object_path,
-                                                          const char *signal_name,
-                                                          GDBusSignalCallback callback,
-                                                          gpointer user_data,
-                                                          GDestroyNotify user_data_free_func)
+nm_dbus_connection_signal_subscribe_object_manager (GDBusConnection *dbus_connection,
+                                                    const char *service_name,
+                                                    const char *object_path,
+                                                    const char *signal_name,
+                                                    GDBusSignalCallback callback,
+                                                    gpointer user_data,
+                                                    GDestroyNotify user_data_free_func)
 {
 	return g_dbus_connection_signal_subscribe (dbus_connection,
 	                                           service_name,
@@ -150,18 +161,6 @@ nm_dbus_connection_signal_subscribe_object_manager_plain (GDBusConnection *dbus_
 	                                           user_data,
 	                                           user_data_free_func);
 }
-
-typedef void (*NMDBusConnectionSignalObjectMangerCb) (const char *object_path,
-                                                      GVariant *added_interfaces_and_properties,
-                                                      const char *const*removed_interfaces,
-                                                      gpointer user_data);
-
-guint nm_dbus_connection_signal_subscribe_object_manager (GDBusConnection *dbus_connection,
-                                                          const char *service_name,
-                                                          const char *object_path,
-                                                          NMDBusConnectionSignalObjectMangerCb callback,
-                                                          gpointer user_data,
-                                                          GDestroyNotify user_data_free_func);
 
 void nm_dbus_connection_call_get_managed_objects (GDBusConnection *dbus_connection,
                                                   const char *bus_name,

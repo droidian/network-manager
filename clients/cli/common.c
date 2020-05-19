@@ -13,8 +13,11 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include "nm-libnm-aux/nm-libnm-aux.h"
+
 #include "nm-vpn-helpers.h"
 #include "nm-client-utils.h"
+#include "nm-glib-aux/nm-secret-utils.h"
 
 #include "utils.h"
 
@@ -730,7 +733,7 @@ get_secrets_from_user (const NmcConfig *nmc_config,
 		/* No password provided, cancel the secrets. */
 		if (!pwd)
 			return FALSE;
-		g_free (secret->value);
+		nm_free_secret (secret->value);
 		secret->value = pwd;
 	}
 	return TRUE;
@@ -861,7 +864,9 @@ readline_cb (char *line)
 }
 
 static gboolean
-stdin_ready_cb (GIOChannel * io, GIOCondition condition, gpointer data)
+stdin_ready_cb (int fd,
+                GIOCondition condition,
+                gpointer data)
 {
 	rl_callback_read_char ();
 	return TRUE;
@@ -871,14 +876,17 @@ static char *
 nmc_readline_helper (const NmcConfig *nmc_config,
                      const char *prompt)
 {
-	GIOChannel *io = NULL;
-	guint io_watch_id;
+	GSource *io_source;
 
 	nmc_set_in_readline (TRUE);
 
-	io = g_io_channel_unix_new (STDIN_FILENO);
-	io_watch_id = g_io_add_watch (io, G_IO_IN, stdin_ready_cb, NULL);
-	g_io_channel_unref (io);
+	io_source = nm_g_unix_fd_source_new (STDIN_FILENO,
+	                                     G_IO_IN,
+	                                     G_PRIORITY_DEFAULT,
+	                                     stdin_ready_cb,
+	                                     NULL,
+	                                     NULL);
+	g_source_attach (io_source, NULL);
 
 read_again:
 	rl_string = NULL;
@@ -927,7 +935,8 @@ read_again:
 		rl_string = NULL;
 	}
 
-	g_source_remove (io_watch_id);
+	nm_clear_g_source_inst (&io_source);
+
 	nmc_set_in_readline (FALSE);
 
 	return rl_string;
@@ -1003,7 +1012,7 @@ nmc_readline_echo (const NmcConfig *nmc_config,
 	va_list args;
 	gs_free char *prompt = NULL;
 	char *str;
-	HISTORY_STATE *saved_history;
+	nm_auto_free HISTORY_STATE *saved_history = NULL;
 	HISTORY_STATE passwd_history = { 0, };
 
 	va_start (args, prompt_fmt);
@@ -1016,6 +1025,10 @@ nmc_readline_echo (const NmcConfig *nmc_config,
 	if (!echo_on) {
 		saved_history = history_get_history_state ();
 		history_set_history_state (&passwd_history);
+		/* stifling history is important as it tells readline to
+		 * not store anything, otherwise sensitive data could be
+		 * leaked */
+		stifle_history (0);
 		rl_redisplay_function = nmc_secret_redisplay;
 	}
 
@@ -1105,7 +1118,7 @@ nmc_rl_gen_func_ifnames (const char *text, int state)
 	const char **ifnames;
 	char *ret;
 
-	devices = nm_client_get_devices (nm_cli.client);
+	devices = nm_client_get_devices (nm_cli_global_readline->client);
 	if (devices->len == 0)
 		return NULL;
 
@@ -1206,7 +1219,7 @@ typedef struct {
 } CmdCall;
 
 static void
-call_cmd (NmCli *nmc, GTask *task, const NMCCommand *cmd, int argc, char **argv);
+call_cmd (NmCli *nmc, GTask *task, const NMCCommand *cmd, int argc, const char *const*argv);
 
 static void
 got_client (GObject *source_object, GAsyncResult *res, gpointer user_data)
@@ -1216,25 +1229,31 @@ got_client (GObject *source_object, GAsyncResult *res, gpointer user_data)
 	CmdCall *call = user_data;
 	NmCli *nmc;
 
+	nm_assert (NM_IS_CLIENT (source_object));
+
 	task = g_steal_pointer (&call->task);
 	nmc = g_task_get_task_data (task);
 
 	nmc->should_wait--;
-	nmc->client = nm_client_new_finish (res, &error);
 
-	if (!nmc->client) {
+	if (!g_async_initable_init_finish (G_ASYNC_INITABLE (source_object),
+	                                   res,
+	                                   &error)) {
+		g_object_unref (source_object);
 		g_task_return_new_error (task, NMCLI_ERROR, NMC_RESULT_ERROR_UNKNOWN,
 		                         _("Error: Could not create NMClient object: %s."),
 		                         error->message);
 	} else {
-		call_cmd (nmc, g_steal_pointer (&task), call->cmd, call->argc, call->argv);
+		nmc->client = NM_CLIENT (source_object);
+		call_cmd (nmc, g_steal_pointer (&task), call->cmd, call->argc, (const char *const*) call->argv);
 	}
 
-	g_slice_free (CmdCall, call);
+	g_strfreev (call->argv);
+	nm_g_slice_free (call);
 }
 
 static void
-call_cmd (NmCli *nmc, GTask *task, const NMCCommand *cmd, int argc, char **argv)
+call_cmd (NmCli *nmc, GTask *task, const NMCCommand *cmd, int argc, const char *const*argv)
 {
 	CmdCall *call;
 
@@ -1245,7 +1264,7 @@ call_cmd (NmCli *nmc, GTask *task, const NMCCommand *cmd, int argc, char **argv)
 			g_task_return_new_error (task, NMCLI_ERROR, NMC_RESULT_ERROR_NM_NOT_RUNNING,
 			                         _("Error: NetworkManager is not running."));
 		} else {
-			nmc->return_value = cmd->func (nmc, argc, argv);
+			cmd->func (cmd, nmc, argc, argv);
 			g_task_return_boolean (task, TRUE);
 		}
 
@@ -1254,12 +1273,18 @@ call_cmd (NmCli *nmc, GTask *task, const NMCCommand *cmd, int argc, char **argv)
 		nm_assert (nmc->client == NULL);
 
 		nmc->should_wait++;
-		call = g_slice_new0 (CmdCall);
-		call->cmd = cmd;
-		call->argc = argc;
-		call->argv = argv;
-		call->task = task;
-		nm_client_new_async (NULL, got_client, call);
+		call = g_slice_new (CmdCall);
+		*call = (CmdCall) {
+			.cmd  = cmd,
+			.argc = argc,
+			.argv = nm_utils_strv_dup ((char **) argv, argc, TRUE),
+			.task = task,
+		};
+		nmc_client_new_async (NULL,
+		                      got_client,
+		                      call,
+		                      NM_CLIENT_INSTANCE_FLAGS, (guint) NM_CLIENT_INSTANCE_FLAGS_NO_AUTO_FETCH_PERMISSIONS,
+		                      NULL);
 	}
 }
 
@@ -1291,7 +1316,7 @@ nmc_complete_help (const char *prefix)
  * no callback to free the memory in (for simplicity).
  */
 void
-nmc_do_cmd (NmCli *nmc, const NMCCommand cmds[], const char *cmd, int argc, char **argv)
+nmc_do_cmd (NmCli *nmc, const NMCCommand cmds[], const char *cmd, int argc, const char *const*argv)
 {
 	const NMCCommand *c;
 	gs_unref_object GTask *task = NULL;
@@ -1327,7 +1352,7 @@ nmc_do_cmd (NmCli *nmc, const NMCCommand cmds[], const char *cmd, int argc, char
 			c->usage ();
 			g_task_return_boolean (task, TRUE);
 		} else {
-			call_cmd (nmc, g_steal_pointer (&task), c, argc, argv);
+			call_cmd (nmc, g_steal_pointer (&task), c, argc, (const char *const*) argv);
 		}
 	} else if (cmd) {
 		/* Not a known command. */
@@ -1340,7 +1365,7 @@ nmc_do_cmd (NmCli *nmc, const NMCCommand cmds[], const char *cmd, int argc, char
 		}
 	} else if (c->func) {
 		/* No command, run the default handler. */
-		call_cmd (nmc, g_steal_pointer (&task), c, argc, argv);
+		call_cmd (nmc, g_steal_pointer (&task), c, argc, (const char *const*) argv);
 	} else {
 		/* No command and no default handler. */
 		g_task_return_new_error (task, NMCLI_ERROR, NMC_RESULT_ERROR_USER_INPUT,

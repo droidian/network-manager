@@ -46,7 +46,7 @@ struct _NMFakePlatformClass {
 
 G_DEFINE_TYPE (NMFakePlatform, nm_fake_platform, NM_TYPE_PLATFORM)
 
-#define NM_FAKE_PLATFORM_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMFakePlatform, NM_IS_FAKE_PLATFORM)
+#define NM_FAKE_PLATFORM_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMFakePlatform, NM_IS_FAKE_PLATFORM, NMPlatform)
 
 /*****************************************************************************/
 
@@ -126,7 +126,7 @@ static gboolean ip6_address_delete (NMPlatform *platform, int ifindex, struct in
 static gboolean
 sysctl_set (NMPlatform *platform, const char *pathid, int dirfd, const char *path, const char *value)
 {
-	NMFakePlatformPrivate *priv = NM_FAKE_PLATFORM_GET_PRIVATE ((NMFakePlatform *) platform);
+	NMFakePlatformPrivate *priv = NM_FAKE_PLATFORM_GET_PRIVATE (platform);
 
 	ASSERT_SYSCTL_ARGS (pathid, dirfd, path);
 
@@ -138,7 +138,7 @@ sysctl_set (NMPlatform *platform, const char *pathid, int dirfd, const char *pat
 static char *
 sysctl_get (NMPlatform *platform, const char *pathid, int dirfd, const char *path)
 {
-	NMFakePlatformPrivate *priv = NM_FAKE_PLATFORM_GET_PRIVATE ((NMFakePlatform *) platform);
+	NMFakePlatformPrivate *priv = NM_FAKE_PLATFORM_GET_PRIVATE (platform);
 	const char *v;
 
 	ASSERT_SYSCTL_ARGS (pathid, dirfd, path);
@@ -155,7 +155,7 @@ sysctl_get (NMPlatform *platform, const char *pathid, int dirfd, const char *pat
 static NMFakePlatformLink *
 link_get (NMPlatform *platform, int ifindex)
 {
-	NMFakePlatformPrivate *priv = NM_FAKE_PLATFORM_GET_PRIVATE ((NMFakePlatform *) platform);
+	NMFakePlatformPrivate *priv = NM_FAKE_PLATFORM_GET_PRIVATE (platform);
 	NMFakePlatformLink *device;
 	int idx;
 
@@ -223,7 +223,7 @@ link_add_pre (NMPlatform *platform,
               const void *address,
               size_t address_len)
 {
-	NMFakePlatformPrivate *priv = NM_FAKE_PLATFORM_GET_PRIVATE ((NMFakePlatform *) platform);
+	NMFakePlatformPrivate *priv = NM_FAKE_PLATFORM_GET_PRIVATE (platform);
 	NMFakePlatformLink *device;
 	int ifindex;
 	NMPObject *o;
@@ -276,11 +276,12 @@ link_add_pre (NMPlatform *platform,
 
 static int
 link_add (NMPlatform *platform,
-          const char *name,
           NMLinkType type,
-          const char *veth_peer,
+          const char *name,
+          int parent,
           const void *address,
           size_t address_len,
+          gconstpointer extra_data,
           const NMPlatformLink **out_link)
 {
 	NMFakePlatformLink *device;
@@ -291,14 +292,52 @@ link_add (NMPlatform *platform,
 	nm_auto_nmpobj const NMPObject *obj_new_veth = NULL;
 	NMPCacheOpsType cache_op;
 	NMPCacheOpsType cache_op_veth = NMP_CACHE_OPS_UNCHANGED;
+	const char *veth_peer = NULL;
+	NMPObject *dev_obj;
+	NMPObject *dev_lnk = NULL;
 
 	device = link_add_pre (platform, name, type, address, address_len);
 
-	if (veth_peer) {
-		g_assert (type == NM_LINK_TYPE_VETH);
+	g_assert (device);
+
+	dev_obj = (NMPObject *) device->obj;
+
+	if (parent > 0)
+		dev_obj->link.parent = parent;
+	else
+		g_assert (parent == 0);
+
+	g_assert ((parent != 0) == NM_IN_SET (type, NM_LINK_TYPE_VLAN));
+
+	switch (type) {
+	case NM_LINK_TYPE_VETH:
+		veth_peer = extra_data;
+		g_assert (veth_peer);
 		device_veth = link_add_pre (platform, veth_peer, type, NULL, 0);
-	} else
-		g_assert (type != NM_LINK_TYPE_VETH);
+		break;
+	case NM_LINK_TYPE_VLAN: {
+		const NMPlatformLnkVlan *props = extra_data;
+
+		g_assert (props);
+
+		dev_lnk = nmp_object_new (NMP_OBJECT_TYPE_LNK_VLAN, props);
+		break;
+	}
+	case NM_LINK_TYPE_VXLAN: {
+		const NMPlatformLnkVxlan *props = extra_data;
+
+		g_assert (props);
+
+		dev_lnk = nmp_object_new (NMP_OBJECT_TYPE_LNK_VXLAN, props);
+		break;
+	}
+	default:
+		g_assert (!extra_data);
+		break;
+	}
+
+	if (dev_lnk)
+		dev_obj->_link.netlink.lnk = dev_lnk;
 
 	link_add_prepare (platform, device, (NMPObject *) device->obj);
 	cache_op = nmp_cache_update_netlink (nm_platform_get_cache (platform),
@@ -381,7 +420,7 @@ link_delete (NMPlatform *platform, int ifindex)
 		return FALSE;
 
 	obj_old = g_steal_pointer (&device->obj);
-	g_clear_pointer (&device->udi, g_free);
+	nm_clear_g_free (&device->udi);
 
 	cache_op = nmp_cache_remove (nm_platform_get_cache (platform),
 	                             obj_old,
@@ -710,45 +749,6 @@ link_release (NMPlatform *platform, int master_idx, int slave_idx)
 	return TRUE;
 }
 
-struct vlan_add_data {
-	guint32 vlan_flags;
-	int parent;
-	int vlan_id;
-};
-
-static void
-_vlan_add_prepare (NMPlatform *platform,
-                   NMFakePlatformLink *device,
-                   gconstpointer user_data)
-{
-	const struct vlan_add_data *d = user_data;
-	NMPObject *obj_tmp;
-	NMPObject *lnk;
-
-	obj_tmp = (NMPObject *) device->obj;
-
-	lnk = nmp_object_new (NMP_OBJECT_TYPE_LNK_VLAN, NULL);
-	lnk->lnk_vlan.id = d->vlan_id;
-	lnk->lnk_vlan.flags = d->vlan_flags;
-
-	obj_tmp->link.parent = d->parent;
-	obj_tmp->_link.netlink.lnk = lnk;
-}
-
-static gboolean
-vlan_add (NMPlatform *platform, const char *name, int parent, int vlan_id, guint32 vlan_flags, const NMPlatformLink **out_link)
-{
-	const struct vlan_add_data d = {
-		.parent = parent,
-		.vlan_id = vlan_id,
-		.vlan_flags = vlan_flags,
-	};
-
-	link_add_one (platform, name, NM_LINK_TYPE_VLAN,
-	              _vlan_add_prepare, &d, out_link);
-	return TRUE;
-}
-
 static gboolean
 link_vlan_change (NMPlatform *platform,
                   int ifindex,
@@ -762,35 +762,6 @@ link_vlan_change (NMPlatform *platform,
                   gsize n_egress_map)
 {
 	return FALSE;
-}
-
-static void
-_vxlan_add_prepare (NMPlatform *platform,
-                    NMFakePlatformLink *device,
-                    gconstpointer user_data)
-{
-	const NMPlatformLnkVxlan *props = user_data;
-	NMPObject *obj_tmp;
-	NMPObject *lnk;
-
-	obj_tmp = (NMPObject *) device->obj;
-
-	lnk = nmp_object_new (NMP_OBJECT_TYPE_LNK_VXLAN, NULL);
-	lnk->lnk_vxlan = *props;
-
-	obj_tmp->link.parent = props->parent_ifindex;
-	obj_tmp->_link.netlink.lnk = lnk;
-}
-
-static gboolean
-link_vxlan_add (NMPlatform *platform,
-                const char *name,
-                const NMPlatformLnkVxlan *props,
-                const NMPlatformLink **out_link)
-{
-	link_add_one (platform, name, NM_LINK_TYPE_VXLAN,
-	              _vxlan_add_prepare, props, out_link);
-	return TRUE;
 }
 
 struct infiniband_add_data {
@@ -967,6 +938,7 @@ ip4_address_add (NMPlatform *platform,
                  in_addr_t addr,
                  guint8 plen,
                  in_addr_t peer_addr,
+                 in_addr_t broadcast_address,
                  guint32 lifetime,
                  guint32 preferred,
                  guint32 flags,
@@ -974,16 +946,19 @@ ip4_address_add (NMPlatform *platform,
 {
 	NMPlatformIP4Address address;
 
-	memset (&address, 0, sizeof (address));
-	address.addr_source = NM_IP_CONFIG_SOURCE_KERNEL;
-	address.ifindex = ifindex;
-	address.address = addr;
-	address.peer_address = peer_addr;
-	address.plen = plen;
-	address.timestamp = nm_utils_get_monotonic_timestamp_s ();
-	address.lifetime = lifetime;
-	address.preferred = preferred;
-	address.n_ifa_flags = flags;
+	address = (NMPlatformIP4Address) {
+		.addr_source               = NM_IP_CONFIG_SOURCE_KERNEL,
+		.ifindex                   = ifindex,
+		.address                   = addr,
+		.plen                      = plen,
+		.peer_address              = peer_addr,
+		.broadcast_address         = broadcast_address,
+		.use_ip4_broadcast_address = TRUE,
+		.timestamp                 = nm_utils_get_monotonic_timestamp_sec (),
+		.lifetime                  = lifetime,
+		.preferred                 = preferred,
+		.n_ifa_flags               = flags,
+	};
 	if (label)
 		g_strlcpy (address.label, label, sizeof (address.label));
 
@@ -1008,7 +983,7 @@ ip6_address_add (NMPlatform *platform,
 	address.address = addr;
 	address.peer_address = (IN6_IS_ADDR_UNSPECIFIED (&peer_addr) || IN6_ARE_ADDR_EQUAL (&addr, &peer_addr)) ? in6addr_any : peer_addr;
 	address.plen = plen;
-	address.timestamp = nm_utils_get_monotonic_timestamp_s ();
+	address.timestamp = nm_utils_get_monotonic_timestamp_sec ();
 	address.lifetime = lifetime;
 	address.preferred = preferred;
 	address.n_ifa_flags = flags;
@@ -1262,10 +1237,10 @@ ip_route_add (NMPlatform *platform,
 
 			if (addr_family == AF_INET) {
 				nm_log_warn (LOGD_PLATFORM, "Fake platform: failure adding ip4-route '%d: %s/%d %d': Network Unreachable",
-				             r->ifindex, nm_utils_inet4_ntop (r4->network, sbuf), r->plen, r->metric);
+				             r->ifindex, _nm_utils_inet4_ntop (r4->network, sbuf), r->plen, r->metric);
 			} else {
 				nm_log_warn (LOGD_PLATFORM, "Fake platform: failure adding ip6-route '%d: %s/%d %d': Network Unreachable",
-				             r->ifindex, nm_utils_inet6_ntop (&r6->network, sbuf), r->plen, r->metric);
+				             r->ifindex, _nm_utils_inet6_ntop (&r6->network, sbuf), r->plen, r->metric);
 			}
 			return -NME_UNSPEC;
 		}
@@ -1354,19 +1329,16 @@ nm_fake_platform_setup (void)
 
 	nm_platform_setup (platform);
 
-	/* add loopback interface */
-	link_add (platform, "lo", NM_LINK_TYPE_LOOPBACK, NULL, NULL, 0, NULL);
-
-	/* add some ethernets */
-	link_add (platform, "eth0", NM_LINK_TYPE_ETHERNET, NULL, NULL, 0, NULL);
-	link_add (platform, "eth1", NM_LINK_TYPE_ETHERNET, NULL, NULL, 0, NULL);
-	link_add (platform, "eth2", NM_LINK_TYPE_ETHERNET, NULL, NULL, 0, NULL);
+	link_add (platform, NM_LINK_TYPE_LOOPBACK, "lo",   0, NULL, 0, NULL, NULL);
+	link_add (platform, NM_LINK_TYPE_ETHERNET, "eth0", 0, NULL, 0, NULL, NULL);
+	link_add (platform, NM_LINK_TYPE_ETHERNET, "eth1", 0, NULL, 0, NULL, NULL);
+	link_add (platform, NM_LINK_TYPE_ETHERNET, "eth2", 0, NULL, 0, NULL, NULL);
 }
 
 static void
 finalize (GObject *object)
 {
-	NMFakePlatformPrivate *priv = NM_FAKE_PLATFORM_GET_PRIVATE ((NMFakePlatform *) object);
+	NMFakePlatformPrivate *priv = NM_FAKE_PLATFORM_GET_PRIVATE (object);
 	int i;
 
 	g_hash_table_unref (priv->options);
@@ -1374,7 +1346,7 @@ finalize (GObject *object)
 		NMFakePlatformLink *device = &g_array_index (priv->links, NMFakePlatformLink, i);
 
 		g_free (device->udi);
-		g_clear_pointer (&device->obj, nmp_object_unref);
+		nm_clear_pointer (&device->obj, nmp_object_unref);
 	}
 	g_array_unref (priv->links);
 
@@ -1418,9 +1390,7 @@ nm_fake_platform_class_init (NMFakePlatformClass *klass)
 	platform_class->link_enslave = link_enslave;
 	platform_class->link_release = link_release;
 
-	platform_class->vlan_add = vlan_add;
 	platform_class->link_vlan_change = link_vlan_change;
-	platform_class->link_vxlan_add = link_vxlan_add;
 
 	platform_class->infiniband_partition_add = infiniband_partition_add;
 	platform_class->infiniband_partition_delete = infiniband_partition_delete;

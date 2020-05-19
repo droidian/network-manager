@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="next" href="NMDevice6Lowpan.html" title="NMDevice6Lowpan">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -36,8 +36,8 @@
 <a name="NMDevice.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -513,8 +513,8 @@
 <a name="NMDevice.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -636,6 +636,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDevice.html#NM-DEVICE-INTERFACE-FLAGS:CAPS" title="NM_DEVICE_INTERFACE_FLAGS">NM_DEVICE_INTERFACE_FLAGS</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDevice.html#NM-DEVICE-HW-ADDRESS:CAPS" title="NM_DEVICE_HW_ADDRESS">NM_DEVICE_HW_ADDRESS</a></td>
 </tr>
 </tbody>
 </table></div>
@@ -957,8 +961,10 @@ nm_device_set_managed (<em class="parameter"><code><a class="link" href="NMDevic
                        <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> managed</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_device_set_managed</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
-<p>, use <code class="function">nm_device_set_managed_async()</code> or GDBusConnection</p>
-<p>This function is deprecated because it calls a synchronous D-Bus method
+<p>Use the async command <a class="link" href="NMClient.html#nm-client-dbus-set-property" title="nm_client_dbus_set_property ()"><code class="function">nm_client_dbus_set_property()</code></a> on
+<a class="link" href="NMObject.html#nm-object-get-path" title="nm_object_get_path ()"><code class="function">nm_object_get_path()</code></a>, interface <a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE:CAPS" title="NM_DBUS_INTERFACE_DEVICE"><code class="literal">NM_DBUS_INTERFACE_DEVICE</code></a> to set the
+"Managed" property to a "(b)" boolean value.
+This function is deprecated because it calls a synchronous D-Bus method
 and modifies the content of the NMClient cache client side. Also, it does
 not emit a property changed signal.</p>
 </div>
@@ -1021,8 +1027,9 @@ nm_device_set_autoconnect (<em class="parameter"><code><a class="link" href="NMD
                            <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> autoconnect</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_device_set_autoconnect</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
-<p>, use <code class="function">nm_device_set_autoconnect_async()</code> or GDBusConnection</p>
-<p>This function is deprecated because it calls a synchronous D-Bus method
+<p>Use the async command <a class="link" href="NMClient.html#nm-client-dbus-set-property" title="nm_client_dbus_set_property ()"><code class="function">nm_client_dbus_set_property()</code></a> on
+<a class="link" href="NMObject.html#nm-object-get-path" title="nm_object_get_path ()"><code class="function">nm_object_get_path()</code></a>, <a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE:CAPS" title="NM_DBUS_INTERFACE_DEVICE"><code class="literal">NM_DBUS_INTERFACE_DEVICE</code></a> to set "AutoConnect" property to a "(b)" value.
+This function is deprecated because it calls a synchronous D-Bus method
 and modifies the content of the NMClient cache client side.</p>
 </div>
 <p>Enables or disables automatic activation of the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a>.</p>
@@ -1705,7 +1712,7 @@ nm_device_reapply (<em class="parameter"><code><a class="link" href="NMDevice.ht
                    <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_device_reapply</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
-<p>, use <a class="link" href="NMDevice.html#nm-device-reapply-async" title="nm_device_reapply_async ()"><code class="function">nm_device_reapply_async()</code></a> or GDBusConnection</p>
+<p>Use <a class="link" href="NMDevice.html#nm-device-reapply-async" title="nm_device_reapply_async ()"><code class="function">nm_device_reapply_async()</code></a> or GDBusConnection.</p>
 </div>
 <p>Attempts to update device with changes to the currently active connection
 made since it was last applied.</p>
@@ -1881,7 +1888,7 @@ nm_device_get_applied_connection (<em class="parameter"><code><a class="link" hr
                                   <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_device_get_applied_connection</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
-<p>, use <a class="link" href="NMDevice.html#nm-device-get-applied-connection-async" title="nm_device_get_applied_connection_async ()"><code class="function">nm_device_get_applied_connection_async()</code></a> or GDBusConnection</p>
+<p>Use <a class="link" href="NMDevice.html#nm-device-get-applied-connection-async" title="nm_device_get_applied_connection_async ()"><code class="function">nm_device_get_applied_connection_async()</code></a> or GDBusConnection.</p>
 </div>
 <p>Fetch the currently applied connection on the device.</p>
 <div class="refsect3">
@@ -2045,7 +2052,7 @@ nm_device_disconnect (<em class="parameter"><code><a class="link" href="NMDevice
                       <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_device_disconnect</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
-<p>, use <a class="link" href="NMDevice.html#nm-device-disconnect-async" title="nm_device_disconnect_async ()"><code class="function">nm_device_disconnect_async()</code></a> or GDBusConnection</p>
+<p>Use <a class="link" href="NMDevice.html#nm-device-disconnect-async" title="nm_device_disconnect_async ()"><code class="function">nm_device_disconnect_async()</code></a> or GDBusConnection.</p>
 </div>
 <p>Disconnects the device if currently connected, and prevents the device from
 automatically connecting to networks until the next manual network connection
@@ -2178,7 +2185,7 @@ nm_device_delete (<em class="parameter"><code><a class="link" href="NMDevice.htm
                   <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_device_delete</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
-<p>, use <a class="link" href="NMDevice.html#nm-device-delete-async" title="nm_device_delete_async ()"><code class="function">nm_device_delete_async()</code></a> or GDBusConnection</p>
+<p>Use <a class="link" href="NMDevice.html#nm-device-delete-async" title="nm_device_delete_async ()"><code class="function">nm_device_delete_async()</code></a> or GDBusConnection.</p>
 </div>
 <p>Deletes the software device. Hardware devices can't be deleted.</p>
 <div class="refsect3">
@@ -2909,9 +2916,15 @@ not found. </p>
 <pre class="programlisting">#define NM_DEVICE_INTERFACE_FLAGS "interface-flags"
 </pre>
 </div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-HW-ADDRESS:CAPS"></a><h3>NM_DEVICE_HW_ADDRESS</h3>
+<pre class="programlisting">#define NM_DEVICE_HW_ADDRESS "hw-address"
+</pre>
+</div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

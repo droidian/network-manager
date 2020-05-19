@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingTeam.html" title="NMSettingTeam">
 <link rel="next" href="NMSettingUser.html" title="NMSettingUser">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,8 +37,8 @@
 <a name="NMSettingTun.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -116,7 +116,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingTun.html#NMSettingTun--mode" title="The “mode” property">mode</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
@@ -146,8 +146,8 @@
 <a name="NMSettingTun.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -469,6 +469,7 @@ nm_setting_tun_get_multi_queue (<em class="parameter"><code><a class="link" href
 <pre class="programlisting">  “group”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The group ID which will own the device. If set to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> everyone
 will be able to use the device.</p>
+<p>Owner: NMSettingTun</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
@@ -481,7 +482,8 @@ will be able to use the device.</p>
 <a class="link" href="NMSettingTun.html#NM-SETTING-TUN-MODE-TUN:CAPS"><code class="literal">NM_SETTING_TUN_MODE_TUN</code></a> to create a layer 3 device and
 <a class="link" href="NMSettingTun.html#NM-SETTING-TUN-MODE-TAP:CAPS"><code class="literal">NM_SETTING_TUN_MODE_TAP</code></a> to create an Ethernet-like layer 2
 one.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingTun</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 1</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -493,6 +495,7 @@ one.</p>
 multiple file descriptors (queues) to parallelize packet
 sending or receiving. Otherwise, the interface will only
 support a single queue.</p>
+<p>Owner: NMSettingTun</p>
 <p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 <p class="since">Since: 1.2</p>
@@ -503,6 +506,7 @@ support a single queue.</p>
 <pre class="programlisting">  “owner”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The user ID which will own the device. If set to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> everyone
 will be able to use the device.</p>
+<p>Owner: NMSettingTun</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
@@ -513,6 +517,7 @@ will be able to use the device.</p>
 <pre class="programlisting">  “pi”                       <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>If <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> the interface will prepend a 4 byte header describing the
 physical interface to the packets.</p>
+<p>Owner: NMSettingTun</p>
 <p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 <p class="since">Since: 1.2</p>
@@ -523,6 +528,7 @@ physical interface to the packets.</p>
 <pre class="programlisting">  “vnet-hdr”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>If <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> the IFF_VNET_HDR the tunnel packets will include a virtio
 network header.</p>
+<p>Owner: NMSettingTun</p>
 <p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 <p class="since">Since: 1.2</p>
@@ -530,6 +536,6 @@ network header.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

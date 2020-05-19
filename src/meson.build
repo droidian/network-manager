@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LGPL-2.1+
+
 src_inc = include_directories('.')
 
 daemon_nm_default_dep = declare_dependency(
@@ -49,6 +51,7 @@ sources = files(
 deps = [
   daemon_nm_default_dep,
   libn_dhcp4_dep,
+  libnm_keyfile_dep,
   libnm_core_dep,
   libnm_systemd_shared_dep,
   libnm_udev_aux_dep,
@@ -86,6 +89,7 @@ sources = files(
   'devices/nm-device-tun.c',
   'devices/nm-device-veth.c',
   'devices/nm-device-vlan.c',
+  'devices/nm-device-vrf.c',
   'devices/nm-device-vxlan.c',
   'devices/nm-device-wireguard.c',
   'devices/nm-device-wpan.c',
@@ -125,7 +129,6 @@ sources = files(
   'nm-act-request.c',
   'nm-audit-manager.c',
   'nm-auth-manager.c',
-  'nm-auth-subject.c',
   'nm-auth-utils.c',
   'nm-dbus-manager.c',
   'nm-checkpoint.c',
@@ -134,8 +137,7 @@ sources = files(
   'nm-config-data.c',
   'nm-connectivity.c',
   'nm-dcb.c',
-  'nm-dhcp4-config.c',
-  'nm-dhcp6-config.c',
+  'nm-dhcp-config.c',
   'nm-dispatcher.c',
   'nm-firewall-manager.c',
   'nm-hostname-manager.c',

@@ -42,13 +42,31 @@ typedef struct {
 	NMVpnEditorPlugin *editor_plugin;
 } NMVpnPluginInfoPrivate;
 
+/**
+ * NMVpnPluginInfo:
+ */
+struct _NMVpnPluginInfo {
+	GObject parent;
+	NMVpnPluginInfoPrivate _priv;
+};
+
+struct _NMVpnPluginInfoClass {
+	GObjectClass parent;
+};
+
+#define NM_VPN_PLUGIN_INFO_GET_PRIVATE(self) _NM_GET_PRIVATE (self, NMVpnPluginInfo, NM_IS_VPN_PLUGIN_INFO)
+
 static void nm_vpn_plugin_info_initable_iface_init (GInitableIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (NMVpnPluginInfo, nm_vpn_plugin_info, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, nm_vpn_plugin_info_initable_iface_init);
                          )
 
-#define NM_VPN_PLUGIN_INFO_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_VPN_PLUGIN_INFO, NMVpnPluginInfoPrivate))
+/*****************************************************************************/
+
+static NMVpnPluginInfo *_list_find_by_service (GSList *list,
+                                               const char *name,
+                                               const char *service);
 
 /*****************************************************************************/
 
@@ -172,23 +190,6 @@ _sort_files (LoadDirInfo *a, LoadDirInfo *b)
 	                  nm_vpn_plugin_info_get_filename (b->plugin_info));
 }
 
-#define DEFINE_DEFAULT_DIR_LIST(dir) \
-	const char *dir[] = { \
-		/* We load plugins from NM_VPN_PLUGIN_DIR *and* DEFAULT_DIR*, with
-		 * preference to the former.
-		 *
-		 * load user directory with highest priority. */ \
-		_nm_vpn_plugin_info_get_default_dir_user (), \
-		\
-		/* lib directory has higher priority then etc. The reason is that
-		 * etc is deprecated and used by old plugins. We expect newer plugins
-		 * to install their file in lib, where they have higher priority.
-		 *
-		 * Optimally, there are no duplicates anyway, so it doesn't really matter. */ \
-		_nm_vpn_plugin_info_get_default_dir_lib (), \
-		_nm_vpn_plugin_info_get_default_dir_etc (), \
-	}
-
 /**
  * _nm_vpn_plugin_info_get_default_dir_etc:
  *
@@ -223,7 +224,7 @@ _nm_vpn_plugin_info_get_default_dir_lib ()
 const char *
 _nm_vpn_plugin_info_get_default_dir_user ()
 {
-	return g_getenv ("NM_VPN_PLUGIN_DIR");
+	return nm_str_not_empty (g_getenv ("NM_VPN_PLUGIN_DIR"));
 }
 
 /**
@@ -316,7 +317,21 @@ nm_vpn_plugin_info_list_load ()
 	gint64 uid;
 	GSList *list = NULL;
 	GSList *infos, *info;
-	DEFINE_DEFAULT_DIR_LIST (dir);
+	const char *const dir[] = {
+		/* We load plugins from NM_VPN_PLUGIN_DIR *and* DEFAULT_DIR*, with
+		 * preference to the former.
+		 *
+		 * load user directory with highest priority. */
+		_nm_vpn_plugin_info_get_default_dir_user (),
+
+		/* lib directory has higher priority then etc. The reason is that
+		 * etc is deprecated and used by old plugins. We expect newer plugins
+		 * to install their file in lib, where they have higher priority.
+		 *
+		 * Optimally, there are no duplicates anyway, so it doesn't really matter. */
+		_nm_vpn_plugin_info_get_default_dir_lib (),
+		_nm_vpn_plugin_info_get_default_dir_etc (),
+	};
 
 	uid = getuid ();
 
@@ -354,45 +369,16 @@ nm_vpn_plugin_info_list_load ()
 NMVpnPluginInfo *
 nm_vpn_plugin_info_new_search_file (const char *name, const char *service)
 {
-	int i;
-	gint64 uid;
-	NMVpnPluginInfo *plugin_info = NULL;
-	GSList *infos, *info;
-	DEFINE_DEFAULT_DIR_LIST (dir);
+	NMVpnPluginInfo *info;
+	GSList *infos;
 
 	if (!name && !service)
 		g_return_val_if_reached (NULL);
 
-	uid = getuid ();
-
-	for (i = 0; !plugin_info && i < G_N_ELEMENTS (dir); i++) {
-		if (   !dir[i]
-		    || nm_utils_strv_find_first ((char **) dir, i, dir[i]) >= 0)
-			continue;
-
-		/* We still must load the entire directory while searching for the matching
-		 * plugin-info. The reason is that reading the directory has no stable
-		 * order and we can only sort them after reading the entire directory --
-		 * which _nm_vpn_plugin_info_list_load_dir() does. */
-		infos = _nm_vpn_plugin_info_list_load_dir (dir[i], TRUE, uid, NULL, NULL);
-
-		for (info = infos; info; info = info->next) {
-			NMVpnPluginInfo *p = info->data;
-
-			if (name && !nm_streq (nm_vpn_plugin_info_get_name (p), name))
-				continue;
-			if (   service
-			    && !nm_streq (nm_vpn_plugin_info_get_service (p), service)
-			    && (nm_utils_strv_find_first (NM_VPN_PLUGIN_INFO_GET_PRIVATE (p)->aliases,
-			                                  -1, service) < 0))
-				continue;
-			plugin_info = g_object_ref (p);
-			break;
-		}
-
-		g_slist_free_full (infos, g_object_unref);
-	}
-	return plugin_info;
+	infos = nm_vpn_plugin_info_list_load ();
+	info = nm_g_object_ref (_list_find_by_service (infos, name, service));
+	g_slist_free_full (infos, g_object_unref);
+	return info;
 }
 
 /*****************************************************************************/
@@ -557,14 +543,22 @@ nm_vpn_plugin_info_list_find_by_filename (GSList *list, const char *filename)
 }
 
 static NMVpnPluginInfo *
-_list_find_by_service (GSList *list, const char *service)
+_list_find_by_service (GSList *list,
+                       const char *name,
+                       const char *service)
 {
 	for (; list; list = list->next) {
 		NMVpnPluginInfoPrivate *priv = NM_VPN_PLUGIN_INFO_GET_PRIVATE (list->data);
 
-		if (   nm_streq (priv->service, service)
-		    || nm_utils_strv_find_first (priv->aliases, -1, service) >= 0)
-			return list->data;
+		if (   name
+		    && !nm_streq (name, priv->name))
+			continue;
+		if (   service
+		    && !nm_streq (priv->service, service)
+		    && (nm_utils_strv_find_first (priv->aliases, -1, service) < 0))
+			continue;
+
+		return list->data;
 	}
 	return NULL;
 }
@@ -584,7 +578,7 @@ nm_vpn_plugin_info_list_find_by_service (GSList *list, const char *service)
 {
 	if (!service)
 		g_return_val_if_reached (NULL);
-	return _list_find_by_service (list, service);
+	return _list_find_by_service (list, NULL, service);
 }
 
 /* known_names are well known short names for the service-type. They all implicitly
@@ -627,7 +621,7 @@ static const char *known_names[] = {
 char *
 nm_vpn_plugin_info_list_find_service_type (GSList *list, const char *name)
 {
-	GSList *iter;
+	NMVpnPluginInfo *info;
 	char *n;
 
 	if (!name)
@@ -636,17 +630,15 @@ nm_vpn_plugin_info_list_find_service_type (GSList *list, const char *name)
 		return NULL;
 
 	/* First, try to interpret @name as a full service-type (or alias). */
-	if (_list_find_by_service (list, name))
+	info = _list_find_by_service (list, NULL, name);
+	if (info)
 		return g_strdup (name);
 
 	/* try to interpret @name as plugin name, in which case we return
 	 * the main service-type (not an alias). */
-	for (iter = list; iter; iter = iter->next) {
-		NMVpnPluginInfoPrivate *priv = NM_VPN_PLUGIN_INFO_GET_PRIVATE (iter->data);
-
-		if (nm_streq (priv->name, name))
-			return g_strdup (priv->service);
-	}
+	info = _list_find_by_service (list, name, NULL);
+	if (info)
+		return g_strdup (NM_VPN_PLUGIN_INFO_GET_PRIVATE (info)->service);
 
 	/* check the hard-coded list of short-names. They all have have the same
 	 * well-known prefix org.freedesktop.NetworkManager and the name. */
@@ -656,7 +648,7 @@ nm_vpn_plugin_info_list_find_service_type (GSList *list, const char *name)
 	/* try, if there exists a plugin with @name under org.freedesktop.NetworkManager.
 	 * Allow this to be a valid abbreviation. */
 	n = g_strdup_printf ("%s.%s", NM_DBUS_INTERFACE, name);
-	if (_list_find_by_service (list, n))
+	if (_list_find_by_service (list, NULL, n))
 		return n;
 	g_free (n);
 
@@ -1163,7 +1155,7 @@ init_sync (GInitable *initable, GCancellable *cancellable, GError **error)
 
 	priv->aliases = g_key_file_get_string_list (priv->keyfile, NM_VPN_PLUGIN_INFO_KF_GROUP_CONNECTION, "aliases", NULL, NULL);
 	if (priv->aliases && !priv->aliases[0])
-		g_clear_pointer (&priv->aliases, g_free);
+		nm_clear_g_free (&priv->aliases);
 
 	priv->keys = g_hash_table_new_full (_nm_utils_strstrdictkey_hash,
 	                                    _nm_utils_strstrdictkey_equal,
@@ -1184,7 +1176,7 @@ init_sync (GInitable *initable, GCancellable *cancellable, GError **error)
 		}
 	}
 
-	g_clear_pointer (&priv->keyfile, g_key_file_unref);
+	nm_clear_pointer (&priv->keyfile, g_key_file_unref);
 
 	return TRUE;
 }
@@ -1269,7 +1261,7 @@ finalize (GObject *object)
 	g_free (priv->filename);
 	g_hash_table_unref (priv->keys);
 
-	g_clear_pointer (&priv->keyfile, g_key_file_unref);
+	nm_clear_pointer (&priv->keyfile, g_key_file_unref);
 
 	G_OBJECT_CLASS (nm_vpn_plugin_info_parent_class)->finalize (object);
 }
@@ -1278,8 +1270,6 @@ static void
 nm_vpn_plugin_info_class_init (NMVpnPluginInfoClass *plugin_class)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (plugin_class);
-
-	g_type_class_add_private (object_class, sizeof (NMVpnPluginInfoPrivate));
 
 	object_class->set_property = set_property;
 	object_class->get_property = get_property;

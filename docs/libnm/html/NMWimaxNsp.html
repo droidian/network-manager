@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMWifiP2PPeer.html" title="NMWifiP2PPeer">
 <link rel="next" href="NMIPConfig.html" title="NMIPConfig">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -35,8 +35,8 @@
 <a name="NMWimaxNsp.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -85,8 +85,8 @@
 <a name="NMWimaxNsp.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -114,8 +114,8 @@
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_wimax_nsp_get_name (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);</pre>
 <div class="warning">
-<p><code class="literal">nm_wimax_nsp_get_name</code> has been deprecated since version 1.22. and should not be used in newly-written code.</p>
-<p>WiMAX is no longer supported by NetworkManager since 1.2.0</p>
+<p><code class="literal">nm_wimax_nsp_get_name</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported by NetworkManager since 1.2.0.</p>
 </div>
 <p>Gets the name of the wimax NSP</p>
 <div class="refsect3">
@@ -144,8 +144,8 @@ nm_wimax_nsp_get_name (<em class="parameter"><code><a class="link" href="NMWimax
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
 nm_wimax_nsp_get_signal_quality (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);</pre>
 <div class="warning">
-<p><code class="literal">nm_wimax_nsp_get_signal_quality</code> has been deprecated since version 1.22. and should not be used in newly-written code.</p>
-<p>WiMAX is no longer supported by NetworkManager since 1.2.0</p>
+<p><code class="literal">nm_wimax_nsp_get_signal_quality</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported by NetworkManager since 1.2.0.</p>
 </div>
 <p>Gets the WPA signal quality of the wimax NSP.</p>
 <div class="refsect3">
@@ -174,8 +174,8 @@ nm_wimax_nsp_get_signal_quality (<em class="parameter"><code><a class="link" hre
 <pre class="programlisting"><a class="link" href="libnm-nm-dbus-interface.html#NMWimaxNspNetworkType" title="enum NMWimaxNspNetworkType"><span class="returnvalue">NMWimaxNspNetworkType</span></a>
 nm_wimax_nsp_get_network_type (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>);</pre>
 <div class="warning">
-<p><code class="literal">nm_wimax_nsp_get_network_type</code> has been deprecated since version 1.22. and should not be used in newly-written code.</p>
-<p>WiMAX is no longer supported by NetworkManager since 1.2.0</p>
+<p><code class="literal">nm_wimax_nsp_get_network_type</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported by NetworkManager since 1.2.0.</p>
 </div>
 <p>Gets the network type of the wimax NSP.</p>
 <div class="refsect3">
@@ -205,8 +205,8 @@ nm_wimax_nsp_get_network_type (<em class="parameter"><code><a class="link" href=
 nm_wimax_nsp_filter_connections (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>,
                                  <em class="parameter"><code>const <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *connections</code></em>);</pre>
 <div class="warning">
-<p><code class="literal">nm_wimax_nsp_filter_connections</code> has been deprecated since version 1.22. and should not be used in newly-written code.</p>
-<p>WiMAX is no longer supported by NetworkManager since 1.2.0</p>
+<p><code class="literal">nm_wimax_nsp_filter_connections</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported by NetworkManager since 1.2.0.</p>
 </div>
 <p>Filters a given array of connections for a given <a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> object and
 return connections which may be activated with the NSP.  Any returned
@@ -251,8 +251,8 @@ be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Ar
 nm_wimax_nsp_connection_valid (<em class="parameter"><code><a class="link" href="NMWimaxNsp.html" title="NMWimaxNsp"><span class="type">NMWimaxNsp</span></a> *nsp</code></em>,
                                <em class="parameter"><code><a class="link" href="NMConnection.html" title="NMConnection"><span class="type">NMConnection</span></a> *connection</code></em>);</pre>
 <div class="warning">
-<p><code class="literal">nm_wimax_nsp_connection_valid</code> has been deprecated since version 1.22. and should not be used in newly-written code.</p>
-<p>WiMAX is no longer supported by NetworkManager since 1.2.0</p>
+<p><code class="literal">nm_wimax_nsp_connection_valid</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
+<p>WiMAX is no longer supported by NetworkManager since 1.2.0.</p>
 </div>
 <p>Validates a given connection against a given WiMAX NSP to ensure that the
 connection may be activated with that NSP.  The connection must match the
@@ -311,6 +311,6 @@ against</p></td>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

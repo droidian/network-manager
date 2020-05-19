@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingWimax.html" title="NMSettingWimax">
 <link rel="next" href="NMSettingWireGuard.html" title="NMSettingWireGuard">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,8 +37,8 @@
 <a name="NMSettingWired.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -252,7 +252,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWired.html#NMSettingWired--auto-negotiate" title="The “auto-negotiate” property">auto-negotiate</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
@@ -286,7 +286,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWired.html#NMSettingWired--mtu" title="The “mtu” property">mtu</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
@@ -314,12 +314,12 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWired.html#NMSettingWired--speed" title="The “speed” property">speed</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWired.html#NMSettingWired--wake-on-lan" title="The “wake-on-lan” property">wake-on-lan</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
@@ -334,8 +334,8 @@
 <a name="NMSettingWired.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -1277,9 +1277,9 @@ are supported by all devices.</p>
 <td class="enum_member_name"><p><a name="NM-SETTING-WIRED-WAKE-ON-LAN-ALL:CAPS"></a>NM_SETTING_WIRED_WAKE_ON_LAN_ALL</p></td>
 <td class="enum_member_description">
 <p>Wake on all events. This does not
-  include the exclusive flags <em class="parameter"><code>NM_SETTING_WIRED_WAKE_ON_LAN_DEFAULT</code></em>
+include the exclusive flags <em class="parameter"><code>NM_SETTING_WIRED_WAKE_ON_LAN_DEFAULT</code></em>
  or
-  <em class="parameter"><code>NM_SETTING_WIRED_WAKE_ON_LAN_IGNORE</code></em>
+<em class="parameter"><code>NM_SETTING_WIRED_WAKE_ON_LAN_IGNORE</code></em>
 .</p>
 </td>
 <td class="enum_member_annotations"> </td>
@@ -1302,7 +1302,7 @@ are supported by all devices.</p>
 <td class="enum_member_name"><p><a name="NM-SETTING-WIRED-WAKE-ON-LAN-EXCLUSIVE-FLAGS:CAPS"></a>NM_SETTING_WIRED_WAKE_ON_LAN_EXCLUSIVE_FLAGS</p></td>
 <td class="enum_member_description">
 <p>Mask of flags that are
-  incompatible with other flags</p>
+incompatible with other flags</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1415,7 +1415,8 @@ and is useful for enforcing gigabits modes, as in these cases link
 negotiation is mandatory.
 When <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>, "speed" and "duplex" properties should be both set or
 link configuration will be skipped.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWired</p>
+<p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 </div>
 <hr>
@@ -1437,6 +1438,7 @@ of NetworkManager.conf. If still unspecified, it defaults to "preserve"
 (older versions of NetworkManager may use a different default value).</p>
 <p>On D-Bus, this field is expressed as "assigned-mac-address" or the deprecated
 "cloned-mac-address".</p>
+<p>Owner: NMSettingWired</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1456,6 +1458,7 @@ be auto-negotiated (if "auto-negotiate" is "yes") and the local device
 will advertise all the supported duplex modes.
 Must be set together with the "speed" property if specified.
 Before specifying a duplex mode be sure your device supports it.</p>
+<p>Owner: NMSettingWired</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1487,6 +1490,7 @@ globally-administered, burned-in MAC address.</p>
 them is chosen randomly. For example, "02:00:00:00:00:00 00:00:00:00:00:00 02:00:00:00:00:00"
 will create a fully scrambled MAC address, randomly locally or globally
 administered.</p>
+<p>Owner: NMSettingWired</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1497,6 +1501,7 @@ administered.</p>
 <p>If specified, this connection will only apply to the Ethernet device
 whose permanent MAC address matches. This property does not change the
 MAC address of the device (i.e. MAC spoofing).</p>
+<p>Owner: NMSettingWired</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1508,6 +1513,7 @@ MAC address of the device (i.e. MAC spoofing).</p>
 whose permanent MAC address matches an address in the list.  Each MAC
 address is in the standard hex-digits-and-colons notation
 (00:11:22:33:44:55).</p>
+<p>Owner: NMSettingWired</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1516,7 +1522,8 @@ address is in the standard hex-digits-and-colons notation
 <pre class="programlisting">  “mtu”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>If non-zero, only transmit packets of the specified size or smaller,
 breaking larger packets up into multiple Ethernet frames.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWired</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 </div>
 <hr>
@@ -1527,6 +1534,7 @@ breaking larger packets up into multiple Ethernet frames.</p>
 attachment methods.  One of "tp" (Twisted Pair), "aui" (Attachment Unit
 Interface), "bnc" (Thin Ethernet) or "mii" (Media Independent Interface).
 If the device supports only one port type, this setting is ignored.</p>
+<p>Owner: NMSettingWired</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1536,6 +1544,7 @@ If the device supports only one port type, this setting is ignored.</p>
 <pre class="programlisting">  “s390-nettype”             <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>s390 network device type; one of "qeth", "lcs", or "ctc", representing
 the different types of virtual network devices available on s390 systems.</p>
+<p>Owner: NMSettingWired</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1543,6 +1552,7 @@ the different types of virtual network devices available on s390 systems.</p>
 <div class="refsect2">
 <a name="NMSettingWired--s390-options"></a><h3>The <code class="literal">“s390-options”</code> property</h3>
 <pre class="programlisting">  “s390-options”             <a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *</pre>
+<p>Owner: NMSettingWired</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1556,6 +1566,7 @@ can be used to ensure this connection only applies to the network device
 that uses these subchannels.  The list should contain exactly 3 strings,
 and each string may only be composed of hexadecimal characters and the
 period (.) character.</p>
+<p>Owner: NMSettingWired</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1575,7 +1586,8 @@ will advertise all the supported speeds.
 In Mbit/s, ie 100 == 100Mbit/s.
 Must be set together with the "duplex" property when non-zero.
 Before specifying a speed value be sure your device supports it.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWired</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 </div>
 <hr>
@@ -1590,7 +1602,8 @@ May be any combination of <a class="link" href="NMSettingWired.html#NM-SETTING-W
 <a class="link" href="NMSettingWired.html#NM-SETTING-WIRED-WAKE-ON-LAN-DEFAULT:CAPS"><code class="literal">NM_SETTING_WIRED_WAKE_ON_LAN_DEFAULT</code></a> (to use global settings) and
 <a class="link" href="NMSettingWired.html#NM-SETTING-WIRED-WAKE-ON-LAN-IGNORE:CAPS"><code class="literal">NM_SETTING_WIRED_WAKE_ON_LAN_IGNORE</code></a> (to disable management of Wake-on-LAN in
 NetworkManager).</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWired</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 1</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -1601,6 +1614,7 @@ NetworkManager).</p>
 <p>If specified, the password used with magic-packet-based
 Wake-on-LAN, represented as an Ethernet MAC address.  If <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>,
 no password will be required.</p>
+<p>Owner: NMSettingWired</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
@@ -1608,6 +1622,6 @@ no password will be required.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

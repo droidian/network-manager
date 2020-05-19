@@ -802,53 +802,7 @@ _nm_utils_hash_values_to_slist (GHashTable *hash)
 static GVariant *
 _nm_utils_strdict_to_dbus (const GValue *prop_value)
 {
-	GHashTable *hash;
-	GHashTableIter iter;
-	const char *key, *value;
-	GVariantBuilder builder;
-	guint i, len;
-
-	g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{ss}"));
-
-	hash = g_value_get_boxed (prop_value);
-	if (!hash)
-		goto out;
-	len = g_hash_table_size (hash);
-	if (!len)
-		goto out;
-
-	g_hash_table_iter_init (&iter, hash);
-	if (!g_hash_table_iter_next (&iter, (gpointer *) &key, (gpointer *) &value))
-		nm_assert_not_reached ();
-
-	if (len == 1)
-		g_variant_builder_add (&builder, "{ss}", key, value);
-	else {
-		gs_free NMUtilsNamedValue *idx_free = NULL;
-		NMUtilsNamedValue *idx;
-
-		if (len > 300 / sizeof (NMUtilsNamedValue)) {
-			idx_free = g_new (NMUtilsNamedValue, len);
-			idx = idx_free;
-		} else
-			idx = g_alloca (sizeof (NMUtilsNamedValue) * len);
-
-		i = 0;
-		do {
-			idx[i].name = key;
-			idx[i].value_str = value;
-			i++;
-		} while (g_hash_table_iter_next (&iter, (gpointer *) &key, (gpointer *) &value));
-		nm_assert (i == len);
-
-		nm_utils_named_value_list_sort (idx, len, NULL, NULL);
-
-		for (i = 0; i < len; i++)
-			g_variant_builder_add (&builder, "{ss}", idx[i].name, idx[i].value_str);
-	}
-
-out:
-	return g_variant_builder_end (&builder);
+	return nm_utils_strdict_to_variant_ass (g_value_get_boxed (prop_value));
 }
 
 void
@@ -1119,8 +1073,14 @@ nm_utils_ap_mode_security_valid (NMUtilsSecurityType type,
 	case NMU_SEC_WPA_PSK:
 	case NMU_SEC_WPA2_PSK:
 	case NMU_SEC_SAE:
+	case NMU_SEC_OWE:
 		return TRUE;
-	default:
+	case NMU_SEC_LEAP:
+	case NMU_SEC_DYNAMIC_WEP:
+	case NMU_SEC_WPA_ENTERPRISE:
+	case NMU_SEC_WPA2_ENTERPRISE:
+		return FALSE;
+	case NMU_SEC_INVALID:
 		break;
 	}
 	return FALSE;
@@ -1159,48 +1119,46 @@ nm_utils_security_valid (NMUtilsSecurityType type,
                          NM80211ApSecurityFlags ap_wpa,
                          NM80211ApSecurityFlags ap_rsn)
 {
-	gboolean good = TRUE;
-
-	if (!have_ap) {
-		if (type == NMU_SEC_NONE)
-			return TRUE;
-		if (   (type == NMU_SEC_STATIC_WEP)
-		    || ((type == NMU_SEC_DYNAMIC_WEP) && !adhoc)
-		    || ((type == NMU_SEC_LEAP) && !adhoc)) {
-			if (wifi_caps & (NM_WIFI_DEVICE_CAP_CIPHER_WEP40 | NM_WIFI_DEVICE_CAP_CIPHER_WEP104))
-				return TRUE;
-			else
-				return FALSE;
-		}
-	}
-
 	switch (type) {
 	case NMU_SEC_NONE:
-		g_assert (have_ap);
+		if (!have_ap)
+			return TRUE;
 		if (ap_flags & NM_802_11_AP_FLAGS_PRIVACY)
 			return FALSE;
-		if (ap_wpa || ap_rsn)
+		if (   ap_wpa
+		    || ap_rsn)
 			return FALSE;
-		break;
+		return TRUE;
 	case NMU_SEC_LEAP: /* require PRIVACY bit for LEAP? */
 		if (adhoc)
 			return FALSE;
 		/* fall-through */
 	case NMU_SEC_STATIC_WEP:
-		g_assert (have_ap);
+		if (!have_ap) {
+			if (wifi_caps & (NM_WIFI_DEVICE_CAP_CIPHER_WEP40 | NM_WIFI_DEVICE_CAP_CIPHER_WEP104))
+				return TRUE;
+			return FALSE;
+		}
 		if (!(ap_flags & NM_802_11_AP_FLAGS_PRIVACY))
 			return FALSE;
-		if (ap_wpa || ap_rsn) {
-			if (!device_supports_ap_ciphers (wifi_caps, ap_wpa, TRUE))
+		if (   ap_wpa
+		    || ap_rsn) {
+			if (!device_supports_ap_ciphers (wifi_caps, ap_wpa, TRUE)) {
 				if (!device_supports_ap_ciphers (wifi_caps, ap_rsn, TRUE))
 					return FALSE;
+			}
 		}
-		break;
+		return TRUE;
 	case NMU_SEC_DYNAMIC_WEP:
 		if (adhoc)
 			return FALSE;
-		g_assert (have_ap);
-		if (ap_rsn || !(ap_flags & NM_802_11_AP_FLAGS_PRIVACY))
+		if (!have_ap) {
+			if (wifi_caps & (NM_WIFI_DEVICE_CAP_CIPHER_WEP40 | NM_WIFI_DEVICE_CAP_CIPHER_WEP104))
+				return TRUE;
+			return FALSE;
+		}
+		if (   ap_rsn
+		    || !(ap_flags & NM_802_11_AP_FLAGS_PRIVACY))
 			return FALSE;
 		/* Some APs broadcast minimal WPA-enabled beacons that must be handled */
 		if (ap_wpa) {
@@ -1209,102 +1167,99 @@ nm_utils_security_valid (NMUtilsSecurityType type,
 			if (!device_supports_ap_ciphers (wifi_caps, ap_wpa, FALSE))
 				return FALSE;
 		}
-		break;
+		return TRUE;
 	case NMU_SEC_WPA_PSK:
 		if (adhoc)
 			return FALSE;
 		if (!(wifi_caps & NM_WIFI_DEVICE_CAP_WPA))
 			return FALSE;
-		if (have_ap) {
-			if (ap_wpa & NM_802_11_AP_SEC_KEY_MGMT_PSK) {
-				if (   (ap_wpa & NM_802_11_AP_SEC_PAIR_TKIP)
-				    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_TKIP))
-					return TRUE;
-				if (   (ap_wpa & NM_802_11_AP_SEC_PAIR_CCMP)
-				    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
-					return TRUE;
-			}
-			return FALSE;
+		if (!have_ap)
+			return TRUE;
+		if (ap_wpa & NM_802_11_AP_SEC_KEY_MGMT_PSK) {
+			if (   (ap_wpa & NM_802_11_AP_SEC_PAIR_TKIP)
+			    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_TKIP))
+				return TRUE;
+			if (   (ap_wpa & NM_802_11_AP_SEC_PAIR_CCMP)
+			    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
+				return TRUE;
 		}
-		break;
+		return FALSE;
 	case NMU_SEC_WPA2_PSK:
 		if (!(wifi_caps & NM_WIFI_DEVICE_CAP_RSN))
 			return FALSE;
-		if (have_ap) {
-			if (adhoc) {
-				if (!(wifi_caps & NM_WIFI_DEVICE_CAP_IBSS_RSN))
-					return FALSE;
-				if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_CCMP)
-				    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
-					return TRUE;
-			} else {
-				if (ap_rsn & NM_802_11_AP_SEC_KEY_MGMT_PSK) {
-					if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_TKIP)
-					    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_TKIP))
-						return TRUE;
-					if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_CCMP)
-					    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
-						return TRUE;
-				}
-			}
+		if (!have_ap)
+			return TRUE;
+		if (adhoc) {
+			if (!(wifi_caps & NM_WIFI_DEVICE_CAP_IBSS_RSN))
+				return FALSE;
+			if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_CCMP)
+			    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
+				return TRUE;
 			return FALSE;
 		}
-		break;
+		if (ap_rsn & NM_802_11_AP_SEC_KEY_MGMT_PSK) {
+			if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_TKIP)
+			    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_TKIP))
+				return TRUE;
+			if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_CCMP)
+			    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
+				return TRUE;
+		}
+		return FALSE;
 	case NMU_SEC_WPA_ENTERPRISE:
 		if (adhoc)
 			return FALSE;
 		if (!(wifi_caps & NM_WIFI_DEVICE_CAP_WPA))
 			return FALSE;
-		if (have_ap) {
-			if (!(ap_wpa & NM_802_11_AP_SEC_KEY_MGMT_802_1X))
-				return FALSE;
-			/* Ensure at least one WPA cipher is supported */
-			if (!device_supports_ap_ciphers (wifi_caps, ap_wpa, FALSE))
-				return FALSE;
-		}
-		break;
+		if (!have_ap)
+			return TRUE;
+		if (!(ap_wpa & NM_802_11_AP_SEC_KEY_MGMT_802_1X))
+			return FALSE;
+		/* Ensure at least one WPA cipher is supported */
+		if (!device_supports_ap_ciphers (wifi_caps, ap_wpa, FALSE))
+			return FALSE;
+		return TRUE;
 	case NMU_SEC_WPA2_ENTERPRISE:
 		if (adhoc)
 			return FALSE;
 		if (!(wifi_caps & NM_WIFI_DEVICE_CAP_RSN))
 			return FALSE;
-		if (have_ap) {
-			if (!(ap_rsn & NM_802_11_AP_SEC_KEY_MGMT_802_1X))
-				return FALSE;
-			/* Ensure at least one WPA cipher is supported */
-			if (!device_supports_ap_ciphers (wifi_caps, ap_rsn, FALSE))
-				return FALSE;
-		}
-		break;
+		if (!have_ap)
+			return TRUE;
+		if (!(ap_rsn & NM_802_11_AP_SEC_KEY_MGMT_802_1X))
+			return FALSE;
+		/* Ensure at least one WPA cipher is supported */
+		if (!device_supports_ap_ciphers (wifi_caps, ap_rsn, FALSE))
+			return FALSE;
+		return TRUE;
 	case NMU_SEC_SAE:
 		if (!(wifi_caps & NM_WIFI_DEVICE_CAP_RSN))
 			return FALSE;
-		if (have_ap) {
-			if (adhoc) {
-				if (!(wifi_caps & NM_WIFI_DEVICE_CAP_IBSS_RSN))
-					return FALSE;
-				if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_CCMP)
-				    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
-					return TRUE;
-			} else {
-				if (ap_rsn & NM_802_11_AP_SEC_KEY_MGMT_SAE) {
-					if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_TKIP)
-					    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_TKIP))
-						return TRUE;
-					if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_CCMP)
-					    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
-						return TRUE;
-				}
-			}
+		if (adhoc)
 			return FALSE;
+		if (!have_ap)
+			return TRUE;
+		if (ap_rsn & NM_802_11_AP_SEC_KEY_MGMT_SAE) {
+			if (   (ap_rsn & NM_802_11_AP_SEC_PAIR_CCMP)
+			    && (wifi_caps & NM_WIFI_DEVICE_CAP_CIPHER_CCMP))
+				return TRUE;
 		}
-		break;
-	default:
-		good = FALSE;
+		return FALSE;
+	case NMU_SEC_OWE:
+		if (adhoc)
+			return FALSE;
+		if (!(wifi_caps & NM_WIFI_DEVICE_CAP_RSN))
+			return FALSE;
+		if (!have_ap)
+			return TRUE;
+		if (!(ap_rsn & NM_802_11_AP_SEC_KEY_MGMT_OWE))
+			return FALSE;
+		return TRUE;
+	case NMU_SEC_INVALID:
 		break;
 	}
 
-	return good;
+	return FALSE;
 }
 
 /**
@@ -2298,7 +2253,7 @@ _nm_utils_parse_tc_handle (const char *str, GError **error)
 
 	nm_assert (str);
 
-	maj = g_ascii_strtoll (str, (char **) &sep, 0x10);
+	maj = nm_g_ascii_strtoll (str, (char **) &sep, 0x10);
 	if (sep == str)
 		goto fail;
 
@@ -2307,7 +2262,7 @@ _nm_utils_parse_tc_handle (const char *str, GError **error)
 	if (sep[0] == ':') {
 		const char *str2 = &sep[1];
 
-		min = g_ascii_strtoll (str2, (char **) &sep, 0x10);
+		min = nm_g_ascii_strtoll (str2, (char **) &sep, 0x10);
 		sep = nm_str_skip_leading_spaces (sep);
 		if (sep[0] != '\0')
 			goto fail;
@@ -4078,8 +4033,6 @@ nm_utils_hwaddr_aton (const char *asc, gpointer buffer, gsize length)
 	return buffer;
 }
 
-
-
 /**
  * nm_utils_bin2hexstr:
  * @src: (type guint8) (array length=len): an array of bytes
@@ -4229,6 +4182,41 @@ _nm_utils_hwaddr_canonical_or_invalid (const char *mac, gssize length)
 		return canonical;
 	else
 		return g_strdup (mac);
+}
+
+/*
+ * Determine if given Ethernet address is link-local
+ *
+ * Return value: %TRUE if @mac is link local
+ * reserved addr (01:80:c2:00:00:0X) per IEEE 802.1Q 8.6.3 Frame filtering, %FALSE if not.
+ */
+gboolean
+_nm_utils_hwaddr_link_local_valid (const char *mac)
+{
+	guint8 mac_net[ETH_ALEN];
+	static const guint8 eth_reserved_addr_base[] = {
+		0x01, 0x80,
+		0xc2, 0x00,
+		0x00
+	};
+
+	if (!mac)
+		return FALSE;
+
+	if (!nm_utils_hwaddr_aton (mac, mac_net, ETH_ALEN))
+		return FALSE;
+
+	if (   memcmp (mac_net,
+	               eth_reserved_addr_base, ETH_ALEN - 1)
+	    || (mac_net[5] & 0xF0))
+		return FALSE;
+
+	if (   mac_net[5] == 1  /* 802.3x Pause address */
+	    || mac_net[5] == 2  /* 802.3ad Slow protocols */
+	    || mac_net[5] == 3) /* 802.1X PAE address */
+		return FALSE;
+
+	return TRUE;
 }
 
 /**
@@ -4487,7 +4475,7 @@ _nm_utils_hwaddr_from_dbus (GVariant *dbus_value,
 	g_value_take_string (prop_value, str);
 }
 
-const NMSettInfoPropertType nm_sett_info_propert_type_mac_addrees = {
+const NMSettInfoPropertType nm_sett_info_propert_type_mac_address = {
 	.dbus_type           = G_VARIANT_TYPE_BYTESTRING,
 	.gprop_to_dbus_fcn   = _nm_utils_hwaddr_to_dbus,
 	.gprop_from_dbus_fcn = _nm_utils_hwaddr_from_dbus,
@@ -4728,7 +4716,7 @@ nm_utils_is_valid_iface_name (const char *name, GError **error)
  *
  * Validate the network interface name.
  *
- * Deprecated: 1.6: use nm_utils_is_valid_iface_name() instead, with better error reporting.
+ * Deprecated: 1.6: Use nm_utils_is_valid_iface_name() instead, with better error reporting.
  *
  * Returns: %TRUE if interface name is valid, otherwise %FALSE is returned.
  *
@@ -4781,23 +4769,6 @@ nm_utils_is_uuid (const char *str)
 
 static char _nm_utils_inet_ntop_buffer[NM_UTILS_INET_ADDRSTRLEN];
 
-const char *
-nm_utils_inet_ntop (int addr_family, gconstpointer addr, char *dst)
-{
-	const char *s;
-
-	nm_assert_addr_family (addr_family);
-	nm_assert (addr);
-	nm_assert (dst);
-
-	s = inet_ntop (addr_family,
-	               addr,
-	               dst,
-	               addr_family == AF_INET6 ? INET6_ADDRSTRLEN : INET_ADDRSTRLEN);
-	nm_assert (s);
-	return s;
-}
-
 /**
  * nm_utils_inet4_ntop: (skip)
  * @inaddr: the address that should be converted to string.
@@ -4823,8 +4794,7 @@ nm_utils_inet4_ntop (in_addr_t inaddr, char *dst)
 	 *
 	 * However, still support it to be lenient against mistakes and because
 	 * this is public API of libnm. */
-	return inet_ntop (AF_INET, &inaddr, dst ?: _nm_utils_inet_ntop_buffer,
-	                  INET_ADDRSTRLEN);
+	return _nm_utils_inet4_ntop (inaddr, dst ?: _nm_utils_inet_ntop_buffer);
 }
 
 /**
@@ -4854,8 +4824,7 @@ nm_utils_inet6_ntop (const struct in6_addr *in6addr, char *dst)
 	 * However, still support it to be lenient against mistakes and because
 	 * this is public API of libnm. */
 	g_return_val_if_fail (in6addr, NULL);
-	return inet_ntop (AF_INET6, in6addr, dst ?: _nm_utils_inet_ntop_buffer,
-	                  INET6_ADDRSTRLEN);
+	return _nm_utils_inet6_ntop (in6addr, dst ?: _nm_utils_inet_ntop_buffer);
 }
 
 /**
@@ -4871,17 +4840,9 @@ nm_utils_inet6_ntop (const struct in6_addr *in6addr, char *dst)
 gboolean
 nm_utils_ipaddr_valid (int family, const char *ip)
 {
-	guint8 buf[sizeof (struct in6_addr)];
-
 	g_return_val_if_fail (family == AF_INET || family == AF_INET6 || family == AF_UNSPEC, FALSE);
 
-	if (!ip)
-		return FALSE;
-
-	if (family == AF_UNSPEC)
-		family = strchr (ip, ':') ? AF_INET6 : AF_INET;
-
-	return inet_pton (family, ip, buf) == 1;
+	return nm_utils_ipaddr_is_valid (family, ip);
 }
 
 /**
@@ -5181,7 +5142,9 @@ _nm_utils_strstrdictkey_create (const char *v1, const char *v2)
 }
 
 static gboolean
-validate_dns_option (const char *name, gboolean numeric, gboolean ipv6,
+validate_dns_option (const char *name,
+                     gboolean numeric,
+                     gboolean ipv6,
                      const NMUtilsDNSOptionDesc *option_descs)
 {
 	const NMUtilsDNSOptionDesc *desc;
@@ -5217,58 +5180,54 @@ validate_dns_option (const char *name, gboolean numeric, gboolean ipv6,
  * %FALSE otherwise
  */
 gboolean
-_nm_utils_dns_option_validate (const char *option, char **out_name,
-                               long *out_value, gboolean ipv6,
+_nm_utils_dns_option_validate (const char *option,
+                               char **out_name,
+                               long *out_value,
+                               gboolean ipv6,
                                const NMUtilsDNSOptionDesc *option_descs)
 {
-	char **tokens, *ptr;
-	gboolean ret = FALSE;
+	gs_free char *option0_free = NULL;
+	const char *option0;
+	const char *option1;
+	const char *delim;
+	long option1_num;
 
 	g_return_val_if_fail (option != NULL, FALSE);
 
-	if (out_name)
-		*out_name = NULL;
-	if (out_value)
-		*out_value = -1;
+	NM_SET_OUT (out_name, NULL);
+	NM_SET_OUT (out_value, -1);
 
 	if (!option[0])
 		return FALSE;
 
-	tokens = g_strsplit (option, ":", 2);
-
-	if (g_strv_length (tokens) == 1) {
-		ret = validate_dns_option (tokens[0], FALSE, ipv6, option_descs);
-		if (ret && out_name)
-			*out_name = g_strdup (tokens[0]);
-		goto out;
+	delim = strchr (option, ':');
+	if (!delim) {
+		if (!validate_dns_option (option, FALSE, ipv6, option_descs))
+			return FALSE;
+		NM_SET_OUT (out_name, g_strdup (option));
+		return TRUE;
 	}
 
-	if (!tokens[1][0]) {
-		ret = FALSE;
-		goto out;
-	}
+	option1 = &delim[1];
 
-	for (ptr = tokens[1]; *ptr; ptr++) {
-		if (!g_ascii_isdigit (*ptr)) {
-			ret = FALSE;
-			goto out;
-		}
-	}
+	if (!option1[0])
+		return FALSE;
+	if (!NM_STRCHAR_ALL (option1, ch, g_ascii_isdigit (ch)))
+		return FALSE;
 
-	ret = FALSE;
-	if (validate_dns_option (tokens[0], TRUE, ipv6, option_descs)) {
-		int value = _nm_utils_ascii_str_to_int64 (tokens[1], 10, 0, G_MAXINT32, -1);
-		if (value >= 0) {
-			if (out_name)
-				*out_name = g_strdup (tokens[0]);
-			if (out_value)
-				*out_value = value;
-			ret = TRUE;
-		}
-	}
-out:
-	g_strfreev (tokens);
-	return ret;
+	option0 = nm_strndup_a (300, option, delim - option, &option0_free);
+
+	if (!validate_dns_option (option0, TRUE, ipv6, option_descs))
+		return FALSE;
+
+	option1_num = _nm_utils_ascii_str_to_int64 (option1, 10, 0, G_MAXINT32, -1);
+	if (option1_num == -1)
+		return FALSE;
+
+	NM_SET_OUT (out_name,    g_steal_pointer (&option0_free)
+	                      ?: g_strdup (option0));
+	NM_SET_OUT (out_value, option1_num);
+	return TRUE;
 }
 
 /**
@@ -5485,7 +5444,7 @@ attribute_escape (const char *src, char c1, char c2)
 {
 	char *ret, *dest;
 
-	dest = ret = malloc (strlen (src) * 2 + 1);
+	dest = ret = g_malloc (strlen (src) * 2 + 1);
 
 	while (*src) {
 		if (*src == c1 || *src == c2 || *src == '\\')
@@ -5835,7 +5794,7 @@ nm_utils_get_timestamp_msec (void)
 {
 	gint64 ts;
 
-	ts = nm_utils_clock_gettime_ms (CLOCK_BOOTTIME);
+	ts = nm_utils_clock_gettime_msec (CLOCK_BOOTTIME);
 	if (ts >= 0)
 		return ts;
 
@@ -5844,7 +5803,7 @@ nm_utils_get_timestamp_msec (void)
 		 * criminally old kernel, prior to 2.6.39 (released on 18 May, 2011).
 		 * That happens during buildcheck on old builders, we don't expect to
 		 * be actually runs on kernels that old. */
-		ts = nm_utils_clock_gettime_ms (CLOCK_MONOTONIC);
+		ts = nm_utils_clock_gettime_msec (CLOCK_MONOTONIC);
 		if (ts >= 0)
 			return ts;
 	}

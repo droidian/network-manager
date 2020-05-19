@@ -15,12 +15,6 @@
 
 /*****************************************************************************/
 
-/* Markers for deprecated sync code in internal API. */
-#define _NM_DEPRECATED_SYNC_METHOD_INTERNAL            NM_DEPRECATED_IN_1_22
-#define _NM_DEPRECATED_SYNC_WRITABLE_PROPERTY_INTERNAL NM_DEPRECATED_IN_1_22
-
-/*****************************************************************************/
-
 char *nm_utils_fixup_vendor_string (const char *desc);
 char *nm_utils_fixup_product_string (const char *desc);
 
@@ -30,13 +24,9 @@ gboolean nm_utils_g_param_spec_is_default (const GParamSpec *pspec);
 
 /*****************************************************************************/
 
-NMClientPermission nm_permission_to_client (const char *nm);
-
-NMClientPermissionResult nm_permission_result_to_client (const char *nm);
-
-/*****************************************************************************/
-
 typedef enum {
+	_NML_DBUS_LOG_LEVEL_NONE        = 0x00,
+
 	_NML_DBUS_LOG_LEVEL_INITIALIZED = 0x01,
 
 	_NML_DBUS_LOG_LEVEL_TRACE       = 0x02,
@@ -89,6 +79,7 @@ nml_dbus_log_enabled (NMLDBusLogLevel level)
 	int l;
 
 	nm_assert (NM_IN_SET (level, NML_DBUS_LOG_LEVEL_ANY,
+	                             _NML_DBUS_LOG_LEVEL_NONE,
 	                             NML_DBUS_LOG_LEVEL_TRACE,
 	                             NML_DBUS_LOG_LEVEL_DEBUG,
 	                             NML_DBUS_LOG_LEVEL_WARN,
@@ -110,7 +101,8 @@ void _nml_dbus_log (NMLDBusLogLevel level,
 
 #define NML_DBUS_LOG(level, ...) \
 	G_STMT_START { \
-		G_STATIC_ASSERT (   (level) == NML_DBUS_LOG_LEVEL_TRACE \
+		G_STATIC_ASSERT (   (level) == _NML_DBUS_LOG_LEVEL_NONE \
+		                 || (level) == NML_DBUS_LOG_LEVEL_TRACE \
 		                 || (level) == NML_DBUS_LOG_LEVEL_DEBUG \
 		                 || (level) == NML_DBUS_LOG_LEVEL_WARN \
 		                 || (level) == NML_DBUS_LOG_LEVEL_ERROR); \
@@ -125,8 +117,19 @@ void _nml_dbus_log (NMLDBusLogLevel level,
 #define NML_DBUS_LOG_W(...) NML_DBUS_LOG (NML_DBUS_LOG_LEVEL_WARN,  __VA_ARGS__)
 #define NML_DBUS_LOG_E(...) NML_DBUS_LOG (NML_DBUS_LOG_LEVEL_ERROR, __VA_ARGS__)
 
+/* _NML_NMCLIENT_LOG_LEVEL_COERCE is only for printf debugging. You can disable client logging by
+ * mapping the requested log level to a different one (or disable it altogether).
+ * That's useful for example if you are interested in *other* trace logging messages from
+ * libnm and don't want to get flooded by NMClient's trace messages. */
+#define _NML_NMCLIENT_LOG_LEVEL_COERCE(level) \
+	/* for example, change condition below to suppress <trace> messages from NMClient. */ \
+	((   TRUE \
+	  || ((level) != NML_DBUS_LOG_LEVEL_TRACE)) \
+	 ? (level) \
+	 : _NML_DBUS_LOG_LEVEL_NONE)
+
 #define NML_NMCLIENT_LOG(level, self, ...) \
-	NML_DBUS_LOG ((level), \
+	NML_DBUS_LOG (_NML_NMCLIENT_LOG_LEVEL_COERCE (level), \
 	              "nmclient["NM_HASH_OBFUSCATE_PTR_FMT"]: " _NM_UTILS_MACRO_FIRST (__VA_ARGS__), \
 	              NM_HASH_OBFUSCATE_PTR (self) \
 	              _NM_UTILS_MACRO_REST (__VA_ARGS__))
@@ -166,6 +169,45 @@ _nml_coerce_property_strv_not_null (char **strv)
 
 /*****************************************************************************/
 
+GQuark nm_context_busy_watcher_quark (void);
+
+void nm_context_busy_watcher_integrate_source (GMainContext *outer_context,
+                                               GMainContext *inner_context,
+                                               GObject *context_busy_watcher);
+
+/*****************************************************************************/
+
+typedef struct {
+	GCancellable *cancellable;
+	GSource *cancel_on_idle_source;
+	gulong cancelled_id;
+	union {
+		struct {
+			GTask *task;
+		} async;
+		struct {
+			GMainLoop *main_loop;
+			GError **error_location;
+		} sync;
+	} data;
+	bool is_sync:1;
+} NMLInitData;
+
+NMLInitData *nml_init_data_new_sync (GCancellable *cancellable,
+                                     GMainLoop *main_loop,
+                                     GError **error_location);
+
+NMLInitData *nml_init_data_new_async (GCancellable *cancellable,
+                                      GTask *task_take);
+
+void nml_init_data_return (NMLInitData *init_data,
+                           GError *error_take);
+
+void nml_cleanup_context_busy_watcher_on_idle (GObject *context_busy_watcher_take,
+                                               GMainContext *context);
+
+/*****************************************************************************/
+
 typedef struct _NMLDBusObject     NMLDBusObject;
 typedef struct _NMLDBusObjWatcher NMLDBusObjWatcher;
 typedef struct _NMLDBusMetaIface  NMLDBusMetaIface;
@@ -184,6 +226,8 @@ typedef enum {
 } NMLDBusMetaInteracePrio;
 
 /*****************************************************************************/
+
+#define NM_CLIENT_INSTANCE_FLAGS_ALL ((NMClientInstanceFlags) 0x1)
 
 typedef struct {
 	GType (*get_o_type_fcn) (void);
@@ -494,7 +538,7 @@ struct _NMLDBusMetaIface {
 
 #define NML_DBUS_META_IFACE_DBUS_PROPERTIES(...) \
 	.dbus_properties            = ((const NMLDBusMetaProperty []) { __VA_ARGS__ }), \
-	.n_dbus_properties          = sizeof ((const NMLDBusMetaProperty []) { __VA_ARGS__ }) / sizeof (NMLDBusMetaProperty) \
+	.n_dbus_properties          = (sizeof ((const NMLDBusMetaProperty []) { __VA_ARGS__ }) / sizeof (NMLDBusMetaProperty))
 
 #define NML_DBUS_META_IFACE_INIT(v_dbus_iface_name, \
                                  v_get_type_fcn, \
@@ -507,11 +551,17 @@ struct _NMLDBusMetaIface {
 		##__VA_ARGS__ \
 	}
 
-#define NML_DBUS_META_IFACE_INIT_PROP(...) \
-	NML_DBUS_META_IFACE_INIT (__VA_ARGS__ \
-	                          NML_DBUS_META_IFACE_OBJ_PROPERTIES ())
+#define NML_DBUS_META_IFACE_INIT_PROP(v_dbus_iface_name, \
+                                      v_get_type_fcn, \
+                                      v_interface_prio, \
+                                      ...) \
+	NML_DBUS_META_IFACE_INIT (v_dbus_iface_name, \
+	                          v_get_type_fcn, \
+	                          v_interface_prio, \
+	                          NML_DBUS_META_IFACE_OBJ_PROPERTIES (), \
+	                          ##__VA_ARGS__)
 
-extern const NMLDBusMetaIface *const _nml_dbus_meta_ifaces[43];
+extern const NMLDBusMetaIface *const _nml_dbus_meta_ifaces[44];
 
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_accesspoint;
@@ -541,6 +591,7 @@ extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_team;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_tun;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_veth;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_vlan;
+extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_vrf;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_vxlan;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_wifip2p;
 extern const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_wired;
@@ -620,7 +671,8 @@ NML_IS_DBUS_OBJECT (NMLDBusObject *dbobj)
 	nm_assert (   !dbobj
 	           || (   NM_IS_REF_STRING (dbobj->dbus_path)
 	               && dbobj->ref_count > 0));
-	nm_assert (   !dbobj->nmobj
+	nm_assert (   !dbobj
+	           || !dbobj->nmobj
 	           || NM_IS_OBJECT (dbobj->nmobj)
 	           || NM_IS_CLIENT (dbobj->nmobj));
 	return !!dbobj;
@@ -764,8 +816,6 @@ struct _NMDeviceClass {
 	                                   GError **error);
 
 	const char *(*get_type_description) (NMDevice *device);
-
-	const char *(*get_hw_address) (NMDevice *device);
 
 	GType (*get_setting_type) (NMDevice *device);
 };
@@ -958,6 +1008,15 @@ void _nm_active_connection_state_changed_commit (NMActiveConnection *self,
 void _nm_vpn_connection_state_changed_commit (NMVpnConnection *self,
                                               guint32 state,
                                               guint32 reason);
+
+/*****************************************************************************/
+
+NMLDBusNotifyUpdatePropFlags
+_nm_device_notify_update_prop_hw_address (NMClient *client,
+                                          NMLDBusObject *dbobj,
+                                          const NMLDBusMetaIface *meta_iface,
+                                          guint dbus_property_idx,
+                                          GVariant *value);
 
 /*****************************************************************************/
 

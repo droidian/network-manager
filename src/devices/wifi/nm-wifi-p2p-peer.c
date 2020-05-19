@@ -9,15 +9,16 @@
 
 #include <stdlib.h>
 
-#include "nm-setting-wireless.h"
-
-#include "nm-wifi-utils.h"
 #include "NetworkManagerUtils.h"
-#include "nm-utils.h"
-#include "nm-core-internal.h"
-#include "platform/nm-platform.h"
 #include "devices/nm-device.h"
+#include "nm-core-internal.h"
 #include "nm-dbus-manager.h"
+#include "nm-glib-aux/nm-ref-string.h"
+#include "nm-setting-wireless.h"
+#include "nm-utils.h"
+#include "nm-wifi-utils.h"
+#include "platform/nm-platform.h"
+#include "supplicant/nm-supplicant-types.h"
 
 /*****************************************************************************/
 
@@ -28,7 +29,6 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMWifiP2PPeer,
 	PROP_MODEL_NUMBER,
 	PROP_SERIAL,
 	PROP_WFD_IES,
-	PROP_GROUPS,
 	PROP_HW_ADDRESS,
 	PROP_STRENGTH,
 	PROP_LAST_SEEN,
@@ -36,7 +36,7 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMWifiP2PPeer,
 );
 
 struct _NMWifiP2PPeerPrivate {
-	char *supplicant_path;   /* D-Bus object path of this Peer from wpa_supplicant */
+	NMRefString *supplicant_path;   /* D-Bus object path of this Peer from wpa_supplicant */
 
 	/* Scanned or cached values */
 	char *             name;
@@ -55,7 +55,7 @@ struct _NMWifiP2PPeerPrivate {
 	NM80211ApFlags     flags;      /* General flags */
 
 	/* Non-scanned attributes */
-	gint32             last_seen;    /* Timestamp when the Peer was seen lastly (obtained via nm_utils_get_monotonic_timestamp_s()) */
+	gint32             last_seen;    /* Timestamp when the Peer was seen lastly (obtained via nm_utils_get_monotonic_timestamp_sec()) */
 };
 
 typedef struct _NMWifiP2PPeerPrivate NMWifiP2PPeerPrivate;
@@ -151,7 +151,7 @@ nm_wifi_p2p_peer_get_supplicant_path (NMWifiP2PPeer *peer)
 {
 	g_return_val_if_fail (NM_IS_WIFI_P2P_PEER (peer), NULL);
 
-	return NM_WIFI_P2P_PEER_GET_PRIVATE (peer)->supplicant_path;
+	return nm_ref_string_get_str (NM_WIFI_P2P_PEER_GET_PRIVATE (peer)->supplicant_path);
 }
 
 const char *
@@ -163,18 +163,12 @@ nm_wifi_p2p_peer_get_name (const NMWifiP2PPeer *peer)
 }
 
 gboolean
-nm_wifi_p2p_peer_set_name (NMWifiP2PPeer *peer, const char *name)
+nm_wifi_p2p_peer_set_name (NMWifiP2PPeer *peer, const char *str)
 {
 	NMWifiP2PPeerPrivate *priv = NM_WIFI_P2P_PEER_GET_PRIVATE (peer);
-	g_return_val_if_fail (NM_IS_WIFI_P2P_PEER (peer), FALSE);
 
-	if (g_strcmp0 (name, priv->name) == 0)
+	if (!nm_utils_strdup_reset (&priv->name, str))
 		return FALSE;
-
-	g_clear_pointer (&priv->name, g_free);
-	if (name)
-		priv->name = g_strdup (name);
-
 	_notify (peer, PROP_NAME);
 	return TRUE;
 }
@@ -188,18 +182,12 @@ nm_wifi_p2p_peer_get_manufacturer (const NMWifiP2PPeer *peer)
 }
 
 gboolean
-nm_wifi_p2p_peer_set_manufacturer (NMWifiP2PPeer *peer, const char *manufacturer)
+nm_wifi_p2p_peer_set_manufacturer (NMWifiP2PPeer *peer, const char *str)
 {
 	NMWifiP2PPeerPrivate *priv = NM_WIFI_P2P_PEER_GET_PRIVATE (peer);
-	g_return_val_if_fail (NM_IS_WIFI_P2P_PEER (peer), FALSE);
 
-	if (g_strcmp0 (manufacturer, priv->manufacturer) == 0)
+	if (!nm_utils_strdup_reset (&priv->manufacturer, str))
 		return FALSE;
-
-	g_clear_pointer (&priv->manufacturer, g_free);
-	if (manufacturer)
-		priv->manufacturer = g_strdup (manufacturer);
-
 	_notify (peer, PROP_MANUFACTURER);
 	return TRUE;
 }
@@ -213,18 +201,12 @@ nm_wifi_p2p_peer_get_model (const NMWifiP2PPeer *peer)
 }
 
 gboolean
-nm_wifi_p2p_peer_set_model (NMWifiP2PPeer *peer, const char *model)
+nm_wifi_p2p_peer_set_model (NMWifiP2PPeer *peer, const char *str)
 {
 	NMWifiP2PPeerPrivate *priv = NM_WIFI_P2P_PEER_GET_PRIVATE (peer);
-	g_return_val_if_fail (NM_IS_WIFI_P2P_PEER (peer), FALSE);
 
-	if (g_strcmp0 (model, priv->model) == 0)
+	if (!nm_utils_strdup_reset (&priv->model, str))
 		return FALSE;
-
-	g_clear_pointer (&priv->model, g_free);
-	if (model)
-		priv->model = g_strdup (model);
-
 	_notify (peer, PROP_MODEL);
 	return TRUE;
 }
@@ -238,18 +220,12 @@ nm_wifi_p2p_peer_get_model_number (const NMWifiP2PPeer *peer)
 }
 
 gboolean
-nm_wifi_p2p_peer_set_model_number (NMWifiP2PPeer *peer, const char *model_number)
+nm_wifi_p2p_peer_set_model_number (NMWifiP2PPeer *peer, const char *str)
 {
 	NMWifiP2PPeerPrivate *priv = NM_WIFI_P2P_PEER_GET_PRIVATE (peer);
-	g_return_val_if_fail (NM_IS_WIFI_P2P_PEER (peer), FALSE);
 
-	if (g_strcmp0 (model_number, priv->model_number) == 0)
+	if (!nm_utils_strdup_reset (&priv->model_number, str))
 		return FALSE;
-
-	g_clear_pointer (&priv->model_number, g_free);
-	if (model_number)
-		priv->model_number = g_strdup (model_number);
-
 	_notify (peer, PROP_MODEL_NUMBER);
 	return TRUE;
 }
@@ -263,18 +239,12 @@ nm_wifi_p2p_peer_get_serial (const NMWifiP2PPeer *peer)
 }
 
 gboolean
-nm_wifi_p2p_peer_set_serial (NMWifiP2PPeer *peer, const char *serial)
+nm_wifi_p2p_peer_set_serial (NMWifiP2PPeer *peer, const char *str)
 {
 	NMWifiP2PPeerPrivate *priv = NM_WIFI_P2P_PEER_GET_PRIVATE (peer);
-	g_return_val_if_fail (NM_IS_WIFI_P2P_PEER (peer), FALSE);
 
-	if (g_strcmp0 (serial, priv->serial) == 0)
+	if (!nm_utils_strdup_reset (&priv->serial, str))
 		return FALSE;
-
-	g_clear_pointer (&priv->serial, g_free);
-	if (serial)
-		priv->serial = g_strdup (serial);
-
 	_notify (peer, PROP_SERIAL);
 	return TRUE;
 }
@@ -291,6 +261,7 @@ gboolean
 nm_wifi_p2p_peer_set_wfd_ies (NMWifiP2PPeer *peer, GBytes *wfd_ies)
 {
 	NMWifiP2PPeerPrivate *priv;
+	gs_unref_bytes GBytes *wfd_ies_old = NULL;
 
 	g_return_val_if_fail (NM_IS_WIFI_P2P_PEER (peer), FALSE);
 
@@ -299,7 +270,7 @@ nm_wifi_p2p_peer_set_wfd_ies (NMWifiP2PPeer *peer, GBytes *wfd_ies)
 	if (nm_gbytes_equal0 (priv->wfd_ies, wfd_ies))
 		return FALSE;
 
-	g_bytes_unref (priv->wfd_ies);
+	wfd_ies_old = g_steal_pointer (&priv->wfd_ies);
 	priv->wfd_ies = wfd_ies ? g_bytes_ref (wfd_ies) : NULL;
 
 	_notify (peer, PROP_WFD_IES);
@@ -311,27 +282,7 @@ nm_wifi_p2p_peer_get_groups (const NMWifiP2PPeer *peer)
 {
 	g_return_val_if_fail (NM_IS_WIFI_P2P_PEER (peer), NULL);
 
-	return (const char * const*) NM_WIFI_P2P_PEER_GET_PRIVATE (peer)->groups;
-}
-
-static gboolean
-nm_wifi_p2p_peer_set_groups (NMWifiP2PPeer *peer, const char** groups)
-{
-	NMWifiP2PPeerPrivate *priv;
-
-	g_return_val_if_fail (NM_IS_WIFI_P2P_PEER (peer), FALSE);
-	g_return_val_if_fail (groups != NULL, FALSE);
-
-	priv = NM_WIFI_P2P_PEER_GET_PRIVATE (peer);
-
-	if (_nm_utils_strv_equal (priv->groups, (char **) groups))
-		return FALSE;
-
-	g_strfreev (priv->groups);
-	priv->groups = g_strdupv ((char**) groups);
-
-	_notify (peer, PROP_GROUPS);
-	return TRUE;
+	return (const char *const*) NM_WIFI_P2P_PEER_GET_PRIVATE (peer)->groups;
 }
 
 const char *
@@ -382,11 +333,7 @@ nm_wifi_p2p_peer_get_strength (NMWifiP2PPeer *peer)
 gboolean
 nm_wifi_p2p_peer_set_strength (NMWifiP2PPeer *peer, const gint8 strength)
 {
-	NMWifiP2PPeerPrivate *priv;
-
-	g_return_val_if_fail (NM_IS_WIFI_P2P_PEER (peer), FALSE);
-
-	priv = NM_WIFI_P2P_PEER_GET_PRIVATE (peer);
+	NMWifiP2PPeerPrivate *priv = NM_WIFI_P2P_PEER_GET_PRIVATE (peer);
 
 	if (priv->strength != strength) {
 		priv->strength = strength;
@@ -426,80 +373,42 @@ nm_wifi_p2p_peer_set_last_seen (NMWifiP2PPeer *peer, gint32 last_seen)
 
 gboolean
 nm_wifi_p2p_peer_update_from_properties (NMWifiP2PPeer *peer,
-                                         const char *supplicant_path,
-                                         GVariant *properties)
+                                         const NMSupplicantPeerInfo *peer_info)
 {
 	NMWifiP2PPeerPrivate *priv;
-	const guint8 *bytes;
-	GVariant *v;
-	gsize len;
-	const char *s;
-	const char **sv;
-	gint32 i32;
 	gboolean changed = FALSE;
 
 	g_return_val_if_fail (NM_IS_WIFI_P2P_PEER (peer), FALSE);
-	g_return_val_if_fail (properties, FALSE);
+	g_return_val_if_fail (peer_info, FALSE);
+	nm_assert (NM_IS_REF_STRING (peer_info->peer_path));
 
 	priv = NM_WIFI_P2P_PEER_GET_PRIVATE (peer);
 
+	nm_assert (   !priv->supplicant_path
+	           || priv->supplicant_path == peer_info->peer_path);
+
 	g_object_freeze_notify (G_OBJECT (peer));
 
-	if (g_variant_lookup (properties, "level", "i", &i32))
-		changed |= nm_wifi_p2p_peer_set_strength (peer, nm_wifi_utils_level_to_quality (i32));
-
-	if (g_variant_lookup (properties, "DeviceName", "&s", &s))
-		changed |= nm_wifi_p2p_peer_set_name (peer, s);
-
-	if (g_variant_lookup (properties, "Manufacturer", "&s", &s))
-		changed |= nm_wifi_p2p_peer_set_manufacturer (peer, s);
-
-	if (g_variant_lookup (properties, "Model", "&s", &s))
-		changed |= nm_wifi_p2p_peer_set_model (peer, s);
-
-	if (g_variant_lookup (properties, "ModelNumber", "&s", &s))
-		changed |= nm_wifi_p2p_peer_set_model_number (peer, s);
-
-	if (g_variant_lookup (properties, "Serial", "&s", &s))
-		changed |= nm_wifi_p2p_peer_set_serial (peer, s);
-
-	v = g_variant_lookup_value (properties, "DeviceAddress", G_VARIANT_TYPE_BYTESTRING);
-	if (v) {
-		bytes = g_variant_get_fixed_array (v, &len, 1);
-		if (   len == ETH_ALEN
-		    && memcmp (bytes, nm_ip_addr_zero.addr_eth, ETH_ALEN) != 0
-		    && memcmp (bytes, (char[ETH_ALEN]) { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }, ETH_ALEN) != 0)
-			changed |= nm_wifi_p2p_peer_set_address_bin (peer, bytes);
-		g_variant_unref (v);
-	}
-
-	/* The IEs property contains the WFD R1 subelements */
-	v = g_variant_lookup_value (properties, "IEs", G_VARIANT_TYPE_BYTESTRING);
-	if (v) {
-		gs_unref_bytes GBytes *b = NULL;
-
-		bytes = g_variant_get_fixed_array (v, &len, 1);
-		b = g_bytes_new (bytes, len);
-		changed |= nm_wifi_p2p_peer_set_wfd_ies (peer, b);
-		g_variant_unref (v);
-	}
-
-	v = g_variant_lookup_value (properties, "Groups", G_VARIANT_TYPE_OBJECT_PATH_ARRAY);
-	if (v) {
-		sv = g_variant_get_objv (v, NULL);
-		changed |= nm_wifi_p2p_peer_set_groups (peer, sv);
-		g_free (sv);
-	}
-
-	/*if (max_rate)
-		changed |= nm_wifi_p2p_peer_set_max_bitrate (peer, max_rate / 1000);*/
-
 	if (!priv->supplicant_path) {
-		priv->supplicant_path = g_strdup (supplicant_path);
+		priv->supplicant_path = nm_ref_string_ref (peer_info->peer_path);
 		changed = TRUE;
 	}
 
-	changed |= nm_wifi_p2p_peer_set_last_seen (peer, nm_utils_get_monotonic_timestamp_s ());
+	changed |= nm_wifi_p2p_peer_set_strength (peer, peer_info->signal_percent);
+	changed |= nm_wifi_p2p_peer_set_name (peer, peer_info->device_name);
+	changed |= nm_wifi_p2p_peer_set_manufacturer (peer, peer_info->manufacturer);
+	changed |= nm_wifi_p2p_peer_set_model (peer, peer_info->model);
+	changed |= nm_wifi_p2p_peer_set_model_number (peer, peer_info->model_number);
+	changed |= nm_wifi_p2p_peer_set_serial (peer, peer_info->serial);
+
+	if (peer_info->address_valid)
+		changed |= nm_wifi_p2p_peer_set_address_bin (peer, peer_info->address);
+	else {
+		/* we don't reset the address. */
+	}
+
+	changed |= nm_wifi_p2p_peer_set_wfd_ies (peer, peer_info->ies);
+	changed |= nm_wifi_p2p_peer_set_last_seen (peer, peer_info->last_seen_msec / 1000u);
 
 	g_object_thaw_notify (G_OBJECT (peer));
 
@@ -521,7 +430,7 @@ nm_wifi_p2p_peer_to_string (const NMWifiP2PPeer *self,
 	priv = NM_WIFI_P2P_PEER_GET_PRIVATE (self);
 
 	if (priv->supplicant_path)
-		supplicant_id = strrchr (priv->supplicant_path, '/') ?: supplicant_id;
+		supplicant_id = strrchr (priv->supplicant_path->str, '/') ?: supplicant_id;
 
 	export_path = nm_dbus_object_get_path (NM_DBUS_OBJECT (self));
 	if (export_path)
@@ -537,7 +446,7 @@ nm_wifi_p2p_peer_to_string (const NMWifiP2PPeer *self,
 	            priv->model,
 	            priv->model_number,
 	            priv->serial,
-	            priv->last_seen > 0 ? ((now_s > 0 ? now_s : nm_utils_get_monotonic_timestamp_s ()) - priv->last_seen) : -1,
+	            priv->last_seen > 0 ? ((now_s > 0 ? now_s : nm_utils_get_monotonic_timestamp_sec ()) - priv->last_seen) : -1,
 	            supplicant_id,
 	            export_path);
 
@@ -601,12 +510,6 @@ get_property (GObject *object, guint prop_id,
 	case PROP_WFD_IES:
 		g_value_take_variant (value, nm_utils_gbytes_to_variant_ay (priv->wfd_ies));
 		break;
-	case PROP_GROUPS:
-		g_value_set_variant (value,
-		                      g_variant_new_strv (   (const char*const*) priv->groups
-		                                          ?: NM_PTRARRAY_EMPTY (const char *),
-		                                          -1));
-		break;
 	case PROP_HW_ADDRESS:
 		g_value_set_string (value, priv->address);
 		break;
@@ -616,7 +519,7 @@ get_property (GObject *object, guint prop_id,
 	case PROP_LAST_SEEN:
 		g_value_set_int (value,
 		                 priv->last_seen > 0
-		                     ? (int) nm_utils_monotonic_timestamp_as_boottime (priv->last_seen, NM_UTILS_NS_PER_SECOND)
+		                     ? (int) nm_utils_monotonic_timestamp_as_boottime (priv->last_seen, NM_UTILS_NSEC_PER_SEC)
 		                     : -1);
 		break;
 	default:
@@ -643,22 +546,14 @@ nm_wifi_p2p_peer_init (NMWifiP2PPeer *self)
 }
 
 NMWifiP2PPeer *
-nm_wifi_p2p_peer_new_from_properties (const char *supplicant_path, GVariant *properties)
+nm_wifi_p2p_peer_new_from_properties (const NMSupplicantPeerInfo *peer_info)
 {
 	NMWifiP2PPeer *peer;
 
-	g_return_val_if_fail (supplicant_path != NULL, NULL);
-	g_return_val_if_fail (properties != NULL, NULL);
+	g_return_val_if_fail (peer_info, NULL);
 
-	peer = (NMWifiP2PPeer *) g_object_new (NM_TYPE_WIFI_P2P_PEER, NULL);
-	nm_wifi_p2p_peer_update_from_properties (peer, supplicant_path, properties);
-
-	/* ignore peers with invalid or missing address */
-	if (!nm_wifi_p2p_peer_get_address (peer)) {
-		g_object_unref (peer);
-		return NULL;
-	}
-
+	peer = g_object_new (NM_TYPE_WIFI_P2P_PEER, NULL);
+	nm_wifi_p2p_peer_update_from_properties (peer, peer_info);
 	return peer;
 }
 
@@ -671,7 +566,7 @@ finalize (GObject *object)
 	nm_assert (!self->wifi_device);
 	nm_assert (c_list_is_empty (&self->peers_lst));
 
-	g_free (priv->supplicant_path);
+	nm_ref_string_unref (priv->supplicant_path);
 	g_free (priv->name);
 	g_free (priv->manufacturer);
 	g_free (priv->model);
@@ -688,6 +583,7 @@ static const NMDBusInterfaceInfoExtended interface_info_p2p_peer = {
 	.parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT (
 		NM_DBUS_INTERFACE_WIFI_P2P_PEER,
 		.properties = NM_DEFINE_GDBUS_PROPERTY_INFOS (
+			/* Before 1.24, we wrongly exposed a property "Groups" of type "as". Don't reuse that property name. */
 			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE ("Flags",        "u",  NM_WIFI_P2P_PEER_FLAGS),
 			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE ("Name",         "s",  NM_WIFI_P2P_PEER_NAME),
 			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE ("Manufacturer", "s",  NM_WIFI_P2P_PEER_MANUFACTURER),
@@ -695,7 +591,6 @@ static const NMDBusInterfaceInfoExtended interface_info_p2p_peer = {
 			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE ("ModelNumber",  "s",  NM_WIFI_P2P_PEER_MODEL_NUMBER),
 			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE ("Serial",       "s",  NM_WIFI_P2P_PEER_SERIAL),
 			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE ("WfdIEs",       "ay", NM_WIFI_P2P_PEER_WFD_IES),
-			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE ("Groups",       "as", NM_WIFI_P2P_PEER_GROUPS),
 			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE ("HwAddress",    "s",  NM_WIFI_P2P_PEER_HW_ADDRESS),
 			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE ("Strength",     "y",  NM_WIFI_P2P_PEER_STRENGTH),
 			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE ("LastSeen",     "i",  NM_WIFI_P2P_PEER_LAST_SEEN),
@@ -753,12 +648,6 @@ nm_wifi_p2p_peer_class_init (NMWifiP2PPeerClass *klass)
 	obj_properties[PROP_WFD_IES] =
 	    g_param_spec_variant (NM_WIFI_P2P_PEER_WFD_IES, "", "",
 	                          G_VARIANT_TYPE ("ay"),
-	                          NULL,
-	                          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
-
-	obj_properties[PROP_GROUPS] =
-	    g_param_spec_variant (NM_WIFI_P2P_PEER_GROUPS, "", "",
-	                          G_VARIANT_TYPE ("as"),
 	                          NULL,
 	                          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 

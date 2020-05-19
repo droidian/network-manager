@@ -25,7 +25,7 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMSettingMatch,
 /**
  * NMSettingMatch:
  *
- * Match settings.
+ * Match settings
  *
  * Since: 1.14
  */
@@ -171,10 +171,11 @@ nm_setting_match_clear_interface_names (NMSettingMatch *setting)
 /**
  * nm_setting_match_get_interface_names:
  * @setting: the #NMSettingMatch
+ * @length: (out): the length of the returned interface names array.
  *
  * Returns all the interface names.
  *
- * Returns: (transfer none): the configured interface names.
+ * Returns: (transfer none) (array length=length): the configured interface names.
  *
  * Since: 1.14
  **/

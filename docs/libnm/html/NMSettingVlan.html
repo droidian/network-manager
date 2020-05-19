@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingUser.html" title="NMSettingUser">
 <link rel="next" href="NMSettingVpn.html" title="NMSettingVpn">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,8 +37,8 @@
 <a name="NMSettingVlan.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -156,12 +156,12 @@
 <tr>
 <td class="property_type"><a class="link" href="NMSettingVlan.html#NMVlanFlags" title="enum NMVlanFlags"><span class="type">NMVlanFlags</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVlan.html#NMSettingVlan--flags" title="The “flags” property">flags</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVlan.html#NMSettingVlan--id" title="The “id” property">id</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-String-Utility-Functions.html#GStrv"><span class="type">GStrv</span></a></td>
@@ -172,7 +172,7 @@
 <td class="property_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingVlan.html#NMSettingVlan--parent" title="The “parent” property">parent</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 </tbody>
 </table></div>
@@ -181,8 +181,8 @@
 <a name="NMSettingVlan.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -791,7 +791,7 @@ to 802.1p priorities used in VLANs.</p>
 <td class="enum_member_name"><p><a name="NM-VLAN-FLAG-REORDER-HEADERS:CAPS"></a>NM_VLAN_FLAG_REORDER_HEADERS</p></td>
 <td class="enum_member_description">
 <p>indicates that this interface should reorder
- outgoing packet headers to look more like a non-VLAN Ethernet interface</p>
+outgoing packet headers to look more like a non-VLAN Ethernet interface</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -799,7 +799,7 @@ to 802.1p priorities used in VLANs.</p>
 <td class="enum_member_name"><p><a name="NM-VLAN-FLAG-GVRP:CAPS"></a>NM_VLAN_FLAG_GVRP</p></td>
 <td class="enum_member_description">
 <p>indicates that this interface should use GVRP to register
- itself with its switch</p>
+itself with its switch</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -807,8 +807,8 @@ to 802.1p priorities used in VLANs.</p>
 <td class="enum_member_name"><p><a name="NM-VLAN-FLAG-LOOSE-BINDING:CAPS"></a>NM_VLAN_FLAG_LOOSE_BINDING</p></td>
 <td class="enum_member_description">
 <p>indicates that this interface's operating
- state is tied to the underlying network interface but other details
- (like routing) are not.</p>
+state is tied to the underlying network interface but other details
+(like routing) are not.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -816,7 +816,7 @@ to 802.1p priorities used in VLANs.</p>
 <td class="enum_member_name"><p><a name="NM-VLAN-FLAG-MVRP:CAPS"></a>NM_VLAN_FLAG_MVRP</p></td>
 <td class="enum_member_description">
 <p>indicates that this interface should use MVRP to register
- itself with its switch</p>
+itself with its switch</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -838,6 +838,7 @@ to 802.1p priorities used in VLANs.</p>
 <p>For outgoing packets, a list of mappings from Linux SKB priorities to
 802.1p priorities.  The mapping is given in the format "from:to" where
 both "from" and "to" are unsigned integers, ie "7:3".</p>
+<p>Owner: NMSettingVlan</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -854,7 +855,8 @@ protocol).</p>
 but it used to be 0. To preserve backward compatibility, the default-value
 in the D-Bus API continues to be 0 and a missing property on D-Bus
 is still considered as 0.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: NM_VLAN_FLAG_REORDER_HEADERS</p>
 </div>
 <hr>
@@ -863,7 +865,8 @@ is still considered as 0.</p>
 <pre class="programlisting">  “id”                       <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>The VLAN identifier that the interface created by this connection should
 be assigned. The valid range is from 0 to 4094, without the reserved id 4095.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVlan</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 4095</p>
 <p>Default value: 0</p>
 </div>
@@ -874,6 +877,7 @@ be assigned. The valid range is from 0 to 4094, without the reserved id 4095.</p
 <p>For incoming packets, a list of mappings from 802.1p priorities to Linux
 SKB priorities.  The mapping is given in the format "from:to" where both
 "from" and "to" are unsigned integers, ie "7:3".</p>
+<p>Owner: NMSettingVlan</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -884,12 +888,13 @@ SKB priorities.  The mapping is given in the format "from:to" where both
 from which this VLAN interface should be created.  If this property is
 not specified, the connection must contain an <a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="type">NMSettingWired</span></a> setting
 with a <a class="link" href="NMSettingWired.html#NMSettingWired--mac-address" title="The “mac-address” property"><span class="type">“mac-address”</span></a> property.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

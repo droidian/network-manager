@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LGPL-2.1+
+
 libnm_core_inc = include_directories('.')
 
 libnm_core_nm_default_dep = declare_dependency(
@@ -56,6 +58,7 @@ libnm_core_headers = files(
   'nm-setting-user.h',
   'nm-setting-vlan.h',
   'nm-setting-vpn.h',
+  'nm-setting-vrf.h',
   'nm-setting-vxlan.h',
   'nm-setting-wifi-p2p.h',
   'nm-setting-wimax.h',
@@ -85,7 +88,7 @@ libnm_core_enum_sources = gnome.mkenums_simple(
 
 libnm_libnm_core_intern = static_library(
   'nm-libnm-core-intern',
-  sources: nm_ethtool_utils_source + nm_libnm_core_utils_source + [libnm_core_enum_sources[1]],
+  sources: nm_ethtool_utils_source + nm_libnm_core_utils_source + nm_auth_subject_source + [libnm_core_enum_sources[1]],
   dependencies: libnm_core_nm_default_dep,
   c_args: common_c_flags,
 )
@@ -150,6 +153,7 @@ libnm_core_settings_sources = files(
   'nm-setting-user.c',
   'nm-setting-vlan.c',
   'nm-setting-vpn.c',
+  'nm-setting-vrf.c',
   'nm-setting-vxlan.c',
   'nm-setting-wifi-p2p.c',
   'nm-setting-wimax.c',
@@ -165,8 +169,6 @@ libnm_core_sources = libnm_core_settings_sources + files(
   'nm-crypto.c',
   'nm-dbus-utils.c',
   'nm-errors.c',
-  'nm-keyfile-utils.c',
-  'nm-keyfile.c',
   'nm-property-compare.c',
   'nm-setting.c',
   'nm-simple-connection.c',
@@ -230,6 +232,24 @@ libnm_libnm_core_aux_dep = declare_dependency(
   include_directories: [libnm_core_inc, shared_inc],
   dependencies: glib_dep,
   link_with: libnm_libnm_core_aux,
+)
+
+libnm_keyfile = static_library(
+  'nm-keyfile',
+  sources: nm_keyfile_source + [libnm_core_enum_sources[1]],
+  dependencies: libnm_utils_base_dep,
+  c_args: [
+    '-DG_LOG_DOMAIN="@0@"'.format(libnm_name),
+    '-DNETWORKMANAGER_COMPILATION=(NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_CORE_INTERNAL|NM_NETWORKMANAGER_COMPILATION_WITH_GLIB|NM_NETWORKMANAGER_COMPILATION_WITH_GLIB_I18N_LIB)',
+  ],
+  link_with: libnm_libnm_core_intern,
+)
+
+libnm_keyfile_dep = declare_dependency(
+  sources: [libnm_core_enum_sources[1], nm_version_macro_header],
+  include_directories: [libnm_core_inc, shared_inc],
+  dependencies: glib_dep,
+  link_with: libnm_keyfile,
 )
 
 enums_to_docbook = join_paths(source_root, 'tools', 'enums-to-docbook.pl')

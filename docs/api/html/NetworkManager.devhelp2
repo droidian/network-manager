@@ -55,6 +55,7 @@
         <sub name="" link="settings-user.html"/>
         <sub name="" link="settings-vlan.html"/>
         <sub name="" link="settings-vpn.html"/>
+        <sub name="" link="settings-vrf.html"/>
         <sub name="" link="settings-vxlan.html"/>
         <sub name="" link="settings-wifi-p2p.html"/>
         <sub name="" link="settings-wimax.html"/>
@@ -106,6 +107,7 @@
         <sub name="org.freedesktop.NetworkManager.Device.Tun" link="gdbus-org.freedesktop.NetworkManager.Device.Tun.html"/>
         <sub name="org.freedesktop.NetworkManager.Device.Veth" link="gdbus-org.freedesktop.NetworkManager.Device.Veth.html"/>
         <sub name="org.freedesktop.NetworkManager.Device.Vlan" link="gdbus-org.freedesktop.NetworkManager.Device.Vlan.html"/>
+        <sub name="org.freedesktop.NetworkManager.Device.Vrf" link="gdbus-org.freedesktop.NetworkManager.Device.Vrf.html"/>
         <sub name="org.freedesktop.NetworkManager.Device.Vxlan" link="gdbus-org.freedesktop.NetworkManager.Device.Vxlan.html"/>
         <sub name="org.freedesktop.NetworkManager.Device.WifiP2P" link="gdbus-org.freedesktop.NetworkManager.Device.WifiP2P.html"/>
         <sub name="org.freedesktop.NetworkManager.Device.WireGuard" link="gdbus-org.freedesktop.NetworkManager.Device.WireGuard.html"/>
@@ -276,6 +278,7 @@
     <keyword type="property" name="The &quot;Ip4Connectivity&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Ip4Connectivity"/>
     <keyword type="property" name="The &quot;Ip6Connectivity&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Ip6Connectivity"/>
     <keyword type="property" name="The &quot;InterfaceFlags&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.InterfaceFlags"/>
+    <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.HwAddress"/>
     <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Statistics.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Statistics.PropertiesChanged"/>
     <keyword type="property" name="The &quot;RefreshRateMs&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Statistics.html#gdbus-property-org-freedesktop-NetworkManager-Device-Statistics.RefreshRateMs"/>
     <keyword type="property" name="The &quot;TxBytes&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Statistics.html#gdbus-property-org-freedesktop-NetworkManager-Device-Statistics.TxBytes"/>
@@ -372,6 +375,7 @@
     <keyword type="property" name="The &quot;Carrier&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.Carrier"/>
     <keyword type="property" name="The &quot;Parent&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.Parent"/>
     <keyword type="property" name="The &quot;VlanId&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.VlanId"/>
+    <keyword type="property" name="The &quot;Table&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vrf.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vrf.Table"/>
     <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Vxlan.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Vxlan.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Parent&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vxlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.Parent"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vxlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.HwAddress"/>
@@ -531,6 +535,8 @@
     <keyword type="enum" name="enum NMTernary" link="nm-dbus-types.html#NMTernary"/>
     <keyword type="enum" name="enum NMManagerReloadFlags" link="nm-dbus-types.html#NMManagerReloadFlags"/>
     <keyword type="enum" name="enum NMDeviceInterfaceFlags" link="nm-dbus-types.html#NMDeviceInterfaceFlags"/>
+    <keyword type="enum" name="enum NMClientPermission" link="nm-dbus-types.html#NMClientPermission"/>
+    <keyword type="enum" name="enum NMClientPermissionResult" link="nm-dbus-types.html#NMClientPermissionResult"/>
     <keyword type="method" name="The GetSecrets() method" link="gdbus-org.freedesktop.NetworkManager.SecretAgent.html#gdbus-method-org-freedesktop-NetworkManager-SecretAgent.GetSecrets"/>
     <keyword type="method" name="The CancelGetSecrets() method" link="gdbus-org.freedesktop.NetworkManager.SecretAgent.html#gdbus-method-org-freedesktop-NetworkManager-SecretAgent.CancelGetSecrets"/>
     <keyword type="method" name="The SaveSecrets() method" link="gdbus-org.freedesktop.NetworkManager.SecretAgent.html#gdbus-method-org-freedesktop-NetworkManager-SecretAgent.SaveSecrets"/>
@@ -602,6 +608,7 @@
     <keyword type="constant" name="NM_DEVICE_TYPE_6LOWPAN" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.6.4.2.1.4.29.1.1id-1.4.17.2.6.4.2.1.4.29.1.2"/>
     <keyword type="constant" name="NM_DEVICE_TYPE_WIREGUARD" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.6.4.2.1.4.30.1.1id-1.4.17.2.6.4.2.1.4.30.1.2"/>
     <keyword type="constant" name="NM_DEVICE_TYPE_WIFI_P2P" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.6.4.2.1.4.31.1.1id-1.4.17.2.6.4.2.1.4.31.1.2"/>
+    <keyword type="constant" name="NM_DEVICE_TYPE_VRF" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.6.4.2.1.4.32.1.1id-1.4.17.2.6.4.2.1.4.32.1.2"/>
     <keyword type="constant" name="NM_DEVICE_CAP_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.7.4.2.1.4.1.1.1id-1.4.17.2.7.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_DEVICE_CAP_NM_SUPPORTED" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.7.4.2.1.4.2.1.1id-1.4.17.2.7.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_DEVICE_CAP_CARRIER_DETECT" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.7.4.2.1.4.3.1.1id-1.4.17.2.7.4.2.1.4.3.1.2"/>
@@ -638,6 +645,7 @@
     <keyword type="constant" name="NM_802_11_AP_SEC_KEY_MGMT_PSK" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.10.1.1id-1.4.17.2.10.4.2.1.4.10.1.2"/>
     <keyword type="constant" name="NM_802_11_AP_SEC_KEY_MGMT_802_1X" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.11.1.1id-1.4.17.2.10.4.2.1.4.11.1.2"/>
     <keyword type="constant" name="NM_802_11_AP_SEC_KEY_MGMT_SAE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.12.1.1id-1.4.17.2.10.4.2.1.4.12.1.2"/>
+    <keyword type="constant" name="NM_802_11_AP_SEC_KEY_MGMT_OWE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.13.1.1id-1.4.17.2.10.4.2.1.4.13.1.2"/>
     <keyword type="constant" name="NM_802_11_MODE_UNKNOWN" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.11.4.2.1.4.1.1.1id-1.4.17.2.11.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_802_11_MODE_ADHOC" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.11.4.2.1.4.2.1.1id-1.4.17.2.11.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_802_11_MODE_INFRA" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.11.4.2.1.4.3.1.1id-1.4.17.2.11.4.2.1.4.3.1.2"/>
@@ -831,6 +839,28 @@
     <keyword type="constant" name="NM_DEVICE_INTERFACE_FLAG_UP" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.32.4.2.1.4.2.1.1id-1.4.17.2.32.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_DEVICE_INTERFACE_FLAG_LOWER_UP" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.32.4.2.1.4.3.1.1id-1.4.17.2.32.4.2.1.4.3.1.2"/>
     <keyword type="constant" name="NM_DEVICE_INTERFACE_FLAG_CARRIER" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.32.4.2.1.4.4.1.1id-1.4.17.2.32.4.2.1.4.4.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.1.1.1id-1.4.17.2.33.4.2.1.4.1.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_ENABLE_DISABLE_NETWORK" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.2.1.1id-1.4.17.2.33.4.2.1.4.2.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIFI" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.3.1.1id-1.4.17.2.33.4.2.1.4.3.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_ENABLE_DISABLE_WWAN" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.4.1.1id-1.4.17.2.33.4.2.1.4.4.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIMAX" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.5.1.1id-1.4.17.2.33.4.2.1.4.5.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_SLEEP_WAKE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.6.1.1id-1.4.17.2.33.4.2.1.4.6.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_NETWORK_CONTROL" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.7.1.1id-1.4.17.2.33.4.2.1.4.7.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_WIFI_SHARE_PROTECTED" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.8.1.1id-1.4.17.2.33.4.2.1.4.8.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_WIFI_SHARE_OPEN" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.9.1.1id-1.4.17.2.33.4.2.1.4.9.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_SETTINGS_MODIFY_SYSTEM" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.10.1.1id-1.4.17.2.33.4.2.1.4.10.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_SETTINGS_MODIFY_OWN" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.11.1.1id-1.4.17.2.33.4.2.1.4.11.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_SETTINGS_MODIFY_HOSTNAME" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.12.1.1id-1.4.17.2.33.4.2.1.4.12.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.13.1.1id-1.4.17.2.33.4.2.1.4.13.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_RELOAD" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.14.1.1id-1.4.17.2.33.4.2.1.4.14.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_CHECKPOINT_ROLLBACK" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.15.1.1id-1.4.17.2.33.4.2.1.4.15.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_ENABLE_DISABLE_STATISTICS" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.16.1.1id-1.4.17.2.33.4.2.1.4.16.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.17.1.1id-1.4.17.2.33.4.2.1.4.17.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_WIFI_SCAN" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.18.1.1id-1.4.17.2.33.4.2.1.4.18.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_RESULT_UNKNOWN" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.34.4.2.1.4.1.1.1id-1.4.17.2.34.4.2.1.4.1.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_RESULT_YES" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.34.4.2.1.4.2.1.1id-1.4.17.2.34.4.2.1.4.2.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_RESULT_AUTH" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.34.4.2.1.4.3.1.1id-1.4.17.2.34.4.2.1.4.3.1.2"/>
+    <keyword type="constant" name="NM_CLIENT_PERMISSION_RESULT_NO" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.34.4.2.1.4.4.1.1id-1.4.17.2.34.4.2.1.4.4.1.2"/>
     <keyword type="constant" name="NM_VPN_SERVICE_STATE_UNKNOWN" link="nm-vpn-dbus-types.htmlnm-vpn-dbus-types.html#id-1.6.3.2.3.4.2.1.4.1.1.1id-1.6.3.2.3.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_VPN_SERVICE_STATE_INIT" link="nm-vpn-dbus-types.htmlnm-vpn-dbus-types.html#id-1.6.3.2.3.4.2.1.4.2.1.1id-1.6.3.2.3.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_VPN_SERVICE_STATE_SHUTDOWN" link="nm-vpn-dbus-types.htmlnm-vpn-dbus-types.html#id-1.6.3.2.3.4.2.1.4.3.1.1id-1.6.3.2.3.4.2.1.4.3.1.2"/>

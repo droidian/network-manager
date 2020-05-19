@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nm-settings-keyfile.html" title="nm-settings-keyfile">
 <link rel="next" href="nm-online.html" title="nm-online">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -67,8 +67,7 @@
           Users can create or modify the <span class="emphasis"><em>ifcfg-rh</em></span> connection files
           manually, even if that is not the recommended way of managing the profiles.
           However, if they choose to do that, they must inform NetworkManager about
-          their changes (see <span class="emphasis"><em>monitor-connection-file</em></span> in
-          <span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span>, and <span class="emphasis"><em>nmcli con (re)load</em></span>).
+          their changes (for example via <span class="emphasis"><em>nmcli con (re)load</em></span>).
         </p>
 <p><b>Some <span class="emphasis"><em>ifcfg-rh</em></span> configuration examples: </b></p>
 <pre class="programlisting"><span class="bold"><strong>Simple DHCP ethernet configuration:</strong></span>
@@ -222,7 +221,7 @@ DEVICETYPE=TeamPort
                     nameservers to resolv.conf".</p></li>
 <li class="listitem"><p><code class="literal">ONBOOT</code> -
                     initscripts use ONBOOT=yes to mark the devices that are to be activated
-                    during boot. NetworkManager extents this to also mean that this profile
+                    during boot. NetworkManager extends this to also mean that this profile
                     can be used for auto-connecting at any time.</p></li>
 <li class="listitem"><p><code class="literal">BOOTPROTO</code> -
                     NetworkManager supports traditional values <span class="emphasis"><em>none</em></span> (static),
@@ -362,6 +361,13 @@ Example: </strong></span>IEEE_8021X_ALTSUBJECT_MATCHES="s1.domain.cc"</td>
 <td align="left">Suffix to match domain of server certificate against.</td>
 </tr>
 <tr>
+<td align="left">domain-match</td>
+<td align="left">IEEE_8021X_DOMAIN_MATCH<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Value to match domain of server certificate against.</td>
+</tr>
+<tr>
 <td align="left">client-cert</td>
 <td align="left">IEEE_8021X_CLIENT_CERT<span class="emphasis"><em>(+)</em></span>
 </td>
@@ -454,6 +460,13 @@ Example: </strong></span>IEEE_8021X_PHASE2_SUBJECT_MATCH="Red Hat"</td>
 </td>
 <td align="left"> </td>
 <td align="left">Suffix to match domain of server certificate for phase 2 against.</td>
+</tr>
+<tr>
+<td align="left">phase2-domain-match</td>
+<td align="left">IEEE_8021X_PHASE2_DOMAIN_MATCH<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">Value to match domain of server certificate for phase 2 against.</td>
 </tr>
 <tr>
 <td align="left">phase2-client-cert</td>
@@ -746,6 +759,60 @@ Allowed values: </strong></span>0 - 4094</td>
 
 Example: </strong></span>BRIDGE_VLANS="1 pvid untagged,20,300-400 untagged"</td>
 </tr>
+<tr>
+<td align="left">group-address</td>
+<td align="left">BRIDGING_OPTS: group_address=</td>
+<td align="left"> </td>
+<td align="left">STP group address.<span class="bold"><strong>
+
+Example: </strong></span>BRIDGING_OPTS="group_address=01:80:C2:00:00:0A"</td>
+</tr>
+<tr>
+<td align="left">vlan-protocol</td>
+<td align="left">BRIDGING_OPTS: vlan_protocol=</td>
+<td align="left"> </td>
+<td align="left">VLAN filtering protocol.<span class="bold"><strong>
+
+Example: </strong></span>BRIDGING_OPTS="vlan_protocol=802.1Q"</td>
+</tr>
+<tr>
+<td align="left">vlan-stats-enabled</td>
+<td align="left">BRIDGING_OPTS: vlan_stats_enabled=</td>
+<td align="left">0</td>
+<td align="left">
+<span class="bold"><strong>
+
+Example: </strong></span>BRIDGING_OPTS="vlan_stats_enabled=1"</td>
+</tr>
+<tr>
+<td align="left">multicast-router</td>
+<td align="left">BRIDGING_OPTS: multicast_router=</td>
+<td align="left">auto</td>
+<td align="left">
+<span class="bold"><strong>
+
+Example: </strong></span>BRIDGING_OPTS="multicast_router=enabled"<span class="bold"><strong>
+
+Allowed values: </strong></span>auto, enabled, disabled</td>
+</tr>
+<tr>
+<td align="left">multicast-query-use-ifaddr</td>
+<td align="left">BRIDGING_OPTS: multicast_query_use_ifaddr=</td>
+<td align="left">0</td>
+<td align="left">
+<span class="bold"><strong>
+
+Example: </strong></span>BRIDGING_OPTS="multicast_query-use_ifaddr=1"</td>
+</tr>
+<tr>
+<td align="left">multicast-querier</td>
+<td align="left">BRIDGING_OPTS: multicast_querier=</td>
+<td align="left">0</td>
+<td align="left">
+<span class="bold"><strong>
+
+Example: </strong></span>BRIDGING_OPTS="multicast_querier=1"</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -846,7 +913,7 @@ Allowed values: </strong></span>-1 (use global default), 0 (forever) or a positi
 <td align="left"> </td>
 <td align="left">whether the profile can be active on multiple devices at a given moment. The values are numbers corresponding to #NMConnectionMultiConnect enum.<span class="bold"><strong>
 
-Example: </strong></span>ZONE=3</td>
+Example: </strong></span>MULTI_CONNECT=3</td>
 </tr>
 <tr>
 <td align="left">zone</td>
@@ -1892,7 +1959,25 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.9.7.28"></a><p class="title"><b>Table 62. wifi-p2p setting</b></p>
+<a name="id-1.2.9.7.28"></a><p class="title"><b>Table 62. vrf setting</b></p>
+<div class="table-contents"><table class="table" summary="vrf setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.9.7.29"></a><p class="title"><b>Table 63. wifi-p2p setting</b></p>
 <div class="table-contents"><table class="table" summary="wifi-p2p setting" border="1">
 <colgroup>
 <col>
@@ -1910,7 +1995,7 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.9.7.29"></a><p class="title"><b>Table 63. 802-3-ethernet setting</b></p>
+<a name="id-1.2.9.7.30"></a><p class="title"><b>Table 64. 802-3-ethernet setting</b></p>
 <div class="table-contents"><table class="table" summary="802-3-ethernet setting" border="1">
 <colgroup>
 <col>
@@ -2011,7 +2096,7 @@ Allowed values: </strong></span>"qeth", "lcs" or "ctc"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.9.7.30"></a><p class="title"><b>Table 64. wireguard setting</b></p>
+<a name="id-1.2.9.7.31"></a><p class="title"><b>Table 65. wireguard setting</b></p>
 <div class="table-contents"><table class="table" summary="wireguard setting" border="1">
 <colgroup>
 <col>
@@ -2029,7 +2114,7 @@ Allowed values: </strong></span>"qeth", "lcs" or "ctc"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.9.7.31"></a><p class="title"><b>Table 65. 802-11-wireless-security setting</b></p>
+<a name="id-1.2.9.7.32"></a><p class="title"><b>Table 66. 802-11-wireless-security setting</b></p>
 <div class="table-contents"><table class="table" summary="802-11-wireless-security setting" border="1">
 <colgroup>
 <col>
@@ -2211,7 +2296,7 @@ Allowed values: </strong></span>default, disable, optional, required</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.9.7.32"></a><p class="title"><b>Table 66. 802-11-wireless setting</b></p>
+<a name="id-1.2.9.7.33"></a><p class="title"><b>Table 67. 802-11-wireless setting</b></p>
 <div class="table-contents"><table class="table" summary="802-11-wireless setting" border="1">
 <colgroup>
 <col>
@@ -2359,7 +2444,7 @@ Allowed values: </strong></span>default, never, always</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.9.7.33"></a><p class="title"><b>Table 67. wpan setting</b></p>
+<a name="id-1.2.9.7.34"></a><p class="title"><b>Table 68. wpan setting</b></p>
 <div class="table-contents"><table class="table" summary="wpan setting" border="1">
 <colgroup>
 <col>
@@ -2418,6 +2503,6 @@ Allowed values: </strong></span>default, never, always</td>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

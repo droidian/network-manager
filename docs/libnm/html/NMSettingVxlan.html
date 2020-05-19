@@ -6,9 +6,9 @@
 <meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
-<link rel="prev" href="NMSettingVpn.html" title="NMSettingVpn">
+<link rel="prev" href="NMSettingVrf.html" title="NMSettingVrf">
 <link rel="next" href="NMSettingWifiP2P.html" title="NMSettingWifiP2P">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -21,7 +21,7 @@
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="NMSettingVpn.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="NMSettingVrf.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="NMSettingWifiP2P.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
@@ -37,8 +37,8 @@
 <a name="NMSettingVxlan.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -189,85 +189,85 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--ageing" title="The “ageing” property">ageing</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--destination-port" title="The “destination-port” property">destination-port</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--id" title="The “id” property">id</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--l2-miss" title="The “l2-miss” property">l2-miss</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--l3-miss" title="The “l3-miss” property">l3-miss</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--learning" title="The “learning” property">learning</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--limit" title="The “limit” property">limit</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--local" title="The “local” property">local</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--parent" title="The “parent” property">parent</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--proxy" title="The “proxy” property">proxy</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--remote" title="The “remote” property">remote</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--rsc" title="The “rsc” property">rsc</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--source-port-max" title="The “source-port-max” property">source-port-max</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--source-port-min" title="The “source-port-min” property">source-port-min</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--tos" title="The “tos” property">tos</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingVxlan.html#NMSettingVxlan--ttl" title="The “ttl” property">ttl</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 </tbody>
 </table></div>
@@ -276,8 +276,8 @@
 <a name="NMSettingVxlan.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -914,7 +914,8 @@ nm_setting_vxlan_get_l3_miss (<em class="parameter"><code><a class="link" href="
 <a name="NMSettingVxlan--ageing"></a><h3>The <code class="literal">“ageing”</code> property</h3>
 <pre class="programlisting">  “ageing”                   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>Specifies the lifetime in seconds of FDB entries learnt by the kernel.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 300</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -924,7 +925,8 @@ nm_setting_vxlan_get_l3_miss (<em class="parameter"><code><a class="link" href="
 <pre class="programlisting">  “destination-port”         <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>Specifies the UDP destination port to communicate to the remote VXLAN
 tunnel endpoint.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 65535</p>
 <p>Default value: 8472</p>
 <p class="since">Since: 1.2</p>
@@ -935,7 +937,8 @@ tunnel endpoint.</p>
 <pre class="programlisting">  “id”                       <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>Specifies the VXLAN Network Identifier (or VXLAN Segment Identifier) to
 use.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 16777215</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
@@ -945,7 +948,8 @@ use.</p>
 <a name="NMSettingVxlan--l2-miss"></a><h3>The <code class="literal">“l2-miss”</code> property</h3>
 <pre class="programlisting">  “l2-miss”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Specifies whether netlink LL ADDR miss notifications are generated.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -954,7 +958,8 @@ use.</p>
 <a name="NMSettingVxlan--l3-miss"></a><h3>The <code class="literal">“l3-miss”</code> property</h3>
 <pre class="programlisting">  “l3-miss”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Specifies whether netlink IP ADDR miss notifications are generated.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -964,7 +969,8 @@ use.</p>
 <pre class="programlisting">  “learning”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Specifies whether unknown source link layer addresses and IP addresses
 are entered into the VXLAN device forwarding database.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: TRUE</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -974,7 +980,8 @@ are entered into the VXLAN device forwarding database.</p>
 <pre class="programlisting">  “limit”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>Specifies the maximum number of FDB entries. A value of zero means that
 the kernel will store unlimited entries.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -983,7 +990,8 @@ the kernel will store unlimited entries.</p>
 <a name="NMSettingVxlan--local"></a><h3>The <code class="literal">“local”</code> property</h3>
 <pre class="programlisting">  “local”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>If given, specifies the source IP address to use in outgoing packets.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -992,7 +1000,8 @@ the kernel will store unlimited entries.</p>
 <a name="NMSettingVxlan--parent"></a><h3>The <code class="literal">“parent”</code> property</h3>
 <pre class="programlisting">  “parent”                   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>If given, specifies the parent interface name or parent connection UUID.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -1001,7 +1010,8 @@ the kernel will store unlimited entries.</p>
 <a name="NMSettingVxlan--proxy"></a><h3>The <code class="literal">“proxy”</code> property</h3>
 <pre class="programlisting">  “proxy”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Specifies whether ARP proxy is turned on.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -1012,7 +1022,8 @@ the kernel will store unlimited entries.</p>
 <p>Specifies the unicast destination IP address to use in outgoing packets
 when the destination link layer address is not known in the VXLAN device
 forwarding database, or the multicast IP address to join.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -1021,7 +1032,8 @@ forwarding database, or the multicast IP address to join.</p>
 <a name="NMSettingVxlan--rsc"></a><h3>The <code class="literal">“rsc”</code> property</h3>
 <pre class="programlisting">  “rsc”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Specifies whether route short circuit is turned on.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 <p class="since">Since: 1.2</p>
 </div>
@@ -1031,7 +1043,8 @@ forwarding database, or the multicast IP address to join.</p>
 <pre class="programlisting">  “source-port-max”          <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>Specifies the maximum UDP source port to communicate to the remote VXLAN
 tunnel endpoint.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 65535</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
@@ -1042,7 +1055,8 @@ tunnel endpoint.</p>
 <pre class="programlisting">  “source-port-min”          <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>Specifies the minimum UDP source port to communicate to the remote VXLAN
 tunnel endpoint.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 65535</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
@@ -1052,7 +1066,8 @@ tunnel endpoint.</p>
 <a name="NMSettingVxlan--tos"></a><h3>The <code class="literal">“tos”</code> property</h3>
 <pre class="programlisting">  “tos”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>Specifies the TOS value to use in outgoing packets.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 255</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
@@ -1062,7 +1077,8 @@ tunnel endpoint.</p>
 <a name="NMSettingVxlan--ttl"></a><h3>The <code class="literal">“ttl”</code> property</h3>
 <pre class="programlisting">  “ttl”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>Specifies the time-to-live value to use in outgoing packets.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingVxlan</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 255</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
@@ -1070,6 +1086,6 @@ tunnel endpoint.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

@@ -215,24 +215,18 @@
 # define NM_AVAILABLE_IN_1_22
 #endif
 
-#if NM_VERSION_MIN_REQUIRED >= NM_VERSION_1_22_2
-# define NM_DEPRECATED_IN_1_22_2           G_DEPRECATED
-# define NM_DEPRECATED_IN_1_22_2_FOR(f)    G_DEPRECATED_FOR(f)
+#if NM_VERSION_MIN_REQUIRED >= NM_VERSION_1_24
+# define NM_DEPRECATED_IN_1_24           G_DEPRECATED
+# define NM_DEPRECATED_IN_1_24_FOR(f)    G_DEPRECATED_FOR(f)
 #else
-# define NM_DEPRECATED_IN_1_22_2
-# define NM_DEPRECATED_IN_1_22_2_FOR(f)
+# define NM_DEPRECATED_IN_1_24
+# define NM_DEPRECATED_IN_1_24_FOR(f)
 #endif
 
-#if NM_VERSION_MAX_ALLOWED < NM_VERSION_1_22_2
-# define NM_AVAILABLE_IN_1_22_2            G_UNAVAILABLE(1,22.2)
+#if NM_VERSION_MAX_ALLOWED < NM_VERSION_1_24
+# define NM_AVAILABLE_IN_1_24            G_UNAVAILABLE(1,24)
 #else
-# define NM_AVAILABLE_IN_1_22_2
-#endif
-
-#if NM_VERSION_MAX_ALLOWED < NM_VERSION_1_22_8
-# define NM_AVAILABLE_IN_1_22_8            G_UNAVAILABLE(1,22.8)
-#else
-# define NM_AVAILABLE_IN_1_22_8
+# define NM_AVAILABLE_IN_1_24
 #endif
 
 /*
@@ -255,10 +249,11 @@
  *     around g_dbus_connection_call_sync(). You may call it directly
  *     without feeling dirty.
  *
- * We don't want to force users away from this API, for that reason the
- * macro does not yet expand to G_DEPRECATED.
+ * The API is marked as deprecated since 1.22, however the macro only starts
+ * complaining in 1.24. That's intentional, because in 1.22 the asynchronous
+ * alternative was not yet available.
  */
-#define _NM_DEPRECATED_SYNC_METHOD            /*NM_DEPRECATED_IN_1_22*/
-#define _NM_DEPRECATED_SYNC_WRITABLE_PROPERTY /*NM_DEPRECATED_IN_1_22*/
+#define _NM_DEPRECATED_SYNC_METHOD               NM_DEPRECATED_IN_1_24
+#define _NM_DEPRECATED_SYNC_WRITABLE_PROPERTY /* NM_DEPRECATED_IN_1_22 */
 
 #endif  /* NM_VERSION_H */

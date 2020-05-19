@@ -1738,6 +1738,7 @@ static void
 test_read_wired_autoip (void)
 {
 	gs_unref_object NMConnection *connection = NULL;
+	NMSettingConnection *s_con;
 	NMSettingIPConfig *s_ip4;
 	char *unmanaged = NULL;
 
@@ -1751,6 +1752,9 @@ test_read_wired_autoip (void)
 	g_assert_cmpstr (nm_setting_ip_config_get_method (s_ip4), ==, NM_SETTING_IP4_CONFIG_METHOD_LINK_LOCAL);
 	g_assert (!nm_setting_ip_config_get_may_fail (s_ip4));
 	g_assert (nm_setting_ip_config_get_ignore_auto_dns (s_ip4));
+
+	s_con = nm_connection_get_setting_connection (connection);
+	g_assert_cmpint (nm_setting_connection_get_wait_device_timeout (s_con), ==, 2600);
 }
 
 static void
@@ -2094,7 +2098,7 @@ test_read_wired_aliases_good (gconstpointer test_data)
 		g_assert (ip4_addr != NULL);
 
 		addr = nm_ip_address_get_address (ip4_addr);
-		g_assert (nm_utils_ipaddr_valid (AF_INET, addr));
+		g_assert (nm_utils_ipaddr_is_valid (AF_INET, addr));
 
 		for (j = 0; j < expected_num_addresses; j++) {
 			if (!g_strcmp0 (addr, expected_address[j]))
@@ -2868,7 +2872,7 @@ test_ifcfg_no_trailing_newline (void)
 	shvarFile *sv;
 
 	sv = _svOpenFile (TEST_IFCFG_DIR"/ifcfg-test-wifi-wpa-psk");
-	_svGetValue_check (sv, "LAST_ENTRY", "no-newline");
+	_svGetValue_check (sv, "CTCPROT", "no-newline");
 	svCloseFile (sv);
 }
 
@@ -3031,6 +3035,45 @@ test_read_wifi_sae (void)
 	g_assert (s_wsec);
 	g_assert_cmpstr (nm_setting_wireless_security_get_key_mgmt (s_wsec), ==, "sae");
 	g_assert_cmpstr (nm_setting_wireless_security_get_psk (s_wsec), ==, "The king is dead.");
+	g_assert (!nm_setting_wireless_security_get_auth_alg (s_wsec));
+}
+
+static void
+test_read_wifi_owe (void)
+{
+	gs_unref_object NMConnection *connection = NULL;
+	NMSettingConnection *s_con;
+	NMSettingWireless *s_wireless;
+	NMSettingWirelessSecurity *s_wsec;
+	GBytes *ssid;
+	const char *expected_ssid = "blahblah_owe";
+
+	connection = _connection_from_file (TEST_IFCFG_DIR"/ifcfg-test-wifi-owe",
+	                                    NULL, TYPE_WIRELESS, NULL);
+
+	s_con = nm_connection_get_setting_connection (connection);
+	g_assert (s_con);
+	g_assert_cmpstr (nm_setting_connection_get_id (s_con), ==, "System blahblah_owe (test-wifi-owe)");
+
+	g_assert_cmpint (nm_setting_connection_get_timestamp (s_con), ==, 0);
+	g_assert (nm_setting_connection_get_autoconnect (s_con));
+
+	s_wireless = nm_connection_get_setting_wireless (connection);
+	g_assert (s_wireless);
+
+	g_assert_cmpint (nm_setting_wireless_get_mtu (s_wireless), ==, 0);
+
+	ssid = nm_setting_wireless_get_ssid (s_wireless);
+	g_assert (ssid);
+	g_assert_cmpmem (g_bytes_get_data (ssid, NULL), g_bytes_get_size (ssid), expected_ssid, strlen (expected_ssid));
+
+	g_assert (!nm_setting_wireless_get_bssid (s_wireless));
+	g_assert_cmpstr (nm_setting_wireless_get_mode (s_wireless), ==, "infrastructure");
+
+	s_wsec = nm_connection_get_setting_wireless_security (connection);
+	g_assert (s_wsec);
+	g_assert_cmpstr (nm_setting_wireless_security_get_key_mgmt (s_wsec), ==, "owe");
+	g_assert (!nm_setting_wireless_security_get_psk (s_wsec));
 	g_assert (!nm_setting_wireless_security_get_auth_alg (s_wsec));
 }
 
@@ -9742,23 +9785,23 @@ test_write_unknown (gconstpointer test_data)
 	_nmtst_svFileSetModified (sv);
 
 	if (g_str_has_suffix (testfile, "ifcfg-test-write-unknown-4")) {
-		_svGetValue_check (sv, "NAME", "l4x");
-		_svGetValue_check (sv, "NAME2", "");
-		_svGetValue_check (sv, "NAME3", "name3-value");
+		_svGetValue_check (sv, "IPADDR", "l4x");
+		_svGetValue_check (sv, "IPADDR2", "");
+		_svGetValue_check (sv, "IPADDR3", "name3-value");
 
-		svSetValue (sv, "NAME", "set-by-test1");
-		svSetValue (sv, "NAME2", NULL);
-		svSetValue (sv, "NAME2", "set-by-test2");
-		svSetValue (sv, "NAME3", "set-by-test3");
+		svSetValue (sv, "IPADDR", "set-by-test1");
+		svSetValue (sv, "IPADDR2", NULL);
+		svSetValue (sv, "IPADDR2", "set-by-test2");
+		svSetValue (sv, "IPADDR3", "set-by-test3");
 
-		_svGetValue_check (sv, "some_key", NULL);
-		_svGetValue_check (sv, "some_key1", "");
-		_svGetValue_check (sv, "some_key2", "");
-		_svGetValue_check (sv, "some_key3", "x");
+		_svGetValue_check (sv, "METRIC", NULL);
+		_svGetValue_check (sv, "METRIC1", "");
+		_svGetValue_check (sv, "METRIC2", "");
+		_svGetValue_check (sv, "METRIC3", "x");
 
-		_svGetValue_check (sv, "NAME", "set-by-test1");
-		_svGetValue_check (sv, "NAME2", "set-by-test2");
-		_svGetValue_check (sv, "NAME3", "set-by-test3");
+		_svGetValue_check (sv, "IPADDR", "set-by-test1");
+		_svGetValue_check (sv, "IPADDR2", "set-by-test2");
+		_svGetValue_check (sv, "IPADDR3", "set-by-test3");
 	}
 
 	success = svWriteFile (sv, 0644, &error);
@@ -10203,6 +10246,160 @@ test_tc_write (void)
 
 /*****************************************************************************/
 
+static void
+test_well_known_keys (void)
+{
+	gsize i;
+
+	for (i = 0; i < G_N_ELEMENTS (nms_ifcfg_well_known_keys); i++) {
+		const NMSIfcfgKeyTypeInfo *ti = &nms_ifcfg_well_known_keys[i];
+
+		g_assert (ti->key_name);
+		g_assert (ti->key_name[0]);
+		g_assert (NM_FLAGS_HAS (ti->key_flags, NMS_IFCFG_KEY_TYPE_WELL_KNOWN));
+		g_assert (nm_utils_is_power_of_two (ti->key_flags & (  NMS_IFCFG_KEY_TYPE_IS_PLAIN
+		                                                     | NMS_IFCFG_KEY_TYPE_IS_NUMBERED
+		                                                     | NMS_IFCFG_KEY_TYPE_IS_PREFIX)));
+	}
+
+	for (i = 1; i < G_N_ELEMENTS (nms_ifcfg_well_known_keys); i++) {
+		const NMSIfcfgKeyTypeInfo *ti_prev = &nms_ifcfg_well_known_keys[i - 1];
+		const NMSIfcfgKeyTypeInfo *ti = &nms_ifcfg_well_known_keys[i];
+
+		g_assert_cmpstr (ti_prev->key_name, <, ti->key_name);
+	}
+
+	for (i = 0; i < G_N_ELEMENTS (nms_ifcfg_well_known_keys); i++) {
+		const NMSIfcfgKeyTypeInfo *ti = &nms_ifcfg_well_known_keys[i];
+		gs_free char *key_name = NULL;
+		gssize idx;
+
+		g_assert (ti == nms_ifcfg_well_known_key_find_info (ti->key_name, &idx));
+		g_assert_cmpint (i, ==, idx);
+
+		key_name = g_strdup (ti->key_name);
+		g_assert (ti == nms_ifcfg_well_known_key_find_info (key_name, &idx));
+		g_assert_cmpint (i, ==, idx);
+	}
+
+#define _test_well_known(key, expected) \
+	G_STMT_START { \
+		const NMSIfcfgKeyTypeInfo *_ti; \
+		const char *_expected = (expected); \
+		\
+		_ti = nms_ifcfg_rh_utils_is_well_known_key (""key""); \
+		if (!_expected) { \
+			g_assert (!_ti); \
+		} else { \
+			g_assert (_ti); \
+			g_assert_cmpstr (_ti->key_name, ==, _expected); \
+		} \
+	} G_STMT_END
+
+#define _test_well_known_plain(key) \
+	_test_well_known (""key"", ""key"")
+
+	_test_well_known_plain ("ONBOOT");
+	_test_well_known ("NM_USER_",  NULL);
+	_test_well_known ("NM_USER_x", "NM_USER_");
+	_test_well_known ("IPADDR",    "IPADDR");
+	_test_well_known ("IPADDR1",   "IPADDR");
+	_test_well_known ("IPADDRx",   NULL);
+}
+
+/*****************************************************************************/
+
+static void
+_do_utils_has_route_file_new_syntax_size (gboolean has_new_syntax,
+                                          const char *content,
+                                          gssize content_len)
+{
+	nmtst_auto_unlinkfile char *testfile = g_strdup (TEST_SCRATCH_DIR"/utils-has-route-file-new-syntax-test.txt");
+	gboolean val;
+
+	nmtst_file_set_contents_size (testfile, content, content_len);
+
+	val = utils_has_route_file_new_syntax (testfile);
+
+	g_assert_cmpint (val, ==, has_new_syntax);
+}
+#define _do_utils_has_route_file_new_syntax(has_new_syntax, content) \
+	_do_utils_has_route_file_new_syntax_size (has_new_syntax, (content), NM_STRLEN (content))
+
+static void
+test_utils_has_route_file_new_syntax (void)
+{
+	_do_utils_has_route_file_new_syntax (TRUE,  "");
+	_do_utils_has_route_file_new_syntax (FALSE, "\0");
+	_do_utils_has_route_file_new_syntax (FALSE, "\n");
+	_do_utils_has_route_file_new_syntax (FALSE, "ADDRESS=bogus");
+	_do_utils_has_route_file_new_syntax (FALSE, "ADDRESS=bogus\0");
+	_do_utils_has_route_file_new_syntax (TRUE,  "ADDRESS1=b\0ogus\0");
+	_do_utils_has_route_file_new_syntax (TRUE,  "ADDRESS1=bogus\0");
+	_do_utils_has_route_file_new_syntax (TRUE,  "\n\n\tADDRESS1=bogus\0");
+	_do_utils_has_route_file_new_syntax (FALSE, "\n\n\tADDRESS=bogus\n");
+	_do_utils_has_route_file_new_syntax (TRUE,  "\n\n\tADDRESS=bogus\n  ADDRESS000=\n");
+	_do_utils_has_route_file_new_syntax (FALSE, "\n\n\tROUTE1=bogus\n  ADDRES=\n");
+	_do_utils_has_route_file_new_syntax (FALSE, "\n\n\tADDRESS=bogus\n  ADDRESS\000000=\n");
+}
+
+/*****************************************************************************/
+
+static void
+test_ethtool_names (void)
+{
+	static const struct {
+		NMEthtoolID ethtool_id;
+		const char *kernel_name;
+	} kernel_names[] = {
+		{ NM_ETHTOOL_ID_FEATURE_GRO,    "rx-gro" },
+		{ NM_ETHTOOL_ID_FEATURE_GSO,    "tx-generic-segmentation" },
+		{ NM_ETHTOOL_ID_FEATURE_LRO,    "rx-lro" },
+		{ NM_ETHTOOL_ID_FEATURE_NTUPLE, "rx-ntuple-filter" },
+		{ NM_ETHTOOL_ID_FEATURE_RX,     "rx-checksum" },
+		{ NM_ETHTOOL_ID_FEATURE_RXHASH, "rx-hashing" },
+		{ NM_ETHTOOL_ID_FEATURE_RXVLAN, "rx-vlan-hw-parse" },
+		{ NM_ETHTOOL_ID_FEATURE_TXVLAN, "tx-vlan-hw-insert" },
+	};
+	const NMEthtoolData *data;
+	NMEthtoolID id;
+	int i;
+
+	for (id = _NM_ETHTOOL_ID_FEATURE_FIRST; id <= _NM_ETHTOOL_ID_FEATURE_LAST; id++) {
+		const char *ifcfg_rh_name;
+		int idx;
+
+		idx = id - _NM_ETHTOOL_ID_FEATURE_FIRST;
+		g_assert (idx >= 0);
+		g_assert (idx < G_N_ELEMENTS (_nm_ethtool_ifcfg_names));
+		ifcfg_rh_name = _nm_ethtool_ifcfg_names[idx];
+		g_assert (ifcfg_rh_name && ifcfg_rh_name[0]);
+
+		for (i = 0; i < G_N_ELEMENTS (_nm_ethtool_ifcfg_names); i++) {
+			if (i != idx)
+				g_assert_cmpstr (ifcfg_rh_name, !=, _nm_ethtool_ifcfg_names[i]);
+		}
+
+		g_assert_cmpstr (nms_ifcfg_rh_utils_get_ethtool_name (id), ==, ifcfg_rh_name);
+
+		data = nms_ifcfg_rh_utils_get_ethtool_by_name (ifcfg_rh_name);
+		g_assert (data);
+		g_assert (data->id == id);
+	}
+
+	for (i = 0; i < G_N_ELEMENTS (kernel_names); i++) {
+		const char *name = kernel_names[i].kernel_name;
+
+		id = kernel_names[i].ethtool_id;
+		data = nms_ifcfg_rh_utils_get_ethtool_by_name (name);
+		g_assert (data);
+		g_assert (data->id == id);
+		g_assert_cmpstr (nms_ifcfg_rh_utils_get_ethtool_name (id), !=, name);
+	}
+}
+
+/*****************************************************************************/
+
 #define TPATH "/settings/plugins/ifcfg-rh/"
 
 #define TEST_IFCFG_WIFI_OPEN_SSID_LONG_QUOTED TEST_IFCFG_DIR"/ifcfg-test-wifi-open-ssid-long-quoted"
@@ -10322,6 +10519,7 @@ int main (int argc, char **argv)
 	g_test_add_func (TPATH "wifi/read/wpa-psk/adhoc", test_read_wifi_wpa_psk_adhoc);
 	g_test_add_func (TPATH "wifi/read/wpa-psk/hex", test_read_wifi_wpa_psk_hex);
 	g_test_add_func (TPATH "wifi/read/sae", test_read_wifi_sae);
+	g_test_add_func (TPATH "wifi/read/owe", test_read_wifi_owe);
 	g_test_add_func (TPATH "wifi/read/dynamic-wep/leap", test_read_wifi_dynamic_wep_leap);
 	g_test_add_func (TPATH "wifi/read/wpa/eap/tls", test_read_wifi_wpa_eap_tls);
 	g_test_add_func (TPATH "wifi/read/wpa/eap/ttls/tls", test_read_wifi_wpa_eap_ttls_tls);
@@ -10498,6 +10696,10 @@ int main (int argc, char **argv)
 
 	g_test_add_func (TPATH "tc/read", test_tc_read);
 	g_test_add_func (TPATH "tc/write", test_tc_write);
+	g_test_add_func (TPATH "utils/test_well_known_keys", test_well_known_keys);
+	g_test_add_func (TPATH "utils/test_utils_has_route_file_new_syntax", test_utils_has_route_file_new_syntax);
+
+	g_test_add_func (TPATH "utils/test_ethtool_names", test_ethtool_names);
 
 	return g_test_run ();
 }

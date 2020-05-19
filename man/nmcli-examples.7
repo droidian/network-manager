@@ -2,12 +2,12 @@
 .\"     Title: nmcli-examples
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 03/12/2020
+.\"      Date: 05/08/2020
 .\"    Manual: Examples
-.\"    Source: NetworkManager 1.22.10
+.\"    Source: NetworkManager 1.24.0
 .\"  Language: English
 .\"
-.TH "NMCLI\-EXAMPLES" "7" "" "NetworkManager 1\&.22\&.10" "Examples"
+.TH "NMCLI\-EXAMPLES" "7" "" "NetworkManager 1\&.24\&.0" "Examples"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -73,7 +73,29 @@ option for displaying different columns\&.
 \fBnmcli \-f all dev wifi list\fR
 will show all of them\&.
 .PP
-\fBExample\ \&2.\ \&Showing general information and properties for a Wi\-Fi interface\fR
+\fBExample\ \&2.\ \&Connect to a password\-protected wifi network\fR
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \fBnmcli device wifi connect "$SSID" password "$PASSWORD"\fR
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \fBnmcli \-\-ask device wifi connect "$SSID"\fR
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+\fBExample\ \&3.\ \&Showing general information and properties for a Wi\-Fi interface\fR
 .sp
 .if n \{\
 .RS 4
@@ -120,7 +142,7 @@ WIFI\-PROPERTIES\&.ADHOC:    yes
 .PP
 This command shows information about a Wi\-Fi device\&.
 .PP
-\fBExample\ \&3.\ \&Listing NetworkManager polkit permissions\fR
+\fBExample\ \&4.\ \&Listing NetworkManager polkit permissions\fR
 .sp
 .if n \{\
 .RS 4
@@ -164,7 +186,7 @@ command can display description for polkit actions\&.
 .sp
 More information about polkit can be found at http://www\&.freedesktop\&.org/wiki/Software/polkit\&.
 .PP
-\fBExample\ \&4.\ \&Listing NetworkManager log level and domains\fR
+\fBExample\ \&5.\ \&Listing NetworkManager log level and domains\fR
 .sp
 .if n \{\
 .RS 4
@@ -183,7 +205,7 @@ B,DISPATCH
 .PP
 This command shows current NetworkManager logging status\&.
 .PP
-\fBExample\ \&5.\ \&Changing NetworkManager logging\fR
+\fBExample\ \&6.\ \&Changing NetworkManager logging\fR
 .sp
 .if n \{\
 .RS 4
@@ -200,7 +222,7 @@ The first command makes NetworkManager log in DEBUG level, and only for CORE, ET
 \fBNetworkManager.conf\fR(5)
 manual page for available logging levels and domains\&.
 .PP
-\fBExample\ \&6.\ \&Activating a VPN connection profile requiring interactive password input\fR
+\fBExample\ \&7.\ \&Activating a VPN connection profile requiring interactive password input\fR
 .sp
 .if n \{\
 .RS 4
@@ -218,7 +240,7 @@ are set to \*(Aq0x02\*(Aq (\*(Aqalways ask\*(Aq, see
 \fBnm-settings\fR(5)
 )\&. This is particularly useful for OTP based VPNs, as the user needs to be prompted for the password each time the connection is activated\&.
 .PP
-\fBExample\ \&7.\ \&Adding a bonding master and two slave connection profiles\fR
+\fBExample\ \&8.\ \&Adding a bonding master and two slave connection profiles\fR
 .sp
 .if n \{\
 .RS 4
@@ -242,7 +264,7 @@ mode\&. The next two commands add slaves connections, both enslaved to
 interface, the second to
 \fIeth2\fR\&.
 .PP
-\fBExample\ \&8.\ \&Adding a team master and two slave connection profiles\fR
+\fBExample\ \&9.\ \&Adding a team master and two slave connection profiles\fR
 .sp
 .if n \{\
 .RS 4
@@ -284,7 +306,7 @@ will use its default configuration\&. You will activate the whole setup by activ
 .sp
 By default, the created profiles are marked for auto\-activation\&. But if another connection has been activated on the device, the new profile won\*(Aqt activate automatically and you need to activate it manually\&.
 .PP
-\fBExample\ \&9.\ \&Adding a bridge and two slave profiles\fR
+\fBExample\ \&10.\ \&Adding a bridge and two slave profiles\fR
 .sp
 .if n \{\
 .RS 4
@@ -306,7 +328,7 @@ This example demonstrates adding a bridge master connection and two slaves\&. Th
 interface, the second to
 \fIens4\fR\&. The last command will disable 802\&.1D STP for the TowerBridge profile\&.
 .PP
-\fBExample\ \&10.\ \&Adding an ethernet connection profile with manual IP configuration\fR
+\fBExample\ \&11.\ \&Adding an ethernet connection profile with manual IP configuration\fR
 .sp
 .if n \{\
 .RS 4
@@ -330,7 +352,7 @@ that is bound to interface name
 \fIcon show\fR
 command displays the profile so that all parameters can be reviewed\&.
 .PP
-\fBExample\ \&11.\ \&Convenient field values retrieval for scripting\fR
+\fBExample\ \&12.\ \&Convenient field values retrieval for scripting\fR
 .sp
 .if n \{\
 .RS 4
@@ -370,7 +392,7 @@ This example shows retrieval of ip4 connection field values via the \-\-get\-val
 \fBnmcli\fR(1)
 manual page for more customized output\&.
 .PP
-\fBExample\ \&12.\ \&Adding an Ethernet connection and configuring SR\-IOV VFs\fR
+\fBExample\ \&13.\ \&Adding an Ethernet connection and configuring SR\-IOV VFs\fR
 .sp
 .if n \{\
 .RS 4
@@ -393,7 +415,7 @@ and
 \fIspoof\-check\fR
 features respectively enabled and disabled\&. VF number 2 has a maximux transmission rate of 20Mbps\&. The kernel is instructed to not automatically instantiate a network interface for the VFs\&.
 .PP
-\fBExample\ \&13.\ \&Escaping colon characters in tabular mode\fR
+\fBExample\ \&14.\ \&Escaping colon characters in tabular mode\fR
 .sp
 .if n \{\
 .RS 4
@@ -412,7 +434,7 @@ nager/ActiveConnection/9
 .PP
 This example shows escaping colon characters in tabular mode\&. It may be useful for script processing, because \*(Aq:\*(Aq is used as a field separator\&.
 .PP
-\fBExample\ \&14.\ \&nmcli usage in a NetworkManager dispatcher script to make Ethernet and Wi\-Fi mutually exclusive\fR
+\fBExample\ \&15.\ \&nmcli usage in a NetworkManager dispatcher script to make Ethernet and Wi\-Fi mutually exclusive\fR
 .sp
 .if n \{\
 .RS 4
@@ -450,7 +472,7 @@ manual page for more information about NetworkManager dispatcher scripts\&.
 .PP
 \fBExample sessions of interactive connection editor\fR
 .PP
-\fBExample\ \&15.\ \&Adding an ethernet connection profile in interactive editor (a)\fR
+\fBExample\ \&16.\ \&Adding an ethernet connection profile in interactive editor (a)\fR
 .sp
 .if n \{\
 .RS 4
@@ -690,7 +712,7 @@ nmcli> \fBquit\fR
 .PP
 Example session in the nmcli interactive connection editor\&. The scenario creates an Ethernet connection profile with static addressing (IPs and DNS)\&.
 .PP
-\fBExample\ \&16.\ \&Bluetooth connection profiles\fR
+\fBExample\ \&17.\ \&Bluetooth connection profiles\fR
 .PP
 NetworkManger supports both connecting to NAP and DUN devices as a client\&. It also supports sharing the network via a NAP server\&.
 .PP

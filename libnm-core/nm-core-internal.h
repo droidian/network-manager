@@ -61,6 +61,7 @@
 #include "nm-setting-tun.h"
 #include "nm-setting-vlan.h"
 #include "nm-setting-vpn.h"
+#include "nm-setting-vrf.h"
 #include "nm-setting-vxlan.h"
 #include "nm-setting-wifi-p2p.h"
 #include "nm-setting-wimax.h"
@@ -94,6 +95,7 @@
 #define NM_BR_PORT_DEF_PRIORITY 32
 
 #define NM_BR_PORT_MAX_PATH_COST 65535
+#define NM_BR_PORT_DEF_PATH_COST 100
 
 /* NM_SETTING_COMPARE_FLAG_INFERRABLE: check whether a device-generated
  * connection can be replaced by a already-defined connection. This flag only
@@ -389,15 +391,6 @@ GVariant *_nm_dbus_proxy_call_finish (GDBusProxy           *proxy,
                                       const GVariantType   *reply_type,
                                       GError              **error);
 
-GVariant *_nm_dbus_proxy_call_sync   (GDBusProxy           *proxy,
-                                      const char           *method_name,
-                                      GVariant             *parameters,
-                                      const GVariantType   *reply_type,
-                                      GDBusCallFlags        flags,
-                                      int                   timeout_msec,
-                                      GCancellable         *cancellable,
-                                      GError              **error);
-
 GVariant * _nm_dbus_connection_call_finish (GDBusConnection *dbus_connection,
                                             GAsyncResult *result,
                                             const GVariantType *reply_type,
@@ -495,15 +488,15 @@ NMSettingIPConfig *nm_connection_get_setting_ip_config (NMConnection *connection
 
 typedef enum {
 	NM_BOND_OPTION_TYPE_INT,
-	NM_BOND_OPTION_TYPE_STRING,
 	NM_BOND_OPTION_TYPE_BOTH,
 	NM_BOND_OPTION_TYPE_IP,
 	NM_BOND_OPTION_TYPE_MAC,
 	NM_BOND_OPTION_TYPE_IFNAME,
 } NMBondOptionType;
 
-NMBondOptionType
-_nm_setting_bond_get_option_type (NMSettingBond *setting, const char *name);
+NMBondOptionType _nm_setting_bond_get_option_type (NMSettingBond *setting, const char *name);
+
+const char* nm_setting_bond_get_option_or_default (NMSettingBond *self, const char *option);
 
 /*****************************************************************************/
 
@@ -528,14 +521,17 @@ NMConnectionMultiConnect _nm_connection_get_multi_connect (NMConnection *connect
 /*****************************************************************************/
 
 typedef enum {
-	NM_BOND_MODE_UNKNOWN = 0,
-	NM_BOND_MODE_ROUNDROBIN,
-	NM_BOND_MODE_ACTIVEBACKUP,
-	NM_BOND_MODE_XOR,
-	NM_BOND_MODE_BROADCAST,
-	NM_BOND_MODE_8023AD,
-	NM_BOND_MODE_TLB,
-	NM_BOND_MODE_ALB,
+	NM_BOND_MODE_UNKNOWN      = -1,
+
+	/* The numeric values correspond to kernel's numbering of the modes. */
+	NM_BOND_MODE_ROUNDROBIN   = 0,
+	NM_BOND_MODE_ACTIVEBACKUP = 1,
+	NM_BOND_MODE_XOR          = 2,
+	NM_BOND_MODE_BROADCAST    = 3,
+	NM_BOND_MODE_8023AD       = 4,
+	NM_BOND_MODE_TLB          = 5,
+	NM_BOND_MODE_ALB          = 6,
+	_NM_BOND_MODE_NUM,
 } NMBondMode;
 
 NMBondMode _nm_setting_bond_mode_from_string (const char *str);
@@ -544,34 +540,6 @@ gboolean _nm_setting_bond_option_supported (const char *option, NMBondMode mode)
 /*****************************************************************************/
 
 NMSettingBluetooth *_nm_connection_get_setting_bluetooth_for_nap (NMConnection *connection);
-
-/*****************************************************************************/
-
-const char *nm_utils_inet_ntop (int addr_family, gconstpointer addr, char *dst);
-
-static inline char *
-nm_utils_inet4_ntop_dup (in_addr_t addr)
-{
-	char buf[NM_UTILS_INET_ADDRSTRLEN];
-
-	return g_strdup (nm_utils_inet4_ntop (addr, buf));
-}
-
-static inline char *
-nm_utils_inet6_ntop_dup (const struct in6_addr *addr)
-{
-	char buf[NM_UTILS_INET_ADDRSTRLEN];
-
-	return g_strdup (nm_utils_inet6_ntop (addr, buf));
-}
-
-static inline char *
-nm_utils_inet_ntop_dup (int addr_family, gconstpointer addr)
-{
-	char buf[NM_UTILS_INET_ADDRSTRLEN];
-
-	return g_strdup (nm_utils_inet_ntop (addr_family, addr, buf));
-}
 
 gboolean _nm_utils_inet6_is_token (const struct in6_addr *in6addr);
 

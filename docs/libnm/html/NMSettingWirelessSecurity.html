@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingWireGuard.html" title="NMSettingWireGuard">
 <link rel="next" href="NMSettingWireless.html" title="NMSettingWireless">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -38,8 +38,8 @@ use WEP, LEAP, WPA or WPA2/RSN security</p>
 <a name="NMSettingWirelessSecurity.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -326,7 +326,7 @@ use WEP, LEAP, WPA or WPA2/RSN security</p>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--fils" title="The “fils” property">fils</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-String-Utility-Functions.html#GStrv"><span class="type">GStrv</span></a></td>
@@ -364,7 +364,7 @@ use WEP, LEAP, WPA or WPA2/RSN security</p>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--pmf" title="The “pmf” property">pmf</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-String-Utility-Functions.html#GStrv"><span class="type">GStrv</span></a></td>
@@ -390,7 +390,7 @@ use WEP, LEAP, WPA or WPA2/RSN security</p>
 <tr>
 <td class="property_type"><a class="link" href="NMSettingWirelessSecurity.html#NMWepKeyType" title="enum NMWepKeyType"><span class="type">NMWepKeyType</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--wep-key-type" title="The “wep-key-type” property">wep-key-type</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
@@ -419,12 +419,12 @@ use WEP, LEAP, WPA or WPA2/RSN security</p>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--wep-tx-keyidx" title="The “wep-tx-keyidx” property">wep-tx-keyidx</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--wps-method" title="The “wps-method” property">wps-method</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 </tbody>
 </table></div>
@@ -433,8 +433,8 @@ use WEP, LEAP, WPA or WPA2/RSN security</p>
 <a name="NMSettingWirelessSecurity.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -1915,6 +1915,7 @@ although, with the same numeric values.</p>
 for Open System, "shared" for Shared Key, or "leap" for Cisco LEAP.  When
 using Cisco LEAP (ie, key-mgmt = "ieee8021x" and auth-alg = "leap") the
 "leap-username" and "leap-password" properties must be specified.</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1930,7 +1931,8 @@ if the supplicant and the access point support it) or
 <a class="link" href="NMSettingWirelessSecurity.html#NM-SETTING-WIRELESS-SECURITY-FILS-REQUIRED:CAPS"><code class="literal">NM_SETTING_WIRELESS_SECURITY_FILS_REQUIRED</code></a> (enable FILS and fail if not
 supported).  When set to <a class="link" href="NMSettingWirelessSecurity.html#NM-SETTING-WIRELESS-SECURITY-FILS-DEFAULT:CAPS"><code class="literal">NM_SETTING_WIRELESS_SECURITY_FILS_DEFAULT</code></a> and
 no global default is set, FILS will be optionally enabled.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWirelessSecurity</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.12</p>
 </div>
@@ -1942,6 +1944,7 @@ no global default is set, FILS will be optionally enabled.</p>
 connections to Wi-Fi networks that do not utilize one of the algorithms
 in the list.  For maximum compatibility leave this property empty.  Each
 list element may be one of "wep40", "wep104", "tkip", or "ccmp".</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1950,8 +1953,10 @@ list element may be one of "wep40", "wep104", "tkip", or "ccmp".</p>
 <pre class="programlisting">  “key-mgmt”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Key management used for the connection.  One of "none" (WEP),
 "ieee8021x" (Dynamic WEP), "wpa-psk" (infrastructure WPA-PSK), "sae"
-(SAE) or "wpa-eap" (WPA-Enterprise).  This property must be set for
+(SAE), "owe" (Opportunistic Wireless Encryption) or "wpa-eap"
+(WPA-Enterprise).  This property must be set for
 any Wi-Fi connection that uses security.</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1961,6 +1966,7 @@ any Wi-Fi connection that uses security.</p>
 <pre class="programlisting">  “leap-password”            <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The login password for legacy LEAP connections (ie, key-mgmt =
 "ieee8021x" and auth-alg = "leap").</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1970,6 +1976,7 @@ any Wi-Fi connection that uses security.</p>
 <pre class="programlisting">  “leap-password-flags”      <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
 <p>Flags indicating how to handle the
 <a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--leap-password" title="The “leap-password” property"><span class="type">“leap-password”</span></a> property.</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1978,6 +1985,7 @@ any Wi-Fi connection that uses security.</p>
 <pre class="programlisting">  “leap-username”            <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The login username for legacy LEAP connections (ie, key-mgmt =
 "ieee8021x" and auth-alg = "leap").</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1989,6 +1997,7 @@ any Wi-Fi connection that uses security.</p>
 Wi-Fi networks that do not utilize one of the algorithms in the list.
 For maximum compatibility leave this property empty.  Each list element
 may be one of "tkip" or "ccmp".</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -2003,7 +2012,8 @@ the supplicant and the access point support it) or
 <a class="link" href="NMSettingWirelessSecurity.html#NM-SETTING-WIRELESS-SECURITY-PMF-REQUIRED:CAPS"><code class="literal">NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED</code></a> (enable PMF and fail if not
 supported).  When set to <a class="link" href="NMSettingWirelessSecurity.html#NM-SETTING-WIRELESS-SECURITY-PMF-DEFAULT:CAPS"><code class="literal">NM_SETTING_WIRELESS_SECURITY_PMF_DEFAULT</code></a> and no
 global default is set, PMF will be optionally enabled.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWirelessSecurity</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.10</p>
 </div>
@@ -2014,6 +2024,7 @@ global default is set, PMF will be optionally enabled.</p>
 <p>List of strings specifying the allowed WPA protocol versions to use.
 Each element may be one "wpa" (allow WPA) or "rsn" (allow WPA2/RSN).  If
 not specified, both WPA and RSN connections are allowed.</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -2025,6 +2036,7 @@ passphrase of 8 to 63 characters that is (as specified in the 802.11i
 standard) hashed to derive the actual key, or the key in form of 64
 hexadecimal character. The WPA3-Personal networks use a passphrase
 of any length for SAE authentication.</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -2034,6 +2046,7 @@ of any length for SAE authentication.</p>
 <pre class="programlisting">  “psk-flags”                <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
 <p>Flags indicating how to handle the <a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--psk" title="The “psk” property"><span class="type">“psk”</span></a>
 property.</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -2043,6 +2056,7 @@ property.</p>
 <p>Flags indicating how to handle the <a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--wep-key0" title="The “wep-key0” property"><span class="type">“wep-key0”</span></a>,
 <a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--wep-key1" title="The “wep-key1” property"><span class="type">“wep-key1”</span></a>, <a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--wep-key2" title="The “wep-key2” property"><span class="type">“wep-key2”</span></a>,
 and <a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecurity--wep-key3" title="The “wep-key3” property"><span class="type">“wep-key3”</span></a> properties.</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -2055,7 +2069,8 @@ and <a class="link" href="NMSettingWirelessSecurity.html#NMSettingWirelessSecuri
 or <a class="link" href="NMSettingWirelessSecurity.html#NM-WEP-KEY-TYPE-PASSPHRASE:CAPS"><code class="literal">NM_WEP_KEY_TYPE_PASSPHRASE</code></a>, in which case the passphrase is provided
 as a string and will be hashed using the de-facto MD5 method to derive
 the actual WEP key.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWirelessSecurity</p>
+<p>Flags: Read / Write</p>
 <p>Default value: NM_WEP_KEY_TYPE_UNKNOWN</p>
 </div>
 <hr>
@@ -2064,6 +2079,7 @@ the actual WEP key.</p>
 <pre class="programlisting">  “wep-key0”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Index 0 WEP key.  This is the WEP key used in most networks.  See the
 "wep-key-type" property for a description of how this key is interpreted.</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -2073,6 +2089,7 @@ the actual WEP key.</p>
 <pre class="programlisting">  “wep-key1”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Index 1 WEP key.  This WEP index is not used by most networks.  See the
 "wep-key-type" property for a description of how this key is interpreted.</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -2082,6 +2099,7 @@ the actual WEP key.</p>
 <pre class="programlisting">  “wep-key2”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Index 2 WEP key.  This WEP index is not used by most networks.  See the
 "wep-key-type" property for a description of how this key is interpreted.</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -2091,6 +2109,7 @@ the actual WEP key.</p>
 <pre class="programlisting">  “wep-key3”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Index 3 WEP key.  This WEP index is not used by most networks.  See the
 "wep-key-type" property for a description of how this key is interpreted.</p>
+<p>Owner: NMSettingWirelessSecurity</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -2102,7 +2121,8 @@ the actual WEP key.</p>
 index is used by the AP, put that WEP key index here.  Valid values are 0
 (default key) through 3.  Note that some consumer access points (like the
 Linksys WRT54G) number the keys 1 - 4.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWirelessSecurity</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: &lt;= 3</p>
 <p>Default value: 0</p>
 </div>
@@ -2115,13 +2135,14 @@ Linksys WRT54G) number the keys 1 - 4.</p>
 automatically determine whether it's feasible to start WPS enrollment from
 the Access Point capabilities.</p>
 <p>WPS can be disabled by setting this property to a value of 1.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWirelessSecurity</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.10</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

@@ -46,6 +46,8 @@ void nm_device_arp_announce (NMDevice *self);
 
 NMSettings *nm_device_get_settings (NMDevice *self);
 
+NMManager *nm_device_get_manager (NMDevice *self);
+
 gboolean nm_device_set_ip_ifindex (NMDevice *self, int ifindex);
 
 gboolean nm_device_set_ip_iface (NMDevice *self, const char *iface);
@@ -71,8 +73,10 @@ gboolean nm_device_hw_addr_reset (NMDevice *device, const char *detail);
 
 void nm_device_set_firmware_missing (NMDevice *self, gboolean missing);
 
-void nm_device_activate_schedule_stage1_device_prepare (NMDevice *device);
-void nm_device_activate_schedule_stage2_device_config (NMDevice *device);
+void nm_device_activate_schedule_stage1_device_prepare (NMDevice *device,
+                                                        gboolean do_sync);
+void nm_device_activate_schedule_stage2_device_config (NMDevice *device,
+                                                       gboolean do_sync);
 
 void nm_device_activate_schedule_ip_config_result (NMDevice *device,
                                                    int addr_family,
@@ -180,15 +184,14 @@ void nm_device_commit_mtu (NMDevice *self);
 	((NM_NARG (__VA_ARGS__) == 0) \
 	  ? NULL \
 	  : ({ \
-	      static const struct { \
-	          const NMLinkType types[NM_NARG (__VA_ARGS__)]; \
-	          const NMLinkType sentinel; \
-	      } _link_types = { \
-	          .types = { __VA_ARGS__ }, \
-	          .sentinel = NM_LINK_TYPE_NONE, \
+	      static const NMLinkType _types[NM_NARG (__VA_ARGS__) + 1] = { \
+	          __VA_ARGS__ \
+	          _NM_MACRO_COMMA_IF_ARGS (__VA_ARGS__) \
+	          NM_LINK_TYPE_NONE, \
 	      }; \
 	      \
-	      _link_types.types; \
+	      nm_assert (_types[NM_NARG (__VA_ARGS__)] == NM_LINK_TYPE_NONE); \
+	      _types; \
 	    })\
 	)
 
@@ -201,5 +204,16 @@ gboolean nm_device_match_parent (NMDevice *device, const char *parent);
 gboolean nm_device_match_parent_hwaddr (NMDevice *device,
                                         NMConnection *connection,
                                         gboolean fail_if_no_hwaddr);
+
+/*****************************************************************************/
+
+void nm_device_auth_request (NMDevice *self,
+                             GDBusMethodInvocation *context,
+                             NMConnection *connection,
+                             const char *permission,
+                             gboolean allow_interaction,
+                             GCancellable *cancellable,
+                             NMManagerDeviceAuthRequestFunc callback,
+                             gpointer user_data);
 
 #endif /* NM_DEVICE_PRIVATE_H */

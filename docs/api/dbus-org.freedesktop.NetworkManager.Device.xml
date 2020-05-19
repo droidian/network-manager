@@ -58,6 +58,7 @@
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Ip4Connectivity">Ip4Connectivity</link>       readable   u
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Ip6Connectivity">Ip6Connectivity</link>       readable   u
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.InterfaceFlags">InterfaceFlags</link>        readable   u
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.HwAddress">HwAddress</link>             readable   s
 </synopsis>
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device">
@@ -519,6 +520,17 @@ InterfaceFlags  readable   u
         <link linkend="NMDeviceInterfaceFlags">NMDeviceInterfaceFlags</link> for
         the currently defined flags.
 </para><para>        Since: 1.22
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device.HwAddress">
+  <title>The "HwAddress" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device.HwAddress"><primary sortas=".Device:HwAddress">org.freedesktop.NetworkManager.Device:HwAddress</primary></indexterm>
+<programlisting>
+HwAddress  readable   s
+</programlisting>
+<para>        The hardware address of the device.
+</para><para>        This replaces the other 'HwAddress' properties on the device-specific D-Bus interfaces.
+</para><para>        Since: 1.24
 </para>
 </refsect2>
 </refsect1>

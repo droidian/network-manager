@@ -41,26 +41,20 @@ NM_GOBJECT_PROPERTIES_DEFINE_BASE (
 );
 
 typedef struct {
-	gboolean auto_config;
-
 	char *number; /* For dialing, duh */
 	char *username;
 	char *password;
-	NMSettingSecretFlags password_flags;
-
-	/* Restrict connection to certain devices or SIMs */
 	char *device_id;
 	char *sim_id;
 	char *sim_operator_id;
-
 	char *apn; /* NULL for dynamic */
 	char *network_id; /* for manual registration or NULL for automatic */
-
 	char *pin;
+	NMSettingSecretFlags password_flags;
 	NMSettingSecretFlags pin_flags;
-
-	gboolean home_only;
 	guint32 mtu;
+	bool auto_config:1;
+	bool home_only:1;
 } NMSettingGsmPrivate;
 
 G_DEFINE_TYPE (NMSettingGsm, nm_setting_gsm, NM_TYPE_SETTING)
@@ -91,7 +85,7 @@ nm_setting_gsm_get_auto_config (NMSettingGsm *setting)
  *
  * Returns: the #NMSettingGsm:number property of the setting
  *
- * Deprecated: 1.16:  user-provided values for this setting are no longer used.
+ * Deprecated: 1.16: User-provided values for this setting are no longer used.
  **/
 const char *
 nm_setting_gsm_get_number (NMSettingGsm *setting)
@@ -665,7 +659,7 @@ nm_setting_gsm_class_init (NMSettingGsmClass *klass)
 	 * Legacy setting that used to help establishing PPP data sessions for
 	 * GSM-based modems.
 	 *
-	 * Deprecated: 1.16: user-provided values for this setting are no longer used.
+	 * Deprecated: 1.16: User-provided values for this setting are no longer used.
 	 **/
 	obj_properties[PROP_NUMBER] =
 	    g_param_spec_string (NM_SETTING_GSM_NUMBER, "", "",
@@ -842,7 +836,6 @@ nm_setting_gsm_class_init (NMSettingGsmClass *klass)
 	    g_param_spec_uint (NM_SETTING_GSM_MTU, "", "",
 	                       0, G_MAXUINT32, 0,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       NM_SETTING_PARAM_FUZZY_IGNORE |
 	                       G_PARAM_STATIC_STRINGS);
 

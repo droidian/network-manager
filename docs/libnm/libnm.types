@@ -14,6 +14,7 @@ nm_checkpoint_create_flags_get_type
 nm_checkpoint_get_type
 nm_client_error_get_type
 nm_client_get_type
+nm_client_instance_flags_get_type
 nm_client_permission_get_type
 nm_client_permission_result_get_type
 nm_connection_error_get_type
@@ -51,6 +52,7 @@ nm_device_team_get_type
 nm_device_tun_get_type
 nm_device_type_get_type
 nm_device_vlan_get_type
+nm_device_vrf_get_type
 nm_device_vxlan_get_type
 nm_device_wifi_capabilities_get_type
 nm_device_wifi_get_type
@@ -140,6 +142,7 @@ nm_setting_tun_mode_get_type
 nm_setting_user_get_type
 nm_setting_vlan_get_type
 nm_setting_vpn_get_type
+nm_setting_vrf_get_type
 nm_setting_vxlan_get_type
 nm_setting_wifi_p2p_get_type
 nm_setting_wimax_get_type
@@ -179,6 +182,9 @@ nm_vpn_editor_plugin_capability_get_type
 nm_vpn_editor_plugin_get_type
 nm_vpn_plugin_error_get_type
 nm_vpn_plugin_failure_get_type
+nm_vpn_plugin_info_get_type
+nm_vpn_plugin_old_get_type
+nm_vpn_service_plugin_get_type
 nm_vpn_service_state_get_type
 nm_wep_key_type_get_type
 nm_wifi_p2p_peer_get_type

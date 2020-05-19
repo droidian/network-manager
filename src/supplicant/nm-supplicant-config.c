@@ -14,7 +14,7 @@
 
 #include "nm-supplicant-settings-verify.h"
 #include "nm-setting.h"
-#include "nm-auth-subject.h"
+#include "nm-libnm-core-intern/nm-auth-subject.h"
 #include "NetworkManagerUtils.h"
 #include "nm-utils.h"
 #include "nm-setting-ip4-config.h"
@@ -30,13 +30,10 @@ typedef struct {
 typedef struct {
 	GHashTable *config;
 	GHashTable *blobs;
-	guint32    ap_scan;
-	gboolean   fast_required;
-	gboolean   dispose_has_run;
-	gboolean   support_pmf;
-	gboolean   support_fils;
-	gboolean   support_ft;
-	gboolean   support_sha384;
+	NMSupplCapMask capabilities;
+	guint32 ap_scan;
+	bool fast_required:1;
+	bool dispose_has_run:1;
 } NMSupplicantConfigPrivate;
 
 struct _NMSupplicantConfig {
@@ -54,9 +51,15 @@ G_DEFINE_TYPE (NMSupplicantConfig, nm_supplicant_config, G_TYPE_OBJECT)
 
 /*****************************************************************************/
 
+static gboolean
+_get_capability (NMSupplicantConfigPrivate *priv,
+                 NMSupplCapType type)
+{
+	return NM_SUPPL_CAP_MASK_GET (priv->capabilities, type) == NM_TERNARY_TRUE;
+}
+
 NMSupplicantConfig *
-nm_supplicant_config_new (gboolean support_pmf, gboolean support_fils,
-                          gboolean support_ft, gboolean support_sha384)
+nm_supplicant_config_new (NMSupplCapMask capabilities)
 {
 	NMSupplicantConfigPrivate *priv;
 	NMSupplicantConfig *self;
@@ -64,10 +67,7 @@ nm_supplicant_config_new (gboolean support_pmf, gboolean support_fils,
 	self = g_object_new (NM_TYPE_SUPPLICANT_CONFIG, NULL);
 	priv = NM_SUPPLICANT_CONFIG_GET_PRIVATE (self);
 
-	priv->support_pmf = support_pmf;
-	priv->support_fils = support_fils;
-	priv->support_ft = support_ft;
-	priv->support_sha384 = support_sha384;
+	priv->capabilities = capabilities;
 
 	return self;
 }
@@ -87,10 +87,6 @@ nm_supplicant_config_init (NMSupplicantConfig * self)
 	priv->config = g_hash_table_new_full (nm_str_hash, g_str_equal,
 	                                      g_free,
 	                                      (GDestroyNotify) config_option_free);
-
-	priv->blobs = g_hash_table_new_full (nm_str_hash, g_str_equal,
-	                                     g_free,
-	                                     (GDestroyNotify) g_bytes_unref);
 
 	priv->ap_scan = 1;
 	priv->dispose_has_run = FALSE;
@@ -224,6 +220,11 @@ nm_supplicant_config_add_blob (NMSupplicantConfig *self,
 	nm_log_info (LOGD_SUPPLICANT, "Config: added '%s' value '%s'", key, opt->value);
 
 	g_hash_table_insert (priv->config, g_strdup (key), opt);
+	if (!priv->blobs) {
+		priv->blobs = g_hash_table_new_full (nm_str_hash, g_str_equal,
+		                                     g_free,
+		                                     (GDestroyNotify) g_bytes_unref);
+	}
 	g_hash_table_insert (priv->blobs,
 	                     g_strdup (blobid),
 	                     g_bytes_ref (value));
@@ -256,10 +257,10 @@ nm_supplicant_config_add_blob_for_connection (NMSupplicantConfig *self,
 static void
 nm_supplicant_config_finalize (GObject *object)
 {
-	NMSupplicantConfigPrivate *priv = NM_SUPPLICANT_CONFIG_GET_PRIVATE ((NMSupplicantConfig *) object);
+	NMSupplicantConfigPrivate *priv = NM_SUPPLICANT_CONFIG_GET_PRIVATE (object);
 
 	g_hash_table_destroy (priv->config);
-	g_hash_table_destroy (priv->blobs);
+	nm_clear_pointer (&priv->blobs, g_hash_table_destroy);
 
 	G_OBJECT_CLASS (nm_supplicant_config_parent_class)->finalize (object);
 }
@@ -768,7 +769,7 @@ nm_supplicant_config_add_setting_wireless_security (NMSupplicantConfig *self,
 	g_return_val_if_fail (!error || !*error, FALSE);
 
 	/* Check if we actually support FILS */
-	if (!priv->support_fils) {
+	if (!_get_capability (priv, NM_SUPPL_CAP_TYPE_FILS)) {
 		if (fils == NM_SETTING_WIRELESS_SECURITY_FILS_REQUIRED) {
 			g_set_error_literal (error, NM_SUPPLICANT_ERROR, NM_SUPPLICANT_ERROR_CONFIG,
 			                     "Supplicant does not support FILS");
@@ -780,36 +781,40 @@ nm_supplicant_config_add_setting_wireless_security (NMSupplicantConfig *self,
 	key_mgmt = nm_setting_wireless_security_get_key_mgmt (setting);
 	key_mgmt_conf = g_string_new (key_mgmt);
 	if (nm_streq (key_mgmt, "wpa-psk")) {
-		if (priv->support_pmf)
+		if (_get_capability (priv, NM_SUPPL_CAP_TYPE_PMF))
 			g_string_append (key_mgmt_conf, " wpa-psk-sha256");
-		if (priv->support_ft)
+		if (_get_capability (priv, NM_SUPPL_CAP_TYPE_FT))
 			g_string_append (key_mgmt_conf, " ft-psk");
 	} else if (nm_streq (key_mgmt, "wpa-eap")) {
-		if (priv->support_pmf)
+		if (_get_capability (priv, NM_SUPPL_CAP_TYPE_PMF))
 			g_string_append (key_mgmt_conf, " wpa-eap-sha256");
-		if (priv->support_ft)
+		if (_get_capability (priv, NM_SUPPL_CAP_TYPE_FT))
 			g_string_append (key_mgmt_conf, " ft-eap");
-		if (priv->support_ft && priv->support_sha384)
+		if (   _get_capability (priv, NM_SUPPL_CAP_TYPE_FT)
+		    && _get_capability (priv, NM_SUPPL_CAP_TYPE_SHA384))
 			g_string_append (key_mgmt_conf, " ft-eap-sha384");
 		switch (fils) {
 		case NM_SETTING_WIRELESS_SECURITY_FILS_REQUIRED:
 			g_string_truncate (key_mgmt_conf, 0);
-			if (!priv->support_pmf)
+			if (!_get_capability (priv, NM_SUPPL_CAP_TYPE_PMF))
 				g_string_assign (key_mgmt_conf, "fils-sha256 fils-sha384");
 			/* fall-through */
 		case NM_SETTING_WIRELESS_SECURITY_FILS_OPTIONAL:
-			if (priv->support_pmf)
+			if (_get_capability (priv, NM_SUPPL_CAP_TYPE_PMF))
 				g_string_append (key_mgmt_conf, " fils-sha256 fils-sha384");
-			if (priv->support_pmf && priv->support_ft)
+			if (   _get_capability (priv, NM_SUPPL_CAP_TYPE_PMF)
+			    && _get_capability (priv, NM_SUPPL_CAP_TYPE_FT))
 				g_string_append (key_mgmt_conf, " ft-fils-sha256");
-			if (priv->support_pmf && priv->support_ft & priv->support_sha384)
+			if (   _get_capability (priv, NM_SUPPL_CAP_TYPE_PMF)
+			    && _get_capability (priv, NM_SUPPL_CAP_TYPE_FT)
+			    && _get_capability (priv, NM_SUPPL_CAP_TYPE_SHA384))
 				g_string_append (key_mgmt_conf, " ft-fils-sha384");
 			break;
 		default:
 			break;
 		}
 	} else if (nm_streq (key_mgmt, "sae")) {
-		if (priv->support_ft)
+		if (_get_capability (priv, NM_SUPPL_CAP_TYPE_FT))
 			g_string_append (key_mgmt_conf, " ft-sae");
 	}
 
@@ -867,13 +872,13 @@ nm_supplicant_config_add_setting_wireless_security (NMSupplicantConfig *self,
 		}
 	}
 
-	/* Don't try to enable PMF on non-WPA/SAE networks */
-	if (!NM_IN_STRSET (key_mgmt, "wpa-eap", "wpa-psk", "sae"))
+	/* Don't try to enable PMF on non-WPA/SAE/OWE networks */
+	if (!NM_IN_STRSET (key_mgmt, "wpa-eap", "wpa-psk", "sae", "owe"))
 		pmf = NM_SETTING_WIRELESS_SECURITY_PMF_DISABLE;
 
 	/* Check if we actually support PMF */
 	set_pmf = TRUE;
-	if (!priv->support_pmf) {
+	if (!_get_capability (priv, NM_SUPPL_CAP_TYPE_PMF)) {
 		if (pmf == NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED) {
 			g_set_error_literal (error, NM_SUPPLICANT_ERROR, NM_SUPPLICANT_ERROR_CONFIG,
 			                     "Supplicant does not support PMF");
@@ -885,7 +890,8 @@ nm_supplicant_config_add_setting_wireless_security (NMSupplicantConfig *self,
 	/* Only WPA-specific things when using WPA */
 	if (   !strcmp (key_mgmt, "wpa-psk")
 	    || !strcmp (key_mgmt, "wpa-eap")
-	    || !strcmp (key_mgmt, "sae")) {
+	    || !strcmp (key_mgmt, "sae")
+	    || !strcmp (key_mgmt, "owe")) {
 		if (!ADD_STRING_LIST_VAL (self, setting, wireless_security, proto, protos, "proto", ' ', TRUE, NULL, error))
 			return FALSE;
 		if (!ADD_STRING_LIST_VAL (self, setting, wireless_security, pairwise, pairwise, "pairwise", ' ', TRUE, NULL, error))
@@ -1321,6 +1327,14 @@ nm_supplicant_config_add_setting_8021x (NMSupplicantConfig *self,
 		return FALSE;
 	value = nm_setting_802_1x_get_phase2_domain_suffix_match (setting);
 	if (!add_string_val (self, value, "domain_suffix_match2", FALSE, NULL, error))
+		return FALSE;
+
+	/* domain match */
+	value = nm_setting_802_1x_get_domain_match (setting);
+	if (!add_string_val (self, value, "domain_match", FALSE, NULL, error))
+		return FALSE;
+	value = nm_setting_802_1x_get_phase2_domain_match (setting);
+	if (!add_string_val (self, value, "domain_match2", FALSE, NULL, error))
 		return FALSE;
 
 	/* Private key */

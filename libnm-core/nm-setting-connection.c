@@ -66,6 +66,8 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMSettingConnection,
 );
 
 typedef struct {
+	GSList *permissions; /* list of Permission structs */
+	GSList *secondaries; /* secondary connections to activate with the base connection */
 	char *id;
 	char *uuid;
 	char *stable_id;
@@ -73,23 +75,21 @@ typedef struct {
 	char *type;
 	char *master;
 	char *slave_type;
-	NMSettingConnectionAutoconnectSlaves autoconnect_slaves;
-	GSList *permissions; /* list of Permission structs */
-	gboolean autoconnect;
+	char *zone;
+	guint64 timestamp;
 	int autoconnect_priority;
 	int autoconnect_retries;
 	int multi_connect;
-	guint64 timestamp;
-	gboolean read_only;
-	char *zone;
-	GSList *secondaries; /* secondary connections to activate with the base connection */
-	guint gateway_ping_timeout;
-	NMMetered metered;
-	NMSettingConnectionLldp lldp;
 	int auth_retries;
 	int mdns;
 	int llmnr;
 	int wait_device_timeout;
+	guint gateway_ping_timeout;
+	NMSettingConnectionAutoconnectSlaves autoconnect_slaves;
+	NMMetered metered;
+	NMSettingConnectionLldp lldp;
+	bool read_only:1;
+	bool autoconnect:1;
 } NMSettingConnectionPrivate;
 
 G_DEFINE_TYPE (NMSettingConnection, nm_setting_connection, NM_TYPE_SETTING)
@@ -1032,22 +1032,50 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 
 	if (priv->interface_name) {
 		GError *tmp_error = NULL;
-		gboolean valid_ifname = FALSE;
+		NMUtilsIfaceType iface_type;
 
-		/* do not perform a interface name length check for OVS connection types
-		 * as they don't have a corresponding kernel link that enforces the 15 bytes limit.
-		 * Here we're whitelisting the OVS interface type as well, even if most OVS
-		 * iface types do have the limit, to let the OVS specific nm-setting verify whether the iface name
-		 * is good or not according to the internal type (internal, patch, ...) */
 		if (NM_IN_STRSET (type,
 		                  NM_SETTING_OVS_BRIDGE_SETTING_NAME,
-		                  NM_SETTING_OVS_PORT_SETTING_NAME,
-		                  NM_SETTING_OVS_INTERFACE_SETTING_NAME))
-			valid_ifname = nm_utils_ifname_valid (priv->interface_name, NMU_IFACE_OVS, &tmp_error);
-		else
-			valid_ifname = nm_utils_ifname_valid (priv->interface_name, NMU_IFACE_KERNEL, &tmp_error);
+		                  NM_SETTING_OVS_PORT_SETTING_NAME))
+			iface_type = NMU_IFACE_OVS;
+		else if (nm_streq (type, NM_SETTING_OVS_INTERFACE_SETTING_NAME)) {
+			NMSettingOvsInterface *s_ovs_iface = NULL;
+			const char *ovs_iface_type;
 
-		if (!valid_ifname) {
+			if (connection)
+				s_ovs_iface = nm_connection_get_setting_ovs_interface (connection);
+			_nm_setting_ovs_interface_verify_interface_type (s_ovs_iface,
+			                                                 s_ovs_iface ? nm_setting_ovs_interface_get_interface_type (s_ovs_iface) : NULL,
+			                                                 connection,
+			                                                 FALSE,
+			                                                 NULL,
+			                                                 &ovs_iface_type,
+			                                                 NULL);
+			if (!ovs_iface_type) {
+				/* We cannot determine to OVS interface type. Consequently, we cannot
+				 * fully validate the interface name.
+				 *
+				 * If we have a connection (and we do a full validation anyway), skip the
+				 * check. The connection will fail validation when we validate the OVS setting.
+				 *
+				 * Otherwise, do the most basic validation.
+				 */
+				if (connection)
+					goto after_interface_name;
+				iface_type = NMU_IFACE_ANY;
+			} else if (NM_IN_STRSET (ovs_iface_type, "patch")) {
+				/* this interface type is internal to OVS. */
+				iface_type = NMU_IFACE_OVS;
+			} else {
+				/* This interface type also requires a netdev. We need to validate
+				 * for both OVS and KERNEL. */
+				nm_assert (NM_IN_STRSET (ovs_iface_type, "internal", "system", "dpdk"));
+				iface_type = NMU_IFACE_OVS_AND_KERNEL;
+			}
+		} else
+			iface_type = NMU_IFACE_KERNEL;
+
+		if (!nm_utils_ifname_valid (priv->interface_name, iface_type, &tmp_error)) {
 			g_set_error (error,
 			             NM_CONNECTION_ERROR,
 			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
@@ -1057,6 +1085,7 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 			return FALSE;
 		}
 	}
+after_interface_name:
 
 	is_slave = FALSE;
 	slave_setting_type = NULL;
@@ -1251,10 +1280,13 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 }
 
 static const char *
-find_virtual_interface_name (GVariant *connection_dict)
+find_virtual_interface_name (GVariant *connection_dict,
+                             GVariant **variant_to_free)
 {
 	GVariant *setting_dict;
 	const char *interface_name;
+
+	nm_assert (variant_to_free && !*variant_to_free);
 
 	setting_dict = g_variant_lookup_value (connection_dict, NM_SETTING_BOND_SETTING_NAME, NM_VARIANT_TYPE_SETTING);
 	if (!setting_dict)
@@ -1267,37 +1299,13 @@ find_virtual_interface_name (GVariant *connection_dict)
 	if (!setting_dict)
 		return NULL;
 
+	*variant_to_free = setting_dict;
+
 	/* All of the deprecated virtual interface name properties were named "interface-name". */
 	if (!g_variant_lookup (setting_dict, "interface-name", "&s", &interface_name))
 		interface_name = NULL;
 
-	g_variant_unref (setting_dict);
 	return interface_name;
-}
-
-static gboolean
-nm_setting_connection_set_interface_name (NMSetting *setting,
-                                          GVariant *connection_dict,
-                                          const char *property,
-                                          GVariant *value,
-                                          NMSettingParseFlags parse_flags,
-                                          GError **error)
-{
-	const char *interface_name;
-
-	/* For compatibility reasons, if there is an invalid virtual interface name,
-	 * we need to make verification fail, even if that virtual name would be
-	 * overridden by a valid connection.interface-name.
-	 */
-	interface_name = find_virtual_interface_name (connection_dict);
-	if (!interface_name || nm_utils_ifname_valid_kernel (interface_name, NULL))
-		interface_name = g_variant_get_string (value, NULL);
-
-	g_object_set (G_OBJECT (setting),
-	              NM_SETTING_CONNECTION_INTERFACE_NAME, interface_name,
-	              NULL);
-
-	return TRUE;
 }
 
 static gboolean
@@ -1308,8 +1316,9 @@ nm_setting_connection_no_interface_name (NMSetting *setting,
                                          GError **error)
 {
 	const char *virtual_interface_name;
+	gs_unref_variant GVariant *variant_to_free = NULL;
 
-	virtual_interface_name = find_virtual_interface_name (connection_dict);
+	virtual_interface_name = find_virtual_interface_name (connection_dict, &variant_to_free);
 	g_object_set (G_OBJECT (setting),
 	              NM_SETTING_CONNECTION_INTERFACE_NAME, virtual_interface_name,
 	              NULL);
@@ -1566,9 +1575,15 @@ nm_setting_connection_init (NMSettingConnection *setting)
 {
 	NMSettingConnectionPrivate *priv = NM_SETTING_CONNECTION_GET_PRIVATE (setting);
 
-	priv->mdns = NM_SETTING_CONNECTION_MDNS_DEFAULT;
-	priv->llmnr = NM_SETTING_CONNECTION_LLMNR_DEFAULT;
-	priv->wait_device_timeout = -1;
+	priv->auth_retries         = -1;
+	priv->autoconnect          = TRUE;
+	priv->autoconnect_priority = NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY_DEFAULT;
+	priv->autoconnect_retries  = -1;
+	priv->autoconnect_slaves   = NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES_DEFAULT;
+	priv->lldp                 = NM_SETTING_CONNECTION_LLDP_DEFAULT;
+	priv->llmnr                = NM_SETTING_CONNECTION_LLMNR_DEFAULT;
+	priv->mdns                 = NM_SETTING_CONNECTION_MDNS_DEFAULT;
+	priv->wait_device_timeout  = -1;
 }
 
 /**
@@ -1753,7 +1768,6 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	                              obj_properties[PROP_INTERFACE_NAME],
 	                              NM_SETT_INFO_PROPERT_TYPE (
 	                                  .dbus_type             = G_VARIANT_TYPE_STRING,
-	                                  .from_dbus_fcn         = nm_setting_connection_set_interface_name,
 	                                  .missing_from_dbus_fcn = nm_setting_connection_no_interface_name,
 	                              ));
 
@@ -1836,7 +1850,6 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	    g_param_spec_boolean (NM_SETTING_CONNECTION_AUTOCONNECT, "", "",
 	                          TRUE,
 	                          G_PARAM_READWRITE |
-	                          G_PARAM_CONSTRUCT |
 	                          NM_SETTING_PARAM_FUZZY_IGNORE |
 	                          G_PARAM_STATIC_STRINGS);
 
@@ -1863,7 +1876,6 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	                       NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY_MAX,
 	                       NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY_DEFAULT,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       NM_SETTING_PARAM_FUZZY_IGNORE |
 	                       G_PARAM_STATIC_STRINGS);
 
@@ -1889,7 +1901,6 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	     g_param_spec_int (NM_SETTING_CONNECTION_AUTOCONNECT_RETRIES, "", "",
 	                       -1, G_MAXINT32, -1,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       NM_SETTING_PARAM_FUZZY_IGNORE |
 	                       G_PARAM_STATIC_STRINGS);
 
@@ -1906,7 +1917,7 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	 * variable: MULTI_CONNECT(+)
 	 * description: whether the profile can be active on multiple devices at a given
 	 *   moment. The values are numbers corresponding to #NMConnectionMultiConnect enum.
-	 * example: ZONE=3
+	 * example: MULTI_CONNECT=3
 	 * ---end---
 	 */
 	obj_properties[PROP_MULTI_CONNECT] =
@@ -1931,7 +1942,6 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	    g_param_spec_uint64 (NM_SETTING_CONNECTION_TIMESTAMP, "", "",
 	                         0, G_MAXUINT64, 0,
 	                         G_PARAM_READWRITE |
-	                         G_PARAM_CONSTRUCT |
 	                         NM_SETTING_PARAM_FUZZY_IGNORE |
 	                         G_PARAM_STATIC_STRINGS);
 	_nm_properties_override_gobj (properties_override,
@@ -1952,7 +1962,6 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	    g_param_spec_boolean (NM_SETTING_CONNECTION_READ_ONLY, "", "",
 	                          FALSE,
 	                          G_PARAM_READWRITE |
-	                          G_PARAM_CONSTRUCT |
 	                          NM_SETTING_PARAM_FUZZY_IGNORE |
 	                          G_PARAM_STATIC_STRINGS);
 
@@ -1979,7 +1988,6 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	    g_param_spec_string (NM_SETTING_CONNECTION_ZONE, "", "",
 	                         NULL,
 	                         G_PARAM_READWRITE |
-	                         G_PARAM_CONSTRUCT |
 	                         NM_SETTING_PARAM_FUZZY_IGNORE |
 	                         NM_SETTING_PARAM_REAPPLY_IMMEDIATELY |
 	                         G_PARAM_STATIC_STRINGS);
@@ -2059,7 +2067,6 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	                       NM_TYPE_SETTING_CONNECTION_AUTOCONNECT_SLAVES,
 	                       NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES_DEFAULT,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       NM_SETTING_PARAM_FUZZY_IGNORE |
 	                       G_PARAM_STATIC_STRINGS);
 
@@ -2103,7 +2110,6 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	    g_param_spec_uint (NM_SETTING_CONNECTION_GATEWAY_PING_TIMEOUT, "", "",
 	                       0, 600, 0,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       G_PARAM_STATIC_STRINGS);
 
 	/**
@@ -2153,7 +2159,6 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	                      G_MININT32, G_MAXINT32, NM_SETTING_CONNECTION_LLDP_DEFAULT,
 	                      NM_SETTING_PARAM_FUZZY_IGNORE |
 	                      G_PARAM_READWRITE |
-	                      G_PARAM_CONSTRUCT |
 	                      G_PARAM_STATIC_STRINGS);
 
 	/**
@@ -2178,7 +2183,6 @@ nm_setting_connection_class_init (NMSettingConnectionClass *klass)
 	    g_param_spec_int (NM_SETTING_CONNECTION_AUTH_RETRIES, "", "",
 	                      -1, G_MAXINT32, -1,
 	                      G_PARAM_READWRITE |
-	                      G_PARAM_CONSTRUCT |
 	                      NM_SETTING_PARAM_FUZZY_IGNORE |
 	                      G_PARAM_STATIC_STRINGS);
 

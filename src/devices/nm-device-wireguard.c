@@ -51,7 +51,7 @@ G_STATIC_ASSERT (NM_WIREGUARD_SYMMETRIC_KEY_LEN == NMP_WIREGUARD_SYMMETRIC_KEY_L
 
 /*****************************************************************************/
 
-#define LINK_CONFIG_RATE_LIMIT_NSEC (50 * NM_UTILS_NS_PER_MSEC)
+#define LINK_CONFIG_RATE_LIMIT_NSEC (50 * NM_UTILS_NSEC_PER_MSEC)
 
 /* a special @next_try_at_nsec timestamp indicating that we should try again as soon as possible. */
 #define NEXT_TRY_AT_NSEC_ASAP ((gint64) G_MAXINT64)
@@ -80,7 +80,7 @@ typedef struct {
 
 	NMSockAddrUnion sockaddr;
 
-	/* the timestamp (in nm_utils_get_monotonic_timestamp_ns() scale) when we want
+	/* the timestamp (in nm_utils_get_monotonic_timestamp_nsec() scale) when we want
 	 * to retry resolving the endpoint (again).
 	 *
 	 * It may be set to %NEXT_TRY_AT_NSEC_ASAP to indicate to re-resolve as soon as possible.
@@ -168,7 +168,8 @@ static gboolean link_config_delayed_ratelimit_cb (gpointer user_data);
 
 /*****************************************************************************/
 
-NM_UTILS_LOOKUP_STR_DEFINE_STATIC (_link_config_mode_to_string, LinkConfigMode,
+static
+NM_UTILS_LOOKUP_STR_DEFINE (_link_config_mode_to_string, LinkConfigMode,
 	NM_UTILS_LOOKUP_DEFAULT_NM_ASSERT (NULL),
 	NM_UTILS_LOOKUP_ITEM (LINK_CONFIG_MODE_FULL,      "full"),
 	NM_UTILS_LOOKUP_ITEM (LINK_CONFIG_MODE_REAPPLY,   "reapply"),
@@ -555,7 +556,7 @@ _peers_resolve_retry_timeout (gpointer user_data)
 
 	_LOGT (LOGD_DEVICE, "wireguard-peers: rechecking peer endpoints...");
 
-	now = nm_utils_get_monotonic_timestamp_ns ();
+	now = nm_utils_get_monotonic_timestamp_nsec ();
 	next = G_MAXINT64;
 	c_list_for_each_entry (peer_data, &priv->lst_peers_head, lst_peers) {
 		if (peer_data->ep_resolv.next_try_at_nsec <= 0)
@@ -606,11 +607,11 @@ _peers_resolve_retry_reschedule (NMDeviceWireGuard *self,
 		return;
 	}
 
-	now = nm_utils_get_monotonic_timestamp_ns ();
+	now = nm_utils_get_monotonic_timestamp_nsec ();
 
 	/* schedule at most one day ahead. No problem if we expire earlier
 	 * than expected. Also, rate-limit to 500 msec. */
-	interval_ms = NM_CLAMP ((new_next_try_at_nsec - now) / NM_UTILS_NS_PER_MSEC,
+	interval_ms = NM_CLAMP ((new_next_try_at_nsec - now) / NM_UTILS_NSEC_PER_MSEC,
 	                        (gint64) 500,
 	                        (gint64) (24*60*60*1000));
 
@@ -636,8 +637,8 @@ _peers_resolve_retry_reschedule_for_peer (NMDeviceWireGuard *self,
 		return;
 	}
 
-	peer_data->ep_resolv.next_try_at_nsec =   nm_utils_get_monotonic_timestamp_ns ()
-	                                        + (retry_in_msec * NM_UTILS_NS_PER_MSEC);
+	peer_data->ep_resolv.next_try_at_nsec =   nm_utils_get_monotonic_timestamp_nsec ()
+	                                        + (retry_in_msec * NM_UTILS_NSEC_PER_MSEC);
 	_peers_resolve_retry_reschedule (self, peer_data->ep_resolv.next_try_at_nsec);
 }
 
@@ -684,7 +685,7 @@ _peers_resolve_cb (GObject *source_object,
 
 	list = g_resolver_lookup_by_name_finish (G_RESOLVER (source_object), res, &resolv_error);
 
-	if (nm_utils_error_is_cancelled (resolv_error, FALSE))
+	if (nm_utils_error_is_cancelled (resolv_error))
 		return;
 
 	peer_data = user_data;
@@ -1265,7 +1266,7 @@ _secrets_cb (NMActRequest *req,
 		return;
 	}
 
-	nm_device_activate_schedule_stage1_device_prepare (device);
+	nm_device_activate_schedule_stage1_device_prepare (device, FALSE);
 }
 
 static void
@@ -1370,7 +1371,7 @@ link_config (NMDeviceWireGuard *self,
 	s_wg = NM_SETTING_WIREGUARD (nm_connection_get_setting (connection, NM_TYPE_SETTING_WIREGUARD));
 	g_return_val_if_fail (s_wg, NM_ACT_STAGE_RETURN_FAILURE);
 
-	priv->link_config_last_at = nm_utils_get_monotonic_timestamp_ns ();
+	priv->link_config_last_at = nm_utils_get_monotonic_timestamp_nsec ();
 
 	_LOGT (LOGD_DEVICE, "wireguard link config (%s, %s)...",
 	       reason, _link_config_mode_to_string (config_mode));
@@ -1475,12 +1476,12 @@ link_config_delayed (NMDeviceWireGuard *self,
 	priv->link_config_delayed_id = 0;
 
 	if (priv->link_config_last_at != 0) {
-		now = nm_utils_get_monotonic_timestamp_ns ();
+		now = nm_utils_get_monotonic_timestamp_nsec ();
 		if (now < priv->link_config_last_at + LINK_CONFIG_RATE_LIMIT_NSEC) {
 			/* we ratelimit calls to link_config(), because we call this whenever a resolver
 			 * completes. */
 			_LOGT (LOGD_DEVICE, "wireguard link config (%s) (postponed)", reason);
-			priv->link_config_delayed_id = g_timeout_add (NM_MAX ((priv->link_config_last_at + LINK_CONFIG_RATE_LIMIT_NSEC - now) / NM_UTILS_NS_PER_MSEC,
+			priv->link_config_delayed_id = g_timeout_add (NM_MAX ((priv->link_config_last_at + LINK_CONFIG_RATE_LIMIT_NSEC - now) / NM_UTILS_NSEC_PER_MSEC,
 			                                                      (gint64) 1),
 			                                              link_config_delayed_ratelimit_cb,
 			                                              self);
@@ -1521,28 +1522,26 @@ act_stage2_config (NMDevice *device,
 	}
 
 	ret = link_config (NM_DEVICE_WIREGUARD (device),
-	                                        "configure",
-	                                          (sys_iface_state == NM_DEVICE_SYS_IFACE_STATE_ASSUME)
-	                                        ? LINK_CONFIG_MODE_ASSUME
-	                                        : LINK_CONFIG_MODE_FULL,
-	                                        &failure_reason);
+	                   "configure",
+	                     (sys_iface_state == NM_DEVICE_SYS_IFACE_STATE_ASSUME)
+	                   ? LINK_CONFIG_MODE_ASSUME
+	                   : LINK_CONFIG_MODE_FULL,
+	                   &failure_reason);
 
 	if (sys_iface_state == NM_DEVICE_SYS_IFACE_STATE_ASSUME) {
 		/* this never fails. */
-		NM_SET_OUT (out_failure_reason, NM_DEVICE_STATE_REASON_NONE);
 		return NM_ACT_STAGE_RETURN_SUCCESS;
 	}
 
-	if (ret != NM_ACT_STAGE_RETURN_FAILURE) {
-		NM_SET_OUT (out_failure_reason, NM_DEVICE_STATE_REASON_NONE);
-		return ret;
+	if (ret == NM_ACT_STAGE_RETURN_FAILURE) {
+		nm_device_state_changed (device,
+		                         NM_DEVICE_STATE_FAILED,
+		                         failure_reason);
+		NM_SET_OUT (out_failure_reason, failure_reason);
+		return NM_ACT_STAGE_RETURN_FAILURE;
 	}
 
-	nm_device_state_changed (device,
-	                         NM_DEVICE_STATE_FAILED,
-	                         failure_reason);
-	NM_SET_OUT (out_failure_reason, failure_reason);
-	return NM_ACT_STAGE_RETURN_FAILURE;
+	return ret;
 }
 
 static NMIPConfig *
@@ -1632,8 +1631,20 @@ _get_dev2_ip_config (NMDeviceWireGuard *self,
 			if (prefix < 0)
 				prefix = (addr_family == AF_INET) ? 32 : 128;
 
-			if (!ip_config)
+			if (prefix == 0) {
+				NMSettingIPConfig *s_ip;
+
+				s_ip = nm_connection_get_setting_ip_config (connection, addr_family);
+				if (nm_setting_ip_config_get_never_default (s_ip))
+					continue;
+			}
+
+			if (!ip_config) {
 				ip_config = nm_device_ip_config_new (NM_DEVICE (self), addr_family);
+				nm_ip_config_set_config_flags (ip_config,
+				                               NM_IP_CONFIG_FLAGS_IGNORE_MERGE_NO_DEFAULT_ROUTES,
+				                               0);
+			}
 
 			nm_utils_ipx_address_clear_host_address (addr_family, &addrbin, NULL, prefix);
 

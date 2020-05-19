@@ -60,7 +60,7 @@
 
 /*****************************************************************************/
 
-static NM_CACHED_QUARK_FCN ("nm-client-context-busy-watcher", nm_client_context_busy_watcher_quark)
+NM_CACHED_QUARK_FCN ("nm-context-busy-watcher", nm_context_busy_watcher_quark)
 
 static void
 _context_busy_watcher_attach_integration_source_cb (gpointer data,
@@ -69,10 +69,21 @@ _context_busy_watcher_attach_integration_source_cb (gpointer data,
 	nm_g_source_destroy_and_unref (data);
 }
 
-static void
-_context_busy_watcher_attach_integration_source (GObject *context_busy_watcher,
-                                                 GSource *source_take)
+void
+nm_context_busy_watcher_integrate_source (GMainContext *outer_context,
+                                          GMainContext *inner_context,
+                                          GObject *context_busy_watcher)
 {
+	GSource *source;
+
+	nm_assert (outer_context);
+	nm_assert (inner_context);
+	nm_assert (outer_context != inner_context);
+	nm_assert (G_IS_OBJECT (context_busy_watcher));
+
+	source = nm_utils_g_main_context_create_integrate_source (inner_context);
+	g_source_attach (source, outer_context);
+
 	/* The problem is...
 	 *
 	 * NMClient is associated with a GMainContext, just like its underlying GDBusConnection
@@ -114,7 +125,7 @@ _context_busy_watcher_attach_integration_source (GObject *context_busy_watcher,
 
 	g_object_weak_ref (context_busy_watcher,
 	                   _context_busy_watcher_attach_integration_source_cb,
-	                   source_take);
+	                   source);
 }
 
 /*****************************************************************************/
@@ -175,26 +186,11 @@ typedef struct {
 
 /*****************************************************************************/
 
-typedef struct {
-	GCancellable *cancellable;
-	GSource *cancel_on_idle_source;
-	gulong cancelled_id;
-	union {
-		struct {
-			GTask *task;
-		} async;
-		struct {
-			GMainLoop *main_loop;
-			GError **error_location;
-		} sync;
-	} data;
-	bool is_sync:1;
-} InitData;
-
 NM_GOBJECT_PROPERTIES_DEFINE (NMClient,
 	PROP_DBUS_CONNECTION,
 	PROP_DBUS_NAME_OWNER,
 	PROP_VERSION,
+	PROP_INSTANCE_FLAGS,
 	PROP_STATE,
 	PROP_STARTUP,
 	PROP_NM_RUNNING,
@@ -223,6 +219,7 @@ NM_GOBJECT_PROPERTIES_DEFINE (NMClient,
 	PROP_DNS_CONFIGURATION,
 	PROP_CHECKPOINTS,
 	PROP_CAPABILITIES,
+	PROP_PERMISSIONS_STATE,
 );
 
 enum {
@@ -261,7 +258,7 @@ typedef struct {
 	GMainContext *dbus_context;
 	GObject *context_busy_watcher;
 	GDBusConnection *dbus_connection;
-	InitData *init_data;
+	NMLInitData *init_data;
 	GHashTable *dbus_objects;
 	CList obj_changed_lst_head;
 	GCancellable *name_owner_get_cancellable;
@@ -279,7 +276,7 @@ typedef struct {
 	NMLDBusObject *dbobj_settings;
 	NMLDBusObject *dbobj_dns_manager;
 
-	GHashTable *permissions;
+	guint8 *permissions;
 	GCancellable *permissions_cancellable;
 
 	char *name_owner;
@@ -290,6 +287,12 @@ typedef struct {
 	guint dbsid_nm_connection_active_state_changed;
 	guint dbsid_nm_vpn_connection_state_changed;
 	guint dbsid_nm_check_permissions;
+
+	NMClientInstanceFlags instance_flags:3;
+
+	NMTernary permissions_state:3;
+
+	bool instance_flags_constructed:1;
 
 	bool udev_inited:1;
 	bool notify_event_lst_changed:1;
@@ -379,7 +382,8 @@ static NMRefString *_dbus_path_dns_manager = NULL;
 
 /*****************************************************************************/
 
-NM_UTILS_LOOKUP_STR_DEFINE_STATIC (nml_dbus_obj_state_to_string, NMLDBusObjState,
+static
+NM_UTILS_LOOKUP_STR_DEFINE (nml_dbus_obj_state_to_string, NMLDBusObjState,
 	NM_UTILS_LOOKUP_DEFAULT_WARN ("???"),
 	NM_UTILS_LOOKUP_ITEM (NML_DBUS_OBJ_STATE_UNLINKED,             "unlinked"),
 	NM_UTILS_LOOKUP_ITEM (NML_DBUS_OBJ_STATE_WATCHED_ONLY,         "watched-only"),
@@ -401,15 +405,15 @@ NM_CACHED_QUARK_FCN ("nm-client-error-quark", nm_client_error_quark)
 
 /*****************************************************************************/
 
-static InitData *
-_init_data_new_sync (GCancellable *cancellable,
-                     GMainLoop *main_loop,
-                     GError **error_location)
+NMLInitData *
+nml_init_data_new_sync (GCancellable *cancellable,
+                        GMainLoop *main_loop,
+                        GError **error_location)
 {
-	InitData *init_data;
+	NMLInitData *init_data;
 
-	init_data = g_slice_new (InitData);
-	*init_data = (InitData) {
+	init_data = g_slice_new (NMLInitData);
+	*init_data = (NMLInitData) {
 		.cancellable = nm_g_object_ref (cancellable),
 		.is_sync     = TRUE,
 		.data.sync   = {
@@ -420,14 +424,14 @@ _init_data_new_sync (GCancellable *cancellable,
 	return init_data;
 }
 
-static InitData *
-_init_data_new_async (GCancellable *cancellable,
-                      GTask *task_take)
+NMLInitData *
+nml_init_data_new_async (GCancellable *cancellable,
+                         GTask *task_take)
 {
-	InitData *init_data;
+	NMLInitData *init_data;
 
-	init_data = g_slice_new (InitData);
-	*init_data = (InitData) {
+	init_data = g_slice_new (NMLInitData);
+	*init_data = (NMLInitData) {
 		.cancellable = nm_g_object_ref (cancellable),
 		.is_sync     = FALSE,
 		.data.async  = {
@@ -435,6 +439,30 @@ _init_data_new_async (GCancellable *cancellable,
 		},
 	};
 	return init_data;
+}
+
+void
+nml_init_data_return (NMLInitData *init_data,
+                      GError *error_take)
+{
+	nm_assert (init_data);
+
+	nm_clear_pointer (&init_data->cancel_on_idle_source, nm_g_source_destroy_and_unref);
+	nm_clear_g_signal_handler (init_data->cancellable, &init_data->cancelled_id);
+
+	if (init_data->is_sync) {
+		if (error_take)
+			g_propagate_error (init_data->data.sync.error_location, error_take);
+		g_main_loop_quit (init_data->data.sync.main_loop);
+	} else {
+		if (error_take)
+			g_task_return_error (init_data->data.async.task, error_take);
+		else
+			g_task_return_boolean (init_data->data.async.task, TRUE);
+		g_object_unref (init_data->data.async.task);
+	}
+	nm_g_object_unref (init_data->cancellable);
+	nm_g_slice_free (init_data);
 }
 
 /*****************************************************************************/
@@ -1000,7 +1028,7 @@ nm_client_get_context_busy_watcher (NMClient *self)
 	g_return_val_if_fail (NM_IS_CLIENT (self), NULL);
 
 	w = NM_CLIENT_GET_PRIVATE (self)->context_busy_watcher;
-	return    g_object_get_qdata (w, nm_client_context_busy_watcher_quark ())
+	return    g_object_get_qdata (w, nm_context_busy_watcher_quark ())
 	       ?: w;
 }
 
@@ -3115,7 +3143,7 @@ _dbus_get_managed_objects_cb (GObject *source,
 	nm_assert ((!!ret) != (!!error));
 
 	if (   !ret
-	    && nm_utils_error_is_cancelled (error, FALSE))
+	    && nm_utils_error_is_cancelled (error))
 		return;
 
 	priv = NM_CLIENT_GET_PRIVATE (self);
@@ -3166,7 +3194,7 @@ _nm_client_get_settings_call_cb (GObject *source, GAsyncResult *result, gpointer
 
 	ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
 	if (   !ret
-	    && nm_utils_error_is_cancelled (error, FALSE))
+	    && nm_utils_error_is_cancelled (error))
 		return;
 
 	remote_connection = user_data;
@@ -3356,27 +3384,35 @@ _dbus_nm_vpn_connection_state_changed_cb (GDBusConnection *connection,
 
 static void
 _emit_permissions_changed (NMClient *self,
-                           GHashTable *permissions,
-                           gboolean force_unknown)
+                           const guint8 *old_permissions,
+                           const guint8 *permissions)
 {
-	GHashTableIter iter;
-	gpointer key;
-	gpointer value;
+	int i;
 
-	if (!permissions)
-		return;
 	if (self->obj_base.is_disposing)
 		return;
 
-	g_hash_table_iter_init (&iter, permissions);
-	while (g_hash_table_iter_next (&iter, &key, &value)) {
+	if (old_permissions == permissions)
+		return;
+
+	for (i = 0; i < (int) G_N_ELEMENTS (nm_auth_permission_sorted); i++) {
+		NMClientPermission perm = nm_auth_permission_sorted[i];
+		NMClientPermissionResult perm_result = NM_CLIENT_PERMISSION_RESULT_UNKNOWN;
+		NMClientPermissionResult perm_result_old = NM_CLIENT_PERMISSION_RESULT_UNKNOWN;
+
+		if (permissions)
+			perm_result = permissions[perm - 1];
+		if (old_permissions)
+			perm_result_old = old_permissions[perm - 1];
+
+		if (perm_result == perm_result_old)
+			continue;
+
 		g_signal_emit (self,
 		               signals[PERMISSION_CHANGED],
 		               0,
-		               GPOINTER_TO_UINT (key),
-		                 force_unknown
-		               ? (guint) NM_CLIENT_PERMISSION_NONE
-		               : GPOINTER_TO_UINT (value));
+		               (guint) perm,
+		               (guint) perm_result);
 	}
 }
 
@@ -3389,14 +3425,15 @@ _dbus_check_permissions_start_cb (GObject *source, GAsyncResult *result, gpointe
 	NMClientPrivate *priv;
 	gs_unref_variant GVariant *ret = NULL;
 	nm_auto_free_variant_iter GVariantIter *v_permissions = NULL;
-	gs_unref_hashtable GHashTable *old_permissions = NULL;
+	gs_free guint8 *old_permissions = NULL;
 	gs_free_error GError *error = NULL;
 	const char *pkey;
 	const char *pvalue;
+	int i;
 
 	ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
 	if (   !ret
-	    && nm_utils_error_is_cancelled (error, FALSE))
+	    && nm_utils_error_is_cancelled (error))
 		return;
 
 	self = user_data;
@@ -3404,63 +3441,73 @@ _dbus_check_permissions_start_cb (GObject *source, GAsyncResult *result, gpointe
 
 	g_clear_object (&priv->permissions_cancellable);
 
+	old_permissions = g_steal_pointer (&priv->permissions);
+
 	if (!ret) {
+		/* when the call completes, we always pretend success. Even a failure means
+		 * that we fetched the permissions, however they are all unknown. */
 		NML_NMCLIENT_LOG_T (self, "GetPermissions call failed: %s", error->message);
-		return;
+		goto out;
 	}
 
 	NML_NMCLIENT_LOG_T (self, "GetPermissions call finished with success");
-
-	/* get list of old permissions for change notification */
-	old_permissions = g_steal_pointer (&priv->permissions);
-	priv->permissions = g_hash_table_new (nm_direct_hash, NULL);
 
 	g_variant_get (ret, "(a{ss})", &v_permissions);
 	while (g_variant_iter_next (v_permissions, "{&s&s}", &pkey, &pvalue)) {
 		NMClientPermission perm;
 		NMClientPermissionResult perm_result;
 
-		perm = nm_permission_to_client (pkey);
+		perm = nm_auth_permission_from_string (pkey);
 		if (perm == NM_CLIENT_PERMISSION_NONE)
 			continue;
 
-		perm_result = nm_permission_result_to_client (pvalue);
+		perm_result = nm_client_permission_result_from_string (pvalue);
 
-		g_hash_table_insert (priv->permissions,
-		                     GUINT_TO_POINTER (perm),
-		                     GUINT_TO_POINTER (perm_result));
-		if (old_permissions) {
-			g_hash_table_remove (old_permissions,
-			                     GUINT_TO_POINTER (perm));
+		if (!priv->permissions) {
+			if (perm_result == NM_CLIENT_PERMISSION_RESULT_UNKNOWN)
+				continue;
+			priv->permissions = g_new (guint8, G_N_ELEMENTS (nm_auth_permission_sorted));
+			for (i = 0; i < (int) G_N_ELEMENTS (nm_auth_permission_sorted); i++)
+				priv->permissions[i] = NM_CLIENT_PERMISSION_RESULT_UNKNOWN;
 		}
+		priv->permissions[perm - 1] = perm_result;
 	}
 
+out:
+	priv->permissions_state = NM_TERNARY_TRUE;
+
 	dbus_context = nm_g_main_context_push_thread_default_if_necessary (priv->main_context);
-	_emit_permissions_changed (self, priv->permissions, FALSE);
-	_emit_permissions_changed (self, old_permissions, TRUE);
+	_emit_permissions_changed (self, old_permissions, priv->permissions);
+	_notify (self, PROP_PERMISSIONS_STATE);
 }
 
 static void
 _dbus_check_permissions_start (NMClient *self)
 {
 	NMClientPrivate *priv = NM_CLIENT_GET_PRIVATE (self);
+	gboolean fetch;
+
+	fetch = !NM_FLAGS_HAS ((NMClientInstanceFlags) priv->instance_flags,
+	                       NM_CLIENT_INSTANCE_FLAGS_NO_AUTO_FETCH_PERMISSIONS);
 
 	nm_clear_g_cancellable (&priv->permissions_cancellable);
-	priv->permissions_cancellable = g_cancellable_new ();
 
-	NML_NMCLIENT_LOG_T (self, "GetPermissions() call started...");
+	if (fetch) {
+		NML_NMCLIENT_LOG_T (self, "GetPermissions() call started...");
 
-	_nm_client_dbus_call_simple (self,
-	                             priv->permissions_cancellable,
-	                             NM_DBUS_PATH,
-	                             NM_DBUS_INTERFACE,
-	                             "GetPermissions",
-	                             g_variant_new ("()"),
-	                             G_VARIANT_TYPE ("(a{ss})"),
-	                             G_DBUS_CALL_FLAGS_NONE,
-	                             NM_DBUS_DEFAULT_TIMEOUT_MSEC,
-	                             _dbus_check_permissions_start_cb,
-	                             self);
+		priv->permissions_cancellable = g_cancellable_new ();
+		_nm_client_dbus_call_simple (self,
+		                             priv->permissions_cancellable,
+		                             NM_DBUS_PATH,
+		                             NM_DBUS_INTERFACE,
+		                             "GetPermissions",
+		                             g_variant_new ("()"),
+		                             G_VARIANT_TYPE ("(a{ss})"),
+		                             G_DBUS_CALL_FLAGS_NONE,
+		                             NM_DBUS_DEFAULT_TIMEOUT_MSEC,
+		                             _dbus_check_permissions_start_cb,
+		                             self);
+	}
 }
 
 static void
@@ -3473,6 +3520,7 @@ _dbus_nm_check_permissions_cb (GDBusConnection *connection,
                                gpointer user_data)
 {
 	NMClient *self = user_data;
+	NMClientPrivate *priv = NM_CLIENT_GET_PRIVATE (self);
 
 	if (!g_variant_is_of_type (parameters, G_VARIANT_TYPE ("()"))) {
 		NML_NMCLIENT_LOG_E (self, "ignore CheckPermissions signal with unexpected signature %s",
@@ -3481,6 +3529,10 @@ _dbus_nm_check_permissions_cb (GDBusConnection *connection,
 	}
 
 	_dbus_check_permissions_start (self);
+
+	if (priv->permissions_state == NM_TERNARY_TRUE)
+		priv->permissions_state = NM_TERNARY_FALSE;
+	_notify (self, PROP_PERMISSIONS_STATE);
 }
 
 /*****************************************************************************/
@@ -3794,6 +3846,22 @@ _request_wait_finish (NMClient *client,
 /*****************************************************************************/
 
 /**
+ * nm_client_get_instance_flags:
+ * @self: the #NMClient instance.
+ *
+ * Returns: the #NMClientInstanceFlags flags.
+ *
+ * Since: 1.24
+ */
+NMClientInstanceFlags
+nm_client_get_instance_flags (NMClient *self)
+{
+	g_return_val_if_fail (NM_IS_CLIENT (self), NM_CLIENT_INSTANCE_FLAGS_NONE);
+
+	return NM_CLIENT_GET_PRIVATE (self)->instance_flags;
+}
+
+/**
  * nm_client_get_dbus_connection:
  * @client: a #NMClient
  *
@@ -3908,6 +3976,26 @@ nm_client_get_nm_running (NMClient *client)
 }
 
 /**
+ * nm_client_get_object_by_path:
+ * @client: the #NMClient instance
+ * @dbus_path: the D-Bus path of the object to look up
+ *
+ * Returns: (transfer none): the #NMObject instance that is
+ *   cached under @dbus_path, or %NULL if no such object exists.
+ *
+ * Since: 1.24
+ */
+NMObject *
+nm_client_get_object_by_path (NMClient *client,
+                              const char *dbus_path)
+{
+	g_return_val_if_fail (NM_IS_CLIENT (client), NULL);
+	g_return_val_if_fail (dbus_path, NULL);
+
+	return _dbobjs_get_nmobj_unpack_visible (client, dbus_path, G_TYPE_NONE);
+}
+
+/**
  * nm_client_get_metered:
  * @client: a #NMClient
  *
@@ -3951,14 +4039,13 @@ nm_client_networking_get_enabled (NMClient *client)
  *
  * Returns: %TRUE on success, %FALSE otherwise
  *
- * Deprecated: 1.22, use nm_client_networking_set_enabled_async() or GDBusConnection
+ * Deprecated: 1.22: Use the async command nm_client_dbus_call() on %NM_DBUS_PATH,
+ * %NM_DBUS_INTERFACE to call "Enable" with "(b)" arguments and no return value.
  **/
 gboolean
 nm_client_networking_set_enabled (NMClient *client, gboolean enable, GError **error)
 {
 	g_return_val_if_fail (NM_IS_CLIENT (client), FALSE);
-
-	/* FIXME(libnm-async-api): add nm_client_networking_set_enabled_async(). */
 
 	return _nm_client_dbus_call_sync_void (client,
 	                                       NULL,
@@ -3995,14 +4082,13 @@ nm_client_wireless_get_enabled (NMClient *client)
  *
  * Enables or disables wireless devices.
  *
- * Deprecated: 1.22, use nm_client_wireless_set_enabled_async() or GDBusConnection
+ * Deprecated: 1.22: Use the async command nm_client_dbus_set_property() on %NM_DBUS_PATH,
+ * %NM_DBUS_INTERFACE to set "WirelessEnabled" property to a "(b)" value.
  */
 void
 nm_client_wireless_set_enabled (NMClient *client, gboolean enabled)
 {
 	g_return_if_fail (NM_IS_CLIENT (client));
-
-	/* FIXME(libnm-async-api): add nm_client_wireless_set_enabled_async(). */
 
 	_nm_client_set_property_sync_legacy (client,
 	                                     NM_DBUS_PATH,
@@ -4050,13 +4136,14 @@ nm_client_wwan_get_enabled (NMClient *client)
  * @enabled: %TRUE to enable WWAN
  *
  * Enables or disables WWAN devices.
+ *
+ * Deprecated: 1.22: Use the async command nm_client_dbus_set_property() on %NM_DBUS_PATH,
+ * %NM_DBUS_INTERFACE to set "WwanEnabled" property to a "(b)" value.
  **/
 void
 nm_client_wwan_set_enabled (NMClient *client, gboolean enabled)
 {
 	g_return_if_fail (NM_IS_CLIENT (client));
-
-	/* FIXME(libnm-async-api): add nm_client_wwan_set_enabled_async(). */
 
 	_nm_client_set_property_sync_legacy (client,
 	                                     NM_DBUS_PATH,
@@ -4090,7 +4177,7 @@ nm_client_wwan_hardware_get_enabled (NMClient *client)
  *
  * Returns: %TRUE if WiMAX is enabled
  *
- * Deprecated: 1.22 This function always returns FALSE because WiMax is no longer supported
+ * Deprecated: 1.22: This function always returns FALSE because WiMax is no longer supported.
  **/
 gboolean
 nm_client_wimax_get_enabled (NMClient *client)
@@ -4107,7 +4194,7 @@ nm_client_wimax_get_enabled (NMClient *client)
  *
  * Enables or disables WiMAX devices.
  *
- * Deprecated: 1.22 This function does nothing because WiMax is no longer supported
+ * Deprecated: 1.22: This function does nothing because WiMax is no longer supported.
  **/
 void
 nm_client_wimax_set_enabled (NMClient *client, gboolean enabled)
@@ -4123,7 +4210,7 @@ nm_client_wimax_set_enabled (NMClient *client, gboolean enabled)
  *
  * Returns: %TRUE if the WiMAX hardware is enabled
  *
- * Deprecated: 1.22 This function always returns FALSE because WiMax is no longer supported
+ * Deprecated: 1.22: This function always returns FALSE because WiMax is no longer supported.
  **/
 gboolean
 nm_client_wimax_hardware_get_enabled (NMClient *client)
@@ -4181,13 +4268,14 @@ nm_client_connectivity_check_get_enabled (NMClient *client)
  * have any effect.
  *
  * Since: 1.10
+ *
+ * Deprecated: 1.22: Use the async command nm_client_dbus_set_property() on %NM_DBUS_PATH,
+ * %NM_DBUS_INTERFACE to set "ConnectivityCheckEnabled" property to a "(b)" value.
  */
 void
 nm_client_connectivity_check_set_enabled (NMClient *client, gboolean enabled)
 {
 	g_return_if_fail (NM_IS_CLIENT (client));
-
-	/* FIXME(libnm-async-api): add nm_client_wireless_set_enabled_async(). */
 
 	_nm_client_set_property_sync_legacy (client,
 	                                     NM_DBUS_PATH,
@@ -4228,7 +4316,9 @@ nm_client_connectivity_check_get_uri (NMClient *client)
  *
  * Returns: %TRUE on success, %FALSE otherwise
  *
- * Deprecated: 1.22, use nm_client_get_logging_async() or GDBusConnection
+ * Deprecated: 1.22: Use the async command nm_client_dbus_call() on %NM_DBUS_PATH,
+ * %NM_DBUS_INTERFACE to call "GetLogging" with no arguments to get "(ss)" for level
+ * and domains.
  **/
 gboolean
 nm_client_get_logging (NMClient *client,
@@ -4242,8 +4332,6 @@ nm_client_get_logging (NMClient *client,
 	g_return_val_if_fail (level == NULL || *level == NULL, FALSE);
 	g_return_val_if_fail (domains == NULL || *domains == NULL, FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-	/* FIXME(libnm-async-api): add nm_client_get_logging_async(). */
 
 	ret = _nm_client_dbus_call_sync (client,
 	                                 NULL,
@@ -4278,15 +4366,14 @@ nm_client_get_logging (NMClient *client,
  *
  * Returns: %TRUE on success, %FALSE otherwise
  *
- * Deprecated: 1.22, use nm_client_set_logging_async() or GDBusConnection
+ * Deprecated: 1.22: Use the async command nm_client_dbus_call() on %NM_DBUS_PATH,
+ * %NM_DBUS_INTERFACE to call "SetLogging" with "(ss)" arguments for level and domains.
  **/
 gboolean
 nm_client_set_logging (NMClient *client, const char *level, const char *domains, GError **error)
 {
 	g_return_val_if_fail (NM_IS_CLIENT (client), FALSE);
 	g_return_val_if_fail (error == NULL || *error == NULL, FALSE);
-
-	/* FIXME(libnm-async-api): add nm_client_set_logging_async(). */
 
 	return _nm_client_dbus_call_sync_void (client,
 	                                       NULL,
@@ -4316,18 +4403,39 @@ NMClientPermissionResult
 nm_client_get_permission_result (NMClient *client, NMClientPermission permission)
 {
 	NMClientPrivate *priv;
-	gpointer result;
+	NMClientPermissionResult result = NM_CLIENT_PERMISSION_RESULT_UNKNOWN;
 
 	g_return_val_if_fail (NM_IS_CLIENT (client), NM_CLIENT_PERMISSION_RESULT_UNKNOWN);
 
-	priv = NM_CLIENT_GET_PRIVATE (client);
-	if (   !priv->permissions
-	    || !g_hash_table_lookup_extended (priv->permissions,
-	                                      GUINT_TO_POINTER (permission),
-	                                      NULL,
-	                                      &result))
-		return NM_CLIENT_PERMISSION_RESULT_UNKNOWN;
-	return GPOINTER_TO_UINT (result);
+	if (   permission > NM_CLIENT_PERMISSION_NONE
+	    && permission <= NM_CLIENT_PERMISSION_LAST) {
+		priv = NM_CLIENT_GET_PRIVATE (client);
+		if (priv->permissions)
+			result = priv->permissions[permission - 1];
+	}
+
+	return result;
+}
+
+/**
+ * nm_client_get_permissions_state:
+ * @self: the #NMClient instance
+ *
+ * Returns: the state of the cached permissions. %NM_TERNARY_DEFAULT
+ *   means that no permissions result was yet received. All permissions
+ *   are unknown. %NM_TERNARY_TRUE means that the permissions got received
+ *   and are cached. %%NM_TERNARY_FALSE means that permissions are cached,
+ *   but they are invalided as as "CheckPermissions" signal was received
+ *   in the meantime.
+ *
+ * Since: 1.24
+ */
+NMTernary
+nm_client_get_permissions_state (NMClient *self)
+{
+	g_return_val_if_fail (NM_IS_CLIENT (self), NM_TERNARY_DEFAULT);
+
+	return NM_CLIENT_GET_PRIVATE (self)->permissions_state;
 }
 
 /**
@@ -4364,7 +4472,7 @@ nm_client_get_connectivity (NMClient *client)
  *
  * Returns: the (new) current connectivity state
  *
- * Deprecated: 1.22, use nm_client_check_connectivity_async() or GDBusConnection
+ * Deprecated: 1.22: Use nm_client_check_connectivity_async() or GDBusConnection.
  */
 NMConnectivityState
 nm_client_check_connectivity (NMClient *client,
@@ -4493,7 +4601,7 @@ nm_client_check_connectivity_finish (NMClient *client,
  *
  * Returns: %TRUE if the request was successful, %FALSE if it failed
  *
- * Deprecated: 1.22, use nm_client_save_hostname_async() or GDBusConnection
+ * Deprecated: 1.22: Use nm_client_save_hostname_async() or GDBusConnection.
  **/
 gboolean
 nm_client_save_hostname (NMClient *client,
@@ -4757,7 +4865,7 @@ activate_connection_cb (GObject *object,
 
 	ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (object), result, &error);
 	if (!ret) {
-		if (!nm_utils_error_is_cancelled (error, FALSE))
+		if (!nm_utils_error_is_cancelled (error))
 			g_dbus_error_strip_remote_error (error);
 		g_task_return_error (task, error);
 		return;
@@ -4895,7 +5003,7 @@ _add_and_activate_connection_done (GObject *object,
 
 	ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (object), result, &error);
 	if (!ret) {
-		if (!nm_utils_error_is_cancelled (error, FALSE))
+		if (!nm_utils_error_is_cancelled (error))
 			g_dbus_error_strip_remote_error (error);
 		g_task_return_error (task, error);
 		return;
@@ -5106,7 +5214,7 @@ nm_client_add_and_activate_connection_finish (NMClient *client,
  * @specific_object: (allow-none): the object path of a connection-type-specific
  *   object this activation should use. This parameter is currently ignored for
  *   wired and mobile broadband connections, and the value of %NULL should be used
- *   (ie, no specific object).  For Wi-Fi or WiMAX connections, pass the object
+ *   (i.e., no specific object).  For Wi-Fi or WiMAX connections, pass the object
  *   path of a #NMAccessPoint or #NMWimaxNsp owned by @device, which you can
  *   get using nm_object_get_path(), and which will be used to complete the
  *   details of the newly added connection.
@@ -5126,7 +5234,7 @@ nm_client_add_and_activate_connection_finish (NMClient *client,
  * #NMActiveConnection object (in particular, #NMActiveConnection:state) to
  * track the activation to its completion.
  *
- * This is identitcal to nm_client_add_and_activate_connection_async() but takes
+ * This is identical to nm_client_add_and_activate_connection_async() but takes
  * a further @options parameter. Currently the following options are supported
  * by the daemon:
  *  * "persist": A string describing how the connection should be stored.
@@ -5135,7 +5243,7 @@ nm_client_add_and_activate_connection_finish (NMClient *client,
  *  * "bind-activation": Bind the connection lifetime to something. The default is "none",
  *            meaning an explicit disconnect is needed. The value "dbus-client"
  *            means the connection will automatically be deactivated when the calling
- *            DBus client disappears from the system bus.
+ *            D-Bus client disappears from the system bus.
  *
  * Since: 1.16
  **/
@@ -5203,7 +5311,7 @@ nm_client_add_and_activate_connection2_finish (NMClient *client,
  *
  * Returns: success or failure
  *
- * Deprecated: 1.22, use nm_client_deactivate_connection_async() or GDBusConnection
+ * Deprecated: 1.22: Use nm_client_deactivate_connection_async() or GDBusConnection.
  **/
 gboolean
 nm_client_deactivate_connection (NMClient *client,
@@ -5418,7 +5526,7 @@ _add_connection_cb (GObject *source,
 
 	ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
 	if (!ret) {
-		if (!nm_utils_error_is_cancelled (error, FALSE))
+		if (!nm_utils_error_is_cancelled (error))
 			g_dbus_error_strip_remote_error (error);
 		g_task_return_error (task, error);
 		return;
@@ -5708,7 +5816,7 @@ nm_client_add_connection2_finish (NMClient *client,
  *   set. Note that even in the success case, you might have individual @failures.
  *   With 1.22, the return value is consistent with nm_client_load_connections_finish().
  *
- * Deprecated: 1.22, use nm_client_load_connections_async() or GDBusConnection
+ * Deprecated: 1.22: Use nm_client_load_connections_async() or GDBusConnection.
  **/
 gboolean
 nm_client_load_connections (NMClient *client,
@@ -5839,7 +5947,7 @@ nm_client_load_connections_finish (NMClient *client,
  *
  * Return value: %TRUE on success, %FALSE on failure
  *
- * Deprecated: 1.22, use nm_client_reload_connections_async() or GDBusConnection
+ * Deprecated: 1.22: Use nm_client_reload_connections_async() or GDBusConnection.
  **/
 gboolean
 nm_client_reload_connections (NMClient *client,
@@ -6080,7 +6188,7 @@ _notify_update_prop_dns_manager_configuration (NMClient *self,
  *   The array is terminated by a numeric zero sentinel
  *   at position @length.
  *
- * Since: 1.24, 1.22.2
+ * Since: 1.24
  */
 const guint32 *
 nm_client_get_capabilities (NMClient *client,
@@ -6160,7 +6268,7 @@ checkpoint_create_cb (GObject *object,
 
 	ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (object), result, &error);
 	if (!ret) {
-		if (!nm_utils_error_is_cancelled (error, FALSE))
+		if (!nm_utils_error_is_cancelled (error))
 			g_dbus_error_strip_remote_error (error);
 		g_task_return_error (task, error);
 		return;
@@ -6540,6 +6648,174 @@ nm_client_reload_finish (NMClient *client,
 
 /*****************************************************************************/
 
+/**
+ * nm_client_dbus_call:
+ * @client: the #NMClient
+ * @object_path: path of remote object
+ * @interface_name: D-Bus interface to invoke method on
+ * @method_name: the name of the method to invoke
+ * @parameters: (nullable): a #GVariant tuple with parameters for the method
+ *     or %NULL if not passing parameters
+ * @reply_type: (nullable): the expected type of the reply (which will be a
+ *     tuple), or %NULL
+ * @timeout_msec: the timeout in milliseconds, -1 to use the default
+ *     timeout or %G_MAXINT for no timeout
+ * @cancellable: (nullable): a #GCancellable or %NULL
+ * @callback: (nullable): a #GAsyncReadyCallback to call when the request
+ *     is satisfied or %NULL if you don't care about the result of the
+ *     method invocation
+ * @user_data: the data to pass to @callback
+ *
+ * Call g_dbus_connection_call() on the current name owner with the specified
+ * arguments. Most importantly, this invokes g_dbus_connection_call() with the
+ * client's #GMainContext, so that the response is always in order with other
+ * events D-Bus events. Of course, the call uses #GTask and will invoke the
+ * callback on the current g_main_context_get_thread_default().
+ *
+ * This API is merely a convenient wrapper for g_dbus_connection_call(). You can
+ * also use g_dbus_connection_call() directly, with the same effect.
+ *
+ * Since: 1.24
+ **/
+void
+nm_client_dbus_call (NMClient *client,
+                     const char *object_path,
+                     const char *interface_name,
+                     const char *method_name,
+                     GVariant *parameters,
+                     const GVariantType *reply_type,
+                     int timeout_msec,
+                     GCancellable *cancellable,
+                     GAsyncReadyCallback callback,
+                     gpointer user_data)
+{
+	g_return_if_fail (NM_IS_CLIENT (client));
+
+	_nm_client_dbus_call (client,
+	                      client,
+	                      nm_client_dbus_call,
+	                      cancellable,
+	                      callback,
+	                      user_data,
+	                      object_path,
+	                      interface_name,
+	                      method_name,
+	                      parameters,
+	                      reply_type,
+	                      G_DBUS_CALL_FLAGS_NONE,
+	                        timeout_msec == -1
+	                      ? NM_DBUS_DEFAULT_TIMEOUT_MSEC
+	                      : timeout_msec,
+	                      nm_dbus_connection_call_finish_variant_cb);
+}
+
+/**
+ * nm_client_dbus_call_finish:
+ * @client: the #NMClient instance
+ * @result: the result passed to the #GAsyncReadyCallback
+ * @error: location for a #GError, or %NULL
+ *
+ * Gets the result of a call to nm_client_dbus_call().
+ *
+ * Returns: (transfer full): the result #GVariant or %NULL on error.
+ *
+ * Since: 1.24
+ **/
+GVariant *
+nm_client_dbus_call_finish (NMClient *client,
+                            GAsyncResult *result,
+                            GError **error)
+{
+	g_return_val_if_fail (NM_IS_CLIENT (client), FALSE);
+	g_return_val_if_fail (nm_g_task_is_valid (result, client, nm_client_dbus_call), FALSE);
+
+	return g_task_propagate_pointer (G_TASK (result), error);
+}
+
+/*****************************************************************************/
+
+/**
+ * nm_client_dbus_set_property:
+ * @client: the #NMClient
+ * @object_path: path of remote object
+ * @interface_name: D-Bus interface to invoke method on
+ * @property_name: the name of the property to set
+ * @value: a #GVariant tuple with the value to set
+ * @timeout_msec: the timeout in milliseconds, -1 to use the default
+ *     timeout or %G_MAXINT for no timeout
+ * @cancellable: (nullable): a #GCancellable or %NULL
+ * @callback: (nullable): a #GAsyncReadyCallback to call when the request
+ *     is satisfied or %NULL if you don't care about the result of the
+ *     method invocation
+ * @user_data: the data to pass to @callback
+ *
+ * Like nm_client_dbus_call() but calls "Set" on the standard "org.freedesktop.DBus.Properties"
+ * D-Bus interface.
+ *
+ * Since: 1.24
+ **/
+void
+nm_client_dbus_set_property (NMClient *client,
+                             const char *object_path,
+                             const char *interface_name,
+                             const char *property_name,
+                             GVariant *value,
+                             int timeout_msec,
+                             GCancellable *cancellable,
+                             GAsyncReadyCallback callback,
+                             gpointer user_data)
+{
+	g_return_if_fail (NM_IS_CLIENT (client));
+	g_return_if_fail (interface_name);
+	g_return_if_fail (property_name);
+	g_return_if_fail (value);
+
+	_nm_client_dbus_call (client,
+	                      client,
+	                      nm_client_dbus_set_property,
+	                      cancellable,
+	                      callback,
+	                      user_data,
+	                      object_path,
+	                      DBUS_INTERFACE_PROPERTIES,
+	                      "Set",
+	                      g_variant_new ("(ssv)",
+	                                     interface_name,
+	                                     property_name,
+	                                     value),
+	                      G_VARIANT_TYPE ("()"),
+	                      G_DBUS_CALL_FLAGS_NONE,
+	                        timeout_msec == -1
+	                      ? NM_DBUS_DEFAULT_TIMEOUT_MSEC
+	                      : timeout_msec,
+	                      nm_dbus_connection_call_finish_void_cb);
+}
+
+/**
+ * nm_client_dbus_set_property_finish:
+ * @client: the #NMClient instance
+ * @result: the result passed to the #GAsyncReadyCallback
+ * @error: location for a #GError, or %NULL
+ *
+ * Gets the result of a call to nm_client_dbus_set_property().
+ *
+ * Returns: %TRUE on success or %FALSE on failure.
+ *
+ * Since: 1.24
+ **/
+gboolean
+nm_client_dbus_set_property_finish (NMClient *client,
+                                    GAsyncResult *result,
+                                    GError **error)
+{
+	g_return_val_if_fail (NM_IS_CLIENT (client), FALSE);
+	g_return_val_if_fail (nm_g_task_is_valid (result, client, nm_client_dbus_set_property), FALSE);
+
+	return g_task_propagate_boolean (G_TASK (result), error);
+}
+
+/*****************************************************************************/
+
 static void
 _init_fetch_all (NMClient *self)
 {
@@ -6554,13 +6830,13 @@ _init_fetch_all (NMClient *self)
 
 	priv->get_managed_objects_cancellable = g_cancellable_new ();
 
-	priv->dbsid_nm_object_manager = nm_dbus_connection_signal_subscribe_object_manager_plain (priv->dbus_connection,
-	                                                                                          priv->name_owner,
-	                                                                                          "/org/freedesktop",
-	                                                                                          NULL,
-	                                                                                          _dbus_managed_objects_changed_cb,
-	                                                                                          self,
-	                                                                                          NULL);
+	priv->dbsid_nm_object_manager = nm_dbus_connection_signal_subscribe_object_manager (priv->dbus_connection,
+	                                                                                    priv->name_owner,
+	                                                                                    "/org/freedesktop",
+	                                                                                    NULL,
+	                                                                                    _dbus_managed_objects_changed_cb,
+	                                                                                    self,
+	                                                                                    NULL);
 
 	priv->dbsid_dbus_properties_properties_changed = nm_dbus_connection_signal_subscribe_properties_changed (priv->dbus_connection,
 	                                                                                                         priv->name_owner,
@@ -6637,6 +6913,7 @@ _init_release_all (NMClient *self)
 	CList **dbus_objects_lst_heads;
 	NMLDBusObject *dbobj;
 	int i;
+	gboolean permissions_state_changed = FALSE;
 
 	NML_NMCLIENT_LOG_D (self, "release all");
 
@@ -6656,11 +6933,19 @@ _init_release_all (NMClient *self)
 	nm_clear_g_dbus_connection_signal (priv->dbus_connection,
 	                                   &priv->dbsid_nm_check_permissions);
 
-	if (priv->permissions) {
-		gs_unref_hashtable GHashTable *old_permissions = g_steal_pointer (&priv->permissions);
-
-		_emit_permissions_changed (self, old_permissions, TRUE);
+	if (priv->permissions_state != NM_TERNARY_DEFAULT) {
+		priv->permissions_state = NM_TERNARY_DEFAULT;
+		permissions_state_changed = TRUE;
 	}
+
+	if (priv->permissions) {
+		gs_free guint8 *old_permissions = g_steal_pointer (&priv->permissions);
+
+		_emit_permissions_changed (self, old_permissions, NULL);
+	}
+
+	if (permissions_state_changed)
+		_notify (self, PROP_PERMISSIONS_STATE);
 
 	nm_assert (c_list_is_empty (&priv->obj_changed_lst_head));
 
@@ -6726,7 +7011,7 @@ name_owner_changed (NMClient *self,
 
 		old_context_busy_watcher = g_steal_pointer (&priv->context_busy_watcher);
 		priv->context_busy_watcher = g_object_ref (g_object_get_qdata (old_context_busy_watcher,
-		                                                               nm_client_context_busy_watcher_quark ()));
+		                                                               nm_context_busy_watcher_quark ()));
 
 		g_main_context_ref (priv->main_context);
 		g_main_context_unref (priv->dbus_context);
@@ -6825,7 +7110,7 @@ name_owner_get_cb (GObject *source,
 	ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source), result, &error);
 
 	if (   !ret
-	    && nm_utils_error_is_cancelled (error, FALSE))
+	    && nm_utils_error_is_cancelled (error))
 		return;
 
 	priv = NM_CLIENT_GET_PRIVATE (self);
@@ -6862,35 +7147,80 @@ name_owner_get_call (NMClient *self)
 
 /*****************************************************************************/
 
+static inline gboolean
+_nml_cleanup_context_busy_watcher_on_idle_cb (gpointer user_data)
+{
+	nm_auto_unref_gmaincontext GMainContext *context = NULL;
+	gs_unref_object GObject *context_busy_watcher = NULL;
+
+	nm_utils_user_data_unpack (user_data, &context, &context_busy_watcher);
+
+	nm_assert (context);
+	nm_assert (G_IS_OBJECT (context_busy_watcher));
+	return G_SOURCE_REMOVE;
+}
+
+void
+nml_cleanup_context_busy_watcher_on_idle (GObject *context_busy_watcher_take,
+                                          GMainContext *context)
+{
+	gs_unref_object GObject *context_busy_watcher = g_steal_pointer (&context_busy_watcher_take);
+	GSource *cleanup_source;
+
+	nm_assert (G_IS_OBJECT (context_busy_watcher));
+	nm_assert (context);
+
+	/* Technically, we cancelled all pending actions (and these actions
+	 * (GTask) keep the context_busy_watcher object alive). Also, we passed
+	 * no destroy notify to g_dbus_connection_signal_subscribe().
+	 * That means, there should be no other unaccounted GSource'es left.
+	 *
+	 * However, we really need to be sure that the context_busy_watcher's
+	 * lifetime matches the time that the context is busy. That is especially
+	 * important with synchronous initialization, where the context-busy-watcher
+	 * keeps the inner GMainContext integrated in the caller's.
+	 * We must not g_source_destroy() that integration too early.
+	 *
+	 * So to be really sure all this is given, always schedule one last
+	 * cleanup idle action with low priority. This should be the last
+	 * thing related to this instance that keeps the context busy.
+	 *
+	 * Note that we could also *not* take a reference on @context
+	 * and unref @context_busy_watcher via the GDestroyNotify. That would
+	 * allow for the context to be wrapped up early, and when the last user
+	 * gives up the reference to the context, the destroy notify could complete
+	 * without even invoke the idle handler. However, that destroy notify may
+	 * not be called in the right thread. So, we want to be sure that we unref
+	 * the context-busy-watcher in the right context. Hence, we always take an
+	 * additional reference and always cleanup in the idle handler. This means:
+	 * the user *MUST* always keep iterating the context after NMClient got destroyed.
+	 * But that is not a severe limitation, because the user anyway must be prepared
+	 * to do that. That is because in many cases it is necessary anyway (and the user
+	 * wouldn't know a priory when not). This way, it is just always necessary. */
+
+	cleanup_source = nm_g_idle_source_new (G_PRIORITY_LOW + 10,
+	                                       _nml_cleanup_context_busy_watcher_on_idle_cb,
+	                                       nm_utils_user_data_pack (g_main_context_ref (context),
+	                                                                g_steal_pointer (&context_busy_watcher)),
+	                                       NULL);
+	g_source_attach (cleanup_source, context);
+	g_source_unref (cleanup_source);
+}
+
+/*****************************************************************************/
+
 static void
 _init_start_complete (NMClient *self,
                       GError *error_take)
 {
 	NMClientPrivate *priv = NM_CLIENT_GET_PRIVATE (self);
-	InitData *init_data;
-
-	init_data = g_steal_pointer (&priv->init_data);
 
 	NML_NMCLIENT_LOG_D (self, "%s init complete with %s%s%s",
-	                   init_data->is_sync ? "sync" : "async",
+	                   priv->init_data->is_sync ? "sync" : "async",
 	                   NM_PRINT_FMT_QUOTED (error_take, "error: ", error_take->message, "", "success"));
 
-	nm_clear_pointer (&init_data->cancel_on_idle_source, nm_g_source_destroy_and_unref);
-	nm_clear_g_signal_handler (init_data->cancellable, &init_data->cancelled_id);
-
-	if (init_data->is_sync) {
-		if (error_take)
-			g_propagate_error (init_data->data.sync.error_location, error_take);
-		g_main_loop_quit (init_data->data.sync.main_loop);
-	} else {
-		if (error_take)
-			g_task_return_error (init_data->data.async.task, error_take);
-		else
-			g_task_return_boolean (init_data->data.async.task, TRUE);
-		g_object_unref (init_data->data.async.task);
-	}
-	nm_g_object_unref (init_data->cancellable);
-	nm_g_slice_free (init_data);
+	nml_init_data_return (g_steal_pointer (&priv->init_data),
+	                      error_take);
 }
 
 static void
@@ -7033,6 +7363,9 @@ get_property (GObject *object, guint prop_id,
 	NMClientPrivate *priv = NM_CLIENT_GET_PRIVATE (object);
 
 	switch (prop_id) {
+	case PROP_INSTANCE_FLAGS:
+		g_value_set_uint (value, priv->instance_flags);
+		break;
 	case PROP_DBUS_CONNECTION:
 		g_value_set_object (value, priv->dbus_connection);
 		break;
@@ -7121,6 +7454,9 @@ get_property (GObject *object, guint prop_id,
 			g_value_take_boxed (value, out);
 		}
 		break;
+	case PROP_PERMISSIONS_STATE:
+		g_value_set_enum (value, priv->permissions_state);
+		break;
 
 	/* Settings properties. */
 	case PROP_CONNECTIONS:
@@ -7159,8 +7495,38 @@ set_property (GObject *object, guint prop_id,
 	NMClient *self = NM_CLIENT (object);
 	NMClientPrivate *priv = NM_CLIENT_GET_PRIVATE (self);
 	gboolean b;
+	guint v_uint;
 
 	switch (prop_id) {
+
+	case PROP_INSTANCE_FLAGS:
+		/* construct */
+
+		v_uint = g_value_get_uint (value);
+		g_return_if_fail (!NM_FLAGS_ANY (v_uint, ~((guint) NM_CLIENT_INSTANCE_FLAGS_ALL)));
+		v_uint &= ((guint) NM_CLIENT_INSTANCE_FLAGS_ALL);
+
+		if (!priv->instance_flags_constructed) {
+			priv->instance_flags_constructed = TRUE;
+			priv->instance_flags = v_uint;
+			nm_assert ((guint) priv->instance_flags == v_uint);
+		} else {
+			NMClientInstanceFlags flags = v_uint;
+
+			/* After object construction, we only allow to toggle certain flags and
+			 * ignore all other flags. */
+
+			if ((priv->instance_flags ^ flags) & NM_CLIENT_INSTANCE_FLAGS_NO_AUTO_FETCH_PERMISSIONS) {
+				if (NM_FLAGS_HAS (flags, NM_CLIENT_INSTANCE_FLAGS_NO_AUTO_FETCH_PERMISSIONS))
+					priv->instance_flags |= NM_CLIENT_INSTANCE_FLAGS_NO_AUTO_FETCH_PERMISSIONS;
+				else
+					priv->instance_flags &= ~NM_CLIENT_INSTANCE_FLAGS_NO_AUTO_FETCH_PERMISSIONS;
+				if (priv->dbsid_nm_check_permissions != 0)
+					_dbus_check_permissions_start (self);
+			}
+		}
+		break;
+
 	case PROP_DBUS_CONNECTION:
 		/* construct-only */
 		priv->dbus_connection = g_value_dup_object (value);
@@ -7253,12 +7619,12 @@ init_sync (GInitable *initable, GCancellable *cancellable, GError **error)
 	 * to resync and drop the inner context. That means, requests made against the inner
 	 * context have a different lifetime. Hence, we create a separate tracking
 	 * object. This "wraps" the outer context-busy-watcher and references it, so
-	 * that the work together. Grep for nm_client_context_busy_watcher_quark() to
+	 * that the work together. Grep for nm_context_busy_watcher_quark() to
 	 * see how this works. */
 	parent_context_busy_watcher = g_steal_pointer (&priv->context_busy_watcher);
 	priv->context_busy_watcher = g_object_new (G_TYPE_OBJECT, NULL);
 	g_object_set_qdata_full (priv->context_busy_watcher,
-	                         nm_client_context_busy_watcher_quark (),
+	                         nm_context_busy_watcher_quark (),
 	                         parent_context_busy_watcher,
 	                         g_object_unref);
 
@@ -7266,7 +7632,7 @@ init_sync (GInitable *initable, GCancellable *cancellable, GError **error)
 
 	main_loop = g_main_loop_new (dbus_context, FALSE);
 
-	priv->init_data = _init_data_new_sync (cancellable, main_loop, &local_error);
+	priv->init_data = nml_init_data_new_sync (cancellable, main_loop, &local_error);
 
 	_init_start (self);
 
@@ -7277,12 +7643,9 @@ init_sync (GInitable *initable, GCancellable *cancellable, GError **error)
 	g_main_context_pop_thread_default (dbus_context);
 
 	if (priv->main_context != priv->dbus_context) {
-		GSource *source;
-
-		source = nm_utils_g_main_context_create_integrate_source (priv->dbus_context);
-		g_source_attach (source, priv->main_context);
-		_context_busy_watcher_attach_integration_source (priv->context_busy_watcher,
-		                                                 g_steal_pointer (&source));
+		nm_context_busy_watcher_integrate_source (priv->main_context,
+		                                          priv->dbus_context,
+		                                          priv->context_busy_watcher);
 	}
 
 	g_main_context_unref (dbus_context);
@@ -7322,7 +7685,7 @@ init_async (GAsyncInitable *initable,
 	task = nm_g_task_new (self, cancellable, init_async, callback, user_data);
 	g_task_set_priority (task, io_priority);
 
-	priv->init_data = _init_data_new_async (cancellable, g_steal_pointer (&task));
+	priv->init_data = nml_init_data_new_async (cancellable, g_steal_pointer (&task));
 
 	_init_start (self);
 }
@@ -7342,6 +7705,8 @@ static void
 nm_client_init (NMClient *self)
 {
 	NMClientPrivate *priv = NM_CLIENT_GET_PRIVATE (self);
+
+	priv->permissions_state = NM_TERNARY_DEFAULT;
 
 	priv->context_busy_watcher = g_object_new (G_TYPE_OBJECT, NULL);
 
@@ -7441,18 +7806,6 @@ constructed (GObject *object)
 	NML_NMCLIENT_LOG_D (self, "new NMClient instance");
 }
 
-static inline gboolean
-_dispose_cleanup_context_busy_watcher_cb (gpointer user_data)
-{
-	nm_auto_unref_gmaincontext GMainContext *context = NULL;
-	gs_unref_object GObject *context_busy_watcher = NULL;
-
-	nm_utils_user_data_unpack (user_data, &context, &context_busy_watcher);
-
-	nm_assert (G_IS_OBJECT (context_busy_watcher));
-	return G_SOURCE_REMOVE;
-}
-
 static void
 dispose (GObject *object)
 {
@@ -7503,48 +7856,14 @@ dispose (GObject *object)
 
 	if (   priv->context_busy_watcher
 	    && priv->dbus_context) {
-		GSource *cleanup_source;
-
-		/* Technically, we cancelled all pending actions (and these actions
-		 * (GTask) keep the context_busy_watcher object alive). Also, we passed
-		 * no destroy notify to g_dbus_connection_signal_subscribe().
-		 * That means, there should be no other unaccounted GSource'es left.
-		 *
-		 * However, we really need to be sure that the context_busy_watcher's
-		 * lifetime matches the time that the context is busy. That is especially
-		 * important with synchronous initialization, where the context-busy-watcher
-		 * keeps the inner GMainContext integrated in the caller's.
-		 * We must not g_source_destroy() that integration too early.
-		 *
-		 * So to be really sure all this is given, always schedule one last
-		 * cleanup idle action with low priority. This should be the last
-		 * thing related to this instance that keeps the context busy.
-		 *
-		 * Note that we could also *not* take a reference on priv->dbus_context
-		 * and unref priv->context_busy_watcher via the GDestroyNotify. That would
-		 * allow for the context to be wrapped up early, and when the last user
-		 * gives up the reference to the context, the destroy notify could complete
-		 * without even invoke the idle handler. However, that destroy notify may
-		 * not be called in the right thread. So, we want to be sure that we unref
-		 * the context-busy-watcher in the right context. Hence, we always take an
-		 * additional reference and always cleanup in the idle handler. This means:
-		 * the user *MUST* always keep iterating the context after NMClient got destroyed.
-		 * But that is not a severe limitation, because the user anyway must be prepared
-		 * to do that. That is because in many cases it is necessary anyway (and the user
-		 * wouldn't know a priory when not). This way, it is just always necessary. */
-		cleanup_source = nm_g_idle_source_new (G_PRIORITY_LOW + 10,
-		                                       _dispose_cleanup_context_busy_watcher_cb,
-		                                       nm_utils_user_data_pack (g_main_context_ref (priv->dbus_context),
-		                                                                g_steal_pointer (&priv->context_busy_watcher)),
-		                                       NULL);
-		g_source_attach (cleanup_source, priv->dbus_context);
-		g_source_unref (cleanup_source);
+		nml_cleanup_context_busy_watcher_on_idle (g_steal_pointer (&priv->context_busy_watcher),
+		                                          priv->dbus_context);
 	}
 
 	nm_clear_pointer (&priv->dbus_context, g_main_context_unref);
 	nm_clear_pointer (&priv->main_context, g_main_context_unref);
 
-	nm_clear_pointer (&priv->permissions, g_hash_table_unref);
+	nm_clear_g_free (&priv->permissions);
 
 	g_clear_object (&priv->dbus_connection);
 
@@ -7554,6 +7873,8 @@ dispose (GObject *object)
 
 	priv->nm.capabilities_len = 0;
 	nm_clear_g_free (&priv->nm.capabilities_arr);
+
+	NML_NMCLIENT_LOG_D (self, "disposed");
 }
 
 const NMLDBusMetaIface _nml_dbus_meta_iface_nm_agentmanager = NML_DBUS_META_IFACE_INIT (
@@ -7647,6 +7968,30 @@ nm_client_class_init (NMClientClass *client_class)
 	                         G_PARAM_WRITABLE |
 	                         G_PARAM_CONSTRUCT_ONLY |
 	                         G_PARAM_STATIC_STRINGS);
+
+	/**
+	 * NMClient:instance-flags:
+	 *
+	 * #NMClientInstanceFlags for the instance. These affect behavior of #NMClient.
+	 * This is a construct property and you may only set most flags only during
+	 * construction.
+	 *
+	 * The flag %NM_CLIENT_INSTANCE_FLAGS_NO_AUTO_FETCH_PERMISSIONS can be toggled any time,
+	 * even after constructing the instance. Note that you may want to watch NMClient:permissions-state
+	 * property to know whether permissions are ready. Note that permissions are only fetched
+	 * when NMClient has a D-Bus name owner.
+	 *
+	 * Since: 1.24
+	 */
+	obj_properties[PROP_INSTANCE_FLAGS] =
+	    g_param_spec_uint (NM_CLIENT_INSTANCE_FLAGS, "", "",
+	                       0,
+	                       G_MAXUINT32,
+	                       0,
+	                       G_PARAM_READABLE |
+	                       G_PARAM_WRITABLE |
+	                       G_PARAM_CONSTRUCT |
+	                       G_PARAM_STATIC_STRINGS);
 
 	/**
 	 * NMClient:dbus-name-owner:
@@ -8014,13 +8359,39 @@ nm_client_class_init (NMClientClass *client_class)
 	 * there are no capabitilies. The numeric value correspond
 	 * to %NMCapability enum.
 	 *
-	 * Since: 1.24, 1.22.2
+	 * Since: 1.24
 	 */
 	obj_properties[PROP_CAPABILITIES] =
 	    g_param_spec_boxed (NM_CLIENT_CAPABILITIES, "", "",
 	                        G_TYPE_ARRAY,
 	                        G_PARAM_READABLE |
 	                        G_PARAM_STATIC_STRINGS);
+
+	/**
+	 * NMClient:permissions-state:
+	 *
+	 * The state of the cached permissions. The value %NM_TERNARY_DEFAULT
+	 * means that no permissions are yet received (or not yet requested).
+	 * %NM_TERNARY_TRUE means that permissions are received, cached and up
+	 * to date. %NM_TERNARY_FALSE means that permissions were received and are
+	 * cached, but in the meantime a "CheckPermissions" signal was received
+	 * that invalidated the cached permissions.
+	 * Note that NMClient will always emit a notify::permissions-state signal
+	 * when a "CheckPermissions" signal got received or after new permissions
+	 * got received (that is regardless whether the value of the permission state
+	 * actually changed). With this you can watch the permissions-state property
+	 * to know whether the permissions are ready. Note that while NMClient has
+	 * no D-Bus name owner, no permissions are fetched (and this property won't
+	 * change).
+	 *
+	 * Since: 1.24
+	 */
+	obj_properties[PROP_PERMISSIONS_STATE] =
+	    g_param_spec_enum (NM_CLIENT_PERMISSIONS_STATE, "", "",
+	                       NM_TYPE_TERNARY,
+	                       NM_TERNARY_DEFAULT,
+	                       G_PARAM_READABLE |
+	                       G_PARAM_STATIC_STRINGS);
 
 	_nml_dbus_meta_class_init_with_properties (object_class, &_nml_dbus_meta_iface_nm,
 	                                                         &_nml_dbus_meta_iface_nm_settings,

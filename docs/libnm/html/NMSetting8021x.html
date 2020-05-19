@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSetting6Lowpan.html" title="NMSetting6Lowpan">
 <link rel="next" href="NMSettingAdsl.html" title="NMSettingAdsl">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,8 +37,8 @@
 <a name="NMSetting8021x.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -262,6 +262,13 @@
 </td>
 </tr>
 <tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-domain-match" title="nm_setting_802_1x_get_domain_match ()">nm_setting_802_1x_get_domain_match</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
 <td class="function_type">
 <a class="link" href="NMSetting8021x.html#NMSetting8021xCKScheme" title="enum NMSetting8021xCKScheme"><span class="returnvalue">NMSetting8021xCKScheme</span></a>
 </td>
@@ -461,6 +468,13 @@
 </td>
 <td class="function_name">
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-domain-suffix-match" title="nm_setting_802_1x_get_phase2_domain_suffix_match ()">nm_setting_802_1x_get_phase2_domain_suffix_match</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="NMSetting8021x.html#nm-setting-802-1x-get-phase2-domain-match" title="nm_setting_802_1x_get_phase2_domain_match ()">nm_setting_802_1x_get_phase2_domain_match</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -779,6 +793,12 @@
 <tr>
 <td class="property_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<td class="property_name"><a class="link" href="NMSetting8021x.html#NMSetting8021x--domain-match" title="The “domain-match” property">domain-match</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSetting8021x.html#NMSetting8021x--domain-suffix-match" title="The “domain-suffix-match” property">domain-suffix-match</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -829,7 +849,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSetting8021x.html#NMSetting8021x--phase1-auth-flags" title="The “phase1-auth-flags” property">phase1-auth-flags</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
@@ -909,6 +929,12 @@
 <tr>
 <td class="property_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<td class="property_name"><a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-domain-match" title="The “phase2-domain-match” property">phase2-domain-match</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-domain-suffix-match" title="The “phase2-domain-suffix-match” property">phase2-domain-suffix-match</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -972,7 +998,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSetting8021x.html#NMSetting8021x--system-ca-certs" title="The “system-ca-certs” property">system-ca-certs</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 </tbody>
 </table></div>
@@ -981,8 +1007,8 @@
 <a name="NMSetting8021x.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -1055,6 +1081,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-DOMAIN-MATCH:CAPS" title="NM_SETTING_802_1X_DOMAIN_MATCH">NM_SETTING_802_1X_DOMAIN_MATCH</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-CLIENT-CERT:CAPS" title="NM_SETTING_802_1X_CLIENT_CERT">NM_SETTING_802_1X_CLIENT_CERT</a></td>
 </tr>
 <tr>
@@ -1116,6 +1146,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-PHASE2-DOMAIN-SUFFIX-MATCH:CAPS" title="NM_SETTING_802_1X_PHASE2_DOMAIN_SUFFIX_MATCH">NM_SETTING_802_1X_PHASE2_DOMAIN_SUFFIX_MATCH</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSetting8021x.html#NM-SETTING-802-1X-PHASE2-DOMAIN-MATCH:CAPS" title="NM_SETTING_802_1X_PHASE2_DOMAIN_MATCH">NM_SETTING_802_1X_PHASE2_DOMAIN_MATCH</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -2142,6 +2176,32 @@ nm_setting_802_1x_get_domain_suffix_match
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-setting-802-1x-get-domain-match"></a><h3>nm_setting_802_1x_get_domain_match ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_802_1x_get_domain_match (<em class="parameter"><code><a class="link" href="NMSetting8021x.html" title="NMSetting8021x"><span class="type">NMSetting8021x</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-802-1x-get-domain-match.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSetting8021x.html" title="NMSetting8021x"><span class="type">NMSetting8021x</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-802-1x-get-domain-match.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="NMSetting8021x.html#NMSetting8021x--domain-match" title="The “domain-match” property"><span class="type">“domain-match”</span></a> property.</p>
+</div>
+<p class="since">Since: 1.24</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-setting-802-1x-get-client-cert-scheme"></a><h3>nm_setting_802_1x_get_client_cert_scheme ()</h3>
 <pre class="programlisting"><a class="link" href="NMSetting8021x.html#NMSetting8021xCKScheme" title="enum NMSetting8021xCKScheme"><span class="returnvalue">NMSetting8021xCKScheme</span></a>
 nm_setting_802_1x_get_client_cert_scheme
@@ -3015,6 +3075,33 @@ nm_setting_802_1x_get_phase2_domain_suffix_match
 <p> the <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-domain-suffix-match" title="The “phase2-domain-suffix-match” property"><span class="type">“phase2-domain-suffix-match”</span></a> property.</p>
 </div>
 <p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-802-1x-get-phase2-domain-match"></a><h3>nm_setting_802_1x_get_phase2_domain_match ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+nm_setting_802_1x_get_phase2_domain_match
+                               (<em class="parameter"><code><a class="link" href="NMSetting8021x.html" title="NMSetting8021x"><span class="type">NMSetting8021x</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-802-1x-get-phase2-domain-match.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSetting8021x.html" title="NMSetting8021x"><span class="type">NMSetting8021x</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-802-1x-get-phase2-domain-match.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-domain-match" title="The “phase2-domain-match” property"><span class="type">“phase2-domain-match”</span></a> property.</p>
+</div>
+<p class="since">Since: 1.24</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -4342,6 +4429,12 @@ type.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-SETTING-802-1X-DOMAIN-MATCH:CAPS"></a><h3>NM_SETTING_802_1X_DOMAIN_MATCH</h3>
+<pre class="programlisting">#define NM_SETTING_802_1X_DOMAIN_MATCH "domain-match"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-SETTING-802-1X-CLIENT-CERT:CAPS"></a><h3>NM_SETTING_802_1X_CLIENT_CERT</h3>
 <pre class="programlisting">#define NM_SETTING_802_1X_CLIENT_CERT "client-cert"
 </pre>
@@ -4434,6 +4527,12 @@ type.</p>
 <div class="refsect2">
 <a name="NM-SETTING-802-1X-PHASE2-DOMAIN-SUFFIX-MATCH:CAPS"></a><h3>NM_SETTING_802_1X_PHASE2_DOMAIN_SUFFIX_MATCH</h3>
 <pre class="programlisting">#define NM_SETTING_802_1X_PHASE2_DOMAIN_SUFFIX_MATCH "phase2-domain-suffix-match"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-802-1X-PHASE2-DOMAIN-MATCH:CAPS"></a><h3>NM_SETTING_802_1X_PHASE2_DOMAIN_MATCH</h3>
+<pre class="programlisting">#define NM_SETTING_802_1X_PHASE2_DOMAIN_MATCH "phase2-domain-match"
 </pre>
 </div>
 <hr>
@@ -4559,6 +4658,7 @@ type.</p>
 <p>List of strings to be matched against the altSubjectName of the
 certificate presented by the authentication server. If the list is empty,
 no verification of the server certificate's altSubjectName is performed.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -4568,6 +4668,7 @@ no verification of the server certificate's altSubjectName is performed.</p>
 <p>Anonymous identity string for EAP authentication methods.  Used as the
 unencrypted identity with EAP types that support different tunneled
 identity like EAP-TTLS.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -4577,6 +4678,7 @@ identity like EAP-TTLS.</p>
 <pre class="programlisting">  “auth-timeout”             <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>A timeout for the authentication. Zero means the global default; if the
 global default is not set, the authentication timeout is 25 seconds.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Allowed values: &gt;= 0</p>
 <p>Default value: 0</p>
@@ -4598,6 +4700,7 @@ property can be unset even if the EAP method supports CA certificates,
 but this allows man-in-the-middle attacks and is NOT recommended.</p>
 <p>Setting this property directly is discouraged; use the
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-set-ca-cert" title="nm_setting_802_1x_set_ca_cert ()"><code class="function">nm_setting_802_1x_set_ca_cert()</code></a> function instead.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -4607,6 +4710,7 @@ but this allows man-in-the-middle attacks and is NOT recommended.</p>
 <p>The password used to access the CA certificate stored in
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--ca-cert" title="The “ca-cert” property"><span class="type">“ca-cert”</span></a> property. Only makes sense if the certificate
 is stored on a PKCS#11 token that requires a login.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.8</p>
@@ -4616,6 +4720,7 @@ is stored on a PKCS#11 token that requires a login.</p>
 <a name="NMSetting8021x--ca-cert-password-flags"></a><h3>The <code class="literal">“ca-cert-password-flags”</code> property</h3>
 <pre class="programlisting">  “ca-cert-password-flags”   <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
 <p>Flags indicating how to handle the <a class="link" href="NMSetting8021x.html#NMSetting8021x--ca-cert-password" title="The “ca-cert-password” property"><span class="type">“ca-cert-password”</span></a> property.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p class="since">Since: 1.8</p>
 </div>
@@ -4626,6 +4731,7 @@ is stored on a PKCS#11 token that requires a login.</p>
 <p>UTF-8 encoded path to a directory containing PEM or DER formatted
 certificates to be added to the verification chain in addition to the
 certificate specified in the <a class="link" href="NMSetting8021x.html#NMSetting8021x--ca-cert" title="The “ca-cert” property"><span class="type">“ca-cert”</span></a> property.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -4643,6 +4749,7 @@ should be set to the full UTF-8 encoded path of the certificate, prefixed
 with the string "file://" and ending with a terminating NUL byte.</p>
 <p>Setting this property directly is discouraged; use the
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-set-client-cert" title="nm_setting_802_1x_set_client_cert ()"><code class="function">nm_setting_802_1x_set_client_cert()</code></a> function instead.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -4652,6 +4759,7 @@ with the string "file://" and ending with a terminating NUL byte.</p>
 <p>The password used to access the client certificate stored in
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--client-cert" title="The “client-cert” property"><span class="type">“client-cert”</span></a> property. Only makes sense if the certificate
 is stored on a PKCS#11 token that requires a login.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.8</p>
@@ -4661,8 +4769,24 @@ is stored on a PKCS#11 token that requires a login.</p>
 <a name="NMSetting8021x--client-cert-password-flags"></a><h3>The <code class="literal">“client-cert-password-flags”</code> property</h3>
 <pre class="programlisting">  “client-cert-password-flags” <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
 <p>Flags indicating how to handle the <a class="link" href="NMSetting8021x.html#NMSetting8021x--client-cert-password" title="The “client-cert-password” property"><span class="type">“client-cert-password”</span></a> property.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p class="since">Since: 1.8</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSetting8021x--domain-match"></a><h3>The <code class="literal">“domain-match”</code> property</h3>
+<pre class="programlisting">  “domain-match”             <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<p>Constraint for server domain name. If set, this list of FQDNs is used as
+a match requirement for dNSName element(s) of the certificate presented
+by the authentication server.  If a matching dNSName is found, this
+constraint is met.  If no dNSName values are present, this constraint is
+matched against SubjectName CN using the same comparison.
+Multiple valid FQDNs can be passed as a ";" delimited list.</p>
+<p>Owner: NMSetting8021x</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.24</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -4672,7 +4796,10 @@ is stored on a PKCS#11 token that requires a login.</p>
 match requirement for dNSName element(s) of the certificate presented by
 the authentication server.  If a matching dNSName is found, this
 constraint is met.  If no dNSName values are present, this constraint is
-matched against SubjectName CN using same suffix match comparison.</p>
+matched against SubjectName CN using same suffix match comparison.
+Since version 1.24, multiple valid FQDNs can be passed as a ";" delimited
+list.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
@@ -4686,6 +4813,7 @@ matched against SubjectName CN using same suffix match comparison.</p>
 and "fast".  Each method requires different configuration using the
 properties of this setting; refer to wpa_supplicant documentation for the
 allowed combinations.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -4694,6 +4822,7 @@ allowed combinations.</p>
 <pre class="programlisting">  “identity”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Identity string for EAP authentication methods.  Often the user's user or
 login name.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -4706,6 +4835,7 @@ will continue even after a timeout or an authentication failure. Setting
 the property to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> is currently allowed only for Ethernet connections.
 If set to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>, the activation can continue only after a successful
 authentication.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 <p class="since">Since: 1.22</p>
@@ -4715,6 +4845,7 @@ authentication.</p>
 <a name="NMSetting8021x--pac-file"></a><h3>The <code class="literal">“pac-file”</code> property</h3>
 <pre class="programlisting">  “pac-file”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>UTF-8 encoded file path containing PAC for EAP-FAST.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -4725,6 +4856,7 @@ authentication.</p>
 <p>UTF-8 encoded password used for EAP authentication methods. If both the
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--password" title="The “password” property"><span class="type">“password”</span></a> property and the <a class="link" href="NMSetting8021x.html#NMSetting8021x--password-raw" title="The “password-raw” property"><span class="type">“password-raw”</span></a>
 property are specified, <a class="link" href="NMSetting8021x.html#NMSetting8021x--password" title="The “password” property"><span class="type">“password”</span></a> is preferred.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -4733,6 +4865,7 @@ property are specified, <a class="link" href="NMSetting8021x.html#NMSetting8021x
 <a name="NMSetting8021x--password-flags"></a><h3>The <code class="literal">“password-flags”</code> property</h3>
 <pre class="programlisting">  “password-flags”           <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
 <p>Flags indicating how to handle the <a class="link" href="NMSetting8021x.html#NMSetting8021x--password" title="The “password” property"><span class="type">“password”</span></a> property.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -4743,6 +4876,7 @@ property are specified, <a class="link" href="NMSetting8021x.html#NMSetting8021x
 allow passwords in other encodings than UTF-8 to be used. If both the
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--password" title="The “password” property"><span class="type">“password”</span></a> property and the <a class="link" href="NMSetting8021x.html#NMSetting8021x--password-raw" title="The “password-raw” property"><span class="type">“password-raw”</span></a>
 property are specified, <a class="link" href="NMSetting8021x.html#NMSetting8021x--password" title="The “password” property"><span class="type">“password”</span></a> is preferred.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -4750,6 +4884,7 @@ property are specified, <a class="link" href="NMSetting8021x.html#NMSetting8021x
 <a name="NMSetting8021x--password-raw-flags"></a><h3>The <code class="literal">“password-raw-flags”</code> property</h3>
 <pre class="programlisting">  “password-raw-flags”       <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
 <p>Flags indicating how to handle the <a class="link" href="NMSetting8021x.html#NMSetting8021x--password-raw" title="The “password-raw” property"><span class="type">“password-raw”</span></a> property.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -4762,7 +4897,8 @@ The individual TLS versions can be explicitly disabled. If a certain
 TLS disable flag is not set, it is up to the supplicant to allow
 or forbid it. The TLS options map to tls_disable_tlsv1_x settings.
 See the wpa_supplicant documentation for more details.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSetting8021x</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.8</p>
 </div>
@@ -4776,6 +4912,7 @@ Recognized values are "0" (disabled), "1" (allow unauthenticated
 provisioning), "2" (allow authenticated provisioning), and "3" (allow
 both authenticated and unauthenticated provisioning).  See the
 wpa_supplicant documentation for more details.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -4787,6 +4924,7 @@ wpa_supplicant documentation for more details.</p>
 servers may require forcing the new PEAP label to interoperate with
 PEAPv1.  Set to "1" to force use of the new PEAP label.  See the
 wpa_supplicant documentation for more details.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -4800,6 +4938,7 @@ the server will be used.  Sometimes when using older RADIUS servers, it
 is necessary to force the client to use a particular PEAP version.  To do
 so, this property may be set to "0" or "1" to force that specific PEAP
 version.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -4811,6 +4950,7 @@ version.</p>
 certificate presented by the authentication server during the inner
 "phase 2" authentication. If the list is empty, no verification of the
 server certificate's altSubjectName is performed.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -4823,6 +4963,7 @@ an EAP method that uses an inner TLS tunnel is specified in the
 "pap", "chap", "mschap", "mschapv2", "gtc", "otp", "md5", and "tls".
 Each "phase 2" inner method requires specific parameters for successful
 authentication; see the wpa_supplicant documentation for more details.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -4836,6 +4977,7 @@ when an EAP method that uses an inner TLS tunnel is specified in the
 "md5", "mschapv2", "otp", "gtc", and "tls". Each "phase 2" inner method
 requires specific parameters for successful authentication; see the
 wpa_supplicant documentation for more details.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -4856,6 +4998,7 @@ property can be unset even if the EAP method supports CA certificates,
 but this allows man-in-the-middle attacks and is NOT recommended.</p>
 <p>Setting this property directly is discouraged; use the
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-set-phase2-ca-cert" title="nm_setting_802_1x_set_phase2_ca_cert ()"><code class="function">nm_setting_802_1x_set_phase2_ca_cert()</code></a> function instead.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -4865,6 +5008,7 @@ but this allows man-in-the-middle attacks and is NOT recommended.</p>
 <p>The password used to access the "phase2" CA certificate stored in
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-ca-cert" title="The “phase2-ca-cert” property"><span class="type">“phase2-ca-cert”</span></a> property. Only makes sense if the certificate
 is stored on a PKCS#11 token that requires a login.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.8</p>
@@ -4874,6 +5018,7 @@ is stored on a PKCS#11 token that requires a login.</p>
 <a name="NMSetting8021x--phase2-ca-cert-password-flags"></a><h3>The <code class="literal">“phase2-ca-cert-password-flags”</code> property</h3>
 <pre class="programlisting">  “phase2-ca-cert-password-flags” <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
 <p>Flags indicating how to handle the <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-ca-cert-password" title="The “phase2-ca-cert-password” property"><span class="type">“phase2-ca-cert-password”</span></a> property.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p class="since">Since: 1.8</p>
 </div>
@@ -4884,6 +5029,7 @@ is stored on a PKCS#11 token that requires a login.</p>
 <p>UTF-8 encoded path to a directory containing PEM or DER formatted
 certificates to be added to the verification chain in addition to the
 certificate specified in the <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-ca-cert" title="The “phase2-ca-cert” property"><span class="type">“phase2-ca-cert”</span></a> property.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -4904,6 +5050,7 @@ property can be unset even if the EAP method supports CA certificates,
 but this allows man-in-the-middle attacks and is NOT recommended.</p>
 <p>Setting this property directly is discouraged; use the
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-set-phase2-client-cert" title="nm_setting_802_1x_set_phase2_client_cert ()"><code class="function">nm_setting_802_1x_set_phase2_client_cert()</code></a> function instead.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -4913,6 +5060,7 @@ but this allows man-in-the-middle attacks and is NOT recommended.</p>
 <p>The password used to access the "phase2" client certificate stored in
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-client-cert" title="The “phase2-client-cert” property"><span class="type">“phase2-client-cert”</span></a> property. Only makes sense if the certificate
 is stored on a PKCS#11 token that requires a login.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.8</p>
@@ -4922,8 +5070,25 @@ is stored on a PKCS#11 token that requires a login.</p>
 <a name="NMSetting8021x--phase2-client-cert-password-flags"></a><h3>The <code class="literal">“phase2-client-cert-password-flags”</code> property</h3>
 <pre class="programlisting">  “phase2-client-cert-password-flags” <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
 <p>Flags indicating how to handle the <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-client-cert-password" title="The “phase2-client-cert-password” property"><span class="type">“phase2-client-cert-password”</span></a> property.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p class="since">Since: 1.8</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMSetting8021x--phase2-domain-match"></a><h3>The <code class="literal">“phase2-domain-match”</code> property</h3>
+<pre class="programlisting">  “phase2-domain-match”      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<p>Constraint for server domain name. If set, this list of FQDNs is used as
+a match requirement for dNSName element(s) of the certificate presented
+by the authentication server during the inner "phase 2" authentication.
+If a matching dNSName is found, this constraint is met.  If no dNSName
+values are present, this constraint is matched against SubjectName CN
+using the same comparison.
+Multiple valid FQDNs can be passed as a ";" delimited list.</p>
+<p>Owner: NMSetting8021x</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+<p class="since">Since: 1.24</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -4934,7 +5099,10 @@ match requirement for dNSName element(s) of the certificate presented by
 the authentication server during the inner "phase 2" authentication.  If
 a matching dNSName is found, this constraint is met.  If no dNSName
 values are present, this constraint is matched against SubjectName CN
-using same suffix match comparison.</p>
+using same suffix match comparison.
+Since version 1.24, multiple valid FQDNs can be passed as a ";" delimited
+list.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.2</p>
@@ -4963,6 +5131,7 @@ NUL byte, and as with the blob scheme the
 password used to decode the PKCS#12 private key and certificate.</p>
 <p>Setting this property directly is discouraged; use the
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-set-phase2-private-key" title="nm_setting_802_1x_set_phase2_private_key ()"><code class="function">nm_setting_802_1x_set_phase2_private_key()</code></a> function instead.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -4976,6 +5145,7 @@ property directly is not generally necessary except when returning
 secrets to NetworkManager; it is generally set automatically when setting
 the private key by the <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-set-phase2-private-key" title="nm_setting_802_1x_set_phase2_private_key ()"><code class="function">nm_setting_802_1x_set_phase2_private_key()</code></a>
 function.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -4985,6 +5155,7 @@ function.</p>
 <pre class="programlisting">  “phase2-private-key-password-flags” <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
 <p>Flags indicating how to handle the
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-private-key-password" title="The “phase2-private-key-password” property"><span class="type">“phase2-private-key-password”</span></a> property.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -4997,6 +5168,7 @@ authentication. When unset, no verification of the authentication server
 certificate's subject is performed.  This property provides little security,
 if any, and its use is deprecated in favor of
 NMSetting8021x:phase2-domain-suffix-match.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -5005,6 +5177,7 @@ NMSetting8021x:phase2-domain-suffix-match.</p>
 <a name="NMSetting8021x--pin"></a><h3>The <code class="literal">“pin”</code> property</h3>
 <pre class="programlisting">  “pin”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>PIN used for EAP authentication methods.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -5013,6 +5186,7 @@ NMSetting8021x:phase2-domain-suffix-match.</p>
 <a name="NMSetting8021x--pin-flags"></a><h3>The <code class="literal">“pin-flags”</code> property</h3>
 <pre class="programlisting">  “pin-flags”                <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
 <p>Flags indicating how to handle the <a class="link" href="NMSetting8021x.html#NMSetting8021x--pin" title="The “pin” property"><span class="type">“pin”</span></a> property.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -5043,6 +5217,7 @@ unencrypted private key data using the BLOB scheme may be readable by
 unprivileged users.  Private keys should always be encrypted with a
 private key password to prevent unauthorized access to unencrypted
 private key data.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -5055,6 +5230,7 @@ path scheme, or if the private key is a PKCS#12 format key.  Setting this
 property directly is not generally necessary except when returning
 secrets to NetworkManager; it is generally set automatically when setting
 the private key by the <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-set-private-key" title="nm_setting_802_1x_set_private_key ()"><code class="function">nm_setting_802_1x_set_private_key()</code></a> function.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -5064,6 +5240,7 @@ the private key by the <a class="link" href="NMSetting8021x.html#nm-setting-802-
 <pre class="programlisting">  “private-key-password-flags” <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
 <p>Flags indicating how to handle the <a class="link" href="NMSetting8021x.html#NMSetting8021x--private-key-password" title="The “private-key-password” property"><span class="type">“private-key-password”</span></a>
 property.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -5075,6 +5252,7 @@ by the authentication server. When unset, no verification of the
 authentication server certificate's subject is performed.  This property
 provides little security, if any, and its use is deprecated in favor of
 NMSetting8021x:domain-suffix-match.</p>
+<p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -5091,12 +5269,13 @@ addition to any certificates specified by the <a class="link" href="NMSetting802
 --system-ca-path is rather a file name (bundle of trusted CA certificates),
 it overrides <a class="link" href="NMSetting8021x.html#NMSetting8021x--ca-cert" title="The “ca-cert” property"><span class="type">“ca-cert”</span></a> and <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-ca-cert" title="The “phase2-ca-cert” property"><span class="type">“phase2-ca-cert”</span></a>
 properties instead (sets ca_cert/ca_cert2 options for wpa_supplicant).</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSetting8021x</p>
+<p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

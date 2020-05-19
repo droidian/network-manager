@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LGPL-2.1+
+
 test_unit = 'test-shared-general'
 
 c_flags = [
@@ -14,7 +16,7 @@ exe = executable(
 )
 
 test(
-  'shared/nm-utils/' + test_unit,
+  'shared/nm-glib-aux/' + test_unit,
   test_script,
   args: test_args + [exe.full_path()],
   timeout: default_test_timeout,

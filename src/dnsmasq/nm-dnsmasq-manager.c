@@ -140,7 +140,7 @@ create_dm_cmd_line (const char *iface,
 	 */
 	nm_strv_ptrarray_add_string_dup (cmd, "--strict-order");
 
-	nm_utils_inet4_ntop (listen_address->address, listen_address_s);
+	_nm_utils_inet4_ntop (listen_address->address, listen_address_s);
 
 	nm_strv_ptrarray_add_string_concat (cmd, "--listen-address=", listen_address_s);
 
@@ -169,7 +169,7 @@ create_dm_cmd_line (const char *iface,
 		g_string_append (s, "--dhcp-option=option:dns-server");
 		for (i = 0; i < n; i++) {
 			g_string_append_c (s, ',');
-			g_string_append (s, nm_utils_inet4_ntop (nm_ip4_config_get_nameserver (ip4_config, i), tmpaddr));
+			g_string_append (s, _nm_utils_inet4_ntop (nm_ip4_config_get_nameserver (ip4_config, i), tmpaddr));
 		}
 		nm_strv_ptrarray_take_gstring (cmd, &s);
 	}
@@ -339,7 +339,7 @@ nm_dnsmasq_manager_new (const char *iface)
 static void
 finalize (GObject *object)
 {
-	NMDnsMasqManagerPrivate *priv = NM_DNSMASQ_MANAGER_GET_PRIVATE ((NMDnsMasqManager *) object);
+	NMDnsMasqManagerPrivate *priv = NM_DNSMASQ_MANAGER_GET_PRIVATE (object);
 
 	nm_dnsmasq_manager_stop (NM_DNSMASQ_MANAGER (object));
 

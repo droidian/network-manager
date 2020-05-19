@@ -908,6 +908,23 @@
         </listitem>
       </varlistentry>
 
+      <varlistentry>
+        <term>
+          <command>modify</command>
+          <arg><option>--temporary</option></arg>
+          <group>
+            <arg choice='plain'><option>id</option></arg>
+            <arg choice='plain'><option>uuid</option></arg>
+            <arg choice='plain'><option>path</option></arg>
+          </group>
+          <arg choice='plain'><replaceable>ID</replaceable></arg>
+          <arg choice='plain'><option>remove</option> <replaceable>setting</replaceable></arg>
+        </term>
+
+        <listitem>
+          <para>Removes a setting from the connection profile.</para>
+        </listitem>
+      </varlistentry>
 
       <varlistentry>
         <term>
@@ -1130,13 +1147,10 @@
 
         <listitem>
           <para>Reload all connection files from disk.
-          NetworkManager does not monitor changes to connection
-          files by default. So you need to use this command in order to tell
+          NetworkManager does not monitor changes to connection.
+          So you need to use this command in order to tell
           NetworkManager to re-read the connection profiles from
-          disk when a change was made to them. However, the auto-loading feature can be
-          enabled and then NetworkManager will reload connection
-          files any time they change (monitor-connection-files=true in
-          <link linkend='NetworkManager.conf'><link linkend='NetworkManager.conf'><citerefentry><refentrytitle>NetworkManager.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry></link></link>).
+          disk when a change was made to them.
           </para>
         </listitem>
       </varlistentry>

@@ -35,9 +35,10 @@ NM_GOBJECT_PROPERTIES_DEFINE_BASE (
 typedef struct {
 	char *mac_address;
 	char *transport_mode;
-	guint32 mtu;
+	char *parent;
+	char *virtual_iface_name;
 	int p_key;
-	char *parent, *virtual_iface_name;
+	guint32 mtu;
 } NMSettingInfinibandPrivate;
 
 G_DEFINE_TYPE (NMSettingInfiniband, nm_setting_infiniband, NM_TYPE_SETTING)
@@ -210,39 +211,23 @@ verify (NMSetting *setting, NMConnection *connection, GError **error)
 		s_con = nm_connection_get_setting_connection (connection);
 	if (s_con) {
 		const char *interface_name = nm_setting_connection_get_interface_name (s_con);
-		GError *tmp_error = NULL;
 
-		if (!interface_name)
-			;
-		else if (!nm_utils_ifname_valid_kernel (interface_name, &tmp_error)) {
-			/* report the error for NMSettingConnection:interface-name, because
-			 * it's that property that is invalid -- although we currently verify()
-			 * NMSettingInfiniband.
-			 **/
-			g_set_error (error,
-			             NM_CONNECTION_ERROR,
-			             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-			             "'%s': %s", interface_name, tmp_error->message);
-			g_prefix_error (error, "%s.%s: ", NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_INTERFACE_NAME);
-			g_error_free (tmp_error);
-			return FALSE;
-		} else {
-			if (priv->p_key != -1) {
-				if (!priv->virtual_iface_name)
-					priv->virtual_iface_name = g_strdup_printf ("%s.%04x", priv->parent, priv->p_key);
+		if (   interface_name
+		    && priv->p_key != -1) {
+			if (!priv->virtual_iface_name)
+				priv->virtual_iface_name = g_strdup_printf ("%s.%04x", priv->parent, priv->p_key);
 
-				if (strcmp (interface_name, priv->virtual_iface_name) != 0) {
-					/* We don't support renaming software infiniband devices. Later we might, but
-					 * for now just reject such connections.
-					 **/
-					g_set_error (error,
-					             NM_CONNECTION_ERROR,
-					             NM_CONNECTION_ERROR_INVALID_PROPERTY,
-					             _("interface name of software infiniband device must be '%s' or unset (instead it is '%s')"),
-					             priv->virtual_iface_name, interface_name);
-					g_prefix_error (error, "%s.%s: ", NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_INTERFACE_NAME);
-					return FALSE;
-				}
+			if (strcmp (interface_name, priv->virtual_iface_name) != 0) {
+				/* We don't support renaming software infiniband devices. Later we might, but
+				 * for now just reject such connections.
+				 **/
+				g_set_error (error,
+				             NM_CONNECTION_ERROR,
+				             NM_CONNECTION_ERROR_INVALID_PROPERTY,
+				             _("interface name of software infiniband device must be '%s' or unset (instead it is '%s')"),
+				             priv->virtual_iface_name, interface_name);
+				g_prefix_error (error, "%s.%s: ", NM_SETTING_CONNECTION_SETTING_NAME, NM_SETTING_CONNECTION_INTERFACE_NAME);
+				return FALSE;
 			}
 		}
 	}
@@ -322,12 +307,12 @@ set_property (GObject *object, guint prop_id,
 		break;
 	case PROP_P_KEY:
 		priv->p_key = g_value_get_int (value);
-		g_clear_pointer (&priv->virtual_iface_name, g_free);
+		nm_clear_g_free (&priv->virtual_iface_name);
 		break;
 	case PROP_PARENT:
 		g_free (priv->parent);
 		priv->parent = g_value_dup_string (value);
-		g_clear_pointer (&priv->virtual_iface_name, g_free);
+		nm_clear_g_free (&priv->virtual_iface_name);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -338,8 +323,11 @@ set_property (GObject *object, guint prop_id,
 /*****************************************************************************/
 
 static void
-nm_setting_infiniband_init (NMSettingInfiniband *setting)
+nm_setting_infiniband_init (NMSettingInfiniband *self)
 {
+	NMSettingInfinibandPrivate *priv = NM_SETTING_INFINIBAND_GET_PRIVATE (self);
+
+	priv->p_key = -1;
 }
 
 /**
@@ -414,7 +402,7 @@ nm_setting_infiniband_class_init (NMSettingInfinibandClass *klass)
 	                         G_PARAM_READWRITE |
 	                         NM_SETTING_PARAM_INFERRABLE |
 	                         G_PARAM_STATIC_STRINGS);
-	_nm_properties_override_gobj (properties_override, obj_properties[PROP_MAC_ADDRESS], &nm_sett_info_propert_type_mac_addrees);
+	_nm_properties_override_gobj (properties_override, obj_properties[PROP_MAC_ADDRESS], &nm_sett_info_propert_type_mac_address);
 
 	/**
 	 * NMSettingInfiniband:mtu:
@@ -432,7 +420,6 @@ nm_setting_infiniband_class_init (NMSettingInfinibandClass *klass)
 	    g_param_spec_uint (NM_SETTING_INFINIBAND_MTU, "", "",
 	                       0, G_MAXUINT32, 0,
 	                       G_PARAM_READWRITE |
-	                       G_PARAM_CONSTRUCT |
 	                       NM_SETTING_PARAM_FUZZY_IGNORE |
 	                       G_PARAM_STATIC_STRINGS);
 
@@ -454,7 +441,6 @@ nm_setting_infiniband_class_init (NMSettingInfinibandClass *klass)
 	    g_param_spec_string (NM_SETTING_INFINIBAND_TRANSPORT_MODE, "", "",
 	                         NULL,
 	                         G_PARAM_READWRITE |
-	                         G_PARAM_CONSTRUCT |
 	                         NM_SETTING_PARAM_INFERRABLE |
 	                         G_PARAM_STATIC_STRINGS);
 
@@ -480,7 +466,6 @@ nm_setting_infiniband_class_init (NMSettingInfinibandClass *klass)
 	    g_param_spec_int (NM_SETTING_INFINIBAND_P_KEY, "", "",
 	                      -1, 0xFFFF, -1,
 	                      G_PARAM_READWRITE |
-	                      G_PARAM_CONSTRUCT |
 	                      NM_SETTING_PARAM_INFERRABLE |
 	                      G_PARAM_STATIC_STRINGS);
 
@@ -504,7 +489,6 @@ nm_setting_infiniband_class_init (NMSettingInfinibandClass *klass)
 	    g_param_spec_string (NM_SETTING_INFINIBAND_PARENT, "", "",
 	                         NULL,
 	                         G_PARAM_READWRITE |
-	                         G_PARAM_CONSTRUCT |
 	                         NM_SETTING_PARAM_INFERRABLE |
 	                         G_PARAM_STATIC_STRINGS);
 

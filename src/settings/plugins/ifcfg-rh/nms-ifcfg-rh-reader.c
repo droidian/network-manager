@@ -399,7 +399,9 @@ make_connection_setting (const char *file,
 	if (v) {
 		GError *error = NULL;
 
-		if (nm_utils_ifname_valid_kernel (v, &error)) {
+		/* Only validate for NMU_IFACE_KERNEL, because ifcfg plugin anyway
+		 * doesn't support OVS types. */
+		if (nm_utils_ifname_valid (v, NMU_IFACE_KERNEL, &error)) {
 			g_object_set (s_con,
 			              NM_SETTING_CONNECTION_INTERFACE_NAME, v,
 			              NULL);
@@ -429,8 +431,8 @@ make_connection_setting (const char *file,
 	              (int) svGetValueInt64 (ifcfg, "AUTOCONNECT_RETRIES", 10,
 	                                      -1, G_MAXINT32, -1),
 	              NM_SETTING_CONNECTION_MULTI_CONNECT,
-	              (gint) svGetValueInt64 (ifcfg, "MULTI_CONNECT", 10,
-	                                      G_MININT32, G_MAXINT32, NM_CONNECTION_MULTI_CONNECT_DEFAULT),
+	              (int) svGetValueInt64 (ifcfg, "MULTI_CONNECT", 10,
+	                                     G_MININT32, G_MAXINT32, NM_CONNECTION_MULTI_CONNECT_DEFAULT),
 	              NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES,
 	              svGetValueBoolean (ifcfg, "AUTOCONNECT_SLAVES", NM_SETTING_CONNECTION_AUTOCONNECT_SLAVES_DEFAULT),
 	              NM_SETTING_CONNECTION_LLDP, lldp,
@@ -502,6 +504,24 @@ make_connection_setting (const char *file,
 	}
 
 	nm_clear_g_free (&value);
+	v = svGetValueStr (ifcfg, "VRF_UUID", &value);
+	if (!v)
+		v = svGetValueStr (ifcfg, "VRF", &value);
+	if (v) {
+		const char *old_value;
+
+		if ((old_value = nm_setting_connection_get_master (s_con))) {
+			PARSE_WARNING ("Already configured as slave of %s. Ignoring VRF{_UUID}=\"%s\"",
+			               old_value, v);
+		} else {
+			g_object_set (s_con, NM_SETTING_CONNECTION_MASTER, v, NULL);
+			g_object_set (s_con, NM_SETTING_CONNECTION_SLAVE_TYPE,
+			              NM_SETTING_VRF_SETTING_NAME, NULL);
+		}
+	}
+
+
+	nm_clear_g_free (&value);
 	v = svGetValueStr (ifcfg, "GATEWAY_PING_TIMEOUT", &value);
 	if (v) {
 		gint64 tmp;
@@ -530,16 +550,18 @@ make_connection_setting (const char *file,
 	g_object_set (s_con, NM_SETTING_CONNECTION_AUTH_RETRIES, (int) vint64, NULL);
 
 	nm_clear_g_free (&value);
-	v = svGetValueStr (ifcfg, "DEVTIMEOUT", &value);
+	v = svGetValue (ifcfg, "DEVTIMEOUT", &value);
 	if (v) {
+		v = nm_str_skip_leading_spaces (v);
 		vint64 = _nm_utils_ascii_str_to_int64 (v, 10, 0, ((gint64) G_MAXINT32) / 1000, -1);
 		if (vint64 != -1)
 			vint64 *= 1000;
-		else {
+		else if (v[0] != '\0') {
 			char *endptr;
 			double d;
 
-			d = g_ascii_strtod (v, &endptr);
+			d = nm_g_ascii_strtod (v, &endptr);
+			endptr = nm_str_skip_leading_spaces (endptr);
 			if (   errno == 0
 			    && endptr[0] == '\0'
 			    && d >= 0.0) {
@@ -709,7 +731,7 @@ read_full_ip4_address (shvarFile *ifcfg,
 			else {
 				/* Try to autodetermine the prefix for the address' class */
 				prefix = _nm_utils_ip4_get_default_prefix (ipaddr);
-				PARSE_WARNING ("missing %s, assuming %s/%d", prefix_tag, nm_utils_inet4_ntop (ipaddr, inet_buf), prefix);
+				PARSE_WARNING ("missing %s, assuming %s/%d", prefix_tag, _nm_utils_inet4_ntop (ipaddr, inet_buf), prefix);
 			}
 		}
 	}
@@ -1287,7 +1309,7 @@ read_one_ip4_route (shvarFile *ifcfg,
 		prefix = nm_utils_ip4_netmask_to_prefix (netmask);
 		if (netmask != _nm_utils_ip4_prefix_to_netmask (prefix)) {
 			g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
-			             "Invalid IP4 netmask '%s' \"%s\"", netmask_tag, nm_utils_inet4_ntop (netmask, inet_buf));
+			             "Invalid IP4 netmask '%s' \"%s\"", netmask_tag, _nm_utils_inet4_ntop (netmask, inet_buf));
 			return FALSE;
 		}
 	} else {
@@ -1318,7 +1340,7 @@ read_one_ip4_route (shvarFile *ifcfg,
 	v = svGetValueStr (ifcfg, numbered_tag (tag, "OPTIONS", which), &value);
 	if (v) {
 		if (parse_route_line (v, AF_INET, *out_route, NULL, error) < 0) {
-			g_clear_pointer (out_route, nm_ip_route_unref);
+			nm_clear_pointer (out_route, nm_ip_route_unref);
 			return FALSE;
 		}
 	}
@@ -1327,39 +1349,40 @@ read_one_ip4_route (shvarFile *ifcfg,
 }
 
 static gboolean
-read_route_file (int addr_family,
-                 const char *filename,
-                 NMSettingIPConfig *s_ip,
-                 GError **error)
+read_route_file_parse (int addr_family,
+                       const char *filename,
+                       const char *contents,
+                       gsize len,
+                       NMSettingIPConfig *s_ip,
+                       GError **error)
 {
-	gs_free char *contents = NULL;
-	char *contents_rest = NULL;
-	const char *line;
-	gsize len = 0;
 	gsize line_num;
 
-	g_return_val_if_fail (filename, FALSE);
-	g_return_val_if_fail (   (addr_family == AF_INET  && NM_IS_SETTING_IP4_CONFIG (s_ip))
-	                      || (addr_family == AF_INET6 && NM_IS_SETTING_IP6_CONFIG (s_ip)), FALSE);
-	g_return_val_if_fail (!error || !*error, FALSE);
+	nm_assert (filename);
+	nm_assert (addr_family == nm_setting_ip_config_get_addr_family (s_ip));
+	nm_assert (!error || !*error);
 
-	if (   !g_file_get_contents (filename, &contents, &len, NULL)
-	    || !len) {
+	if (len <= 0)
 		return TRUE;  /* missing/empty = success */
-	}
 
 	line_num = 0;
-	for (line = strtok_r (contents, "\n", &contents_rest);
-	     line;
-	     line = strtok_r (NULL, "\n", &contents_rest)) {
+	while (TRUE) {
 		nm_auto_unref_ip_route NMIPRoute *route = NULL;
 		gs_free_error GError *local = NULL;
+		const char *line = contents;
+		char *eol;
 		int e;
+
+		eol = strchr (contents, '\n');
+		if (eol) {
+			eol[0] = '\0';
+			contents = &eol[1];
+		}
 
 		line_num++;
 
 		if (parse_route_line_is_comment (line))
-			continue;
+			goto next;
 
 		e = parse_route_line (line, addr_family, NULL, &route, &local);
 
@@ -1371,14 +1394,38 @@ read_route_file (int addr_family,
 				 * entire connection. */
 				PARSE_WARNING ("ignoring invalid route at \"%s\" (%s:%lu): %s", line, filename, (long unsigned) line_num, local->message);
 			}
-			continue;
+			goto next;
 		}
 
 		if (!nm_setting_ip_config_add_route (s_ip, route))
 			PARSE_WARNING ("duplicate IPv%c route", addr_family == AF_INET ? '4' : '6');
-	}
 
-	return TRUE;
+next:
+		if (!eol)
+			return TRUE;
+
+		/* restore original content. */
+		eol[0] = '\n';
+	}
+}
+
+static gboolean
+read_route_file (int addr_family,
+                 const char *filename,
+                 NMSettingIPConfig *s_ip,
+                 GError **error)
+{
+	gs_free char *contents = NULL;
+	gsize len;
+
+	nm_assert (filename);
+	nm_assert (addr_family == nm_setting_ip_config_get_addr_family (s_ip));
+	nm_assert (!error || !*error);
+
+	if (!g_file_get_contents (filename, &contents, &len, NULL))
+		return TRUE;  /* missing/empty = success */
+
+	return read_route_file_parse (addr_family, filename, contents, len, s_ip, error);
 }
 
 static void
@@ -1577,7 +1624,6 @@ make_ip4_setting (shvarFile *ifcfg,
 	int i;
 	guint32 a;
 	gboolean has_key;
-	shvarFile *route_ifcfg;
 	gboolean never_default;
 	gint64 i64;
 	int priority;
@@ -1771,10 +1817,10 @@ make_ip4_setting (shvarFile *ifcfg,
 			nm_clear_g_free (&value);
 			v = svGetValueStr (ifcfg, tag, &value);
 			if (v) {
-				if (nm_utils_ipaddr_valid (AF_INET, v)) {
+				if (nm_utils_ipaddr_is_valid (AF_INET, v)) {
 					if (!nm_setting_ip_config_add_dns (s_ip4, v))
 						PARSE_WARNING ("duplicate DNS server %s", tag);
-				} else if (nm_utils_ipaddr_valid (AF_INET6, v)) {
+				} else if (nm_utils_ipaddr_is_valid (AF_INET6, v)) {
 					/* Ignore IPv6 addresses */
 				} else {
 					PARSE_WARNING ("invalid DNS server address %s", v);
@@ -1814,32 +1860,34 @@ make_ip4_setting (shvarFile *ifcfg,
 	/* Static routes  - route-<name> file */
 	route_path = utils_get_route_path (svFileGetName (ifcfg));
 
-	if (!routes_read) {
-		/* NOP */
-	} else if (utils_has_route_file_new_syntax (route_path)) {
-		/* Parse route file in new syntax */
-		route_ifcfg = utils_get_route_ifcfg (svFileGetName (ifcfg), FALSE);
-		if (route_ifcfg) {
-			for (i = 0;; i++) {
-				NMIPRoute *route = NULL;
+	if (routes_read) {
+		gs_free char *contents = NULL;
+		gsize len;
 
-				if (!read_one_ip4_route (route_ifcfg, i, &route, error)) {
-					svCloseFile (route_ifcfg);
+		if (!g_file_get_contents (route_path, &contents, &len, NULL))
+			len = 0;
+
+		if (utils_has_route_file_new_syntax_content (contents, len)) {
+			nm_auto_shvar_file_close shvarFile *route_ifcfg = NULL;
+
+			/* Parse route file in new syntax */
+			route_ifcfg = svFile_new (route_path, -1, contents);
+			for (i = 0;; i++) {
+				nm_auto_unref_ip_route NMIPRoute *route = NULL;
+
+				if (!read_one_ip4_route (route_ifcfg, i, &route, error))
 					return NULL;
-				}
 
 				if (!route)
 					break;
 
 				if (!nm_setting_ip_config_add_route (s_ip4, route))
 					PARSE_WARNING ("duplicate IP4 route");
-				nm_ip_route_unref (route);
 			}
-			svCloseFile (route_ifcfg);
+		} else {
+			if (!read_route_file_parse (AF_INET, route_path, contents, len, s_ip4, error))
+				return NULL;
 		}
-	} else {
-		if (!read_route_file (AF_INET, route_path, s_ip4, error))
-			return NULL;
 	}
 
 	/* Legacy value NM used for a while but is incorrect (rh #459370) */
@@ -2214,7 +2262,7 @@ make_ip6_setting (shvarFile *ifcfg,
 			char *ptr;
 			if ((ptr = strchr (v, '%')) != NULL)
 				*ptr = '\0';  /* remove %interface prefix if present */
-			if (!nm_utils_ipaddr_valid (AF_INET6, v)) {
+			if (!nm_utils_ipaddr_is_valid (AF_INET6, v)) {
 				g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 				             "Invalid IP6 address '%s'", v);
 				return NULL;
@@ -2253,10 +2301,10 @@ make_ip6_setting (shvarFile *ifcfg,
 			break;
 		}
 
-		if (nm_utils_ipaddr_valid (AF_INET6, v)) {
+		if (nm_utils_ipaddr_is_valid (AF_INET6, v)) {
 			if (!nm_setting_ip_config_add_dns (s_ip6, v))
 				PARSE_WARNING ("duplicate DNS server %s", tag);
-		} else if (nm_utils_ipaddr_valid (AF_INET, v)) {
+		} else if (nm_utils_ipaddr_is_valid (AF_INET, v)) {
 			/* Ignore IPv4 addresses */
 		} else {
 			PARSE_WARNING ("invalid DNS server address %s", v);
@@ -3623,6 +3671,14 @@ next:
 	v = svGetValueStr (ifcfg, "IEEE_8021X_PHASE2_DOMAIN_SUFFIX_MATCH", &value);
 	g_object_set (s_8021x, NM_SETTING_802_1X_PHASE2_DOMAIN_SUFFIX_MATCH, v, NULL);
 
+	nm_clear_g_free (&value);
+	v = svGetValueStr (ifcfg, "IEEE_8021X_DOMAIN_MATCH", &value);
+	g_object_set (s_8021x, NM_SETTING_802_1X_DOMAIN_MATCH, v, NULL);
+
+	nm_clear_g_free (&value);
+	v = svGetValueStr (ifcfg, "IEEE_8021X_PHASE2_DOMAIN_MATCH", &value);
+	g_object_set (s_8021x, NM_SETTING_802_1X_PHASE2_DOMAIN_MATCH, v, NULL);
+
 	timeout = svGetValueInt64 (ifcfg, "IEEE_8021X_AUTH_TIMEOUT", 10, 0, G_MAXINT32, 0);
 	g_object_set (s_8021x, NM_SETTING_802_1X_AUTH_TIMEOUT, (int) timeout, NULL);
 
@@ -3645,7 +3701,7 @@ make_wpa_setting (shvarFile *ifcfg,
 	gs_unref_object NMSettingWirelessSecurity *wsec = NULL;
 	gs_free char *value = NULL;
 	const char *v;
-	gboolean wpa_psk = FALSE, wpa_sae = FALSE, wpa_eap = FALSE, ieee8021x = FALSE;
+	gboolean wpa_psk = FALSE, wpa_sae = FALSE, wpa_owe = FALSE, wpa_eap = FALSE, ieee8021x = FALSE;
 	int i_val;
 	GError *local = NULL;
 
@@ -3654,10 +3710,12 @@ make_wpa_setting (shvarFile *ifcfg,
 	v = svGetValueStr (ifcfg, "KEY_MGMT", &value);
 	wpa_psk = nm_streq0 (v, "WPA-PSK");
 	wpa_sae = nm_streq0 (v, "SAE");
+	wpa_owe = nm_streq0 (v, "OWE");
 	wpa_eap = nm_streq0 (v, "WPA-EAP");
 	ieee8021x = nm_streq0 (v, "IEEE8021X");
 	if (   !wpa_psk
 	    && !wpa_sae
+	    && !wpa_owe
 	    && !wpa_eap
 	    && !ieee8021x)
 		return NULL; /* Not WPA or Dynamic WEP */
@@ -3673,7 +3731,7 @@ make_wpa_setting (shvarFile *ifcfg,
 	              NULL);
 
 	/* Pairwise and Group ciphers (only relevant for WPA/RSN) */
-	if (wpa_psk || wpa_sae || wpa_eap) {
+	if (wpa_psk || wpa_sae || wpa_owe || wpa_eap) {
 		fill_wpa_ciphers (ifcfg, wsec, FALSE, adhoc);
 		fill_wpa_ciphers (ifcfg, wsec, TRUE, adhoc);
 	}
@@ -3722,7 +3780,7 @@ make_wpa_setting (shvarFile *ifcfg,
 			g_object_set (wsec, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, "sae", NULL);
 		}
 	} else {
-		nm_assert (wpa_eap || ieee8021x);
+		nm_assert (wpa_eap || ieee8021x || wpa_owe);
 
 		/* Adhoc mode is mutually exclusive with any 802.1x-based authentication */
 		if (adhoc) {
@@ -3731,14 +3789,17 @@ make_wpa_setting (shvarFile *ifcfg,
 			return NULL;
 		}
 
-		*s_8021x = fill_8021x (ifcfg, file, v, TRUE, error);
-		if (!*s_8021x)
-			return NULL;
+		if (wpa_owe) {
+			g_object_set (wsec, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, "owe", NULL);
+		} else {
+			*s_8021x = fill_8021x (ifcfg, file, v, TRUE, error);
+			if (!*s_8021x)
+				return NULL;
 
-		{
-			gs_free char *lower = g_ascii_strdown (v, -1);
-
-			g_object_set (wsec, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, lower, NULL);
+			{
+				gs_free char *lower = g_ascii_strdown (v, -1);
+				g_object_set (wsec, NM_SETTING_WIRELESS_SECURITY_KEY_MGMT, lower, NULL);
+			}
 		}
 	}
 
@@ -3782,7 +3843,7 @@ make_leap_setting (shvarFile *ifcfg,
 	nm_clear_g_free (&value);
 
 	value = svGetValueStr_cp (ifcfg, "SECURITYMODE");
-	if (!value || strcasecmp (value, "leap"))
+	if (!value || g_ascii_strcasecmp (value, "leap"))
 		return NULL; /* Not LEAP */
 	nm_clear_g_free (&value);
 
@@ -4339,7 +4400,7 @@ parse_ethtool_option (const char *value,
 			i++;
 
 			if (nm_utils_hwaddr_valid (opt_val, ETH_ALEN)) {
-				g_clear_pointer (out_password, g_free);
+				nm_clear_g_free (out_password);
 				*out_password = g_strdup (opt_val);
 			} else
 				PARSE_WARNING ("Wake-on-LAN password '%s' is invalid", opt_val);
@@ -5091,18 +5152,24 @@ handle_bridge_option (NMSetting *setting,
 		gboolean only_with_stp;
 		gboolean extended_bool;
 	} m/*etadata*/[] = {
-		{ "DELAY",              NM_SETTING_BRIDGE_FORWARD_DELAY,      BRIDGE_OPT_TYPE_MAIN,   .only_with_stp = TRUE },
-		{ "priority",           NM_SETTING_BRIDGE_PRIORITY,           BRIDGE_OPT_TYPE_OPTION, .only_with_stp = TRUE },
-		{ "hello_time",         NM_SETTING_BRIDGE_HELLO_TIME,         BRIDGE_OPT_TYPE_OPTION, .only_with_stp = TRUE },
-		{ "max_age",            NM_SETTING_BRIDGE_MAX_AGE,            BRIDGE_OPT_TYPE_OPTION, .only_with_stp = TRUE },
-		{ "ageing_time",        NM_SETTING_BRIDGE_AGEING_TIME,        BRIDGE_OPT_TYPE_OPTION },
-		{ "multicast_snooping", NM_SETTING_BRIDGE_MULTICAST_SNOOPING, BRIDGE_OPT_TYPE_OPTION },
-		{ "vlan_filtering",     NM_SETTING_BRIDGE_VLAN_FILTERING,     BRIDGE_OPT_TYPE_OPTION },
-		{ "default_pvid",       NM_SETTING_BRIDGE_VLAN_DEFAULT_PVID,  BRIDGE_OPT_TYPE_OPTION },
-		{ "group_fwd_mask",     NM_SETTING_BRIDGE_GROUP_FORWARD_MASK, BRIDGE_OPT_TYPE_OPTION },
-		{ "priority",           NM_SETTING_BRIDGE_PORT_PRIORITY,      BRIDGE_OPT_TYPE_PORT_OPTION },
-		{ "path_cost",          NM_SETTING_BRIDGE_PORT_PATH_COST,     BRIDGE_OPT_TYPE_PORT_OPTION },
-		{ "hairpin_mode",       NM_SETTING_BRIDGE_PORT_HAIRPIN_MODE,  BRIDGE_OPT_TYPE_PORT_OPTION, .extended_bool = TRUE, },
+		{ "DELAY",                      NM_SETTING_BRIDGE_FORWARD_DELAY,              BRIDGE_OPT_TYPE_MAIN,        .only_with_stp = TRUE },
+		{ "priority",                   NM_SETTING_BRIDGE_PRIORITY,                   BRIDGE_OPT_TYPE_OPTION,      .only_with_stp = TRUE },
+		{ "hello_time",                 NM_SETTING_BRIDGE_HELLO_TIME,                 BRIDGE_OPT_TYPE_OPTION,      .only_with_stp = TRUE },
+		{ "max_age",                    NM_SETTING_BRIDGE_MAX_AGE,                    BRIDGE_OPT_TYPE_OPTION,      .only_with_stp = TRUE },
+		{ "ageing_time",                NM_SETTING_BRIDGE_AGEING_TIME,                BRIDGE_OPT_TYPE_OPTION },
+		{ "multicast_querier",          NM_SETTING_BRIDGE_MULTICAST_QUERIER,          BRIDGE_OPT_TYPE_OPTION },
+		{ "multicast_query_use_ifaddr", NM_SETTING_BRIDGE_MULTICAST_QUERY_USE_IFADDR, BRIDGE_OPT_TYPE_OPTION },
+		{ "multicast_snooping",         NM_SETTING_BRIDGE_MULTICAST_SNOOPING,         BRIDGE_OPT_TYPE_OPTION },
+		{ "multicast_router",           NM_SETTING_BRIDGE_MULTICAST_ROUTER,           BRIDGE_OPT_TYPE_OPTION },
+		{ "vlan_filtering",             NM_SETTING_BRIDGE_VLAN_FILTERING,             BRIDGE_OPT_TYPE_OPTION },
+		{ "default_pvid",               NM_SETTING_BRIDGE_VLAN_DEFAULT_PVID,          BRIDGE_OPT_TYPE_OPTION },
+		{ "group_address",              NM_SETTING_BRIDGE_GROUP_ADDRESS,              BRIDGE_OPT_TYPE_OPTION },
+		{ "group_fwd_mask",             NM_SETTING_BRIDGE_GROUP_FORWARD_MASK,         BRIDGE_OPT_TYPE_OPTION },
+		{ "vlan_protocol",              NM_SETTING_BRIDGE_VLAN_PROTOCOL,              BRIDGE_OPT_TYPE_OPTION },
+		{ "vlan_stats_enabled",         NM_SETTING_BRIDGE_VLAN_STATS_ENABLED,         BRIDGE_OPT_TYPE_OPTION },
+		{ "priority",                   NM_SETTING_BRIDGE_PORT_PRIORITY,              BRIDGE_OPT_TYPE_PORT_OPTION },
+		{ "path_cost",                  NM_SETTING_BRIDGE_PORT_PATH_COST,             BRIDGE_OPT_TYPE_PORT_OPTION },
+		{ "hairpin_mode",               NM_SETTING_BRIDGE_PORT_HAIRPIN_MODE,          BRIDGE_OPT_TYPE_PORT_OPTION, .extended_bool = TRUE, },
 	};
 	const char *error_message = NULL;
 	int i;
@@ -5124,9 +5191,9 @@ handle_bridge_option (NMSetting *setting,
 		switch (param_spec->value_type) {
 		case G_TYPE_BOOLEAN:
 			if (m[i].extended_bool) {
-				if (!strcasecmp (value, "on") || !strcasecmp (value, "yes") || !strcmp (value, "1"))
+				if (!g_ascii_strcasecmp (value, "on") || !g_ascii_strcasecmp (value, "yes") || !strcmp (value, "1"))
 					v = TRUE;
-				else if (!strcasecmp (value, "off") || !strcasecmp (value, "no"))
+				else if (!g_ascii_strcasecmp (value, "off") || !g_ascii_strcasecmp (value, "no"))
 					v = FALSE;
 				else {
 					error_message = "is not a boolean";
@@ -5154,6 +5221,9 @@ handle_bridge_option (NMSetting *setting,
 				error_message = "number is out of range";
 				goto warn;
 			}
+			return;
+		case G_TYPE_STRING:
+			nm_g_object_set_property_string (G_OBJECT (setting), m[i].property_name, value, NULL);
 			return;
 		default:
 			nm_assert_not_reached ();
@@ -5259,11 +5329,11 @@ make_bridge_setting (shvarFile *ifcfg,
 
 	value = svGetValueStr (ifcfg, "STP", &value_to_free);
 	if (value) {
-		if (!strcasecmp (value, "on") || !strcasecmp (value, "yes")) {
+		if (!g_ascii_strcasecmp (value, "on") || !g_ascii_strcasecmp (value, "yes")) {
 			g_object_set (s_bridge, NM_SETTING_BRIDGE_STP, TRUE, NULL);
 			stp = TRUE;
 			stp_set = TRUE;
-		} else if (!strcasecmp (value, "off") || !strcasecmp (value, "no")) {
+		} else if (!g_ascii_strcasecmp (value, "off") || !g_ascii_strcasecmp (value, "no")) {
 			g_object_set (s_bridge, NM_SETTING_BRIDGE_STP, FALSE, NULL);
 			stp_set = TRUE;
 		} else
@@ -5774,9 +5844,9 @@ connection_from_file_full (const char *filename,
 
 	devtype = svGetValueStr_cp (main_ifcfg, "DEVICETYPE");
 	if (devtype) {
-		if (!strcasecmp (devtype, TYPE_TEAM))
+		if (!g_ascii_strcasecmp (devtype, TYPE_TEAM))
 			type = g_strdup (TYPE_TEAM);
-		else if (!strcasecmp (devtype, TYPE_TEAM_PORT)) {
+		else if (!g_ascii_strcasecmp (devtype, TYPE_TEAM_PORT)) {
 			gs_free char *device = NULL;
 
 			type = svGetValueStr_cp (main_ifcfg, "TYPE");
@@ -5910,26 +5980,26 @@ connection_from_file_full (const char *filename,
 	}
 
 	if (svGetValueBoolean (main_ifcfg, "BONDING_MASTER", FALSE) &&
-	    strcasecmp (type, TYPE_BOND)) {
+	    g_ascii_strcasecmp (type, TYPE_BOND)) {
 		g_set_error (error, NM_SETTINGS_ERROR, NM_SETTINGS_ERROR_INVALID_CONNECTION,
 		             "BONDING_MASTER=yes key only allowed in TYPE=bond connections");
 		return NULL;
 	}
 
 	/* Construct the connection */
-	if (!strcasecmp (type, TYPE_ETHERNET))
+	if (!g_ascii_strcasecmp (type, TYPE_ETHERNET))
 		connection = wired_connection_from_ifcfg (filename, main_ifcfg, error);
-	else if (!strcasecmp (type, TYPE_WIRELESS))
+	else if (!g_ascii_strcasecmp (type, TYPE_WIRELESS))
 		connection = wireless_connection_from_ifcfg (filename, main_ifcfg, error);
-	else if (!strcasecmp (type, TYPE_INFINIBAND))
+	else if (!g_ascii_strcasecmp (type, TYPE_INFINIBAND))
 		connection = infiniband_connection_from_ifcfg (filename, main_ifcfg, error);
-	else if (!strcasecmp (type, TYPE_BOND))
+	else if (!g_ascii_strcasecmp (type, TYPE_BOND))
 		connection = bond_connection_from_ifcfg (filename, main_ifcfg, error);
-	else if (!strcasecmp (type, TYPE_TEAM))
+	else if (!g_ascii_strcasecmp (type, TYPE_TEAM))
 		connection = team_connection_from_ifcfg (filename, main_ifcfg, error);
-	else if (!strcasecmp (type, TYPE_VLAN))
+	else if (!g_ascii_strcasecmp (type, TYPE_VLAN))
 		connection = vlan_connection_from_ifcfg (filename, main_ifcfg, error);
-	else if (!strcasecmp (type, TYPE_BRIDGE))
+	else if (!g_ascii_strcasecmp (type, TYPE_BRIDGE))
 		connection = bridge_connection_from_ifcfg (filename, main_ifcfg, error);
 	else {
 		connection = create_unhandled_connection (filename, main_ifcfg, "unrecognized", out_unhandled);

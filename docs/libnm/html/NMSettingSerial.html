@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingProxy.html" title="NMSettingProxy">
 <link rel="next" href="NMSettingSriov.html" title="NMSettingSriov">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -38,8 +38,8 @@ serial communications</p>
 <a name="NMSettingSerial.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -105,27 +105,27 @@ serial communications</p>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingSerial.html#NMSettingSerial--baud" title="The “baud” property">baud</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingSerial.html#NMSettingSerial--bits" title="The “bits” property">bits</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a class="link" href="NMSettingSerial.html#NMSettingSerialParity" title="enum NMSettingSerialParity"><span class="type">NMSettingSerialParity</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingSerial.html#NMSettingSerial--parity" title="The “parity” property">parity</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint64"><span class="type">guint64</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingSerial.html#NMSettingSerial--send-delay" title="The “send-delay” property">send-delay</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingSerial.html#NMSettingSerial--stopbits" title="The “stopbits” property">stopbits</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 </tbody>
 </table></div>
@@ -134,8 +134,8 @@ serial communications</p>
 <a name="NMSettingSerial.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -417,7 +417,8 @@ nm_setting_serial_get_send_delay (<em class="parameter"><code><a class="link" hr
 <p>Speed to use for communication over the serial port.  Note that this
 value usually has no effect for mobile broadband modems as they generally
 ignore speed settings and use the highest available speed.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingSerial</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 57600</p>
 </div>
 <hr>
@@ -425,7 +426,8 @@ ignore speed settings and use the highest available speed.</p>
 <a name="NMSettingSerial--bits"></a><h3>The <code class="literal">“bits”</code> property</h3>
 <pre class="programlisting">  “bits”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>Byte-width of the serial communication. The 8 in "8n1" for example.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingSerial</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: [5,8]</p>
 <p>Default value: 8</p>
 </div>
@@ -434,7 +436,8 @@ ignore speed settings and use the highest available speed.</p>
 <a name="NMSettingSerial--parity"></a><h3>The <code class="literal">“parity”</code> property</h3>
 <pre class="programlisting">  “parity”                   <a class="link" href="NMSettingSerial.html#NMSettingSerialParity" title="enum NMSettingSerialParity"><span class="type">NMSettingSerialParity</span></a></pre>
 <p>Parity setting of the serial port.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingSerial</p>
+<p>Flags: Read / Write</p>
 <p>Default value: NM_SETTING_SERIAL_PARITY_NONE</p>
 </div>
 <hr>
@@ -442,7 +445,8 @@ ignore speed settings and use the highest available speed.</p>
 <a name="NMSettingSerial--send-delay"></a><h3>The <code class="literal">“send-delay”</code> property</h3>
 <pre class="programlisting">  “send-delay”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint64"><span class="type">guint64</span></a></pre>
 <p>Time to delay between each byte sent to the modem, in microseconds.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingSerial</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 </div>
 <hr>
@@ -451,13 +455,14 @@ ignore speed settings and use the highest available speed.</p>
 <pre class="programlisting">  “stopbits”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>Number of stop bits for communication on the serial port.  Either 1 or 2.
 The 1 in "8n1" for example.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingSerial</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: [1,2]</p>
 <p>Default value: 1</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

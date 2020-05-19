@@ -2,12 +2,12 @@
 .\"     Title: nm-online
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 03/12/2020
+.\"      Date: 05/08/2020
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.22.10
+.\"    Source: NetworkManager 1.24.0
 .\"  Language: English
 .\"
-.TH "NM\-ONLINE" "1" "" "NetworkManager 1\&.22\&.10" "General Commands Manual"
+.TH "NM\-ONLINE" "1" "" "NetworkManager 1\&.24\&.0" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -39,15 +39,29 @@ is a utility to find out whether we are online\&. It is done by asking NetworkMa
 \fBnm\-online\fR
 waits until NetworkManager reports an active connection, or specified timeout expires\&. On exit, the returned status code should be checked (see the return codes below)\&.
 .PP
-By default NetworkManager waits for IPv4 dynamic addressing to complete but does not wait for the
-auto
-IPv6 dynamic addressing\&. To wait for IPv6 addressing to complete, either (1) change the network connection\*(Aqs IPv6
+This tool is not very useful to call directly\&. It is however used by
+NetworkManager\-wait\-online\&.service
+with
+\-\-wait\-for\-startup
+argument\&. This is used to delay the service and indirectly
+network\-online\&.target, until networking is up\&. Don\*(Aqt order your own systemd services after
+NetworkManager\-wait\-online\&.service
+directly\&. Instead if necessary, order your services after
+network\-online\&.target\&. Even better is to have your services react to network changes dynamically and don\*(Aqt order them with respect to
+network\-online\&.target
+at all\&.
+.PP
+By default, connections have the
+ipv4\&.may\-fail
+and
+ipv6\&.may\-fail
+properties set to
+yes; this means that NetworkManager waits for one of the two address families to complete configuration before considering the connection activated\&. If you need a specific address family configured before
+network\-online\&.target
+is reached, set the corresponding
 may\-fail
-setting to
-no, and/or (2) change the IPv6 addressing method to
-manual
-or
-dhcp, to indicate that IPv6 connectivity is expected\&.
+property to
+no\&.
 .SH "OPTIONS"
 .PP
 \fB\-h\fR | \fB\-\-help\fR
@@ -62,14 +76,31 @@ Don\*(Aqt print anything\&.
 .PP
 \fB\-s\fR | \fB\-\-wait\-for\-startup\fR
 .RS 4
-Wait for NetworkManager startup to complete, rather than waiting for network connectivity specifically\&. Startup is considered complete once NetworkManager has activated (or attempted to activate) every auto\-activate connection which is available given the current network state\&. (This is generally only useful at boot time; after startup has completed,
+Wait for NetworkManager startup to complete, rather than waiting for network connectivity specifically\&. Startup is considered complete once NetworkManager has activated (or attempted to activate) every auto\-activate connection which is available given the current network state\&. This corresponds to the moment when NetworkManager logs
+"startup complete"\&. This mode is generally only useful at boot time\&. After startup has completed,
 \fBnm\-online \-s\fR
-will just return immediately, regardless of the current network state\&.)
+will just return immediately, regardless of the current network state\&.
+.sp
+There are various ways to affect when startup complete is reached\&. For example, by setting a connection profile to autoconnect, such a profile possibly will activate during startup and thus delay startup complete being reached\&. Also, a profile is considered ready when it fully reached the logical
+connected
+state in NetworkManager\&. That means, properties like
+ipv4\&.may\-fail
+and
+ipv6\&.may\-fail
+affect whether a certain address family is required\&. Also, the connection property
+connection\&.wait\-device\-timeout
+affects whether to wait for the driver to detect a certain device\&. Generally, a failure of
+NetworkManager\-wait\-online\&.service
+indicates a configuration error, where NetworkManager won\*(Aqt be able to reach the desired connectivity state during startup\&. An example for that are bridge or bond master profiles, that get autoconnected but without activating any slaves\&. Such master devices hang in activating state indefinitely, and cause
+NetworkManager\-wait\-online\&.service
+to fail\&.
 .RE
 .PP
 \fB\-t\fR | \fB\-\-timeout\fR \fIseconds\fR
 .RS 4
-Time to wait for a connection, in seconds\&. If the option is not provided, the default timeout is 30 seconds\&.
+Time to wait for a connection, in seconds\&. If the option is not provided, the environment variable
+NM_ONLINE_TIMEOUT
+is honored\&. The default timeout is 30 seconds\&.
 .RE
 .PP
 \fB\-x\fR | \fB\-\-exit\fR

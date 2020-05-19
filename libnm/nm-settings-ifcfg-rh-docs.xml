@@ -15,6 +15,7 @@
 <property name="subject-match" variable="IEEE_8021X_SUBJECT_MATCH(+)" format="" values="" default="" example="IEEE_8021X_SUBJECT_MATCH=&quot;Red Hat&quot;" description="Substring to match subject of server certificate against."/>
 <property name="altsubject-matches" variable="IEEE_8021X_ALTSUBJECT_MATCHES(+)" format="" values="" default="" example="IEEE_8021X_ALTSUBJECT_MATCHES=&quot;s1.domain.cc&quot;" description="List of strings to be matched against the altSubjectName."/>
 <property name="domain-suffix-match" variable="IEEE_8021X_DOMAIN_SUFFIX_MATCH(+)" format="" values="" default="" example="" description="Suffix to match domain of server certificate against."/>
+<property name="domain-match" variable="IEEE_8021X_DOMAIN_MATCH(+)" format="" values="" default="" example="" description="Value to match domain of server certificate against."/>
 <property name="client-cert" variable="IEEE_8021X_CLIENT_CERT(+)" format="" values="" default="" example="IEEE_8021X_CLIENT_CERT=/home/joe/mycert.crt" description="Client certificate for EAP."/>
 <property name="phase1-peapver" variable="IEEE_8021X_PEAP_VERSION(+)" format="" values="0, 1" default="" example="" description="Use to force a specific PEAP version."/>
 <property name="phase1-peaplabel" variable="IEEE_8021X_PEAP_FORCE_NEW_LABEL(+)" format="" values="yes, no" default="no" example="" description="Use to force the new PEAP label during key derivation."/>
@@ -27,6 +28,7 @@ IEEE_8021X_INNER_AUTH_METHODS is also used for &apos;phase2-auth&apos; values."/
 <property name="phase2-subject-match" variable="IEEE_8021X_PHASE2_SUBJECT_MATCH(+)" format="" values="" default="" example="IEEE_8021X_PHASE2_SUBJECT_MATCH=&quot;Red Hat&quot;" description="Substring to match subject of server certificate against."/>
 <property name="phase2-altsubject-matches" variable="IEEE_8021X_PHASE2_ALTSUBJECT_MATCHES(+)" format="" values="" default="" example="" description=""/>
 <property name="phase2-domain-suffix-match" variable="IEEE_8021X_PHASE2_DOMAIN_SUFFIX_MATCH(+)" format="" values="" default="" example="" description="Suffix to match domain of server certificate for phase 2 against."/>
+<property name="phase2-domain-match" variable="IEEE_8021X_PHASE2_DOMAIN_MATCH(+)" format="" values="" default="" example="" description="Value to match domain of server certificate for phase 2 against."/>
 <property name="phase2-client-cert" variable="IEEE_8021X_INNER_CLIENT_CERT(+)" format="" values="" default="" example="IEEE_8021X_INNER_CLIENT_CERT=/home/joe/mycert.crt" description="Client certificate for inner EAP method."/>
 <property name="password" variable="IEEE_8021X_PASSWORD(+)" format="" values="" default="" example="" description="UTF-8 encoded password used for EAP. It can also go to &quot;key-&quot;
 lookaside file, or it can be owned by a secret agent."/>
@@ -76,6 +78,12 @@ BRIDGE_MACADDR for bridges is an NM extension."/>
 <property name="vlan-filtering" variable="BRIDGING_OPTS: vlan_filtering=" format="" values="0 or 1" default="0" example="" description="VLAN filtering support."/>
 <property name="vlan-default-pvid" variable="BRIDGING_OPTS: default_pvid=" format="" values="0 - 4094" default="1" example="" description="default VLAN PVID."/>
 <property name="vlans" variable="BRIDGE_VLANS" format="" values="" default="" example="BRIDGE_VLANS=&quot;1 pvid untagged,20,300-400 untagged&quot;" description="List of VLANs on the bridge"/>
+<property name="group-address" variable="BRIDGING_OPTS: group_address=" format="" values="" default="" example="BRIDGING_OPTS=&quot;group_address=01:80:C2:00:00:0A&quot;" description="STP group address."/>
+<property name="vlan-protocol" variable="BRIDGING_OPTS: vlan_protocol=" format="" values="" default="" example="BRIDGING_OPTS=&quot;vlan_protocol=802.1Q&quot;" description="VLAN filtering protocol."/>
+<property name="vlan-stats-enabled" variable="BRIDGING_OPTS: vlan_stats_enabled=" format="" values="" default="0" example="BRIDGING_OPTS=&quot;vlan_stats_enabled=1&quot;" description=""/>
+<property name="multicast-router" variable="BRIDGING_OPTS: multicast_router=" format="" values="auto, enabled, disabled" default="auto" example="BRIDGING_OPTS=&quot;multicast_router=enabled&quot;" description=""/>
+<property name="multicast-query-use-ifaddr" variable="BRIDGING_OPTS: multicast_query_use_ifaddr=" format="" values="" default="0" example="BRIDGING_OPTS=&quot;multicast_query-use_ifaddr=1&quot;" description=""/>
+<property name="multicast-querier" variable="BRIDGING_OPTS: multicast_querier=" format="" values="" default="0" example="BRIDGING_OPTS=&quot;multicast_querier=1&quot;" description=""/>
 </setting>
 <setting name="cdma">
 </setting>
@@ -97,7 +105,7 @@ specified users is logged into an active session."/>
 higher numbers are preferred when selecting profiles for automatic activation."/>
 <property name="autoconnect-retries" variable="AUTOCONNECT_RETRIES(+)" format="" values="-1 (use global default), 0 (forever) or a positive value" default="" example="AUTOCONNECT_RETRIES=1" description="The number of times a connection should be autoactivated
 before giving up and switching to the next one."/>
-<property name="multi-connect" variable="MULTI_CONNECT(+)" format="" values="" default="" example="ZONE=3" description="whether the profile can be active on multiple devices at a given
+<property name="multi-connect" variable="MULTI_CONNECT(+)" format="" values="" default="" example="MULTI_CONNECT=3" description="whether the profile can be active on multiple devices at a given
 moment. The values are numbers corresponding to #NMConnectionMultiConnect enum."/>
 <property name="zone" variable="ZONE(+)" format="" values="" default="" example="ZONE=Work" description="Trust level of this connection. The string is usually used
 for a firewall."/>
@@ -310,6 +318,8 @@ If all variables are set, parent device from PHYSDEV takes precedence over DEVIC
 but VLAN id from DEVICE takes precedence over VLAN_ID."/>
 </setting>
 <setting name="vpn">
+</setting>
+<setting name="vrf">
 </setting>
 <setting name="vxlan">
 </setting>

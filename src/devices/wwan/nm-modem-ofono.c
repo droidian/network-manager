@@ -211,9 +211,9 @@ disconnect (NMModem *modem,
 
 	if (   state != NM_MODEM_STATE_CONNECTED
 	    || g_cancellable_is_cancelled (cancellable)) {
-		nm_utils_invoke_on_idle (disconnect_context_complete_on_idle,
-		                         ctx,
-		                         cancellable);
+		nm_utils_invoke_on_idle (cancellable,
+		                         disconnect_context_complete_on_idle,
+		                         ctx);
 		return;
 	}
 
@@ -449,7 +449,7 @@ handle_sim_iface (NMModemOfono *self, gboolean found)
 			g_signal_handlers_disconnect_by_data (priv->sim_proxy, self);
 			g_clear_object (&priv->sim_proxy);
 		}
-		g_clear_pointer (&priv->imsi, g_free);
+		nm_clear_g_free (&priv->imsi);
 		update_modem_state (self);
 	} else if (found && (!priv->sim_proxy && !priv->sim_proxy_cancellable)) {
 		_LOGI ("found new SimManager interface");
@@ -769,7 +769,7 @@ stage1_prepare_done (GObject *source,
 
 	g_clear_object (&priv->context_proxy_cancellable);
 
-	g_clear_pointer (&priv->connect_properties, g_hash_table_destroy);
+	nm_clear_pointer (&priv->connect_properties, g_hash_table_destroy);
 
 	if (error) {
 		_LOGW ("connection failed: %s", error->message);

@@ -5,8 +5,8 @@
 
 #include "nm-default.h"
 
-#include "nm-keyfile-utils.h"
-#include "nm-keyfile-internal.h"
+#include "nm-keyfile/nm-keyfile-utils.h"
+#include "nm-keyfile/nm-keyfile-internal.h"
 #include "nm-simple-connection.h"
 #include "nm-setting-connection.h"
 #include "nm-setting-wired.h"
@@ -99,7 +99,7 @@ test_encode_key (void)
 		GKeyFile **_keyfile = (keyfile); \
 		\
 		g_clear_object (_con); \
-		g_clear_pointer (_keyfile, g_key_file_unref); \
+		nm_clear_pointer (_keyfile, g_key_file_unref); \
 	} G_STMT_END
 
 static void

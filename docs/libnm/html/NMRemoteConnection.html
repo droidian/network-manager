@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSimpleConnection.html" title="NMSimpleConnection">
 <link rel="next" href="NMSetting.html" title="NMSetting">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -35,8 +35,8 @@
 <a name="NMRemoteConnection.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -189,8 +189,8 @@
 <a name="NMRemoteConnection.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -340,7 +340,7 @@ nm_remote_connection_commit_changes (<em class="parameter"><code><a class="link"
                                      <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_remote_connection_commit_changes</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
-<p>, use <a class="link" href="NMRemoteConnection.html#nm-remote-connection-commit-changes-async" title="nm_remote_connection_commit_changes_async ()"><code class="function">nm_remote_connection_commit_changes_async()</code></a> or GDBusConnection</p>
+<p>Use <a class="link" href="NMRemoteConnection.html#nm-remote-connection-commit-changes-async" title="nm_remote_connection_commit_changes_async ()"><code class="function">nm_remote_connection_commit_changes_async()</code></a> or GDBusConnection.</p>
 </div>
 <p>Send any local changes to the settings and properties of <em class="parameter"><code>connection</code></em>
  to
@@ -491,7 +491,7 @@ nm_remote_connection_save (<em class="parameter"><code><a class="link" href="NMR
                            <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_remote_connection_save</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
-<p>, use <a class="link" href="NMRemoteConnection.html#nm-remote-connection-save-async" title="nm_remote_connection_save_async ()"><code class="function">nm_remote_connection_save_async()</code></a> or GDBusConnection</p>
+<p>Use <a class="link" href="NMRemoteConnection.html#nm-remote-connection-save-async" title="nm_remote_connection_save_async ()"><code class="function">nm_remote_connection_save_async()</code></a> or GDBusConnection.</p>
 </div>
 <p>Saves the connection to disk if the connection has changes that have not yet
 been written to disk, or if the connection has never been saved.</p>
@@ -622,7 +622,7 @@ nm_remote_connection_delete (<em class="parameter"><code><a class="link" href="N
                              <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_remote_connection_delete</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
-<p>, use <a class="link" href="NMRemoteConnection.html#nm-remote-connection-delete-async" title="nm_remote_connection_delete_async ()"><code class="function">nm_remote_connection_delete_async()</code></a> or GDBusConnection</p>
+<p>Use <a class="link" href="NMRemoteConnection.html#nm-remote-connection-delete-async" title="nm_remote_connection_delete_async ()"><code class="function">nm_remote_connection_delete_async()</code></a> or GDBusConnection.</p>
 </div>
 <p>Deletes the connection.</p>
 <div class="refsect3">
@@ -752,7 +752,7 @@ nm_remote_connection_get_secrets (<em class="parameter"><code><a class="link" hr
                                   <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <div class="warning">
 <p><code class="literal">nm_remote_connection_get_secrets</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
-<p>, use <a class="link" href="NMRemoteConnection.html#nm-remote-connection-get-secrets-async" title="nm_remote_connection_get_secrets_async ()"><code class="function">nm_remote_connection_get_secrets_async()</code></a> or GDBusConnection</p>
+<p>Use <a class="link" href="NMRemoteConnection.html#nm-remote-connection-get-secrets-async" title="nm_remote_connection_get_secrets_async ()"><code class="function">nm_remote_connection_get_secrets_async()</code></a> or GDBusConnection.</p>
 </div>
 <p>Request the connection's secrets. Note that this is a blocking D-Bus call,
 not a simple property accessor.</p>
@@ -1044,6 +1044,6 @@ user, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.ht
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

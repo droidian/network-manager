@@ -10,7 +10,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <glib-unix.h>
 
 #include "nm-std-aux/c-list-util.h"
 #include "nm-glib-aux/nm-enum-utils.h"
@@ -52,7 +51,7 @@
 #include "nm-setting-wireless-security.h"
 #include "nm-setting-wpan.h"
 #include "nm-simple-connection.h"
-#include "nm-keyfile-internal.h"
+#include "nm-keyfile/nm-keyfile-internal.h"
 #include "nm-glib-aux/nm-dedup-multi.h"
 #include "nm-libnm-core-intern/nm-ethtool-utils.h"
 
@@ -660,6 +659,333 @@ test_nm_utils_strsplit_set (void)
 
 /*****************************************************************************/
 
+static char *
+_escaped_tokens_create_random_word_full (const char *const*tokens,
+                                         gsize n_tokens,
+                                         gsize len)
+{
+	GString *gstr = g_string_new (NULL);
+	gsize i;
+	char random_token[2] = { 0 };
+
+	for (i = 0; i < len; i++) {
+		const char *token = tokens[nmtst_get_rand_uint32 () % n_tokens];
+
+		if (!token[0]) {
+			do {
+				random_token[0] = nmtst_get_rand_uint32 ();
+			} while (random_token[0] == '\0');
+			token = random_token;
+		}
+		g_string_append (gstr, token);
+	}
+
+	/* reallocate the string, so that we don't have any excess memory from
+	 * the GString buffer. This is so that valgrind may better detect an out
+	 * or range access. */
+	return nm_str_realloc (g_string_free (gstr, FALSE));
+}
+
+/* set to 1 to exclude characters that are annoying to see in the debugger
+ * and printf() output. */
+#define ESCAPED_TOKENS_ONLY_NICE_CHARS 0
+
+static char *
+_escaped_tokens_create_random_whitespace (void)
+{
+	static const char *tokens[] = {
+		" ",
+#if !ESCAPED_TOKENS_ONLY_NICE_CHARS
+		"\n",
+		"\t",
+		"\r",
+		"\f",
+#endif
+	};
+
+	return _escaped_tokens_create_random_word_full (tokens, G_N_ELEMENTS (tokens), nmtst_get_rand_word_length (NULL) / 4u);
+}
+
+static char *
+_escaped_tokens_create_random_word (void)
+{
+	static const char *tokens[] = {
+		"a",
+		"b",
+		"c",
+		" ",
+		",",
+		"=",
+		"\\",
+#if !ESCAPED_TOKENS_ONLY_NICE_CHARS
+		"\n",
+		"\f",
+		":",
+		"",
+#endif
+	};
+
+	return _escaped_tokens_create_random_word_full (tokens, G_N_ELEMENTS (tokens), nmtst_get_rand_word_length (NULL));
+}
+
+static void
+_escaped_tokens_str_append_delimiter (GString *str,
+                                      gboolean strict,
+                                      gboolean needs_delimiter)
+{
+	guint len = nmtst_get_rand_word_length (NULL) / 10u;
+	char *s;
+
+again:
+	if (!strict) {
+		g_string_append (str, (s = _escaped_tokens_create_random_whitespace ()));
+		nm_clear_g_free (&s);
+	}
+
+	if (needs_delimiter)
+		g_string_append_c (str, ',');
+
+	if (!strict) {
+		g_string_append (str, (s = _escaped_tokens_create_random_whitespace ()));
+		nm_clear_g_free (&s);
+		if (len-- > 0) {
+			needs_delimiter = TRUE;
+			goto again;
+		}
+	}
+}
+
+static void
+_escaped_tokens_split (char *str, const char **out_key, const char **out_val)
+{
+	const char *key;
+	const char *val;
+	gsize len = strlen (str);
+
+	g_assert (str);
+
+	nm_utils_escaped_tokens_options_split (str, &key, &val);
+	g_assert (key);
+	g_assert (key == str);
+	if (val) {
+		g_assert (val > str);
+		g_assert (val > key);
+		g_assert (val <= &str[len]);
+	}
+	NM_SET_OUT (out_key, key);
+	NM_SET_OUT (out_val, val);
+}
+
+static void
+_escaped_tokens_combine (GString *combined,
+                         const char *key,
+                         const char *val,
+                         gboolean strict,
+                         gboolean allow_append_delimiter_before,
+                         gboolean needs_delimiter_after)
+{
+	gs_free char *escaped_key = NULL;
+	gs_free char *escaped_val = NULL;
+
+	if (allow_append_delimiter_before)
+		_escaped_tokens_str_append_delimiter (combined, strict, FALSE);
+	g_string_append (combined, nm_utils_escaped_tokens_options_escape_key (key, &escaped_key));
+	if (val) {
+		char *s;
+
+		if (!strict) {
+			g_string_append (combined, (s = _escaped_tokens_create_random_whitespace ()));
+			nm_clear_g_free (&s);
+		}
+		g_string_append_c (combined, '=');
+		if (!strict) {
+			g_string_append (combined, (s = _escaped_tokens_create_random_whitespace ()));
+			nm_clear_g_free (&s);
+		}
+		g_string_append (combined, nm_utils_escaped_tokens_options_escape_val (val, &escaped_val));
+	}
+	_escaped_tokens_str_append_delimiter (combined, strict, needs_delimiter_after);
+}
+
+static void
+_escaped_tokens_check_one_impl (const char *expected_key,
+                                const char *expected_val,
+                                const char *expected_combination,
+                                const char *const*other,
+                                gsize n_other)
+{
+	nm_auto_free_gstring GString *combined = g_string_new (NULL);
+	gsize i;
+
+	g_assert (expected_key);
+	g_assert (expected_combination);
+	g_assert (other);
+
+	_escaped_tokens_combine (combined,
+	                         expected_key,
+	                         expected_val,
+	                         TRUE,
+	                         TRUE,
+	                         FALSE);
+
+	g_assert_cmpstr (combined->str, ==, expected_combination);
+
+	for (i = 0; i < n_other + 2u; i++) {
+		nm_auto_free_gstring GString *str0 = NULL;
+		gs_free const char **strv_split = NULL;
+		gs_free char *strv_split0 = NULL;
+		const char *comb;
+		const char *key;
+		const char *val;
+
+		if (i == 0)
+			comb = expected_combination;
+		else if (i == 1) {
+			_escaped_tokens_combine (nm_gstring_prepare (&str0),
+			                         expected_key,
+			                         expected_val,
+			                         FALSE,
+			                         TRUE,
+			                         FALSE);
+			comb = str0->str;
+		} else
+			comb = other[i - 2];
+
+		strv_split = nm_utils_escaped_tokens_options_split_list (comb);
+		if (!strv_split) {
+			g_assert_cmpstr (expected_key, ==, "");
+			g_assert_cmpstr (expected_val, ==, NULL);
+			continue;
+		}
+		g_assert (expected_val || expected_key[0]);
+
+		g_assert_cmpuint (NM_PTRARRAY_LEN (strv_split), ==, 1u);
+
+		strv_split0 = g_strdup (strv_split[0]);
+
+		_escaped_tokens_split (strv_split0, &key, &val);
+		g_assert_cmpstr (key, ==, expected_key);
+		g_assert_cmpstr (val, ==, expected_val);
+	}
+}
+
+#define _escaped_tokens_check_one(expected_key, expected_val, expected_combination, ...) \
+	_escaped_tokens_check_one_impl (expected_key, expected_val, expected_combination, NM_MAKE_STRV (__VA_ARGS__), NM_NARG (__VA_ARGS__))
+
+static void
+test_nm_utils_escaped_tokens (void)
+{
+	int i_run;
+
+	for (i_run = 0; i_run < 1000; i_run++) {
+		const guint num_options = nmtst_get_rand_word_length (NULL);
+		gs_unref_ptrarray GPtrArray *options = g_ptr_array_new_with_free_func (g_free);
+		nm_auto_free_gstring GString *combined = g_string_new (NULL);
+		gs_free const char **strv_split = NULL;
+		guint i_option;
+		guint i;
+
+		/* Generate a list of random words for option key-value pairs. */
+		for (i_option = 0; i_option < 2u * num_options; i_option++) {
+			char *word = NULL;
+
+			if (   i_option % 2u == 1
+			    && nmtst_get_rand_uint32 () % 5 == 0
+			    && strlen (options->pdata[options->len - 1]) > 0u) {
+				/* For some options, leave the value unset and only generate a key.
+				 *
+				 * If key is "", then we cannot do that, because the test below would try
+				 * to append "" to the combined list, which the parser then would drop.
+				 * Only test omitting the value, if strlen() of the key is positive. */
+			} else
+				word = _escaped_tokens_create_random_word ();
+			g_ptr_array_add (options, word);
+		}
+
+		/* Combine the options in one comma separated list, with proper escaping. */
+		for (i_option = 0; i_option < num_options; i_option++) {
+			_escaped_tokens_combine (combined,
+			                         options->pdata[2u*i_option + 0u],
+			                         options->pdata[2u*i_option + 1u],
+			                         FALSE,
+			                         i_option == 0,
+			                         i_option != num_options - 1);
+		}
+
+		/* ensure that we can split and parse the options without difference. */
+		strv_split = nm_utils_escaped_tokens_options_split_list (combined->str);
+		for (i_option = 0; i_option < num_options; i_option++) {
+			const char *expected_key = options->pdata[2u*i_option + 0u];
+			const char *expected_val = options->pdata[2u*i_option + 1u];
+			gs_free char *s_split = i_option < NM_PTRARRAY_LEN (strv_split) ? g_strdup (strv_split[i_option]) : NULL;
+			const char *key = NULL;
+			const char *val = NULL;
+
+			if (s_split)
+				_escaped_tokens_split (s_split, &key, &val);
+
+			if (   !nm_streq0 (key, expected_key)
+			    || !nm_streq0 (val, expected_val)) {
+				g_print (">>> ASSERTION IS ABOUT TO FAIL for item %5d of %5d\n", i_option, num_options);
+				g_print (">>> combined =  \"%s\"\n", combined->str);
+				g_print (">>> %c   parsed[%5d].key = \"%s\"\n", nm_streq (key, expected_key) ? ' ' : 'X', i_option, key);
+				g_print (">>> %c   parsed[%5d].val = %s%s%s\n", nm_streq0 (val, expected_val) ? ' ' : 'X', i_option, NM_PRINT_FMT_QUOTE_STRING (val));
+				for (i = 0; i < num_options; i++) {
+					g_print (">>> %c original[%5d].key = \"%s\"\n", i == i_option ? '*' : ' ', i, (char *) options->pdata[2u*i + 0u]);
+					g_print (">>> %c original[%5d].val = %s%s%s\n", i == i_option ? '*' : ' ', i, NM_PRINT_FMT_QUOTE_STRING ((char *) options->pdata[2u*i + 1u]));
+				}
+				for (i = 0; i < NM_PTRARRAY_LEN (strv_split); i++)
+					g_print (">>>      split[%5d]     = \"%s\"\n", i, strv_split[i]);
+			}
+
+			g_assert_cmpstr (key, ==, expected_key);
+			g_assert_cmpstr (val, ==, expected_val);
+		}
+		g_assert_cmpint (NM_PTRARRAY_LEN (strv_split), ==, num_options);
+
+		/* Above we show a full round-trip of random option key-value pairs, that they can
+		 * without loss escape, concatenate, split-list, and split. This proofed that every
+		 * option key-value pair can be represented as a combined string and parsed back.
+		 *
+		 * Now, just check that we can also parse arbitrary random words in nm_utils_escaped_tokens_options_split().
+		 * split() is a non-injective surjective function. As we check the round-trip above for random words, where
+		 * options-split() is the last step, we show that every random word can be the output of the function
+		 * (which shows, the surjective part).
+		 *
+		 * But multiple random input arguments, may map to the same output argument (non-injective).
+		 * Just test whether we can handle random input words without crashing. For that, just use the
+		 * above generate list of random words.
+		 */
+		for (i = 0; i < 1u + 2u * i_option; i++) {
+			gs_free char *str = NULL;
+			const char *cstr;
+
+			if (i == 0)
+				cstr = combined->str;
+			else
+				cstr = options->pdata[i - 1u];
+			if (!cstr)
+				continue;
+
+			str = g_strdup (cstr);
+			_escaped_tokens_split (str, NULL, NULL);
+		}
+	}
+
+	_escaped_tokens_check_one ("", NULL, "");
+	_escaped_tokens_check_one ("", "", "=", " =");
+	_escaped_tokens_check_one ("a", "b", "a=b", "a = b");
+	_escaped_tokens_check_one ("a\\=", "b\\=", "a\\\\\\==b\\\\=", "a\\\\\\==b\\\\\\=");
+	_escaped_tokens_check_one ("\\=", "\\=", "\\\\\\==\\\\=", "\\\\\\==\\\\\\=");
+	_escaped_tokens_check_one (" ", "bb=", "\\ =bb=", "\\ =bb\\=");
+	_escaped_tokens_check_one (" ", "bb\\=", "\\ =bb\\\\=", "\\ =bb\\\\\\=");
+	_escaped_tokens_check_one ("a b", "a  b", "a b=a  b");
+	_escaped_tokens_check_one ("a b", "a  b", "a b=a  b");
+	_escaped_tokens_check_one ("a = b", "a = b", "a \\= b=a = b", "a \\= b=a \\= b");
+}
+
+/*****************************************************************************/
+
 typedef struct {
 	int val;
 	CList lst;
@@ -1173,13 +1499,11 @@ test_setting_vpn_items (void)
 	nm_setting_vpn_add_data_item (s_vpn, "", "");
 	g_test_assert_expected_messages ();
 
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (item && item[0]));
-	nm_setting_vpn_add_data_item (s_vpn, "foobar1", NULL);
-	g_test_assert_expected_messages ();
-
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (item && item[0]));
 	nm_setting_vpn_add_data_item (s_vpn, "foobar1", "");
-	g_test_assert_expected_messages ();
+	g_assert_cmpstr (nm_setting_vpn_get_data_item (s_vpn, "foobar1"), ==, "");
+
+	nm_setting_vpn_add_data_item (s_vpn, "foobar1", NULL);
+	g_assert_cmpstr (nm_setting_vpn_get_data_item (s_vpn, "foobar1"), ==, NULL);
 
 	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key && key[0]));
 	nm_setting_vpn_add_data_item (s_vpn, NULL, "blahblah1");
@@ -1200,13 +1524,9 @@ test_setting_vpn_items (void)
 	nm_setting_vpn_add_secret (s_vpn, "", "");
 	g_test_assert_expected_messages ();
 
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (secret && secret[0]));
-	nm_setting_vpn_add_secret (s_vpn, "foobar1", NULL);
-	g_test_assert_expected_messages ();
-
-	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (secret && secret[0]));
 	nm_setting_vpn_add_secret (s_vpn, "foobar1", "");
-	g_test_assert_expected_messages ();
+
+	nm_setting_vpn_add_secret (s_vpn, "foobar1", NULL);
 
 	NMTST_EXPECT_LIBNM_CRITICAL (NMTST_G_RETURN_MSG (key && key[0]));
 	nm_setting_vpn_add_secret (s_vpn, NULL, "blahblah1");
@@ -3494,14 +3814,14 @@ test_setting_compare_addresses (void)
 	nm_ip_address_unref (a);
 
 	if (nmtst_get_rand_uint32 () % 2)
-		NMTST_SWAP (s1, s2);
+		NM_SWAP (s1, s2);
 
 	success = nm_setting_compare (s1, s2, NM_SETTING_COMPARE_FLAG_EXACT);
 	g_assert (!success);
 
 	success = nm_setting_diff (s1, s2, NM_SETTING_COMPARE_FLAG_EXACT, FALSE, &result);
 	g_assert (!success);
-	g_clear_pointer (&result, g_hash_table_unref);
+	nm_clear_pointer (&result, g_hash_table_unref);
 }
 
 static void
@@ -3526,14 +3846,14 @@ test_setting_compare_routes (void)
 	nm_ip_route_unref (r);
 
 	if (nmtst_get_rand_uint32 () % 2)
-		NMTST_SWAP (s1, s2);
+		NM_SWAP (s1, s2);
 
 	success = nm_setting_compare (s1, s2, NM_SETTING_COMPARE_FLAG_EXACT);
 	g_assert (!success);
 
 	success = nm_setting_diff (s1, s2, NM_SETTING_COMPARE_FLAG_EXACT, FALSE, &result);
 	g_assert (!success);
-	g_clear_pointer (&result, g_hash_table_unref);
+	nm_clear_pointer (&result, g_hash_table_unref);
 }
 
 static void
@@ -3551,7 +3871,7 @@ test_setting_compare_wired_cloned_mac_address (void)
 	g_assert_cmpstr ("stable", ==, nm_setting_wired_get_cloned_mac_address ((NMSettingWired *) old));
 	g_object_get (old, NM_SETTING_WIRED_CLONED_MAC_ADDRESS, &str1, NULL);
 	g_assert_cmpstr ("stable", ==, str1);
-	g_clear_pointer (&str1, g_free);
+	nm_clear_g_free (&str1);
 
 	new = nm_setting_duplicate (old);
 	g_object_set (new, NM_SETTING_WIRED_CLONED_MAC_ADDRESS, "11:22:33:44:55:66", NULL);
@@ -3559,7 +3879,7 @@ test_setting_compare_wired_cloned_mac_address (void)
 	g_assert_cmpstr ("11:22:33:44:55:66", ==, nm_setting_wired_get_cloned_mac_address ((NMSettingWired *) new));
 	g_object_get (new, NM_SETTING_WIRED_CLONED_MAC_ADDRESS, &str1, NULL);
 	g_assert_cmpstr ("11:22:33:44:55:66", ==, str1);
-	g_clear_pointer (&str1, g_free);
+	nm_clear_g_free (&str1);
 
 	success = nm_setting_compare (old, new, NM_SETTING_COMPARE_FLAG_EXACT);
 	g_assert (!success);
@@ -3571,7 +3891,7 @@ test_setting_compare_wired_cloned_mac_address (void)
 	g_assert_cmpstr ("stable-bia", ==, nm_setting_wired_get_cloned_mac_address ((NMSettingWired *) new));
 	g_object_get (new, NM_SETTING_WIRED_CLONED_MAC_ADDRESS, &str1, NULL);
 	g_assert_cmpstr ("stable-bia", ==, str1);
-	g_clear_pointer (&str1, g_free);
+	nm_clear_g_free (&str1);
 
 	success = nm_setting_compare (old, new, NM_SETTING_COMPARE_FLAG_EXACT);
 	g_assert (!success);
@@ -3593,7 +3913,7 @@ test_setting_compare_wireless_cloned_mac_address (void)
 	g_assert_cmpstr ("stable", ==, nm_setting_wireless_get_cloned_mac_address ((NMSettingWireless *) old));
 	g_object_get (old, NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS, &str1, NULL);
 	g_assert_cmpstr ("stable", ==, str1);
-	g_clear_pointer (&str1, g_free);
+	nm_clear_g_free (&str1);
 
 	new = nm_setting_duplicate (old);
 	g_object_set (new, NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS, "11:22:33:44:55:66", NULL);
@@ -3601,7 +3921,7 @@ test_setting_compare_wireless_cloned_mac_address (void)
 	g_assert_cmpstr ("11:22:33:44:55:66", ==, nm_setting_wireless_get_cloned_mac_address ((NMSettingWireless *) new));
 	g_object_get (new, NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS, &str1, NULL);
 	g_assert_cmpstr ("11:22:33:44:55:66", ==, str1);
-	g_clear_pointer (&str1, g_free);
+	nm_clear_g_free (&str1);
 
 	success = nm_setting_compare (old, new, NM_SETTING_COMPARE_FLAG_EXACT);
 	g_assert (!success);
@@ -4648,7 +4968,7 @@ test_connection_normalize_virtual_iface_name (void)
 	g_variant_unref (setting_dict);
 	g_variant_unref (var);
 
-	/* If vlan.interface-name is invalid, deserialization will fail. */
+	/* If vlan.interface-name will be ignored. */
 	NMTST_VARIANT_EDITOR (connection_dict,
 	                      NMTST_VARIANT_CHANGE_PROPERTY (NM_SETTING_VLAN_SETTING_NAME,
 	                                                     "interface-name",
@@ -4657,8 +4977,9 @@ test_connection_normalize_virtual_iface_name (void)
 	                      );
 
 	con = _connection_new_from_dbus (connection_dict, &error);
-	g_assert_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_INVALID_PROPERTY);
-	g_clear_error (&error);
+	nmtst_assert_success (con, error);
+	g_assert_cmpstr (nm_connection_get_interface_name (con), ==, IFACE_NAME);
+	g_clear_object (&con);
 
 	/* If vlan.interface-name is valid, but doesn't match, it will be ignored. */
 	NMTST_VARIANT_EDITOR (connection_dict,
@@ -6820,7 +7141,7 @@ _team_config_equal_check (const char *conf1,
 	gboolean is_same;
 
 	if (nmtst_get_rand_bool ())
-		NMTST_SWAP (conf1, conf2);
+		NM_SWAP (conf1, conf2);
 
 	if (!nm_streq0 (conf1, conf2)) {
 		_team_config_equal_check (conf1, conf1, port_config, TRUE);
@@ -7545,10 +7866,11 @@ _do_test_utils_str_utf8safe (const char *str, gsize str_len, const char *expecte
 	gs_free char *str_free_7 = NULL;
 	gs_free char *str_free_8 = NULL;
 	gboolean str_has_nul = FALSE;
+#define RND_FLAG ((nmtst_get_rand_bool ()) ? NM_UTILS_STR_UTF8_SAFE_FLAG_NONE : NM_UTILS_STR_UTF8_SAFE_FLAG_SECRET)
 
-	buf_safe = nm_utils_buf_utf8safe_escape (str, str_len, flags, &str_free_1);
+	buf_safe = nm_utils_buf_utf8safe_escape (str, str_len, flags | RND_FLAG, &str_free_1);
 
-	str_safe = nm_utils_str_utf8safe_escape (str, flags, &str_free_2);
+	str_safe = nm_utils_str_utf8safe_escape (str, flags | RND_FLAG, &str_free_2);
 
 	if (str_len == 0) {
 		g_assert (buf_safe == NULL);
@@ -7568,7 +7890,7 @@ _do_test_utils_str_utf8safe (const char *str, gsize str_len, const char *expecte
 	} else
 		str_has_nul = TRUE;
 
-	str_free_3 = nm_utils_str_utf8safe_escape_cp (str, flags);
+	str_free_3 = nm_utils_str_utf8safe_escape_cp (str, flags | RND_FLAG);
 	g_assert_cmpstr (str_free_3, ==, str_safe);
 	g_assert ((!str && !str_free_3) || (str != str_free_3));
 
@@ -8201,8 +8523,12 @@ _test_integrate_cb_idle_2 (gpointer user_data)
 	g_assert (d->extra_sources[0]);
 	g_assert (!d->extra_sources[1]);
 
-	extra_source = g_unix_fd_source_new (d->fd_2, G_IO_IN);
-	g_source_set_callback (extra_source, G_SOURCE_FUNC (_test_integrate_cb_fd_2), d, NULL);
+	extra_source = nm_g_unix_fd_source_new (d->fd_2,
+	                                        G_IO_IN,
+	                                        G_PRIORITY_DEFAULT,
+	                                        _test_integrate_cb_fd_2,
+	                                        d,
+	                                        NULL);
 	g_source_attach (extra_source, d->c2);
 
 	d->extra_sources[1] = extra_source;
@@ -8269,7 +8595,7 @@ test_integrate_maincontext (gconstpointer test_data)
 		g_source_set_callback (idle_source_1, _test_integrate_maincontext_cb_idle1, &count, NULL);
 		g_source_attach (idle_source_1, c2);
 
-		nmtst_main_context_iterate_until (c1, 2000, count == 5);
+		nmtst_main_context_iterate_until_assert (c1, 2000, count == 5);
 	}
 
 	if (TEST_IDX == 2) {
@@ -8296,8 +8622,12 @@ test_integrate_maincontext (gconstpointer test_data)
 
 		fd_1 = open ("/dev/null", O_RDONLY | O_CLOEXEC);
 		g_assert (fd_1 >= 0);
-		fd_source_1 = g_unix_fd_source_new (fd_1, G_IO_IN);
-		g_source_set_callback (fd_source_1, G_SOURCE_FUNC (_test_integrate_cb_fd_1), &d, NULL);
+		fd_source_1 = nm_g_unix_fd_source_new (fd_1,
+		                                       G_IO_IN,
+		                                       G_PRIORITY_DEFAULT,
+		                                       _test_integrate_cb_fd_1,
+		                                       &d,
+		                                       NULL);
 		g_source_attach (fd_source_1, c2);
 
 		fd_2 = open ("/dev/null", O_RDONLY | O_CLOEXEC);
@@ -8319,6 +8649,33 @@ test_integrate_maincontext (gconstpointer test_data)
 			nm_clear_pointer (&d.extra_sources[i], nm_g_source_destroy_and_unref);
 		}
 	}
+}
+
+/*****************************************************************************/
+
+static void
+test_nm_ip_addr_zero (void)
+{
+	in_addr_t a4 = nmtst_inet4_from_string ("0.0.0.0");
+	struct in6_addr a6 = *nmtst_inet6_from_string ("::");
+	char buf[NM_UTILS_INET_ADDRSTRLEN];
+	NMIPAddr a = NM_IP_ADDR_INIT;
+
+	g_assert (memcmp (&a, &nm_ip_addr_zero, sizeof (a)) == 0);
+
+	g_assert (IN6_IS_ADDR_UNSPECIFIED (&nm_ip_addr_zero.addr6));
+	g_assert (memcmp (&nm_ip_addr_zero.addr6, &in6addr_any, sizeof (in6addr_any)) == 0);
+
+	g_assert (memcmp (&nm_ip_addr_zero, &a4, sizeof (a4)) == 0);
+	g_assert (memcmp (&nm_ip_addr_zero, &a6, sizeof (a6)) == 0);
+
+	g_assert_cmpstr (_nm_utils_inet4_ntop (nm_ip_addr_zero.addr4, buf), ==, "0.0.0.0");
+	g_assert_cmpstr (_nm_utils_inet6_ntop (&nm_ip_addr_zero.addr6, buf), ==, "::");
+
+	g_assert_cmpstr (nm_utils_inet_ntop (AF_INET, &nm_ip_addr_zero, buf), ==, "0.0.0.0");
+	g_assert_cmpstr (nm_utils_inet_ntop (AF_INET6, &nm_ip_addr_zero, buf), ==, "::");
+
+	G_STATIC_ASSERT_EXPR (sizeof (a) == sizeof (a.array));
 }
 
 static void
@@ -8523,6 +8880,7 @@ int main (int argc, char **argv)
 	g_test_add_func ("/core/general/test_dedup_multi", test_dedup_multi);
 	g_test_add_func ("/core/general/test_utils_str_utf8safe", test_utils_str_utf8safe);
 	g_test_add_func ("/core/general/test_nm_utils_strsplit_set", test_nm_utils_strsplit_set);
+	g_test_add_func ("/core/general/test_nm_utils_escaped_tokens", test_nm_utils_escaped_tokens);
 	g_test_add_func ("/core/general/test_nm_in_set", test_nm_in_set);
 	g_test_add_func ("/core/general/test_nm_in_strset", test_nm_in_strset);
 	g_test_add_func ("/core/general/test_setting_vpn_items", test_setting_vpn_items);
@@ -8680,6 +9038,8 @@ int main (int argc, char **argv)
 
 	g_test_add_data_func ("/core/general/test_integrate_maincontext/1", GUINT_TO_POINTER (1), test_integrate_maincontext);
 	g_test_add_data_func ("/core/general/test_integrate_maincontext/2", GUINT_TO_POINTER (2), test_integrate_maincontext);
+
+	g_test_add_func ("/core/general/test_nm_ip_addr_zero", test_nm_ip_addr_zero);
 
 	return g_test_run ();
 }

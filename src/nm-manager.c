@@ -383,7 +383,8 @@ static void _activation_auth_done (NMManager *self,
 
 /*****************************************************************************/
 
-static NM_CACHED_QUARK_FCN ("autoconnect-root", autoconnect_root_quark)
+static
+NM_CACHED_QUARK_FCN ("autoconnect-root", autoconnect_root_quark)
 
 /*****************************************************************************/
 
@@ -2374,8 +2375,9 @@ device_auth_done_cb (NMAuthChain *chain,
 	gs_free_error GError *error = NULL;
 	NMAuthCallResult result;
 	NMDevice *device;
+	GCancellable *cancellable;
 	const char *permission;
-	NMDeviceAuthRequestFunc callback;
+	NMManagerDeviceAuthRequestFunc callback;
 	NMAuthSubject *subject;
 
 	nm_assert (G_IS_DBUS_METHOD_INVOCATION (context));
@@ -2389,18 +2391,26 @@ device_auth_done_cb (NMAuthChain *chain,
 	device = nm_auth_chain_get_data (chain, "device");
 	nm_assert (NM_IS_DEVICE (device));
 
+	cancellable = nm_auth_chain_get_cancellable (chain);
+	nm_assert (!cancellable || G_IS_CANCELLABLE (cancellable));
+
 	result = nm_auth_chain_get_result (chain, permission);
 	subject = nm_auth_chain_get_subject (chain);
 
-	if (result != NM_AUTH_CALL_RESULT_YES) {
-		_LOGD (LOGD_CORE, "%s request failed: not authorized", permission);
-		error = g_error_new (NM_MANAGER_ERROR,
-		                     NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                     "%s request failed: not authorized",
-		                     permission);
-	}
+	if (   cancellable
+	    && g_cancellable_set_error_if_cancelled (cancellable, &error)) {
+		/* pass. */
+	} else {
+		if (result != NM_AUTH_CALL_RESULT_YES) {
+			_LOGD (LOGD_CORE, "%s request failed: not authorized", permission);
+			error = g_error_new (NM_MANAGER_ERROR,
+			                     NM_MANAGER_ERROR_PERMISSION_DENIED,
+			                     "%s request failed: not authorized",
+			                     permission);
+		}
 
-	nm_assert (error || (result == NM_AUTH_CALL_RESULT_YES));
+		nm_assert (error || (result == NM_AUTH_CALL_RESULT_YES));
+	}
 
 	callback (device,
 	          context,
@@ -2410,28 +2420,53 @@ device_auth_done_cb (NMAuthChain *chain,
 }
 
 static void
-device_auth_request_cb (NMDevice *device,
-                        GDBusMethodInvocation *context,
-                        NMConnection *connection,
-                        const char *permission,
-                        gboolean allow_interaction,
-                        NMDeviceAuthRequestFunc callback,
-                        gpointer user_data,
-                        NMManager *self)
+_device_auth_done_fail_on_idle (gpointer user_data, GCancellable *cancellable)
+{
+	gs_unref_object NMManager *self = NULL;
+	gs_unref_object NMDevice *device = NULL;
+	gs_unref_object GDBusMethodInvocation *context = NULL;
+	gs_unref_object NMAuthSubject *subject = NULL;
+	gs_free_error GError *error_original = NULL;
+	gs_free_error GError *error_cancelled = NULL;
+	NMManagerDeviceAuthRequestFunc callback;
+	gpointer callback_user_data;
+
+	nm_utils_user_data_unpack (&self, &device, &context, &subject, &error_original, &callback, &callback_user_data);
+
+	g_cancellable_set_error_if_cancelled (cancellable, &error_cancelled);
+
+	callback (device,
+	          context,
+	          subject,
+	          error_cancelled ?: error_original,
+	          callback_user_data);
+}
+
+void
+nm_manager_device_auth_request (NMManager *self,
+                                NMDevice *device,
+                                GDBusMethodInvocation *context,
+                                NMConnection *connection,
+                                const char *permission,
+                                gboolean allow_interaction,
+                                GCancellable *cancellable,
+                                NMManagerDeviceAuthRequestFunc callback,
+                                gpointer user_data)
 {
 	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
-	GError *error = NULL;
-	NMAuthSubject *subject = NULL;
+	gs_free_error GError *error = NULL;
+	gs_unref_object NMAuthSubject *subject = NULL;
 	NMAuthChain *chain;
 	char *permission_dup;
 
 	/* Validate the caller */
-	subject = nm_auth_subject_new_unix_process_from_context (context);
+	subject = nm_dbus_manager_new_auth_subject_from_context (context);
 	if (!subject) {
-		error = g_error_new_literal (NM_MANAGER_ERROR,
-		                             NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                             NM_UTILS_ERROR_MSG_REQ_UID_UKNOWN);
-		goto done;
+		g_set_error_literal (&error,
+		                     NM_MANAGER_ERROR,
+		                     NM_MANAGER_ERROR_PERMISSION_DENIED,
+		                     NM_UTILS_ERROR_MSG_REQ_UID_UKNOWN);
+		goto fail_on_idle;
 	}
 
 	/* Ensure the subject has permissions for this connection */
@@ -2441,16 +2476,20 @@ device_auth_request_cb (NMDevice *device,
 	                                             NM_MANAGER_ERROR,
 	                                             NM_MANAGER_ERROR_PERMISSION_DENIED,
 	                                             &error))
-		goto done;
+		goto fail_on_idle;
 
 	/* Validate the request */
 	chain = nm_auth_chain_new_subject (subject, context, device_auth_done_cb, self);
 	if (!chain) {
-		error = g_error_new_literal (NM_MANAGER_ERROR,
-		                             NM_MANAGER_ERROR_PERMISSION_DENIED,
-		                             NM_UTILS_ERROR_MSG_REQ_AUTH_FAILED);
-		goto done;
+		g_set_error (&error,
+		             NM_MANAGER_ERROR,
+		             NM_MANAGER_ERROR_PERMISSION_DENIED,
+		             NM_UTILS_ERROR_MSG_REQ_AUTH_FAILED);
+		goto fail_on_idle;
 	}
+
+	if (cancellable)
+		nm_auth_chain_set_cancellable (chain, cancellable);
 
 	permission_dup = g_strdup (permission);
 
@@ -2460,13 +2499,18 @@ device_auth_request_cb (NMDevice *device,
 	nm_auth_chain_set_data (chain, "user-data", user_data, NULL);
 	nm_auth_chain_set_data (chain, "perm", permission_dup /* transfer ownership */, g_free);
 	nm_auth_chain_add_call_unsafe (chain, permission_dup, allow_interaction);
+	return;
 
-done:
-	if (error)
-		callback (device, context, subject, error, user_data);
-
-	g_clear_object (&subject);
-	g_clear_error (&error);
+fail_on_idle:
+	nm_utils_invoke_on_idle (cancellable,
+	                         _device_auth_done_fail_on_idle,
+	                         nm_utils_user_data_pack (g_object_ref (self),
+	                                                  g_object_ref (device),
+	                                                  g_object_ref (context),
+	                                                  g_steal_pointer (&subject),
+	                                                  g_steal_pointer (&error),
+	                                                  callback,
+	                                                  user_data));
 }
 
 static gboolean
@@ -3127,10 +3171,6 @@ add_device (NMManager *self, NMDevice *device, GError **error)
 
 	g_signal_connect (device, NM_DEVICE_STATE_CHANGED,
 	                  G_CALLBACK (manager_device_state_changed),
-	                  self);
-
-	g_signal_connect (device, NM_DEVICE_AUTH_REQUEST,
-	                  G_CALLBACK (device_auth_request_cb),
 	                  self);
 
 	g_signal_connect (device, NM_DEVICE_REMOVED,
@@ -4503,7 +4543,7 @@ unmanaged_to_disconnected (NMDevice *device)
 static NMActivationStateFlags
 _activation_bind_lifetime_to_profile_visibility (NMAuthSubject *subject)
 {
-	if (   nm_auth_subject_is_internal (subject)
+	if (   nm_auth_subject_get_subject_type (subject) == NM_AUTH_SUBJECT_TYPE_INTERNAL
 	    || nm_auth_subject_get_unix_process_uid (subject) == 0) {
 		/* internal requests and requests from root are always unbound. */
 		return NM_ACTIVATION_STATE_FLAG_NONE;
@@ -5087,8 +5127,10 @@ nm_manager_activate_connection (NMManager *self,
 		if (   sett_conn == nm_active_connection_get_settings_connection (active)
 		    && nm_streq0 (nm_active_connection_get_specific_object (active), specific_object)
 		    && (!device || nm_active_connection_get_device (active) == device)
-		    && nm_auth_subject_is_internal (nm_active_connection_get_subject (active))
-		    && nm_auth_subject_is_internal (subject)
+		    && nm_auth_subject_get_subject_type (nm_active_connection_get_subject (active))
+		    == NM_AUTH_SUBJECT_TYPE_INTERNAL
+		    && nm_auth_subject_get_subject_type (subject)
+		    == NM_AUTH_SUBJECT_TYPE_INTERNAL
 		    && nm_active_connection_get_activation_reason (active) == activation_reason)
 			return active;
 	}
@@ -5163,7 +5205,7 @@ validate_activation_request (NMManager *self,
 		connection = nm_settings_connection_get_connection (sett_conn);
 
 	/* Validate the caller */
-	subject = nm_auth_subject_new_unix_process_from_context (context);
+	subject = nm_dbus_manager_new_auth_subject_from_context (context);
 	if (!subject) {
 		g_set_error_literal (error,
 		                     NM_MANAGER_ERROR,
@@ -5306,9 +5348,9 @@ impl_manager_activate_connection (NMDBusObject *obj,
 
 	g_variant_get (parameters, "(&o&o&o)", &connection_path, &device_path, &specific_object_path);
 
-	connection_path = nm_utils_dbus_normalize_object_path (connection_path);
-	specific_object_path = nm_utils_dbus_normalize_object_path (specific_object_path);
-	device_path = nm_utils_dbus_normalize_object_path (device_path);
+	connection_path = nm_dbus_path_not_empty (connection_path);
+	specific_object_path = nm_dbus_path_not_empty (specific_object_path);
+	device_path = nm_dbus_path_not_empty (device_path);
 
 	/* If the connection path is given and valid, that connection is activated.
 	 * Otherwise the "best" connection for the device is chosen and activated,
@@ -5596,8 +5638,8 @@ impl_manager_add_and_activate_connection (NMDBusObject *obj,
 		}
 	}
 
-	specific_object_path = nm_utils_dbus_normalize_object_path (specific_object_path);
-	device_path = nm_utils_dbus_normalize_object_path (device_path);
+	specific_object_path = nm_dbus_path_not_empty (specific_object_path);
+	device_path = nm_dbus_path_not_empty (device_path);
 
 	/* Try to create a new connection with the given settings.
 	 * We allow empty settings for AddAndActivateConnection(). In that case,
@@ -5813,7 +5855,7 @@ impl_manager_deactivate_connection (NMDBusObject *obj,
 	}
 
 	/* Validate the caller */
-	subject = nm_auth_subject_new_unix_process_from_context (invocation);
+	subject = nm_dbus_manager_new_auth_subject_from_context (invocation);
 	if (!subject) {
 		error = g_error_new_literal (NM_MANAGER_ERROR,
 		                             NM_MANAGER_ERROR_PERMISSION_DENIED,
@@ -6097,7 +6139,7 @@ impl_manager_sleep (NMDBusObject *obj,
 
 	g_variant_get (parameters, "(b)", &do_sleep);
 
-	subject = nm_auth_subject_new_unix_process_from_context (invocation);
+	subject = nm_dbus_manager_new_auth_subject_from_context (invocation);
 
 	if (priv->sleeping == do_sleep) {
 		error = g_error_new (NM_MANAGER_ERROR,
@@ -6231,29 +6273,12 @@ done:
 /* Permissions */
 
 static void
-get_perm_add_result (NMManager *self, NMAuthChain *chain, GVariantBuilder *results, const char *permission)
-{
-	NMAuthCallResult result;
-
-	result = nm_auth_chain_get_result (chain, permission);
-	if (result == NM_AUTH_CALL_RESULT_YES)
-		g_variant_builder_add (results, "{ss}", permission, "yes");
-	else if (result == NM_AUTH_CALL_RESULT_NO)
-		g_variant_builder_add (results, "{ss}", permission, "no");
-	else if (result == NM_AUTH_CALL_RESULT_AUTH)
-		g_variant_builder_add (results, "{ss}", permission, "auth");
-	else {
-		_LOGD (LOGD_CORE, "unknown auth chain result %d", result);
-	}
-}
-
-static void
 get_permissions_done_cb (NMAuthChain *chain,
                          GDBusMethodInvocation *context,
                          gpointer user_data)
 {
-	NMManager *self = NM_MANAGER (user_data);
 	GVariantBuilder results;
+	int i;
 
 	nm_assert (G_IS_DBUS_METHOD_INVOCATION (context));
 
@@ -6261,22 +6286,15 @@ get_permissions_done_cb (NMAuthChain *chain,
 
 	g_variant_builder_init (&results, G_VARIANT_TYPE ("a{ss}"));
 
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_ENABLE_DISABLE_NETWORK);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_SLEEP_WAKE);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_ENABLE_DISABLE_WIFI);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_ENABLE_DISABLE_WWAN);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_ENABLE_DISABLE_WIMAX);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_NETWORK_CONTROL);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_WIFI_SHARE_PROTECTED);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_WIFI_SHARE_OPEN);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_SETTINGS_MODIFY_SYSTEM);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_SETTINGS_MODIFY_OWN);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_SETTINGS_MODIFY_HOSTNAME);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_RELOAD);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_CHECKPOINT_ROLLBACK);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_ENABLE_DISABLE_STATISTICS);
-	get_perm_add_result (self, chain, &results, NM_AUTH_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK);
+	for (i = 0; i < (int) G_N_ELEMENTS (nm_auth_permission_sorted); i++) {
+		const char *permission = nm_auth_permission_names_by_idx[nm_auth_permission_sorted[i] - 1];
+		NMAuthCallResult result;
+		const char *result_str;
+
+		result = nm_auth_chain_get_result (chain, permission);
+		result_str = nm_client_permission_result_to_string (nm_auth_call_result_to_client (result));
+		g_variant_builder_add (&results, "{ss}", permission, result_str);
+	}
 
 	g_dbus_method_invocation_return_value (context,
 	                                       g_variant_new ("(a{ss})", &results));
@@ -6294,6 +6312,7 @@ impl_manager_get_permissions (NMDBusObject *obj,
 	NMManager *self = NM_MANAGER (obj);
 	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
 	NMAuthChain *chain;
+	int i;
 
 	chain = nm_auth_chain_new_context (invocation, get_permissions_done_cb, self);
 	if (!chain) {
@@ -6305,22 +6324,12 @@ impl_manager_get_permissions (NMDBusObject *obj,
 	}
 
 	c_list_link_tail (&priv->auth_lst_head, nm_auth_chain_parent_lst_list (chain));
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_ENABLE_DISABLE_NETWORK, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_SLEEP_WAKE, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_ENABLE_DISABLE_WIFI, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_ENABLE_DISABLE_WWAN, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_ENABLE_DISABLE_WIMAX, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_NETWORK_CONTROL, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_WIFI_SHARE_PROTECTED, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_WIFI_SHARE_OPEN, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_SETTINGS_MODIFY_SYSTEM, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_SETTINGS_MODIFY_OWN, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_SETTINGS_MODIFY_HOSTNAME, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_SETTINGS_MODIFY_GLOBAL_DNS, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_RELOAD, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_CHECKPOINT_ROLLBACK, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_ENABLE_DISABLE_STATISTICS, FALSE);
-	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_ENABLE_DISABLE_CONNECTIVITY_CHECK, FALSE);
+
+	for (i = 0; i < (int) G_N_ELEMENTS (nm_auth_permission_sorted); i++) {
+		const char *permission = nm_auth_permission_names_by_idx[nm_auth_permission_sorted[i] - 1];
+
+		nm_auth_chain_add_call_unsafe (chain, permission, FALSE);
+	}
 }
 
 static void
@@ -6544,7 +6553,7 @@ nm_manager_write_device_state (NMManager *self, NMDevice *device, int *out_ifind
 	guint32 route_metric_default_aspired;
 	guint32 route_metric_default_effective;
 	int nm_owned;
-	NMDhcp4Config *dhcp4_config;
+	NMDhcpConfig *dhcp_config;
 	const char *next_server = NULL;
 	const char *root_path = NULL;
 
@@ -6584,10 +6593,10 @@ nm_manager_write_device_state (NMManager *self, NMDevice *device, int *out_ifind
 	route_metric_default_effective = _device_route_metric_get (self, ifindex, NM_DEVICE_TYPE_UNKNOWN,
 	                                                           TRUE, &route_metric_default_aspired);
 
-	dhcp4_config = nm_device_get_dhcp4_config (device);
-	if (dhcp4_config) {
-		root_path = nm_dhcp4_config_get_option (dhcp4_config, "root_path");
-		next_server = nm_dhcp4_config_get_option (dhcp4_config, "next_server");
+	dhcp_config = nm_device_get_dhcp_config (device, AF_INET);
+	if (dhcp_config) {
+		root_path = nm_dhcp_config_get_option (dhcp_config, "root_path");
+		next_server = nm_dhcp_config_get_option (dhcp_config, "next_server");
 	}
 
 	if (!nm_config_device_state_write (ifindex,
@@ -6965,7 +6974,7 @@ nm_manager_dbus_set_property_handle (NMDBusObject *obj,
 	gs_unref_object NMAuthSubject *subject = NULL;
 	DBusSetPropertyHandle *handle_data;
 
-	subject = nm_auth_subject_new_unix_process_from_context (invocation);
+	subject = nm_dbus_manager_new_auth_subject_from_context (invocation);
 	if (!subject) {
 		error_message = NM_UTILS_ERROR_MSG_REQ_UID_UKNOWN;
 		goto err;
@@ -7761,7 +7770,7 @@ dispose (GObject *object)
 
 	nm_clear_g_source (&priv->devices_inited_id);
 
-	g_clear_pointer (&priv->checkpoint_mgr, nm_checkpoint_manager_free);
+	nm_clear_pointer (&priv->checkpoint_mgr, nm_checkpoint_manager_free);
 
 	if (priv->concheck_mgr) {
 		g_signal_handlers_disconnect_by_func (priv->concheck_mgr,
@@ -7816,7 +7825,7 @@ dispose (GObject *object)
 	g_clear_object (&priv->vpn_manager);
 
 	sleep_devices_clear (self);
-	g_clear_pointer (&priv->sleep_devices, g_hash_table_unref);
+	nm_clear_pointer (&priv->sleep_devices, g_hash_table_unref);
 
 	if (priv->sleep_monitor) {
 		g_signal_handlers_disconnect_by_func (priv->sleep_monitor, sleeping_cb, self);
@@ -7846,7 +7855,7 @@ dispose (GObject *object)
 
 	nm_clear_g_source (&priv->timestamp_update_id);
 
-	g_clear_pointer (&priv->device_route_metrics, g_hash_table_destroy);
+	nm_clear_pointer (&priv->device_route_metrics, g_hash_table_destroy);
 
 	G_OBJECT_CLASS (nm_manager_parent_class)->dispose (object);
 }
@@ -7854,7 +7863,7 @@ dispose (GObject *object)
 static void
 finalize (GObject *object)
 {
-	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE ((NMManager *) object);
+	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (object);
 
 	g_array_free (priv->capabilities, TRUE);
 

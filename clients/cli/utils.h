@@ -19,10 +19,10 @@ typedef struct {
 } nmc_arg_t;
 
 /* === Functions === */
-int next_arg (NmCli *nmc, int *argc, char ***argv, ...);
+int next_arg (NmCli *nmc, int *argc, const char *const**argv, ...);
 gboolean nmc_arg_is_help (const char *arg);
 gboolean nmc_arg_is_option (const char *arg, const char *opt_name);
-gboolean nmc_parse_args (nmc_arg_t *arg_arr, gboolean last, int *argc, char ***argv, GError **error);
+gboolean nmc_parse_args (nmc_arg_t *arg_arr, gboolean last, int *argc, const char *const**argv, GError **error);
 char *ssid_to_hex (const char *str, gsize len);
 void nmc_terminal_erase_line (void);
 void nmc_terminal_show_progress (const char *str);
@@ -51,6 +51,7 @@ GArray *parse_output_fields (const char *fields_str,
 NmcOutputField *nmc_dup_fields_array (const NMMetaAbstractInfo *const*fields, NmcOfFlags flags);
 void nmc_empty_output_fields (NmcOutputData *output_data);
 void print_required_fields (const NmcConfig *nmc_config,
+                            NmcPagerData *pager_data,
                             NmcOfFlags of_flags,
                             const GArray *indices,
                             const char *header_name,
@@ -58,6 +59,7 @@ void print_required_fields (const NmcConfig *nmc_config,
                             const NmcOutputField *field_values);
 void print_data_prepare_width (GPtrArray *output_data);
 void print_data (const NmcConfig *nmc_config,
+                 NmcPagerData *pager_data,
                  const GArray *indices,
                  const char *header_name,
                  int indent,
@@ -66,7 +68,7 @@ void print_data (const NmcConfig *nmc_config,
 /*****************************************************************************/
 
 extern const NMMetaEnvironment *const nmc_meta_environment;
-extern NmCli *const nmc_meta_environment_arg;
+extern const NmCli *const nmc_meta_environment_arg;
 
 typedef enum {
 

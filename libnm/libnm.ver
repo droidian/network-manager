@@ -1662,3 +1662,36 @@ libnm_1_22_8 {
 global:
 	nm_setting_ip6_config_get_ra_timeout;
 } libnm_1_22_2;
+
+libnm_1_24_0 {
+global:
+	nm_client_dbus_call;
+	nm_client_dbus_call_finish;
+	nm_client_dbus_set_property;
+	nm_client_dbus_set_property_finish;
+	nm_client_get_instance_flags;
+	nm_client_get_object_by_path;
+	nm_client_get_permissions_state;
+	nm_client_instance_flags_get_type;
+	nm_device_vrf_get_table;
+	nm_device_vrf_get_type;
+	nm_object_get_client;
+	nm_secret_agent_old_destroy;
+	nm_secret_agent_old_enable;
+	nm_secret_agent_old_get_context_busy_watcher;
+	nm_secret_agent_old_get_dbus_connection;
+	nm_secret_agent_old_get_dbus_name_owner;
+	nm_secret_agent_old_get_main_context;
+	nm_setting_802_1x_get_domain_match;
+	nm_setting_802_1x_get_phase2_domain_match;
+	nm_setting_bond_get_option_normalized;
+	nm_setting_bridge_get_group_address;
+	nm_setting_bridge_get_multicast_querier;
+	nm_setting_bridge_get_multicast_query_use_ifaddr;
+	nm_setting_bridge_get_multicast_router;
+	nm_setting_bridge_get_vlan_protocol;
+	nm_setting_bridge_get_vlan_stats_enabled;
+	nm_setting_vrf_get_table;
+	nm_setting_vrf_get_type;
+	nm_setting_vrf_new;
+} libnm_1_22_8;

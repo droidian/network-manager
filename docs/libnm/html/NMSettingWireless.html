@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">
 <link rel="next" href="NMSettingWpan.html" title="NMSettingWpan">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,8 +37,8 @@
 <a name="NMSettingWireless.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -275,7 +275,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--channel" title="The “channel” property">channel</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
@@ -319,7 +319,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--mtu" title="The “mtu” property">mtu</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
@@ -329,7 +329,7 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--rate" title="The “rate” property">rate</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-String-Utility-Functions.html#GStrv"><span class="type">GStrv</span></a></td>
@@ -345,12 +345,12 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--tx-power" title="The “tx-power” property">tx-power</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--wake-on-wlan" title="The “wake-on-wlan” property">wake-on-wlan</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 </tbody>
 </table></div>
@@ -359,8 +359,8 @@
 <a name="NMSettingWireless.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -1348,9 +1348,9 @@ are supported by all devices.</p>
 <td class="enum_member_name"><p><a name="NM-SETTING-WIRELESS-WAKE-ON-WLAN-ALL:CAPS"></a>NM_SETTING_WIRELESS_WAKE_ON_WLAN_ALL</p></td>
 <td class="enum_member_description">
 <p>Wake on all events. This does not
-  include the exclusive flags <em class="parameter"><code>NM_SETTING_WIRELESS_WAKE_ON_WLAN_DEFAULT</code></em>
+include the exclusive flags <em class="parameter"><code>NM_SETTING_WIRELESS_WAKE_ON_WLAN_DEFAULT</code></em>
  or
-  <em class="parameter"><code>NM_SETTING_WIRELESS_WAKE_ON_WLAN_IGNORE</code></em>
+<em class="parameter"><code>NM_SETTING_WIRELESS_WAKE_ON_WLAN_IGNORE</code></em>
 .</p>
 </td>
 <td class="enum_member_annotations"> </td>
@@ -1373,7 +1373,7 @@ are supported by all devices.</p>
 <td class="enum_member_name"><p><a name="NM-SETTING-WIRELESS-WAKE-ON-WLAN-EXCLUSIVE-FLAGS:CAPS"></a>NM_SETTING_WIRELESS_WAKE_ON_WLAN_EXCLUSIVE_FLAGS</p></td>
 <td class="enum_member_description">
 <p>Mask of flags that are
-  incompatible with other flags</p>
+incompatible with other flags</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1588,6 +1588,7 @@ to the specific band, i.e. if "a" is specified, the device will not
 associate with the same network in the 2.4GHz band even if the network's
 settings are compatible.  This setting depends on specific driver
 capability and may not work with all drivers.</p>
+<p>Owner: NMSettingWireless</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1599,6 +1600,7 @@ capability and may not work with all drivers.</p>
 point.  This capability is highly driver dependent and not supported by
 all devices.  Note: this property does not control the BSSID used when
 creating an Ad-Hoc network and is unlikely to in the future.</p>
+<p>Owner: NMSettingWireless</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1610,7 +1612,8 @@ creating an Ad-Hoc network and is unlikely to in the future.</p>
 join (or create for Ad-Hoc networks) a Wi-Fi network on the specified
 channel.  Because channel numbers overlap between bands, this property
 also requires the "band" property to be set.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWireless</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 </div>
 <hr>
@@ -1631,6 +1634,7 @@ of NetworkManager.conf. If still unspecified, it defaults to "preserve"
 (older versions of NetworkManager may use a different default value).</p>
 <p>On D-Bus, this field is expressed as "assigned-mac-address" or the deprecated
 "cloned-mac-address".</p>
+<p>Owner: NMSettingWireless</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1662,6 +1666,7 @@ globally-administered, burned-in MAC address.</p>
 them is chosen randomly. For example, "02:00:00:00:00:00 00:00:00:00:00:00 02:00:00:00:00:00"
 will create a fully scrambled MAC address, randomly locally or globally
 administered.</p>
+<p>Owner: NMSettingWireless</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1679,6 +1684,7 @@ and thus hidden SSID networks should be used with caution.</p>
 <p>Note that marking the network as hidden may be a privacy issue for you
 (in infrastructure mode) or client stations (in AP mode), as the explicit
 probe-scans are distinctly recognizable on the air.</p>
+<p>Owner: NMSettingWireless</p>
 <p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 </div>
@@ -1689,6 +1695,7 @@ probe-scans are distinctly recognizable on the air.</p>
 <p>If specified, this connection will only apply to the Wi-Fi device whose
 permanent MAC address matches. This property does not change the MAC
 address of the device (i.e. MAC spoofing).</p>
+<p>Owner: NMSettingWireless</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1699,6 +1706,7 @@ address of the device (i.e. MAC spoofing).</p>
 <p>A list of permanent MAC addresses of Wi-Fi devices to which this
 connection should never apply.  Each MAC address should be given in the
 standard hex-digits-and-colons notation (eg "00:11:22:33:44:55").</p>
+<p>Owner: NMSettingWireless</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1713,8 +1721,9 @@ randomize the MAC address), or <a class="link" href="NMSetting.html#NM-SETTING-M
 'cloned-mac-address'.</p>
 <div class="warning">
 <p><code class="literal">NMSettingWireless:mac-address-randomization</code> has been deprecated since version 1.4 and should not be used in newly-written code.</p>
-<p>Deprecated by NMSettingWireless:cloned-mac-address property</p>
+<p>Deprecated by NMSettingWireless:cloned-mac-address property.</p>
 </div>
+<p>Owner: NMSettingWireless</p>
 <p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
@@ -1725,6 +1734,7 @@ randomize the MAC address), or <a class="link" href="NMSetting.html#NM-SETTING-M
 <pre class="programlisting">  “mode”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Wi-Fi network mode; one of "infrastructure", "mesh", "adhoc" or "ap".  If blank,
 infrastructure is assumed.</p>
+<p>Owner: NMSettingWireless</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -1734,7 +1744,8 @@ infrastructure is assumed.</p>
 <pre class="programlisting">  “mtu”                      <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
 <p>If non-zero, only transmit packets of the specified size or smaller,
 breaking larger packets up into multiple Ethernet frames.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWireless</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 </div>
 <hr>
@@ -1746,6 +1757,7 @@ saving), <a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-POWERS
 saving), <a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-POWERSAVE-IGNORE:CAPS"><code class="literal">NM_SETTING_WIRELESS_POWERSAVE_IGNORE</code></a> (don't touch currently
 configure setting) or <a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-POWERSAVE-DEFAULT:CAPS"><code class="literal">NM_SETTING_WIRELESS_POWERSAVE_DEFAULT</code></a> (use the
 globally configured value). All other values are reserved.</p>
+<p>Owner: NMSettingWireless</p>
 <p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.2</p>
@@ -1758,7 +1770,8 @@ globally configured value). All other values are reserved.</p>
 communication with the access point.  Units are in Kb/s, ie 5500 = 5.5
 Mbit/s.  This property is highly driver dependent and not all devices
 support setting a static bitrate.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWireless</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 </div>
 <hr>
@@ -1771,6 +1784,7 @@ network.  NetworkManager internally tracks previously seen BSSIDs. The
 property is only meant for reading and reflects the BSSID list of
 NetworkManager. The changes you make to this property will not be
 preserved.</p>
+<p>Owner: NMSettingWireless</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1778,6 +1792,7 @@ preserved.</p>
 <a name="NMSettingWireless--ssid"></a><h3>The <code class="literal">“ssid”</code> property</h3>
 <pre class="programlisting">  “ssid”                     <a href="https://developer.gnome.org/glib/unstable/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a> *</pre>
 <p>SSID of the Wi-Fi network. Must be specified.</p>
+<p>Owner: NMSettingWireless</p>
 <p>Flags: Read / Write</p>
 </div>
 <hr>
@@ -1787,7 +1802,8 @@ preserved.</p>
 <p>If non-zero, directs the device to use the specified transmit power.
 Units are dBm.  This property is highly driver dependent and not all
 devices support setting a static transmit power.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWireless</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 </div>
 <hr>
@@ -1806,13 +1822,14 @@ May be any combination of <a class="link" href="NMSettingWireless.html#NM-SETTIN
 <a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-WAKE-ON-WLAN-DEFAULT:CAPS"><code class="literal">NM_SETTING_WIRELESS_WAKE_ON_WLAN_DEFAULT</code></a> (to use global settings) and
 <a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-WAKE-ON-WLAN-IGNORE:CAPS"><code class="literal">NM_SETTING_WIRELESS_WAKE_ON_WLAN_IGNORE</code></a> (to disable management of Wake-on-LAN in
 NetworkManager).</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingWireless</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 1</p>
 <p class="since">Since: 1.12</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

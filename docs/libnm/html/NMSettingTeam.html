@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingTeamPort.html" title="NMSettingTeamPort">
 <link rel="next" href="NMSettingTun.html" title="NMSettingTun">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,8 +37,8 @@
 <a name="NMSettingTeam.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -489,8 +489,8 @@
 <a name="NMSettingTeam.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -2029,8 +2029,8 @@ nm_setting_team_clear_link_watchers (<em class="parameter"><code><a class="link"
 <td class="enum_member_name"><p><a name="NM-TEAM-LINK-WATCHER-ARP-PING-FLAG-NONE:CAPS"></a>NM_TEAM_LINK_WATCHER_ARP_PING_FLAG_NONE</p></td>
 <td class="enum_member_description">
 <p>no one among the arp_ping link watcher
-   boolean options ('validate_active', 'validate_inactive', 'send_always') is
-   enabled (set to true).</p>
+boolean options ('validate_active', 'validate_inactive', 'send_always') is
+enabled (set to true).</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2038,7 +2038,7 @@ nm_setting_team_clear_link_watchers (<em class="parameter"><code><a class="link"
 <td class="enum_member_name"><p><a name="NM-TEAM-LINK-WATCHER-ARP-PING-FLAG-VALIDATE-ACTIVE:CAPS"></a>NM_TEAM_LINK_WATCHER_ARP_PING_FLAG_VALIDATE_ACTIVE</p></td>
 <td class="enum_member_description">
 <p>the arp_ping link watcher
-   option 'validate_active' is enabled (set to true).</p>
+option 'validate_active' is enabled (set to true).</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2046,7 +2046,7 @@ nm_setting_team_clear_link_watchers (<em class="parameter"><code><a class="link"
 <td class="enum_member_name"><p><a name="NM-TEAM-LINK-WATCHER-ARP-PING-FLAG-VALIDATE-INACTIVE:CAPS"></a>NM_TEAM_LINK_WATCHER_ARP_PING_FLAG_VALIDATE_INACTIVE</p></td>
 <td class="enum_member_description">
 <p>the arp_ping link watcher
-   option 'validate_inactive' is enabled (set to true).</p>
+option 'validate_inactive' is enabled (set to true).</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2054,7 +2054,7 @@ nm_setting_team_clear_link_watchers (<em class="parameter"><code><a class="link"
 <td class="enum_member_name"><p><a name="NM-TEAM-LINK-WATCHER-ARP-PING-FLAG-SEND-ALWAYS:CAPS"></a>NM_TEAM_LINK_WATCHER_ARP_PING_FLAG_SEND_ALWAYS</p></td>
 <td class="enum_member_description">
 <p>the arp_ping link watcher option
-   'send_always' is enabled (set to true).</p>
+'send_always' is enabled (set to true).</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2324,6 +2324,7 @@ nm_setting_team_clear_link_watchers (<em class="parameter"><code><a class="link"
 should contain raw JSON configuration data suitable for teamd, because
 the value is passed directly to teamd. If not specified, the default
 configuration is used.  See man teamd.conf for the format details.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 </div>
@@ -2340,6 +2341,7 @@ nsna_ping: 'init-wait', 'interval', 'missed-max', 'target-host';
 arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
 'validate-inactive', 'send-always'. See teamd.conf man for more details.</p>
 <p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMTeamLinkWatcher)]</span></p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p class="since">Since: 1.12</p>
 </div>
@@ -2348,6 +2350,7 @@ arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
 <a name="NMSettingTeam--mcast-rejoin-count"></a><h3>The <code class="literal">“mcast-rejoin-count”</code> property</h3>
 <pre class="programlisting">  “mcast-rejoin-count”       <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd mcast_rejoin.count.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
@@ -2357,6 +2360,7 @@ arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
 <a name="NMSettingTeam--mcast-rejoin-interval"></a><h3>The <code class="literal">“mcast-rejoin-interval”</code> property</h3>
 <pre class="programlisting">  “mcast-rejoin-interval”    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd mcast_rejoin.interval.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
@@ -2366,6 +2370,7 @@ arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
 <a name="NMSettingTeam--notify-peers-count"></a><h3>The <code class="literal">“notify-peers-count”</code> property</h3>
 <pre class="programlisting">  “notify-peers-count”       <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd notify_peers.count.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
@@ -2375,6 +2380,7 @@ arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
 <a name="NMSettingTeam--notify-peers-interval"></a><h3>The <code class="literal">“notify-peers-interval”</code> property</h3>
 <pre class="programlisting">  “notify-peers-interval”    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd notify_peers.interval.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
@@ -2386,6 +2392,7 @@ arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
 <p>Corresponds to the teamd runner.name.
 Permitted values are: "roundrobin", "broadcast", "activebackup",
 "loadbalance", "lacp", "random".</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.12</p>
@@ -2395,6 +2402,7 @@ Permitted values are: "roundrobin", "broadcast", "activebackup",
 <a name="NMSettingTeam--runner-active"></a><h3>The <code class="literal">“runner-active”</code> property</h3>
 <pre class="programlisting">  “runner-active”            <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Corresponds to the teamd runner.active.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: TRUE</p>
 <p class="since">Since: 1.12</p>
@@ -2404,6 +2412,7 @@ Permitted values are: "roundrobin", "broadcast", "activebackup",
 <a name="NMSettingTeam--runner-agg-select-policy"></a><h3>The <code class="literal">“runner-agg-select-policy”</code> property</h3>
 <pre class="programlisting">  “runner-agg-select-policy” <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Corresponds to the teamd runner.agg_select_policy.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.12</p>
@@ -2413,6 +2422,7 @@ Permitted values are: "roundrobin", "broadcast", "activebackup",
 <a name="NMSettingTeam--runner-fast-rate"></a><h3>The <code class="literal">“runner-fast-rate”</code> property</h3>
 <pre class="programlisting">  “runner-fast-rate”         <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Corresponds to the teamd runner.fast_rate.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 <p class="since">Since: 1.12</p>
@@ -2422,6 +2432,7 @@ Permitted values are: "roundrobin", "broadcast", "activebackup",
 <a name="NMSettingTeam--runner-hwaddr-policy"></a><h3>The <code class="literal">“runner-hwaddr-policy”</code> property</h3>
 <pre class="programlisting">  “runner-hwaddr-policy”     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Corresponds to the teamd runner.hwaddr_policy.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.12</p>
@@ -2431,6 +2442,7 @@ Permitted values are: "roundrobin", "broadcast", "activebackup",
 <a name="NMSettingTeam--runner-min-ports"></a><h3>The <code class="literal">“runner-min-ports”</code> property</h3>
 <pre class="programlisting">  “runner-min-ports”         <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd runner.min_ports.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
@@ -2440,6 +2452,7 @@ Permitted values are: "roundrobin", "broadcast", "activebackup",
 <a name="NMSettingTeam--runner-sys-prio"></a><h3>The <code class="literal">“runner-sys-prio”</code> property</h3>
 <pre class="programlisting">  “runner-sys-prio”          <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd runner.sys_prio.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
@@ -2449,6 +2462,7 @@ Permitted values are: "roundrobin", "broadcast", "activebackup",
 <a name="NMSettingTeam--runner-tx-balancer"></a><h3>The <code class="literal">“runner-tx-balancer”</code> property</h3>
 <pre class="programlisting">  “runner-tx-balancer”       <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>Corresponds to the teamd runner.tx_balancer.name.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.12</p>
@@ -2458,6 +2472,7 @@ Permitted values are: "roundrobin", "broadcast", "activebackup",
 <a name="NMSettingTeam--runner-tx-balancer-interval"></a><h3>The <code class="literal">“runner-tx-balancer-interval”</code> property</h3>
 <pre class="programlisting">  “runner-tx-balancer-interval” <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Corresponds to the teamd runner.tx_balancer.interval.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p>Default value: -1</p>
 <p class="since">Since: 1.12</p>
@@ -2467,12 +2482,13 @@ Permitted values are: "roundrobin", "broadcast", "activebackup",
 <a name="NMSettingTeam--runner-tx-hash"></a><h3>The <code class="literal">“runner-tx-hash”</code> property</h3>
 <pre class="programlisting">  “runner-tx-hash”           <a href="https://developer.gnome.org/glib/unstable/glib-String-Utility-Functions.html#GStrv"><span class="type">GStrv</span></a></pre>
 <p>Corresponds to the teamd runner.tx_hash.</p>
+<p>Owner: NMSettingTeam</p>
 <p>Flags: Read / Write</p>
 <p class="since">Since: 1.12</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

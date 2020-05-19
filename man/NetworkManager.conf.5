@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 03/12/2020
+.\"      Date: 05/08/2020
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.22.10
+.\"    Source: NetworkManager 1.24.0
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.22\&.10" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.24\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -120,7 +120,9 @@ plugin is always appended to the end of this list (if it doesn\*(Aqt already app
 .PP
 \fImonitor\-connection\-files\fR
 .RS 4
-This setting is deprecated and has no effect\&.
+This setting is deprecated and has no effect\&. Profiles from disk are never automatically reloaded\&. Use for example
+nmcli connection (re)load
+for that\&.
 .RE
 .PP
 \fIauth\-polkit\fR

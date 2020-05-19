@@ -2,12 +2,12 @@
 .\"     Title: nm-settings
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 03/12/2020
+.\"      Date: 05/08/2020
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.22.10
+.\"    Source: NetworkManager 1.24.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.22\&.10" "Configuration"
+.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.24\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -404,6 +404,8 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
 l l l l.
 T{
 altsubject\-matches
@@ -496,13 +498,22 @@ T}:T{
 Flags indicating how to handle the "client\-cert\-password" property\&. (see the section called \(lqSecret flag types:\(rq for flag values)
 T}
 T{
+domain\-match
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Constraint for server domain name\&. If set, this list of FQDNs is used as a match requirement for dNSName element(s) of the certificate presented by the authentication server\&.  If a matching dNSName is found, this constraint is met\&.  If no dNSName values are present, this constraint is matched against SubjectName CN using the same comparison\&. Multiple valid FQDNs can be passed as a ";" delimited list\&.
+T}
+T{
 domain\-suffix\-match
 T}:T{
 string
 T}:T{
 \ \&
 T}:T{
-Constraint for server domain name\&. If set, this FQDN is used as a suffix match requirement for dNSName element(s) of the certificate presented by the authentication server\&.  If a matching dNSName is found, this constraint is met\&.  If no dNSName values are present, this constraint is matched against SubjectName CN using same suffix match comparison\&.
+Constraint for server domain name\&. If set, this FQDN is used as a suffix match requirement for dNSName element(s) of the certificate presented by the authentication server\&.  If a matching dNSName is found, this constraint is met\&.  If no dNSName values are present, this constraint is matched against SubjectName CN using same suffix match comparison\&. Since version 1\&.24, multiple valid FQDNs can be passed as a ";" delimited list\&.
 T}
 T{
 eap
@@ -703,13 +714,22 @@ T}:T{
 Flags indicating how to handle the "phase2\-client\-cert\-password" property\&. (see the section called \(lqSecret flag types:\(rq for flag values)
 T}
 T{
+phase2\-domain\-match
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Constraint for server domain name\&. If set, this list of FQDNs is used as a match requirement for dNSName element(s) of the certificate presented by the authentication server during the inner "phase 2" authentication\&. If a matching dNSName is found, this constraint is met\&.  If no dNSName values are present, this constraint is matched against SubjectName CN using the same comparison\&. Multiple valid FQDNs can be passed as a ";" delimited list\&.
+T}
+T{
 phase2\-domain\-suffix\-match
 T}:T{
 string
 T}:T{
 \ \&
 T}:T{
-Constraint for server domain name\&. If set, this FQDN is used as a suffix match requirement for dNSName element(s) of the certificate presented by the authentication server during the inner "phase 2" authentication\&.  If a matching dNSName is found, this constraint is met\&.  If no dNSName values are present, this constraint is matched against SubjectName CN using same suffix match comparison\&.
+Constraint for server domain name\&. If set, this FQDN is used as a suffix match requirement for dNSName element(s) of the certificate presented by the authentication server during the inner "phase 2" authentication\&.  If a matching dNSName is found, this constraint is met\&.  If no dNSName values are present, this constraint is matched against SubjectName CN using same suffix match comparison\&. Since version 1\&.24, multiple valid FQDNs can be passed as a ";" delimited list\&.
 T}
 T{
 phase2\-private\-key
@@ -1004,6 +1024,12 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
 l l l l.
 T{
 ageing\-time
@@ -1022,6 +1048,15 @@ T}:T{
 15
 T}:T{
 The Spanning Tree Protocol (STP) forwarding delay, in seconds\&.
+T}
+T{
+group\-address
+T}:T{
+byte array
+T}:T{
+\ \&
+T}:T{
+If specified, The MAC address of the multicast group this bridge uses for STP\&. The address must be a link\-local address in standard Ethernet MAC address format, ie an address of the form 01:80:C2:00:00:0X, with X in [0, 4\&.\&.F]\&. If not specified the default value is 01:80:C2:00:00:00\&.
 T}
 T{
 group\-forward\-mask
@@ -1069,6 +1104,33 @@ T}:T{
 The Spanning Tree Protocol (STP) maximum message age, in seconds\&.
 T}
 T{
+multicast\-querier
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+Enable or disable sending of multicast queries by the bridge\&. If not specified the option is disabled\&.
+T}
+T{
+multicast\-query\-use\-ifaddr
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+If enabled the bridge\*(Aqs own IP address is used as the source address for IGMP queries otherwise the default of 0\&.0\&.0\&.0 is used\&.
+T}
+T{
+multicast\-router
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+Sets bridge\*(Aqs multicast router\&. multicast\-snooping must be enabled for this option to work\&. Supported values are: \*(Aqauto\*(Aq, \*(Aqdisabled\*(Aq, \*(Aqenabled\*(Aq\&. If not specified the default value is \*(Aqauto\*(Aq\&.
+T}
+T{
 multicast\-snooping
 T}:T{
 boolean
@@ -1112,6 +1174,24 @@ T}:T{
 FALSE
 T}:T{
 Control whether VLAN filtering is enabled on the bridge\&.
+T}
+T{
+vlan\-protocol
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+If specified, the protocol used for VLAN filtering\&. Supported values are: \*(Aq802\&.1Q\*(Aq, \*(Aq802\&.1ad\*(Aq\&. If not specified the default value is \*(Aq802\&.1Q\*(Aq\&.
+T}
+T{
+vlan\-stats\-enabled
+T}:T{
+boolean
+T}:T{
+FALSE
+T}:T{
+Controls whether per\-VLAN stats accounting is enabled\&.
 T}
 T{
 vlans
@@ -1847,7 +1927,7 @@ array of string
 T}:T{
 \ \&
 T}:T{
-Array of DNS options as described in man 5 resolv\&.conf\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&.
+Array of DNS options as described in man 5 resolv\&.conf\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&. The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&. The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&.
 T}
 T{
 dns\-priority
@@ -1856,7 +1936,7 @@ int32
 T}:T{
 0
 T}:T{
-DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower value is better (higher priority)\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&.  To prioritize a given server over another one within the same connection, just specify them in the desired order\&.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd\-resolved, each connection is used to query domains in its search list\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins\&.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored\&.
+DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower value is better (higher priority)\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&.  To prioritize a given server over another one within the same connection, just specify them in the desired order\&.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd\-resolved, each connection is used to query domains in its search list\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins\&.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored\&.
 T}
 T{
 dns\-search
@@ -1874,7 +1954,7 @@ string
 T}:T{
 \ \&
 T}:T{
-The gateway associated with this configuration\&. This is only meaningful if "addresses" is also set\&.
+The gateway associated with this configuration\&. This is only meaningful if "addresses" is also set\&. The gateway\*(Aqs main purpose is to control the next hop of the standard default route on the device\&. Hence, the gateway property conflicts with "never\-default" and will be automatically dropped if the IP configuration is set to never\-default\&. As an alternative to set the gateway, configure a static default route with /0 as prefix length\&.
 T}
 T{
 ignore\-auto\-dns
@@ -2108,7 +2188,7 @@ array of string
 T}:T{
 \ \&
 T}:T{
-Array of DNS options as described in man 5 resolv\&.conf\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&.
+Array of DNS options as described in man 5 resolv\&.conf\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&. The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&. The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&.
 T}
 T{
 dns\-priority
@@ -2117,7 +2197,7 @@ int32
 T}:T{
 0
 T}:T{
-DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower value is better (higher priority)\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&.  To prioritize a given server over another one within the same connection, just specify them in the desired order\&.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd\-resolved, each connection is used to query domains in its search list\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins\&.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored\&.
+DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower value is better (higher priority)\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&.  To prioritize a given server over another one within the same connection, just specify them in the desired order\&.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd\-resolved, each connection is used to query domains in its search list\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins\&.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored\&.
 T}
 T{
 dns\-search
@@ -2135,7 +2215,7 @@ string
 T}:T{
 \ \&
 T}:T{
-The gateway associated with this configuration\&. This is only meaningful if "addresses" is also set\&.
+The gateway associated with this configuration\&. This is only meaningful if "addresses" is also set\&. The gateway\*(Aqs main purpose is to control the next hop of the standard default route on the device\&. Hence, the gateway property conflicts with "never\-default" and will be automatically dropped if the IP configuration is set to never\-default\&. As an alternative to set the gateway, configure a static default route with /0 as prefix length\&.
 T}
 T{
 ignore\-auto\-dns
@@ -2563,7 +2643,7 @@ T}
 .sp 1
 .SS "match setting"
 .PP
-Match settings\&.\&.
+Match settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3261,7 +3341,7 @@ T}
 .sp 1
 .SS "sriov setting"
 .PP
-SR\-IOV settings\&.\&.
+SR\-IOV settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3294,7 +3374,7 @@ uint32
 T}:T{
 0
 T}:T{
-The total number of virtual functions to create\&. Note that when the sriov setting is present NetworkManager enforces the number of virtual functions on the interface also when it is zero\&. To prevent any changes to SR\-IOV parameters don\*(Aqt add a sriov setting to the connection\&.
+The total number of virtual functions to create\&. Note that when the sriov setting is present NetworkManager enforces the number of virtual functions on the interface (also when it is zero) during activation and resets it upon deactivation\&. To prevent any changes to SR\-IOV parameters don\*(Aqt add a sriov setting to the connection\&.
 T}
 T{
 vfs
@@ -3309,7 +3389,7 @@ T}
 .sp 1
 .SS "tc setting"
 .PP
-Linux Traffic Control Settings\&.\&.
+Linux Traffic Control Settings\&.
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3883,6 +3963,34 @@ If the VPN connection requires a user name for authentication, that name should 
 T}
 .TE
 .sp 1
+.SS "vrf setting"
+.PP
+VRF settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l.
+T{
+table
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+The routing table for this VRF\&.
+T}
+.TE
+.sp 1
 .SS "vxlan setting"
 .PP
 VXLAN Settings\&.
@@ -4356,7 +4464,7 @@ NMTernary (int32)
 T}:T{
 \ \&
 T}:T{
-Whether to enable special handling of the IPv4 default route\&. If enabled, the IPv4 default route will be placed to a dedicated routing\-table and two policy routing rules will be added\&. The fwmark number is also used as routing\-table for the default\-route, and if fwmark is zero, a unused fwmark/table is chosen automatically\&. This corresponds to what wg\-quick does with Table=auto\&. Leaving this at the default will enable this option automatically if ipv4\&.never\-default is not set and there are any peers that use a default\-route as allowed\-ips\&.
+Whether to enable special handling of the IPv4 default route\&. If enabled, the IPv4 default route from wireguard\&.peer\-routes will be placed to a dedicated routing\-table and two policy routing rules will be added\&. The fwmark number is also used as routing\-table for the default\-route, and if fwmark is zero, an unused fwmark/table is chosen automatically\&. This corresponds to what wg\-quick does with Table=auto and what WireGuard calls "Improved Rule\-based Routing"\&. Note that for this automatism to work, you usually don\*(Aqt want to set ipv4\&.gateway, because that will result in a conflicting default route\&. Leaving this at the default will enable this option automatically if ipv4\&.never\-default is not set and there are any peers that use a default\-route as allowed\-ips\&.
 T}
 T{
 ip6\-auto\-default\-route
@@ -4392,7 +4500,7 @@ boolean
 T}:T{
 TRUE
 T}:T{
-Whether to automatically add routes for the AllowedIPs ranges of the peers\&. If TRUE (the default), NetworkManager will automatically add routes in the routing tables according to ipv4\&.route\-table and ipv6\&.route\-table\&. If FALSE, no such routes are added automatically\&. In this case, the user may want to configure static routes in ipv4\&.routes and ipv6\&.routes, respectively\&.
+Whether to automatically add routes for the AllowedIPs ranges of the peers\&. If TRUE (the default), NetworkManager will automatically add routes in the routing tables according to ipv4\&.route\-table and ipv6\&.route\-table\&. Usually you want this automatism enabled\&. If FALSE, no such routes are added automatically\&. In this case, the user may want to configure static routes in ipv4\&.routes and ipv6\&.routes, respectively\&. Note that if the peer\*(Aqs AllowedIPs is "0\&.0\&.0\&.0/0" or "::/0" and the profile\*(Aqs ipv4\&.never\-default or ipv6\&.never\-default setting is enabled, the peer route for this peer won\*(Aqt be added automatically\&.
 T}
 T{
 peers
@@ -4701,7 +4809,7 @@ string
 T}:T{
 \ \&
 T}:T{
-Key management used for the connection\&.  One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa\-psk" (infrastructure WPA\-PSK), "sae" (SAE) or "wpa\-eap" (WPA\-Enterprise)\&.  This property must be set for any Wi\-Fi connection that uses security\&.
+Key management used for the connection\&.  One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa\-psk" (infrastructure WPA\-PSK), "sae" (SAE), "owe" (Opportunistic Wireless Encryption) or "wpa\-eap" (WPA\-Enterprise)\&.  This property must be set for any Wi\-Fi connection that uses security\&.
 T}
 T{
 leap\-password

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LGPL-2.1+
+
 dispatcher_inc = include_directories('.')
 
 name = 'nm-dispatcher'
@@ -17,6 +19,7 @@ install_data(
 deps = [
   libnm_dep,
   libnm_nm_default_dep,
+  libnm_libnm_aux_dep,
 ]
 
 c_flags = [

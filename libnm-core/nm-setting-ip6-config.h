@@ -161,7 +161,7 @@ NM_AVAILABLE_IN_1_4
 const char *nm_setting_ip6_config_get_token (NMSettingIP6Config *setting);
 NM_AVAILABLE_IN_1_12
 const char *nm_setting_ip6_config_get_dhcp_duid (NMSettingIP6Config *setting);
-NM_AVAILABLE_IN_1_22_8
+NM_AVAILABLE_IN_1_24
 gint32 nm_setting_ip6_config_get_ra_timeout (NMSettingIP6Config *setting);
 
 G_END_DECLS

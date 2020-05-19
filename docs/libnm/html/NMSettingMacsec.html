@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel">
 <link rel="next" href="NMSettingMacvlan.html" title="NMSettingMacvlan">
-<meta name="generator" content="GTK-Doc V1.29 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,8 +37,8 @@
 <a name="NMSettingMacsec.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="functions_return">
-<col class="functions_name">
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -133,13 +133,13 @@
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--encrypt" title="The “encrypt” property">encrypt</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--mka-cak" title="The “mka-cak” property">mka-cak</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></td>
@@ -150,33 +150,33 @@
 <td class="property_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--mka-ckn" title="The “mka-ckn” property">mka-ckn</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--mode" title="The “mode” property">mode</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--parent" title="The “parent” property">parent</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--port" title="The “port” property">port</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--send-sci" title="The “send-sci” property">send-sci</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--validation" title="The “validation” property">validation</a></td>
-<td class="property_flags">Read / Write / Construct</td>
+<td class="property_flags">Read / Write</td>
 </tr>
 </tbody>
 </table></div>
@@ -185,8 +185,8 @@
 <a name="NMSettingMacsec.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
-<col width="150px" class="name">
-<col class="description">
+<col width="150px" class="other_proto_type">
+<col class="other_proto_name">
 </colgroup>
 <tbody>
 <tr>
@@ -633,7 +633,7 @@ in MKA (MACsec Key Agreement) is obtained.</p>
 <td class="enum_member_name"><p><a name="NM-SETTING-MACSEC-VALIDATION-DISABLE:CAPS"></a>NM_SETTING_MACSEC_VALIDATION_DISABLE</p></td>
 <td class="enum_member_description">
 <p>All incoming frames are accepted if
-  possible</p>
+possible</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -641,7 +641,7 @@ in MKA (MACsec Key Agreement) is obtained.</p>
 <td class="enum_member_name"><p><a name="NM-SETTING-MACSEC-VALIDATION-CHECK:CAPS"></a>NM_SETTING_MACSEC_VALIDATION_CHECK</p></td>
 <td class="enum_member_description">
 <p>Non protected, invalid, or impossible to
-  verify frames are accepted and counted as "invalid"</p>
+verify frames are accepted and counted as "invalid"</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -649,7 +649,7 @@ in MKA (MACsec Key Agreement) is obtained.</p>
 <td class="enum_member_name"><p><a name="NM-SETTING-MACSEC-VALIDATION-STRICT:CAPS"></a>NM_SETTING_MACSEC_VALIDATION_STRICT</p></td>
 <td class="enum_member_description">
 <p>Non protected, invalid, or impossible to
-  verify frames are dropped</p>
+verify frames are dropped</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -677,7 +677,8 @@ in MKA (MACsec Key Agreement) is obtained.</p>
 <a name="NMSettingMacsec--encrypt"></a><h3>The <code class="literal">“encrypt”</code> property</h3>
 <pre class="programlisting">  “encrypt”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Whether the transmitted traffic must be encrypted.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingMacsec</p>
+<p>Flags: Read / Write</p>
 <p>Default value: TRUE</p>
 <p class="since">Since: 1.6</p>
 </div>
@@ -687,7 +688,8 @@ in MKA (MACsec Key Agreement) is obtained.</p>
 <pre class="programlisting">  “mka-cak”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The pre-shared CAK (Connectivity Association Key) for MACsec
 Key Agreement.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingMacsec</p>
+<p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.6</p>
 </div>
@@ -697,6 +699,7 @@ Key Agreement.</p>
 <pre class="programlisting">  “mka-cak-flags”            <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
 <p>Flags indicating how to handle the <a class="link" href="NMSettingMacsec.html#NMSettingMacsec--mka-cak" title="The “mka-cak” property"><span class="type">“mka-cak”</span></a>
 property.</p>
+<p>Owner: NMSettingMacsec</p>
 <p>Flags: Read / Write</p>
 <p class="since">Since: 1.6</p>
 </div>
@@ -706,7 +709,8 @@ property.</p>
 <pre class="programlisting">  “mka-ckn”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
 <p>The pre-shared CKN (Connectivity-association Key Name) for
 MACsec Key Agreement.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingMacsec</p>
+<p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.6</p>
 </div>
@@ -716,7 +720,8 @@ MACsec Key Agreement.</p>
 <pre class="programlisting">  “mode”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Specifies how the CAK (Connectivity Association Key) for MKA (MACsec Key
 Agreement) is obtained.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingMacsec</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 0</p>
 <p class="since">Since: 1.6</p>
 </div>
@@ -728,7 +733,8 @@ Agreement) is obtained.</p>
 from which this MACSEC interface should be created.  If this property is
 not specified, the connection must contain an <a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="type">NMSettingWired</span></a> setting
 with a <a class="link" href="NMSettingWired.html#NMSettingWired--mac-address" title="The “mac-address” property"><span class="type">“mac-address”</span></a> property.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingMacsec</p>
+<p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
 <p class="since">Since: 1.6</p>
 </div>
@@ -737,7 +743,8 @@ with a <a class="link" href="NMSettingWired.html#NMSettingWired--mac-address" ti
 <a name="NMSettingMacsec--port"></a><h3>The <code class="literal">“port”</code> property</h3>
 <pre class="programlisting">  “port”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>The port component of the SCI (Secure Channel Identifier), between 1 and 65534.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingMacsec</p>
+<p>Flags: Read / Write</p>
 <p>Allowed values: [1,65534]</p>
 <p>Default value: 1</p>
 <p class="since">Since: 1.6</p>
@@ -748,7 +755,8 @@ with a <a class="link" href="NMSettingWired.html#NMSettingWired--mac-address" ti
 <pre class="programlisting">  “send-sci”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Specifies whether the SCI (Secure Channel Identifier) is included
 in every packet.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingMacsec</p>
+<p>Flags: Read / Write</p>
 <p>Default value: TRUE</p>
 <p class="since">Since: 1.12</p>
 </div>
@@ -757,13 +765,14 @@ in every packet.</p>
 <a name="NMSettingMacsec--validation"></a><h3>The <code class="literal">“validation”</code> property</h3>
 <pre class="programlisting">  “validation”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
 <p>Specifies the validation mode for incoming frames.</p>
-<p>Flags: Read / Write / Construct</p>
+<p>Owner: NMSettingMacsec</p>
+<p>Flags: Read / Write</p>
 <p>Default value: 2</p>
 <p class="since">Since: 1.6</p>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.29</div>
+<hr>Generated by GTK-Doc V1.32</div>
 </body>
 </html>

@@ -221,7 +221,7 @@ convert_uuids_to_capabilities (const char *const*strv)
 				continue;
 
 			s_part1 = g_strndup (str, s - str);
-			switch (g_ascii_strtoull (s_part1, NULL, 16)) {
+			switch (_nm_utils_ascii_str_to_int64 (s_part1, 16, 0, G_MAXINT, -1)) {
 			case 0x1103:
 				capabilities |= NM_BT_CAPABILITY_DUN;
 				break;
@@ -1089,7 +1089,7 @@ _network_server_register_cb (GObject *source_object,
 
 	ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source_object), res, &error);
 	if (   !ret
-	    && nm_utils_error_is_cancelled (error, FALSE))
+	    && nm_utils_error_is_cancelled (error))
 		return;
 
 	bzobj = user_data;
@@ -1251,9 +1251,9 @@ _network_server_unregister_bridge (NMBluezManager *self,
 
 	if (r_req_data) {
 		nm_clear_g_cancellable (&r_req_data->int_cancellable);
-		nm_utils_invoke_on_idle (_network_server_unregister_bridge_complete_on_idle_cb,
-		                         nm_utils_user_data_pack (r_req_data, g_strdup (reason)),
-		                         r_req_data->ext_cancellable);
+		nm_utils_invoke_on_idle (r_req_data->ext_cancellable,
+		                         _network_server_unregister_bridge_complete_on_idle_cb,
+		                         nm_utils_user_data_pack (r_req_data, g_strdup (reason)));
 	}
 
 	_nm_device_bridge_notify_unregister_bt_nap (device, reason);
@@ -2071,9 +2071,12 @@ _dbus_handle_interface_removed (NMBluezManager *self,
 }
 
 static void
-_dbus_managed_objects_changed_cb (const char *object_path,
-                                  GVariant *added_interfaces_and_properties,
-                                  const char *const*removed_interfaces,
+_dbus_managed_objects_changed_cb (GDBusConnection *connection,
+                                  const char *sender_name,
+                                  const char *arg_object_path,
+                                  const char *interface_name,
+                                  const char *signal_name,
+                                  GVariant *parameters,
                                   gpointer user_data)
 {
 	NMBluezManager *self = user_data;
@@ -2081,17 +2084,46 @@ _dbus_managed_objects_changed_cb (const char *object_path,
 	BzDBusObj *bzobj = NULL;
 	gboolean changed;
 
+	nm_assert (nm_streq0 (interface_name, DBUS_INTERFACE_OBJECT_MANAGER));
+
 	if (priv->get_managed_objects_cancellable) {
 		/* we still wait for the initial GetManagedObjects(). Ignore the event. */
 		return;
 	}
 
-	if (!added_interfaces_and_properties) {
-		changed = _dbus_handle_interface_removed (self, object_path, &bzobj, removed_interfaces);
+	if (nm_streq (signal_name, "InterfacesAdded")) {
+		gs_unref_variant GVariant *interfaces_and_properties = NULL;
+		const char *object_path;
+
+		if (!g_variant_is_of_type (parameters, G_VARIANT_TYPE ("(oa{sa{sv}})")))
+			return;
+
+		g_variant_get (parameters,
+		               "(&o@a{sa{sv}})",
+		               &object_path,
+		               &interfaces_and_properties);
+
+		_dbus_handle_interface_added (self, object_path, interfaces_and_properties, FALSE);
+		return;
+	}
+
+	if (nm_streq (signal_name, "InterfacesRemoved")) {
+		gs_free const char **interfaces = NULL;
+		const char *object_path;
+
+		if (!g_variant_is_of_type (parameters, G_VARIANT_TYPE ("(oas)")))
+			return;
+
+		g_variant_get (parameters,
+		               "(&o^a&s)",
+		               &object_path,
+		               &interfaces);
+
+		changed = _dbus_handle_interface_removed (self, object_path, &bzobj, interfaces);
 		if (changed)
 			_dbus_process_changes (self, bzobj, "dbus-iface-removed");
-	} else
-		_dbus_handle_interface_added (self, object_path, added_interfaces_and_properties, FALSE);
+		return;
+	}
 }
 
 static void
@@ -2140,7 +2172,7 @@ _dbus_get_managed_objects_cb (GVariant *result,
 	GVariant *ifaces;
 
 	if (   !result
-	    && nm_utils_error_is_cancelled (error, FALSE))
+	    && nm_utils_error_is_cancelled (error))
 		return;
 
 	self = user_data;
@@ -2234,6 +2266,7 @@ name_owner_changed (NMBluezManager *self,
 	priv->managed_objects_changed_id = nm_dbus_connection_signal_subscribe_object_manager (priv->dbus_connection,
 	                                                                                       priv->name_owner,
 	                                                                                       NM_BLUEZ_MANAGER_PATH,
+	                                                                                       NULL,
 	                                                                                       _dbus_managed_objects_changed_cb,
 	                                                                                       self,
 	                                                                                       NULL);
@@ -2442,7 +2475,7 @@ _connect_dun_step2_cb (NMBluez5DunContext *context,
 {
 	BzDBusObj *bzobj;
 
-	if (nm_utils_error_is_cancelled (error, FALSE))
+	if (nm_utils_error_is_cancelled (error))
 		return;
 
 	bzobj = user_data;
@@ -2484,7 +2517,7 @@ _connect_dun_step1_cb (GObject *source_object,
 	ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source_object), res, &error);
 
 	if (   !ret
-	    && nm_utils_error_is_cancelled (error, FALSE))
+	    && nm_utils_error_is_cancelled (error))
 		return;
 
 	bzobj = user_data;
@@ -2531,7 +2564,7 @@ _connect_nap_cb (GObject *source_object,
 	ret = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source_object), res, &error);
 
 	if (   !ret
-	    && nm_utils_error_is_cancelled (error, FALSE))
+	    && nm_utils_error_is_cancelled (error))
 		return;
 
 	if (ret)

@@ -162,6 +162,8 @@ vlan&apos;s interface name."/>
 </setting>
 <setting name="vpn">
 </setting>
+<setting name="vrf">
+</setting>
 <setting name="vxlan">
 </setting>
 <setting name="wifi-p2p">

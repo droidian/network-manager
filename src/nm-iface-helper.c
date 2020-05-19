@@ -448,7 +448,7 @@ main (int argc, char *argv[])
 		fprintf (stderr,
 		         _("Ignoring unrecognized log domain(s) '%s' passed on command line.\n"),
 		         bad_domains);
-		g_clear_pointer (&bad_domains, g_free);
+		nm_clear_g_free (&bad_domains);
 	}
 
 	if (global_opt.become_daemon && !global_opt.debug) {
@@ -596,7 +596,7 @@ main (int argc, char *argv[])
 	_LOGI (LOGD_CORE, "exiting");
 
 	nm_clear_g_source (&sd_id);
-	g_clear_pointer (&gl.main_loop, g_main_loop_unref);
+	nm_clear_pointer (&gl.main_loop, g_main_loop_unref);
 	return 0;
 }
 

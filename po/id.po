@@ -1,16 +1,17 @@
 # Indonesian translation for network-manager
 # Copyright (C) 2010 THE network-manager'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the network-manager package.
-# Andika Triwidada <andika@gmail.com>, 2010, 2011, 2012, 2019.
-# Lubomir Rintel <lkundrak@v3.sk>, 2016, 2017. #zanata
+# Andika Triwidada <andika@gmail.com>, 2010-2013, 2019.
+# Lubomir Rintel <lkundrak@v3.sk>, 2016. #zanata
+# Lubomir Rintel <lkundrak@v3.sk>, 2017. #zanata
 # Thomas Haller <thaller@redhat.com>, 2017. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: NetworkManager nm-1-22\n"
+"Project-Id-Version: NetworkManager master\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/NetworkManager/"
 "NetworkManager/issues\n"
-"POT-Creation-Date: 2020-01-01 15:26+0000\n"
-"PO-Revision-Date: 2020-01-01 23:09+0700\n"
+"POT-Creation-Date: 2019-12-29 03:26+0000\n"
+"PO-Revision-Date: 2019-12-31 15:54+0700\n"
 "Last-Translator: Andika Triwidada <atriwidada@gnome.org>\n"
 "Language-Team: GNOME Indonesian Translation Team <gnome@i15n.org>\n"
 "Language: id\n"
@@ -20,7 +21,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n!=1;\n"
 "X-Generator: Poedit 2.2.1\n"
 
-#: ../clients/cli/agent.c:23
+#: ../clients/cli/agent.c:24
 #, c-format
 msgid ""
 "Usage: nmcli agent { COMMAND | help }\n"
@@ -33,7 +34,7 @@ msgstr ""
 "COMMAND  := { secret | polkit | all }\n"
 "\n"
 
-#: ../clients/cli/agent.c:31
+#: ../clients/cli/agent.c:32
 #, c-format
 msgid ""
 "Usage: nmcli agent secret { help }\n"
@@ -55,7 +56,7 @@ msgstr ""
 "kepada pengguna.\n"
 "\n"
 
-#: ../clients/cli/agent.c:41
+#: ../clients/cli/agent.c:42
 #, c-format
 msgid ""
 "Usage: nmcli agent polkit { help }\n"
@@ -73,7 +74,7 @@ msgstr ""
 "pengguna dan mengembalikan respon ke polkit.\n"
 "\n"
 
-#: ../clients/cli/agent.c:51
+#: ../clients/cli/agent.c:52
 #, c-format
 msgid ""
 "Usage: nmcli agent all { help }\n"
@@ -86,48 +87,48 @@ msgstr ""
 "Menjalankan nmcli sebagai agen polkit dan rahasia NetworkManager.\n"
 "\n"
 
-#: ../clients/cli/agent.c:143
+#: ../clients/cli/agent.c:144
 #, c-format
 msgid "nmcli successfully registered as a NetworkManager's secret agent.\n"
 msgstr "nmcli sukses didaftarkan sebagai suatu agen rahasia NetworkManager.\n"
 
-#: ../clients/cli/agent.c:145
+#: ../clients/cli/agent.c:146
 #, c-format
 msgid "Error: secret agent initialization failed"
 msgstr "Galat: inisialisasi agen rahasia gagal"
 
-#: ../clients/cli/agent.c:164
-#, c-format
-msgid "Error: polkit agent initialization failed: %s"
-msgstr "Galat: inisialisasi agen polkit gagal: %s"
-
-#: ../clients/cli/agent.c:172
+#: ../clients/cli/agent.c:157
 #, c-format
 msgid "nmcli successfully registered as a polkit agent.\n"
 msgstr "nmcli sukses didaftarkan sebagai sebuah agen polkit.\n"
 
-#: ../clients/cli/common.c:344 ../clients/cli/common.c:345
-#: ../clients/cli/common.c:376 ../clients/cli/common.c:377
+#: ../clients/cli/agent.c:180
+#, c-format
+msgid "Error: polkit agent initialization failed: %s"
+msgstr "Galat: inisialisasi agen polkit gagal: %s"
+
+#: ../clients/cli/common.c:347 ../clients/cli/common.c:348
+#: ../clients/cli/common.c:379 ../clients/cli/common.c:380
 #: ../clients/cli/connections.c:1495
 msgid "GROUP"
 msgstr "GROUP"
 
-#: ../clients/cli/common.c:628
+#: ../clients/cli/common.c:631
 #, c-format
 msgid "Error: openconnect failed: %s\n"
 msgstr "Galat: openconnect gagal: %s\n"
 
-#: ../clients/cli/common.c:635
+#: ../clients/cli/common.c:638
 #, c-format
 msgid "Error: openconnect failed with status %d\n"
 msgstr "Galat: openconnect gagal dengan status %d\n"
 
-#: ../clients/cli/common.c:637
+#: ../clients/cli/common.c:640
 #, c-format
 msgid "Error: openconnect failed with signal %d\n"
 msgstr "Galat: openconnect gagal dengan sinyal %d\n"
 
-#: ../clients/cli/common.c:725
+#: ../clients/cli/common.c:728
 #, c-format
 msgid ""
 "Warning: password for '%s' not given in 'passwd-file' and nmcli cannot ask "
@@ -136,42 +137,42 @@ msgstr ""
 "Peringatan: kata sandi untuk '%s' tidak diberikan dalam 'passwd-file' dan "
 "nmcli tidak bisa bertanya tanpa opsi '--ask'.\n"
 
-#: ../clients/cli/common.c:1227
+#: ../clients/cli/common.c:1238
 #, c-format
 msgid "Error: Could not create NMClient object: %s."
 msgstr "Galat: Tidak bisa membuat objek NMClient: %s."
 
-#: ../clients/cli/common.c:1246
+#: ../clients/cli/common.c:1258
 msgid "Error: NetworkManager is not running."
 msgstr "Galat: NetworkManager tidak sedang berjalan."
 
-#: ../clients/cli/common.c:1339
+#: ../clients/cli/common.c:1355
 #, c-format
 msgid "Error: argument '%s' not understood. Try passing --help instead."
 msgstr "Galat: argumen '%s' tidak dipahami. Cobalah memakai --help."
 
-#: ../clients/cli/common.c:1347
+#: ../clients/cli/common.c:1363
 msgid "Error: missing argument. Try passing --help."
 msgstr "Galat: kurang argumen. Cobalah memakai --help."
 
-#: ../clients/cli/common.c:1414
+#: ../clients/cli/common.c:1430
 msgid "access denied"
 msgstr "akses ditolak"
 
-#: ../clients/cli/common.c:1416
+#: ../clients/cli/common.c:1432
 msgid "NetworkManager is not running"
 msgstr "NetworkManager tidak sedang berjalan"
 
-#: ../clients/cli/common.c:1442
+#: ../clients/cli/common.c:1458
 #, c-format
 msgid "Error: error connecting to system bus: %s"
 msgstr "Galat: galat saat menyambung ke bus sistem: %s"
 
-#: ../clients/cli/common.c:1468 ../clients/cli/connections.c:66
-#: ../clients/cli/connections.c:75 ../clients/cli/devices.c:427
-#: ../clients/cli/devices.c:519 ../clients/cli/devices.c:526
-#: ../clients/cli/general.c:26 ../clients/cli/general.c:116
-#: ../clients/cli/general.c:121 ../clients/common/nm-client-utils.c:250
+#: ../clients/cli/common.c:1484 ../clients/cli/connections.c:66
+#: ../clients/cli/connections.c:75 ../clients/cli/devices.c:430
+#: ../clients/cli/devices.c:522 ../clients/cli/devices.c:529
+#: ../clients/cli/general.c:32 ../clients/cli/general.c:87
+#: ../clients/cli/general.c:91 ../clients/common/nm-client-utils.c:250
 #: ../clients/common/nm-client-utils.c:263
 #: ../clients/common/nm-client-utils.c:267
 #: ../clients/common/nm-client-utils.c:272
@@ -182,19 +183,19 @@ msgstr "Galat: galat saat menyambung ke bus sistem: %s"
 msgid "unknown"
 msgstr "tak diketahui"
 
-#: ../clients/cli/common.c:1469
+#: ../clients/cli/common.c:1485
 msgid "none"
 msgstr "tidak ada"
 
-#: ../clients/cli/common.c:1470
+#: ../clients/cli/common.c:1486
 msgid "portal"
 msgstr "portal"
 
-#: ../clients/cli/common.c:1471
+#: ../clients/cli/common.c:1487
 msgid "limited"
 msgstr "terbatas"
 
-#: ../clients/cli/common.c:1472
+#: ../clients/cli/common.c:1488
 msgid "full"
 msgstr "penuh"
 
@@ -1019,12 +1020,12 @@ msgstr "Galat: 'connection show': %s"
 msgid "Activate connection details"
 msgstr "Aktifkan rincian koneksi"
 
-#: ../clients/cli/connections.c:1544 ../clients/cli/devices.c:1485
-#: ../clients/cli/devices.c:1499 ../clients/cli/devices.c:1513
-#: ../clients/cli/devices.c:1528 ../clients/cli/devices.c:1586
-#: ../clients/cli/devices.c:1688
+#: ../clients/cli/connections.c:1544 ../clients/cli/devices.c:1491
+#: ../clients/cli/devices.c:1505 ../clients/cli/devices.c:1519
+#: ../clients/cli/devices.c:1534 ../clients/cli/devices.c:1592
+#: ../clients/cli/devices.c:1694
 msgid "NAME"
-msgstr "NAMA"
+msgstr "NAME"
 
 #: ../clients/cli/connections.c:1637
 #, c-format
@@ -1075,17 +1076,17 @@ msgstr "Profil koneksi NetworkManager"
 #: ../clients/cli/connections.c:2149 ../clients/cli/connections.c:2895
 #: ../clients/cli/connections.c:2907 ../clients/cli/connections.c:2919
 #: ../clients/cli/connections.c:3149 ../clients/cli/connections.c:8969
-#: ../clients/cli/connections.c:8990 ../clients/cli/devices.c:3019
-#: ../clients/cli/devices.c:3031 ../clients/cli/devices.c:3044
-#: ../clients/cli/devices.c:3299 ../clients/cli/devices.c:3310
-#: ../clients/cli/devices.c:3328 ../clients/cli/devices.c:3337
-#: ../clients/cli/devices.c:3358 ../clients/cli/devices.c:3369
-#: ../clients/cli/devices.c:3387 ../clients/cli/devices.c:3905
-#: ../clients/cli/devices.c:3915 ../clients/cli/devices.c:3923
-#: ../clients/cli/devices.c:3935 ../clients/cli/devices.c:3950
-#: ../clients/cli/devices.c:3958 ../clients/cli/devices.c:4101
-#: ../clients/cli/devices.c:4112 ../clients/cli/devices.c:4326
-#: ../clients/cli/devices.c:4495
+#: ../clients/cli/connections.c:8990 ../clients/cli/devices.c:3025
+#: ../clients/cli/devices.c:3037 ../clients/cli/devices.c:3050
+#: ../clients/cli/devices.c:3305 ../clients/cli/devices.c:3316
+#: ../clients/cli/devices.c:3334 ../clients/cli/devices.c:3343
+#: ../clients/cli/devices.c:3364 ../clients/cli/devices.c:3375
+#: ../clients/cli/devices.c:3393 ../clients/cli/devices.c:3911
+#: ../clients/cli/devices.c:3921 ../clients/cli/devices.c:3929
+#: ../clients/cli/devices.c:3941 ../clients/cli/devices.c:3956
+#: ../clients/cli/devices.c:3964 ../clients/cli/devices.c:4107
+#: ../clients/cli/devices.c:4118 ../clients/cli/devices.c:4335
+#: ../clients/cli/devices.c:4504
 #, c-format
 msgid "Error: %s argument is missing."
 msgstr "Galat: argumen %s hilang."
@@ -1098,16 +1099,16 @@ msgstr "Galat: %s - tidak ada profil koneksi seperti itu."
 #: ../clients/cli/connections.c:2268 ../clients/cli/connections.c:2882
 #: ../clients/cli/connections.c:2947 ../clients/cli/connections.c:8506
 #: ../clients/cli/connections.c:8597 ../clients/cli/connections.c:9090
-#: ../clients/cli/devices.c:1773 ../clients/cli/devices.c:2041
-#: ../clients/cli/devices.c:2211 ../clients/cli/devices.c:2319
-#: ../clients/cli/devices.c:2511 ../clients/cli/devices.c:3178
-#: ../clients/cli/devices.c:4064 ../clients/cli/devices.c:4501
-#: ../clients/cli/general.c:982
+#: ../clients/cli/devices.c:1779 ../clients/cli/devices.c:2047
+#: ../clients/cli/devices.c:2217 ../clients/cli/devices.c:2325
+#: ../clients/cli/devices.c:2517 ../clients/cli/devices.c:3184
+#: ../clients/cli/devices.c:4070 ../clients/cli/devices.c:4510
+#: ../clients/cli/general.c:960
 #, c-format
 msgid "Error: %s."
 msgstr "Galat: %s."
 
-#: ../clients/cli/connections.c:2361 ../clients/cli/devices.c:4278
+#: ../clients/cli/connections.c:2361 ../clients/cli/devices.c:4287
 #, c-format
 msgid "no active connection on device '%s'"
 msgstr "tak ada koneksi aktif pada perangkat '%s'"
@@ -1187,11 +1188,11 @@ msgid "neither a valid connection nor device given"
 msgstr "tidak ada perangkat atau koneksi valid yang diberikan"
 
 #: ../clients/cli/connections.c:2929 ../clients/cli/connections.c:9000
-#: ../clients/cli/devices.c:1732 ../clients/cli/devices.c:1778
-#: ../clients/cli/devices.c:2216 ../clients/cli/devices.c:3076
-#: ../clients/cli/devices.c:3400 ../clients/cli/devices.c:3967
-#: ../clients/cli/devices.c:4118 ../clients/cli/devices.c:4335
-#: ../clients/cli/devices.c:4505
+#: ../clients/cli/devices.c:1738 ../clients/cli/devices.c:1784
+#: ../clients/cli/devices.c:2222 ../clients/cli/devices.c:3082
+#: ../clients/cli/devices.c:3406 ../clients/cli/devices.c:3973
+#: ../clients/cli/devices.c:4124 ../clients/cli/devices.c:4344
+#: ../clients/cli/devices.c:4514
 #, c-format
 msgid "Error: invalid extra argument '%s'."
 msgstr "Galat: argumen ekstra yang tidak valid: '%s'."
@@ -1347,8 +1348,8 @@ msgid_plural ""
 "Warning: There are %3$u other connections with the name '%1$s'. Reference "
 "the connection by its uuid '%2$s'\n"
 msgstr[0] ""
-"Peringatan: Ada koneksi lain dengan nama '%1$s'. Acu koneksi memakai uuid "
-"'%2$s'\n"
+"Peringatan: Ada satu koneksi lain dengan nama '%1$s'. Acu koneksi memakai "
+"uuid '%2$s'\n"
 msgstr[1] ""
 "Peringatan: Ada %3$u koneksi lain dengan nama '%1$s'. Acu koneksi memakai "
 "uuid '%2$s'\n"
@@ -1359,9 +1360,9 @@ msgid "Connection '%s' (%s) successfully added.\n"
 msgstr "Koneksi '%s' (%s) sukses ditambahkan.\n"
 
 #: ../clients/cli/connections.c:4965 ../clients/cli/connections.c:6921
-#: ../clients/cli/connections.c:6922 ../clients/cli/devices.c:518
-#: ../clients/cli/devices.c:525 ../clients/cli/devices.c:1239
-#: ../clients/cli/general.c:123 ../clients/cli/utils.h:291
+#: ../clients/cli/connections.c:6922 ../clients/cli/devices.c:521
+#: ../clients/cli/devices.c:528 ../clients/cli/devices.c:1245
+#: ../clients/cli/general.c:93 ../clients/cli/utils.h:291
 #: ../clients/common/nm-client-utils.c:269
 #: ../clients/common/nm-meta-setting-desc.c:866
 #: ../clients/common/nm-meta-setting-desc.c:2682
@@ -1369,9 +1370,9 @@ msgid "no"
 msgstr "tidak"
 
 #: ../clients/cli/connections.c:4966 ../clients/cli/connections.c:6921
-#: ../clients/cli/connections.c:6922 ../clients/cli/devices.c:517
-#: ../clients/cli/devices.c:524 ../clients/cli/devices.c:1239
-#: ../clients/cli/general.c:122 ../clients/cli/utils.h:291
+#: ../clients/cli/connections.c:6922 ../clients/cli/devices.c:520
+#: ../clients/cli/devices.c:527 ../clients/cli/devices.c:1245
+#: ../clients/cli/general.c:92 ../clients/cli/utils.h:291
 #: ../clients/common/nm-client-utils.c:268
 #: ../clients/common/nm-meta-setting-desc.c:866
 #: ../clients/common/nm-meta-setting-desc.c:2679
@@ -2344,37 +2345,37 @@ msgid "Error: failed to read temporary file '%s': %s."
 msgstr "Galat: gagal membaca berkas temporer '%s': %s."
 
 #. define some prompts
-#: ../clients/cli/devices.c:23
+#: ../clients/cli/devices.c:24
 msgid "Interface: "
 msgstr "Antar muka: "
 
-#: ../clients/cli/devices.c:24
+#: ../clients/cli/devices.c:25
 msgid "Interface(s): "
 msgstr "Antar muka: "
 
-#: ../clients/cli/devices.c:59 ../clients/cli/devices.c:1267
+#: ../clients/cli/devices.c:62 ../clients/cli/devices.c:1273
 msgid "(none)"
 msgstr "(tidak ada)"
 
-#: ../clients/cli/devices.c:166 ../clients/cli/devices.c:173
+#: ../clients/cli/devices.c:169 ../clients/cli/devices.c:176
 msgid "(unknown)"
 msgstr "(tak diketahui)"
 
-#: ../clients/cli/devices.c:322
+#: ../clients/cli/devices.c:325
 #, c-format
 msgid "<invisible> | %s"
 msgstr "<invisible> | %s"
 
-#: ../clients/cli/devices.c:323
+#: ../clients/cli/devices.c:326
 msgid "<invisible>"
 msgstr "<invisible>"
 
-#: ../clients/cli/devices.c:424
+#: ../clients/cli/devices.c:427
 #, c-format
 msgid "%u Mb/s"
 msgstr "%u Mb/s"
 
-#: ../clients/cli/devices.c:725
+#: ../clients/cli/devices.c:728
 #, c-format
 msgid ""
 "Usage: nmcli device { COMMAND | help }\n"
@@ -2457,7 +2458,7 @@ msgstr ""
 "  lldp [list [ifname <ifname>]]\n"
 "\n"
 
-#: ../clients/cli/devices.c:749
+#: ../clients/cli/devices.c:752
 #, c-format
 msgid ""
 "Usage: nmcli device status { help }\n"
@@ -2488,7 +2489,7 @@ msgstr ""
 "status'.\n"
 "\n"
 
-#: ../clients/cli/devices.c:764
+#: ../clients/cli/devices.c:767
 #, c-format
 msgid ""
 "Usage: nmcli device show { ARGUMENTS | help }\n"
@@ -2509,7 +2510,7 @@ msgstr ""
 "yang diberikan.\n"
 "\n"
 
-#: ../clients/cli/devices.c:775
+#: ../clients/cli/devices.c:778
 #, c-format
 msgid ""
 "Usage: nmcli device connect { ARGUMENTS | help }\n"
@@ -2533,7 +2534,7 @@ msgstr ""
 "otomatis.\n"
 "\n"
 
-#: ../clients/cli/devices.c:787
+#: ../clients/cli/devices.c:790
 #, c-format
 msgid ""
 "Usage: nmcli device reapply { ARGUMENTS | help }\n"
@@ -2553,7 +2554,7 @@ msgstr ""
 "yang dibuat sejak terakhir kali diterapkan\n"
 "\n"
 
-#: ../clients/cli/devices.c:798
+#: ../clients/cli/devices.c:801
 #, c-format
 msgid ""
 "Usage: nmcli device modify { ARGUMENTS | --help }\n"
@@ -2593,7 +2594,7 @@ msgstr ""
 "nmcli dev mod em1 -ipv4.dns 1\n"
 "nmcli dev mod em1 -ipv6.addr \"abbe::cafe/56\"\n"
 
-#: ../clients/cli/devices.c:818
+#: ../clients/cli/devices.c:821
 #, c-format
 msgid ""
 "Usage: nmcli device disconnect { ARGUMENTS | help }\n"
@@ -2614,7 +2615,7 @@ msgstr ""
 "koneksi lebih jauh tanpa intervensi manual/pengguna.\n"
 "\n"
 
-#: ../clients/cli/devices.c:830
+#: ../clients/cli/devices.c:833
 #, c-format
 msgid ""
 "Usage: nmcli device delete { ARGUMENTS | help }\n"
@@ -2639,7 +2640,7 @@ msgstr ""
 "perintah ini.\n"
 "\n"
 
-#: ../clients/cli/devices.c:843
+#: ../clients/cli/devices.c:846
 #, c-format
 msgid ""
 "Usage: nmcli device set { ARGUMENTS | help }\n"
@@ -2662,7 +2663,7 @@ msgstr ""
 "Mengubah properti perangkat.\n"
 "\n"
 
-#: ../clients/cli/devices.c:856
+#: ../clients/cli/devices.c:859
 #, c-format
 msgid ""
 "Usage: nmcli device monitor { ARGUMENTS | help }\n"
@@ -2684,7 +2685,7 @@ msgstr ""
 "Memantau semua perangkat bila tidak ada antar muka yang dinyatakan.\n"
 "\n"
 
-#: ../clients/cli/devices.c:868
+#: ../clients/cli/devices.c:871
 #, c-format
 msgid ""
 "Usage: nmcli device wifi { ARGUMENTS | help }\n"
@@ -2786,7 +2787,7 @@ msgstr ""
 "untuk hal itu.\n"
 "\n"
 
-#: ../clients/cli/devices.c:915
+#: ../clients/cli/devices.c:918
 #, c-format
 msgid ""
 "Usage: nmcli device lldp { ARGUMENTS | help }\n"
@@ -2806,90 +2807,90 @@ msgstr ""
 "Opsi 'ifname' dapat dipakai untuk memilih daftar tetangga bagi antar muka\n"
 "tertentu.\n"
 
-#: ../clients/cli/devices.c:1013
+#: ../clients/cli/devices.c:1016
 #, c-format
 msgid "Error: No interface specified."
 msgstr "Galat: Tidak ada antar muka yang dinyatakan."
 
-#: ../clients/cli/devices.c:1036
+#: ../clients/cli/devices.c:1039
 #, c-format
 msgid "Warning: argument '%s' is duplicated.\n"
 msgstr "Peringatan: argumen '%s' duplikat.\n"
 
-#: ../clients/cli/devices.c:1039
+#: ../clients/cli/devices.c:1042
 #, c-format
 msgid "Error: Device '%s' not found.\n"
 msgstr "Galat: Perangkat '%s' tidak ditemukan.\n"
 
-#: ../clients/cli/devices.c:1040
+#: ../clients/cli/devices.c:1043
 #, c-format
 msgid "Error: not all devices found."
 msgstr "Galat: tidak semua perangkat ditemukan."
 
-#: ../clients/cli/devices.c:1071
+#: ../clients/cli/devices.c:1074
 msgid "No interface specified"
 msgstr "Tidak ada antar muka yang dinyatakan"
 
-#: ../clients/cli/devices.c:1090
+#: ../clients/cli/devices.c:1093
 #, c-format
 msgid "Device '%s' not found"
 msgstr "Perangkat '%s' tidak ditemukan"
 
-#: ../clients/cli/devices.c:1186
+#: ../clients/cli/devices.c:1189
 #, c-format
 msgid "%u MHz"
 msgstr "%u MHz"
 
-#: ../clients/cli/devices.c:1187
+#: ../clients/cli/devices.c:1190
 #, c-format
 msgid "%u Mbit/s"
 msgstr "%u Mbit/s"
 
-#: ../clients/cli/devices.c:1226
+#: ../clients/cli/devices.c:1232
 msgid "Ad-Hoc"
 msgstr "Ad-Hoc"
 
-#: ../clients/cli/devices.c:1227
+#: ../clients/cli/devices.c:1233
 msgid "Infra"
 msgstr "Infra"
 
-#: ../clients/cli/devices.c:1228 ../src/devices/wifi/nm-device-olpc-mesh.c:118
+#: ../clients/cli/devices.c:1234 ../src/devices/wifi/nm-device-olpc-mesh.c:118
 msgid "Mesh"
 msgstr "Mesh"
 
-#: ../clients/cli/devices.c:1229
+#: ../clients/cli/devices.c:1235
 msgid "N/A"
 msgstr "N/A"
 
-#: ../clients/cli/devices.c:1424
+#: ../clients/cli/devices.c:1430
 msgid "Device details"
 msgstr "Rincian perangkat"
 
-#: ../clients/cli/devices.c:1435
+#: ../clients/cli/devices.c:1441
 #, c-format
 msgid "Error: 'device show': %s"
 msgstr "Galat: 'device show': %s"
 
-#: ../clients/cli/devices.c:1747
+#: ../clients/cli/devices.c:1753
 msgid "Status of devices"
 msgstr "Status perangkat"
 
-#: ../clients/cli/devices.c:1751
+#: ../clients/cli/devices.c:1757
 #, c-format
 msgid "Error: 'device status': %s"
 msgstr "Galat: 'device status': %s"
 
-#: ../clients/cli/devices.c:1814 ../clients/cli/general.c:537
+#: ../clients/cli/devices.c:1820 ../clients/cli/general.c:511
 #, c-format
 msgid "Error: Timeout %d sec expired."
 msgstr "Galat: Timeout %d detik telah berlalu."
 
-#: ../clients/cli/devices.c:1886
+#: ../clients/cli/devices.c:1892
 #, c-format
 msgid "Device '%s' successfully activated with '%s'.\n"
 msgstr "Perangkat '%s' sukses diaktifkan dengan '%s'.\n"
 
-#: ../clients/cli/devices.c:1891
+#: ../clients/cli/devices.c:1897
 #, c-format
 msgid ""
 "Hint: \"nmcli dev wifi show-password\" shows the Wi-Fi name and password.\n"
@@ -2897,150 +2898,150 @@ msgstr ""
 "Petunjuk: \"nmcli dev wifi show-password\" menunjukkan nama Wi-Fi dan kata "
 "sandi.\n"
 
-#: ../clients/cli/devices.c:1895
+#: ../clients/cli/devices.c:1901
 #, c-format
 msgid "Error: Connection activation failed: (%d) %s.\n"
 msgstr "Galat: Aktivasi koneksi gagal: (%d) %s.\n"
 
-#: ../clients/cli/devices.c:1925
+#: ../clients/cli/devices.c:1931
 #, c-format
 msgid "Error: Failed to setup a Wi-Fi hotspot: %s"
 msgstr "Galat: Gagal menyiapkan hotspot Wi-Fi: %s"
 
-#: ../clients/cli/devices.c:1928
+#: ../clients/cli/devices.c:1934
 #, c-format
 msgid "Error: Failed to add/activate new connection: %s"
 msgstr "Galat: Gagal menambah/mengaktifkan koneksi baru: %s"
 
-#: ../clients/cli/devices.c:1931
+#: ../clients/cli/devices.c:1937
 #, c-format
 msgid "Error: Failed to activate connection: %s"
 msgstr "Galat: Gagal mengaktifkan koneksi: %s"
 
-#: ../clients/cli/devices.c:1996
+#: ../clients/cli/devices.c:2002
 #, c-format
 msgid "Error: Device activation failed: %s"
 msgstr "Galat: Aktivasi perangkat gagal: %s"
 
-#: ../clients/cli/devices.c:2046
+#: ../clients/cli/devices.c:2052
 #, c-format
 msgid "Error: extra argument not allowed: '%s'."
 msgstr "Galat: argumen ekstra tidak diizinkan: '%s'."
 
-#: ../clients/cli/devices.c:2116 ../clients/cli/devices.c:2131
-#: ../clients/cli/devices.c:2368
+#: ../clients/cli/devices.c:2122 ../clients/cli/devices.c:2137
+#: ../clients/cli/devices.c:2374
 #, c-format
 msgid "Device '%s' successfully disconnected.\n"
 msgstr "Perangkat '%s' sukses diputus.\n"
 
-#: ../clients/cli/devices.c:2119 ../clients/cli/devices.c:2442
+#: ../clients/cli/devices.c:2125 ../clients/cli/devices.c:2448
 #, c-format
 msgid "Device '%s' successfully removed.\n"
 msgstr "Perangkat '%s' sukses dihapus.\n"
 
-#: ../clients/cli/devices.c:2181 ../clients/cli/devices.c:2251
+#: ../clients/cli/devices.c:2187 ../clients/cli/devices.c:2257
 #, c-format
 msgid "Error: Reapplying connection to device '%s' (%s) failed: %s"
 msgstr "Galat: Menerapkan ulang koneksi ke perangkat '%s' (%s) gagal: %s"
 
-#: ../clients/cli/devices.c:2191 ../clients/cli/devices.c:2260
+#: ../clients/cli/devices.c:2197 ../clients/cli/devices.c:2266
 #, c-format
 msgid "Connection successfully reapplied to device '%s'.\n"
 msgstr "Koneksi sukses diterapkan ulang ke perangkat '%s'.\n"
 
-#: ../clients/cli/devices.c:2285
+#: ../clients/cli/devices.c:2291
 #, c-format
 msgid "Error: Reading applied connection from device '%s' (%s) failed: %s"
 msgstr ""
 "Galat: Membaca koneksi yang diterapkan dari perangkat '%s' (%s) gagal: %s"
 
-#: ../clients/cli/devices.c:2352
+#: ../clients/cli/devices.c:2358
 #, c-format
 msgid "Error: not all devices disconnected."
 msgstr "Galat: tidak semua perangkat diputus."
 
-#: ../clients/cli/devices.c:2353
+#: ../clients/cli/devices.c:2359
 #, c-format
 msgid "Error: Device '%s' (%s) disconnecting failed: %s\n"
 msgstr "Galat: Pemutusan perangkat '%s' (%s) gagal: %s\n"
 
-#: ../clients/cli/devices.c:2433
+#: ../clients/cli/devices.c:2439
 #, c-format
 msgid "Error: not all devices deleted."
 msgstr "Galat: tidak semua perangkat dihapus."
 
-#: ../clients/cli/devices.c:2434
+#: ../clients/cli/devices.c:2440
 #, c-format
 msgid "Error: Device '%s' (%s) deletion failed: %s\n"
 msgstr "Galat: Penghapusan perangkat '%s' (%s) gagal: %s\n"
 
-#: ../clients/cli/devices.c:2516
+#: ../clients/cli/devices.c:2522
 #, c-format
 msgid "Error: No property specified."
 msgstr "Galat: Tidak ada properti yang dinyatakan."
 
-#: ../clients/cli/devices.c:2531 ../clients/cli/devices.c:2548
-#: ../clients/cli/general.c:777 ../clients/cli/general.c:789
+#: ../clients/cli/devices.c:2537 ../clients/cli/devices.c:2554
+#: ../clients/cli/general.c:755 ../clients/cli/general.c:767
 #, c-format
 msgid "Error: '%s' argument is missing."
 msgstr "Galat: argumen '%s' hilang."
 
-#: ../clients/cli/devices.c:2537
+#: ../clients/cli/devices.c:2543
 #, c-format
 msgid "Error: 'managed': %s."
 msgstr "Galat: 'managed': %s."
 
-#: ../clients/cli/devices.c:2554
+#: ../clients/cli/devices.c:2560
 #, c-format
 msgid "Error: 'autoconnect': %s."
 msgstr "Galat: 'autoconnect': %s."
 
-#: ../clients/cli/devices.c:2562 ../clients/cli/general.c:803
+#: ../clients/cli/devices.c:2568 ../clients/cli/general.c:781
 #, c-format
 msgid "Error: property '%s' is not known."
 msgstr "Galat: properti '%s' tidak dikenal."
 
-#: ../clients/cli/devices.c:2611
+#: ../clients/cli/devices.c:2617
 #, c-format
 msgid "%s: using connection '%s'\n"
 msgstr "%s: memakai koneksi '%s'\n"
 
-#: ../clients/cli/devices.c:2637
+#: ../clients/cli/devices.c:2643
 #, c-format
 msgid "%s: device created\n"
 msgstr "%s: perangkat dibuat\n"
 
-#: ../clients/cli/devices.c:2644
+#: ../clients/cli/devices.c:2650
 #, c-format
 msgid "%s: device removed\n"
 msgstr "%s: perangkat dihapus\n"
 
-#: ../clients/cli/devices.c:2824
+#: ../clients/cli/devices.c:2830
 msgid "Wi-Fi scan list"
 msgstr "Daftar pindai Wi-Fi"
 
-#: ../clients/cli/devices.c:2911
+#: ../clients/cli/devices.c:2917
 #, c-format
 msgid "Error: Access point with bssid '%s' not found."
 msgstr "Galat: Access point dengan bssid '%s' tak ditemukan."
 
-#: ../clients/cli/devices.c:3067
+#: ../clients/cli/devices.c:3073
 #, c-format
 msgid "Error: 'device wifi': %s"
 msgstr "Galat: 'device wifi': %s"
 
-#: ../clients/cli/devices.c:3087
+#: ../clients/cli/devices.c:3093
 #, c-format
 msgid "Error: invalid rescan argument: '%s' not among [auto, no, yes]"
 msgstr ""
 "Galat: argumen pindai ulang tidak valid: '%s' bukan satu dari [auto, no, yes]"
 
-#: ../clients/cli/devices.c:3094
+#: ../clients/cli/devices.c:3100
 #, c-format
 msgid "Error: Device '%s' not found."
 msgstr "Galat: Perangkat '%s' tak ditemukan."
 
-#: ../clients/cli/devices.c:3105
+#: ../clients/cli/devices.c:3111
 #, c-format
 msgid ""
 "Error: Device '%s' was not recognized as a Wi-Fi device, check "
@@ -3049,28 +3050,28 @@ msgstr ""
 "Galat: Perangkat '%s' tidak dikenali sebagai sebuah perangkat Wi-Fi, "
 "periksalah plugin Wi-Fi NetworkManager."
 
-#: ../clients/cli/devices.c:3109 ../clients/cli/devices.c:3430
-#: ../clients/cli/devices.c:4006 ../clients/cli/devices.c:4134
-#: ../clients/cli/devices.c:4266
+#: ../clients/cli/devices.c:3115 ../clients/cli/devices.c:3436
+#: ../clients/cli/devices.c:4012 ../clients/cli/devices.c:4140
+#: ../clients/cli/devices.c:4275
 #, c-format
 msgid "Error: Device '%s' is not a Wi-Fi device."
 msgstr "Galat: Perangkat '%s' bukan perangkat Wi-Fi."
 
-#: ../clients/cli/devices.c:3277
+#: ../clients/cli/devices.c:3283
 msgid "SSID or BSSID: "
 msgstr "SSID atau BSSID: "
 
-#: ../clients/cli/devices.c:3282
+#: ../clients/cli/devices.c:3288
 #, c-format
 msgid "Error: SSID or BSSID are missing."
 msgstr "Galat: SSID atau BSSID hilang."
 
-#: ../clients/cli/devices.c:3319
+#: ../clients/cli/devices.c:3325
 #, c-format
 msgid "Error: bssid argument value '%s' is not a valid BSSID."
 msgstr "Galat: nilai argumen bssid '%s' bukan BSSID yang valid."
 
-#: ../clients/cli/devices.c:3349
+#: ../clients/cli/devices.c:3355
 #, c-format
 msgid ""
 "Error: wep-key-type argument value '%s' is invalid, use 'key' or 'phrase'."
@@ -3078,49 +3079,49 @@ msgstr ""
 "Galat: Nilai argumen jenis-kunci-wep '%s' tak valid, gunakan 'key' atau "
 "'phrase'."
 
-#: ../clients/cli/devices.c:3376 ../clients/cli/devices.c:3394
+#: ../clients/cli/devices.c:3382 ../clients/cli/devices.c:3400
 #, c-format
 msgid "Error: %s: %s."
 msgstr "Galat: %s: %s."
 
-#: ../clients/cli/devices.c:3413
+#: ../clients/cli/devices.c:3419
 #, c-format
 msgid "Error: BSSID to connect to (%s) differs from bssid argument (%s)."
 msgstr ""
 "Galat: BSSID yang akan dihubungi (%s) berbeda dengan argumen bssid (%s)."
 
-#: ../clients/cli/devices.c:3419
+#: ../clients/cli/devices.c:3425
 #, c-format
 msgid "Error: Parameter '%s' is neither SSID nor BSSID."
 msgstr "Galat: Parameter '%s' bukan SSID maupun BSSID."
 
-#: ../clients/cli/devices.c:3432 ../clients/cli/devices.c:4008
-#: ../clients/cli/devices.c:4136 ../clients/cli/devices.c:4367
+#: ../clients/cli/devices.c:3438 ../clients/cli/devices.c:4014
+#: ../clients/cli/devices.c:4142 ../clients/cli/devices.c:4376
 #, c-format
 msgid "Error: No Wi-Fi device found."
 msgstr "Galat: Tak ditemukan perangkat Wi-Fi."
 
-#: ../clients/cli/devices.c:3452
+#: ../clients/cli/devices.c:3458
 #, c-format
 msgid "Error: Failed to scan hidden SSID: %s."
 msgstr "Galat: Gagal memindai SSID tersembunyi: %s."
 
-#: ../clients/cli/devices.c:3479
+#: ../clients/cli/devices.c:3485
 #, c-format
 msgid "Error: No network with SSID '%s' found."
 msgstr "Galat: Tak ditemukan jaringan dengan SSID '%s'."
 
-#: ../clients/cli/devices.c:3481
+#: ../clients/cli/devices.c:3487
 #, c-format
 msgid "Error: No access point with BSSID '%s' found."
 msgstr "Galat: Tak ditemukan access point dengan BSSID '%s'."
 
-#: ../clients/cli/devices.c:3508
+#: ../clients/cli/devices.c:3514
 #, c-format
 msgid "Error: Connection '%s' exists but properties don't match."
 msgstr "Galat: Koneksi '%s' ada tetapi properti tidak cocok."
 
-#: ../clients/cli/devices.c:3551
+#: ../clients/cli/devices.c:3557
 #, c-format
 msgid ""
 "Warning: '%s' should be SSID for hidden APs; but it looks like a BSSID.\n"
@@ -3128,70 +3129,71 @@ msgstr ""
 "Peringatan: '%s' mestinya SSID untuk AP tersembunyi; tapi itu tampak seperti "
 "BSSID.\n"
 
-#: ../clients/cli/devices.c:3588
+#: ../clients/cli/devices.c:3594
 msgid "Password: "
 msgstr "Kata sandi: "
 
-#: ../clients/cli/devices.c:3729
+#: ../clients/cli/devices.c:3735
 #, c-format
 msgid "'%s' is not valid WPA PSK"
 msgstr "'%s' bukan PSK WPA yang valid"
 
-#: ../clients/cli/devices.c:3746
+#: ../clients/cli/devices.c:3752
 #, c-format
 msgid "'%s' is not valid WEP key (it should be 5 or 13 ASCII chars)"
 msgstr "'%s' bukan kunci WEP yang valid (mesti 5 atau 13 karakter ASCII)"
 
-#: ../clients/cli/devices.c:3762
+#: ../clients/cli/devices.c:3768
 #, c-format
 msgid "Hotspot password: %s\n"
 msgstr "Kata sandi hotspot: %s\n"
 
-#: ../clients/cli/devices.c:3927
+#: ../clients/cli/devices.c:3933
 #, c-format
 msgid "Error: ssid is too long."
 msgstr "Galat: ssid terlalu panjang."
 
-#: ../clients/cli/devices.c:3942
+#: ../clients/cli/devices.c:3948
 #, c-format
 msgid "Error: band argument value '%s' is invalid; use 'a' or 'bg'."
 msgstr "Galat: argumen band '%s' tidak valid, gunakan 'a' atau 'bg'."
 
-#: ../clients/cli/devices.c:3989
+#: ../clients/cli/devices.c:3995
 #, c-format
 msgid "Error: channel requires band too."
 msgstr "Galat: kanal juga memerlukan band."
 
-#: ../clients/cli/devices.c:3994
+#: ../clients/cli/devices.c:4000
 #, c-format
 msgid "Error: channel '%s' not valid for band '%s'."
 msgstr "Galat: kanal '%s' tidak valid untuk band '%s'."
 
-#: ../clients/cli/devices.c:4019
+#: ../clients/cli/devices.c:4025
 #, c-format
 msgid "Error: Device '%s' supports neither AP nor Ad-Hoc mode."
 msgstr "Galat: Perangkat '%s' tidak mendukung AP maupun mode Ad-Hoc."
 
-#: ../clients/cli/devices.c:4041
+#: ../clients/cli/devices.c:4047
 #, c-format
 msgid "Error: Invalid 'password': %s."
 msgstr "Galat: 'password' tidak valid: %s."
 
-#: ../clients/cli/devices.c:4094 ../clients/cli/devices.c:4318
+#: ../clients/cli/devices.c:4100 ../clients/cli/devices.c:4327
 #, c-format
 msgid "Error: '%s' cannot repeat."
 msgstr "Galat: '%s' tidak boleh berulang."
 
-#: ../clients/cli/devices.c:4227 ../clients/cli/devices.c:4231
-#: ../clients/cli/devices.c:4236 ../clients/tui/nmt-page-wifi.c:249
+#: ../clients/cli/devices.c:4233 ../clients/cli/devices.c:4237
+#: ../clients/cli/devices.c:4242 ../clients/cli/devices.c:4245
+#: ../clients/tui/nmt-page-wifi.c:250
 msgid "Security"
 msgstr "Keamanan"
 
-#: ../clients/cli/devices.c:4227
+#: ../clients/cli/devices.c:4233
 msgid "None"
-msgstr "Tak ada"
+msgstr "Nihil"
 
-#: ../clients/cli/devices.c:4240 ../clients/common/nm-secret-agent-simple.c:273
+#: ../clients/cli/devices.c:4249 ../clients/common/nm-secret-agent-simple.c:273
 #: ../clients/common/nm-secret-agent-simple.c:310
 #: ../clients/common/nm-secret-agent-simple.c:333
 #: ../clients/common/nm-secret-agent-simple.c:366
@@ -3202,79 +3204,79 @@ msgstr "Tak ada"
 #: ../clients/common/nm-vpn-helpers.c:114
 #: ../clients/common/nm-vpn-helpers.c:120
 #: ../clients/common/nm-vpn-helpers.c:125 ../clients/tui/nmt-page-dsl.c:62
-#: ../clients/tui/nmt-page-wifi.c:265 ../clients/tui/nmt-page-wifi.c:297
-#: ../clients/tui/nmt-page-wifi.c:330
+#: ../clients/tui/nmt-page-wifi.c:266 ../clients/tui/nmt-page-wifi.c:298
+#: ../clients/tui/nmt-page-wifi.c:331
 msgid "Password"
 msgstr "Kata Sandi"
 
-#: ../clients/cli/devices.c:4355
+#: ../clients/cli/devices.c:4364
 #, c-format
 msgid "%s"
 msgstr "%s"
 
 #. Main header name
-#: ../clients/cli/devices.c:4411
+#: ../clients/cli/devices.c:4420
 msgid "Device LLDP neighbors"
 msgstr "Tetangga LLDP perangkat"
 
-#: ../clients/cli/devices.c:4521
+#: ../clients/cli/devices.c:4530
 #, c-format
 msgid "Error: 'device lldp list': %s"
 msgstr "Galat: 'device lldp list': %s"
 
-#: ../clients/cli/general.c:27
+#: ../clients/cli/general.c:33
 msgid "asleep"
 msgstr "mengantuk"
 
-#: ../clients/cli/general.c:28
+#: ../clients/cli/general.c:34
 msgid "connecting"
 msgstr "menyambung"
 
-#: ../clients/cli/general.c:29
+#: ../clients/cli/general.c:35
 msgid "connected (local only)"
 msgstr "tersambung (lokal saja)"
 
-#: ../clients/cli/general.c:30
+#: ../clients/cli/general.c:36
 msgid "connected (site only)"
 msgstr "tersambung (situs saja)"
 
-#: ../clients/cli/general.c:31 ../clients/common/nm-client-utils.c:260
+#: ../clients/cli/general.c:37 ../clients/common/nm-client-utils.c:260
 msgid "connected"
 msgstr "terhubung"
 
-#: ../clients/cli/general.c:32
+#: ../clients/cli/general.c:38
 msgid "disconnecting"
 msgstr "memutus"
 
-#: ../clients/cli/general.c:33 ../clients/common/nm-client-utils.c:253
+#: ../clients/cli/general.c:39 ../clients/common/nm-client-utils.c:253
 msgid "disconnected"
 msgstr "terputus"
 
-#: ../clients/cli/general.c:124
+#: ../clients/cli/general.c:94
 msgid "auth"
 msgstr "auth"
 
-#: ../clients/cli/general.c:152
+#: ../clients/cli/general.c:122
 msgid "running"
 msgstr "berjalan"
 
-#: ../clients/cli/general.c:166
+#: ../clients/cli/general.c:136
 msgid "starting"
 msgstr "memulai"
 
-#: ../clients/cli/general.c:166
+#: ../clients/cli/general.c:136
 msgid "started"
 msgstr "dimulai"
 
-#: ../clients/cli/general.c:200
+#: ../clients/cli/general.c:170
 msgid "enabled"
 msgstr "diaktifkan"
 
-#: ../clients/cli/general.c:200
+#: ../clients/cli/general.c:170
 msgid "disabled"
 msgstr "dimatikan"
 
-#: ../clients/cli/general.c:318
+#: ../clients/cli/general.c:288
 #, c-format
 msgid ""
 "Usage: nmcli general { COMMAND | help }\n"
@@ -3303,7 +3305,7 @@ msgstr ""
 "  logging [level <log level>] [domains <log domains>]\n"
 "\n"
 
-#: ../clients/cli/general.c:329
+#: ../clients/cli/general.c:299
 #, c-format
 msgid ""
 "Usage: nmcli general status { help }\n"
@@ -3320,7 +3322,7 @@ msgstr ""
 "status'\n"
 "\n"
 
-#: ../clients/cli/general.c:338
+#: ../clients/cli/general.c:308
 #, c-format
 msgid ""
 "Usage: nmcli general hostname { ARGUMENTS | help }\n"
@@ -3345,7 +3347,7 @@ msgstr ""
 "yang baru.\n"
 "\n"
 
-#: ../clients/cli/general.c:350
+#: ../clients/cli/general.c:320
 #, c-format
 msgid ""
 "Usage: nmcli general permissions { help }\n"
@@ -3358,7 +3360,7 @@ msgstr ""
 "Menampilkan izin pemanggil untuk operasi terotentikasi.\n"
 "\n"
 
-#: ../clients/cli/general.c:358
+#: ../clients/cli/general.c:328
 #, c-format
 msgid ""
 "Usage: nmcli general reload { ARGUMENTS | help }\n"
@@ -3420,7 +3422,7 @@ msgstr ""
 "Tanpa flag, segala sesuatu yang didukung dimuat ulang, yang identik dengan\n"
 "mengirimkan SIGHUP.\n"
 
-#: ../clients/cli/general.c:390
+#: ../clients/cli/general.c:360
 #, c-format
 msgid ""
 "Usage: nmcli general logging { ARGUMENTS | help }\n"
@@ -3446,7 +3448,7 @@ msgstr ""
 "domain. Harap lihat halaman man untuk daftar domain log yang mungkin.\n"
 "\n"
 
-#: ../clients/cli/general.c:403
+#: ../clients/cli/general.c:373
 #, c-format
 msgid ""
 "Usage: nmcli networking { COMMAND | help }\n"
@@ -3471,7 +3473,7 @@ msgstr ""
 "  connectivity [check]\n"
 "\n"
 
-#: ../clients/cli/general.c:413
+#: ../clients/cli/general.c:383
 #, c-format
 msgid ""
 "Usage: nmcli networking on { help }\n"
@@ -3484,7 +3486,7 @@ msgstr ""
 "Menyalakan jejaring.\n"
 "\n"
 
-#: ../clients/cli/general.c:421
+#: ../clients/cli/general.c:391
 #, c-format
 msgid ""
 "Usage: nmcli networking off { help }\n"
@@ -3497,7 +3499,7 @@ msgstr ""
 "Mematikan jejaring.\n"
 "\n"
 
-#: ../clients/cli/general.c:429
+#: ../clients/cli/general.c:399
 #, c-format
 msgid ""
 "Usage: nmcli networking connectivity { ARGUMENTS | help }\n"
@@ -3518,7 +3520,7 @@ msgstr ""
 "konektivitas.\n"
 "\n"
 
-#: ../clients/cli/general.c:441
+#: ../clients/cli/general.c:411
 #, c-format
 msgid ""
 "Usage: nmcli radio { COMMAND | help }\n"
@@ -3535,7 +3537,7 @@ msgstr ""
 "  all | wifi | wwan [ on | off ]\n"
 "\n"
 
-#: ../clients/cli/general.c:450
+#: ../clients/cli/general.c:420
 #, c-format
 msgid ""
 "Usage: nmcli radio all { ARGUMENTS | help }\n"
@@ -3552,7 +3554,7 @@ msgstr ""
 "Mendapatkan status semua saklar radio, atau menyalakan/mematikan mereka.\n"
 "\n"
 
-#: ../clients/cli/general.c:460
+#: ../clients/cli/general.c:430
 #, c-format
 msgid ""
 "Usage: nmcli radio wifi { ARGUMENTS | help }\n"
@@ -3569,7 +3571,7 @@ msgstr ""
 "Mendapatkan status saklar radio Wi-Fi, atau menyalakan/mematikannya.\n"
 "\n"
 
-#: ../clients/cli/general.c:470
+#: ../clients/cli/general.c:440
 #, c-format
 msgid ""
 "Usage: nmcli radio wwan { ARGUMENTS | help }\n"
@@ -3588,7 +3590,7 @@ msgstr ""
 "\n"
 "\n"
 
-#: ../clients/cli/general.c:480
+#: ../clients/cli/general.c:450
 #, c-format
 msgid ""
 "Usage: nmcli monitor\n"
@@ -3604,220 +3606,225 @@ msgstr ""
 "NetworkManager.\n"
 "\n"
 
-#: ../clients/cli/general.c:510
+#: ../clients/cli/general.c:480
 msgid "NetworkManager status"
 msgstr "Status NetworkManager"
 
-#: ../clients/cli/general.c:514
+#: ../clients/cli/general.c:484
 #, c-format
 msgid "Error: only these fields are allowed: %s"
 msgstr "Galat: hanya ruas-ruas ini yang diizinkan: %s"
 
-#: ../clients/cli/general.c:567
+#. NetworkManager quit while we were waiting.
+#: ../clients/cli/general.c:541 ../clients/tui/nmtui.c:246
+#, c-format
+msgid "NetworkManager is not running."
+msgstr "NetworkManager tidak sedang berjalan."
+
+#: ../clients/cli/general.c:561
 msgid "NetworkManager permissions"
 msgstr "Ijin NetworkManager"
 
-#: ../clients/cli/general.c:571
+#: ../clients/cli/general.c:565
 #, c-format
 msgid "Error: 'general permissions': %s"
 msgstr "Galat: 'general permissions': %s"
 
-#: ../clients/cli/general.c:664
+#: ../clients/cli/general.c:642
 #, c-format
 msgid "Error: invalid reload flag '%s'. Allowed flags are: %s"
 msgstr ""
 "Galat: flag muat ulang '%s' tidak valid. Flag yang diizinkan adalah: %s"
 
-#: ../clients/cli/general.c:674
+#: ../clients/cli/general.c:652
 #, c-format
 msgid "Error: extra argument '%s'"
 msgstr "Galat: argumen ekstra '%s'"
 
-#: ../clients/cli/general.c:688
+#: ../clients/cli/general.c:666
 #, c-format
 msgid "Error: failed to reload: %s"
 msgstr "Galat: gagal memuat ulang: %s"
 
-#: ../clients/cli/general.c:727
+#: ../clients/cli/general.c:705
 msgid "NetworkManager logging"
 msgstr "Pencatatan log NetworkManager"
 
-#: ../clients/cli/general.c:731
+#: ../clients/cli/general.c:709
 #, c-format
 msgid "Error: 'general logging': %s"
 msgstr "Galat: 'general logging': %s"
 
-#: ../clients/cli/general.c:813
+#: ../clients/cli/general.c:791
 #, c-format
 msgid "Error: failed to set logging: %s"
 msgstr "Galat: gagal menata pencatatan log: %s"
 
-#: ../clients/cli/general.c:830
+#: ../clients/cli/general.c:808
 #, c-format
 msgid "Error: failed to set hostname: %s"
 msgstr "Galat: gagal menata nama host: %s"
 
-#: ../clients/cli/general.c:900
+#: ../clients/cli/general.c:878
 #, c-format
 msgid "Error: '--fields' value '%s' is not valid here (allowed field: %s)"
 msgstr ""
 "Galat: nilai '--fields' '%s' tidak valid disini (ruas yang diizinkan: %s)"
 
-#: ../clients/cli/general.c:925
+#: ../clients/cli/general.c:903
 #, c-format
 msgid "Error: invalid '%s' argument: '%s' (use on/off)."
 msgstr "Galat: argumen '%s' tidak valid: '%s' (gunakan on/off)."
 
 #. no arguments -> get current state
-#: ../clients/cli/general.c:973 ../clients/cli/general.c:985
+#: ../clients/cli/general.c:951 ../clients/cli/general.c:963
 msgid "Connectivity"
 msgstr "Konektivitas"
 
-#: ../clients/cli/general.c:988
+#: ../clients/cli/general.c:966
 #, c-format
 msgid "Error: 'networking' command '%s' is not valid."
 msgstr "Galat: 'networking' perintah '%s' tidak valid."
 
-#: ../clients/cli/general.c:1002
+#: ../clients/cli/general.c:980
 msgid "Networking"
 msgstr "Jejaring"
 
 #. no argument, show all radio switches
-#: ../clients/cli/general.c:1037
+#: ../clients/cli/general.c:1015
 msgid "Radio switches"
 msgstr "Saklar radio"
 
 #. no argument, show current Wi-Fi state
-#: ../clients/cli/general.c:1067
+#: ../clients/cli/general.c:1045
 msgid "Wi-Fi radio switch"
 msgstr "Saklar radio Wi-Fi"
 
 #. no argument, show current WWAN (mobile broadband) state
-#: ../clients/cli/general.c:1094
+#: ../clients/cli/general.c:1072
 msgid "WWAN radio switch"
 msgstr "Saklar radio WWAN"
 
-#: ../clients/cli/general.c:1142
+#: ../clients/cli/general.c:1120
 msgid "NetworkManager has started"
 msgstr "NetworkManager telah dimulai"
 
-#: ../clients/cli/general.c:1142
+#: ../clients/cli/general.c:1120
 msgid "NetworkManager has stopped"
 msgstr "NetworkManager telah dihentikan"
 
-#: ../clients/cli/general.c:1153
+#: ../clients/cli/general.c:1131
 #, c-format
 msgid "Hostname set to '%s'\n"
 msgstr "Nama host diatur menjadi '%s'\n"
 
-#: ../clients/cli/general.c:1168
+#: ../clients/cli/general.c:1146
 #, c-format
 msgid "'%s' is now the primary connection\n"
 msgstr "'%s' kini adalah koneksi primer\n"
 
-#: ../clients/cli/general.c:1170
+#: ../clients/cli/general.c:1148
 #, c-format
 msgid "There's no primary connection\n"
 msgstr "Tidak ada koneksi primer\n"
 
-#: ../clients/cli/general.c:1182
+#: ../clients/cli/general.c:1160
 #, c-format
 msgid "Connectivity is now '%s'\n"
 msgstr "Konektivitas sekarang '%s'\n"
 
-#: ../clients/cli/general.c:1196
+#: ../clients/cli/general.c:1174
 #, c-format
 msgid "Networkmanager is now in the '%s' state\n"
 msgstr "NetworkManager sekarang dalam keadaan '%s'\n"
 
-#: ../clients/cli/general.c:1216
+#: ../clients/cli/general.c:1194
 msgid "connection available"
 msgstr "koneksi tersedia"
 
-#: ../clients/cli/general.c:1218
+#: ../clients/cli/general.c:1196
 msgid "connections available"
 msgstr "koneksi tersedia"
 
-#: ../clients/cli/general.c:1236
+#: ../clients/cli/general.c:1214
 msgid "autoconnect"
 msgstr "sambung otomatis"
 
-#: ../clients/cli/general.c:1238
+#: ../clients/cli/general.c:1216
 msgid "fw missing"
 msgstr "fw hilang"
 
-#: ../clients/cli/general.c:1243
+#: ../clients/cli/general.c:1221
 msgid "plugin missing"
 msgstr "plugin hilang"
 
-#: ../clients/cli/general.c:1253 ../clients/cli/general.c:1267
+#: ../clients/cli/general.c:1231 ../clients/cli/general.c:1245
 msgid "sw disabled"
 msgstr "sw dinonaktifkan"
 
-#: ../clients/cli/general.c:1258 ../clients/cli/general.c:1272
+#: ../clients/cli/general.c:1236 ../clients/cli/general.c:1250
 msgid "hw disabled"
 msgstr "hw dinonaktifkan"
 
-#: ../clients/cli/general.c:1283
+#: ../clients/cli/general.c:1261
 msgid "sw"
 msgstr "sw"
 
-#: ../clients/cli/general.c:1285
+#: ../clients/cli/general.c:1263
 msgid "hw"
 msgstr "hw"
 
-#: ../clients/cli/general.c:1290
+#: ../clients/cli/general.c:1268
 msgid "iface"
 msgstr "iface"
 
-#: ../clients/cli/general.c:1293
+#: ../clients/cli/general.c:1271
 msgid "port"
 msgstr "port"
 
-#: ../clients/cli/general.c:1296
+#: ../clients/cli/general.c:1274
 msgid "mtu"
 msgstr "mtu"
 
-#: ../clients/cli/general.c:1313
+#: ../clients/cli/general.c:1291
 msgid "master"
 msgstr "master"
 
-#: ../clients/cli/general.c:1317 ../clients/tui/nm-editor-utils.c:235
+#: ../clients/cli/general.c:1295 ../clients/tui/nm-editor-utils.c:235
 #: ../clients/tui/nmt-connect-connection-list.c:394
 msgid "VPN"
 msgstr "VPN"
 
-#: ../clients/cli/general.c:1319
+#: ../clients/cli/general.c:1297
 msgid "ip4 default"
 msgstr "baku ipv4"
 
-#: ../clients/cli/general.c:1321
+#: ../clients/cli/general.c:1299
 msgid "ip6 default"
 msgstr "baku ipv6"
 
-#: ../clients/cli/general.c:1403
+#: ../clients/cli/general.c:1381
 #, c-format
 msgid "%s VPN connection"
 msgstr "Koneksi VPN %s"
 
 #. TRANSLATORS: prints header line for activated device in plain `nmcli` overview output as
 #. * "<interface-name>: <device-state> to <connection-id>"
-#: ../clients/cli/general.c:1423
+#: ../clients/cli/general.c:1401
 #, c-format
 msgctxt "nmcli-overview"
 msgid "%s: %s to %s"
-msgstr "%s: %s sampai %s"
+msgstr "%s: %s ke %s"
 
 #. TRANSLATORS: prints header line for not active device in plain `nmcli` overview output as
 #. * "<interface-name>: <device-state>"
-#: ../clients/cli/general.c:1430
+#: ../clients/cli/general.c:1408
 #, c-format
-#| msgid "Error: %s: %s."
 msgctxt "nmcli-overview"
 msgid "%s: %s"
 msgstr "%s: %s"
 
-#: ../clients/cli/general.c:1480
+#: ../clients/cli/general.c:1458
 #, c-format
 msgid ""
 "Use \"nmcli device show\" to get complete information about known devices "
@@ -3836,12 +3843,12 @@ msgstr ""
 "Lihatlah halaman manual nmcli(1) dan nmcli-examples(7) untuk rincian "
 "penggunaan lengkap.\n"
 
-#: ../clients/cli/general.c:1501
+#: ../clients/cli/general.c:1479
 #, c-format
 msgid "Error: 'monitor' command '%s' is not valid."
 msgstr "Galat: 'monitor' perintah '%s' tidak valid."
 
-#: ../clients/cli/general.c:1513
+#: ../clients/cli/general.c:1491
 msgid "Networkmanager is not running (waiting for it)\n"
 msgstr "NetworkManager tidak sedang berjalan (sedang menunggunya).\n"
 
@@ -3990,17 +3997,12 @@ msgstr "Galat: nmcli diakhiri oleh sinyal %s (%d)"
 msgid "Success"
 msgstr "Sukses"
 
-#: ../clients/cli/polkit-agent.c:54
+#: ../clients/cli/polkit-agent.c:41
 #, c-format
-msgid "Authentication message: %s\n"
-msgstr "Pesan otentikasi: %s\n"
+msgid "Error: polkit agent failed: %s\n"
+msgstr "Galat: agen polkit gagal: %s\n"
 
-#: ../clients/cli/polkit-agent.c:62
-#, c-format
-msgid "Authentication error: %s\n"
-msgstr "Galat otentikasi: %s\n"
-
-#: ../clients/cli/polkit-agent.c:122
+#: ../clients/cli/polkit-agent.c:99
 #, c-format
 msgid "Warning: polkit agent initialization failed: %s\n"
 msgstr "Peringatan: inisialisasi agen polkit gagal: %s\n"
@@ -4947,8 +4949,8 @@ msgstr "'%ld' bukan kanal yang valid"
 #: ../clients/common/nm-meta-setting-desc.c:4001
 #: ../libnm-core/nm-setting-sriov.c:438 ../libnm-core/nm-setting-wired.c:758
 #: ../libnm-core/nm-setting-wired.c:771 ../libnm-core/nm-setting-wired.c:824
-#: ../libnm-core/nm-setting-wired.c:867 ../libnm-core/nm-setting-wireless.c:876
-#: ../libnm-core/nm-setting-wireless.c:892
+#: ../libnm-core/nm-setting-wired.c:867 ../libnm-core/nm-setting-wireless.c:881
+#: ../libnm-core/nm-setting-wireless.c:897
 #, c-format
 msgid "'%s' is not a valid MAC address"
 msgstr "'%s' bukan alamat MAC yang valid"
@@ -5184,7 +5186,7 @@ msgstr ""
 #: ../clients/common/nm-meta-setting-desc.c:4769
 #: ../clients/common/nm-secret-agent-simple.c:268
 #: ../clients/common/nm-secret-agent-simple.c:356
-#: ../clients/tui/nmt-page-dsl.c:53 ../clients/tui/nmt-page-wifi.c:321
+#: ../clients/tui/nmt-page-dsl.c:53 ../clients/tui/nmt-page-wifi.c:322
 msgid "Username"
 msgstr "Nama Pengguna"
 
@@ -5512,7 +5514,7 @@ msgstr "Tap [tidak]"
 
 #: ../clients/common/nm-meta-setting-desc.c:6126
 #: ../clients/common/nm-meta-setting-desc.c:7198
-#: ../clients/tui/nmt-page-wifi.c:212
+#: ../clients/tui/nmt-page-wifi.c:213
 msgid "SSID"
 msgstr "SSID"
 
@@ -5816,7 +5818,7 @@ msgstr "Setelan Pengguna"
 msgid "VLAN connection"
 msgstr "Koneksi VLAN"
 
-#: ../clients/common/nm-meta-setting-desc.c:7700 ../src/nm-manager.c:5652
+#: ../clients/common/nm-meta-setting-desc.c:7700 ../src/nm-manager.c:5654
 msgid "VPN connection"
 msgstr "Koneksi VPN"
 
@@ -5857,9 +5859,15 @@ msgstr "Pengaturan WPAN"
 msgid "name"
 msgstr "nama"
 
-#: ../clients/common/nm-polkit-listener.c:225
-msgid "An authentication session is already underway."
-msgstr "Suatu sesi otentikasi tengah berlangsung."
+#: ../clients/common/nm-polkit-listener.c:347
+#, c-format
+msgid "Could not find any session id for uid %d"
+msgstr "Tidak bisa menemukan id sesi apapun bagi uid %d"
+
+#: ../clients/common/nm-polkit-listener.c:349
+#, c-format
+msgid "Could not retrieve session id: %s"
+msgstr "Tidak bisa mengambil id sesi: %s"
 
 #: ../clients/common/nm-secret-agent-simple.c:217
 #, c-format
@@ -5875,7 +5883,7 @@ msgid "Private key password"
 msgstr "Sandi kunci privat"
 
 #: ../clients/common/nm-secret-agent-simple.c:323
-#: ../clients/tui/nmt-page-wifi.c:278
+#: ../clients/tui/nmt-page-wifi.c:279
 msgid "Key"
 msgstr "Kunci"
 
@@ -6414,14 +6422,15 @@ msgstr ""
 #: ../clients/common/settings-docs.h.in:27
 msgid ""
 "Key management used for the connection.  One of \"none\" (WEP), \"ieee8021x"
-"\" (Dynamic WEP), \"wpa-psk\" (infrastructure WPA-PSK), \"sae\" (SAE) or "
-"\"wpa-eap\" (WPA-Enterprise).  This property must be set for any Wi-Fi "
-"connection that uses security."
+"\" (Dynamic WEP), \"wpa-psk\" (infrastructure WPA-PSK), \"sae\" (SAE), \"owe"
+"\" (Opportunistic Wireless Encryption) or \"wpa-eap\" (WPA-Enterprise).  "
+"This property must be set for any Wi-Fi connection that uses security."
 msgstr ""
-"Manajemen kunci yang dipakai untuk koneksi.  Salah satu dari \"none\" (WEP), "
-"\"ieee8021x\" (WEP dinamis), \"wpa-psk\" (WPA-PSK infrastruktur), "
-"“sae” (SAE), atau \"wpa-eap\" (WPA-Enterprise).  Properti ini harus diatur "
-"bagi sebarang koneksi Wi-Fi yang memakai keamanan."
+"Manajemen kunci yang digunakan untuk koneksi.  Salah satu dari “none"
+"\" (WEP), \"ieee8021x\" (Dynamic WEP), \"WPA-PSK\" (WPA-PSK infrastruktur), "
+"“sae\" (SAE), “owe” (Opportunistic Wireless Encryption), atau “wpa-eap” (WPA-"
+"Enterprise).  Properti ini harus disetel untuk koneksi Wi-Fi yang "
+"menggunakan keamanan."
 
 #: ../clients/common/settings-docs.h.in:28
 msgid ""
@@ -7104,13 +7113,13 @@ msgstr ""
 "dengan skema path, properti ini mesti ditata ke path lengkap terenkode UTF-8 "
 "dari sertifikat, diawali dengan string \"file://\" dan diakhiri dengan byte "
 "NUL. Ketika memakai kunci privat berformat PKCS#12 dan skema blob, properti "
-"ini mesti ditata ke data PKCS#12 dan properti \"phase2-private-key-password"
-"\" mesti ditata ke kata sandi yang dipakai untuk mendekripsi kunci dan "
-"sertifikat PKCS#12. Ketika memakai berkas PKCS#12 dan skema path, properti "
-"ini mesti ditata ke path lengkap terenkode UTF-8 dari kunci, diawali dengan "
-"string \"file://\" dan diakhiri dengan byte NUL, dan seperti dengan skema "
-"blob properti \"phase2-private-key-password\" mesti ditata ke kata sandi "
-"yang dipakai untuk mendekripsi kunci dan sertifikat PKCS#12. PERINGATAN: "
+"ini mesti ditata ke data PKCS#12 dan properti \"private-key-password\" mesti "
+"ditata ke kata sandi yang dipakai untuk mendekripsi kunci dan sertifikat "
+"PKCS#12. Ketika memakai berkas PKCS#12 dan skema path, properti ini mesti "
+"ditata ke path lengkap terenkode UTF-8 dari kunci, diawali dengan string "
+"\"file://\" dan diakhiri dengan byte NUL, dan seperti dengan skema blob "
+"properti \"phase2-private-key-password\" mesti ditata ke kata sandi yang "
+"dipakai untuk mendekripsi kunci dan sertifikat PKCS#12. PERINGATAN: "
 "\"private-key\" bukanlah suatu properti yang \"rahasia\", sehingga data "
 "kunci privat yang tak terenkripsi saat memakai skema BLOB mungkin dapat "
 "dibaca oleh pengguna biasa. Kunci privat mesti selalu dienkripsi memakai "
@@ -7717,21 +7726,23 @@ msgid ""
 "Whether Link-Local Multicast Name Resolution (LLMNR) is enabled for the "
 "connection. LLMNR is a protocol based on the Domain Name System (DNS) packet "
 "format that allows both IPv4 and IPv6 hosts to perform name resolution for "
-"hosts on the same local link. The permitted values are: yes: register "
-"hostname and resolving for the connection, no: disable LLMNR for the "
-"interface, resolve: do not register hostname but allow resolving of LLMNR "
-"host names. This feature requires a plugin which supports LLMNR. One such "
-"plugin is dns-systemd-resolved."
+"hosts on the same local link. The permitted values are: \"yes\" (2) register "
+"hostname and resolving for the connection, \"no\" (0) disable LLMNR for the "
+"interface, \"resolve\" (1) do not register hostname but allow resolving of "
+"LLMNR host names If unspecified, \"default\" ultimately depends on the DNS "
+"plugin (which for systemd-resolved currently means \"yes\"). This feature "
+"requires a plugin which supports LLMNR. Otherwise the setting has no effect. "
+"One such plugin is dns-systemd-resolved."
 msgstr ""
 "Apakah Link-Local Multicast Name Resolution (LLMNR) difungsikan untuk "
-"koneksi. LLMNR adalah sebuah protokol yang berbasis pada format paket Domain "
-"Name System (DNS) yang mengizinkan host IPv4 dan IPv6 melakukan resolusi "
-"nama untuk host pada link lokal yang sama. Nilai-nilai yang diizinkan "
-"adalah: yes: mendaftarkan nama host dan mengurai untuk koneksi, no: "
-"menonaktifkan LLMNR bagi antarmuka, resolve: jangan mendaftarkan nama host "
-"tapi izinkan mengurai nama-nama host LLMNR. Fitur ini memerlukan pengaya "
-"yang mendukung LLMNR. Salah satu pengaya seperti itu adalah dns-systemd-"
-"resolved."
+"koneksi. LLMNR adalah protokol yang berbasis format paket Domain Name System "
+"(DNS) yang memungkinkan host IPv4 dan IPv6 melakukan resolusi nama untuk "
+"host di link lokal yang sama. Nilai-nilai yang diizinkan adalah: \"yes\" (2) "
+"mendaftarkan nama host dan mengurai untuk koneksi, \"no\" (0) menonaktifkan "
+"LLMNR bagi antarmuka, \"resolve\" (1) jangan mendaftarkan nama host tapi "
+"izinkan mengurai nama-nama host LLMNR. Fitur ini memerlukan pengaya yang "
+"mendukung LLMNR. Bila tidak, pengaturan bakal tidak berdampak. Salah satu "
+"pengaya seperti itu adalah dns-systemd-resolved."
 
 #: ../clients/common/settings-docs.h.in:144
 msgid "Interface name of the master device or UUID of the master connection."
@@ -7739,17 +7750,24 @@ msgstr "Nama antar muka dari peranti induk atau UUID dari koneksi induk."
 
 #: ../clients/common/settings-docs.h.in:145
 msgid ""
-"Whether mDNS is enabled for the connection. The permitted values are: yes: "
-"register hostname and resolving for the connection, no: disable mDNS for the "
-"interface, resolve: do not register hostname but allow resolving of mDNS "
-"host names. This feature requires a plugin which supports mDNS. One such "
-"plugin is dns-systemd-resolved."
+"Whether mDNS is enabled for the connection. The permitted values are: \"yes"
+"\" (2) register hostname and resolving for the connection, \"no\" (0) "
+"disable mDNS for the interface, \"resolve\" (1) do not register hostname but "
+"allow resolving of mDNS host names and \"default\" (-1) to allow lookup of a "
+"global default in NetworkManager.conf. If unspecified, \"default\" "
+"ultimately depends on the DNS plugin (which for systemd-resolved currently "
+"means \"no\"). This feature requires a plugin which supports mDNS. Otherwise "
+"the setting has no effect. One such plugin is dns-systemd-resolved."
 msgstr ""
 "Apakah mDNS difungsikan untuk koneksi. Nilai-nilai yang diizinkan adalah: "
-"yes: mendaftarkan nama host dan mengurai untuk koneksi, no: menonaktifkan "
-"mDNS bagi antarmuka, resolve: jangan mendaftarkan nama host tapi izinkan "
-"mengurai nama-nama host mDNS. Fitur ini memerlukan pengaya yang mendukung "
-"mDNS. Salah satu pengaya seperti itu adalah dns-systemd-resolved."
+"\"yes\" (2) mendaftarkan nama host dan mengurai untuk koneksi, \"no\" (0) "
+"menonaktifkan mDNS bagi antarmuka, \"resolve\" (1) jangan mendaftarkan nama "
+"host tapi izinkan mengurai nama-nama host mDNS, dan \"default\" (-1) untuk "
+"mengizinkan melihat suatu baku global dalam NetworkManager.conf. Bila tidak "
+"dinyatakan, \"default\" pada akhirnya bergantung kepada pengaya DNS (yang "
+"untuk systemd-resolved saat ini berarti \"no\"). Fitur ini memerlukan "
+"pengaya yang mendukung mDNS. Bila tidak maka pengaturan tidak berdampak. "
+"Salah satu pengaya seperti itu adalah dns-systemd-resolved."
 
 #: ../clients/common/settings-docs.h.in:146
 msgid ""
@@ -9933,48 +9951,48 @@ msgid "Short IEEE 802.15.4 address to be used within a restricted environment."
 msgstr ""
 "Alamat 802.15.4 IEEE pendek yang akan digunakan dalam lingkungan terbatas."
 
-#: ../clients/nm-online.c:75
+#: ../clients/nm-online.c:77
 msgid "Connecting"
 msgstr "Menyambung"
 
-#: ../clients/nm-online.c:191
+#: ../clients/nm-online.c:193
 #, c-format
 msgid "Error: timeout creating NMClient object\n"
 msgstr "Galat: habis waktu saat membuat objek NMClient\n"
 
-#: ../clients/nm-online.c:211
+#: ../clients/nm-online.c:216
 #, c-format
 msgid "Error: Could not create NMClient object: %s\n"
 msgstr "Galat: Tidak bisa membuat objek NMClient: %s\n"
 
-#: ../clients/nm-online.c:237
+#: ../clients/nm-online.c:240
 msgid "Don't print anything"
 msgstr "Jangan cetak apapun"
 
-#: ../clients/nm-online.c:238
+#: ../clients/nm-online.c:241
 msgid "Wait for NetworkManager startup instead of a connection"
 msgstr "Menunggu awal mula NetworkManager sebagai ganti suatu koneksi"
 
-#: ../clients/nm-online.c:239
+#: ../clients/nm-online.c:242
 msgid ""
 "Time to wait for a connection, in seconds (without the option, default value "
 "is 30)"
 msgstr ""
 "Lama waktu tunggu koneksi, dalam detik (tanpa opsi ini, nilai baku adalah 30)"
 
-#: ../clients/nm-online.c:240
+#: ../clients/nm-online.c:243
 msgid "Exit immediately if NetworkManager is not running or connecting"
 msgstr ""
 "Keluar seketika bila NetworkManager tidak sedang berjalan atau menyambung"
 
-#: ../clients/nm-online.c:260
+#: ../clients/nm-online.c:263
 msgid ""
 "Waits for NetworkManager to finish activating startup network connections."
 msgstr ""
 "Menunggu NetworkManager menyelesaikan mengaktifkan koneksi jaringan awal "
 "mula."
 
-#: ../clients/nm-online.c:267 ../clients/nm-online.c:273
+#: ../clients/nm-online.c:270 ../clients/nm-online.c:276
 msgid "Invalid option.  Please use --help to see a list of valid options."
 msgstr ""
 "Opsi tak valid.  Silakan pakai --help untuk melihat daftar opsi yang valid."
@@ -9982,7 +10000,7 @@ msgstr ""
 #: ../clients/tui/newt/nmt-newt-utils.c:163 ../clients/tui/nmt-editor.c:420
 #: ../clients/tui/nmt-password-dialog.c:161
 #: ../clients/tui/nmt-route-editor.c:109 ../clients/tui/nmtui-hostname.c:56
-#: ../clients/tui/nmtui.c:121
+#: ../clients/tui/nmtui.c:123
 msgid "OK"
 msgstr "OK"
 
@@ -10020,7 +10038,7 @@ msgstr "Wi-Fi"
 msgid "Wi-Fi connection %d"
 msgstr "Koneksi Wi-Fi %d"
 
-#: ../clients/tui/nm-editor-utils.c:157 ../libnm-core/nm-connection.c:2752
+#: ../clients/tui/nm-editor-utils.c:157 ../libnm-core/nm-connection.c:2746
 #: ../libnm/nm-device.c:1473
 msgid "InfiniBand"
 msgstr "InfiniBand"
@@ -10048,9 +10066,9 @@ msgstr "DSL"
 msgid "DSL connection %d"
 msgstr "Koneksi DSL %d"
 
-#: ../clients/tui/nm-editor-utils.c:184 ../libnm-core/nm-connection.c:2744
+#: ../clients/tui/nm-editor-utils.c:184 ../libnm-core/nm-connection.c:2738
 #: ../libnm/nm-device.c:1475
-#: ../src/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:4959
+#: ../src/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:4964
 msgid "Bond"
 msgstr "Bond"
 
@@ -10059,9 +10077,9 @@ msgstr "Bond"
 msgid "Bond connection %d"
 msgstr "Sambungan bond %d"
 
-#: ../clients/tui/nm-editor-utils.c:193 ../libnm-core/nm-connection.c:2748
+#: ../clients/tui/nm-editor-utils.c:193 ../libnm-core/nm-connection.c:2742
 #: ../libnm/nm-device.c:1479
-#: ../src/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:5314
+#: ../src/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:5319
 msgid "Bridge"
 msgstr "Bridge"
 
@@ -10070,9 +10088,9 @@ msgstr "Bridge"
 msgid "Bridge connection %d"
 msgstr "Koneksi bridge %d"
 
-#: ../clients/tui/nm-editor-utils.c:202 ../libnm-core/nm-connection.c:2746
+#: ../clients/tui/nm-editor-utils.c:202 ../libnm-core/nm-connection.c:2740
 #: ../libnm/nm-device.c:1477
-#: ../src/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:5032
+#: ../src/settings/plugins/ifcfg-rh/nms-ifcfg-rh-reader.c:5037
 msgid "Team"
 msgstr "Team"
 
@@ -10082,7 +10100,7 @@ msgid "Team connection %d"
 msgstr "Koneksi team %d"
 
 #: ../clients/tui/nm-editor-utils.c:211 ../clients/tui/nmt-page-vlan.c:69
-#: ../libnm-core/nm-connection.c:2750 ../libnm/nm-device.c:1481
+#: ../libnm-core/nm-connection.c:2744 ../libnm/nm-device.c:1481
 msgid "VLAN"
 msgstr "VLAN"
 
@@ -10237,7 +10255,7 @@ msgid "Slaves"
 msgstr "Slave"
 
 #: ../clients/tui/nmt-page-bond.c:365 ../clients/tui/nmt-page-ip-tunnel.c:135
-#: ../clients/tui/nmt-page-wifi.c:218
+#: ../clients/tui/nmt-page-wifi.c:219
 msgid "Mode"
 msgstr "Mode"
 
@@ -10272,7 +10290,7 @@ msgid "ARP targets"
 msgstr "Target ARP"
 
 #: ../clients/tui/nmt-page-bond.c:418 ../clients/tui/nmt-page-ethernet.c:64
-#: ../clients/tui/nmt-page-vlan.c:97 ../clients/tui/nmt-page-wifi.c:353
+#: ../clients/tui/nmt-page-vlan.c:97 ../clients/tui/nmt-page-wifi.c:354
 msgid "Cloned MAC address"
 msgstr "Alamat MAC klon"
 
@@ -10337,7 +10355,7 @@ msgstr "ETHERNET"
 #: ../clients/tui/nmt-page-ethernet.c:70
 #: ../clients/tui/nmt-page-infiniband.c:81
 #: ../clients/tui/nmt-page-ip-tunnel.c:173 ../clients/tui/nmt-page-vlan.c:103
-#: ../clients/tui/nmt-page-wifi.c:359
+#: ../clients/tui/nmt-page-wifi.c:360
 msgid "MTU"
 msgstr "MTU"
 
@@ -10567,7 +10585,7 @@ msgstr "TEAM"
 
 #: ../clients/tui/nmt-page-vlan.c:89
 msgid "VLAN id"
-msgstr "id VLAN"
+msgstr "Id VLAN"
 
 #: ../clients/tui/nmt-page-wifi.c:51
 msgctxt "Wi-Fi"
@@ -10630,63 +10648,67 @@ msgstr "Dynamic WEP (802.1x)"
 msgid "LEAP"
 msgstr "LEAP"
 
-#: ../clients/tui/nmt-page-wifi.c:79
+#: ../clients/tui/nmt-page-wifi.c:75
+msgid "Enhanced Open (OWE)"
+msgstr "Enhanced Open (OWE)"
+
+#: ../clients/tui/nmt-page-wifi.c:80
 msgctxt "WEP key index"
 msgid "1 (Default)"
 msgstr "1 (Baku)"
 
-#: ../clients/tui/nmt-page-wifi.c:80
+#: ../clients/tui/nmt-page-wifi.c:81
 msgctxt "WEP key index"
 msgid "2"
 msgstr "2"
 
-#: ../clients/tui/nmt-page-wifi.c:81
+#: ../clients/tui/nmt-page-wifi.c:82
 msgctxt "WEP key index"
 msgid "3"
 msgstr "3"
 
-#: ../clients/tui/nmt-page-wifi.c:82
+#: ../clients/tui/nmt-page-wifi.c:83
 msgctxt "WEP key index"
 msgid "4"
 msgstr "4"
 
-#: ../clients/tui/nmt-page-wifi.c:87
+#: ../clients/tui/nmt-page-wifi.c:88
 msgid "Open System"
 msgstr "Sistem Terbuka"
 
-#: ../clients/tui/nmt-page-wifi.c:88
+#: ../clients/tui/nmt-page-wifi.c:89
 msgid "Shared Key"
 msgstr "Kunci Bersama"
 
-#: ../clients/tui/nmt-page-wifi.c:202
+#: ../clients/tui/nmt-page-wifi.c:203
 msgid "WI-FI"
 msgstr "WI-FI"
 
-#: ../clients/tui/nmt-page-wifi.c:244
+#: ../clients/tui/nmt-page-wifi.c:245
 msgid "Channel"
 msgstr "Kanal"
 
 #. "wpa-enterprise"
 #. FIXME
-#: ../clients/tui/nmt-page-wifi.c:271
+#: ../clients/tui/nmt-page-wifi.c:272
 msgid "(No support for wpa-enterprise yet...)"
 msgstr "(Belum ada dukungan untuk wpa-enterprise...)"
 
-#: ../clients/tui/nmt-page-wifi.c:281 ../clients/tui/nmt-page-wifi.c:300
+#: ../clients/tui/nmt-page-wifi.c:282 ../clients/tui/nmt-page-wifi.c:301
 msgid "WEP index"
 msgstr "Indeks WEP"
 
-#: ../clients/tui/nmt-page-wifi.c:289 ../clients/tui/nmt-page-wifi.c:308
+#: ../clients/tui/nmt-page-wifi.c:290 ../clients/tui/nmt-page-wifi.c:309
 msgid "Authentication"
 msgstr "Otentikasi"
 
 #. "dynamic-wep"
 #. FIXME
-#: ../clients/tui/nmt-page-wifi.c:314
+#: ../clients/tui/nmt-page-wifi.c:315
 msgid "(No support for dynamic-wep yet...)"
 msgstr "(belum ada dukungan untuk dynamic-wep...)"
 
-#: ../clients/tui/nmt-page-wifi.c:347
+#: ../clients/tui/nmt-page-wifi.c:348
 msgid "BSSID"
 msgstr "BSSID"
 
@@ -10776,7 +10798,7 @@ msgid "Deactivate"
 msgstr "Nonaktifkan"
 
 #: ../clients/tui/nmtui-connect.c:432 ../clients/tui/nmtui-edit.c:105
-#: ../clients/tui/nmtui.c:115
+#: ../clients/tui/nmtui.c:117
 msgid "Quit"
 msgstr "Keluar"
 
@@ -10847,50 +10869,46 @@ msgstr "Atur nama host menjadi '%s'"
 msgid "Unable to set hostname: %s"
 msgstr "Tidak bisa menata nama host: %s"
 
-#: ../clients/tui/nmtui.c:38 ../clients/tui/nmtui.c:41
+#: ../clients/tui/nmtui.c:40 ../clients/tui/nmtui.c:43
 msgid "connection"
 msgstr "koneksi"
 
-#: ../clients/tui/nmtui.c:39
+#: ../clients/tui/nmtui.c:41
 msgid "Edit a connection"
 msgstr "Sunting suatu koneksi"
 
-#: ../clients/tui/nmtui.c:42
+#: ../clients/tui/nmtui.c:44
 msgid "Activate a connection"
 msgstr "Aktifkan suatu koneksi"
 
-#: ../clients/tui/nmtui.c:44
+#: ../clients/tui/nmtui.c:46
 msgid "new hostname"
 msgstr "nama host baru"
 
-#: ../clients/tui/nmtui.c:45
+#: ../clients/tui/nmtui.c:47
 msgid "Set system hostname"
 msgstr "Atur nama host sistem"
 
-#: ../clients/tui/nmtui.c:89
+#: ../clients/tui/nmtui.c:91
 msgid "NetworkManager TUI"
 msgstr "TUI NetworkManager"
 
-#: ../clients/tui/nmtui.c:97
+#: ../clients/tui/nmtui.c:99
 msgid "Please select an option"
 msgstr "Harap pilih sebuah opsi"
 
-#: ../clients/tui/nmtui.c:145
+#: ../clients/tui/nmtui.c:147
 msgid "Usage"
 msgstr "Cara pakai"
 
-#: ../clients/tui/nmtui.c:226
+#: ../clients/tui/nmtui.c:228
 msgid "Could not parse arguments"
 msgstr "Tidak dapat mengurai argumen"
 
-#: ../clients/tui/nmtui.c:236
+#: ../clients/tui/nmtui.c:241
 #, c-format
 msgid "Could not contact NetworkManager: %s.\n"
 msgstr "Tidak dapat menghubungi NetworkManager: %s.\n"
-
-#: ../clients/tui/nmtui.c:241
-msgid "NetworkManager is not running."
-msgstr "NetworkManager tidak sedang berjalan."
 
 #: ../libnm-core/nm-crypto.c:204
 #, c-format
@@ -11243,7 +11261,7 @@ msgstr "Kegagalan yang tidak disangka untuk verifikasi koneksi"
 msgid "unexpected uuid %s instead of %s"
 msgstr "uuid yang tidak diduga %s alih-alih %s"
 
-#: ../libnm-core/nm-connection.c:2609 ../libnm-core/nm-setting-8021x.c:2574
+#: ../libnm-core/nm-connection.c:2603 ../libnm-core/nm-setting-8021x.c:2574
 #: ../libnm-core/nm-setting-8021x.c:2591 ../libnm-core/nm-setting-8021x.c:2622
 #: ../libnm-core/nm-setting-8021x.c:2639 ../libnm-core/nm-setting-8021x.c:2681
 #: ../libnm-core/nm-setting-8021x.c:2693 ../libnm-core/nm-setting-8021x.c:2711
@@ -11261,12 +11279,12 @@ msgstr "uuid yang tidak diduga %s alih-alih %s"
 #: ../libnm-core/nm-setting-ovs-patch.c:77 ../libnm-core/nm-setting-pppoe.c:130
 #: ../libnm-core/nm-setting-vpn.c:516 ../libnm-core/nm-setting-vxlan.c:323
 #: ../libnm-core/nm-setting-wifi-p2p.c:122 ../libnm-core/nm-setting-wimax.c:94
-#: ../libnm-core/nm-setting-wireless-security.c:902
-#: ../libnm-core/nm-setting-wireless.c:759
+#: ../libnm-core/nm-setting-wireless-security.c:894
+#: ../libnm-core/nm-setting-wireless.c:764
 msgid "property is missing"
 msgstr "properti kurang"
 
-#: ../libnm-core/nm-connection.c:2755
+#: ../libnm-core/nm-connection.c:2749
 msgid "IP Tunnel"
 msgstr "Tunnel IP"
 
@@ -11387,7 +11405,7 @@ msgstr "sertifikat atau berkas kunci '%s' tidak ada"
 #: ../libnm-core/nm-keyfile.c:1456
 #, c-format
 msgid "invalid PKCS#11 URI \"%s\""
-msgstr "URI PKCS#11 \"%s\" tidak valid"
+msgstr "isi URI PKCS#11 \"%s\" tidak valid"
 
 #: ../libnm-core/nm-keyfile.c:1500
 msgid "invalid key/cert value data:;base64, is not base64"
@@ -11559,16 +11577,16 @@ msgstr ""
 #: ../libnm-core/nm-setting-cdma.c:135 ../libnm-core/nm-setting-cdma.c:144
 #: ../libnm-core/nm-setting-connection.c:961
 #: ../libnm-core/nm-setting-connection.c:1009
-#: ../libnm-core/nm-setting-gsm.c:289 ../libnm-core/nm-setting-gsm.c:347
-#: ../libnm-core/nm-setting-gsm.c:384 ../libnm-core/nm-setting-gsm.c:393
+#: ../libnm-core/nm-setting-gsm.c:283 ../libnm-core/nm-setting-gsm.c:341
+#: ../libnm-core/nm-setting-gsm.c:378 ../libnm-core/nm-setting-gsm.c:387
 #: ../libnm-core/nm-setting-ip-config.c:4953
 #: ../libnm-core/nm-setting-ip4-config.c:167
 #: ../libnm-core/nm-setting-ip4-config.c:174
 #: ../libnm-core/nm-setting-pppoe.c:137 ../libnm-core/nm-setting-pppoe.c:146
 #: ../libnm-core/nm-setting-vpn.c:525 ../libnm-core/nm-setting-vpn.c:535
 #: ../libnm-core/nm-setting-wimax.c:103
-#: ../libnm-core/nm-setting-wireless-security.c:945
-#: ../libnm-core/nm-setting-wireless-security.c:969
+#: ../libnm-core/nm-setting-wireless-security.c:937
+#: ../libnm-core/nm-setting-wireless-security.c:961
 #: ../libnm-core/nm-setting.c:1243
 msgid "property is empty"
 msgstr "properti kosong"
@@ -11584,26 +11602,26 @@ msgstr "hanya bisa difungsikan pada koneksi Ethernet"
 
 #: ../libnm-core/nm-setting-8021x.c:2849
 #: ../libnm-core/nm-setting-bluetooth.c:94
-#: ../libnm-core/nm-setting-infiniband.c:162
-#: ../libnm-core/nm-setting-infiniband.c:172
+#: ../libnm-core/nm-setting-infiniband.c:163
+#: ../libnm-core/nm-setting-infiniband.c:173
 #: ../libnm-core/nm-setting-ip4-config.c:158
 #: ../libnm-core/nm-setting-ip6-config.c:207
 #: ../libnm-core/nm-setting-ip6-config.c:218
 #: ../libnm-core/nm-setting-olpc-mesh.c:113
 #: ../libnm-core/nm-setting-wifi-p2p.c:131 ../libnm-core/nm-setting-wimax.c:112
 #: ../libnm-core/nm-setting-wired.c:785 ../libnm-core/nm-setting-wired.c:795
-#: ../libnm-core/nm-setting-wireless-security.c:988
-#: ../libnm-core/nm-setting-wireless-security.c:997
-#: ../libnm-core/nm-setting-wireless-security.c:1006
-#: ../libnm-core/nm-setting-wireless-security.c:1016
-#: ../libnm-core/nm-setting-wireless-security.c:1026
-#: ../libnm-core/nm-setting-wireless-security.c:1049
-#: ../libnm-core/nm-setting-wireless-security.c:1087
-#: ../libnm-core/nm-setting-wireless-security.c:1128
-#: ../libnm-core/nm-setting-wireless.c:830
-#: ../libnm-core/nm-setting-wireless.c:839
-#: ../libnm-core/nm-setting-wireless.c:850 ../libnm-core/nm-setting-wpan.c:162
-#: ../libnm-core/nm-utils.c:4566
+#: ../libnm-core/nm-setting-wireless-security.c:980
+#: ../libnm-core/nm-setting-wireless-security.c:989
+#: ../libnm-core/nm-setting-wireless-security.c:998
+#: ../libnm-core/nm-setting-wireless-security.c:1008
+#: ../libnm-core/nm-setting-wireless-security.c:1018
+#: ../libnm-core/nm-setting-wireless-security.c:1041
+#: ../libnm-core/nm-setting-wireless-security.c:1079
+#: ../libnm-core/nm-setting-wireless-security.c:1120
+#: ../libnm-core/nm-setting-wireless.c:835
+#: ../libnm-core/nm-setting-wireless.c:844
+#: ../libnm-core/nm-setting-wireless.c:855 ../libnm-core/nm-setting-wpan.c:162
+#: ../libnm-core/nm-utils.c:4577
 msgid "property is invalid"
 msgstr "properti tidak valid"
 
@@ -11611,7 +11629,7 @@ msgstr "properti tidak valid"
 #: ../libnm-core/nm-setting-8021x.c:2902 ../libnm-core/nm-setting-8021x.c:2929
 #: ../libnm-core/nm-setting-8021x.c:2944 ../libnm-core/nm-setting-adsl.c:177
 #: ../libnm-core/nm-setting-adsl.c:189 ../libnm-core/nm-setting-bluetooth.c:122
-#: ../libnm-core/nm-setting-wireless-security.c:923
+#: ../libnm-core/nm-setting-wireless-security.c:915
 #, c-format
 msgid "'%s' is not a valid value for the property"
 msgstr "'%s' bukan nilai yang valid bagi properti"
@@ -11727,16 +11745,16 @@ msgstr ""
 "Sebuah koneksi dengan pengaturan '%s' mesti memiliki tipe-slave ditata ke "
 "'%s'. Tapi saat ini itu '%s'"
 
-#: ../libnm-core/nm-setting-bridge.c:896
+#: ../libnm-core/nm-setting-bridge.c:905
 #, c-format
 msgid "value '%d' is out of range <%d-%d>"
 msgstr "nilai '%d' di luar rentang <%d-%d>"
 
-#: ../libnm-core/nm-setting-bridge.c:913
+#: ../libnm-core/nm-setting-bridge.c:922
 msgid "is not a valid MAC address"
 msgstr "bukan alamat MAC yang valid"
 
-#: ../libnm-core/nm-setting-bridge.c:954
+#: ../libnm-core/nm-setting-bridge.c:963
 msgid "the mask can't contain bits 0 (STP), 1 (MAC) or 2 (LACP)"
 msgstr "mask tidak boleh berisi bit 0 (STP), 1 (MAC), atau 2 (LACP)"
 
@@ -11818,31 +11836,31 @@ msgstr ""
 "Sebuah koneksi slave dengan '%s' ditata ke '%s' tidak boleh memiliki setelan "
 "'%s'"
 
-#: ../libnm-core/nm-setting-dcb.c:492
+#: ../libnm-core/nm-setting-dcb.c:486
 msgid "flags invalid"
 msgstr "flag tidak valid"
 
-#: ../libnm-core/nm-setting-dcb.c:501
+#: ../libnm-core/nm-setting-dcb.c:495
 msgid "flags invalid - disabled"
 msgstr "flag tidak valid - dimatikan"
 
-#: ../libnm-core/nm-setting-dcb.c:527 ../libnm-core/nm-setting-dcb.c:576
+#: ../libnm-core/nm-setting-dcb.c:521 ../libnm-core/nm-setting-dcb.c:570
 msgid "property invalid (not enabled)"
 msgstr "properti tidak valid (tidak difungsikan)"
 
-#: ../libnm-core/nm-setting-dcb.c:536
+#: ../libnm-core/nm-setting-dcb.c:530
 msgid "element invalid"
 msgstr "elemen tidak valid"
 
-#: ../libnm-core/nm-setting-dcb.c:551
+#: ../libnm-core/nm-setting-dcb.c:545
 msgid "sum not 100%"
 msgstr "jumlah tidak 100%"
 
-#: ../libnm-core/nm-setting-dcb.c:585 ../libnm-core/nm-setting-dcb.c:617
+#: ../libnm-core/nm-setting-dcb.c:579 ../libnm-core/nm-setting-dcb.c:611
 msgid "property invalid"
 msgstr "properti tidak valid"
 
-#: ../libnm-core/nm-setting-dcb.c:607
+#: ../libnm-core/nm-setting-dcb.c:601
 msgid "property missing"
 msgstr "properti kurang"
 
@@ -11859,47 +11877,47 @@ msgstr "fitur offload memiliki tipe varian yang tidak valid"
 msgid "unknown ethtool option '%s'"
 msgstr "opsi ethtool ‘%s’ tak dikenal"
 
-#: ../libnm-core/nm-setting-gsm.c:302
+#: ../libnm-core/nm-setting-gsm.c:296
 #, c-format
 msgid "property value '%s' is empty or too long (>64)"
 msgstr "nilai properti '%s' kosong atau terlalu panjang (>64)"
 
-#: ../libnm-core/nm-setting-gsm.c:334
+#: ../libnm-core/nm-setting-gsm.c:328
 #, c-format
 msgid "'%s' contains invalid char(s) (use [A-Za-z._-])"
 msgstr "'%s' memuat karakter tidak valid (gunakan [A-Za-z._-])"
 
-#: ../libnm-core/nm-setting-gsm.c:361
+#: ../libnm-core/nm-setting-gsm.c:355
 #, c-format
 msgid "'%s' length is invalid (should be 5 or 6 digits)"
 msgstr "'%s' panjang tidak valid (mesti 5 atau 6 dijit)"
 
-#: ../libnm-core/nm-setting-gsm.c:372
+#: ../libnm-core/nm-setting-gsm.c:366
 #, c-format
 msgid "'%s' is not a number"
 msgstr "'%s' bukan suatu bilangan"
 
-#: ../libnm-core/nm-setting-gsm.c:406
+#: ../libnm-core/nm-setting-gsm.c:400
 msgid "property is empty or wrong size"
 msgstr "properti kosong atau salah ukuran"
 
-#: ../libnm-core/nm-setting-gsm.c:416
+#: ../libnm-core/nm-setting-gsm.c:410
 msgid "property must contain only digits"
 msgstr "properti hanya boleh mengandung dijit"
 
-#: ../libnm-core/nm-setting-gsm.c:428
+#: ../libnm-core/nm-setting-gsm.c:422
 msgid "can't be enabled when manual configuration is present"
 msgstr "tidak dapat diaktifkan saat konfigurasi manual ada"
 
-#: ../libnm-core/nm-setting-infiniband.c:193
+#: ../libnm-core/nm-setting-infiniband.c:194
 msgid "Must specify a P_Key if specifying parent"
 msgstr "Mesti menyatakan sebuah P_Key bila menyatakan induk"
 
-#: ../libnm-core/nm-setting-infiniband.c:203
+#: ../libnm-core/nm-setting-infiniband.c:204
 msgid "InfiniBand P_Key connection did not specify parent interface name"
 msgstr "Koneksi InfiniBand P_Key tidak menyatakan nama antar muka induk"
 
-#: ../libnm-core/nm-setting-infiniband.c:241
+#: ../libnm-core/nm-setting-infiniband.c:242
 #, c-format
 msgid ""
 "interface name of software infiniband device must be '%s' or unset (instead "
@@ -11908,7 +11926,7 @@ msgstr ""
 "nama antar muka dari perangkat infiniband perangkat lunak mesti '%s' atau "
 "tidak ditata (tapi saat ini adalah '%s')"
 
-#: ../libnm-core/nm-setting-infiniband.c:265
+#: ../libnm-core/nm-setting-infiniband.c:266
 #, c-format
 msgid "mtu can be at most %u but it is %u"
 msgstr "mtu bisa paling besar %u tapi sekarang %u"
@@ -12075,7 +12093,7 @@ msgstr "kurang \""
 
 #: ../libnm-core/nm-setting-ip-config.c:2768
 msgid "invalid \""
-msgstr "\" tidak valid"
+msgstr "tak valid \""
 
 #: ../libnm-core/nm-setting-ip-config.c:2965
 msgid "Unsupported to-string-flags argument"
@@ -12218,7 +12236,9 @@ msgstr "'%s' bukan kunci tunnel yang valid"
 
 #: ../libnm-core/nm-setting-ip-tunnel.c:426
 msgid "a fixed TTL is allowed only when path MTU discovery is enabled"
-msgstr "TTL tetap hanya diizinkan ketika 'path MTU discovery' difungsikan"
+msgstr ""
+"sebuah nilai TTL tetap hanya diizinkan ketika 'path MTU discovery' "
+"difungsikan"
 
 #: ../libnm-core/nm-setting-ip-tunnel.c:439
 #, c-format
@@ -12310,7 +12330,7 @@ msgstr "properti tidak dinyatakan dan inipun demikian '%s:%s'"
 #: ../libnm-core/nm-setting-macsec.c:333
 #, c-format
 msgid "EAP key management requires '%s' setting presence"
-msgstr "manajemen kunci EAP memerlukan keberadaan setelan '%s'"
+msgstr "Manajemen kunci EAP memerlukan keberadaan setelan '%s'"
 
 #: ../libnm-core/nm-setting-macsec.c:342
 msgid "must be either psk (0) or eap (1)"
@@ -12330,12 +12350,12 @@ msgid "non promiscuous operation is allowed only in passthru mode"
 msgstr "operasi 'non promiscuous' hanya diizinkan dalam mode passthru"
 
 #: ../libnm-core/nm-setting-olpc-mesh.c:94
-#: ../libnm-core/nm-setting-wireless.c:769
+#: ../libnm-core/nm-setting-wireless.c:774
 msgid "SSID length is out of range <1-32> bytes"
-msgstr "panjang SSID di luar rentang <1-32> byte"
+msgstr "Panjang SSID di luar rentang <1-32> byte"
 
 #: ../libnm-core/nm-setting-olpc-mesh.c:103
-#: ../libnm-core/nm-setting-wireless.c:809
+#: ../libnm-core/nm-setting-wireless.c:814
 #, c-format
 msgid "'%d' is not a valid channel"
 msgstr "'%d' bukan kanal yang valid"
@@ -12454,27 +12474,27 @@ msgstr "'%d' di luar rentang yang valid <128-16384>"
 msgid "setting this property requires non-zero '%s' property"
 msgstr "menata properti ini memerlukan properti '%s' yang bukan nol"
 
-#: ../libnm-core/nm-setting-proxy.c:132
+#: ../libnm-core/nm-setting-proxy.c:129
 #, c-format
 msgid "invalid proxy method"
 msgstr "metoda proksi tidak valid"
 
-#: ../libnm-core/nm-setting-proxy.c:142 ../libnm-core/nm-setting-proxy.c:151
+#: ../libnm-core/nm-setting-proxy.c:139 ../libnm-core/nm-setting-proxy.c:148
 #, c-format
 msgid "this property is not allowed for method none"
 msgstr "properti ini tidak diizinkan bagi metoda none"
 
-#: ../libnm-core/nm-setting-proxy.c:162
+#: ../libnm-core/nm-setting-proxy.c:159
 #, c-format
 msgid "the script is too large"
 msgstr "skrip terlalu besar"
 
-#: ../libnm-core/nm-setting-proxy.c:170
+#: ../libnm-core/nm-setting-proxy.c:167
 #, c-format
 msgid "the script is not valid utf8"
 msgstr "skrip bukan utf8 yang valid"
 
-#: ../libnm-core/nm-setting-proxy.c:178
+#: ../libnm-core/nm-setting-proxy.c:175
 #, c-format
 msgid "the script lacks FindProxyForURL function"
 msgstr "skrip kekurangan fungsi FindProxyForURL"
@@ -12691,11 +12711,11 @@ msgstr "'%s' tidak valid atau nilainya '%s'"
 
 #: ../libnm-core/nm-setting-wired.c:849
 msgid "Wake-on-LAN mode 'default' and 'ignore' are exclusive flags"
-msgstr "mode Wake-on-LAN 'default' dan 'ignore' adalah flag yang eksklusif"
+msgstr "Mode Wake-on-LAN 'default' dan 'ignore' adalah flag yang eksklusif"
 
 #: ../libnm-core/nm-setting-wired.c:858
 msgid "Wake-on-LAN password can only be used with magic packet mode"
-msgstr "kata sandi Wake-on-LAN hanya dapat dipakai dengan mode paket ajaib"
+msgstr "Kata sandi Wake-on-LAN hanya dapat dipakai dengan mode magic packet"
 
 #: ../libnm-core/nm-setting-wired.c:884
 msgid "both speed and duplex should have a valid value or both should be unset"
@@ -12781,32 +12801,32 @@ msgstr "peer #%u kekurangan kunci publik"
 msgid "non-existing peer '%s'"
 msgstr "peer '%s' tidak ada"
 
-#: ../libnm-core/nm-setting-wireless-security.c:913
+#: ../libnm-core/nm-setting-wireless-security.c:905
 #, c-format
 msgid "'%s' is not a valid value for '%s' mode connections"
 msgstr "'%s' bukan nilai yang valid bagi mode koneksi '%s'"
 
-#: ../libnm-core/nm-setting-wireless-security.c:936
+#: ../libnm-core/nm-setting-wireless-security.c:928
 #, c-format
 msgid "'%s' security requires '%s=%s'"
 msgstr "keamanan '%s' memerlukan '%s=%s'"
 
-#: ../libnm-core/nm-setting-wireless-security.c:957
+#: ../libnm-core/nm-setting-wireless-security.c:949
 #, c-format
 msgid "'%s' security requires '%s' setting presence"
 msgstr "keamanan '%s' memerlukan kehadiran pengaturan '%s'"
 
-#: ../libnm-core/nm-setting-wireless-security.c:978
+#: ../libnm-core/nm-setting-wireless-security.c:970
 #, c-format
 msgid "'%d' value is out of range <0-3>"
 msgstr "'%d' nilai di luar rentang <0-3>"
 
-#: ../libnm-core/nm-setting-wireless-security.c:1037
+#: ../libnm-core/nm-setting-wireless-security.c:1029
 #, c-format
 msgid "'%s' can only be used with '%s=%s' (WEP)"
 msgstr "'%s' hanya dapat dipakai dengan '%s=%s' (WEP)"
 
-#: ../libnm-core/nm-setting-wireless-security.c:1061
+#: ../libnm-core/nm-setting-wireless-security.c:1053
 #, c-format
 msgid ""
 "'%s' can only be used with 'wpa-eap', 'wpa-psk' or 'sae' key management "
@@ -12814,40 +12834,40 @@ msgstr ""
 "'%s' hanya dapat dipakai dengan manajemen kunci ’wpa-eap’, ‘wpa-psk’, atau "
 "‘sae’ "
 
-#: ../libnm-core/nm-setting-wireless.c:778
+#: ../libnm-core/nm-setting-wireless.c:783
 #, c-format
 msgid "'%s' is not a valid Wi-Fi mode"
 msgstr "'%s' bukan mode Wi-Fi yang valid"
 
-#: ../libnm-core/nm-setting-wireless.c:788
+#: ../libnm-core/nm-setting-wireless.c:793
 #, c-format
 msgid "'%s' is not a valid band"
 msgstr "'%s' bukan suatu band yang valid"
 
-#: ../libnm-core/nm-setting-wireless.c:798
+#: ../libnm-core/nm-setting-wireless.c:803
 #, c-format
 msgid "'%s' requires setting '%s' property"
 msgstr "'%s' memerlukan menyetel properti '%s'"
 
-#: ../libnm-core/nm-setting-wireless.c:820
+#: ../libnm-core/nm-setting-wireless.c:825
 #, c-format
 msgid "'%s' requires '%s' and '%s' property"
 msgstr "'%s' memerlukan properti '%s' dan '%s'"
 
-#: ../libnm-core/nm-setting-wireless.c:907 ../libnm-core/nm-team-utils.c:1990
+#: ../libnm-core/nm-setting-wireless.c:912 ../libnm-core/nm-team-utils.c:1990
 #, c-format
 msgid "invalid value"
 msgstr "nilai tidak valid"
 
-#: ../libnm-core/nm-setting-wireless.c:917
+#: ../libnm-core/nm-setting-wireless.c:922
 msgid "Wake-on-WLAN mode 'default' and 'ignore' are exclusive flags"
 msgstr "Mode Wake-on-LAN 'default' dan 'ignore' adalah flag yang eksklusif"
 
-#: ../libnm-core/nm-setting-wireless.c:926
+#: ../libnm-core/nm-setting-wireless.c:931
 msgid "Wake-on-WLAN trying to set unknown flag"
 msgstr "Wake-on-WLAN mencoba untuk mengatur flag yang tidak dikenal"
 
-#: ../libnm-core/nm-setting-wireless.c:948
+#: ../libnm-core/nm-setting-wireless.c:953
 #, c-format
 msgid "conflicting value of mac-address-randomization and cloned-mac-address"
 msgstr ""
@@ -12959,7 +12979,7 @@ msgid "team config is not valid UTF-8"
 msgstr "konfig team bukan UTF-8 yang valid"
 
 #: ../libnm-core/nm-team-utils.c:2104
-#: ../src/settings/plugins/ifcfg-rh/tests/test-ifcfg-rh.c:9025
+#: ../src/settings/plugins/ifcfg-rh/tests/test-ifcfg-rh.c:9064
 #, c-format
 msgid "invalid json"
 msgstr "json yang tak valid"
@@ -12974,238 +12994,238 @@ msgstr "tipe D-Bus “%s” tak valid"
 msgid "invalid link-watchers: %s"
 msgstr "link-watchers tidak valid: %s"
 
-#: ../libnm-core/nm-utils.c:2330
+#: ../libnm-core/nm-utils.c:2341
 #, c-format
 msgid "'%s' is not a valid handle."
 msgstr "'%s' bukan handle yang valid."
 
-#: ../libnm-core/nm-utils.c:2458
+#: ../libnm-core/nm-utils.c:2469
 #, c-format
 msgid "'%s' unexpected: parent already specified."
 msgstr "'%s' tak diharapkan: induk sudah dinyatakan."
 
-#: ../libnm-core/nm-utils.c:2474
+#: ../libnm-core/nm-utils.c:2485
 #, c-format
 msgid "invalid handle: '%s'"
 msgstr "handle tak valid '%s'"
 
-#: ../libnm-core/nm-utils.c:2496
+#: ../libnm-core/nm-utils.c:2507
 msgid "parent not specified."
 msgstr "induk tidak dinyatakan."
 
-#: ../libnm-core/nm-utils.c:2558
+#: ../libnm-core/nm-utils.c:2569
 #, c-format
 msgid "unsupported qdisc option: '%s'."
 msgstr "opsi qdisc tidak didukung: '%s'."
 
-#: ../libnm-core/nm-utils.c:2680
+#: ../libnm-core/nm-utils.c:2691
 msgid "action name missing."
 msgstr "kurang nama aksi."
 
-#: ../libnm-core/nm-utils.c:2706
+#: ../libnm-core/nm-utils.c:2717
 #, c-format
 msgid "unsupported action option: '%s'."
 msgstr "opsi aksi tidak didukung: '%s'."
 
-#: ../libnm-core/nm-utils.c:2844
+#: ../libnm-core/nm-utils.c:2855
 msgid "invalid action: "
 msgstr "aksi tidak valid: "
 
-#: ../libnm-core/nm-utils.c:2848
+#: ../libnm-core/nm-utils.c:2859
 #, c-format
 msgid "unsupported tfilter option: '%s'."
 msgstr "opsi tfilter tidak didukung: '%s'."
 
-#: ../libnm-core/nm-utils.c:3449
+#: ../libnm-core/nm-utils.c:3460
 #, c-format
 msgid "failed stat file %s: %s"
 msgstr "gagal men-stat berkas %s: %s"
 
-#: ../libnm-core/nm-utils.c:3458
+#: ../libnm-core/nm-utils.c:3469
 #, c-format
 msgid "not a file (%s)"
 msgstr "bukan berkas (%s)"
 
-#: ../libnm-core/nm-utils.c:3469
+#: ../libnm-core/nm-utils.c:3480
 #, c-format
 msgid "invalid file owner %d for %s"
 msgstr "pemilik berkas %d tidak valid untuk %s"
 
-#: ../libnm-core/nm-utils.c:3480
+#: ../libnm-core/nm-utils.c:3491
 #, c-format
 msgid "file permissions for %s"
 msgstr "izin berkas untuk %s"
 
-#: ../libnm-core/nm-utils.c:3490
+#: ../libnm-core/nm-utils.c:3501
 #, c-format
 msgid "reject %s"
 msgstr "tolak %s"
 
-#: ../libnm-core/nm-utils.c:3509
+#: ../libnm-core/nm-utils.c:3520
 #, c-format
 msgid "path is not absolute (%s)"
 msgstr "path tidak absolut (%s)"
 
-#: ../libnm-core/nm-utils.c:3523
+#: ../libnm-core/nm-utils.c:3534
 #, c-format
 msgid "Plugin file does not exist (%s)"
 msgstr "Berkas pengaya tidak ada (%s)"
 
-#: ../libnm-core/nm-utils.c:3531
+#: ../libnm-core/nm-utils.c:3542
 #, c-format
 msgid "Plugin is not a valid file (%s)"
 msgstr "Plugin bukan berkas yang valid (%s)"
 
-#: ../libnm-core/nm-utils.c:3541
+#: ../libnm-core/nm-utils.c:3552
 #, c-format
 msgid "libtool archives are not supported (%s)"
 msgstr "arsip libtool tidak didukung (%s)"
 
-#: ../libnm-core/nm-utils.c:3623
+#: ../libnm-core/nm-utils.c:3634
 #, c-format
 msgid "Could not find \"%s\" binary"
 msgstr "Tidak bisa temukan biner \"%s\""
 
-#: ../libnm-core/nm-utils.c:4517
+#: ../libnm-core/nm-utils.c:4528
 msgid "unknown secret flags"
 msgstr "flag rahasia yang tidak dikenal"
 
-#: ../libnm-core/nm-utils.c:4527
+#: ../libnm-core/nm-utils.c:4538
 msgid "conflicting secret flags"
 msgstr "flag rahasia yang bertentangan"
 
-#: ../libnm-core/nm-utils.c:4538
+#: ../libnm-core/nm-utils.c:4549
 msgid "secret flags must not be \"not-required\""
 msgstr "flag rahasia tidak boleh “not-required”"
 
-#: ../libnm-core/nm-utils.c:4546
+#: ../libnm-core/nm-utils.c:4557
 msgid "unsupported secret flags"
 msgstr "flag rahasia yang tidak didukung"
 
-#: ../libnm-core/nm-utils.c:4576
+#: ../libnm-core/nm-utils.c:4587
 msgid "can't be simultaneously disabled and enabled"
 msgstr "tak bisa secara simultan dinonaktifkan dan diaktifkan"
 
-#: ../libnm-core/nm-utils.c:4584
+#: ../libnm-core/nm-utils.c:4595
 msgid "WPS is required"
 msgstr "Perlu WPS"
 
-#: ../libnm-core/nm-utils.c:4650
+#: ../libnm-core/nm-utils.c:4661
 #, c-format
 msgid "not a valid ethernet MAC address for mask at position %lld"
 msgstr "bukan alamat MAC ethernet yang valid untuk mask pada posisi %lld"
 
-#: ../libnm-core/nm-utils.c:4665
+#: ../libnm-core/nm-utils.c:4676
 #, c-format
 msgid "not a valid ethernet MAC address #%u at position %lld"
 msgstr "bukan alamat MAC ethernet yang valid #%u pada posisi %lld"
 
-#: ../libnm-core/nm-utils.c:4725
+#: ../libnm-core/nm-utils.c:4736
 msgid "interface name is missing"
 msgstr "kurang nama antar muka"
 
-#: ../libnm-core/nm-utils.c:4731
+#: ../libnm-core/nm-utils.c:4742
 msgid "interface name is too short"
 msgstr "nama antar muka terlalu pendek"
 
-#: ../libnm-core/nm-utils.c:4740
+#: ../libnm-core/nm-utils.c:4751
 msgid "interface name is reserved"
 msgstr "nama antar muka dicadangkan"
 
-#: ../libnm-core/nm-utils.c:4752
+#: ../libnm-core/nm-utils.c:4763
 msgid "interface name contains an invalid character"
 msgstr "nama antar muka mengandung suatu karakter yang tidak valid"
 
-#: ../libnm-core/nm-utils.c:4758
+#: ../libnm-core/nm-utils.c:4769
 msgid "interface name is longer than 15 characters"
 msgstr "nama antar muka lebih dari 15 karakter"
 
-#: ../libnm-core/nm-utils.c:5425
+#: ../libnm-core/nm-utils.c:5436
 msgid "not valid utf-8"
 msgstr "bukan utf-8 yang valid"
 
-#: ../libnm-core/nm-utils.c:5446 ../libnm-core/nm-utils.c:5499
+#: ../libnm-core/nm-utils.c:5457 ../libnm-core/nm-utils.c:5510
 msgid "is not a JSON object"
 msgstr "bukan suatu objek JSON"
 
-#: ../libnm-core/nm-utils.c:5475 ../libnm-core/nm-utils.c:5512
+#: ../libnm-core/nm-utils.c:5486 ../libnm-core/nm-utils.c:5523
 msgid "value is NULL"
 msgstr "bernilai NULL"
 
-#: ../libnm-core/nm-utils.c:5475 ../libnm-core/nm-utils.c:5512
+#: ../libnm-core/nm-utils.c:5486 ../libnm-core/nm-utils.c:5523
 msgid "value is empty"
 msgstr "nilainya kosong"
 
-#: ../libnm-core/nm-utils.c:5487
+#: ../libnm-core/nm-utils.c:5498
 #, c-format
 msgid "invalid JSON at position %d (%s)"
-msgstr "JSON yang tidak valid pada posisi %d (%s)"
+msgstr "isi JSON tidak valid pada posisi %d (%s)"
 
-#: ../libnm-core/nm-utils.c:5649 ../libnm-core/nm-utils.c:5669
+#: ../libnm-core/nm-utils.c:5660 ../libnm-core/nm-utils.c:5680
 msgid "unterminated escape sequence"
 msgstr "urutan escape yang tidak diakhiri"
 
-#: ../libnm-core/nm-utils.c:5694
+#: ../libnm-core/nm-utils.c:5705
 #, c-format
 msgid "unknown attribute '%s'"
 msgstr "atribut tidak dikenal '%s'."
 
-#: ../libnm-core/nm-utils.c:5709
+#: ../libnm-core/nm-utils.c:5720
 #, c-format
 msgid "missing key-value separator '%c' after '%s'"
 msgstr "kurang pemisah kunci-nilai '%c' setelah '%s'"
 
-#: ../libnm-core/nm-utils.c:5725
+#: ../libnm-core/nm-utils.c:5736
 #, c-format
 msgid "invalid uint32 value '%s' for attribute '%s'"
 msgstr "nilai uint32 '%s' yang tidak valid untuk atribut '%s'"
 
-#: ../libnm-core/nm-utils.c:5734
+#: ../libnm-core/nm-utils.c:5745
 #, c-format
 msgid "invalid uint8 value '%s' for attribute '%s'"
 msgstr "nilai uint8 '%s' yang tidak valid untuk atribut '%s'"
 
-#: ../libnm-core/nm-utils.c:5744
+#: ../libnm-core/nm-utils.c:5755
 #, c-format
 msgid "invalid boolean value '%s' for attribute '%s'"
 msgstr "nilai boolean '%s' yang tidak valid untuk atribut '%s'"
 
-#: ../libnm-core/nm-utils.c:5754
+#: ../libnm-core/nm-utils.c:5765
 #, c-format
 msgid "unsupported attribute '%s' of type '%s'"
 msgstr "atribut '%s' bertipe '%s' yang tidak didukung"
 
-#: ../libnm-core/nm-utils.c:6119
+#: ../libnm-core/nm-utils.c:6130
 #, c-format
 msgid "Bridge VLANs %d and %d are not sorted by ascending vid"
 msgstr "VLAN bridge %d dan %d tidak diurutkan berdasarkan vid naik"
 
-#: ../libnm-core/nm-utils.c:6143
+#: ../libnm-core/nm-utils.c:6154
 #, c-format
 msgid "duplicate bridge VLAN vid %u"
 msgstr "vid %u VLAN bridge duplikat"
 
-#: ../libnm-core/nm-utils.c:6155
+#: ../libnm-core/nm-utils.c:6166
 msgid "only one VLAN can be the PVID"
 msgstr "hanya satu VLAN yang bisa menjadi PVID"
 
-#: ../libnm-core/nm-utils.c:6205
+#: ../libnm-core/nm-utils.c:6216
 #, c-format
 msgid "unknown flags 0x%x"
 msgstr "flag tak dikenal 0x%x"
 
-#: ../libnm-core/nm-utils.c:6215
+#: ../libnm-core/nm-utils.c:6226
 msgid ""
 "'fqdn-no-update' and 'fqdn-serv-update' flags cannot be set at the same time"
 msgstr ""
 "'fqdn-no-update' dan 'fqdn-serv-update' tidak dapat ditata pada waktu yang "
 "sama"
 
-#: ../libnm-core/nm-utils.c:6226
+#: ../libnm-core/nm-utils.c:6237
 msgid "'fqdn-clear-flags' flag is incompatible with other FQDN flags"
 msgstr "‘fqdn-clear-flags’ tidak kompatibel dengan flag FQDN lainnya"
 
-#: ../libnm-core/nm-utils.c:6235
+#: ../libnm-core/nm-utils.c:6246
 msgid "DHCPv6 does not support the E (encoded) FQDN flag"
 msgstr "DHCPv6 tidak mendukung flag FQDN E (encoded/dikodekan)"
 
@@ -13291,13 +13311,13 @@ msgstr "kurang nama untuk info plugin VPN"
 msgid "missing service for VPN plugin info"
 msgstr "kurang layanan untuk info plugin VPN"
 
-#: ../libnm/nm-client.c:3587
+#: ../libnm/nm-client.c:3619
 #, c-format
 msgid "request succeeded with %s but object is in an unsuitable state"
 msgstr ""
 "permintaan berhasil dengan %s tetapi objek dalam keadaan yang tidak pas"
 
-#: ../libnm/nm-client.c:3678
+#: ../libnm/nm-client.c:3710
 #, c-format
 msgid "operation succeeded but object %s does not exist"
 msgstr "operasi berhasil tetapi objek %s tidak ada"
@@ -14179,7 +14199,7 @@ msgstr ""
 msgid "WPA authentication is incompatible with Shared Key authentication"
 msgstr "Otentikasi WPA tidak kompatibel dengan otentikasi Kunci Bersama"
 
-#: ../src/devices/wifi/nm-wifi-utils.c:776
+#: ../src/devices/wifi/nm-wifi-utils.c:782
 msgid "Failed to determine AP security information"
 msgstr "Gagal menentukan informasi keamanan AP"
 

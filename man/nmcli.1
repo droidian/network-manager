@@ -2,12 +2,12 @@
 .\"     Title: nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 03/12/2020
+.\"      Date: 05/08/2020
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.22.10
+.\"    Source: NetworkManager 1.24.0
 .\"  Language: English
 .\"
-.TH "NMCLI" "1" "" "NetworkManager 1\&.22\&.10" "General Commands Manual"
+.TH "NMCLI" "1" "" "NetworkManager 1\&.24\&.0" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -634,6 +634,11 @@ or
 can be used\&.
 .RE
 .PP
+\fBmodify\fR [\fB\-\-temporary\fR] [\fBid\fR | \fBuuid\fR | \fBpath\fR] \fIID\fR \fBremove\fR\ \fIsetting\fR
+.RS 4
+Removes a setting from the connection profile\&.
+.RE
+.PP
 \fBadd\fR [\fBsave\fR\ {yes\ |\ no}] {\fIoption\fR\ \fIvalue\fR\ |\ [+|\-]\fIsetting\fR\&.\fIproperty\fR\ \fIvalue\fR}...
 .RS 4
 Create a new connection using specified properties\&.
@@ -1027,8 +1032,7 @@ command\&.
 .PP
 \fBreload\fR
 .RS 4
-Reload all connection files from disk\&. NetworkManager does not monitor changes to connection files by default\&. So you need to use this command in order to tell NetworkManager to re\-read the connection profiles from disk when a change was made to them\&. However, the auto\-loading feature can be enabled and then NetworkManager will reload connection files any time they change (monitor\-connection\-files=true in
-\fBNetworkManager.conf\fR(5))\&.
+Reload all connection files from disk\&. NetworkManager does not monitor changes to connection\&. So you need to use this command in order to tell NetworkManager to re\-read the connection profiles from disk when a change was made to them\&.
 .RE
 .PP
 \fBload\fR \fIfilename\fR...

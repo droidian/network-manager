@@ -322,7 +322,7 @@ nm_auth_manager_check_authorization (NMAuthManager *self,
 	};
 	c_list_link_tail (&priv->calls_lst_head, &call_id->calls_lst);
 
-	if (nm_auth_subject_is_internal (subject)) {
+	if (nm_auth_subject_get_subject_type (subject) == NM_AUTH_SUBJECT_TYPE_INTERNAL) {
 		_LOG2T (call_id, "CheckAuthorization(%s), subject=%s (succeeding for internal request)", action_id, nm_auth_subject_to_string (subject, subject_buf, sizeof (subject_buf)));
 		call_id->idle_id = g_idle_add (_call_on_idle, call_id);
 	} else if (nm_auth_subject_get_unix_process_uid (subject) == 0) {
@@ -339,7 +339,7 @@ nm_auth_manager_check_authorization (NMAuthManager *self,
 		GVariant *subject_value;
 		GVariant *details_value;
 
-		subject_value = nm_auth_subject_unix_process_to_polkit_gvariant (subject);
+		subject_value = nm_auth_subject_unix_to_polkit_gvariant (subject);
 		nm_assert (g_variant_is_floating (subject_value));
 
 		/* ((PolkitDetails *)NULL) */
@@ -465,7 +465,7 @@ nm_auth_manager_force_shutdown (NMAuthManager *self)
 static void
 set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-	NMAuthManagerPrivate *priv = NM_AUTH_MANAGER_GET_PRIVATE ((NMAuthManager *) object);
+	NMAuthManagerPrivate *priv = NM_AUTH_MANAGER_GET_PRIVATE (object);
 	int v_int;
 
 	switch (prop_id) {
