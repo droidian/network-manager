@@ -33,7 +33,7 @@ override_dh_auto_configure:
 		--with-pppd=/usr/sbin/pppd \
 		--with-resolvconf=no \
 		--with-dhclient=/sbin/dhclient \
-		--with-iptables=/sbin/iptables \
+		--with-iptables=/usr/sbin/iptables \
 		--with-dnsmasq=/usr/sbin/dnsmasq \
 		--with-dnssec-trigger=/usr/lib/dnssec-trigger/dnssec-trigger-script \
 		--with-systemdsystemunitdir=/lib/systemd/system \
