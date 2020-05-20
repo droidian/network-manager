@@ -1,4 +1,4 @@
-network-manager (1.24.0-1ubuntu2) UNRELEASED; urgency=medium
+network-manager (1.24.0-1ubuntu2) groovy; urgency=medium
 
   * debian/rules:
     - the iptables binary is in /usr/sbin now, use the correct location in
