@@ -1,4 +1,4 @@
-network-manager (1.24.2-1ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.24.2-1ubuntu1) groovy; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
     - Use systemd-resolved instead of dnsmasq
