@@ -726,9 +726,9 @@ _link_type_from_rtnl_type (const char *name) \
 	}
 
 	{
-		unsigned imin = 0;
-		unsigned imax = (G_N_ELEMENTS (LIST) - 1);
-		unsigned imid = (G_N_ELEMENTS (LIST) - 1) / 2;
+		int imin = 0;
+		int imax = (G_N_ELEMENTS (LIST) - 1);
+		int imid = (G_N_ELEMENTS (LIST) - 1) / 2;
 
 		for (;;) {
 			const int cmp = strcmp (link_descs[LIST[imid]].rtnl_type, name);
@@ -737,14 +737,14 @@ _link_type_from_rtnl_type (const char *name) \
 				return LIST[imid];
 
 			if (cmp < 0)
-				imin = imid + 1u;
+				imin = imid + 1;
 			else
-				imax = imid - 1u;
+				imax = imid - 1;
 
 			if (G_UNLIKELY (imin > imax))
 				return NM_LINK_TYPE_NONE;
 
-			imid = (imin + imax) / 2u;
+			imid = (imin + imax) / 2;
 		}
 	}
 }
@@ -787,9 +787,9 @@ _link_type_from_devtype (const char *name) \
 	}
 
 	{
-		unsigned imin = 0;
-		unsigned imax = (G_N_ELEMENTS (LIST) - 1);
-		unsigned imid = (G_N_ELEMENTS (LIST) - 1) / 2;
+		int imin = 0;
+		int imax = (G_N_ELEMENTS (LIST) - 1);
+		int imid = (G_N_ELEMENTS (LIST) - 1) / 2;
 
 		for (;;) {
 			const int cmp = strcmp (link_descs[LIST[imid]].devtype, name);
@@ -798,14 +798,14 @@ _link_type_from_devtype (const char *name) \
 				return LIST[imid];
 
 			if (cmp < 0)
-				imin = imid + 1u;
+				imin = imid + 1;
 			else
-				imax = imid - 1u;
+				imax = imid - 1;
 
 			if (G_UNLIKELY (imin > imax))
 				return NM_LINK_TYPE_NONE;
 
-			imid = (imin + imax) / 2u;
+			imid = (imin + imax) / 2;
 		}
 	}
 }

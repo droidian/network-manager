@@ -393,9 +393,10 @@ am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libexecdir)" \
 	"$(DESTDIR)$(man5dir)" "$(DESTDIR)$(man7dir)" \
 	"$(DESTDIR)$(man8dir)" "$(DESTDIR)$(dbusactivationdir)" \
 	"$(DESTDIR)$(dbusinterfacesdir)" "$(DESTDIR)$(dbusservicedir)" \
-	"$(DESTDIR)$(examplesdir)" "$(DESTDIR)$(girdir)" \
-	"$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(polkit_policydir)" \
-	"$(DESTDIR)$(servicedir)" "$(DESTDIR)$(systemdnmunitdir)" \
+	"$(DESTDIR)$(examplesdir)" "$(DESTDIR)$(firewalldzonedir)" \
+	"$(DESTDIR)$(girdir)" "$(DESTDIR)$(pkgconfigdir)" \
+	"$(DESTDIR)$(polkit_policydir)" "$(DESTDIR)$(servicedir)" \
+	"$(DESTDIR)$(systemdnmunitdir)" \
 	"$(DESTDIR)$(systemdsystemunitdir)" "$(DESTDIR)$(typelibdir)" \
 	"$(DESTDIR)$(udevrulesdir)" "$(DESTDIR)$(vapidir)" \
 	"$(DESTDIR)$(libnmincludedir)" "$(DESTDIR)$(libnmincludedir)"
@@ -2064,6 +2065,11 @@ src_devices_bluetooth_tests_nm_bt_test_OBJECTS =  \
 @WITH_MODEM_MANAGER_1_TRUE@src_devices_bluetooth_tests_nm_bt_test_DEPENDENCIES = src/devices/bluetooth/libnm-bluetooth-utils.la \
 @WITH_MODEM_MANAGER_1_TRUE@	src/libNetworkManager.la \
 @WITH_MODEM_MANAGER_1_TRUE@	$(am__DEPENDENCIES_1)
+src_devices_bluetooth_tests_nm_bt_test_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(src_devices_bluetooth_tests_nm_bt_test_LDFLAGS) $(LDFLAGS) \
+	-o $@
 src_devices_tests_test_acd_SOURCES = src/devices/tests/test-acd.c
 src_devices_tests_test_acd_OBJECTS =  \
 	src/devices/tests/test_acd-test-acd.$(OBJEXT)
@@ -3356,9 +3362,9 @@ man8dir = $(mandir)/man8
 NROFF = nroff
 MANS = $(man_MANS)
 DATA = $(dbusactivation_DATA) $(dbusinterfaces_DATA) \
-	$(dbusservice_DATA) $(examples_DATA) $(gir_DATA) \
-	$(noinst_DATA) $(pkgconfig_DATA) $(polkit_policy_DATA) \
-	$(service_DATA) $(systemdnmunit_DATA) \
+	$(dbusservice_DATA) $(examples_DATA) $(firewalldzone_DATA) \
+	$(gir_DATA) $(noinst_DATA) $(pkgconfig_DATA) \
+	$(polkit_policy_DATA) $(service_DATA) $(systemdnmunit_DATA) \
 	$(systemdsystemunit_DATA) $(typelib_DATA) $(udevrules_DATA) \
 	$(vapi_DATA)
 HEADERS = $(libnminclude_HEADERS) $(nodist_libnminclude_HEADERS)
@@ -4510,6 +4516,7 @@ EXTRA_DIST = shared/c-stdaux/src/c-stdaux.h $(NULL) \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-wpa-psk-hex \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-wpa-psk-unquoted \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-wpa-psk-unquoted2 \
+	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wired-802-1x-password-raw \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wired-8021x-peap-mschapv2 \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/network-test-wired-defroute-no-gatewaydev-yes \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/network-test-wired-global-gateway \
@@ -4607,19 +4614,20 @@ EXTRA_DIST = shared/c-stdaux/src/c-stdaux.h $(NULL) \
 	data/NetworkManager-wait-online-systemd-pre200.service.in \
 	data/NetworkManager-wait-online.service.in \
 	data/NetworkManager.service.in data/meson.build \
-	data/server.conf.in $(NULL) $(am__append_71) $(am__append_74) \
-	man/common.ent.in $(man_nm_settings_xml) $(addsuffix \
-	.xsl,$(basename $(man_nm_settings_xml))) $(man_pages) \
-	$(addsuffix .xml,$(basename $(man_pages))) \
-	$(man_pages_autogen) man/meson.build vapi/NM-1.0.metadata \
-	vapi/libnm.deps vapi/meson.build CONTRIBUTING COPYING.LGPL \
-	COPYING.GFDL NetworkManager.pc.in intltool-extract.in \
-	intltool-merge.in intltool-update.in linker-script-binary.ver \
+	data/nm-shared.xml data/server.conf.in $(NULL) \
+	$(am__append_71) $(am__append_74) man/common.ent.in \
+	$(man_nm_settings_xml) $(addsuffix .xsl,$(basename \
+	$(man_nm_settings_xml))) $(man_pages) $(addsuffix \
+	.xml,$(basename $(man_pages))) $(man_pages_autogen) \
+	man/meson.build vapi/NM-1.0.metadata vapi/libnm.deps \
+	vapi/meson.build CONTRIBUTING COPYING.LGPL COPYING.GFDL \
+	NetworkManager.pc.in intltool-extract.in intltool-merge.in \
+	intltool-update.in linker-script-binary.ver \
 	linker-script-devices.ver linker-script-settings.ver \
 	src/ppp/nm-ppp-plugin.ver Makefile.glib autogen.sh \
-	valgrind.suppressions meson.build meson_options.txt \
-	config.h.meson config-extra.h.meson docs/meson.build \
-	po/meson.build shared/nm-default.h \
+	lsan.suppressions valgrind.suppressions meson.build \
+	meson_options.txt config.h.meson config-extra.h.meson \
+	docs/meson.build po/meson.build shared/nm-default.h \
 	shared/nm-test-libnm-utils.h shared/nm-test-utils-impl.c \
 	shared/nm-utils/nm-compat.c shared/nm-utils/nm-compat.h \
 	shared/nm-utils/nm-test-utils.h \
@@ -6585,7 +6593,8 @@ src_NetworkManager_LDADD = \
 src_NetworkManager_LDFLAGS = \
 	-rdynamic \
 	-Wl,--version-script="src/NetworkManager.ver" \
-	$(SANITIZER_EXEC_LDFLAGS)
+	$(SANITIZER_EXEC_LDFLAGS) \
+	$(NULL)
 
 
 ###############################################################################
@@ -7013,6 +7022,10 @@ src_devices_adsl_libnm_device_plugin_adsl_la_LIBADD = \
 @WITH_MODEM_MANAGER_1_TRUE@	$(src_cppflags_test) \
 @WITH_MODEM_MANAGER_1_TRUE@	$(NULL)
 
+@WITH_MODEM_MANAGER_1_TRUE@src_devices_bluetooth_tests_nm_bt_test_LDFLAGS = \
+@WITH_MODEM_MANAGER_1_TRUE@	$(SANITIZER_EXEC_LDFLAGS) \
+@WITH_MODEM_MANAGER_1_TRUE@	$(NULL)
+
 @WITH_MODEM_MANAGER_1_TRUE@src_devices_bluetooth_tests_nm_bt_test_LDADD = \
 @WITH_MODEM_MANAGER_1_TRUE@	src/devices/bluetooth/libnm-bluetooth-utils.la \
 @WITH_MODEM_MANAGER_1_TRUE@	src/libNetworkManager.la \
@@ -7327,7 +7340,9 @@ dispatcher_nm_dispatcher_SOURCES = \
 
 dispatcher_nm_dispatcher_CPPFLAGS = $(dispatcher_cppflags)
 dispatcher_nm_dispatcher_LDFLAGS = \
-	-Wl,--version-script="$(srcdir)/linker-script-binary.ver"
+	-Wl,--version-script="$(srcdir)/linker-script-binary.ver" \
+	$(SANITIZER_EXEC_LDFLAGS) \
+	$(NULL)
 
 dispatcher_nm_dispatcher_LDADD = \
 	dispatcher/libnm-dispatcher-core.la \
@@ -7385,7 +7400,9 @@ clients_nm_online_CPPFLAGS = \
 	$(NULL)
 
 clients_nm_online_LDFLAGS = \
-	-Wl,--version-script="$(srcdir)/linker-script-binary.ver"
+	-Wl,--version-script="$(srcdir)/linker-script-binary.ver" \
+	$(SANITIZER_EXEC_LDFLAGS) \
+	$(NULL)
 
 clients_nm_online_LDADD = \
 	libnm/libnm.la \
@@ -7752,6 +7769,8 @@ clients_common_tests_test_libnm_core_aux_LDADD = \
 @WITH_UDEV_DIR_TRUE@	data/85-nm-unmanaged.rules \
 @WITH_UDEV_DIR_TRUE@	data/90-nm-thunderbolt.rules
 
+@WITH_FIREWALLD_ZONE_TRUE@firewalldzonedir = $(prefix)/lib/firewalld/zones
+@WITH_FIREWALLD_ZONE_TRUE@firewalldzone_DATA = data/nm-shared.xml
 xsltproc_flags = \
 	--path man \
 	--xinclude \
@@ -10360,7 +10379,7 @@ src/devices/bluetooth/tests/nm_bt_test-nm-bt-test.$(OBJEXT):  \
 
 src/devices/bluetooth/tests/nm-bt-test$(EXEEXT): $(src_devices_bluetooth_tests_nm_bt_test_OBJECTS) $(src_devices_bluetooth_tests_nm_bt_test_DEPENDENCIES) $(EXTRA_src_devices_bluetooth_tests_nm_bt_test_DEPENDENCIES) src/devices/bluetooth/tests/$(am__dirstamp)
 	@rm -f src/devices/bluetooth/tests/nm-bt-test$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(src_devices_bluetooth_tests_nm_bt_test_OBJECTS) $(src_devices_bluetooth_tests_nm_bt_test_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(src_devices_bluetooth_tests_nm_bt_test_LINK) $(src_devices_bluetooth_tests_nm_bt_test_OBJECTS) $(src_devices_bluetooth_tests_nm_bt_test_LDADD) $(LIBS)
 src/devices/tests/$(am__dirstamp):
 	@$(MKDIR_P) src/devices/tests
 	@: > src/devices/tests/$(am__dirstamp)
@@ -16996,6 +17015,27 @@ uninstall-examplesDATA:
 	@list='$(examples_DATA)'; test -n "$(examplesdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(examplesdir)'; $(am__uninstall_files_from_dir)
+install-firewalldzoneDATA: $(firewalldzone_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(firewalldzone_DATA)'; test -n "$(firewalldzonedir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(firewalldzonedir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(firewalldzonedir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(firewalldzonedir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(firewalldzonedir)" || exit $$?; \
+	done
+
+uninstall-firewalldzoneDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(firewalldzone_DATA)'; test -n "$(firewalldzonedir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(firewalldzonedir)'; $(am__uninstall_files_from_dir)
 install-girDATA: $(gir_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(gir_DATA)'; test -n "$(girdir)" || list=; \
@@ -18034,7 +18074,7 @@ install-binPROGRAMS: install-libLTLIBRARIES
 
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(libdir)" "$(DESTDIR)$(plugindir)" "$(DESTDIR)$(pppd_plugindir)" "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(man5dir)" "$(DESTDIR)$(man7dir)" "$(DESTDIR)$(man8dir)" "$(DESTDIR)$(dbusactivationdir)" "$(DESTDIR)$(dbusinterfacesdir)" "$(DESTDIR)$(dbusservicedir)" "$(DESTDIR)$(examplesdir)" "$(DESTDIR)$(girdir)" "$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(polkit_policydir)" "$(DESTDIR)$(servicedir)" "$(DESTDIR)$(systemdnmunitdir)" "$(DESTDIR)$(systemdsystemunitdir)" "$(DESTDIR)$(typelibdir)" "$(DESTDIR)$(udevrulesdir)" "$(DESTDIR)$(vapidir)" "$(DESTDIR)$(libnmincludedir)" "$(DESTDIR)$(libnmincludedir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(libdir)" "$(DESTDIR)$(plugindir)" "$(DESTDIR)$(pppd_plugindir)" "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(man5dir)" "$(DESTDIR)$(man7dir)" "$(DESTDIR)$(man8dir)" "$(DESTDIR)$(dbusactivationdir)" "$(DESTDIR)$(dbusinterfacesdir)" "$(DESTDIR)$(dbusservicedir)" "$(DESTDIR)$(examplesdir)" "$(DESTDIR)$(firewalldzonedir)" "$(DESTDIR)$(girdir)" "$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(polkit_policydir)" "$(DESTDIR)$(servicedir)" "$(DESTDIR)$(systemdnmunitdir)" "$(DESTDIR)$(systemdsystemunitdir)" "$(DESTDIR)$(typelibdir)" "$(DESTDIR)$(udevrulesdir)" "$(DESTDIR)$(vapidir)" "$(DESTDIR)$(libnmincludedir)" "$(DESTDIR)$(libnmincludedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -18839,7 +18879,8 @@ info: info-recursive
 info-am:
 
 install-data-am: install-dbusactivationDATA install-dbusinterfacesDATA \
-	install-dbusserviceDATA install-examplesDATA install-girDATA \
+	install-dbusserviceDATA install-examplesDATA \
+	install-firewalldzoneDATA install-girDATA \
 	install-libnmincludeHEADERS install-man \
 	install-nodist_libnmincludeHEADERS install-pkgconfigDATA \
 	install-pluginLTLIBRARIES install-polkit_policyDATA \
@@ -19481,15 +19522,15 @@ ps-am:
 uninstall-am: uninstall-binPROGRAMS uninstall-dbusactivationDATA \
 	uninstall-dbusinterfacesDATA uninstall-dbusserviceDATA \
 	uninstall-dist_libexecSCRIPTS uninstall-examplesDATA \
-	uninstall-girDATA uninstall-libLTLIBRARIES \
-	uninstall-libexecPROGRAMS uninstall-libnmincludeHEADERS \
-	uninstall-man uninstall-nodist_libnmincludeHEADERS \
-	uninstall-pkgconfigDATA uninstall-pluginLTLIBRARIES \
-	uninstall-polkit_policyDATA uninstall-pppd_pluginLTLIBRARIES \
-	uninstall-sbinPROGRAMS uninstall-serviceDATA \
-	uninstall-systemdnmunitDATA uninstall-systemdsystemunitDATA \
-	uninstall-typelibDATA uninstall-udevrulesDATA \
-	uninstall-vapiDATA
+	uninstall-firewalldzoneDATA uninstall-girDATA \
+	uninstall-libLTLIBRARIES uninstall-libexecPROGRAMS \
+	uninstall-libnmincludeHEADERS uninstall-man \
+	uninstall-nodist_libnmincludeHEADERS uninstall-pkgconfigDATA \
+	uninstall-pluginLTLIBRARIES uninstall-polkit_policyDATA \
+	uninstall-pppd_pluginLTLIBRARIES uninstall-sbinPROGRAMS \
+	uninstall-serviceDATA uninstall-systemdnmunitDATA \
+	uninstall-systemdsystemunitDATA uninstall-typelibDATA \
+	uninstall-udevrulesDATA uninstall-vapiDATA
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) uninstall-hook
 uninstall-man: uninstall-man1 uninstall-man5 uninstall-man7 \
@@ -19517,12 +19558,13 @@ uninstall-man: uninstall-man1 uninstall-man5 uninstall-man7 \
 	install-dbusinterfacesDATA install-dbusserviceDATA \
 	install-dist_libexecSCRIPTS install-dvi install-dvi-am \
 	install-examplesDATA install-exec install-exec-am \
-	install-exec-hook install-girDATA install-html install-html-am \
-	install-info install-info-am install-libLTLIBRARIES \
-	install-libexecPROGRAMS install-libnmincludeHEADERS \
-	install-man install-man1 install-man5 install-man7 \
-	install-man8 install-nodist_libnmincludeHEADERS install-pdf \
-	install-pdf-am install-pkgconfigDATA install-pluginLTLIBRARIES \
+	install-exec-hook install-firewalldzoneDATA install-girDATA \
+	install-html install-html-am install-info install-info-am \
+	install-libLTLIBRARIES install-libexecPROGRAMS \
+	install-libnmincludeHEADERS install-man install-man1 \
+	install-man5 install-man7 install-man8 \
+	install-nodist_libnmincludeHEADERS install-pdf install-pdf-am \
+	install-pkgconfigDATA install-pluginLTLIBRARIES \
 	install-polkit_policyDATA install-pppd_pluginLTLIBRARIES \
 	install-ps install-ps-am install-sbinPROGRAMS \
 	install-serviceDATA install-strip install-systemdnmunitDATA \
@@ -19535,16 +19577,16 @@ uninstall-man: uninstall-man1 uninstall-man5 uninstall-man7 \
 	uninstall-binPROGRAMS uninstall-dbusactivationDATA \
 	uninstall-dbusinterfacesDATA uninstall-dbusserviceDATA \
 	uninstall-dist_libexecSCRIPTS uninstall-examplesDATA \
-	uninstall-girDATA uninstall-hook uninstall-libLTLIBRARIES \
-	uninstall-libexecPROGRAMS uninstall-libnmincludeHEADERS \
-	uninstall-man uninstall-man1 uninstall-man5 uninstall-man7 \
-	uninstall-man8 uninstall-nodist_libnmincludeHEADERS \
-	uninstall-pkgconfigDATA uninstall-pluginLTLIBRARIES \
-	uninstall-polkit_policyDATA uninstall-pppd_pluginLTLIBRARIES \
-	uninstall-sbinPROGRAMS uninstall-serviceDATA \
-	uninstall-systemdnmunitDATA uninstall-systemdsystemunitDATA \
-	uninstall-typelibDATA uninstall-udevrulesDATA \
-	uninstall-vapiDATA
+	uninstall-firewalldzoneDATA uninstall-girDATA uninstall-hook \
+	uninstall-libLTLIBRARIES uninstall-libexecPROGRAMS \
+	uninstall-libnmincludeHEADERS uninstall-man uninstall-man1 \
+	uninstall-man5 uninstall-man7 uninstall-man8 \
+	uninstall-nodist_libnmincludeHEADERS uninstall-pkgconfigDATA \
+	uninstall-pluginLTLIBRARIES uninstall-polkit_policyDATA \
+	uninstall-pppd_pluginLTLIBRARIES uninstall-sbinPROGRAMS \
+	uninstall-serviceDATA uninstall-systemdnmunitDATA \
+	uninstall-systemdsystemunitDATA uninstall-typelibDATA \
+	uninstall-udevrulesDATA uninstall-vapiDATA
 
 .PRECIOUS: Makefile
 

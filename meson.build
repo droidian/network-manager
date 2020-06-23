@@ -6,7 +6,7 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "shared/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.24.0',
+  version: '1.24.2',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -550,6 +550,9 @@ endif
 dbus_interfaces_dir = dbus_dep.get_pkgconfig_variable('interfaces_dir',  define_variable: ['datadir', nm_datadir])
 dbus_system_bus_services_dir = dbus_dep.get_pkgconfig_variable('system_bus_services_dir', define_variable: ['datadir', nm_datadir])
 
+enable_firewalld_zone = get_option('firewalld_zone')
+config_h.set10('WITH_FIREWALLD_ZONE', enable_firewalld_zone)
+
 # pppd
 enable_ppp = get_option('ppp')
 if enable_ppp
@@ -982,6 +985,7 @@ output += '  nmstatedir: ' + nm_pkgstatedir + '\n'
 output += '  nmrundir: ' + nm_pkgrundir + '\n'
 output += '  nmvpndir: ' + nm_vpndir + '\n'
 output += '  nmplugindir: ' + nm_plugindir + '\n'
+output += '  system-ca-path: ' + system_ca_path + '\n'
 output += '\nPlatform:\n'
 output += '  session tracking: ' + ','.join(session_trackers) + '\n'
 output += '  suspend/resume: ' + suspend_resume + '\n'
@@ -1028,6 +1032,7 @@ output += '\n'
 output += '\nMiscellaneous:\n'
 output += '  have introspection: ' + enable_introspection.to_string() + '\n'
 output += '  build documentation and manpages: ' + enable_docs.to_string() + '\n'
+output += '  firewalld zone for shared mode: ' + enable_firewalld_zone.to_string() + '\n'
 # FIXME
 #output += '  install pregenerated documentation and manpages: no
 output += '  tests: ' + tests + '\n'
