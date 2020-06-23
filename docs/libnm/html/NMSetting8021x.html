@@ -4690,14 +4690,16 @@ global default is not set, the authentication timeout is 25 seconds.</p>
 <pre class="programlisting">  “ca-cert”                  <a href="https://developer.gnome.org/glib/unstable/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a> *</pre>
 <p>Contains the CA certificate if used by the EAP method specified in the
 <a class="link" href="NMSetting8021x.html#NMSetting8021x--eap" title="The “eap” property"><span class="type">“eap”</span></a> property.</p>
-<p>Certificate data is specified using a "scheme"; two are currently
-supported: blob and path. When using the blob scheme (which is backwards
-compatible with NM 0.7.x) this property should be set to the
-certificate's DER encoded data. When using the path scheme, this property
-should be set to the full UTF-8 encoded path of the certificate, prefixed
-with the string "file://" and ending with a terminating NUL byte. This
-property can be unset even if the EAP method supports CA certificates,
+<p>Certificate data is specified using a "scheme"; three are currently
+supported: blob, path and pkcs<span class="type">11</span> URL. When using the blob scheme this property
+should be set to the certificate's DER encoded data. When using the path
+scheme, this property should be set to the full UTF-8 encoded path of the
+certificate, prefixed with the string "file://" and ending with a terminating
+NUL byte.
+This property can be unset even if the EAP method supports CA certificates,
 but this allows man-in-the-middle attacks and is NOT recommended.</p>
+<p>Note that enabling NMSetting8021x:system-ca-certs will override this
+setting to use the built-in path, if the built-in path is not a directory.</p>
 <p>Setting this property directly is discouraged; use the
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-set-ca-cert" title="nm_setting_802_1x_set_ca_cert ()"><code class="function">nm_setting_802_1x_set_ca_cert()</code></a> function instead.</p>
 <p>Owner: NMSetting8021x</p>
@@ -4731,6 +4733,8 @@ is stored on a PKCS#11 token that requires a login.</p>
 <p>UTF-8 encoded path to a directory containing PEM or DER formatted
 certificates to be added to the verification chain in addition to the
 certificate specified in the <a class="link" href="NMSetting8021x.html#NMSetting8021x--ca-cert" title="The “ca-cert” property"><span class="type">“ca-cert”</span></a> property.</p>
+<p>If NMSetting8021x:system-ca-certs is enabled and the built-in CA
+path is an existing directory, then this setting is ignored.</p>
 <p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
@@ -4988,14 +4992,16 @@ wpa_supplicant documentation for more details.</p>
 <p>Contains the "phase 2" CA certificate if used by the EAP method specified
 in the <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-auth" title="The “phase2-auth” property"><span class="type">“phase2-auth”</span></a> or <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-autheap" title="The “phase2-autheap” property"><span class="type">“phase2-autheap”</span></a>
 properties.</p>
-<p>Certificate data is specified using a "scheme"; two are currently
-supported: blob and path. When using the blob scheme (which is backwards
-compatible with NM 0.7.x) this property should be set to the
-certificate's DER encoded data. When using the path scheme, this property
-should be set to the full UTF-8 encoded path of the certificate, prefixed
-with the string "file://" and ending with a terminating NUL byte. This
-property can be unset even if the EAP method supports CA certificates,
+<p>Certificate data is specified using a "scheme"; three are currently
+supported: blob, path and pkcs<span class="type">11</span> URL. When using the blob scheme this property
+should be set to the certificate's DER encoded data. When using the path
+scheme, this property should be set to the full UTF-8 encoded path of the
+certificate, prefixed with the string "file://" and ending with a terminating
+NUL byte.
+This property can be unset even if the EAP method supports CA certificates,
 but this allows man-in-the-middle attacks and is NOT recommended.</p>
+<p>Note that enabling NMSetting8021x:system-ca-certs will override this
+setting to use the built-in path, if the built-in path is not a directory.</p>
 <p>Setting this property directly is discouraged; use the
 <a class="link" href="NMSetting8021x.html#nm-setting-802-1x-set-phase2-ca-cert" title="nm_setting_802_1x_set_phase2_ca_cert ()"><code class="function">nm_setting_802_1x_set_phase2_ca_cert()</code></a> function instead.</p>
 <p>Owner: NMSetting8021x</p>
@@ -5029,6 +5035,8 @@ is stored on a PKCS#11 token that requires a login.</p>
 <p>UTF-8 encoded path to a directory containing PEM or DER formatted
 certificates to be added to the verification chain in addition to the
 certificate specified in the <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-ca-cert" title="The “phase2-ca-cert” property"><span class="type">“phase2-ca-cert”</span></a> property.</p>
+<p>If NMSetting8021x:system-ca-certs is enabled and the built-in CA
+path is an existing directory, then this setting is ignored.</p>
 <p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>

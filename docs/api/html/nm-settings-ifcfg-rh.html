@@ -331,9 +331,10 @@ Example: </strong></span>IEEE_8021X_CA_CERT=/home/joe/cacert.crt</td>
 </tr>
 <tr>
 <td align="left">ca-path</td>
-<td align="left">(none)</td>
+<td align="left">IEEE_8021X_CA_PATH<span class="emphasis"><em>(+)</em></span>
+</td>
 <td align="left"> </td>
-<td align="left">The property is not handled by ifcfg-rh plugin.</td>
+<td align="left">The search path for the certificate.</td>
 </tr>
 <tr>
 <td align="left">subject-match</td>
@@ -439,6 +440,13 @@ Example: </strong></span>IEEE_8021X_INNER_AUTH_METHODS="MSCHAPV2 EAP-TLS"<span c
 Allowed values: </strong></span>"EAP-MD5", "EAP-MSCHAPV2", "EAP-GTC", "EAP-OTP" and "EAP-TLS"</td>
 </tr>
 <tr>
+<td align="left">phase2-ca-path</td>
+<td align="left">IEEE_8021X_PHASE2_CA_PATH<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left"> </td>
+<td align="left">The search path for the certificate.</td>
+</tr>
+<tr>
 <td align="left">phase2-subject-match</td>
 <td align="left">IEEE_8021X_PHASE2_SUBJECT_MATCH<span class="emphasis"><em>(+)</em></span>
 </td>
@@ -502,9 +510,10 @@ Example: </strong></span>IEEE_8021X_PASSWORD_RAW=041c8320083aa4bf</td>
 </tr>
 <tr>
 <td align="left">password-raw-flags</td>
-<td align="left">(none)</td>
+<td align="left">IEEE_8021X_PASSWORD_RAW_FLAGS<span class="emphasis"><em>(+)</em></span>
+</td>
 <td align="left"> </td>
-<td align="left">The property is not handled by ifcfg-rh plugin.</td>
+<td align="left">The secret flags for password-raw.</td>
 </tr>
 <tr>
 <td align="left">private-key</td>
@@ -552,21 +561,24 @@ Example: </strong></span>IEEE_8021X_PRIVATE_KEY=/home/joe/mykey.p12</td>
 </tr>
 <tr>
 <td align="left">pin</td>
-<td align="left">(none)</td>
+<td align="left">IEEE_8021X_PIN<span class="emphasis"><em>(+)</em></span>
+</td>
 <td align="left"> </td>
-<td align="left">The property is not handled by ifcfg-rh plugin.</td>
+<td align="left">The pin secret used for EAP authentication methods.</td>
 </tr>
 <tr>
 <td align="left">pin-flags</td>
-<td align="left">(none)</td>
+<td align="left">IEEE_8021X_PIN_FLAGS<span class="emphasis"><em>(+)</em></span>
+</td>
 <td align="left"> </td>
-<td align="left">The property is not handled by ifcfg-rh plugin.</td>
+<td align="left">The secret flags for the pin property.</td>
 </tr>
 <tr>
 <td align="left">system-ca-certs</td>
-<td align="left">(none)</td>
+<td align="left">IEEE_8021X_SYSTEM_CA_CERTS<span class="emphasis"><em>(+)</em></span>
+</td>
 <td align="left"> </td>
-<td align="left">The property is not handled by ifcfg-rh plugin.</td>
+<td align="left">a boolean value.</td>
 </tr>
 <tr>
 <td align="left">auth-timeout</td>

@@ -8,6 +8,7 @@ usr/lib/*/NetworkManager/*/libnm-device-plugin-*.so
 usr/lib/*/NetworkManager/*/libnm-ppp-plugin.so
 usr/lib/*/NetworkManager/*/libnm-wwan.so
 usr/lib/pppd/*/*.so
+usr/lib/firewalld/zones/nm-shared.xml
 usr/share/locale/
 usr/share/man/
 usr/share/dbus-1/system-services/

@@ -1,3 +1,56 @@
+network-manager (1.24.2-1ubuntu1) UNRELEASED; urgency=medium
+
+  * Resynchronize on Debian, remaining changes:
+    - Use systemd-resolved instead of dnsmasq
+    - debian/control:
+      + Depend on isc-dhcp-client instead of recommends
+      + Recommend network-manager-pptp
+      + Suggest avahi-autoipd for IPv4LL support
+    - debian/rules, debian/network-manager.postinst:
+      + Don't restart NetworkManager on upgrade but recommend restarting
+        the computer
+    - debian/rules, debian/network-manager.postinst:
+      + Don't install sysvinit scripts or migrate from sysvinit
+    - debian/network-manager.postinst:
+      + Don't add the netdev group.
+      + drop in an empty override file for NetworkManager to manage all
+        devices for upgrade from any version, as long as there is no
+        netplan configuration yet.
+    - debian/network-manager.maintscript
+      + Remove /etc/dbus-1/system.d/nm-ofono.conf
+    - debian/default-wifi-powersave-on.conf, debian/rules:
+      + Install a config file to enable WiFi powersave
+    - Enable build tests
+    - Add autopkgtests
+    - debian/source_network-manager.py, debian/network-manager.install,
+      debian/network-manager.links: Add apport hook
+    - Add network-manager-config-connectivity-ubuntu package
+    - NetworkManager.conf: disable MAC randomization feature. There is no
+      easy way for desktop users to disable this feature yet. And there are
+      reports that it doesn't work well with some systems.
+    - Update Vcs links to point to Ubuntu branch
+    - Add patches. See patch descriptions for more details:
+      + Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
+      + Update-dnsmasq-parameters.patch
+      + Disable-general-with-expect.patch
+      + libnm-Check-self-still-NMManager-or-not.patch
+      + dns-manager-don-t-merge-split-DNS-search-domains.patch (but disabled)
+      + Read-system-connections-from-run.patch
+    - debian/tests/urfkill-integration - don't stop/start network manager
+
+ -- Sebastien Bacher <seb128@debian.org>  Tue, 23 Jun 2020 18:08:44 +0200
+
+network-manager (1.24.2-1) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 1.24.2
+  * Install firewalld zone for connection sharing
+
+  [ Sebastien Bacher ]
+  * The iptables binary is now installed in /usr/sbin/
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 21 Jun 2020 13:44:56 +0200
+
 network-manager (1.24.0-1ubuntu2) groovy; urgency=medium
 
   * debian/rules:

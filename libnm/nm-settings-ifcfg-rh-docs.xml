@@ -11,7 +11,7 @@
 <property name="anonymous-identity" variable="IEEE_8021X_ANON_IDENTITY(+)" format="" values="" default="" example="" description="Anonymous identity for EAP authentication methods."/>
 <property name="pac-file" variable="IEEE_8021X_PAC_FILE(+)" format="" values="" default="" example="IEEE_8021X_PAC_FILE=/home/joe/my-fast.pac" description="File with PAC (Protected Access Credential) for EAP-FAST."/>
 <property name="ca-cert" variable="IEEE_8021X_CA_CERT(+)" format="" values="" default="" example="IEEE_8021X_CA_CERT=/home/joe/cacert.crt" description="CA certificate for EAP."/>
-<property name="ca-path" variable="(none)" format="" values="" default="" example="" description="The property is not handled by ifcfg-rh plugin."/>
+<property name="ca-path" variable="IEEE_8021X_CA_PATH(+)" format="" values="" default="" example="" description="The search path for the certificate."/>
 <property name="subject-match" variable="IEEE_8021X_SUBJECT_MATCH(+)" format="" values="" default="" example="IEEE_8021X_SUBJECT_MATCH=&quot;Red Hat&quot;" description="Substring to match subject of server certificate against."/>
 <property name="altsubject-matches" variable="IEEE_8021X_ALTSUBJECT_MATCHES(+)" format="" values="" default="" example="IEEE_8021X_ALTSUBJECT_MATCHES=&quot;s1.domain.cc&quot;" description="List of strings to be matched against the altSubjectName."/>
 <property name="domain-suffix-match" variable="IEEE_8021X_DOMAIN_SUFFIX_MATCH(+)" format="" values="" default="" example="" description="Suffix to match domain of server certificate against."/>
@@ -25,6 +25,7 @@
 can contain values both for &apos;phase2-auth&apos; and &apos;phase2-autheap&apos; properties."/>
 <property name="phase2-autheap" variable="IEEE_8021X_INNER_AUTH_METHODS(+)" format="" values="&quot;EAP-MD5&quot;, &quot;EAP-MSCHAPV2&quot;, &quot;EAP-GTC&quot;, &quot;EAP-OTP&quot; and &quot;EAP-TLS&quot;" default="" example="IEEE_8021X_INNER_AUTH_METHODS=&quot;MSCHAPV2 EAP-TLS&quot;" description="Inner EAP-based authentication methods. Note that
 IEEE_8021X_INNER_AUTH_METHODS is also used for &apos;phase2-auth&apos; values."/>
+<property name="phase2-ca-path" variable="IEEE_8021X_PHASE2_CA_PATH(+)" format="" values="" default="" example="" description="The search path for the certificate."/>
 <property name="phase2-subject-match" variable="IEEE_8021X_PHASE2_SUBJECT_MATCH(+)" format="" values="" default="" example="IEEE_8021X_PHASE2_SUBJECT_MATCH=&quot;Red Hat&quot;" description="Substring to match subject of server certificate against."/>
 <property name="phase2-altsubject-matches" variable="IEEE_8021X_PHASE2_ALTSUBJECT_MATCHES(+)" format="" values="" default="" example="" description=""/>
 <property name="phase2-domain-suffix-match" variable="IEEE_8021X_PHASE2_DOMAIN_SUFFIX_MATCH(+)" format="" values="" default="" example="" description="Suffix to match domain of server certificate for phase 2 against."/>
@@ -35,7 +36,7 @@ lookaside file, or it can be owned by a secret agent."/>
 <property name="password-flags" variable="IEEE_8021X_PASSWORD_FLAGS(+)" format="NMSettingSecretFlags" values="" default="" example="" description="Password flags for IEEE_8021X_PASSWORD password."/>
 <property name="password-raw" variable="IEEE_8021X_PASSWORD_RAW(+)" format="" values="" default="" example="IEEE_8021X_PASSWORD_RAW=041c8320083aa4bf" description="password used for EAP, encoded as a hexadecimal string. It
 can also go to &quot;key-&quot; lookaside file."/>
-<property name="password-raw-flags" variable="(none)" format="" values="" default="" example="" description="The property is not handled by ifcfg-rh plugin."/>
+<property name="password-raw-flags" variable="IEEE_8021X_PASSWORD_RAW_FLAGS(+)" format="" values="" default="" example="" description="The secret flags for password-raw."/>
 <property name="private-key" variable="IEEE_8021X_PRIVATE_KEY(+)" format="" values="" default="" example="IEEE_8021X_PRIVATE_KEY=/home/joe/mykey.p12" description="Private key for EAP-TLS."/>
 <property name="private-key-password" variable="IEEE_8021X_PRIVATE_KEY_PASSWORD(+)" format="" values="" default="" example="" description="Password for IEEE_8021X_PRIVATE_KEY. It can also go to &quot;key-&quot;
 lookaside file, or it can be owned by a secret agent."/>
@@ -44,9 +45,9 @@ lookaside file, or it can be owned by a secret agent."/>
 <property name="phase2-private-key-password" variable="IEEE_8021X_INNER_PRIVATE_KEY_PASSWORD(+)" format="" values="" default="" example="" description="Password for IEEE_8021X_INNER_PRIVATE_KEY. It can also go to &quot;key-&quot;
 lookaside file, or it can be owned by a secret agent."/>
 <property name="phase2-private-key-password-flags" variable="IEEE_8021X_INNER_PRIVATE_KEY_PASSWORD_FLAGS(+)" format="NMSettingSecretFlags" values="" default="" example="" description="Password flags for IEEE_8021X_INNER_PRIVATE_KEY_PASSWORD password."/>
-<property name="pin" variable="(none)" format="" values="" default="" example="" description="The property is not handled by ifcfg-rh plugin."/>
-<property name="pin-flags" variable="(none)" format="" values="" default="" example="" description="The property is not handled by ifcfg-rh plugin."/>
-<property name="system-ca-certs" variable="(none)" format="" values="" default="" example="" description="The property is not handled by ifcfg-rh plugin."/>
+<property name="pin" variable="IEEE_8021X_PIN(+)" format="" values="" default="" example="" description="The pin secret used for EAP authentication methods."/>
+<property name="pin-flags" variable="IEEE_8021X_PIN_FLAGS(+)" format="" values="" default="" example="" description="The secret flags for the pin property."/>
+<property name="system-ca-certs" variable="IEEE_8021X_SYSTEM_CA_CERTS(+)" format="" values="" default="" example="" description="a boolean value."/>
 <property name="auth-timeout" variable="IEEE_8021X_AUTH_TIMEOUT(+)" format="" values="" default="0" example="" description="Timeout in seconds for the 802.1X authentication. Zero means the global default or 25."/>
 <property name="optional" variable="IEEE_8021X_OPTIONAL(+)
 default=no" format="" values="" default="" example="" description="whether the 802.1X authentication is optional"/>

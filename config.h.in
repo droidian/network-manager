@@ -325,6 +325,9 @@
 /* Define if you have dhcpcd */
 #undef WITH_DHCPCD
 
+/* Define if NetworkManager uses a custom zone for shared mode */
+#undef WITH_FIREWALLD_ZONE
+
 /* Define to compile without the IWD wifi-backend */
 #undef WITH_IWD
 

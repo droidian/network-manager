@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 05/08/2020
+.\"      Date: 05/29/2020
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.24.0
+.\"    Source: NetworkManager 1.24.2
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.24\&.0" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.24\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -405,6 +405,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 eap
@@ -464,11 +465,11 @@ T}
 T{
 ca\-path
 T}:T{
-(none)
+IEEE_8021X_CA_PATH\fI(+)\fR
 T}:T{
 \ \&
 T}:T{
-The property is not handled by ifcfg\-rh plugin\&.
+The search path for the certificate\&.
 T}
 T{
 subject\-match
@@ -596,6 +597,15 @@ Example: \fRIEEE_8021X_INNER_AUTH_METHODS="MSCHAPV2 EAP\-TLS"\fB
 Allowed values: \fR"EAP\-MD5", "EAP\-MSCHAPV2", "EAP\-GTC", "EAP\-OTP" and "EAP\-TLS"
 T}
 T{
+phase2\-ca\-path
+T}:T{
+IEEE_8021X_PHASE2_CA_PATH\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+The search path for the certificate\&.
+T}
+T{
 phase2\-subject\-match
 T}:T{
 IEEE_8021X_PHASE2_SUBJECT_MATCH\fI(+)\fR
@@ -676,11 +686,11 @@ T}
 T{
 password\-raw\-flags
 T}:T{
-(none)
+IEEE_8021X_PASSWORD_RAW_FLAGS\fI(+)\fR
 T}:T{
 \ \&
 T}:T{
-The property is not handled by ifcfg\-rh plugin\&.
+The secret flags for password\-raw\&.
 T}
 T{
 private\-key
@@ -741,29 +751,29 @@ T}
 T{
 pin
 T}:T{
-(none)
+IEEE_8021X_PIN\fI(+)\fR
 T}:T{
 \ \&
 T}:T{
-The property is not handled by ifcfg\-rh plugin\&.
+The pin secret used for EAP authentication methods\&.
 T}
 T{
 pin\-flags
 T}:T{
-(none)
+IEEE_8021X_PIN_FLAGS\fI(+)\fR
 T}:T{
 \ \&
 T}:T{
-The property is not handled by ifcfg\-rh plugin\&.
+The secret flags for the pin property\&.
 T}
 T{
 system\-ca\-certs
 T}:T{
-(none)
+IEEE_8021X_SYSTEM_CA_CERTS\fI(+)\fR
 T}:T{
 \ \&
 T}:T{
-The property is not handled by ifcfg\-rh plugin\&.
+a boolean value\&.
 T}
 T{
 auth\-timeout

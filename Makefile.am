@@ -2391,7 +2391,8 @@ src_NetworkManager_LDADD = \
 src_NetworkManager_LDFLAGS = \
 	-rdynamic \
 	-Wl,--version-script="src/NetworkManager.ver" \
-	$(SANITIZER_EXEC_LDFLAGS)
+	$(SANITIZER_EXEC_LDFLAGS) \
+	$(NULL)
 
 $(src_NetworkManager_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
 
@@ -3244,6 +3245,7 @@ EXTRA_DIST += \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-wpa-psk-hex \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-wpa-psk-unquoted \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wifi-wpa-psk-unquoted2 \
+	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wired-802-1x-password-raw \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/keys-test-wired-8021x-peap-mschapv2 \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/network-test-wired-defroute-no-gatewaydev-yes \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/network-test-wired-global-gateway \
@@ -3592,6 +3594,11 @@ check_programs_norun += \
 src_devices_bluetooth_tests_nm_bt_test_CPPFLAGS = \
 	$(src_cppflags_test) \
 	$(NULL)
+
+src_devices_bluetooth_tests_nm_bt_test_LDFLAGS = \
+	$(SANITIZER_EXEC_LDFLAGS) \
+	$(NULL)
+
 src_devices_bluetooth_tests_nm_bt_test_LDADD = \
 	src/devices/bluetooth/libnm-bluetooth-utils.la \
 	src/libNetworkManager.la \
@@ -4164,7 +4171,9 @@ dispatcher_nm_dispatcher_SOURCES = \
 dispatcher_nm_dispatcher_CPPFLAGS = $(dispatcher_cppflags)
 
 dispatcher_nm_dispatcher_LDFLAGS = \
-	-Wl,--version-script="$(srcdir)/linker-script-binary.ver"
+	-Wl,--version-script="$(srcdir)/linker-script-binary.ver" \
+	$(SANITIZER_EXEC_LDFLAGS) \
+	$(NULL)
 
 dispatcher_nm_dispatcher_LDADD = \
 	dispatcher/libnm-dispatcher-core.la \
@@ -4282,7 +4291,9 @@ clients_nm_online_CPPFLAGS = \
 	$(NULL)
 
 clients_nm_online_LDFLAGS = \
-	-Wl,--version-script="$(srcdir)/linker-script-binary.ver"
+	-Wl,--version-script="$(srcdir)/linker-script-binary.ver" \
+	$(SANITIZER_EXEC_LDFLAGS) \
+	$(NULL)
 
 clients_nm_online_LDADD = \
 	libnm/libnm.la \
@@ -4893,6 +4904,11 @@ data/server.conf: $(srcdir)/data/server.conf.in
 	@$(MKDIR_P) data/
 	$(AM_V_GEN) $(data_edit) $< >$@
 
+if WITH_FIREWALLD_ZONE
+firewalldzonedir = $(prefix)/lib/firewalld/zones
+firewalldzone_DATA = data/nm-shared.xml
+endif
+
 EXTRA_DIST += \
 	data/84-nm-drivers.rules \
 	data/85-nm-unmanaged.rules \
@@ -4902,6 +4918,7 @@ EXTRA_DIST += \
 	data/NetworkManager-wait-online.service.in \
 	data/NetworkManager.service.in \
 	data/meson.build \
+	data/nm-shared.xml \
 	data/server.conf.in \
 	$(NULL)
 
@@ -5097,6 +5114,7 @@ EXTRA_DIST += \
 	src/ppp/nm-ppp-plugin.ver \
 	Makefile.glib \
 	autogen.sh \
+	lsan.suppressions \
 	valgrind.suppressions \
 	meson.build \
 	meson_options.txt \
