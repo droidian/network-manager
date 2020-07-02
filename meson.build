@@ -6,13 +6,13 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "shared/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.24.2',
+  version: '1.25.91',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
     'c_std=gnu11',
   ],
-  meson_version: '>= 0.46.0',
+  meson_version: '>= 0.47.2',
 )
 
 nm_name = meson.project_name()

@@ -1499,7 +1499,53 @@ test_team_setting (void)
 /*****************************************************************************/
 
 static void
-test_ethtool_1 (void)
+_setting_ethtool_set_feature (NMSettingEthtool *s_ethtool,
+                              const char *opt_name,
+                              NMTernary value)
+{
+	g_assert (NM_IS_SETTING_ETHTOOL (s_ethtool));
+
+	if (nmtst_get_rand_bool ()) {
+		nm_setting_ethtool_set_feature (s_ethtool, opt_name, value);
+		return;
+	}
+
+	if (value == NM_TERNARY_DEFAULT) {
+		nm_setting_option_set (NM_SETTING (s_ethtool), opt_name, NULL);
+		return;
+	}
+
+	if (nmtst_get_rand_bool ())
+		nm_setting_option_set_boolean (NM_SETTING (s_ethtool), opt_name, value);
+	else
+		nm_setting_option_set (NM_SETTING (s_ethtool), opt_name, g_variant_new_boolean (value));
+}
+
+static NMTernary
+_setting_ethtool_get_feature (NMSettingEthtool *s_ethtool,
+                              const char *opt_name)
+{
+	GVariant *v;
+	gboolean b;
+
+	switch (nmtst_get_rand_uint32 () % 3) {
+	case 0:
+		return nm_setting_ethtool_get_feature (s_ethtool, opt_name);
+	case 1:
+		if (!nm_setting_option_get_boolean (NM_SETTING (s_ethtool), opt_name, &b))
+			return NM_TERNARY_DEFAULT;
+		return b;
+	default:
+		v = nm_setting_option_get (NM_SETTING (s_ethtool), opt_name);
+		if (   !v
+		    || !g_variant_is_of_type (v, G_VARIANT_TYPE_BOOLEAN))
+			return NM_TERNARY_DEFAULT;
+		return g_variant_get_boolean (v);
+	}
+}
+
+static void
+test_ethtool_features (void)
 {
 	gs_unref_object NMConnection *con = NULL;
 	gs_unref_object NMConnection *con2 = NULL;
@@ -1519,16 +1565,16 @@ test_ethtool_1 (void)
 	s_ethtool = NM_SETTING_ETHTOOL (nm_setting_ethtool_new ());
 	nm_connection_add_setting (con, NM_SETTING (s_ethtool));
 
-	nm_setting_ethtool_set_feature (s_ethtool,
-	                                NM_ETHTOOL_OPTNAME_FEATURE_RX,
-	                                NM_TERNARY_TRUE);
-	nm_setting_ethtool_set_feature (s_ethtool,
-	                                NM_ETHTOOL_OPTNAME_FEATURE_LRO,
-	                                NM_TERNARY_FALSE);
+	_setting_ethtool_set_feature (s_ethtool,
+	                              NM_ETHTOOL_OPTNAME_FEATURE_RX,
+	                              NM_TERNARY_TRUE);
+	_setting_ethtool_set_feature (s_ethtool,
+	                              NM_ETHTOOL_OPTNAME_FEATURE_LRO,
+	                              NM_TERNARY_FALSE);
 
-	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool, NM_ETHTOOL_OPTNAME_FEATURE_RX), ==, NM_TERNARY_TRUE);
-	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool, NM_ETHTOOL_OPTNAME_FEATURE_LRO), ==, NM_TERNARY_FALSE);
-	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool, NM_ETHTOOL_OPTNAME_FEATURE_SG),  ==, NM_TERNARY_DEFAULT);
+	g_assert_cmpint (_setting_ethtool_get_feature (s_ethtool, NM_ETHTOOL_OPTNAME_FEATURE_RX), ==, NM_TERNARY_TRUE);
+	g_assert_cmpint (_setting_ethtool_get_feature (s_ethtool, NM_ETHTOOL_OPTNAME_FEATURE_LRO), ==, NM_TERNARY_FALSE);
+	g_assert_cmpint (_setting_ethtool_get_feature (s_ethtool, NM_ETHTOOL_OPTNAME_FEATURE_SG),  ==, NM_TERNARY_DEFAULT);
 
 	nmtst_connection_normalize (con);
 
@@ -1539,19 +1585,20 @@ test_ethtool_1 (void)
 
 	s_ethtool2 = NM_SETTING_ETHTOOL (nm_connection_get_setting (con2, NM_TYPE_SETTING_ETHTOOL));
 
-	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool2, NM_ETHTOOL_OPTNAME_FEATURE_RX),  ==, NM_TERNARY_TRUE);
-	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool2, NM_ETHTOOL_OPTNAME_FEATURE_LRO), ==, NM_TERNARY_FALSE);
-	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool2, NM_ETHTOOL_OPTNAME_FEATURE_SG),  ==, NM_TERNARY_DEFAULT);
+	g_assert_cmpint (_setting_ethtool_get_feature (s_ethtool2, NM_ETHTOOL_OPTNAME_FEATURE_RX),  ==, NM_TERNARY_TRUE);
+	g_assert_cmpint (_setting_ethtool_get_feature (s_ethtool2, NM_ETHTOOL_OPTNAME_FEATURE_LRO), ==, NM_TERNARY_FALSE);
+	g_assert_cmpint (_setting_ethtool_get_feature (s_ethtool2, NM_ETHTOOL_OPTNAME_FEATURE_SG),  ==, NM_TERNARY_DEFAULT);
 
 	nmtst_assert_connection_verifies_without_normalization (con2);
 
 	nmtst_assert_connection_equals (con, FALSE, con2, FALSE);
 
-	keyfile = nm_keyfile_write (con, NULL, NULL, &error);
+	keyfile = nm_keyfile_write (con, NM_KEYFILE_HANDLER_FLAGS_NONE, NULL, NULL, &error);
 	nmtst_assert_success (keyfile, error);
 
 	con3 = nm_keyfile_read (keyfile,
 	                        "/ignored/current/working/directory/for/loading/relative/paths",
+	                        NM_KEYFILE_HANDLER_FLAGS_NONE,
 	                        NULL,
 	                        NULL,
 	                        &error);
@@ -1566,9 +1613,179 @@ test_ethtool_1 (void)
 
 	s_ethtool3 = NM_SETTING_ETHTOOL (nm_connection_get_setting (con3, NM_TYPE_SETTING_ETHTOOL));
 
-	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool3, NM_ETHTOOL_OPTNAME_FEATURE_RX),  ==, NM_TERNARY_TRUE);
-	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool3, NM_ETHTOOL_OPTNAME_FEATURE_LRO), ==, NM_TERNARY_FALSE);
-	g_assert_cmpint (nm_setting_ethtool_get_feature (s_ethtool3, NM_ETHTOOL_OPTNAME_FEATURE_SG),  ==, NM_TERNARY_DEFAULT);
+	g_assert_cmpint (_setting_ethtool_get_feature (s_ethtool3, NM_ETHTOOL_OPTNAME_FEATURE_RX),  ==, NM_TERNARY_TRUE);
+	g_assert_cmpint (_setting_ethtool_get_feature (s_ethtool3, NM_ETHTOOL_OPTNAME_FEATURE_LRO), ==, NM_TERNARY_FALSE);
+	g_assert_cmpint (_setting_ethtool_get_feature (s_ethtool3, NM_ETHTOOL_OPTNAME_FEATURE_SG),  ==, NM_TERNARY_DEFAULT);
+}
+
+static void
+test_ethtool_coalesce (void)
+{
+	gs_unref_object NMConnection *con = NULL;
+	gs_unref_object NMConnection *con2 = NULL;
+	gs_unref_object NMConnection *con3 = NULL;
+	gs_unref_variant GVariant *variant = NULL;
+	gs_free_error GError *error = NULL;
+	gs_unref_keyfile GKeyFile *keyfile = NULL;
+	NMSettingConnection *s_con;
+	NMSettingEthtool *s_ethtool;
+	NMSettingEthtool *s_ethtool2;
+	NMSettingEthtool *s_ethtool3;
+	guint32 u32;
+
+	con = nmtst_create_minimal_connection ("ethtool-coalesce",
+	                                        NULL,
+	                                        NM_SETTING_WIRED_SETTING_NAME,
+	                                        &s_con);
+	s_ethtool = NM_SETTING_ETHTOOL (nm_setting_ethtool_new ());
+	nm_connection_add_setting (con, NM_SETTING (s_ethtool));
+
+	nm_setting_option_set_uint32 (NM_SETTING (s_ethtool),
+	                              NM_ETHTOOL_OPTNAME_COALESCE_RX_FRAMES,
+	                              4);
+
+	g_assert_true (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_COALESCE_RX_FRAMES, &u32));
+	g_assert_cmpuint (u32, ==, 4);
+
+	nmtst_connection_normalize (con);
+
+	variant = nm_connection_to_dbus (con, NM_CONNECTION_SERIALIZE_ALL);
+
+	con2 = nm_simple_connection_new_from_dbus (variant, &error);
+	nmtst_assert_success (con2, error);
+
+	s_ethtool2 = NM_SETTING_ETHTOOL (nm_connection_get_setting (con2, NM_TYPE_SETTING_ETHTOOL));
+
+	g_assert_true (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool2), NM_ETHTOOL_OPTNAME_COALESCE_RX_FRAMES, &u32));
+	g_assert_cmpuint (u32, ==, 4);
+
+	nmtst_assert_connection_verifies_without_normalization (con2);
+
+	nmtst_assert_connection_equals (con, FALSE, con2, FALSE);
+
+	keyfile = nm_keyfile_write (con, NM_KEYFILE_HANDLER_FLAGS_NONE, NULL, NULL, &error);
+	nmtst_assert_success (keyfile, error);
+
+	con3 = nm_keyfile_read (keyfile,
+	                        "/ignored/current/working/directory/for/loading/relative/paths",
+	                        NM_KEYFILE_HANDLER_FLAGS_NONE,
+	                        NULL,
+	                        NULL,
+	                        &error);
+	nmtst_assert_success (con3, error);
+
+	nm_keyfile_read_ensure_id (con3, "unused-because-already-has-id");
+	nm_keyfile_read_ensure_uuid (con3, "unused-because-already-has-uuid");
+
+	nmtst_connection_normalize (con3);
+
+	nmtst_assert_connection_equals (con, FALSE, con3, FALSE);
+
+	s_ethtool3 = NM_SETTING_ETHTOOL (nm_connection_get_setting (con3, NM_TYPE_SETTING_ETHTOOL));
+
+	g_assert_true (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool3), NM_ETHTOOL_OPTNAME_COALESCE_RX_FRAMES, &u32));
+	g_assert_cmpuint (u32, ==, 4);
+
+
+	nm_setting_option_set (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_COALESCE_RX_FRAMES, NULL);
+	g_assert_false (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_COALESCE_RX_FRAMES, NULL));
+
+	nm_setting_option_set_uint32 (NM_SETTING (s_ethtool),
+	                              NM_ETHTOOL_OPTNAME_COALESCE_TX_FRAMES,
+	                              8);
+
+	g_assert_true (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_COALESCE_TX_FRAMES, &u32));
+	g_assert_cmpuint (u32, ==, 8);
+
+	nm_setting_option_clear_by_name (NM_SETTING (s_ethtool), nm_ethtool_optname_is_coalesce);
+	g_assert_false (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_COALESCE_RX_FRAMES, NULL));
+	g_assert_false (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_COALESCE_TX_FRAMES, NULL));
+	g_assert_false (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_COALESCE_TX_USECS, NULL));
+}
+
+static void
+test_ethtool_ring (void)
+{
+	gs_unref_object NMConnection *con = NULL;
+	gs_unref_object NMConnection *con2 = NULL;
+	gs_unref_object NMConnection *con3 = NULL;
+	gs_unref_variant GVariant *variant = NULL;
+	gs_free_error GError *error = NULL;
+	gs_unref_keyfile GKeyFile *keyfile = NULL;
+	NMSettingConnection *s_con;
+	NMSettingEthtool *s_ethtool;
+	NMSettingEthtool *s_ethtool2;
+	NMSettingEthtool *s_ethtool3;
+	guint32 out_value;
+
+	con = nmtst_create_minimal_connection ("ethtool-ring",
+	                                        NULL,
+	                                        NM_SETTING_WIRED_SETTING_NAME,
+	                                        &s_con);
+	s_ethtool = NM_SETTING_ETHTOOL (nm_setting_ethtool_new ());
+	nm_connection_add_setting (con, NM_SETTING (s_ethtool));
+
+	nm_setting_option_set_uint32 (NM_SETTING (s_ethtool),
+	                              NM_ETHTOOL_OPTNAME_RING_RX_JUMBO,
+	                              4);
+
+	g_assert_true (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_RING_RX_JUMBO, &out_value));
+	g_assert_cmpuint (out_value, ==, 4);
+
+	nmtst_connection_normalize (con);
+
+	variant = nm_connection_to_dbus (con, NM_CONNECTION_SERIALIZE_ALL);
+
+	con2 = nm_simple_connection_new_from_dbus (variant, &error);
+	nmtst_assert_success (con2, error);
+
+	s_ethtool2 = NM_SETTING_ETHTOOL (nm_connection_get_setting (con2, NM_TYPE_SETTING_ETHTOOL));
+
+	g_assert_true (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool2), NM_ETHTOOL_OPTNAME_RING_RX_JUMBO, &out_value));
+	g_assert_cmpuint (out_value, ==, 4);
+
+	nmtst_assert_connection_verifies_without_normalization (con2);
+
+	nmtst_assert_connection_equals (con, FALSE, con2, FALSE);
+
+	keyfile = nm_keyfile_write (con, NM_KEYFILE_HANDLER_FLAGS_NONE, NULL, NULL, &error);
+	nmtst_assert_success (keyfile, error);
+
+	con3 = nm_keyfile_read (keyfile,
+	                        "/ignored/current/working/directory/for/loading/relative/paths",
+	                        NM_KEYFILE_HANDLER_FLAGS_NONE,
+	                        NULL,
+	                        NULL,
+	                        &error);
+	nmtst_assert_success (con3, error);
+
+	nm_keyfile_read_ensure_id (con3, "unused-because-already-has-id");
+	nm_keyfile_read_ensure_uuid (con3, "unused-because-already-has-uuid");
+
+	nmtst_connection_normalize (con3);
+
+	nmtst_assert_connection_equals (con, FALSE, con3, FALSE);
+
+	s_ethtool3 = NM_SETTING_ETHTOOL (nm_connection_get_setting (con3, NM_TYPE_SETTING_ETHTOOL));
+
+	g_assert_true (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool3), NM_ETHTOOL_OPTNAME_RING_RX_JUMBO, &out_value));
+	g_assert_cmpuint (out_value, ==, 4);
+
+
+	nm_setting_option_set (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_RING_RX_JUMBO, NULL);
+	g_assert_false (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_RING_RX_JUMBO, NULL));
+
+	nm_setting_option_set_uint32 (NM_SETTING (s_ethtool),
+	                              NM_ETHTOOL_OPTNAME_RING_RX_JUMBO,
+	                              8);
+
+	g_assert_true (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_RING_RX_JUMBO, &out_value));
+	g_assert_cmpuint (out_value, ==, 8);
+
+	nm_setting_option_clear_by_name (NM_SETTING (s_ethtool), nm_ethtool_optname_is_ring);
+	g_assert_false (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_RING_RX_JUMBO, NULL));
+	g_assert_false (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_RING_RX, NULL));
+	g_assert_false (nm_setting_option_get_uint32 (NM_SETTING (s_ethtool), NM_ETHTOOL_OPTNAME_RING_TX, NULL));
 }
 
 /*****************************************************************************/
@@ -1917,14 +2134,16 @@ _test_verify_options_bridge (gboolean expected_result,
 		case G_TYPE_UINT: {
 				guint uvalue;
 
-				uvalue = _nm_utils_ascii_str_to_uint64 (option_val, 10, 0, G_MAXUINT, 0);
+				uvalue = _nm_utils_ascii_str_to_uint64 (option_val, 10, 0, G_MAXUINT, -1);
+				g_assert (errno == 0);
 				g_object_set (s_bridge, option_key, uvalue, NULL);
 			}
 			break;
 		case G_TYPE_BOOLEAN: {
-				gboolean bvalue;
+				int bvalue;
 
-				bvalue = _nm_utils_ascii_str_to_bool (option_val, FALSE);
+				bvalue = _nm_utils_ascii_str_to_bool (option_val, -1);
+				g_assert (bvalue != -1);
 				g_object_set (s_bridge, option_key, bvalue, NULL);
 			}
 			break;
@@ -1980,10 +2199,10 @@ test_bridge_verify (void)
 	/* multicast-router */
 	test_verify_options_bridge (FALSE,
 	                            "multicast-router",   "nonsense");
-	test_verify_options_bridge (FALSE,
+	test_verify_options_bridge (TRUE,
 	                            "multicast-snooping", "no",
 	                            "multicast-router",   "auto");
-	test_verify_options_bridge (FALSE,
+	test_verify_options_bridge (TRUE,
 	                            "multicast-snooping", "no",
 	                            "multicast-router",   "enabled");
 	test_verify_options_bridge (TRUE,
@@ -1998,6 +2217,13 @@ test_bridge_verify (void)
 	test_verify_options_bridge (TRUE,
 	                            "multicast-snooping", "yes",
 	                            "multicast-router",   "disabled");
+	/* multicast-hash-max */
+	test_verify_options_bridge (TRUE,
+	                            "multicast-hash-max",   "1024");
+	test_verify_options_bridge (TRUE,
+	                            "multicast-hash-max",   "8192");
+	test_verify_options_bridge (FALSE,
+	                            "multicast-hash-max",   "3");
 }
 
 /*****************************************************************************/
@@ -2008,6 +2234,7 @@ test_tc_config_qdisc (void)
 	NMTCQdisc *qdisc1, *qdisc2;
 	char *str;
 	GError *error = NULL;
+	GVariant *variant;
 
 	qdisc1 = nm_tc_qdisc_new ("fq_codel", TC_H_ROOT, &error);
 	nmtst_assert_success (qdisc1, error);
@@ -2070,6 +2297,43 @@ test_tc_config_qdisc (void)
 
 	nm_tc_qdisc_unref (qdisc1);
 	nm_tc_qdisc_unref (qdisc2);
+
+#define CHECK_ATTRIBUTE(qdisc, name, vtype, type, value) \
+	variant = nm_tc_qdisc_get_attribute (qdisc, name); \
+	g_assert (variant); \
+	g_assert (g_variant_is_of_type (variant, vtype)); \
+	g_assert_cmpint (g_variant_get_ ## type(variant), ==, value);
+
+	qdisc1 = nm_utils_tc_qdisc_from_str ("handle 1235 root sfq perturb 10 quantum 1480 "
+	                                     "limit 9000 flows 1024 divisor 500 depth 12",
+	                                     &error);
+	nmtst_assert_success (qdisc1, error);
+
+	g_assert_cmpstr (nm_tc_qdisc_get_kind (qdisc1), ==, "sfq");
+	g_assert (nm_tc_qdisc_get_handle (qdisc1) == TC_H_MAKE (0x1235u << 16, 0x0000u));
+	g_assert (nm_tc_qdisc_get_parent (qdisc1) == TC_H_ROOT);
+	CHECK_ATTRIBUTE (qdisc1, "perturb", G_VARIANT_TYPE_INT32,  int32,  10);
+	CHECK_ATTRIBUTE (qdisc1, "quantum", G_VARIANT_TYPE_UINT32, uint32, 1480);
+	CHECK_ATTRIBUTE (qdisc1, "limit",   G_VARIANT_TYPE_UINT32, uint32, 9000);
+	CHECK_ATTRIBUTE (qdisc1, "flows",   G_VARIANT_TYPE_UINT32, uint32, 1024);
+	CHECK_ATTRIBUTE (qdisc1, "divisor", G_VARIANT_TYPE_UINT32, uint32, 500);
+	CHECK_ATTRIBUTE (qdisc1, "depth",   G_VARIANT_TYPE_UINT32, uint32, 12);
+	nm_tc_qdisc_unref (qdisc1);
+
+	qdisc1 = nm_utils_tc_qdisc_from_str ("handle 1235 root tbf rate 1000000 burst 5000 limit 10000",
+	                                     &error);
+	nmtst_assert_success (qdisc1, error);
+
+	g_assert_cmpstr (nm_tc_qdisc_get_kind (qdisc1), ==, "tbf");
+	g_assert (nm_tc_qdisc_get_handle (qdisc1) == TC_H_MAKE (0x1235u << 16, 0x0000u));
+	g_assert (nm_tc_qdisc_get_parent (qdisc1) == TC_H_ROOT);
+	CHECK_ATTRIBUTE (qdisc1, "rate",  G_VARIANT_TYPE_UINT64, uint64, 1000000);
+	CHECK_ATTRIBUTE (qdisc1, "burst", G_VARIANT_TYPE_UINT32, uint32, 5000);
+	CHECK_ATTRIBUTE (qdisc1, "limit", G_VARIANT_TYPE_UINT32, uint32, 10000);
+	nm_tc_qdisc_unref (qdisc1);
+
+
+#undef CHECK_ATTRIBUTE
 }
 
 static void
@@ -3045,7 +3309,7 @@ test_roundtrip_conversion (gconstpointer test_data)
 	{
 		gs_unref_keyfile GKeyFile *kf = NULL;
 
-		kf = nm_keyfile_write (con, NULL, NULL, &error);
+		kf = nm_keyfile_write (con, NM_KEYFILE_HANDLER_FLAGS_NONE, NULL, NULL, &error);
 		nmtst_assert_success (kf, error);
 
 		/* the first kf_data_arr entry is special: it must be what the writer would
@@ -3140,7 +3404,7 @@ test_roundtrip_conversion (gconstpointer test_data)
 			{
 				gs_unref_keyfile GKeyFile *kf = NULL;
 
-				kf = nm_keyfile_write (con2, NULL, NULL, &error);
+				kf = nm_keyfile_write (con2, NM_KEYFILE_HANDLER_FLAGS_NONE, NULL, NULL, &error);
 				nmtst_assert_success (kf, error);
 				nmtst_keyfile_assert_data (kf, kf_data_arr->pdata[0], -1);
 			}
@@ -3444,7 +3708,7 @@ test_empty_setting (void)
 
 	nmtst_assert_connection_verifies_without_normalization (con);
 
-	kf = nm_keyfile_write (con, NULL, NULL, &error);
+	kf = nm_keyfile_write (con, NM_KEYFILE_HANDLER_FLAGS_NONE, NULL, NULL, &error);
 	nmtst_assert_success (kf, error);
 
 	g_assert (g_key_file_has_group (kf, "gsm"));
@@ -3452,6 +3716,7 @@ test_empty_setting (void)
 
 	con2 = nm_keyfile_read (kf,
 	                        "/ignored/current/working/directory/for/loading/relative/paths",
+	                        NM_KEYFILE_HANDLER_FLAGS_NONE,
 	                        NULL,
 	                        NULL,
 	                        &error);
@@ -3763,7 +4028,9 @@ main (int argc, char **argv)
 	g_test_add_func ("/libnm/settings/dcb/priorities", test_dcb_priorities_valid);
 	g_test_add_func ("/libnm/settings/dcb/bandwidth-sums", test_dcb_bandwidth_sums);
 
-	g_test_add_func ("/libnm/settings/ethtool/1", test_ethtool_1);
+	g_test_add_func ("/libnm/settings/ethtool/features", test_ethtool_features);
+	g_test_add_func ("/libnm/settings/ethtool/coalesce", test_ethtool_coalesce);
+	g_test_add_func ("/libnm/settings/ethtool/ring", test_ethtool_ring);
 
 	g_test_add_func ("/libnm/settings/sriov/vf", test_sriov_vf);
 	g_test_add_func ("/libnm/settings/sriov/vf-dup", test_sriov_vf_dup);

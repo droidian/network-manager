@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.8.2.2.1"></a><p class="title"><b>Table 75. </b></p>
+<a name="id-1.3.3.8.2.2.1"></a><p class="title"><b>Table 48. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -102,10 +102,52 @@
 <td>The Spanning Tree Protocol (STP) maximum message age, in seconds.</td>
 </tr>
 <tr>
+<td><pre class="screen">multicast-hash-max</pre></td>
+<td><pre class="screen">uint32</pre></td>
+<td><pre class="screen">4096</pre></td>
+<td>Set maximum size of multicast hash table (value must be a power of 2).</td>
+</tr>
+<tr>
+<td><pre class="screen">multicast-last-member-count</pre></td>
+<td><pre class="screen">uint32</pre></td>
+<td><pre class="screen">2</pre></td>
+<td>Set the number of queries the bridge will send before stopping forwarding a multicast group after a "leave" message has been received.</td>
+</tr>
+<tr>
+<td><pre class="screen">multicast-last-member-interval</pre></td>
+<td><pre class="screen">uint64</pre></td>
+<td><pre class="screen">100</pre></td>
+<td>Set interval (in deciseconds) between queries to find remaining members of a group, after a "leave" message is received.</td>
+</tr>
+<tr>
+<td><pre class="screen">multicast-membership-interval</pre></td>
+<td><pre class="screen">uint64</pre></td>
+<td><pre class="screen">26000</pre></td>
+<td>Set delay (in deciseconds) after which the bridge will leave a group, if no membership reports for this group are received.</td>
+</tr>
+<tr>
 <td><pre class="screen">multicast-querier</pre></td>
 <td><pre class="screen">boolean</pre></td>
 <td><pre class="screen">FALSE</pre></td>
 <td>Enable or disable sending of multicast queries by the bridge. If not specified the option is disabled.</td>
+</tr>
+<tr>
+<td><pre class="screen">multicast-querier-interval</pre></td>
+<td><pre class="screen">uint64</pre></td>
+<td><pre class="screen">25500</pre></td>
+<td>If no queries are seen after this delay (in deciseconds) has passed, the bridge will start to send its own queries.</td>
+</tr>
+<tr>
+<td><pre class="screen">multicast-query-interval</pre></td>
+<td><pre class="screen">uint64</pre></td>
+<td><pre class="screen">12500</pre></td>
+<td>Interval (in deciseconds) between queries sent by the bridge after the end of the startup phase.</td>
+</tr>
+<tr>
+<td><pre class="screen">multicast-query-response-interval</pre></td>
+<td><pre class="screen">uint64</pre></td>
+<td><pre class="screen">1000</pre></td>
+<td>Set the Max Response Time/Max Response Delay (in deciseconds) for IGMP/MLD queries sent by the bridge.</td>
 </tr>
 <tr>
 <td><pre class="screen">multicast-query-use-ifaddr</pre></td>
@@ -117,13 +159,25 @@
 <td><pre class="screen">multicast-router</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Sets bridge's multicast router. multicast-snooping must be enabled for this option to work. Supported values are: 'auto', 'disabled', 'enabled'. If not specified the default value is 'auto'.</td>
+<td>Sets bridge's multicast router. Multicast-snooping must be enabled for this option to work. Supported values are: 'auto', 'disabled', 'enabled'. If not specified the default value is 'auto'.</td>
 </tr>
 <tr>
 <td><pre class="screen">multicast-snooping</pre></td>
 <td><pre class="screen">boolean</pre></td>
 <td><pre class="screen">TRUE</pre></td>
 <td>Controls whether IGMP snooping is enabled for this bridge. Note that if snooping was automatically disabled due to hash collisions, the system may refuse to enable the feature until the collisions are resolved.</td>
+</tr>
+<tr>
+<td><pre class="screen">multicast-startup-query-count</pre></td>
+<td><pre class="screen">uint32</pre></td>
+<td><pre class="screen">2</pre></td>
+<td>Set the number of IGMP queries to send during startup phase.</td>
+</tr>
+<tr>
+<td><pre class="screen">multicast-startup-query-interval</pre></td>
+<td><pre class="screen">uint64</pre></td>
+<td><pre class="screen">3125</pre></td>
+<td>Sets the time (in deciseconds) between queries sent out at startup to determine membership information.</td>
 </tr>
 <tr>
 <td><pre class="screen">priority</pre></td>

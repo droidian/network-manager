@@ -522,9 +522,30 @@ nms_ifcfg_rh_utils_user_key_decode (const char *name, GString *str_buffer)
 /*****************************************************************************/
 
 const char *const _nm_ethtool_ifcfg_names[] = {
-#define ETHT_NAME(eid, ename) \
-[eid - _NM_ETHTOOL_ID_FEATURE_FIRST] = ""ename""
-	/* indexed by NMEthtoolID - _NM_ETHTOOL_ID_FEATURE_FIRST */
+#define ETHT_NAME(eid, ename) [eid] = ""ename""
+	/* indexed by NMEthtoolID */
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_ADAPTIVE_RX,                 "adaptive-rx"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_ADAPTIVE_TX,                 "adaptive-tx"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_RX_FRAMES,                   "rx-frames"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_RX_FRAMES_HIGH,              "rx-frames-high"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_RX_FRAMES_IRQ,               "rx-frames-irq"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_RX_FRAMES_LOW,               "rx-frames-low"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_PKT_RATE_HIGH,               "pkt-rate-high"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_PKT_RATE_LOW,                "pkt-rate-low"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_RX_USECS,                    "rx-usecs"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_RX_USECS_HIGH,               "rx-usecs-high"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_RX_USECS_IRQ,                "rx-usecs-irq"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_RX_USECS_LOW,                "rx-usecs-low"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_SAMPLE_INTERVAL,             "sample-interval"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_STATS_BLOCK_USECS,           "stats-block-usecs"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_TX_FRAMES,                   "tx-frames"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_TX_FRAMES_HIGH,              "tx-frames-high"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_TX_FRAMES_IRQ,               "tx-frames-irq"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_TX_FRAMES_LOW,               "tx-frames-low"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_TX_USECS,                    "tx-usecs"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_TX_USECS_HIGH,               "tx-usecs-high"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_TX_USECS_IRQ,                "tx-usecs-irq"),
+	ETHT_NAME (NM_ETHTOOL_ID_COALESCE_TX_USECS_LOW,                "tx-usecs-low"),
 	ETHT_NAME (NM_ETHTOOL_ID_FEATURE_ESP_HW_OFFLOAD,               "esp-hw-offload"),
 	ETHT_NAME (NM_ETHTOOL_ID_FEATURE_ESP_TX_CSUM_HW_OFFLOAD,       "esp-tx-csum-hw-offload"),
 	ETHT_NAME (NM_ETHTOOL_ID_FEATURE_FCOE_MTU,                     "fcoe-mtu"),
@@ -577,11 +598,45 @@ const char *const _nm_ethtool_ifcfg_names[] = {
 	ETHT_NAME (NM_ETHTOOL_ID_FEATURE_TX_UDP_TNL_CSUM_SEGMENTATION, "tx-udp_tnl-csum-segmentation"),
 	ETHT_NAME (NM_ETHTOOL_ID_FEATURE_TX_UDP_TNL_SEGMENTATION,      "tx-udp_tnl-segmentation"),
 	ETHT_NAME (NM_ETHTOOL_ID_FEATURE_TX_VLAN_STAG_HW_INSERT,       "tx-vlan-stag-hw-insert"),
+	ETHT_NAME (NM_ETHTOOL_ID_RING_RX,                              "rx"),
+	ETHT_NAME (NM_ETHTOOL_ID_RING_RX_JUMBO,                        "rx-jumbo"),
+	ETHT_NAME (NM_ETHTOOL_ID_RING_RX_MINI,                         "rx-mini"),
+	ETHT_NAME (NM_ETHTOOL_ID_RING_TX,                              "tx"),
 };
 
 static
 NM_UTILS_STRING_TABLE_LOOKUP_DEFINE (
-	_get_ethtoolid_by_name,
+	_get_ethtoolid_coalesce_by_name,
+	NMEthtoolID,
+	{ nm_assert (name); },
+	{ return NM_ETHTOOL_ID_UNKNOWN; },
+	{ "adaptive-rx",                  NM_ETHTOOL_ID_COALESCE_ADAPTIVE_RX                 },
+	{ "adaptive-tx",                  NM_ETHTOOL_ID_COALESCE_ADAPTIVE_TX                 },
+	{ "pkt-rate-high",                NM_ETHTOOL_ID_COALESCE_PKT_RATE_HIGH               },
+	{ "pkt-rate-low",                 NM_ETHTOOL_ID_COALESCE_PKT_RATE_LOW                },
+	{ "rx-frames",                    NM_ETHTOOL_ID_COALESCE_RX_FRAMES                   },
+	{ "rx-frames-high",               NM_ETHTOOL_ID_COALESCE_RX_FRAMES_HIGH              },
+	{ "rx-frames-irq",                NM_ETHTOOL_ID_COALESCE_RX_FRAMES_IRQ               },
+	{ "rx-frames-low",                NM_ETHTOOL_ID_COALESCE_RX_FRAMES_LOW               },
+	{ "rx-usecs",                     NM_ETHTOOL_ID_COALESCE_RX_USECS                    },
+	{ "rx-usecs-high",                NM_ETHTOOL_ID_COALESCE_RX_USECS_HIGH               },
+	{ "rx-usecs-irq",                 NM_ETHTOOL_ID_COALESCE_RX_USECS_IRQ                },
+	{ "rx-usecs-low",                 NM_ETHTOOL_ID_COALESCE_RX_USECS_LOW                },
+	{ "sample-interval",              NM_ETHTOOL_ID_COALESCE_SAMPLE_INTERVAL             },
+	{ "stats-block-usecs",            NM_ETHTOOL_ID_COALESCE_STATS_BLOCK_USECS           },
+	{ "tx-frames",                    NM_ETHTOOL_ID_COALESCE_TX_FRAMES                   },
+	{ "tx-frames-high",               NM_ETHTOOL_ID_COALESCE_TX_FRAMES_HIGH              },
+	{ "tx-frames-irq",                NM_ETHTOOL_ID_COALESCE_TX_FRAMES_IRQ               },
+	{ "tx-frames-low",                NM_ETHTOOL_ID_COALESCE_TX_FRAMES_LOW               },
+	{ "tx-usecs",                     NM_ETHTOOL_ID_COALESCE_TX_USECS                    },
+	{ "tx-usecs-high",                NM_ETHTOOL_ID_COALESCE_TX_USECS_HIGH               },
+	{ "tx-usecs-irq",                 NM_ETHTOOL_ID_COALESCE_TX_USECS_IRQ                },
+	{ "tx-usecs-low",                 NM_ETHTOOL_ID_COALESCE_TX_USECS_LOW                },
+);
+
+static
+NM_UTILS_STRING_TABLE_LOOKUP_DEFINE (
+	_get_ethtoolid_feature_by_name,
 	NMEthtoolID,
 	{ nm_assert (name); },
 	{ return NM_ETHTOOL_ID_UNKNOWN; },
@@ -660,12 +715,39 @@ NM_UTILS_STRING_TABLE_LOOKUP_DEFINE (
 	{ "txvlan",                       NM_ETHTOOL_ID_FEATURE_TXVLAN                       },
 );
 
+static
+NM_UTILS_STRING_TABLE_LOOKUP_DEFINE (
+	_get_ethtoolid_ring_by_name,
+	NMEthtoolID,
+	{ nm_assert (name); },
+	{ return NM_ETHTOOL_ID_UNKNOWN; },
+	{ "rx",                           NM_ETHTOOL_ID_RING_RX                              },
+	{ "rx-jumbo",                     NM_ETHTOOL_ID_RING_RX_JUMBO                        },
+	{ "rx-mini",                      NM_ETHTOOL_ID_RING_RX_MINI                         },
+	{ "tx",                           NM_ETHTOOL_ID_RING_TX                              },
+);
+
 const NMEthtoolData *
-nms_ifcfg_rh_utils_get_ethtool_by_name (const char *name)
+nms_ifcfg_rh_utils_get_ethtool_by_name (const char *name,
+                                        NMEthtoolType ethtool_type)
 {
 	NMEthtoolID id;
 
-	id = _get_ethtoolid_by_name (name);
+	switch (ethtool_type) {
+	case NM_ETHTOOL_TYPE_COALESCE:
+		id = _get_ethtoolid_coalesce_by_name (name);
+		break;
+	case NM_ETHTOOL_TYPE_FEATURE:
+		id = _get_ethtoolid_feature_by_name (name);
+		break;
+	case NM_ETHTOOL_TYPE_RING:
+		id = _get_ethtoolid_ring_by_name (name);
+		break;
+	default:
+		nm_assert_not_reached();
+		return NULL;
+	}
+
 	if (id == NM_ETHTOOL_ID_UNKNOWN)
 		return NULL;
 
@@ -892,11 +974,15 @@ const NMSIfcfgKeyTypeInfo nms_ifcfg_well_known_keys[] = {
 	_KEY_TYPE ("MAC_ADDRESS_RANDOMIZATION",                   NMS_IFCFG_KEY_TYPE_IS_PLAIN ),
 	_KEY_TYPE ("MASTER",                                      NMS_IFCFG_KEY_TYPE_IS_PLAIN ),
 	_KEY_TYPE ("MASTER_UUID",                                 NMS_IFCFG_KEY_TYPE_IS_PLAIN ),
+	_KEY_TYPE ("MATCH_DRIVER",                                NMS_IFCFG_KEY_TYPE_IS_PLAIN ),
 	_KEY_TYPE ("MATCH_INTERFACE_NAME",                        NMS_IFCFG_KEY_TYPE_IS_PLAIN ),
+	_KEY_TYPE ("MATCH_KERNEL_COMMAND_LINE",                   NMS_IFCFG_KEY_TYPE_IS_PLAIN ),
+	_KEY_TYPE ("MATCH_PATH",                                  NMS_IFCFG_KEY_TYPE_IS_PLAIN ),
 	_KEY_TYPE ("MDNS",                                        NMS_IFCFG_KEY_TYPE_IS_PLAIN ),
 	_KEY_TYPE ("METRIC",                                      NMS_IFCFG_KEY_TYPE_IS_NUMBERED ),
 	_KEY_TYPE ("MODE",                                        NMS_IFCFG_KEY_TYPE_IS_PLAIN ),
 	_KEY_TYPE ("MTU",                                         NMS_IFCFG_KEY_TYPE_IS_PLAIN ),
+	_KEY_TYPE ("MUD_URL",                                     NMS_IFCFG_KEY_TYPE_IS_PLAIN ),
 	_KEY_TYPE ("MULTI_CONNECT",                               NMS_IFCFG_KEY_TYPE_IS_PLAIN ),
 	_KEY_TYPE ("MVRP",                                        NMS_IFCFG_KEY_TYPE_IS_PLAIN ),
 	_KEY_TYPE ("NAME",                                        NMS_IFCFG_KEY_TYPE_IS_PLAIN ),

@@ -1,8 +1,4 @@
-<?xml version="1.0"?>
-<!DOCTYPE nm-keyfile-docs [
-]>
-
-<nm-keyfile-docs>
+<nm-setting-docs>
   <setting name="6lowpan">
 </setting>
 <setting name="802-1x">
@@ -140,4 +136,4 @@ under [vpn-secrets] section."/>
 <property name="mac-address" variable="mac-address" format="usual hex-digits-and-colons notation" values="" default="" example="" description="MAC address in hex-digits-and-colons notation
 (e.g. 76:d8:9b:87:66:60:84:ee)."/>
 </setting>
-</nm-keyfile-docs>
+</nm-setting-docs>

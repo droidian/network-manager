@@ -351,6 +351,8 @@ typedef enum { /*< underscore_name=nm_802_11_ap_flags, flags >*/
  * supported
  * @NM_802_11_AP_SEC_KEY_MGMT_OWE: WPA/RSN Opportunistic Wireless Encryption is
  * supported
+ * @NM_802_11_AP_SEC_KEY_MGMT_OWE_TM: WPA/RSN Opportunistic Wireless Encryption
+ * transition mode is supported. Since: 1.26.
  *
  * 802.11 access point security and authentication flags.  These flags describe
  * the current security requirements of an access point as determined from the
@@ -370,6 +372,7 @@ typedef enum { /*< underscore_name=nm_802_11_ap_security_flags, flags >*/
 	NM_802_11_AP_SEC_KEY_MGMT_802_1X = 0x00000200,
 	NM_802_11_AP_SEC_KEY_MGMT_SAE    = 0x00000400,
 	NM_802_11_AP_SEC_KEY_MGMT_OWE    = 0x00000800,
+	NM_802_11_AP_SEC_KEY_MGMT_OWE_TM = 0x00001000,
 } NM80211ApSecurityFlags;
 
 /**
@@ -857,6 +860,7 @@ typedef enum /*< flags >*/ {
 #undef NM_AVAILABLE_IN_1_8
 #endif
 
+#define NM_LLDP_ATTR_RAW                     "raw"
 #define NM_LLDP_ATTR_DESTINATION             "destination"
 #define NM_LLDP_ATTR_CHASSIS_ID_TYPE         "chassis-id-type"
 #define NM_LLDP_ATTR_CHASSIS_ID              "chassis-id"
@@ -875,6 +879,8 @@ typedef enum /*< flags >*/ {
 #define NM_LLDP_ATTR_IEEE_802_3_MAC_PHY_CONF    "ieee-802-3-mac-phy-conf"
 #define NM_LLDP_ATTR_IEEE_802_3_POWER_VIA_MDI   "ieee-802-3-power-via-mdi"
 #define NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE  "ieee-802-3-max-frame-size"
+
+#define NM_LLDP_ATTR_MUD_URL                 "mud-url"
 
 /* These are deprecated in favor of NM_LLDP_ATTR_IEEE_802_1_VLANS,
  * which can report multiple VLANs */
@@ -992,6 +998,8 @@ typedef enum { /*< skip >*/
  *  currently active but deleted on disconnect. Volatile connections are
  *  always unsaved, but they are also no backing file on disk and are entirely
  *  in-memory only.
+ * @NM_SETTINGS_CONNECTION_FLAG_EXTERNAL: the profile was generated to represent
+ *  an external configuration of a networking device. Since: 1.26
  *
  * Flags describing the current activation state.
  *
@@ -1002,6 +1010,7 @@ typedef enum { /*< flags >*/
 	NM_SETTINGS_CONNECTION_FLAG_UNSAVED                    = 0x01,
 	NM_SETTINGS_CONNECTION_FLAG_NM_GENERATED               = 0x02,
 	NM_SETTINGS_CONNECTION_FLAG_VOLATILE                   = 0x04,
+	NM_SETTINGS_CONNECTION_FLAG_EXTERNAL                   = 0x08,
 } NMSettingsConnectionFlags;
 
 /**
@@ -1018,6 +1027,8 @@ typedef enum { /*< flags >*/
  *   of the activation is bound to the visilibity of the connection profile,
  *   which in turn depends on "connection.permissions" and whether a session
  *   for the user exists. Since: 1.16
+ * @NM_ACTIVATION_STATE_FLAG_EXTERNAL: the active connection was generated to
+ *  represent an external configuration of a networking device. Since: 1.26
  *
  * Flags describing the current activation state.
  *
@@ -1033,6 +1044,7 @@ typedef enum { /*< flags >*/
 	NM_ACTIVATION_STATE_FLAG_IP6_READY                            = 0x10,
 	NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES                    = 0x20,
 	NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY = 0x40,
+	NM_ACTIVATION_STATE_FLAG_EXTERNAL                             = 0x80,
 } NMActivationStateFlags;
 
 /**

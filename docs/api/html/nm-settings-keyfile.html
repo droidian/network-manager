@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="NetworkManager Reference Manual">
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
-<link rel="prev" href="nm-settings.html" title="nm-settings">
+<link rel="prev" href="nm-settings-nmcli.html" title="nm-settings-nmcli">
 <link rel="next" href="nm-settings-ifcfg-rh.html" title="nm-settings-ifcfg-rh">
 <meta name="generator" content="GTK-Doc V1.32 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
@@ -16,7 +16,7 @@
 <td width="100%" align="left" class="shortcuts"></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="manpages.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="nm-settings.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="nm-settings-nmcli.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="nm-settings-ifcfg-rh.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
@@ -175,7 +175,7 @@ id=4
           There are several exceptions to this rule, mainly for making keyfile syntax easier
           for humans. The exceptions handled specially by <span class="emphasis"><em>keyfile</em></span>
           plugin are listed below. Refer to
-          <a class="link" href="nm-settings.html" title="nm-settings"><span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span></a>
+          <span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span>
           for all available settings and properties and their description.
         </p>
 <p><b>Name aliases. </b>
@@ -189,7 +189,7 @@ id=4
 <tr><td>802-11-wireless-security  =  wifi-security</td></tr>
 </table>
 <div class="table">
-<a name="id-1.2.8.6.4"></a><p class="title"><b>Table 28. bridge setting (section)</b></p>
+<a name="id-1.2.9.6.4"></a><p class="title"><b>Table 1. bridge setting (section)</b></p>
 <div class="table-contents"><table class="table" summary="bridge setting (section)" border="1">
 <colgroup>
 <col>
@@ -214,7 +214,7 @@ Example: </strong></span>mac-address=00:22:68:12:79:A2 mac-address=0;34;104;18;1
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.6.5"></a><p class="title"><b>Table 29. infiniband setting (section)</b></p>
+<a name="id-1.2.9.6.5"></a><p class="title"><b>Table 2. infiniband setting (section)</b></p>
 <div class="table-contents"><table class="table" summary="infiniband setting (section)" border="1">
 <colgroup>
 <col>
@@ -239,7 +239,7 @@ Example: </strong></span>mac-address= 80:00:00:6d:fe:80:00:00:00:00:00:00:00:02:
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.6.6"></a><p class="title"><b>Table 30. ipv4 setting (section)</b></p>
+<a name="id-1.2.9.6.6"></a><p class="title"><b>Table 3. ipv4 setting (section)</b></p>
 <div class="table-contents"><table class="table" summary="ipv4 setting (section)" border="1">
 <colgroup>
 <col>
@@ -290,7 +290,7 @@ Example: </strong></span>route1=8.8.8.0/24,10.1.1.1,77 route2=7.7.0.0/16</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.6.7"></a><p class="title"><b>Table 31. ipv6 setting (section)</b></p>
+<a name="id-1.2.9.6.7"></a><p class="title"><b>Table 4. ipv6 setting (section)</b></p>
 <div class="table-contents"><table class="table" summary="ipv6 setting (section)" border="1">
 <colgroup>
 <col>
@@ -341,7 +341,7 @@ Example: </strong></span>route1=2001:4860:4860::/64,2620:52:0:2219:222:68ff:fe11
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.6.8"></a><p class="title"><b>Table 32. serial setting (section)</b></p>
+<a name="id-1.2.9.6.8"></a><p class="title"><b>Table 5. serial setting (section)</b></p>
 <div class="table-contents"><table class="table" summary="serial setting (section)" border="1">
 <colgroup>
 <col>
@@ -366,7 +366,7 @@ Example: </strong></span>parity=n</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.6.9"></a><p class="title"><b>Table 33. vpn setting (section)</b></p>
+<a name="id-1.2.9.6.9"></a><p class="title"><b>Table 6. vpn setting (section)</b></p>
 <div class="table-contents"><table class="table" summary="vpn setting (section)" border="1">
 <colgroup>
 <col>
@@ -401,7 +401,7 @@ Example: </strong></span>password=Popocatepetl</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.6.10"></a><p class="title"><b>Table 34. wifi-p2p setting (section)</b></p>
+<a name="id-1.2.9.6.10"></a><p class="title"><b>Table 7. wifi-p2p setting (section)</b></p>
 <div class="table-contents"><table class="table" summary="wifi-p2p setting (section)" border="1">
 <colgroup>
 <col>
@@ -424,7 +424,7 @@ Example: </strong></span>password=Popocatepetl</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.6.11"></a><p class="title"><b>Table 35. 802-3-ethernet setting (section)</b></p>
+<a name="id-1.2.9.6.11"></a><p class="title"><b>Table 8. 802-3-ethernet setting (section)</b></p>
 <div class="table-contents"><table class="table" summary="802-3-ethernet setting (section)" border="1">
 <colgroup>
 <col>
@@ -463,7 +463,7 @@ Example: </strong></span>mac-address-blacklist= 00:22:68:12:79:A6;00:22:68:12:79
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.6.12"></a><p class="title"><b>Table 36. 802-11-wireless setting (section)</b></p>
+<a name="id-1.2.9.6.12"></a><p class="title"><b>Table 9. 802-11-wireless setting (section)</b></p>
 <div class="table-contents"><table class="table" summary="802-11-wireless setting (section)" border="1">
 <colgroup>
 <col>
@@ -510,7 +510,7 @@ Example: </strong></span>mac-address-blacklist= 00:22:68:12:79:A6;00:22:68:12:79
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.8.6.13"></a><p class="title"><b>Table 37. wpan setting (section)</b></p>
+<a name="id-1.2.9.6.13"></a><p class="title"><b>Table 10. wpan setting (section)</b></p>
 <div class="table-contents"><table class="table" summary="wpan setting (section)" border="1">
 <colgroup>
 <col>
@@ -558,7 +558,7 @@ Example: </strong></span>mac-address-blacklist= 00:22:68:12:79:A6;00:22:68:12:79
 </div>
 <div class="refsect1">
 <a name="see_also"></a><h2>See Also</h2>
-<p><a class="link" href="nm-settings.html" title="nm-settings"><span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span></a>,
+<p><span class="citerefentry"><span class="refentrytitle">nm-settings</span>(5)</span>,
         <a class="link" href="nm-settings-ifcfg-rh.html" title="nm-settings-ifcfg-rh"><span class="citerefentry"><span class="refentrytitle">nm-settings-ifcfg-rh</span>(5)</span></a>,
         <a class="link" href="NetworkManager.html" title="NetworkManager"><span class="citerefentry"><span class="refentrytitle">NetworkManager</span>(8)</span></a>,
         <a class="link" href="NetworkManager.conf.html" title="NetworkManager.conf"><span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span></a>,

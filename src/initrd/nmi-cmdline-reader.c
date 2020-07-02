@@ -7,6 +7,7 @@
 
 #include "nm-core-internal.h"
 #include "nm-initrd-generator.h"
+#include "systemd/nm-sd-utils-shared.h"
 
 /*****************************************************************************/
 
@@ -22,6 +23,11 @@ typedef struct {
 	GPtrArray *array;
 	NMConnection *bootdev_connection;   /* connection for bootdev=$ifname */
 	NMConnection *default_connection;   /* connection not bound to any ifname */
+	char *hostname;
+
+	/* Parameters to be set for all connections */
+	gboolean ignore_auto_dns;
+	int dhcp_timeout;
 } Reader;
 
 static Reader *
@@ -45,6 +51,7 @@ reader_destroy (Reader *reader, gboolean free_hash)
 
 	g_ptr_array_unref (reader->array);
 	hash = g_steal_pointer (&reader->hash);
+	nm_clear_g_free (&reader->hostname);
 	nm_g_slice_free (reader);
 	if (!free_hash)
 		return g_steal_pointer (&hash);
@@ -86,6 +93,8 @@ reader_create_connection (Reader *reader,
 	g_object_set (setting,
 	              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO,
 	              NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE,
+	              NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS, reader->ignore_auto_dns,
+	              NM_SETTING_IP_CONFIG_DHCP_TIMEOUT, reader->dhcp_timeout,
 	              NULL);
 
 	setting = nm_setting_ip6_config_new ();
@@ -94,6 +103,8 @@ reader_create_connection (Reader *reader,
 	              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO,
 	              NM_SETTING_IP_CONFIG_MAY_FAIL, TRUE,
 	              NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE, (int) NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64,
+	              NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS, reader->ignore_auto_dns,
+	              NM_SETTING_IP_CONFIG_DHCP_TIMEOUT, reader->dhcp_timeout,
 	              NULL);
 
 	setting = nm_setting_connection_new ();
@@ -345,6 +356,14 @@ reader_parse_ip (Reader *reader, const char *sysfs_dir, char *argument)
 			ifname = tmp;
 		}
 
+		if (client_hostname && !nm_sd_hostname_is_valid (client_hostname, FALSE))
+			client_hostname = NULL;
+
+		if (client_hostname) {
+			g_free (reader->hostname);
+			reader->hostname = g_strdup (client_hostname);
+		}
+
 		/* <ifname>:{none|off|dhcp|on|any|dhcp6|auto6|ibft} */
 
 		kind = get_word (&argument, ':');
@@ -363,8 +382,8 @@ reader_parse_ip (Reader *reader, const char *sysfs_dir, char *argument)
 		}
 	}
 
-	if (ifname == NULL && (   g_strcmp0 (kind, "fw") == 0
-	                       || g_strcmp0 (kind, "ibft") == 0)) {
+	if (   ifname == NULL
+	    && NM_IN_STRSET (kind, "fw", "ibft")) {
 		reader_read_all_connections_from_fw (reader, sysfs_dir);
 		return;
 	}
@@ -442,10 +461,10 @@ reader_parse_ip (Reader *reader, const char *sysfs_dir, char *argument)
 	}
 
 	/* Dynamic IP configuration configured explicitly. */
-	if (g_strcmp0 (kind, "none") == 0 || (g_strcmp0 (kind, "off") == 0)) {
+	if (NM_IN_STRSET (kind, "none", "off")) {
 		if (nm_setting_ip_config_get_num_addresses (s_ip6) == 0) {
 			g_object_set (s_ip6,
-			              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_DISABLED,
+			              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_AUTO,
 			              NULL);
 		}
 		if (nm_setting_ip_config_get_num_addresses (s_ip4) == 0) {
@@ -453,17 +472,17 @@ reader_parse_ip (Reader *reader, const char *sysfs_dir, char *argument)
 			              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_DISABLED,
 			              NULL);
 		}
-	} else if (g_strcmp0 (kind, "dhcp") == 0) {
+	} else if (nm_streq0 (kind, "dhcp")) {
 		g_object_set (s_ip4,
 		              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_AUTO,
 		              NM_SETTING_IP_CONFIG_MAY_FAIL, FALSE,
 		              NULL);
 		if (nm_setting_ip_config_get_num_addresses (s_ip6) == 0) {
 			g_object_set (s_ip6,
-			              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_IGNORE,
+			              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_AUTO,
 			              NULL);
 		}
-	} else if (g_strcmp0 (kind, "dhcp6") == 0) {
+	} else if (nm_streq0 (kind, "dhcp6")) {
 		g_object_set (s_ip6,
 		              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_DHCP,
 		              NM_SETTING_IP_CONFIG_MAY_FAIL, FALSE,
@@ -473,7 +492,7 @@ reader_parse_ip (Reader *reader, const char *sysfs_dir, char *argument)
 			              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_DISABLED,
 			              NULL);
 		}
-	} else if (g_strcmp0 (kind, "auto6") == 0) {
+	} else if (nm_streq0 (kind, "auto6")) {
 		g_object_set (s_ip4,
 		              NM_SETTING_IP_CONFIG_MAY_FAIL, FALSE,
 		              NULL);
@@ -482,7 +501,7 @@ reader_parse_ip (Reader *reader, const char *sysfs_dir, char *argument)
 			              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_DISABLED,
 			              NULL);
 		}
-	} else if (g_strcmp0 (kind, "ibft") == 0) {
+	} else if (nm_streq0 (kind, "ibft")) {
 		gs_free char *address_path = g_build_filename (sysfs_dir, "class", "net", ifname, "address", NULL);
 		gs_free char *mac, *mac_up = NULL;
 		GHashTable *nic = NULL;
@@ -591,7 +610,7 @@ reader_parse_master (Reader *reader,
 	s_con = nm_connection_get_setting_connection (connection);
 	master = nm_setting_connection_get_uuid (s_con);
 
-	if (strcmp (type_name, NM_SETTING_BOND_SETTING_NAME) == 0) {
+	if (nm_streq (type_name, NM_SETTING_BOND_SETTING_NAME)) {
 		s_bond = (NMSettingBond *)nm_connection_get_setting_by_name (connection, type_name);
 
 		opts = get_word (&argument, ':');
@@ -777,7 +796,9 @@ reader_parse_rd_znet (Reader *reader, char *argument, gboolean net_ifnames)
 		ifname = g_strdup_printf ("%s%d", prefix, index);
 	}
 
-	connection = reader_get_connection (reader, ifname, NM_SETTING_WIRED_SETTING_NAME, TRUE);
+	connection = reader_get_connection (reader, ifname, NM_SETTING_WIRED_SETTING_NAME, FALSE);
+	if (!connection)
+		return;
 	s_wired = nm_connection_get_setting_wired (connection);
 	g_object_set (s_wired,
 	              NM_SETTING_WIRED_S390_NETTYPE, nettype,
@@ -805,27 +826,6 @@ _normalize_conn (gpointer key, gpointer value, gpointer user_data)
 	NMConnection *connection = value;
 
 	nm_connection_normalize (connection, NULL, NULL, NULL);
-}
-
-static void
-reader_set_ignore_auto_dns (Reader *reader)
-{
-	GHashTableIter iter;
-	NMConnection *connection;
-	NMSettingIPConfig *s_ip = NULL;
-
-	g_hash_table_iter_init (&iter, reader->hash);
-	while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &connection)) {
-		s_ip = nm_connection_get_setting_ip4_config (connection);
-		g_object_set (s_ip,
-		              NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS, TRUE,
-		              NULL);
-
-		s_ip = nm_connection_get_setting_ip6_config (connection);
-		g_object_set (s_ip,
-		              NM_SETTING_IP_CONFIG_IGNORE_AUTO_DNS, TRUE,
-		              NULL);
-	}
 }
 
 static void
@@ -875,7 +875,7 @@ reader_add_nameservers (Reader *reader, GPtrArray *nameservers)
 }
 
 GHashTable *
-nmi_cmdline_reader_parse (const char *sysfs_dir, const char *const*argv)
+nmi_cmdline_reader_parse (const char *sysfs_dir, const char *const*argv, char **hostname)
 {
 	Reader *reader;
 	const char *tag;
@@ -886,16 +886,28 @@ nmi_cmdline_reader_parse (const char *sysfs_dir, const char *const*argv)
 	gboolean net_ifnames = TRUE;
 	gs_unref_ptrarray GPtrArray *nameservers = NULL;
 	gs_unref_ptrarray GPtrArray *routes = NULL;
-	gboolean ignore_auto_dns = FALSE;
+	gs_unref_ptrarray GPtrArray *znets = NULL;
 	int i;
 
 	reader = reader_new ();
 
 	for (i = 0; argv[i]; i++) {
-		if (strcmp (argv[i], "net.ifnames=0") == 0)
-			net_ifnames = FALSE;
-		else if (g_str_has_prefix (argv[i], "net.ifnames="))
-			net_ifnames = TRUE;
+		gs_free char *argument_clone = NULL;
+		char *argument;
+
+		argument_clone = g_strdup (argv[i]);
+		argument = argument_clone;
+
+		tag = get_word (&argument, '=');
+
+		if (nm_streq (tag, "net.ifnames"))
+			net_ifnames = !nm_streq (argument, "0");
+		else if (nm_streq (tag, "rd.peerdns"))
+			reader->ignore_auto_dns = !_nm_utils_ascii_str_to_bool (argument, TRUE);
+		else if (nm_streq (tag, "rd.net.timeout.dhcp")) {
+			reader->dhcp_timeout = _nm_utils_ascii_str_to_int64 (argument,
+			                                                     10, 0, G_MAXINT32, 0);
+		}
 	}
 
 	for (i = 0; argv[i]; i++) {
@@ -907,24 +919,24 @@ nmi_cmdline_reader_parse (const char *sysfs_dir, const char *const*argv)
 		argument = argument_clone;
 
 		tag = get_word (&argument, '=');
-		if (strcmp (tag, "ip") == 0)
+		if (nm_streq (tag, "ip"))
 			reader_parse_ip (reader, sysfs_dir, argument);
-		else if (strcmp (tag, "rd.route") == 0) {
+		else if (nm_streq (tag, "rd.route")) {
 			if (!routes)
 				routes = g_ptr_array_new_with_free_func (g_free);
 			g_ptr_array_add (routes, g_strdup (argument));
-		} else if (strcmp (tag, "bridge") == 0)
+		} else if (nm_streq (tag, "bridge"))
 			reader_parse_master (reader, argument, NM_SETTING_BRIDGE_SETTING_NAME, "br");
-		else if (strcmp (tag, "bond") == 0)
+		else if (nm_streq (tag, "bond"))
 			reader_parse_master (reader, argument, NM_SETTING_BOND_SETTING_NAME, NULL);
-		else if (strcmp (tag, "team") == 0)
+		else if (nm_streq (tag, "team"))
 			reader_parse_master (reader, argument, NM_SETTING_TEAM_SETTING_NAME, NULL);
-		else if (strcmp (tag, "vlan") == 0)
+		else if (nm_streq (tag, "vlan"))
 			reader_parse_vlan (reader, argument);
-		else if (strcmp (tag, "bootdev") == 0) {
+		else if (nm_streq (tag, "bootdev")) {
 			g_free (bootdev);
 			bootdev = g_strdup (argument);
-		} else if (strcmp (tag, "nameserver") == 0) {
+		} else if (nm_streq (tag, "nameserver")) {
 			word = get_word (&argument, '\0');
 			if (word) {
 				if (!nameservers)
@@ -933,17 +945,17 @@ nmi_cmdline_reader_parse (const char *sysfs_dir, const char *const*argv)
 			}
 			if (argument && *argument)
 				_LOGW (LOGD_CORE, "Ignoring extra: '%s'.", argument);
-		} else if (strcmp (tag, "rd.peerdns") == 0)
-			ignore_auto_dns = !_nm_utils_ascii_str_to_bool (argument, TRUE);
-		else if (strcmp (tag, "rd.iscsi.ibft") == 0 && _nm_utils_ascii_str_to_bool (argument, TRUE))
+		} else if (nm_streq (tag, "rd.iscsi.ibft") && _nm_utils_ascii_str_to_bool (argument, TRUE))
 			reader_read_all_connections_from_fw (reader, sysfs_dir);
-		else if (strcmp (tag, "rd.bootif") == 0)
+		else if (nm_streq (tag, "rd.bootif"))
 			ignore_bootif = !_nm_utils_ascii_str_to_bool (argument, TRUE);
-		else if (strcmp (tag, "rd.neednet") == 0)
+		else if (nm_streq (tag, "rd.neednet"))
 			neednet = _nm_utils_ascii_str_to_bool (argument, TRUE);
-		else if (strcmp (tag, "rd.znet") == 0)
-			reader_parse_rd_znet (reader, argument, net_ifnames);
-		else if (g_ascii_strcasecmp (tag, "BOOTIF") == 0) {
+		else if (nm_streq (tag, "rd.znet")) {
+			if (!znets)
+				znets = g_ptr_array_new_with_free_func (g_free);
+			g_ptr_array_add (znets, g_strdup (argument));
+		} else if (g_ascii_strcasecmp (tag, "BOOTIF") == 0) {
 			nm_clear_g_free (&bootif_val);
 			bootif_val = g_strdup (argument);
 		}
@@ -1009,9 +1021,14 @@ nmi_cmdline_reader_parse (const char *sysfs_dir, const char *const*argv)
 	if (nameservers)
 		reader_add_nameservers (reader, nameservers);
 
-	if (ignore_auto_dns)
-		reader_set_ignore_auto_dns (reader);
+	if (znets) {
+		for (i = 0; i < znets->len; i++)
+			reader_parse_rd_znet (reader, znets->pdata[i], net_ifnames);
+	}
 
 	g_hash_table_foreach (reader->hash, _normalize_conn, NULL);
+
+	NM_SET_OUT (hostname, g_steal_pointer (&reader->hostname));
+
 	return reader_destroy (reader, FALSE);
 }

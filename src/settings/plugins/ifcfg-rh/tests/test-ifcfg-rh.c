@@ -1323,7 +1323,7 @@ test_read_wired_static_routes (void)
 	g_assert_cmpstr (nm_setting_ip_config_get_method (s_ip4), ==, NM_SETTING_IP4_CONFIG_METHOD_MANUAL);
 
 	/* Routes */
-	g_assert_cmpint (nm_setting_ip_config_get_num_routes (s_ip4), ==, 3);
+	g_assert_cmpint (nm_setting_ip_config_get_num_routes (s_ip4), ==, 4);
 
 	ip4_route = nm_setting_ip_config_get_route (s_ip4, 0);
 	g_assert (ip4_route);
@@ -1367,6 +1367,13 @@ test_read_wired_static_routes (void)
 	nmtst_assert_route_attribute_boolean (ip4_route, NM_IP_ROUTE_ATTRIBUTE_ONLINK, TRUE);
 	nmtst_assert_route_attribute_byte (ip4_route, NM_IP_ROUTE_ATTRIBUTE_SCOPE, 253);
 
+	ip4_route = nm_setting_ip_config_get_route (s_ip4, 3);
+	g_assert (ip4_route);
+	g_assert_cmpstr (nm_ip_route_get_dest (ip4_route), ==, "1.2.3.4");
+	g_assert_cmpint (nm_ip_route_get_prefix (ip4_route), ==, 32);
+	nmtst_assert_route_attribute_string (ip4_route, NM_IP_ROUTE_ATTRIBUTE_TYPE, "local");
+	nmtst_assert_route_attribute_byte (ip4_route, NM_IP_ROUTE_ATTRIBUTE_SCOPE, 254);
+
 	g_object_unref (connection);
 }
 
@@ -1402,7 +1409,7 @@ test_read_wired_static_routes_legacy (void)
 	g_assert_cmpstr (nm_setting_ip_config_get_method (s_ip4), ==, NM_SETTING_IP4_CONFIG_METHOD_MANUAL);
 
 	/* Routes */
-	g_assert_cmpint (nm_setting_ip_config_get_num_routes (s_ip4), ==, 4);
+	g_assert_cmpint (nm_setting_ip_config_get_num_routes (s_ip4), ==, 5);
 
 	/* Route #1 */
 	ip4_route = nm_setting_ip_config_get_route (s_ip4, 0);
@@ -1442,6 +1449,13 @@ test_read_wired_static_routes_legacy (void)
 	g_assert_cmpint (nm_ip_route_get_prefix (ip4_route), ==, 32);
 	g_assert_cmpstr (nm_ip_route_get_next_hop (ip4_route), ==, NULL);
 	g_assert_cmpint (nm_ip_route_get_metric (ip4_route), ==, 18);
+
+
+	/* Route #5 */
+	ip4_route = nm_setting_ip_config_get_route (s_ip4, 4);
+	g_assert (ip4_route != NULL);
+	g_assert_cmpstr (nm_ip_route_get_dest (ip4_route), ==, "1.2.3.4");
+	nmtst_assert_route_attribute_string (ip4_route, NM_IP_ROUTE_ATTRIBUTE_TYPE, "local");
 
 	g_object_unref (connection);
 }
@@ -4690,6 +4704,9 @@ test_write_wired_match (void)
 	nm_setting_match_add_interface_name (s_match, "ens*");
 	nm_setting_match_add_interface_name (s_match, "eth 1?");
 	nm_setting_match_add_interface_name (s_match, "!veth*");
+	nm_setting_match_add_driver (s_match, "!virtio");
+	nm_setting_match_add_driver (s_match, "e1000e");
+	nm_setting_match_add_kernel_command_line (s_match, "!ip=");
 	nm_connection_add_setting (connection, NM_SETTING (s_match));
 
 	nmtst_assert_connection_verifies (connection);
@@ -10364,37 +10381,48 @@ test_ethtool_names (void)
 		{ NM_ETHTOOL_ID_FEATURE_RXVLAN, "rx-vlan-hw-parse" },
 		{ NM_ETHTOOL_ID_FEATURE_TXVLAN, "tx-vlan-hw-insert" },
 	};
+	const struct {
+		guint nm_ethtool_id_first;
+		guint nm_ethtool_id_last;
+	} s_idxs[] = {
+		{ _NM_ETHTOOL_ID_FEATURE_FIRST,  _NM_ETHTOOL_ID_FEATURE_LAST },
+		{ _NM_ETHTOOL_ID_COALESCE_FIRST, _NM_ETHTOOL_ID_COALESCE_LAST },
+		{ _NM_ETHTOOL_ID_RING_FIRST,     _NM_ETHTOOL_ID_RING_LAST },
+	};
 	const NMEthtoolData *data;
 	NMEthtoolID id;
-	int i;
+	guint i, k;
 
-	for (id = _NM_ETHTOOL_ID_FEATURE_FIRST; id <= _NM_ETHTOOL_ID_FEATURE_LAST; id++) {
-		const char *ifcfg_rh_name;
-		int idx;
+	for (k = 0; k < sizeof(s_idxs) / sizeof(*s_idxs); ++k) {
+		for (id = s_idxs[k].nm_ethtool_id_first; id <= s_idxs[k].nm_ethtool_id_last; id++) {
+			const char *ifcfg_rh_name;
 
-		idx = id - _NM_ETHTOOL_ID_FEATURE_FIRST;
-		g_assert (idx >= 0);
-		g_assert (idx < G_N_ELEMENTS (_nm_ethtool_ifcfg_names));
-		ifcfg_rh_name = _nm_ethtool_ifcfg_names[idx];
-		g_assert (ifcfg_rh_name && ifcfg_rh_name[0]);
+			g_assert (id >= 0);
+			g_assert (id < G_N_ELEMENTS (_nm_ethtool_ifcfg_names));
+			ifcfg_rh_name = _nm_ethtool_ifcfg_names[id];
+			g_assert (ifcfg_rh_name && ifcfg_rh_name[0]);
 
-		for (i = 0; i < G_N_ELEMENTS (_nm_ethtool_ifcfg_names); i++) {
-			if (i != idx)
-				g_assert_cmpstr (ifcfg_rh_name, !=, _nm_ethtool_ifcfg_names[i]);
+			for (i = s_idxs[k].nm_ethtool_id_first; i < s_idxs[k].nm_ethtool_id_last; i++) {
+				if (i != id)
+					g_assert_cmpstr (ifcfg_rh_name, !=, _nm_ethtool_ifcfg_names[i]);
+			}
+
+			g_assert_cmpstr (nms_ifcfg_rh_utils_get_ethtool_name (id), ==, ifcfg_rh_name);
+
+			data = nms_ifcfg_rh_utils_get_ethtool_by_name (ifcfg_rh_name, nm_ethtool_id_to_type (id));
+
+			g_assert (data);
+			g_assert (data->id == id);
 		}
-
-		g_assert_cmpstr (nms_ifcfg_rh_utils_get_ethtool_name (id), ==, ifcfg_rh_name);
-
-		data = nms_ifcfg_rh_utils_get_ethtool_by_name (ifcfg_rh_name);
-		g_assert (data);
-		g_assert (data->id == id);
 	}
 
 	for (i = 0; i < G_N_ELEMENTS (kernel_names); i++) {
 		const char *name = kernel_names[i].kernel_name;
 
 		id = kernel_names[i].ethtool_id;
-		data = nms_ifcfg_rh_utils_get_ethtool_by_name (name);
+
+		data = nms_ifcfg_rh_utils_get_ethtool_by_name (name, nm_ethtool_id_to_type (id));
+
 		g_assert (data);
 		g_assert (data->id == id);
 		g_assert_cmpstr (nms_ifcfg_rh_utils_get_ethtool_name (id), !=, name);

@@ -1,8 +1,4 @@
-<?xml version="1.0"?>
-<!DOCTYPE nm-ifcfg-rh-docs [
-]>
-
-<nm-ifcfg-rh-docs>
+<nm-setting-docs>
   <setting name="6lowpan">
 </setting>
 <setting name="802-1x">
@@ -85,6 +81,15 @@ BRIDGE_MACADDR for bridges is an NM extension."/>
 <property name="multicast-router" variable="BRIDGING_OPTS: multicast_router=" format="" values="auto, enabled, disabled" default="auto" example="BRIDGING_OPTS=&quot;multicast_router=enabled&quot;" description=""/>
 <property name="multicast-query-use-ifaddr" variable="BRIDGING_OPTS: multicast_query_use_ifaddr=" format="" values="" default="0" example="BRIDGING_OPTS=&quot;multicast_query-use_ifaddr=1&quot;" description=""/>
 <property name="multicast-querier" variable="BRIDGING_OPTS: multicast_querier=" format="" values="" default="0" example="BRIDGING_OPTS=&quot;multicast_querier=1&quot;" description=""/>
+<property name="multicast-hash-max" variable="BRIDGING_OPTS: multicast_hash_max=" format="" values="" default="4096" example="BRIDGING_OPTS=&quot;multicast_hash_max=8192&quot;" description=""/>
+<property name="multicast-last-member-count" variable="BRIDGING_OPTS: multicast_last_member_count=" format="" values="" default="2" example="BRIDGING_OPTS=&quot;multicast_last_member_count=4&quot;" description=""/>
+<property name="multicast-last-member-interval" variable="BRIDGING_OPTS: multicast_last_member_interval=" format="" values="" default="100" example="BRIDGING_OPTS=&quot;multicast_last_member_interval=200&quot;" description=""/>
+<property name="multicast-membership-interval" variable="BRIDGING_OPTS: multicast_membership_interval=" format="" values="" default="26000" example="BRIDGING_OPTS=&quot;multicast_membership_interval=16000&quot;" description=""/>
+<property name="multicast-querier-interval" variable="BRIDGING_OPTS: multicast_querier_interval=" format="" values="" default="25500" example="BRIDGING_OPTS=&quot;multicast_querier_interval=20000&quot;" description=""/>
+<property name="multicast-query-interval" variable="BRIDGING_OPTS: multicast_query_interval=" format="" values="" default="12500" example="BRIDGING_OPTS=&quot;multicast_query_interval=22500&quot;" description=""/>
+<property name="multicast-query-response-interval" variable="BRIDGING_OPTS: multicast_query_response_interval=" format="" values="" default="1000" example="BRIDGING_OPTS=&quot;multicast_query_response_interval=2000&quot;" description=""/>
+<property name="multicast-startup-query-count" variable="BRIDGING_OPTS: multicast_startup_query_count=" format="" values="" default="2" example="BRIDGING_OPTS=&quot;multicast_startup_query_count=4&quot;" description=""/>
+<property name="multicast-startup-query-interval" variable="BRIDGING_OPTS: multicast_startup_query_interval=" format="" values="" default="3125" example="BRIDGING_OPTS=&quot;multicast_startup_query_interval=4000&quot;" description=""/>
 </setting>
 <setting name="cdma">
 </setting>
@@ -133,6 +138,7 @@ pinging the gateway and waiting for the specified timeout (in seconds)."/>
 <property name="wait-device-timeout" variable="DEVTIMEOUT(+)" format="" values="timeout in seconds." default="" example="DEVTIMEOUT=5" description="for initscripts compatibility, this variable must be
 a whole integer. If necessary, NetworkManager stores also a fractional
 component for the milliseconds."/>
+<property name="mud-url" variable="MUD_URL" format="" values="a valid URL that points to recommended policy for this device" default="" example="https://yourdevice.example.com/model.json" description="MUD_URL to be sent by device (See RFC 8520)."/>
 </setting>
 <setting name="dcb">
 <property name="app-fcoe-flags" variable="DCB_APP_FCOE_ENABLE, DCB_APP_FCOE_ADVERTISE, DCB_APP_FCOE_WILLING" format="" values="" default="no" example="DCB_APP_FCOE_ENABLE=yes DCB_APP_FCOE_ADVERTISE=yes" description="FCOE flags."/>
@@ -257,6 +263,8 @@ each octet is separated by a colon is also accepted."/>
 <setting name="macvlan">
 </setting>
 <setting name="match">
+<property name="path" variable="MATCH_PATH" format="" values="" default="" example="MATCH_PATH=&quot;pci-0000:01:00.0 pci-0000:0c:00.0&quot;" description="space-separated list of paths to match against the udev
+property ID_PATHS of devices"/>
 </setting>
 <setting name="802-11-olpc-mesh">
 </setting>
@@ -417,4 +425,4 @@ is listed."/>
 </setting>
 <setting name="wpan">
 </setting>
-</nm-ifcfg-rh-docs>
+</nm-setting-docs>

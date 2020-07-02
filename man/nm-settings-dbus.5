@@ -1,13 +1,13 @@
 '\" t
-.\"     Title: nm-settings
+.\"     Title: nm-settings-dbus
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 05/29/2020
+.\"      Date: 06/28/2020
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.24.2
+.\"    Source: NetworkManager 1.25.91
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS" "5" "" "NetworkManager 1\&.24\&.2" "Configuration"
+.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.25\&.91" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,7 +28,7 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-nm-settings \- Description of settings and properties of NetworkManager connection profiles
+nm-settings-dbus \- Description of settings and properties of NetworkManager connection profiles on the D\-Bus API
 .SH "DESCRIPTION"
 .PP
 NetworkManager is based on a concept of connection profiles, sometimes referred to as connections only\&. These connection profiles contain a network configuration\&. When NetworkManager activates a connection profile on a network device the configuration will be applied and an active network connection will be established\&. Users are free to create as many connection profiles as they see fit\&. Thus they are flexible in having various network configurations for different networking needs\&. The connection profiles are handled by NetworkManager via
@@ -74,6 +74,7 @@ T}:T{
 Value Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -214,6 +215,15 @@ T}:T{
 \ \&
 T}:T{
 Whether the connection is metered\&. When updating this property on a currently activated connection, the change takes effect immediately\&.
+T}
+T{
+mud\-url
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+If configured, set to a Manufacturer Usage Description (MUD) URL that points to manufacturer\-recommended network policies for IoT devices\&. It is transmitted as a DHCPv4 or DHCPv6 option\&. The value must be a valid URL starting with "https://"\&. The special value "none" is allowed to indicate that no MUD URL is used\&. If the per\-profile value is unspecified (the default), a global connection default gets consulted\&. If still unspecified, the ultimate default is "none"\&.
 T}
 T{
 multi\-connect
@@ -1030,6 +1040,15 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
 l l l l.
 T{
 ageing\-time
@@ -1104,6 +1123,42 @@ T}:T{
 The Spanning Tree Protocol (STP) maximum message age, in seconds\&.
 T}
 T{
+multicast\-hash\-max
+T}:T{
+uint32
+T}:T{
+4096
+T}:T{
+Set maximum size of multicast hash table (value must be a power of 2)\&.
+T}
+T{
+multicast\-last\-member\-count
+T}:T{
+uint32
+T}:T{
+2
+T}:T{
+Set the number of queries the bridge will send before stopping forwarding a multicast group after a "leave" message has been received\&.
+T}
+T{
+multicast\-last\-member\-interval
+T}:T{
+uint64
+T}:T{
+100
+T}:T{
+Set interval (in deciseconds) between queries to find remaining members of a group, after a "leave" message is received\&.
+T}
+T{
+multicast\-membership\-interval
+T}:T{
+uint64
+T}:T{
+26000
+T}:T{
+Set delay (in deciseconds) after which the bridge will leave a group, if no membership reports for this group are received\&.
+T}
+T{
 multicast\-querier
 T}:T{
 boolean
@@ -1111,6 +1166,33 @@ T}:T{
 FALSE
 T}:T{
 Enable or disable sending of multicast queries by the bridge\&. If not specified the option is disabled\&.
+T}
+T{
+multicast\-querier\-interval
+T}:T{
+uint64
+T}:T{
+25500
+T}:T{
+If no queries are seen after this delay (in deciseconds) has passed, the bridge will start to send its own queries\&.
+T}
+T{
+multicast\-query\-interval
+T}:T{
+uint64
+T}:T{
+12500
+T}:T{
+Interval (in deciseconds) between queries sent by the bridge after the end of the startup phase\&.
+T}
+T{
+multicast\-query\-response\-interval
+T}:T{
+uint64
+T}:T{
+1000
+T}:T{
+Set the Max Response Time/Max Response Delay (in deciseconds) for IGMP/MLD queries sent by the bridge\&.
 T}
 T{
 multicast\-query\-use\-ifaddr
@@ -1128,7 +1210,7 @@ string
 T}:T{
 \ \&
 T}:T{
-Sets bridge\*(Aqs multicast router\&. multicast\-snooping must be enabled for this option to work\&. Supported values are: \*(Aqauto\*(Aq, \*(Aqdisabled\*(Aq, \*(Aqenabled\*(Aq\&. If not specified the default value is \*(Aqauto\*(Aq\&.
+Sets bridge\*(Aqs multicast router\&. Multicast\-snooping must be enabled for this option to work\&. Supported values are: \*(Aqauto\*(Aq, \*(Aqdisabled\*(Aq, \*(Aqenabled\*(Aq\&. If not specified the default value is \*(Aqauto\*(Aq\&.
 T}
 T{
 multicast\-snooping
@@ -1138,6 +1220,24 @@ T}:T{
 TRUE
 T}:T{
 Controls whether IGMP snooping is enabled for this bridge\&. Note that if snooping was automatically disabled due to hash collisions, the system may refuse to enable the feature until the collisions are resolved\&.
+T}
+T{
+multicast\-startup\-query\-count
+T}:T{
+uint32
+T}:T{
+2
+T}:T{
+Set the number of IGMP queries to send during startup phase\&.
+T}
+T{
+multicast\-startup\-query\-interval
+T}:T{
+uint64
+T}:T{
+3125
+T}:T{
+Sets the time (in deciseconds) between queries sent out at startup to determine membership information\&.
 T}
 T{
 priority
@@ -2657,7 +2757,19 @@ T}:T{
 Value Description
 T}
 .T&
+l l l l
+l l l l
+l l l l
 l l l l.
+T{
+driver
+T}:T{
+array of string
+T}:T{
+\ \&
+T}:T{
+A list of driver names to match\&. Each element is a shell wildcard pattern\&. See NMSettingMatch:interface\-name for how special characters \*(Aq|\*(Aq, \*(Aq&\*(Aq, \*(Aq!\*(Aq and \*(Aq\e\e\*(Aq are used for optional and mandatory matches and inverting the pattern\&.
+T}
 T{
 interface\-name
 T}:T{
@@ -2665,7 +2777,25 @@ array of string
 T}:T{
 \ \&
 T}:T{
-A list of interface names to match\&. Each element is a shell wildcard pattern\&.  When an element is prefixed with exclamation mark (!) the condition is inverted\&. A candidate interface name is considered matching when both these conditions are satisfied: (a) any of the elements not prefixed with \*(Aq!\*(Aq matches or there aren\*(Aqt such elements; (b) none of the elements prefixed with \*(Aq!\*(Aq match\&.
+A list of interface names to match\&. Each element is a shell wildcard pattern\&. An element can be prefixed with a pipe symbol (|) or an ampersand (&)\&. The former means that the element is optional and the latter means that it is mandatory\&. If there are any optional elements, than the match evaluates to true if at least one of the optional element matches (logical OR)\&. If there are any mandatory elements, then they all must match (logical AND)\&. By default, an element is optional\&. This means that an element "foo" behaves the same as "|foo"\&. An element can also be inverted with exclamation mark (!) between the pipe symbol (or the ampersand) and before the pattern\&. Note that "!foo" is a shortcut for the mandatory match "&!foo"\&. Finally, a backslash can be used at the beginning of the element (after the optional special characters) to escape the start of the pattern\&. For example, "&\e\e!a" is an mandatory match for literally "!a"\&.
+T}
+T{
+kernel\-command\-line
+T}:T{
+array of string
+T}:T{
+\ \&
+T}:T{
+A list of kernel command line arguments to match\&. This may be used to check whether a specific kernel command line option is set (or if prefixed with the exclamation mark unset)\&. The argument must either be a single word, or an assignment (i\&.e\&. two words, separated "=")\&. In the former case the kernel command line is searched for the word appearing as is, or as left hand side of an assignment\&. In the latter case, the exact assignment is looked for with right and left hand side matching\&. See NMSettingMatch:interface\-name for how special characters \*(Aq|\*(Aq, \*(Aq&\*(Aq, \*(Aq!\*(Aq and \*(Aq\e\e\*(Aq are used for optional and mandatory matches and inverting the pattern\&.
+T}
+T{
+path
+T}:T{
+array of string
+T}:T{
+\ \&
+T}:T{
+A list of paths to match against the ID_PATH udev property of devices\&. ID_PATH represents the topological persistent path of a device\&. It typically contains a subsystem string (pci, usb, platform, etc\&.) and a subsystem\-specific identifier\&. For PCI devices the path has the form "pci\-$domain:$bus:$device\&.$function", where each variable is an hexadecimal value; for example "pci\-0000:0a:00\&.0"\&. The path of a device can be obtained with "udevadm info /sys/class/net/$dev | grep ID_PATH=" or by looking at the "path" property exported by NetworkManager ("nmcli \-f general\&.path device show $dev")\&. Each element of the list is a shell wildcard pattern\&. See NMSettingMatch:interface\-name for how special characters \*(Aq|\*(Aq, \*(Aq&\*(Aq, \*(Aq!\*(Aq and \*(Aq\e\e\*(Aq are used for optional and mandatory matches and inverting the pattern\&.
 T}
 .TE
 .sp 1
@@ -2865,7 +2995,7 @@ string
 T}:T{
 \ \&
 T}:T{
-Specifies the unicast destination IP address of a remote Open vSwitch bridge port to connect to\&.
+Specifies the name of the interface for the other side of the patch\&. The patch on the other side must also set this interface as peer\&.
 T}
 .TE
 .sp 1
@@ -4695,7 +4825,7 @@ T}
 T{
 security
 T}:T{
-None
+\ \&
 T}:T{
 \ \&
 T}:T{
@@ -5083,6 +5213,8 @@ property is a bitfield that contains zero or more of the following values logica
 or distro plugin\-specific location
 .SH "SEE ALSO"
 .PP
+\fBnm-settings-nmcli\fR(5),
+\fBnm-settings-keyfile\fR(5),
 \fBNetworkManager\fR(8),
 \fBnmcli\fR(1),
 \fBnmcli-examples\fR(7),

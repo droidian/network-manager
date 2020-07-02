@@ -519,9 +519,10 @@ content_files = $(GENERATED_FILES) \
 	$(top_builddir)/man/NetworkManager.xml \
 	$(top_builddir)/man/NetworkManager.conf.xml \
 	$(top_builddir)/man/nmcli-examples.xml \
-	$(top_builddir)/man/nm-settings.xml \
-	$(top_builddir)/man/nm-settings-keyfile.xml version.xml \
-	$(NULL) $(am__append_2) $(am__append_3)
+	$(top_builddir)/man/nm-settings-dbus.xml \
+	$(top_builddir)/man/nm-settings-keyfile.xml \
+	$(top_builddir)/man/nm-settings-nmcli.xml version.xml $(NULL) \
+	$(am__append_2) $(am__append_3)
 @GTK_DOC_USE_LIBTOOL_FALSE@GTKDOC_CC = $(CC) $(INCLUDES) $(GTKDOC_DEPS_CFLAGS) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 @GTK_DOC_USE_LIBTOOL_TRUE@GTKDOC_CC = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(INCLUDES) $(GTKDOC_DEPS_CFLAGS) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 @GTK_DOC_USE_LIBTOOL_FALSE@GTKDOC_LD = $(CC) $(GTKDOC_DEPS_LIBS) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS)
@@ -808,8 +809,8 @@ uninstall-am: uninstall-local
 .PRECIOUS: Makefile
 
 
-@BUILD_DOCS_TRUE@settings-spec.xml: settings-spec.xsl $(top_builddir)/libnm/nm-settings-docs.xml
-@BUILD_DOCS_TRUE@	$(AM_V_GEN) xsltproc --output $@ $^
+@BUILD_DOCS_TRUE@settings-spec.xml: settings-spec.xsl $(top_builddir)/man/nm-settings-docs-dbus.xml
+@BUILD_DOCS_TRUE@	$(AM_V_GEN) (! test -f $@ || chmod u+w $@) && xsltproc --output $@ $^
 
 # Top-level SGML file includes (depends on) settings-spec.xml
 @BUILD_DOCS_TRUE@$(DOC_MAIN_SGML_FILE): settings-spec.xml
@@ -1011,6 +1012,25 @@ dist-hook: dist-check-gtkdoc all-gtk-doc dist-hook-local
 	@$(GTKDOC_REBASE) --online --relative --html-dir=$(distdir)/html
 
 .PHONY : dist-hook-local docs
+
+# workaround setup-build.stamp from gtk-doc.make, which copies
+# the file as read-only. That breaks later build steps, as the
+# file can no longer be written. Instead, copy the file with `cp -f`
+# only.
+setup-build.stamp:
+	-$(GTK_DOC_V_SETUP)if test "$(abs_srcdir)" != "$(abs_builddir)" ; then \
+	  files=`echo $(SETUP_FILES) $(DOC_MODULE).types`; \
+	  if test "x$$files" != "x" ; then \
+	    for file in $$files ; do \
+	      destdir=`dirname $(abs_builddir)/$$file`; \
+	      test -d "$$destdir" || mkdir -p "$$destdir"; \
+	      test -f $(abs_srcdir)/$$file && \
+	        ( cp -pf $(abs_srcdir)/$$file $(abs_builddir)/$$file ; \
+	        chmod u+w $(abs_builddir)/$$file ) || true; \
+	    done; \
+	  fi; \
+	fi
+	$(AM_V_at)touch setup-build.stamp
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

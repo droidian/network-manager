@@ -7,7 +7,8 @@
       <sub name="nmcli" link="nmcli.html"/>
       <sub name="nmcli-examples" link="nmcli-examples.html"/>
       <sub name="nmtui" link="nmtui.html"/>
-      <sub name="nm-settings" link="nm-settings.html"/>
+      <sub name="nm-settings-dbus" link="nm-settings-dbus.html"/>
+      <sub name="nm-settings-nmcli" link="nm-settings-nmcli.html"/>
       <sub name="nm-settings-keyfile" link="nm-settings-keyfile.html"/>
       <sub name="nm-settings-ifcfg-rh" link="nm-settings-ifcfg-rh.html"/>
       <sub name="nm-online" link="nm-online.html"/>
@@ -250,6 +251,7 @@
     <keyword type="method" name="The Delete() method" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-method-org-freedesktop-NetworkManager-Device.Delete"/>
     <keyword type="signal" name="The &quot;StateChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-signal-org-freedesktop-NetworkManager-Device.StateChanged"/>
     <keyword type="property" name="The &quot;Udi&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Udi"/>
+    <keyword type="property" name="The &quot;Path&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Path"/>
     <keyword type="property" name="The &quot;Interface&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Interface"/>
     <keyword type="property" name="The &quot;IpInterface&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.IpInterface"/>
     <keyword type="property" name="The &quot;Driver&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Driver"/>
@@ -646,6 +648,7 @@
     <keyword type="constant" name="NM_802_11_AP_SEC_KEY_MGMT_802_1X" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.11.1.1id-1.4.17.2.10.4.2.1.4.11.1.2"/>
     <keyword type="constant" name="NM_802_11_AP_SEC_KEY_MGMT_SAE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.12.1.1id-1.4.17.2.10.4.2.1.4.12.1.2"/>
     <keyword type="constant" name="NM_802_11_AP_SEC_KEY_MGMT_OWE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.13.1.1id-1.4.17.2.10.4.2.1.4.13.1.2"/>
+    <keyword type="constant" name="NM_802_11_AP_SEC_KEY_MGMT_OWE_TM" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.14.1.1id-1.4.17.2.10.4.2.1.4.14.1.2"/>
     <keyword type="constant" name="NM_802_11_MODE_UNKNOWN" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.11.4.2.1.4.1.1.1id-1.4.17.2.11.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_802_11_MODE_ADHOC" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.11.4.2.1.4.2.1.1id-1.4.17.2.11.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_802_11_MODE_INFRA" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.11.4.2.1.4.3.1.1id-1.4.17.2.11.4.2.1.4.3.1.2"/>
@@ -807,6 +810,7 @@
     <keyword type="constant" name="NM_SETTINGS_CONNECTION_FLAG_UNSAVED" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.26.4.2.1.4.2.1.1id-1.4.17.2.26.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_SETTINGS_CONNECTION_FLAG_NM_GENERATED" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.26.4.2.1.4.3.1.1id-1.4.17.2.26.4.2.1.4.3.1.2"/>
     <keyword type="constant" name="NM_SETTINGS_CONNECTION_FLAG_VOLATILE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.26.4.2.1.4.4.1.1id-1.4.17.2.26.4.2.1.4.4.1.2"/>
+    <keyword type="constant" name="NM_SETTINGS_CONNECTION_FLAG_EXTERNAL" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.26.4.2.1.4.5.1.1id-1.4.17.2.26.4.2.1.4.5.1.2"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.27.4.2.1.4.1.1.1id-1.4.17.2.27.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IS_MASTER" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.27.4.2.1.4.2.1.1id-1.4.17.2.27.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IS_SLAVE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.27.4.2.1.4.3.1.1id-1.4.17.2.27.4.2.1.4.3.1.2"/>
@@ -815,6 +819,7 @@
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_IP6_READY" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.27.4.2.1.4.6.1.1id-1.4.17.2.27.4.2.1.4.6.1.2"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.27.4.2.1.4.7.1.1id-1.4.17.2.27.4.2.1.4.7.1.2"/>
     <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.27.4.2.1.4.8.1.1id-1.4.17.2.27.4.2.1.4.8.1.2"/>
+    <keyword type="constant" name="NM_ACTIVATION_STATE_FLAG_EXTERNAL" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.27.4.2.1.4.9.1.1id-1.4.17.2.27.4.2.1.4.9.1.2"/>
     <keyword type="constant" name="NM_SETTINGS_ADD_CONNECTION2_FLAG_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.1.1.1id-1.4.17.2.28.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_SETTINGS_ADD_CONNECTION2_FLAG_TO_DISK" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.2.1.1id-1.4.17.2.28.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_SETTINGS_ADD_CONNECTION2_FLAG_IN_MEMORY" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.28.4.2.1.4.3.1.1id-1.4.17.2.28.4.2.1.4.3.1.2"/>

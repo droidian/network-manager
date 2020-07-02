@@ -53,7 +53,7 @@ ap_wpa_rsn_flags_to_string (NM80211ApSecurityFlags flags, NMMetaAccessorGetType 
 		flags_str[i++] = "802.1X";
 	if (flags & NM_802_11_AP_SEC_KEY_MGMT_SAE)
 		flags_str[i++] = "sae";
-	if (flags & NM_802_11_AP_SEC_KEY_MGMT_OWE)
+	if (NM_FLAGS_ANY (flags, NM_802_11_AP_SEC_KEY_MGMT_OWE |NM_802_11_AP_SEC_KEY_MGMT_OWE_TM))
 		flags_str[i++] = "owe";
 
 	/* Make sure you grow flags_str when adding items here. */
@@ -92,7 +92,7 @@ _metagen_device_status_get_fcn (NMC_META_GENERIC_INFO_GET_FCN_ARGS)
 	NMDevice *d = target;
 	NMActiveConnection *ac;
 
-	NMC_HANDLE_COLOR (nmc_device_state_to_color (nm_device_get_state (d)));
+	NMC_HANDLE_COLOR (nmc_device_state_to_color (d));
 
 	switch (info->info_type) {
 	case NMC_GENERIC_INFO_TYPE_DEVICE_STATUS_DEVICE:
@@ -100,7 +100,7 @@ _metagen_device_status_get_fcn (NMC_META_GENERIC_INFO_GET_FCN_ARGS)
 	case NMC_GENERIC_INFO_TYPE_DEVICE_STATUS_TYPE:
 		return nm_device_get_type_description (d);
 	case NMC_GENERIC_INFO_TYPE_DEVICE_STATUS_STATE:
-		return nmc_meta_generic_get_str_i18n (nmc_device_state_to_string (nm_device_get_state (d)),
+		return nmc_meta_generic_get_str_i18n (nmc_device_state_to_string_with_external (d),
 		                                      get_type);
 	case NMC_GENERIC_INFO_TYPE_DEVICE_STATUS_IP4_CONNECTIVITY:
 		return nmc_meta_generic_get_str_i18n (nm_connectivity_to_string (nm_device_get_connectivity (d, AF_INET)),
@@ -147,7 +147,6 @@ _metagen_device_detail_general_get_fcn (NMC_META_GENERIC_INFO_GET_FCN_ARGS)
 {
 	NMDevice *d = target;
 	NMActiveConnection *ac;
-	NMDeviceState state;
 	NMDeviceStateReason state_reason;
 	NMConnectivityState connectivity;
 	const char *s;
@@ -180,10 +179,9 @@ _metagen_device_detail_general_get_fcn (NMC_META_GENERIC_INFO_GET_FCN_ARGS)
 	case NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_MTU:
 		return (*out_to_free = g_strdup_printf ("%u", (guint) nm_device_get_mtu (d)));
 	case NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_STATE:
-		state = nm_device_get_state (d);
 		return (*out_to_free = nmc_meta_generic_get_enum_with_detail (NMC_META_GENERIC_GET_ENUM_TYPE_PARENTHESES,
-		                                                              state,
-		                                                              nmc_device_state_to_string (state),
+		                                                              nm_device_get_state (d),
+		                                                              nmc_device_state_to_string_with_external (d),
 		                                                              get_type));
 	case NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_REASON:
 		state_reason = nm_device_get_state_reason (d);
@@ -205,6 +203,8 @@ _metagen_device_detail_general_get_fcn (NMC_META_GENERIC_INFO_GET_FCN_ARGS)
 		                                                              get_type));
 	case NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_UDI:
 		return nm_device_get_udi (d);
+	case NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_PATH:
+		return nm_device_get_path (d);
 	case NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_IP_IFACE:
 		return nm_device_get_ip_iface (d);
 	case NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_IS_SOFTWARE:
@@ -257,6 +257,7 @@ const NmcMetaGenericInfo *const metagen_device_detail_general[_NMC_GENERIC_INFO_
 	_METAGEN_DEVICE_DETAIL_GENERAL (NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_IP4_CONNECTIVITY,  "IP4-CONNECTIVITY"),
 	_METAGEN_DEVICE_DETAIL_GENERAL (NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_IP6_CONNECTIVITY,  "IP6-CONNECTIVITY"),
 	_METAGEN_DEVICE_DETAIL_GENERAL (NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_UDI,               "UDI"),
+	_METAGEN_DEVICE_DETAIL_GENERAL (NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_PATH,              "PATH"),
 	_METAGEN_DEVICE_DETAIL_GENERAL (NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_IP_IFACE,          "IP-IFACE"),
 	_METAGEN_DEVICE_DETAIL_GENERAL (NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_IS_SOFTWARE,       "IS-SOFTWARE"),
 	_METAGEN_DEVICE_DETAIL_GENERAL (NMC_GENERIC_INFO_TYPE_DEVICE_DETAIL_GENERAL_NM_MANAGED,        "NM-MANAGED"),
@@ -1214,7 +1215,7 @@ fill_output_access_point (gpointer data, gpointer user_data)
 	if (rsn_flags & NM_802_11_AP_SEC_KEY_MGMT_SAE) {
 		g_string_append (security_str, "WPA3 ");
 	}
-	if (rsn_flags & NM_802_11_AP_SEC_KEY_MGMT_OWE) {
+	if (NM_FLAGS_ANY (rsn_flags, NM_802_11_AP_SEC_KEY_MGMT_OWE | NM_802_11_AP_SEC_KEY_MGMT_OWE_TM)) {
 		g_string_append (security_str, "OWE ");
 	}
 	if (   (wpa_flags & NM_802_11_AP_SEC_KEY_MGMT_802_1X)
@@ -1437,6 +1438,7 @@ show_device_info (NMDevice *device, NmCli *nmc)
 	if (!nmc->required_fields || g_ascii_strcasecmp (nmc->required_fields, "common") == 0)
 		fields_str = NMC_FIELDS_DEV_SHOW_SECTIONS_COMMON;
 	else if (g_ascii_strcasecmp (nmc->required_fields, "all") == 0) {
+		/* pass */
 	} else
 		fields_str = nmc->required_fields;
 
@@ -1715,8 +1717,20 @@ show_device_info (NMDevice *device, NmCli *nmc)
 }
 
 NMMetaColor
-nmc_device_state_to_color (NMDeviceState state)
+nmc_device_state_to_color (NMDevice *device)
 {
+	NMDeviceState state;
+	NMActiveConnection *ac;
+
+	if (!device)
+		return NM_META_COLOR_DEVICE_UNKNOWN;
+
+	ac = nm_device_get_active_connection (device);
+	if (   ac
+	    && NM_FLAGS_HAS (nm_active_connection_get_state_flags (ac), NM_ACTIVATION_STATE_FLAG_EXTERNAL))
+		return NM_META_COLOR_CONNECTION_EXTERNAL;
+
+	state = nm_device_get_state (device);
 	if (state <= NM_DEVICE_STATE_UNAVAILABLE)
 		return NM_META_COLOR_DEVICE_UNAVAILABLE;
 	else if (state == NM_DEVICE_STATE_DISCONNECTED)
@@ -1750,6 +1764,7 @@ do_devices_status (const NMCCommand *cmd, NmCli *nmc, int argc, const char *cons
 	if (!nmc->required_fields || g_ascii_strcasecmp (nmc->required_fields, "common") == 0)
 		fields_str = "DEVICE,TYPE,STATE,CONNECTION";
 	else if (!nmc->required_fields || g_ascii_strcasecmp (nmc->required_fields, "all") == 0) {
+		/* pass */
 	} else
 		fields_str = nmc->required_fields;
 
@@ -1835,7 +1850,7 @@ progress_cb (gpointer user_data)
 {
 	NMDevice *device = (NMDevice *) user_data;
 
-	nmc_terminal_show_progress (device ? gettext (nmc_device_state_to_string (nm_device_get_state (device))) : "");
+	nmc_terminal_show_progress (device ? gettext (nmc_device_state_to_string_with_external (device)) : "");
 
 	return TRUE;
 }
@@ -2606,17 +2621,15 @@ do_device_set (const NMCCommand *cmd, NmCli *nmc, int argc, const char *const*ar
 static void
 device_state (NMDevice *device, GParamSpec *pspec, NmCli *nmc)
 {
-	NMDeviceState state = nm_device_get_state (device);
+	gs_free char *str = NULL;
 	NMMetaColor color;
-	char *str;
 
-	color = nmc_device_state_to_color (state);
+	color = nmc_device_state_to_color (device);
 	str = nmc_colorize (&nmc->nmc_config, color, "%s: %s\n",
 	                    nm_device_get_iface (device),
-	                    gettext (nmc_device_state_to_string (state)));
+	                    gettext (nmc_device_state_to_string_with_external (device)));
 
 	g_print ("%s", str);
-	g_free (str);
 }
 
 static void
@@ -3150,6 +3163,7 @@ do_device_wifi_list (const NMCCommand *cmd, NmCli *nmc, int argc, const char *co
 	if (!nmc->required_fields || g_ascii_strcasecmp (nmc->required_fields, "common") == 0)
 		fields_str = NMC_FIELDS_DEV_WIFI_LIST_COMMON;
 	else if (!nmc->required_fields || g_ascii_strcasecmp (nmc->required_fields, "all") == 0) {
+		/* pass */
 	} else
 		fields_str = nmc->required_fields;
 
@@ -3687,8 +3701,12 @@ do_device_wifi_connect (const NMCCommand *cmd, NmCli *nmc, int argc, const char 
 
 	/* Set password for WEP or WPA-PSK. */
 	if (   (ap_flags & NM_802_11_AP_FLAGS_PRIVACY)
-	    || (ap_wpa_flags != NM_802_11_AP_SEC_NONE && !(ap_wpa_flags & NM_802_11_AP_SEC_KEY_MGMT_OWE))
-	    || (ap_rsn_flags != NM_802_11_AP_SEC_NONE && !(ap_rsn_flags & NM_802_11_AP_SEC_KEY_MGMT_OWE))) {
+	    || (   ap_wpa_flags != NM_802_11_AP_SEC_NONE
+	        && !NM_FLAGS_ANY (ap_wpa_flags, NM_802_11_AP_SEC_KEY_MGMT_OWE |
+	                                        NM_802_11_AP_SEC_KEY_MGMT_OWE_TM))
+	    || (   ap_rsn_flags != NM_802_11_AP_SEC_NONE
+	        && !NM_FLAGS_ANY (ap_rsn_flags, NM_802_11_AP_SEC_KEY_MGMT_OWE |
+	                                        NM_802_11_AP_SEC_KEY_MGMT_OWE_TM))) {
 		const char *con_password = NULL;
 		NMSettingWirelessSecurity *s_wsec = NULL;
 
@@ -4174,7 +4192,6 @@ do_device_wifi_hotspot (const NMCCommand *cmd, NmCli *nmc, int argc, const char 
 		g_return_if_fail (s_wsec);
 
 		if (!set_wireless_security_for_hotspot (s_wsec, wifi_mode, caps, password, show_password, &error)) {
-			g_object_unref (connection);
 			g_string_printf (nmc->return_text, _("Error: Invalid 'password': %s."), error->message);
 			g_clear_error (&error);
 			nmc->return_value = NMC_RESULT_ERROR_UNKNOWN;
@@ -4655,6 +4672,7 @@ do_device_lldp_list (const NMCCommand *cmd, NmCli *nmc, int argc, const char *co
 	if (!nmc->required_fields || g_ascii_strcasecmp (nmc->required_fields, "common") == 0)
 		fields_str = NMC_FIELDS_DEV_LLDP_LIST_COMMON;
 	else if (!nmc->required_fields || g_ascii_strcasecmp (nmc->required_fields, "all") == 0) {
+		/* pass */
 	} else
 		fields_str = nmc->required_fields;
 

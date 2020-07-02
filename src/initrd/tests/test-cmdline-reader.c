@@ -30,10 +30,12 @@ test_auto (void)
 	NMSettingWired *s_wired;
 	NMSettingIPConfig *s_ip4;
 	NMSettingIPConfig *s_ip6;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 1);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "default_connection");
 	g_assert (connection);
@@ -81,10 +83,12 @@ test_if_auto_with_mtu (void)
 	NMSettingWired *s_wired;
 	NMSettingIPConfig *s_ip4;
 	NMSettingIPConfig *s_ip6;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 1);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "eth0");
 	g_assert (connection);
@@ -115,10 +119,13 @@ test_if_dhcp6 (void)
 	NMConnection *connection;
 	NMSettingIPConfig *s_ip4;
 	NMSettingIPConfig *s_ip6;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 1);
+	g_assert_cmpstr (hostname, ==, NULL);
+
 	connection = g_hash_table_lookup (connections, "eth1");
 	g_assert (connection);
 	nmtst_assert_connection_verifies_without_normalization (connection);
@@ -145,10 +152,12 @@ test_if_auto_with_mtu_and_mac (void)
 	NMSettingWired *s_wired;
 	NMSettingIPConfig *s_ip4;
 	NMSettingIPConfig *s_ip6;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 1);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "eth2");
 	g_assert (connection);
@@ -177,16 +186,19 @@ test_if_ip4_manual (void)
 {
 	gs_unref_hashtable GHashTable *connections = NULL;
 	const char *const*ARGV = NM_MAKE_STRV ("ip=192.0.2.2::192.0.2.1:255.255.255.0:"
-	                                       "hostname0.example.com:eth3::192.0.2.53",
+	                                       "hostname0.example.com:eth3:none:192.0.2.53",
 	                                       "ip=203.0.113.2::203.0.113.1:26:"
 	                                       "hostname1.example.com:eth4");
 	NMConnection *connection;
 	NMSettingIPConfig *s_ip4;
+	NMSettingIPConfig *s_ip6;
 	NMIPAddress *ip_addr;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 2);
+	g_assert_cmpstr (hostname, ==, "hostname1.example.com");
 
 	connection = g_hash_table_lookup (connections, "eth3");
 	g_assert (connection);
@@ -208,6 +220,11 @@ test_if_ip4_manual (void)
 	g_assert_cmpstr (nm_setting_ip_config_get_gateway (s_ip4), ==, "192.0.2.1");
 	g_assert_cmpstr (nm_setting_ip_config_get_dhcp_hostname (s_ip4), ==, "hostname0.example.com");
 
+	s_ip6 = nm_connection_get_setting_ip6_config (connection);
+	g_assert (s_ip6);
+	g_assert_cmpstr (nm_setting_ip_config_get_method (s_ip6), ==, NM_SETTING_IP6_CONFIG_METHOD_AUTO);
+	g_assert (nm_setting_ip_config_get_may_fail (s_ip6));
+
 	connection = g_hash_table_lookup (connections, "eth4");
 	g_assert (connection);
 	nmtst_assert_connection_verifies_without_normalization (connection);
@@ -226,6 +243,11 @@ test_if_ip4_manual (void)
 	g_assert_cmpint (nm_ip_address_get_prefix (ip_addr), ==, 26);
 	g_assert_cmpstr (nm_setting_ip_config_get_gateway (s_ip4), ==, "203.0.113.1");
 	g_assert_cmpstr (nm_setting_ip_config_get_dhcp_hostname (s_ip4), ==, "hostname1.example.com");
+
+	s_ip6 = nm_connection_get_setting_ip6_config (connection);
+	g_assert (s_ip6);
+	g_assert_cmpstr (nm_setting_ip_config_get_method (s_ip6), ==, NM_SETTING_IP6_CONFIG_METHOD_AUTO);
+	g_assert (nm_setting_ip_config_get_may_fail (s_ip6));
 }
 
 static void
@@ -237,10 +259,12 @@ test_if_ip6_manual (void)
 	NMConnection *connection;
 	NMSettingIPConfig *s_ip6;
 	NMIPAddress *ip_addr;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 1);
+	g_assert_cmpstr (hostname, ==, "hostname0.example.com");
 
 	connection = g_hash_table_lookup (connections, "eth4");
 	g_assert (connection);
@@ -274,10 +298,12 @@ test_multiple_merge (void)
 	NMSettingIPConfig *s_ip4;
 	NMSettingIPConfig *s_ip6;
 	NMIPAddress *ip_addr;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 1);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "eth0");
 	g_assert (connection);
@@ -317,10 +343,12 @@ test_multiple_bootdev (void)
 	NMConnection *connection;
 	NMSettingIPConfig *s_ip4;
 	NMSettingIPConfig *s_ip6;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 2);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "eth3");
 	g_assert (connection);
@@ -344,10 +372,12 @@ test_bootdev (void)
 	const char *const*ARGV = NM_MAKE_STRV ("vlan=vlan2:ens5", "bootdev=ens3");
 	NMConnection *connection;
 	NMSettingConnection *s_con;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 2);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "ens3");
 	g_assert (connection);
@@ -384,10 +414,12 @@ test_some_more (void)
 	NMSettingIPConfig *s_ip4;
 	NMSettingIPConfig *s_ip6;
 	NMIPRoute *ip_route;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 2);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "eth1");
 	g_assert (connection);
@@ -466,10 +498,12 @@ test_bond (void)
 	NMSettingBond *s_bond;
 	NMIPRoute *ip_route;
 	const char *master_uuid;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 3);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "bong0");
 	g_assert (connection);
@@ -545,10 +579,12 @@ test_bond_default (void)
 	NMSettingIPConfig *s_ip6;
 	NMSettingBond *s_bond;
 	const char *master_uuid;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 2);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "bond0");
 
@@ -598,7 +634,9 @@ static void
 test_bridge (void)
 {
 	gs_unref_hashtable GHashTable *connections = NULL;
-	const char *const*ARGV = NM_MAKE_STRV ("bridge=bridge0:eth0,eth1", "rd.route=192.0.2.53::bridge0");
+	const char *const*ARGV = NM_MAKE_STRV ("bridge=bridge0:eth0,eth1",
+	                                       "rd.route=192.0.2.53::bridge0",
+	                                       "rd.net.timeout.dhcp=10");
 	NMConnection *connection;
 	NMSettingConnection *s_con;
 	NMSettingIPConfig *s_ip4;
@@ -606,10 +644,12 @@ test_bridge (void)
 	NMSettingBridge *s_bridge;
 	NMIPRoute *ip_route;
 	const char *master_uuid;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 3);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "bridge0");
 	g_assert (connection);
@@ -626,6 +666,7 @@ test_bridge (void)
 	g_assert_cmpint (nm_setting_ip_config_get_num_dns (s_ip4), ==, 0);
 	g_assert (!nm_setting_ip_config_get_gateway (s_ip4));
 	g_assert_cmpint (nm_setting_ip_config_get_num_routes (s_ip4), ==, 1);
+	g_assert_cmpint (nm_setting_ip_config_get_dhcp_timeout(s_ip4), ==, 10);
 	ip_route = nm_setting_ip_config_get_route (s_ip4, 0);
 	g_assert_cmpstr (nm_ip_route_get_dest (ip_route), ==, "192.0.2.53");
 	g_assert_cmpint (nm_ip_route_get_family (ip_route), ==, AF_INET);
@@ -640,6 +681,8 @@ test_bridge (void)
 	g_assert_cmpint (nm_setting_ip_config_get_num_dns (s_ip6), ==, 0);
 	g_assert (!nm_setting_ip_config_get_gateway (s_ip6));
 	g_assert_cmpint (nm_setting_ip_config_get_num_routes (s_ip6), ==, 0);
+	g_assert_cmpint (nm_setting_ip_config_get_dhcp_timeout(s_ip6), ==, 10);
+
 
 	s_bridge = nm_connection_get_setting_bridge (connection);
 	g_assert (s_bridge);
@@ -682,10 +725,12 @@ test_bridge_default (void)
 	NMSettingIPConfig *s_ip6;
 	NMSettingBridge *s_bridge;
 	const char *master_uuid;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 2);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "br0");
 
@@ -740,10 +785,12 @@ test_team (void)
 	NMSettingIPConfig *s_ip6;
 	NMSettingTeam *s_team;
 	const char *master_uuid;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 3);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "team0");
 	g_assert (connection);
@@ -806,10 +853,12 @@ test_ibft_ip_dev (void)
 	gs_unref_hashtable GHashTable *connections = NULL;
 	NMSettingConnection *s_con;
 	NMConnection *connection;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 1);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "eth0");
 	g_assert (connection);
@@ -825,10 +874,12 @@ _test_ibft_ip (const char *const*ARGV)
 {
 	gs_unref_hashtable GHashTable *connections = NULL;
 	NMConnection *connection;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 2);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "ibft0");
 	g_assert (connection);
@@ -864,10 +915,12 @@ test_ignore_extra (void)
 {
 	gs_unref_hashtable GHashTable *connections = NULL;
 	const char *const*ARGV = NM_MAKE_STRV ("blabla", "extra", "lalala");
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 0);
+	g_assert_cmpstr (hostname, ==, NULL);
 }
 
 static void
@@ -875,6 +928,7 @@ test_rd_znet (void)
 {
 	gs_unref_hashtable GHashTable *connections = NULL;
 	const char *const*const ARGV = NM_MAKE_STRV ("ip=10.11.12.13::10.11.12.1:24:foo.example.com:enc800:none",
+	                                             "ip=slc600:dhcp",
 	                                             "rd.znet=qeth,0.0.0800,0.0.0801,0.0.0802,layer2=0,portno=1",
 	                                             "rd.znet=ctc,0.0.0600,0.0.0601,layer2=0,portno=0");
 	NMConnection *connection;
@@ -886,10 +940,12 @@ test_rd_znet (void)
 		{ .name = "portno", .value_str = "1" },
 	};
 	int i_s390_options_keys;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 2);
+	g_assert_cmpstr (hostname, ==, "foo.example.com");
 
 	connection = g_hash_table_lookup (connections, "enc800");
 	g_assert (NM_IS_CONNECTION (connection));
@@ -960,13 +1016,16 @@ test_rd_znet_legacy (void)
 	const char *const*const ARGV = NM_MAKE_STRV ("ip=10.11.12.13::10.11.12.1:24:foo.example.com:eth0:none",
 	                                             "rd.znet=qeth,0.0.0800,0.0.0801,0.0.0802,layer2=0,portno=1",
 	                                             "rd.znet=ctc,0.0.0600,0.0.0601,layer2=0,portno=0",
+	                                             "ip=ctc0:dhcp",
 	                                             "net.ifnames=0");
 	NMConnection *connection;
 	NMSettingConnection *s_con;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 2);
+	g_assert_cmpstr (hostname, ==, "foo.example.com");
 
 	connection = g_hash_table_lookup (connections, "eth0");
 	g_assert (NM_IS_CONNECTION (connection));
@@ -992,6 +1051,19 @@ test_rd_znet_legacy (void)
 }
 
 static void
+test_rd_znet_no_ip (void)
+{
+	gs_unref_hashtable GHashTable *connections = NULL;
+	const char *const*const ARGV = NM_MAKE_STRV ("rd.znet=qeth,0.0.0800,0.0.0801,0.0.0802,layer2=0,portno=1");
+	gs_free char *hostname = NULL;
+
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
+	g_assert (connections);
+	g_assert_cmpint (g_hash_table_size (connections), ==, 0);
+	g_assert_cmpstr (hostname, ==, NULL);
+}
+
+static void
 test_bootif (void)
 {
 	gs_unref_hashtable GHashTable *connections = NULL;
@@ -1001,10 +1073,12 @@ test_bootif (void)
 	NMSettingWired *s_wired;
 	NMSettingIPConfig *s_ip4;
 	NMSettingIPConfig *s_ip6;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 1);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "default_connection");
 	g_assert (connection);
@@ -1023,7 +1097,7 @@ test_bootif (void)
 
 	s_ip6 = nm_connection_get_setting_ip6_config (connection);
 	g_assert (s_ip6);
-	g_assert_cmpstr (nm_setting_ip_config_get_method (s_ip6), ==, NM_SETTING_IP6_CONFIG_METHOD_IGNORE);
+	g_assert_cmpstr (nm_setting_ip_config_get_method (s_ip6), ==, NM_SETTING_IP6_CONFIG_METHOD_AUTO);
 	g_assert (!nm_setting_ip_config_get_ignore_auto_dns (s_ip6));
 }
 
@@ -1037,10 +1111,12 @@ test_bootif_hwtype (void)
 	NMSettingWired *s_wired;
 	NMSettingIPConfig *s_ip4;
 	NMSettingIPConfig *s_ip6;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 2);
+	g_assert_cmpstr (hostname, ==, NULL);
 
 	connection = g_hash_table_lookup (connections, "eth0");
 	g_assert (connection);
@@ -1059,7 +1135,7 @@ test_bootif_hwtype (void)
 
 	s_ip6 = nm_connection_get_setting_ip6_config (connection);
 	g_assert (s_ip6);
-	g_assert_cmpstr (nm_setting_ip_config_get_method (s_ip6), ==, NM_SETTING_IP6_CONFIG_METHOD_IGNORE);
+	g_assert_cmpstr (nm_setting_ip_config_get_method (s_ip6), ==, NM_SETTING_IP6_CONFIG_METHOD_AUTO);
 	g_assert (!nm_setting_ip_config_get_ignore_auto_dns (s_ip6));
 
 	connection = g_hash_table_lookup (connections, "bootif_connection");
@@ -1100,10 +1176,12 @@ test_nameserver (void)
 	                                       "nameserver=[2606:4700:4700::1111]");
 	NMConnection *connection;
 	NMSettingIPConfig *s_ip;
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 3);
+	g_assert_cmpstr (hostname, ==, "foo.example.com");
 
 	connection = g_hash_table_lookup (connections, "eth0");
 	g_assert (connection);
@@ -1140,10 +1218,12 @@ test_bootif_off (void)
 {
 	gs_unref_hashtable GHashTable *connections = NULL;
 	const char *const*ARGV = NM_MAKE_STRV ("BOOTIF=01-00-53-AB-cd-02-03", "rd.bootif=0");
+	gs_free char *hostname = NULL;
 
-	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV);
+	connections = nmi_cmdline_reader_parse (TEST_INITRD_DIR "/sysfs", ARGV, &hostname);
 	g_assert (connections);
 	g_assert_cmpint (g_hash_table_size (connections), ==, 0);
+	g_assert_cmpstr (hostname, ==, NULL);
 }
 
 NMTST_DEFINE ();
@@ -1174,6 +1254,7 @@ int main (int argc, char **argv)
 	g_test_add_func ("/initrd/cmdline/ignore_extra", test_ignore_extra);
 	g_test_add_func ("/initrd/cmdline/rd_znet", test_rd_znet);
 	g_test_add_func ("/initrd/cmdline/rd_znet/legacy", test_rd_znet_legacy);
+	g_test_add_func ("/initrd/cmdline/rd_znet/no_ip", test_rd_znet_no_ip);
 	g_test_add_func ("/initrd/cmdline/bootif", test_bootif);
 	g_test_add_func ("/initrd/cmdline/bootif/hwtype", test_bootif_hwtype);
 	g_test_add_func ("/initrd/cmdline/bootif/off", test_bootif_off);

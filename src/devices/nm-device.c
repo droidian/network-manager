@@ -19,11 +19,11 @@
 #include <linux/if_addr.h>
 #include <linux/if_arp.h>
 #include <linux/rtnetlink.h>
-#include <linux/pkt_sched.h>
 
 #include "nm-std-aux/unaligned.h"
 #include "nm-glib-aux/nm-dedup-multi.h"
 #include "nm-glib-aux/nm-random-utils.h"
+#include "systemd/nm-sd-utils-shared.h"
 
 #include "nm-libnm-core-intern/nm-ethtool-utils.h"
 #include "nm-libnm-core-intern/nm-common-macros.h"
@@ -31,6 +31,7 @@
 #include "NetworkManagerUtils.h"
 #include "nm-manager.h"
 #include "platform/nm-platform.h"
+#include "platform/nm-platform-utils.h"
 #include "platform/nmp-object.h"
 #include "platform/nmp-rules-manager.h"
 #include "ndisc/nm-ndisc.h"
@@ -184,6 +185,8 @@ typedef struct {
 	int ifindex;
 	NMEthtoolFeatureStates *features;
 	NMTernary requested[_NM_ETHTOOL_ID_FEATURE_NUM];
+	NMEthtoolCoalesceState *coalesce;
+	NMEthtoolRingState *ring;
 } EthtoolState;
 
 /*****************************************************************************/
@@ -204,6 +207,7 @@ static guint signals[LAST_SIGNAL] = { 0 };
 
 NM_GOBJECT_PROPERTIES_DEFINE (NMDevice,
 	PROP_UDI,
+	PROP_PATH,
 	PROP_IFACE,
 	PROP_IP_IFACE,
 	PROP_DRIVER,
@@ -278,6 +282,7 @@ typedef struct _NMDevicePrivate {
 	NMDBusTrackObjPath parent_device;
 
 	char *        udi;
+	char *        path;
 	char *        iface;   /* may change, could be renamed by user */
 	int           ifindex;
 
@@ -811,64 +816,47 @@ NM_UTILS_LOOKUP_STR_DEFINE (mtu_source_to_str, NMDeviceMtuSource,
 /*****************************************************************************/
 
 static void
-_ethtool_state_reset (NMDevice *self)
+_ethtool_features_reset (NMDevice *self,
+                         NMPlatform *platform,
+                         EthtoolState *ethtool_state)
 {
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
+	gs_free NMEthtoolFeatureStates *features;
 
-	if (priv->ethtool_state) {
-		gs_free NMEthtoolFeatureStates *features = priv->ethtool_state->features;
-		gs_free EthtoolState *ethtool_state = g_steal_pointer (&priv->ethtool_state);
+	features = g_steal_pointer (&ethtool_state->features);
 
-		if (!nm_platform_ethtool_set_features (nm_device_get_platform (self),
-		                                       ethtool_state->ifindex,
-		                                       features,
-		                                       ethtool_state->requested,
-		                                       FALSE))
-			_LOGW (LOGD_DEVICE, "ethtool: failure resetting one or more offload features");
-		else
-			_LOGD (LOGD_DEVICE, "ethtool: offload features successfully reset");
-	}
+	if (!nm_platform_ethtool_set_features (platform,
+	                                       ethtool_state->ifindex,
+	                                       features,
+	                                       ethtool_state->requested,
+	                                       FALSE))
+		_LOGW (LOGD_DEVICE, "ethtool: failure resetting one or more offload features");
+	else
+		_LOGD (LOGD_DEVICE, "ethtool: offload features successfully reset");
 }
 
 static void
-_ethtool_state_set (NMDevice *self)
+_ethtool_features_set (NMDevice *self,
+                       NMPlatform *platform,
+                       EthtoolState *ethtool_state,
+                       NMSettingEthtool *s_ethtool)
 {
-	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
-	int ifindex;
-	NMConnection *connection;
-	NMSettingEthtool *s_ethtool;
-	NMPlatform *platform;
-	gs_free EthtoolState *ethtool_state = NULL;
 	gs_free NMEthtoolFeatureStates *features = NULL;
 
-	_ethtool_state_reset (self);
+	if (ethtool_state->features)
+		_ethtool_features_reset (self, platform, ethtool_state);
 
-	connection = nm_device_get_applied_connection (self);
-	if (!connection)
-		return;
-
-	ifindex = nm_device_get_ip_ifindex (self);
-	if (ifindex <= 0)
-		return;
-
-	s_ethtool = NM_SETTING_ETHTOOL (nm_connection_get_setting (connection, NM_TYPE_SETTING_ETHTOOL));
-	if (!s_ethtool)
-		return;
-
-	ethtool_state = g_new (EthtoolState, 1);
 	if (nm_setting_ethtool_init_features (s_ethtool, ethtool_state->requested) == 0)
 		return;
 
-	platform = nm_device_get_platform (self);
-
-	features = nm_platform_ethtool_get_link_features (platform, ifindex);
+	features = nm_platform_ethtool_get_link_features (platform,
+	                                                  ethtool_state->ifindex);
 	if (!features) {
 		_LOGW (LOGD_DEVICE, "ethtool: failure setting offload features (cannot read features)");
 		return;
 	}
 
 	if (!nm_platform_ethtool_set_features (platform,
-	                                       ifindex,
+	                                       ethtool_state->ifindex,
 	                                       features,
 	                                       ethtool_state->requested,
 	                                       TRUE))
@@ -876,9 +864,259 @@ _ethtool_state_set (NMDevice *self)
 	else
 		_LOGD (LOGD_DEVICE, "ethtool: offload features successfully set");
 
-	ethtool_state->ifindex = ifindex;
 	ethtool_state->features = g_steal_pointer (&features);
-	priv->ethtool_state = g_steal_pointer (&ethtool_state);
+}
+
+static void
+_ethtool_coalesce_reset (NMDevice *self,
+                         NMPlatform *platform,
+                         EthtoolState *ethtool_state)
+{
+	gs_free NMEthtoolCoalesceState *coalesce = NULL;
+
+	nm_assert (NM_IS_DEVICE (self));
+	nm_assert (NM_IS_PLATFORM (platform));
+	nm_assert (ethtool_state);
+
+	coalesce = g_steal_pointer (&ethtool_state->coalesce);
+	if (!coalesce)
+		return;
+
+	if (!nm_platform_ethtool_set_coalesce (platform,
+	                                       ethtool_state->ifindex,
+	                                       coalesce))
+		_LOGW (LOGD_DEVICE, "ethtool: failure resetting one or more coalesce settings");
+	else
+		_LOGD (LOGD_DEVICE, "ethtool: coalesce settings successfully reset");
+}
+
+static void
+_ethtool_coalesce_set (NMDevice *self,
+                       NMPlatform *platform,
+                       EthtoolState *ethtool_state,
+                       NMSettingEthtool *s_ethtool)
+{
+	NMEthtoolCoalesceState coalesce_old;
+	NMEthtoolCoalesceState coalesce_new;
+	gboolean has_old = FALSE;
+	GHashTable *hash;
+	GHashTableIter iter;
+	const char *name;
+	GVariant *variant;
+
+	nm_assert (NM_IS_DEVICE (self));
+	nm_assert (NM_IS_PLATFORM (platform));
+	nm_assert (NM_IS_SETTING_ETHTOOL (s_ethtool));
+	nm_assert (ethtool_state);
+	nm_assert (!ethtool_state->coalesce);
+
+	hash = _nm_setting_option_hash (NM_SETTING (s_ethtool), FALSE);
+	if (!hash)
+		return;
+
+	g_hash_table_iter_init (&iter, hash);
+	while (g_hash_table_iter_next (&iter, (gpointer *) &name, (gpointer *) &variant)) {
+		NMEthtoolID ethtool_id = nm_ethtool_id_get_by_name (name);
+
+		if (!nm_ethtool_id_is_coalesce (ethtool_id))
+			continue;
+
+		if (!has_old) {
+			if (!nm_platform_ethtool_get_link_coalesce (platform,
+			                                            ethtool_state->ifindex,
+			                                            &coalesce_old)) {
+				_LOGW (LOGD_DEVICE, "ethtool: failure getting coalesce settings (cannot read)");
+				return;
+			}
+			has_old = TRUE;
+			coalesce_new = coalesce_old;
+		}
+
+		nm_assert (g_variant_is_of_type (variant, G_VARIANT_TYPE_UINT32));
+		coalesce_new.s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (ethtool_id)] = g_variant_get_uint32 (variant);
+	}
+
+	if (!has_old)
+		return;
+
+	ethtool_state->coalesce = nm_memdup (&coalesce_old, sizeof (coalesce_old));
+
+	if (!nm_platform_ethtool_set_coalesce (platform,
+	                                       ethtool_state->ifindex,
+	                                       &coalesce_new)) {
+		_LOGW (LOGD_DEVICE, "ethtool: failure setting coalesce settings");
+		return;
+	}
+
+	_LOGD (LOGD_DEVICE, "ethtool: coalesce settings successfully set");
+}
+
+static void
+_ethtool_ring_reset (NMDevice *self,
+                     NMPlatform *platform,
+                     EthtoolState *ethtool_state)
+{
+	gs_free NMEthtoolRingState *ring = NULL;
+
+	nm_assert (NM_IS_DEVICE (self));
+	nm_assert (NM_IS_PLATFORM (platform));
+	nm_assert (ethtool_state);
+
+	ring = g_steal_pointer (&ethtool_state->ring);
+	if (!ring)
+		return;
+
+	if (!nm_platform_ethtool_set_ring (platform,
+	                                   ethtool_state->ifindex,
+	                                   ring))
+		_LOGW (LOGD_DEVICE, "ethtool: failure resetting one or more ring settings");
+	else
+		_LOGD (LOGD_DEVICE, "ethtool: ring settings successfully reset");
+}
+
+static void
+_ethtool_ring_set (NMDevice *self,
+                   NMPlatform *platform,
+                   EthtoolState *ethtool_state,
+                   NMSettingEthtool *s_ethtool)
+{
+	NMEthtoolRingState ring_old;
+	NMEthtoolRingState ring_new;
+	GHashTable *hash;
+	GHashTableIter iter;
+	const char *name;
+	GVariant *variant;
+	gboolean has_old = FALSE;
+
+	nm_assert (NM_IS_DEVICE (self));
+	nm_assert (NM_IS_PLATFORM (platform));
+	nm_assert (NM_IS_SETTING_ETHTOOL (s_ethtool));
+	nm_assert (ethtool_state);
+	nm_assert (!ethtool_state->ring);
+
+	hash = _nm_setting_option_hash (NM_SETTING (s_ethtool), FALSE);
+	if (!hash)
+		return;
+
+	g_hash_table_iter_init (&iter, hash);
+	while (g_hash_table_iter_next (&iter, (gpointer *) &name, (gpointer *) &variant)) {
+		NMEthtoolID ethtool_id = nm_ethtool_id_get_by_name (name);
+		guint32 u32;
+
+		if (!nm_ethtool_id_is_ring (ethtool_id))
+			continue;
+
+		nm_assert (g_variant_is_of_type (variant, G_VARIANT_TYPE_UINT32));
+
+		if (!has_old) {
+			if (!nm_platform_ethtool_get_link_ring (platform,
+			                                        ethtool_state->ifindex,
+			                                        &ring_old)) {
+				_LOGW (LOGD_DEVICE, "ethtool: failure setting ring options (cannot read existing setting)");
+				return;
+			}
+			has_old = TRUE;
+			ring_new = ring_old;
+		}
+
+		u32 = g_variant_get_uint32 (variant);
+
+		switch (ethtool_id) {
+		case NM_ETHTOOL_ID_RING_RX:
+			ring_new.rx_pending = u32;
+			break;
+		case NM_ETHTOOL_ID_RING_RX_JUMBO:
+			ring_new.rx_jumbo_pending = u32;
+			break;
+		case NM_ETHTOOL_ID_RING_RX_MINI:
+			ring_new.rx_mini_pending = u32;
+			break;
+		case NM_ETHTOOL_ID_RING_TX:
+			ring_new.tx_pending = u32;
+			break;
+		default:
+			nm_assert_not_reached ();
+		}
+	}
+
+	if (!has_old)
+		return;
+
+	ethtool_state->ring = nm_memdup (&ring_old, sizeof (ring_old));
+
+	if (!nm_platform_ethtool_set_ring (platform,
+	                                   ethtool_state->ifindex,
+	                                   &ring_new)) {
+		_LOGW (LOGD_DEVICE, "ethtool: failure setting ring settings");
+		return;
+	}
+
+	_LOGD (LOGD_DEVICE, "ethtool: ring settings successfully set");
+}
+
+static void
+_ethtool_state_reset (NMDevice *self)
+{
+	NMPlatform *platform = nm_device_get_platform (self);
+	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
+	gs_free EthtoolState *ethtool_state = g_steal_pointer (&priv->ethtool_state);
+
+	if (!ethtool_state)
+		return;
+
+	if (ethtool_state->features)
+		_ethtool_features_reset (self, platform, ethtool_state);
+	if (ethtool_state->coalesce)
+		_ethtool_coalesce_reset (self, platform, ethtool_state);
+	if (ethtool_state->ring)
+		_ethtool_ring_reset (self, platform, ethtool_state);
+}
+
+static void
+_ethtool_state_set (NMDevice *self)
+{
+	int ifindex;
+	NMPlatform *platform;
+	NMConnection *connection;
+	NMSettingEthtool *s_ethtool;
+	gs_free EthtoolState *ethtool_state = NULL;
+	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
+
+	ifindex = nm_device_get_ip_ifindex (self);
+	if (ifindex <= 0)
+		return;
+
+	platform = nm_device_get_platform (self);
+	nm_assert (platform);
+
+	connection = nm_device_get_applied_connection (self);
+	if (!connection)
+		return;
+
+	s_ethtool = NM_SETTING_ETHTOOL (nm_connection_get_setting (connection, NM_TYPE_SETTING_ETHTOOL));
+	if (!s_ethtool)
+		return;
+
+	ethtool_state = g_new0 (EthtoolState, 1);
+	ethtool_state->ifindex = ifindex;
+
+	_ethtool_features_set (self,
+	                       platform,
+	                       ethtool_state,
+	                       s_ethtool);
+	_ethtool_coalesce_set (self,
+	                       platform,
+	                       ethtool_state,
+	                       s_ethtool);
+	_ethtool_ring_set (self,
+	                   platform,
+	                   ethtool_state,
+	                   s_ethtool);
+
+	if (   ethtool_state->features
+	    || ethtool_state->coalesce
+	    || ethtool_state->ring)
+		priv->ethtool_state = g_steal_pointer (&ethtool_state);
 }
 
 /*****************************************************************************/
@@ -1263,6 +1501,50 @@ nm_device_sysctl_ip_conf_get_int_checked (NMDevice *self,
 	                                                   min,
 	                                                   max,
 	                                                   fallback);
+}
+
+static void
+set_ipv6_token (NMDevice *self, NMUtilsIPv6IfaceId iid, const char *token_str)
+{
+	NMPlatform *platform;
+	int ifindex;
+	const NMPlatformLink *link;
+	char buf[32];
+	gint64 val;
+
+	/* Setting the kernel token is not strictly necessary as the
+	 * IPv6 address is generated in userspace. However it is
+	 * convenient so that users can see the token with iproute
+	 * ('ip token'). */
+	platform = nm_device_get_platform (self);
+	ifindex = nm_device_get_ip_ifindex (self);
+	link = nm_platform_link_get (platform, ifindex);
+
+	if (link && link->inet6_token.id == iid.id) {
+		_LOGT (LOGD_DEVICE | LOGD_IP6, "token %s already set", token_str);
+		return;
+	}
+
+	/* The kernel allows setting a token only when 'accept_ra'
+	 * is 1: temporarily flip it if necessary; unfortunately
+	 * this will also generate an additional Router Solicitation
+	 * from kernel. */
+	val = nm_device_sysctl_ip_conf_get_int_checked (self,
+	                                                AF_INET6,
+	                                                "accept_ra",
+	                                                10,
+	                                                G_MININT32,
+	                                                G_MAXINT32,
+	                                                1);
+	if (val != 1)
+		nm_device_sysctl_ip_conf_set (self, AF_INET6, "accept_ra", "1");
+
+	nm_platform_link_set_ipv6_token (platform, ifindex, iid);
+
+	if (val != 1) {
+		nm_sprintf_buf (buf, "%d", (int) val);
+		nm_device_sysctl_ip_conf_set (self, AF_INET6, "accept_ra", buf);
+	}
 }
 
 gboolean
@@ -3565,7 +3847,8 @@ nm_device_update_dynamic_ip_setup (NMDevice *self)
 		/* FIXME: todo */
 	}
 
-	if (priv->lldp_listener && nm_lldp_listener_is_running (priv->lldp_listener)) {
+	if (   priv->lldp_listener
+	    && nm_lldp_listener_is_running (priv->lldp_listener)) {
 		nm_lldp_listener_stop (priv->lldp_listener);
 		if (!nm_lldp_listener_start (priv->lldp_listener, nm_device_get_ifindex (self), &error)) {
 			_LOGD (LOGD_DEVICE, "LLDP listener %p could not be restarted: %s",
@@ -3957,6 +4240,13 @@ device_link_changed (NMDevice *self)
 		_notify (self, PROP_UDI);
 	}
 
+	str = nm_platform_link_get_path (nm_device_get_platform (self), pllink->ifindex);
+	if (!nm_streq0 (str, priv->path)) {
+		g_free (priv->path);
+		priv->path = g_strdup (str);
+		_notify (self, PROP_PATH);
+	}
+
 	if (!nm_streq0 (pllink->driver, priv->driver)) {
 		g_free (priv->driver);
 		priv->driver = g_strdup (pllink->driver);
@@ -4340,6 +4630,13 @@ nm_device_update_from_platform_link (NMDevice *self, const NMPlatformLink *plink
 		g_free (priv->udi);
 		priv->udi = g_strdup (str);
 		_notify (self, PROP_UDI);
+	}
+
+	str = plink ? nm_platform_link_get_path (nm_device_get_platform (self), plink->ifindex) : NULL;
+	if (g_strcmp0 (str, priv->path)) {
+		g_free (priv->path);
+		priv->path = g_strdup (str);
+		_notify (self, PROP_PATH);
 	}
 
 	str = plink ? plink->name : NULL;
@@ -4871,6 +5168,10 @@ nm_device_unrealize (NMDevice *self, gboolean remove_resources, GError **error)
 	if (priv->udi) {
 		nm_clear_g_free (&priv->udi);
 		_notify (self, PROP_UDI);
+	}
+	if (priv->path) {
+		nm_clear_g_free (&priv->path);
+		_notify (self, PROP_PATH);
 	}
 	if (priv->physical_port_id) {
 		nm_clear_g_free (&priv->physical_port_id);
@@ -5994,11 +6295,11 @@ nm_device_match_parent_hwaddr (NMDevice *device,
 static gboolean
 check_connection_compatible (NMDevice *self, NMConnection *connection, GError **error)
 {
+	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
 	const char *device_iface = nm_device_get_iface (self);
 	gs_free_error GError *local = NULL;
 	gs_free char *conn_iface = NULL;
 	NMDeviceClass *klass;
-	const char *const *patterns;
 	NMSettingMatch *s_match;
 
 	klass = NM_DEVICE_GET_CLASS (self);
@@ -6041,12 +6342,37 @@ check_connection_compatible (NMDevice *self, NMConnection *connection, GError **
 	s_match = (NMSettingMatch *) nm_connection_get_setting (connection,
 	                                                        NM_TYPE_SETTING_MATCH);
 	if (s_match) {
+		const char *const *patterns;
+		const char *device_driver;
 		guint num_patterns = 0;
 
 		patterns = nm_setting_match_get_interface_names (s_match, &num_patterns);
 		if (!nm_wildcard_match_check (device_iface, patterns, num_patterns)) {
 			nm_utils_error_set_literal (error, NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY,
 			                            "device does not satisfy match.interface-name property");
+			return FALSE;
+		}
+
+		patterns = nm_setting_match_get_kernel_command_lines (s_match, &num_patterns);
+		if (   num_patterns > 0
+		    && !nm_utils_kernel_cmdline_match_check (nm_utils_proc_cmdline_split (),
+		                                             patterns,
+		                                             num_patterns,
+		                                             error))
+			return FALSE;
+
+		device_driver = nm_device_get_driver (self);
+		patterns = nm_setting_match_get_drivers (s_match, &num_patterns);
+		if (!nm_wildcard_match_check (device_driver, patterns, num_patterns)) {
+			nm_utils_error_set_literal (error, NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY,
+			                            "device does not satisfy match.driver property");
+			return FALSE;
+		}
+
+		patterns = nm_setting_match_get_paths (s_match, &num_patterns);
+		if (!nm_wildcard_match_check (priv->path, patterns, num_patterns)) {
+			nm_utils_error_set_literal (error, NM_UTILS_ERROR_CONNECTION_AVAILABLE_INCOMPATIBLE,
+			                            "device does not satisfy match.path property");
 			return FALSE;
 		}
 	}
@@ -6627,6 +6953,7 @@ activate_stage1_device_prepare (NMDevice *self)
 	NMActStageReturn ret = NM_ACT_STAGE_RETURN_SUCCESS;
 	NMActiveConnection *active;
 	NMActiveConnection *master;
+	NMDeviceClass *klass;
 
 	priv->v4_route_table_initialized = FALSE;
 	priv->v6_route_table_initialized = FALSE;
@@ -6700,18 +7027,21 @@ activate_stage1_device_prepare (NMDevice *self)
 	}
 
 	/* Assumed connections were already set up outside NetworkManager */
-	if (!nm_device_sys_iface_state_is_external_or_assume (self)) {
-		NMDeviceClass *klass = NM_DEVICE_GET_CLASS (self);
+	klass = NM_DEVICE_GET_CLASS (self);
 
-		if (klass->act_stage1_prepare_set_hwaddr_ethernet) {
-			if (!nm_device_hw_addr_set_cloned (self,
-			                                   nm_device_get_applied_connection (self),
-			                                   FALSE)) {
-				nm_device_state_changed (self, NM_DEVICE_STATE_FAILED, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
-				return;
-			}
+	if (   klass->act_stage1_prepare_set_hwaddr_ethernet
+	    && !nm_device_sys_iface_state_is_external_or_assume (self)) {
+		if (!nm_device_hw_addr_set_cloned (self,
+		                                   nm_device_get_applied_connection (self),
+		                                   FALSE)) {
+			nm_device_state_changed (self, NM_DEVICE_STATE_FAILED, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
+			return;
 		}
+	}
 
+	if (   klass->act_stage1_prepare_also_for_external_or_assume
+	    || !nm_device_sys_iface_state_is_external_or_assume (self)) {
+		nm_assert (!klass->act_stage1_prepare_also_for_external_or_assume || klass->act_stage1_prepare);
 		if (klass->act_stage1_prepare) {
 			NMDeviceStateReason failure_reason = NM_DEVICE_STATE_REASON_NONE;
 
@@ -6784,7 +7114,8 @@ lldp_init (NMDevice *self, gboolean restart)
 		gs_free_error GError *error = NULL;
 
 		if (priv->lldp_listener) {
-			if (restart && nm_lldp_listener_is_running (priv->lldp_listener))
+			if (   restart
+			    && nm_lldp_listener_is_running (priv->lldp_listener))
 				nm_lldp_listener_stop (priv->lldp_listener);
 		} else {
 			priv->lldp_listener = nm_lldp_listener_new ();
@@ -6921,10 +7252,10 @@ tc_commit (NMDevice *self)
 	gs_unref_ptrarray GPtrArray *qdiscs = NULL;
 	gs_unref_ptrarray GPtrArray *tfilters = NULL;
 	NMSettingTCConfig *s_tc = NULL;
+	NMPlatform *platform;
 	int ip_ifindex;
-	guint nqdiscs, ntfilters;
-	guint i;
 
+	platform = nm_device_get_platform (self);
 	connection = nm_device_get_applied_connection (self);
 	if (connection)
 		s_tc = nm_connection_get_setting_tc_config (connection);
@@ -6934,122 +7265,14 @@ tc_commit (NMDevice *self)
 		return s_tc == NULL;
 
 	if (s_tc) {
-		nqdiscs = nm_setting_tc_config_get_num_qdiscs (s_tc);
-		qdiscs = g_ptr_array_new_full (nqdiscs, (GDestroyNotify) nmp_object_unref);
-
-		for (i = 0; i < nqdiscs; i++) {
-			NMTCQdisc *s_qdisc = nm_setting_tc_config_get_qdisc (s_tc, i);
-			NMPObject *q = nmp_object_new (NMP_OBJECT_TYPE_QDISC, NULL);
-			NMPlatformQdisc *qdisc = NMP_OBJECT_CAST_QDISC (q);
-
-			qdisc->ifindex = ip_ifindex;
-
-			/* Note: kind string is still owned by NMTCTfilter.
-			 * This qdisc instance must not be kept alive beyond this function.
-			 * nm_platform_qdisc_sync() promises to do that. */
-			qdisc->kind = nm_tc_qdisc_get_kind (s_qdisc);
-
-			qdisc->addr_family = AF_UNSPEC;
-			qdisc->handle = nm_tc_qdisc_get_handle (s_qdisc);
-			qdisc->parent = nm_tc_qdisc_get_parent (s_qdisc);
-			qdisc->info = 0;
-
-#define GET_ATTR(name, dst, variant_type, type, dflt) G_STMT_START { \
-	GVariant *_variant = nm_tc_qdisc_get_attribute (s_qdisc, ""name""); \
-	\
-	if (   _variant \
-	    && g_variant_is_of_type (_variant, G_VARIANT_TYPE_ ## variant_type)) \
-		(dst) = g_variant_get_ ## type (_variant); \
-	else \
-		(dst) = (dflt); \
-} G_STMT_END
-
-			if (strcmp (qdisc->kind, "fq_codel") == 0) {
-				GET_ATTR ("limit",        qdisc->fq_codel.limit,        UINT32,  uint32,  0);
-				GET_ATTR ("flows",        qdisc->fq_codel.flows,        UINT32,  uint32,  0);
-				GET_ATTR ("target",       qdisc->fq_codel.target,       UINT32,  uint32,  0);
-				GET_ATTR ("interval",     qdisc->fq_codel.interval,     UINT32,  uint32,  0);
-				GET_ATTR ("quantum",      qdisc->fq_codel.quantum,      UINT32,  uint32,  0);
-				GET_ATTR ("ce_threshold", qdisc->fq_codel.ce_threshold, UINT32,  uint32,  NM_PLATFORM_FQ_CODEL_CE_THRESHOLD_DISABLED);
-				GET_ATTR ("memory_limit", qdisc->fq_codel.memory_limit, UINT32,  uint32,  NM_PLATFORM_FQ_CODEL_MEMORY_LIMIT_UNSET);
-				GET_ATTR ("ecn",          qdisc->fq_codel.ecn,          BOOLEAN, boolean, FALSE);
-			}
-
-#undef GET_ADDR
-
-			g_ptr_array_add (qdiscs, q);
-		}
-
-		ntfilters = nm_setting_tc_config_get_num_tfilters (s_tc);
-		tfilters = g_ptr_array_new_full (ntfilters, (GDestroyNotify) nmp_object_unref);
-
-		for (i = 0; i < ntfilters; i++) {
-			NMTCTfilter *s_tfilter = nm_setting_tc_config_get_tfilter (s_tc, i);
-			NMTCAction *action;
-			NMPObject *q = nmp_object_new (NMP_OBJECT_TYPE_TFILTER, NULL);
-			NMPlatformTfilter *tfilter = NMP_OBJECT_CAST_TFILTER (q);
-
-			tfilter->ifindex = ip_ifindex;
-
-			/* Note: kind string is still owned by NMTCTfilter.
-			 * This tfilter instance must not be kept alive beyond this function.
-			 * nm_platform_tfilter_sync() promises to do that. */
-			tfilter->kind = nm_tc_tfilter_get_kind (s_tfilter);
-
-			tfilter->addr_family = AF_UNSPEC;
-			tfilter->handle = nm_tc_tfilter_get_handle (s_tfilter);
-			tfilter->parent = nm_tc_tfilter_get_parent (s_tfilter);
-			tfilter->info = TC_H_MAKE (0, htons (ETH_P_ALL));
-
-			action = nm_tc_tfilter_get_action (s_tfilter);
-			if (action) {
-				GVariant *var;
-
-				/* Note: kind string is still owned by NMTCAction.
-				 * This tfilter instance must not be kept alive beyond this function.
-				 * nm_platform_tfilter_sync() promises to do that. */
-				tfilter->action.kind = nm_tc_action_get_kind (action);
-
-				if (strcmp (tfilter->action.kind, "simple") == 0) {
-					var = nm_tc_action_get_attribute (action, "sdata");
-					if (var && g_variant_is_of_type (var, G_VARIANT_TYPE_BYTESTRING)) {
-						g_strlcpy (tfilter->action.simple.sdata,
-						           g_variant_get_bytestring (var),
-						           sizeof (tfilter->action.simple.sdata));
-					}
-				} else if (strcmp (tfilter->action.kind, "mirred") == 0) {
-					if (nm_tc_action_get_attribute (action, "egress"))
-						tfilter->action.mirred.egress = TRUE;
-
-					if (nm_tc_action_get_attribute (action, "ingress"))
-						tfilter->action.mirred.ingress = TRUE;
-
-					if (nm_tc_action_get_attribute (action, "mirror"))
-						tfilter->action.mirred.mirror = TRUE;
-
-					if (nm_tc_action_get_attribute (action, "redirect"))
-						tfilter->action.mirred.redirect = TRUE;
-
-					var = nm_tc_action_get_attribute (action, "dev");
-					if (var && g_variant_is_of_type (var, G_VARIANT_TYPE_STRING)) {
-						int ifindex;
-
-						ifindex = nm_platform_link_get_ifindex (nm_device_get_platform (self),
-						                                        g_variant_get_string (var, NULL));
-						if (ifindex > 0)
-							tfilter->action.mirred.ifindex = ifindex;
-					}
-				}
-			}
-
-			g_ptr_array_add (tfilters, q);
-		}
+		qdiscs = nm_utils_qdiscs_from_tc_setting (platform, s_tc, ip_ifindex);
+		tfilters = nm_utils_tfilters_from_tc_setting (platform, s_tc, ip_ifindex);
 	}
 
-	if (!nm_platform_qdisc_sync (nm_device_get_platform (self), ip_ifindex, qdiscs))
+	if (!nm_platform_qdisc_sync (platform, ip_ifindex, qdiscs))
 		return FALSE;
 
-	if (!nm_platform_tfilter_sync (nm_device_get_platform (self), ip_ifindex, tfilters))
+	if (!nm_platform_tfilter_sync (platform, ip_ifindex, tfilters))
 		return FALSE;
 
 	return TRUE;
@@ -7841,23 +8064,13 @@ ip_config_merge_and_apply (NMDevice *self,
 	}
 
 	if (!IS_IPv4) {
-		const NMPlatformLink *link;
 		NMUtilsIPv6IfaceId iid;
-		NMPlatform *platform;
-		int ifindex;
 
 		if (   commit
 		    && priv->ndisc_started
 		    && ip6_addr_gen_token
 		    && nm_utils_ipv6_interface_identifier_get_from_token (&iid, ip6_addr_gen_token)) {
-			platform = nm_device_get_platform (self);
-			ifindex = nm_device_get_ip_ifindex (self);
-			link = nm_platform_link_get (platform, ifindex);
-
-			if (link && link->inet6_token.id == iid.id)
-				_LOGT (LOGD_DEVICE | LOGD_IP6, "token %s already set", ip6_addr_gen_token);
-			else
-				nm_platform_link_set_ipv6_token (platform, ifindex, iid);
+			set_ipv6_token (self, iid, ip6_addr_gen_token);
 		}
 	}
 
@@ -8315,6 +8528,37 @@ get_dhcp_hostname_flags (NMDevice *self, int addr_family)
 		return NM_DHCP_HOSTNAME_FLAGS_FQDN_DEFAULT_IP6;
 }
 
+static const char *
+connection_get_mud_url (NMDevice *self,
+                        NMSettingConnection *s_con,
+                        char **out_mud_url)
+{
+	const char *mud_url;
+	gs_free char *s = NULL;
+
+	nm_assert (out_mud_url && !*out_mud_url);
+
+	mud_url = nm_setting_connection_get_mud_url (s_con);
+
+	if (mud_url) {
+		if (nm_streq (mud_url, NM_CONNECTION_MUD_URL_NONE))
+			return NULL;
+		return mud_url;
+	}
+
+	s = nm_config_data_get_connection_default (NM_CONFIG_GET_DATA,
+	                                           NM_CON_DEFAULT ("connection.mud-url"),
+	                                           self);
+	if (s) {
+		if (nm_streq (s, NM_CONNECTION_MUD_URL_NONE))
+			return NULL;
+		if (nm_sd_http_url_is_valid_https (s))
+			return (*out_mud_url = g_steal_pointer (&s));
+	}
+
+	return NULL;
+}
+
 static GBytes *
 dhcp4_get_client_id (NMDevice *self,
                      NMConnection *connection,
@@ -8453,7 +8697,9 @@ dhcp4_start (NMDevice *self)
 	gs_unref_bytes GBytes *hwaddr = NULL;
 	gs_unref_bytes GBytes *bcast_hwaddr = NULL;
 	gs_unref_bytes GBytes *client_id = NULL;
+	gs_free char *mud_url_free = NULL;
 	NMConnection *connection;
+	NMSettingConnection *s_con;
 	GError *error = NULL;
 	const NMPlatformLink *pllink;
 
@@ -8461,6 +8707,9 @@ dhcp4_start (NMDevice *self)
 	g_return_val_if_fail (connection, FALSE);
 
 	s_ip4 = nm_connection_get_setting_ip4_config (connection);
+
+	s_con = nm_connection_get_setting_connection (connection);
+	nm_assert (s_con);
 
 	/* Clear old exported DHCP options */
 	nm_dbus_object_clear_and_unexport (&priv->dhcp_data_4.config);
@@ -8488,6 +8737,7 @@ dhcp4_start (NMDevice *self)
 	                                                      nm_setting_ip_config_get_dhcp_hostname (s_ip4),
 	                                                      nm_setting_ip4_config_get_dhcp_fqdn (NM_SETTING_IP4_CONFIG (s_ip4)),
 	                                                      get_dhcp_hostname_flags (self, AF_INET),
+	                                                      connection_get_mud_url (self, s_con, &mud_url_free),
 	                                                      client_id,
 	                                                      get_dhcp_timeout (self, AF_INET),
 	                                                      priv->dhcp_anycast_address,
@@ -9235,15 +9485,19 @@ dhcp6_start_with_link_ready (NMDevice *self, NMConnection *connection)
 	gs_unref_bytes GBytes *duid = NULL;
 	gboolean enforce_duid = FALSE;
 	const NMPlatformLink *pllink;
+	gs_free char *mud_url_free = NULL;
 	GError *error = NULL;
 	guint32 iaid;
 	gboolean iaid_explicit;
-
+	NMSettingConnection *s_con;
 	const NMPlatformIP6Address *ll_addr = NULL;
 
-	g_assert (connection);
+	g_return_val_if_fail (connection, FALSE);
+
 	s_ip6 = nm_connection_get_setting_ip6_config (connection);
-	g_assert (s_ip6);
+	nm_assert (s_ip6);
+	s_con = nm_connection_get_setting_connection (connection);
+	nm_assert (s_con);
 
 	if (priv->ext_ip6_config_captured) {
 		ll_addr = nm_ip6_config_find_first_address (priv->ext_ip6_config_captured,
@@ -9278,6 +9532,7 @@ dhcp6_start_with_link_ready (NMDevice *self, NMConnection *connection)
 	                                                      nm_setting_ip_config_get_dhcp_send_hostname (s_ip6),
 	                                                      nm_setting_ip_config_get_dhcp_hostname (s_ip6),
 	                                                      get_dhcp_hostname_flags (self, AF_INET6),
+	                                                      connection_get_mud_url (self, s_con, &mud_url_free),
 	                                                      duid,
 	                                                      enforce_duid,
 	                                                      iaid,
@@ -10607,8 +10862,11 @@ act_stage3_ip_config_start (NMDevice *self,
 					platform = nm_device_get_platform (self);
 
 					if (ifindex > 0) {
+						gs_unref_object NMIP6Config *config = nm_device_ip6_config_new (self);
+
 						nm_platform_ip_route_flush (platform, AF_INET6, ifindex);
 						nm_platform_ip_address_flush (platform, AF_INET6, ifindex);
+						nm_device_set_ip_config (self, AF_INET6, (NMIPConfig *) config, FALSE, NULL);
 					}
 				} else {
 					gboolean ipv6ll_handle_old = priv->ipv6ll_handle;
@@ -13023,10 +13281,8 @@ nm_device_set_ip_config (NMDevice *self,
 
 		if (   nm_device_sys_iface_state_is_external (self)
 		    && (settings_connection = nm_device_get_settings_connection (self))
-		    && NM_FLAGS_ALL (nm_settings_connection_get_flags (settings_connection),
-		                       NM_SETTINGS_CONNECTION_INT_FLAGS_UNSAVED
-		                     | NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE
-		                     | NM_SETTINGS_CONNECTION_INT_FLAGS_NM_GENERATED)
+		    && NM_FLAGS_HAS (nm_settings_connection_get_flags (settings_connection),
+		                     NM_SETTINGS_CONNECTION_INT_FLAGS_EXTERNAL)
 		    && nm_active_connection_get_activation_type (NM_ACTIVE_CONNECTION (priv->act_request.obj)) == NM_ACTIVATION_TYPE_EXTERNAL) {
 			gs_unref_object NMConnection *new_connection = NULL;
 
@@ -15317,11 +15573,13 @@ nm_device_cleanup (NMDevice *self, NMDeviceStateReason reason, CleanupType clean
 		/* Take out any entries in the routing table and any IP address the device had. */
 		if (ifindex > 0) {
 			NMPlatform *platform = nm_device_get_platform (self);
+			NMUtilsIPv6IfaceId iid = { };
 
 			nm_platform_ip_route_flush (platform, AF_UNSPEC, ifindex);
 			nm_platform_ip_address_flush (platform, AF_UNSPEC, ifindex);
 			nm_platform_tfilter_sync (platform, ifindex, NULL);
 			nm_platform_qdisc_sync (platform, ifindex, NULL);
+			set_ipv6_token (self, iid, "::");
 		}
 	}
 
@@ -17073,6 +17331,11 @@ get_property (GObject *object, guint prop_id,
 		                     nm_utils_str_utf8safe_escape_cp (priv->udi,
 		                                                      NM_UTILS_STR_UTF8_SAFE_FLAG_NONE));
 		break;
+	case PROP_PATH:
+		g_value_take_string (value,
+		                     nm_utils_str_utf8safe_escape_cp (priv->path,
+		                                                      NM_UTILS_STR_UTF8_SAFE_FLAG_NONE));
+		break;
 	case PROP_IFACE:
 		g_value_take_string (value,
 		                     nm_utils_str_utf8safe_escape_cp (priv->iface,
@@ -17590,6 +17853,7 @@ finalize (GObject *object)
 	g_slist_free_full (priv->dad6_failed_addrs, (GDestroyNotify) nmp_object_unref);
 	nm_clear_g_free (&priv->physical_port_id);
 	g_free (priv->udi);
+	g_free (priv->path);
 	g_free (priv->iface);
 	g_free (priv->ip_iface);
 	g_free (priv->driver);
@@ -17674,6 +17938,7 @@ static const NMDBusInterfaceInfoExtended interface_info_device = {
 		),
 		.properties = NM_DEFINE_GDBUS_PROPERTY_INFOS (
 			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L     ("Udi",                  "s",      NM_DEVICE_UDI),
+			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L     ("Path",                 "s",      NM_DEVICE_PATH),
 			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L     ("Interface",            "s",      NM_DEVICE_IFACE),
 			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L     ("IpInterface",          "s",      NM_DEVICE_IP_IFACE),
 			NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L     ("Driver",               "s",      NM_DEVICE_DRIVER),
@@ -17768,6 +18033,11 @@ nm_device_class_init (NMDeviceClass *klass)
 	    g_param_spec_string (NM_DEVICE_UDI, "", "",
 	                         NULL,
 	                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+	                         G_PARAM_STATIC_STRINGS);
+	obj_properties[PROP_PATH] =
+	    g_param_spec_string (NM_DEVICE_PATH, "", "",
+	                         NULL,
+	                         G_PARAM_READABLE |
 	                         G_PARAM_STATIC_STRINGS);
 	obj_properties[PROP_IFACE] =
 	    g_param_spec_string (NM_DEVICE_IFACE, "", "",

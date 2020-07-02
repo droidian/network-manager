@@ -6,8 +6,10 @@
 #include "nm-default.h"
 
 #include "nm-client-utils.h"
-#include "nm-utils.h"
 
+#include "nm-glib-aux/nm-secret-utils.h"
+#include "nm-glib-aux/nm-io-utils.h"
+#include "nm-utils.h"
 #include "nm-device-bond.h"
 #include "nm-device-bridge.h"
 #include "nm-device-team.h"
@@ -262,6 +264,38 @@ NM_UTILS_LOOKUP_STR_DEFINE (nmc_device_state_to_string, NMDeviceState,
 	NM_UTILS_LOOKUP_ITEM (NM_DEVICE_STATE_FAILED,       N_("connection failed")),
 	NM_UTILS_LOOKUP_ITEM (NM_DEVICE_STATE_UNKNOWN,      N_("unknown")),
 )
+
+static
+NM_UTILS_LOOKUP_STR_DEFINE (_device_state_to_string, NMDeviceState,
+	NM_UTILS_LOOKUP_DEFAULT (NULL),
+	NM_UTILS_LOOKUP_ITEM (NM_DEVICE_STATE_PREPARE,      N_("connecting (externally)")),
+	NM_UTILS_LOOKUP_ITEM (NM_DEVICE_STATE_CONFIG,       N_("connecting (externally)")),
+	NM_UTILS_LOOKUP_ITEM (NM_DEVICE_STATE_NEED_AUTH,    N_("connecting (externally)")),
+	NM_UTILS_LOOKUP_ITEM (NM_DEVICE_STATE_IP_CONFIG,    N_("connecting (externally)")),
+	NM_UTILS_LOOKUP_ITEM (NM_DEVICE_STATE_IP_CHECK,     N_("connecting (externally)")),
+	NM_UTILS_LOOKUP_ITEM (NM_DEVICE_STATE_SECONDARIES,  N_("connecting (externally)")),
+	NM_UTILS_LOOKUP_ITEM (NM_DEVICE_STATE_ACTIVATED,    N_("connected (externally)")),
+	NM_UTILS_LOOKUP_ITEM (NM_DEVICE_STATE_DEACTIVATING, N_("deactivating (externally)")),
+	NM_UTILS_LOOKUP_ITEM (NM_DEVICE_STATE_FAILED,       N_("deactivating (externally)")),
+	NM_UTILS_LOOKUP_ITEM_IGNORE_OTHER (),
+)
+
+const char *
+nmc_device_state_to_string_with_external (NMDevice *device)
+{
+	NMActiveConnection *ac;
+	NMDeviceState state;
+	const char *s;
+
+	state = nm_device_get_state (device);
+
+	if (   (ac = nm_device_get_active_connection (device))
+	    && NM_FLAGS_HAS (nm_active_connection_get_state_flags (ac), NM_ACTIVATION_STATE_FLAG_EXTERNAL)
+	    && (s = _device_state_to_string (state)))
+		return s;
+
+	return nmc_device_state_to_string (state);
+}
 
 NM_UTILS_LOOKUP_STR_DEFINE (nmc_device_metered_to_string, NMMetered,
 	NM_UTILS_LOOKUP_DEFAULT (N_("unknown")),
@@ -586,4 +620,191 @@ nmc_print_qrcode (const char *str)
 			g_print ("\033[0m\n");
 		}
 	}
+}
+
+/**
+ * nmc_utils_read_passwd_file:
+ * @passwd_file: file with passwords to parse
+ * @out_error_line: returns in case of a syntax error in the file, the line
+ *   on which it occurred.
+ * @error: location to store error, or %NULL
+ *
+ * Parse passwords given in @passwd_file and insert them into a hash table.
+ * Example of @passwd_file contents:
+ *   wifi.psk:tajne heslo
+ *   802-1x.password:krakonos
+ *   802-11-wireless-security:leap-password:my leap password
+ *
+ * Returns: (transfer full): hash table with parsed passwords, or %NULL on an error
+ */
+GHashTable *
+nmc_utils_read_passwd_file (const char *passwd_file,
+                            gssize *out_error_line,
+                            GError **error)
+{
+	nm_auto_clear_secret_ptr NMSecretPtr contents = { 0 };
+
+	NM_SET_OUT (out_error_line, -1);
+
+	if (!passwd_file)
+		return g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, (GDestroyNotify) nm_free_secret);
+
+	if (!nm_utils_file_get_contents (-1,
+	                                 passwd_file,
+	                                 1024*1024,
+	                                 NM_UTILS_FILE_GET_CONTENTS_FLAG_SECRET,
+	                                 &contents.str,
+	                                 &contents.len,
+	                                 NULL,
+	                                 error))
+		return NULL;
+
+	return nmc_utils_parse_passwd_file (contents.str, out_error_line, error);
+}
+
+GHashTable *
+nmc_utils_parse_passwd_file (char *contents /* will be modified */,
+                             gssize *out_error_line,
+                             GError **error)
+{
+	gs_unref_hashtable GHashTable *pwds_hash = NULL;
+	const char *contents_str;
+	gsize contents_line;
+
+	pwds_hash = g_hash_table_new_full (nm_str_hash, g_str_equal, g_free, (GDestroyNotify) nm_free_secret);
+
+	NM_SET_OUT (out_error_line, -1);
+
+	contents_str = contents;
+	contents_line = 0;
+	while (contents_str[0]) {
+		nm_auto_free_secret char *l_hash_key = NULL;
+		nm_auto_free_secret char *l_hash_val = NULL;
+		const char *l_content_line;
+		const char *l_setting;
+		const char *l_prop;
+		const char *l_val;
+		const char *s;
+		gsize l_hash_val_len;
+
+		/* consume first line. As line delimiters we accept "\r\n", "\n", and "\r". */
+		l_content_line = contents_str;
+		s = l_content_line;
+		while (!NM_IN_SET (s[0], '\0', '\r', '\n'))
+			s++;
+		if (s[0] != '\0') {
+			if (   s[0] == '\r'
+			    && s[1] == '\n') {
+				((char *) s)[0] = '\0';
+				s += 2;
+			} else {
+				((char *) s)[0] = '\0';
+				s += 1;
+			}
+		}
+		contents_str = s;
+		contents_line++;
+
+		l_content_line = nm_str_skip_leading_spaces (l_content_line);
+		if (NM_IN_SET (l_content_line[0], '\0', '#')) {
+			/* a comment or empty line. Ignore. */
+			continue;
+		}
+
+		l_setting = l_content_line;
+
+		s = l_setting;
+		while (!NM_IN_SET (s[0], '\0', ':', '='))
+			s++;
+		if (s[0] == '\0') {
+			NM_SET_OUT (out_error_line, contents_line);
+			nm_utils_error_set (error, NM_UTILS_ERROR_UNKNOWN,
+			                    _("missing colon for \"<setting>.<property>:<secret>\" format"));
+			return NULL;
+		}
+		((char *) s)[0] = '\0';
+		s++;
+
+		l_val = s;
+
+		g_strchomp ((char *) l_setting);
+
+		nm_assert (nm_str_is_stripped (l_setting));
+
+		s = strchr (l_setting, '.');
+		if (!s) {
+			NM_SET_OUT (out_error_line, contents_line);
+			nm_utils_error_set (error, NM_UTILS_ERROR_UNKNOWN,
+			                    _("missing dot for \"<setting>.<property>:<secret>\" format"));
+			return NULL;
+		} else if (s == l_setting) {
+			NM_SET_OUT (out_error_line, contents_line);
+			nm_utils_error_set (error, NM_UTILS_ERROR_UNKNOWN,
+			                    _("missing setting for \"<setting>.<property>:<secret>\" format"));
+			return NULL;
+		}
+		((char *) s)[0] = '\0';
+		s++;
+
+		l_prop = s;
+		if (l_prop[0] == '\0') {
+			NM_SET_OUT (out_error_line, contents_line);
+			nm_utils_error_set (error, NM_UTILS_ERROR_UNKNOWN,
+			                    _("missing property for \"<setting>.<property>:<secret>\" format"));
+			return NULL;
+		}
+
+		/* Accept wifi-sec or wifi instead of cumbersome '802-11-wireless-security' */
+		if (NM_IN_STRSET (l_setting, "wifi-sec", "wifi"))
+			l_setting = NM_SETTING_WIRELESS_SECURITY_SETTING_NAME;
+
+		if (nm_setting_lookup_type (l_setting) == G_TYPE_INVALID) {
+			NM_SET_OUT (out_error_line, contents_line);
+			nm_utils_error_set (error, NM_UTILS_ERROR_UNKNOWN,
+			                    _("invalid setting name"));
+			return NULL;
+		}
+
+		if (   nm_streq (l_setting, "vpn")
+		    && NM_STR_HAS_PREFIX (l_prop, "secret.")) {
+			/* in 1.12.0, we wrongly required the VPN secrets to be named
+			 * "vpn.secret". It should be "vpn.secrets". Work around it
+			 * (rh#1628833). */
+			l_hash_key = g_strdup_printf ("vpn.secrets.%s", &l_prop[NM_STRLEN ("secret.")]);
+		} else
+			l_hash_key = g_strdup_printf ("%s.%s", l_setting, l_prop);
+
+		if (!g_utf8_validate (l_hash_key, -1, NULL)) {
+			NM_SET_OUT (out_error_line, contents_line);
+			nm_utils_error_set (error, NM_UTILS_ERROR_UNKNOWN,
+			                    _("property name is not UTF-8"));
+			return NULL;
+		}
+
+		/* Support backslash escaping in the secret value. We strip non-escaped leading/trailing whitespaces. */
+		s = nm_utils_buf_utf8safe_unescape (l_val, NM_UTILS_STR_UTF8_SAFE_UNESCAPE_STRIP_SPACES, &l_hash_val_len, (gpointer *) &l_hash_val);
+		if (!l_hash_val)
+			l_hash_val = g_strdup (s);
+
+		if (!g_utf8_validate (l_hash_val, -1, NULL)) {
+			/* In some cases it might make sense to support binary secrets (like the WPA-PSK which has no
+			 * defined encoding. However, all API that follows can only handle UTF-8, and no mechanism
+			 * to escape the secrets. Reject non-UTF-8 early. */
+			NM_SET_OUT (out_error_line, contents_line);
+			nm_utils_error_set (error, NM_UTILS_ERROR_UNKNOWN,
+			                    _("secret is not UTF-8"));
+			return NULL;
+		}
+
+		if (strlen (l_hash_val) != l_hash_val_len) {
+			NM_SET_OUT (out_error_line, contents_line);
+			nm_utils_error_set (error, NM_UTILS_ERROR_UNKNOWN,
+			                    _("secret is not UTF-8"));
+			return NULL;
+		}
+
+		g_hash_table_insert (pwds_hash, g_steal_pointer (&l_hash_key), g_steal_pointer (&l_hash_val));
+	}
+
+	return g_steal_pointer (&pwds_hash);
 }

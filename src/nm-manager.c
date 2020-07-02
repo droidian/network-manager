@@ -815,8 +815,9 @@ _delete_volatile_connection_do (NMManager *self,
 {
 	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
 
-	if (!NM_FLAGS_HAS (nm_settings_connection_get_flags (connection),
-	                   NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE))
+	if (!NM_FLAGS_ANY (nm_settings_connection_get_flags (connection),
+	                     NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE
+	                   | NM_SETTINGS_CONNECTION_INT_FLAGS_EXTERNAL))
 		return;
 	if (!nm_settings_has_connection (priv->settings, connection))
 		return;
@@ -1058,8 +1059,9 @@ _get_activatable_connections_filter (NMSettings *settings,
 	const GetActivatableConnectionsFilterData *d = user_data;
 	NMConnectionMultiConnect multi_connect;
 
-	if (NM_FLAGS_HAS (nm_settings_connection_get_flags (sett_conn),
-	                  NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE))
+	if (NM_FLAGS_ANY (nm_settings_connection_get_flags (sett_conn),
+	                    NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE
+	                  | NM_SETTINGS_CONNECTION_INT_FLAGS_EXTERNAL))
 		return FALSE;
 
 	multi_connect = _nm_connection_get_multi_connect (nm_settings_connection_get_connection (sett_conn));
@@ -2117,8 +2119,9 @@ connection_changed (NMManager *self,
 	NMConnection *connection;
 	NMDevice *device;
 
-	if (NM_FLAGS_HAS (nm_settings_connection_get_flags (sett_conn),
-	                  NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE))
+	if (NM_FLAGS_ANY (nm_settings_connection_get_flags (sett_conn),
+	                    NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE
+	                  | NM_SETTINGS_CONNECTION_INT_FLAGS_EXTERNAL))
 		return;
 
 	connection = nm_settings_connection_get_connection (sett_conn);
@@ -2189,8 +2192,9 @@ connection_flags_changed (NMSettings *settings,
 	NMManager *self = user_data;
 	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (self);
 
-	if (!NM_FLAGS_HAS (nm_settings_connection_get_flags (connection),
-	                   NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE))
+	if (!NM_FLAGS_ANY (nm_settings_connection_get_flags (connection),
+	                     NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE
+	                   | NM_SETTINGS_CONNECTION_INT_FLAGS_EXTERNAL))
 		return;
 
 	if (active_connection_find (self, connection, NULL, NM_ACTIVE_CONNECTION_STATE_DEACTIVATED, NULL)) {
@@ -2695,11 +2699,19 @@ get_existing_connection (NMManager *self,
 	}
 
 	if (matched) {
-		_LOG2I (LOGD_DEVICE, device, "assume: will attempt to assume matching connection '%s' (%s)%s",
-		        nm_settings_connection_get_id (matched),
-		        nm_settings_connection_get_uuid (matched),
-		        assume_state_connection_uuid && nm_streq (assume_state_connection_uuid, nm_settings_connection_get_uuid (matched))
-		            ? " (indicated)" : " (guessed)");
+
+		if (NM_FLAGS_HAS (nm_settings_connection_get_flags (matched), NM_SETTINGS_CONNECTION_INT_FLAGS_EXTERNAL)) {
+			_LOG2D (LOGD_DEVICE, device, "assume: take over previous connection '%s' (%s)",
+			        nm_settings_connection_get_id (matched),
+			        nm_settings_connection_get_uuid (matched));
+			NM_SET_OUT (out_generated, TRUE);
+		} else {
+			_LOG2I (LOGD_DEVICE, device, "assume: will attempt to assume matching connection '%s' (%s)%s",
+			        nm_settings_connection_get_id (matched),
+			        nm_settings_connection_get_uuid (matched),
+			        assume_state_connection_uuid && nm_streq (assume_state_connection_uuid, nm_settings_connection_get_uuid (matched))
+			            ? " (indicated)" : " (guessed)");
+		}
 		nm_device_assume_state_reset (device);
 		return matched;
 	}
@@ -2714,8 +2726,9 @@ get_existing_connection (NMManager *self,
 	                                 connection,
 	                                 NM_SETTINGS_CONNECTION_PERSIST_MODE_IN_MEMORY_ONLY,
 	                                 NM_SETTINGS_CONNECTION_ADD_REASON_NONE,
-	                                   NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE
-	                                 | NM_SETTINGS_CONNECTION_INT_FLAGS_NM_GENERATED,
+	                                   NM_SETTINGS_CONNECTION_INT_FLAGS_NM_GENERATED
+	                                 | NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE
+	                                 | NM_SETTINGS_CONNECTION_INT_FLAGS_EXTERNAL,
 	                                 &added,
 	                                 &error)) {
 		_LOG2W (LOGD_SETTINGS, device, "assume: failure to save generated connection '%s': %s",
@@ -2819,8 +2832,9 @@ recheck_assume_connection (NMManager *self,
 				nm_settings_connection_update (sett_conn,
 				                               NULL,
 				                               NM_SETTINGS_CONNECTION_PERSIST_MODE_KEEP,
-				                               0,
-				                               NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE,
+				                               NM_SETTINGS_CONNECTION_INT_FLAGS_NONE,
+				                                 NM_SETTINGS_CONNECTION_INT_FLAGS_VOLATILE
+				                               | NM_SETTINGS_CONNECTION_INT_FLAGS_EXTERNAL,
 				                               NM_SETTINGS_CONNECTION_UPDATE_REASON_NONE,
 				                               "assume-initrd",
 				                               NULL);
@@ -4717,8 +4731,8 @@ _internal_activate_device (NMManager *self, NMActiveConnection *active, GError *
 			}
 
 			if (   nm_active_connection_get_activation_reason (active) == NM_ACTIVATION_REASON_AUTOCONNECT
-			    && nm_settings_connection_autoconnect_blocked_reason_get (parent_con,
-			                                                              NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_USER_REQUEST)) {
+			    && NM_FLAGS_HAS (nm_settings_connection_autoconnect_blocked_reason_get (parent_con),
+			                                                                            NM_SETTINGS_AUTO_CONNECT_BLOCKED_REASON_USER_REQUEST)) {
 				g_set_error (error, NM_MANAGER_ERROR, NM_MANAGER_ERROR_DEPENDENCY_FAILED,
 				             "the parent connection of %s cannot autoactivate because it is blocked due to user request",
 				             nm_device_get_iface (device));
@@ -6552,7 +6566,7 @@ nm_manager_write_device_state (NMManager *self, NMDevice *device, int *out_ifind
 	gboolean perm_hw_addr_is_fake;
 	guint32 route_metric_default_aspired;
 	guint32 route_metric_default_effective;
-	int nm_owned;
+	NMTernary nm_owned;
 	NMDhcpConfig *dhcp_config;
 	const char *next_server = NULL;
 	const char *root_path = NULL;
@@ -6588,7 +6602,9 @@ nm_manager_write_device_state (NMManager *self, NMDevice *device, int *out_ifind
 	if (perm_hw_addr_fake && !perm_hw_addr_is_fake)
 		perm_hw_addr_fake = NULL;
 
-	nm_owned = nm_device_is_software (device) ? nm_device_is_nm_owned (device) : -1;
+	nm_owned =   nm_device_is_software (device)
+	           ? nm_device_is_nm_owned (device)
+	           : NM_TERNARY_DEFAULT;
 
 	route_metric_default_effective = _device_route_metric_get (self, ifindex, NM_DEVICE_TYPE_UNKNOWN,
 	                                                           TRUE, &route_metric_default_aspired);
@@ -7342,12 +7358,19 @@ periodic_update_active_connection_timestamps (gpointer user_data)
 	NMManager *manager = NM_MANAGER (user_data);
 	NMManagerPrivate *priv = NM_MANAGER_GET_PRIVATE (manager);
 	NMActiveConnection *ac;
+	gboolean has_time = FALSE;
+	guint64 t = 0;
 
 	c_list_for_each_entry (ac, &priv->active_connections_lst_head, active_connections_lst) {
-		if (nm_active_connection_get_state (ac) == NM_ACTIVE_CONNECTION_STATE_ACTIVATED) {
-			nm_settings_connection_update_timestamp (nm_active_connection_get_settings_connection (ac),
-			                                         (guint64) time (NULL));
+		if (nm_active_connection_get_state (ac) != NM_ACTIVE_CONNECTION_STATE_ACTIVATED)
+			continue;
+
+		if (!has_time) {
+			t = time (NULL);
+			has_time = TRUE;
 		}
+		nm_settings_connection_update_timestamp (nm_active_connection_get_settings_connection (ac),
+		                                         t);
 	}
 	return G_SOURCE_CONTINUE;
 }

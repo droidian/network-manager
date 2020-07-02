@@ -1,8 +1,4 @@
-<?xml version="1.0"?>
-<!DOCTYPE nm-dbus-docs [
-]>
-
-<nm-dbus-docs>
+<nm-setting-docs>
   <setting name="6lowpan">
 </setting>
 <setting name="802-1x">
@@ -205,4 +201,4 @@ NetworkManager daemons."/>
 </setting>
 <setting name="wpan">
 </setting>
-</nm-dbus-docs>
+</nm-setting-docs>
