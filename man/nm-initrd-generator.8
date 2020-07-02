@@ -2,12 +2,12 @@
 .\"     Title: nm-initrd-generator
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 05/29/2020
+.\"      Date: 06/28/2020
 .\"    Manual: System Administration
-.\"    Source: NetworkManager 1.24.2
+.\"    Source: NetworkManager 1.25.91
 .\"  Language: English
 .\"
-.TH "NM\-INITRD\-GENERATOR" "8" "" "NetworkManager 1\&.24\&.2" "System Administration"
+.TH "NM\-INITRD\-GENERATOR" "8" "" "NetworkManager 1\&.25\&.91" "System Administration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -41,6 +41,11 @@ scans the command line for options relevant to network configuration and creates
 \fB\-c\fR | \fB\-\-connections\-dir\fR \fIpath\fR
 .RS 4
 Output connection directory\&.
+.RE
+.PP
+\fB\-i\fR | \fB\-\-initrd\-data\-dir\fR \fIpath\fR
+.RS 4
+Output directory for initrd data (e\&.g\&. hostname)\&.
 .RE
 .PP
 \fB\-d\fR | \fB\-\-sysfs\-dir\fR \fIpath\fR
@@ -87,11 +92,40 @@ The options that appear on the kernel command line\&. The following options are 
 \fBrd\&.bootif\fR
 .RE
 .RS 4
+\fBrd\&.net\&.timeout\&.dhcp\fR
+.RE
+.RS 4
 \fBBOOTIF\fR
 .RE
 Please consult the
 \fBdracut.cmdline\fR(7)
 manual for the documentation of the precise format of the values supported\&.
+.RE
+.SH "DIFFERENCES FROM THE NETWORK\-LEGACY DRACUT MODULE"
+.PP
+\fBnm\-initrd\-generator\fR
+generates a set of connections that are then configured by the NetworkManager instance running in the initrd\&. There are some differences in behavior compared to the network\-legacy dracut module:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+When an interface is configured with a static address and a gateway, the network\-legacy module waits that the gateway responds to arping requests before proceeding, while NetworkManager doesn\*(Aqt\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+network\-legacy configures interfaces one by one in the order in which they are announced by udev\&. If multiple interfaces specify a hostname (from command line or from DHCP), the one from the last interface activated wins\&. With NetworkManager, hostnames from command line have higher precedence over ones from DHCP, and the last that appears in the command line wins\&.
 .RE
 .SH "EXIT STATUS"
 .PP

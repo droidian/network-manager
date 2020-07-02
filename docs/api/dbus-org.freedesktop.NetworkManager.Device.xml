@@ -30,6 +30,7 @@
     <title role="properties.title">Properties</title>
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Udi">Udi</link>                   readable   s
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Path">Path</link>                  readable   s
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Interface">Interface</link>             readable   s
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.IpInterface">IpInterface</link>           readable   s
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Driver">Driver</link>                readable   s
@@ -210,6 +211,17 @@ Udi  readable   s
         each device in your application, use the object path. If you're looking
         for a way to track a specific piece of hardware across reboot or hotplug,
         use a MAC address or USB serial number.
+</para><para>        Note that non-UTF-8 characters are backslash escaped. Use g_strcompress()
+        to obtain the true (non-UTF-8) string.
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device.Path">
+  <title>The "Path" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device.Path"><primary sortas=".Device:Path">org.freedesktop.NetworkManager.Device:Path</primary></indexterm>
+<programlisting>
+Path  readable   s
+</programlisting>
+<para>        The path of the device as exposed by the udev property ID_PATH.
 </para><para>        Note that non-UTF-8 characters are backslash escaped. Use g_strcompress()
         to obtain the true (non-UTF-8) string.
 </para>

@@ -573,6 +573,7 @@ ip4_start (NMDhcpClient *client,
 	size_t client_id_len;
 	struct in_addr last_addr = { 0 };
 	const char *hostname;
+	const char *mud_url;
 	int r, i;
 
 	g_return_val_if_fail (!priv->client4, FALSE);
@@ -688,6 +689,15 @@ ip4_start (NMDhcpClient *client,
 		}
 	}
 
+	mud_url = nm_dhcp_client_get_mud_url (client);
+	if (mud_url) {
+		r = sd_dhcp_client_set_mud_url (sd_client, mud_url);
+		if (r < 0) {
+			nm_utils_error_set_errno (error, r, "failed to set DHCP MUDURL: %s");
+			return FALSE;
+		}
+	}
+
 	r = sd_dhcp_client_set_callback (sd_client, dhcp_event_cb, client);
 	if (r < 0) {
 		nm_utils_error_set_errno (error, r, "failed to set callback: %s");
@@ -725,7 +735,8 @@ lease_to_ip6_config (NMDedupMultiIndex *multi_idx,
 {
 	gs_unref_object NMIP6Config *ip6_config = NULL;
 	gs_unref_hashtable GHashTable *options = NULL;
-	struct in6_addr tmp_addr, *dns;
+	struct in6_addr tmp_addr;
+	const struct in6_addr *dns;
 	uint32_t lft_pref, lft_valid;
 	char addr_str[NM_UTILS_INET_ADDRSTRLEN];
 	char **domains;
@@ -894,6 +905,7 @@ ip6_start (NMDhcpClient *client,
 	nm_auto (sd_dhcp6_client_unrefp) sd_dhcp6_client *sd_client = NULL;
 	GBytes *hwaddr;
 	const char *hostname;
+	const char *mud_url;
 	int r, i;
 	const guint8 *duid_arr;
 	gsize duid_len;
@@ -973,6 +985,15 @@ ip6_start (NMDhcpClient *client,
 		if (_nm_dhcp_option_dhcp6_options[i].include) {
 			r = sd_dhcp6_client_set_request_option (sd_client, _nm_dhcp_option_dhcp6_options[i].option_num);
 			nm_assert (r >= 0 || r == -EEXIST);
+		}
+	}
+
+	mud_url = nm_dhcp_client_get_mud_url (client);
+	if (mud_url) {
+		r = sd_dhcp6_client_set_request_mud_url (sd_client, mud_url);
+		if (r < 0) {
+			nm_utils_error_set_errno (error, r, "failed to set mud-url: %s");
+			return FALSE;
 		}
 	}
 

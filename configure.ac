@@ -7,8 +7,8 @@ dnl  - add corresponding NM_VERSION_x_y_z macros in
 dnl    "shared/nm-version-macros.h.in"
 dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
-m4_define([nm_minor_version], [24])
-m4_define([nm_micro_version], [2])
+m4_define([nm_minor_version], [25])
+m4_define([nm_micro_version], [91])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
 
@@ -1284,13 +1284,15 @@ if test "$build_docs" != "yes" -a \
         \
         -f "$srcdir"/man/nm-openvswitch.7 -a \
         \
+        -f "$srcdir"/man/nm-settings-dbus.5 -a \
         -f "$srcdir"/man/nm-settings-ifcfg-rh.5 -a \
         -f "$srcdir"/man/nm-settings-keyfile.5 -a \
-        -f "$srcdir"/man/nm-settings.5 -a \
+        -f "$srcdir"/man/nm-settings-nmcli.5 -a \
         \
-        -f "$srcdir"/man/nm-settings.xml -a \
-        -f "$srcdir"/man/nm-settings-keyfile.xml -a \
+        -f "$srcdir"/man/nm-settings-dbus.xml -a \
         -f "$srcdir"/man/nm-settings-ifcfg-rh.xml -a \
+        -f "$srcdir"/man/nm-settings-keyfile.xml -a \
+        -f "$srcdir"/man/nm-settings-nmcli.xml -a \
         \
         -f "$srcdir"/docs/api/settings-spec.xml; then
 	use_pregen_docs=yes

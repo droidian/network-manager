@@ -18,6 +18,7 @@ libnm.so.0 libnm0 #MINVER#
  libnm_1_22_2@libnm_1_22_2 1.22.2
  libnm_1_22_8@libnm_1_22_8 1.22.8
  libnm_1_24_0@libnm_1_24_0 1.23.90
+ libnm_1_26_0@libnm_1_26_0 1.25.90
  libnm_1_2_0@libnm_1_2_0 1.1.90
  libnm_1_2_4@libnm_1_2_4 1.2.4
  libnm_1_4_0@libnm_1_4_0 1.4.0
@@ -321,6 +322,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_device_get_metered@libnm_1_2_0 1.1.90
  nm_device_get_mtu@libnm_1_0_0 1.0.0
  nm_device_get_nm_plugin_missing@libnm_1_2_0 1.1.90
+ nm_device_get_path@libnm_1_26_0 1.25.90
  nm_device_get_physical_port_id@libnm_1_0_0 1.0.0
  nm_device_get_product@libnm_1_0_0 1.0.0
  nm_device_get_setting_type@libnm_1_0_0 1.0.0
@@ -483,7 +485,9 @@ libnm.so.0 libnm0 #MINVER#
  nm_dns_entry_get_type@libnm_1_6_0 1.5.90
  nm_dns_entry_get_vpn@libnm_1_6_0 1.5.90
  nm_dns_entry_unref@libnm_1_6_0 1.5.90
+ nm_ethtool_optname_is_coalesce@libnm_1_26_0 1.25.90
  nm_ethtool_optname_is_feature@libnm_1_14_8 1.19.90
+ nm_ethtool_optname_is_ring@libnm_1_26_0 1.25.90
  nm_ip_address_cmp_flags_get_type@libnm_1_22_0 1.22.0
  nm_ip_address_cmp_full@libnm_1_22_0 1.22.0
  nm_ip_address_equal@libnm_1_0_0 1.0.0
@@ -769,10 +773,19 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_bridge_get_hello_time@libnm_1_0_0 1.0.0
  nm_setting_bridge_get_mac_address@libnm_1_0_0 1.0.0
  nm_setting_bridge_get_max_age@libnm_1_0_0 1.0.0
+ nm_setting_bridge_get_multicast_hash_max@libnm_1_26_0 1.25.90
+ nm_setting_bridge_get_multicast_last_member_count@libnm_1_26_0 1.25.90
+ nm_setting_bridge_get_multicast_last_member_interval@libnm_1_26_0 1.25.90
+ nm_setting_bridge_get_multicast_membership_interval@libnm_1_26_0 1.25.90
  nm_setting_bridge_get_multicast_querier@libnm_1_24_0 1.23.90
+ nm_setting_bridge_get_multicast_querier_interval@libnm_1_26_0 1.25.90
+ nm_setting_bridge_get_multicast_query_interval@libnm_1_26_0 1.25.90
+ nm_setting_bridge_get_multicast_query_response_interval@libnm_1_26_0 1.25.90
  nm_setting_bridge_get_multicast_query_use_ifaddr@libnm_1_24_0 1.23.90
  nm_setting_bridge_get_multicast_router@libnm_1_24_0 1.23.90
  nm_setting_bridge_get_multicast_snooping@libnm_1_2_0 1.1.90
+ nm_setting_bridge_get_multicast_startup_query_count@libnm_1_26_0 1.25.90
+ nm_setting_bridge_get_multicast_startup_query_interval@libnm_1_26_0 1.25.90
  nm_setting_bridge_get_num_vlans@libnm_1_18_0 1.18.0
  nm_setting_bridge_get_priority@libnm_1_0_0 1.0.0
  nm_setting_bridge_get_stp@libnm_1_0_0 1.0.0
@@ -826,6 +839,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_connection_get_mdns@libnm_1_12_0 1.11.3
  nm_setting_connection_get_metered@libnm_1_0_6 1.0.6
  nm_setting_connection_get_metered@libnm_1_2_0 1.1.90
+ nm_setting_connection_get_mud_url@libnm_1_26_0 1.25.90
  nm_setting_connection_get_multi_connect@libnm_1_14_0 1.13.90
  nm_setting_connection_get_num_permissions@libnm_1_0_0 1.0.0
  nm_setting_connection_get_num_secondaries@libnm_1_0_0 1.0.0
@@ -1016,19 +1030,48 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_macvlan_get_type@libnm_1_2_0 1.1.90
  nm_setting_macvlan_mode_get_type@libnm_1_2_0 1.1.90
  nm_setting_macvlan_new@libnm_1_2_0 1.1.90
+ nm_setting_match_add_driver@libnm_1_26_0 1.25.90
  nm_setting_match_add_interface_name@libnm_1_14_0 1.13.90
+ nm_setting_match_add_kernel_command_line@libnm_1_26_0 1.25.90
+ nm_setting_match_add_path@libnm_1_26_0 1.25.90
+ nm_setting_match_clear_drivers@libnm_1_26_0 1.25.90
  nm_setting_match_clear_interface_names@libnm_1_14_0 1.13.90
+ nm_setting_match_clear_kernel_command_lines@libnm_1_26_0 1.25.90
+ nm_setting_match_clear_paths@libnm_1_26_0 1.25.90
+ nm_setting_match_get_driver@libnm_1_26_0 1.25.90
+ nm_setting_match_get_drivers@libnm_1_26_0 1.25.90
  nm_setting_match_get_interface_name@libnm_1_14_0 1.13.90
  nm_setting_match_get_interface_names@libnm_1_14_0 1.13.90
+ nm_setting_match_get_kernel_command_line@libnm_1_26_0 1.25.90
+ nm_setting_match_get_kernel_command_lines@libnm_1_26_0 1.25.90
+ nm_setting_match_get_num_drivers@libnm_1_26_0 1.25.90
  nm_setting_match_get_num_interface_names@libnm_1_14_0 1.13.90
+ nm_setting_match_get_num_kernel_command_lines@libnm_1_26_0 1.25.90
+ nm_setting_match_get_num_paths@libnm_1_26_0 1.25.90
+ nm_setting_match_get_path@libnm_1_26_0 1.25.90
+ nm_setting_match_get_paths@libnm_1_26_0 1.25.90
  nm_setting_match_get_type@libnm_1_14_0 1.13.90
+ nm_setting_match_remove_driver@libnm_1_26_0 1.25.90
+ nm_setting_match_remove_driver_by_value@libnm_1_26_0 1.25.90
  nm_setting_match_remove_interface_name@libnm_1_14_0 1.13.90
  nm_setting_match_remove_interface_name_by_value@libnm_1_14_0 1.13.90
+ nm_setting_match_remove_kernel_command_line@libnm_1_26_0 1.25.90
+ nm_setting_match_remove_kernel_command_line_by_value@libnm_1_26_0 1.25.90
+ nm_setting_match_remove_path@libnm_1_26_0 1.25.90
+ nm_setting_match_remove_path_by_value@libnm_1_26_0 1.25.90
  nm_setting_olpc_mesh_get_channel@libnm_1_0_0 1.0.0
  nm_setting_olpc_mesh_get_dhcp_anycast_address@libnm_1_0_0 1.0.0
  nm_setting_olpc_mesh_get_ssid@libnm_1_0_0 1.0.0
  nm_setting_olpc_mesh_get_type@libnm_1_0_0 1.0.0
  nm_setting_olpc_mesh_new@libnm_1_0_0 1.0.0
+ nm_setting_option_clear_by_name@libnm_1_26_0 1.25.90
+ nm_setting_option_get@libnm_1_26_0 1.25.90
+ nm_setting_option_get_all_names@libnm_1_26_0 1.25.90
+ nm_setting_option_get_boolean@libnm_1_26_0 1.25.90
+ nm_setting_option_get_uint32@libnm_1_26_0 1.25.90
+ nm_setting_option_set@libnm_1_26_0 1.25.90
+ nm_setting_option_set_boolean@libnm_1_26_0 1.25.90
+ nm_setting_option_set_uint32@libnm_1_26_0 1.25.90
  nm_setting_ovs_bridge_get_fail_mode@libnm_1_10_0 1.9.90
  nm_setting_ovs_bridge_get_mcast_snooping_enable@libnm_1_10_0 1.9.90
  nm_setting_ovs_bridge_get_rstp_enable@libnm_1_10_0 1.9.90

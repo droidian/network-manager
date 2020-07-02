@@ -1,12 +1,4 @@
-network-manager (1.24.2-1ubuntu2) groovy; urgency=medium
-
-  * debian/20-connectivity-ubuntu.conf: Add trailing dot to make
-    connectivity-check.ubuntu.com. absolute and reduce NXDOMAIN
-    warning noise, thanks MarchH (lp: #1880258)
-
- -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 29 Jun 2020 16:20:07 +0200
-
-network-manager (1.24.2-1ubuntu1) groovy; urgency=medium
+network-manager (1.25.91-1ubuntu1) UNRELEASED; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
     - Use systemd-resolved instead of dnsmasq
@@ -24,8 +16,6 @@ network-manager (1.24.2-1ubuntu1) groovy; urgency=medium
       + drop in an empty override file for NetworkManager to manage all
         devices for upgrade from any version, as long as there is no
         netplan configuration yet.
-    - debian/network-manager.maintscript
-      + Remove /etc/dbus-1/system.d/nm-ofono.conf
     - debian/default-wifi-powersave-on.conf, debian/rules:
       + Install a config file to enable WiFi powersave
     - Enable build tests
@@ -46,7 +36,30 @@ network-manager (1.24.2-1ubuntu1) groovy; urgency=medium
       + Read-system-connections-from-run.patch
     - debian/tests/urfkill-integration - don't stop/start network manager
 
- -- Sebastien Bacher <seb128@debian.org>  Tue, 23 Jun 2020 18:08:44 +0200
+ -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 02 Jul 2020 10:31:37 +0200
+
+network-manager (1.25.91-1) unstable; urgency=medium
+
+  * New upstream version 1.25.91 (1.26 rc2)
+  * Remove SysV init script
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 02 Jul 2020 01:17:08 +0200
+
+network-manager (1.25.90-1) unstable; urgency=medium
+
+  * New upstream version 1.25.90 (1.26 rc1)
+  * Rebase patches
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 28 Jun 2020 19:29:43 +0200
+
+network-manager (1.24.2-1ubuntu2) groovy; urgency=medium
+
+  * debian/20-connectivity-ubuntu.conf: Add trailing dot to make
+    connectivity-check.ubuntu.com. absolute and reduce NXDOMAIN
+    warning noise, thanks MarchH (lp: #1880258)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 29 Jun 2020 16:20:07 +0200
 
 network-manager (1.24.2-1) unstable; urgency=medium
 

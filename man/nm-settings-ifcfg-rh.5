@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 05/29/2020
+.\"      Date: 06/28/2020
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.24.2
+.\"    Source: NetworkManager 1.25.91
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.24\&.2" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.25\&.91" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -930,6 +930,15 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
+l l l l
 l l l l.
 T{
 mac\-address
@@ -1116,6 +1125,105 @@ T}:T{
 
 Example: \fRBRIDGING_OPTS="multicast_querier=1"
 T}
+T{
+multicast\-hash\-max
+T}:T{
+BRIDGING_OPTS: multicast_hash_max=
+T}:T{
+4096
+T}:T{
+\fB
+
+Example: \fRBRIDGING_OPTS="multicast_hash_max=8192"
+T}
+T{
+multicast\-last\-member\-count
+T}:T{
+BRIDGING_OPTS: multicast_last_member_count=
+T}:T{
+2
+T}:T{
+\fB
+
+Example: \fRBRIDGING_OPTS="multicast_last_member_count=4"
+T}
+T{
+multicast\-last\-member\-interval
+T}:T{
+BRIDGING_OPTS: multicast_last_member_interval=
+T}:T{
+100
+T}:T{
+\fB
+
+Example: \fRBRIDGING_OPTS="multicast_last_member_interval=200"
+T}
+T{
+multicast\-membership\-interval
+T}:T{
+BRIDGING_OPTS: multicast_membership_interval=
+T}:T{
+26000
+T}:T{
+\fB
+
+Example: \fRBRIDGING_OPTS="multicast_membership_interval=16000"
+T}
+T{
+multicast\-querier\-interval
+T}:T{
+BRIDGING_OPTS: multicast_querier_interval=
+T}:T{
+25500
+T}:T{
+\fB
+
+Example: \fRBRIDGING_OPTS="multicast_querier_interval=20000"
+T}
+T{
+multicast\-query\-interval
+T}:T{
+BRIDGING_OPTS: multicast_query_interval=
+T}:T{
+12500
+T}:T{
+\fB
+
+Example: \fRBRIDGING_OPTS="multicast_query_interval=22500"
+T}
+T{
+multicast\-query\-response\-interval
+T}:T{
+BRIDGING_OPTS: multicast_query_response_interval=
+T}:T{
+1000
+T}:T{
+\fB
+
+Example: \fRBRIDGING_OPTS="multicast_query_response_interval=2000"
+T}
+T{
+multicast\-startup\-query\-count
+T}:T{
+BRIDGING_OPTS: multicast_startup_query_count=
+T}:T{
+2
+T}:T{
+\fB
+
+Example: \fRBRIDGING_OPTS="multicast_startup_query_count=4"
+T}
+T{
+multicast\-startup\-query\-interval
+T}:T{
+BRIDGING_OPTS: multicast_startup_query_interval=
+T}:T{
+3125
+T}:T{
+\fB
+
+Example: \fRBRIDGING_OPTS="multicast_startup_query_interval=4000"
+T}
 .TE
 .sp 1
 .sp
@@ -1137,6 +1245,7 @@ T}:T{
 Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -1396,6 +1505,19 @@ for initscripts compatibility, this variable must be a whole integer\&. If neces
 Example: \fRDEVTIMEOUT=5\fB
 
 Allowed values: \fRtimeout in seconds\&.
+T}
+T{
+mud\-url
+T}:T{
+MUD_URL
+T}:T{
+\ \&
+T}:T{
+MUD_URL to be sent by device (See RFC 8520)\&.\fB
+
+Example: \fRhttps://yourdevice\&.example\&.com/model\&.json\fB
+
+Allowed values: \fRa valid URL that points to recommended policy for this device
 T}
 .TE
 .sp 1
@@ -2210,7 +2332,18 @@ T}:T{
 Description
 T}
 .T&
-.
+l l l l.
+T{
+path
+T}:T{
+MATCH_PATH
+T}:T{
+\ \&
+T}:T{
+space\-separated list of paths to match against the udev property ID_PATHS of devices\fB
+
+Example: \fRMATCH_PATH="pci\-0000:01:00\&.0 pci\-0000:0c:00\&.0"
+T}
 .TE
 .sp 1
 .sp

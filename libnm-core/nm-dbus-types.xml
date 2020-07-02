@@ -587,6 +587,11 @@
               <entry role="enum_member_value"><para>= <literal>0x00000800</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>WPA/RSN Opportunistic Wireless Encryption is supported</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_KEY_MGMT_OWE_TM</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00001000</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>WPA/RSN Opportunistic Wireless Encryption transition mode is supported. Since: 1.26.</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -1712,6 +1717,11 @@
               <entry role="enum_member_value"><para>= <literal>0x04</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>The connection will be deleted when it disconnects. That is for in-memory connections (unsaved), which are currently active but deleted on disconnect. Volatile connections are always unsaved, but they are also no backing file on disk and are entirely in-memory only.</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_SETTINGS_CONNECTION_FLAG_EXTERNAL</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x08</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the profile was generated to represent an external configuration of a networking device. Since: 1.26</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>
@@ -1771,6 +1781,11 @@
               <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x40</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>the lifetime of the activation is bound to the visilibity of the connection profile, which in turn depends on "connection.permissions" and whether a session for the user exists. Since: 1.16</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_EXTERNAL</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x80</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>the active connection was generated to represent an external configuration of a networking device. Since: 1.26</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>

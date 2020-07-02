@@ -362,6 +362,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-RAW:CAPS" title="NM_LLDP_ATTR_RAW">NM_LLDP_ATTR_RAW</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-DESTINATION:CAPS" title="NM_LLDP_ATTR_DESTINATION">NM_LLDP_ATTR_DESTINATION</a></td>
 </tr>
 <tr>
@@ -423,6 +427,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-3-MAX-FRAME-SIZE:CAPS" title="NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE">NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-MUD-URL:CAPS" title="NM_LLDP_ATTR_MUD_URL">NM_LLDP_ATTR_MUD_URL</a></td>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
@@ -1675,6 +1683,14 @@ supported</p>
 <td class="enum_member_description">
 <p>WPA/RSN Opportunistic Wireless Encryption is
 supported</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-802-11-AP-SEC-KEY-MGMT-OWE-TM:CAPS"></a>NM_802_11_AP_SEC_KEY_MGMT_OWE_TM</p></td>
+<td class="enum_member_description">
+<p>WPA/RSN Opportunistic Wireless Encryption
+transition mode is supported. Since: 1.26.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -2946,6 +2962,12 @@ VPN plugin authentication dialogs.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-LLDP-ATTR-RAW:CAPS"></a><h3>NM_LLDP_ATTR_RAW</h3>
+<pre class="programlisting">#define NM_LLDP_ATTR_RAW                     "raw"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-LLDP-ATTR-DESTINATION:CAPS"></a><h3>NM_LLDP_ATTR_DESTINATION</h3>
 <pre class="programlisting">#define NM_LLDP_ATTR_DESTINATION             "destination"
 </pre>
@@ -3038,6 +3060,12 @@ VPN plugin authentication dialogs.</p>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-IEEE-802-3-MAX-FRAME-SIZE:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE</h3>
 <pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE  "ieee-802-3-max-frame-size"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-LLDP-ATTR-MUD-URL:CAPS"></a><h3>NM_LLDP_ATTR_MUD_URL</h3>
+<pre class="programlisting">#define NM_LLDP_ATTR_MUD_URL                 "mud-url"
 </pre>
 </div>
 <hr>
@@ -3348,6 +3376,14 @@ in-memory only.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-SETTINGS-CONNECTION-FLAG-EXTERNAL:CAPS"></a>NM_SETTINGS_CONNECTION_FLAG_EXTERNAL</p></td>
+<td class="enum_member_description">
+<p>the profile was generated to represent
+an external configuration of a networking device. Since: 1.26</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -3423,6 +3459,14 @@ This only makes sense if the device is a master.</p>
 of the activation is bound to the visilibity of the connection profile,
 which in turn depends on "connection.permissions" and whether a session
 for the user exists. Since: 1.16</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-ACTIVATION-STATE-FLAG-EXTERNAL:CAPS"></a>NM_ACTIVATION_STATE_FLAG_EXTERNAL</p></td>
+<td class="enum_member_description">
+<p>the active connection was generated to
+represent an external configuration of a networking device. Since: 1.26</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>

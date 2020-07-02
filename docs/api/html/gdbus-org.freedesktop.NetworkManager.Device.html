@@ -58,6 +58,7 @@
 <a name="id-1.4.8.2.5"></a><h2>Properties</h2>
 <pre class="synopsis">
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Udi" title='The "Udi" property'>Udi</a>                   readable   s
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Path" title='The "Path" property'>Path</a>                  readable   s
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Interface" title='The "Interface" property'>Interface</a>             readable   s
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.IpInterface" title='The "IpInterface" property'>IpInterface</a>           readable   s
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Driver" title='The "Driver" property'>Driver</a>                readable   s
@@ -253,6 +254,18 @@ Udi  readable   s
         each device in your application, use the object path. If you're looking
         for a way to track a specific piece of hardware across reboot or hotplug,
         use a MAC address or USB serial number.
+</p>
+<p>        Note that non-UTF-8 characters are backslash escaped. Use g_strcompress()
+        to obtain the true (non-UTF-8) string.
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-property-org-freedesktop-NetworkManager-Device.Path"></a><h3>The "Path" property</h3>
+<pre class="programlisting">
+Path  readable   s
+</pre>
+<p>        The path of the device as exposed by the udev property ID_PATH.
 </p>
 <p>        Note that non-UTF-8 characters are backslash escaped. Use g_strcompress()
         to obtain the true (non-UTF-8) string.

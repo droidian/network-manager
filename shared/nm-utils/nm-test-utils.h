@@ -1924,8 +1924,8 @@ nmtst_assert_connection_equals (NMConnection *a, gboolean normalize_a, NMConnect
 			gs_unref_keyfile GKeyFile *kf_a = NULL, *kf_b = NULL;
 			gs_free char *str_a = NULL, *str_b = NULL;
 
-			kf_a = nm_keyfile_write (a, NULL, NULL, NULL);
-			kf_b = nm_keyfile_write (b, NULL, NULL, NULL);
+			kf_a = nm_keyfile_write (a, NM_KEYFILE_HANDLER_FLAGS_NONE, NULL, NULL, NULL);
+			kf_b = nm_keyfile_write (b, NM_KEYFILE_HANDLER_FLAGS_NONE, NULL, NULL, NULL);
 
 			if (kf_a)
 				str_a = g_key_file_to_data (kf_a, NULL, NULL);
@@ -2262,7 +2262,7 @@ nmtst_create_connection_from_keyfile (const char *keyfile_str, const char *full_
 	success = g_key_file_load_from_data (keyfile, keyfile_str, strlen (keyfile_str), G_KEY_FILE_NONE, &error);
 	nmtst_assert_success (success, error);
 
-	con = nm_keyfile_read (keyfile, base_dir, NULL, NULL, &error);
+	con = nm_keyfile_read (keyfile, base_dir, NM_KEYFILE_HANDLER_FLAGS_NONE, NULL, NULL, &error);
 	nmtst_assert_success (NM_IS_CONNECTION (con), error);
 
 	nm_keyfile_read_ensure_id (con, filename);
@@ -2324,6 +2324,43 @@ _nmtst_variant_new_vardict (int dummy, ...)
 		g_assert (_str); \
 		g_assert_cmpstr (g_variant_get_string (_variant, &_l), ==, _str); \
 		g_assert_cmpint (_l, ==, strlen (_str)); \
+	} G_STMT_END
+
+#ifdef __NM_SHARED_UTILS_H__
+#define _nmtst_assert_variant_bytestring_cmp_str(_ptr, _ptr2, _len) \
+	G_STMT_START { \
+		if (memcmp (_ptr2, _ptr, _len) != 0) { \
+			gs_free char *_x1 = NULL; \
+			gs_free char *_x2 = NULL; \
+			const char *_xx1; \
+			const char *_xx2; \
+			\
+			_xx1 = nm_utils_buf_utf8safe_escape (_ptr, _len, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL, &_x1); \
+			_xx2 = nm_utils_buf_utf8safe_escape (_ptr2, _len, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL, &_x2); \
+			g_assert_cmpstr (_xx1, ==, _xx2); \
+			g_assert_not_reached (); \
+		} \
+	} G_STMT_END
+#else
+#define _nmtst_assert_variant_bytestring_cmp_str(_ptr, _ptr2, _len) G_STMT_START { } G_STMT_END
+#endif
+
+#define nmtst_assert_variant_bytestring(variant, ptr, len) \
+	G_STMT_START { \
+		GVariant *_variant = (variant); \
+		gconstpointer _ptr = (ptr); \
+		gconstpointer _ptr2; \
+		gsize _len = (len); \
+		gsize _len2; \
+		\
+		nmtst_assert_variant_is_of_type (_variant, G_VARIANT_TYPE_BYTESTRING); \
+		_ptr2 = g_variant_get_fixed_array (_variant, &_len2, 1); \
+		g_assert_cmpint (_len2, ==, _len); \
+		if (   _len != 0 \
+		    && _ptr) { \
+			_nmtst_assert_variant_bytestring_cmp_str(_ptr, _ptr2, _len); \
+			g_assert_cmpmem (_ptr2, _len2, _ptr, _len); \
+		} \
 	} G_STMT_END
 
 typedef enum {

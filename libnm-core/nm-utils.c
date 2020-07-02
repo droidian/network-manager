@@ -48,6 +48,20 @@
 
 /*****************************************************************************/
 
+/**
+ * NMUtilsPredicateStr:
+ * @str: the name to check.
+ *
+ * This function takes a string argument and returns either %TRUE or %FALSE.
+ * It is a general purpose predicate, for example used by nm_setting_option_clear_by_name().
+ *
+ * Returns: %TRUE if the predicate function matches.
+ *
+ * Since: 1.26
+ */
+
+/*****************************************************************************/
+
 struct _NMSockAddrEndpoint {
 	const char *host;
 	guint16 port;
@@ -1252,7 +1266,7 @@ nm_utils_security_valid (NMUtilsSecurityType type,
 			return FALSE;
 		if (!have_ap)
 			return TRUE;
-		if (!(ap_rsn & NM_802_11_AP_SEC_KEY_MGMT_OWE))
+		if (!NM_FLAGS_ANY (ap_rsn, NM_802_11_AP_SEC_KEY_MGMT_OWE | NM_802_11_AP_SEC_KEY_MGMT_OWE_TM))
 			return FALSE;
 		return TRUE;
 	case NMU_SEC_INVALID:
@@ -2286,11 +2300,29 @@ fail:
 }
 
 static const NMVariantAttributeSpec *const tc_object_attribute_spec[] = {
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("root",   G_VARIANT_TYPE_BOOLEAN, .no_value = TRUE,                                         ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("parent", G_VARIANT_TYPE_STRING,                                           .str_type = 'a', ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("handle", G_VARIANT_TYPE_STRING,                                           .str_type = 'a', ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("kind",   G_VARIANT_TYPE_STRING,  .no_value = TRUE,                        .str_type = 'a', ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("",       G_VARIANT_TYPE_STRING,  .no_value = TRUE, .consumes_rest = TRUE, .str_type = 'a', ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("root",   G_VARIANT_TYPE_BOOLEAN, .no_value = TRUE,                        ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("parent", G_VARIANT_TYPE_STRING,                                           ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("handle", G_VARIANT_TYPE_STRING,                                           ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("kind",   G_VARIANT_TYPE_STRING,  .no_value = TRUE,                        ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("",       G_VARIANT_TYPE_STRING,  .no_value = TRUE, .consumes_rest = TRUE, ),
+	NULL,
+};
+
+static const NMVariantAttributeSpec *const tc_qdisc_sfq_spec[] = {
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("quantum",     G_VARIANT_TYPE_UINT32,                    ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("perturb",     G_VARIANT_TYPE_INT32,                     ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("limit",       G_VARIANT_TYPE_UINT32,                    ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("divisor",     G_VARIANT_TYPE_UINT32,                    ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("flows",       G_VARIANT_TYPE_UINT32,                    ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("depth",       G_VARIANT_TYPE_UINT32,                    ),
+	NULL,
+};
+
+static const NMVariantAttributeSpec *const tc_qdisc_tbf_spec[] = {
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("rate",        G_VARIANT_TYPE_UINT64,                    ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("burst",       G_VARIANT_TYPE_UINT32,                    ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("limit",       G_VARIANT_TYPE_UINT32,                    ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("latency",     G_VARIANT_TYPE_UINT32,                    ),
 	NULL,
 };
 
@@ -2321,6 +2353,8 @@ typedef struct {
 
 static const NMQdiscAttributeSpec *const tc_qdisc_attribute_spec[] = {
 	&(const NMQdiscAttributeSpec) { "fq_codel", tc_qdisc_fq_codel_spec },
+	&(const NMQdiscAttributeSpec) { "sfq",      tc_qdisc_sfq_spec },
+	&(const NMQdiscAttributeSpec) { "tbf",      tc_qdisc_tbf_spec },
 	NULL,
 };
 
@@ -2500,7 +2534,7 @@ nm_utils_tc_qdisc_from_str (const char *str, GError **error)
 			break;
 		}
 	}
-	nm_clear_pointer (&rest, g_free);
+	nm_clear_g_free (&rest);
 
 	if (options) {
 		value = g_hash_table_lookup (options, "");
@@ -2536,17 +2570,17 @@ static const NMVariantAttributeSpec *const tc_action_simple_attribute_spec[] = {
 };
 
 static const NMVariantAttributeSpec *const tc_action_mirred_attribute_spec[] = {
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("egress",   G_VARIANT_TYPE_BOOLEAN, .no_value = TRUE,                  ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("ingress",  G_VARIANT_TYPE_BOOLEAN, .no_value = TRUE,                  ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("mirror",   G_VARIANT_TYPE_BOOLEAN, .no_value = TRUE,                  ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("redirect", G_VARIANT_TYPE_BOOLEAN, .no_value = TRUE,                  ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("dev",      G_VARIANT_TYPE_STRING,  .no_value = TRUE, .str_type = 'a', ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("egress",   G_VARIANT_TYPE_BOOLEAN, .no_value = TRUE, ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("ingress",  G_VARIANT_TYPE_BOOLEAN, .no_value = TRUE, ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("mirror",   G_VARIANT_TYPE_BOOLEAN, .no_value = TRUE, ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("redirect", G_VARIANT_TYPE_BOOLEAN, .no_value = TRUE, ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("dev",      G_VARIANT_TYPE_STRING,                    ),
 	NULL,
 };
 
 static const NMVariantAttributeSpec *const tc_action_attribute_spec[] = {
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("kind",    G_VARIANT_TYPE_STRING, .no_value = TRUE,                        .str_type = 'a', ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("",        G_VARIANT_TYPE_STRING, .no_value = TRUE, .consumes_rest = TRUE, .str_type = 'a', ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("kind",    G_VARIANT_TYPE_STRING, .no_value = TRUE,                        ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("",        G_VARIANT_TYPE_STRING, .no_value = TRUE, .consumes_rest = TRUE, ),
 	NULL,
 };
 
@@ -2744,8 +2778,8 @@ nm_utils_tc_tfilter_to_str (NMTCTfilter *tfilter, GError **error)
 }
 
 static const NMVariantAttributeSpec *const tc_tfilter_attribute_spec[] = {
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("action", G_VARIANT_TYPE_BOOLEAN, .no_value = TRUE,                                         ),
-	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("",       G_VARIANT_TYPE_STRING,  .no_value = TRUE, .consumes_rest = TRUE, .str_type = 'a', ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("action", G_VARIANT_TYPE_BOOLEAN, .no_value = TRUE,                        ),
+	NM_VARIANT_ATTRIBUTE_SPEC_DEFINE ("",       G_VARIANT_TYPE_STRING,  .no_value = TRUE, .consumes_rest = TRUE, ),
 	NULL,
 };
 
@@ -4682,7 +4716,7 @@ nm_utils_is_valid_iface_name_utf8safe (const char *utf8safe_name)
 
 	g_return_val_if_fail (utf8safe_name, FALSE);
 
-	bin = nm_utils_buf_utf8safe_unescape (utf8safe_name, &len, &bin_to_free);
+	bin = nm_utils_buf_utf8safe_unescape (utf8safe_name, NM_UTILS_STR_UTF8_SAFE_FLAG_NONE, &len, &bin_to_free);
 
 	if (bin_to_free) {
 		/* some unescaping happened... */
@@ -5449,23 +5483,6 @@ nm_utils_is_json_object (const char *str, GError **error)
 }
 
 static char *
-attribute_escape (const char *src, char c1, char c2)
-{
-	char *ret, *dest;
-
-	dest = ret = g_malloc (strlen (src) * 2 + 1);
-
-	while (*src) {
-		if (*src == c1 || *src == c2 || *src == '\\')
-			*dest++ = '\\';
-		*dest++ = *src++;
-	}
-	*dest++ = '\0';
-
-	return ret;
-}
-
-static char *
 attribute_unescape (const char *start, const char *end)
 {
 	char *ret, *dest;
@@ -5657,6 +5674,24 @@ nm_utils_parse_variant_attributes (const char *string,
 					return NULL;
 				}
 				variant = g_variant_new_uint32 (num);
+			} else if (g_variant_type_equal ((*s)->type, G_VARIANT_TYPE_INT32)) {
+					gint64 num = _nm_utils_ascii_str_to_int64 (value, 10, G_MININT32, G_MAXINT32, G_MAXINT64);
+
+					if (num == G_MAXINT64) {
+						g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_FAILED,
+						             _("invalid int32 value '%s' for attribute '%s'"), value, (*s)->name);
+						return NULL;
+					}
+					variant = g_variant_new_int32 (num);
+			} else if (g_variant_type_equal ((*s)->type, G_VARIANT_TYPE_UINT64)) {
+					guint64 num = _nm_utils_ascii_str_to_uint64 (value, 10, 0, G_MAXUINT64, G_MAXUINT64);
+
+					if (num == G_MAXUINT64 && errno != 0) {
+						g_set_error (error, NM_CONNECTION_ERROR, NM_CONNECTION_ERROR_FAILED,
+						             _("invalid uint64 value '%s' for attribute '%s'"), value, (*s)->name);
+						return NULL;
+					}
+					variant = g_variant_new_uint64 (num);
 			} else if (g_variant_type_equal ((*s)->type, G_VARIANT_TYPE_BYTE)) {
 				gint64 num = _nm_utils_ascii_str_to_int64 (value, 10, 0, G_MAXUINT8, -1);
 
@@ -5699,55 +5734,6 @@ next:
 	return g_steal_pointer (&ht);
 }
 
-void
-_nm_utils_format_variant_attributes_full (GString *str,
-                                          const NMUtilsNamedValue *values,
-                                          guint num_values,
-                                          char attr_separator,
-                                          char key_value_separator)
-{
-	const char *name, *value;
-	GVariant *variant;
-	char *escaped;
-	char buf[64];
-	char sep = 0;
-	guint i;
-
-	for (i = 0; i < num_values; i++) {
-		name = values[i].name;
-		variant = (GVariant *) values[i].value_ptr;
-		value = NULL;
-
-		if (g_variant_is_of_type (variant, G_VARIANT_TYPE_UINT32))
-			value = nm_sprintf_buf (buf, "%u", g_variant_get_uint32 (variant));
-		else if (g_variant_is_of_type (variant, G_VARIANT_TYPE_BYTE))
-			value = nm_sprintf_buf (buf, "%hhu", g_variant_get_byte (variant));
-		else if (g_variant_is_of_type (variant, G_VARIANT_TYPE_BOOLEAN))
-			value = g_variant_get_boolean (variant) ? "true" : "false";
-		else if (g_variant_is_of_type (variant, G_VARIANT_TYPE_STRING))
-			value = g_variant_get_string (variant, NULL);
-		else if (g_variant_is_of_type (variant, G_VARIANT_TYPE_BYTESTRING))
-			value = g_variant_get_bytestring (variant);
-		else
-			continue;
-
-		if (sep)
-			g_string_append_c (str, sep);
-
-		escaped = attribute_escape (name, attr_separator, key_value_separator);
-		g_string_append (str, escaped);
-		g_free (escaped);
-
-		g_string_append_c (str, key_value_separator);
-
-		escaped = attribute_escape (value, attr_separator, key_value_separator);
-		g_string_append (str, escaped);
-		g_free (escaped);
-
-		sep = attr_separator;
-	}
-}
-
 /*
  * nm_utils_format_variant_attributes:
  * @attributes: (element-type utf8 GVariant): a #GHashTable mapping attribute names to #GVariant values
@@ -5766,25 +5752,9 @@ nm_utils_format_variant_attributes (GHashTable *attributes,
                                     char attr_separator,
                                     char key_value_separator)
 {
-	GString *str = NULL;
-	gs_free NMUtilsNamedValue *values = NULL;
-	guint len;
-
-	g_return_val_if_fail (attr_separator, NULL);
-	g_return_val_if_fail (key_value_separator, NULL);
-
-	if (!attributes || !g_hash_table_size (attributes))
-		return NULL;
-
-	values = nm_utils_named_values_from_str_dict (attributes, &len);
-
-	str = g_string_new ("");
-	_nm_utils_format_variant_attributes_full (str,
-	                                          values,
-	                                          len,
-	                                          attr_separator,
-	                                          key_value_separator);
-	return g_string_free (str, FALSE);
+	return _nm_utils_format_variant_attributes (attributes,
+	                                            attr_separator,
+	                                            key_value_separator);
 }
 
 /*****************************************************************************/
@@ -5865,7 +5835,7 @@ nm_utils_base64secret_decode (const char *base64_key,
                               gsize required_key_len,
                               guint8 *out_key)
 {
-	gs_free guint8 *bin_arr = NULL;
+	nm_auto_free guint8 *bin_arr = NULL;
 	gsize base64_key_len;
 	gsize bin_len;
 	int r;

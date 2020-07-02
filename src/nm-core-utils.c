@@ -1698,31 +1698,161 @@ nm_match_spec_join (GSList *specs)
 	return g_string_free (str, FALSE);
 }
 
+static void
+_pattern_parse (const char *input,
+                const char **out_pattern,
+                gboolean *out_is_inverted,
+                gboolean *out_is_mandatory)
+{
+	gboolean is_inverted = FALSE;
+	gboolean is_mandatory = FALSE;
+
+	if (input[0] == '&') {
+		input++;
+		is_mandatory = TRUE;
+		if (input[0] == '!') {
+			input++;
+			is_inverted = TRUE;
+		}
+		goto out;
+	}
+
+	if (input[0] == '|') {
+		input++;
+		if (input[0] == '!') {
+			input++;
+			is_inverted = TRUE;
+		}
+		goto out;
+	}
+
+	if (input[0] == '!') {
+		input++;
+		is_inverted = TRUE;
+		is_mandatory = TRUE;
+		goto out;
+	}
+
+out:
+	if (input[0] == '\\')
+		input++;
+
+	*out_pattern = input;
+	*out_is_inverted = is_inverted;
+	*out_is_mandatory = is_mandatory;
+}
+
 gboolean
 nm_wildcard_match_check (const char *str,
                          const char *const *patterns,
                          guint num_patterns)
 {
-	guint i, neg = 0;
+	gboolean has_optional = FALSE;
+	gboolean has_any_optional = FALSE;
+	guint i;
 
 	for (i = 0; i < num_patterns; i++) {
-		if (patterns[i][0] == '!') {
-			neg++;
-			if (!fnmatch (patterns[i] + 1, str, 0))
+		gboolean is_inverted;
+		gboolean is_mandatory;
+		gboolean match;
+		const char *p;
+
+		_pattern_parse (patterns[i], &p, &is_inverted, &is_mandatory);
+
+		match = (fnmatch (p, str, 0) == 0);
+		if (is_inverted)
+			match = !match;
+
+		if (is_mandatory) {
+			if (!match)
 				return FALSE;
+		} else {
+			has_any_optional = TRUE;
+			if (match)
+				has_optional = TRUE;
 		}
 	}
 
-	if (neg == num_patterns)
-		return TRUE;
+	return    has_optional
+	       || !has_any_optional;
+}
 
-	for (i = 0; i < num_patterns; i++) {
-		if (   patterns[i][0] != '!'
-		    && !fnmatch (patterns[i], str, 0))
-			return TRUE;
+/*****************************************************************************/
+
+static gboolean
+_kernel_cmdline_match (const char *const*proc_cmdline,
+                       const char *pattern)
+{
+
+	if (proc_cmdline) {
+		gboolean has_equal = (!!strchr (pattern, '='));
+		gsize pattern_len = strlen (pattern);
+
+		for (; proc_cmdline[0]; proc_cmdline++) {
+			const char *c = proc_cmdline[0];
+
+			if (has_equal) {
+				/* if pattern contains '=' compare full key=value */
+				if (nm_streq (c, pattern))
+					return TRUE;
+				continue;
+			}
+
+			/* otherwise consider pattern as key only */
+			if (   strncmp (c, pattern, pattern_len) == 0
+			    && NM_IN_SET (c[pattern_len], '\0', '='))
+				return TRUE;
+		}
 	}
 
 	return FALSE;
+}
+
+gboolean
+nm_utils_kernel_cmdline_match_check (const char *const*proc_cmdline,
+                                     const char *const*patterns,
+                                     guint num_patterns,
+                                     GError **error)
+{
+	gboolean has_optional = FALSE;
+	gboolean has_any_optional = FALSE;
+	guint i;
+
+	for (i = 0; i < num_patterns; i++) {
+		const char *element = patterns[i];
+		gboolean is_inverted = FALSE;
+		gboolean is_mandatory = FALSE;
+		gboolean match;
+		const char *p;
+
+		_pattern_parse (element, &p, &is_inverted, &is_mandatory);
+
+		match = _kernel_cmdline_match (proc_cmdline, p);
+		if (is_inverted)
+			match = !match;
+
+		if (is_mandatory) {
+			if (!match) {
+				nm_utils_error_set (error, NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY,
+				                    "device does not satisfy match.kernel-command-line property %s",
+				                    patterns[i]);
+				return FALSE;
+			}
+		} else {
+			has_any_optional = TRUE;
+			if (match)
+				has_optional = TRUE;
+		}
+	}
+
+	if (   !has_optional
+	    && has_any_optional) {
+		nm_utils_error_set (error, NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY,
+		                    "device does not satisfy any match.kernel-command-line property");
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 /*****************************************************************************/
@@ -2774,19 +2904,13 @@ nm_utils_proc_cmdline_split (void)
 again:
 	proc_cmdline = g_atomic_pointer_get (&proc_cmdline_cached);
 	if (G_UNLIKELY (!proc_cmdline)) {
-		gs_free const char **split = NULL;
+		gs_strfreev char **split = NULL;
 
-		/* TODO: support quotation, like systemd's proc_cmdline_extract_first().
-		 * For that, add a new NMUtilsStrsplitSetFlags flag. */
-		split = nm_utils_strsplit_set_full (nm_utils_proc_cmdline (),
-		                                    NM_ASCII_WHITESPACES,
-		                                    NM_UTILS_STRSPLIT_SET_FLAGS_NONE);
-		proc_cmdline =    split
-		               ?: NM_PTRARRAY_EMPTY (const char *);
-		if (!g_atomic_pointer_compare_and_exchange (&proc_cmdline_cached, NULL, proc_cmdline))
+		split = nm_utils_strsplit_quoted (nm_utils_proc_cmdline ());
+		if (!g_atomic_pointer_compare_and_exchange (&proc_cmdline_cached, NULL, (gpointer) split))
 			goto again;
 
-		g_steal_pointer (&split);
+		proc_cmdline = (const char *const*) g_steal_pointer (&split);
 	}
 
 	return proc_cmdline;
@@ -4442,21 +4566,18 @@ nm_wifi_utils_parse_ies (const guint8 *bytes,
 			}
 			break;
 		case WLAN_EID_VENDOR_SPECIFIC:
-			if (out_metered) {
-				if (   len == 8
-				    && bytes[0] == 0x00            /* OUI: Microsoft */
-				    && bytes[1] == 0x50
-				    && bytes[2] == 0xf2
-				    && bytes[3] == 0x11)           /* OUI type: Network cost */
-					*out_metered = (bytes[7] > 1); /* Cost level > 1 */
-			}
-			if (   out_owe_transition_mode
-			    && elem_len >= 10
+			if (   len == 8
+			    && bytes[0] == 0x00            /* OUI: Microsoft */
+			    && bytes[1] == 0x50
+			    && bytes[2] == 0xf2
+			    && bytes[3] == 0x11)           /* OUI type: Network cost */
+				NM_SET_OUT (out_metered, (bytes[7] > 1)); /* Cost level > 1 */
+			if (   elem_len >= 10
 			    && bytes[0] == 0x50            /* OUI: WiFi Alliance */
 			    && bytes[1] == 0x6f
 			    && bytes[2] == 0x9a
 			    && bytes[3] == 0x1c)           /* OUI type: OWE Transition Mode */
-				*out_owe_transition_mode = TRUE;
+				NM_SET_OUT (out_owe_transition_mode, TRUE);
 			break;
 		}
 

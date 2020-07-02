@@ -66,6 +66,7 @@ nm_device_state_reason_check (NMDeviceStateReason reason)
 
 /* Properties */
 #define NM_DEVICE_UDI              "udi"
+#define NM_DEVICE_PATH             "path"
 #define NM_DEVICE_IFACE            "interface"
 #define NM_DEVICE_IP_IFACE         "ip-interface"
 #define NM_DEVICE_DRIVER           "driver"
@@ -445,9 +446,10 @@ typedef struct _NMDeviceClass {
 
 	gboolean        (* set_platform_mtu) (NMDevice *self, guint32 mtu);
 
-	/* Controls, whether to call act_stage2_config() callback also for assuming
-	 * a device or for external activations. In this case, act_stage2_config() must
+	/* Control whether to call stage1 and stage2 callbacks also for assuming
+	 * a device or for external activations. In this case, the callback must
 	 * take care not to touch the device's configuration. */
+	bool act_stage1_prepare_also_for_external_or_assume:1;
 	bool act_stage2_config_also_for_external_or_assume:1;
 
 	bool act_stage1_prepare_set_hwaddr_ethernet:1;

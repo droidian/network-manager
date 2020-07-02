@@ -13,23 +13,23 @@ diff --git a/src/org.freedesktop.NetworkManager.conf b/src/org.freedesktop.Netwo
 index 6be1feb..3dd2350 100644
 --- a/src/org.freedesktop.NetworkManager.conf
 +++ b/src/org.freedesktop.NetworkManager.conf
-@@ -36,6 +36,19 @@
-                 <allow own="org.freedesktop.NetworkManager.dnsmasq"/>
-                 <allow send_destination="org.freedesktop.NetworkManager.dnsmasq"/>
-         </policy>
-+        <policy user="whoopsie">
-+                <allow send_destination="org.freedesktop.NetworkManager"/>
-+                <allow send_destination="org.freedesktop.NetworkManager"
-+                       send_interface="org.freedesktop.DBus.Introspectable"/>
-+                <allow send_destination="org.freedesktop.NetworkManager"
-+                       send_interface="org.freedesktop.DBus.Properties"/>
-+                <allow send_destination="org.freedesktop.NetworkManager"
-+                       send_interface="org.freedesktop.NetworkManager"/>
-+                <allow send_destination="org.freedesktop.NetworkManager"
-+                       send_interface="org.freedesktop.NetworkManager.Connection.Active"/>
-+                <allow send_destination="org.freedesktop.NetworkManager"
-+                       send_interface="org.freedesktop.NetworkManager.Device"/>
-+        </policy>
-         <policy context="default">
-                 <deny own="org.freedesktop.NetworkManager"/>
+@@ -37,6 +37,19 @@
+         <allow own="org.freedesktop.NetworkManager.dnsmasq"/>
+         <allow send_destination="org.freedesktop.NetworkManager.dnsmasq"/>
+     </policy>
++    <policy user="whoopsie">
++            <allow send_destination="org.freedesktop.NetworkManager"/>
++            <allow send_destination="org.freedesktop.NetworkManager"
++                   send_interface="org.freedesktop.DBus.Introspectable"/>
++            <allow send_destination="org.freedesktop.NetworkManager"
++                   send_interface="org.freedesktop.DBus.Properties"/>
++            <allow send_destination="org.freedesktop.NetworkManager"
++                   send_interface="org.freedesktop.NetworkManager"/>
++            <allow send_destination="org.freedesktop.NetworkManager"
++                   send_interface="org.freedesktop.NetworkManager.Connection.Active"/>
++            <allow send_destination="org.freedesktop.NetworkManager"
++                   send_interface="org.freedesktop.NetworkManager.Device"/>
++    </policy>
+     <policy context="default">
+         <deny own="org.freedesktop.NetworkManager"/>
  

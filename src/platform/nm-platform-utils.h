@@ -92,6 +92,29 @@ gboolean nmp_utils_ethtool_set_features (int ifindex,
                                          const NMTernary *requested /* indexed by NMEthtoolID - _NM_ETHTOOL_ID_FEATURE_FIRST */,
                                          gboolean do_set /* or reset */);
 
+struct _NMEthtoolCoalesceState {
+	guint32 s[_NM_ETHTOOL_ID_COALESCE_NUM /* indexed by (NMEthtoolID - _NM_ETHTOOL_ID_COALESCE_FIRST) */];
+};
+
+gboolean nmp_utils_ethtool_get_coalesce (int ifindex,
+                                         NMEthtoolCoalesceState *coalesce);
+
+gboolean nmp_utils_ethtool_set_coalesce (int ifindex,
+                                         const NMEthtoolCoalesceState *coalesce);
+
+struct _NMEthtoolRingState {
+	guint32 rx_pending;
+	guint32 rx_mini_pending;
+	guint32 rx_jumbo_pending;
+	guint32 tx_pending;
+};
+
+gboolean nmp_utils_ethtool_get_ring (int ifindex,
+                                     NMEthtoolRingState *ring);
+
+gboolean nmp_utils_ethtool_set_ring (int ifindex,
+                                     const NMEthtoolRingState *ring);
+
 /*****************************************************************************/
 
 gboolean nmp_utils_mii_supports_carrier_detect (int ifindex);

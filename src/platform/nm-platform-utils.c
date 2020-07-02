@@ -264,16 +264,20 @@ out:
 
 static
 NM_UTILS_ENUM2STR_DEFINE (_ethtool_cmd_to_string, guint32,
+	NM_UTILS_ENUM2STR (ETHTOOL_GCOALESCE,  "ETHTOOL_GCOALESCE"),
 	NM_UTILS_ENUM2STR (ETHTOOL_GDRVINFO,   "ETHTOOL_GDRVINFO"),
 	NM_UTILS_ENUM2STR (ETHTOOL_GFEATURES,  "ETHTOOL_GFEATURES"),
 	NM_UTILS_ENUM2STR (ETHTOOL_GLINK,      "ETHTOOL_GLINK"),
 	NM_UTILS_ENUM2STR (ETHTOOL_GPERMADDR,  "ETHTOOL_GPERMADDR"),
+	NM_UTILS_ENUM2STR (ETHTOOL_GRINGPARAM, "ETHTOOL_GRINGPARAM"),
 	NM_UTILS_ENUM2STR (ETHTOOL_GSET,       "ETHTOOL_GSET"),
 	NM_UTILS_ENUM2STR (ETHTOOL_GSSET_INFO, "ETHTOOL_GSSET_INFO"),
 	NM_UTILS_ENUM2STR (ETHTOOL_GSTATS,     "ETHTOOL_GSTATS"),
 	NM_UTILS_ENUM2STR (ETHTOOL_GSTRINGS,   "ETHTOOL_GSTRINGS"),
 	NM_UTILS_ENUM2STR (ETHTOOL_GWOL,       "ETHTOOL_GWOL"),
+	NM_UTILS_ENUM2STR (ETHTOOL_SCOALESCE,  "ETHTOOL_SCOALESCE"),
 	NM_UTILS_ENUM2STR (ETHTOOL_SFEATURES,  "ETHTOOL_SFEATURES"),
+	NM_UTILS_ENUM2STR (ETHTOOL_SRINGPARAM, "ETHTOOL_SRINGPARAM"),
 	NM_UTILS_ENUM2STR (ETHTOOL_SSET,       "ETHTOOL_SSET"),
 	NM_UTILS_ENUM2STR (ETHTOOL_SWOL,       "ETHTOOL_SWOL"),
 );
@@ -516,8 +520,8 @@ _ASSERT_ethtool_feature_infos (void)
 		for (k = 0; k < i; k++)
 			g_assert (inf->ethtool_id != _ethtool_feature_infos[k].ethtool_id);
 
-		g_assert (!found[inf->ethtool_id - _NM_ETHTOOL_ID_FEATURE_FIRST]);
-		found[inf->ethtool_id - _NM_ETHTOOL_ID_FEATURE_FIRST] = TRUE;
+		g_assert (!found[_NM_ETHTOOL_ID_FEATURE_AS_IDX (inf->ethtool_id)]);
+		found[_NM_ETHTOOL_ID_FEATURE_AS_IDX (inf->ethtool_id)] = TRUE;
 
 		kstate.idx_kernel_name = inf->n_kernel_names - 1;
 		g_assert ((guint) kstate.idx_kernel_name == (guint) (inf->n_kernel_names - 1));
@@ -607,13 +611,13 @@ ethtool_get_features (SocketHandle *shandle)
 
 				nm_assert (states_plist_n < N_ETHTOOL_KERNEL_FEATURES + G_N_ELEMENTS (_ethtool_feature_infos));
 
-				if (!states->states_indexed[info->ethtool_id - _NM_ETHTOOL_ID_FEATURE_FIRST])
-					states->states_indexed[info->ethtool_id - _NM_ETHTOOL_ID_FEATURE_FIRST] = &states_plist0[states_plist_n];
+				if (!states->states_indexed[_NM_ETHTOOL_ID_FEATURE_AS_IDX (info->ethtool_id)])
+					states->states_indexed[_NM_ETHTOOL_ID_FEATURE_AS_IDX (info->ethtool_id)] = &states_plist0[states_plist_n];
 				((const NMEthtoolFeatureState **) states_plist0)[states_plist_n] = kstate;
 				states_plist_n++;
 			}
 
-			if (states && states->states_indexed[info->ethtool_id - _NM_ETHTOOL_ID_FEATURE_FIRST]) {
+			if (states && states->states_indexed[_NM_ETHTOOL_ID_FEATURE_AS_IDX (info->ethtool_id)]) {
 				nm_assert (states_plist_n < N_ETHTOOL_KERNEL_FEATURES + G_N_ELEMENTS (_ethtool_feature_infos));
 				nm_assert (!states_plist0[states_plist_n]);
 				states_plist_n++;
@@ -802,6 +806,224 @@ nmp_utils_ethtool_set_features (int ifindex,
 	                ? "successfully setting features"
 	                : "at least some of the features were not successfully set");
 	return success;
+}
+
+static gboolean
+ethtool_get_coalesce (SocketHandle *shandle,
+                      NMEthtoolCoalesceState *coalesce)
+{
+	struct ethtool_coalesce eth_data;
+
+	eth_data.cmd = ETHTOOL_GCOALESCE;
+
+	if (_ethtool_call_handle (shandle,
+	                          &eth_data,
+	                          sizeof (struct ethtool_coalesce)) != 0)
+		return FALSE;
+
+	*coalesce = (NMEthtoolCoalesceState) {
+	    .s = {
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_USECS)]          = eth_data.rx_coalesce_usecs,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_FRAMES)]         = eth_data.rx_max_coalesced_frames,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_USECS_IRQ)]      = eth_data.rx_coalesce_usecs_irq,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_FRAMES_IRQ)]     = eth_data.rx_max_coalesced_frames_irq,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_USECS)]          = eth_data.tx_coalesce_usecs,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_FRAMES)]         = eth_data.tx_max_coalesced_frames,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_USECS_IRQ)]      = eth_data.tx_coalesce_usecs_irq,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_FRAMES_IRQ)]     = eth_data.tx_max_coalesced_frames_irq,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_STATS_BLOCK_USECS)] = eth_data.stats_block_coalesce_usecs,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_ADAPTIVE_RX)]       = eth_data.use_adaptive_rx_coalesce,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_ADAPTIVE_TX)]       = eth_data.use_adaptive_tx_coalesce,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_PKT_RATE_LOW)]      = eth_data.pkt_rate_low,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_USECS_LOW)]      = eth_data.rx_coalesce_usecs_low,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_FRAMES_LOW)]     = eth_data.rx_max_coalesced_frames_low,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_USECS_LOW)]      = eth_data.tx_coalesce_usecs_low,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_FRAMES_LOW)]     = eth_data.tx_max_coalesced_frames_low,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_PKT_RATE_HIGH)]     = eth_data.pkt_rate_high,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_USECS_HIGH)]     = eth_data.rx_coalesce_usecs_high,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_FRAMES_HIGH)]    = eth_data.rx_max_coalesced_frames_high,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_USECS_HIGH)]     = eth_data.tx_coalesce_usecs_high,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_FRAMES_HIGH)]    = eth_data.tx_max_coalesced_frames_high,
+	        [_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_SAMPLE_INTERVAL)]   = eth_data.rate_sample_interval,
+	    }
+	};
+	return TRUE;
+}
+
+
+gboolean
+nmp_utils_ethtool_get_coalesce (int ifindex,
+                                NMEthtoolCoalesceState *coalesce)
+{
+	nm_auto_socket_handle SocketHandle shandle = SOCKET_HANDLE_INIT (ifindex);
+
+	g_return_val_if_fail (ifindex > 0, FALSE);
+	g_return_val_if_fail (coalesce, FALSE);
+
+	if (!ethtool_get_coalesce (&shandle, coalesce)) {
+		nm_log_trace (LOGD_PLATFORM, "ethtool[%d]: %s: failure getting coalesce settings",
+		              ifindex,
+		              "get-coalesce");
+		return FALSE;
+	}
+
+	nm_log_trace (LOGD_PLATFORM, "ethtool[%d]: %s: retrieved kernel coalesce settings",
+	              ifindex,
+	              "get-coalesce");
+	return TRUE;
+}
+
+static gboolean
+ethtool_set_coalesce (SocketHandle *shandle,
+                      const NMEthtoolCoalesceState *coalesce)
+{
+	struct ethtool_coalesce eth_data;
+	gboolean success;
+
+	nm_assert (shandle);
+	nm_assert (coalesce);
+
+	eth_data = (struct ethtool_coalesce) {
+		.cmd = ETHTOOL_SCOALESCE,
+		.rx_coalesce_usecs            = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_USECS)],
+		.rx_max_coalesced_frames      = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_FRAMES)],
+		.rx_coalesce_usecs_irq        = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_USECS_IRQ)],
+		.rx_max_coalesced_frames_irq  = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_FRAMES_IRQ)],
+		.tx_coalesce_usecs            = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_USECS)],
+		.tx_max_coalesced_frames      = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_FRAMES)],
+		.tx_coalesce_usecs_irq        = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_USECS_IRQ)],
+		.tx_max_coalesced_frames_irq  = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_FRAMES_IRQ)],
+		.stats_block_coalesce_usecs   = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_STATS_BLOCK_USECS)],
+		.use_adaptive_rx_coalesce     = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_ADAPTIVE_RX)],
+		.use_adaptive_tx_coalesce     = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_ADAPTIVE_TX)],
+		.pkt_rate_low                 = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_PKT_RATE_LOW)],
+		.rx_coalesce_usecs_low        = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_USECS_LOW)],
+		.rx_max_coalesced_frames_low  = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_FRAMES_LOW)],
+		.tx_coalesce_usecs_low        = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_USECS_LOW)],
+		.tx_max_coalesced_frames_low  = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_FRAMES_LOW)],
+		.pkt_rate_high                = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_PKT_RATE_HIGH)],
+		.rx_coalesce_usecs_high       = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_USECS_HIGH)],
+		.rx_max_coalesced_frames_high = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_RX_FRAMES_HIGH)],
+		.tx_coalesce_usecs_high       = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_USECS_HIGH)],
+		.tx_max_coalesced_frames_high = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_TX_FRAMES_HIGH)],
+		.rate_sample_interval         = coalesce->s[_NM_ETHTOOL_ID_COALESCE_AS_IDX (NM_ETHTOOL_ID_COALESCE_SAMPLE_INTERVAL)],
+	};
+
+	success = (_ethtool_call_handle (shandle,
+	                                 &eth_data,
+	                                 sizeof (struct ethtool_coalesce)) == 0);
+	return success;
+}
+
+gboolean
+nmp_utils_ethtool_set_coalesce (int ifindex,
+                                const NMEthtoolCoalesceState *coalesce)
+{
+	nm_auto_socket_handle SocketHandle shandle = SOCKET_HANDLE_INIT (ifindex);
+
+	g_return_val_if_fail (ifindex > 0, FALSE);
+	g_return_val_if_fail (coalesce, FALSE);
+
+	if (!ethtool_set_coalesce (&shandle, coalesce)) {
+		nm_log_trace (LOGD_PLATFORM, "ethtool[%d]: %s: failure setting coalesce settings",
+		              ifindex,
+		              "set-coalesce");
+		return FALSE;
+	}
+
+	nm_log_trace (LOGD_PLATFORM, "ethtool[%d]: %s: set kernel coalesce settings",
+	              ifindex,
+	              "set-coalesce");
+	return TRUE;
+}
+
+static gboolean
+ethtool_get_ring (SocketHandle *shandle,
+                  NMEthtoolRingState *ring)
+{
+	struct ethtool_ringparam eth_data;
+
+	eth_data.cmd = ETHTOOL_GRINGPARAM;
+
+	if (_ethtool_call_handle (shandle,
+	                          &eth_data,
+	                          sizeof (struct ethtool_ringparam)) != 0)
+		return FALSE;
+
+	ring->rx_pending       = eth_data.rx_pending;
+	ring->rx_jumbo_pending = eth_data.rx_jumbo_pending;
+	ring->rx_mini_pending  = eth_data.rx_mini_pending;
+	ring->tx_pending       = eth_data.tx_pending;
+
+	return TRUE;
+}
+
+gboolean
+nmp_utils_ethtool_get_ring (int ifindex,
+                            NMEthtoolRingState *ring)
+{
+	nm_auto_socket_handle SocketHandle shandle = SOCKET_HANDLE_INIT (ifindex);
+
+	g_return_val_if_fail (ifindex > 0, FALSE);
+	g_return_val_if_fail (ring, FALSE);
+
+	if (!ethtool_get_ring (&shandle, ring)) {
+		nm_log_trace (LOGD_PLATFORM, "ethtool[%d]: %s: failure getting ring settings",
+		              ifindex,
+		              "get-ring");
+		return FALSE;
+	}
+
+	nm_log_trace (LOGD_PLATFORM, "ethtool[%d]: %s: retrieved kernel ring settings",
+	              ifindex,
+	              "get-ring");
+	return TRUE;
+}
+
+static gboolean
+ethtool_set_ring (SocketHandle *shandle,
+                  const NMEthtoolRingState *ring)
+{
+	gboolean success;
+	struct ethtool_ringparam eth_data;
+
+	g_return_val_if_fail (shandle, FALSE);
+	g_return_val_if_fail (ring, FALSE);
+
+	eth_data = (struct ethtool_ringparam) {
+		.cmd = ETHTOOL_SRINGPARAM,
+		.rx_pending       = ring->rx_pending,
+		.rx_jumbo_pending = ring->rx_jumbo_pending,
+		.rx_mini_pending  = ring->rx_mini_pending,
+		.tx_pending       = ring->tx_pending,
+	};
+
+	success = (_ethtool_call_handle (shandle,
+	                                 &eth_data,
+	                                 sizeof (struct ethtool_ringparam)) == 0);
+	return success;
+}
+
+gboolean
+nmp_utils_ethtool_set_ring (int ifindex,
+                            const NMEthtoolRingState *ring)
+{
+	nm_auto_socket_handle SocketHandle shandle = SOCKET_HANDLE_INIT (ifindex);
+
+	g_return_val_if_fail (ifindex > 0, FALSE);
+	g_return_val_if_fail (ring, FALSE);
+
+	if (!ethtool_set_ring (&shandle, ring)) {
+		nm_log_trace (LOGD_PLATFORM, "ethtool[%d]: %s: failure setting ring settings",
+		              ifindex,
+		              "set-ring");
+		return FALSE;
+	}
+
+	nm_log_trace (LOGD_PLATFORM, "ethtool[%d]: %s: set kernel ring settings",
+	              ifindex,
+	              "set-ring");
+	return TRUE;
 }
 
 /*****************************************************************************/

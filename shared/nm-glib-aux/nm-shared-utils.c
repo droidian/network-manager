@@ -13,9 +13,13 @@
 #include <sys/syscall.h>
 #include <glib-unix.h>
 #include <net/if.h>
+#include <net/ethernet.h>
 
 #include "nm-errno.h"
 #include "nm-str-buf.h"
+
+G_STATIC_ASSERT (sizeof (NMUtilsNamedEntry) == sizeof (const char *));
+G_STATIC_ASSERT (G_STRUCT_OFFSET (NMUtilsNamedValue, value_ptr) == sizeof (const char *));
 
 /*****************************************************************************/
 
@@ -82,6 +86,11 @@ nm_ip_addr_set_from_untrusted (int addr_family,
 	NM_SET_OUT (out_addr_family, addr_family);
 	return TRUE;
 }
+
+/*****************************************************************************/
+
+G_STATIC_ASSERT (ETH_ALEN == sizeof (struct ether_addr));
+G_STATIC_ASSERT (ETH_ALEN == 6);
 
 /*****************************************************************************/
 
@@ -1060,6 +1069,47 @@ nm_utils_parse_inaddr_prefix (int addr_family,
 	return TRUE;
 }
 
+gboolean
+nm_utils_parse_next_line (const char **inout_ptr,
+                          gsize *inout_len,
+                          const char **out_line,
+                          gsize *out_line_len)
+{
+	const char *line_start;
+	const char *line_end;
+
+	g_return_val_if_fail (inout_ptr, FALSE);
+	g_return_val_if_fail (inout_len, FALSE);
+	g_return_val_if_fail (out_line, FALSE);
+
+	if (*inout_len <= 0)
+		goto error;
+
+	line_start = *inout_ptr;
+	line_end = memchr (line_start, '\n', *inout_len);
+	if (!line_end)
+		line_end = memchr (line_start, '\0', *inout_len);
+	if (!line_end) {
+		line_end = line_start + *inout_len;
+		NM_SET_OUT (inout_len, 0);
+	} else
+		NM_SET_OUT (inout_len, *inout_len - (line_end - line_start) - 1);
+
+	NM_SET_OUT (out_line, line_start);
+	NM_SET_OUT (out_line_len, (gsize) (line_end - line_start));
+
+	if (*inout_len > 0)
+		NM_SET_OUT (inout_ptr, line_end + 1);
+	else
+		NM_SET_OUT (inout_ptr, NULL);
+	return TRUE;
+
+error:
+	NM_SET_OUT (out_line, NULL);
+	NM_SET_OUT (out_line_len, 0);
+	return FALSE;
+}
+
 /*****************************************************************************/
 
 gboolean
@@ -2012,6 +2062,100 @@ nm_utils_escaped_tokens_options_split (char *str,
 /*****************************************************************************/
 
 /**
+ * nm_utils_strsplit_quoted:
+ * @str: the string to split (e.g. from /proc/cmdline).
+ *
+ * This basically does that systemd's extract_first_word() does
+ * with the flags "EXTRACT_UNQUOTE | EXTRACT_RELAX". This is what
+ * systemd uses to parse /proc/cmdline, and we do too.
+ *
+ * Splits the string. We have nm_utils_strsplit_set() which
+ * supports a variety of flags. However, extending that already
+ * complex code to also support quotation and escaping is hard.
+ * Instead, add a naive implementation.
+ *
+ * Returns: (transfer full): the split string.
+ */
+char **
+nm_utils_strsplit_quoted (const char *str)
+{
+	gs_unref_ptrarray GPtrArray *arr = NULL;
+	gs_free char *str_out = NULL;
+	guint8 ch_lookup[256];
+
+	nm_assert (str);
+
+	_char_lookup_table_init (ch_lookup, NM_ASCII_WHITESPACES);
+
+	for (;;) {
+		char quote;
+		gsize j;
+
+		while (_char_lookup_has (ch_lookup, str[0]))
+			str++;
+
+		if (str[0] == '\0')
+			break;
+
+		if (!str_out)
+			str_out = g_new (char, strlen (str) + 1);
+
+		quote = '\0';
+		j = 0;
+		for (;;) {
+			if (str[0] == '\\') {
+				str++;
+				if (str[0] == '\0')
+					break;
+				str_out[j++] = str[0];
+				str++;
+				continue;
+			}
+			if (quote) {
+				if (str[0] == '\0')
+					break;
+				if (str[0] == quote) {
+					quote = '\0';
+					str++;
+					continue;
+				}
+				str_out[j++] = str[0];
+				str++;
+				continue;
+			}
+			if (str[0] == '\0')
+				break;
+			if (NM_IN_SET (str[0], '\'', '"')) {
+				quote = str[0];
+				str++;
+				continue;
+			}
+			if (_char_lookup_has (ch_lookup, str[0])) {
+				str++;
+				break;
+			}
+			str_out[j++] = str[0];
+			str++;
+		}
+
+		if (!arr)
+			arr = g_ptr_array_new ();
+		g_ptr_array_add (arr, g_strndup (str_out, j));
+	}
+
+	if (!arr)
+		return g_new0 (char *, 1);
+
+	g_ptr_array_add (arr, NULL);
+
+	/* We want to return an optimally sized strv array, with no excess
+	 * memory allocated. Hence, clone once more. */
+	return nm_memdup (arr->pdata, sizeof (char *) * arr->len);
+}
+
+/*****************************************************************************/
+
+/**
  * nm_utils_strv_find_first:
  * @list: the strv list to search
  * @len: the length of the list, or a negative value if @list is %NULL terminated.
@@ -2456,11 +2600,12 @@ _str_buf_append_c_escape_octal (NMStrBuf *strbuf,
 }
 
 gconstpointer
-nm_utils_buf_utf8safe_unescape (const char *str, gsize *out_len, gpointer *to_free)
+nm_utils_buf_utf8safe_unescape (const char *str, NMUtilsStrUtf8SafeFlags flags, gsize *out_len, gpointer *to_free)
 {
+	gboolean strip_spaces = NM_FLAGS_HAS (flags, NM_UTILS_STR_UTF8_SAFE_UNESCAPE_STRIP_SPACES);
 	NMStrBuf strbuf;
-	gsize len;
 	const char *s;
+	gsize len;
 
 	g_return_val_if_fail (to_free, NULL);
 	g_return_val_if_fail (out_len, NULL);
@@ -2471,16 +2616,29 @@ nm_utils_buf_utf8safe_unescape (const char *str, gsize *out_len, gpointer *to_fr
 		return NULL;
 	}
 
+	if (strip_spaces)
+		str = nm_str_skip_leading_spaces (str);
+
 	len = strlen (str);
 
 	s = memchr (str, '\\', len);
 	if (!s) {
+		if (   strip_spaces
+		    && len > 0
+		    && g_ascii_isspace (str[len - 1])) {
+			len--;
+			while (   len > 0
+			       && g_ascii_isspace (str[len - 1]))
+				len--;
+			*out_len = len;
+			return (*to_free = g_strndup (str, len));
+		}
 		*out_len = len;
 		*to_free = NULL;
 		return str;
 	}
 
-	nm_str_buf_init (&strbuf, len, FALSE);
+	nm_str_buf_init (&strbuf, len + 1u, FALSE);
 
 	nm_str_buf_append_len (&strbuf, str, s - str);
 	str = s;
@@ -2494,7 +2652,7 @@ nm_utils_buf_utf8safe_unescape (const char *str, gsize *out_len, gpointer *to_fr
 		ch = (++str)[0];
 
 		if (ch == '\0') {
-			// error. Trailing '\\'
+			/* error. Trailing '\\' */
 			break;
 		}
 
@@ -2533,13 +2691,25 @@ nm_utils_buf_utf8safe_unescape (const char *str, gsize *out_len, gpointer *to_fr
 
 		s = strchr (str, '\\');
 		if (!s) {
-			nm_str_buf_append (&strbuf, str);
+			gsize l = strlen (str);
+
+			if (strip_spaces) {
+				while (   l > 0
+				       && g_ascii_isspace (str[l - 1]))
+					l--;
+			}
+			nm_str_buf_append_len (&strbuf, str, l);
 			break;
 		}
 
 		nm_str_buf_append_len (&strbuf, str, s - str);
 		str = s;
 	}
+
+	/* assert that no reallocation was necessary. For one, unescaping should
+	 * never result in a longer string than the input. Also, when unescaping
+	 * secrets, we want to ensure that we don't leak secrets in memory. */
+	nm_assert (strbuf.allocated == len + 1u);
 
 	return (*to_free = nm_str_buf_finalize (&strbuf,
 	                                        out_len));
@@ -2670,16 +2840,33 @@ nm_utils_buf_utf8safe_escape_bytes (GBytes *bytes, NMUtilsStrUtf8SafeFlags flags
 	return nm_utils_buf_utf8safe_escape (p, l, flags, to_free);
 }
 
+char *
+nm_utils_buf_utf8safe_escape_cp (gconstpointer buf, gssize buflen, NMUtilsStrUtf8SafeFlags flags)
+{
+	const char *s_const;
+	char *s;
+
+	s_const = nm_utils_buf_utf8safe_escape (buf, buflen, flags, &s);
+	nm_assert (!s || s == s_const);
+	return s ?: g_strdup (s_const);
+}
+
 /*****************************************************************************/
 
 const char *
-nm_utils_str_utf8safe_unescape (const char *str, char **to_free)
+nm_utils_str_utf8safe_unescape (const char *str, NMUtilsStrUtf8SafeFlags flags, char **to_free)
 {
+	const char *res;
 	gsize len;
 
 	g_return_val_if_fail (to_free, NULL);
 
-	return nm_utils_buf_utf8safe_unescape (str, &len, (gpointer *) to_free);
+	res = nm_utils_buf_utf8safe_unescape (str, flags, &len, (gpointer *) to_free);
+
+	nm_assert (   (!res && len == 0)
+	           || (strlen (res) <= len));
+
+	return res;
 }
 
 /**
@@ -2737,11 +2924,11 @@ nm_utils_str_utf8safe_escape_cp (const char *str, NMUtilsStrUtf8SafeFlags flags)
 }
 
 char *
-nm_utils_str_utf8safe_unescape_cp (const char *str)
+nm_utils_str_utf8safe_unescape_cp (const char *str, NMUtilsStrUtf8SafeFlags flags)
 {
 	char *s;
 
-	str = nm_utils_str_utf8safe_unescape (str, &s);
+	str = nm_utils_str_utf8safe_unescape (str, flags, &s);
 	return s ?: g_strdup (str);
 }
 
@@ -4789,6 +4976,8 @@ nm_str_buf_append_printf (NMStrBuf *strbuf,
 
 	available = strbuf->_priv_allocated - strbuf->_priv_len;
 
+	nm_assert (available < G_MAXULONG);
+
 	va_start (args, format);
 	l = g_vsnprintf (&strbuf->_priv_str[strbuf->_priv_len],
 	                 available,
@@ -4799,8 +4988,13 @@ nm_str_buf_append_printf (NMStrBuf *strbuf,
 	nm_assert (l >= 0);
 	nm_assert (l < G_MAXINT);
 
-	if ((gsize) l > available) {
-		gsize l2 = ((gsize) l) + 1u;
+	if ((gsize) l >= available) {
+		gsize l2;
+
+		if (l == 0)
+			return;
+
+		l2 = ((gsize) l) + 1u;
 
 		nm_str_buf_maybe_expand (strbuf, l2, FALSE);
 
@@ -4816,4 +5010,124 @@ nm_str_buf_append_printf (NMStrBuf *strbuf,
 	}
 
 	strbuf->_priv_len += (gsize) l;
+}
+
+/*****************************************************************************/
+
+/**
+ * nm_indirect_g_free:
+ * @arg: a pointer to a pointer that is to be freed.
+ *
+ * This does the same as nm_clear_g_free(arg) (g_clear_pointer (arg, g_free)).
+ * This is for example useful when you have a GArray with pointers and a
+ * clear function to free them. g_array_set_clear_func()'s destroy notify
+ * function gets a pointer to the array location, so we have to follow
+ * the first pointer.
+ */
+void
+nm_indirect_g_free (gpointer arg)
+{
+	gpointer *p = arg;
+
+	nm_clear_g_free (p);
+}
+
+/*****************************************************************************/
+
+static char *
+attribute_escape (const char *src, char c1, char c2)
+{
+	char *ret, *dest;
+
+	dest = ret = g_malloc (strlen (src) * 2 + 1);
+
+	while (*src) {
+		if (*src == c1 || *src == c2 || *src == '\\')
+			*dest++ = '\\';
+		*dest++ = *src++;
+	}
+	*dest++ = '\0';
+
+	return ret;
+}
+
+void
+_nm_utils_format_variant_attributes_full (GString *str,
+                                          const NMUtilsNamedValue *values,
+                                          guint num_values,
+                                          char attr_separator,
+                                          char key_value_separator)
+{
+	const char *name, *value;
+	GVariant *variant;
+	char *escaped;
+	char buf[64];
+	char sep = 0;
+	guint i;
+
+	for (i = 0; i < num_values; i++) {
+		name = values[i].name;
+		variant = (GVariant *) values[i].value_ptr;
+		value = NULL;
+
+		if (g_variant_is_of_type (variant, G_VARIANT_TYPE_UINT32))
+			value = nm_sprintf_buf (buf, "%u", g_variant_get_uint32 (variant));
+		else if (g_variant_is_of_type (variant, G_VARIANT_TYPE_INT32))
+			value = nm_sprintf_buf (buf, "%d", (int) g_variant_get_int32 (variant));
+		else if (g_variant_is_of_type (variant, G_VARIANT_TYPE_UINT64))
+			value = nm_sprintf_buf (buf, "%"G_GUINT64_FORMAT, g_variant_get_uint64 (variant));
+		else if (g_variant_is_of_type (variant, G_VARIANT_TYPE_BYTE))
+			value = nm_sprintf_buf (buf, "%hhu", g_variant_get_byte (variant));
+		else if (g_variant_is_of_type (variant, G_VARIANT_TYPE_BOOLEAN))
+			value = g_variant_get_boolean (variant) ? "true" : "false";
+		else if (g_variant_is_of_type (variant, G_VARIANT_TYPE_STRING))
+			value = g_variant_get_string (variant, NULL);
+		else if (g_variant_is_of_type (variant, G_VARIANT_TYPE_BYTESTRING)) {
+			/* FIXME: there is no guarantee that the byte array
+			 * is valid UTF-8.*/
+			value = g_variant_get_bytestring (variant);
+		} else
+			continue;
+
+		if (sep)
+			g_string_append_c (str, sep);
+
+		escaped = attribute_escape (name, attr_separator, key_value_separator);
+		g_string_append (str, escaped);
+		g_free (escaped);
+
+		g_string_append_c (str, key_value_separator);
+
+		escaped = attribute_escape (value, attr_separator, key_value_separator);
+		g_string_append (str, escaped);
+		g_free (escaped);
+
+		sep = attr_separator;
+	}
+}
+
+char *
+_nm_utils_format_variant_attributes (GHashTable *attributes,
+                                     char attr_separator,
+                                     char key_value_separator)
+{
+	GString *str = NULL;
+	gs_free NMUtilsNamedValue *values = NULL;
+	guint len;
+
+	g_return_val_if_fail (attr_separator, NULL);
+	g_return_val_if_fail (key_value_separator, NULL);
+
+	if (!attributes || !g_hash_table_size (attributes))
+		return NULL;
+
+	values = nm_utils_named_values_from_str_dict (attributes, &len);
+
+	str = g_string_new ("");
+	_nm_utils_format_variant_attributes_full (str,
+	                                          values,
+	                                          len,
+	                                          attr_separator,
+	                                          key_value_separator);
+	return g_string_free (str, FALSE);
 }

@@ -69,6 +69,9 @@ case "$1" in
                 chmod 0600 /var/lib/NetworkManager/secret_key
             fi
         fi
+        if dpkg --compare-versions "$2" lt-nl "1.25.91-1"; then
+            update-rc.d -f network-manager remove || true
+        fi
         ;;
 
     abort-upgrade|abort-deconfigure|abort-remove)

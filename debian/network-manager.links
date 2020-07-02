@@ -1,2 +1,1 @@
 /usr/share/apport/package-hooks/source_network-manager.py /usr/share/apport/package-hooks/source_network-manager-applet.py
-lib/systemd/system/NetworkManager.service lib/systemd/system/network-manager.service

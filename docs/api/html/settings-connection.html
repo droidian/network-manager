@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.2.2.2.1"></a><p class="title"><b>Table 69. </b></p>
+<a name="id-1.3.3.2.2.2.1"></a><p class="title"><b>Table 42. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -130,6 +130,12 @@
 <td><pre class="screen">NMMetered (int32)</pre></td>
 <td><pre class="screen"></pre></td>
 <td>Whether the connection is metered. When updating this property on a currently activated connection, the change takes effect immediately.</td>
+</tr>
+<tr>
+<td><pre class="screen">mud-url</pre></td>
+<td><pre class="screen">string</pre></td>
+<td><pre class="screen"></pre></td>
+<td>If configured, set to a Manufacturer Usage Description (MUD) URL that points to manufacturer-recommended network policies for IoT devices. It is transmitted as a DHCPv4 or DHCPv6 option. The value must be a valid URL starting with "https://". The special value "none" is allowed to indicate that no MUD URL is used. If the per-profile value is unspecified (the default), a global connection default gets consulted. If still unspecified, the ultimate default is "none".</td>
 </tr>
 <tr>
 <td><pre class="screen">multi-connect</pre></td>

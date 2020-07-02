@@ -35,9 +35,21 @@ static inline void
 _nm_str_buf_assert (NMStrBuf *strbuf)
 {
 	nm_assert (strbuf);
-	nm_assert (strbuf->_priv_str);
-	nm_assert (strbuf->_priv_allocated > 0);
+	nm_assert ((!!strbuf->_priv_str) == (strbuf->_priv_allocated > 0));
 	nm_assert (strbuf->_priv_len <= strbuf->_priv_allocated);
+}
+
+static inline NMStrBuf
+NM_STR_BUF_INIT (gsize allocated, gboolean do_bzero_mem)
+{
+	NMStrBuf strbuf = {
+		._priv_str          = allocated ? g_malloc (allocated) : NULL,
+		._priv_allocated    = allocated,
+		._priv_len          = 0,
+		._priv_do_bzero_mem = do_bzero_mem,
+	};
+
+	return strbuf;
 }
 
 static inline void
@@ -46,13 +58,7 @@ nm_str_buf_init (NMStrBuf *strbuf,
                  bool do_bzero_mem)
 {
 	nm_assert (strbuf);
-	nm_assert (len > 0);
-
-	strbuf->_priv_str          = g_malloc (len);
-	strbuf->_priv_allocated    = len;
-	strbuf->_priv_len          = 0;
-	strbuf->_priv_do_bzero_mem = do_bzero_mem;
-
+	*strbuf = NM_STR_BUF_INIT (len, do_bzero_mem);
 	_nm_str_buf_assert (strbuf);
 }
 
@@ -66,9 +72,6 @@ nm_str_buf_maybe_expand (NMStrBuf *strbuf,
                          gboolean reserve_exact)
 {
 	_nm_str_buf_assert (strbuf);
-
-	/* currently we always require to reserve a non-zero number of bytes. */
-	nm_assert (reserve > 0);
 	nm_assert (strbuf->_priv_len < G_MAXSIZE - reserve);
 
 	/* @reserve is the extra space that we require. */
@@ -162,6 +165,19 @@ nm_str_buf_erase (NMStrBuf *strbuf,
 }
 
 /*****************************************************************************/
+
+static inline void
+nm_str_buf_append_c_repeated (NMStrBuf *strbuf,
+                              char ch,
+                              guint len)
+{
+	if (len > 0) {
+		nm_str_buf_maybe_expand (strbuf, len + 1, FALSE);
+		do {
+			strbuf->_priv_str[strbuf->_priv_len++] = ch;
+		} while (--len > 0);
+	}
+}
 
 static inline void
 nm_str_buf_append_c (NMStrBuf *strbuf,
@@ -263,10 +279,16 @@ nm_str_buf_is_initalized (NMStrBuf *strbuf)
  *   is of length "strbuf->len", which may be larger if the
  *   returned string contains NUL characters (binary). The terminating
  *   NUL character is always present after "strbuf->len" characters.
+ *   If currently no buffer is allocated, this will return %NULL.
  */
-static inline const char *
+static inline char *
 nm_str_buf_get_str (NMStrBuf *strbuf)
 {
+	_nm_str_buf_assert (strbuf);
+
+	if (!strbuf->_priv_str)
+		return NULL;
+
 	nm_str_buf_maybe_expand (strbuf, 1, FALSE);
 	strbuf->_priv_str[strbuf->_priv_len] = '\0';
 	return strbuf->_priv_str;
@@ -288,15 +310,22 @@ nm_str_buf_get_str_unsafe (NMStrBuf *strbuf)
  * Returns: (transfer full): the string of the buffer
  *   which must be freed by the caller. The @strbuf
  *   is afterwards in undefined state, though it can be
- *   reused after nm_str_buf_init(). */
+ *   reused after nm_str_buf_init().
+ *   Note that if no string is allocated yet (after nm_str_buf_init() with
+ *   length zero), this will return %NULL. */
 static inline char *
 nm_str_buf_finalize (NMStrBuf *strbuf,
                      gsize *out_len)
 {
-	nm_str_buf_maybe_expand (strbuf, 1, TRUE);
-	strbuf->_priv_str[strbuf->_priv_len] = '\0';
+	_nm_str_buf_assert (strbuf);
 
 	NM_SET_OUT (out_len, strbuf->_priv_len);
+
+	if (!strbuf->_priv_str)
+		return NULL;
+
+	nm_str_buf_maybe_expand (strbuf, 1, TRUE);
+	strbuf->_priv_str[strbuf->_priv_len] = '\0';
 
 	/* the buffer is in invalid state afterwards, however, we clear it
 	 * so far, that nm_auto_str_buf and nm_str_buf_destroy() is happy.  */

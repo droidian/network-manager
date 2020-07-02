@@ -178,6 +178,24 @@ nm_ip4_addr_is_localhost (in_addr_t addr4)
 
 /*****************************************************************************/
 
+struct ether_addr;
+
+static inline int
+nm_utils_ether_addr_cmp (const struct ether_addr *a1, const struct ether_addr *a2)
+{
+	nm_assert (a1);
+	nm_assert (a2);
+	return memcmp (a1, a2, 6 /*ETH_ALEN*/);
+}
+
+static inline gboolean
+nm_utils_ether_addr_equal (const struct ether_addr *a1, const struct ether_addr *a2)
+{
+	return nm_utils_ether_addr_cmp (a1, a2) == 0;
+}
+
+/*****************************************************************************/
+
 #define NM_UTILS_INET_ADDRSTRLEN INET6_ADDRSTRLEN
 
 static inline const char *
@@ -662,6 +680,10 @@ nm_utils_escaped_tokens_escape_gstr (const char *str,
 
 /*****************************************************************************/
 
+char **nm_utils_strsplit_quoted (const char *str);
+
+/*****************************************************************************/
+
 static inline const char **
 nm_utils_escaped_tokens_options_split_list (const char *str)
 {
@@ -784,6 +806,11 @@ gboolean nm_utils_parse_inaddr_prefix (int addr_family,
                                        const char *text,
                                        char **out_addr,
                                        int *out_prefix);
+
+gboolean nm_utils_parse_next_line (const char **inout_ptr,
+                                   gsize *inout_len,
+                                   const char **out_line,
+                                   gsize *out_line_len);
 
 gint64 nm_g_ascii_strtoll (const char *nptr,
                            char **endptr,
@@ -925,6 +952,21 @@ _nm_g_slice_free_fcn_define (32)
 #define nm_g_slice_free_fcn_gint64 (nm_g_slice_free_fcn (gint64))
 
 /*****************************************************************************/
+
+/* Like g_error_matches() however:
+ * - as macro it is always inlined.
+ * - the @domain is usually a error quark getter function that cannot
+ *   be inlined. This macro calls the getter only if there is an error (lazy).
+ * - accept a list of allowed codes, instead of only one.
+ */
+#define nm_g_error_matches(error, err_domain, ...) \
+	({ \
+		const GError *const _error = (error); \
+		\
+		   _error \
+		&& _error->domain == (err_domain) \
+		&& NM_IN_SET (_error->code, __VA_ARGS__); \
+	})
 
 static inline void
 nm_g_set_error_take (GError **error, GError *error_take)
@@ -1143,6 +1185,25 @@ GParamSpec *nm_g_object_class_find_property_from_gtype (GType gtype,
 
 /*****************************************************************************/
 
+#define _NM_G_PARAM_SPEC_CAST(param_spec, _value_type, _c_type) \
+	({ \
+		const GParamSpec *const _param_spec = (param_spec); \
+		\
+		nm_assert (   !_param_spec \
+		           || _param_spec->value_type == (_value_type)); \
+		((const _c_type *) _param_spec); \
+	})
+
+#define NM_G_PARAM_SPEC_CAST_BOOLEAN(param_spec) _NM_G_PARAM_SPEC_CAST (param_spec, G_TYPE_BOOLEAN, GParamSpecBoolean)
+#define NM_G_PARAM_SPEC_CAST_UINT(param_spec)    _NM_G_PARAM_SPEC_CAST (param_spec, G_TYPE_UINT,    GParamSpecUInt)
+#define NM_G_PARAM_SPEC_CAST_UINT64(param_spec)  _NM_G_PARAM_SPEC_CAST (param_spec, G_TYPE_UINT64,  GParamSpecUInt64)
+
+#define NM_G_PARAM_SPEC_GET_DEFAULT_BOOLEAN(param_spec) (NM_G_PARAM_SPEC_CAST_BOOLEAN (NM_ENSURE_NOT_NULL (param_spec))->default_value)
+#define NM_G_PARAM_SPEC_GET_DEFAULT_UINT(param_spec)    (NM_G_PARAM_SPEC_CAST_UINT    (NM_ENSURE_NOT_NULL (param_spec))->default_value)
+#define NM_G_PARAM_SPEC_GET_DEFAULT_UINT64(param_spec)  (NM_G_PARAM_SPEC_CAST_UINT64  (NM_ENSURE_NOT_NULL (param_spec))->default_value)
+
+/*****************************************************************************/
+
 GType nm_g_type_find_implementing_class_for_property (GType gtype,
                                                       const char *pname);
 
@@ -1150,20 +1211,39 @@ GType nm_g_type_find_implementing_class_for_property (GType gtype,
 
 typedef enum {
 	NM_UTILS_STR_UTF8_SAFE_FLAG_NONE                = 0,
+
+	/* This flag only has an effect during escaping. */
 	NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL         = 0x0001,
+
+	/* This flag only has an effect during escaping. */
 	NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII    = 0x0002,
+
+	/* This flag only has an effect during escaping to ensure we
+	 * don't leak secrets in memory. Note that during unescape we
+	 * know the maximum result size from the beginning, and no
+	 * reallocation happens. Thus, unescape always avoids leaking
+	 * secrets already. */
 	NM_UTILS_STR_UTF8_SAFE_FLAG_SECRET              = 0x0004,
+
+	/* This flag only has an effect during unescaping. It means
+	 * that non-escaped whitespaces (g_ascii_isspace()) will be
+	 * stripped from the front and end of the string. Note that
+	 * this flag is only useful for gracefully accepting user input
+	 * with spaces. With this flag, escape and unescape may no longer
+	 * yield the original input. */
+	NM_UTILS_STR_UTF8_SAFE_UNESCAPE_STRIP_SPACES    = 0x0008,
 } NMUtilsStrUtf8SafeFlags;
 
 const char *nm_utils_buf_utf8safe_escape (gconstpointer buf, gssize buflen, NMUtilsStrUtf8SafeFlags flags, char **to_free);
+char *nm_utils_buf_utf8safe_escape_cp (gconstpointer buf, gssize buflen, NMUtilsStrUtf8SafeFlags flags);
 const char *nm_utils_buf_utf8safe_escape_bytes (GBytes *bytes, NMUtilsStrUtf8SafeFlags flags, char **to_free);
-gconstpointer nm_utils_buf_utf8safe_unescape (const char *str, gsize *out_len, gpointer *to_free);
+gconstpointer nm_utils_buf_utf8safe_unescape (const char *str, NMUtilsStrUtf8SafeFlags flags, gsize *out_len, gpointer *to_free);
 
 const char *nm_utils_str_utf8safe_escape   (const char *str, NMUtilsStrUtf8SafeFlags flags, char **to_free);
-const char *nm_utils_str_utf8safe_unescape (const char *str, char **to_free);
+const char *nm_utils_str_utf8safe_unescape (const char *str, NMUtilsStrUtf8SafeFlags flags, char **to_free);
 
 char *nm_utils_str_utf8safe_escape_cp   (const char *str, NMUtilsStrUtf8SafeFlags flags);
-char *nm_utils_str_utf8safe_unescape_cp (const char *str);
+char *nm_utils_str_utf8safe_unescape_cp (const char *str, NMUtilsStrUtf8SafeFlags flags);
 
 char *nm_utils_str_utf8safe_escape_take (char *str, NMUtilsStrUtf8SafeFlags flags);
 
@@ -1208,6 +1288,30 @@ nm_g_variant_is_of_type (GVariant *value,
 {
 	return    value
 	       && g_variant_is_of_type (value, type);
+}
+
+static inline void
+nm_g_variant_builder_add_sv (GVariantBuilder *builder, const char *key, GVariant *val)
+{
+	g_variant_builder_add (builder, "{sv}", key, val);
+}
+
+static inline void
+nm_g_variant_builder_add_sv_bytearray (GVariantBuilder *builder, const char *key, const guint8 *arr, gsize len)
+{
+	g_variant_builder_add (builder, "{sv}", key, g_variant_new_fixed_array (G_VARIANT_TYPE_BYTE, arr, len, 1));
+}
+
+static inline void
+nm_g_variant_builder_add_sv_uint32 (GVariantBuilder *builder, const char *key, guint32 val)
+{
+	nm_g_variant_builder_add_sv (builder, key, g_variant_new_uint32 (val));
+}
+
+static inline void
+nm_g_variant_builder_add_sv_str (GVariantBuilder *builder, const char *key, const char *str)
+{
+	nm_g_variant_builder_add_sv (builder, key, g_variant_new_string (str));
 }
 
 static inline void
@@ -1355,6 +1459,8 @@ typedef struct {
 	};
 } NMUtilsNamedValue;
 
+#define NM_UTILS_NAMED_VALUE_INIT(n, v)     { .name = (n), .value_ptr = (v) }
+
 NMUtilsNamedValue *nm_utils_named_values_from_str_dict_with_sort (GHashTable *hash,
                                                                   guint *out_len,
                                                                   GCompareDataFunc compare_func,
@@ -1432,6 +1538,22 @@ GSList *nm_utils_g_slist_find_str (const GSList *list,
 int nm_utils_g_slist_strlist_cmp (const GSList *a, const GSList *b);
 
 char *nm_utils_g_slist_strlist_join (const GSList *a, const char *separator);
+
+/*****************************************************************************/
+
+static inline guint
+nm_g_array_len (const GArray *arr)
+{
+	return arr ? arr->len : 0u;
+}
+
+/*****************************************************************************/
+
+static inline guint
+nm_g_ptr_array_len (const GPtrArray *arr)
+{
+	return arr ? arr->len : 0u;
+}
 
 /*****************************************************************************/
 
@@ -1848,6 +1970,8 @@ nm_utils_strdup_reset (char **dst, const char *src)
 	return TRUE;
 }
 
+void nm_indirect_g_free (gpointer arg);
+
 /*****************************************************************************/
 
 /* nm_utils_get_next_realloc_size() is used to grow buffers exponentially, when
@@ -1886,5 +2010,77 @@ gboolean nm_utils_ifname_valid_kernel (const char *name, GError **error);
 gboolean nm_utils_ifname_valid (const char* name,
                                 NMUtilsIfaceType type,
                                 GError **error);
+
+/*****************************************************************************/
+
+static inline GArray *
+nm_strvarray_ensure (GArray **p)
+{
+	if (!*p) {
+		*p = g_array_new (TRUE, FALSE, sizeof (char *));
+		g_array_set_clear_func (*p, nm_indirect_g_free);
+	}
+	return *p;
+}
+
+static inline void
+nm_strvarray_add (GArray *array, const char *str)
+{
+	char *s;
+
+	s = g_strdup (str);
+	g_array_append_val (array, s);
+}
+
+static inline const char *const*
+nm_strvarray_get_strv_non_empty (GArray *arr, guint *length)
+{
+	if (!arr || arr->len == 0) {
+		NM_SET_OUT (length, 0);
+		return NULL;
+	}
+
+	NM_SET_OUT (length, arr->len);
+	return &g_array_index (arr, const char *, 0);
+}
+
+static inline const char *const*
+nm_strvarray_get_strv (GArray **arr, guint *length)
+{
+	if (!*arr) {
+		NM_SET_OUT (length, 0);
+		return (const char *const*) arr;
+	}
+
+	NM_SET_OUT (length, (*arr)->len);
+	return &g_array_index (*arr, const char *, 0);
+}
+
+static inline void
+nm_strvarray_set_strv (GArray **array, const char *const*strv)
+{
+	gs_unref_array GArray *array_old = NULL;
+
+	array_old = g_steal_pointer (array);
+
+	if (!strv || !strv[0])
+		return;
+
+	nm_strvarray_ensure (array);
+	for (; strv[0]; strv++)
+		nm_strvarray_add (*array, strv[0]);
+}
+
+/*****************************************************************************/
+
+void _nm_utils_format_variant_attributes_full (GString *str,
+                                               const NMUtilsNamedValue *values,
+                                               guint num_values,
+                                               char attr_separator,
+                                               char key_value_separator);
+
+char *_nm_utils_format_variant_attributes (GHashTable *attributes,
+                                           char attr_separator,
+                                           char key_value_separator);
 
 #endif /* __NM_SHARED_UTILS_H__ */

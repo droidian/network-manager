@@ -55,6 +55,13 @@
 </tr>
 <tr>
 <td><p><span class="term">
+            <code class="option">-i</code>  |   <code class="option">--initrd-data-dir</code>  
+            <em class="replaceable"><code>path</code></em> 
+        </span></p></td>
+<td><p>Output directory for initrd data (e.g. hostname).</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
             <code class="option">-d</code>  |   <code class="option">--sysfs-dir</code>  
             <em class="replaceable"><code>path</code></em> 
         </span></p></td>
@@ -81,6 +88,7 @@
 <tr><td><code class="option">nameserver</code></td></tr>
 <tr><td><code class="option">rd.peerdns</code></td></tr>
 <tr><td><code class="option">rd.bootif</code></td></tr>
+<tr><td><code class="option">rd.net.timeout.dhcp</code></td></tr>
 <tr><td><code class="option">BOOTIF</code></td></tr>
 </table>
 <p>Please consult the <span class="citerefentry"><span class="refentrytitle">dracut.cmdline</span>(7)</span>
@@ -89,6 +97,26 @@
 </tr>
 </tbody>
 </table></div>
+</div>
+<div class="refsect1">
+<a name="differences_from_network_legacy"></a><h2>Differences from the network-legacy dracut module</h2>
+<p><span class="command"><strong>nm-initrd-generator</strong></span> generates a set of
+    connections that are then configured by the NetworkManager
+    instance running in the initrd. There are some differences in
+    behavior compared to the network-legacy dracut module:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>When an interface is configured with a static address
+        and a gateway, the network-legacy module waits that the
+        gateway responds to arping requests before proceeding, while
+        NetworkManager doesn't.</p></li>
+<li class="listitem"><p>network-legacy configures interfaces one by one in the
+        order in which they are announced by udev. If multiple
+        interfaces specify a hostname (from command line or from
+        DHCP), the one from the last interface activated wins. With
+        NetworkManager, hostnames from command line have higher
+        precedence over ones from DHCP, and the last that appears in
+        the command line wins.</p></li>
+</ul></div>
 </div>
 <div class="refsect1">
 <a name="exit_status"></a><h2>Exit Status</h2>
