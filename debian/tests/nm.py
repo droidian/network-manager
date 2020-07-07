@@ -857,7 +857,7 @@ def setUpModule():
     assert libc6.unshare(ctypes.c_int(0x00020000)) == 0, 'failed to unshare mount namespace'
 
     # stop system-wide NetworkManager to avoid interfering with tests
-    nm_running = subprocess.call('service network-manager stop 2>&1', shell=True) == 0
+    nm_running = subprocess.call('service NetworkManager stop 2>&1', shell=True) == 0
 
 
 def tearDownModule():

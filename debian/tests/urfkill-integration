@@ -31,11 +31,11 @@ service urfkill stop || true
 echo "+++ unblocking device $fake_id"
 rfkill unblock $fake_id
 echo "+++ stopping network-manager"
-service network-manager stop || true
+service NetworkManager stop || true
 echo "+++ blocking device $fake_id"
 rfkill block $fake_id
 echo "+++ starting network-manager"
-service network-manager start
+service NetworkManager start
 
 echo "+++ Waiting for the devices to settle"
 sleep 30

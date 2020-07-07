@@ -20,7 +20,7 @@ insmod debian/tests/fake-rfkill.ko
 
 fake_id=$(rfkill list | grep fake | awk -F: '{ print $1; }')
 
-service network-manager start
+service NetworkManager start
 sleep 30
 
 # test blocking the device
