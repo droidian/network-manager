@@ -48,5 +48,5 @@ ignore those devices and mark them as "unmanaged".
 If you want to have a network interface managed by NetworkManager it is thus
 recommended to manually remove any configuration for that interface from
 /etc/network/interfaces. You need to restart NetworkManager afterwards via
-"service network-manager restart".
+"service NetworkManager restart".
 

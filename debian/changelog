@@ -1,12 +1,4 @@
-network-manager (1.25.91-1ubuntu2) groovy; urgency=medium
-
-  * debian/tests:
-    - don't use the old service name in the test, the compatibility alias
-      has been removed
-
- -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 07 Jul 2020 11:06:20 +0200
-
-network-manager (1.25.91-1ubuntu1) groovy; urgency=medium
+network-manager (1.26.0-1ubuntu1) UNRELEASED; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
     - Use systemd-resolved instead of dnsmasq
@@ -44,7 +36,22 @@ network-manager (1.25.91-1ubuntu1) groovy; urgency=medium
       + Read-system-connections-from-run.patch
     - debian/tests/urfkill-integration - don't stop/start network manager
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 02 Jul 2020 10:31:37 +0200
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 27 Jul 2020 17:09:03 +0200
+
+network-manager (1.26.0-1) unstable; urgency=medium
+
+  * New upstream version 1.26.0
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 13 Jul 2020 22:34:27 +0200
+
+network-manager (1.25.91-2) unstable; urgency=medium
+
+  [ Sebastien Bacher ]
+  * Use the correct service name in README.Debian, the compat one has been
+    removed
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 07 Jul 2020 21:28:37 +0200
 
 network-manager (1.25.91-1) unstable; urgency=medium
 

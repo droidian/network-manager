@@ -411,8 +411,8 @@ typedef struct _NMDevicePrivate {
 	bool            v4_route_table_initialized:1;
 	bool            v6_route_table_initialized:1;
 
-	bool            v4_route_table_full_sync_before:1;
-	bool            v6_route_table_full_sync_before:1;
+	bool            v4_route_table_all_sync_before:1;
+	bool            v6_route_table_all_sync_before:1;
 
 	NMDeviceAutoconnectBlockedFlags autoconnect_blocked_flags:5;
 
@@ -614,6 +614,7 @@ typedef struct _NMDevicePrivate {
 		SriovOp *pending;    /* SR-IOV operation currently running */
 		SriovOp *next;       /* next SR-IOV operation scheduled */
 	} sriov;
+	guint sriov_reset_pending;
 
 	struct {
 		guint timeout_id;
@@ -1746,25 +1747,51 @@ nm_device_get_iface (NMDevice *self)
 	return NM_DEVICE_GET_PRIVATE (self)->iface;
 }
 
+/**
+ * nm_device_take_over_link:
+ * @self: the #NMDevice
+ * @ifindex: a ifindex
+ * @old_name: (transfer full): on return, the name of the old link, if
+ *   the link was renamed
+ * @error: location to store error, or %NULL
+ *
+ * Given an existing link, move it under the control of a device. In
+ * particular, the link will be renamed to match the device name. If the
+ * link was renamed, the old name is returned in @old_name.
+ *
+ * Returns: %TRUE if the device took control of the link, %FALSE otherwise
+ */
 gboolean
-nm_device_take_over_link (NMDevice *self, int ifindex, char **old_name)
+nm_device_take_over_link (NMDevice *self, int ifindex, char **old_name, GError **error)
 {
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
 	const NMPlatformLink *plink;
 	NMPlatform *platform;
-	gboolean up, success = TRUE;
-	gs_free char *name = NULL;
 
-	g_return_val_if_fail (priv->ifindex <= 0, FALSE);
-
+	nm_assert (ifindex > 0);
 	NM_SET_OUT (old_name, NULL);
+
+	if (   priv->ifindex > 0
+	    && priv->ifindex != ifindex) {
+		nm_utils_error_set (error, NM_UTILS_ERROR_UNKNOWN,
+		                    "the device already has ifindex %d",
+		                    priv->ifindex);
+		return FALSE;
+	}
 
 	platform = nm_device_get_platform (self);
 	plink = nm_platform_link_get (platform, ifindex);
-	if (!plink)
+	if (!plink) {
+		nm_utils_error_set (error, NM_UTILS_ERROR_UNKNOWN,
+		                    "link %d not found", ifindex);
 		return FALSE;
+	}
 
 	if (!nm_streq (plink->name, nm_device_get_iface (self))) {
+		gboolean up;
+		gboolean success;
+		gs_free char *name = NULL;
+
 		up = NM_FLAGS_HAS (plink->n_ifi_flags, IFF_UP);
 		name = g_strdup (plink->name);
 
@@ -1775,16 +1802,21 @@ nm_device_take_over_link (NMDevice *self, int ifindex, char **old_name)
 		if (up)
 			nm_platform_link_set_up (platform, ifindex, NULL);
 
-		if (success)
-			NM_SET_OUT (old_name, g_steal_pointer (&name));
+		if (!success) {
+			nm_utils_error_set (error, NM_UTILS_ERROR_UNKNOWN,
+			                    "failure renaming link %d", ifindex);
+			return FALSE;
+		}
+
+		NM_SET_OUT (old_name, g_steal_pointer (&name));
 	}
 
-	if (success) {
+	if (priv->ifindex != ifindex) {
 		priv->ifindex = ifindex;
 		_notify (self, PROP_IFINDEX);
 	}
 
-	return success;
+	return TRUE;
 }
 
 int
@@ -2706,34 +2738,59 @@ _get_route_table_sync_mode_stateful (NMDevice *self,
                                      int addr_family)
 {
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
-	gboolean full_sync_now;
-	gboolean full_sync_eff;
+	NMDedupMultiIter ipconf_iter;
+	gboolean all_sync_now;
+	gboolean all_sync_eff;
 
-	full_sync_now = _get_route_table (self, addr_family) != 0u;
+	all_sync_now = _get_route_table (self, addr_family) != 0u;
 
-	if (full_sync_now)
-		full_sync_eff = TRUE;
+	if (!all_sync_now) {
+		/* If there's a local route switch to all-sync in order
+		 * to properly manage the local table */
+		if (addr_family == AF_INET) {
+			const NMPlatformIP4Route *route;
+
+			nm_ip_config_iter_ip4_route_for_each (&ipconf_iter, priv->con_ip_config_4, &route) {
+				if (nm_platform_route_type_uncoerce (route->type_coerced) == RTN_LOCAL) {
+					all_sync_now = TRUE;
+					break;
+				}
+			}
+		} else {
+			const NMPlatformIP6Route *route;
+
+			nm_ip_config_iter_ip6_route_for_each (&ipconf_iter, priv->con_ip_config_6, &route) {
+				if (nm_platform_route_type_uncoerce (route->type_coerced) == RTN_LOCAL) {
+					all_sync_now = TRUE;
+					break;
+				}
+			}
+		}
+	}
+
+	if (all_sync_now)
+		all_sync_eff = TRUE;
 	else {
-		/* When we change from full-sync to no full-sync, we do a last full-sync one
-		 * more time. For that, we determine the effective full-state based on the
-		 * cached/previous full-sync flag.
+		/* When we change from all-sync to no all-sync, we do a last all-sync one
+		 * more time. For that, we determine the effective all-state based on the
+		 * cached/previous all-sync flag.
 		 *
 		 * The purpose of this is to support reapply of route-table (and thus the
-		 * full-sync mode). If reapply toggles from full-sync to no-full-sync, we must
+		 * all-sync mode). If reapply toggles from all-sync to no-all-sync, we must
 		 * sync one last time. */
 		if (addr_family == AF_INET)
-			full_sync_eff = priv->v4_route_table_full_sync_before;
+			all_sync_eff = priv->v4_route_table_all_sync_before;
 		else
-			full_sync_eff = priv->v6_route_table_full_sync_before;
+			all_sync_eff = priv->v6_route_table_all_sync_before;
 	}
 
 	if (addr_family == AF_INET)
-		priv->v4_route_table_full_sync_before = full_sync_now;
+		priv->v4_route_table_all_sync_before = all_sync_now;
 	else
-		priv->v6_route_table_full_sync_before = full_sync_now;
+		priv->v6_route_table_all_sync_before = all_sync_now;
 
-	return   full_sync_eff
-	       ? NM_IP_ROUTE_TABLE_SYNC_MODE_FULL
+	return   all_sync_eff
+	       ? NM_IP_ROUTE_TABLE_SYNC_MODE_ALL
 	       : NM_IP_ROUTE_TABLE_SYNC_MODE_MAIN;
 }
 
@@ -3822,6 +3879,10 @@ nm_device_update_dynamic_ip_setup (NMDevice *self)
 
 	priv = NM_DEVICE_GET_PRIVATE (self);
 
+	if (   priv->state < NM_DEVICE_STATE_IP_CONFIG
+	    || priv->state > NM_DEVICE_STATE_ACTIVATED)
+		return;
+
 	g_hash_table_remove_all (priv->ip6_saved_properties);
 
 	if (priv->dhcp_data_4.client) {
@@ -4705,15 +4766,12 @@ sriov_op_cb (GError *error, gpointer user_data)
 
 	nm_assert (op == priv->sriov.pending);
 
-	priv->sriov.pending = NULL;
-
 	g_clear_object (&op->cancellable);
 
 	if (op->callback)
 		op->callback (error, op->callback_data);
 
-	nm_assert (!priv->sriov.pending);
-
+	priv->sriov.pending = NULL;
 	nm_g_slice_free (op);
 
 	if (priv->sriov.next) {
@@ -4731,6 +4789,8 @@ sriov_op_queue_op (NMDevice *self,
 	if (priv->sriov.next) {
 		SriovOp *op_next = g_steal_pointer (&priv->sriov.next);
 
+		priv->sriov.next = op;
+
 		/* Cancel the next operation immediately */
 		if (op_next->callback) {
 			gs_free_error GError *error = NULL;
@@ -4740,17 +4800,10 @@ sriov_op_queue_op (NMDevice *self,
 		}
 
 		nm_g_slice_free (op_next);
+		return;
+	}
 
-		if (!priv->sriov.pending) {
-			/* This (having "next" set but "pending" not) can only happen if we are
-			 * called from inside the callback again.
-			 *
-			 * That means we append the new request as "next" and return. Once
-			 * the callback returns, it will schedule the request. */
-			priv->sriov.next = op;
-			return;
-		}
-	} else if (priv->sriov.pending) {
+	if (priv->sriov.pending) {
 		priv->sriov.next = op;
 		g_cancellable_cancel (priv->sriov.pending->cancellable);
 		return;
@@ -13209,7 +13262,8 @@ nm_device_set_ip_config (NMDevice *self,
 		if (IS_IPv4) {
 			success = nm_ip4_config_commit (NM_IP4_CONFIG (new_config),
 			                                nm_device_get_platform (self),
-			                                _get_route_table_sync_mode_stateful (self, addr_family));
+			                                _get_route_table_sync_mode_stateful (self,
+			                                                                     AF_INET));
 			nm_platform_ip4_dev_route_blacklist_set (nm_device_get_platform (self),
 			                                         nm_ip_config_get_ifindex (new_config),
 			                                         ip4_dev_route_blacklist);
@@ -13218,7 +13272,8 @@ nm_device_set_ip_config (NMDevice *self,
 
 			success = nm_ip6_config_commit (NM_IP6_CONFIG (new_config),
 			                                nm_device_get_platform (self),
-			                                _get_route_table_sync_mode_stateful (self, addr_family),
+			                                _get_route_table_sync_mode_stateful (self,
+			                                                                     AF_INET6),
 			                                &temporary_not_available);
 
 			if (!_rt6_temporary_not_available_set (self, temporary_not_available))
@@ -15463,8 +15518,8 @@ _cleanup_generic_post (NMDevice *self, CleanupType cleanup_type)
 	priv->v4_route_table_initialized = FALSE;
 	priv->v6_route_table_initialized = FALSE;
 
-	priv->v4_route_table_full_sync_before = FALSE;
-	priv->v6_route_table_full_sync_before = FALSE;
+	priv->v4_route_table_all_sync_before = FALSE;
+	priv->v6_route_table_all_sync_before = FALSE;
 
 	priv->default_route_metric_penalty_ip4_has = FALSE;
 	priv->default_route_metric_penalty_ip6_has = FALSE;
@@ -15602,17 +15657,19 @@ nm_device_cleanup (NMDevice *self, NMDeviceStateReason reason, CleanupType clean
 
 	nm_device_update_metered (self);
 
-	/* during device cleanup, we want to reset the MAC address of the device
-	 * to the initial state.
-	 *
-	 * We certainly want to do that when reaching the UNMANAGED state... */
-	if (nm_device_get_state (self) <= NM_DEVICE_STATE_UNMANAGED)
-		nm_device_hw_addr_reset (self, "unmanage");
-	else {
-		/* for other device states (UNAVAILABLE, DISCONNECTED), allow the
-		 * device to overwrite the reset behavior, so that Wi-Fi can set
-		 * a randomized MAC address used during scanning. */
-		NM_DEVICE_GET_CLASS (self)->deactivate_reset_hw_addr (self);
+	if (ifindex > 0) {
+		/* during device cleanup, we want to reset the MAC address of the device
+		 * to the initial state.
+		 *
+		 * We certainly want to do that when reaching the UNMANAGED state... */
+		if (nm_device_get_state (self) <= NM_DEVICE_STATE_UNMANAGED)
+			nm_device_hw_addr_reset (self, "unmanage");
+		else {
+			/* for other device states (UNAVAILABLE, DISCONNECTED), allow the
+			 * device to overwrite the reset behavior, so that Wi-Fi can set
+			 * a randomized MAC address used during scanning. */
+			NM_DEVICE_GET_CLASS (self)->deactivate_reset_hw_addr (self);
+		}
 	}
 
 	priv->mtu_source = NM_DEVICE_MTU_SOURCE_NONE;
@@ -15863,24 +15920,48 @@ deactivate_ready (NMDevice *self, NMDeviceStateReason reason)
 	if (priv->dispatcher.call_id)
 		return;
 
-	if (   priv->sriov.pending
-	    || priv->sriov.next)
+	if (priv->sriov_reset_pending > 0)
 		return;
 
-	nm_device_queue_state (self, NM_DEVICE_STATE_DISCONNECTED, reason);
+	if (priv->state == NM_DEVICE_STATE_DEACTIVATING)
+		nm_device_queue_state (self, NM_DEVICE_STATE_DISCONNECTED, reason);
 }
 
 static void
-sriov_deactivate_cb (GError *error, gpointer user_data)
+sriov_reset_on_deactivate_cb (GError *error, gpointer user_data)
 {
 	NMDevice *self;
+	NMDevicePrivate *priv;
 	gpointer reason;
 
-	if (nm_utils_error_is_cancelled_or_disposing (error))
+	nm_utils_user_data_unpack (user_data, &self, &reason);
+	priv = NM_DEVICE_GET_PRIVATE (self);
+	nm_assert (priv->sriov_reset_pending > 0);
+	priv->sriov_reset_pending--;
+
+	if (nm_utils_error_is_cancelled (error))
 		return;
 
-	nm_utils_user_data_unpack (user_data, &self, &reason);
 	deactivate_ready (self, (NMDeviceStateReason) reason);
+}
+
+static void
+sriov_reset_on_failure_cb (GError *error, gpointer user_data)
+{
+	NMDevice *self = user_data;
+	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
+
+	nm_assert (priv->sriov_reset_pending > 0);
+	priv->sriov_reset_pending--;
+
+	if (nm_utils_error_is_cancelled (error))
+		return;
+
+	if (priv->state == NM_DEVICE_STATE_FAILED) {
+		nm_device_queue_state (self,
+		                       NM_DEVICE_STATE_DISCONNECTED,
+		                       NM_DEVICE_STATE_REASON_NONE);
+	}
 }
 
 static void
@@ -16209,10 +16290,11 @@ _set_state_full (NMDevice *self,
 
 			if (   priv->ifindex > 0
 			    && (s_sriov = nm_device_get_applied_setting (self, NM_TYPE_SETTING_SRIOV))) {
+				priv->sriov_reset_pending++;
 				sriov_op_queue (self,
 				                0,
 				                NM_TERNARY_TRUE,
-				                sriov_deactivate_cb,
+				                sriov_reset_on_deactivate_cb,
 				                nm_utils_user_data_pack (self, (gpointer) reason));
 			}
 		}
@@ -16264,6 +16346,16 @@ _set_state_full (NMDevice *self,
 		if (sett_conn && !nm_settings_connection_get_timestamp (sett_conn, NULL))
 			nm_settings_connection_update_timestamp (sett_conn, (guint64) 0);
 
+		if (   priv->ifindex > 0
+		    && (s_sriov = nm_device_get_applied_setting (self, NM_TYPE_SETTING_SRIOV))) {
+			priv->sriov_reset_pending++;
+			sriov_op_queue (self,
+			                0,
+			                NM_TERNARY_TRUE,
+			                sriov_reset_on_failure_cb,
+			                self);
+			break;
+		}
 		/* Schedule the transition to DISCONNECTED.  The device can't transition
 		 * immediately because we can't change states again from the state
 		 * handler for a variety of reasons.
@@ -17827,6 +17919,12 @@ dispose (GObject *object)
 
 	nm_clear_g_source (&priv->concheck_x[0].p_cur_id);
 	nm_clear_g_source (&priv->concheck_x[1].p_cur_id);
+
+	nm_assert (!priv->sriov.pending);
+	if (priv->sriov.next) {
+		nm_g_slice_free (priv->sriov.next);
+		priv->sriov.next = NULL;
+	}
 
 	G_OBJECT_CLASS (nm_device_parent_class)->dispose (object);
 

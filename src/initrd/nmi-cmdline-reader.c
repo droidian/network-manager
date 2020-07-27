@@ -132,6 +132,7 @@ reader_get_default_connection (Reader *reader)
 		                                NULL,
 		                                NM_SETTING_WIRED_SETTING_NAME,
 		                                NM_CONNECTION_MULTI_CONNECT_MULTIPLE);
+		nm_connection_add_setting (con, nm_setting_wired_new ());
 		reader->default_connection = con;
 	}
 	return reader->default_connection;
@@ -237,19 +238,23 @@ get_word (char **argument, const char separator)
 }
 
 static void
-_base_setting_set (NMConnection *connection, const char *property, const char *value)
+connection_set (NMConnection *connection, const char *setting_name, const char *property, const char *value)
 {
 	NMSetting *setting;
-	const char *type_name = nm_connection_get_connection_type (connection);
-	GObjectClass *object_class = g_type_class_ref (nm_setting_lookup_type (type_name));
-	GParamSpec *spec = g_object_class_find_property (object_class, property);
+	GType setting_type;
+	nm_auto_unref_gtypeclass GObjectClass *object_class = NULL;
+	GParamSpec *spec;
 
-	if (!spec) {
-		_LOGW (LOGD_CORE, "'%s' does not support setting %s", type_name, property);
-		return;
+	setting_type = nm_setting_lookup_type (setting_name);
+	object_class = g_type_class_ref (setting_type);
+	spec = g_object_class_find_property (object_class, property);
+	nm_assert (spec);
+
+	setting = nm_connection_get_setting_by_name (connection, setting_name);
+	if (!setting) {
+		setting = g_object_new (setting_type, NULL);
+		nm_connection_add_setting (connection, setting);
 	}
-
-	setting = nm_connection_get_setting_by_name (connection, type_name);
 
 	if (G_IS_PARAM_SPEC_UINT (spec)) {
 		guint v;
@@ -259,14 +264,12 @@ _base_setting_set (NMConnection *connection, const char *property, const char *v
 		    || !nm_g_object_set_property_uint (G_OBJECT (setting), property, v, NULL)) {
 			_LOGW (LOGD_CORE,
 			       "Could not set property '%s.%s' to '%s'",
-			       type_name, property, value);
+			       setting_name, property, value);
 		}
 	} else if (G_IS_PARAM_SPEC_STRING (spec))
 		g_object_set (setting, property, value, NULL);
 	else
-		_LOGW (LOGD_CORE, "Don't know how to set '%s' of %s", property, type_name);
-
-	g_type_class_unref (object_class);
+		_LOGW (LOGD_CORE, "Don't know how to set '%s' of %s", property, setting_name);
 }
 
 static void
@@ -482,17 +485,7 @@ reader_parse_ip (Reader *reader, const char *sysfs_dir, char *argument)
 			              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_AUTO,
 			              NULL);
 		}
-	} else if (nm_streq0 (kind, "dhcp6")) {
-		g_object_set (s_ip6,
-		              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_DHCP,
-		              NM_SETTING_IP_CONFIG_MAY_FAIL, FALSE,
-		              NULL);
-		if (nm_setting_ip_config_get_num_addresses (s_ip4) == 0) {
-			g_object_set (s_ip4,
-			              NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP4_CONFIG_METHOD_DISABLED,
-			              NULL);
-		}
-	} else if (nm_streq0 (kind, "auto6")) {
+	} else if (NM_IN_STRSET (kind, "auto6", "dhcp6")) {
 		g_object_set (s_ip4,
 		              NM_SETTING_IP_CONFIG_MAY_FAIL, FALSE,
 		              NULL);
@@ -577,10 +570,10 @@ reader_parse_ip (Reader *reader, const char *sysfs_dir, char *argument)
 	}
 
 	if (mtu && *mtu)
-		_base_setting_set (connection, "mtu", mtu);
+		connection_set (connection, NM_SETTING_WIRED_SETTING_NAME, NM_SETTING_WIRED_MTU, mtu);
 
 	if (macaddr && *macaddr)
-		_base_setting_set (connection, "cloned-mac-address", macaddr);
+		connection_set (connection, NM_SETTING_WIRED_SETTING_NAME, NM_SETTING_WIRED_CLONED_MAC_ADDRESS, macaddr);
 }
 
 static void
@@ -635,7 +628,7 @@ reader_parse_master (Reader *reader,
 		              NM_SETTING_CONNECTION_MASTER, master,
 		              NULL);
 		if (mtu)
-			_base_setting_set (connection, "mtu", mtu);
+			connection_set (connection, NM_SETTING_WIRED_SETTING_NAME, NM_SETTING_WIRED_MTU, mtu);
 	} while (slaves && *slaves != '\0');
 
 	if (argument && *argument)

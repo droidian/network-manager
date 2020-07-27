@@ -456,6 +456,42 @@ nm_ip6_config_update_routes_metric (NMIP6Config *self, gint64 metric)
 	g_object_thaw_notify (G_OBJECT (self));
 }
 
+static void
+_add_multicast_route6 (NMIP6Config *self, int ifindex)
+{
+	nm_auto_nmpobj NMPObject *r = NULL;
+	NMPlatformIP6Route *route;
+
+	r = nmp_object_new (NMP_OBJECT_TYPE_IP6_ROUTE, NULL);
+	route = NMP_OBJECT_CAST_IP6_ROUTE (r);
+	route->ifindex = ifindex;
+	route->network.s6_addr[0] = 0xffu;
+	route->plen = 8;
+	route->table_coerced = nm_platform_route_table_coerce (RT_TABLE_LOCAL);
+	route->type_coerced = nm_platform_route_type_coerce (RTN_UNICAST);
+	route->metric = 256;
+
+	_add_route (self, r, NULL, NULL);
+}
+
+static void
+_add_local_route_from_addr6 (NMIP6Config *self, const NMPlatformIP6Address *addr, int ifindex)
+{
+	nm_auto_nmpobj NMPObject *r = NULL;
+	NMPlatformIP6Route *route;
+
+	r = nmp_object_new (NMP_OBJECT_TYPE_IP6_ROUTE, NULL);
+	route = NMP_OBJECT_CAST_IP6_ROUTE (r);
+	route->ifindex = ifindex;
+	route->network = addr->address;
+	route->plen = 128;
+	route->table_coerced = nm_platform_route_table_coerce (RT_TABLE_LOCAL);
+	route->type_coerced = nm_platform_route_type_coerce (RTN_LOCAL);
+	route->metric = 0;
+
+	_add_route (self, r, NULL, NULL);
+}
+
 void
 nm_ip6_config_add_dependent_routes (NMIP6Config *self,
                                     guint32 route_table,
@@ -476,6 +512,9 @@ nm_ip6_config_add_dependent_routes (NMIP6Config *self,
 	 *
 	 * For manually added IPv6 routes, add the device routes explicitly. */
 
+	/* Pre-generate multicast route */
+	_add_multicast_route6 (self, ifindex);
+
 	nm_ip_config_iter_ip6_address_for_each (&iter, self, &my_addr) {
 		NMPlatformIP6Route *route;
 		gboolean has_peer;
@@ -483,6 +522,10 @@ nm_ip6_config_add_dependent_routes (NMIP6Config *self,
 
 		if (my_addr->external)
 			continue;
+
+		/* Pre-generate local route added by kernel */
+		_add_local_route_from_addr6 (self, my_addr, ifindex);
+
 		if (NM_FLAGS_HAS (my_addr->n_ifa_flags, IFA_F_NOPREFIXROUTE))
 			continue;
 		if (my_addr->plen == 0)
@@ -650,6 +693,7 @@ nm_ip6_config_merge_setting (NMIP6Config *self,
 	for (i = 0; i < nroutes; i++) {
 		NMIPRoute *s_route = nm_setting_ip_config_get_route (setting, i);
 		NMPlatformIP6Route route;
+		gint64 m;
 
 		if (nm_ip_route_get_family (s_route) != AF_INET6) {
 			nm_assert_not_reached ();
@@ -663,10 +707,11 @@ nm_ip6_config_merge_setting (NMIP6Config *self,
 		nm_assert (route.plen <= 128);
 
 		nm_ip_route_get_next_hop_binary (s_route, &route.gateway);
-		if (nm_ip_route_get_metric (s_route) == -1)
+		m = nm_ip_route_get_metric (s_route);
+		if (m < 0)
 			route.metric = route_metric;
 		else
-			route.metric = nm_ip_route_get_metric (s_route);
+			route.metric = nm_utils_ip6_route_metric_normalize (m);
 		route.rt_source = NM_IP_CONFIG_SOURCE_USER;
 
 		nm_utils_ip6_address_clear_host_address (&route.network, &route.network, route.plen);
@@ -797,8 +842,10 @@ nm_ip6_config_create_setting (const NMIP6Config *self)
 			continue;
 
 		s_route = nm_ip_route_new_binary (AF_INET6,
-		                                  &route->network, route->plen,
-		                                  &route->gateway, route->metric,
+		                                  &route->network,
+		                                  route->plen,
+		                                  &route->gateway,
+		                                  route->metric,
 		                                  NULL);
 		nm_setting_ip_config_add_route (s_ip6, s_route);
 		nm_ip_route_unref (s_route);
@@ -882,7 +929,7 @@ nm_ip6_config_merge (NMIP6Config *dst,
 				if (default_route_metric_penalty) {
 					NMPlatformIP6Route r = *r_src;
 
-					r.metric = nm_utils_ip_route_metric_penalize (AF_INET6, r.metric, default_route_metric_penalty);
+					r.metric = nm_utils_ip_route_metric_penalize (r.metric, default_route_metric_penalty);
 					_add_route (dst, NULL, &r, NULL);
 					continue;
 				}
@@ -1052,7 +1099,7 @@ nm_ip6_config_subtract (NMIP6Config *dst,
 			 * the routes. */
 			o_lookup = nmp_object_stackinit_obj (&o_lookup_copy, o_src);
 			rr = NMP_OBJECT_CAST_IP6_ROUTE (&o_lookup_copy);
-			rr->metric = nm_utils_ip_route_metric_penalize (AF_INET6, rr->metric, default_route_metric_penalty);
+			rr->metric = nm_utils_ip_route_metric_penalize (rr->metric, default_route_metric_penalty);
 		} else
 			o_lookup = o_src;
 
@@ -1173,7 +1220,7 @@ _nm_ip6_config_intersect_helper (NMIP6Config *dst,
 			 * the routes. */
 			o_lookup = nmp_object_stackinit_obj (&o_lookup_copy, o_dst);
 			rr = NMP_OBJECT_CAST_IP6_ROUTE (&o_lookup_copy);
-			rr->metric = nm_utils_ip_route_metric_penalize (AF_INET6, rr->metric, default_route_metric_penalty);
+			rr->metric = nm_utils_ip_route_metric_penalize (rr->metric, default_route_metric_penalty);
 		} else
 			o_lookup = o_dst;
 
@@ -2052,8 +2099,8 @@ nm_ip6_config_get_direct_route_for_host (const NMIP6Config *self,
 		if (!nm_utils_ip6_address_same_prefix (host, &item->network, item->plen))
 			continue;
 
-		if (best_route &&
-		    nm_utils_ip6_route_metric_normalize (best_route->metric) <= nm_utils_ip6_route_metric_normalize (item->metric))
+		if (   best_route
+		    && best_route->metric <= item->metric)
 			continue;
 
 		best_route = item;
