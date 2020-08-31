@@ -276,7 +276,7 @@
 <a name="nm-settings-dbus.property.connection.wait-device-timeout"></a>wait-device-timeout</td>
 <td align="left">int32</td>
 <td align="left">-1</td>
-<td>Timeout in milliseconds to wait for device at startup. During boot, devices may take a while to be detected by the driver. This property will cause to delay NetworkManager-wait-online.service and nm-online to give the device a chance to appear. Note that this property only works together with NMSettingConnection:interface-name to identify the device that will be waited for. The value 0 means no wait time. The default value is -1, which currently has the same meaning as no wait time.</td>
+<td>Timeout in milliseconds to wait for device at startup. During boot, devices may take a while to be detected by the driver. This property will cause to delay NetworkManager-wait-online.service and nm-online to give the device a chance to appear. This works by waiting for the given timeout until a compatible device for the profile is available and managed. The value 0 means no wait time. The default value is -1, which currently has the same meaning as no wait time.</td>
 </tr>
 <tr>
 <td align="left">

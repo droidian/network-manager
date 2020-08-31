@@ -107,7 +107,7 @@ lease_to_ip4_config (NMDedupMultiIndex *multi_idx,
 	guint32 rebinding;
 	gs_free nm_sd_dhcp_option *private_options = NULL;
 
-	g_return_val_if_fail (lease != NULL, NULL);
+	nm_assert (lease != NULL);
 
 	if (sd_dhcp_lease_get_address (lease, &a_address) < 0) {
 		nm_utils_error_set_literal (error, NM_UTILS_ERROR_UNKNOWN, "could not get address from lease");
@@ -481,9 +481,9 @@ bound4_handle (NMDhcpSystemd *self, gboolean extended)
 {
 	NMDhcpSystemdPrivate *priv = NM_DHCP_SYSTEMD_GET_PRIVATE (self);
 	const char *iface = nm_dhcp_client_get_iface (NM_DHCP_CLIENT (self));
-	sd_dhcp_lease *lease;
 	gs_unref_object NMIP4Config *ip4_config = NULL;
 	gs_unref_hashtable GHashTable *options = NULL;
+	sd_dhcp_lease *lease = NULL;
 	GError *error = NULL;
 
 	if (   sd_dhcp_client_get_lease (priv->client4, &lease) < 0
@@ -740,10 +740,11 @@ lease_to_ip6_config (NMDedupMultiIndex *multi_idx,
 	uint32_t lft_pref, lft_valid;
 	char addr_str[NM_UTILS_INET_ADDRSTRLEN];
 	char **domains;
+	const char *s;
 	nm_auto_free_gstring GString *str = NULL;
 	int num, i;
 
-	g_return_val_if_fail (lease, NULL);
+	nm_assert (lease);
 
 	ip6_config = nm_ip6_config_new (multi_idx, ifindex);
 
@@ -808,6 +809,13 @@ lease_to_ip6_config (NMDedupMultiIndex *multi_idx,
 		                           str->str);
 	}
 
+	if (sd_dhcp6_lease_get_fqdn (lease, &s) >= 0) {
+		nm_dhcp_option_add_option (options,
+		                           _nm_dhcp_option_dhcp6_options,
+		                           NM_DHCP_OPTION_DHCP6_FQDN,
+		                           s);
+	}
+
 	NM_SET_OUT (out_options, g_steal_pointer (&options));
 	return g_steal_pointer (&ip6_config);
 }
@@ -822,7 +830,7 @@ bound6_handle (NMDhcpSystemd *self)
 	gs_unref_hashtable GHashTable *options = NULL;
 	gs_free_error GError *error = NULL;
 	NMPlatformIP6Address prefix = { 0 };
-	sd_dhcp6_lease *lease;
+	sd_dhcp6_lease *lease = NULL;
 
 	if (   sd_dhcp6_client_get_lease (priv->client6, &lease) < 0
 	    || !lease) {
@@ -903,16 +911,12 @@ ip6_start (NMDhcpClient *client,
 	NMDhcpSystemd *self = NM_DHCP_SYSTEMD (client);
 	NMDhcpSystemdPrivate *priv = NM_DHCP_SYSTEMD_GET_PRIVATE (self);
 	nm_auto (sd_dhcp6_client_unrefp) sd_dhcp6_client *sd_client = NULL;
-	GBytes *hwaddr;
 	const char *hostname;
 	const char *mud_url;
 	int r, i;
 	const guint8 *duid_arr;
 	gsize duid_len;
 	GBytes *duid;
-	const uint8_t *hwaddr_arr;
-	gsize hwaddr_len;
-	int arp_type;
 
 	g_return_val_if_fail (!priv->client4, FALSE);
 	g_return_val_if_fail (!priv->client6, FALSE);
@@ -954,22 +958,6 @@ ip6_start (NMDhcpClient *client,
 	r = sd_dhcp6_client_attach_event (sd_client, NULL, 0);
 	if (r < 0) {
 		nm_utils_error_set_errno (error, r, "failed to attach event: %s");
-		return FALSE;
-	}
-
-	hwaddr = nm_dhcp_client_get_hw_addr (client);
-	if (   !hwaddr
-	    || !(hwaddr_arr = g_bytes_get_data (hwaddr, &hwaddr_len))
-	    || (arp_type = nm_utils_arp_type_detect_from_hwaddrlen (hwaddr_len)) < 0) {
-		nm_utils_error_set_literal (error, NM_UTILS_ERROR_UNKNOWN, "invalid MAC address");
-		return FALSE;
-	}
-	r = sd_dhcp6_client_set_mac (sd_client,
-	                             hwaddr_arr,
-	                             hwaddr_len,
-	                             (guint16) arp_type);
-	if (r < 0) {
-		nm_utils_error_set_errno (error, r, "failed to set MAC address: %s");
 		return FALSE;
 	}
 

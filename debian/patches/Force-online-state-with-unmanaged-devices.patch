@@ -12,7 +12,7 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=512286
  1 file changed, 115 insertions(+)
 
 diff --git a/src/nm-manager.c b/src/nm-manager.c
-index 9211253..32a6412 100644
+index 778e3b9..d0cc527 100644
 --- a/src/nm-manager.c
 +++ b/src/nm-manager.c
 @@ -52,6 +52,8 @@
@@ -73,7 +73,7 @@ index 9211253..32a6412 100644
  	if (   new_state >= NM_STATE_CONNECTED_LOCAL
  	    && priv->connectivity_state == NM_CONNECTIVITY_FULL) {
  		new_state = NM_STATE_CONNECTED_GLOBAL;
-@@ -6547,6 +6577,62 @@ impl_manager_check_connectivity (NMDBusObject *obj,
+@@ -6566,6 +6596,62 @@ impl_manager_check_connectivity (NMDBusObject *obj,
  	nm_auth_chain_add_call (chain, NM_AUTH_PERMISSION_NETWORK_CONTROL, TRUE);
  }
  
@@ -136,7 +136,7 @@ index 9211253..32a6412 100644
  static void
  start_factory (NMDeviceFactory *factory, gpointer user_data)
  {
-@@ -6730,6 +6816,9 @@ nm_manager_start (NMManager *self, GError **error)
+@@ -6749,6 +6835,9 @@ nm_manager_start (NMManager *self, GError **error)
  	nm_clear_g_source (&priv->devices_inited_id);
  	priv->devices_inited_id = g_idle_add_full (G_PRIORITY_LOW + 10, devices_inited_cb, self, NULL);
  
@@ -146,7 +146,7 @@ index 9211253..32a6412 100644
  	return TRUE;
  }
  
-@@ -7584,6 +7673,22 @@ nm_manager_init (NMManager *self)
+@@ -7603,6 +7692,22 @@ nm_manager_init (NMManager *self)
  		       KERNEL_FIRMWARE_DIR);
  	}
  
@@ -169,7 +169,7 @@ index 9211253..32a6412 100644
  	/* Update timestamps in active connections */
  	priv->timestamp_update_id = g_timeout_add_seconds (300, (GSourceFunc) periodic_update_active_connection_timestamps, self);
  
-@@ -7863,6 +7968,16 @@ dispose (GObject *object)
+@@ -7882,6 +7987,16 @@ dispose (GObject *object)
  		g_clear_object (&priv->fw_monitor);
  	}
  

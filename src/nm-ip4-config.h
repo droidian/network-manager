@@ -83,7 +83,8 @@ nm_ip_config_best_default_route_is (const NMPObject *obj)
 	 * Note that this only considers the main routing table. */
 	return    r
 	       && NM_PLATFORM_IP_ROUTE_IS_DEFAULT (r)
-	       && nm_platform_route_table_is_main (r->table_coerced);
+	       && nm_platform_route_table_is_main (r->table_coerced)
+	       && r->type_coerced == nm_platform_route_type_coerce (1 /*RTN_UNICAST*/);
 }
 
 const NMPObject *_nm_ip_config_best_default_route_find_better (const NMPObject *obj_cur, const NMPObject *obj_cmp);
@@ -157,9 +158,10 @@ NMDedupMultiIndex *nm_ip4_config_get_multi_idx (const NMIP4Config *self);
 NMIP4Config *nm_ip4_config_capture (NMDedupMultiIndex *multi_idx, NMPlatform *platform, int ifindex);
 
 void nm_ip4_config_add_dependent_routes (NMIP4Config *self,
-                                         guint32 route_table,
-                                         guint32 route_metric,
-                                         GPtrArray **out_ip4_dev_route_blacklist);
+                                         guint32      route_table,
+                                         guint32      route_metric,
+                                         gboolean     is_vrf,
+                                         GPtrArray ** out_ip4_dev_route_blacklist);
 
 gboolean nm_ip4_config_commit (const NMIP4Config *self,
                                NMPlatform *platform,
