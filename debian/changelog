@@ -1,4 +1,4 @@
-network-manager (1.26.2-1ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.26.2-1ubuntu1) groovy; urgency=medium
 
   * Update to the current stable version
 
