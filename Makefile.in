@@ -135,7 +135,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-noinst_PROGRAMS =  \
+noinst_PROGRAMS = src/NetworkManager-all-sym$(EXEEXT) \
 	clients/cli/generate-docs-nm-settings-nmcli$(EXEEXT) \
 	$(am__EXEEXT_18)
 check_PROGRAMS = $(am__EXEEXT_16)
@@ -2084,6 +2084,16 @@ src_NetworkManager_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(src_NetworkManager_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_src_NetworkManager_all_sym_OBJECTS =  \
+	src/NetworkManager_all_sym-main.$(OBJEXT)
+src_NetworkManager_all_sym_OBJECTS =  \
+	$(am_src_NetworkManager_all_sym_OBJECTS)
+src_NetworkManager_all_sym_DEPENDENCIES = src/libNetworkManager.la \
+	$(am__DEPENDENCIES_1)
+src_NetworkManager_all_sym_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(src_NetworkManager_all_sym_LDFLAGS) \
+	$(LDFLAGS) -o $@
 src_devices_bluetooth_tests_nm_bt_test_SOURCES =  \
 	src/devices/bluetooth/tests/nm-bt-test.c
 src_devices_bluetooth_tests_nm_bt_test_OBJECTS =  \
@@ -2911,6 +2921,7 @@ am__depfiles_remade = clients/$(DEPDIR)/nm_online-nm-online.Po \
 	shared/systemd/src/shared/$(DEPDIR)/libnm_systemd_shared_la-dns-domain.Plo \
 	shared/systemd/src/shared/$(DEPDIR)/libnm_systemd_shared_la-web-util.Plo \
 	src/$(DEPDIR)/NetworkManager-main.Po \
+	src/$(DEPDIR)/NetworkManager_all_sym-main.Po \
 	src/$(DEPDIR)/libNetworkManagerBase_la-NetworkManagerUtils.Plo \
 	src/$(DEPDIR)/libNetworkManagerBase_la-main-utils.Plo \
 	src/$(DEPDIR)/libNetworkManagerBase_la-nm-core-utils.Plo \
@@ -3250,6 +3261,7 @@ SOURCES = $(clients_tui_newt_libnmt_newt_a_SOURCES) \
 	$(libnm_tests_test_secret_agent_SOURCES) \
 	shared/nm-glib-aux/tests/test-shared-general.c \
 	$(src_NetworkManager_SOURCES) \
+	$(src_NetworkManager_all_sym_SOURCES) \
 	src/devices/bluetooth/tests/nm-bt-test.c \
 	src/devices/tests/test-acd.c src/devices/tests/test-lldp.c \
 	$(src_devices_wifi_tests_test_devices_wifi_SOURCES) \
@@ -3360,6 +3372,7 @@ DIST_SOURCES = $(am__clients_tui_newt_libnmt_newt_a_SOURCES_DIST) \
 	$(libnm_tests_test_secret_agent_SOURCES) \
 	shared/nm-glib-aux/tests/test-shared-general.c \
 	$(src_NetworkManager_SOURCES) \
+	$(src_NetworkManager_all_sym_SOURCES) \
 	src/devices/bluetooth/tests/nm-bt-test.c \
 	src/devices/tests/test-acd.c src/devices/tests/test-lldp.c \
 	$(am__src_devices_wifi_tests_test_devices_wifi_SOURCES_DIST) \
@@ -6645,6 +6658,20 @@ src_libNetworkManagerTest_la_LIBADD = \
 	$(CODE_COVERAGE_LDFLAGS) \
 	$(GLIB_LIBS) \
 	$(LIBUDEV_LIBS) \
+	$(NULL)
+
+src_NetworkManager_all_sym_CPPFLAGS = $(src_cppflags)
+src_NetworkManager_all_sym_SOURCES = \
+	src/main.c
+
+src_NetworkManager_all_sym_LDADD = \
+	src/libNetworkManager.la \
+	$(GLIB_LIBS) \
+	$(NULL)
+
+src_NetworkManager_all_sym_LDFLAGS = \
+	-rdynamic \
+	$(SANITIZER_EXEC_LDFLAGS) \
 	$(NULL)
 
 EXTRA_src_NetworkManager_DEPENDENCIES = \
@@ -10486,6 +10513,12 @@ src/NetworkManager-main.$(OBJEXT): src/$(am__dirstamp) \
 src/NetworkManager$(EXEEXT): $(src_NetworkManager_OBJECTS) $(src_NetworkManager_DEPENDENCIES) $(EXTRA_src_NetworkManager_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/NetworkManager$(EXEEXT)
 	$(AM_V_CCLD)$(src_NetworkManager_LINK) $(src_NetworkManager_OBJECTS) $(src_NetworkManager_LDADD) $(LIBS)
+src/NetworkManager_all_sym-main.$(OBJEXT): src/$(am__dirstamp) \
+	src/$(DEPDIR)/$(am__dirstamp)
+
+src/NetworkManager-all-sym$(EXEEXT): $(src_NetworkManager_all_sym_OBJECTS) $(src_NetworkManager_all_sym_DEPENDENCIES) $(EXTRA_src_NetworkManager_all_sym_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/NetworkManager-all-sym$(EXEEXT)
+	$(AM_V_CCLD)$(src_NetworkManager_all_sym_LINK) $(src_NetworkManager_all_sym_OBJECTS) $(src_NetworkManager_all_sym_LDADD) $(LIBS)
 src/devices/bluetooth/tests/$(am__dirstamp):
 	@$(MKDIR_P) src/devices/bluetooth/tests
 	@: > src/devices/bluetooth/tests/$(am__dirstamp)
@@ -11395,6 +11428,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@shared/systemd/src/shared/$(DEPDIR)/libnm_systemd_shared_la-dns-domain.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@shared/systemd/src/shared/$(DEPDIR)/libnm_systemd_shared_la-web-util.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/NetworkManager-main.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/NetworkManager_all_sym-main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/libNetworkManagerBase_la-NetworkManagerUtils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/libNetworkManagerBase_la-main-utils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/libNetworkManagerBase_la-nm-core-utils.Plo@am__quote@ # am--include-marker
@@ -16171,6 +16205,20 @@ src/NetworkManager-main.obj: src/main.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_NetworkManager_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/NetworkManager-main.obj `if test -f 'src/main.c'; then $(CYGPATH_W) 'src/main.c'; else $(CYGPATH_W) '$(srcdir)/src/main.c'; fi`
 
+src/NetworkManager_all_sym-main.o: src/main.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_NetworkManager_all_sym_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/NetworkManager_all_sym-main.o -MD -MP -MF src/$(DEPDIR)/NetworkManager_all_sym-main.Tpo -c -o src/NetworkManager_all_sym-main.o `test -f 'src/main.c' || echo '$(srcdir)/'`src/main.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/$(DEPDIR)/NetworkManager_all_sym-main.Tpo src/$(DEPDIR)/NetworkManager_all_sym-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/main.c' object='src/NetworkManager_all_sym-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_NetworkManager_all_sym_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/NetworkManager_all_sym-main.o `test -f 'src/main.c' || echo '$(srcdir)/'`src/main.c
+
+src/NetworkManager_all_sym-main.obj: src/main.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_NetworkManager_all_sym_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/NetworkManager_all_sym-main.obj -MD -MP -MF src/$(DEPDIR)/NetworkManager_all_sym-main.Tpo -c -o src/NetworkManager_all_sym-main.obj `if test -f 'src/main.c'; then $(CYGPATH_W) 'src/main.c'; else $(CYGPATH_W) '$(srcdir)/src/main.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/$(DEPDIR)/NetworkManager_all_sym-main.Tpo src/$(DEPDIR)/NetworkManager_all_sym-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/main.c' object='src/NetworkManager_all_sym-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_NetworkManager_all_sym_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/NetworkManager_all_sym-main.obj `if test -f 'src/main.c'; then $(CYGPATH_W) 'src/main.c'; else $(CYGPATH_W) '$(srcdir)/src/main.c'; fi`
+
 src/devices/bluetooth/tests/nm_bt_test-nm-bt-test.o: src/devices/bluetooth/tests/nm-bt-test.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_devices_bluetooth_tests_nm_bt_test_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/devices/bluetooth/tests/nm_bt_test-nm-bt-test.o -MD -MP -MF src/devices/bluetooth/tests/$(DEPDIR)/nm_bt_test-nm-bt-test.Tpo -c -o src/devices/bluetooth/tests/nm_bt_test-nm-bt-test.o `test -f 'src/devices/bluetooth/tests/nm-bt-test.c' || echo '$(srcdir)/'`src/devices/bluetooth/tests/nm-bt-test.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/devices/bluetooth/tests/$(DEPDIR)/nm_bt_test-nm-bt-test.Tpo src/devices/bluetooth/tests/$(DEPDIR)/nm_bt_test-nm-bt-test.Po
@@ -18850,6 +18898,7 @@ distclean: distclean-recursive
 	-rm -f shared/systemd/src/shared/$(DEPDIR)/libnm_systemd_shared_la-dns-domain.Plo
 	-rm -f shared/systemd/src/shared/$(DEPDIR)/libnm_systemd_shared_la-web-util.Plo
 	-rm -f src/$(DEPDIR)/NetworkManager-main.Po
+	-rm -f src/$(DEPDIR)/NetworkManager_all_sym-main.Po
 	-rm -f src/$(DEPDIR)/libNetworkManagerBase_la-NetworkManagerUtils.Plo
 	-rm -f src/$(DEPDIR)/libNetworkManagerBase_la-main-utils.Plo
 	-rm -f src/$(DEPDIR)/libNetworkManagerBase_la-nm-core-utils.Plo
@@ -19495,6 +19544,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f shared/systemd/src/shared/$(DEPDIR)/libnm_systemd_shared_la-dns-domain.Plo
 	-rm -f shared/systemd/src/shared/$(DEPDIR)/libnm_systemd_shared_la-web-util.Plo
 	-rm -f src/$(DEPDIR)/NetworkManager-main.Po
+	-rm -f src/$(DEPDIR)/NetworkManager_all_sym-main.Po
 	-rm -f src/$(DEPDIR)/libNetworkManagerBase_la-NetworkManagerUtils.Plo
 	-rm -f src/$(DEPDIR)/libNetworkManagerBase_la-main-utils.Plo
 	-rm -f src/$(DEPDIR)/libNetworkManagerBase_la-nm-core-utils.Plo
@@ -20016,9 +20066,9 @@ $(src_libNetworkManager_la_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
 
 $(src_libNetworkManagerTest_la_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
 
-###############################################################################
+$(src_NetworkManager_all_sym_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
 
-src/NetworkManager.ver: src/libNetworkManager.la $(core_plugins)
+src/NetworkManager.ver: src/NetworkManager-all-sym $(core_plugins)
 	$(AM_V_GEN) NM="$(NM)" "$(srcdir)/tools/create-exports-NetworkManager.sh" --called-from-build "$(srcdir)"
 
 $(src_NetworkManager_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
@@ -20255,6 +20305,7 @@ $(clients_cli_generate_docs_nm_settings_nmcli_OBJECTS): $(libnm_lib_h_pub_mkenum
 
 check-local-clients-tests-test-client: clients/cli/nmcli clients/tests/test-client.py
 	mkdir -p "$(builddir)/clients/tests/"
+	"$(builddir)/clients/cli/nmcli" --version
 	GI_TYPELIB_PATH="$(abs_builddir)/libnm$${GI_TYPELIB_PATH:+:$$GI_TYPELIB_PATH}" \
 	LD_LIBRARY_PATH="$(abs_builddir)/libnm/.libs$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH}" \
 	NM_TEST_CLIENT_BUILDDIR="$(abs_builddir)" \

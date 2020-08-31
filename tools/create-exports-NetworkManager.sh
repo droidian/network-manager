@@ -40,11 +40,7 @@ call_nm() {
 }
 
 get_symbols_nm () {
-    if [ -z "$from_meson" ]; then
-        base=./src/.libs/libNetworkManager.a
-    else
-        base=./src/nm-full-symbols
-    fi
+    base=./src/NetworkManager-all-sym
     call_nm "$base" |
         sed -n 's/^[tTDGRBS] //p' |
         _sort
@@ -104,6 +100,7 @@ if [ -f "build.ninja" ]; then
     from_meson=1
     libs=
 else
+    from_meson=
     libs=.libs/
 fi
 

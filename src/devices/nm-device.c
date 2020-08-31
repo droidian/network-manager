@@ -68,6 +68,7 @@
 
 #include "nm-device-generic.h"
 #include "nm-device-vlan.h"
+#include "nm-device-vrf.h"
 #include "nm-device-wireguard.h"
 
 #include "nm-device-logging.h"
@@ -8097,15 +8098,21 @@ ip_config_merge_and_apply (NMDevice *self,
 	}
 
 	if (commit) {
+		gboolean is_vrf;
+
+		is_vrf = priv->master && nm_device_get_device_type (priv->master) == NM_DEVICE_TYPE_VRF;
+
 		if (IS_IPv4) {
 			nm_ip4_config_add_dependent_routes (NM_IP4_CONFIG (composite),
 			                                    nm_device_get_route_table (self, addr_family),
 			                                    nm_device_get_route_metric (self, addr_family),
+			                                    is_vrf,
 			                                    &ip4_dev_route_blacklist);
 		} else {
 			nm_ip6_config_add_dependent_routes (NM_IP6_CONFIG (composite),
 			                                    nm_device_get_route_table (self, addr_family),
-			                                    nm_device_get_route_metric (self, addr_family));
+			                                    nm_device_get_route_metric (self, addr_family),
+			                                    is_vrf);
 		}
 	}
 
@@ -9534,7 +9541,6 @@ dhcp6_start_with_link_ready (NMDevice *self, NMConnection *connection)
 	NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE (self);
 	NMSettingIPConfig *s_ip6;
 	gs_unref_bytes GBytes *hwaddr = NULL;
-	gs_unref_bytes GBytes *bcast_hwaddr = NULL;
 	gs_unref_bytes GBytes *duid = NULL;
 	gboolean enforce_duid = FALSE;
 	const NMPlatformLink *pllink;
@@ -9564,20 +9570,16 @@ dhcp6_start_with_link_ready (NMDevice *self, NMConnection *connection)
 	}
 
 	pllink = nm_platform_link_get (nm_device_get_platform (self), nm_device_get_ip_ifindex (self));
-	if (pllink) {
+	if (pllink)
 		hwaddr = nmp_link_address_get_as_bytes (&pllink->l_address);
-		bcast_hwaddr = nmp_link_address_get_as_bytes (&pllink->l_broadcast);
-	}
 
 	iaid = dhcp_get_iaid (self, AF_INET6, connection, &iaid_explicit);
-
 	duid = dhcp6_get_duid (self, connection, hwaddr, &enforce_duid);
+
 	priv->dhcp_data_6.client = nm_dhcp_manager_start_ip6 (nm_dhcp_manager_get (),
 	                                                      nm_device_get_multi_index (self),
 	                                                      nm_device_get_ip_iface (self),
 	                                                      nm_device_get_ip_ifindex (self),
-	                                                      hwaddr,
-	                                                      bcast_hwaddr,
 	                                                      &ll_addr->address,
 	                                                      nm_connection_get_uuid (connection),
 	                                                      nm_device_get_route_table (self, AF_INET6),
@@ -10261,14 +10263,25 @@ _commit_mtu (NMDevice *self, const NMIP4Config *config)
 			if (!nm_device_sysctl_ip_conf_set (self, AF_INET6, "mtu",
 			                                   nm_sprintf_buf (sbuf, "%u", (unsigned) ip6_mtu))) {
 				int errsv = errno;
+				NMLogLevel level = LOGL_WARN;
+				const char *msg = NULL;
 
-				_NMLOG (anticipated_failure && errsv == EINVAL ? LOGL_DEBUG : LOGL_WARN,
-				        LOGD_DEVICE,
-				        "mtu: failure to set IPv6 MTU%s",
-				        anticipated_failure && errsv == EINVAL
-				           ? ": Is the underlying MTU value successfully set?"
-				           : "");
 				success = FALSE;
+
+				if (anticipated_failure && errsv == EINVAL) {
+					level = LOGL_DEBUG;
+					msg = "Is the underlying MTU value successfully set?";
+				} else if (!g_file_test ("/proc/sys/net/ipv6", G_FILE_TEST_IS_DIR)) {
+					level = LOGL_DEBUG;
+					msg = "IPv6 is disabled";
+					success = TRUE;
+				}
+
+				_NMLOG (level,
+				        LOGD_DEVICE,
+				        "mtu: failure to set IPv6 MTU%s%s",
+				        msg ? ": " : "",
+				        msg ?: "");
 			}
 			priv->carrier_wait_until_ms = nm_utils_get_monotonic_timestamp_msec () + CARRIER_WAIT_TIME_AFTER_MTU_MS;
 		}
