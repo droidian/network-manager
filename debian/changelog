@@ -1,4 +1,4 @@
-network-manager (1.28.0-2ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.28.0-2ubuntu1) hirsute; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
     - Use systemd-resolved instead of dnsmasq
