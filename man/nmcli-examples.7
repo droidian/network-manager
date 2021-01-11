@@ -2,12 +2,12 @@
 .\"     Title: nmcli-examples
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 08/19/2020
+.\"      Date: 12/06/2020
 .\"    Manual: Examples
-.\"    Source: NetworkManager 1.26.2
+.\"    Source: NetworkManager 1.28.0
 .\"  Language: English
 .\"
-.TH "NMCLI\-EXAMPLES" "7" "" "NetworkManager 1\&.26\&.2" "Examples"
+.TH "NMCLI\-EXAMPLES" "7" "" "NetworkManager 1\&.28\&.0" "Examples"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -284,7 +284,7 @@ This example demonstrates adding a team master connection profile and two slaves
 file\&. Later, you can change the configuration with
 \fImodify\fR
 command (\fBnmcli con modify Team1 team\&.config team1\-master\-another\-json\&.conf\fR)\&. The last two commands add slaves profiles, both enslaved to
-\fITeam1\fR\&. The first slave will be bound to
+\fITeam1\fR\&. The first slave will be bound to the
 \fIem1\fR
 interface, the second to
 \fIem2\fR\&. The slaves don\*(Aqt specify
@@ -413,7 +413,7 @@ and configuring 3 SR\-IOV virtual functions (VFs) on it\&. The first VF is confi
 \fItrust\fR
 and
 \fIspoof\-check\fR
-features respectively enabled and disabled\&. VF number 2 has a maximux transmission rate of 20Mbps\&. The kernel is instructed to not automatically instantiate a network interface for the VFs\&.
+features respectively enabled and disabled\&. VF number 2 has a maximum transmission rate of 20Mbps\&. The kernel is instructed to not automatically instantiate a network interface for the VFs\&.
 .PP
 \fBExample\ \&14.\ \&Escaping colon characters in tabular mode\fR
 .sp

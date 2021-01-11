@@ -1277,9 +1277,11 @@
     <keyword type="function" name="nm_setting_ip4_config_new ()" link="NMSettingIP4Config.html#nm-setting-ip4-config-new"/>
     <keyword type="function" name="nm_setting_ip4_config_get_dhcp_client_id ()" link="NMSettingIP4Config.html#nm-setting-ip4-config-get-dhcp-client-id"/>
     <keyword type="function" name="nm_setting_ip4_config_get_dhcp_fqdn ()" link="NMSettingIP4Config.html#nm-setting-ip4-config-get-dhcp-fqdn" since="1.2"/>
+    <keyword type="function" name="nm_setting_ip4_config_get_dhcp_vendor_class_identifier ()" link="NMSettingIP4Config.html#nm-setting-ip4-config-get-dhcp-vendor-class-identifier" since="1.28"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_SETTING_NAME" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-SETTING-NAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_DHCP_CLIENT_ID" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-DHCP-CLIENT-ID:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_DHCP_FQDN" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-DHCP-FQDN:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_IP4_CONFIG_DHCP_VENDOR_CLASS_IDENTIFIER" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-DHCP-VENDOR-CLASS-IDENTIFIER:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_METHOD_AUTO" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-METHOD-AUTO:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_METHOD_LINK_LOCAL" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-METHOD-LINK-LOCAL:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP4_CONFIG_METHOD_MANUAL" link="NMSettingIP4Config.html#NM-SETTING-IP4-CONFIG-METHOD-MANUAL:CAPS"/>
@@ -1288,6 +1290,7 @@
     <keyword type="struct" name="NMSettingIP4Config" link="NMSettingIP4Config.html#NMSettingIP4Config-struct"/>
     <keyword type="property" name="The “dhcp-client-id” property" link="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-client-id"/>
     <keyword type="property" name="The “dhcp-fqdn” property" link="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-fqdn"/>
+    <keyword type="property" name="The “dhcp-vendor-class-identifier” property" link="NMSettingIP4Config.html#NMSettingIP4Config--dhcp-vendor-class-identifier"/>
     <keyword type="function" name="nm_setting_ip6_config_new ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-new"/>
     <keyword type="function" name="nm_setting_ip6_config_get_ip6_privacy ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-get-ip6-privacy"/>
     <keyword type="function" name="nm_setting_ip6_config_get_addr_gen_mode ()" link="NMSettingIP6Config.html#nm-setting-ip6-config-get-addr-gen-mode" since="1.2"/>
@@ -1417,7 +1420,6 @@
     <keyword type="function" name="nm_setting_ip_config_get_num_dns_options ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-num-dns-options" since="1.2"/>
     <keyword type="function" name="nm_setting_ip_config_has_dns_options ()" link="NMSettingIPConfig.html#nm-setting-ip-config-has-dns-options"/>
     <keyword type="function" name="nm_setting_ip_config_get_dns_option ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-dns-option" since="1.2"/>
-    <keyword type="function" name="nm_setting_ip_config_next_valid_dns_option ()" link="NMSettingIPConfig.html#nm-setting-ip-config-next-valid-dns-option" since="1.2"/>
     <keyword type="function" name="nm_setting_ip_config_add_dns_option ()" link="NMSettingIPConfig.html#nm-setting-ip-config-add-dns-option" since="1.2"/>
     <keyword type="function" name="nm_setting_ip_config_remove_dns_option ()" link="NMSettingIPConfig.html#nm-setting-ip-config-remove-dns-option" since="1.2"/>
     <keyword type="function" name="nm_setting_ip_config_remove_dns_option_by_value ()" link="NMSettingIPConfig.html#nm-setting-ip-config-remove-dns-option-by-value" since="1.2"/>
@@ -1453,6 +1455,10 @@
     <keyword type="function" name="nm_setting_ip_config_get_dhcp_timeout ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-dhcp-timeout" since="1.2"/>
     <keyword type="function" name="nm_setting_ip_config_get_dhcp_iaid ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-dhcp-iaid" since="1.22"/>
     <keyword type="function" name="nm_setting_ip_config_get_dhcp_hostname_flags ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-dhcp-hostname-flags" since="1.22"/>
+    <keyword type="function" name="nm_setting_ip_config_get_dhcp_reject_servers ()" link="NMSettingIPConfig.html#nm-setting-ip-config-get-dhcp-reject-servers" since="1.28"/>
+    <keyword type="function" name="nm_setting_ip_config_add_dhcp_reject_server ()" link="NMSettingIPConfig.html#nm-setting-ip-config-add-dhcp-reject-server" since="1.28"/>
+    <keyword type="function" name="nm_setting_ip_config_remove_dhcp_reject_server ()" link="NMSettingIPConfig.html#nm-setting-ip-config-remove-dhcp-reject-server" since="1.28"/>
+    <keyword type="function" name="nm_setting_ip_config_clear_dhcp_reject_servers ()" link="NMSettingIPConfig.html#nm-setting-ip-config-clear-dhcp-reject-servers" since="1.28"/>
     <keyword type="macro" name="NM_IP_ADDRESS_ATTRIBUTE_LABEL" link="NMSettingIPConfig.html#NM-IP-ADDRESS-ATTRIBUTE-LABEL:CAPS"/>
     <keyword type="enum" name="enum NMIPAddressCmpFlags" link="NMSettingIPConfig.html#NMIPAddressCmpFlags" since="1.22"/>
     <keyword type="macro" name="NM_IP_ROUTE_ATTRIBUTE_CWND" link="NMSettingIPConfig.html#NM-IP-ROUTE-ATTRIBUTE-CWND:CAPS"/>
@@ -1494,6 +1500,7 @@
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_DAD_TIMEOUT" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DAD-TIMEOUT:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_DHCP_TIMEOUT" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DHCP-TIMEOUT:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_DHCP_IAID" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DHCP-IAID:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_IP_CONFIG_DHCP_REJECT_SERVERS" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DHCP-REJECT-SERVERS:CAPS"/>
     <keyword type="macro" name="NM_SETTING_IP_CONFIG_ROUTING_RULES" link="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-ROUTING-RULES:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_DEBUG" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-DEBUG:CAPS"/>
     <keyword type="macro" name="NM_SETTING_DNS_OPTION_NDOTS" link="NMSettingIPConfig.html#NM-SETTING-DNS-OPTION-NDOTS:CAPS"/>
@@ -1519,6 +1526,7 @@
     <keyword type="property" name="The “dhcp-hostname” property" link="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname"/>
     <keyword type="property" name="The “dhcp-hostname-flags” property" link="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname-flags"/>
     <keyword type="property" name="The “dhcp-iaid” property" link="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-iaid"/>
+    <keyword type="property" name="The “dhcp-reject-servers” property" link="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-reject-servers"/>
     <keyword type="property" name="The “dhcp-send-hostname” property" link="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-send-hostname"/>
     <keyword type="property" name="The “dhcp-timeout” property" link="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-timeout"/>
     <keyword type="property" name="The “dns” property" link="NMSettingIPConfig.html#NMSettingIPConfig--dns"/>
@@ -1875,9 +1883,9 @@
     <keyword type="function" name="nm_tc_action_equal ()" link="NMSettingTCConfig.html#nm-tc-action-equal" since="1.12"/>
     <keyword type="function" name="nm_tc_action_dup ()" link="NMSettingTCConfig.html#nm-tc-action-dup" since="1.12"/>
     <keyword type="function" name="nm_tc_action_get_kind ()" link="NMSettingTCConfig.html#nm-tc-action-get-kind" since="1.12"/>
-    <keyword type="function" name="nm_tc_action_get_attribute_names ()" link="NMSettingTCConfig.html#nm-tc-action-get-attribute-names"/>
-    <keyword type="function" name="nm_tc_action_get_attribute ()" link="NMSettingTCConfig.html#nm-tc-action-get-attribute"/>
-    <keyword type="function" name="nm_tc_action_set_attribute ()" link="NMSettingTCConfig.html#nm-tc-action-set-attribute"/>
+    <keyword type="function" name="nm_tc_action_get_attribute_names ()" link="NMSettingTCConfig.html#nm-tc-action-get-attribute-names" since="1.12"/>
+    <keyword type="function" name="nm_tc_action_get_attribute ()" link="NMSettingTCConfig.html#nm-tc-action-get-attribute" since="1.12"/>
+    <keyword type="function" name="nm_tc_action_set_attribute ()" link="NMSettingTCConfig.html#nm-tc-action-set-attribute" since="1.12"/>
     <keyword type="function" name="nm_tc_tfilter_new ()" link="NMSettingTCConfig.html#nm-tc-tfilter-new" since="1.12"/>
     <keyword type="function" name="nm_tc_tfilter_ref ()" link="NMSettingTCConfig.html#nm-tc-tfilter-ref" since="1.12"/>
     <keyword type="function" name="nm_tc_tfilter_unref ()" link="NMSettingTCConfig.html#nm-tc-tfilter-unref" since="1.12"/>
@@ -2421,6 +2429,7 @@
     <keyword type="function" name="nm_setting_wireless_get_seen_bssid ()" link="NMSettingWireless.html#nm-setting-wireless-get-seen-bssid"/>
     <keyword type="function" name="nm_setting_wireless_ap_security_compatible ()" link="NMSettingWireless.html#nm-setting-wireless-ap-security-compatible"/>
     <keyword type="function" name="nm_setting_wireless_get_wake_on_wlan ()" link="NMSettingWireless.html#nm-setting-wireless-get-wake-on-wlan" since="1.12"/>
+    <keyword type="function" name="nm_setting_wireless_get_ap_isolation ()" link="NMSettingWireless.html#nm-setting-wireless-get-ap-isolation" since="1.28"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_SETTING_NAME" link="NMSettingWireless.html#NM-SETTING-WIRELESS-SETTING-NAME:CAPS"/>
     <keyword type="enum" name="enum NMSettingWirelessWakeOnWLan" link="NMSettingWireless.html#NMSettingWirelessWakeOnWLan" since="1.12"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_SSID" link="NMSettingWireless.html#NM-SETTING-WIRELESS-SSID:CAPS"/>
@@ -2440,12 +2449,14 @@
     <keyword type="macro" name="NM_SETTING_WIRELESS_POWERSAVE" link="NMSettingWireless.html#NM-SETTING-WIRELESS-POWERSAVE:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MAC_ADDRESS_RANDOMIZATION" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MAC-ADDRESS-RANDOMIZATION:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_WAKE_ON_WLAN" link="NMSettingWireless.html#NM-SETTING-WIRELESS-WAKE-ON-WLAN:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_WIRELESS_AP_ISOLATION" link="NMSettingWireless.html#NM-SETTING-WIRELESS-AP-ISOLATION:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MODE_ADHOC" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-ADHOC:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MODE_AP" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-AP:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MODE_INFRA" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-INFRA:CAPS"/>
     <keyword type="macro" name="NM_SETTING_WIRELESS_MODE_MESH" link="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-MESH:CAPS" since="1.20"/>
     <keyword type="enum" name="enum NMSettingWirelessPowersave" link="NMSettingWireless.html#NMSettingWirelessPowersave"/>
     <keyword type="struct" name="NMSettingWireless" link="NMSettingWireless.html#NMSettingWireless-struct"/>
+    <keyword type="property" name="The “ap-isolation” property" link="NMSettingWireless.html#NMSettingWireless--ap-isolation"/>
     <keyword type="property" name="The “band” property" link="NMSettingWireless.html#NMSettingWireless--band"/>
     <keyword type="property" name="The “bssid” property" link="NMSettingWireless.html#NMSettingWireless--bssid"/>
     <keyword type="property" name="The “channel” property" link="NMSettingWireless.html#NMSettingWireless--channel"/>
@@ -3033,6 +3044,7 @@
     <keyword type="macro" name="NM_DEPRECATED_IN_1_22_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-22-FOR:CAPS"/>
     <keyword type="function" name="NM_DEPRECATED_IN_1_24_FOR ()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-24-FOR:CAPS" deprecated=""/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_26_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-26-FOR:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_28_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-28-FOR:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MIN_REQUIRED" link="libnm-nm-version.html#NM-VERSION-MIN-REQUIRED:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MAX_ALLOWED" link="libnm-nm-version.html#NM-VERSION-MAX-ALLOWED:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_0_9_10" link="libnm-nm-version.html#NM-DEPRECATED-IN-0-9-10:CAPS"/>
@@ -3065,6 +3077,8 @@
     <keyword type="macro" name="NM_AVAILABLE_IN_1_24" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-24:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_26" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-26:CAPS"/>
     <keyword type="macro" name="NM_AVAILABLE_IN_1_26" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-26:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_28" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-28:CAPS"/>
+    <keyword type="macro" name="NM_AVAILABLE_IN_1_28" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-28:CAPS"/>
     <keyword type="function" name="nm_vpn_service_plugin_get_connection ()" link="NMVpnServicePlugin.html#nm-vpn-service-plugin-get-connection" since="1.2"/>
     <keyword type="function" name="nm_vpn_service_plugin_secrets_required ()" link="NMVpnServicePlugin.html#nm-vpn-service-plugin-secrets-required" since="1.2"/>
     <keyword type="function" name="nm_vpn_service_plugin_set_login_banner ()" link="NMVpnServicePlugin.html#nm-vpn-service-plugin-set-login-banner"/>

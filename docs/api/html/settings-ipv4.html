@@ -8,7 +8,7 @@
 <link rel="up" href="ch01.html" title="Configuration Settings">
 <link rel="prev" href="settings-infiniband.html" title="infiniband">
 <link rel="next" href="settings-ipv6.html" title="ipv6">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -93,13 +93,19 @@
 <td><pre class="screen">dhcp-hostname-flags</pre></td>
 <td><pre class="screen">uint32</pre></td>
 <td><pre class="screen">0</pre></td>
-<td>Flags for the DHCP hostname and FQDN. Currently this property only includes flags to control the FQDN flags set in the DHCP FQDN option. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4).  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests.</td>
+<td>Flags for the DHCP hostname and FQDN. Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4).  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests.</td>
 </tr>
 <tr>
 <td><pre class="screen">dhcp-iaid</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
 <td>A string containing the "Identity Association Identifier" (IAID) used by the DHCP client. The property is a 32-bit decimal value or a special value among "mac", "perm-mac", "ifname" and "stable". When set to "mac" (or "perm-mac"), the last 4 bytes of the current (or permanent) MAC address are used as IAID. When set to "ifname", the IAID is computed by hashing the interface name. The special value "stable" can be used to generate an IAID based on the stable-id (see connection.stable-id), a per-host key and the interface name. When the property is unset, the value from global configuration is used; if no global default is set then the IAID is assumed to be "ifname". Note that at the moment this property is ignored for IPv6 by dhclient, which always derives the IAID from the MAC address.</td>
+</tr>
+<tr>
+<td><pre class="screen">dhcp-reject-servers</pre></td>
+<td><pre class="screen">array of string</pre></td>
+<td><pre class="screen"></pre></td>
+<td>Array of servers from which DHCP offers must be rejected. This property is useful to avoid getting a lease from misconfigured or rogue servers. For DHCPv4, each element must be an IPv4 address, optionally followed by a slash and a prefix length (e.g. "192.168.122.0/24"). This property is currently not implemented for DHCPv6.</td>
 </tr>
 <tr>
 <td><pre class="screen">dhcp-send-hostname</pre></td>
@@ -112,6 +118,12 @@
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">0</pre></td>
 <td>A timeout for a DHCP transaction in seconds. If zero (the default), a globally configured default is used. If still unspecified, a device specific timeout is used (usually 45 seconds). Set to 2147483647 (MAXINT32) for infinity.</td>
+</tr>
+<tr>
+<td><pre class="screen">dhcp-vendor-class-identifier</pre></td>
+<td><pre class="screen">string</pre></td>
+<td><pre class="screen"></pre></td>
+<td>The Vendor Class Identifier DHCP option (60). Special characters in the data string may be escaped using C-style escapes, nevertheless this property cannot contain nul bytes. If the per-profile value is unspecified (the default), a global connection default gets consulted. If still unspecified, the DHCP option is not sent to the server. Since 1.28</td>
 </tr>
 <tr>
 <td><pre class="screen">dns</pre></td>
@@ -129,13 +141,13 @@
 <td><pre class="screen">dns-priority</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">0</pre></td>
-<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
+<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower numerical value is better (higher priority). Negative values have the special effect of excluding other configurations with a greater numerical priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used. To avoid all DNS leaks, set the priority of the profile that should be used to the most negative value of all active connections profiles. Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices. When using dns=default, servers with higher priority will be on top of resolv.conf. To prioritize a given server over another one within the same connection, just specify them in the desired order. Note that commonly the resolver tries name servers in /etc/resolv.conf in the order listed, proceeding with the next server in the list on failure. See for example the "rotate" option of the dns-options setting. If there are any negative DNS priorities, then only name servers from the devices with that lowest priority will be considered. When using a DNS resolver that supports Conditional Forwarding or Split DNS (with dns=dnsmasq or dns=systemd-resolved settings), each connection is used to query domains in its search list. The search domains determine which name servers to ask, and the DNS priority is used to prioritize name servers based on the domain.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the best priority (lowest numerical value) wins.  If a sub domain is configured on another interface it will be accepted regardless the priority, unless parent domain on the other interface has a negative priority, which causes the sub domain to be shadowed. With Split DNS one can avoid undesired DNS leaks by properly configuring DNS priorities and the search domains, so that only name servers of the desired interface are configured.</td>
 </tr>
 <tr>
 <td><pre class="screen">dns-search</pre></td>
 <td><pre class="screen">array of string</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Array of DNS search domains. Domains starting with a tilde ('~') are considered 'routing' domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names.</td>
+<td>Array of DNS search domains. Domains starting with a tilde ('~') are considered 'routing' domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names. When using a DNS plugin that supports Conditional Forwarding or Split DNS, then the search domains specify which name servers to query. This makes the behavior different from running with plain /etc/resolv.conf. For more information see also the dns-priority setting.</td>
 </tr>
 <tr>
 <td><pre class="screen">gateway</pre></td>
@@ -147,7 +159,7 @@
 <td><pre class="screen">ignore-auto-dns</pre></td>
 <td><pre class="screen">boolean</pre></td>
 <td><pre class="screen">FALSE</pre></td>
-<td>When "method" is set to "auto" and this property to TRUE, automatically configured nameservers and search domains are ignored and only nameservers and search domains specified in the "dns" and "dns-search" properties, if any, are used.</td>
+<td>When "method" is set to "auto" and this property to TRUE, automatically configured name servers and search domains are ignored and only name servers and search domains specified in the "dns" and "dns-search" properties, if any, are used.</td>
 </tr>
 <tr>
 <td><pre class="screen">ignore-auto-routes</pre></td>
@@ -177,7 +189,7 @@
 <td><pre class="screen">route-data</pre></td>
 <td><pre class="screen">array of vardict</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Array of IPv4 routes. Each route dictionary contains at least 'dest' and 'prefix' entries, containing the destination IP address as a string, and the prefix length as a uint32. Most routes will also have a 'gateway' entry, containing the gateway IP address as a string. If the route has a 'metric' entry (containing a uint32), that will be used as the metric for the route (otherwise NM will pick a default value appropriate to the device). Additional attributes may also exist on some routes.</td>
+<td>Array of IPv4 routes. Each route dictionary contains at least 'dest' and 'prefix' entries, containing the destination IP address as a string, and the prefix length as a uint32. Most routes will also have a 'next-hop' entry, containing the next hop IP address as a string. If the route has a 'metric' entry (containing a uint32), that will be used as the metric for the route (otherwise NM will pick a default value appropriate to the device). Additional attributes may also exist on some routes.</td>
 </tr>
 <tr>
 <td><pre class="screen">route-metric</pre></td>
@@ -204,6 +216,6 @@
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

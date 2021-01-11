@@ -16,6 +16,7 @@
 #include "macro.h"
 #include "parse-util.h"
 #include "random-util.h"
+#include "string-util.h"
 #include "strxcpyx.h"
 #include "util.h"
 
@@ -55,6 +56,16 @@ int in_addr_is_link_local(int family, const union in_addr_union *u) {
         return -EAFNOSUPPORT;
 }
 
+bool in6_addr_is_link_local_all_nodes(const struct in6_addr *a) {
+        assert(a);
+
+        /* ff02::1 */
+        return be32toh(a->s6_addr32[0]) == UINT32_C(0xff020000) &&
+                a->s6_addr32[1] == 0 &&
+                a->s6_addr32[2] == 0 &&
+                be32toh(a->s6_addr32[3]) == UINT32_C(0x00000001);
+}
+
 int in_addr_is_multicast(int family, const union in_addr_union *u) {
         assert(u);
 
@@ -65,6 +76,12 @@ int in_addr_is_multicast(int family, const union in_addr_union *u) {
                 return IN6_IS_ADDR_MULTICAST(&u->in6);
 
         return -EAFNOSUPPORT;
+}
+
+bool in4_addr_is_local_multicast(const struct in_addr *a) {
+        assert(a);
+
+        return (be32toh(a->s_addr) & UINT32_C(0xffffff00)) == UINT32_C(0xe0000000);
 }
 
 bool in4_addr_is_localhost(const struct in_addr *a) {
@@ -109,11 +126,7 @@ int in_addr_equal(int family, const union in_addr_union *a, const union in_addr_
                 return in4_addr_equal(&a->in, &b->in);
 
         if (family == AF_INET6)
-                return
-                        a->in6.s6_addr32[0] == b->in6.s6_addr32[0] &&
-                        a->in6.s6_addr32[1] == b->in6.s6_addr32[1] &&
-                        a->in6.s6_addr32[2] == b->in6.s6_addr32[2] &&
-                        a->in6.s6_addr32[3] == b->in6.s6_addr32[3];
+                return IN6_ARE_ADDR_EQUAL(&a->in6, &b->in6);
 
         return -EAFNOSUPPORT;
 }
@@ -411,44 +424,59 @@ int in_addr_prefix_to_string(int family, const union in_addr_union *u, unsigned 
 }
 #endif /* NM_IGNORED */
 
-int in_addr_ifindex_to_string(int family, const union in_addr_union *u, int ifindex, char **ret) {
-        _cleanup_free_ char *x = NULL;
-        size_t l;
+int in_addr_port_ifindex_name_to_string(int family, const union in_addr_union *u, uint16_t port, int ifindex, const char *server_name, char **ret) {
+        _cleanup_free_ char *ip_str = NULL, *x = NULL;
         int r;
 
+        assert(IN_SET(family, AF_INET, AF_INET6));
         assert(u);
         assert(ret);
 
         /* Much like in_addr_to_string(), but optionally appends the zone interface index to the address, to properly
          * handle IPv6 link-local addresses. */
 
-        if (family != AF_INET6)
-                goto fallback;
-        if (ifindex <= 0)
-                goto fallback;
-
-        r = in_addr_is_link_local(family, u);
+        r = in_addr_to_string(family, u, &ip_str);
         if (r < 0)
                 return r;
-        if (r == 0)
-                goto fallback;
 
-        l = INET6_ADDRSTRLEN + 1 + DECIMAL_STR_MAX(ifindex) + 1;
-        x = new(char, l);
-        if (!x)
+        if (family == AF_INET6) {
+                r = in_addr_is_link_local(family, u);
+                if (r < 0)
+                        return r;
+                if (r == 0)
+                        ifindex = 0;
+        } else
+                ifindex = 0; /* For IPv4 address, ifindex is always ignored. */
+
+        if (port == 0 && ifindex == 0 && isempty(server_name)) {
+                *ret = TAKE_PTR(ip_str);
+                return 0;
+        }
+
+        const char *separator = isempty(server_name) ? "" : "#";
+        server_name = strempty(server_name);
+
+        if (port > 0) {
+                if (family == AF_INET6) {
+                        if (ifindex > 0)
+                                r = asprintf(&x, "[%s]:%"PRIu16"%%%i%s%s", ip_str, port, ifindex, separator, server_name);
+                        else
+                                r = asprintf(&x, "[%s]:%"PRIu16"%s%s", ip_str, port, separator, server_name);
+                } else
+                        r = asprintf(&x, "%s:%"PRIu16"%s%s", ip_str, port, separator, server_name);
+        } else {
+                if (ifindex > 0)
+                        r = asprintf(&x, "%s%%%i%s%s", ip_str, ifindex, separator, server_name);
+                else {
+                        x = strjoin(ip_str, separator, server_name);
+                        r = x ? 0 : -ENOMEM;
+                }
+        }
+        if (r < 0)
                 return -ENOMEM;
-
-        errno = 0;
-        if (!inet_ntop(family, u, x, l))
-                return errno_or_else(EINVAL);
-
-        sprintf(strchr(x, 0), "%%%i", ifindex);
 
         *ret = TAKE_PTR(x);
         return 0;
-
-fallback:
-        return in_addr_to_string(family, u, ret);
 }
 
 int in_addr_from_string(int family, const char *s, union in_addr_union *ret) {
@@ -750,13 +778,13 @@ static int in_addr_data_compare_func(const struct in_addr_data *x, const struct 
 
 DEFINE_HASH_OPS(in_addr_data_hash_ops, struct in_addr_data, in_addr_data_hash_func, in_addr_data_compare_func);
 
-static void in6_addr_hash_func(const struct in6_addr *addr, struct siphash *state) {
+void in6_addr_hash_func(const struct in6_addr *addr, struct siphash *state) {
         assert(addr);
 
         siphash24_compress(addr, sizeof(*addr), state);
 }
 
-static int in6_addr_compare_func(const struct in6_addr *a, const struct in6_addr *b) {
+int in6_addr_compare_func(const struct in6_addr *a, const struct in6_addr *b) {
         return memcmp(a, b, sizeof(*a));
 }
 

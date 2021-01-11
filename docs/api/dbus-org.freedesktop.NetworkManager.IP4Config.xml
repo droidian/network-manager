@@ -123,7 +123,7 @@ Nameservers  readable   au
 <programlisting>
 NameserverData  readable   aa{sv}
 </programlisting>
-<para>        The nameservers in use. Currently only the value "address"
+<para>        The nameservers in use. Currently, only the value "address"
         is recognized (with an IP address string).
 </para><para>        Since: 1.14
 </para>

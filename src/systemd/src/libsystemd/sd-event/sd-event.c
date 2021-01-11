@@ -1149,6 +1149,31 @@ _public_ int sd_event_add_time(
 }
 
 #if 0 /* NM_IGNORED */
+_public_ int sd_event_add_time_relative(
+                sd_event *e,
+                sd_event_source **ret,
+                clockid_t clock,
+                uint64_t usec,
+                uint64_t accuracy,
+                sd_event_time_handler_t callback,
+                void *userdata) {
+
+        usec_t t;
+        int r;
+
+        /* Same as sd_event_add_time() but operates relative to the event loop's current point in time, and
+         * checks for overflow. */
+
+        r = sd_event_now(e, clock, &t);
+        if (r < 0)
+                return r;
+
+        if (usec >= USEC_INFINITY - t)
+                return -EOVERFLOW;
+
+        return sd_event_add_time(e, ret, clock, t + usec, accuracy, callback, userdata);
+}
+
 static int signal_exit_callback(sd_event_source *s, const struct signalfd_siginfo *si, void *userdata) {
         assert(s);
 
@@ -1454,10 +1479,6 @@ _public_ int sd_event_add_post(
         assert_return(e->state != SD_EVENT_FINISHED, -ESTALE);
         assert_return(!event_pid_changed(e), -ECHILD);
 
-        r = set_ensure_allocated(&e->post_sources, NULL);
-        if (r < 0)
-                return r;
-
         s = source_new(e, !ret, SOURCE_POST);
         if (!s)
                 return -ENOMEM;
@@ -1466,9 +1487,10 @@ _public_ int sd_event_add_post(
         s->userdata = userdata;
         s->enabled = SD_EVENT_ON;
 
-        r = set_put(e->post_sources, s);
+        r = set_ensure_put(&e->post_sources, NULL, s);
         if (r < 0)
                 return r;
+        assert(r > 0);
 
         if (ret)
                 *ret = s;
@@ -2409,6 +2431,23 @@ _public_ int sd_event_source_set_time(sd_event_source *s, uint64_t usec) {
         return 0;
 }
 
+_public_ int sd_event_source_set_time_relative(sd_event_source *s, uint64_t usec) {
+        usec_t t;
+        int r;
+
+        assert_return(s, -EINVAL);
+        assert_return(EVENT_SOURCE_IS_TIME(s->type), -EDOM);
+
+        r = sd_event_now(s->event, event_source_type_to_clock(s->type), &t);
+        if (r < 0)
+                return r;
+
+        if (usec >= USEC_INFINITY - t)
+                return -EOVERFLOW;
+
+        return sd_event_source_set_time(s, t + usec);
+}
+
 _public_ int sd_event_source_get_time_accuracy(sd_event_source *s, uint64_t *usec) {
         assert_return(s, -EINVAL);
         assert_return(usec, -EINVAL);
@@ -2835,7 +2874,6 @@ static int process_timer(
 
 static int process_child(sd_event *e) {
         sd_event_source *s;
-        Iterator i;
         int r;
 
         assert(e);
@@ -2860,7 +2898,7 @@ static int process_child(sd_event *e) {
            the callback still sees the process as a zombie.
         */
 
-        HASHMAP_FOREACH(s, e->child_sources, i) {
+        HASHMAP_FOREACH(s, e->child_sources) {
                 assert(s->type == SOURCE_CHILD);
 
                 if (s->pending)
@@ -3065,12 +3103,11 @@ static int event_inotify_data_process(sd_event *e, struct inotify_data *d) {
 
                 if (d->buffer.ev.mask & IN_Q_OVERFLOW) {
                         struct inode_data *inode_data;
-                        Iterator i;
 
                         /* The queue overran, let's pass this event to all event sources connected to this inotify
                          * object */
 
-                        HASHMAP_FOREACH(inode_data, d->inodes, i) {
+                        HASHMAP_FOREACH(inode_data, d->inodes) {
                                 sd_event_source *s;
 
                                 LIST_FOREACH(inotify.by_inode_data, s, inode_data->event_sources) {
@@ -3168,12 +3205,11 @@ static int source_dispatch(sd_event_source *s) {
 
         if (s->type != SOURCE_POST) {
                 sd_event_source *z;
-                Iterator i;
 
                 /* If we execute a non-post source, let's mark all
                  * post sources as pending */
 
-                SET_FOREACH(z, s->event->post_sources, i) {
+                SET_FOREACH(z, s->event->post_sources) {
                         if (z->enabled == SD_EVENT_OFF)
                                 continue;
 

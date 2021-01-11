@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDeviceIPTunnel.html" title="NMDeviceIPTunnel">
 <link rel="next" href="NMDeviceMacvlan.html" title="NMDeviceMacvlan">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -247,7 +247,7 @@ nm_device_macsec_get_parent (<em class="parameter"><code><a class="link" href="N
 <div class="refsect3">
 <a name="nm-device-macsec-get-parent.returns"></a><h4>Returns</h4>
 <p>the device's parent device. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -592,90 +592,90 @@ nm_device_macsec_get_replay_protect (<em class="parameter"><code><a class="link"
 <a name="NMDeviceMacsec.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-PARENT:CAPS"></a><h3>NM_DEVICE_MACSEC_PARENT</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_PARENT          "parent"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_PARENT         "parent"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-HW-ADDRESS:CAPS"></a><h3>NM_DEVICE_MACSEC_HW_ADDRESS</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_HW_ADDRESS      "hw-address"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_HW_ADDRESS     "hw-address"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-SCI:CAPS"></a><h3>NM_DEVICE_MACSEC_SCI</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_SCI             "sci"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_SCI            "sci"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-ICV-LENGTH:CAPS"></a><h3>NM_DEVICE_MACSEC_ICV_LENGTH</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_ICV_LENGTH      "icv-length"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_ICV_LENGTH     "icv-length"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-CIPHER-SUITE:CAPS"></a><h3>NM_DEVICE_MACSEC_CIPHER_SUITE</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_CIPHER_SUITE    "cipher-suite"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_CIPHER_SUITE   "cipher-suite"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-WINDOW:CAPS"></a><h3>NM_DEVICE_MACSEC_WINDOW</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_WINDOW          "window"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_WINDOW         "window"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-ENCODING-SA:CAPS"></a><h3>NM_DEVICE_MACSEC_ENCODING_SA</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_ENCODING_SA     "encoding-sa"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_ENCODING_SA    "encoding-sa"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-VALIDATION:CAPS"></a><h3>NM_DEVICE_MACSEC_VALIDATION</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_VALIDATION      "validation"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_VALIDATION     "validation"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-ENCRYPT:CAPS"></a><h3>NM_DEVICE_MACSEC_ENCRYPT</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_ENCRYPT         "encrypt"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_ENCRYPT        "encrypt"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-PROTECT:CAPS"></a><h3>NM_DEVICE_MACSEC_PROTECT</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_PROTECT         "protect"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_PROTECT        "protect"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-INCLUDE-SCI:CAPS"></a><h3>NM_DEVICE_MACSEC_INCLUDE_SCI</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_INCLUDE_SCI     "include-sci"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_INCLUDE_SCI    "include-sci"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-ES:CAPS"></a><h3>NM_DEVICE_MACSEC_ES</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_ES              "es"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_ES             "es"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-SCB:CAPS"></a><h3>NM_DEVICE_MACSEC_SCB</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_SCB             "scb"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_SCB            "scb"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-MACSEC-REPLAY-PROTECT:CAPS"></a><h3>NM_DEVICE_MACSEC_REPLAY_PROTECT</h3>
-<pre class="programlisting">#define NM_DEVICE_MACSEC_REPLAY_PROTECT  "replay-protect"
+<pre class="programlisting">#define NM_DEVICE_MACSEC_REPLAY_PROTECT "replay-protect"
 </pre>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

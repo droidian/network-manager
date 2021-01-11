@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 08/19/2020
+.\"      Date: 12/06/2020
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.26.2
+.\"    Source: NetworkManager 1.28.0
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.26\&.2" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.28\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -149,7 +149,7 @@ internal
 option uses a built\-in DHCP client which is not currently as featureful as the external clients\&.
 .sp
 If this key is missing, it defaults to
-internal\&. It the chosen plugin is not available, clients are looked for in this order:
+internal\&. If the chosen plugin is not available, clients are looked for in this order:
 dhclient,
 dhcpcd,
 internal\&.
@@ -240,7 +240,9 @@ is chosen automatically\&.
 .sp
 default: NetworkManager will update
 /etc/resolv\&.conf
-to reflect the nameservers provided by currently active connections\&.
+to reflect the nameservers provided by currently active connections\&. The
+rc\-manager
+setting (below) controls how this is done\&.
 .sp
 dnsmasq: NetworkManager will run dnsmasq as a local caching nameserver, using "Conditional Forwarding" if you are connected to a VPN, and then update
 resolv\&.conf
@@ -281,12 +283,36 @@ per\-connection added dns servers will always be queried using the device the co
 .RS 4
 Set the
 resolv\&.conf
-management mode\&. The default value depends on NetworkManager build options, and this version of NetworkManager was build with a default of "symlink"\&. Regardless of this setting, NetworkManager will always write resolv\&.conf to its runtime state directory
+management mode\&. This option is about how NetworkManager writes to
+/etc/resolv\&.conf, if at all\&. The default value depends on NetworkManager build options, and this version of NetworkManager was build with a default of "auto"\&. Regardless of this setting, NetworkManager will always write its version of resolv\&.conf to its runtime state directory as
 /run/NetworkManager/resolv\&.conf\&.
+.sp
+If you configure
+dns=none
+or make
+/etc/resolv\&.conf
+immutable with
+chattr +i, NetworkManager will ignore this setting and always choose
+unmanaged
+(below)\&.
+.sp
+auto: if systemd\-resolved plugin is configured via the
+dns
+setting or if it gets detected as main DNS plugin, NetworkManager will update systemd\-resolved without touching
+/etc/resolv\&.conf\&. Alternatively, if
+resolvconf
+or
+netconfig
+are enabled at compile time and the respective binary is found, NetworkManager will automatically use it\&. Note that if you install or uninstall these binaries, you need to reload the
+rc\-manager
+setting with SIGHUP or
+systemctl reload NetworkManager\&. As last fallback it uses the
+symlink
+option (see next)\&.
 .sp
 symlink: If
 /etc/resolv\&.conf
-is a regular file, NetworkManager will replace the file on update\&. If
+is a regular file or does not exist, NetworkManager will write the file directly\&. If
 /etc/resolv\&.conf
 is instead a symlink, NetworkManager will leave it alone\&. Unless the symlink points to the internal file
 /run/NetworkManager/resolv\&.conf, in which case the symlink will be updated to emit an inotify notification\&. This allows the user to conveniently instruct NetworkManager not to manage
@@ -295,7 +321,7 @@ by replacing it with a symlink\&.
 .sp
 file: NetworkManager will write
 /etc/resolv\&.conf
-as file\&. If it finds a symlink to an existing target, it will follow the symlink and update the target instead\&. In no case will an existing symlink be replaced by a file\&. Note that older versions of NetworkManager behaved differently and would replace dangling symlinks with a plain file\&.
+as regular file\&. If it finds a symlink to an existing target, it will follow the symlink and update the target instead\&. In no case will an existing symlink be replaced by a file\&. Note that older versions of NetworkManager behaved differently and would replace dangling symlinks with a plain file\&.
 .sp
 resolvconf: NetworkManager will run resolvconf to update the DNS configuration\&.
 .sp
@@ -331,7 +357,7 @@ If systemd\-resolved is enabled, the connectivity check resolves the hostname pe
 \fIdebug\fR
 .RS 4
 Comma separated list of options to aid debugging\&. This value will be combined with the environment variable
-NM_DEBUG\&. Currently the following values are supported:
+NM_DEBUG\&. Currently, the following values are supported:
 .sp
 RLIMIT_CORE: set ulimit \-c unlimited to write out core dumps\&. Beware, that a core dump can contain sensitive information such as passwords or configuration settings\&.
 .sp
@@ -376,7 +402,7 @@ Set devices that should be ignored by NetworkManager\&.
 .sp
 See
 the section called \(lqDevice List Format\(rq
-for the syntax how to specify a device\&.
+for the syntax on how to specify a device\&.
 .sp
 Example:
 .sp
@@ -729,6 +755,11 @@ If left unspecified, the value 3 (fqdn\-encoded,fqdn\-serv\-update) is used\&.
 If left unspecified, the default value for the interface type is used\&.
 .RE
 .PP
+\fIipv4\&.dhcp\-vendor\-class\-identifier\fR
+.RS 4
+If left unspecified, the default is to not send the DHCP option to the server\&.
+.RE
+.PP
 \fIipv4\&.dns\-priority\fR
 .RS 4
 If unspecified or zero, use 50 for VPN profiles and 100 for other profiles\&.
@@ -797,6 +828,11 @@ If left unspecified, drivers are autoprobed when the SR\-IOV VF gets created\&.
 \fIvpn\&.timeout\fR
 .RS 4
 If left unspecified, default value of 60 seconds is used\&.
+.RE
+.PP
+\fIwifi\&.ap\-isolation\fR
+.RS 4
+If left unspecified, AP isolation is disabled\&.
 .RE
 .PP
 \fIwifi\&.cloned\-mac\-address\fR
@@ -965,7 +1001,7 @@ wifi\&.cloned\-mac\-address\&.
 .PP
 \fIwifi\&.backend\fR
 .RS 4
-Specify the Wi\-Fi backend used for the device\&. Currently supported are
+Specify the Wi\-Fi backend used for the device\&. Currently, supported are
 wpa_supplicant
 and
 iwd
@@ -984,7 +1020,8 @@ for details\&.
 .PP
 \fIsriov\-num\-vfs\fR
 .RS 4
-Specify the number of virtual functions (VF) to enable for a PCI physical device that supports single\-root I/O virtualization (SR\-IOV)\&.
+
+         , Specify the number of virtual functions (VF) to enable for a PCI physical device that supports single\-root I/O virtualization (SR\-IOV)\&.
 .RE
 .SS "Sections"
 .PP
@@ -1106,7 +1143,7 @@ enable=nm\-version\-min:1\&.2
 
 # Match against the maximum allowed version\&. The example matches
 # versions 1\&.2\&.0, 1\&.2\&.2, 1\&.2\&.4\&. Again, only the last version digit
-# is allowed to be smaller\&. So this would not match match on 1\&.1\&.10\&.
+# is allowed to be smaller\&. So this would not match on 1\&.1\&.10\&.
 [\&.config]
 enable=nm\-version\-max:1\&.2\&.6
 .fi

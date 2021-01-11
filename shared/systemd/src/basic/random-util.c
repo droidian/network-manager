@@ -9,11 +9,13 @@
 #include <elf.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <linux/random.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/time.h>
 
 #if HAVE_SYS_AUXV_H
@@ -21,6 +23,7 @@
 #endif
 
 #include "alloc-util.h"
+#include "env-util.h"
 #include "errno-util.h"
 #include "fd-util.h"
 #include "fileio.h"
@@ -77,7 +80,7 @@ int rdrand(unsigned long *ret) {
          *           hash functions for its hash tables, with a seed generated randomly. The hash tables
          *           systemd employs watch the fill level closely and reseed if necessary. This allows use of
          *           a low quality RNG initially, as long as it improves should a hash table be under attack:
-         *           the attacker after all needs to to trigger many collisions to exploit it for the purpose
+         *           the attacker after all needs to trigger many collisions to exploit it for the purpose
          *           of DoS, but if doing so improves the seed the attack surface is reduced as the attack
          *           takes place.
          *
@@ -116,6 +119,15 @@ int rdrand(unsigned long *ret) {
 #endif
 
                 have_rdrand = !!(ecx & bit_RDRND);
+
+                if (have_rdrand > 0) {
+                        /* Allow disabling use of RDRAND with SYSTEMD_RDRAND=0
+                           If it is unset getenv_bool_secure will return a negative value. */
+                        if (getenv_bool_secure("SYSTEMD_RDRAND") == 0) {
+                                have_rdrand = false;
+                                return -EOPNOTSUPP;
+                        }
+                }
         }
 
         if (have_rdrand == 0)
@@ -447,5 +459,38 @@ size_t random_pool_size(void) {
 
         /* Use the minimum as default, if we can't retrieve the correct value */
         return RANDOM_POOL_SIZE_MIN;
+}
+
+int random_write_entropy(int fd, const void *seed, size_t size, bool credit) {
+        int r;
+
+        assert(fd >= 0);
+        assert(seed && size > 0);
+
+        if (credit) {
+                _cleanup_free_ struct rand_pool_info *info = NULL;
+
+                /* The kernel API only accepts "int" as entropy count (which is in bits), let's avoid any
+                 * chance for confusion here. */
+                if (size > INT_MAX / 8)
+                        return -EOVERFLOW;
+
+                info = malloc(offsetof(struct rand_pool_info, buf) + size);
+                if (!info)
+                        return -ENOMEM;
+
+                info->entropy_count = size * 8;
+                info->buf_size = size;
+                memcpy(info->buf, seed, size);
+
+                if (ioctl(fd, RNDADDENTROPY, info) < 0)
+                        return -errno;
+        } else {
+                r = loop_write(fd, seed, size, false);
+                if (r < 0)
+                        return r;
+        }
+
+        return 0;
 }
 #endif /* NM_IGNORED */

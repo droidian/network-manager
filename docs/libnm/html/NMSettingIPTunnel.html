@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingIPConfig.html" title="NMSettingIPConfig">
 <link rel="next" href="NMSettingMacsec.html" title="NMSettingMacsec">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -177,13 +177,13 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--input-key" title="The “input-key” property">input-key</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--local" title="The “local” property">local</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -199,13 +199,13 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--output-key" title="The “output-key” property">output-key</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--parent" title="The “parent” property">parent</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -216,7 +216,7 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingIPTunnel.html#NMSettingIPTunnel--remote" title="The “remote” property">remote</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -330,7 +330,7 @@ nm_setting_ip_tunnel_new (<em class="parameter"><code><span class="type">void</s
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-new.returns"></a><h4>Returns</h4>
 <p>the new empty <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> object. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -671,7 +671,7 @@ nm_setting_ip_tunnel_get_flags (<em class="parameter"><code><a class="link" href
 <a name="NMSettingIPTunnel.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="NM-SETTING-IP-TUNNEL-SETTING-NAME:CAPS"></a><h3>NM_SETTING_IP_TUNNEL_SETTING_NAME</h3>
-<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_SETTING_NAME        "ip-tunnel"
+<pre class="programlisting">#define NM_SETTING_IP_TUNNEL_SETTING_NAME "ip-tunnel"
 </pre>
 </div>
 <hr>
@@ -827,7 +827,7 @@ to packets. This property applies only to IPv6 tunnels.</p>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--flags"></a><h3>The <code class="literal">“flags”</code> property</h3>
 <pre class="programlisting">  “flags”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
-<p>Tunnel flags. Currently the following values are supported:
+<p>Tunnel flags. Currently, the following values are supported:
 <a class="link" href="NMSettingIPTunnel.html#NM-IP-TUNNEL-FLAG-IP6-IGN-ENCAP-LIMIT:CAPS"><code class="literal">NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT</code></a>, <a class="link" href="NMSettingIPTunnel.html#NM-IP-TUNNEL-FLAG-IP6-USE-ORIG-TCLASS:CAPS"><code class="literal">NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_TCLASS</code></a>,
 <a class="link" href="NMSettingIPTunnel.html#NM-IP-TUNNEL-FLAG-IP6-USE-ORIG-FLOWLABEL:CAPS"><code class="literal">NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FLOWLABEL</code></a>, <a class="link" href="NMSettingIPTunnel.html#NM-IP-TUNNEL-FLAG-IP6-MIP6-DEV:CAPS"><code class="literal">NM_IP_TUNNEL_FLAG_IP6_MIP6_DEV</code></a>,
 <a class="link" href="NMSettingIPTunnel.html#NM-IP-TUNNEL-FLAG-IP6-RCV-DSCP-COPY:CAPS"><code class="literal">NM_IP_TUNNEL_FLAG_IP6_RCV_DSCP_COPY</code></a>, <a class="link" href="NMSettingIPTunnel.html#NM-IP-TUNNEL-FLAG-IP6-USE-ORIG-FWMARK:CAPS"><code class="literal">NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FWMARK</code></a>.
@@ -852,7 +852,7 @@ IPv6 tunnels.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--input-key"></a><h3>The <code class="literal">“input-key”</code> property</h3>
-<pre class="programlisting">  “input-key”                <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “input-key”                <span class="type">char</span> *</pre>
 <p>The key used for tunnel input packets; the property is valid only for
 certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
 <p>Owner: NMSettingIPTunnel</p>
@@ -863,7 +863,7 @@ certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--local"></a><h3>The <code class="literal">“local”</code> property</h3>
-<pre class="programlisting">  “local”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “local”                    <span class="type">char</span> *</pre>
 <p>The local endpoint of the tunnel; the value can be empty, otherwise it
 must contain an IPv4 or IPv6 address.</p>
 <p>Owner: NMSettingIPTunnel</p>
@@ -896,7 +896,7 @@ breaking larger packets up into multiple fragments.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--output-key"></a><h3>The <code class="literal">“output-key”</code> property</h3>
-<pre class="programlisting">  “output-key”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “output-key”               <span class="type">char</span> *</pre>
 <p>The key used for tunnel output packets; the property is valid only for
 certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
 <p>Owner: NMSettingIPTunnel</p>
@@ -907,7 +907,7 @@ certain tunnel modes (GRE, IP6GRE). If empty, no key is used.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--parent"></a><h3>The <code class="literal">“parent”</code> property</h3>
-<pre class="programlisting">  “parent”                   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “parent”                   <span class="type">char</span> *</pre>
 <p>If given, specifies the parent interface name or parent connection UUID
 the new device will be bound to so that tunneled packets will only be
 routed via that interface.</p>
@@ -929,7 +929,7 @@ routed via that interface.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIPTunnel--remote"></a><h3>The <code class="literal">“remote”</code> property</h3>
-<pre class="programlisting">  “remote”                   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “remote”                   <span class="type">char</span> *</pre>
 <p>The remote endpoint of the tunnel; the value must contain an IPv4 or IPv6
 address.</p>
 <p>Owner: NMSettingIPTunnel</p>
@@ -964,6 +964,6 @@ packets inherit the TTL value.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

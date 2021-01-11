@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-dbus
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 08/19/2020
+.\"      Date: 12/06/2020
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.26.2
+.\"    Source: NetworkManager 1.28.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.26\&.2" "Configuration"
+.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.28\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -106,7 +106,7 @@ int32
 T}:T{
 \-1
 T}:T{
-The number of retries for the authentication\&. Zero means to try indefinitely; \-1 means to use a global default\&. If the global default is not set, the authentication retries for 3 times before failing the connection\&. Currently this only applies to 802\-1x authentication\&.
+The number of retries for the authentication\&. Zero means to try indefinitely; \-1 means to use a global default\&. If the global default is not set, the authentication retries for 3 times before failing the connection\&. Currently, this only applies to 802\-1x authentication\&.
 T}
 T{
 autoconnect
@@ -187,7 +187,7 @@ int32
 T}:T{
 \-1
 T}:T{
-Whether Link\-Local Multicast Name Resolution (LLMNR) is enabled for the connection\&. LLMNR is a protocol based on the Domain Name System (DNS) packet format that allows both IPv4 and IPv6 hosts to perform name resolution for hosts on the same local link\&. The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable LLMNR for the interface, "resolve" (1) do not register hostname but allow resolving of LLMNR host names If unspecified, "default" ultimately depends on the DNS plugin (which for systemd\-resolved currently means "yes")\&. This feature requires a plugin which supports LLMNR\&. Otherwise the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
+Whether Link\-Local Multicast Name Resolution (LLMNR) is enabled for the connection\&. LLMNR is a protocol based on the Domain Name System (DNS) packet format that allows both IPv4 and IPv6 hosts to perform name resolution for hosts on the same local link\&. The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable LLMNR for the interface, "resolve" (1) do not register hostname but allow resolving of LLMNR host names If unspecified, "default" ultimately depends on the DNS plugin (which for systemd\-resolved currently means "yes")\&. This feature requires a plugin which supports LLMNR\&. Otherwise, the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
 T}
 T{
 master
@@ -205,7 +205,7 @@ int32
 T}:T{
 \-1
 T}:T{
-Whether mDNS is enabled for the connection\&. The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable mDNS for the interface, "resolve" (1) do not register hostname but allow resolving of mDNS host names and "default" (\-1) to allow lookup of a global default in NetworkManager\&.conf\&. If unspecified, "default" ultimately depends on the DNS plugin (which for systemd\-resolved currently means "no")\&. This feature requires a plugin which supports mDNS\&. Otherwise the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
+Whether mDNS is enabled for the connection\&. The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable mDNS for the interface, "resolve" (1) do not register hostname but allow resolving of mDNS host names and "default" (\-1) to allow lookup of a global default in NetworkManager\&.conf\&. If unspecified, "default" ultimately depends on the DNS plugin (which for systemd\-resolved currently means "no")\&. This feature requires a plugin which supports mDNS\&. Otherwise, the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
 T}
 T{
 metered
@@ -259,7 +259,7 @@ array of string
 T}:T{
 \ \&
 T}:T{
-List of connection UUIDs that should be activated when the base connection itself is activated\&. Currently only VPN connections are supported\&.
+List of connection UUIDs that should be activated when the base connection itself is activated\&. Currently, only VPN connections are supported\&.
 T}
 T{
 slave\-type
@@ -277,7 +277,7 @@ string
 T}:T{
 \ \&
 T}:T{
-This represents the identity of the connection used for various purposes\&. It allows to configure multiple profiles to share the identity\&. Also, the stable\-id can contain placeholders that are substituted dynamically and deterministically depending on the context\&. The stable\-id is used for generating IPv6 stable private addresses with ipv6\&.addr\-gen\-mode=stable\-privacy\&. It is also used to seed the generated cloned MAC address for ethernet\&.cloned\-mac\-address=stable and wifi\&.cloned\-mac\-address=stable\&. It is also used as DHCP client identifier with ipv4\&.dhcp\-client\-id=stable and to derive the DHCP DUID with ipv6\&.dhcp\-duid=stable\-[llt,ll,uuid]\&. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm\&. For example, a per\-host key is commonly also included, so that different systems end up generating different IDs\&. Or with ipv6\&.addr\-gen\-mode=stable\-privacy, also the device\*(Aqs name is included, so that different interfaces yield different addresses\&. The \*(Aq$\*(Aq character is treated special to perform dynamic substitutions at runtime\&. Currently supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}"\&. These effectively create unique IDs per\-connection, per\-device, per\-boot, or every time\&. Note that "${DEVICE}" corresponds to the interface name of the device and "${MAC}" is the permanent MAC address of the device\&. Any unrecognized patterns following \*(Aq$\*(Aq are treated verbatim, however are reserved for future use\&. You are thus advised to avoid \*(Aq$\*(Aq or escape it as "$$"\&. For example, set it to "${CONNECTION}\-${BOOT}\-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates\&. If the value is unset, a global connection default is consulted\&. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection\&.
+This represents the identity of the connection used for various purposes\&. It allows to configure multiple profiles to share the identity\&. Also, the stable\-id can contain placeholders that are substituted dynamically and deterministically depending on the context\&. The stable\-id is used for generating IPv6 stable private addresses with ipv6\&.addr\-gen\-mode=stable\-privacy\&. It is also used to seed the generated cloned MAC address for ethernet\&.cloned\-mac\-address=stable and wifi\&.cloned\-mac\-address=stable\&. It is also used as DHCP client identifier with ipv4\&.dhcp\-client\-id=stable and to derive the DHCP DUID with ipv6\&.dhcp\-duid=stable\-[llt,ll,uuid]\&. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm\&. For example, a per\-host key is commonly also included, so that different systems end up generating different IDs\&. Or with ipv6\&.addr\-gen\-mode=stable\-privacy, also the device\*(Aqs name is included, so that different interfaces yield different addresses\&. The per\-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret\-key\&. The \*(Aq$\*(Aq character is treated special to perform dynamic substitutions at runtime\&. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}"\&. These effectively create unique IDs per\-connection, per\-device, per\-boot, or every time\&. Note that "${DEVICE}" corresponds to the interface name of the device and "${MAC}" is the permanent MAC address of the device\&. Any unrecognized patterns following \*(Aq$\*(Aq are treated verbatim, however are reserved for future use\&. You are thus advised to avoid \*(Aq$\*(Aq or escape it as "$$"\&. For example, set it to "${CONNECTION}\-${BOOT}\-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates\&. If the value is unset, a global connection default is consulted\&. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection\&.
 T}
 T{
 timestamp
@@ -1210,7 +1210,7 @@ string
 T}:T{
 \ \&
 T}:T{
-Sets bridge\*(Aqs multicast router\&. Multicast\-snooping must be enabled for this option to work\&. Supported values are: \*(Aqauto\*(Aq, \*(Aqdisabled\*(Aq, \*(Aqenabled\*(Aq\&. If not specified the default value is \*(Aqauto\*(Aq\&.
+Sets bridge\*(Aqs multicast router\&. Multicast\-snooping must be enabled for this option to work\&. Supported values are: \*(Aqauto\*(Aq, \*(Aqdisabled\*(Aq, \*(Aqenabled\*(Aq to which kernel assigns the numbers 1, 0, and 2, respectively\&. If not specified the default value is \*(Aqauto\*(Aq (1)\&.
 T}
 T{
 multicast\-snooping
@@ -1859,7 +1859,7 @@ int32
 T}:T{
 \-1
 T}:T{
-The InfiniBand P_Key to use for this device\&. A value of \-1 means to use the default P_Key (aka "the P_Key at index 0")\&.  Otherwise it is a 16\-bit unsigned integer, whose high bit is set if it is a "full membership" P_Key\&.
+The InfiniBand P_Key to use for this device\&. A value of \-1 means to use the default P_Key (aka "the P_Key at index 0")\&. Otherwise, it is a 16\-bit unsigned integer, whose high bit is set if it is a "full membership" P_Key\&.
 T}
 T{
 parent
@@ -1897,6 +1897,8 @@ T}:T{
 Value Description
 T}
 .T&
+l l l l
+l l l l
 l l l l
 l l l l
 l l l l
@@ -1982,7 +1984,7 @@ uint32
 T}:T{
 0
 T}:T{
-Flags for the DHCP hostname and FQDN\&. Currently this property only includes flags to control the FQDN flags set in the DHCP FQDN option\&. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4)\&.  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag\&. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6\&. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration\&. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests\&.
+Flags for the DHCP hostname and FQDN\&. Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option\&. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4)\&.  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag\&. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6\&. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration\&. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests\&.
 T}
 T{
 dhcp\-iaid
@@ -1992,6 +1994,15 @@ T}:T{
 \ \&
 T}:T{
 A string containing the "Identity Association Identifier" (IAID) used by the DHCP client\&. The property is a 32\-bit decimal value or a special value among "mac", "perm\-mac", "ifname" and "stable"\&. When set to "mac" (or "perm\-mac"), the last 4 bytes of the current (or permanent) MAC address are used as IAID\&. When set to "ifname", the IAID is computed by hashing the interface name\&. The special value "stable" can be used to generate an IAID based on the stable\-id (see connection\&.stable\-id), a per\-host key and the interface name\&. When the property is unset, the value from global configuration is used; if no global default is set then the IAID is assumed to be "ifname"\&. Note that at the moment this property is ignored for IPv6 by dhclient, which always derives the IAID from the MAC address\&.
+T}
+T{
+dhcp\-reject\-servers
+T}:T{
+array of string
+T}:T{
+\ \&
+T}:T{
+Array of servers from which DHCP offers must be rejected\&. This property is useful to avoid getting a lease from misconfigured or rogue servers\&. For DHCPv4, each element must be an IPv4 address, optionally followed by a slash and a prefix length (e\&.g\&. "192\&.168\&.122\&.0/24")\&. This property is currently not implemented for DHCPv6\&.
 T}
 T{
 dhcp\-send\-hostname
@@ -2010,6 +2021,15 @@ T}:T{
 0
 T}:T{
 A timeout for a DHCP transaction in seconds\&. If zero (the default), a globally configured default is used\&. If still unspecified, a device specific timeout is used (usually 45 seconds)\&. Set to 2147483647 (MAXINT32) for infinity\&.
+T}
+T{
+dhcp\-vendor\-class\-identifier
+T}:T{
+string
+T}:T{
+\ \&
+T}:T{
+The Vendor Class Identifier DHCP option (60)\&. Special characters in the data string may be escaped using C\-style escapes, nevertheless this property cannot contain nul bytes\&. If the per\-profile value is unspecified (the default), a global connection default gets consulted\&. If still unspecified, the DHCP option is not sent to the server\&. Since 1\&.28
 T}
 T{
 dns
@@ -2036,7 +2056,7 @@ int32
 T}:T{
 0
 T}:T{
-DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower value is better (higher priority)\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&.  To prioritize a given server over another one within the same connection, just specify them in the desired order\&.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd\-resolved, each connection is used to query domains in its search list\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins\&.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored\&.
+DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower numerical value is better (higher priority)\&. Negative values have the special effect of excluding other configurations with a greater numerical priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. To avoid all DNS leaks, set the priority of the profile that should be used to the most negative value of all active connections profiles\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&. To prioritize a given server over another one within the same connection, just specify them in the desired order\&. Note that commonly the resolver tries name servers in /etc/resolv\&.conf in the order listed, proceeding with the next server in the list on failure\&. See for example the "rotate" option of the dns\-options setting\&. If there are any negative DNS priorities, then only name servers from the devices with that lowest priority will be considered\&. When using a DNS resolver that supports Conditional Forwarding or Split DNS (with dns=dnsmasq or dns=systemd\-resolved settings), each connection is used to query domains in its search list\&. The search domains determine which name servers to ask, and the DNS priority is used to prioritize name servers based on the domain\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the best priority (lowest numerical value) wins\&.  If a sub domain is configured on another interface it will be accepted regardless the priority, unless parent domain on the other interface has a negative priority, which causes the sub domain to be shadowed\&. With Split DNS one can avoid undesired DNS leaks by properly configuring DNS priorities and the search domains, so that only name servers of the desired interface are configured\&.
 T}
 T{
 dns\-search
@@ -2045,7 +2065,7 @@ array of string
 T}:T{
 \ \&
 T}:T{
-Array of DNS search domains\&. Domains starting with a tilde (\*(Aq~\*(Aq) are considered \*(Aqrouting\*(Aq domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names\&.
+Array of DNS search domains\&. Domains starting with a tilde (\*(Aq~\*(Aq) are considered \*(Aqrouting\*(Aq domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names\&. When using a DNS plugin that supports Conditional Forwarding or Split DNS, then the search domains specify which name servers to query\&. This makes the behavior different from running with plain /etc/resolv\&.conf\&. For more information see also the dns\-priority setting\&.
 T}
 T{
 gateway
@@ -2063,7 +2083,7 @@ boolean
 T}:T{
 FALSE
 T}:T{
-When "method" is set to "auto" and this property to TRUE, automatically configured nameservers and search domains are ignored and only nameservers and search domains specified in the "dns" and "dns\-search" properties, if any, are used\&.
+When "method" is set to "auto" and this property to TRUE, automatically configured name servers and search domains are ignored and only name servers and search domains specified in the "dns" and "dns\-search" properties, if any, are used\&.
 T}
 T{
 ignore\-auto\-routes
@@ -2108,7 +2128,7 @@ array of vardict
 T}:T{
 \ \&
 T}:T{
-Array of IPv4 routes\&. Each route dictionary contains at least \*(Aqdest\*(Aq and \*(Aqprefix\*(Aq entries, containing the destination IP address as a string, and the prefix length as a uint32\&. Most routes will also have a \*(Aqgateway\*(Aq entry, containing the gateway IP address as a string\&. If the route has a \*(Aqmetric\*(Aq entry (containing a uint32), that will be used as the metric for the route (otherwise NM will pick a default value appropriate to the device)\&. Additional attributes may also exist on some routes\&.
+Array of IPv4 routes\&. Each route dictionary contains at least \*(Aqdest\*(Aq and \*(Aqprefix\*(Aq entries, containing the destination IP address as a string, and the prefix length as a uint32\&. Most routes will also have a \*(Aqnext\-hop\*(Aq entry, containing the next hop IP address as a string\&. If the route has a \*(Aqmetric\*(Aq entry (containing a uint32), that will be used as the metric for the route (otherwise NM will pick a default value appropriate to the device)\&. Additional attributes may also exist on some routes\&.
 T}
 T{
 route\-metric
@@ -2155,6 +2175,7 @@ T}:T{
 Value Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -2243,7 +2264,7 @@ uint32
 T}:T{
 0
 T}:T{
-Flags for the DHCP hostname and FQDN\&. Currently this property only includes flags to control the FQDN flags set in the DHCP FQDN option\&. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4)\&.  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag\&. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6\&. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration\&. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests\&.
+Flags for the DHCP hostname and FQDN\&. Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option\&. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4)\&.  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag\&. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6\&. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration\&. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests\&.
 T}
 T{
 dhcp\-iaid
@@ -2253,6 +2274,15 @@ T}:T{
 \ \&
 T}:T{
 A string containing the "Identity Association Identifier" (IAID) used by the DHCP client\&. The property is a 32\-bit decimal value or a special value among "mac", "perm\-mac", "ifname" and "stable"\&. When set to "mac" (or "perm\-mac"), the last 4 bytes of the current (or permanent) MAC address are used as IAID\&. When set to "ifname", the IAID is computed by hashing the interface name\&. The special value "stable" can be used to generate an IAID based on the stable\-id (see connection\&.stable\-id), a per\-host key and the interface name\&. When the property is unset, the value from global configuration is used; if no global default is set then the IAID is assumed to be "ifname"\&. Note that at the moment this property is ignored for IPv6 by dhclient, which always derives the IAID from the MAC address\&.
+T}
+T{
+dhcp\-reject\-servers
+T}:T{
+array of string
+T}:T{
+\ \&
+T}:T{
+Array of servers from which DHCP offers must be rejected\&. This property is useful to avoid getting a lease from misconfigured or rogue servers\&. For DHCPv4, each element must be an IPv4 address, optionally followed by a slash and a prefix length (e\&.g\&. "192\&.168\&.122\&.0/24")\&. This property is currently not implemented for DHCPv6\&.
 T}
 T{
 dhcp\-send\-hostname
@@ -2297,7 +2327,7 @@ int32
 T}:T{
 0
 T}:T{
-DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower value is better (higher priority)\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&.  To prioritize a given server over another one within the same connection, just specify them in the desired order\&.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd\-resolved, each connection is used to query domains in its search list\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins\&.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored\&.
+DNS servers priority\&. The relative priority for DNS servers specified by this setting\&.  A lower numerical value is better (higher priority)\&. Negative values have the special effect of excluding other configurations with a greater numerical priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used\&. To avoid all DNS leaks, set the priority of the profile that should be used to the most negative value of all active connections profiles\&. Zero selects a globally configured default value\&. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections\&. Note that the priority is to order DNS settings for multiple active connections\&.  It does not disambiguate multiple DNS servers within the same connection profile\&. When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices\&. When using dns=default, servers with higher priority will be on top of resolv\&.conf\&. To prioritize a given server over another one within the same connection, just specify them in the desired order\&. Note that commonly the resolver tries name servers in /etc/resolv\&.conf in the order listed, proceeding with the next server in the list on failure\&. See for example the "rotate" option of the dns\-options setting\&. If there are any negative DNS priorities, then only name servers from the devices with that lowest priority will be considered\&. When using a DNS resolver that supports Conditional Forwarding or Split DNS (with dns=dnsmasq or dns=systemd\-resolved settings), each connection is used to query domains in its search list\&. The search domains determine which name servers to ask, and the DNS priority is used to prioritize name servers based on the domain\&.  Queries for domains not present in any search list are routed through connections having the \*(Aq~\&.\*(Aq special wildcard domain, which is added automatically to connections with the default route (or can be added manually)\&.  When multiple connections specify the same domain, the one with the best priority (lowest numerical value) wins\&.  If a sub domain is configured on another interface it will be accepted regardless the priority, unless parent domain on the other interface has a negative priority, which causes the sub domain to be shadowed\&. With Split DNS one can avoid undesired DNS leaks by properly configuring DNS priorities and the search domains, so that only name servers of the desired interface are configured\&.
 T}
 T{
 dns\-search
@@ -2306,7 +2336,7 @@ array of string
 T}:T{
 \ \&
 T}:T{
-Array of DNS search domains\&. Domains starting with a tilde (\*(Aq~\*(Aq) are considered \*(Aqrouting\*(Aq domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names\&.
+Array of DNS search domains\&. Domains starting with a tilde (\*(Aq~\*(Aq) are considered \*(Aqrouting\*(Aq domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names\&. When using a DNS plugin that supports Conditional Forwarding or Split DNS, then the search domains specify which name servers to query\&. This makes the behavior different from running with plain /etc/resolv\&.conf\&. For more information see also the dns\-priority setting\&.
 T}
 T{
 gateway
@@ -2324,7 +2354,7 @@ boolean
 T}:T{
 FALSE
 T}:T{
-When "method" is set to "auto" and this property to TRUE, automatically configured nameservers and search domains are ignored and only nameservers and search domains specified in the "dns" and "dns\-search" properties, if any, are used\&.
+When "method" is set to "auto" and this property to TRUE, automatically configured name servers and search domains are ignored and only name servers and search domains specified in the "dns" and "dns\-search" properties, if any, are used\&.
 T}
 T{
 ignore\-auto\-routes
@@ -2472,7 +2502,7 @@ uint32
 T}:T{
 0
 T}:T{
-Tunnel flags\&. Currently the following values are supported: NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT (0x1), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_TCLASS (0x2), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FLOWLABEL (0x4), NM_IP_TUNNEL_FLAG_IP6_MIP6_DEV (0x8), NM_IP_TUNNEL_FLAG_IP6_RCV_DSCP_COPY (0x10), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FWMARK (0x20)\&. They are valid only for IPv6 tunnels\&.
+Tunnel flags\&. Currently, the following values are supported: NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT (0x1), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_TCLASS (0x2), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FLOWLABEL (0x4), NM_IP_TUNNEL_FLAG_IP6_MIP6_DEV (0x8), NM_IP_TUNNEL_FLAG_IP6_RCV_DSCP_COPY (0x10), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FWMARK (0x20)\&. They are valid only for IPv6 tunnels\&.
 T}
 T{
 flow\-label
@@ -3513,7 +3543,7 @@ array of vardict
 T}:T{
 \ \&
 T}:T{
-Array of virtual function descriptors\&. Each VF descriptor is a dictionary mapping attribute names to GVariant values\&. The \*(Aqindex\*(Aq entry is mandatory for each VF\&. When represented as string a VF is in the form: "INDEX [ATTR=VALUE[ ATTR=VALUE]\&.\&.\&.]"\&. for example: "2 mac=00:11:22:33:44:55 spoof\-check=true"\&. Multiple VFs can be specified using a comma as separator\&. Currently the following attributes are supported: mac, spoof\-check, trust, min\-tx\-rate, max\-tx\-rate, vlans\&. The "vlans" attribute is represented as a semicolon\-separated list of VLAN descriptors, where each descriptor has the form "ID[\&.PRIORITY[\&.PROTO]]"\&. PROTO can be either \*(Aqq\*(Aq for 802\&.1Q (the default) or \*(Aqad\*(Aq for 802\&.1ad\&.
+Array of virtual function descriptors\&. Each VF descriptor is a dictionary mapping attribute names to GVariant values\&. The \*(Aqindex\*(Aq entry is mandatory for each VF\&. When represented as string a VF is in the form: "INDEX [ATTR=VALUE[ ATTR=VALUE]\&.\&.\&.]"\&. for example: "2 mac=00:11:22:33:44:55 spoof\-check=true"\&. Multiple VFs can be specified using a comma as separator\&. Currently, the following attributes are supported: mac, spoof\-check, trust, min\-tx\-rate, max\-tx\-rate, vlans\&. The "vlans" attribute is represented as a semicolon\-separated list of VLAN descriptors, where each descriptor has the form "ID[\&.PRIORITY[\&.PROTO]]"\&. PROTO can be either \*(Aqq\*(Aq for 802\&.1Q (the default) or \*(Aqad\*(Aq for 802\&.1ad\&.
 T}
 .TE
 .sp 1
@@ -4325,7 +4355,7 @@ string
 T}:T{
 \ \&
 T}:T{
-The P2P device that should be connected to\&. Currently this is the only way to create or join a group\&.
+The P2P device that should be connected to\&. Currently, this is the only way to create or join a group\&.
 T}
 T{
 wfd\-ies
@@ -4585,7 +4615,7 @@ uint32
 T}:T{
 0
 T}:T{
-The use of fwmark is optional and is by default off\&. Setting it to 0 disables it\&. Otherwise it is a 32\-bit fwmark for outgoing packets\&. Note that "ip4\-auto\-default\-route" or "ip6\-auto\-default\-route" enabled, implies to automatically choose a fwmark\&.
+The use of fwmark is optional and is by default off\&. Setting it to 0 disables it\&. Otherwise, it is a 32\-bit fwmark for outgoing packets\&. Note that "ip4\-auto\-default\-route" or "ip6\-auto\-default\-route" enabled, implies to automatically choose a fwmark\&.
 T}
 T{
 ip4\-auto\-default\-route
@@ -4695,7 +4725,17 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
+T{
+ap\-isolation
+T}:T{
+NMTernary (int32)
+T}:T{
+\ \&
+T}:T{
+Configures AP isolation, which prevents communication between wireless devices connected to this AP\&. This property can be set to a value different from NM_TERNARY_DEFAULT (\-1) only when the interface is configured in AP mode\&. If set to NM_TERNARY_TRUE (1), devices are not able to communicate with each other\&. This increases security because it protects devices against attacks from other clients in the network\&. At the same time, it prevents devices to access resources on the same wireless networks as file shares, printers, etc\&. If set to NM_TERNARY_FALSE (0), devices can talk to each other\&. When set to NM_TERNARY_DEFAULT (\-1), the global default is used; in case the global default is unspecified it is assumed to be NM_TERNARY_FALSE (0)\&.
+T}
 T{
 assigned\-mac\-address
 T}:T{

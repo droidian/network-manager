@@ -43,6 +43,10 @@ sources = files(
   'nm-core-utils.c',
   'nm-dbus-object.c',
   'nm-dbus-utils.c',
+  'nm-netns.c',
+  'nm-l3-config-data.c',
+  'nm-l3cfg.c',
+  'nm-ip-config.c',
   'nm-ip4-config.c',
   'nm-ip6-config.c',
   'nm-logging.c',
@@ -143,7 +147,6 @@ sources = files(
   'nm-hostname-manager.c',
   'nm-keep-alive.c',
   'nm-manager.c',
-  'nm-netns.c',
   'nm-pacrunner-manager.c',
   'nm-policy.c',
   'nm-proxy-config.c',
@@ -191,19 +194,16 @@ libnetwork_manager = static_library(
   link_with: nm_links,
 )
 
-deps = [
-  daemon_nm_default_dep,
-  dl_dep,
-  libndp_dep,
-  libudev_dep,
-]
-
-name = 'nm-iface-helper'
-
 executable(
-  name,
-  name + '.c',
-  dependencies: deps,
+  'nm-iface-helper',
+  'nm-iface-helper.c',
+  dependencies: [
+    daemon_nm_default_dep,
+    dl_dep,
+    libndp_dep,
+    libudev_dep,
+    libn_acd_dep,
+  ],
   c_args: daemon_c_flags,
   link_with: nm_links,
   link_args: ldflags_linker_script_binary,

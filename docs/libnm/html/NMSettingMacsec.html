@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel">
 <link rel="next" href="NMSettingMacvlan.html" title="NMSettingMacvlan">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -137,7 +137,7 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--mka-cak" title="The “mka-cak” property">mka-cak</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -148,23 +148,23 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--mka-ckn" title="The “mka-ckn” property">mka-ckn</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
+<td class="property_type"><span class="type">int</span></td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--mode" title="The “mode” property">mode</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--parent" title="The “parent” property">parent</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
+<td class="property_type"><span class="type">int</span></td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--port" title="The “port” property">port</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -174,7 +174,7 @@
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
+<td class="property_type"><span class="type">int</span></td>
 <td class="property_name"><a class="link" href="NMSettingMacsec.html#NMSettingMacsec--validation" title="The “validation” property">validation</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -277,7 +277,7 @@ nm_setting_macsec_new (<em class="parameter"><code><span class="type">void</span
 <div class="refsect3">
 <a name="nm-setting-macsec-new.returns"></a><h4>Returns</h4>
 <p>the new empty <a class="link" href="NMSettingMacsec.html" title="NMSettingMacsec"><span class="type">NMSettingMacsec</span></a> object. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -520,61 +520,61 @@ nm_setting_macsec_get_send_sci (<em class="parameter"><code><a class="link" href
 <a name="NMSettingMacsec.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="NM-SETTING-MACSEC-SETTING-NAME:CAPS"></a><h3>NM_SETTING_MACSEC_SETTING_NAME</h3>
-<pre class="programlisting">#define NM_SETTING_MACSEC_SETTING_NAME         "macsec"
+<pre class="programlisting">#define NM_SETTING_MACSEC_SETTING_NAME "macsec"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-MACSEC-PARENT:CAPS"></a><h3>NM_SETTING_MACSEC_PARENT</h3>
-<pre class="programlisting">#define NM_SETTING_MACSEC_PARENT               "parent"
+<pre class="programlisting">#define NM_SETTING_MACSEC_PARENT        "parent"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-MACSEC-MODE:CAPS"></a><h3>NM_SETTING_MACSEC_MODE</h3>
-<pre class="programlisting">#define NM_SETTING_MACSEC_MODE                 "mode"
+<pre class="programlisting">#define NM_SETTING_MACSEC_MODE          "mode"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-MACSEC-ENCRYPT:CAPS"></a><h3>NM_SETTING_MACSEC_ENCRYPT</h3>
-<pre class="programlisting">#define NM_SETTING_MACSEC_ENCRYPT              "encrypt"
+<pre class="programlisting">#define NM_SETTING_MACSEC_ENCRYPT       "encrypt"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-MACSEC-MKA-CAK:CAPS"></a><h3>NM_SETTING_MACSEC_MKA_CAK</h3>
-<pre class="programlisting">#define NM_SETTING_MACSEC_MKA_CAK              "mka-cak"
+<pre class="programlisting">#define NM_SETTING_MACSEC_MKA_CAK       "mka-cak"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-MACSEC-MKA-CAK-FLAGS:CAPS"></a><h3>NM_SETTING_MACSEC_MKA_CAK_FLAGS</h3>
-<pre class="programlisting">#define NM_SETTING_MACSEC_MKA_CAK_FLAGS        "mka-cak-flags"
+<pre class="programlisting">#define NM_SETTING_MACSEC_MKA_CAK_FLAGS "mka-cak-flags"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-MACSEC-MKA-CKN:CAPS"></a><h3>NM_SETTING_MACSEC_MKA_CKN</h3>
-<pre class="programlisting">#define NM_SETTING_MACSEC_MKA_CKN              "mka-ckn"
+<pre class="programlisting">#define NM_SETTING_MACSEC_MKA_CKN       "mka-ckn"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-MACSEC-PORT:CAPS"></a><h3>NM_SETTING_MACSEC_PORT</h3>
-<pre class="programlisting">#define NM_SETTING_MACSEC_PORT                 "port"
+<pre class="programlisting">#define NM_SETTING_MACSEC_PORT          "port"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-MACSEC-VALIDATION:CAPS"></a><h3>NM_SETTING_MACSEC_VALIDATION</h3>
-<pre class="programlisting">#define NM_SETTING_MACSEC_VALIDATION           "validation"
+<pre class="programlisting">#define NM_SETTING_MACSEC_VALIDATION    "validation"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-MACSEC-SEND-SCI:CAPS"></a><h3>NM_SETTING_MACSEC_SEND_SCI</h3>
-<pre class="programlisting">#define NM_SETTING_MACSEC_SEND_SCI             "send-sci"
+<pre class="programlisting">#define NM_SETTING_MACSEC_SEND_SCI      "send-sci"
 </pre>
 </div>
 <hr>
@@ -661,13 +661,13 @@ verify frames are dropped</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-MACSEC-MKA-CAK-LENGTH:CAPS"></a><h3>NM_SETTING_MACSEC_MKA_CAK_LENGTH</h3>
-<pre class="programlisting">#define NM_SETTING_MACSEC_MKA_CAK_LENGTH     32
+<pre class="programlisting">#define NM_SETTING_MACSEC_MKA_CAK_LENGTH 32
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-MACSEC-MKA-CKN-LENGTH:CAPS"></a><h3>NM_SETTING_MACSEC_MKA_CKN_LENGTH</h3>
-<pre class="programlisting">#define NM_SETTING_MACSEC_MKA_CKN_LENGTH     64
+<pre class="programlisting">#define NM_SETTING_MACSEC_MKA_CKN_LENGTH 64
 </pre>
 </div>
 </div>
@@ -685,7 +685,7 @@ verify frames are dropped</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingMacsec--mka-cak"></a><h3>The <code class="literal">“mka-cak”</code> property</h3>
-<pre class="programlisting">  “mka-cak”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “mka-cak”                  <span class="type">char</span> *</pre>
 <p>The pre-shared CAK (Connectivity Association Key) for MACsec
 Key Agreement.</p>
 <p>Owner: NMSettingMacsec</p>
@@ -706,7 +706,7 @@ property.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingMacsec--mka-ckn"></a><h3>The <code class="literal">“mka-ckn”</code> property</h3>
-<pre class="programlisting">  “mka-ckn”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “mka-ckn”                  <span class="type">char</span> *</pre>
 <p>The pre-shared CKN (Connectivity-association Key Name) for
 MACsec Key Agreement.</p>
 <p>Owner: NMSettingMacsec</p>
@@ -717,7 +717,7 @@ MACsec Key Agreement.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingMacsec--mode"></a><h3>The <code class="literal">“mode”</code> property</h3>
-<pre class="programlisting">  “mode”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
+<pre class="programlisting">  “mode”                     <span class="type">int</span></pre>
 <p>Specifies how the CAK (Connectivity Association Key) for MKA (MACsec Key
 Agreement) is obtained.</p>
 <p>Owner: NMSettingMacsec</p>
@@ -728,7 +728,7 @@ Agreement) is obtained.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingMacsec--parent"></a><h3>The <code class="literal">“parent”</code> property</h3>
-<pre class="programlisting">  “parent”                   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “parent”                   <span class="type">char</span> *</pre>
 <p>If given, specifies the parent interface name or parent connection UUID
 from which this MACSEC interface should be created.  If this property is
 not specified, the connection must contain an <a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="type">NMSettingWired</span></a> setting
@@ -741,7 +741,7 @@ with a <a class="link" href="NMSettingWired.html#NMSettingWired--mac-address" ti
 <hr>
 <div class="refsect2">
 <a name="NMSettingMacsec--port"></a><h3>The <code class="literal">“port”</code> property</h3>
-<pre class="programlisting">  “port”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
+<pre class="programlisting">  “port”                     <span class="type">int</span></pre>
 <p>The port component of the SCI (Secure Channel Identifier), between 1 and 65534.</p>
 <p>Owner: NMSettingMacsec</p>
 <p>Flags: Read / Write</p>
@@ -763,7 +763,7 @@ in every packet.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingMacsec--validation"></a><h3>The <code class="literal">“validation”</code> property</h3>
-<pre class="programlisting">  “validation”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
+<pre class="programlisting">  “validation”               <span class="type">int</span></pre>
 <p>Specifies the validation mode for incoming frames.</p>
 <p>Owner: NMSettingMacsec</p>
 <p>Flags: Read / Write</p>
@@ -773,6 +773,6 @@ in every packet.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

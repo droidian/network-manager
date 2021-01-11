@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingVlan.html" title="NMSettingVlan">
 <link rel="next" href="NMSettingVrf.html" title="NMSettingVrf">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -210,7 +210,7 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingVpn.html#NMSettingVpn--service-type" title="The “service-type” property">service-type</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -221,7 +221,7 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingVpn.html#NMSettingVpn--user-name" title="The “user-name” property">user-name</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -334,7 +334,7 @@ nm_setting_vpn_new (<em class="parameter"><code><span class="type">void</span></
 <div class="refsect3">
 <a name="nm-setting-vpn-new.returns"></a><h4>Returns</h4>
 <p>the new empty <a class="link" href="NMSettingVpn.html" title="NMSettingVpn"><span class="type">NMSettingVpn</span></a> object. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -633,7 +633,7 @@ nm_setting_vpn_get_data_keys (<em class="parameter"><code><a class="link" href="
 <p>a
 <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array containing each data key or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if
 there are no data items. </p>
-<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_length][<acronym title="Free data container after the code is done."><span class="acronym">transfer container</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_length][<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -855,7 +855,7 @@ nm_setting_vpn_get_secret_keys (<em class="parameter"><code><a class="link" href
 <p>a
 <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array containing each secret key or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if
 there are no secrets. </p>
-<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_length][<acronym title="Free data container after the code is done."><span class="acronym">transfer container</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_length][<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -965,7 +965,7 @@ until explicitly disconnected.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingVpn--service-type"></a><h3>The <code class="literal">“service-type”</code> property</h3>
-<pre class="programlisting">  “service-type”             <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “service-type”             <span class="type">char</span> *</pre>
 <p>D-Bus service name of the VPN plugin that this setting uses to connect to
 its network.  i.e. org.freedesktop.NetworkManager.vpnc for the vpnc
 plugin.</p>
@@ -990,7 +990,7 @@ timeout in seconds.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingVpn--user-name"></a><h3>The <code class="literal">“user-name”</code> property</h3>
-<pre class="programlisting">  “user-name”                <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “user-name”                <span class="type">char</span> *</pre>
 <p>If the VPN connection requires a user name for authentication, that name
 should be provided here.  If the connection is available to more than one
 user, and the VPN requires each user to supply a different name, then
@@ -1004,6 +1004,6 @@ VPN connection.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

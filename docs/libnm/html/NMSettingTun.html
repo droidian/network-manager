@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingTeam.html" title="NMSettingTeam">
 <link rel="next" href="NMSettingUser.html" title="NMSettingUser">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -109,7 +109,7 @@
 <tbody>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingTun.html#NMSettingTun--group" title="The “group” property">group</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -125,7 +125,7 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingTun.html#NMSettingTun--owner" title="The “owner” property">owner</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -213,7 +213,7 @@ nm_setting_tun_new (<em class="parameter"><code><span class="type">void</span></
 <div class="refsect3">
 <a name="nm-setting-tun-new.returns"></a><h4>Returns</h4>
 <p>the new empty <a class="link" href="NMSettingTun.html" title="NMSettingTun"><span class="type">NMSettingTun</span></a> object. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -378,43 +378,43 @@ nm_setting_tun_get_multi_queue (<em class="parameter"><code><a class="link" href
 <a name="NMSettingTun.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="NM-SETTING-TUN-SETTING-NAME:CAPS"></a><h3>NM_SETTING_TUN_SETTING_NAME</h3>
-<pre class="programlisting">#define NM_SETTING_TUN_SETTING_NAME         "tun"
+<pre class="programlisting">#define NM_SETTING_TUN_SETTING_NAME "tun"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-TUN-MODE:CAPS"></a><h3>NM_SETTING_TUN_MODE</h3>
-<pre class="programlisting">#define NM_SETTING_TUN_MODE                 "mode"
+<pre class="programlisting">#define NM_SETTING_TUN_MODE        "mode"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-TUN-OWNER:CAPS"></a><h3>NM_SETTING_TUN_OWNER</h3>
-<pre class="programlisting">#define NM_SETTING_TUN_OWNER                "owner"
+<pre class="programlisting">#define NM_SETTING_TUN_OWNER       "owner"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-TUN-GROUP:CAPS"></a><h3>NM_SETTING_TUN_GROUP</h3>
-<pre class="programlisting">#define NM_SETTING_TUN_GROUP                "group"
+<pre class="programlisting">#define NM_SETTING_TUN_GROUP       "group"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-TUN-PI:CAPS"></a><h3>NM_SETTING_TUN_PI</h3>
-<pre class="programlisting">#define NM_SETTING_TUN_PI                   "pi"
+<pre class="programlisting">#define NM_SETTING_TUN_PI          "pi"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-TUN-VNET-HDR:CAPS"></a><h3>NM_SETTING_TUN_VNET_HDR</h3>
-<pre class="programlisting">#define NM_SETTING_TUN_VNET_HDR             "vnet-hdr"
+<pre class="programlisting">#define NM_SETTING_TUN_VNET_HDR    "vnet-hdr"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-TUN-MULTI-QUEUE:CAPS"></a><h3>NM_SETTING_TUN_MULTI_QUEUE</h3>
-<pre class="programlisting">#define NM_SETTING_TUN_MULTI_QUEUE          "multi-queue"
+<pre class="programlisting">#define NM_SETTING_TUN_MULTI_QUEUE "multi-queue"
 </pre>
 </div>
 <hr>
@@ -466,7 +466,7 @@ nm_setting_tun_get_multi_queue (<em class="parameter"><code><a class="link" href
 <a name="NMSettingTun.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMSettingTun--group"></a><h3>The <code class="literal">“group”</code> property</h3>
-<pre class="programlisting">  “group”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “group”                    <span class="type">char</span> *</pre>
 <p>The group ID which will own the device. If set to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> everyone
 will be able to use the device.</p>
 <p>Owner: NMSettingTun</p>
@@ -503,7 +503,7 @@ support a single queue.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingTun--owner"></a><h3>The <code class="literal">“owner”</code> property</h3>
-<pre class="programlisting">  “owner”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “owner”                    <span class="type">char</span> *</pre>
 <p>The user ID which will own the device. If set to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> everyone
 will be able to use the device.</p>
 <p>Owner: NMSettingTun</p>
@@ -536,6 +536,6 @@ network header.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

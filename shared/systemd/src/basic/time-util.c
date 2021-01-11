@@ -25,6 +25,7 @@
 #include "path-util.h"
 #include "process-util.h"
 #include "stat-util.h"
+#include "string-table.h"
 #include "string-util.h"
 #include "strv.h"
 #include "time-util.h"
@@ -84,43 +85,82 @@ triple_timestamp* triple_timestamp_get(triple_timestamp *ts) {
         return ts;
 }
 
+static usec_t map_clock_usec_internal(usec_t from, usec_t from_base, usec_t to_base) {
+
+        /* Maps the time 'from' between two clocks, based on a common reference point where the first clock
+         * is at 'from_base' and the second clock at 'to_base'. Basically calculates:
+         *
+         *         from - from_base + to_base
+         *
+         * But takes care of overflows/underflows and avoids signed operations. */
+
+        if (from >= from_base) { /* In the future */
+                usec_t delta = from - from_base;
+
+                if (to_base >= USEC_INFINITY - delta) /* overflow? */
+                        return USEC_INFINITY;
+
+                return to_base + delta;
+
+        } else { /* In the past */
+                usec_t delta = from_base - from;
+
+                if (to_base <= delta) /* underflow? */
+                        return 0;
+
+                return to_base - delta;
+        }
+}
+
+usec_t map_clock_usec(usec_t from, clockid_t from_clock, clockid_t to_clock) {
+
+        /* Try to avoid any inaccuracy needlessly added in case we convert from effectively the same clock
+         * onto itself */
+        if (map_clock_id(from_clock) == map_clock_id(to_clock))
+                return from;
+
+        /* Keep infinity as is */
+        if (from == USEC_INFINITY)
+                return from;
+
+        return map_clock_usec_internal(from, now(from_clock), now(to_clock));
+}
+
 dual_timestamp* dual_timestamp_from_realtime(dual_timestamp *ts, usec_t u) {
-        int64_t delta;
         assert(ts);
 
-        if (u == USEC_INFINITY || u <= 0) {
+        if (u == USEC_INFINITY || u == 0) {
                 ts->realtime = ts->monotonic = u;
                 return ts;
         }
 
         ts->realtime = u;
-
-        delta = (int64_t) now(CLOCK_REALTIME) - (int64_t) u;
-        ts->monotonic = usec_sub_signed(now(CLOCK_MONOTONIC), delta);
-
+        ts->monotonic = map_clock_usec(u, CLOCK_REALTIME, CLOCK_MONOTONIC);
         return ts;
 }
 
 triple_timestamp* triple_timestamp_from_realtime(triple_timestamp *ts, usec_t u) {
-        int64_t delta;
+        usec_t nowr;
 
         assert(ts);
 
-        if (u == USEC_INFINITY || u <= 0) {
+        if (u == USEC_INFINITY || u == 0) {
                 ts->realtime = ts->monotonic = ts->boottime = u;
                 return ts;
         }
 
+        nowr = now(CLOCK_REALTIME);
+
         ts->realtime = u;
-        delta = (int64_t) now(CLOCK_REALTIME) - (int64_t) u;
-        ts->monotonic = usec_sub_signed(now(CLOCK_MONOTONIC), delta);
-        ts->boottime = clock_boottime_supported() ? usec_sub_signed(now(CLOCK_BOOTTIME), delta) : USEC_INFINITY;
+        ts->monotonic = map_clock_usec_internal(u, nowr, now(CLOCK_MONOTONIC));
+        ts->boottime = clock_boottime_supported() ?
+                map_clock_usec_internal(u, nowr, now(CLOCK_BOOTTIME)) :
+                USEC_INFINITY;
 
         return ts;
 }
 
 dual_timestamp* dual_timestamp_from_monotonic(dual_timestamp *ts, usec_t u) {
-        int64_t delta;
         assert(ts);
 
         if (u == USEC_INFINITY) {
@@ -129,25 +169,28 @@ dual_timestamp* dual_timestamp_from_monotonic(dual_timestamp *ts, usec_t u) {
         }
 
         ts->monotonic = u;
-        delta = (int64_t) now(CLOCK_MONOTONIC) - (int64_t) u;
-        ts->realtime = usec_sub_signed(now(CLOCK_REALTIME), delta);
-
+        ts->realtime = map_clock_usec(u, CLOCK_MONOTONIC, CLOCK_REALTIME);
         return ts;
 }
 
 dual_timestamp* dual_timestamp_from_boottime_or_monotonic(dual_timestamp *ts, usec_t u) {
-        int64_t delta;
+        clockid_t cid;
+        usec_t nowm;
 
         if (u == USEC_INFINITY) {
                 ts->realtime = ts->monotonic = USEC_INFINITY;
                 return ts;
         }
 
-        dual_timestamp_get(ts);
-        delta = (int64_t) now(clock_boottime_or_monotonic()) - (int64_t) u;
-        ts->realtime = usec_sub_signed(ts->realtime, delta);
-        ts->monotonic = usec_sub_signed(ts->monotonic, delta);
+        cid = clock_boottime_or_monotonic();
+        nowm = now(cid);
 
+        if (cid == CLOCK_MONOTONIC)
+                ts->monotonic = u;
+        else
+                ts->monotonic = map_clock_usec_internal(u, nowm, now(CLOCK_MONOTONIC));
+
+        ts->realtime = map_clock_usec_internal(u, nowm, now(CLOCK_REALTIME));
         return ts;
 }
 
@@ -203,12 +246,28 @@ struct timespec *timespec_store(struct timespec *ts, usec_t u)  {
         if (u == USEC_INFINITY ||
             u / USEC_PER_SEC >= TIME_T_MAX) {
                 ts->tv_sec = (time_t) -1;
-                ts->tv_nsec = (long) -1;
+                ts->tv_nsec = -1L;
                 return ts;
         }
 
         ts->tv_sec = (time_t) (u / USEC_PER_SEC);
-        ts->tv_nsec = (long int) ((u % USEC_PER_SEC) * NSEC_PER_USEC);
+        ts->tv_nsec = (long) ((u % USEC_PER_SEC) * NSEC_PER_USEC);
+
+        return ts;
+}
+
+struct timespec *timespec_store_nsec(struct timespec *ts, nsec_t n)  {
+        assert(ts);
+
+        if (n == NSEC_INFINITY ||
+            n / NSEC_PER_SEC >= TIME_T_MAX) {
+                ts->tv_sec = (time_t) -1;
+                ts->tv_nsec = -1L;
+                return ts;
+        }
+
+        ts->tv_sec = (time_t) (n / NSEC_PER_SEC);
+        ts->tv_nsec = (long) (n % NSEC_PER_SEC);
 
         return ts;
 }
@@ -243,12 +302,11 @@ struct timeval *timeval_store(struct timeval *tv, usec_t u) {
         return tv;
 }
 
-static char *format_timestamp_internal(
+char *format_timestamp_style(
                 char *buf,
                 size_t l,
                 usec_t t,
-                bool utc,
-                bool us) {
+                TimestampStyle style) {
 
         /* The weekdays in non-localized (English) form. We use this instead of the localized form, so that our
          * generated timestamps may be parsed with parse_timestamp(), and always read the same. */
@@ -265,8 +323,26 @@ static char *format_timestamp_internal(
         struct tm tm;
         time_t sec;
         size_t n;
+        bool utc = false, us = false;
 
         assert(buf);
+
+        switch (style) {
+                case TIMESTAMP_PRETTY:
+                        break;
+                case TIMESTAMP_US:
+                        us = true;
+                        break;
+                case TIMESTAMP_UTC:
+                        utc = true;
+                        break;
+                case TIMESTAMP_US_UTC:
+                        us = true;
+                        utc = true;
+                        break;
+                default:
+                        return NULL;
+        }
 
         if (l < (size_t) (3 +                  /* week day */
                           1 + 10 +             /* space and date */
@@ -339,22 +415,6 @@ static char *format_timestamp_internal(
         }
 
         return buf;
-}
-
-char *format_timestamp(char *buf, size_t l, usec_t t) {
-        return format_timestamp_internal(buf, l, t, false, false);
-}
-
-char *format_timestamp_utc(char *buf, size_t l, usec_t t) {
-        return format_timestamp_internal(buf, l, t, true, false);
-}
-
-char *format_timestamp_us(char *buf, size_t l, usec_t t) {
-        return format_timestamp_internal(buf, l, t, false, true);
-}
-
-char *format_timestamp_us_utc(char *buf, size_t l, usec_t t) {
-        return format_timestamp_internal(buf, l, t, true, true);
 }
 
 char *format_timestamp_relative(char *buf, size_t l, usec_t t) {
@@ -1532,5 +1592,29 @@ int time_change_fd(void) {
 #endif
 
         return -errno;
+}
+
+static const char* const timestamp_style_table[_TIMESTAMP_STYLE_MAX] = {
+        [TIMESTAMP_PRETTY] = "pretty",
+        [TIMESTAMP_US] = "us",
+        [TIMESTAMP_UTC] = "utc",
+        [TIMESTAMP_US_UTC] = "us+utc",
+};
+
+/* Use the macro for enum → string to allow for aliases */
+_DEFINE_STRING_TABLE_LOOKUP_TO_STRING(timestamp_style, TimestampStyle,);
+
+/* For the string → enum mapping we use the generic implementation, but also support two aliases */
+TimestampStyle timestamp_style_from_string(const char *s) {
+        TimestampStyle t;
+
+        t = (TimestampStyle) string_table_lookup(timestamp_style_table, ELEMENTSOF(timestamp_style_table), s);
+        if (t >= 0)
+                return t;
+        if (streq_ptr(s, "µs"))
+                return TIMESTAMP_US;
+        if (streq_ptr(s, "µs+uts"))
+                return TIMESTAMP_US_UTC;
+        return t;
 }
 #endif /* NM_IGNORED */

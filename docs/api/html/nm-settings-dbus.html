@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nmtui.html" title="nmtui">
 <link rel="next" href="nm-settings-nmcli.html" title="nm-settings-nmcli">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -115,7 +115,7 @@
 <a name="nm-settings-dbus.property.connection.auth-retries"></a>auth-retries</td>
 <td align="left">int32</td>
 <td align="left">-1</td>
-<td>The number of retries for the authentication. Zero means to try indefinitely; -1 means to use a global default. If the global default is not set, the authentication retries for 3 times before failing the connection. Currently this only applies to 802-1x authentication.</td>
+<td>The number of retries for the authentication. Zero means to try indefinitely; -1 means to use a global default. If the global default is not set, the authentication retries for 3 times before failing the connection. Currently, this only applies to 802-1x authentication.</td>
 </tr>
 <tr>
 <td align="left">
@@ -178,7 +178,7 @@
 <a name="nm-settings-dbus.property.connection.llmnr"></a>llmnr</td>
 <td align="left">int32</td>
 <td align="left">-1</td>
-<td>Whether Link-Local Multicast Name Resolution (LLMNR) is enabled for the connection. LLMNR is a protocol based on the Domain Name System (DNS) packet format that allows both IPv4 and IPv6 hosts to perform name resolution for hosts on the same local link. The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable LLMNR for the interface, "resolve" (1) do not register hostname but allow resolving of LLMNR host names If unspecified, "default" ultimately depends on the DNS plugin (which for systemd-resolved currently means "yes"). This feature requires a plugin which supports LLMNR. Otherwise the setting has no effect. One such plugin is dns-systemd-resolved.</td>
+<td>Whether Link-Local Multicast Name Resolution (LLMNR) is enabled for the connection. LLMNR is a protocol based on the Domain Name System (DNS) packet format that allows both IPv4 and IPv6 hosts to perform name resolution for hosts on the same local link. The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable LLMNR for the interface, "resolve" (1) do not register hostname but allow resolving of LLMNR host names If unspecified, "default" ultimately depends on the DNS plugin (which for systemd-resolved currently means "yes"). This feature requires a plugin which supports LLMNR. Otherwise, the setting has no effect. One such plugin is dns-systemd-resolved.</td>
 </tr>
 <tr>
 <td align="left">
@@ -192,7 +192,7 @@
 <a name="nm-settings-dbus.property.connection.mdns"></a>mdns</td>
 <td align="left">int32</td>
 <td align="left">-1</td>
-<td>Whether mDNS is enabled for the connection. The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable mDNS for the interface, "resolve" (1) do not register hostname but allow resolving of mDNS host names and "default" (-1) to allow lookup of a global default in NetworkManager.conf. If unspecified, "default" ultimately depends on the DNS plugin (which for systemd-resolved currently means "no"). This feature requires a plugin which supports mDNS. Otherwise the setting has no effect. One such plugin is dns-systemd-resolved.</td>
+<td>Whether mDNS is enabled for the connection. The permitted values are: "yes" (2) register hostname and resolving for the connection, "no" (0) disable mDNS for the interface, "resolve" (1) do not register hostname but allow resolving of mDNS host names and "default" (-1) to allow lookup of a global default in NetworkManager.conf. If unspecified, "default" ultimately depends on the DNS plugin (which for systemd-resolved currently means "no"). This feature requires a plugin which supports mDNS. Otherwise, the setting has no effect. One such plugin is dns-systemd-resolved.</td>
 </tr>
 <tr>
 <td align="left">
@@ -234,7 +234,7 @@
 <a name="nm-settings-dbus.property.connection.secondaries"></a>secondaries</td>
 <td align="left">array of string</td>
 <td align="left"> </td>
-<td>List of connection UUIDs that should be activated when the base connection itself is activated. Currently only VPN connections are supported.</td>
+<td>List of connection UUIDs that should be activated when the base connection itself is activated. Currently, only VPN connections are supported.</td>
 </tr>
 <tr>
 <td align="left">
@@ -248,7 +248,7 @@
 <a name="nm-settings-dbus.property.connection.stable-id"></a>stable-id</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>This represents the identity of the connection used for various purposes. It allows to configure multiple profiles to share the identity. Also, the stable-id can contain placeholders that are substituted dynamically and deterministically depending on the context. The stable-id is used for generating IPv6 stable private addresses with ipv6.addr-gen-mode=stable-privacy. It is also used to seed the generated cloned MAC address for ethernet.cloned-mac-address=stable and wifi.cloned-mac-address=stable. It is also used as DHCP client identifier with ipv4.dhcp-client-id=stable and to derive the DHCP DUID with ipv6.dhcp-duid=stable-[llt,ll,uuid]. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm. For example, a per-host key is commonly also included, so that different systems end up generating different IDs. Or with ipv6.addr-gen-mode=stable-privacy, also the device's name is included, so that different interfaces yield different addresses. The '$' character is treated special to perform dynamic substitutions at runtime. Currently supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}". These effectively create unique IDs per-connection, per-device, per-boot, or every time. Note that "${DEVICE}" corresponds to the interface name of the device and "${MAC}" is the permanent MAC address of the device. Any unrecognized patterns following '$' are treated verbatim, however are reserved for future use. You are thus advised to avoid '$' or escape it as "$$". For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates. If the value is unset, a global connection default is consulted. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection.</td>
+<td>This represents the identity of the connection used for various purposes. It allows to configure multiple profiles to share the identity. Also, the stable-id can contain placeholders that are substituted dynamically and deterministically depending on the context. The stable-id is used for generating IPv6 stable private addresses with ipv6.addr-gen-mode=stable-privacy. It is also used to seed the generated cloned MAC address for ethernet.cloned-mac-address=stable and wifi.cloned-mac-address=stable. It is also used as DHCP client identifier with ipv4.dhcp-client-id=stable and to derive the DHCP DUID with ipv6.dhcp-duid=stable-[llt,ll,uuid]. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm. For example, a per-host key is commonly also included, so that different systems end up generating different IDs. Or with ipv6.addr-gen-mode=stable-privacy, also the device's name is included, so that different interfaces yield different addresses. The per-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret-key. The '$' character is treated special to perform dynamic substitutions at runtime. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}". These effectively create unique IDs per-connection, per-device, per-boot, or every time. Note that "${DEVICE}" corresponds to the interface name of the device and "${MAC}" is the permanent MAC address of the device. Any unrecognized patterns following '$' are treated verbatim, however are reserved for future use. You are thus advised to avoid '$' or escape it as "$$". For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates. If the value is unset, a global connection default is consulted. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection.</td>
 </tr>
 <tr>
 <td align="left">
@@ -946,7 +946,7 @@
 <a name="nm-settings-dbus.property.bridge.multicast-router"></a>multicast-router</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>Sets bridge's multicast router. Multicast-snooping must be enabled for this option to work. Supported values are: 'auto', 'disabled', 'enabled'. If not specified the default value is 'auto'.</td>
+<td>Sets bridge's multicast router. Multicast-snooping must be enabled for this option to work. Supported values are: 'auto', 'disabled', 'enabled' to which kernel assigns the numbers 1, 0, and 2, respectively. If not specified the default value is 'auto' (1).</td>
 </tr>
 <tr>
 <td align="left">
@@ -1468,7 +1468,7 @@
 <a name="nm-settings-dbus.property.infiniband.p-key"></a>p-key</td>
 <td align="left">int32</td>
 <td align="left">-1</td>
-<td>The InfiniBand P_Key to use for this device. A value of -1 means to use the default P_Key (aka "the P_Key at index 0").  Otherwise it is a 16-bit unsigned integer, whose high bit is set if it is a "full membership" P_Key.</td>
+<td>The InfiniBand P_Key to use for this device. A value of -1 means to use the default P_Key (aka "the P_Key at index 0"). Otherwise, it is a 16-bit unsigned integer, whose high bit is set if it is a "full membership" P_Key.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1552,7 +1552,7 @@
 <a name="nm-settings-dbus.property.ipv4.dhcp-hostname-flags"></a>dhcp-hostname-flags</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
-<td>Flags for the DHCP hostname and FQDN. Currently this property only includes flags to control the FQDN flags set in the DHCP FQDN option. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4).  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests.</td>
+<td>Flags for the DHCP hostname and FQDN. Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4).  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1560,6 +1560,13 @@
 <td align="left">string</td>
 <td align="left"> </td>
 <td>A string containing the "Identity Association Identifier" (IAID) used by the DHCP client. The property is a 32-bit decimal value or a special value among "mac", "perm-mac", "ifname" and "stable". When set to "mac" (or "perm-mac"), the last 4 bytes of the current (or permanent) MAC address are used as IAID. When set to "ifname", the IAID is computed by hashing the interface name. The special value "stable" can be used to generate an IAID based on the stable-id (see connection.stable-id), a per-host key and the interface name. When the property is unset, the value from global configuration is used; if no global default is set then the IAID is assumed to be "ifname". Note that at the moment this property is ignored for IPv6 by dhclient, which always derives the IAID from the MAC address.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.ipv4.dhcp-reject-servers"></a>dhcp-reject-servers</td>
+<td align="left">array of string</td>
+<td align="left"> </td>
+<td>Array of servers from which DHCP offers must be rejected. This property is useful to avoid getting a lease from misconfigured or rogue servers. For DHCPv4, each element must be an IPv4 address, optionally followed by a slash and a prefix length (e.g. "192.168.122.0/24"). This property is currently not implemented for DHCPv6.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1574,6 +1581,13 @@
 <td align="left">int32</td>
 <td align="left">0</td>
 <td>A timeout for a DHCP transaction in seconds. If zero (the default), a globally configured default is used. If still unspecified, a device specific timeout is used (usually 45 seconds). Set to 2147483647 (MAXINT32) for infinity.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.ipv4.dhcp-vendor-class-identifier"></a>dhcp-vendor-class-identifier</td>
+<td align="left">string</td>
+<td align="left"> </td>
+<td>The Vendor Class Identifier DHCP option (60). Special characters in the data string may be escaped using C-style escapes, nevertheless this property cannot contain nul bytes. If the per-profile value is unspecified (the default), a global connection default gets consulted. If still unspecified, the DHCP option is not sent to the server. Since 1.28</td>
 </tr>
 <tr>
 <td align="left">
@@ -1594,14 +1608,14 @@
 <a name="nm-settings-dbus.property.ipv4.dns-priority"></a>dns-priority</td>
 <td align="left">int32</td>
 <td align="left">0</td>
-<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
+<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower numerical value is better (higher priority). Negative values have the special effect of excluding other configurations with a greater numerical priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used. To avoid all DNS leaks, set the priority of the profile that should be used to the most negative value of all active connections profiles. Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices. When using dns=default, servers with higher priority will be on top of resolv.conf. To prioritize a given server over another one within the same connection, just specify them in the desired order. Note that commonly the resolver tries name servers in /etc/resolv.conf in the order listed, proceeding with the next server in the list on failure. See for example the "rotate" option of the dns-options setting. If there are any negative DNS priorities, then only name servers from the devices with that lowest priority will be considered. When using a DNS resolver that supports Conditional Forwarding or Split DNS (with dns=dnsmasq or dns=systemd-resolved settings), each connection is used to query domains in its search list. The search domains determine which name servers to ask, and the DNS priority is used to prioritize name servers based on the domain.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the best priority (lowest numerical value) wins.  If a sub domain is configured on another interface it will be accepted regardless the priority, unless parent domain on the other interface has a negative priority, which causes the sub domain to be shadowed. With Split DNS one can avoid undesired DNS leaks by properly configuring DNS priorities and the search domains, so that only name servers of the desired interface are configured.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings-dbus.property.ipv4.dns-search"></a>dns-search</td>
 <td align="left">array of string</td>
 <td align="left"> </td>
-<td>Array of DNS search domains. Domains starting with a tilde ('~') are considered 'routing' domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names.</td>
+<td>Array of DNS search domains. Domains starting with a tilde ('~') are considered 'routing' domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names. When using a DNS plugin that supports Conditional Forwarding or Split DNS, then the search domains specify which name servers to query. This makes the behavior different from running with plain /etc/resolv.conf. For more information see also the dns-priority setting.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1615,7 +1629,7 @@
 <a name="nm-settings-dbus.property.ipv4.ignore-auto-dns"></a>ignore-auto-dns</td>
 <td align="left">boolean</td>
 <td align="left">FALSE</td>
-<td>When "method" is set to "auto" and this property to TRUE, automatically configured nameservers and search domains are ignored and only nameservers and search domains specified in the "dns" and "dns-search" properties, if any, are used.</td>
+<td>When "method" is set to "auto" and this property to TRUE, automatically configured name servers and search domains are ignored and only name servers and search domains specified in the "dns" and "dns-search" properties, if any, are used.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1650,7 +1664,7 @@
 <a name="nm-settings-dbus.property.ipv4.route-data"></a>route-data</td>
 <td align="left">array of vardict</td>
 <td align="left"> </td>
-<td>Array of IPv4 routes. Each route dictionary contains at least 'dest' and 'prefix' entries, containing the destination IP address as a string, and the prefix length as a uint32. Most routes will also have a 'gateway' entry, containing the gateway IP address as a string. If the route has a 'metric' entry (containing a uint32), that will be used as the metric for the route (otherwise NM will pick a default value appropriate to the device). Additional attributes may also exist on some routes.</td>
+<td>Array of IPv4 routes. Each route dictionary contains at least 'dest' and 'prefix' entries, containing the destination IP address as a string, and the prefix length as a uint32. Most routes will also have a 'next-hop' entry, containing the next hop IP address as a string. If the route has a 'metric' entry (containing a uint32), that will be used as the metric for the route (otherwise NM will pick a default value appropriate to the device). Additional attributes may also exist on some routes.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1741,7 +1755,7 @@
 <a name="nm-settings-dbus.property.ipv6.dhcp-hostname-flags"></a>dhcp-hostname-flags</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
-<td>Flags for the DHCP hostname and FQDN. Currently this property only includes flags to control the FQDN flags set in the DHCP FQDN option. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4).  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests.</td>
+<td>Flags for the DHCP hostname and FQDN. Currently, this property only includes flags to control the FQDN flags set in the DHCP FQDN option. Supported FQDN flags are NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) and NM_DHCP_HOSTNAME_FLAG_FQDN_NO_UPDATE (0x4).  When no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is set, the DHCP FQDN option will contain no flag. Otherwise, if no FQDN flag is set and NM_DHCP_HOSTNAME_FLAG_FQDN_CLEAR_FLAGS (0x8) is not set, the standard FQDN flags are set in the request: NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1), NM_DHCP_HOSTNAME_FLAG_FQDN_ENCODED (0x2) for IPv4 and NM_DHCP_HOSTNAME_FLAG_FQDN_SERV_UPDATE (0x1) for IPv6. When this property is set to the default value NM_DHCP_HOSTNAME_FLAG_NONE (0x0), a global default is looked up in NetworkManager configuration. If that value is unset or also NM_DHCP_HOSTNAME_FLAG_NONE (0x0), then the standard FQDN flags described above are sent in the DHCP requests.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1749,6 +1763,13 @@
 <td align="left">string</td>
 <td align="left"> </td>
 <td>A string containing the "Identity Association Identifier" (IAID) used by the DHCP client. The property is a 32-bit decimal value or a special value among "mac", "perm-mac", "ifname" and "stable". When set to "mac" (or "perm-mac"), the last 4 bytes of the current (or permanent) MAC address are used as IAID. When set to "ifname", the IAID is computed by hashing the interface name. The special value "stable" can be used to generate an IAID based on the stable-id (see connection.stable-id), a per-host key and the interface name. When the property is unset, the value from global configuration is used; if no global default is set then the IAID is assumed to be "ifname". Note that at the moment this property is ignored for IPv6 by dhclient, which always derives the IAID from the MAC address.</td>
+</tr>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.ipv6.dhcp-reject-servers"></a>dhcp-reject-servers</td>
+<td align="left">array of string</td>
+<td align="left"> </td>
+<td>Array of servers from which DHCP offers must be rejected. This property is useful to avoid getting a lease from misconfigured or rogue servers. For DHCPv4, each element must be an IPv4 address, optionally followed by a slash and a prefix length (e.g. "192.168.122.0/24"). This property is currently not implemented for DHCPv6.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1783,14 +1804,14 @@
 <a name="nm-settings-dbus.property.ipv6.dns-priority"></a>dns-priority</td>
 <td align="left">int32</td>
 <td align="left">0</td>
-<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower value is better (higher priority). Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When using dns=default, servers with higher priority will be on top of resolv.conf.  To prioritize a given server over another one within the same connection, just specify them in the desired order.  When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices.  Negative values have the special effect of excluding other configurations with a greater priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used. When using a DNS resolver that supports Conditional Forwarding as dns=dnsmasq or dns=systemd-resolved, each connection is used to query domains in its search list.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the highest priority (lowest numerical value) wins.  If a connection specifies a domain which is subdomain of another domain with a negative DNS priority value, the subdomain is ignored.</td>
+<td>DNS servers priority. The relative priority for DNS servers specified by this setting.  A lower numerical value is better (higher priority). Negative values have the special effect of excluding other configurations with a greater numerical priority value; so in presence of at least one negative priority, only DNS servers from connections with the lowest priority value will be used. To avoid all DNS leaks, set the priority of the profile that should be used to the most negative value of all active connections profiles. Zero selects a globally configured default value. If the latter is missing or zero too, it defaults to 50 for VPNs (including WireGuard) and 100 for other connections. Note that the priority is to order DNS settings for multiple active connections.  It does not disambiguate multiple DNS servers within the same connection profile. When multiple devices have configurations with the same priority, VPNs will be considered first, then devices with the best (lowest metric) default route and then all other devices. When using dns=default, servers with higher priority will be on top of resolv.conf. To prioritize a given server over another one within the same connection, just specify them in the desired order. Note that commonly the resolver tries name servers in /etc/resolv.conf in the order listed, proceeding with the next server in the list on failure. See for example the "rotate" option of the dns-options setting. If there are any negative DNS priorities, then only name servers from the devices with that lowest priority will be considered. When using a DNS resolver that supports Conditional Forwarding or Split DNS (with dns=dnsmasq or dns=systemd-resolved settings), each connection is used to query domains in its search list. The search domains determine which name servers to ask, and the DNS priority is used to prioritize name servers based on the domain.  Queries for domains not present in any search list are routed through connections having the '~.' special wildcard domain, which is added automatically to connections with the default route (or can be added manually).  When multiple connections specify the same domain, the one with the best priority (lowest numerical value) wins.  If a sub domain is configured on another interface it will be accepted regardless the priority, unless parent domain on the other interface has a negative priority, which causes the sub domain to be shadowed. With Split DNS one can avoid undesired DNS leaks by properly configuring DNS priorities and the search domains, so that only name servers of the desired interface are configured.</td>
 </tr>
 <tr>
 <td align="left">
 <a name="nm-settings-dbus.property.ipv6.dns-search"></a>dns-search</td>
 <td align="left">array of string</td>
 <td align="left"> </td>
-<td>Array of DNS search domains. Domains starting with a tilde ('~') are considered 'routing' domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names.</td>
+<td>Array of DNS search domains. Domains starting with a tilde ('~') are considered 'routing' domains and are used only to decide the interface over which a query must be forwarded; they are not used to complete unqualified host names. When using a DNS plugin that supports Conditional Forwarding or Split DNS, then the search domains specify which name servers to query. This makes the behavior different from running with plain /etc/resolv.conf. For more information see also the dns-priority setting.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1804,7 +1825,7 @@
 <a name="nm-settings-dbus.property.ipv6.ignore-auto-dns"></a>ignore-auto-dns</td>
 <td align="left">boolean</td>
 <td align="left">FALSE</td>
-<td>When "method" is set to "auto" and this property to TRUE, automatically configured nameservers and search domains are ignored and only nameservers and search domains specified in the "dns" and "dns-search" properties, if any, are used.</td>
+<td>When "method" is set to "auto" and this property to TRUE, automatically configured name servers and search domains are ignored and only name servers and search domains specified in the "dns" and "dns-search" properties, if any, are used.</td>
 </tr>
 <tr>
 <td align="left">
@@ -1916,7 +1937,7 @@
 <a name="nm-settings-dbus.property.ip-tunnel.flags"></a>flags</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
-<td>Tunnel flags. Currently the following values are supported: NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT (0x1), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_TCLASS (0x2), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FLOWLABEL (0x4), NM_IP_TUNNEL_FLAG_IP6_MIP6_DEV (0x8), NM_IP_TUNNEL_FLAG_IP6_RCV_DSCP_COPY (0x10), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FWMARK (0x20). They are valid only for IPv6 tunnels.</td>
+<td>Tunnel flags. Currently, the following values are supported: NM_IP_TUNNEL_FLAG_IP6_IGN_ENCAP_LIMIT (0x1), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_TCLASS (0x2), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FLOWLABEL (0x4), NM_IP_TUNNEL_FLAG_IP6_MIP6_DEV (0x8), NM_IP_TUNNEL_FLAG_IP6_RCV_DSCP_COPY (0x10), NM_IP_TUNNEL_FLAG_IP6_USE_ORIG_FWMARK (0x20). They are valid only for IPv6 tunnels.</td>
 </tr>
 <tr>
 <td align="left">
@@ -2764,7 +2785,7 @@
 <a name="nm-settings-dbus.property.sriov.vfs"></a>vfs</td>
 <td align="left">array of vardict</td>
 <td align="left"> </td>
-<td>Array of virtual function descriptors. Each VF descriptor is a dictionary mapping attribute names to GVariant values. The 'index' entry is mandatory for each VF. When represented as string a VF is in the form: "INDEX [ATTR=VALUE[ ATTR=VALUE]...]". for example: "2 mac=00:11:22:33:44:55 spoof-check=true". Multiple VFs can be specified using a comma as separator. Currently the following attributes are supported: mac, spoof-check, trust, min-tx-rate, max-tx-rate, vlans. The "vlans" attribute is represented as a semicolon-separated list of VLAN descriptors, where each descriptor has the form "ID[.PRIORITY[.PROTO]]". PROTO can be either 'q' for 802.1Q (the default) or 'ad' for 802.1ad.</td>
+<td>Array of virtual function descriptors. Each VF descriptor is a dictionary mapping attribute names to GVariant values. The 'index' entry is mandatory for each VF. When represented as string a VF is in the form: "INDEX [ATTR=VALUE[ ATTR=VALUE]...]". for example: "2 mac=00:11:22:33:44:55 spoof-check=true". Multiple VFs can be specified using a comma as separator. Currently, the following attributes are supported: mac, spoof-check, trust, min-tx-rate, max-tx-rate, vlans. The "vlans" attribute is represented as a semicolon-separated list of VLAN descriptors, where each descriptor has the form "ID[.PRIORITY[.PROTO]]". PROTO can be either 'q' for 802.1Q (the default) or 'ad' for 802.1ad.</td>
 </tr>
 </tbody>
 </table></div>
@@ -3411,7 +3432,7 @@
 <a name="nm-settings-dbus.property.wifi-p2p.peer"></a>peer</td>
 <td align="left">string</td>
 <td align="left"> </td>
-<td>The P2P device that should be connected to. Currently this is the only way to create or join a group.</td>
+<td>The P2P device that should be connected to. Currently, this is the only way to create or join a group.</td>
 </tr>
 <tr>
 <td align="left">
@@ -3614,7 +3635,7 @@
 <a name="nm-settings-dbus.property.wireguard.fwmark"></a>fwmark</td>
 <td align="left">uint32</td>
 <td align="left">0</td>
-<td>The use of fwmark is optional and is by default off. Setting it to 0 disables it. Otherwise it is a 32-bit fwmark for outgoing packets. Note that "ip4-auto-default-route" or "ip6-auto-default-route" enabled, implies to automatically choose a fwmark.</td>
+<td>The use of fwmark is optional and is by default off. Setting it to 0 disables it. Otherwise, it is a 32-bit fwmark for outgoing packets. Note that "ip4-auto-default-route" or "ip6-auto-default-route" enabled, implies to automatically choose a fwmark.</td>
 </tr>
 <tr>
 <td align="left">
@@ -3693,6 +3714,13 @@
 <th>Value Description</th>
 </tr></thead>
 <tbody>
+<tr>
+<td align="left">
+<a name="nm-settings-dbus.property.802-11-wireless.ap-isolation"></a>ap-isolation</td>
+<td align="left">NMTernary (int32)</td>
+<td align="left"> </td>
+<td>Configures AP isolation, which prevents communication between wireless devices connected to this AP. This property can be set to a value different from NM_TERNARY_DEFAULT (-1) only when the interface is configured in AP mode. If set to NM_TERNARY_TRUE (1), devices are not able to communicate with each other. This increases security because it protects devices against attacks from other clients in the network. At the same time, it prevents devices to access resources on the same wireless networks as file shares, printers, etc. If set to NM_TERNARY_FALSE (0), devices can talk to each other. When set to NM_TERNARY_DEFAULT (-1), the global default is used; in case the global default is unspecified it is assumed to be NM_TERNARY_FALSE (0).</td>
+</tr>
 <tr>
 <td align="left">
 <a name="nm-settings-dbus.property.802-11-wireless.assigned-mac-address"></a>assigned-mac-address</td>
@@ -4086,6 +4114,6 @@
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

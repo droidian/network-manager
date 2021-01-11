@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDeviceVrf.html" title="NMDeviceVrf">
 <link rel="next" href="NMDeviceWifiP2P.html" title="NMDeviceWifiP2P">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -328,7 +328,7 @@ nm_device_vxlan_get_parent (<em class="parameter"><code><a class="link" href="NM
 <div class="refsect3">
 <a name="nm-device-vxlan-get-parent.returns"></a><h4>Returns</h4>
 <p>the device's parent device. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -729,114 +729,114 @@ nm_device_vxlan_get_l3miss (<em class="parameter"><code><a class="link" href="NM
 <a name="NMDeviceVxlan.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-HW-ADDRESS:CAPS"></a><h3>NM_DEVICE_VXLAN_HW_ADDRESS</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_HW_ADDRESS    "hw-address"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_HW_ADDRESS   "hw-address"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-CARRIER:CAPS"></a><h3>NM_DEVICE_VXLAN_CARRIER</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_CARRIER       "carrier"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_CARRIER      "carrier"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-PARENT:CAPS"></a><h3>NM_DEVICE_VXLAN_PARENT</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_PARENT        "parent"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_PARENT       "parent"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-ID:CAPS"></a><h3>NM_DEVICE_VXLAN_ID</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_ID            "id"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_ID           "id"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-GROUP:CAPS"></a><h3>NM_DEVICE_VXLAN_GROUP</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_GROUP         "group"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_GROUP        "group"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-LOCAL:CAPS"></a><h3>NM_DEVICE_VXLAN_LOCAL</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_LOCAL         "local"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_LOCAL        "local"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-SRC-PORT-MIN:CAPS"></a><h3>NM_DEVICE_VXLAN_SRC_PORT_MIN</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_SRC_PORT_MIN  "src-port-min"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_SRC_PORT_MIN "src-port-min"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-SRC-PORT-MAX:CAPS"></a><h3>NM_DEVICE_VXLAN_SRC_PORT_MAX</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_SRC_PORT_MAX  "src-port-max"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_SRC_PORT_MAX "src-port-max"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-LEARNING:CAPS"></a><h3>NM_DEVICE_VXLAN_LEARNING</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_LEARNING      "learning"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_LEARNING     "learning"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-AGEING:CAPS"></a><h3>NM_DEVICE_VXLAN_AGEING</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_AGEING        "ageing"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_AGEING       "ageing"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-TOS:CAPS"></a><h3>NM_DEVICE_VXLAN_TOS</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_TOS           "tos"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_TOS          "tos"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-TTL:CAPS"></a><h3>NM_DEVICE_VXLAN_TTL</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_TTL           "ttl"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_TTL          "ttl"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-LIMIT:CAPS"></a><h3>NM_DEVICE_VXLAN_LIMIT</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_LIMIT         "limit"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_LIMIT        "limit"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-PROXY:CAPS"></a><h3>NM_DEVICE_VXLAN_PROXY</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_PROXY         "proxy"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_PROXY        "proxy"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-RSC:CAPS"></a><h3>NM_DEVICE_VXLAN_RSC</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_RSC           "rsc"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_RSC          "rsc"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-L2MISS:CAPS"></a><h3>NM_DEVICE_VXLAN_L2MISS</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_L2MISS        "l2miss"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_L2MISS       "l2miss"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-L3MISS:CAPS"></a><h3>NM_DEVICE_VXLAN_L3MISS</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_L3MISS        "l3miss"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_L3MISS       "l3miss"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DEVICE-VXLAN-DST-PORT:CAPS"></a><h3>NM_DEVICE_VXLAN_DST_PORT</h3>
-<pre class="programlisting">#define NM_DEVICE_VXLAN_DST_PORT      "dst-port"
+<pre class="programlisting">#define NM_DEVICE_VXLAN_DST_PORT     "dst-port"
 </pre>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

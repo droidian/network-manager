@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="NetworkManager.html" title="NetworkManager">
 <link rel="next" href="nmcli.html" title="nmcli">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -173,7 +173,7 @@ plugins-=remove-me
         option uses a built-in DHCP client which is not currently as
         featureful as the external clients.</p>
 <p>If this key is missing, it defaults to <code class="literal">internal</code>.
-        It the chosen plugin is not available, clients are looked for
+        If the chosen plugin is not available, clients are looked for
         in this order: <code class="literal">dhclient</code>, <code class="literal">dhcpcd</code>,
         <code class="literal">internal</code>.</p>
 </td>
@@ -300,7 +300,8 @@ no-auto-default=*
         </p>
 <p><code class="literal">default</code>: NetworkManager will update
         <code class="filename">/etc/resolv.conf</code> to reflect the nameservers
-        provided by currently active connections.</p>
+        provided by currently active connections. The <code class="literal">rc-manager</code>
+        setting (below) controls how this is done.</p>
 <p><code class="literal">dnsmasq</code>: NetworkManager will run
         dnsmasq as a local caching nameserver, using "Conditional Forwarding"
         if you are connected to a VPN, and then update
@@ -339,36 +340,55 @@ no-auto-default=*
 <td><p><span class="term"><code class="varname">rc-manager</code></span></p></td>
 <td>
 <p>Set the <code class="filename">resolv.conf</code>
-        management mode. The default value depends on NetworkManager build
-        options, and this version of NetworkManager was build with a default of
-        "<code class="literal">symlink</code>".
-        Regardless of this setting, NetworkManager will
-        always write resolv.conf to its runtime state directory
-        <code class="filename">/run/NetworkManager/resolv.conf</code>.</p>
+          management mode. This option is about how NetworkManager writes to
+          <code class="filename">/etc/resolv.conf</code>, if at all.
+          The default value depends on NetworkManager build
+          options, and this version of NetworkManager was build with a default of
+          "<code class="literal">auto</code>".
+          Regardless of this setting, NetworkManager will
+          always write its version of resolv.conf to its runtime state directory
+          as <code class="filename">/run/NetworkManager/resolv.conf</code>.
+        </p>
+<p>If you configure <code class="literal">dns=none</code> or make <code class="filename">/etc/resolv.conf</code>
+          immutable with <code class="literal">chattr +i</code>, NetworkManager will ignore this setting and
+          always choose <code class="literal">unmanaged</code> (below).
+        </p>
+<p><code class="literal">auto</code>: if systemd-resolved plugin is configured via
+          the <code class="literal">dns</code> setting or if it gets detected as main DNS plugin,
+          NetworkManager will update systemd-resolved without touching <code class="filename">/etc/resolv.conf</code>.
+          Alternatively, if <code class="literal">resolvconf</code> or <code class="literal">netconfig</code> are enabled
+          at compile time and the respective binary is found, NetworkManager will automatically use it.
+          Note that if you install or uninstall these binaries, you need to reload the
+          <code class="literal">rc-manager</code> setting with SIGHUP or
+          <code class="literal">systemctl reload NetworkManager</code>. As last fallback
+          it uses the <code class="literal">symlink</code> option (see next).
+        </p>
 <p><code class="literal">symlink</code>: If <code class="filename">/etc/resolv.conf</code> is
-        a regular file, NetworkManager will replace the file on update. If
-        <code class="filename">/etc/resolv.conf</code> is instead a symlink, NetworkManager
-        will leave it alone. Unless the symlink points to the internal file
-        <code class="filename">/run/NetworkManager/resolv.conf</code>,
-        in which case the symlink will be updated to emit an inotify notification.
-        This allows the user to conveniently instruct NetworkManager not
-        to manage <code class="filename">/etc/resolv.conf</code> by replacing it with
-        a symlink.</p>
+          a regular file or does not exist, NetworkManager will write the file directly.
+          If <code class="filename">/etc/resolv.conf</code> is instead a symlink, NetworkManager
+          will leave it alone. Unless the symlink points to the internal file
+          <code class="filename">/run/NetworkManager/resolv.conf</code>,
+          in which case the symlink will be updated to emit an inotify notification.
+          This allows the user to conveniently instruct NetworkManager not
+          to manage <code class="filename">/etc/resolv.conf</code> by replacing it with
+          a symlink.
+        </p>
 <p><code class="literal">file</code>: NetworkManager will write
-        <code class="filename">/etc/resolv.conf</code> as file. If it finds
-        a symlink to an existing target, it will follow the symlink and
-        update the target instead. In no case will an existing symlink
-        be replaced by a file. Note that older versions of NetworkManager
-        behaved differently and would replace dangling symlinks with a
-        plain file.</p>
+            <code class="filename">/etc/resolv.conf</code> as regular file. If it finds
+            a symlink to an existing target, it will follow the symlink and
+            update the target instead. In no case will an existing symlink
+            be replaced by a file. Note that older versions of NetworkManager
+            behaved differently and would replace dangling symlinks with a
+            plain file.
+        </p>
 <p><code class="literal">resolvconf</code>: NetworkManager will run
-        resolvconf to update the DNS configuration.</p>
+          resolvconf to update the DNS configuration.</p>
 <p><code class="literal">netconfig</code>: NetworkManager will run
-        netconfig to update the DNS configuration.</p>
+          netconfig to update the DNS configuration.</p>
 <p><code class="literal">unmanaged</code>: don't touch
-        <code class="filename">/etc/resolv.conf</code>.</p>
+          <code class="filename">/etc/resolv.conf</code>.</p>
 <p><code class="literal">none</code>: deprecated alias for
-        <code class="literal">symlink</code>.</p>
+          <code class="literal">symlink</code>.</p>
 </td>
 </tr>
 <tr>
@@ -392,7 +412,7 @@ no-auto-default=*
 <td>
 <p>Comma separated list of options to aid
         debugging. This value will be combined with the environment
-        variable <code class="literal">NM_DEBUG</code>. Currently the following
+        variable <code class="literal">NM_DEBUG</code>. Currently, the following
         values are supported:</p>
 <p>
           <code class="literal">RLIMIT_CORE</code>: set ulimit -c unlimited
@@ -466,7 +486,7 @@ no-auto-default=*
 <p>Set devices that should be ignored by
            NetworkManager.
           </p>
-<p>See <a class="xref" href="NetworkManager.conf.html#device-spec" title="Device List Format">the section called “Device List Format”</a> for the syntax how to
+<p>See <a class="xref" href="NetworkManager.conf.html#device-spec" title="Device List Format">the section called “Device List Format”</a> for the syntax on how to
            specify a device.
           </p>
 <p>
@@ -709,6 +729,10 @@ ipv6.ip6-privacy=0
            the interface type is used.</p></td>
 </tr>
 <tr>
+<td><p><span class="term"><code class="varname">ipv4.dhcp-vendor-class-identifier</code></span></p></td>
+<td><p>If left unspecified, the default is to not send the DHCP option to the server.</p></td>
+</tr>
+<tr>
 <td><p><span class="term"><code class="varname">ipv4.dns-priority</code></span></p></td>
 <td><p>If unspecified or zero, use 50 for VPN profiles
            and 100 for other profiles.</p></td>
@@ -774,6 +798,10 @@ ipv6.ip6-privacy=0
 <tr>
 <td><p><span class="term"><code class="varname">vpn.timeout</code></span></p></td>
 <td><p>If left unspecified, default value of 60 seconds is used.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">wifi.ap-isolation</code></span></p></td>
+<td><p>If left unspecified, AP isolation is disabled.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">wifi.cloned-mac-address</code></span></p></td>
@@ -1011,7 +1039,7 @@ managed=1
 <tr>
 <td><p><a name="wifi.backend"></a><span class="term"><code class="varname">wifi.backend</code></span></p></td>
 <td><p>
-              Specify the Wi-Fi backend used for the device. Currently supported
+              Specify the Wi-Fi backend used for the device. Currently, supported
               are <code class="literal">wpa_supplicant</code> and <code class="literal">iwd</code> (experimental).
             </p></td>
 </tr>
@@ -1248,7 +1276,7 @@ enable=nm-version-min:1.2
 
 # Match against the maximum allowed version. The example matches
 # versions 1.2.0, 1.2.2, 1.2.4. Again, only the last version digit
-# is allowed to be smaller. So this would not match match on 1.1.10.
+# is allowed to be smaller. So this would not match on 1.1.10.
 [.config]
 enable=nm-version-max:1.2.6
 </pre>
@@ -1511,6 +1539,6 @@ interface-name:vboxnet*,except:interface-name:vboxnet2
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

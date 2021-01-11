@@ -69,7 +69,7 @@ property.)"/>
 <property name="route-data" variable="route-data" format="array of vardict" values="" default="" example="" description="Array of IPv4 routes. Each route dictionary contains at
 least &apos;dest&apos; and &apos;prefix&apos; entries, containing the destination IP
 address as a string, and the prefix length as a uint32. Most routes
-will also have a &apos;gateway&apos; entry, containing the gateway IP address as
+will also have a &apos;next-hop&apos; entry, containing the next hop IP address as
 a string. If the route has a &apos;metric&apos; entry (containing a uint32), that
 will be used as the metric for the route (otherwise NM will pick a
 default value appropriate to the device). Additional attributes may

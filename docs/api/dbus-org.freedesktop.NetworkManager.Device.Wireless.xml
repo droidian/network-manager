@@ -85,7 +85,7 @@ RequestScan (IN  a{sv} options);
 <variablelist role="params">
 <varlistentry>
   <term><literal>IN a{sv} <parameter>options</parameter></literal>:</term>
-  <listitem><para>Options of scan. Currently 'ssids' option with value of "aay" type is supported.</para></listitem>
+  <listitem><para>Options of scan. Currently, 'ssids' option with value of "aay" type is supported.</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>

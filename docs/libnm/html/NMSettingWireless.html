@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">
 <link rel="next" href="NMSettingWpan.html" title="NMSettingWpan">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -124,7 +124,7 @@
 </td>
 </tr>
 <tr>
-<td class="function_type">const <span class="returnvalue">char</span> * const *
+<td class="function_type">const <span class="returnvalue">char</span> *const *
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingWireless.html#nm-setting-wireless-get-mac-address-blacklist" title="nm_setting_wireless_get_mac_address_blacklist ()">nm_setting_wireless_get_mac_address_blacklist</a> <span class="c_punctuation">()</span>
@@ -248,6 +248,14 @@
 <a class="link" href="NMSettingWireless.html#nm-setting-wireless-get-wake-on-wlan" title="nm_setting_wireless_get_wake_on_wlan ()">nm_setting_wireless_get_wake_on_wlan</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
+<tr>
+<td class="function_type">
+<a class="link" href="libnm-nm-dbus-interface.html#NMTernary" title="enum NMTernary"><span class="returnvalue">NMTernary</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingWireless.html#nm-setting-wireless-get-ap-isolation" title="nm_setting_wireless_get_ap_isolation ()">nm_setting_wireless_get_ap_isolation</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -261,14 +269,19 @@
 </colgroup>
 <tbody>
 <tr>
+<td class="property_type"><a class="link" href="libnm-nm-dbus-interface.html#NMTernary" title="enum NMTernary"><span class="type">NMTernary</span></a></td>
+<td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--ap-isolation" title="The “ap-isolation” property">ap-isolation</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--band" title="The “band” property">band</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--bssid" title="The “bssid” property">bssid</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -279,13 +292,13 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--cloned-mac-address" title="The “cloned-mac-address” property">cloned-mac-address</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--generate-mac-address-mask" title="The “generate-mac-address-mask” property">generate-mac-address-mask</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -296,7 +309,7 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--mac-address" title="The “mac-address” property">mac-address</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -312,7 +325,7 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingWireless.html#NMSettingWireless--mode" title="The “mode” property">mode</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -441,6 +454,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-AP-ISOLATION:CAPS" title="NM_SETTING_WIRELESS_AP_ISOLATION">NM_SETTING_WIRELESS_AP_ISOLATION</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingWireless.html#NM-SETTING-WIRELESS-MODE-ADHOC:CAPS" title="NM_SETTING_WIRELESS_MODE_ADHOC">NM_SETTING_WIRELESS_MODE_ADHOC</a></td>
 </tr>
 <tr>
@@ -492,7 +509,7 @@ nm_setting_wireless_new (<em class="parameter"><code><span class="type">void</sp
 <div class="refsect3">
 <a name="nm-setting-wireless-new.returns"></a><h4>Returns</h4>
 <p>the new empty <a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a> object. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -518,7 +535,7 @@ nm_setting_wireless_get_ssid (<em class="parameter"><code><a class="link" href="
 <div class="refsect3">
 <a name="nm-setting-wireless-get-ssid.returns"></a><h4>Returns</h4>
 <p>the <a class="link" href="NMSettingWireless.html#NMSettingWireless--ssid" title="The “ssid” property"><span class="type">“ssid”</span></a> property of the setting. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -752,7 +769,7 @@ nm_setting_wireless_get_generate_mac_address_mask
 <hr>
 <div class="refsect2">
 <a name="nm-setting-wireless-get-mac-address-blacklist"></a><h3>nm_setting_wireless_get_mac_address_blacklist ()</h3>
-<pre class="programlisting">const <span class="returnvalue">char</span> * const *
+<pre class="programlisting">const <span class="returnvalue">char</span> *const *
 nm_setting_wireless_get_mac_address_blacklist
                                (<em class="parameter"><code><a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
@@ -1261,6 +1278,32 @@ nm_setting_wireless_get_wake_on_wlan (<em class="parameter"><code><a class="link
 </div>
 <p class="since">Since: 1.12</p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="nm-setting-wireless-get-ap-isolation"></a><h3>nm_setting_wireless_get_ap_isolation ()</h3>
+<pre class="programlisting"><a class="link" href="libnm-nm-dbus-interface.html#NMTernary" title="enum NMTernary"><span class="returnvalue">NMTernary</span></a>
+nm_setting_wireless_get_ap_isolation (<em class="parameter"><code><a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a> *setting</code></em>);</pre>
+<div class="refsect3">
+<a name="nm-setting-wireless-get-ap-isolation.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingWireless.html" title="NMSettingWireless"><span class="type">NMSettingWireless</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-wireless-get-ap-isolation.returns"></a><h4>Returns</h4>
+<p> the <a class="link" href="NMSettingWireless.html#NMSettingWireless--ap-isolation" title="The “ap-isolation” property"><span class="type">“ap-isolation”</span></a> property of the setting</p>
+</div>
+<p class="since">Since: 1.28</p>
+</div>
 </div>
 <div class="refsect1">
 <a name="NMSettingWireless.other_details"></a><h2>Types and Values</h2>
@@ -1385,55 +1428,55 @@ incompatible with other flags</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-SSID:CAPS"></a><h3>NM_SETTING_WIRELESS_SSID</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_SSID        "ssid"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_SSID                      "ssid"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-MODE:CAPS"></a><h3>NM_SETTING_WIRELESS_MODE</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_MODE        "mode"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_MODE                      "mode"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-BAND:CAPS"></a><h3>NM_SETTING_WIRELESS_BAND</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_BAND        "band"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_BAND                      "band"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-CHANNEL:CAPS"></a><h3>NM_SETTING_WIRELESS_CHANNEL</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_CHANNEL     "channel"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_CHANNEL                   "channel"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-BSSID:CAPS"></a><h3>NM_SETTING_WIRELESS_BSSID</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_BSSID       "bssid"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_BSSID                     "bssid"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-RATE:CAPS"></a><h3>NM_SETTING_WIRELESS_RATE</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_RATE        "rate"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_RATE                      "rate"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-TX-POWER:CAPS"></a><h3>NM_SETTING_WIRELESS_TX_POWER</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_TX_POWER    "tx-power"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_TX_POWER                  "tx-power"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-MAC-ADDRESS:CAPS"></a><h3>NM_SETTING_WIRELESS_MAC_ADDRESS</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_MAC_ADDRESS "mac-address"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_MAC_ADDRESS               "mac-address"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-CLONED-MAC-ADDRESS:CAPS"></a><h3>NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS "cloned-mac-address"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_CLONED_MAC_ADDRESS        "cloned-mac-address"
 </pre>
 </div>
 <hr>
@@ -1445,56 +1488,62 @@ incompatible with other flags</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-MAC-ADDRESS-BLACKLIST:CAPS"></a><h3>NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST "mac-address-blacklist"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_MAC_ADDRESS_BLACKLIST     "mac-address-blacklist"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-MTU:CAPS"></a><h3>NM_SETTING_WIRELESS_MTU</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_MTU         "mtu"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_MTU                       "mtu"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-SEEN-BSSIDS:CAPS"></a><h3>NM_SETTING_WIRELESS_SEEN_BSSIDS</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_SEEN_BSSIDS "seen-bssids"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_SEEN_BSSIDS               "seen-bssids"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-HIDDEN:CAPS"></a><h3>NM_SETTING_WIRELESS_HIDDEN</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_HIDDEN      "hidden"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_HIDDEN                    "hidden"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-POWERSAVE:CAPS"></a><h3>NM_SETTING_WIRELESS_POWERSAVE</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_POWERSAVE   "powersave"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_POWERSAVE                 "powersave"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-MAC-ADDRESS-RANDOMIZATION:CAPS"></a><h3>NM_SETTING_WIRELESS_MAC_ADDRESS_RANDOMIZATION</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_MAC_ADDRESS_RANDOMIZATION   "mac-address-randomization"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_MAC_ADDRESS_RANDOMIZATION "mac-address-randomization"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-WAKE-ON-WLAN:CAPS"></a><h3>NM_SETTING_WIRELESS_WAKE_ON_WLAN</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_WAKE_ON_WLAN "wake-on-wlan"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_WAKE_ON_WLAN              "wake-on-wlan"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-SETTING-WIRELESS-AP-ISOLATION:CAPS"></a><h3>NM_SETTING_WIRELESS_AP_ISOLATION</h3>
+<pre class="programlisting">#define NM_SETTING_WIRELESS_AP_ISOLATION              "ap-isolation"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-MODE-ADHOC:CAPS"></a><h3>NM_SETTING_WIRELESS_MODE_ADHOC</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_MODE_ADHOC  "adhoc"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_MODE_ADHOC "adhoc"
 </pre>
 <p>Indicates Ad-Hoc mode where no access point is expected to be present.</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-MODE-AP:CAPS"></a><h3>NM_SETTING_WIRELESS_MODE_AP</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_MODE_AP     "ap"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_MODE_AP "ap"
 </pre>
 <p>Indicates AP/master mode where the wireless device is started as an access
 point/hotspot.</p>
@@ -1502,7 +1551,7 @@ point/hotspot.</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-MODE-INFRA:CAPS"></a><h3>NM_SETTING_WIRELESS_MODE_INFRA</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_MODE_INFRA  "infrastructure"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_MODE_INFRA "infrastructure"
 </pre>
 <p>Indicates infrastructure mode where an access point is expected to be present
 for this connection.</p>
@@ -1510,7 +1559,7 @@ for this connection.</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRELESS-MODE-MESH:CAPS"></a><h3>NM_SETTING_WIRELESS_MODE_MESH</h3>
-<pre class="programlisting">#define NM_SETTING_WIRELESS_MODE_MESH   "mesh"
+<pre class="programlisting">#define NM_SETTING_WIRELESS_MODE_MESH "mesh"
 </pre>
 <p>Indicates that the connection should create a mesh point.</p>
 <p class="since">Since: 1.20</p>
@@ -1580,8 +1629,30 @@ for this connection.</p>
 <div class="refsect1">
 <a name="NMSettingWireless.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
+<a name="NMSettingWireless--ap-isolation"></a><h3>The <code class="literal">“ap-isolation”</code> property</h3>
+<pre class="programlisting">  “ap-isolation”             <a class="link" href="libnm-nm-dbus-interface.html#NMTernary" title="enum NMTernary"><span class="type">NMTernary</span></a></pre>
+<p>Configures AP isolation, which prevents communication between
+wireless devices connected to this AP. This property can be set
+to a value different from <a class="link" href="libnm-nm-dbus-interface.html#NM-TERNARY-DEFAULT:CAPS"><code class="literal">NM_TERNARY_DEFAULT</code></a> only when the
+interface is configured in AP mode.</p>
+<p>If set to <a class="link" href="libnm-nm-dbus-interface.html#NM-TERNARY-TRUE:CAPS"><code class="literal">NM_TERNARY_TRUE</code></a>, devices are not able to communicate
+with each other. This increases security because it protects
+devices against attacks from other clients in the network. At
+the same time, it prevents devices to access resources on the
+same wireless networks as file shares, printers, etc.</p>
+<p>If set to <a class="link" href="libnm-nm-dbus-interface.html#NM-TERNARY-FALSE:CAPS"><code class="literal">NM_TERNARY_FALSE</code></a>, devices can talk to each other.</p>
+<p>When set to <a class="link" href="libnm-nm-dbus-interface.html#NM-TERNARY-DEFAULT:CAPS"><code class="literal">NM_TERNARY_DEFAULT</code></a>, the global default is used; in
+case the global default is unspecified it is assumed to be
+<a class="link" href="libnm-nm-dbus-interface.html#NM-TERNARY-FALSE:CAPS"><code class="literal">NM_TERNARY_FALSE</code></a>.</p>
+<p>Owner: NMSettingWireless</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NM_TERNARY_DEFAULT</p>
+<p class="since">Since: 1.28</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NMSettingWireless--band"></a><h3>The <code class="literal">“band”</code> property</h3>
-<pre class="programlisting">  “band”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “band”                     <span class="type">char</span> *</pre>
 <p>802.11 frequency band of the network.  One of "a" for 5GHz 802.11a or
 "bg" for 2.4GHz 802.11.  This will lock associations to the Wi-Fi network
 to the specific band, i.e. if "a" is specified, the device will not
@@ -1595,7 +1666,7 @@ capability and may not work with all drivers.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingWireless--bssid"></a><h3>The <code class="literal">“bssid”</code> property</h3>
-<pre class="programlisting">  “bssid”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “bssid”                    <span class="type">char</span> *</pre>
 <p>If specified, directs the device to only associate with the given access
 point.  This capability is highly driver dependent and not supported by
 all devices.  Note: this property does not control the BSSID used when
@@ -1619,7 +1690,7 @@ also requires the "band" property to be set.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingWireless--cloned-mac-address"></a><h3>The <code class="literal">“cloned-mac-address”</code> property</h3>
-<pre class="programlisting">  “cloned-mac-address”       <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “cloned-mac-address”       <span class="type">char</span> *</pre>
 <p>If specified, request that the device use this MAC address instead.
 This is known as MAC cloning or spoofing.</p>
 <p>Beside explicitly specifying a MAC address, the special values "preserve", "permanent",
@@ -1641,7 +1712,7 @@ of NetworkManager.conf. If still unspecified, it defaults to "preserve"
 <hr>
 <div class="refsect2">
 <a name="NMSettingWireless--generate-mac-address-mask"></a><h3>The <code class="literal">“generate-mac-address-mask”</code> property</h3>
-<pre class="programlisting">  “generate-mac-address-mask” <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “generate-mac-address-mask” <span class="type">char</span> *</pre>
 <p>With <a class="link" href="NMSettingWireless.html#NMSettingWireless--cloned-mac-address" title="The “cloned-mac-address” property"><span class="type">“cloned-mac-address”</span></a> setting "random" or "stable",
 by default all bits of the MAC address are scrambled and a locally-administered,
 unicast MAC address is created. This property allows to specify that certain bits
@@ -1691,7 +1762,7 @@ probe-scans are distinctly recognizable on the air.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingWireless--mac-address"></a><h3>The <code class="literal">“mac-address”</code> property</h3>
-<pre class="programlisting">  “mac-address”              <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “mac-address”              <span class="type">char</span> *</pre>
 <p>If specified, this connection will only apply to the Wi-Fi device whose
 permanent MAC address matches. This property does not change the MAC
 address of the device (i.e. MAC spoofing).</p>
@@ -1731,7 +1802,7 @@ randomize the MAC address), or <a class="link" href="NMSetting.html#NM-SETTING-M
 <hr>
 <div class="refsect2">
 <a name="NMSettingWireless--mode"></a><h3>The <code class="literal">“mode”</code> property</h3>
-<pre class="programlisting">  “mode”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “mode”                     <span class="type">char</span> *</pre>
 <p>Wi-Fi network mode; one of "infrastructure", "mesh", "adhoc" or "ap".  If blank,
 infrastructure is assumed.</p>
 <p>Owner: NMSettingWireless</p>
@@ -1830,6 +1901,6 @@ NetworkManager).</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

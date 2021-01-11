@@ -30,7 +30,7 @@ typedef enum LogTarget{
         LOG_TARGET_JOURNAL_OR_KMSG,
         LOG_TARGET_SYSLOG,
         LOG_TARGET_SYSLOG_OR_KMSG,
-        LOG_TARGET_AUTO, /* console if stderr is tty, JOURNAL_OR_KMSG otherwise */
+        LOG_TARGET_AUTO, /* console if stderr is not journal, JOURNAL_OR_KMSG otherwise */
         LOG_TARGET_NULL,
         _LOG_TARGET_MAX,
         _LOG_TARGET_INVALID = -1
@@ -61,10 +61,13 @@ void log_show_location(bool b);
 bool log_get_show_location(void) _pure_;
 void log_show_time(bool b);
 bool log_get_show_time(void) _pure_;
+void log_show_tid(bool b);
+bool log_get_show_tid(void) _pure_;
 
 int log_show_color_from_string(const char *e);
 int log_show_location_from_string(const char *e);
 int log_show_time_from_string(const char *e);
+int log_show_tid_from_string(const char *e);
 
 LogTarget log_get_target(void) _pure_;
 #if 0 /* NM_IGNORED */
@@ -89,8 +92,11 @@ void log_close(void);
 void log_forget_fds(void);
 
 void log_parse_environment_realm(LogRealm realm);
+void log_parse_environment_cli_realm(LogRealm realm);
 #define log_parse_environment() \
         log_parse_environment_realm(LOG_REALM)
+#define log_parse_environment_cli() \
+        log_parse_environment_cli_realm(LOG_REALM)
 
 #if 0 /* NM_IGNORED */
 int log_dispatch_internal(
@@ -245,12 +251,12 @@ void log_assert_failed_return_realm(
 #define log_full_errno(level, error, ...)                               \
         log_full_errno_realm(LOG_REALM, (level), (error), __VA_ARGS__)
 
-#define log_full(level, ...) log_full_errno((level), 0, __VA_ARGS__)
+#define log_full(level, ...) (void) log_full_errno((level), 0, __VA_ARGS__)
 
 int log_emergency_level(void);
 
 /* Normal logging */
-#define log_debug(...)     log_full(LOG_DEBUG,   __VA_ARGS__)
+#define log_debug(...)     log_full_errno(LOG_DEBUG, 0, __VA_ARGS__)
 #define log_info(...)      log_full(LOG_INFO,    __VA_ARGS__)
 #define log_notice(...)    log_full(LOG_NOTICE,  __VA_ARGS__)
 #define log_warning(...)   log_full(LOG_WARNING, __VA_ARGS__)
@@ -359,3 +365,4 @@ int log_syntax_invalid_utf8_internal(
 #define DEBUG_LOGGING _unlikely_(log_get_max_level() >= LOG_DEBUG)
 
 void log_setup_service(void);
+void log_setup_cli(void);

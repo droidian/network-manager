@@ -8,7 +8,7 @@
 <link rel="up" href="ch02.html" title="Client Object API Reference">
 <link rel="prev" href="ch02.html" title="Client Object API Reference">
 <link rel="next" href="NMSecretAgentOld.html" title="NMSecretAgentOld">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -64,14 +64,14 @@
 </td>
 </tr>
 <tr>
-<td class="function_type">const <span class="returnvalue">char</span> * const *
+<td class="function_type">const <span class="returnvalue">char</span> *const *
 </td>
 <td class="function_name">
 <a class="link" href="NMClient.html#nm-dns-entry-get-nameservers" title="nm_dns_entry_get_nameservers ()">nm_dns_entry_get_nameservers</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
-<td class="function_type">const <span class="returnvalue">char</span> * const *
+<td class="function_type">const <span class="returnvalue">char</span> *const *
 </td>
 <td class="function_name">
 <a class="link" href="NMClient.html#nm-dns-entry-get-domains" title="nm_dns_entry_get_domains ()">nm_dns_entry_get_domains</a> <span class="c_punctuation">()</span>
@@ -1060,14 +1060,14 @@ nm_dns_entry_get_interface (<em class="parameter"><code><a class="link" href="NM
 <div class="refsect3">
 <a name="nm-dns-entry-get-interface.returns"></a><h4>Returns</h4>
 <p>the interface name. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-dns-entry-get-nameservers"></a><h3>nm_dns_entry_get_nameservers ()</h3>
-<pre class="programlisting">const <span class="returnvalue">char</span> * const *
+<pre class="programlisting">const <span class="returnvalue">char</span> *const *
 nm_dns_entry_get_nameservers (<em class="parameter"><code><a class="link" href="NMClient.html#NMDnsEntry"><span class="type">NMDnsEntry</span></a> *entry</code></em>);</pre>
 <p>Gets the list of name servers for this entry.</p>
 <div class="refsect3">
@@ -1088,14 +1088,14 @@ nm_dns_entry_get_nameservers (<em class="parameter"><code><a class="link" href="
 <div class="refsect3">
 <a name="nm-dns-entry-get-nameservers.returns"></a><h4>Returns</h4>
 <p>the list of name servers. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-dns-entry-get-domains"></a><h3>nm_dns_entry_get_domains ()</h3>
-<pre class="programlisting">const <span class="returnvalue">char</span> * const *
+<pre class="programlisting">const <span class="returnvalue">char</span> *const *
 nm_dns_entry_get_domains (<em class="parameter"><code><a class="link" href="NMClient.html#NMDnsEntry"><span class="type">NMDnsEntry</span></a> *entry</code></em>);</pre>
 <p>Gets the list of DNS domains.</p>
 <div class="refsect3">
@@ -1116,7 +1116,7 @@ nm_dns_entry_get_domains (<em class="parameter"><code><a class="link" href="NMCl
 <div class="refsect3">
 <a name="nm-dns-entry-get-domains.returns"></a><h4>Returns</h4>
 <p>the list of DNS domains. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -1338,7 +1338,7 @@ automatically initialized during async/sync init.</p>
 <div class="refsect3">
 <a name="nm-client-get-dbus-connection.returns"></a><h4>Returns</h4>
 <p>the D-Bus connection of the client, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if none is set. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.22</p>
 </div>
@@ -1373,7 +1373,7 @@ the <a class="link" href="NMClient.html#nm-client-get-context-busy-watcher" titl
 <div class="refsect3">
 <a name="nm-client-get-main-context.returns"></a><h4>Returns</h4>
 <p>the <a href="https://developer.gnome.org/glib/unstable/glib-The-Main-Event-Loop.html#GMainContext"><span class="type">GMainContext</span></a> of the client. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.22</p>
 </div>
@@ -1416,7 +1416,7 @@ iterating the main context until the object got unreferenced.</p>
 <p>Note that after the NMClient instance gets destroyed, the remaining callbacks
 will be invoked right away. That means, the user won't have to iterate the
 main context much longer. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.22</p>
 </div>
@@ -1443,7 +1443,7 @@ nm_client_get_dbus_name_owner (<em class="parameter"><code><a class="link" href=
 <div class="refsect3">
 <a name="nm-client-get-dbus-name-owner.returns"></a><h4>Returns</h4>
 <p>the current name owner of the D-Bus service of NetworkManager. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.22</p>
 </div>
@@ -1585,7 +1585,7 @@ nm_client_get_object_by_path (<em class="parameter"><code><a class="link" href="
 <p>the <a class="link" href="NMObject.html" title="NMObject"><span class="type">NMObject</span></a> instance that is
 cached under <em class="parameter"><code>dbus_path</code></em>
 , or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no such object exists. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.24</p>
 </div>
@@ -1678,7 +1678,7 @@ The numeric values correspond to <a class="link" href="libnm-nm-dbus-interface.h
 The array is terminated by a numeric zero sentinel
 at position <em class="parameter"><code>length</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=length]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=length]</span></p>
 </div>
 <p class="since">Since: 1.24</p>
 </div>
@@ -2120,7 +2120,7 @@ connectivity.</p>
 <div class="refsect3">
 <a name="nm-client-connectivity-check-get-uri.returns"></a><h4>Returns</h4>
 <p>the connectivity URI in use. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.20</p>
 </div>
@@ -2290,7 +2290,7 @@ nm_client_get_permissions_state (<em class="parameter"><code><a class="link" hre
 means that no permissions result was yet received. All permissions
 are unknown. <a class="link" href="libnm-nm-dbus-interface.html#NM-TERNARY-TRUE:CAPS"><code class="literal">NM_TERNARY_TRUE</code></a> means that the permissions got received
 and are cached. %<a class="link" href="libnm-nm-dbus-interface.html#NM-TERNARY-FALSE:CAPS"><code class="literal">NM_TERNARY_FALSE</code></a> means that permissions are cached,
-but they are invalided as as "CheckPermissions" signal was received
+but they are invalided as "CheckPermissions" signal was received
 in the meantime.</p>
 </div>
 <p class="since">Since: 1.24</p>
@@ -2632,7 +2632,7 @@ methods such as <a class="link" href="NMDeviceEthernet.html#nm-device-ethernet-g
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a>
 containing all the <span class="type">NMDevices</span>.  The returned array is owned by the
 <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> object and should not be modified. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMDevice]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMDevice]</span></p>
 </div>
 </div>
 <hr>
@@ -2668,7 +2668,7 @@ use device-specific methods such as <a class="link" href="NMDeviceEthernet.html#
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a>
 containing all the <span class="type">NMDevices</span>.  The returned array is owned by the
 <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> object and should not be modified. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMDevice]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMDevice]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -2705,7 +2705,7 @@ nm_client_get_device_by_path (<em class="parameter"><code><a class="link" href="
 <a name="nm-client-get-device-by-path.returns"></a><h4>Returns</h4>
 <p>the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> for the given <em class="parameter"><code>object_path</code></em>
 or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if none is found. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2741,7 +2741,7 @@ nm_client_get_device_by_iface (<em class="parameter"><code><a class="link" href=
 <a name="nm-client-get-device-by-iface.returns"></a><h4>Returns</h4>
 <p>the <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> for the given <em class="parameter"><code>iface</code></em>
 or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if none is found. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2770,7 +2770,7 @@ nm_client_get_active_connections (<em class="parameter"><code><a class="link" hr
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a>
 containing all the active <span class="type">NMActiveConnections</span>.
 The returned array is owned by the client and should not be modified. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMActiveConnection]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMActiveConnection]</span></p>
 </div>
 </div>
 <hr>
@@ -2806,7 +2806,7 @@ non-NetworkManager-recognized device, this will return <a href="https://develope
 <a name="nm-client-get-primary-connection.returns"></a><h4>Returns</h4>
 <p>the appropriate <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>, if
 any. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2836,7 +2836,7 @@ currently-activating connection that is expected to become the new
 <a name="nm-client-get-activating-connection.returns"></a><h4>Returns</h4>
 <p>the appropriate <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>, if
 any. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2964,7 +2964,7 @@ nm_client_activate_connection_finish (<em class="parameter"><code><a class="link
 <p>the new <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> on success, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on
 failure, in which case <em class="parameter"><code>error</code></em>
 will be set. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -3092,7 +3092,7 @@ nm_client_add_and_activate_connection_finish
 <p>the new <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> on success, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on
 failure, in which case <em class="parameter"><code>error</code></em>
 will be set. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -3119,7 +3119,7 @@ the new connection, not when it finishes. You can used the returned
 track the activation to its completion.</p>
 <p>This is identical to <a class="link" href="NMClient.html#nm-client-add-and-activate-connection-async" title="nm_client_add_and_activate_connection_async ()"><code class="function">nm_client_add_and_activate_connection_async()</code></a> but takes
 a further <em class="parameter"><code>options</code></em>
- parameter. Currently the following options are supported
+ parameter. Currently, the following options are supported
 by the daemon:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>"persist": A string describing how the connection should be stored.
@@ -3235,9 +3235,9 @@ nm_client_add_and_activate_connection2_finish
 <tr>
 <td class="parameter_name"><p>out_result</p></td>
 <td class="parameter_description"><p>the output result
-of type "a{sv}" returned by D-Bus' AddAndActivate2 call. Currently no
+of type "a{sv}" returned by D-Bus' AddAndActivate2 call. Currently, no
 output is implemented yet. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -3247,7 +3247,7 @@ output is implemented yet. </p></td>
 <p>the new <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> on success, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on
 failure, in which case <em class="parameter"><code>error</code></em>
 will be set. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -3417,7 +3417,7 @@ containing all connections provided by the remote settings service.  The
 returned array is owned by the <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> object and should not be modified.</p>
 <p>The connections are as received from D-Bus and might not validate according
 to <a class="link" href="NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMRemoteConnection]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMRemoteConnection]</span></p>
 </div>
 </div>
 <hr>
@@ -3456,7 +3456,7 @@ nm_client_get_connection_by_id (<em class="parameter"><code><a class="link" href
 matching object was found.</p>
 <p>The connection is as received from D-Bus and might not validate according
 to <a class="link" href="NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -3495,7 +3495,7 @@ nm_client_get_connection_by_path (<em class="parameter"><code><a class="link" hr
 not known</p>
 <p>The connection is as received from D-Bus and might not validate according
 to <a class="link" href="NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -3534,7 +3534,7 @@ nm_client_get_connection_by_uuid (<em class="parameter"><code><a class="link" hr
 not known</p>
 <p>The connection is as received from D-Bus and might not validate according
 to <a class="link" href="NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -3649,7 +3649,7 @@ nm_client_add_connection_finish (<em class="parameter"><code><a class="link" hre
 <p>the new <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> on success, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on
 failure, in which case <em class="parameter"><code>error</code></em>
 will be set. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -3760,7 +3760,7 @@ nm_client_add_connection2_finish (<em class="parameter"><code><a class="link" hr
 from <code class="function">AddConnection2()</code>.
 If you care about the output result, then the "ignore_out_result"
 parameter of <a class="link" href="NMClient.html#nm-client-add-connection2" title="nm_client_add_connection2 ()"><code class="function">nm_client_add_connection2()</code></a> must not be set to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
@@ -3774,7 +3774,7 @@ parameter of <a class="link" href="NMClient.html#nm-client-add-connection2" titl
 <a name="nm-client-add-connection2-finish.returns"></a><h4>Returns</h4>
 <p>on success, a pointer to the added
 <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a>. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.20</p>
 </div>
@@ -3826,7 +3826,7 @@ filenames that failed to load.</p>
 <td class="parameter_name"><p>failures</p></td>
 <td class="parameter_description"><p>on return, a <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of
 filenames that failed to load. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>cancellable</p></td>
@@ -3937,7 +3937,7 @@ nm_client_load_connections_finish (<em class="parameter"><code><a class="link" h
 <td class="parameter_name"><p>failures</p></td>
 <td class="parameter_description"><p>on return, a
 <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of filenames that failed to load. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> zero-terminated=1]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> zero-terminated=1]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>result</p></td>
@@ -4173,7 +4173,7 @@ nm_client_get_dns_configuration (<em class="parameter"><code><a class="link" hre
 containing <a class="link" href="NMClient.html#NMDnsEntry"><span class="type">NMDnsEntry</span></a> elements or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> in case the value is not
 available.  The returned array is owned by the <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> object
 and should not be modified. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMDnsEntry]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMDnsEntry]</span></p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -4203,7 +4203,7 @@ nm_client_get_checkpoints (<em class="parameter"><code><a class="link" href="NMC
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a>
 containing all the <a class="link" href="NMCheckpoint.html" title="NMCheckpoint"><span class="type">NMCheckpoint</span></a>.  The returned array is owned by the
 <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> object and should not be modified. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMCheckpoint]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMCheckpoint]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -4315,7 +4315,7 @@ nm_client_checkpoint_create_finish (<em class="parameter"><code><a class="link" 
 <p>the new <a class="link" href="NMCheckpoint.html" title="NMCheckpoint"><span class="type">NMCheckpoint</span></a> on success, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on
 failure, in which case <em class="parameter"><code>error</code></em>
 will be set. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -4502,7 +4502,7 @@ nm_client_checkpoint_rollback_finish (<em class="parameter"><code><a class="link
 <p>an hash table of
 devices and results. Devices are represented by their original
 D-Bus path; each result is a <a class="link" href="libnm-nm-dbus-interface.html#NMRollbackResult" title="enum NMRollbackResult"><span class="type">NMRollbackResult</span></a>. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 guint32]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 guint32]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -4834,7 +4834,7 @@ nm_client_dbus_call_finish (<em class="parameter"><code><a class="link" href="NM
 <div class="refsect3">
 <a name="nm-client-dbus-call-finish.returns"></a><h4>Returns</h4>
 <p>the result <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.24</p>
 </div>
@@ -5074,31 +5074,31 @@ to know whether the permissions are up to date.</p>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-WWAN-HARDWARE-ENABLED:CAPS"></a><h3>NM_CLIENT_WWAN_HARDWARE_ENABLED</h3>
-<pre class="programlisting">#define NM_CLIENT_WWAN_HARDWARE_ENABLED "wwan-hardware-enabled"
+<pre class="programlisting">#define NM_CLIENT_WWAN_HARDWARE_ENABLED     "wwan-hardware-enabled"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-WIMAX-HARDWARE-ENABLED:CAPS"></a><h3>NM_CLIENT_WIMAX_HARDWARE_ENABLED</h3>
-<pre class="programlisting">#define NM_CLIENT_WIMAX_HARDWARE_ENABLED "wimax-hardware-enabled"
+<pre class="programlisting">#define NM_CLIENT_WIMAX_HARDWARE_ENABLED    "wimax-hardware-enabled"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-ACTIVE-CONNECTIONS:CAPS"></a><h3>NM_CLIENT_ACTIVE_CONNECTIONS</h3>
-<pre class="programlisting">#define NM_CLIENT_ACTIVE_CONNECTIONS "active-connections"
+<pre class="programlisting">#define NM_CLIENT_ACTIVE_CONNECTIONS           "active-connections"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-CONNECTIVITY:CAPS"></a><h3>NM_CLIENT_CONNECTIVITY</h3>
-<pre class="programlisting">#define NM_CLIENT_CONNECTIVITY "connectivity"
+<pre class="programlisting">#define NM_CLIENT_CONNECTIVITY                 "connectivity"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-CONNECTIVITY-CHECK-URI:CAPS"></a><h3>NM_CLIENT_CONNECTIVITY_CHECK_URI</h3>
-<pre class="programlisting">#define NM_CLIENT_CONNECTIVITY_CHECK_URI "connectivity-check-uri"
+<pre class="programlisting">#define NM_CLIENT_CONNECTIVITY_CHECK_URI       "connectivity-check-uri"
 </pre>
 </div>
 <hr>
@@ -5117,7 +5117,7 @@ to know whether the permissions are up to date.</p>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-PRIMARY-CONNECTION:CAPS"></a><h3>NM_CLIENT_PRIMARY_CONNECTION</h3>
-<pre class="programlisting">#define NM_CLIENT_PRIMARY_CONNECTION "primary-connection"
+<pre class="programlisting">#define NM_CLIENT_PRIMARY_CONNECTION    "primary-connection"
 </pre>
 </div>
 <hr>
@@ -5129,121 +5129,121 @@ to know whether the permissions are up to date.</p>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-DEVICES:CAPS"></a><h3>NM_CLIENT_DEVICES</h3>
-<pre class="programlisting">#define NM_CLIENT_DEVICES "devices"
+<pre class="programlisting">#define NM_CLIENT_DEVICES               "devices"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-ALL-DEVICES:CAPS"></a><h3>NM_CLIENT_ALL_DEVICES</h3>
-<pre class="programlisting">#define NM_CLIENT_ALL_DEVICES "all-devices"
+<pre class="programlisting">#define NM_CLIENT_ALL_DEVICES           "all-devices"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-CONNECTIONS:CAPS"></a><h3>NM_CLIENT_CONNECTIONS</h3>
-<pre class="programlisting">#define NM_CLIENT_CONNECTIONS "connections"
+<pre class="programlisting">#define NM_CLIENT_CONNECTIONS           "connections"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-HOSTNAME:CAPS"></a><h3>NM_CLIENT_HOSTNAME</h3>
-<pre class="programlisting">#define NM_CLIENT_HOSTNAME "hostname"
+<pre class="programlisting">#define NM_CLIENT_HOSTNAME              "hostname"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-CAN-MODIFY:CAPS"></a><h3>NM_CLIENT_CAN_MODIFY</h3>
-<pre class="programlisting">#define NM_CLIENT_CAN_MODIFY "can-modify"
+<pre class="programlisting">#define NM_CLIENT_CAN_MODIFY            "can-modify"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-METERED:CAPS"></a><h3>NM_CLIENT_METERED</h3>
-<pre class="programlisting">#define NM_CLIENT_METERED "metered"
+<pre class="programlisting">#define NM_CLIENT_METERED               "metered"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-DNS-MODE:CAPS"></a><h3>NM_CLIENT_DNS_MODE</h3>
-<pre class="programlisting">#define NM_CLIENT_DNS_MODE "dns-mode"
+<pre class="programlisting">#define NM_CLIENT_DNS_MODE              "dns-mode"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-DNS-RC-MANAGER:CAPS"></a><h3>NM_CLIENT_DNS_RC_MANAGER</h3>
-<pre class="programlisting">#define NM_CLIENT_DNS_RC_MANAGER "dns-rc-manager"
+<pre class="programlisting">#define NM_CLIENT_DNS_RC_MANAGER        "dns-rc-manager"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-DNS-CONFIGURATION:CAPS"></a><h3>NM_CLIENT_DNS_CONFIGURATION</h3>
-<pre class="programlisting">#define NM_CLIENT_DNS_CONFIGURATION "dns-configuration"
+<pre class="programlisting">#define NM_CLIENT_DNS_CONFIGURATION     "dns-configuration"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-CHECKPOINTS:CAPS"></a><h3>NM_CLIENT_CHECKPOINTS</h3>
-<pre class="programlisting">#define NM_CLIENT_CHECKPOINTS "checkpoints"
+<pre class="programlisting">#define NM_CLIENT_CHECKPOINTS           "checkpoints"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-CAPABILITIES:CAPS"></a><h3>NM_CLIENT_CAPABILITIES</h3>
-<pre class="programlisting">#define NM_CLIENT_CAPABILITIES "capabilities"
+<pre class="programlisting">#define NM_CLIENT_CAPABILITIES          "capabilities"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-PERMISSIONS-STATE:CAPS"></a><h3>NM_CLIENT_PERMISSIONS_STATE</h3>
-<pre class="programlisting">#define NM_CLIENT_PERMISSIONS_STATE "permissions-state"
+<pre class="programlisting">#define NM_CLIENT_PERMISSIONS_STATE     "permissions-state"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-DEVICE-ADDED:CAPS"></a><h3>NM_CLIENT_DEVICE_ADDED</h3>
-<pre class="programlisting">#define NM_CLIENT_DEVICE_ADDED "device-added"
+<pre class="programlisting">#define NM_CLIENT_DEVICE_ADDED              "device-added"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-DEVICE-REMOVED:CAPS"></a><h3>NM_CLIENT_DEVICE_REMOVED</h3>
-<pre class="programlisting">#define NM_CLIENT_DEVICE_REMOVED "device-removed"
+<pre class="programlisting">#define NM_CLIENT_DEVICE_REMOVED            "device-removed"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-ANY-DEVICE-ADDED:CAPS"></a><h3>NM_CLIENT_ANY_DEVICE_ADDED</h3>
-<pre class="programlisting">#define NM_CLIENT_ANY_DEVICE_ADDED "any-device-added"
+<pre class="programlisting">#define NM_CLIENT_ANY_DEVICE_ADDED          "any-device-added"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-ANY-DEVICE-REMOVED:CAPS"></a><h3>NM_CLIENT_ANY_DEVICE_REMOVED</h3>
-<pre class="programlisting">#define NM_CLIENT_ANY_DEVICE_REMOVED "any-device-removed"
+<pre class="programlisting">#define NM_CLIENT_ANY_DEVICE_REMOVED        "any-device-removed"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-PERMISSION-CHANGED:CAPS"></a><h3>NM_CLIENT_PERMISSION_CHANGED</h3>
-<pre class="programlisting">#define NM_CLIENT_PERMISSION_CHANGED "permission-changed"
+<pre class="programlisting">#define NM_CLIENT_PERMISSION_CHANGED        "permission-changed"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-CONNECTION-ADDED:CAPS"></a><h3>NM_CLIENT_CONNECTION_ADDED</h3>
-<pre class="programlisting">#define NM_CLIENT_CONNECTION_ADDED "connection-added"
+<pre class="programlisting">#define NM_CLIENT_CONNECTION_ADDED          "connection-added"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-CONNECTION-REMOVED:CAPS"></a><h3>NM_CLIENT_CONNECTION_REMOVED</h3>
-<pre class="programlisting">#define NM_CLIENT_CONNECTION_REMOVED "connection-removed"
+<pre class="programlisting">#define NM_CLIENT_CONNECTION_REMOVED        "connection-removed"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-ACTIVE-CONNECTION-ADDED:CAPS"></a><h3>NM_CLIENT_ACTIVE_CONNECTION_ADDED</h3>
-<pre class="programlisting">#define NM_CLIENT_ACTIVE_CONNECTION_ADDED "active-connection-added"
+<pre class="programlisting">#define NM_CLIENT_ACTIVE_CONNECTION_ADDED   "active-connection-added"
 </pre>
 </div>
 <hr>
@@ -5299,12 +5299,12 @@ operation succeeded, but the object that was allegedly created (eg,
 <hr>
 <div class="refsect2">
 <a name="NM-CLIENT-ERROR:CAPS"></a><h3>NM_CLIENT_ERROR</h3>
-<pre class="programlisting">#define NM_CLIENT_ERROR nm_client_error_quark ()
+<pre class="programlisting">#define NM_CLIENT_ERROR nm_client_error_quark()
 </pre>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

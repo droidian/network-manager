@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMAccessPoint.html" title="NMAccessPoint">
 <link rel="next" href="NMWimaxNsp.html" title="NMWimaxNsp">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -373,7 +373,7 @@ nm_wifi_p2p_peer_get_wfd_ies (<em class="parameter"><code><a class="link" href="
 <div class="refsect3">
 <a name="nm-wifi-p2p-peer-get-wfd-ies.returns"></a><h4>Returns</h4>
 <p>the <a href="https://developer.gnome.org/glib/unstable/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a> containing the WFD IEs, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -503,7 +503,7 @@ filter. </p></td>
 <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> that could be activated with the given <em class="parameter"><code>peer</code></em>
 . The array should
 be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#g-ptr-array-unref"><code class="function">g_ptr_array_unref()</code></a> when it is no longer required. </p>
-<p><span class="annotation">[<acronym title="Free data container after the code is done."><span class="acronym">transfer container</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -553,66 +553,66 @@ against</p></td>
 <a name="NMWifiP2PPeer.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="NM-WIFI-P2P-PEER-FLAGS:CAPS"></a><h3>NM_WIFI_P2P_PEER_FLAGS</h3>
-<pre class="programlisting">#define NM_WIFI_P2P_PEER_FLAGS                "flags"
+<pre class="programlisting">#define NM_WIFI_P2P_PEER_FLAGS        "flags"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-WIFI-P2P-PEER-NAME:CAPS"></a><h3>NM_WIFI_P2P_PEER_NAME</h3>
-<pre class="programlisting">#define NM_WIFI_P2P_PEER_NAME                 "name"
+<pre class="programlisting">#define NM_WIFI_P2P_PEER_NAME         "name"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-WIFI-P2P-PEER-MANUFACTURER:CAPS"></a><h3>NM_WIFI_P2P_PEER_MANUFACTURER</h3>
-<pre class="programlisting">#define NM_WIFI_P2P_PEER_MANUFACTURER         "manufacturer"
+<pre class="programlisting">#define NM_WIFI_P2P_PEER_MANUFACTURER "manufacturer"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-WIFI-P2P-PEER-MODEL:CAPS"></a><h3>NM_WIFI_P2P_PEER_MODEL</h3>
-<pre class="programlisting">#define NM_WIFI_P2P_PEER_MODEL                "model"
+<pre class="programlisting">#define NM_WIFI_P2P_PEER_MODEL        "model"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-WIFI-P2P-PEER-MODEL-NUMBER:CAPS"></a><h3>NM_WIFI_P2P_PEER_MODEL_NUMBER</h3>
-<pre class="programlisting">#define NM_WIFI_P2P_PEER_MODEL_NUMBER         "model-number"
+<pre class="programlisting">#define NM_WIFI_P2P_PEER_MODEL_NUMBER "model-number"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-WIFI-P2P-PEER-SERIAL:CAPS"></a><h3>NM_WIFI_P2P_PEER_SERIAL</h3>
-<pre class="programlisting">#define NM_WIFI_P2P_PEER_SERIAL               "serial"
+<pre class="programlisting">#define NM_WIFI_P2P_PEER_SERIAL       "serial"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-WIFI-P2P-PEER-WFD-IES:CAPS"></a><h3>NM_WIFI_P2P_PEER_WFD_IES</h3>
-<pre class="programlisting">#define NM_WIFI_P2P_PEER_WFD_IES              "wfd-ies"
+<pre class="programlisting">#define NM_WIFI_P2P_PEER_WFD_IES      "wfd-ies"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-WIFI-P2P-PEER-HW-ADDRESS:CAPS"></a><h3>NM_WIFI_P2P_PEER_HW_ADDRESS</h3>
-<pre class="programlisting">#define NM_WIFI_P2P_PEER_HW_ADDRESS           "hw-address"
+<pre class="programlisting">#define NM_WIFI_P2P_PEER_HW_ADDRESS   "hw-address"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-WIFI-P2P-PEER-STRENGTH:CAPS"></a><h3>NM_WIFI_P2P_PEER_STRENGTH</h3>
-<pre class="programlisting">#define NM_WIFI_P2P_PEER_STRENGTH             "strength"
+<pre class="programlisting">#define NM_WIFI_P2P_PEER_STRENGTH     "strength"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-WIFI-P2P-PEER-LAST-SEEN:CAPS"></a><h3>NM_WIFI_P2P_PEER_LAST_SEEN</h3>
-<pre class="programlisting">#define NM_WIFI_P2P_PEER_LAST_SEEN            "last-seen"
+<pre class="programlisting">#define NM_WIFI_P2P_PEER_LAST_SEEN    "last-seen"
 </pre>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

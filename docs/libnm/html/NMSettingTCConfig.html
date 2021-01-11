@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingSriov.html" title="NMSettingSriov">
 <link rel="next" href="NMSettingTeamPort.html" title="NMSettingTeamPort">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -477,7 +477,7 @@ nm_tc_qdisc_new (<em class="parameter"><code>const <span class="type">char</span
 <div class="refsect3">
 <a name="nm-tc-qdisc-new.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSettingTCConfig.html#NMTCQdisc"><span class="type">NMTCQdisc</span></a> object, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -591,7 +591,7 @@ nm_tc_qdisc_dup (<em class="parameter"><code><a class="link" href="NMSettingTCCo
 <a name="nm-tc-qdisc-dup.returns"></a><h4>Returns</h4>
 <p>a copy of <em class="parameter"><code>qdisc</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -726,7 +726,7 @@ nm_tc_qdisc_get_attribute_names (<em class="parameter"><code><a class="link" hre
 <a name="nm-tc-qdisc-get-attribute-names.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of attribute names
 or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no attributes are set. </p>
-<p><span class="annotation">[<acronym title="Free data container after the code is done."><span class="acronym">transfer container</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.18</p>
 </div>
@@ -768,7 +768,7 @@ on
 <em class="parameter"><code>qdisc</code></em>
 , or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>qdisc</code></em>
 has no such attribute. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.18</p>
 </div>
@@ -803,7 +803,7 @@ nm_tc_qdisc_set_attribute (<em class="parameter"><code><a class="link" href="NMS
 <tr>
 <td class="parameter_name"><p>value</p></td>
 <td class="parameter_description"><p>the value. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -842,7 +842,7 @@ nm_tc_action_new (<em class="parameter"><code>const <span class="type">char</spa
 <div class="refsect3">
 <a name="nm-tc-action-new.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSettingTCConfig.html#NMTCAction"><span class="type">NMTCAction</span></a> object, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -956,7 +956,7 @@ nm_tc_action_dup (<em class="parameter"><code><a class="link" href="NMSettingTCC
 <a name="nm-tc-action-dup.returns"></a><h4>Returns</h4>
 <p>a copy of <em class="parameter"><code>action</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -1007,8 +1007,9 @@ nm_tc_action_get_attribute_names (<em class="parameter"><code><a class="link" hr
 <div class="refsect3">
 <a name="nm-tc-action-get-attribute-names.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of attribute names,. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
+<p class="since">Since: 1.12</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1048,8 +1049,9 @@ on
 <em class="parameter"><code>action</code></em>
 , or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>action</code></em>
 has no such attribute. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
+<p class="since">Since: 1.12</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1082,11 +1084,12 @@ nm_tc_action_set_attribute (<em class="parameter"><code><a class="link" href="NM
 <tr>
 <td class="parameter_name"><p>value</p></td>
 <td class="parameter_description"><p>the value. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
 </div>
+<p class="since">Since: 1.12</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1126,7 +1129,7 @@ nm_tc_tfilter_new (<em class="parameter"><code>const <span class="type">char</sp
 <div class="refsect3">
 <a name="nm-tc-tfilter-new.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSettingTCConfig.html#NMTCTfilter"><span class="type">NMTCTfilter</span></a> object, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -1240,7 +1243,7 @@ nm_tc_tfilter_dup (<em class="parameter"><code><a class="link" href="NMSettingTC
 <a name="nm-tc-tfilter-dup.returns"></a><h4>Returns</h4>
 <p>a copy of <em class="parameter"><code>tfilter</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -1415,7 +1418,7 @@ nm_setting_tc_config_new (<em class="parameter"><code><span class="type">void</s
 <div class="refsect3">
 <a name="nm-setting-tc-config-new.returns"></a><h4>Returns</h4>
 <p>the new empty <a class="link" href="NMSettingTCConfig.html" title="NMSettingTCConfig"><span class="type">NMSettingTCConfig</span></a> object. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -1477,7 +1480,7 @@ nm_setting_tc_config_get_qdisc (<em class="parameter"><code><a class="link" href
 <a name="nm-setting-tc-config-get-qdisc.returns"></a><h4>Returns</h4>
 <p>the qdisc at index <em class="parameter"><code>idx</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -1669,7 +1672,7 @@ nm_setting_tc_config_get_tfilter (<em class="parameter"><code><a class="link" hr
 <a name="nm-setting-tc-config-get-tfilter.returns"></a><h4>Returns</h4>
 <p>the tfilter at index <em class="parameter"><code>idx</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -1808,24 +1811,24 @@ nm_setting_tc_config_clear_tfilters (<em class="parameter"><code><a class="link"
 <a name="NMSettingTCConfig.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="NM-SETTING-TC-CONFIG-SETTING-NAME:CAPS"></a><h3>NM_SETTING_TC_CONFIG_SETTING_NAME</h3>
-<pre class="programlisting">#define NM_SETTING_TC_CONFIG_SETTING_NAME    "tc"
+<pre class="programlisting">#define NM_SETTING_TC_CONFIG_SETTING_NAME "tc"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-TC-CONFIG-QDISCS:CAPS"></a><h3>NM_SETTING_TC_CONFIG_QDISCS</h3>
-<pre class="programlisting">#define NM_SETTING_TC_CONFIG_QDISCS          "qdiscs"
+<pre class="programlisting">#define NM_SETTING_TC_CONFIG_QDISCS   "qdiscs"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-TC-CONFIG-TFILTERS:CAPS"></a><h3>NM_SETTING_TC_CONFIG_TFILTERS</h3>
-<pre class="programlisting">#define NM_SETTING_TC_CONFIG_TFILTERS        "tfilters"
+<pre class="programlisting">#define NM_SETTING_TC_CONFIG_TFILTERS "tfilters"
 </pre>
 </div>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>
