@@ -298,7 +298,7 @@ AddAndActivateConnection2 (IN  a{sa{sv}} connection,
 </varlistentry>
 <varlistentry>
   <term><literal>OUT a{sv} <parameter>result</parameter></literal>:</term>
-  <listitem><para>a dictionary of additional output arguments for future extension. Currently not additional</para></listitem>
+  <listitem><para>a dictionary of additional output arguments for future extension. Currently, not additional</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>
@@ -858,7 +858,7 @@ ConnectivityCheckAvailable  readable   b
 ConnectivityCheckEnabled  readwrite  b
 </programlisting>
 <para>        Indicates whether connectivity checking is enabled.  This
-        property can also be written to to disable connectivity
+        property can also be written to disable connectivity
         checking (as a privacy control panel might want to do).
 </para>
 </refsect2>

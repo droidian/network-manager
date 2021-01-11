@@ -85,6 +85,8 @@ completiondir = $(datadir)/bash-completion/completions
 
 nmlocaledir = $(datadir)/locale
 
+INTROSPECTION_EXTRA_CFLAGS = -Wno-incompatible-pointer-types-discards-qualifiers
+
 GLIB_MKENUMS_H_FLAGS = --identifier-prefix NM
 GLIB_MKENUMS_C_FLAGS = --identifier-prefix NM
 
@@ -356,6 +358,9 @@ shared_nm_std_aux_libnm_std_aux_la_SOURCES = \
 	shared/nm-std-aux/c-list-util.c \
 	shared/nm-std-aux/c-list-util.h \
 	shared/nm-std-aux/nm-dbus-compat.h \
+	shared/nm-std-aux/nm-std-aux.h \
+	shared/nm-std-aux/nm-std-utils.c \
+	shared/nm-std-aux/nm-std-utils.h \
 	shared/nm-std-aux/unaligned.h \
 	$(NULL)
 
@@ -639,9 +644,45 @@ shared_nm_glib_aux_tests_test_shared_general_LDADD = \
 
 ###############################################################################
 
+if WITH_JANSSON
+
+check_programs += shared/nm-glib-aux/tests/test-json-aux
+
+shared_nm_glib_aux_tests_test_json_aux_CPPFLAGS = \
+	$(dflt_cppflags) \
+	-I$(srcdir)/shared \
+	-DNETWORKMANAGER_COMPILATION_TEST \
+	-DNETWORKMANAGER_COMPILATION='(NM_NETWORKMANAGER_COMPILATION_GLIB|NM_NETWORKMANAGER_COMPILATION_WITH_GLIB_I18N_PROG)' \
+	$(CODE_COVERAGE_CFLAGS) \
+	$(GLIB_CFLAGS) \
+	$(JANSSON_CFLAGS) \
+	$(SANITIZER_LIB_CFLAGS) \
+	$(NULL)
+
+shared_nm_glib_aux_tests_test_json_aux_LDFLAGS = \
+	$(CODE_COVERAGE_LDFLAGS) \
+	$(SANITIZER_EXEC_LDFLAGS) \
+	$(NULL)
+
+shared_nm_glib_aux_tests_test_json_aux_LDADD = \
+	$(JANSSON_LIBS) \
+	shared/nm-glib-aux/libnm-glib-aux.la \
+	shared/systemd/libnm-systemd-logging-stub.la \
+	shared/nm-std-aux/libnm-std-aux.la \
+	shared/libcsiphash.la \
+	$(GLIB_LIBS) \
+	$(NULL)
+
+endif
+
+###############################################################################
+
 noinst_LTLIBRARIES += introspection/libnmdbus.la
 
-introspection_libnmdbus_la_CPPFLAGS = $(GLIB_CFLAGS)
+introspection_libnmdbus_la_CPPFLAGS = \
+	$(GLIB_CFLAGS) \
+	$(INTROSPECTION_EXTRA_CFLAGS) \
+	$(NULL)
 
 introspection_sources = \
 	introspection/org.freedesktop.NetworkManager.AccessPoint.c \
@@ -867,8 +908,6 @@ dbusinterfaces_DATA = \
 CLEANFILES += $(introspection_sources)
 CLEANFILES += $(DBUS_INTERFACE_DOCS)
 
-$(dispatcher_libnm_dispatcher_core_la_OBJECTS): $(introspection_sources)
-$(dispatcher_nm_dispatcher_OBJECTS):            $(introspection_sources)
 $(libnm_liblibnm_la_OBJECTS):                   $(introspection_sources)
 $(libnm_libnm_la_OBJECTS):                      $(introspection_sources)
 
@@ -1028,13 +1067,6 @@ libnm_core_lib_c_real = \
 	libnm-core/nm-vpn-plugin-info.c \
 	$(NULL)
 
-if WITH_JSON_VALIDATION
-libnm_core_lib_h_priv += \
-	libnm-core/nm-json.h
-libnm_core_lib_c_real += \
-	libnm-core/nm-json.c
-endif
-
 libnm_core_lib_c_mkenums = \
 	libnm-core/nm-core-enum-types.c
 
@@ -1088,11 +1120,6 @@ libnm_core_libnm_core_la_CPPFLAGS = \
 	-DG_LOG_DOMAIN=\""libnm"\" \
 	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_LIBNM_CORE \
 	$(NULL)
-
-if WITH_JSON_VALIDATION
-libnm_core_libnm_core_la_CPPFLAGS += $(JANSSON_CFLAGS)
-libnm_core_libnm_core_la_CPPFLAGS += -fcommon
-endif
 
 libnm_core_libnm_core_la_SOURCES = \
 	$(libnm_core_lib_h_pub_real) \
@@ -1192,6 +1219,7 @@ GLIB_GENERATED += \
 	libnm-core/tests/nm-core-tests-enum-types.h \
 	libnm-core/tests/nm-core-tests-enum-types.c
 nm_core_tests_enum_types_sources = libnm-core/tests/test-general-enums.h
+nm_core_tests_enum_types_MKENUMS_C_FLAGS = --fhead '\#include "nm-default.h"\n'
 
 libnm-core/tests/nm-core-tests-enum-types.h.stamp: libnm-core/tests/.dirstamp
 libnm-core/tests/nm-core-tests-enum-types.c.stamp: libnm-core/tests/.dirstamp
@@ -2096,6 +2124,14 @@ src_libNetworkManagerBase_la_SOURCES = \
 	src/nm-dbus-utils.h \
 	src/nm-dbus-object.c \
 	src/nm-dbus-object.h \
+	src/nm-netns.c \
+	src/nm-netns.h \
+	src/nm-l3-config-data.c \
+	src/nm-l3-config-data.h \
+	src/nm-l3cfg.c \
+	src/nm-l3cfg.h \
+	src/nm-ip-config.c \
+	src/nm-ip-config.h \
 	src/nm-ip4-config.c \
 	src/nm-ip4-config.h \
 	src/nm-ip6-config.c \
@@ -2286,8 +2322,6 @@ src_libNetworkManager_la_SOURCES = \
 	src/nm-connectivity.h \
 	src/nm-dcb.c \
 	src/nm-dcb.h \
-	src/nm-netns.c \
-	src/nm-netns.h \
 	src/nm-dhcp-config.c \
 	src/nm-dhcp-config.h \
 	src/nm-dispatcher.c \
@@ -2440,7 +2474,9 @@ src_nm_iface_helper_LDADD = \
 	shared/nm-std-aux/libnm-std-aux.la \
 	src/libnm-systemd-core.la \
 	shared/systemd/libnm-systemd-shared.la \
+	shared/libnacd.la \
 	shared/libndhcp4.la \
+	shared/libcrbtree.la \
 	shared/libcsiphash.la \
 	$(GLIB_LIBS) \
 	$(LIBUDEV_LIBS) \
@@ -2988,7 +3024,10 @@ nodist_src_settings_plugins_ifcfg_rh_libnmdbus_ifcfg_rh_la_SOURCES = \
 	src/settings/plugins/ifcfg-rh/nmdbus-ifcfg-rh.c \
 	src/settings/plugins/ifcfg-rh/nmdbus-ifcfg-rh.h
 
-src_settings_plugins_ifcfg_rh_libnmdbus_ifcfg_rh_la_CPPFLAGS = $(filter-out -DGLIB_VERSION_MAX_ALLOWED%,$(src_cppflags_base))
+src_settings_plugins_ifcfg_rh_libnmdbus_ifcfg_rh_la_CPPFLAGS = \
+	$(filter-out -DGLIB_VERSION_MAX_ALLOWED%,$(src_cppflags_base)) \
+	$(INTROSPECTION_EXTRA_CFLAGS) \
+	$(NULL)
 
 CLEANFILES += $(nodist_src_settings_plugins_ifcfg_rh_libnmdbus_ifcfg_rh_la_SOURCES)
 
@@ -3094,6 +3133,7 @@ EXTRA_DIST += \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Team_Infiniband_Port.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_Team_Port.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_VLAN_reorder_hdr.cexpected \
+	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_WiFi_AP_Mode.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_WiFi_Band_A.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_WiFi_Hidden.cexpected \
 	src/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-Test_Write_WiFi_MAC_always.cexpected \
@@ -4084,12 +4124,14 @@ src_tests_ldadd = \
 check_programs += \
 	src/tests/test-core \
 	src/tests/test-core-with-expect \
+	src/tests/test-dcb \
 	src/tests/test-ip4-config \
 	src/tests/test-ip6-config \
-	src/tests/test-dcb \
+	src/tests/test-l3cfg \
 	src/tests/test-systemd \
+	src/tests/test-utils \
 	src/tests/test-wired-defname \
-	src/tests/test-utils
+	$(NULL)
 
 src_tests_test_ip4_config_CPPFLAGS = $(src_cppflags_test)
 src_tests_test_ip4_config_LDFLAGS = $(src_tests_ldflags)
@@ -4119,13 +4161,18 @@ src_tests_test_utils_CPPFLAGS = $(src_cppflags_test)
 src_tests_test_utils_LDFLAGS = $(src_tests_ldflags)
 src_tests_test_utils_LDADD = $(src_tests_ldadd)
 
-$(src_tests_test_ip4_config_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
-$(src_tests_test_ip6_config_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
-$(src_tests_test_dcb_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+src_tests_test_l3cfg_CPPFLAGS = $(src_cppflags_test)
+src_tests_test_l3cfg_LDFLAGS = $(src_devices_tests_ldflags)
+src_tests_test_l3cfg_LDADD = $(src_tests_ldadd)
+
 $(src_tests_test_core_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
 $(src_tests_test_core_with_expect_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
-$(src_tests_test_wired_defname_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+$(src_tests_test_dcb_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+$(src_tests_test_ip4_config_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+$(src_tests_test_ip6_config_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+$(src_tests_test_l3cfg_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
 $(src_tests_test_utils_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+$(src_tests_test_wired_defname_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
 
 src_tests_test_systemd_CPPFLAGS = \
 	$(src_libnm_systemd_core_la_cppflags) \
@@ -4275,6 +4322,7 @@ dispatcher_tests_test_dispatcher_envp_CPPFLAGS = \
 	-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_CLIENT \
 	$(GLIB_CFLAGS) \
 	$(SANITIZER_EXEC_CFLAGS) \
+	$(INTROSPECTION_EXTRA_CFLAGS) \
 	$(NULL)
 
 dispatcher_tests_test_dispatcher_envp_SOURCES = \
@@ -4850,6 +4898,8 @@ clients_cloud_setup_nm_cloud_setup_SOURCES = \
 	clients/cloud-setup/nmcs-provider-ec2.h \
 	clients/cloud-setup/nmcs-provider-gcp.c \
 	clients/cloud-setup/nmcs-provider-gcp.h \
+	clients/cloud-setup/nmcs-provider-azure.c \
+	clients/cloud-setup/nmcs-provider-azure.h \
 	$(NULL)
 
 clients_cloud_setup_nm_cloud_setup_CPPFLAGS = \
@@ -5257,6 +5307,26 @@ CLEANFILES += \
 ###############################################################################
 
 include Makefile.examples
+
+if WITH_PYTHON_BLACK
+check-python-black:
+	test "$$NMTST_SKIP_PYTHON_BLACK" == 1 || $(BLACK) --check $(top_srcdir) $(top_srcdir)/examples/python/gi/nm-wg-set
+check_local += check-python-black
+endif
+
+###############################################################################
+
+check-po-msgfmt:
+	@echo "check-po-msgfmt: check $(top_srcdir)/po/*.po files with msgfmt -vc"
+	@for f in "$(top_srcdir)/po"/*.po ; do \
+		if ! msgfmt -vc "$$f" -o /dev/null &>/dev/null ; then \
+			echo "invalid po file: msgfmt -vc $$f -o /dev/null" ; \
+			msgfmt -vc "$$f" -o /dev/null ; \
+			exit 1 ; \
+		fi ; \
+	done
+
+check_local += check-po-msgfmt
 
 ###############################################################################
 

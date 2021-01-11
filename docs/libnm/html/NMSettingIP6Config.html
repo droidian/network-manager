@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingIP4Config.html" title="NMSettingIP4Config">
 <link rel="next" href="NMSettingIPConfig.html" title="NMSettingIPConfig">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -100,13 +100,13 @@
 </colgroup>
 <tbody>
 <tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
+<td class="property_type"><span class="type">int</span></td>
 <td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--addr-gen-mode" title="The “addr-gen-mode” property">addr-gen-mode</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--dhcp-duid" title="The “dhcp-duid” property">dhcp-duid</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -116,13 +116,13 @@
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
+<td class="property_type"><span class="type">int</span></td>
 <td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--ra-timeout" title="The “ra-timeout” property">ra-timeout</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingIP6Config.html#NMSettingIP6Config--token" title="The “token” property">token</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -243,7 +243,7 @@ nm_setting_ip6_config_new (<em class="parameter"><code><span class="type">void</
 <div class="refsect3">
 <a name="nm-setting-ip6-config-new.returns"></a><h4>Returns</h4>
 <p>the new empty <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> object. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -427,7 +427,7 @@ timeout for router advertisements in seconds.</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP6-CONFIG-METHOD-IGNORE:CAPS"></a><h3>NM_SETTING_IP6_CONFIG_METHOD_IGNORE</h3>
-<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_METHOD_IGNORE     "ignore"
+<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_METHOD_IGNORE "ignore"
 </pre>
 <p>IPv6 is not required or is handled by some other mechanism, and NetworkManager
 should not configure IPv6 for this connection.</p>
@@ -435,7 +435,7 @@ should not configure IPv6 for this connection.</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP6-CONFIG-METHOD-AUTO:CAPS"></a><h3>NM_SETTING_IP6_CONFIG_METHOD_AUTO</h3>
-<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_METHOD_AUTO       "auto"
+<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_METHOD_AUTO "auto"
 </pre>
 <p>IPv6 configuration should be automatically determined via a method appropriate
 for the hardware interface, ie router advertisements, DHCP, or PPP or some
@@ -444,7 +444,7 @@ other device-specific manner.</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP6-CONFIG-METHOD-DHCP:CAPS"></a><h3>NM_SETTING_IP6_CONFIG_METHOD_DHCP</h3>
-<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_METHOD_DHCP       "dhcp"
+<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_METHOD_DHCP "dhcp"
 </pre>
 <p>IPv6 configuration should be automatically determined via DHCPv6 only and
 router advertisements should be ignored.</p>
@@ -460,7 +460,7 @@ operation.</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP6-CONFIG-METHOD-MANUAL:CAPS"></a><h3>NM_SETTING_IP6_CONFIG_METHOD_MANUAL</h3>
-<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_METHOD_MANUAL     "manual"
+<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_METHOD_MANUAL "manual"
 </pre>
 <p>All necessary IPv6 configuration (addresses, prefix, DNS, etc) is specified
 in the setting's properties.</p>
@@ -468,7 +468,7 @@ in the setting's properties.</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP6-CONFIG-METHOD-SHARED:CAPS"></a><h3>NM_SETTING_IP6_CONFIG_METHOD_SHARED</h3>
-<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_METHOD_SHARED     "shared"
+<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_METHOD_SHARED "shared"
 </pre>
 <p>This connection specifies configuration that allows other computers to
 connect through it to the default network (usually the Internet).  The
@@ -481,7 +481,7 @@ supported for IPv6)</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-IP6-CONFIG-METHOD-DISABLED:CAPS"></a><h3>NM_SETTING_IP6_CONFIG_METHOD_DISABLED</h3>
-<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_METHOD_DISABLED   "disabled"
+<pre class="programlisting">#define NM_SETTING_IP6_CONFIG_METHOD_DISABLED "disabled"
 </pre>
 <p>IPv6 is disabled for the connection.</p>
 <p class="since">Since: 1.20</p>
@@ -582,7 +582,7 @@ specified by RFC7217.</p>
 <a name="NMSettingIP6Config.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMSettingIP6Config--addr-gen-mode"></a><h3>The <code class="literal">“addr-gen-mode”</code> property</h3>
-<pre class="programlisting">  “addr-gen-mode”            <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
+<pre class="programlisting">  “addr-gen-mode”            <span class="type">int</span></pre>
 <p>Configure method for creating the address for use with RFC4862 IPv6
 Stateless Address Autoconfiguration. The permitted values are:
 <a class="link" href="NMSettingIP6Config.html#NM-SETTING-IP6-CONFIG-ADDR-GEN-MODE-EUI64:CAPS"><code class="literal">NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64</code></a> or
@@ -613,7 +613,7 @@ temporary addresses configured with this option.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIP6Config--dhcp-duid"></a><h3>The <code class="literal">“dhcp-duid”</code> property</h3>
-<pre class="programlisting">  “dhcp-duid”                <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “dhcp-duid”                <span class="type">char</span> *</pre>
 <p>A string containing the DHCPv6 Unique Identifier (DUID) used by the dhcp
 client to identify itself to DHCPv6 servers (RFC 3315). The DUID is carried
 in the Client Identifier option.
@@ -669,7 +669,7 @@ setting as another way of avoiding host tracking with IPv6 addresses.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIP6Config--ra-timeout"></a><h3>The <code class="literal">“ra-timeout”</code> property</h3>
-<pre class="programlisting">  “ra-timeout”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
+<pre class="programlisting">  “ra-timeout”               <span class="type">int</span></pre>
 <p>A timeout for waiting Router Advertisements in seconds. If zero (the default), a
 globally configured default is used. If still unspecified, the timeout depends on the
 sysctl settings of the device.</p>
@@ -683,7 +683,7 @@ sysctl settings of the device.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingIP6Config--token"></a><h3>The <code class="literal">“token”</code> property</h3>
-<pre class="programlisting">  “token”                    <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “token”                    <span class="type">char</span> *</pre>
 <p>Configure the token for draft-chown-6man-tokenised-ipv6-identifiers-02
 IPv6 tokenized interface identifiers. Useful with eui64 addr-gen-mode.</p>
 <p>Owner: NMSettingIP6Config</p>
@@ -694,6 +694,6 @@ IPv6 tokenized interface identifiers. Useful with eui64 addr-gen-mode.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

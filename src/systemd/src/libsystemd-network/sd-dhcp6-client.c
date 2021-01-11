@@ -161,7 +161,7 @@ int sd_dhcp6_client_set_callback(
 int sd_dhcp6_client_set_ifindex(sd_dhcp6_client *client, int ifindex) {
 
         assert_return(client, -EINVAL);
-        assert_return(ifindex >= -1, -EINVAL);
+        assert_return(ifindex > 0, -EINVAL);
         assert_return(IN_SET(client->state, DHCP6_STATE_STOPPED), -EBUSY);
 
         client->ifindex = ifindex;
@@ -272,7 +272,7 @@ static int dhcp6_client_set_duid_internal(
         assert_return(duid_len == 0 || duid != NULL, -EINVAL);
         assert_return(IN_SET(client->state, DHCP6_STATE_STOPPED), -EBUSY);
 
-        if (duid != NULL) {
+        if (duid) {
                 r = dhcp_validate_duid_len(duid_type, duid_len, true);
                 if (r < 0) {
                         r = dhcp_validate_duid_len(duid_type, duid_len, false);
@@ -630,7 +630,6 @@ static int client_send_message(sd_dhcp6_client *client, usec_t time_now) {
                 IN6ADDR_ALL_DHCP6_RELAY_AGENTS_AND_SERVERS_INIT;
         struct sd_dhcp6_option *j;
         size_t len, optlen = 512;
-        Iterator i;
         uint8_t *opt;
         int r;
         usec_t elapsed_usec;
@@ -735,7 +734,7 @@ static int client_send_message(sd_dhcp6_client *client, usec_t time_now) {
                 if (r < 0)
                         return r;
 
-                if (FLAGS_SET(client->request, DHCP6_REQUEST_IA_NA)) {
+                if (FLAGS_SET(client->request, DHCP6_REQUEST_IA_NA) && client->lease->ia.addresses) {
                         r = dhcp6_option_append_ia(&opt, &optlen,
                                                    &client->lease->ia);
                         if (r < 0)
@@ -774,7 +773,7 @@ static int client_send_message(sd_dhcp6_client *client, usec_t time_now) {
                                 return r;
                 }
 
-                if (FLAGS_SET(client->request, DHCP6_REQUEST_IA_PD)) {
+                if (FLAGS_SET(client->request, DHCP6_REQUEST_IA_PD) && client->lease->pd.addresses) {
                         r = dhcp6_option_append_pd(opt, optlen, &client->lease->pd, NULL);
                         if (r < 0)
                                 return r;
@@ -865,7 +864,7 @@ static int client_send_message(sd_dhcp6_client *client, usec_t time_now) {
         if (r < 0)
                 return r;
 
-        ORDERED_HASHMAP_FOREACH(j, client->extra_options, i) {
+        ORDERED_HASHMAP_FOREACH(j, client->extra_options) {
                 r = dhcp6_option_append(&opt, &optlen, j->option, j->length, j->data);
                 if (r < 0)
                         return r;
@@ -1502,7 +1501,7 @@ static int client_receive_message(
                         break;
                 }
 
-                _fallthrough_; /* for Soliciation Rapid Commit option check */
+                _fallthrough_; /* for Solicitation Rapid Commit option check */
         case DHCP6_STATE_REQUEST:
         case DHCP6_STATE_RENEW:
         case DHCP6_STATE_REBIND:
@@ -1701,7 +1700,7 @@ int sd_dhcp6_client_is_running(sd_dhcp6_client *client) {
 
 int sd_dhcp6_client_start(sd_dhcp6_client *client) {
         enum DHCP6State state = DHCP6_STATE_SOLICITATION;
-        int r = 0;
+        int r;
 
         assert_return(client, -EINVAL);
         assert_return(client->event, -EINVAL);

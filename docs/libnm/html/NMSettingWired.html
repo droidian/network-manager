@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingWimax.html" title="NMSettingWimax">
 <link rel="next" href="NMSettingWireGuard.html" title="NMSettingWireGuard">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -101,7 +101,7 @@
 </td>
 </tr>
 <tr>
-<td class="function_type">const <span class="returnvalue">char</span> * const *
+<td class="function_type">const <span class="returnvalue">char</span> *const *
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingWired.html#nm-setting-wired-get-mac-address-blacklist" title="nm_setting_wired_get_mac_address_blacklist ()">nm_setting_wired_get_mac_address_blacklist</a> <span class="c_punctuation">()</span>
@@ -163,7 +163,7 @@
 </td>
 </tr>
 <tr>
-<td class="function_type">const <span class="returnvalue">char</span> * const *
+<td class="function_type">const <span class="returnvalue">char</span> *const *
 </td>
 <td class="function_name">
 <a class="link" href="NMSettingWired.html#nm-setting-wired-get-s390-subchannels" title="nm_setting_wired_get_s390_subchannels ()">nm_setting_wired_get_s390_subchannels</a> <span class="c_punctuation">()</span>
@@ -256,25 +256,25 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingWired.html#NMSettingWired--cloned-mac-address" title="The “cloned-mac-address” property">cloned-mac-address</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingWired.html#NMSettingWired--duplex" title="The “duplex” property">duplex</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingWired.html#NMSettingWired--generate-mac-address-mask" title="The “generate-mac-address-mask” property">generate-mac-address-mask</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingWired.html#NMSettingWired--mac-address" title="The “mac-address” property">mac-address</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -290,13 +290,13 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingWired.html#NMSettingWired--port" title="The “port” property">port</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingWired.html#NMSettingWired--s390-nettype" title="The “s390-nettype” property">s390-nettype</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -323,7 +323,7 @@
 </tr>
 <tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSettingWired.html#NMSettingWired--wake-on-lan-password" title="The “wake-on-lan-password” property">wake-on-lan-password</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -433,7 +433,7 @@ nm_setting_wired_new (<em class="parameter"><code><span class="type">void</span>
 <div class="refsect3">
 <a name="nm-setting-wired-new.returns"></a><h4>Returns</h4>
 <p>the new empty <a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="type">NMSettingWired</span></a> object. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -617,7 +617,7 @@ nm_setting_wired_get_generate_mac_address_mask
 <hr>
 <div class="refsect2">
 <a name="nm-setting-wired-get-mac-address-blacklist"></a><h3>nm_setting_wired_get_mac_address_blacklist ()</h3>
-<pre class="programlisting">const <span class="returnvalue">char</span> * const *
+<pre class="programlisting">const <span class="returnvalue">char</span> *const *
 nm_setting_wired_get_mac_address_blacklist
                                (<em class="parameter"><code><a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="type">NMSettingWired</span></a> *setting</code></em>);</pre>
 <div class="refsect3">
@@ -858,7 +858,7 @@ nm_setting_wired_get_mtu (<em class="parameter"><code><a class="link" href="NMSe
 <hr>
 <div class="refsect2">
 <a name="nm-setting-wired-get-s390-subchannels"></a><h3>nm_setting_wired_get_s390_subchannels ()</h3>
-<pre class="programlisting">const <span class="returnvalue">char</span> * const *
+<pre class="programlisting">const <span class="returnvalue">char</span> *const *
 nm_setting_wired_get_s390_subchannels (<em class="parameter"><code><a class="link" href="NMSettingWired.html" title="NMSettingWired"><span class="type">NMSettingWired</span></a> *setting</code></em>);</pre>
 <p>Return the list of s390 subchannels that identify the device that this
 connection is applicable to.  The connection should only be used in
@@ -882,7 +882,7 @@ conjunction with that device.</p>
 <a name="nm-setting-wired-get-s390-subchannels.returns"></a><h4>Returns</h4>
 <p>array of strings, each specifying
 one subchannel the s390 device uses to communicate to the host. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8]</span></p>
 </div>
 </div>
 <hr>
@@ -977,14 +977,14 @@ such as during option iteration.</p>
 <td class="parameter_name"><p>out_key</p></td>
 <td class="parameter_description"><p>on return, the key name of the s390 specific
 option; this value is owned by the setting and should not be modified. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>out_value</p></td>
 <td class="parameter_description"><p>on return, the value of the key of the
 s390 specific option; this value is owned by the setting and should not be
 modified. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -1143,7 +1143,7 @@ and you may pass <a href="https://developer.gnome.org/glib/unstable/glib-Standar
 <div class="refsect3">
 <a name="nm-setting-wired-get-valid-s390-options.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of strings of valid s390 options. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1314,37 +1314,37 @@ incompatible with other flags</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRED-PORT:CAPS"></a><h3>NM_SETTING_WIRED_PORT</h3>
-<pre class="programlisting">#define NM_SETTING_WIRED_PORT "port"
+<pre class="programlisting">#define NM_SETTING_WIRED_PORT                      "port"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRED-SPEED:CAPS"></a><h3>NM_SETTING_WIRED_SPEED</h3>
-<pre class="programlisting">#define NM_SETTING_WIRED_SPEED "speed"
+<pre class="programlisting">#define NM_SETTING_WIRED_SPEED                     "speed"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRED-DUPLEX:CAPS"></a><h3>NM_SETTING_WIRED_DUPLEX</h3>
-<pre class="programlisting">#define NM_SETTING_WIRED_DUPLEX "duplex"
+<pre class="programlisting">#define NM_SETTING_WIRED_DUPLEX                    "duplex"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRED-AUTO-NEGOTIATE:CAPS"></a><h3>NM_SETTING_WIRED_AUTO_NEGOTIATE</h3>
-<pre class="programlisting">#define NM_SETTING_WIRED_AUTO_NEGOTIATE "auto-negotiate"
+<pre class="programlisting">#define NM_SETTING_WIRED_AUTO_NEGOTIATE            "auto-negotiate"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRED-MAC-ADDRESS:CAPS"></a><h3>NM_SETTING_WIRED_MAC_ADDRESS</h3>
-<pre class="programlisting">#define NM_SETTING_WIRED_MAC_ADDRESS "mac-address"
+<pre class="programlisting">#define NM_SETTING_WIRED_MAC_ADDRESS               "mac-address"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRED-CLONED-MAC-ADDRESS:CAPS"></a><h3>NM_SETTING_WIRED_CLONED_MAC_ADDRESS</h3>
-<pre class="programlisting">#define NM_SETTING_WIRED_CLONED_MAC_ADDRESS "cloned-mac-address"
+<pre class="programlisting">#define NM_SETTING_WIRED_CLONED_MAC_ADDRESS        "cloned-mac-address"
 </pre>
 </div>
 <hr>
@@ -1356,43 +1356,43 @@ incompatible with other flags</p>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRED-MAC-ADDRESS-BLACKLIST:CAPS"></a><h3>NM_SETTING_WIRED_MAC_ADDRESS_BLACKLIST</h3>
-<pre class="programlisting">#define NM_SETTING_WIRED_MAC_ADDRESS_BLACKLIST "mac-address-blacklist"
+<pre class="programlisting">#define NM_SETTING_WIRED_MAC_ADDRESS_BLACKLIST     "mac-address-blacklist"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRED-MTU:CAPS"></a><h3>NM_SETTING_WIRED_MTU</h3>
-<pre class="programlisting">#define NM_SETTING_WIRED_MTU "mtu"
+<pre class="programlisting">#define NM_SETTING_WIRED_MTU                       "mtu"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRED-S390-SUBCHANNELS:CAPS"></a><h3>NM_SETTING_WIRED_S390_SUBCHANNELS</h3>
-<pre class="programlisting">#define NM_SETTING_WIRED_S390_SUBCHANNELS "s390-subchannels"
+<pre class="programlisting">#define NM_SETTING_WIRED_S390_SUBCHANNELS          "s390-subchannels"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRED-S390-NETTYPE:CAPS"></a><h3>NM_SETTING_WIRED_S390_NETTYPE</h3>
-<pre class="programlisting">#define NM_SETTING_WIRED_S390_NETTYPE "s390-nettype"
+<pre class="programlisting">#define NM_SETTING_WIRED_S390_NETTYPE              "s390-nettype"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRED-S390-OPTIONS:CAPS"></a><h3>NM_SETTING_WIRED_S390_OPTIONS</h3>
-<pre class="programlisting">#define NM_SETTING_WIRED_S390_OPTIONS "s390-options"
+<pre class="programlisting">#define NM_SETTING_WIRED_S390_OPTIONS              "s390-options"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRED-WAKE-ON-LAN:CAPS"></a><h3>NM_SETTING_WIRED_WAKE_ON_LAN</h3>
-<pre class="programlisting">#define NM_SETTING_WIRED_WAKE_ON_LAN "wake-on-lan"
+<pre class="programlisting">#define NM_SETTING_WIRED_WAKE_ON_LAN               "wake-on-lan"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-WIRED-WAKE-ON-LAN-PASSWORD:CAPS"></a><h3>NM_SETTING_WIRED_WAKE_ON_LAN_PASSWORD</h3>
-<pre class="programlisting">#define NM_SETTING_WIRED_WAKE_ON_LAN_PASSWORD "wake-on-lan-password"
+<pre class="programlisting">#define NM_SETTING_WIRED_WAKE_ON_LAN_PASSWORD      "wake-on-lan-password"
 </pre>
 </div>
 <hr>
@@ -1422,7 +1422,7 @@ link configuration will be skipped.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingWired--cloned-mac-address"></a><h3>The <code class="literal">“cloned-mac-address”</code> property</h3>
-<pre class="programlisting">  “cloned-mac-address”       <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “cloned-mac-address”       <span class="type">char</span> *</pre>
 <p>If specified, request that the device use this MAC address instead.
 This is known as MAC cloning or spoofing.</p>
 <p>Beside explicitly specifying a MAC address, the special values "preserve", "permanent",
@@ -1445,7 +1445,7 @@ of NetworkManager.conf. If still unspecified, it defaults to "preserve"
 <hr>
 <div class="refsect2">
 <a name="NMSettingWired--duplex"></a><h3>The <code class="literal">“duplex”</code> property</h3>
-<pre class="programlisting">  “duplex”                   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “duplex”                   <span class="type">char</span> *</pre>
 <p>When a value is set, either "half" or "full", configures the device
 to use the specified duplex mode. If "auto-negotiate" is "yes" the
 specified duplex mode will be the only one advertised during link
@@ -1465,7 +1465,7 @@ Before specifying a duplex mode be sure your device supports it.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingWired--generate-mac-address-mask"></a><h3>The <code class="literal">“generate-mac-address-mask”</code> property</h3>
-<pre class="programlisting">  “generate-mac-address-mask” <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “generate-mac-address-mask” <span class="type">char</span> *</pre>
 <p>With <a class="link" href="NMSettingWired.html#NMSettingWired--cloned-mac-address" title="The “cloned-mac-address” property"><span class="type">“cloned-mac-address”</span></a> setting "random" or "stable",
 by default all bits of the MAC address are scrambled and a locally-administered,
 unicast MAC address is created. This property allows to specify that certain bits
@@ -1497,7 +1497,7 @@ administered.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingWired--mac-address"></a><h3>The <code class="literal">“mac-address”</code> property</h3>
-<pre class="programlisting">  “mac-address”              <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “mac-address”              <span class="type">char</span> *</pre>
 <p>If specified, this connection will only apply to the Ethernet device
 whose permanent MAC address matches. This property does not change the
 MAC address of the device (i.e. MAC spoofing).</p>
@@ -1529,7 +1529,7 @@ breaking larger packets up into multiple Ethernet frames.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingWired--port"></a><h3>The <code class="literal">“port”</code> property</h3>
-<pre class="programlisting">  “port”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “port”                     <span class="type">char</span> *</pre>
 <p>Specific port type to use if the device supports multiple
 attachment methods.  One of "tp" (Twisted Pair), "aui" (Attachment Unit
 Interface), "bnc" (Thin Ethernet) or "mii" (Media Independent Interface).
@@ -1541,7 +1541,7 @@ If the device supports only one port type, this setting is ignored.</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingWired--s390-nettype"></a><h3>The <code class="literal">“s390-nettype”</code> property</h3>
-<pre class="programlisting">  “s390-nettype”             <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “s390-nettype”             <span class="type">char</span> *</pre>
 <p>s390 network device type; one of "qeth", "lcs", or "ctc", representing
 the different types of virtual network devices available on s390 systems.</p>
 <p>Owner: NMSettingWired</p>
@@ -1610,7 +1610,7 @@ NetworkManager).</p>
 <hr>
 <div class="refsect2">
 <a name="NMSettingWired--wake-on-lan-password"></a><h3>The <code class="literal">“wake-on-lan-password”</code> property</h3>
-<pre class="programlisting">  “wake-on-lan-password”     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “wake-on-lan-password”     <span class="type">char</span> *</pre>
 <p>If specified, the password used with magic-packet-based
 Wake-on-LAN, represented as an Ethernet MAC address.  If <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>,
 no password will be required.</p>
@@ -1622,6 +1622,6 @@ no password will be required.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

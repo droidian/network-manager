@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0+
+/* SPDX-License-Identifier: GPL-2.0+ */
 /*
  * Copyright (C) 2014 - 2018 Red Hat, Inc.
  */
@@ -65,6 +65,6 @@ typedef struct _NMSettingWirelessSecurity NMSettingWirelessSecurity;
 typedef struct _NMSettingWpan             NMSettingWpan;
 typedef struct _NMSimpleConnection        NMSimpleConnection;
 
-typedef gboolean (*NMUtilsPredicateStr) (const char *str);
+typedef gboolean (*NMUtilsPredicateStr)(const char *str);
 
-#endif  /* __NM_CORE_TYPES_H__ */
+#endif /* __NM_CORE_TYPES_H__ */

@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMRemoteConnection.html" title="NMRemoteConnection">
 <link rel="next" href="NMSettingConnection.html" title="NMSettingConnection">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -201,7 +201,7 @@
 </td>
 </tr>
 <tr>
-<td class="function_type">const <span class="returnvalue">char</span> *const*
+<td class="function_type">const <span class="returnvalue">char</span> *const *
 </td>
 <td class="function_name">
 <a class="link" href="NMSetting.html#nm-setting-option-get-all-names" title="nm_setting_option_get_all_names ()">nm_setting_option_get_all_names</a> <span class="c_punctuation">()</span>
@@ -235,7 +235,7 @@
 </colgroup>
 <tbody><tr>
 <td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<span class="type">char</span> *</td>
 <td class="property_name"><a class="link" href="NMSetting.html#NMSetting--name" title="The “name” property">name</a></td>
 <td class="property_flags">Read</td>
 </tr></tbody>
@@ -510,7 +510,7 @@ nm_setting_duplicate (<em class="parameter"><code><a class="link" href="NMSettin
 <a name="nm-setting-duplicate.returns"></a><h4>Returns</h4>
 <p>a new <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> containing the same properties and values as the
 source <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a>. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -729,7 +729,7 @@ settings differ, on return a hash table mapping the differing keys to one or
 more <a class="link" href="NMSetting.html#NMSettingDiffResult" title="enum NMSettingDiffResult"><code class="literal">NMSettingDiffResult</code></a> values OR-ed together.  If the settings do not
 differ, any hash table passed in is unmodified.  If no hash table is passed
 in and the settings differ, a new one is created and returned. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for input and for returning results. Default is transfer full."><span class="acronym">inout</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 guint32]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for input and for returning results. Default is transfer full."><span class="acronym">inout</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 guint32]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -936,7 +936,7 @@ nm_setting_option_get (<em class="parameter"><code><a class="link" href="NMSetti
 <a name="nm-setting-option-get.returns"></a><h4>Returns</h4>
 <p>the <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the option
 is not set. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.26.</p>
 </div>
@@ -1039,7 +1039,7 @@ Otherwise, <em class="parameter"><code>variant</code></em>
 a floating reference, it will be consumed.</p>
 <p>Note that not all setting types support options. It is a bug
 setting a variant to a setting that doesn't support it.
-Currently only <a class="link" href="NMSettingEthtool.html" title="NMSettingEthtool"><span class="type">NMSettingEthtool</span></a> supports it.</p>
+Currently, only <a class="link" href="NMSettingEthtool.html" title="NMSettingEthtool"><span class="type">NMSettingEthtool</span></a> supports it.</p>
 <div class="refsect3">
 <a name="nm-setting-option-set.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1136,7 +1136,7 @@ nm_setting_option_set_boolean (<em class="parameter"><code><a class="link" href=
 <hr>
 <div class="refsect2">
 <a name="nm-setting-option-get-all-names"></a><h3>nm_setting_option_get_all_names ()</h3>
-<pre class="programlisting">const <span class="returnvalue">char</span> *const*
+<pre class="programlisting">const <span class="returnvalue">char</span> *const *
 nm_setting_option_get_all_names (<em class="parameter"><code><a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> *setting</code></em>,
                                  <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *out_len</code></em>);</pre>
 <p>Gives the name of all set options.</p>
@@ -1167,7 +1167,7 @@ nm_setting_option_get_all_names (<em class="parameter"><code><a class="link" hre
 <p>A <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> terminated array of key names. If no names are present, this returns
 <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. The returned array and the names are owned by <a class="link" href="NMSetting.html" title="NMSetting"><code class="literal">NMSetting</code></a> and might be invalidated
 by the next operation. </p>
-<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_len zero-terminated=1][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_len zero-terminated=1][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.26</p>
 </div>
@@ -1248,13 +1248,13 @@ on <em class="parameter"><code>setting</code></em>
 <a name="NMSetting.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="NM-SETTING-PARAM-REQUIRED:CAPS"></a><h3>NM_SETTING_PARAM_REQUIRED</h3>
-<pre class="programlisting">#define NM_SETTING_PARAM_REQUIRED     (1 &lt;&lt; (1 + G_PARAM_USER_SHIFT))
+<pre class="programlisting">#define NM_SETTING_PARAM_REQUIRED (1 &lt;&lt; (1 + G_PARAM_USER_SHIFT))
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-PARAM-SECRET:CAPS"></a><h3>NM_SETTING_PARAM_SECRET</h3>
-<pre class="programlisting">#define NM_SETTING_PARAM_SECRET       (1 &lt;&lt; (2 + G_PARAM_USER_SHIFT))
+<pre class="programlisting">#define NM_SETTING_PARAM_SECRET (1 &lt;&lt; (2 + G_PARAM_USER_SHIFT))
 </pre>
 </div>
 <hr>
@@ -1537,7 +1537,7 @@ if you specify <em class="parameter"><code>NM_SETTING_COMPARE_FLAG_DIFF_RESULT_W
 <a name="NMSetting.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="NMSetting--name"></a><h3>The <code class="literal">“name”</code> property</h3>
-<pre class="programlisting">  “name”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<pre class="programlisting">  “name”                     <span class="type">char</span> *</pre>
 <p>The setting's name, which uniquely identifies the setting within the
 connection.  Each setting type has a name unique to that type, for
 example "ppp" or "802-11-wireless" or "802-3-ethernet".</p>
@@ -1548,6 +1548,6 @@ example "ppp" or "802-11-wireless" or "802-3-ethernet".</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

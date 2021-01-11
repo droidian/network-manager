@@ -218,6 +218,7 @@ IPv4 addresses. 0 turns off the ACD completely, -1 means default value."/>
 <property name="dhcp-timeout" variable="IPV4_DHCP_TIMEOUT(+)" format="" values="" default="" example="IPV4_DHCP_TIMEOUT=10" description="A timeout after which the DHCP transaction fails in case of no response."/>
 <property name="dhcp-fqdn" variable="DHCP_FQDN" format="" values="" default="" example="DHCP_FQDN=foo.bar.com" description="FQDN to send to the DHCP server. When both DHCP_HOSTNAME and
 DHCP_FQDN are specified only the latter is used."/>
+<property name="dhcp-vendor-class-identifier" variable="DHCP_VENDOR_CLASS_IDENTIFIER(+)" format="" values="" default="" example="DHCP_VENDOR_CLASS_IDENTIFIER=foo" description="The Vendor Class Identifier DHCP option (60)."/>
 </setting>
 <setting name="ipv6">
 <property name="method" variable="IPV6INIT, IPV6FORWARDING, IPV6_AUTOCONF, DHCPV6C, IPV6_DISABLED" format="" values="" default="IPV6INIT=yes; IPV6FORWARDING=no; IPV6_AUTOCONF=!IPV6FORWARDING, DHCPV6=no" example="" description="Method used for IPv6 protocol configuration.
@@ -422,6 +423,7 @@ is listed."/>
 <property name="powersave" variable="POWERSAVE(+)" format="" values="default, ignore, enable, disable" default="" example="POWERSAVE=enable" description="Enables or disables Wi-Fi power saving."/>
 <property name="mac-address-randomization" variable="MAC_ADDRESS_RANDOMIZATION(+)" format="" values="default, never, always" default="" example="MAC_ADDRESS_RANDOMIZATION=always" description="Enables or disables Wi-Fi MAC address randomization."/>
 <property name="security" variable="(none)" format="" values="" default="" example="" description="This property is deprecated and not handled by ifcfg-rh-plugin."/>
+<property name="ap-isolation" variable="AP_ISOLATION(+)" format="" values="&quot;yes&quot;, &quot;no&quot;" default="missing variable means global default" example="" description="Whether AP isolation is enabled"/>
 </setting>
 <setting name="wpan">
 </setting>

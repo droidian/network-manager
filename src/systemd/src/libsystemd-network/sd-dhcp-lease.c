@@ -781,7 +781,7 @@ int dhcp_lease_parse_search_domains(const uint8_t *option, size_t len, char ***d
                                         return r;
 
                                 n += r;
-                        } else if ((c & 0xc0) == 0xc0) {
+                        } else if (FLAGS_SET(c, 0xc0)) {
                                 /* Pointer */
 
                                 uint8_t d;
@@ -1078,7 +1078,7 @@ int dhcp_lease_load(sd_dhcp_lease **ret, const char *lease_file) {
                            "ADDRESS", &address,
                            "ROUTER", &router,
                            "NETMASK", &netmask,
-                           "SERVER_IDENTIFIER", &server_address,
+                           "SERVER_ADDRESS", &server_address,
                            "NEXT_SERVER", &next_server,
                            "BROADCAST", &broadcast,
                            "DNS", &dns,

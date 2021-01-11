@@ -147,7 +147,7 @@ AddConnection2 (IN  a{sa{sv}} settings,
           "0x2" (in-memory),
           "0x20" (block-autoconnect).
           Unknown flags cause the call to fail.
-        <parameter>args</parameter>: optional arguments dictionary, for extensibility. Currently no
+        <parameter>args</parameter>: optional arguments dictionary, for extentibility. Currently, no
           arguments are accepted. Specifying unknown keys causes the call
           to fail.
         <parameter>path</parameter>: Object path of the new connection that was just added.
@@ -156,7 +156,7 @@ AddConnection2 (IN  a{sa{sv}} settings,
 </para><para>        Either the flags 0x1 (to-disk) or 0x2 (in-memory) must be specified.
         The effect is whether to behave like AddConnection or AddConnectionUnsaved.
         If 0x20 (block-autoconnect) is specified, autoconnect for the new profile
-        is blocked from the beginnin. Otherwise, the profile might automatically
+        is blocked from the beginning. Otherwise, the profile might automatically
         connect if a suitable device is around.
 </para><para>        AddConnection2 is a extensible alternative to AddConnection, and AddConnectionUnsaved.
         The new variant can do everything that the older variants could, and more.
@@ -169,7 +169,7 @@ AddConnection2 (IN  a{sa{sv}} settings,
 </varlistentry>
 <varlistentry>
   <term><literal>IN u <parameter>flags</parameter></literal>:</term>
-  <listitem><para>optional flags argument. Currently the following flags are supported:</para></listitem>
+  <listitem><para>optional flags argument. Currently, the following flags are supported:</para></listitem>
 </varlistentry>
 <varlistentry>
   <term><literal>IN a{sv} <parameter>args</parameter></literal>:</term>

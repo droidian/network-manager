@@ -10,46 +10,46 @@ See also: https://blueprints.launchpad.net/ubuntu/+spec/foundations-p-dns-resolv
  src/dns/nm-dns-manager.c | 6 +++---
  2 files changed, 5 insertions(+), 5 deletions(-)
 
-Index: network-manager-1.24.0/src/dns/nm-dns-dnsmasq.c
+Index: network-manager/src/dns/nm-dns-dnsmasq.c
 ===================================================================
---- network-manager-1.24.0.orig/src/dns/nm-dns-dnsmasq.c
-+++ network-manager-1.24.0/src/dns/nm-dns-dnsmasq.c
-@@ -494,8 +494,8 @@ _gl_pid_spawn_next_step (void)
- 	argv[argv_idx++] = "--no-hosts"; /* don't use /etc/hosts to resolve */
- 	argv[argv_idx++] = "--bind-interfaces";
- 	argv[argv_idx++] = "--pid-file=" PIDFILE;
--	argv[argv_idx++] = "--listen-address=127.0.0.1"; /* Should work for both 4 and 6 */
--	argv[argv_idx++] = "--cache-size=400";
-+	argv[argv_idx++] = "--listen-address=127.0.1.1"; /* Should work for both 4 and 6 */
-+	argv[argv_idx++] = "--cache-size=0";
- 	argv[argv_idx++] = "--clear-on-reload"; /* clear cache when dns server changes */
- 	argv[argv_idx++] = "--conf-file=/dev/null"; /* avoid loading /etc/dnsmasq.conf */
- 	argv[argv_idx++] = "--proxy-dnssec"; /* Allow DNSSEC to pass through */
-Index: network-manager-1.24.0/src/dns/nm-dns-manager.c
+--- network-manager.orig/src/dns/nm-dns-dnsmasq.c
++++ network-manager/src/dns/nm-dns-dnsmasq.c
+@@ -523,8 +523,8 @@ _gl_pid_spawn_next_step(void)
+     argv[argv_idx++] = "--no-hosts"; /* don't use /etc/hosts to resolve */
+     argv[argv_idx++] = "--bind-interfaces";
+     argv[argv_idx++] = "--pid-file=" PIDFILE;
+-    argv[argv_idx++] = "--listen-address=127.0.0.1"; /* Should work for both 4 and 6 */
+-    argv[argv_idx++] = "--cache-size=400";
++    argv[argv_idx++] = "--listen-address=127.0.1.1"; /* Should work for both 4 and 6 */
++    argv[argv_idx++] = "--cache-size=0";
+     argv[argv_idx++] = "--clear-on-reload";     /* clear cache when dns server changes */
+     argv[argv_idx++] = "--conf-file=/dev/null"; /* avoid loading /etc/dnsmasq.conf */
+     argv[argv_idx++] = "--proxy-dnssec";        /* Allow DNSSEC to pass through */
+Index: network-manager/src/dns/nm-dns-manager.c
 ===================================================================
---- network-manager-1.24.0.orig/src/dns/nm-dns-manager.c
-+++ network-manager-1.24.0/src/dns/nm-dns-manager.c
-@@ -1526,12 +1526,12 @@ plugin_skip:
- 	                            NM_CAST_STRV_CC (nameservers),
- 	                            NM_CAST_STRV_CC (options));
+--- network-manager.orig/src/dns/nm-dns-manager.c
++++ network-manager/src/dns/nm-dns-manager.c
+@@ -1696,12 +1696,12 @@ plugin_skip:;
+                                NM_CAST_STRV_CC(nameservers),
+                                NM_CAST_STRV_CC(options));
  
--	/* If caching was successful, we only send 127.0.0.1 to /etc/resolv.conf
-+	/* If caching was successful, we only send 127.0.1.1 to /etc/resolv.conf
- 	 * to ensure that the glibc resolver doesn't try to round-robin nameservers,
- 	 * but only uses the local caching nameserver.
- 	 */
- 	if (caching) {
--		const char *lladdr = "127.0.0.1";
-+		const char *lladdr = "127.0.1.1";
+-    /* If caching was successful, we only send 127.0.0.1 to /etc/resolv.conf
++    /* If caching was successful, we only send 127.0.1.1 to /etc/resolv.conf
+      * to ensure that the glibc resolver doesn't try to round-robin nameservers,
+      * but only uses the local caching nameserver.
+      */
+     if (caching) {
+-        const char *lladdr = "127.0.0.1";
++        const char *lladdr = "127.0.1.1";
  
- 		if (NM_IS_DNS_SYSTEMD_RESOLVED (priv->plugin)) {
- 			/* systemd-resolved uses a different link-local address */
-@@ -1825,7 +1825,7 @@ nm_dns_manager_stop (NMDnsManager *self)
- 	_LOGT ("stopping...");
+         if (NM_IS_DNS_SYSTEMD_RESOLVED(priv->plugin)) {
+             /* systemd-resolved uses a different link-local address */
+@@ -1982,7 +1982,7 @@ nm_dns_manager_stop(NMDnsManager *self)
+     _LOGT("stopping...");
  
- 	/* If we're quitting, leave a valid resolv.conf in place, not one
--	 * pointing to 127.0.0.1 if dnsmasq was active.  But if we haven't
-+	 * pointing to 127.0.1.1 if dnsmasq was active.  But if we haven't
- 	 * done any DNS updates yet, there's no reason to touch resolv.conf
- 	 * on shutdown.
- 	 */
+     /* If we're quitting, leave a valid resolv.conf in place, not one
+-     * pointing to 127.0.0.1 if dnsmasq was active.  But if we haven't
++     * pointing to 127.0.1.1 if dnsmasq was active.  But if we haven't
+      * done any DNS updates yet, there's no reason to touch resolv.conf
+      * on shutdown.
+      */

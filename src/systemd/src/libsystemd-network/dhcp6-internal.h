@@ -113,7 +113,7 @@ int dhcp6_option_parse_domainname_list(const uint8_t *optval, uint16_t optlen,
                                        char ***str_arr);
 int dhcp6_option_parse_domainname(const uint8_t *optval, uint16_t optlen, char **str);
 
-int dhcp6_network_bind_udp_socket(int index, struct in6_addr *address);
+int dhcp6_network_bind_udp_socket(int ifindex, struct in6_addr *address);
 int dhcp6_network_send_udp_socket(int s, struct in6_addr *address,
                                   const void *packet, size_t len);
 

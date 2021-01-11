@@ -47,7 +47,7 @@ StartFind (IN  a{sv} options);
 <variablelist role="params">
 <varlistentry>
   <term><literal>IN a{sv} <parameter>options</parameter></literal>:</term>
-  <listitem><para>Options of find. Currently 'timeout' option with value of "i"</para></listitem>
+  <listitem><para>Options of find. Currently, 'timeout' option with value of "i"</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>

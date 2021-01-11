@@ -2,12 +2,12 @@
 .\"     Title: nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 08/19/2020
+.\"      Date: 12/06/2020
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.26.2
+.\"    Source: NetworkManager 1.28.0
 .\"  Language: English
 .\"
-.TH "NMCLI" "1" "" "NetworkManager 1\&.26\&.2" "General Commands Manual"
+.TH "NMCLI" "1" "" "NetworkManager 1\&.28\&.0" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1203,14 +1203,14 @@ if specified, the connection will use the name (else NM creates a name itself)\&
 \fBprivate\fR
 .RS 4
 if set to
-yes, the connection will only be visible to the user who created it\&. Otherwise the connection is system\-wide, which is the default\&.
+yes, the connection will only be visible to the user who created it\&. Otherwise, the connection is system\-wide, which is the default\&.
 .RE
 .PP
 \fBhidden\fR
 .RS 4
 set to
 yes
-when connecting for the first time to an AP not broadcasting its SSID\&. Otherwise the SSID would not be found and the connection attempt would fail\&.
+when connecting for the first time to an AP not broadcasting its SSID\&. Otherwise, the SSID would not be found and the connection attempt would fail\&.
 .RE
 .RE
 .PP
@@ -1296,7 +1296,7 @@ as a NetworkManager secret agent, or polkit agent\&.
 .RS 4
 Register
 \fBnmcli\fR
-as a NetworkManager secret agent and listen for secret requests\&. You do usually not need this command, because
+as a NetworkManager secret agent and listen for secret requests\&. You usually do not need this command, because
 \fBnmcli\fR
 can handle secrets when connecting to networks\&. However, you may find the command useful when you use another tool for activating connections and you do not have a secret agent available (like nm\-applet)\&.
 .RE
@@ -1352,27 +1352,27 @@ Connection whose details is the user not permitted to see\&.
 .PP
 \fBconnectivity\-full\fR
 .RS 4
-Conectivity state when Internet is reachable\&.
+Connectivity state when Internet is reachable\&.
 .RE
 .PP
 \fBconnectivity\-limited\fR
 .RS 4
-Conectivity state when only a local network reachable\&.
+Connectivity state when only a local network reachable\&.
 .RE
 .PP
 \fBconnectivity\-none\fR
 .RS 4
-Conectivity state when the network is disconnected\&.
+Connectivity state when the network is disconnected\&.
 .RE
 .PP
 \fBconnectivity\-portal\fR
 .RS 4
-Conectivity state when a captive portal hijacked the connection\&.
+Connectivity state when a captive portal hijacked the connection\&.
 .RE
 .PP
 \fBconnectivity\-unknown\fR
 .RS 4
-Conectivity state when a connectivity check didn\*(Aqt run\&.
+Connectivity state when a connectivity check didn\*(Aqt run\&.
 .RE
 .PP
 \fBdevice\-activated\fR

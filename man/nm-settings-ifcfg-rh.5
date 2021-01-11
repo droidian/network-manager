@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 08/19/2020
+.\"      Date: 12/06/2020
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.26.2
+.\"    Source: NetworkManager 1.28.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.26\&.2" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.28\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1853,6 +1853,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 method
@@ -2053,6 +2054,17 @@ T}:T{
 FQDN to send to the DHCP server\&. When both DHCP_HOSTNAME and DHCP_FQDN are specified only the latter is used\&.\fB
 
 Example: \fRDHCP_FQDN=foo\&.bar\&.com
+T}
+T{
+dhcp\-vendor\-class\-identifier
+T}:T{
+DHCP_VENDOR_CLASS_IDENTIFIER\fI(+)\fR
+T}:T{
+\ \&
+T}:T{
+The Vendor Class Identifier DHCP option (60)\&.\fB
+
+Example: \fRDHCP_VENDOR_CLASS_IDENTIFIER=foo
 T}
 .TE
 .sp 1
@@ -3306,6 +3318,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 ssid
@@ -3479,6 +3492,17 @@ T}:T{
 \ \&
 T}:T{
 This property is deprecated and not handled by ifcfg\-rh\-plugin\&.
+T}
+T{
+ap\-isolation
+T}:T{
+AP_ISOLATION\fI(+)\fR
+T}:T{
+missing variable means global default
+T}:T{
+Whether AP isolation is enabled\fB
+
+Allowed values: \fR"yes", "no"
 T}
 .TE
 .sp 1

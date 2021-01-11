@@ -100,7 +100,7 @@ Reapply (IN  a{sa{sv}} connection,
 <variablelist role="params">
 <varlistentry>
   <term><literal>IN a{sa{sv}} <parameter>connection</parameter></literal>:</term>
-  <listitem><para>The optional connection settings that will be reapplied on the device. If empty, the currently active settings-connection will be used. The connection cannot arbitrarly differ from the current applied-connection otherwise the call will fail. Only certain changes are supported, like adding or removing IP addresses.</para></listitem>
+  <listitem><para>The optional connection settings that will be reapplied on the device. If empty, the currently active settings-connection will be used. The connection cannot arbitrarily differ from the current applied-connection otherwise the call will fail. Only certain changes are supported, like adding or removing IP addresses.</para></listitem>
 </varlistentry>
 <varlistentry>
   <term><literal>IN t <parameter>version_id</parameter></literal>:</term>
@@ -303,7 +303,7 @@ Capabilities  readable   u
 Ip4Address  readable   u
 </programlisting>
 <para>        DEPRECATED; use the 'Addresses' property of the 'Ip4Config' object
-        instead.
+        instead. This property always returns 0.0.0.0 (numeric 0) as address.
 </para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device.State">

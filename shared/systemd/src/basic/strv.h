@@ -72,17 +72,28 @@ static inline bool strv_isempty(char * const *l) {
         return !l || !*l;
 }
 
-char **strv_split_full(const char *s, const char *separator, SplitFlags flags);
-static inline char **strv_split(const char *s, const char *separator) {
-        return strv_split_full(s, separator, 0);
-}
 char **strv_split_newlines(const char *s);
 
-int strv_split_extract(char ***t, const char *s, const char *separators, ExtractFlags flags);
+int strv_split_full(char ***t, const char *s, const char *separators, ExtractFlags flags);
+static inline char **strv_split(const char *s, const char *separators) {
+        char **ret;
+        int r;
 
-char *strv_join_prefix(char * const *l, const char *separator, const char *prefix);
+        r = strv_split_full(&ret, s, separators, 0);
+        if (r < 0)
+                return NULL;
+
+        return ret;
+}
+
+/* Given a string containing white-space separated tuples of words themselves separated by ':',
+ * returns a vector of strings. If the second element in a tuple is missing, the corresponding
+ * string in the vector is an empty string. */
+int strv_split_colon_pairs(char ***t, const char *s);
+
+char *strv_join_full(char * const *l, const char *separator, const char *prefix, bool escape_separtor);
 static inline char *strv_join(char * const *l, const char *separator) {
-        return strv_join_prefix(l, separator, NULL);
+        return strv_join_full(l, separator, NULL, false);
 }
 
 char **strv_parse_nulstr(const char *s, size_t l);
@@ -117,10 +128,6 @@ bool strv_overlap(char * const *a, char * const *b) _pure_;
 
 char **strv_sort(char **l);
 void strv_print(char * const *l);
-
-#define STRV_MAKE(...) ((char**) ((const char*[]) { __VA_ARGS__, NULL }))
-
-#define STRV_MAKE_EMPTY ((char*[1]) { NULL })
 
 #define strv_from_stdarg_alloca(first)                          \
         ({                                                      \

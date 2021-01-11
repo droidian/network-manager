@@ -334,9 +334,6 @@
 /* Define if JANSSON is enabled */
 #undef WITH_JANSSON
 
-/* Define if JSON validation in libnm is enabled */
-#undef WITH_JSON_VALIDATION
-
 /* Define if you have libpsl */
 #undef WITH_LIBPSL
 

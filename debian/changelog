@@ -1,3 +1,100 @@
+network-manager (1.28.0-2ubuntu1) UNRELEASED; urgency=medium
+
+  * Resynchronize on Debian, remaining changes:
+    - Use systemd-resolved instead of dnsmasq
+    - debian/control:
+      + Depend on isc-dhcp-client instead of recommends
+      + Recommend network-manager-pptp
+      + Suggest avahi-autoipd for IPv4LL support
+    - debian/rules, debian/network-manager.postinst:
+      + Don't restart NetworkManager on upgrade but recommend restarting
+        the computer
+    - debian/rules, debian/network-manager.postinst:
+      + Don't install sysvinit scripts or migrate from sysvinit
+    - debian/network-manager.postinst:
+      + Don't add the netdev group.
+      + drop in an empty override file for NetworkManager to manage all
+        devices for upgrade from any version, as long as there is no
+        netplan configuration yet.
+    - debian/default-wifi-powersave-on.conf, debian/rules:
+      + Install a config file to enable WiFi powersave
+    - Enable build tests
+    - Add autopkgtests
+    - debian/source_network-manager.py, debian/network-manager.install,
+      debian/network-manager.links: Add apport hook
+    - Add network-manager-config-connectivity-ubuntu package
+    - NetworkManager.conf: disable MAC randomization feature. There is no
+      easy way for desktop users to disable this feature yet. And there are
+      reports that it doesn't work well with some systems.
+    - Update Vcs links to point to Ubuntu branch
+    - Add patches. See patch descriptions for more details:
+      + Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
+      + Update-dnsmasq-parameters.patch
+      + Disable-general-with-expect.patch
+      + libnm-Check-self-still-NMManager-or-not.patch
+      + dns-manager-don-t-merge-split-DNS-search-domains.patch (but disabled)
+      + Read-system-connections-from-run.patch
+    - debian/tests/urfkill-integration - don't stop/start network manager
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 11 Jan 2021 18:10:30 +0100
+
+network-manager (1.28.0-2) unstable; urgency=medium
+
+  * Demote libpam-systemd to Recommends.
+    This allows users to use and experiment with other init systems. Such a
+    setup is neither tested nor fully supported and users need to be aware
+    that some functionality might be broken. (Closes: #921012)
+  * Recommend wireless-regdb instead of crda.
+    CRDA is no longer needed as of Linux kernel v4.15. (Closes: #973241)
+  * Bump Standards-Version to 4.5.1
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 31 Dec 2020 21:38:43 +0100
+
+network-manager (1.28.0-1) unstable; urgency=medium
+
+  * New upstream version 1.28.0
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 06 Dec 2020 22:48:28 +0100
+
+network-manager (1.27.91-2) unstable; urgency=medium
+
+  * Revert "dns: change default DNS priority of VPNs to -50" (Closes: #972688)
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 25 Nov 2020 14:59:00 +0100
+
+network-manager (1.27.91-1) unstable; urgency=medium
+
+  * New upstream version 1.27.91 (1.28 rc2)
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 20 Oct 2020 22:36:31 +0200
+
+network-manager (1.27.90-3) unstable; urgency=medium
+
+  [ Thorsten Glaser ]
+  * Adjust syscall numbers for x32 vs. amd64, fixes FTBFS on x32
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 09 Oct 2020 16:03:16 +0200
+
+network-manager (1.27.90-2) unstable; urgency=medium
+
+  * Cherry-pick a couple of upstream patches.
+    Hopefully fixes the build and test-suite failures on some of the more
+    exotic architectures.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 08 Oct 2020 11:34:31 +0200
+
+network-manager (1.27.90-1) unstable; urgency=medium
+
+  * New upstream version 1.27.90 (1.28 rc1)
+    - Fix generated XML syntax in tools/generate-docs-nm-settings-docs-gir.py
+      (Closes: #971144)
+  * Rebase patches
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 05 Oct 2020 23:34:33 +0200
+
 network-manager (1.26.2-1ubuntu1) groovy; urgency=medium
 
   * Update to the current stable version

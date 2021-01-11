@@ -82,6 +82,7 @@ libnm_core_enum_sources = gnome.mkenums_simple(
   enum_types,
   sources: libnm_core_headers + [nm_version_macro_header],
   identifier_prefix: nm_id_prefix,
+  body_prefix: '#include "nm-default.h"',
   install_header: true,
   install_dir: libnm_pkgincludedir,
 )
@@ -195,12 +196,6 @@ links = [
 ]
 
 libnm_core_c_args = common_c_flags
-
-if enable_json_validation
-  libnm_core_sources += files('nm-json.c')
-  deps += jansson_dep
-  libnm_core_c_args += ['-fcommon']
-endif
 
 libnm_core = static_library(
   'nm-core',

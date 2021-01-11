@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingSerial.html" title="NMSettingSerial">
 <link rel="next" href="NMSettingTCConfig.html" title="NMSettingTCConfig">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -326,7 +326,7 @@ nm_setting_sriov_new (<em class="parameter"><code><span class="type">void</span>
 <div class="refsect3">
 <a name="nm-setting-sriov-new.returns"></a><h4>Returns</h4>
 <p>the new empty <a class="link" href="NMSettingSriov.html" title="NMSettingSriov"><span class="type">NMSettingSriov</span></a> object. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.14</p>
 </div>
@@ -416,7 +416,7 @@ nm_setting_sriov_get_vf (<em class="parameter"><code><a class="link" href="NMSet
 <a name="nm-setting-sriov-get-vf.returns"></a><h4>Returns</h4>
 <p>the VF at index <em class="parameter"><code>idx</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.14</p>
 </div>
@@ -675,7 +675,7 @@ nm_sriov_vf_get_vlan_ids (<em class="parameter"><code>const <a class="link" href
 <div class="refsect3">
 <a name="nm-sriov-vf-get-vlan-ids.returns"></a><h4>Returns</h4>
 <p>a list of VLAN ids configured on the VF. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=length]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=length]</span></p>
 </div>
 <p class="since">Since: 1.14</p>
 </div>
@@ -819,7 +819,7 @@ nm_sriov_vf_new (<em class="parameter"><code><a href="https://developer.gnome.or
 <div class="refsect3">
 <a name="nm-sriov-vf-new.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSettingSriov.html#NMSriovVF"><span class="type">NMSriovVF</span></a> object. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.14</p>
 </div>
@@ -934,7 +934,7 @@ nm_sriov_vf_dup (<em class="parameter"><code>const <a class="link" href="NMSetti
 <a name="nm-sriov-vf-dup.returns"></a><h4>Returns</h4>
 <p>a copy of <em class="parameter"><code>vf</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.14</p>
 </div>
@@ -996,7 +996,7 @@ nm_sriov_vf_set_attribute (<em class="parameter"><code><a class="link" href="NMS
 <tr>
 <td class="parameter_name"><p>value</p></td>
 <td class="parameter_description"><p>the value. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -1028,7 +1028,7 @@ nm_sriov_vf_get_attribute_names (<em class="parameter"><code>const <a class="lin
 <div class="refsect3">
 <a name="nm-sriov-vf-get-attribute-names.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of attribute names. </p>
-<p><span class="annotation">[<acronym title="Free data container after the code is done."><span class="acronym">transfer container</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.14</p>
 </div>
@@ -1070,7 +1070,7 @@ on
 <em class="parameter"><code>vf</code></em>
 , or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>vf</code></em>
 has no such attribute. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.14</p>
 </div>
@@ -1127,55 +1127,55 @@ the value is of the correct type and well-formed.</p>
 <a name="NMSettingSriov.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="NM-SETTING-SRIOV-SETTING-NAME:CAPS"></a><h3>NM_SETTING_SRIOV_SETTING_NAME</h3>
-<pre class="programlisting">#define NM_SETTING_SRIOV_SETTING_NAME          "sriov"
+<pre class="programlisting">#define NM_SETTING_SRIOV_SETTING_NAME "sriov"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-SRIOV-TOTAL-VFS:CAPS"></a><h3>NM_SETTING_SRIOV_TOTAL_VFS</h3>
-<pre class="programlisting">#define NM_SETTING_SRIOV_TOTAL_VFS             "total-vfs"
+<pre class="programlisting">#define NM_SETTING_SRIOV_TOTAL_VFS         "total-vfs"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-SRIOV-VFS:CAPS"></a><h3>NM_SETTING_SRIOV_VFS</h3>
-<pre class="programlisting">#define NM_SETTING_SRIOV_VFS                   "vfs"
+<pre class="programlisting">#define NM_SETTING_SRIOV_VFS               "vfs"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SETTING-SRIOV-AUTOPROBE-DRIVERS:CAPS"></a><h3>NM_SETTING_SRIOV_AUTOPROBE_DRIVERS</h3>
-<pre class="programlisting">#define NM_SETTING_SRIOV_AUTOPROBE_DRIVERS     "autoprobe-drivers"
+<pre class="programlisting">#define NM_SETTING_SRIOV_AUTOPROBE_DRIVERS "autoprobe-drivers"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SRIOV-VF-ATTRIBUTE-MAC:CAPS"></a><h3>NM_SRIOV_VF_ATTRIBUTE_MAC</h3>
-<pre class="programlisting">#define NM_SRIOV_VF_ATTRIBUTE_MAC              "mac"
+<pre class="programlisting">#define NM_SRIOV_VF_ATTRIBUTE_MAC         "mac"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SRIOV-VF-ATTRIBUTE-SPOOF-CHECK:CAPS"></a><h3>NM_SRIOV_VF_ATTRIBUTE_SPOOF_CHECK</h3>
-<pre class="programlisting">#define NM_SRIOV_VF_ATTRIBUTE_SPOOF_CHECK      "spoof-check"
+<pre class="programlisting">#define NM_SRIOV_VF_ATTRIBUTE_SPOOF_CHECK "spoof-check"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SRIOV-VF-ATTRIBUTE-TRUST:CAPS"></a><h3>NM_SRIOV_VF_ATTRIBUTE_TRUST</h3>
-<pre class="programlisting">#define NM_SRIOV_VF_ATTRIBUTE_TRUST            "trust"
+<pre class="programlisting">#define NM_SRIOV_VF_ATTRIBUTE_TRUST       "trust"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SRIOV-VF-ATTRIBUTE-MIN-TX-RATE:CAPS"></a><h3>NM_SRIOV_VF_ATTRIBUTE_MIN_TX_RATE</h3>
-<pre class="programlisting">#define NM_SRIOV_VF_ATTRIBUTE_MIN_TX_RATE      "min-tx-rate"
+<pre class="programlisting">#define NM_SRIOV_VF_ATTRIBUTE_MIN_TX_RATE "min-tx-rate"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-SRIOV-VF-ATTRIBUTE-MAX-TX-RATE:CAPS"></a><h3>NM_SRIOV_VF_ATTRIBUTE_MAX_TX_RATE</h3>
-<pre class="programlisting">#define NM_SRIOV_VF_ATTRIBUTE_MAX_TX_RATE      "max-tx-rate"
+<pre class="programlisting">#define NM_SRIOV_VF_ATTRIBUTE_MAX_TX_RATE "max-tx-rate"
 </pre>
 </div>
 <hr>
@@ -1213,6 +1213,6 @@ the value is of the correct type and well-formed.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMWimaxNsp.html" title="NMWimaxNsp">
 <link rel="next" href="NMDhcpConfig.html" title="NMDhcpConfig">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -71,28 +71,28 @@
 </td>
 </tr>
 <tr>
-<td class="function_type">const <span class="returnvalue">char</span> * const *
+<td class="function_type">const <span class="returnvalue">char</span> *const *
 </td>
 <td class="function_name">
 <a class="link" href="NMIPConfig.html#nm-ip-config-get-nameservers" title="nm_ip_config_get_nameservers ()">nm_ip_config_get_nameservers</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
-<td class="function_type">const <span class="returnvalue">char</span> * const *
+<td class="function_type">const <span class="returnvalue">char</span> *const *
 </td>
 <td class="function_name">
 <a class="link" href="NMIPConfig.html#nm-ip-config-get-domains" title="nm_ip_config_get_domains ()">nm_ip_config_get_domains</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
-<td class="function_type">const <span class="returnvalue">char</span> * const *
+<td class="function_type">const <span class="returnvalue">char</span> *const *
 </td>
 <td class="function_name">
 <a class="link" href="NMIPConfig.html#nm-ip-config-get-searches" title="nm_ip_config_get_searches ()">nm_ip_config_get_searches</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
-<td class="function_type">const <span class="returnvalue">char</span> * const *
+<td class="function_type">const <span class="returnvalue">char</span> *const *
 </td>
 <td class="function_name">
 <a class="link" href="NMIPConfig.html#nm-ip-config-get-wins-servers" title="nm_ip_config_get_wins_servers ()">nm_ip_config_get_wins_servers</a> <span class="c_punctuation">()</span>
@@ -199,7 +199,7 @@ nm_ip_config_get_gateway (<em class="parameter"><code><a class="link" href="NMIP
 <div class="refsect3">
 <a name="nm-ip-config-get-gateway.returns"></a><h4>Returns</h4>
 <p>the IP address of the gateway. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -229,7 +229,7 @@ nm_ip_config_get_addresses (<em class="parameter"><code><a class="link" href="NM
 containing <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a>es.  This is the internal copy used by the
 configuration and must not be modified. The library never modifies the
 returned array and thus it is safe for callers to reference and keep using it. </p>
-<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPAddress][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPAddress][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -259,13 +259,13 @@ nm_ip_config_get_routes (<em class="parameter"><code><a class="link" href="NMIPC
 <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a>s. This is the internal copy used by the configuration, and must
 not be modified. The library never modifies the returned array and thus it is
 safe for callers to reference and keep using it. </p>
-<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPRoute][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPRoute][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-ip-config-get-nameservers"></a><h3>nm_ip_config_get_nameservers ()</h3>
-<pre class="programlisting">const <span class="returnvalue">char</span> * const *
+<pre class="programlisting">const <span class="returnvalue">char</span> *const *
 nm_ip_config_get_nameservers (<em class="parameter"><code><a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *config</code></em>);</pre>
 <p>Gets the domain name servers (DNS).</p>
 <div class="refsect3">
@@ -286,13 +286,13 @@ nm_ip_config_get_nameservers (<em class="parameter"><code><a class="link" href="
 <div class="refsect3">
 <a name="nm-ip-config-get-nameservers.returns"></a><h4>Returns</h4>
 <p>the array of nameserver IP addresses. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-ip-config-get-domains"></a><h3>nm_ip_config_get_domains ()</h3>
-<pre class="programlisting">const <span class="returnvalue">char</span> * const *
+<pre class="programlisting">const <span class="returnvalue">char</span> *const *
 nm_ip_config_get_domains (<em class="parameter"><code><a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *config</code></em>);</pre>
 <p>Gets the domain names.</p>
 <div class="refsect3">
@@ -314,13 +314,13 @@ nm_ip_config_get_domains (<em class="parameter"><code><a class="link" href="NMIP
 <a name="nm-ip-config-get-domains.returns"></a><h4>Returns</h4>
 <p>the array of domains.
 (This is never <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, though it may be 0-length). </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-ip-config-get-searches"></a><h3>nm_ip_config_get_searches ()</h3>
-<pre class="programlisting">const <span class="returnvalue">char</span> * const *
+<pre class="programlisting">const <span class="returnvalue">char</span> *const *
 nm_ip_config_get_searches (<em class="parameter"><code><a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *config</code></em>);</pre>
 <p>Gets the DNS searches.</p>
 <div class="refsect3">
@@ -342,13 +342,13 @@ nm_ip_config_get_searches (<em class="parameter"><code><a class="link" href="NMI
 <a name="nm-ip-config-get-searches.returns"></a><h4>Returns</h4>
 <p>the array of DNS search strings.
 (This is never <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, though it may be 0-length). </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-ip-config-get-wins-servers"></a><h3>nm_ip_config_get_wins_servers ()</h3>
-<pre class="programlisting">const <span class="returnvalue">char</span> * const *
+<pre class="programlisting">const <span class="returnvalue">char</span> *const *
 nm_ip_config_get_wins_servers (<em class="parameter"><code><a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> *config</code></em>);</pre>
 <p>Gets the Windows Internet Name Service servers (WINS).</p>
 <div class="refsect3">
@@ -370,7 +370,7 @@ nm_ip_config_get_wins_servers (<em class="parameter"><code><a class="link" href=
 <a name="nm-ip-config-get-wins-servers.returns"></a><h4>Returns</h4>
 <p>the arry of WINS server IP address strings.
 (This is never <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, though it may be 0-length.). </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 </div>
@@ -378,43 +378,43 @@ nm_ip_config_get_wins_servers (<em class="parameter"><code><a class="link" href=
 <a name="NMIPConfig.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="NM-IP-CONFIG-FAMILY:CAPS"></a><h3>NM_IP_CONFIG_FAMILY</h3>
-<pre class="programlisting">#define NM_IP_CONFIG_FAMILY "family"
+<pre class="programlisting">#define NM_IP_CONFIG_FAMILY       "family"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-IP-CONFIG-GATEWAY:CAPS"></a><h3>NM_IP_CONFIG_GATEWAY</h3>
-<pre class="programlisting">#define NM_IP_CONFIG_GATEWAY "gateway"
+<pre class="programlisting">#define NM_IP_CONFIG_GATEWAY      "gateway"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-IP-CONFIG-ADDRESSES:CAPS"></a><h3>NM_IP_CONFIG_ADDRESSES</h3>
-<pre class="programlisting">#define NM_IP_CONFIG_ADDRESSES "addresses"
+<pre class="programlisting">#define NM_IP_CONFIG_ADDRESSES    "addresses"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-IP-CONFIG-ROUTES:CAPS"></a><h3>NM_IP_CONFIG_ROUTES</h3>
-<pre class="programlisting">#define NM_IP_CONFIG_ROUTES "routes"
+<pre class="programlisting">#define NM_IP_CONFIG_ROUTES       "routes"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-IP-CONFIG-NAMESERVERS:CAPS"></a><h3>NM_IP_CONFIG_NAMESERVERS</h3>
-<pre class="programlisting">#define NM_IP_CONFIG_NAMESERVERS "nameservers"
+<pre class="programlisting">#define NM_IP_CONFIG_NAMESERVERS  "nameservers"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-IP-CONFIG-DOMAINS:CAPS"></a><h3>NM_IP_CONFIG_DOMAINS</h3>
-<pre class="programlisting">#define NM_IP_CONFIG_DOMAINS "domains"
+<pre class="programlisting">#define NM_IP_CONFIG_DOMAINS      "domains"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-IP-CONFIG-SEARCHES:CAPS"></a><h3>NM_IP_CONFIG_SEARCHES</h3>
-<pre class="programlisting">#define NM_IP_CONFIG_SEARCHES "searches"
+<pre class="programlisting">#define NM_IP_CONFIG_SEARCHES     "searches"
 </pre>
 </div>
 <hr>
@@ -426,6 +426,6 @@ nm_ip_config_get_wins_servers (<em class="parameter"><code><a class="link" href=
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

@@ -8,7 +8,7 @@
 <link rel="up" href="ch02.html" title="Client Object API Reference">
 <link rel="prev" href="libnm-nm-errors.html" title="nm-errors">
 <link rel="next" href="ch03.html" title="Connection and Setting API Reference">
-<meta name="generator" content="GTK-Doc V1.32 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -569,7 +569,7 @@
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-SERVICE:CAPS"></a><h3>NM_DBUS_SERVICE</h3>
-<pre class="programlisting">#define NM_DBUS_SERVICE                        "org.freedesktop.NetworkManager"
+<pre class="programlisting">#define NM_DBUS_SERVICE "org.freedesktop.NetworkManager"
 </pre>
 </div>
 <hr>
@@ -827,37 +827,37 @@
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-PATH:CAPS"></a><h3>NM_DBUS_PATH</h3>
-<pre class="programlisting">#define NM_DBUS_PATH                           "/org/freedesktop/NetworkManager"
+<pre class="programlisting">#define NM_DBUS_PATH               "/org/freedesktop/NetworkManager"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-PATH-ACCESS-POINT:CAPS"></a><h3>NM_DBUS_PATH_ACCESS_POINT</h3>
-<pre class="programlisting">#define NM_DBUS_PATH_ACCESS_POINT              NM_DBUS_PATH "/AccessPoint"
+<pre class="programlisting">#define NM_DBUS_PATH_ACCESS_POINT  NM_DBUS_PATH "/AccessPoint"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-PATH-WIFI-P2P-PEER:CAPS"></a><h3>NM_DBUS_PATH_WIFI_P2P_PEER</h3>
-<pre class="programlisting">#define NM_DBUS_PATH_WIFI_P2P_PEER             NM_DBUS_PATH "/WifiP2PPeer"
+<pre class="programlisting">#define NM_DBUS_PATH_WIFI_P2P_PEER NM_DBUS_PATH "/WifiP2PPeer"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-PATH-WIMAX-NSP:CAPS"></a><h3>NM_DBUS_PATH_WIMAX_NSP</h3>
-<pre class="programlisting">#define NM_DBUS_PATH_WIMAX_NSP                 NM_DBUS_PATH "/Nsp"
+<pre class="programlisting">#define NM_DBUS_PATH_WIMAX_NSP     NM_DBUS_PATH "/Nsp"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-INTERFACE-SETTINGS:CAPS"></a><h3>NM_DBUS_INTERFACE_SETTINGS</h3>
-<pre class="programlisting">#define NM_DBUS_INTERFACE_SETTINGS        "org.freedesktop.NetworkManager.Settings"
+<pre class="programlisting">#define NM_DBUS_INTERFACE_SETTINGS "org.freedesktop.NetworkManager.Settings"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-PATH-SETTINGS:CAPS"></a><h3>NM_DBUS_PATH_SETTINGS</h3>
-<pre class="programlisting">#define NM_DBUS_PATH_SETTINGS             "/org/freedesktop/NetworkManager/Settings"
+<pre class="programlisting">#define NM_DBUS_PATH_SETTINGS      "/org/freedesktop/NetworkManager/Settings"
 </pre>
 </div>
 <hr>
@@ -869,49 +869,48 @@
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-PATH-SETTINGS-CONNECTION:CAPS"></a><h3>NM_DBUS_PATH_SETTINGS_CONNECTION</h3>
-<pre class="programlisting">#define NM_DBUS_PATH_SETTINGS_CONNECTION  "/org/freedesktop/NetworkManager/Settings/Connection"
+<pre class="programlisting">#define NM_DBUS_PATH_SETTINGS_CONNECTION      "/org/freedesktop/NetworkManager/Settings/Connection"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-INTERFACE-SETTINGS-CONNECTION-SECRETS:CAPS"></a><h3>NM_DBUS_INTERFACE_SETTINGS_CONNECTION_SECRETS</h3>
-<pre class="programlisting">#define NM_DBUS_INTERFACE_SETTINGS_CONNECTION_SECRETS "org.freedesktop.NetworkManager.Settings.Connection.Secrets"
-</pre>
+<pre class="programlisting">#define             NM_DBUS_INTERFACE_SETTINGS_CONNECTION_SECRETS</pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-INTERFACE-AGENT-MANAGER:CAPS"></a><h3>NM_DBUS_INTERFACE_AGENT_MANAGER</h3>
-<pre class="programlisting">#define NM_DBUS_INTERFACE_AGENT_MANAGER   NM_DBUS_INTERFACE ".AgentManager"
+<pre class="programlisting">#define NM_DBUS_INTERFACE_AGENT_MANAGER NM_DBUS_INTERFACE ".AgentManager"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-PATH-AGENT-MANAGER:CAPS"></a><h3>NM_DBUS_PATH_AGENT_MANAGER</h3>
-<pre class="programlisting">#define NM_DBUS_PATH_AGENT_MANAGER        "/org/freedesktop/NetworkManager/AgentManager"
+<pre class="programlisting">#define NM_DBUS_PATH_AGENT_MANAGER      "/org/freedesktop/NetworkManager/AgentManager"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-INTERFACE-SECRET-AGENT:CAPS"></a><h3>NM_DBUS_INTERFACE_SECRET_AGENT</h3>
-<pre class="programlisting">#define NM_DBUS_INTERFACE_SECRET_AGENT    NM_DBUS_INTERFACE ".SecretAgent"
+<pre class="programlisting">#define NM_DBUS_INTERFACE_SECRET_AGENT NM_DBUS_INTERFACE ".SecretAgent"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-PATH-SECRET-AGENT:CAPS"></a><h3>NM_DBUS_PATH_SECRET_AGENT</h3>
-<pre class="programlisting">#define NM_DBUS_PATH_SECRET_AGENT         "/org/freedesktop/NetworkManager/SecretAgent"
+<pre class="programlisting">#define NM_DBUS_PATH_SECRET_AGENT      "/org/freedesktop/NetworkManager/SecretAgent"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-INTERFACE-DNS-MANAGER:CAPS"></a><h3>NM_DBUS_INTERFACE_DNS_MANAGER</h3>
-<pre class="programlisting">#define NM_DBUS_INTERFACE_DNS_MANAGER     "org.freedesktop.NetworkManager.DnsManager"
+<pre class="programlisting">#define NM_DBUS_INTERFACE_DNS_MANAGER "org.freedesktop.NetworkManager.DnsManager"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-DBUS-PATH-DNS-MANAGER:CAPS"></a><h3>NM_DBUS_PATH_DNS_MANAGER</h3>
-<pre class="programlisting">#define NM_DBUS_PATH_DNS_MANAGER          "/org/freedesktop/NetworkManager/DnsManager"
+<pre class="programlisting">#define NM_DBUS_PATH_DNS_MANAGER      "/org/freedesktop/NetworkManager/DnsManager"
 </pre>
 </div>
 <hr>
@@ -2963,133 +2962,133 @@ VPN plugin authentication dialogs.</p>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-RAW:CAPS"></a><h3>NM_LLDP_ATTR_RAW</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_RAW                     "raw"
+<pre class="programlisting">#define NM_LLDP_ATTR_RAW                  "raw"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-DESTINATION:CAPS"></a><h3>NM_LLDP_ATTR_DESTINATION</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_DESTINATION             "destination"
+<pre class="programlisting">#define NM_LLDP_ATTR_DESTINATION          "destination"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-CHASSIS-ID-TYPE:CAPS"></a><h3>NM_LLDP_ATTR_CHASSIS_ID_TYPE</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_CHASSIS_ID_TYPE         "chassis-id-type"
+<pre class="programlisting">#define NM_LLDP_ATTR_CHASSIS_ID_TYPE      "chassis-id-type"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-CHASSIS-ID:CAPS"></a><h3>NM_LLDP_ATTR_CHASSIS_ID</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_CHASSIS_ID              "chassis-id"
+<pre class="programlisting">#define NM_LLDP_ATTR_CHASSIS_ID           "chassis-id"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-PORT-ID-TYPE:CAPS"></a><h3>NM_LLDP_ATTR_PORT_ID_TYPE</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_PORT_ID_TYPE            "port-id-type"
+<pre class="programlisting">#define NM_LLDP_ATTR_PORT_ID_TYPE         "port-id-type"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-PORT-ID:CAPS"></a><h3>NM_LLDP_ATTR_PORT_ID</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_PORT_ID                 "port-id"
+<pre class="programlisting">#define NM_LLDP_ATTR_PORT_ID              "port-id"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-PORT-DESCRIPTION:CAPS"></a><h3>NM_LLDP_ATTR_PORT_DESCRIPTION</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_PORT_DESCRIPTION        "port-description"
+<pre class="programlisting">#define NM_LLDP_ATTR_PORT_DESCRIPTION     "port-description"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-SYSTEM-NAME:CAPS"></a><h3>NM_LLDP_ATTR_SYSTEM_NAME</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_SYSTEM_NAME             "system-name"
+<pre class="programlisting">#define NM_LLDP_ATTR_SYSTEM_NAME          "system-name"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-SYSTEM-DESCRIPTION:CAPS"></a><h3>NM_LLDP_ATTR_SYSTEM_DESCRIPTION</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_SYSTEM_DESCRIPTION      "system-description"
+<pre class="programlisting">#define NM_LLDP_ATTR_SYSTEM_DESCRIPTION   "system-description"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-SYSTEM-CAPABILITIES:CAPS"></a><h3>NM_LLDP_ATTR_SYSTEM_CAPABILITIES</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_SYSTEM_CAPABILITIES     "system-capabilities"
+<pre class="programlisting">#define NM_LLDP_ATTR_SYSTEM_CAPABILITIES  "system-capabilities"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-MANAGEMENT-ADDRESSES:CAPS"></a><h3>NM_LLDP_ATTR_MANAGEMENT_ADDRESSES</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_MANAGEMENT_ADDRESSES    "management-addresses"
+<pre class="programlisting">#define NM_LLDP_ATTR_MANAGEMENT_ADDRESSES "management-addresses"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-IEEE-802-1-PVID:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_PVID</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PVID         "ieee-802-1-pvid"
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PVID   "ieee-802-1-pvid"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-IEEE-802-1-VLANS:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_VLANS</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_VLANS        "ieee-802-1-vlans"
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_VLANS  "ieee-802-1-vlans"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-IEEE-802-1-PPVIDS:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_PPVIDS</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PPVIDS       "ieee-802-1-ppvids"
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PPVIDS "ieee-802-1-ppvids"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-IEEE-802-3-MAC-PHY-CONF:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_3_MAC_PHY_CONF</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_3_MAC_PHY_CONF    "ieee-802-3-mac-phy-conf"
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_3_MAC_PHY_CONF   "ieee-802-3-mac-phy-conf"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-IEEE-802-3-POWER-VIA-MDI:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_3_POWER_VIA_MDI</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_3_POWER_VIA_MDI   "ieee-802-3-power-via-mdi"
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_3_POWER_VIA_MDI  "ieee-802-3-power-via-mdi"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-IEEE-802-3-MAX-FRAME-SIZE:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE  "ieee-802-3-max-frame-size"
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE "ieee-802-3-max-frame-size"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-MUD-URL:CAPS"></a><h3>NM_LLDP_ATTR_MUD_URL</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_MUD_URL                 "mud-url"
+<pre class="programlisting">#define NM_LLDP_ATTR_MUD_URL "mud-url"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-IEEE-802-1-VID:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_VID</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_VID          "ieee-802-1-vid"
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_VID       "ieee-802-1-vid"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-IEEE-802-1-VLAN-NAME:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_VLAN_NAME</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_VLAN_NAME    "ieee-802-1-vlan-name"
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_VLAN_NAME "ieee-802-1-vlan-name"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-IEEE-802-1-PPVID:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_PPVID</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PPVID        "ieee-802-1-ppvid"
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PPVID       "ieee-802-1-ppvid"
 </pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="NM-LLDP-ATTR-IEEE-802-1-PPVID-FLAGS:CAPS"></a><h3>NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS</h3>
-<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS  "ieee-802-1-ppvid-flags"
+<pre class="programlisting">#define NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS "ieee-802-1-ppvid-flags"
 </pre>
 </div>
 <hr>
@@ -3456,7 +3455,7 @@ This only makes sense if the device is a master.</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVATION-STATE-FLAG-LIFETIME-BOUND-TO-PROFILE-VISIBILITY:CAPS"></a>NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY</p></td>
 <td class="enum_member_description">
 <p>the lifetime
-of the activation is bound to the visilibity of the connection profile,
+of the activation is bound to the visibility of the connection profile,
 which in turn depends on "connection.permissions" and whether a session
 for the user exists. Since: 1.16</p>
 </td>
@@ -3574,7 +3573,7 @@ allow deletion, and nmmeta file is written to mark the UUID as deleted).</p>
 as <a class="link" href="libnm-nm-dbus-interface.html#NM-SETTINGS-UPDATE2-FLAG-IN-MEMORY:CAPS"><code class="literal">NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY</code></a>, with one difference: when later deleting
 the profile, the original profile will not be deleted. Instead a nmmeta
 file is written to /run to indicate that the profile is gone.
-Note that if such a nmmeta tombstone file exists and hides a file in persistant
+Note that if such a nmmeta tombstone file exists and hides a file in persistent
 storage, then when re-adding the profile with the same UUID, then the original
 storage is taken over again.</p>
 </td>
@@ -4000,6 +3999,6 @@ denied by system policy</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

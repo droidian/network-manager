@@ -128,7 +128,7 @@ GetSecrets (IN  s         setting_name,
 <variablelist role="params">
 <varlistentry>
   <term><literal>IN s <parameter>setting_name</parameter></literal>:</term>
-  <listitem><para>Name of the setting to return secrets for. If empty, all all secrets will be returned.</para></listitem>
+  <listitem><para>Name of the setting to return secrets for. If empty, all secrets will be returned.</para></listitem>
 </varlistentry>
 <varlistentry>
   <term><literal>OUT a{sa{sv}} <parameter>secrets</parameter></literal>:</term>
@@ -165,7 +165,7 @@ Update2 (IN  a{sa{sv}} settings,
          OUT a{sv}     result);
 </programlisting>
 <para>          Provide an empty array, to use the current settings.
-        <parameter>flags</parameter>: optional flags argument. Currently supported flags are:
+        <parameter>flags</parameter>: optional flags argument. Currently, supported flags are:
           "0x1" (to-disk),
           "0x2" (in-memory),
           "0x4" (in-memory-detached),
@@ -174,7 +174,7 @@ Update2 (IN  a{sa{sv}} settings,
           "0x20" (block-autoconnect),
           "0x40" (no-reapply).
           Unknown flags cause the call to fail.
-        <parameter>args</parameter>: optional arguments dictionary, for extensibility. Currently no
+        <parameter>args</parameter>: optional arguments dictionary, for extentibility. Currently, no
           arguments are accepted. Specifying unknown keys causes the call
           to fail.
         <parameter>result</parameter>: output argument, currently no results are returned.
