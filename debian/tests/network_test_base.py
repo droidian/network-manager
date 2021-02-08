@@ -99,6 +99,11 @@ class NetworkTestBase(unittest.TestCase):
         klass.dev_w_client = devs[1]
 
         # determine and store MAC addresses
+        # Creation of the veths introduces a race with newer versions of
+        # systemd, as it  will change the initial MAC address after the device
+        # was created and networkd took control. Give it some time, so we read
+        # the correct MAC address
+        time.sleep(0.1)
         with open('/sys/class/net/%s/address' % klass.dev_w_ap) as f:
             klass.mac_w_ap = f.read().strip().upper()
         with open('/sys/class/net/%s/address' % klass.dev_w_client) as f:
