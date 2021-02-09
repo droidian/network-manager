@@ -11,54 +11,53 @@ export PYTHON=/usr/bin/python3
 PPPD_PLUGIN_DIR := $(shell dh_ppp --plugin-dir)
 
 %:
-	dh $@ --with ppp
-
-override_dh_autoreconf:
-	NOCONFIGURE=true dh_autoreconf ./autogen.sh
+	dh $@ --with ppp --without autoreconf --buildsystem=meson
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
-		--runstatedir=/run \
-		--with-pppd-plugin-dir=$(PPPD_PLUGIN_DIR) \
-		--with-pppd=/usr/sbin/pppd \
-		--with-nft=/usr/sbin/nft \
-		--with-iptables=/usr/sbin/iptables \
-		--with-resolvconf=/sbin/resolvconf \
-		--with-dhclient=/sbin/dhclient \
-		--with-dnsmasq=/usr/sbin/dnsmasq \
-		--with-modprobe=/sbin/modprobe \
-		--with-polkit-agent-helper-1=/usr/lib/policykit-1/polkit-agent-helper-1 \
-		--with-systemdsystemunitdir=/usr/lib/systemd/system \
-		--with-udev-dir=/usr/lib/udev \
-		--with-dbus-sys-dir=/usr/share/dbus-1/system.d \
-		--with-crypto=gnutls \
-		--with-session-tracking=systemd \
-		--with-suspend-resume=systemd \
-		--with-modem-manager-1 \
-		--with-nmtui \
-		--with-nmcli \
-		--with-selinux \
-		--with-libaudit \
-		--with-iwd \
-		--without-dhcpcanon \
-		--without-nm-cloud-setup \
-		--enable-polkit \
-		--enable-polkit-agent \
-		--enable-ppp \
-		--enable-ifupdown \
-		--enable-introspection \
-		--enable-gtk-doc \
-		--enable-concheck \
-		--enable-teamdctl \
-		--enable-json-validation \
-		--enable-bluez5-dun \
-		--enable-vala \
-		--disable-more-warnings \
-		--disable-modify-system \
-		--disable-ovs
-
-execute_before_dh_install:
-	find debian/tmp -name '*.la' -print -delete
+		-Druntime_dir=/run \
+		-Dpppd_plugin_dir=$(PPPD_PLUGIN_DIR) \
+		-Dpppd=/usr/sbin/pppd \
+		-Dresolvconf=/usr/sbin/resolvconf \
+		-Ddhclient=/usr/sbin/dhclient \
+		-Dmodprobe=/usr/sbin/modprobe \
+		-Ddhcpcanon=false \
+		-Ddhcpcd=false \
+		-Diptables=/usr/sbin/iptables \
+		-Dnft=/usr/sbin/nft \
+		-Ddnsmasq=/usr/sbin/dnsmasq \
+		-Dpolkit_agent_helper_1=/usr/lib/policykit-1/polkit-agent-helper-1 \
+		-Dsystemdsystemunitdir=/usr/lib/systemd/system \
+		-Dudev_dir=/usr/lib/udev \
+		-Ddbus_conf_dir=/usr/share/dbus-1/system.d \
+		-Dcrypto=gnutls \
+		-Dsession_tracking=systemd \
+		-Dsuspend_resume=systemd \
+		-Dmodem_manager=true \
+		-Dnmtui=true \
+		-Dnmcli=true \
+		-Dselinux=true \
+		-Dsystemd_journal=true \
+		-Dlibaudit=yes \
+		-Dwext=true \
+		-Dwifi=true \
+		-Diwd=true \
+		-Dppp=true \
+		-Dpolkit=true \
+		-Dintrospection=true \
+		-Ddocs=true \
+		-Dconcheck=true \
+		-Dteamdctl=true \
+		-Dbluez5_dun=true \
+		-Dvapi=true \
+		-Difupdown=true \
+		-Difcfg_rh=false \
+		-Dnm_cloud_setup=false \
+		-Dmodify_system=false \
+		-Dovs=false \
+		-Dqt=false \
+		-Debpf=false \
+		-Dofono=false
 
 override_dh_makeshlibs:
 	dh_makeshlibs -X/usr/lib/$(DEB_HOST_MULTIARCH)/NetworkManager/ -X/usr/lib/pppd/
