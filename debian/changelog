@@ -1,8 +1,9 @@
-network-manager (1.28.0-2ubuntu2) UNRELEASED; urgency=medium
+network-manager (1.28.0-2ubuntu2) hirsute; urgency=medium
 
   * debian/patches/ubuntu_revert_systemd.patch:
     - temporarly revert an upstream commit that made udev enabled under lxc,
       the new systemd doesn't work there (lp: #1914062)
+
   [ Lukas Märdian ]
   * debian/tests/network_test_base.py:
     Fix race when reading the MAC address of veth interfaces with new systemd
