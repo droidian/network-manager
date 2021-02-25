@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2017 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-macsec.h"
 
@@ -495,7 +495,7 @@ nm_setting_macsec_init(NMSettingMacsec *self)
 NMSetting *
 nm_setting_macsec_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_MACSEC, NULL);
+    return g_object_new(NM_TYPE_SETTING_MACSEC, NULL);
 }
 
 static void

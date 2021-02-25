@@ -1,20 +1,23 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (C) 2008 - 2018 Red Hat, Inc.
  */
 
 #define NM_GLIB_COMPAT_H_TEST
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <linux/if_ether.h>
+#include <linux/if_infiniband.h>
 
 #include "nm-std-aux/c-list-util.h"
 #include "nm-glib-aux/nm-enum-utils.h"
 #include "nm-glib-aux/nm-str-buf.h"
 #include "nm-glib-aux/nm-json-aux.h"
+#include "nm-base/nm-base.h"
 #include "systemd/nm-sd-utils-shared.h"
 
 #include "nm-utils.h"
@@ -54,9 +57,10 @@
 #include "nm-setting-wireless-security.h"
 #include "nm-setting-wpan.h"
 #include "nm-simple-connection.h"
-#include "nm-keyfile/nm-keyfile-internal.h"
+#include "nm-keyfile-internal.h"
 #include "nm-glib-aux/nm-dedup-multi.h"
-#include "nm-libnm-core-intern/nm-ethtool-utils.h"
+#include "nm-base/nm-ethtool-base.h"
+#include "nm-base/nm-ethtool-utils-base.h"
 
 #include "test-general-enums.h"
 
@@ -69,6 +73,12 @@
  * will just work correctly. */
 G_STATIC_ASSERT(sizeof(gboolean) == sizeof(int));
 G_STATIC_ASSERT(sizeof(bool) <= sizeof(int));
+
+/*****************************************************************************/
+
+/* NM_UTILS_HWADDR_LEN_MAX is public API of libnm(-core) and _NM_UTILS_HWADDR_LEN_MAX
+ * is internal API. They are the same, but the latter can be used without including libnm-core. */
+G_STATIC_ASSERT(NM_UTILS_HWADDR_LEN_MAX == _NM_UTILS_HWADDR_LEN_MAX);
 
 /*****************************************************************************/
 
@@ -90,6 +100,57 @@ test_nm_ascii_spaces(void)
             g_assert(strchr(S, (char) i));
         else
             g_assert(!strchr(S, (char) i));
+    }
+}
+
+/*****************************************************************************/
+
+static void
+test_wired_wake_on_lan_enum(void)
+{
+    nm_auto_unref_gtypeclass GFlagsClass *flags_class = NULL;
+    gs_unref_hashtable GHashTable *vals               = g_hash_table_new(nm_direct_hash, NULL);
+    guint                          i;
+
+    G_STATIC_ASSERT_EXPR(sizeof(NMSettingWiredWakeOnLan) == sizeof(_NMSettingWiredWakeOnLan));
+    G_STATIC_ASSERT_EXPR(sizeof(NMSettingWiredWakeOnLan) < sizeof(gint64));
+
+    G_STATIC_ASSERT_EXPR(sizeof(NMSettingWiredWakeOnLan) < sizeof(gint64));
+    g_assert((((gint64)((NMSettingWiredWakeOnLan) -1)) < 0)
+             == (((gint64)((_NMSettingWiredWakeOnLan) -1)) < 0));
+
+#define _E(n)                                                    \
+    G_STMT_START                                                 \
+    {                                                            \
+        G_STATIC_ASSERT_EXPR(n == (gint64) _##n);                \
+        G_STATIC_ASSERT_EXPR(_##n == (gint64) n);                \
+        g_assert(_##n == _NM_SETTING_WIRED_WAKE_ON_LAN_CAST(n)); \
+        if (!g_hash_table_add(vals, GUINT_TO_POINTER(n)))        \
+            g_assert_not_reached();                              \
+    }                                                            \
+    G_STMT_END
+    _E(NM_SETTING_WIRED_WAKE_ON_LAN_NONE);
+    _E(NM_SETTING_WIRED_WAKE_ON_LAN_PHY);
+    _E(NM_SETTING_WIRED_WAKE_ON_LAN_UNICAST);
+    _E(NM_SETTING_WIRED_WAKE_ON_LAN_MULTICAST);
+    _E(NM_SETTING_WIRED_WAKE_ON_LAN_BROADCAST);
+    _E(NM_SETTING_WIRED_WAKE_ON_LAN_ARP);
+    _E(NM_SETTING_WIRED_WAKE_ON_LAN_MAGIC);
+    _E(NM_SETTING_WIRED_WAKE_ON_LAN_ALL);
+    _E(NM_SETTING_WIRED_WAKE_ON_LAN_DEFAULT);
+    _E(NM_SETTING_WIRED_WAKE_ON_LAN_IGNORE);
+    _E(NM_SETTING_WIRED_WAKE_ON_LAN_EXCLUSIVE_FLAGS);
+#undef _E
+
+    flags_class = G_FLAGS_CLASS(g_type_class_ref(NM_TYPE_SETTING_WIRED_WAKE_ON_LAN));
+    for (i = 0; i < flags_class->n_values; i++) {
+        const GFlagsValue *value = &flags_class->values[i];
+
+        if (!g_hash_table_contains(vals, GUINT_TO_POINTER(value->value))) {
+            g_error("The enum value %s from NMSettingWiredWakeOnLan is not checked for "
+                    "_NMSettingWiredWakeOnLan",
+                    value->value_name);
+        }
     }
 }
 
@@ -330,7 +391,7 @@ _do_test_nm_utils_strsplit_set_f_one(NMUtilsStrsplitSetFlags flags,
             }
             g_assert(words_g[words_len] == NULL);
             g_assert_cmpint(NM_PTRARRAY_LEN(words_g), ==, words_len);
-            g_assert(_nm_utils_strv_cmp_n(exp_words, words_len, NM_CAST_STRV_CC(words_g), -1) == 0);
+            g_assert(nm_utils_strv_cmp_n(exp_words, words_len, words_g, -1) == 0);
         }
     }
 
@@ -354,7 +415,7 @@ _do_test_nm_utils_strsplit_set_f_one(NMUtilsStrsplitSetFlags flags,
         g_assert_cmpstr(exp_words[i], ==, words[i]);
     g_assert(words[words_len] == NULL);
 
-    g_assert(_nm_utils_strv_cmp_n(exp_words, words_len, words, -1) == 0);
+    g_assert(nm_utils_strv_cmp_n(exp_words, words_len, words, -1) == 0);
 
     s1 = words[0];
     g_assert(s1 >= (char *) &words[words_len + 1]);
@@ -515,7 +576,7 @@ _do_test_nm_utils_strsplit_set_simple(NMUtilsStrsplitSetFlags flags,
     g_assert_cmpint(words_len, >, 0);
     n_tokens = NM_PTRARRAY_LEN(tokens);
 
-    if (_nm_utils_strv_cmp_n(exp_words, words_len, tokens, -1) != 0) {
+    if (nm_utils_strv_cmp_n(exp_words, words_len, tokens, -1) != 0) {
         gsize i;
 
         g_print(">>> split \"%s\" (flags %x) got %zu tokens (%zu expected)\n",
@@ -1225,7 +1286,7 @@ _dedup_obj_destroy(NMDedupMultiObj *obj)
 {
     DedupObj *o = (DedupObj *) obj;
 
-    nm_assert(o->parent._ref_count == 0);
+    g_assert(o->parent._ref_count == 0);
     o->parent._ref_count = 1;
     o                    = _dedup_obj_assert(obj);
     g_slice_free(DedupObj, o);
@@ -5425,7 +5486,7 @@ _test_connection_normalize_type_normalizable_type(const char *type,
     if (add_setting_fcn)
         s_base = add_setting_fcn(con);
     else {
-        s_base = NM_SETTING(g_object_new(base_type, NULL));
+        s_base = g_object_new(base_type, NULL);
         nm_connection_add_setting(con, s_base);
     }
 
@@ -8803,6 +8864,20 @@ test_nm_utils_enum(void)
                                          NULL,
                                          color_value_infos);
 
+    _test_nm_utils_enum_from_str_do_full(NM_TYPE_SETTING_CONNECTION_LLMNR,
+                                         "-1",
+                                         TRUE,
+                                         -1,
+                                         NULL,
+                                         NULL);
+
+    _test_nm_utils_enum_from_str_do_full(NM_TYPE_SETTING_CONNECTION_LLMNR,
+                                         "-0x1",
+                                         TRUE,
+                                         -1,
+                                         NULL,
+                                         NULL);
+
     _test_nm_utils_enum_get_values_do(bool_enum, 0, G_MAXINT, "no,yes,maybe,unknown,67,64");
     _test_nm_utils_enum_get_values_do(bool_enum,
                                       NM_TEST_GENERAL_BOOL_ENUM_YES,
@@ -9538,6 +9613,11 @@ test_ethtool_offload(void)
     g_assert(d);
     g_assert_cmpint(d->id, ==, NM_ETHTOOL_ID_FEATURE_RXHASH);
     g_assert_cmpstr(d->optname, ==, NM_ETHTOOL_OPTNAME_FEATURE_RXHASH);
+
+    /* these features are NETIF_F_NEVER_CHANGE: */
+    g_assert(!nm_ethtool_data_get_by_optname("feature-netns-local"));
+    g_assert(!nm_ethtool_data_get_by_optname("feature-tx-lockless"));
+    g_assert(!nm_ethtool_data_get_by_optname("feature-vlan-challenged"));
 }
 
 /*****************************************************************************/
@@ -10058,7 +10138,7 @@ _strsplit_quoted_assert_strv(const char *       topic,
     g_assert(strv1);
     g_assert(strv2);
 
-    if (_nm_utils_strv_equal((char **) strv1, (char **) strv2))
+    if (nm_utils_strv_equal(strv1, strv2))
         return;
 
     for (i = 0; strv1[i]; i++) {
@@ -10198,6 +10278,45 @@ test_nm_utils_wifi_ghz_freqs(void)
 
 /*****************************************************************************/
 
+static void
+test_vpn_connection_state_reason(void)
+{
+#define ASSERT(v1, v2)                                                \
+    G_STMT_START                                                      \
+    {                                                                 \
+        G_STATIC_ASSERT((gint64)(v1) == v2);                          \
+        G_STATIC_ASSERT((gint64)(v2) == v1);                          \
+                                                                      \
+        nm_assert(((NMActiveConnectionStateReason)(int) (v1)) == v2); \
+        nm_assert(((NMVpnConnectionStateReason)(int) (v2)) == v1);    \
+    }                                                                 \
+    G_STMT_END
+
+    ASSERT(NM_VPN_CONNECTION_STATE_REASON_UNKNOWN, NM_ACTIVE_CONNECTION_STATE_REASON_UNKNOWN);
+    ASSERT(NM_VPN_CONNECTION_STATE_REASON_NONE, NM_ACTIVE_CONNECTION_STATE_REASON_NONE);
+    ASSERT(NM_VPN_CONNECTION_STATE_REASON_USER_DISCONNECTED,
+           NM_ACTIVE_CONNECTION_STATE_REASON_USER_DISCONNECTED);
+    ASSERT(NM_VPN_CONNECTION_STATE_REASON_DEVICE_DISCONNECTED,
+           NM_ACTIVE_CONNECTION_STATE_REASON_DEVICE_DISCONNECTED);
+    ASSERT(NM_VPN_CONNECTION_STATE_REASON_SERVICE_STOPPED,
+           NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_STOPPED);
+    ASSERT(NM_VPN_CONNECTION_STATE_REASON_IP_CONFIG_INVALID,
+           NM_ACTIVE_CONNECTION_STATE_REASON_IP_CONFIG_INVALID);
+    ASSERT(NM_VPN_CONNECTION_STATE_REASON_CONNECT_TIMEOUT,
+           NM_ACTIVE_CONNECTION_STATE_REASON_CONNECT_TIMEOUT);
+    ASSERT(NM_VPN_CONNECTION_STATE_REASON_SERVICE_START_TIMEOUT,
+           NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_START_TIMEOUT);
+    ASSERT(NM_VPN_CONNECTION_STATE_REASON_SERVICE_START_FAILED,
+           NM_ACTIVE_CONNECTION_STATE_REASON_SERVICE_START_FAILED);
+    ASSERT(NM_VPN_CONNECTION_STATE_REASON_NO_SECRETS, NM_ACTIVE_CONNECTION_STATE_REASON_NO_SECRETS);
+    ASSERT(NM_VPN_CONNECTION_STATE_REASON_LOGIN_FAILED,
+           NM_ACTIVE_CONNECTION_STATE_REASON_LOGIN_FAILED);
+    ASSERT(NM_VPN_CONNECTION_STATE_REASON_CONNECTION_REMOVED,
+           NM_ACTIVE_CONNECTION_STATE_REASON_CONNECTION_REMOVED);
+}
+
+/*****************************************************************************/
+
 NMTST_DEFINE();
 
 int
@@ -10206,6 +10325,7 @@ main(int argc, char **argv)
     nmtst_init(&argc, &argv, TRUE);
 
     g_test_add_func("/core/general/test_nm_ascii_spaces", test_nm_ascii_spaces);
+    g_test_add_func("/core/general/test_wired_wake_on_lan_enum", test_wired_wake_on_lan_enum);
     g_test_add_func("/core/general/test_nm_hash", test_nm_hash);
     g_test_add_func("/core/general/test_nm_g_slice_free_fcn", test_nm_g_slice_free_fcn);
     g_test_add_func("/core/general/test_c_list_sort", test_c_list_sort);
@@ -10527,6 +10647,8 @@ main(int argc, char **argv)
     g_test_add_func("/core/general/test_nm_utils_wifi_ghz_freqs", test_nm_utils_wifi_ghz_freqs);
 
     g_test_add_func("/core/general/test_strsplit_quoted", test_strsplit_quoted);
+    g_test_add_func("/core/general/test_vpn_connection_state_reason",
+                    test_vpn_connection_state_reason);
 
     return g_test_run();
 }

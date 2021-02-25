@@ -1,13 +1,23 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2017 - 2019 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "nm-glib-aux/nm-default-glib-i18n-lib.h"
 
 #include "nm-json-aux.h"
 
 #include <dlfcn.h>
+
+/*****************************************************************************/
+
+/* If RTLD_DEEPBIND isn't available just ignore it. This can cause problems
+ * with jansson, json-glib, and cjson symbols clashing (and as such crashing the
+ * program). But that needs to be fixed by the json libraries, and it is by adding
+ * symbol versioning in recent versions. */
+#ifndef RTLD_DEEPBIND
+    #define RTLD_DEEPBIND 0
+#endif
 
 /*****************************************************************************/
 

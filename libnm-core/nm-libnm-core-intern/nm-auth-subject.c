@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2013 - 2014 Red Hat, Inc.
  */
@@ -11,7 +11,7 @@
  * makes requests, like process identifier and user UID.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-auth-subject.h"
 
@@ -179,10 +179,10 @@ nm_auth_subject_get_unix_session_id(NMAuthSubject *subject)
 NMAuthSubject *
 nm_auth_subject_new_internal(void)
 {
-    return NM_AUTH_SUBJECT(g_object_new(NM_TYPE_AUTH_SUBJECT,
-                                        NM_AUTH_SUBJECT_SUBJECT_TYPE,
-                                        (int) NM_AUTH_SUBJECT_TYPE_INTERNAL,
-                                        NULL));
+    return g_object_new(NM_TYPE_AUTH_SUBJECT,
+                        NM_AUTH_SUBJECT_SUBJECT_TYPE,
+                        (int) NM_AUTH_SUBJECT_TYPE_INTERNAL,
+                        NULL);
 }
 
 /**
@@ -195,12 +195,12 @@ nm_auth_subject_new_internal(void)
 NMAuthSubject *
 nm_auth_subject_new_unix_session(const char *session_id)
 {
-    return NM_AUTH_SUBJECT(g_object_new(NM_TYPE_AUTH_SUBJECT,
-                                        NM_AUTH_SUBJECT_SUBJECT_TYPE,
-                                        (int) NM_AUTH_SUBJECT_TYPE_UNIX_SESSION,
-                                        NM_AUTH_SUBJECT_UNIX_SESSION_ID,
-                                        session_id,
-                                        NULL));
+    return g_object_new(NM_TYPE_AUTH_SUBJECT,
+                        NM_AUTH_SUBJECT_SUBJECT_TYPE,
+                        (int) NM_AUTH_SUBJECT_TYPE_UNIX_SESSION,
+                        NM_AUTH_SUBJECT_UNIX_SESSION_ID,
+                        session_id,
+                        NULL);
 }
 
 /**
@@ -213,16 +213,16 @@ nm_auth_subject_new_unix_session(const char *session_id)
 NMAuthSubject *
 nm_auth_subject_new_unix_process(const char *dbus_sender, gulong pid, gulong uid)
 {
-    return NM_AUTH_SUBJECT(g_object_new(NM_TYPE_AUTH_SUBJECT,
-                                        NM_AUTH_SUBJECT_SUBJECT_TYPE,
-                                        (int) NM_AUTH_SUBJECT_TYPE_UNIX_PROCESS,
-                                        NM_AUTH_SUBJECT_UNIX_PROCESS_DBUS_SENDER,
-                                        dbus_sender,
-                                        NM_AUTH_SUBJECT_UNIX_PROCESS_PID,
-                                        pid,
-                                        NM_AUTH_SUBJECT_UNIX_PROCESS_UID,
-                                        uid,
-                                        NULL));
+    return g_object_new(NM_TYPE_AUTH_SUBJECT,
+                        NM_AUTH_SUBJECT_SUBJECT_TYPE,
+                        (int) NM_AUTH_SUBJECT_TYPE_UNIX_PROCESS,
+                        NM_AUTH_SUBJECT_UNIX_PROCESS_DBUS_SENDER,
+                        dbus_sender,
+                        NM_AUTH_SUBJECT_UNIX_PROCESS_PID,
+                        pid,
+                        NM_AUTH_SUBJECT_UNIX_PROCESS_UID,
+                        uid,
+                        NULL);
 }
 
 /**

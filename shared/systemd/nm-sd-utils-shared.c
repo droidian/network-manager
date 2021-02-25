@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2018 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "shared/systemd/nm-default-systemd-shared.h"
 
 #include "nm-sd-utils-shared.h"
 
@@ -88,7 +88,27 @@ nm_sd_dns_name_is_valid(const char *s)
 gboolean
 nm_sd_hostname_is_valid(const char *s, bool allow_trailing_dot)
 {
-    return hostname_is_valid(s, allow_trailing_dot);
+    return hostname_is_valid(s,
+                             allow_trailing_dot ? VALID_HOSTNAME_TRAILING_DOT
+                                                : (ValidHostnameFlags) 0);
+}
+
+char *
+nm_sd_dns_name_normalize(const char *s)
+{
+    nm_auto_free char *n = NULL;
+    int                r;
+
+    r = dns_name_normalize(s, 0, &n);
+    if (r < 0)
+        return NULL;
+
+    nm_assert(n);
+
+    /* usually we try not to mix malloc/g_malloc and free/g_free. In practice,
+     * they are the same. So here we return a buffer allocated with malloc(),
+     * and the caller should free it with g_free(). */
+    return g_steal_pointer(&n);
 }
 
 /*****************************************************************************/

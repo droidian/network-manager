@@ -13,6 +13,7 @@
       <sub name="nm-settings-ifcfg-rh" link="nm-settings-ifcfg-rh.html"/>
       <sub name="nm-online" link="nm-online.html"/>
       <sub name="nm-initrd-generator" link="nm-initrd-generator.html"/>
+      <sub name="nm-cloud-setup" link="nm-cloud-setup.html"/>
       <sub name="nm-openvswitch" link="nm-openvswitch.html"/>
     </sub>
     <sub name="Network Configuration Setting Specification" link="ref-settings.html">
@@ -65,6 +66,9 @@
         <sub name="" link="settings-802-11-wireless.html"/>
         <sub name="" link="settings-802-11-wireless-security.html"/>
         <sub name="" link="settings-wpan.html"/>
+        <sub name="" link="settings-hostname.html"/>
+        <sub name="" link="settings-ovs-external-ids.html"/>
+        <sub name="" link="settings-veth.html"/>
       </sub>
       <sub name="Secret flag types" link="secrets-flags.html"/>
     </sub>
@@ -649,6 +653,7 @@
     <keyword type="constant" name="NM_802_11_AP_SEC_KEY_MGMT_SAE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.12.1.1id-1.4.17.2.10.4.2.1.4.12.1.2"/>
     <keyword type="constant" name="NM_802_11_AP_SEC_KEY_MGMT_OWE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.13.1.1id-1.4.17.2.10.4.2.1.4.13.1.2"/>
     <keyword type="constant" name="NM_802_11_AP_SEC_KEY_MGMT_OWE_TM" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.14.1.1id-1.4.17.2.10.4.2.1.4.14.1.2"/>
+    <keyword type="constant" name="NM_802_11_AP_SEC_KEY_MGMT_EAP_SUITE_B_192" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.10.4.2.1.4.15.1.1id-1.4.17.2.10.4.2.1.4.15.1.2"/>
     <keyword type="constant" name="NM_802_11_MODE_UNKNOWN" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.11.4.2.1.4.1.1.1id-1.4.17.2.11.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_802_11_MODE_ADHOC" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.11.4.2.1.4.2.1.1id-1.4.17.2.11.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_802_11_MODE_INFRA" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.11.4.2.1.4.3.1.1id-1.4.17.2.11.4.2.1.4.3.1.2"/>

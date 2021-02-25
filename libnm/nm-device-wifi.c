@@ -1,12 +1,14 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2008 Novell, Inc.
  * Copyright (C) 2007 - 2014 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-libnm.h"
 
 #include "nm-device-wifi.h"
+
+#include <linux/if_ether.h>
 
 #include "nm-glib-aux/nm-dbus-aux.h"
 #include "nm-setting-connection.h"
@@ -496,7 +498,8 @@ connection_compatible(NMDevice *device, NMConnection *connection, GError **error
     if (s_wsec) {
         /* Connection has security, verify it against the device's capabilities */
         key_mgmt = nm_setting_wireless_security_get_key_mgmt(s_wsec);
-        if (!g_strcmp0(key_mgmt, "wpa-psk") || !g_strcmp0(key_mgmt, "wpa-eap")) {
+        if (nm_streq(key_mgmt, "wpa-psk") || nm_streq(key_mgmt, "wpa-eap")
+            || nm_streq(key_mgmt, "wpa-eap-suite-b-192")) {
             wifi_caps = nm_device_wifi_get_capabilities(NM_DEVICE_WIFI(device));
 
             /* Is device only WEP capable? */
@@ -604,7 +607,7 @@ finalize(GObject *object)
 const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_wireless = NML_DBUS_META_IFACE_INIT_PROP(
     NM_DBUS_INTERFACE_DEVICE_WIRELESS,
     nm_device_wifi_get_type,
-    NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_HIGH,
+    NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_30,
     NML_DBUS_META_IFACE_DBUS_PROPERTIES(
         NML_DBUS_META_PROPERTY_INIT_AO_PROP("AccessPoints",
                                             PROP_ACCESS_POINTS,

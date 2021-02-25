@@ -1,8 +1,8 @@
-diff --git a/src/platform/nm-linux-platform.c b/src/platform/nm-linux-platform.c
-index b377c85e..ab4f8305 100644
---- a/src/platform/nm-linux-platform.c
-+++ b/src/platform/nm-linux-platform.c
-@@ -26,7 +26,6 @@
+Index: network-manager/src/core/platform/nm-linux-platform.c
+===================================================================
+--- network-manager.orig/src/core/platform/nm-linux-platform.c
++++ network-manager/src/core/platform/nm-linux-platform.c
+@@ -29,7 +29,6 @@
  #include <poll.h>
  #include <sys/ioctl.h>
  #include <sys/socket.h>
@@ -10,7 +10,7 @@ index b377c85e..ab4f8305 100644
  #include <unistd.h>
  
  #include "nm-std-aux/unaligned.h"
-@@ -9528,34 +9527,12 @@ constructed(GObject *_object)
+@@ -9515,34 +9514,12 @@ constructed(GObject *_object)
      }
  }
  

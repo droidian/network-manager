@@ -1,6 +1,6 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-vrf.h"
 
@@ -128,7 +128,7 @@ nm_setting_vrf_init(NMSettingVrf *setting)
 NMSetting *
 nm_setting_vrf_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_VRF, NULL);
+    return g_object_new(NM_TYPE_SETTING_VRF, NULL);
 }
 
 static void

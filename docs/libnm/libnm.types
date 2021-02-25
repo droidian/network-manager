@@ -51,6 +51,7 @@ nm_device_state_reason_get_type
 nm_device_team_get_type
 nm_device_tun_get_type
 nm_device_type_get_type
+nm_device_veth_get_type
 nm_device_vlan_get_type
 nm_device_vrf_get_type
 nm_device_vxlan_get_type
@@ -71,6 +72,9 @@ nm_ip_routing_rule_as_string_flags_get_type
 nm_ip_routing_rule_get_type
 nm_ip_tunnel_flags_get_type
 nm_ip_tunnel_mode_get_type
+nm_keyfile_handler_flags_get_type
+nm_keyfile_handler_type_get_type
+nm_keyfile_warn_severity_get_type
 nm_lldp_neighbor_get_type
 nm_manager_error_get_type
 nm_manager_reload_flags_get_type
@@ -106,6 +110,7 @@ nm_setting_ethtool_get_type
 nm_setting_generic_get_type
 nm_setting_get_type
 nm_setting_gsm_get_type
+nm_setting_hostname_get_type
 nm_setting_infiniband_get_type
 nm_setting_ip4_config_get_type
 nm_setting_ip6_config_addr_gen_mode_get_type
@@ -123,6 +128,7 @@ nm_setting_match_get_type
 nm_setting_olpc_mesh_get_type
 nm_setting_ovs_bridge_get_type
 nm_setting_ovs_dpdk_get_type
+nm_setting_ovs_external_ids_get_type
 nm_setting_ovs_interface_get_type
 nm_setting_ovs_patch_get_type
 nm_setting_ovs_port_get_type
@@ -140,6 +146,7 @@ nm_setting_team_port_get_type
 nm_setting_tun_get_type
 nm_setting_tun_mode_get_type
 nm_setting_user_get_type
+nm_setting_veth_get_type
 nm_setting_vlan_get_type
 nm_setting_vpn_get_type
 nm_setting_vrf_get_type

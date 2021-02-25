@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2004 - 2014 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-errors.h"
 
@@ -14,7 +14,6 @@ NM_CACHED_QUARK_FCN("nm-agent-manager-error-quark", nm_agent_manager_error_quark
 NM_CACHED_QUARK_FCN("nm-connection-error-quark", nm_connection_error_quark);
 NM_CACHED_QUARK_FCN("nm-crypto-error-quark", nm_crypto_error_quark);
 NM_CACHED_QUARK_FCN("nm-device-error-quark", nm_device_error_quark);
-NM_CACHED_QUARK_FCN("nm-manager-error-quark", nm_manager_error_quark);
 NM_CACHED_QUARK_FCN("nm-secret-agent-error-quark", nm_secret_agent_error_quark);
 NM_CACHED_QUARK_FCN("nm-settings-error-quark", nm_settings_error_quark);
 NM_CACHED_QUARK_FCN("nm-vpn-plugin-error-quark", nm_vpn_plugin_error_quark);

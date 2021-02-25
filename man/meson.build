@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: LGPL-2.1+
+# SPDX-License-Identifier: LGPL-2.1-or-later
 
 common_ent_file = configure_file(
   input: 'common.ent.in',
@@ -36,6 +36,10 @@ mans = [
 
 if enable_ovs
   mans += [['nm-openvswitch', '7']]
+endif
+
+if enable_nm_cloud_setup
+  mans += [['nm-cloud-setup', '8']]
 endif
 
 foreach man: mans

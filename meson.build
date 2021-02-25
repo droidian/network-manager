@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: LGPL-2.1+
+# SPDX-License-Identifier: LGPL-2.1-or-later
 
 project(
   'NetworkManager', 'c',
@@ -6,7 +6,7 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "shared/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.28.0',
+  version: '1.30.0',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -56,7 +56,9 @@ nm_pkgstatedir = join_paths(nm_localstatedir, 'lib', nm_name)
 nm_vpndir = join_paths(nm_libdir, nm_name)
 nm_plugindir = join_paths(nm_libdir, nm_name, dist_version)
 
-introspection_extra_cflags = ['-Wno-incompatible-pointer-types-discards-qualifiers']
+introspection_extra_cflags = [
+  '-Wno-incompatible-pointer-types-discards-qualifiers',
+]
 
 libnm_name = 'libnm'
 
@@ -126,7 +128,8 @@ config_h.set10('HAVE_RT_SIGQUEUEINFO', cc.has_function('rt_sigqueueinfo', prefix
                                                                                      #include <sys/wait.h>'''))
 config_h.set('HAVE_SECURE_GETENV', cc.has_function('secure_getenv'))
 config_h.set('HAVE___SECURE_GETENV', cc.has_function('__secure_getenv'))
-config_h.set10('HAVE_DECL_REALLOCARRAY', cc.has_function('reallocarray', prefix: '#include <malloc.h>'))
+config_h.set10('HAVE_DECL_REALLOCARRAY', cc.has_function('reallocarray', prefix: '''#include <malloc.h>
+                                                                                    #include <stdlib.h>'''))
 config_h.set10('HAVE_DECL_EXPLICIT_BZERO', cc.has_function('explicit_bzero', prefix: '#include <string.h>'))
 config_h.set10('HAVE_DECL_MEMFD_CREATE', cc.has_function('memfd_create', prefix: '#include <sys/mman.h>'))
 
@@ -511,12 +514,21 @@ config_h.set_quoted('NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT', config_auth_polkit_def
 
 enable_modify_system = get_option('modify_system')
 
-polkit_agent_dep = dependency('polkit-agent-1', version: '>= 0.97', required : false)
-if polkit_agent_dep.found()
-	config_h.set_quoted('POLKIT_PACKAGE_PREFIX', polkit_agent_dep.get_pkgconfig_variable('prefix'))
-else
-	config_h.set_quoted('POLKIT_PACKAGE_PREFIX', '/usr')
+polkit_agent_helper_1_path = get_option('polkit_agent_helper_1')
+foreach p : [ '/usr/libexec/polkit-agent-helper-1',
+              '/usr/lib/polkit-1/polkit-agent-helper-1',
+              '/usr/lib/policykit-1/polkit-agent-helper-1' ]
+  if polkit_agent_helper_1_path == '' and run_command('test', '-f', p).returncode() == 0
+    polkit_agent_helper_1_path = p
+  endif
+endforeach
+if polkit_agent_helper_1_path == ''
+  polkit_agent_helper_1_path = '/usr/lib/polkit-1/polkit-agent-helper-1'
 endif
+if polkit_agent_helper_1_path[0] != '/'
+  error('polkit_agent_helper_1 must be an absolute path, but is ' + polkit_agent_helper_1_path)
+endif
+config_h.set_quoted('POLKIT_AGENT_HELPER_1_PATH', polkit_agent_helper_1_path)
 
 
 crypto = get_option('crypto')
@@ -581,6 +593,8 @@ enable_bluez5_dun = get_option('bluez5_dun')
 if enable_bluez5_dun
   bluez5_dep = dependency('bluez', version: '>= 5', required: false)
   assert(bluez5_dep.found(), 'Bluez 5.x development headers are required')
+else
+  bluez5_dep = declare_dependency()
 endif
 config_h.set10('WITH_BLUEZ5_DUN', enable_bluez5_dun)
 
@@ -746,6 +760,8 @@ if enable_nm_cloud_setup
   assert(libcurl_dep.found(), 'nm-cloud-setup requires libcurl library. Use -Dnm_cloud_setup=false to disable it')
 endif
 
+enable_docs = get_option('docs')
+
 more_asserts = get_option('more_asserts')
 if more_asserts == 'auto'
   if nm_minor_version % 2 == 0
@@ -795,6 +811,17 @@ else
     enable_vapi = false
   endif
 endif
+
+test(
+  'check-local-gitlab-ci',
+  find_program(join_paths(source_root, 'tools', 'check-gitlab-ci.sh')),
+  args: [source_root],
+)
+
+test(
+  'check-tree',
+  find_program(join_paths(source_root, 'tools', 'check-tree.sh')),
+)
 
 # Tests, utilities and documentation
 tests = get_option('tests')
@@ -891,8 +918,8 @@ content_files = []
 subdir('introspection')
 subdir('shared')
 subdir('libnm-core')
+subdir('src/core')
 subdir('libnm')
-subdir('src')
 subdir('dispatcher')
 subdir('clients')
 subdir('data')
@@ -914,8 +941,6 @@ if enable_qt
 
   subdir('examples/C/qt')
 endif
-
-enable_docs = get_option('docs')
 
 if enable_docs
   assert(enable_introspection, '-Ddocs=true requires -Dintrospection=true')
@@ -1000,6 +1025,7 @@ if enable_polkit
   output += ' modify.system)'
 endif
 output += '\n'
+output += '  polkit-agent-helper-1: ' + polkit_agent_helper_1_path + '\n'
 output += '  selinux: ' + enable_selinux.to_string() + '\n'
 output += '  systemd-journald: ' + enable_systemd_journal.to_string() + ' (default: logging.backend=' + config_logging_backend_default + ')\n'
 output += '  hostname persist: ' + hostname_persist + '\n'

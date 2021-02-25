@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2016 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "nm-glib-aux/nm-default-glib-i18n-lib.h"
 
 #include "nm-shared-utils.h"
 
@@ -18,6 +18,9 @@
 
 #include "nm-errno.h"
 #include "nm-str-buf.h"
+
+G_STATIC_ASSERT(sizeof(NMEtherAddr) == 6);
+G_STATIC_ASSERT(_nm_alignof(NMEtherAddr) == 1);
 
 G_STATIC_ASSERT(sizeof(NMUtilsNamedEntry) == sizeof(const char *));
 G_STATIC_ASSERT(G_STRUCT_OFFSET(NMUtilsNamedValue, value_ptr) == sizeof(const char *));
@@ -361,6 +364,21 @@ again:
     return b;
 }
 
+GBytes *
+nm_g_bytes_new_from_str(const char *str)
+{
+    gsize l;
+
+    if (!str)
+        return NULL;
+
+    /* the returned array is guaranteed to have a trailing '\0'
+     * character *after* the length. */
+
+    l = strlen(str);
+    return g_bytes_new_take(nm_memdup(str, l + 1u), l);
+}
+
 /**
  * nm_utils_gbytes_equals:
  * @bytes: (allow-none): a #GBytes array to compare. Note that
@@ -433,6 +451,24 @@ nm_g_variant_singleton_u_0(void)
 }
 
 /*****************************************************************************/
+
+GHashTable *
+nm_utils_strdict_clone(GHashTable *src)
+{
+    GHashTable *   dst;
+    GHashTableIter iter;
+    const char *   key;
+    const char *   val;
+
+    if (!src)
+        return NULL;
+
+    dst = g_hash_table_new_full(nm_str_hash, g_str_equal, g_free, g_free);
+    g_hash_table_iter_init(&iter, src);
+    while (g_hash_table_iter_next(&iter, (gpointer *) &key, (gpointer *) &val))
+        g_hash_table_insert(dst, g_strdup(key), g_strdup(val));
+    return dst;
+}
 
 /* Convert a hash table with "char *" keys and values to an "a{ss}" GVariant.
  * The keys will be sorted asciibetically.
@@ -750,27 +786,27 @@ nm_utils_ip6_address_same_prefix_cmp(const struct in6_addr *addr_a,
     return 0;
 }
 
-/**
- * _nm_utils_ip4_get_default_prefix:
- * @ip: an IPv4 address (in network byte order)
- *
- * When the Internet was originally set up, various ranges of IP addresses were
- * segmented into three network classes: A, B, and C.  This function will return
- * a prefix that is associated with the IP address specified defining where it
- * falls in the predefined classes.
- *
- * Returns: the default class prefix for the given IP
- **/
-/* The function is originally from ipcalc.c of Red Hat's initscripts. */
-guint32
-_nm_utils_ip4_get_default_prefix(guint32 ip)
-{
-    if (((ntohl(ip) & 0xFF000000) >> 24) <= 127)
-        return 8; /* Class A - 255.0.0.0 */
-    else if (((ntohl(ip) & 0xFF000000) >> 24) <= 191)
-        return 16; /* Class B - 255.255.0.0 */
+/*****************************************************************************/
 
-    return 24; /* Class C - 255.255.255.0 */
+guint32
+_nm_utils_ip4_get_default_prefix0(in_addr_t ip)
+{
+    /* The function is originally from ipcalc.c of Red Hat's initscripts. */
+    switch (ntohl(ip) >> 24) {
+    case 0 ... 127:
+        return 8; /* Class A */
+    case 128 ... 191:
+        return 16; /* Class B */
+    case 192 ... 223:
+        return 24; /* Class C */
+    }
+    return 0;
+}
+
+guint32
+_nm_utils_ip4_get_default_prefix(in_addr_t ip)
+{
+    return _nm_utils_ip4_get_default_prefix0(ip) ?: 24;
 }
 
 gboolean
@@ -2231,6 +2267,8 @@ _nm_utils_ascii_str_to_bool(const char *str, int default_value)
 
 /*****************************************************************************/
 
+NM_CACHED_QUARK_FCN("nm-manager-error-quark", nm_manager_error_quark);
+
 NM_CACHED_QUARK_FCN("nm-utils-error-quark", nm_utils_error_quark);
 
 void
@@ -3066,6 +3104,18 @@ nm_utils_fd_read_loop_exact(int fd, void *buf, size_t nbytes, bool do_poll)
 
 /*****************************************************************************/
 
+void
+nm_utils_named_value_clear_with_g_free(NMUtilsNamedValue *val)
+{
+    if (val) {
+        gs_free gpointer x_name  = NULL;
+        gs_free gpointer x_value = NULL;
+
+        x_name  = (gpointer) g_steal_pointer(&val->name);
+        x_value = g_steal_pointer(&val->value_ptr);
+    }
+}
+
 G_STATIC_ASSERT(G_STRUCT_OFFSET(NMUtilsNamedValue, name) == 0);
 
 NMUtilsNamedValue *
@@ -3262,6 +3312,62 @@ nm_utils_hash_values_to_array(GHashTable *     hash,
     return arr;
 }
 
+/*****************************************************************************/
+
+/**
+ * nm_utils_hashtable_equal:
+ * @a: one #GHashTable
+ * @b: other #GHashTable
+ * @treat_null_as_empty: if %TRUE, when either @a or @b is %NULL, it is
+ *   treated like an empty hash. It means, a %NULL hash will compare equal
+ *   to an empty hash.
+ * @equal_func: the equality function, for comparing the values.
+ *   If %NULL, the values are not compared. In that case, the function
+ *   only checks, if both dictionaries have the same keys -- according
+ *   to @b's key equality function.
+ *   Note that the values of @a will be passed as first argument
+ *   to @equal_func.
+ *
+ * Compares two hash tables, whether they have equal content.
+ * This only makes sense, if @a and @b have the same key types and
+ * the same key compare-function.
+ *
+ * Returns: %TRUE, if both dictionaries have the same content.
+ */
+gboolean
+nm_utils_hashtable_equal(const GHashTable *a,
+                         const GHashTable *b,
+                         gboolean          treat_null_as_empty,
+                         GEqualFunc        equal_func)
+{
+    guint          n;
+    GHashTableIter iter;
+    gconstpointer  key, v_a, v_b;
+
+    if (a == b)
+        return TRUE;
+    if (!treat_null_as_empty) {
+        if (!a || !b)
+            return FALSE;
+    }
+
+    n = a ? g_hash_table_size((GHashTable *) a) : 0;
+    if (n != (b ? g_hash_table_size((GHashTable *) b) : 0))
+        return FALSE;
+
+    if (n > 0) {
+        g_hash_table_iter_init(&iter, (GHashTable *) a);
+        while (g_hash_table_iter_next(&iter, (gpointer *) &key, (gpointer *) &v_a)) {
+            if (!g_hash_table_lookup_extended((GHashTable *) b, key, NULL, (gpointer *) &v_b))
+                return FALSE;
+            if (equal_func && !equal_func(v_a, v_b))
+                return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
 static gboolean
 _utils_hashtable_equal(GHashTable *     hash_a,
                        GHashTable *     hash_b,
@@ -3301,7 +3407,7 @@ _utils_hashtable_equal(GHashTable *     hash_a,
 }
 
 /**
- * nm_utils_hashtable_equal:
+ * nm_utils_hashtable_cmp_equal:
  * @a: (allow-none): the hash table or %NULL
  * @b: (allow-none): the other hash table or %NULL
  * @cmp_values: (allow-none): if %NULL, only the keys
@@ -3316,10 +3422,10 @@ _utils_hashtable_equal(GHashTable *     hash_a,
  *   @cmp_values is given) all values are the same.
  */
 gboolean
-nm_utils_hashtable_equal(const GHashTable *a,
-                         const GHashTable *b,
-                         GCompareDataFunc  cmp_values,
-                         gpointer          user_data)
+nm_utils_hashtable_cmp_equal(const GHashTable *a,
+                             const GHashTable *b,
+                             GCompareDataFunc  cmp_values,
+                             gpointer          user_data)
 {
     GHashTable *hash_a = (GHashTable *) a;
     GHashTable *hash_b = (GHashTable *) b;
@@ -3374,7 +3480,7 @@ _hashtable_cmp_func(gconstpointer a, gconstpointer b, gpointer user_data)
  * @a: (allow-none): the hash to compare. May be %NULL.
  * @b: (allow-none): the other hash to compare. May be %NULL.
  * @do_fast_precheck: if %TRUE, assume that the hashes are equal
- *   and that it is worth calling nm_utils_hashtable_equal() first.
+ *   and that it is worth calling nm_utils_hashtable_cmp_equal() first.
  *   That requires, that both hashes have the same equals function
  *   which is compatible with the @cmp_keys function.
  * @cmp_keys: the compare function for keys. Usually, the hash/equal function
@@ -3822,62 +3928,6 @@ nm_utils_array_find_binary_search(gconstpointer    list,
     /* return the inverse of @imin. This is a negative number, but
      * also is ~imin the position where the value should be inserted. */
     return ~imin;
-}
-
-/*****************************************************************************/
-
-/**
- * nm_utils_hash_table_equal:
- * @a: one #GHashTable
- * @b: other #GHashTable
- * @treat_null_as_empty: if %TRUE, when either @a or @b is %NULL, it is
- *   treated like an empty hash. It means, a %NULL hash will compare equal
- *   to an empty hash.
- * @equal_func: the equality function, for comparing the values.
- *   If %NULL, the values are not compared. In that case, the function
- *   only checks, if both dictionaries have the same keys -- according
- *   to @b's key equality function.
- *   Note that the values of @a will be passed as first argument
- *   to @equal_func.
- *
- * Compares two hash tables, whether they have equal content.
- * This only makes sense, if @a and @b have the same key types and
- * the same key compare-function.
- *
- * Returns: %TRUE, if both dictionaries have the same content.
- */
-gboolean
-nm_utils_hash_table_equal(const GHashTable *        a,
-                          const GHashTable *        b,
-                          gboolean                  treat_null_as_empty,
-                          NMUtilsHashTableEqualFunc equal_func)
-{
-    guint          n;
-    GHashTableIter iter;
-    gconstpointer  key, v_a, v_b;
-
-    if (a == b)
-        return TRUE;
-    if (!treat_null_as_empty) {
-        if (!a || !b)
-            return FALSE;
-    }
-
-    n = a ? g_hash_table_size((GHashTable *) a) : 0;
-    if (n != (b ? g_hash_table_size((GHashTable *) b) : 0))
-        return FALSE;
-
-    if (n > 0) {
-        g_hash_table_iter_init(&iter, (GHashTable *) a);
-        while (g_hash_table_iter_next(&iter, (gpointer *) &key, (gpointer *) &v_a)) {
-            if (!g_hash_table_lookup_extended((GHashTable *) b, key, NULL, (gpointer *) &v_b))
-                return FALSE;
-            if (equal_func && !equal_func(v_a, v_b))
-                return FALSE;
-        }
-    }
-
-    return TRUE;
 }
 
 /*****************************************************************************/
@@ -4749,7 +4799,7 @@ typedef struct {
     GMainContext *context;
     GHashTable *  fds;
     GPollFD *     fds_arr;
-    int           fds_len;
+    guint         fds_len;
     int           max_priority;
     bool          acquired : 1;
 } CtxIntegSource;
@@ -4792,13 +4842,15 @@ _ctx_integ_source_prepare(GSource *source, int *out_timeout)
     int             max_priority;
     int             timeout = -1;
     gboolean        any_ready;
-    int             fds_allocated;
-    int             fds_len_old;
-    gs_free GPollFD *fds_arr_old = NULL;
-    GHashTableIter   h_iter;
-    PollData *       poll_data;
-    gboolean         fds_changed;
-    int              i;
+    GHashTableIter  h_iter;
+    PollData *      poll_data;
+    gboolean        fds_changed;
+    GPollFD         new_fds_stack[300u / sizeof(GPollFD)];
+    gs_free GPollFD *new_fds_heap = NULL;
+    GPollFD *        new_fds;
+    guint            new_fds_len;
+    guint            new_fds_alloc;
+    guint            i;
 
     _CTX_LOG("prepare...");
 
@@ -4806,30 +4858,44 @@ _ctx_integ_source_prepare(GSource *source, int *out_timeout)
 
     any_ready = g_main_context_prepare(ctx_src->context, &max_priority);
 
-    fds_arr_old = g_steal_pointer(&ctx_src->fds_arr);
-    fds_len_old = ctx_src->fds_len;
+    new_fds_alloc = NM_MAX(G_N_ELEMENTS(new_fds_stack), ctx_src->fds_len);
 
-    fds_allocated    = NM_MAX(1, fds_len_old); /* there is at least the wakeup's FD */
-    ctx_src->fds_arr = g_new(GPollFD, fds_allocated);
+    if (new_fds_alloc > G_N_ELEMENTS(new_fds_stack)) {
+        new_fds_heap = g_new(GPollFD, new_fds_alloc);
+        new_fds      = new_fds_heap;
+    } else
+        new_fds = new_fds_stack;
 
-    while ((ctx_src->fds_len = g_main_context_query(ctx_src->context,
-                                                    max_priority,
-                                                    &timeout,
-                                                    ctx_src->fds_arr,
-                                                    fds_allocated))
-           > fds_allocated) {
-        fds_allocated = ctx_src->fds_len;
-        g_free(ctx_src->fds_arr);
-        ctx_src->fds_arr = g_new(GPollFD, fds_allocated);
+    for (;;) {
+        int l;
+
+        nm_assert(new_fds_alloc <= (guint) G_MAXINT);
+
+        l = g_main_context_query(ctx_src->context,
+                                 max_priority,
+                                 &timeout,
+                                 new_fds,
+                                 (int) new_fds_alloc);
+        nm_assert(l >= 0);
+
+        new_fds_len = (guint) l;
+
+        if (G_LIKELY(new_fds_len <= new_fds_alloc))
+            break;
+
+        new_fds_alloc = new_fds_len;
+        g_free(new_fds_heap);
+        new_fds_heap = g_new(GPollFD, new_fds_alloc);
+        new_fds      = new_fds_heap;
     }
 
     fds_changed = FALSE;
-    if (fds_len_old != ctx_src->fds_len)
+    if (new_fds_len != ctx_src->fds_len)
         fds_changed = TRUE;
     else {
-        for (i = 0; i < ctx_src->fds_len; i++) {
-            if (fds_arr_old[i].fd != ctx_src->fds_arr[i].fd
-                || fds_arr_old[i].events != ctx_src->fds_arr[i].events) {
+        for (i = 0; i < new_fds_len; i++) {
+            if (new_fds[i].fd != ctx_src->fds_arr[i].fd
+                || new_fds[i].events != ctx_src->fds_arr[i].events) {
                 fds_changed = TRUE;
                 break;
             }
@@ -4837,6 +4903,13 @@ _ctx_integ_source_prepare(GSource *source, int *out_timeout)
     }
 
     if (G_UNLIKELY(fds_changed)) {
+        g_free(ctx_src->fds_arr);
+        ctx_src->fds_len = new_fds_len;
+        if (G_LIKELY(new_fds == new_fds_stack) || new_fds_alloc != new_fds_len)
+            ctx_src->fds_arr = nm_memdup(new_fds, sizeof(*new_fds) * new_fds_len);
+        else
+            ctx_src->fds_arr = g_steal_pointer(&new_fds_heap);
+
         g_hash_table_iter_init(&h_iter, ctx_src->fds);
         while (g_hash_table_iter_next(&h_iter, (gpointer *) &poll_data, NULL))
             poll_data->stale = TRUE;
@@ -4971,10 +5044,12 @@ _ctx_integ_source_check(GSource *source)
             ctx_src->fds_arr[poll_data->idx.one].revents = revents;
     }
 
+    nm_assert(ctx_src->fds_len <= (guint) G_MAXINT);
+
     some_ready = g_main_context_check(ctx_src->context,
                                       ctx_src->max_priority,
                                       ctx_src->fds_arr,
-                                      ctx_src->fds_len);
+                                      (int) ctx_src->fds_len);
 
     _CTX_LOG("check (some-ready=%d)...", some_ready);
 
@@ -5087,6 +5162,31 @@ nm_utils_g_main_context_create_integrate_source(GMainContext *inner_context)
 
     return &ctx_src->source;
 }
+
+/*****************************************************************************/
+
+void
+nm_utils_ifname_cpy(char *dst, const char *name)
+{
+    int i;
+
+    g_return_if_fail(dst);
+    g_return_if_fail(name && name[0]);
+
+    nm_assert(nm_utils_ifname_valid_kernel(name, NULL));
+
+    /* ensures NUL padding of the entire IFNAMSIZ buffer. */
+
+    for (i = 0; i < (int) IFNAMSIZ && name[i] != '\0'; i++)
+        dst[i] = name[i];
+
+    nm_assert(name[i] == '\0');
+
+    for (; i < (int) IFNAMSIZ; i++)
+        dst[i] = '\0';
+}
+
+/*****************************************************************************/
 
 gboolean
 nm_utils_ifname_valid_kernel(const char *name, GError **error)

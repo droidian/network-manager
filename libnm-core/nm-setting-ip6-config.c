@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2014 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-ip6-config.h"
 
@@ -592,7 +592,7 @@ nm_setting_ip6_config_init(NMSettingIP6Config *setting)
 NMSetting *
 nm_setting_ip6_config_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_IP6_CONFIG, NULL);
+    return g_object_new(NM_TYPE_SETTING_IP6_CONFIG, NULL);
 }
 
 static void

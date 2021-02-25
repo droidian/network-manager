@@ -1,10 +1,10 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2008 Novell, Inc.
  * Copyright (C) 2007 - 2018 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-libnm.h"
 
 #include "nm-device.h"
 
@@ -1223,8 +1223,11 @@ nm_device_get_type_description(NMDevice *device)
     }
 
     typename = G_OBJECT_TYPE_NAME(device);
-    if (g_str_has_prefix(typename, "NMDevice"))
+    if (g_str_has_prefix(typename, "NMDevice")) {
         typename += 8;
+        if (nm_streq(typename, "Veth"))
+            typename = "Ethernet";
+    }
     priv->type_description = g_ascii_strdown(typename, -1);
 
     return _nml_coerce_property_str_not_empty(priv->type_description);
@@ -2814,6 +2817,10 @@ nm_device_connection_compatible(NMDevice *device, NMConnection *connection, GErr
  * Returns: (transfer full) (element-type NMConnection): an array of
  * #NMConnections that could be activated with the given @device.  The array
  * should be freed with g_ptr_array_unref() when it is no longer required.
+ *
+ * WARNING: the transfer annotation for this function may not work correctly
+ *   with bindings. See https://gitlab.gnome.org/GNOME/gobject-introspection/-/issues/305.
+ *   You can filter the list yourself with nm_device_connection_valid().
  **/
 GPtrArray *
 nm_device_filter_connections(NMDevice *device, const GPtrArray *connections)

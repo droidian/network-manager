@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (C) 2014 Red Hat, Inc.
  */
@@ -18,7 +18,7 @@
  * https://github.com/lxde/lxqt-policykit/tree/master/src
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-client.h"
 
 #include "nm-polkit-listener.h"
 
@@ -501,7 +501,7 @@ begin_authentication(AuthRequest *request)
 {
     int         fd_flags;
     const char *helper_argv[] = {
-        POLKIT_PACKAGE_PREFIX "/lib/polkit-1/polkit-agent-helper-1",
+        POLKIT_AGENT_HELPER_1_PATH,
         request->username,
         NULL,
     };

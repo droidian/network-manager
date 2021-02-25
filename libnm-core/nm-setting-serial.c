@@ -1,10 +1,10 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2018 Red Hat, Inc.
  * Copyright (C) 2007 - 2008 Novell, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-serial.h"
 
@@ -223,7 +223,7 @@ nm_setting_serial_init(NMSettingSerial *self)
 NMSetting *
 nm_setting_serial_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_SERIAL, NULL);
+    return g_object_new(NM_TYPE_SETTING_SERIAL, NULL);
 }
 
 static void

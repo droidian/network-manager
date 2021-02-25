@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include "nm-sd-adapt-shared.h"
 
@@ -147,57 +147,32 @@ char *strnappend(const char *s, const char *suffix, size_t b) {
 
 char *strjoin_real(const char *x, ...) {
         va_list ap;
-        size_t l;
+        size_t l = 1;
         char *r, *p;
 
         va_start(ap, x);
+        for (const char *t = x; t; t = va_arg(ap, const char *)) {
+                size_t n;
 
-        if (x) {
-                l = strlen(x);
-
-                for (;;) {
-                        const char *t;
-                        size_t n;
-
-                        t = va_arg(ap, const char *);
-                        if (!t)
-                                break;
-
-                        n = strlen(t);
-                        if (n > ((size_t) -1) - l) {
-                                va_end(ap);
-                                return NULL;
-                        }
-
-                        l += n;
+                n = strlen(t);
+                if (n > SIZE_MAX - l) {
+                        va_end(ap);
+                        return NULL;
                 }
-        } else
-                l = 0;
-
+                l += n;
+        }
         va_end(ap);
 
-        r = new(char, l+1);
+        p = r = new(char, l);
         if (!r)
                 return NULL;
 
-        if (x) {
-                p = stpcpy(r, x);
+        va_start(ap, x);
+        for (const char *t = x; t; t = va_arg(ap, const char *))
+                p = stpcpy(p, t);
+        va_end(ap);
 
-                va_start(ap, x);
-
-                for (;;) {
-                        const char *t;
-
-                        t = va_arg(ap, const char *);
-                        if (!t)
-                                break;
-
-                        p = stpcpy(p, t);
-                }
-
-                va_end(ap);
-        } else
-                r[0] = 0;
+        *p = 0;
 
         return r;
 }
@@ -823,10 +798,10 @@ char *strip_tab_ansi(char **ibuf, size_t *_isz, size_t highlight[2]) {
         return *ibuf;
 }
 
-char *strextend_with_separator(char **x, const char *separator, ...) {
-        bool need_separator;
+char *strextend_with_separator_internal(char **x, const char *separator, ...) {
         size_t f, l, l_separator;
-        char *r, *p;
+        bool need_separator;
+        char *nr, *p;
         va_list ap;
 
         assert(x);
@@ -850,7 +825,7 @@ char *strextend_with_separator(char **x, const char *separator, ...) {
                 if (need_separator)
                         n += l_separator;
 
-                if (n > ((size_t) -1) - l) {
+                if (n >= SIZE_MAX - l) {
                         va_end(ap);
                         return NULL;
                 }
@@ -862,11 +837,12 @@ char *strextend_with_separator(char **x, const char *separator, ...) {
 
         need_separator = !isempty(*x);
 
-        r = realloc(*x, l+1);
-        if (!r)
+        nr = realloc(*x, GREEDY_ALLOC_ROUND_UP(l+1));
+        if (!nr)
                 return NULL;
 
-        p = r + f;
+        *x = nr;
+        p = nr + f;
 
         va_start(ap, separator);
         for (;;) {
@@ -885,12 +861,11 @@ char *strextend_with_separator(char **x, const char *separator, ...) {
         }
         va_end(ap);
 
-        assert(p == r + l);
+        assert(p == nr + l);
 
         *p = 0;
-        *x = r;
 
-        return r + l;
+        return p;
 }
 #endif /* NM_IGNORED */
 

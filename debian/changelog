@@ -1,3 +1,77 @@
+network-manager (1.30.0-1ubuntu1) UNRELEASED; urgency=medium
+
+  * Resynchronize on Debian, remaining changes:
+    - Use systemd-resolved instead of dnsmasq
+    - debian/control:
+      + Depend on isc-dhcp-client instead of recommends
+      + Recommend network-manager-pptp
+      + Suggest avahi-autoipd for IPv4LL support
+    - debian/rules, debian/network-manager.postinst:
+      + Don't restart NetworkManager on upgrade but recommend restarting
+        the computer
+    - debian/rules, debian/network-manager.postinst:
+      + Don't install sysvinit scripts or migrate from sysvinit
+    - debian/network-manager.postinst:
+      + Don't add the netdev group.
+      + drop in an empty override file for NetworkManager to manage all
+        devices for upgrade from any version, as long as there is no
+        netplan configuration yet.
+    - debian/default-wifi-powersave-on.conf, debian/rules:
+      + Install a config file to enable WiFi powersave
+    - Enable build tests
+    - Add autopkgtests
+    - debian/source_network-manager.py, debian/network-manager.install,
+      debian/network-manager.links: Add apport hook
+    - Add network-manager-config-connectivity-ubuntu package
+    - NetworkManager.conf: disable MAC randomization feature. There is no
+      easy way for desktop users to disable this feature yet. And there are
+      reports that it doesn't work well with some systems.
+    - Update Vcs links to point to Ubuntu branch
+    - Add patches. See patch descriptions for more details:
+      + Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
+      + Update-dnsmasq-parameters.patch
+      + Disable-general-with-expect.patch
+      + libnm-Check-self-still-NMManager-or-not.patch
+      + dns-manager-don-t-merge-split-DNS-search-domains.patch (but disabled)
+      + Read-system-connections-from-run.patch
+    - debian/tests/urfkill-integration - don't stop/start network manager
+    - debian/patches/ubuntu_revert_systemd.patch:
+      + temporarly revert an upstream commit that made udev enabled under lxc,
+        the new systemd doesn't work there (lp: #1914062)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 25 Feb 2021 11:37:02 +0100
+
+network-manager (1.30.0-1) unstable; urgency=medium
+
+  * New upstream version 1.30.0
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 18 Feb 2021 19:25:36 +0100
+
+network-manager (1.29.90-2) unstable; urgency=medium
+
+  * Add iproute2 to Build-Depends.
+    Required by the test suite. Mark as <!nocheck> accordingly.
+  * Cherry-pick fixes from upstream nm-1-30 branch
+    - Fixes assertion when running the python-dbusmock test suite
+      (Closes: #982613)
+    - Replaces our custom polkit-agent-helper-1 patch
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 16 Feb 2021 22:54:54 +0100
+
+network-manager (1.29.90-1) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * New upstream version 1.29.90 (1.30 rc1)
+  * Rebase patches
+  * Update symbols file for libnm0
+  * Fix polkit-agent-helper-1 path
+
+  [ Helmut Grohne ]
+  * Drop unused Build-Depends (Closes: #979378)
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 11 Feb 2021 20:09:16 +0100
+
 network-manager (1.28.0-2ubuntu2) hirsute; urgency=medium
 
   * debian/patches/ubuntu_revert_systemd.patch:

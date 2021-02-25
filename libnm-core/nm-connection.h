@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2018 Red Hat, Inc.
  * Copyright (C) 2007 - 2008 Novell, Inc.
@@ -94,7 +94,7 @@ NMSetting *nm_connection_get_setting_by_name(NMConnection *connection, const cha
  * @NM_CONNECTION_SERIALIZE_NO_SECRETS: do not include secrets
  * @NM_CONNECTION_SERIALIZE_ONLY_SECRETS: only serialize secrets
  * @NM_CONNECTION_SERIALIZE_WITH_SECRETS_AGENT_OWNED: if set, only secrets that
- *   are agent owned will be serialized. Since: 1.20
+ *   are agent owned will be serialized. Since: 1.20.
  *
  * These flags determine which properties are serialized when calling when
  * calling nm_connection_to_dbus().

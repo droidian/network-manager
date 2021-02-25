@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2017 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-tc-config.h"
 
@@ -1778,7 +1778,7 @@ nm_setting_tc_config_init(NMSettingTCConfig *self)
 NMSetting *
 nm_setting_tc_config_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_TC_CONFIG, NULL);
+    return g_object_new(NM_TYPE_SETTING_TC_CONFIG, NULL);
 }
 
 static void

@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (C) 2013 Red Hat, Inc.
  */
@@ -12,7 +12,7 @@
  * shared between nmtui, nm-connection-editor, and gnome-control-center.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-client.h"
 
 #include "nm-editor-bindings.h"
 
@@ -626,6 +626,9 @@ get_security_type(NMEditorWirelessSecurityMethodBinding *binding)
 
     if (!strcmp(key_mgmt, "wpa-eap"))
         return "wpa-enterprise";
+
+    if (!strcmp(key_mgmt, "wpa-eap-suite-b-192"))
+        return "wpa3-enterprise-suite-b-192";
 
     return NULL;
 }

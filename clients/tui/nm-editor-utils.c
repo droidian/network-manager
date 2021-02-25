@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (C) 2012, 2013 Red Hat, Inc.
  */
@@ -12,7 +12,7 @@
  * nm-connection-editor, and gnome-control-center.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-client.h"
 
 #include "nm-editor-utils.h"
 #if 0
@@ -130,6 +130,14 @@ nm_editor_utils_get_connection_type_list(void)
     item->data.device_type  = NM_TYPE_DEVICE_ETHERNET;
     item->data.virtual      = FALSE;
     item->id_format         = _("Ethernet connection %d");
+    g_ptr_array_add(array, item);
+
+    item                    = g_new0(NMEditorConnectionTypeDataReal, 1);
+    item->data.name         = _("Veth");
+    item->data.setting_type = NM_TYPE_SETTING_VETH;
+    item->data.device_type  = NM_TYPE_DEVICE_VETH;
+    item->data.virtual      = TRUE;
+    item->id_format         = _("Veth connection %d");
     g_ptr_array_add(array, item);
 
     item                        = g_new0(NMEditorConnectionTypeDataReal, 1);

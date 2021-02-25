@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (C) 2010 - 2018 Red Hat, Inc.
  */
@@ -7,8 +7,8 @@
 #define __NM_META_SETTING_DESC_H__
 
 #include "nm-glib-aux/nm-obj.h"
-#include "nm-meta-setting.h"
-#include "nm-libnm-core-intern/nm-ethtool-utils.h"
+#include "nm-meta-setting-base.h"
+#include "nm-base/nm-ethtool-base.h"
 
 struct _NMDevice;
 

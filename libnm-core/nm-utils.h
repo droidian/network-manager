@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2005 - 2017 Red Hat, Inc.
  */
@@ -11,12 +11,6 @@
 #endif
 
 #include <glib.h>
-
-#include <netinet/in.h>
-
-/* For ETH_ALEN and INFINIBAND_ALEN */
-#include <linux/if_ether.h>
-#include <linux/if_infiniband.h>
 
 #include "nm-core-enum-types.h"
 #include "nm-setting-sriov.h"
@@ -54,6 +48,7 @@ char *      nm_utils_ssid_to_utf8(const guint8 *ssid, gsize len);
  * @NMU_SEC_WPA2_ENTERPRISE: WPA2 is used with 802.1x authentication
  * @NMU_SEC_SAE: is used with WPA3 Enterprise
  * @NMU_SEC_OWE: is used with Enhanced Open
+ * @NMU_SEC_WPA3_SUITE_B_192: is used with WPA3 Enterprise Suite-B 192 bit mode. Since: 1.30.
  *
  * Describes generic security mechanisms that 802.11 access points may offer.
  * Used with nm_utils_security_valid() for checking whether a given access
@@ -71,6 +66,7 @@ typedef enum {
     NMU_SEC_WPA2_ENTERPRISE,
     NMU_SEC_SAE,
     NMU_SEC_OWE,
+    NMU_SEC_WPA3_SUITE_B_192,
 } NMUtilsSecurityType;
 
 gboolean nm_utils_security_valid(NMUtilsSecurityType      type,
@@ -185,7 +181,10 @@ gboolean nm_utils_is_uuid(const char *str);
  * for both nm_utils_inet4_ntop() and nm_utils_inet6_ntop().
  **/
 #define NM_UTILS_INET_ADDRSTRLEN INET6_ADDRSTRLEN
-const char *nm_utils_inet4_ntop(in_addr_t inaddr, char *dst);
+
+const char *nm_utils_inet4_ntop(guint32 inaddr, char *dst);
+
+struct in6_addr;
 const char *nm_utils_inet6_ntop(const struct in6_addr *in6addr, char *dst);
 
 gboolean nm_utils_ipaddr_valid(int family, const char *ip);

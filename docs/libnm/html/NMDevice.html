@@ -2389,7 +2389,10 @@ incompatible with the device. To get the full list of connections see
 <p>an array of
 <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> that could be activated with the given <em class="parameter"><code>device</code></em>
 .  The array
-should be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#g-ptr-array-unref"><code class="function">g_ptr_array_unref()</code></a> when it is no longer required. </p>
+should be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#g-ptr-array-unref"><code class="function">g_ptr_array_unref()</code></a> when it is no longer required.</p>
+<p>WARNING: the transfer annotation for this function may not work correctly
+with bindings. See https://gitlab.gnome.org/GNOME/gobject-introspection/-/issues/305.
+You can filter the list yourself with <a class="link" href="NMDevice.html#nm-device-connection-valid" title="nm_device_connection_valid ()"><code class="function">nm_device_connection_valid()</code></a>. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>
 </div>
 </div>

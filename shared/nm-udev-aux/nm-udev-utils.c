@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2017 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "nm-glib-aux/nm-default-glib-i18n-lib.h"
 
 #include "nm-udev-utils.h"
 
@@ -241,11 +241,11 @@ nm_udev_client_new(const char *const *subsystems,
     return self;
 
 fail:
-    return nm_udev_client_unref(self);
+    return nm_udev_client_destroy(self);
 }
 
 NMUdevClient *
-nm_udev_client_unref(NMUdevClient *self)
+nm_udev_client_destroy(NMUdevClient *self)
 {
     if (!self)
         return NULL;

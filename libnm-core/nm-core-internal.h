@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2014 - 2018 Red Hat, Inc.
  */
@@ -20,10 +20,11 @@
     #error Cannot use this header.
 #endif
 
+#include "nm-base/nm-base.h"
 #include "nm-connection.h"
 #include "nm-core-enum-types.h"
 #include "nm-core-types-internal.h"
-#include "nm-meta-setting.h"
+#include "nm-meta-setting-base.h"
 #include "nm-setting-6lowpan.h"
 #include "nm-setting-8021x.h"
 #include "nm-setting-adsl.h"
@@ -37,6 +38,7 @@
 #include "nm-setting-dummy.h"
 #include "nm-setting-generic.h"
 #include "nm-setting-gsm.h"
+#include "nm-setting-hostname.h"
 #include "nm-setting-infiniband.h"
 #include "nm-setting-ip-tunnel.h"
 #include "nm-setting-ip4-config.h"
@@ -59,6 +61,7 @@
 #include "nm-setting-team-port.h"
 #include "nm-setting-team.h"
 #include "nm-setting-tun.h"
+#include "nm-setting-veth.h"
 #include "nm-setting-vlan.h"
 #include "nm-setting-vpn.h"
 #include "nm-setting-vrf.h"
@@ -213,6 +216,38 @@ nm_bluetooth_capability_to_string(NMBluetoothCapabilities capabilities, char *bu
 
 /*****************************************************************************/
 
+static inline _NMSettingWiredWakeOnLan
+_NM_SETTING_WIRED_WAKE_ON_LAN_CAST(NMSettingWiredWakeOnLan v)
+{
+    /* _NMSettingWiredWakeOnLan and NMSettingWiredWakeOnLan enums are really
+     * the same.
+     *
+     * The former is used by nm-platform (which should have no libnm-core dependency),
+     * the latter is used by libnm-core. A unit test ensures they are exactly the same,
+     * so we can just cast them. */
+    return (_NMSettingWiredWakeOnLan) v;
+}
+
+/*****************************************************************************/
+
+static inline NMTernary
+NM_TERNARY_FROM_OPTION_BOOL(NMOptionBool v)
+{
+    nm_assert(NM_IN_SET(v, NM_OPTION_BOOL_DEFAULT, NM_OPTION_BOOL_TRUE, NM_OPTION_BOOL_FALSE));
+
+    return (NMTernary) v;
+}
+
+static inline NMOptionBool
+NM_TERNARY_TO_OPTION_BOOL(NMTernary v)
+{
+    nm_assert(NM_IN_SET(v, NM_TERNARY_DEFAULT, NM_TERNARY_TRUE, NM_TERNARY_FALSE));
+
+    return (NMOptionBool) v;
+}
+
+/*****************************************************************************/
+
 typedef enum { /*< skip >*/
                NM_SETTING_PARSE_FLAGS_NONE        = 0,
                NM_SETTING_PARSE_FLAGS_STRICT      = 1LL << 0,
@@ -325,7 +360,7 @@ gboolean _nm_setting_option_clear(NMSetting *setting, const char *optname);
 
 guint nm_setting_ethtool_init_features(
     NMSettingEthtool *setting,
-    NMTernary *       requested /* indexed by NMEthtoolID - _NM_ETHTOOL_ID_FEATURE_FIRST */);
+    NMOptionBool *    requested /* indexed by NMEthtoolID - _NM_ETHTOOL_ID_FEATURE_FIRST */);
 
 /*****************************************************************************/
 
@@ -473,6 +508,10 @@ GSList *_nm_vpn_plugin_info_list_load_dir(const char *              dirname,
                                           gint64                    check_owner,
                                           NMUtilsCheckFilePredicate check_file,
                                           gpointer                  user_data);
+
+/*****************************************************************************/
+
+GHashTable *_nm_setting_ovs_external_ids_get_data(NMSettingOvsExternalIDs *self);
 
 /*****************************************************************************/
 

@@ -7,7 +7,7 @@
 <link rel="home" href="index.html" title="NetworkManager Reference Manual">
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nm-online.html" title="nm-online">
-<link rel="next" href="nm-openvswitch.html" title="nm-openvswitch">
+<link rel="next" href="nm-cloud-setup.html" title="nm-cloud-setup">
 <meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
@@ -17,7 +17,7 @@
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="manpages.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
 <td><a accesskey="p" href="nm-online.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="nm-openvswitch.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="nm-cloud-setup.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="nm-initrd-generator"></a><div class="titlepage"></div>
@@ -69,6 +69,13 @@
 </tr>
 <tr>
 <td><p><span class="term">
+            <code class="option">-r</code>  |   <code class="option">--run-config-dir</code>  
+            <em class="replaceable"><code>path</code></em> 
+        </span></p></td>
+<td><p>Output directory for config files.</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
             <code class="option">-s</code>  |   <code class="option">--stdout</code>  
         </span></p></td>
 <td><p>Dump connections to standard output. Useful for debugging.</p></td>
@@ -89,6 +96,7 @@
 <tr><td><code class="option">rd.peerdns</code></td></tr>
 <tr><td><code class="option">rd.bootif</code></td></tr>
 <tr><td><code class="option">rd.net.timeout.dhcp</code></td></tr>
+<tr><td><code class="option">rd.net.timeout.carrier</code></td></tr>
 <tr><td><code class="option">BOOTIF</code></td></tr>
 </table>
 <p>Please consult the <span class="citerefentry"><span class="refentrytitle">dracut.cmdline</span>(7)</span>

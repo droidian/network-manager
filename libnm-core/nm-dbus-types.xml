@@ -35,7 +35,7 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CAPABILITY_OVS</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>2</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>OpenVSwitch can be managed. This means the OVS device plugin is loaded. Since: 1.24</para><para></para></entry>
+              <entry role="enum_member_description"><para>OpenVSwitch can be managed. This means the OVS device plugin is loaded. Since: 1.24.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -315,12 +315,12 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_TYPE_WIFI_P2P</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>30</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>an 802.11 Wi-Fi P2P device (Since: 1.16)</para><para></para></entry>
+              <entry role="enum_member_description"><para>an 802.11 Wi-Fi P2P device. Since: 1.16.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_DEVICE_TYPE_VRF</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>31</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>A VRF (Virtual Routing and Forwarding) interface (Since: 1.24)</para><para></para></entry>
+              <entry role="enum_member_description"><para>A VRF (Virtual Routing and Forwarding) interface. Since: 1.24.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -591,6 +591,11 @@
               <entry role="enum_member_name"><para>NM_802_11_AP_SEC_KEY_MGMT_OWE_TM</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x00001000</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>WPA/RSN Opportunistic Wireless Encryption transition mode is supported. Since: 1.26.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_802_11_AP_SEC_KEY_MGMT_EAP_SUITE_B_192</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x00002000</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>WPA3 Enterprise Suite-B 192 bit mode is supported. Since: 1.30.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -1625,17 +1630,17 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CHECKPOINT_CREATE_FLAG_DELETE_NEW_CONNECTIONS</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x02</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>upon rollback, delete any new connection added after the checkpoint (Since: 1.6)</para><para></para></entry>
+              <entry role="enum_member_description"><para>upon rollback, delete any new connection added after the checkpoint. Since: 1.6.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x04</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>upon rollback, disconnect any new device appeared after the checkpoint (Since: 1.6)</para><para></para></entry>
+              <entry role="enum_member_description"><para>upon rollback, disconnect any new device appeared after the checkpoint. Since: 1.6.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x08</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>by default, creating a checkpoint fails if there are already existing checkoints that reference the same devices. With this flag, creation of such checkpoints is allowed, however, if an older checkpoint that references overlapping devices gets rolled back, it will automatically destroy this checkpoint during rollback. This allows to create several overlapping checkpoints in parallel, and rollback to them at will. With the special case that rolling back to an older checkpoint will invalidate all overlapping younger checkpoints. This opts-in that the checkpoint can be automatically destroyed by the rollback of an older checkpoint. (Since: 1.12)</para><para></para></entry>
+              <entry role="enum_member_description"><para>by default, creating a checkpoint fails if there are already existing checkoints that reference the same devices. With this flag, creation of such checkpoints is allowed, however, if an older checkpoint that references overlapping devices gets rolled back, it will automatically destroy this checkpoint during rollback. This allows to create several overlapping checkpoints in parallel, and rollback to them at will. With the special case that rolling back to an older checkpoint will invalidate all overlapping younger checkpoints. This opts-in that the checkpoint can be automatically destroyed by the rollback of an older checkpoint. Since: 1.12.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -1720,7 +1725,7 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_SETTINGS_CONNECTION_FLAG_EXTERNAL</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x08</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>the profile was generated to represent an external configuration of a networking device. Since: 1.26</para><para></para></entry>
+              <entry role="enum_member_description"><para>the profile was generated to represent an external configuration of a networking device. Since: 1.26.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -1780,12 +1785,12 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x40</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>the lifetime of the activation is bound to the visibility of the connection profile, which in turn depends on "connection.permissions" and whether a session for the user exists. Since: 1.16</para><para></para></entry>
+              <entry role="enum_member_description"><para>the lifetime of the activation is bound to the visibility of the connection profile, which in turn depends on "connection.permissions" and whether a session for the user exists. Since: 1.16.</para><para></para></entry>
             </row>
             <row role="constant">
               <entry role="enum_member_name"><para>NM_ACTIVATION_STATE_FLAG_EXTERNAL</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x80</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>the active connection was generated to represent an external configuration of a networking device. Since: 1.26</para><para></para></entry>
+              <entry role="enum_member_description"><para>the active connection was generated to represent an external configuration of a networking device. Since: 1.26.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>

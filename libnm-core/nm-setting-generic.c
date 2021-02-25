@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2013 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-generic.h"
 
@@ -48,7 +48,7 @@ nm_setting_generic_init(NMSettingGeneric *setting)
 NMSetting *
 nm_setting_generic_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_GENERIC, NULL);
+    return g_object_new(NM_TYPE_SETTING_GENERIC, NULL);
 }
 
 static void

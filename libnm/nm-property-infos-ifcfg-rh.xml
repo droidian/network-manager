@@ -17,8 +17,9 @@
 <property name="phase1-peaplabel" variable="IEEE_8021X_PEAP_FORCE_NEW_LABEL(+)" format="" values="yes, no" default="no" example="" description="Use to force the new PEAP label during key derivation."/>
 <property name="phase1-fast-provisioning" variable="IEEE_8021X_FAST_PROVISIONING(+)" format="" values="space-separated list of these values [allow-auth, allow-unauth]" default="" example="IEEE_8021X_FAST_PROVISIONING=&quot;allow-auth allow-unauth&quot;" description="Enable in-line provisioning of EAP-FAST credentials."/>
 <property name="phase1-auth-flags" variable="IEEE_8021X_PHASE1_AUTH_FLAGS(+)" format="" values="space-separated list of authentication flags names" default="" example="IEEE_8021X_PHASE1_AUTH_FLAGS=&quot;tls-1-0-disable tls-1-1-disable&quot;" description="Authentication flags for the supplicant"/>
-<property name="phase2-auth" variable="IEEE_8021X_INNER_AUTH_METHODS(+)" format="" values="&quot;PAP&quot;, &quot;CHAP&quot;, &quot;MSCHAP&quot;, &quot;MSCHAPV2&quot;, &quot;GTC&quot;, &quot;OTP&quot;, &quot;MD5&quot; and &quot;TLS&quot;" default="" example="IEEE_8021X_INNER_AUTH_METHODS=PAP" description="Inner non-EAP authentication methods. IEEE_8021X_INNER_AUTH_METHODS
-can contain values both for &apos;phase2-auth&apos; and &apos;phase2-autheap&apos; properties."/>
+<property name="phase2-auth" variable="IEEE_8021X_INNER_AUTH_METHODS(+)" format="" values="&quot;PAP&quot;, &quot;CHAP&quot;, &quot;MSCHAP&quot;, &quot;MSCHAPV2&quot;, &quot;GTC&quot;, &quot;OTP&quot;, &quot;MD5&quot; and &quot;TLS&quot;" default="" example="IEEE_8021X_INNER_AUTH_METHODS=PAP" description="Inner non-EAP authentication methods for TTLS or the inner EAP
+authentication method for PEAP. IEEE_8021X_INNER_AUTH_METHODS can contain
+values both for &apos;phase2-auth&apos; and &apos;phase2-autheap&apos; properties."/>
 <property name="phase2-autheap" variable="IEEE_8021X_INNER_AUTH_METHODS(+)" format="" values="&quot;EAP-MD5&quot;, &quot;EAP-MSCHAPV2&quot;, &quot;EAP-GTC&quot;, &quot;EAP-OTP&quot; and &quot;EAP-TLS&quot;" default="" example="IEEE_8021X_INNER_AUTH_METHODS=&quot;MSCHAPV2 EAP-TLS&quot;" description="Inner EAP-based authentication methods. Note that
 IEEE_8021X_INNER_AUTH_METHODS is also used for &apos;phase2-auth&apos; values."/>
 <property name="phase2-ca-path" variable="IEEE_8021X_PHASE2_CA_PATH(+)" format="" values="" default="" example="" description="The search path for the certificate."/>
@@ -169,6 +170,14 @@ The sum of the numbers must be 100."/>
 </setting>
 <setting name="gsm">
 </setting>
+<setting name="hostname">
+<property name="priority" variable="HOSTNAME_PRIORITY(+)" format="" values="" default="missing variable means global value or 100" example="HOSTNAME_PRIORITY=50" description="hostname priority"/>
+<property name="from-dhcp" variable="HOSTNAME_FROM_DHCP(+)" format="" values="" default="missing variable means global default or 1" example="HOSTNAME_FROM_DHCP=0,1" description="whether the system hostname can be determined from DHCP"/>
+<property name="from-dhcp" variable="HOSTNAME_FROM_DNS_LOOKUP(+)" format="" values="" default="missing variable means global default or 1" example="HOSTNAME_FROM_DNS_LOOKUP=0,1" description="whether the system hostname can be determined from reverse
+DNS lookup"/>
+<property name="only-best-device" variable="HOSTNAME_ONLY_FROM_DEFAULT(+)" format="" values="" default="missing variable means global default or 1" example="HOSTNAME_ONLY_FROM_DEFAULT=0,1" description="whether the hostname can be determined only from
+devices with the default route"/>
+</setting>
 <setting name="infiniband">
 <property name="mac-address" variable="HWADDR" format="" values="" default="" example="HWADDR=01:02:03:04:05:06:07:08:09:0A:01:02:03:04:05:06:07:08:09:11" description="IBoIP 20-byte hardware address of the device (in traditional
 hex-digits-and-colons notation).
@@ -190,7 +199,7 @@ When PKEY_ID is specified, PHYSDEV and DEVICE also must be specified."/>
 <property name="dns" variable="DNS1, DNS2, ..." format="string" values="" default="" example="DNS1=1.2.3.4 DNS2=10.0.0.254 DNS3=8.8.8.8" description="List of DNS servers. Even if NetworkManager supports many DNS
 servers, initscripts and resolver only care about the first three, usually."/>
 <property name="dns-search" variable="DOMAIN" format="string (space-separated domains)" values="" default="" example="" description="List of DNS search domains."/>
-<property name="addresses" variable="IPADDR, PREFIX, IPADDR1, PREFIX1, ..." format="" values="" default="" example="IPADDR=10.5.5.23 PREFIX=24 IPADDR1=1.1.1.2 PREFIX1=16" description="List of static IP addresses."/>
+<property name="addresses" variable="IPADDR, PREFIX (NETMASK), IPADDR1, PREFIX1 (NETMASK1), ..." format="" values="" default="" example="IPADDR=10.5.5.23 PREFIX=24 IPADDR1=1.1.1.2 PREFIX1=16" description="List of static IP addresses."/>
 <property name="gateway" variable="GATEWAY" format="" values="" default="" example="GATEWAY=10.5.5.1" description="Gateway IP address."/>
 <property name="routes" variable="ADDRESS1, NETMASK1, GATEWAY1, METRIC1, OPTIONS1, ..." format="" values="" default="" example="" description="List of static routes. They are not stored in ifcfg-* file,
 but in route-* file instead."/>
@@ -273,6 +282,8 @@ property ID_PATHS of devices"/>
 </setting>
 <setting name="ovs-dpdk">
 </setting>
+<setting name="ovs-external-ids">
+</setting>
 <setting name="ovs-interface">
 </setting>
 <setting name="ovs-patch">
@@ -316,6 +327,8 @@ encoded by substituting lowercase letters with uppercase and prepending
 uppercase letters with an underscore. A dot is encoded as a double
 underscore. Remaining characters are encoded as underscore followed by a
 3 digit octal representation of the character."/>
+</setting>
+<setting name="veth">
 </setting>
 <setting name="vlan">
 <property name="parent" variable="DEVICE or PHYSDEV" format="" values="" default="" example="" description="Parent interface of the VLAN."/>
@@ -366,7 +379,7 @@ is listed."/>
 <setting name="wireguard">
 </setting>
 <setting name="802-11-wireless-security">
-<property name="key-mgmt" variable="KEY_MGMT(+)" format="" values="IEEE8021X, WPA-PSK, WPA-EAP" default="" example="" description="Key management menthod."/>
+<property name="key-mgmt" variable="KEY_MGMT(+)" format="" values="IEEE8021X, WPA-PSK, WPA-EAP, WPA-EAP-SUITE-B-192" default="" example="" description="Key management menthod."/>
 <property name="wep-tx-keyidx" variable="DEFAULTKEY" format="" values="1, 2, 3, 4" default="1" example="" description="Index of active WEP key."/>
 <property name="auth-alg" variable="SECURITYMODE(+)" format="" values="restricted, open, leap" default="" example="" description="Authentication algorithm for WEP."/>
 <property name="proto" variable="WPA_ALLOW_WPA(+), WPA_ALLOW_WPA2(+)" format="" values="yes, no" default="no" example="" description="Allowed WPA protocols, WPA and WPA2 (RSN)."/>

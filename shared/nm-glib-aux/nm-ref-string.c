@@ -1,6 +1,6 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-#include "nm-default.h"
+#include "nm-glib-aux/nm-default-glib-i18n-lib.h"
 
 #include "nm-ref-string.h"
 
@@ -49,20 +49,28 @@ _ref_string_equal(gconstpointer pa, gconstpointer pb)
 static void
 _ASSERT(const RefString *rstr0)
 {
-#if NM_MORE_ASSERTS
     int r;
 
     nm_assert(rstr0);
 
-    G_LOCK(gl_lock);
-    r = g_atomic_int_get(&rstr0->ref_count);
+    if (NM_MORE_ASSERTS > 0) {
+        r = g_atomic_int_get(&rstr0->ref_count);
+        nm_assert(r > 0);
+        nm_assert(r < G_MAXINT);
+    }
 
-    nm_assert(r > 0);
-    nm_assert(r < G_MAXINT);
+    nm_assert(rstr0->r.str == rstr0->str_data);
+    nm_assert(rstr0->r.str[rstr0->r.len] == '\0');
 
-    nm_assert(rstr0 == g_hash_table_lookup(gl_hash, rstr0));
-    G_UNLOCK(gl_lock);
-#endif
+    if (NM_MORE_ASSERTS > 10) {
+        G_LOCK(gl_lock);
+        r = g_atomic_int_get(&rstr0->ref_count);
+        nm_assert(r > 0);
+        nm_assert(r < G_MAXINT);
+
+        nm_assert(rstr0 == g_hash_table_lookup(gl_hash, rstr0));
+        G_UNLOCK(gl_lock);
+    }
 }
 
 /**
@@ -168,24 +176,25 @@ void
 _nm_ref_string_unref_non_null(NMRefString *rstr)
 {
     RefString *const rstr0 = (RefString *) rstr;
+    int              r;
 
     _ASSERT(rstr0);
 
-    if (G_LIKELY(!g_atomic_int_dec_and_test(&rstr0->ref_count)))
+    /* fast-path: first try to decrement the ref-count without bringing it
+     * to zero. */
+    r = rstr0->ref_count;
+    if (G_LIKELY(r > 1 && g_atomic_int_compare_and_exchange(&rstr0->ref_count, r, r - 1)))
         return;
+
+    /* We apparently are about to return the last reference. Take a lock. */
 
     G_LOCK(gl_lock);
 
-    /* in the fast-path above, we already decremented the ref-count to zero.
-     * We need recheck that the ref-count is still zero. */
+    nm_assert(g_hash_table_lookup(gl_hash, rstr0) == rstr0);
 
-    if (g_atomic_int_get(&rstr0->ref_count) == 0) {
+    if (G_LIKELY(g_atomic_int_dec_and_test(&rstr0->ref_count))) {
         if (!g_hash_table_remove(gl_hash, rstr0))
             nm_assert_not_reached();
-    } else {
-#if NM_MORE_ASSERTS > 5
-        nm_assert(g_hash_table_lookup(gl_hash, rstr0) == rstr0);
-#endif
     }
 
     G_UNLOCK(gl_lock);

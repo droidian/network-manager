@@ -1,10 +1,10 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2008 Novell, Inc.
  * Copyright (C) 2007 - 2014 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-simple-connection.h"
 
@@ -44,7 +44,7 @@ nm_simple_connection_init(NMSimpleConnection *self)
 NMConnection *
 nm_simple_connection_new(void)
 {
-    return (NMConnection *) g_object_new(NM_TYPE_SIMPLE_CONNECTION, NULL);
+    return g_object_new(NM_TYPE_SIMPLE_CONNECTION, NULL);
 }
 
 /**

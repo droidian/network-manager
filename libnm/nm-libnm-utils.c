@@ -1,10 +1,10 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2008 Novell, Inc.
  * Copyright (C) 2007 - 2018 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-libnm.h"
 
 #include "nm-libnm-utils.h"
 
@@ -46,6 +46,7 @@ _nml_dbus_log(NMLDBusLogLevel level, gboolean use_stdout, const char *fmt, ...)
     va_list         args;
     const char *    prefix = "";
     gint64          ts;
+    pid_t           pid;
 
     /* we only call _nml_dbus_log() after nml_dbus_log_enabled(), which already does
      * an atomic access to the variable. Since the value is only initialized once and
@@ -89,14 +90,18 @@ _nml_dbus_log(NMLDBusLogLevel level, gboolean use_stdout, const char *fmt, ...)
 
     ts = nm_utils_clock_gettime_nsec(CLOCK_BOOTTIME);
 
+    pid = getpid();
+
     if (use_stdout) {
-        g_print("libnm-dbus: %s[%" G_GINT64_FORMAT ".%05" G_GINT64_FORMAT "] %s\n",
+        g_print("libnm-dbus[%lld]: %s[%" G_GINT64_FORMAT ".%05" G_GINT64_FORMAT "] %s\n",
+                (long long) pid,
                 prefix,
                 ts / NM_UTILS_NSEC_PER_SEC,
                 (ts / (NM_UTILS_NSEC_PER_SEC / 10000)) % 10000,
                 msg);
     } else {
-        g_printerr("libnm-dbus: %s[%" G_GINT64_FORMAT ".%05" G_GINT64_FORMAT "] %s\n",
+        g_printerr("libnm-dbus[%lld]: %s[%" G_GINT64_FORMAT ".%05" G_GINT64_FORMAT "] %s\n",
+                   (long long) pid,
                    prefix,
                    ts / NM_UTILS_NSEC_PER_SEC,
                    (ts / (NM_UTILS_NSEC_PER_SEC / 10000)) % 10000,
@@ -868,4 +873,43 @@ nm_utils_g_param_spec_is_default(const GParamSpec *pspec)
     /* This function is only used for asserting/testing. It thus
      * strictly asserts and only support argument types that we expect. */
     g_return_val_if_reached(FALSE);
+}
+
+/*****************************************************************************/
+
+/**
+ * nm_utils_print:
+ * @output_mode: if 1 it uses g_print(). If 2, it uses g_printerr().
+ *   If 0, it uses either g_print() or g_printerr(), depending
+ *   on LIBNM_CLIENT_DEBUG (and the "stdout" flag).
+ * @msg: the message to print. The function does not append
+ *   a trailing newline.
+ *
+ * The only purpose of this function is to give access to g_print()
+ * or g_printerr() from pygobject. libnm can do debug logging by
+ * setting LIBNM_CLIENT_DEBUG and uses thereby g_printerr() or
+ * g_print(). A plain "print()" function in python is not in sync
+ * with these functions (it implements additional buffering). By
+ * using nm_utils_print(), the same logging mechanisms can be used.
+ *
+ * Since: 1.30
+ */
+void
+nm_utils_print(int output_mode, const char *msg)
+{
+    gboolean use_stdout;
+
+    g_return_if_fail(msg);
+
+    if (output_mode == 0) {
+        nml_dbus_log_enabled_full(NML_DBUS_LOG_LEVEL_ANY, &use_stdout);
+        output_mode = use_stdout ? 1 : 2;
+    }
+
+    if (output_mode == 1)
+        g_print("%s", msg);
+    else if (output_mode == 2)
+        g_printerr("%s", msg);
+    else
+        g_return_if_reached();
 }

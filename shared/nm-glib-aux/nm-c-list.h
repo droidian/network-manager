@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2014 Red Hat, Inc.
  */
@@ -16,11 +16,6 @@
                                                        \
         _what &&c_list_contains(list, &_what->member); \
     })
-
-/* iterate over the list backwards. */
-#define nm_c_list_for_each_entry_prev(_iter, _list, _m)                                        \
-    for (_iter = c_list_entry((_list)->prev, __typeof__(*_iter), _m); &(_iter)->_m != (_list); \
-         _iter = c_list_entry((_iter)->_m.prev, __typeof__(*_iter), _m))
 
 /*****************************************************************************/
 

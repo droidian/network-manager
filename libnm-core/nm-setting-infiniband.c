@@ -1,13 +1,14 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2011 - 2013 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-infiniband.h"
 
 #include <stdlib.h>
+#include <linux/if_infiniband.h>
 
 #include "nm-utils.h"
 #include "nm-utils-private.h"
@@ -353,7 +354,7 @@ nm_setting_infiniband_init(NMSettingInfiniband *self)
 NMSetting *
 nm_setting_infiniband_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_INFINIBAND, NULL);
+    return g_object_new(NM_TYPE_SETTING_INFINIBAND, NULL);
 }
 
 static void

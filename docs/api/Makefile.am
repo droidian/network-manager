@@ -99,6 +99,10 @@ if WITH_OPENVSWITCH
 content_files += $(top_builddir)/man/nm-openvswitch.xml
 endif
 
+if BUILD_NM_CLOUD_SETUP
+content_files += $(top_builddir)/man/nm-cloud-setup.xml
+endif
+
 if CONFIG_PLUGIN_IFCFG_RH
 content_files += $(top_builddir)/man/nm-settings-ifcfg-rh.xml
 endif
@@ -126,9 +130,19 @@ setup-build.stamp:
 
 ####################################
 
-EXTRA_DIST += version.xml.in settings-spec.xsl meson.build $(GENERATED_FILES)
-CLEANFILES += html/* tmpl/* xml/* \
-	NetworkManager-sections.txt \
-	NetworkManager-overrides.txt
+EXTRA_DIST += \
+	version.xml.in \
+	settings-spec.xsl \
+	meson.build \
+	$(GENERATED_FILES) \
+	$(NULL)
 
-CLEANFILES += settings-spec.xml
+CLEANFILES += \
+	html/* \
+	tmpl/* \
+	xml/* \
+	NetworkManager-overrides.txt \
+	NetworkManager-sections.txt \
+	NetworkManager.actions \
+	settings-spec.xml \
+	$(NULL)

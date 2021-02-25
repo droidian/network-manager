@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2016 Atul Anand <atulhjp@gmail.com>.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-proxy.h"
 
@@ -262,7 +262,7 @@ nm_setting_proxy_init(NMSettingProxy *self)
 NMSetting *
 nm_setting_proxy_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_PROXY, NULL);
+    return g_object_new(NM_TYPE_SETTING_PROXY, NULL);
 }
 
 static void

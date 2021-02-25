@@ -40,6 +40,7 @@ IGNORE_HFILES= \
 	nm-crypto-impl.h \
 	nm-crypto.h \
 	nm-dbus-helpers.h \
+	nm-default-libnm-core.h \
 	nm-device-private.h \
 	nm-dhcp4-config.h \
 	nm-dhcp6-config.h \
@@ -60,7 +61,7 @@ IGNORE_HFILES= \
 	\
 	nm-auth-subject.h \
 	nm-common-macros.h \
-	nm-ethtool-utils.h \
+	nm-ethtool-base.h \
 	nm-libnm-core-utils.h \
 	\
 	nm-dispatcher-api.h \
@@ -100,16 +101,19 @@ GTKDOC_LIBS = \
 # include common portion ...
 include $(top_srcdir)/gtk-doc.make
 
-EXTRA_DIST += version.xml.in meson.build
+EXTRA_DIST += \
+	version.xml.in \
+	meson.build \
+	$(NULL)
 
 CLEANFILES += \
-	libnm-sections.txt \
-	libnm-overrides.txt \
 	html/* \
 	tmpl/* \
-	xml/*
-
-DISTCLEANFILES = libnm.actions
+	xml/* \
+	libnm-overrides.txt \
+	libnm-sections.txt \
+	libnm.actions \
+	$(NULL)
 
 if GTK_DOC_BUILD_HTML
 check-local-gtk-doc-patch:

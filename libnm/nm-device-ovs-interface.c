@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2017 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-libnm.h"
 
 #include "nm-device-ovs-interface.h"
 
@@ -76,7 +76,7 @@ nm_device_ovs_interface_init(NMDeviceOvsInterface *device)
 const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_ovsinterface =
     NML_DBUS_META_IFACE_INIT(NM_DBUS_INTERFACE_DEVICE_OVS_INTERFACE,
                              nm_device_ovs_interface_get_type,
-                             NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_HIGH, );
+                             NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_30, );
 
 static void
 nm_device_ovs_interface_class_init(NMDeviceOvsInterfaceClass *ovs_interface_class)

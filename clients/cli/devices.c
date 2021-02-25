@@ -1,15 +1,16 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (C) 2010 - 2018 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-client.h"
 
 #include "devices.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <readline/readline.h>
+#include <linux/if_ether.h>
 
 #include "nm-glib-aux/nm-secret-utils.h"
 #include "common.h"
@@ -53,6 +54,8 @@ ap_wpa_rsn_flags_to_string(NM80211ApSecurityFlags flags, NMMetaAccessorGetType g
         flags_str[i++] = "802.1X";
     if (flags & NM_802_11_AP_SEC_KEY_MGMT_SAE)
         flags_str[i++] = "sae";
+    if (flags & NM_802_11_AP_SEC_KEY_MGMT_EAP_SUITE_B_192)
+        flags_str[i++] = "wpa-eap-suite-b-192";
     if (NM_FLAGS_ANY(flags, NM_802_11_AP_SEC_KEY_MGMT_OWE | NM_802_11_AP_SEC_KEY_MGMT_OWE_TM))
         flags_str[i++] = "owe";
 
@@ -896,7 +899,7 @@ static void
 usage_device_modify(void)
 {
     g_printerr(_(
-        "Usage: nmcli device modify { ARGUMENTS | --help }\n"
+        "Usage: nmcli device modify { ARGUMENTS | help }\n"
         "\n"
         "ARGUMENTS := <ifname> ([+|-]<setting>.<property> <value>)+\n"
         "\n"

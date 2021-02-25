@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 12/06/2020
+.\"      Date: 02/18/2021
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.28.0
+.\"    Source: NetworkManager 1.30.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.28\&.0" "Configuration"
+.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.30\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -459,14 +459,14 @@ Format: array of string
 .PP
 \fBphase2\-auth\fR
 .RS 4
-Specifies the allowed "phase 2" inner non\-EAP authentication method when an EAP method that uses an inner TLS tunnel is specified in the "eap" property\&. Recognized non\-EAP "phase 2" methods are "pap", "chap", "mschap", "mschapv2", "gtc", "otp", "md5", and "tls"\&. Each "phase 2" inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details\&.
+Specifies the allowed "phase 2" inner authentication method when an EAP method that uses an inner TLS tunnel is specified in the "eap" property\&. For TTLS this property selects one of the supported non\-EAP inner methods: "pap", "chap", "mschap", "mschapv2" while "phase2\-autheap" selects an EAP inner method\&. For PEAP this selects an inner EAP method, one of: "gtc", "otp", "md5" and "tls"\&. Each "phase 2" inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details\&. Both "phase2\-auth" and "phase2\-autheap" cannot be specified\&.
 .sp
 Format: string
 .RE
 .PP
 \fBphase2\-autheap\fR
 .RS 4
-Specifies the allowed "phase 2" inner EAP\-based authentication method when an EAP method that uses an inner TLS tunnel is specified in the "eap" property\&. Recognized EAP\-based "phase 2" methods are "md5", "mschapv2", "otp", "gtc", and "tls"\&. Each "phase 2" inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details\&.
+Specifies the allowed "phase 2" inner EAP\-based authentication method when TTLS is specified in the "eap" property\&. Recognized EAP\-based "phase 2" methods are "md5", "mschapv2", "otp", "gtc", and "tls"\&. Each "phase 2" inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details\&.
 .sp
 Format: string
 .RE
@@ -1260,6 +1260,10 @@ Properties:
 .RS 4
 .RE
 .PP
+\fBfeature\-macsec\-hw\-offload\fR
+.RS 4
+.RE
+.PP
 \fBfeature\-ntuple\fR
 .RS 4
 .RE
@@ -1277,6 +1281,14 @@ Properties:
 .RE
 .PP
 \fBfeature\-rx\-gro\-hw\fR
+.RS 4
+.RE
+.PP
+\fBfeature\-rx\-gro\-list\fR
+.RS 4
+.RE
+.PP
+\fBfeature\-rx\-udp\-gro\-forwarding\fR
 .RS 4
 .RE
 .PP
@@ -1309,6 +1321,10 @@ Properties:
 .RE
 .PP
 \fBfeature\-tls\-hw\-record\fR
+.RS 4
+.RE
+.PP
+\fBfeature\-tls\-hw\-rx\-offload\fR
 .RS 4
 .RE
 .PP
@@ -1360,6 +1376,10 @@ Properties:
 .RS 4
 .RE
 .PP
+\fBfeature\-tx\-gso\-list\fR
+.RS 4
+.RE
+.PP
 \fBfeature\-tx\-gso\-partial\fR
 .RS 4
 .RE
@@ -1405,6 +1425,10 @@ Properties:
 .RE
 .PP
 \fBfeature\-tx\-tcp6\-segmentation\fR
+.RS 4
+.RE
+.PP
+\fBfeature\-tx\-tunnel\-remcsum\-segmentation\fR
 .RS 4
 .RE
 .PP
@@ -1630,7 +1654,7 @@ Format: int32
 .PP
 \fBdhcp\-client\-id\fR
 .RS 4
-A string sent to the DHCP server to identify the local machine which the DHCP server may use to customize the DHCP lease and options\&. When the property is a hex string (\*(Aqaa:bb:cc\*(Aq) it is interpreted as a binary client ID, in which case the first byte is assumed to be the \*(Aqtype\*(Aq field as per RFC 2132 section 9\&.14 and the remaining bytes may be an hardware address (e\&.g\&. \*(Aq01:xx:xx:xx:xx:xx:xx\*(Aq where 1 is the Ethernet ARP type and the rest is a MAC address)\&. If the property is not a hex string it is considered as a non\-hardware\-address client ID and the \*(Aqtype\*(Aq field is set to 0\&. The special values "mac" and "perm\-mac" are supported, which use the current or permanent MAC address of the device to generate a client identifier with type ethernet (01)\&. Currently, these options only work for ethernet type of links\&. The special value "duid" generates a RFC4361\-compliant client identifier based on a hash of the interface name as IAID and /etc/machine\-id\&. The special value "stable" is supported to generate a type 0 client identifier based on the stable\-id (see connection\&.stable\-id) and a per\-host key\&. If you set the stable\-id, you may want to include the "${DEVICE}" or "${MAC}" specifier to get a per\-device key\&. If unset, a globally configured default is used\&. If still unset, the default depends on the DHCP plugin\&.
+A string sent to the DHCP server to identify the local machine which the DHCP server may use to customize the DHCP lease and options\&. When the property is a hex string (\*(Aqaa:bb:cc\*(Aq) it is interpreted as a binary client ID, in which case the first byte is assumed to be the \*(Aqtype\*(Aq field as per RFC 2132 section 9\&.14 and the remaining bytes may be an hardware address (e\&.g\&. \*(Aq01:xx:xx:xx:xx:xx:xx\*(Aq where 1 is the Ethernet ARP type and the rest is a MAC address)\&. If the property is not a hex string it is considered as a non\-hardware\-address client ID and the \*(Aqtype\*(Aq field is set to 0\&. The special values "mac" and "perm\-mac" are supported, which use the current or permanent MAC address of the device to generate a client identifier with type ethernet (01)\&. Currently, these options only work for ethernet type of links\&. The special value "ipv6\-duid" uses the DUID from "ipv6\&.dhcp\-duid" property as an RFC4361\-compliant client identifier\&. As IAID it uses "ipv4\&.dhcp\-iaid" and falls back to "ipv6\&.dhcp\-iaid" if unset\&. The special value "duid" generates a RFC4361\-compliant client identifier based on "ipv4\&.dhcp\-iaid" and uses a DUID generated by hashing /etc/machine\-id\&. The special value "stable" is supported to generate a type 0 client identifier based on the stable\-id (see connection\&.stable\-id) and a per\-host key\&. If you set the stable\-id, you may want to include the "${DEVICE}" or "${MAC}" specifier to get a per\-device key\&. If unset, a globally configured default is used\&. If still unset, the default depends on the DHCP plugin\&.
 .sp
 Format: string
 .RE
@@ -1700,7 +1724,7 @@ Format: array of uint32
 .PP
 \fBdns\-options\fR
 .RS 4
-Array of DNS options as described in man 5 resolv\&.conf\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&. The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&. The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&.
+Array of DNS options as described in man 5 resolv\&.conf\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&. The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&. The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&. When using a caching DNS plugin (dnsmasq or systemd\-resolved in NetworkManager\&.conf) then "edns0" and "trust\-ad" are automatically added\&.
 .sp
 Format: array of string
 .RE
@@ -1860,7 +1884,7 @@ Format: array of byte array
 .PP
 \fBdns\-options\fR
 .RS 4
-Array of DNS options as described in man 5 resolv\&.conf\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&. The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&. The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&.
+Array of DNS options as described in man 5 resolv\&.conf\&. NULL means that the options are unset and left at the default\&. In this case NetworkManager will use default options\&. This is distinct from an empty list of properties\&. The currently supported options are "attempts", "debug", "edns0", "inet6", "ip6\-bytestring", "ip6\-dotint", "ndots", "no\-check\-names", "no\-ip6\-dotint", "no\-reload", "no\-tld\-query", "rotate", "single\-request", "single\-request\-reopen", "timeout", "trust\-ad", "use\-vc"\&. The "trust\-ad" setting is only honored if the profile contributes name servers to resolv\&.conf, and if all contributing profiles have "trust\-ad" enabled\&. When using a caching DNS plugin (dnsmasq or systemd\-resolved in NetworkManager\&.conf) then "edns0" and "trust\-ad" are automatically added\&.
 .sp
 Format: array of string
 .RE
@@ -3569,7 +3593,7 @@ Format: array of string
 .PP
 \fBkey\-mgmt\fR
 .RS 4
-Key management used for the connection\&. One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa\-psk" (infrastructure WPA\-PSK), "sae" (SAE), "owe" (Opportunistic Wireless Encryption) or "wpa\-eap" (WPA\-Enterprise)\&. This property must be set for any Wi\-Fi connection that uses security\&.
+Key management used for the connection\&. One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa\-psk" (infrastructure WPA\-PSK), "sae" (SAE), "owe" (Opportunistic Wireless Encryption), "wpa\-eap" (WPA\-Enterprise) or "wpa\-eap\-suite\-b\-192" (WPA3\-Enterprise Suite B)\&. This property must be set for any Wi\-Fi connection that uses security\&.
 .sp
 Format: string
 .RE
@@ -3740,6 +3764,53 @@ Alias: short\-addr
 Short IEEE 802\&.15\&.4 address to be used within a restricted environment\&.
 .sp
 Format: uint32
+.RE
+.SS "hostname setting"
+.PP
+Hostname settings\&.
+.PP
+Properties:
+.PP
+\fBfrom\-dhcp\fR
+.RS 4
+Whether the system hostname can be determined from DHCP on this connection\&. When set to NM_TERNARY_DEFAULT (\-1), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be NM_TERNARY_TRUE (1)\&.
+.sp
+Format: NMTernary (int32)
+.RE
+.PP
+\fBfrom\-dns\-lookup\fR
+.RS 4
+Whether the system hostname can be determined from reverse DNS lookup of addresses on this device\&. When set to NM_TERNARY_DEFAULT (\-1), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be NM_TERNARY_TRUE (1)\&.
+.sp
+Format: NMTernary (int32)
+.RE
+.PP
+\fBonly\-from\-default\fR
+.RS 4
+If set to NM_TERNARY_TRUE (1), NetworkManager attempts to get the hostname via DHCPv4/DHCPv6 or reverse DNS lookup on this device only when the device has the default route for the given address family (IPv4/IPv6)\&. If set to NM_TERNARY_FALSE (0), the hostname can be set from this device even if it doesn\*(Aqt have the default route\&. When set to NM_TERNARY_DEFAULT (\-1), the value from global configuration is used\&. If the property doesn\*(Aqt have a value in the global configuration, NetworkManager assumes the value to be NM_TERNARY_FALSE (0)\&.
+.sp
+Format: NMTernary (int32)
+.RE
+.PP
+\fBpriority\fR
+.RS 4
+The relative priority of this connection to determine the system hostname\&. A lower numerical value is better (higher priority)\&. A connection with higher priority is considered before connections with lower priority\&. If the value is zero, it can be overridden by a global value from NetworkManager configuration\&. If the property doesn\*(Aqt have a value in the global configuration, the value is assumed to be 100\&. Negative values have the special effect of excluding other connections with a greater numerical priority value; so in presence of at least one negative priority, only connections with the lowest priority value will be used to determine the hostname\&.
+.sp
+Format: int32
+.RE
+.SS "veth setting"
+.PP
+Veth Settings\&.
+.PP
+Properties:
+.PP
+\fBpeer\fR
+.RS 4
+Alias: peer
+.sp
+This property specifies the peer interface name of the veth\&. This property is mandatory\&.
+.sp
+Format: string
 .RE
 .SS "Secret flag types:"
 .PP

@@ -1,10 +1,10 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2008 Novell, Inc.
  * Copyright (C) 2007 - 2018 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-libnm.h"
 
 #include "nm-client.h"
 
@@ -482,17 +482,17 @@ _nm_client_new_error_nm_not_cached(void)
 }
 
 static void
-_nm_client_dbus_call_simple_cb(GObject *source, GAsyncResult *result, gpointer data)
+_nm_client_dbus_call_simple_cb(GObject *source, GAsyncResult *result, gpointer user_data)
 {
     GAsyncReadyCallback callback;
-    gpointer            user_data;
+    gpointer            callback_user_data;
     gs_unref_object GObject *context_busy_watcher = NULL;
     gpointer                 obfuscated_self_ptr;
     gpointer                 log_call_counter_ptr;
 
-    nm_utils_user_data_unpack(data,
+    nm_utils_user_data_unpack(user_data,
                               &callback,
-                              &user_data,
+                              &callback_user_data,
                               &context_busy_watcher,
                               &obfuscated_self_ptr,
                               &log_call_counter_ptr);
@@ -502,7 +502,7 @@ _nm_client_dbus_call_simple_cb(GObject *source, GAsyncResult *result, gpointer d
                  (guint64) GPOINTER_TO_SIZE(obfuscated_self_ptr),
                  GPOINTER_TO_SIZE(log_call_counter_ptr));
 
-    callback(source, result, user_data);
+    callback(source, result, callback_user_data);
 }
 
 void
@@ -1166,7 +1166,7 @@ nml_dbus_object_iface_data_get(NMLDBusObject *dbobj,
             count++;
         }
     } else {
-        nm_c_list_for_each_entry_prev (db_iface_data, &dbobj->iface_lst_head, iface_lst) {
+        c_list_for_each_entry_prev (db_iface_data, &dbobj->iface_lst_head, iface_lst) {
             if (db_iface_data->dbus_iface_is_wellknown)
                 break;
             if (db_iface_data->iface_removed)
@@ -2694,7 +2694,7 @@ _obj_handle_dbus_changes(NMClient *self, NMLDBusObject *dbobj)
             nml_dbus_object_set_obj_state(dbobj, NML_DBUS_OBJ_STATE_WITH_NMOBJ_READY, self);
         } else {
             GType                   gtype     = G_TYPE_NONE;
-            NMLDBusMetaInteracePrio curr_prio = NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_LOW - 1;
+            NMLDBusMetaInteracePrio curr_prio = NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_10 - 1;
 
             c_list_for_each_entry (db_iface_data, &dbobj->iface_lst_head, iface_lst) {
                 nm_assert(!db_iface_data->iface_removed);
@@ -2930,11 +2930,15 @@ _dbus_handle_properties_changed(NMClient *      self,
         gs_free char *ss = NULL;
 
         NML_NMCLIENT_LOG_T(self,
-                           "[%s]: %s: properties changed for interface %s { %s }",
+                           "[%s]: %s: properties changed for interface %s %s%s%s",
                            object_path,
                            log_context,
                            interface_name,
-                           (ss = g_variant_print(changed_properties, TRUE)));
+                           NM_PRINT_FMT_QUOTED(changed_properties,
+                                               "{ ",
+                                               (ss = g_variant_print(changed_properties, TRUE)),
+                                               " }",
+                                               "(no changed properties)"));
     }
 
     if (inout_dbobj) {
@@ -2946,12 +2950,16 @@ _dbus_handle_properties_changed(NMClient *      self,
         dbobj     = _dbobjs_dbobj_get_r(self, dbus_path);
     }
 
-    if (dbobj)
+    if (dbobj) {
+        nm_assert(dbobj->obj_state >= NML_DBUS_OBJ_STATE_WATCHED_ONLY);
         db_iface_data = nml_dbus_object_iface_data_get(dbobj, interface_name, allow_add_iface);
-    else if (allow_add_iface) {
+        if (db_iface_data && dbobj->obj_state == NML_DBUS_OBJ_STATE_WATCHED_ONLY)
+            nml_dbus_object_set_obj_state(dbobj, NML_DBUS_OBJ_STATE_ON_DBUS, self);
+    } else if (allow_add_iface) {
         dbobj = _dbobjs_dbobj_create(self, g_steal_pointer(&dbus_path));
         nml_dbus_object_set_obj_state(dbobj, NML_DBUS_OBJ_STATE_ON_DBUS, self);
         db_iface_data = nml_dbus_object_iface_data_get(dbobj, interface_name, TRUE);
+        nm_assert(db_iface_data);
     }
 
     NM_SET_OUT(inout_dbobj, dbobj);
@@ -6981,7 +6989,7 @@ _init_release_all(NMClient *self)
     nm_assert(c_list_is_empty(&priv->dbus_objects_lst_head_on_dbus));
     nm_assert(c_list_is_empty(&priv->dbus_objects_lst_head_with_nmobj_not_ready));
     nm_assert(c_list_is_empty(&priv->dbus_objects_lst_head_with_nmobj_ready));
-    nm_assert(g_hash_table_size(priv->dbus_objects) == 0);
+    nm_assert(nm_g_hash_table_size(priv->dbus_objects) == 0);
 }
 
 /*****************************************************************************/
@@ -7822,7 +7830,7 @@ dispose(GObject *object)
     nm_assert(c_list_is_empty(&priv->queue_notify_lst_head));
     nm_assert(c_list_is_empty(&priv->notify_event_lst_head));
     nm_assert(c_list_is_empty(&self->obj_base.queue_notify_lst));
-    nm_assert(!priv->dbus_objects || g_hash_table_size(priv->dbus_objects) == 0);
+    nm_assert(nm_g_hash_table_size(priv->dbus_objects) == 0);
 
     nml_dbus_property_o_clear_many(priv->nm.property_o, G_N_ELEMENTS(priv->nm.property_o), NULL);
     nml_dbus_property_ao_clear_many(priv->nm.property_ao, G_N_ELEMENTS(priv->nm.property_ao), NULL);

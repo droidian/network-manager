@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2018 Javier Arteaga <jarteaga@jbeta.is>
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-libnm.h"
 
 #include "nm-device-wireguard.h"
 
@@ -131,7 +131,7 @@ finalize(GObject *object)
 const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_wireguard = NML_DBUS_META_IFACE_INIT_PROP(
     NM_DBUS_INTERFACE_DEVICE_WIREGUARD,
     nm_device_wireguard_get_type,
-    NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_HIGH,
+    NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_30,
     NML_DBUS_META_IFACE_DBUS_PROPERTIES(
         NML_DBUS_META_PROPERTY_INIT_U("FwMark", PROP_FWMARK, NMDeviceWireGuard, _priv.fwmark),
         NML_DBUS_META_PROPERTY_INIT_Q("ListenPort",

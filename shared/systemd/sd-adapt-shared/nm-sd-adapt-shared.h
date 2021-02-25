@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2014 - 2018 Red Hat, Inc.
  */
@@ -6,7 +6,7 @@
 #ifndef __NM_SD_ADAPT_SHARED_H__
 #define __NM_SD_ADAPT_SHARED_H__
 
-#include "nm-default.h"
+#include "shared/systemd/nm-default-systemd-shared.h"
 
 #include "nm-glib-aux/nm-logging-fwd.h"
 
@@ -127,6 +127,7 @@ _nm_log_get_max_level_realm(void)
 
     #include <sys/syscall.h>
     #include <sys/ioctl.h>
+    #include <pthread.h>
 
     #define ENABLE_GSHADOW FALSE
 
@@ -193,6 +194,24 @@ _nm_gettid(void)
         #define HAVE_RT_SIGQUEUEINFO 1
     #else
         #define HAVE_RT_SIGQUEUEINFO 0
+    #endif
+
+    #ifndef __COMPAR_FN_T
+        #define __COMPAR_FN_T
+typedef int (*__compar_fn_t)(const void *, const void *);
+typedef __compar_fn_t comparison_fn_t;
+typedef int (*__compar_d_fn_t)(const void *, const void *, void *);
+    #endif
+
+    #ifndef __GLIBC__
+static inline int
+__register_atfork(void (*prepare)(void),
+                  void (*parent)(void),
+                  void (*child)(void),
+                  void *dso_handle)
+{
+    return pthread_atfork(prepare, parent, child);
+}
     #endif
 
 #endif /* (NETWORKMANAGER_COMPILATION) & NM_NETWORKMANAGER_COMPILATION_WITH_SYSTEMD */

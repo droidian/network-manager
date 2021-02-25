@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #ifndef __NM_STD_AUX_H__
 #define __NM_STD_AUX_H__
@@ -188,6 +188,37 @@ typedef uint64_t _nm_bitwise nm_be64_t;
 #define NM_N_ELEMENTS(arr) (sizeof(arr) / sizeof((arr)[0]))
 
 /*****************************************************************************/
+
+static inline uint32_t
+nm_add_clamped_u32(uint32_t a, uint32_t b)
+{
+    uint32_t c;
+
+    /* returns a+b, or UINT32_MAX if the result would overflow. */
+
+    c = a + b;
+    if (c < a)
+        return UINT32_MAX;
+    return c;
+}
+
+static inline unsigned
+nm_mult_clamped_u(unsigned a, unsigned b)
+{
+    unsigned c;
+
+    /* returns a*b, or UINT_MAX if the result would overflow. */
+
+    if (b == 0)
+        return 0;
+
+    c = a * b;
+
+    if (c / b != a)
+        return (unsigned) -1;
+
+    return c;
+}
 
 /* glib's MIN()/MAX() macros don't have function-like behavior, in that they evaluate
  * the argument possibly twice.
@@ -767,6 +798,21 @@ nm_steal_fd(int *p_fd)
 
 /*****************************************************************************/
 
+static inline uintptr_t
+nm_ptr_to_uintptr(const void *p)
+{
+    /* in C, pointers can only be compared (with less-than or greater-than) under certain
+     * circumstances. Since uintptr_t is supposed to be able to represent the pointer
+     * as a plain integer and also support to convert the integer back to the pointer,
+     * it should be safer to compare the pointers directly.
+     *
+     * Of course, this function isn't very useful beyond that its use makes it clear
+     * that we want to compare pointers by value, which otherwise may not be valid. */
+    return (uintptr_t) p;
+}
+
+/*****************************************************************************/
+
 #define NM_CMP_RETURN(c)             \
     do {                             \
         const int _cc = (c);         \
@@ -813,7 +859,7 @@ nm_steal_fd(int *p_fd)
  * Avoid that by casting pointers to void* and then to uintptr_t. This comparison
  * is not really meaningful, except that it provides some kind of stable sort order
  * between pointers (that can otherwise not be compared). */
-#define NM_CMP_DIRECT_PTR(a, b) NM_CMP_DIRECT((uintptr_t)((void *) (a)), (uintptr_t)((void *) (b)))
+#define NM_CMP_DIRECT_PTR(a, b) NM_CMP_DIRECT(nm_ptr_to_uintptr(a), nm_ptr_to_uintptr(b))
 
 #define NM_CMP_DIRECT_MEMCMP(a, b, size) NM_CMP_RETURN(memcmp((a), (b), (size)))
 

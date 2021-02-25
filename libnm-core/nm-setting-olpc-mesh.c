@@ -1,13 +1,15 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2013 Red Hat, Inc.
  * Copyright (C) 2007 - 2008 Novell, Inc.
  * Copyright (C) 2009 One Laptop per Child
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-olpc-mesh.h"
+
+#include <linux/if_ether.h>
 
 #include "nm-utils.h"
 #include "nm-utils-private.h"
@@ -190,7 +192,7 @@ nm_setting_olpc_mesh_init(NMSettingOlpcMesh *setting)
 NMSetting *
 nm_setting_olpc_mesh_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_OLPC_MESH, NULL);
+    return g_object_new(NM_TYPE_SETTING_OLPC_MESH, NULL);
 }
 
 static void

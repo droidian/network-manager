@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (C) 2011 - 2015 Red Hat, Inc.
  * Copyright (C) 2011 Giovanni Campagna <scampa.giovanni@gmail.com>
@@ -16,7 +16,7 @@
  * replace ShellNetworkAgent.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-client.h"
 
 #include "nm-secret-agent-simple.h"
 
@@ -341,7 +341,7 @@ add_wireless_secrets(RequestData *request, GPtrArray *secrets)
             return add_8021x_secrets(request, secrets);
     }
 
-    if (nm_streq(key_mgmt, "wpa-eap"))
+    if (nm_streq(key_mgmt, "wpa-eap") || nm_streq(key_mgmt, "wpa-eap-suite-b-192"))
         return add_8021x_secrets(request, secrets);
 
     return FALSE;

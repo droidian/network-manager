@@ -1,14 +1,10 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2014 Red Hat, Inc.
  */
 
 #ifndef __NM_TEST_UTILS_H__
 #define __NM_TEST_UTILS_H__
-
-#if defined(NETWORKMANAGER_COMPILATION) && !defined(NETWORKMANAGER_COMPILATION_TEST)
-    #error Need to mark the compilation with NETWORKMANAGER_COMPILATION_TEST.
-#endif
 
 /*******************************************************************************
  * HOWTO run tests.
@@ -84,8 +80,6 @@
  *
  *******************************************************************************/
 
-#include "nm-default.h"
-
 #if defined(NM_ASSERT_NO_MSG) && NM_ASSERT_NO_MSG
     #undef g_return_if_fail_warning
     #undef g_assertion_message_expr
@@ -97,10 +91,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-
-#ifndef NM_TEST_UTILS_NO_LIBNM
-    #include "nm-utils.h"
-#endif
 
 /*****************************************************************************/
 
@@ -634,6 +624,23 @@ __nmtst_init(int *       argc,
         g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
     }
 
+    /* "tc" is in /sbin, which might not be in $PATH of a regular user. Unconditionally
+     * add "/bin" and "/sbin" to $PATH for all tests. */
+    {
+        static char *path_new;
+        const char * path_old;
+
+        g_assert(!path_new);
+
+        path_old = g_getenv("PATH");
+        path_new = g_strjoin("",
+                             path_old ?: "",
+                             (nm_str_is_empty(path_old) ? "" : ":"),
+                             "/bin:/sbin",
+                             NULL);
+        g_setenv("PATH", path_new, TRUE);
+    }
+
     /* Delay messages until we setup logging. */
     for (i = 0; i < debug_messages->len; i++)
         __NMTST_LOG(g_message, "%s", g_array_index(debug_messages, const char *, i));
@@ -900,14 +907,16 @@ nmtst_get_rand_uint64(void)
 static inline guint
 nmtst_get_rand_uint(void)
 {
-    G_STATIC_ASSERT_EXPR(sizeof(guint32) == sizeof(guint));
-    return nmtst_get_rand_uint32();
+    G_STATIC_ASSERT_EXPR((sizeof(guint) == sizeof(guint32) || (sizeof(guint) == sizeof(guint64))));
+    if (sizeof(guint32) == sizeof(guint))
+        return nmtst_get_rand_uint32();
+    return nmtst_get_rand_uint64();
 }
 
 static inline gsize
 nmtst_get_rand_size(void)
 {
-    G_STATIC_ASSERT_EXPR(sizeof(gsize) == sizeof(guint32) || sizeof(gsize) == sizeof(guint64));
+    G_STATIC_ASSERT_EXPR((sizeof(gsize) == sizeof(guint32) || (sizeof(gsize) == sizeof(guint64))));
     if (sizeof(gsize) == sizeof(guint32))
         return nmtst_get_rand_uint32();
     return nmtst_get_rand_uint64();
@@ -917,6 +926,17 @@ static inline gboolean
 nmtst_get_rand_bool(void)
 {
     return nmtst_get_rand_uint32() % 2;
+}
+
+static inline gboolean
+nmtst_get_rand_one_case_in(guint32 num)
+{
+    /* num=1 doesn't make much sense, because it will always return %TRUE.
+     * Still accept it, it might be that @num is calculated, so 1 might be
+     * a valid edge case. */
+    g_assert(num > 0);
+
+    return (nmtst_get_rand_uint32() % num) == 0;
 }
 
 static inline gpointer
@@ -996,6 +1016,23 @@ nmtst_rand_perm(GRand *rand, void *dst, const void *src, gsize elmt_size, gsize 
 
     g_slice_free1(elmt_size, bu);
     return dst;
+}
+
+static inline const char **
+nmtst_rand_perm_strv(const char *const *strv)
+{
+    const char **res;
+    gsize        n;
+
+    if (!strv)
+        return NULL;
+
+    /* this returns a (scrambled) SHALLOW copy of the strv array! */
+
+    n   = NM_PTRARRAY_LEN(strv);
+    res = (const char **) (nm_utils_strv_dup(strv, n, FALSE) ?: g_new0(char *, 1));
+    nmtst_rand_perm(NULL, res, res, sizeof(char *), n);
+    return res;
 }
 
 static inline GSList *
@@ -1180,6 +1217,14 @@ nmtst_main_loop_run(GMainLoop *loop, guint timeout_msec)
     /* if the timeout was reached, return FALSE. */
     return loopx != NULL;
 }
+
+#define nmtst_main_loop_run_assert(loop, timeout_msec)    \
+    G_STMT_START                                          \
+    {                                                     \
+        if (!nmtst_main_loop_run((loop), (timeout_msec))) \
+            g_assert_not_reached();                       \
+    }                                                     \
+    G_STMT_END
 
 static inline void
 _nmtst_main_loop_quit_on_notify(GObject *object, GParamSpec *pspec, gpointer user_data)
@@ -2748,6 +2793,31 @@ nmtst_keyfile_get_num_keys(GKeyFile *keyfile, const char *group_name)
 
     return l;
 }
+
+/*****************************************************************************/
+
+#if defined(NM_SETTING_IP_CONFIG_H) && defined(__NM_SHARED_UTILS_H__)
+
+static inline NMIPAddress *
+nmtst_ip_address_new(int addr_family, const char *str)
+{
+    NMIPAddr     addr;
+    int          plen;
+    GError *     error = NULL;
+    NMIPAddress *a;
+
+    if (!nm_utils_parse_inaddr_prefix_bin(addr_family, str, &addr_family, &addr, &plen))
+        g_assert_not_reached();
+
+    if (plen == -1)
+        plen = addr_family == AF_INET ? 32 : 128;
+
+    a = nm_ip_address_new_binary(addr_family, &addr, plen, &error);
+    nmtst_assert_success(a, error);
+    return a;
+}
+
+#endif
 
 /*****************************************************************************/
 

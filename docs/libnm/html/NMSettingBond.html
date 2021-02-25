@@ -420,12 +420,8 @@ setting; the value is owned by the setting and must not be modified</p>
 nm_setting_bond_add_option (<em class="parameter"><code><a class="link" href="NMSettingBond.html" title="NMSettingBond"><span class="type">NMSettingBond</span></a> *setting</code></em>,
                             <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
                             <em class="parameter"><code>const <span class="type">char</span> *value</code></em>);</pre>
-<p>Add an option to the table.  The option is compared to an internal list
-of allowed options.  Option names may contain only alphanumeric characters
-(ie [a-zA-Z0-9]).  Adding a new name replaces any existing name/value pair
+<p>Add an option to the table. Adding a new name replaces any existing name/value pair
 that may already exist.</p>
-<p>The order of how to set several options is relevant because there are options
-that conflict with each other.</p>
 <div class="refsect3">
 <a name="nm-setting-bond-add-option.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -455,8 +451,16 @@ that conflict with each other.</p>
 </div>
 <div class="refsect3">
 <a name="nm-setting-bond-add-option.returns"></a><h4>Returns</h4>
-<p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the option was valid and was added to the internal option
-list, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it was not.</p>
+<p> returns <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if either <em class="parameter"><code>name</code></em>
+or <em class="parameter"><code>value</code></em>
+is <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, in that case
+the option is not set. Otherwise, the function does not fail and does not validate
+the arguments. All validation happens via <a class="link" href="NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a> or do basic validation
+yourself with <a class="link" href="NMSettingBond.html#nm-setting-bond-validate-option" title="nm_setting_bond_validate_option ()"><code class="function">nm_setting_bond_validate_option()</code></a>.</p>
+<p>Note: Before 1.30, libnm would perform basic validation of the name and the value
+via <a class="link" href="NMSettingBond.html#nm-setting-bond-validate-option" title="nm_setting_bond_validate_option ()"><code class="function">nm_setting_bond_validate_option()</code></a> and reject the request by returning FALSE.
+Since 1.30, libnm no longer rejects any values as the setter is not supposed
+to perform validation.</p>
 </div>
 </div>
 <hr>
@@ -523,8 +527,8 @@ the <em class="parameter"><code>name</code></em>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
-<td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p>the value of the option to validate</p></td>
+<td class="parameter_name"><p>value (allow-none)</p></td>
+<td class="parameter_description"><p>the value of the option to validate.</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>

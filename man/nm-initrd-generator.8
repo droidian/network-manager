@@ -2,12 +2,12 @@
 .\"     Title: nm-initrd-generator
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 12/06/2020
+.\"      Date: 02/18/2021
 .\"    Manual: System Administration
-.\"    Source: NetworkManager 1.28.0
+.\"    Source: NetworkManager 1.30.0
 .\"  Language: English
 .\"
-.TH "NM\-INITRD\-GENERATOR" "8" "" "NetworkManager 1\&.28\&.0" "System Administration"
+.TH "NM\-INITRD\-GENERATOR" "8" "" "NetworkManager 1\&.30\&.0" "System Administration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -53,6 +53,11 @@ Output directory for initrd data (e\&.g\&. hostname)\&.
 The sysfs mount point\&.
 .RE
 .PP
+\fB\-r\fR | \fB\-\-run\-config\-dir\fR \fIpath\fR
+.RS 4
+Output directory for config files\&.
+.RE
+.PP
 \fB\-s\fR | \fB\-\-stdout\fR
 .RS 4
 Dump connections to standard output\&. Useful for debugging\&.
@@ -93,6 +98,9 @@ The options that appear on the kernel command line\&. The following options are 
 .RE
 .RS 4
 \fBrd\&.net\&.timeout\&.dhcp\fR
+.RE
+.RS 4
+\fBrd\&.net\&.timeout\&.carrier\fR
 .RE
 .RS 4
 \fBBOOTIF\fR

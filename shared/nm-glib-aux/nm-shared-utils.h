@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2016 Red Hat, Inc.
  */
@@ -7,6 +7,18 @@
 #define __NM_SHARED_UTILS_H__
 
 #include <netinet/in.h>
+
+/*****************************************************************************/
+
+/* An optional boolean (like NMTernary, with identical numerical
+ * enum values). Note that this enum type is _nm_packed! */
+typedef enum _nm_packed {
+    NM_OPTION_BOOL_DEFAULT = -1,
+    NM_OPTION_BOOL_FALSE   = 0,
+    NM_OPTION_BOOL_TRUE    = 1,
+} NMOptionBool;
+
+/*****************************************************************************/
 
 static inline gboolean
 nm_is_ascii(char ch)
@@ -88,13 +100,24 @@ typedef struct {
 } NMEtherAddr;
 
 #define NM_ETHER_ADDR_FORMAT_STR "%02X:%02X:%02X:%02X:%02X:%02X"
-#define NM_ETHER_ADDR_FORMAT_VAL(x)                                            \
-    (x).ether_addr_octet[0], (x).ether_addr_octet[1], (x).ether_addr_octet[2], \
-        (x).ether_addr_octet[3], (x).ether_addr_octet[4], (x).ether_addr_octet[5]
-#define NM_ETHER_ADDR_INIT(...)            \
-    {                                      \
-        .ether_addr_octet = {__VA_ARGS__}, \
+
+#define NM_ETHER_ADDR_FORMAT_VAL(x)                                               \
+    (x)->ether_addr_octet[0], (x)->ether_addr_octet[1], (x)->ether_addr_octet[2], \
+        (x)->ether_addr_octet[3], (x)->ether_addr_octet[4], (x)->ether_addr_octet[5]
+
+#define _NM_ETHER_ADDR_INIT(a0, a1, a2, a3, a4, a5) \
+    {                                               \
+        .ether_addr_octet = {                       \
+            (a0),                                   \
+            (a1),                                   \
+            (a2),                                   \
+            (a3),                                   \
+            (a4),                                   \
+            (a5),                                   \
+        },                                          \
     }
+
+#define NM_ETHER_ADDR_INIT(...) ((NMEtherAddr) _NM_ETHER_ADDR_INIT(__VA_ARGS__))
 
 static inline int
 nm_ether_addr_cmp(const NMEtherAddr *a, const NMEtherAddr *b)
@@ -308,6 +331,8 @@ nm_utils_is_separator(const char c)
 
 GBytes *nm_gbytes_get_empty(void);
 
+GBytes *nm_g_bytes_new_from_str(const char *str);
+
 static inline gboolean
 nm_gbytes_equal0(GBytes *a, GBytes *b)
 {
@@ -317,6 +342,8 @@ nm_gbytes_equal0(GBytes *a, GBytes *b)
 gboolean nm_utils_gbytes_equal_mem(GBytes *bytes, gconstpointer mem_data, gsize mem_len);
 
 GVariant *nm_utils_gbytes_to_variant_ay(GBytes *bytes);
+
+GHashTable *nm_utils_strdict_clone(GHashTable *src);
 
 GVariant *nm_utils_strdict_to_variant_ass(GHashTable *strdict);
 GVariant *nm_utils_strdict_to_variant_asv(GHashTable *strdict);
@@ -672,7 +699,8 @@ nm_utils_escaped_tokens_options_escape_val(const char *val, char **out_to_free)
 /*****************************************************************************/
 
 guint32 _nm_utils_ip4_prefix_to_netmask(guint32 prefix);
-guint32 _nm_utils_ip4_get_default_prefix(guint32 ip);
+guint32 _nm_utils_ip4_get_default_prefix0(in_addr_t ip);
+guint32 _nm_utils_ip4_get_default_prefix(in_addr_t ip);
 
 gconstpointer
 nm_utils_ipx_address_clear_host_address(int family, gpointer dst, gconstpointer src, guint8 plen);
@@ -758,8 +786,10 @@ typedef struct {
     {                                                                           \
         static const NMUtilsFlags2StrDesc descs[] = {__VA_ARGS__};              \
         G_STATIC_ASSERT(sizeof(flags_type) <= sizeof(unsigned));                \
+                                                                                \
         return nm_utils_flags2str(descs, G_N_ELEMENTS(descs), flags, buf, len); \
-    };
+    }                                                                           \
+    _NM_DUMMY_STRUCT_FOR_TRAILING_SEMICOLON
 
 const char *nm_utils_flags2str(const NMUtilsFlags2StrDesc *descs,
                                gsize                       n_descs,
@@ -796,7 +826,8 @@ case v:                             \
                 g_snprintf(buf, len, "(%" int_fmt ")", val);               \
         }                                                                  \
         return buf;                                                        \
-    }
+    }                                                                      \
+    _NM_DUMMY_STRUCT_FOR_TRAILING_SEMICOLON
 
 #define NM_UTILS_ENUM2STR_DEFINE(fcn_name, lookup_type, ...) \
     NM_UTILS_ENUM2STR_DEFINE_FULL(fcn_name, lookup_type, "d", __VA_ARGS__)
@@ -918,6 +949,8 @@ _nm_g_slice_free_fcn_define(1) _nm_g_slice_free_fcn_define(2) _nm_g_slice_free_f
  *   error reason. Depending on the usage, this might indicate a bug because
  *   usually the target object should stay alive as long as there are pending
  *   operations.
+ * @NM_UTILS_ERROR_NOT_READY: the failure is related to being currently
+ *   not ready to perform the operation.
  *
  * @NM_UTILS_ERROR_CONNECTION_AVAILABLE_INCOMPATIBLE: used for a very particular
  *   purpose during nm_device_check_connection_compatible() to indicate that
@@ -938,6 +971,7 @@ typedef enum {
     NM_UTILS_ERROR_UNKNOWN = 0,         /*< nick=Unknown >*/
     NM_UTILS_ERROR_CANCELLED_DISPOSING, /*< nick=CancelledDisposing >*/
     NM_UTILS_ERROR_INVALID_ARGUMENT,    /*< nick=InvalidArgument >*/
+    NM_UTILS_ERROR_NOT_READY,           /*< nick=NotReady >*/
 
     /* the following codes have a special meaning and are exactly used for
      * nm_device_check_connection_compatible() and nm_device_check_connection_available().
@@ -960,6 +994,12 @@ typedef enum {
 
 #define NM_UTILS_ERROR (nm_utils_error_quark())
 GQuark nm_utils_error_quark(void);
+
+GQuark nm_manager_error_quark(void);
+#define _NM_MANAGER_ERROR (nm_manager_error_quark())
+
+#define _NM_MANAGER_ERROR_UNKNOWN_LOG_LEVEL  10
+#define _NM_MANAGER_ERROR_UNKNOWN_LOG_DOMAIN 11
 
 void nm_utils_error_set_cancelled(GError **error, gboolean is_disposing, const char *instance_name);
 
@@ -1214,6 +1254,27 @@ nm_g_variant_is_of_type(GVariant *value, const GVariantType *type)
     return value && g_variant_is_of_type(value, type);
 }
 
+static inline GVariant *
+nm_g_variant_new_ay_inaddr(int addr_family, gconstpointer addr)
+{
+    return g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE,
+                                     addr ?: &nm_ip_addr_zero,
+                                     nm_utils_addr_family_to_size(addr_family),
+                                     1);
+}
+
+static inline GVariant *
+nm_g_variant_new_ay_in4addr(in_addr_t addr)
+{
+    return nm_g_variant_new_ay_inaddr(AF_INET, &addr);
+}
+
+static inline GVariant *
+nm_g_variant_new_ay_in6addr(const struct in6_addr *addr)
+{
+    return nm_g_variant_new_ay_inaddr(AF_INET6, addr);
+}
+
 static inline void
 nm_g_variant_builder_add_sv(GVariantBuilder *builder, const char *key, GVariant *val)
 {
@@ -1302,6 +1363,59 @@ nm_g_source_attach(GSource *source, GMainContext *context)
 {
     g_source_attach(source, context);
     return source;
+}
+
+static inline GSource *
+nm_g_idle_add_source(GSourceFunc func, gpointer user_data)
+{
+    /* G convenience function to attach a new timeout source to the default GMainContext.
+     * In that sense it's very similar to g_idle_add() except that it returns a
+     * reference to the new source.  */
+    return nm_g_source_attach(nm_g_idle_source_new(G_PRIORITY_DEFAULT, func, user_data, NULL),
+                              NULL);
+}
+
+static inline GSource *
+nm_g_timeout_add_source(guint timeout_msec, GSourceFunc func, gpointer user_data)
+{
+    /* G convenience function to attach a new timeout source to the default GMainContext.
+     * In that sense it's very similar to g_timeout_add() except that it returns a
+     * reference to the new source.  */
+    return nm_g_source_attach(
+        nm_g_timeout_source_new(timeout_msec, G_PRIORITY_DEFAULT, func, user_data, NULL),
+        NULL);
+}
+
+static inline GSource *
+nm_g_timeout_add_source_seconds(guint timeout_sec, GSourceFunc func, gpointer user_data)
+{
+    /* G convenience function to attach a new timeout source to the default GMainContext.
+     * In that sense it's very similar to g_timeout_add_seconds() except that it returns a
+     * reference to the new source.  */
+    return nm_g_source_attach(
+        nm_g_timeout_source_new_seconds(timeout_sec, G_PRIORITY_DEFAULT, func, user_data, NULL),
+        NULL);
+}
+
+static inline GSource *
+nm_g_timeout_add_source_approx(guint       timeout_msec,
+                               guint       timeout_sec_threshold,
+                               GSourceFunc func,
+                               gpointer    user_data)
+{
+    GSource *source;
+
+    /* If timeout_msec is larger or equal than a threshold, then we use g_timeout_source_new_seconds()
+     * instead. */
+    if (timeout_msec / 1000u >= timeout_sec_threshold)
+        source = nm_g_timeout_source_new_seconds(timeout_msec / 1000u,
+                                                 G_PRIORITY_DEFAULT,
+                                                 func,
+                                                 user_data,
+                                                 NULL);
+    else
+        source = nm_g_timeout_source_new(timeout_msec, G_PRIORITY_DEFAULT, func, user_data, NULL);
+    return nm_g_source_attach(source, NULL);
 }
 
 NM_AUTO_DEFINE_FCN0(GMainContext *, _nm_auto_unref_gmaincontext, g_main_context_unref);
@@ -1434,6 +1548,8 @@ void nm_utils_named_value_list_sort(NMUtilsNamedValue *arr,
                                     GCompareDataFunc   compare_func,
                                     gpointer           user_data);
 
+void nm_utils_named_value_clear_with_g_free(NMUtilsNamedValue *val);
+
 /*****************************************************************************/
 
 gpointer *nm_utils_hash_keys_to_array(GHashTable *     hash,
@@ -1457,13 +1573,18 @@ nm_utils_strdict_get_keys(const GHashTable *hash, gboolean sorted, guint *out_le
 
 gboolean nm_utils_hashtable_equal(const GHashTable *a,
                                   const GHashTable *b,
-                                  GCompareDataFunc  cmp_values,
-                                  gpointer          user_data);
+                                  gboolean          treat_null_as_empty,
+                                  GEqualFunc        equal_func);
+
+gboolean nm_utils_hashtable_cmp_equal(const GHashTable *a,
+                                      const GHashTable *b,
+                                      GCompareDataFunc  cmp_values,
+                                      gpointer          user_data);
 
 static inline gboolean
 nm_utils_hashtable_same_keys(const GHashTable *a, const GHashTable *b)
 {
-    return nm_utils_hashtable_equal(a, b, NULL, NULL);
+    return nm_utils_hashtable_cmp_equal(a, b, NULL, NULL);
 }
 
 int nm_utils_hashtable_cmp(const GHashTable *a,
@@ -1508,6 +1629,13 @@ nm_g_array_len(const GArray *arr)
     return arr ? arr->len : 0u;
 }
 
+static inline void
+nm_g_array_unref(GArray *arr)
+{
+    if (arr)
+        g_array_unref(arr);
+}
+
 #define nm_g_array_append_new(arr, type)   \
     ({                                     \
         GArray *const _arr = (arr);        \
@@ -1521,6 +1649,55 @@ nm_g_array_len(const GArray *arr)
     })
 
 /*****************************************************************************/
+
+static inline GPtrArray *
+nm_g_ptr_array_ref(GPtrArray *arr)
+{
+    return arr ? g_ptr_array_ref(arr) : NULL;
+}
+
+static inline void
+nm_g_ptr_array_unref(GPtrArray *arr)
+{
+    if (arr)
+        g_ptr_array_unref(arr);
+}
+
+#define nm_g_ptr_array_set(pdst, val)                              \
+    ({                                                             \
+        GPtrArray **_pdst    = (pdst);                             \
+        GPtrArray * _val     = (val);                              \
+        gboolean    _changed = FALSE;                              \
+                                                                   \
+        nm_assert(_pdst);                                          \
+                                                                   \
+        if (*_pdst != _val) {                                      \
+            _nm_unused gs_unref_ptrarray GPtrArray *_old = *_pdst; \
+                                                                   \
+            *_pdst   = nm_g_ptr_array_ref(_val);                   \
+            _changed = TRUE;                                       \
+        }                                                          \
+        _changed;                                                  \
+    })
+
+#define nm_g_ptr_array_set_take(pdst, val)                         \
+    ({                                                             \
+        GPtrArray **_pdst    = (pdst);                             \
+        GPtrArray * _val     = (val);                              \
+        gboolean    _changed = FALSE;                              \
+                                                                   \
+        nm_assert(_pdst);                                          \
+                                                                   \
+        if (*_pdst != _val) {                                      \
+            _nm_unused gs_unref_ptrarray GPtrArray *_old = *_pdst; \
+                                                                   \
+            *_pdst   = _val;                                       \
+            _changed = TRUE;                                       \
+        } else {                                                   \
+            nm_g_ptr_array_unref(_val);                            \
+        }                                                          \
+        _changed;                                                  \
+    })
 
 static inline guint
 nm_g_ptr_array_len(const GPtrArray *arr)
@@ -1571,6 +1748,19 @@ GPtrArray *_nm_g_ptr_array_copy(GPtrArray *    array,
 
 /*****************************************************************************/
 
+static inline GHashTable *
+nm_g_hash_table_ref(GHashTable *hash)
+{
+    return hash ? g_hash_table_ref(hash) : NULL;
+}
+
+static inline void
+nm_g_hash_table_unref(GHashTable *hash)
+{
+    if (hash)
+        g_hash_table_unref(hash);
+}
+
 static inline guint
 nm_g_hash_table_size(GHashTable *hash)
 {
@@ -1614,27 +1804,16 @@ gssize nm_utils_array_find_binary_search(gconstpointer    list,
 
 /*****************************************************************************/
 
-typedef gboolean (*NMUtilsHashTableEqualFunc)(gconstpointer a, gconstpointer b);
-
-gboolean nm_utils_hash_table_equal(const GHashTable *        a,
-                                   const GHashTable *        b,
-                                   gboolean                  treat_null_as_empty,
-                                   NMUtilsHashTableEqualFunc equal_func);
-
-/*****************************************************************************/
-
 void _nm_utils_strv_sort(const char **strv, gssize len);
 #define nm_utils_strv_sort(strv, len) _nm_utils_strv_sort(NM_CAST_STRV_MC(strv), len)
 
 int
 _nm_utils_strv_cmp_n(const char *const *strv1, gssize len1, const char *const *strv2, gssize len2);
 
-static inline gboolean
-_nm_utils_strv_equal(char **strv1, char **strv2)
-{
-    return _nm_utils_strv_cmp_n((const char *const *) strv1, -1, (const char *const *) strv2, -1)
-           == 0;
-}
+#define nm_utils_strv_cmp_n(strv1, len1, strv2, len2) \
+    _nm_utils_strv_cmp_n(NM_CAST_STRV_CC(strv1), (len1), NM_CAST_STRV_CC(strv2), (len2))
+
+#define nm_utils_strv_equal(strv1, strv2) (nm_utils_strv_cmp_n((strv1), -1, (strv2), -1) == 0)
 
 /*****************************************************************************/
 
@@ -1851,14 +2030,14 @@ nm_strv_ptrarray_contains(const GPtrArray *strv, const char *str)
 static inline int
 nm_strv_ptrarray_cmp(const GPtrArray *a, const GPtrArray *b)
 {
-    /* _nm_utils_strv_cmp_n() will treat NULL and empty arrays the same.
+    /* nm_utils_strv_cmp_n() will treat NULL and empty arrays the same.
      * That means, an empty strv array can both be represented by NULL
      * and an array of length zero.
      * If you need to distinguish between these case, do that yourself. */
-    return _nm_utils_strv_cmp_n((const char *const *) nm_g_ptr_array_pdata(a),
-                                nm_g_ptr_array_len(a),
-                                (const char *const *) nm_g_ptr_array_pdata(b),
-                                nm_g_ptr_array_len(b));
+    return nm_utils_strv_cmp_n((const char *const *) nm_g_ptr_array_pdata(a),
+                               nm_g_ptr_array_len(a),
+                               (const char *const *) nm_g_ptr_array_pdata(b),
+                               nm_g_ptr_array_len(b));
 }
 
 /*****************************************************************************/
@@ -1985,6 +2164,24 @@ _nm_utils_hwaddr_aton(const char *asc, gpointer buffer, gsize buffer_length, gsi
                                     out_length);
 }
 
+static inline guint8 *
+_nm_utils_hwaddr_aton_exact(const char *asc, gpointer buffer, gsize buffer_length)
+{
+    g_return_val_if_fail(asc, NULL);
+    g_return_val_if_fail(buffer, NULL);
+    g_return_val_if_fail(buffer_length > 0, NULL);
+
+    return nm_utils_hexstr2bin_full(asc,
+                                    FALSE,
+                                    TRUE,
+                                    FALSE,
+                                    ":-",
+                                    buffer_length,
+                                    buffer,
+                                    buffer_length,
+                                    NULL);
+}
+
 static inline const char *
 _nm_utils_hwaddr_ntoa(gconstpointer addr,
                       gsize         addr_len,
@@ -2060,7 +2257,8 @@ _nm_utils_hwaddr_ntoa(gconstpointer addr,
         {                                                                                      \
             unknown_val_cmd;                                                                   \
         }                                                                                      \
-    }
+    }                                                                                          \
+    _NM_DUMMY_STRUCT_FOR_TRAILING_SEMICOLON
 
 #define NM_UTILS_STRING_TABLE_LOOKUP_STRUCT_DEFINE(fcn_name,        \
                                                    result_type,     \
@@ -2130,9 +2328,30 @@ nm_utils_strdup_reset(char **dst, const char *src)
     return TRUE;
 }
 
+static inline gboolean
+nm_utils_strdup_reset_take(char **dst, char *src)
+{
+    char *old;
+
+    nm_assert(dst);
+    nm_assert(src != *dst);
+
+    if (nm_streq0(*dst, src)) {
+        if (src)
+            g_free(src);
+        return FALSE;
+    }
+    old  = *dst;
+    *dst = src;
+    g_free(old);
+    return TRUE;
+}
+
 void nm_indirect_g_free(gpointer arg);
 
 /*****************************************************************************/
+
+void nm_utils_ifname_cpy(char *dst, const char *name);
 
 typedef enum {
     NMU_IFACE_ANY,

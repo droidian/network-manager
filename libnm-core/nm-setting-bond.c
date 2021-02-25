@@ -1,15 +1,16 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2011 - 2013 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-bond.h"
 
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <linux/if_ether.h>
 
 #include "nm-libnm-core-intern/nm-libnm-core-utils.h"
 #include "nm-utils.h"
@@ -146,7 +147,7 @@ static char const *const _option_default_strv_mode[]      = NM_MAKE_STRV("balanc
 static char const *const _option_default_strv_primary_reselect[] =
     NM_MAKE_STRV("always", "better", "failure");
 static char const *const _option_default_strv_xmit_hash_policy[] =
-    NM_MAKE_STRV("layer2", "layer3+4", "layer2+3", "encap2+3", "encap3+4");
+    NM_MAKE_STRV("layer2", "layer3+4", "layer2+3", "encap2+3", "encap3+4", "vlan+srcmac");
 
 static NM_UTILS_STRING_TABLE_LOOKUP_STRUCT_DEFINE(
     _get_option_meta,
@@ -198,7 +199,7 @@ static NM_UTILS_STRING_TABLE_LOOKUP_STRUCT_DEFINE(
     {NM_SETTING_BOND_OPTION_UPDELAY, {"0", NM_BOND_OPTION_TYPE_INT, 0, G_MAXINT}},
     {NM_SETTING_BOND_OPTION_USE_CARRIER, {"1", NM_BOND_OPTION_TYPE_INT, 0, 1}},
     {NM_SETTING_BOND_OPTION_XMIT_HASH_POLICY,
-     {"layer2", NM_BOND_OPTION_TYPE_BOTH, 0, 4, _option_default_strv_xmit_hash_policy}}, );
+     {"layer2", NM_BOND_OPTION_TYPE_BOTH, 0, 5, _option_default_strv_xmit_hash_policy}}, );
 
 /*****************************************************************************/
 
@@ -224,9 +225,10 @@ static NM_UTILS_STRING_TABLE_LOOKUP_DEFINE(
     {NM_SETTING_BOND_OPTION_PACKETS_PER_SLAVE, ~(BIT(NM_BOND_MODE_ROUNDROBIN))},
     {NM_SETTING_BOND_OPTION_PRIMARY,
      ~(BIT(NM_BOND_MODE_ACTIVEBACKUP) | BIT(NM_BOND_MODE_TLB) | BIT(NM_BOND_MODE_ALB))},
-    {NM_SETTING_BOND_OPTION_TLB_DYNAMIC_LB, ~(BIT(NM_BOND_MODE_TLB))}, )
+    {NM_SETTING_BOND_OPTION_TLB_DYNAMIC_LB, ~(BIT(NM_BOND_MODE_TLB))}, );
 
-    gboolean _nm_setting_bond_option_supported(const char *option, NMBondMode mode)
+gboolean
+_nm_setting_bond_option_supported(const char *option, NMBondMode mode)
 {
     nm_assert(option);
     nm_assert(mode != NM_BOND_MODE_UNKNOWN);
@@ -514,8 +516,8 @@ validate_ifname(const char *name, const char *value)
     return nm_utils_ifname_valid_kernel(value, NULL);
 }
 
-static gboolean
-_setting_bond_validate_option(const char *name, const char *value, GError **error)
+gboolean
+_nm_setting_bond_validate_option(const char *name, const char *value, GError **error)
 {
     const OptionMeta *option_meta;
     gboolean          success;
@@ -577,7 +579,7 @@ handle_error:
 /**
  * nm_setting_bond_validate_option:
  * @name: the name of the option to validate
- * @value: the value of the option to validate
+ * @value (allow-none): the value of the option to validate.
  *
  * Checks whether @name is a valid bond option and @value is a valid value for
  * the @name. If @value is %NULL, the function only validates the option name.
@@ -588,7 +590,7 @@ handle_error:
 gboolean
 nm_setting_bond_validate_option(const char *name, const char *value)
 {
-    return _setting_bond_validate_option(name, value, NULL);
+    return _nm_setting_bond_validate_option(name, value, NULL);
 }
 
 /**
@@ -607,9 +609,6 @@ nm_setting_bond_get_option_by_name(NMSettingBond *setting, const char *name)
 {
     g_return_val_if_fail(NM_IS_SETTING_BOND(setting), NULL);
 
-    if (!nm_setting_bond_validate_option(name, NULL))
-        return NULL;
-
     return _bond_get_option(setting, name);
 }
 
@@ -619,16 +618,18 @@ nm_setting_bond_get_option_by_name(NMSettingBond *setting, const char *name)
  * @name: name for the option
  * @value: value for the option
  *
- * Add an option to the table.  The option is compared to an internal list
- * of allowed options.  Option names may contain only alphanumeric characters
- * (ie [a-zA-Z0-9]).  Adding a new name replaces any existing name/value pair
+ * Add an option to the table. Adding a new name replaces any existing name/value pair
  * that may already exist.
  *
- * The order of how to set several options is relevant because there are options
- * that conflict with each other.
+ * Returns: returns %FALSE if either @name or @value is %NULL, in that case
+ * the option is not set. Otherwise, the function does not fail and does not validate
+ * the arguments. All validation happens via nm_connection_verify() or do basic validation
+ * yourself with nm_setting_bond_validate_option().
  *
- * Returns: %TRUE if the option was valid and was added to the internal option
- * list, %FALSE if it was not.
+ * Note: Before 1.30, libnm would perform basic validation of the name and the value
+ * via nm_setting_bond_validate_option() and reject the request by returning FALSE.
+ * Since 1.30, libnm no longer rejects any values as the setter is not supposed
+ * to perform validation.
  **/
 gboolean
 nm_setting_bond_add_option(NMSettingBond *setting, const char *name, const char *value)
@@ -637,16 +638,16 @@ nm_setting_bond_add_option(NMSettingBond *setting, const char *name, const char 
 
     g_return_val_if_fail(NM_IS_SETTING_BOND(setting), FALSE);
 
-    if (!value || !nm_setting_bond_validate_option(name, value))
+    if (!name)
+        return FALSE;
+    if (!value)
         return FALSE;
 
     priv = NM_SETTING_BOND_GET_PRIVATE(setting);
 
     nm_clear_g_free(&priv->options_idx_cache);
     g_hash_table_insert(priv->options, g_strdup(name), g_strdup(value));
-
     _notify(setting, PROP_OPTIONS);
-
     return TRUE;
 }
 
@@ -665,20 +666,17 @@ gboolean
 nm_setting_bond_remove_option(NMSettingBond *setting, const char *name)
 {
     NMSettingBondPrivate *priv;
-    gboolean              found;
 
     g_return_val_if_fail(NM_IS_SETTING_BOND(setting), FALSE);
 
-    if (!nm_setting_bond_validate_option(name, NULL))
-        return FALSE;
-
     priv = NM_SETTING_BOND_GET_PRIVATE(setting);
 
+    if (!g_hash_table_remove(priv->options, name))
+        return FALSE;
+
     nm_clear_g_free(&priv->options_idx_cache);
-    found = g_hash_table_remove(priv->options, name);
-    if (found)
-        _notify(setting, PROP_OPTIONS);
-    return found;
+    _notify(setting, PROP_OPTIONS);
+    return TRUE;
 }
 
 /**
@@ -782,7 +780,7 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
         for (i = 0; priv->options_idx_cache[i].name; i++) {
             n = &priv->options_idx_cache[i];
 
-            if (!n->value_str || !_setting_bond_validate_option(n->name, n->value_str, error)) {
+            if (!n->value_str || !_nm_setting_bond_validate_option(n->name, n->value_str, error)) {
                 g_prefix_error(error,
                                "%s.%s: ",
                                NM_SETTING_BOND_SETTING_NAME,
@@ -1112,7 +1110,7 @@ nm_setting_bond_init(NMSettingBond *setting)
 NMSetting *
 nm_setting_bond_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_BOND, NULL);
+    return g_object_new(NM_TYPE_SETTING_BOND, NULL);
 }
 
 static void

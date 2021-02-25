@@ -4961,12 +4961,16 @@ server certificate's altSubjectName is performed.</p>
 <div class="refsect2">
 <a name="NMSetting8021x--phase2-auth"></a><h3>The <code class="literal">“phase2-auth”</code> property</h3>
 <pre class="programlisting">  “phase2-auth”              <span class="type">char</span> *</pre>
-<p>Specifies the allowed "phase 2" inner non-EAP authentication method when
-an EAP method that uses an inner TLS tunnel is specified in the
-<a class="link" href="NMSetting8021x.html#NMSetting8021x--eap" title="The “eap” property"><span class="type">“eap”</span></a> property.  Recognized non-EAP "phase 2" methods are
-"pap", "chap", "mschap", "mschapv2", "gtc", "otp", "md5", and "tls".
+<p>Specifies the allowed "phase 2" inner authentication method when an EAP
+method that uses an inner TLS tunnel is specified in the <a class="link" href="NMSetting8021x.html#NMSetting8021x--eap" title="The “eap” property"><span class="type">“eap”</span></a>
+property.  For TTLS this property selects one of the supported non-EAP
+inner methods: "pap", "chap", "mschap", "mschapv2" while
+<a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-autheap" title="The “phase2-autheap” property"><span class="type">“phase2-autheap”</span></a> selects an EAP inner method.  For PEAP
+this selects an inner EAP method, one of: "gtc", "otp", "md5" and "tls".
 Each "phase 2" inner method requires specific parameters for successful
-authentication; see the wpa_supplicant documentation for more details.</p>
+authentication; see the wpa_supplicant documentation for more details.
+Both <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-auth" title="The “phase2-auth” property"><span class="type">“phase2-auth”</span></a> and <a class="link" href="NMSetting8021x.html#NMSetting8021x--phase2-autheap" title="The “phase2-autheap” property"><span class="type">“phase2-autheap”</span></a> cannot
+be specified.</p>
 <p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>
@@ -4976,11 +4980,11 @@ authentication; see the wpa_supplicant documentation for more details.</p>
 <a name="NMSetting8021x--phase2-autheap"></a><h3>The <code class="literal">“phase2-autheap”</code> property</h3>
 <pre class="programlisting">  “phase2-autheap”           <span class="type">char</span> *</pre>
 <p>Specifies the allowed "phase 2" inner EAP-based authentication method
-when an EAP method that uses an inner TLS tunnel is specified in the
-<a class="link" href="NMSetting8021x.html#NMSetting8021x--eap" title="The “eap” property"><span class="type">“eap”</span></a> property.  Recognized EAP-based "phase 2" methods are
-"md5", "mschapv2", "otp", "gtc", and "tls". Each "phase 2" inner method
-requires specific parameters for successful authentication; see the
-wpa_supplicant documentation for more details.</p>
+when TTLS is specified in the <a class="link" href="NMSetting8021x.html#NMSetting8021x--eap" title="The “eap” property"><span class="type">“eap”</span></a> property.  Recognized
+EAP-based "phase 2" methods are "md5", "mschapv2", "otp", "gtc", and
+"tls". Each "phase 2" inner method requires specific parameters for
+successful authentication; see the wpa_supplicant documentation for
+more details.</p>
 <p>Owner: NMSetting8021x</p>
 <p>Flags: Read / Write</p>
 <p>Default value: NULL</p>

@@ -36,6 +36,7 @@ override_dh_auto_configure:
 		--with-iptables=/usr/sbin/iptables \
 		--with-dnsmasq=/usr/sbin/dnsmasq \
 		--with-dnssec-trigger=/usr/lib/dnssec-trigger/dnssec-trigger-script \
+		--with-polkit-agent-helper-1=/usr/lib/policykit-1/polkit-agent-helper-1 \
 		--with-systemdsystemunitdir=/lib/systemd/system \
 		--with-udev-dir=/lib/udev \
 		--with-dbus-sys-dir=/usr/share/dbus-1/system.d \
