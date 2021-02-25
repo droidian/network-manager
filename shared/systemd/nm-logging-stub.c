@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2018 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "shared/systemd/nm-default-systemd-shared.h"
 
 #include "nm-glib-aux/nm-logging-fwd.h"
 

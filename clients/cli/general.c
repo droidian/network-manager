@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (C) 2010 - 2018 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-client.h"
 
 #include <stdlib.h>
 

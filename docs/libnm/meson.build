@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: LGPL-2.1+
+# SPDX-License-Identifier: LGPL-2.1-or-later
 
 src_dirs = [
   libnm_core_inc,
@@ -13,6 +13,7 @@ private_headers = [
   'nm-crypto-impl.h',
   'nm-crypto.h',
   'nm-dbus-helpers.h',
+  'nm-default-libnm-core.h',
   'nm-device-private.h',
   'nm-dhcp4-config.h',
   'nm-dhcp6-config.h',
@@ -33,7 +34,7 @@ private_headers = [
 
   'nm-auth-subject.h',
   'nm-common-macros.h',
-  'nm-ethtool-utils.h',
+  'nm-ethtool-base.h',
   'nm-libnm-core-utils.h',
 
   'nm-dispatcher-api.h',

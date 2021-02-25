@@ -113,7 +113,8 @@ build_triplet = @build@
 host_triplet = @host@
 @BUILD_DOCS_TRUE@am__append_1 = settings-spec.xml
 @WITH_OPENVSWITCH_TRUE@am__append_2 = $(top_builddir)/man/nm-openvswitch.xml
-@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_3 = $(top_builddir)/man/nm-settings-ifcfg-rh.xml
+@BUILD_NM_CLOUD_SETUP_TRUE@am__append_3 = $(top_builddir)/man/nm-cloud-setup.xml
+@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_4 = $(top_builddir)/man/nm-settings-ifcfg-rh.xml
 subdir = docs/api
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/attributes.m4 \
@@ -327,8 +328,6 @@ PERL = @PERL@
 PKG_CONFIG = @PKG_CONFIG@
 PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
 PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
-POLKIT_CFLAGS = @POLKIT_CFLAGS@
-POLKIT_LIBS = @POLKIT_LIBS@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
@@ -523,7 +522,7 @@ content_files = $(GENERATED_FILES) \
 	$(top_builddir)/man/nm-settings-dbus.xml \
 	$(top_builddir)/man/nm-settings-keyfile.xml \
 	$(top_builddir)/man/nm-settings-nmcli.xml version.xml $(NULL) \
-	$(am__append_2) $(am__append_3)
+	$(am__append_2) $(am__append_3) $(am__append_4)
 @GTK_DOC_USE_LIBTOOL_FALSE@GTKDOC_CC = $(CC) $(INCLUDES) $(GTKDOC_DEPS_CFLAGS) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 @GTK_DOC_USE_LIBTOOL_TRUE@GTKDOC_CC = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(INCLUDES) $(GTKDOC_DEPS_CFLAGS) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 @GTK_DOC_USE_LIBTOOL_FALSE@GTKDOC_LD = $(CC) $(GTKDOC_DEPS_LIBS) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS)
@@ -548,7 +547,7 @@ SETUP_FILES = \
 
 ####################################
 EXTRA_DIST = $(HTML_IMAGES) $(SETUP_FILES) version.xml.in \
-	settings-spec.xsl meson.build $(GENERATED_FILES)
+	settings-spec.xsl meson.build $(GENERATED_FILES) $(NULL)
 DOC_STAMPS = setup-build.stamp scan-build.stamp sgml-build.stamp \
 	html-build.stamp pdf-build.stamp \
 	sgml.stamp html.stamp pdf.stamp
@@ -568,8 +567,8 @@ REPORT_FILES = \
 
 CLEANFILES = $(SCANOBJ_FILES) $(REPORT_FILES) $(DOC_STAMPS) \
 	gtkdoc-check.test html/* tmpl/* xml/* \
-	NetworkManager-sections.txt NetworkManager-overrides.txt \
-	settings-spec.xml
+	NetworkManager-overrides.txt NetworkManager-sections.txt \
+	NetworkManager.actions settings-spec.xml $(NULL)
 @GTK_DOC_BUILD_HTML_FALSE@HTML_BUILD_STAMP = 
 @GTK_DOC_BUILD_HTML_TRUE@HTML_BUILD_STAMP = html-build.stamp
 @GTK_DOC_BUILD_PDF_FALSE@PDF_BUILD_STAMP = 

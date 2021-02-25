@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 12/06/2020
+.\"      Date: 02/18/2021
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.28.0
+.\"    Source: NetworkManager 1.30.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.28\&.0" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.30\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -577,7 +577,7 @@ IEEE_8021X_INNER_AUTH_METHODS\fI(+)\fR
 T}:T{
 \ \&
 T}:T{
-Inner non\-EAP authentication methods\&. IEEE_8021X_INNER_AUTH_METHODS can contain values both for \*(Aqphase2\-auth\*(Aq and \*(Aqphase2\-autheap\*(Aq properties\&.\fB
+Inner non\-EAP authentication methods for TTLS or the inner EAP authentication method for PEAP\&. IEEE_8021X_INNER_AUTH_METHODS can contain values both for \*(Aqphase2\-auth\*(Aq and \*(Aqphase2\-autheap\*(Aq properties\&.\fB
 
 Example: \fRIEEE_8021X_INNER_AUTH_METHODS=PAP\fB
 
@@ -1743,7 +1743,76 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&9.\ \&infiniband setting
+.B Table\ \&9.\ \&hostname setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+l l l l
+l l l l
+l l l l
+l l l l.
+T{
+priority
+T}:T{
+HOSTNAME_PRIORITY\fI(+)\fR
+T}:T{
+missing variable means global value or 100
+T}:T{
+hostname priority\fB
+
+Example: \fRHOSTNAME_PRIORITY=50
+T}
+T{
+from\-dhcp
+T}:T{
+HOSTNAME_FROM_DHCP\fI(+)\fR
+T}:T{
+missing variable means global default or 1
+T}:T{
+whether the system hostname can be determined from DHCP\fB
+
+Example: \fRHOSTNAME_FROM_DHCP=0,1
+T}
+T{
+from\-dhcp
+T}:T{
+HOSTNAME_FROM_DNS_LOOKUP\fI(+)\fR
+T}:T{
+missing variable means global default or 1
+T}:T{
+whether the system hostname can be determined from reverse DNS lookup\fB
+
+Example: \fRHOSTNAME_FROM_DNS_LOOKUP=0,1
+T}
+T{
+only\-best\-device
+T}:T{
+HOSTNAME_ONLY_FROM_DEFAULT\fI(+)\fR
+T}:T{
+missing variable means global default or 1
+T}:T{
+whether the hostname can be determined only from devices with the default route\fB
+
+Example: \fRHOSTNAME_ONLY_FROM_DEFAULT=0,1
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&10.\ \&infiniband setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1820,7 +1889,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&10.\ \&ipv4 setting
+.B Table\ \&11.\ \&ipv4 setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1889,7 +1958,7 @@ T}
 T{
 addresses
 T}:T{
-IPADDR, PREFIX, IPADDR1, PREFIX1, \&.\&.\&.
+IPADDR, PREFIX (NETMASK), IPADDR1, PREFIX1 (NETMASK1), \&.\&.\&.
 T}:T{
 \ \&
 T}:T{
@@ -2073,7 +2142,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&11.\ \&ipv6 setting
+.B Table\ \&12.\ \&ipv6 setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2330,7 +2399,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&12.\ \&match setting
+.B Table\ \&13.\ \&match setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2363,7 +2432,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&13.\ \&ovs\-bridge setting
+.B Table\ \&14.\ \&ovs\-bridge setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2385,7 +2454,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&14.\ \&ovs\-dpdk setting
+.B Table\ \&15.\ \&ovs\-dpdk setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2407,7 +2476,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&15.\ \&ovs\-interface setting
+.B Table\ \&16.\ \&ovs\-external\-ids setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2429,7 +2498,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&16.\ \&ovs\-patch setting
+.B Table\ \&17.\ \&ovs\-interface setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2451,7 +2520,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&17.\ \&ovs\-port setting
+.B Table\ \&18.\ \&ovs\-patch setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2473,7 +2542,29 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&18.\ \&proxy setting
+.B Table\ \&19.\ \&ovs\-port setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+.
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&20.\ \&proxy setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2540,7 +2631,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&19.\ \&sriov setting
+.B Table\ \&21.\ \&sriov setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2597,7 +2688,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&20.\ \&tc setting
+.B Table\ \&22.\ \&tc setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2642,7 +2733,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&21.\ \&team\-port setting
+.B Table\ \&23.\ \&team\-port setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2673,7 +2764,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&22.\ \&team setting
+.B Table\ \&24.\ \&team setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2704,7 +2795,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&23.\ \&user setting
+.B Table\ \&25.\ \&user setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2737,7 +2828,29 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&24.\ \&vlan setting
+.B Table\ \&26.\ \&veth setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+.
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&27.\ \&vlan setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2826,7 +2939,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&25.\ \&vrf setting
+.B Table\ \&28.\ \&vrf setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2848,7 +2961,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&26.\ \&wifi\-p2p setting
+.B Table\ \&29.\ \&wifi\-p2p setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2870,7 +2983,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&27.\ \&802\-3\-ethernet setting
+.B Table\ \&30.\ \&802\-3\-ethernet setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3019,7 +3132,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&28.\ \&wireguard setting
+.B Table\ \&31.\ \&wireguard setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3041,7 +3154,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&29.\ \&802\-11\-wireless\-security setting
+.B Table\ \&32.\ \&802\-11\-wireless\-security setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3084,7 +3197,7 @@ T}:T{
 T}:T{
 Key management menthod\&.\fB
 
-Allowed values: \fRIEEE8021X, WPA\-PSK, WPA\-EAP
+Allowed values: \fRIEEE8021X, WPA\-PSK, WPA\-EAP, WPA\-EAP\-SUITE\-B\-192
 T}
 T{
 wep\-tx\-keyidx
@@ -3288,7 +3401,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&30.\ \&802\-11\-wireless setting
+.B Table\ \&33.\ \&802\-11\-wireless setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3511,7 +3624,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&31.\ \&wpan setting
+.B Table\ \&34.\ \&wpan setting
 .TS
 allbox tab(:);
 lB lB lB lB.

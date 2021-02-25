@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (C) 2013 Red Hat, Inc.
  */
@@ -13,9 +13,12 @@
  * on whether it currently contains a valid hardware address.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-client.h"
 
 #include "nmt-mac-entry.h"
+
+#include <linux/if_ether.h>
+#include <linux/if_infiniband.h>
 
 #include "nm-libnm-core-intern/nm-common-macros.h"
 

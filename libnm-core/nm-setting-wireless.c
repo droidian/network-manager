@@ -1,10 +1,10 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2014 Red Hat, Inc.
  * Copyright (C) 2007 - 2008 Novell, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-wireless.h"
 
@@ -1326,7 +1326,7 @@ nm_setting_wireless_init(NMSettingWireless *setting)
 NMSetting *
 nm_setting_wireless_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_WIRELESS, NULL);
+    return g_object_new(NM_TYPE_SETTING_WIRELESS, NULL);
 }
 
 static void

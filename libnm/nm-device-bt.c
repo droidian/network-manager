@@ -1,12 +1,14 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2008 Novell, Inc.
  * Copyright (C) 2007 - 2012 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-libnm.h"
 
 #include "nm-device-bt.h"
+
+#include <linux/if_ether.h>
 
 #include "nm-setting-connection.h"
 #include "nm-setting-bluetooth.h"
@@ -218,7 +220,7 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_bluetooth = NML_DBUS_META_IFACE_INIT_PROP(
     NM_DBUS_INTERFACE_DEVICE_BLUETOOTH,
     nm_device_bt_get_type,
-    NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_HIGH,
+    NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_30,
     NML_DBUS_META_IFACE_DBUS_PROPERTIES(
         NML_DBUS_META_PROPERTY_INIT_U("BtCapabilities",
                                       PROP_BT_CAPABILITIES,

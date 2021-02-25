@@ -33,6 +33,8 @@ bridge&apos;s interface name."/>
 </setting>
 <setting name="gsm">
 </setting>
+<setting name="hostname">
+</setting>
 <setting name="infiniband">
 </setting>
 <setting name="ip-tunnel">
@@ -120,6 +122,8 @@ also exist on some routes."/>
 </setting>
 <setting name="ovs-dpdk">
 </setting>
+<setting name="ovs-external-ids">
+</setting>
 <setting name="ovs-interface">
 </setting>
 <setting name="ovs-patch">
@@ -150,6 +154,8 @@ team&apos;s interface name."/>
 <setting name="tun">
 </setting>
 <setting name="user">
+</setting>
+<setting name="veth">
 </setting>
 <setting name="vlan">
 <property name="interface-name" variable="interface-name" format="string" values="" default="" example="" description="Deprecated in favor of connection.interface-name, but can

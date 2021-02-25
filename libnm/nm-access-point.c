@@ -1,12 +1,14 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2008 Novell, Inc.
  * Copyright (C) 2007 - 2011 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-libnm.h"
 
 #include "nm-access-point.h"
+
+#include <linux/if_ether.h>
 
 #include "nm-connection.h"
 #include "nm-setting-connection.h"
@@ -363,6 +365,10 @@ nm_access_point_connection_valid(NMAccessPoint *ap, NMConnection *connection)
  * Returns: (transfer full) (element-type NMConnection): an array of
  * #NMConnections that could be activated with the given @ap.  The array should
  * be freed with g_ptr_array_unref() when it is no longer required.
+ *
+ * WARNING: the transfer annotation for this function may not work correctly
+ *   with bindings. See https://gitlab.gnome.org/GNOME/gobject-introspection/-/issues/305.
+ *   You can filter the list yourself with nm_access_point_connection_valid().
  **/
 GPtrArray *
 nm_access_point_filter_connections(NMAccessPoint *ap, const GPtrArray *connections)
@@ -472,7 +478,7 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 const NMLDBusMetaIface _nml_dbus_meta_iface_nm_accesspoint = NML_DBUS_META_IFACE_INIT_PROP(
     NM_DBUS_INTERFACE_ACCESS_POINT,
     nm_access_point_get_type,
-    NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_HIGH,
+    NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_30,
     NML_DBUS_META_IFACE_DBUS_PROPERTIES(
         NML_DBUS_META_PROPERTY_INIT_U("Flags", PROP_FLAGS, NMAccessPoint, _priv.flags),
         NML_DBUS_META_PROPERTY_INIT_U("Frequency", PROP_FREQUENCY, NMAccessPoint, _priv.frequency),

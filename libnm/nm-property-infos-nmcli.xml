@@ -27,6 +27,8 @@
 </setting>
 <setting name="gsm">
 </setting>
+<setting name="hostname">
+</setting>
 <setting name="infiniband">
 </setting>
 <setting name="ip-tunnel">
@@ -46,6 +48,8 @@
 <setting name="ovs-bridge">
 </setting>
 <setting name="ovs-dpdk">
+</setting>
+<setting name="ovs-external-ids">
 </setting>
 <setting name="ovs-interface">
 </setting>
@@ -72,6 +76,8 @@
 <setting name="tun">
 </setting>
 <setting name="user">
+</setting>
+<setting name="veth">
 </setting>
 <setting name="vlan">
 </setting>

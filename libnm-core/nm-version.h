@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2011, 2015 Red Hat, Inc.
  */
@@ -255,6 +255,20 @@
     #define NM_AVAILABLE_IN_1_28 G_UNAVAILABLE(1, 28)
 #else
     #define NM_AVAILABLE_IN_1_28
+#endif
+
+#if NM_VERSION_MIN_REQUIRED >= NM_VERSION_1_30
+    #define NM_DEPRECATED_IN_1_30        G_DEPRECATED
+    #define NM_DEPRECATED_IN_1_30_FOR(f) G_DEPRECATED_FOR(f)
+#else
+    #define NM_DEPRECATED_IN_1_30
+    #define NM_DEPRECATED_IN_1_30_FOR(f)
+#endif
+
+#if NM_VERSION_MAX_ALLOWED < NM_VERSION_1_30
+    #define NM_AVAILABLE_IN_1_30 G_UNAVAILABLE(1, 30)
+#else
+    #define NM_AVAILABLE_IN_1_30
 #endif
 
 /*

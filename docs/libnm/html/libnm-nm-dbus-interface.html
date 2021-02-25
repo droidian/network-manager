@@ -943,7 +943,7 @@ is loaded.</p>
 <td class="enum_member_name"><p><a name="NM-CAPABILITY-OVS:CAPS"></a>NM_CAPABILITY_OVS</p></td>
 <td class="enum_member_description">
 <p>OpenVSwitch can be managed. This means the OVS device plugin
-is loaded. Since: 1.24</p>
+is loaded. Since: 1.24.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1335,14 +1335,14 @@ GSM/UMTS, or LTE network access protocols</p>
 <tr>
 <td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-WIFI-P2P:CAPS"></a>NM_DEVICE_TYPE_WIFI_P2P</p></td>
 <td class="enum_member_description">
-<p>an 802.11 Wi-Fi P2P device (Since: 1.16)</p>
+<p>an 802.11 Wi-Fi P2P device. Since: 1.16.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-DEVICE-TYPE-VRF:CAPS"></a>NM_DEVICE_TYPE_VRF</p></td>
 <td class="enum_member_description">
-<p>A VRF (Virtual Routing and Forwarding) interface (Since: 1.24)</p>
+<p>A VRF (Virtual Routing and Forwarding) interface. Since: 1.24.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -1690,6 +1690,14 @@ supported</p>
 <td class="enum_member_description">
 <p>WPA/RSN Opportunistic Wireless Encryption
 transition mode is supported. Since: 1.26.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-802-11-AP-SEC-KEY-MGMT-EAP-SUITE-B-192:CAPS"></a>NM_802_11_AP_SEC_KEY_MGMT_EAP_SUITE_B_192</p></td>
+<td class="enum_member_description">
+<p>WPA3 Enterprise Suite-B 192 bit mode
+is supported. Since: 1.30.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3243,7 +3251,7 @@ a new checkpoint, destroy all existing ones.</p>
 <td class="enum_member_name"><p><a name="NM-CHECKPOINT-CREATE-FLAG-DELETE-NEW-CONNECTIONS:CAPS"></a>NM_CHECKPOINT_CREATE_FLAG_DELETE_NEW_CONNECTIONS</p></td>
 <td class="enum_member_description">
 <p>upon rollback,
-delete any new connection added after the checkpoint (Since: 1.6)</p>
+delete any new connection added after the checkpoint. Since: 1.6.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3251,7 +3259,7 @@ delete any new connection added after the checkpoint (Since: 1.6)</p>
 <td class="enum_member_name"><p><a name="NM-CHECKPOINT-CREATE-FLAG-DISCONNECT-NEW-DEVICES:CAPS"></a>NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES</p></td>
 <td class="enum_member_description">
 <p>upon rollback,
-disconnect any new device appeared after the checkpoint (Since: 1.6)</p>
+disconnect any new device appeared after the checkpoint. Since: 1.6.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3269,7 +3277,7 @@ and rollback to them at will. With the special case that
 rolling back to an older checkpoint will invalidate all
 overlapping younger checkpoints. This opts-in that the
 checkpoint can be automatically destroyed by the rollback
-of an older checkpoint. (Since: 1.12)</p>
+of an older checkpoint. Since: 1.12.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3379,7 +3387,7 @@ in-memory only.</p>
 <td class="enum_member_name"><p><a name="NM-SETTINGS-CONNECTION-FLAG-EXTERNAL:CAPS"></a>NM_SETTINGS_CONNECTION_FLAG_EXTERNAL</p></td>
 <td class="enum_member_description">
 <p>the profile was generated to represent
-an external configuration of a networking device. Since: 1.26</p>
+an external configuration of a networking device. Since: 1.26.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3457,7 +3465,7 @@ This only makes sense if the device is a master.</p>
 <p>the lifetime
 of the activation is bound to the visibility of the connection profile,
 which in turn depends on "connection.permissions" and whether a session
-for the user exists. Since: 1.16</p>
+for the user exists. Since: 1.16.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -3465,7 +3473,7 @@ for the user exists. Since: 1.16</p>
 <td class="enum_member_name"><p><a name="NM-ACTIVATION-STATE-FLAG-EXTERNAL:CAPS"></a>NM_ACTIVATION_STATE_FLAG_EXTERNAL</p></td>
 <td class="enum_member_description">
 <p>the active connection was generated to
-represent an external configuration of a networking device. Since: 1.26</p>
+represent an external configuration of a networking device. Since: 1.26.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>

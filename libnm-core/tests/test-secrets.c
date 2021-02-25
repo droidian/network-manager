@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (C) 2008 - 2011 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-8021x.h"
 #include "nm-setting-cdma.h"

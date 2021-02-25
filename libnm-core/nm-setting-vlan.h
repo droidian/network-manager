@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2011 - 2014 Red Hat, Inc.
  */
@@ -11,7 +11,6 @@
 #endif
 
 #include "nm-setting.h"
-#include <linux/if_vlan.h>
 
 G_BEGIN_DECLS
 

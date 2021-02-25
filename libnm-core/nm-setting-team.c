@@ -1,10 +1,10 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2017 Red Hat, Inc.
  * Copyright (C) 2013 Jiri Pirko <jiri@resnulli.us>
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-team.h"
 
@@ -122,12 +122,16 @@ nm_team_link_watcher_new_ethtool(int delay_up, int delay_down, GError **error)
         return NULL;
     }
 
+    NM_PRAGMA_WARNING_DISABLE("-Warray-bounds")
+
     watcher = g_malloc(nm_offsetofend(NMTeamLinkWatcher, ethtool));
 
     watcher->ref_count          = 1;
     watcher->type               = LINK_WATCHER_ETHTOOL;
     watcher->ethtool.delay_up   = delay_up;
     watcher->ethtool.delay_down = delay_down;
+
+    NM_PRAGMA_WARNING_REENABLE
 
     return watcher;
 }
@@ -1459,7 +1463,7 @@ nm_setting_team_init(NMSettingTeam *setting)
 NMSetting *
 nm_setting_team_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_TEAM, NULL);
+    return g_object_new(NM_TYPE_SETTING_TEAM, NULL);
 }
 
 static void

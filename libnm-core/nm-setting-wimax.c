@@ -1,10 +1,10 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2011 - 2013 Red Hat, Inc.
  * Copyright (C) 2009 Novell, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-wimax.h"
 
@@ -183,7 +183,7 @@ nm_setting_wimax_init(NMSettingWimax *setting)
 NMSetting *
 nm_setting_wimax_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_WIMAX, NULL);
+    return g_object_new(NM_TYPE_SETTING_WIMAX, NULL);
 }
 
 static void

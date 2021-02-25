@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2010 - 2011 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-libnm.h"
 
 #include "nm-secret-agent-old.h"
 

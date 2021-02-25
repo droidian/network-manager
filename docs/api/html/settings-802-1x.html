@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.4.2.2.1"></a><p class="title"><b>Table 44. </b></p>
+<a name="id-1.3.3.4.2.2.1"></a><p class="title"><b>Table 47. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -207,13 +207,13 @@
 <td><pre class="screen">phase2-auth</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Specifies the allowed "phase 2" inner non-EAP authentication method when an EAP method that uses an inner TLS tunnel is specified in the "eap" property.  Recognized non-EAP "phase 2" methods are "pap", "chap", "mschap", "mschapv2", "gtc", "otp", "md5", and "tls". Each "phase 2" inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details.</td>
+<td>Specifies the allowed "phase 2" inner authentication method when an EAP method that uses an inner TLS tunnel is specified in the "eap" property.  For TTLS this property selects one of the supported non-EAP inner methods: "pap", "chap", "mschap", "mschapv2" while "phase2-autheap" selects an EAP inner method.  For PEAP this selects an inner EAP method, one of: "gtc", "otp", "md5" and "tls". Each "phase 2" inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details. Both "phase2-auth" and "phase2-autheap" cannot be specified.</td>
 </tr>
 <tr>
 <td><pre class="screen">phase2-autheap</pre></td>
 <td><pre class="screen">string</pre></td>
 <td><pre class="screen"></pre></td>
-<td>Specifies the allowed "phase 2" inner EAP-based authentication method when an EAP method that uses an inner TLS tunnel is specified in the "eap" property.  Recognized EAP-based "phase 2" methods are "md5", "mschapv2", "otp", "gtc", and "tls". Each "phase 2" inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details.</td>
+<td>Specifies the allowed "phase 2" inner EAP-based authentication method when TTLS is specified in the "eap" property.  Recognized EAP-based "phase 2" methods are "md5", "mschapv2", "otp", "gtc", and "tls". Each "phase 2" inner method requires specific parameters for successful authentication; see the wpa_supplicant documentation for more details.</td>
 </tr>
 <tr>
 <td><pre class="screen">phase2-ca-cert</pre></td>

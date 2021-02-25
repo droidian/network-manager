@@ -1,7 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 #pragma once
 
+#if 0 /* NM_IGNORED */
 #include <printf.h>
+#endif /* NM_IGNORED */
 #include <stdarg.h>
 #include <stdio.h>
 #include <sys/types.h>

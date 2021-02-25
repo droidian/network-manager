@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch05.html" title="Utility API Reference">
-<link rel="prev" href="ch05.html" title="Utility API Reference">
+<link rel="prev" href="libnm-nm-keyfile.html" title="nm-keyfile">
 <link rel="next" href="libnm-nm-version.html" title="nm-version">
 <meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
@@ -20,7 +20,7 @@
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch05.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="ch05.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="libnm-nm-keyfile.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="libnm-nm-version.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
@@ -665,6 +665,10 @@
 <tr>
 <td class="datatype_keyword"> </td>
 <td class="function_name"><a class="link" href="libnm-nm-utils.html#NMVariantAttributeSpec" title="NMVariantAttributeSpec">NMVariantAttributeSpec</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">struct</td>
+<td class="function_name"><a class="link" href="libnm-nm-utils.html#in6-addr" title="struct in6_addr">in6_addr</a></td>
 </tr>
 <tr>
 <td class="datatype_keyword">struct</td>
@@ -1380,6 +1384,7 @@ falls in the predefined classes.</p>
 nm_utils_ip6_dns_to_variant (<em class="parameter"><code><span class="type">char</span> **dns</code></em>);</pre>
 <p>Utility function to convert an array of IP address strings int a <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> of
 type 'aay' representing an array of IPv6 addresses.</p>
+<p>If a string cannot be parsed, it will be silently ignored.</p>
 <div class="refsect3">
 <a name="nm-utils-ip6-dns-to-variant.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -2617,7 +2622,7 @@ argument. Don't pass <a href="https://developer.gnome.org/glib/unstable/glib-Sta
 <div class="refsect2">
 <a name="nm-utils-inet4-ntop"></a><h3>nm_utils_inet4_ntop ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
-nm_utils_inet4_ntop (<em class="parameter"><code><span class="type">in_addr_t</span> inaddr</code></em>,
+nm_utils_inet4_ntop (<em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> inaddr</code></em>,
                      <em class="parameter"><code><span class="type">char</span> *dst</code></em>);</pre>
 <p>Wrapper for inet_ntop.</p>
 <p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
@@ -3517,6 +3522,13 @@ generating the dynamic WEP keys automatically</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
+<tr>
+<td class="enum_member_name"><p><a name="NMU-SEC-WPA3-SUITE-B-192:CAPS"></a>NMU_SEC_WPA3_SUITE_B_192</p></td>
+<td class="enum_member_description">
+<p>is used with WPA3 Enterprise Suite-B 192 bit mode. Since: 1.30.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -3542,6 +3554,11 @@ for both <a class="link" href="libnm-nm-utils.html#nm-utils-inet4-ntop" title="n
 <div class="refsect2">
 <a name="NMVariantAttributeSpec"></a><h3>NMVariantAttributeSpec</h3>
 <pre class="programlisting">typedef struct _NMVariantAttributeSpec NMVariantAttributeSpec;</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="in6-addr"></a><h3>struct in6_addr</h3>
+<pre class="programlisting">struct in6_addr;</pre>
 </div>
 <hr>
 <div class="refsect2">

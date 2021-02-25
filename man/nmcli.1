@@ -2,12 +2,12 @@
 .\"     Title: nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 12/06/2020
+.\"      Date: 02/18/2021
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.28.0
+.\"    Source: NetworkManager 1.30.0
 .\"  Language: English
 .\"
-.TH "NMCLI" "1" "" "NetworkManager 1\&.28\&.0" "General Commands Manual"
+.TH "NMCLI" "1" "" "NetworkManager 1\&.30\&.0" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -659,7 +659,7 @@ alias) to one of known NetworkManager connection types:
 .sp -1
 .IP \(bu 2.3
 .\}
-ethernet
+6lowpan
 .RE
 .sp
 .RS 4
@@ -670,7 +670,9 @@ ethernet
 .sp -1
 .IP \(bu 2.3
 .\}
-wifi
+802\-11\-olpc\-mesh
+(alias
+olpc\-mesh)
 .RE
 .sp
 .RS 4
@@ -681,7 +683,9 @@ wifi
 .sp -1
 .IP \(bu 2.3
 .\}
-wimax
+802\-11\-wireless
+(alias
+wifi)
 .RE
 .sp
 .RS 4
@@ -692,7 +696,9 @@ wimax
 .sp -1
 .IP \(bu 2.3
 .\}
-pppoe
+802\-3\-ethernet
+(alias
+ethernet)
 .RE
 .sp
 .RS 4
@@ -703,29 +709,7 @@ pppoe
 .sp -1
 .IP \(bu 2.3
 .\}
-gsm
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.sp -1
-.IP \(bu 2.3
-.\}
-cdma
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.sp -1
-.IP \(bu 2.3
-.\}
-infiniband
+adsl
 .RE
 .sp
 .RS 4
@@ -737,17 +721,6 @@ infiniband
 .IP \(bu 2.3
 .\}
 bluetooth
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.sp -1
-.IP \(bu 2.3
-.\}
-vlan
 .RE
 .sp
 .RS 4
@@ -770,28 +743,7 @@ bond
 .IP \(bu 2.3
 .\}
 bond\-slave
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.sp -1
-.IP \(bu 2.3
-.\}
-team
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.sp -1
-.IP \(bu 2.3
-.\}
-team\-slave
+(deprecated for ethernet with master)
 .RE
 .sp
 .RS 4
@@ -814,6 +766,7 @@ bridge
 .IP \(bu 2.3
 .\}
 bridge\-slave
+(deprecated for ethernet with master)
 .RE
 .sp
 .RS 4
@@ -824,7 +777,7 @@ bridge\-slave
 .sp -1
 .IP \(bu 2.3
 .\}
-vpn
+cdma
 .RE
 .sp
 .RS 4
@@ -835,7 +788,7 @@ vpn
 .sp -1
 .IP \(bu 2.3
 .\}
-olpc\-mesh
+dummy
 .RE
 .sp
 .RS 4
@@ -846,7 +799,7 @@ olpc\-mesh
 .sp -1
 .IP \(bu 2.3
 .\}
-adsl
+generic
 .RE
 .sp
 .RS 4
@@ -857,7 +810,18 @@ adsl
 .sp -1
 .IP \(bu 2.3
 .\}
-tun
+gsm
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+infiniband
 .RE
 .sp
 .RS 4
@@ -879,7 +843,173 @@ ip\-tunnel
 .sp -1
 .IP \(bu 2.3
 .\}
+macsec
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
 macvlan
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+olpc\-mesh
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+ovs\-bridge
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+ovs\-dpdk
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+ovs\-interface
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+ovs\-patch
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+ovs\-port
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+pppoe
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+team
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+team\-slave
+(deprecated for ethernet with master)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+tun
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+veth
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+vlan
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+vpn
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+vrf
 .RE
 .sp
 .RS 4
@@ -901,7 +1031,40 @@ vxlan
 .sp -1
 .IP \(bu 2.3
 .\}
-dummy
+wifi\-p2p
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+wimax
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+wireguard
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+wpan
 .RE
 .sp
 The most typical uses are described in the

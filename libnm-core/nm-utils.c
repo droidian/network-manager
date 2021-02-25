@@ -1,20 +1,22 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2005 - 2017 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-utils.h"
 
 #include <stdlib.h>
-#include <netinet/ether.h>
+#include <net/ethernet.h>
 #include <arpa/inet.h>
+#include <net/if_arp.h>
 #include <uuid/uuid.h>
 #include <libintl.h>
 #include <gmodule.h>
 #include <sys/stat.h>
 #include <linux/pkt_sched.h>
+#include <linux/if_infiniband.h>
 
 #include "nm-glib-aux/nm-json-aux.h"
 #include "nm-glib-aux/nm-str-buf.h"
@@ -858,7 +860,7 @@ GPtrArray *
 _nm_utils_copy_array(const GPtrArray *array, NMUtilsCopyFunc copy_func, GDestroyNotify free_func)
 {
     GPtrArray *copy;
-    int        i;
+    guint      i;
 
     if (!array)
         return g_ptr_array_new_with_free_func(free_func);
@@ -1084,6 +1086,7 @@ nm_utils_ap_mode_security_valid(NMUtilsSecurityType type, NMDeviceWifiCapabiliti
     case NMU_SEC_DYNAMIC_WEP:
     case NMU_SEC_WPA_ENTERPRISE:
     case NMU_SEC_WPA2_ENTERPRISE:
+    case NMU_SEC_WPA3_SUITE_B_192:
         return FALSE;
     case NMU_SEC_INVALID:
         break;
@@ -1257,6 +1260,16 @@ nm_utils_security_valid(NMUtilsSecurityType      type,
         if (!NM_FLAGS_ANY(ap_rsn, NM_802_11_AP_SEC_KEY_MGMT_OWE | NM_802_11_AP_SEC_KEY_MGMT_OWE_TM))
             return FALSE;
         return TRUE;
+    case NMU_SEC_WPA3_SUITE_B_192:
+        if (adhoc)
+            return FALSE;
+        if (!(wifi_caps & NM_WIFI_DEVICE_CAP_RSN))
+            return FALSE;
+        if (!have_ap)
+            return TRUE;
+        if (ap_rsn & NM_802_11_AP_SEC_KEY_MGMT_EAP_SUITE_B_192)
+            return TRUE;
+        return FALSE;
     case NMU_SEC_INVALID:
         break;
     }
@@ -1276,7 +1289,8 @@ nm_utils_security_valid(NMUtilsSecurityType      type,
 gboolean
 nm_utils_wep_key_valid(const char *key, NMWepKeyType wep_type)
 {
-    int keylen, i;
+    gsize keylen;
+    gsize i;
 
     if (!key)
         return FALSE;
@@ -1321,7 +1335,8 @@ nm_utils_wep_key_valid(const char *key, NMWepKeyType wep_type)
 gboolean
 nm_utils_wpa_psk_valid(const char *psk)
 {
-    int psklen, i;
+    gsize psklen;
+    gsize i;
 
     if (!psk)
         return FALSE;
@@ -1354,7 +1369,7 @@ GVariant *
 nm_utils_ip4_dns_to_variant(char **dns)
 {
     GVariantBuilder builder;
-    int             i;
+    gsize           i;
 
     g_variant_builder_init(&builder, G_VARIANT_TYPE("au"));
 
@@ -1385,13 +1400,12 @@ nm_utils_ip4_dns_from_variant(GVariant *value)
     const guint32 *array;
     gsize          length;
     char **        dns;
-    int            i;
+    gsize          i;
 
     g_return_val_if_fail(g_variant_is_of_type(value, G_VARIANT_TYPE("au")), NULL);
 
     array = g_variant_get_fixed_array(value, &length, sizeof(guint32));
-    dns   = g_new(char *, length + 1);
-
+    dns   = g_new(char *, length + 1u);
     for (i = 0; i < length; i++)
         dns[i] = nm_utils_inet4_ntop_dup(array[i]);
     dns[i] = NULL;
@@ -1416,7 +1430,7 @@ GVariant *
 nm_utils_ip4_addresses_to_variant(GPtrArray *addresses, const char *gateway)
 {
     GVariantBuilder builder;
-    int             i;
+    guint           i;
 
     g_variant_builder_init(&builder, G_VARIANT_TYPE("aau"));
 
@@ -1424,16 +1438,23 @@ nm_utils_ip4_addresses_to_variant(GPtrArray *addresses, const char *gateway)
         for (i = 0; i < addresses->len; i++) {
             NMIPAddress *addr = addresses->pdata[i];
             guint32      array[3];
+            in_addr_t    gw;
 
             if (nm_ip_address_get_family(addr) != AF_INET)
                 continue;
 
+            gw = 0u;
+            if (gateway) {
+                in_addr_t a;
+
+                if (inet_pton(AF_INET, gateway, &a) == 1)
+                    gw = a;
+                gateway = NULL;
+            }
+
             nm_ip_address_get_address_binary(addr, &array[0]);
             array[1] = nm_ip_address_get_prefix(addr);
-            if (i == 0 && gateway)
-                inet_pton(AF_INET, gateway, &array[2]);
-            else
-                array[2] = 0;
+            array[2] = gw;
 
             g_variant_builder_add(
                 &builder,
@@ -1519,7 +1540,7 @@ GVariant *
 nm_utils_ip4_routes_to_variant(GPtrArray *routes)
 {
     GVariantBuilder builder;
-    int             i;
+    guint           i;
 
     g_variant_builder_init(&builder, G_VARIANT_TYPE("aau"));
 
@@ -1655,28 +1676,26 @@ nm_utils_ip4_get_default_prefix(guint32 ip)
  * Utility function to convert an array of IP address strings int a #GVariant of
  * type 'aay' representing an array of IPv6 addresses.
  *
+ * If a string cannot be parsed, it will be silently ignored.
+ *
  * Returns: (transfer none): a new floating #GVariant representing @dns.
  **/
 GVariant *
 nm_utils_ip6_dns_to_variant(char **dns)
 {
     GVariantBuilder builder;
-    int             i;
+    gsize           i;
 
     g_variant_builder_init(&builder, G_VARIANT_TYPE("aay"));
-
     if (dns) {
         for (i = 0; dns[i]; i++) {
             struct in6_addr ip;
 
-            inet_pton(AF_INET6, dns[i], &ip);
-            g_variant_builder_add(
-                &builder,
-                "@ay",
-                g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, &ip, sizeof(ip), 1));
+            if (inet_pton(AF_INET6, dns[i], &ip) != 1)
+                continue;
+            g_variant_builder_add(&builder, "@ay", nm_g_variant_new_ay_in6addr(&ip));
         }
     }
-
     return g_variant_builder_end(&builder);
 }
 
@@ -1697,7 +1716,7 @@ nm_utils_ip6_dns_from_variant(GVariant *value)
     GVariantIter iter;
     GVariant *   ip_var;
     char **      dns;
-    int          i;
+    gsize        i;
 
     g_return_val_if_fail(g_variant_is_of_type(value, G_VARIANT_TYPE("aay")), NULL);
 
@@ -1737,32 +1756,34 @@ GVariant *
 nm_utils_ip6_addresses_to_variant(GPtrArray *addresses, const char *gateway)
 {
     GVariantBuilder builder;
-    int             i;
+    guint           i;
 
     g_variant_builder_init(&builder, G_VARIANT_TYPE("a(ayuay)"));
 
     if (addresses) {
         for (i = 0; i < addresses->len; i++) {
-            NMIPAddress *   addr = addresses->pdata[i];
-            struct in6_addr ip_bytes, gateway_bytes;
-            GVariant *      ip_var, *gateway_var;
-            guint32         prefix;
+            NMIPAddress *          addr = addresses->pdata[i];
+            struct in6_addr        address_bin;
+            struct in6_addr        gateway_bin_data;
+            const struct in6_addr *gateway_bin;
 
             if (nm_ip_address_get_family(addr) != AF_INET6)
                 continue;
 
-            nm_ip_address_get_address_binary(addr, &ip_bytes);
-            ip_var = g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, &ip_bytes, 16, 1);
+            nm_ip_address_get_address_binary(addr, &address_bin);
 
-            prefix = nm_ip_address_get_prefix(addr);
+            gateway_bin = &in6addr_any;
+            if (gateway) {
+                if (inet_pton(AF_INET6, gateway, &gateway_bin_data) == 1)
+                    gateway_bin = &gateway_bin_data;
+                gateway = NULL;
+            }
 
-            if (i == 0 && gateway)
-                inet_pton(AF_INET6, gateway, &gateway_bytes);
-            else
-                memset(&gateway_bytes, 0, sizeof(gateway_bytes));
-            gateway_var = g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, &gateway_bytes, 16, 1);
-
-            g_variant_builder_add(&builder, "(@ayu@ay)", ip_var, prefix, gateway_var);
+            g_variant_builder_add(&builder,
+                                  "(@ayu@ay)",
+                                  nm_g_variant_new_ay_in6addr(&address_bin),
+                                  (guint32) nm_ip_address_get_prefix(addr),
+                                  nm_g_variant_new_ay_in6addr(gateway_bin));
         }
     }
 
@@ -1860,29 +1881,32 @@ GVariant *
 nm_utils_ip6_routes_to_variant(GPtrArray *routes)
 {
     GVariantBuilder builder;
-    int             i;
+    guint           i;
 
     g_variant_builder_init(&builder, G_VARIANT_TYPE("a(ayuayu)"));
 
     if (routes) {
         for (i = 0; i < routes->len; i++) {
             NMIPRoute *     route = routes->pdata[i];
-            struct in6_addr dest_bytes, next_hop_bytes;
-            GVariant *      dest, *next_hop;
-            guint32         prefix, metric;
+            struct in6_addr dest_bytes;
+            struct in6_addr next_hop_bytes;
+            guint32         metric;
 
             if (nm_ip_route_get_family(route) != AF_INET6)
                 continue;
 
             nm_ip_route_get_dest_binary(route, &dest_bytes);
-            dest   = g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, &dest_bytes, 16, 1);
-            prefix = nm_ip_route_get_prefix(route);
             nm_ip_route_get_next_hop_binary(route, &next_hop_bytes);
-            next_hop = g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, &next_hop_bytes, 16, 1);
-            /* The old routes format uses "0" for default, not "-1" */
-            metric = MAX(0, nm_ip_route_get_metric(route));
 
-            g_variant_builder_add(&builder, "(@ayu@ayu)", dest, prefix, next_hop, metric);
+            /* The old routes format uses "0" for default, not "-1" */
+            metric = NM_MAX(0, nm_ip_route_get_metric(route));
+
+            g_variant_builder_add(&builder,
+                                  "(@ayu@ayu)",
+                                  nm_g_variant_new_ay_in6addr(&dest_bytes),
+                                  (guint32) nm_ip_route_get_prefix(route),
+                                  nm_g_variant_new_ay_in6addr(&next_hop_bytes),
+                                  metric);
         }
     }
 
@@ -2088,7 +2112,7 @@ GVariant *
 nm_utils_ip_routes_to_variant(GPtrArray *routes)
 {
     GVariantBuilder builder;
-    int             i;
+    guint           i;
 
     g_variant_builder_init(&builder, G_VARIANT_TYPE("aa{sv}"));
 
@@ -3147,7 +3171,7 @@ nm_utils_uuid_is_null(const NMUuid *uuid)
     if (!uuid)
         return TRUE;
 
-    for (i = 0; i < G_N_ELEMENTS(uuid->uuid); i++) {
+    for (i = 0; i < (int) G_N_ELEMENTS(uuid->uuid); i++) {
         if (uuid->uuid[i])
             return FALSE;
     }
@@ -3334,7 +3358,7 @@ static gboolean
 file_has_extension(const char *filename, const char *extensions[])
 {
     const char *ext;
-    int         i;
+    gsize       i;
 
     ext = strrchr(filename, '.');
     if (!ext)
@@ -3599,7 +3623,8 @@ nm_utils_file_search_in_paths(const char *                      progname,
             if (!path[0])
                 continue;
 
-            nm_str_buf_reset(&strbuf, path);
+            nm_str_buf_reset(&strbuf);
+            nm_str_buf_append(&strbuf, path);
             nm_str_buf_ensure_trailing_c(&strbuf, '/');
             s = nm_str_buf_append0(&strbuf, progname);
 
@@ -3833,7 +3858,7 @@ nm_utils_wifi_is_channel_valid(guint32 channel, const char *band)
             G_STATIC_ASSERT(G_N_ELEMENTS(table) > 0);                              \
             G_STATIC_ASSERT(G_N_ELEMENTS(table) == G_N_ELEMENTS(table_freqs));     \
                                                                                    \
-            for (i = 0; i < G_N_ELEMENTS(table); i++) {                            \
+            for (i = 0; i < (int) G_N_ELEMENTS(table); i++) {                      \
                 nm_assert((i == G_N_ELEMENTS(table) - 1) == (table[i].chan == 0)); \
                 nm_assert((i == G_N_ELEMENTS(table) - 1) == (table[i].freq == 0)); \
                 nm_assert(table[i].freq == table_freqs[i]);                        \
@@ -3971,16 +3996,13 @@ GByteArray *
 nm_utils_hwaddr_atoba(const char *asc, gsize length)
 {
     GByteArray *ba;
-    gsize       l;
 
     g_return_val_if_fail(asc, NULL);
     g_return_val_if_fail(length > 0 && length <= NM_UTILS_HWADDR_LEN_MAX, NULL);
 
     ba = g_byte_array_sized_new(length);
     g_byte_array_set_size(ba, length);
-    if (!_nm_utils_hwaddr_aton(asc, ba->data, length, &l))
-        goto fail;
-    if (length != l)
+    if (!_nm_utils_hwaddr_aton_exact(asc, ba->data, length))
         goto fail;
 
     return ba;
@@ -4005,17 +4027,11 @@ fail:
 guint8 *
 nm_utils_hwaddr_aton(const char *asc, gpointer buffer, gsize length)
 {
-    gsize l;
-
     g_return_val_if_fail(asc, NULL);
     g_return_val_if_fail(buffer, NULL);
     g_return_val_if_fail(length > 0 && length <= NM_UTILS_HWADDR_LEN_MAX, NULL);
 
-    if (!_nm_utils_hwaddr_aton(asc, buffer, length, &l))
-        return NULL;
-    if (length != l)
-        return NULL;
-    return buffer;
+    return _nm_utils_hwaddr_aton_exact(asc, buffer, length);
 }
 
 /**
@@ -4942,20 +4958,7 @@ nm_utils_check_virtual_device_compatibility(GType virtual_type, GType other_type
     }
 }
 
-typedef struct {
-    const char *str;
-    const char *num;
-} BondMode;
-
-static const BondMode bond_mode_table[] = {
-    [0] = {"balance-rr", "0"},
-    [1] = {"active-backup", "1"},
-    [2] = {"balance-xor", "2"},
-    [3] = {"broadcast", "3"},
-    [4] = {"802.3ad", "4"},
-    [5] = {"balance-tlb", "5"},
-    [6] = {"balance-alb", "6"},
-};
+/*****************************************************************************/
 
 /**
  * nm_utils_bond_mode_int_to_string:
@@ -4972,9 +4975,7 @@ static const BondMode bond_mode_table[] = {
 const char *
 nm_utils_bond_mode_int_to_string(int mode)
 {
-    if (mode >= 0 && mode < G_N_ELEMENTS(bond_mode_table))
-        return bond_mode_table[mode].str;
-    return NULL;
+    return _nm_setting_bond_mode_to_string(mode);
 }
 
 /**
@@ -4993,16 +4994,7 @@ nm_utils_bond_mode_int_to_string(int mode)
 int
 nm_utils_bond_mode_string_to_int(const char *mode)
 {
-    int i;
-
-    if (!mode || !*mode)
-        return -1;
-
-    for (i = 0; i < G_N_ELEMENTS(bond_mode_table); i++) {
-        if (NM_IN_STRSET(mode, bond_mode_table[i].str, bond_mode_table[i].num))
-            return i;
-    }
-    return -1;
+    return _nm_setting_bond_mode_from_string(mode);
 }
 
 /*****************************************************************************/
@@ -5739,7 +5731,7 @@ NM_UTILS_FLAGS2STR_DEFINE(nm_bluetooth_capability_to_string,
                           NMBluetoothCapabilities,
                           NM_UTILS_FLAGS2STR(NM_BT_CAPABILITY_NONE, "NONE"),
                           NM_UTILS_FLAGS2STR(NM_BT_CAPABILITY_DUN, "DUN"),
-                          NM_UTILS_FLAGS2STR(NM_BT_CAPABILITY_NAP, "NAP"), )
+                          NM_UTILS_FLAGS2STR(NM_BT_CAPABILITY_NAP, "NAP"), );
 
 /*****************************************************************************/
 

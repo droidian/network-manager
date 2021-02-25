@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2011 Red Hat, Inc.
  */
@@ -20,7 +20,6 @@
 /*****************************************************************************/
 
 NMSettingPriority _nm_setting_get_base_type_priority(NMSetting *setting);
-NMSettingPriority _nm_setting_type_get_base_type_priority(GType type);
 int               _nm_setting_compare_priority(gconstpointer a, gconstpointer b);
 
 /*****************************************************************************/

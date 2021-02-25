@@ -422,7 +422,7 @@ Allowed values: </strong></span>space-separated list of authentication flags nam
 <td align="left">IEEE_8021X_INNER_AUTH_METHODS<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
-<td align="left">Inner non-EAP authentication methods. IEEE_8021X_INNER_AUTH_METHODS can contain values both for 'phase2-auth' and 'phase2-autheap' properties.<span class="bold"><strong>
+<td align="left">Inner non-EAP authentication methods for TTLS or the inner EAP authentication method for PEAP. IEEE_8021X_INNER_AUTH_METHODS can contain values both for 'phase2-auth' and 'phase2-autheap' properties.<span class="bold"><strong>
 
 Example: </strong></span>IEEE_8021X_INNER_AUTH_METHODS=PAP<span class="bold"><strong>
 
@@ -1281,7 +1281,62 @@ Example: </strong></span>DCB_PG_UP2TC=01623701</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.12"></a><p class="title"><b>Table 19. infiniband setting</b></p>
+<a name="id-1.2.10.7.12"></a><p class="title"><b>Table 19. hostname setting</b></p>
+<div class="table-contents"><table class="table" summary="hostname setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">priority</td>
+<td align="left">HOSTNAME_PRIORITY<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">missing variable means global value or 100</td>
+<td align="left">hostname priority<span class="bold"><strong>
+
+Example: </strong></span>HOSTNAME_PRIORITY=50</td>
+</tr>
+<tr>
+<td align="left">from-dhcp</td>
+<td align="left">HOSTNAME_FROM_DHCP<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">missing variable means global default or 1</td>
+<td align="left">whether the system hostname can be determined from DHCP<span class="bold"><strong>
+
+Example: </strong></span>HOSTNAME_FROM_DHCP=0,1</td>
+</tr>
+<tr>
+<td align="left">from-dhcp</td>
+<td align="left">HOSTNAME_FROM_DNS_LOOKUP<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">missing variable means global default or 1</td>
+<td align="left">whether the system hostname can be determined from reverse DNS lookup<span class="bold"><strong>
+
+Example: </strong></span>HOSTNAME_FROM_DNS_LOOKUP=0,1</td>
+</tr>
+<tr>
+<td align="left">only-best-device</td>
+<td align="left">HOSTNAME_ONLY_FROM_DEFAULT<span class="emphasis"><em>(+)</em></span>
+</td>
+<td align="left">missing variable means global default or 1</td>
+<td align="left">whether the hostname can be determined only from devices with the default route<span class="bold"><strong>
+
+Example: </strong></span>HOSTNAME_ONLY_FROM_DEFAULT=0,1</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.10.7.13"></a><p class="title"><b>Table 20. infiniband setting</b></p>
 <div class="table-contents"><table class="table" summary="infiniband setting" border="1">
 <colgroup>
 <col>
@@ -1336,7 +1391,7 @@ Example: </strong></span>PHYSDEV=ib0</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.13"></a><p class="title"><b>Table 20. ipv4 setting</b></p>
+<a name="id-1.2.10.7.14"></a><p class="title"><b>Table 21. ipv4 setting</b></p>
 <div class="table-contents"><table class="table" summary="ipv4 setting" border="1">
 <colgroup>
 <col>
@@ -1375,7 +1430,7 @@ Example: </strong></span>DNS1=1.2.3.4 DNS2=10.0.0.254 DNS3=8.8.8.8</td>
 </tr>
 <tr>
 <td align="left">addresses</td>
-<td align="left">IPADDR, PREFIX, IPADDR1, PREFIX1, ...</td>
+<td align="left">IPADDR, PREFIX (NETMASK), IPADDR1, PREFIX1 (NETMASK1), ...</td>
 <td align="left"> </td>
 <td align="left">List of static IP addresses.<span class="bold"><strong>
 
@@ -1513,7 +1568,7 @@ Example: </strong></span>DHCP_VENDOR_CLASS_IDENTIFIER=foo</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.14"></a><p class="title"><b>Table 21. ipv6 setting</b></p>
+<a name="id-1.2.10.7.15"></a><p class="title"><b>Table 22. ipv6 setting</b></p>
 <div class="table-contents"><table class="table" summary="ipv6 setting" border="1">
 <colgroup>
 <col>
@@ -1696,7 +1751,7 @@ Example: </strong></span>DHCPV6_DUID=LL; DHCPV6_DUID=0301deadbeef0001; DHCPV6_DU
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.15"></a><p class="title"><b>Table 22. match setting</b></p>
+<a name="id-1.2.10.7.16"></a><p class="title"><b>Table 23. match setting</b></p>
 <div class="table-contents"><table class="table" summary="match setting" border="1">
 <colgroup>
 <col>
@@ -1721,7 +1776,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.16"></a><p class="title"><b>Table 23. ovs-bridge setting</b></p>
+<a name="id-1.2.10.7.17"></a><p class="title"><b>Table 24. ovs-bridge setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-bridge setting" border="1">
 <colgroup>
 <col>
@@ -1739,7 +1794,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.17"></a><p class="title"><b>Table 24. ovs-dpdk setting</b></p>
+<a name="id-1.2.10.7.18"></a><p class="title"><b>Table 25. ovs-dpdk setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-dpdk setting" border="1">
 <colgroup>
 <col>
@@ -1757,7 +1812,25 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.18"></a><p class="title"><b>Table 25. ovs-interface setting</b></p>
+<a name="id-1.2.10.7.19"></a><p class="title"><b>Table 26. ovs-external-ids setting</b></p>
+<div class="table-contents"><table class="table" summary="ovs-external-ids setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.10.7.20"></a><p class="title"><b>Table 27. ovs-interface setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-interface setting" border="1">
 <colgroup>
 <col>
@@ -1775,7 +1848,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.19"></a><p class="title"><b>Table 26. ovs-patch setting</b></p>
+<a name="id-1.2.10.7.21"></a><p class="title"><b>Table 28. ovs-patch setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-patch setting" border="1">
 <colgroup>
 <col>
@@ -1793,7 +1866,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.20"></a><p class="title"><b>Table 27. ovs-port setting</b></p>
+<a name="id-1.2.10.7.22"></a><p class="title"><b>Table 29. ovs-port setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-port setting" border="1">
 <colgroup>
 <col>
@@ -1811,7 +1884,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.21"></a><p class="title"><b>Table 28. proxy setting</b></p>
+<a name="id-1.2.10.7.23"></a><p class="title"><b>Table 30. proxy setting</b></p>
 <div class="table-contents"><table class="table" summary="proxy setting" border="1">
 <colgroup>
 <col>
@@ -1864,7 +1937,7 @@ Example: </strong></span>PAC_SCRIPT=/home/joe/proxy.pac</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.22"></a><p class="title"><b>Table 29. sriov setting</b></p>
+<a name="id-1.2.10.7.24"></a><p class="title"><b>Table 31. sriov setting</b></p>
 <div class="table-contents"><table class="table" summary="sriov setting" border="1">
 <colgroup>
 <col>
@@ -1909,7 +1982,7 @@ Example: </strong></span>SRIOV_AUTOPROBE_DRIVERS=0,1</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.23"></a><p class="title"><b>Table 30. tc setting</b></p>
+<a name="id-1.2.10.7.25"></a><p class="title"><b>Table 32. tc setting</b></p>
 <div class="table-contents"><table class="table" summary="tc setting" border="1">
 <colgroup>
 <col>
@@ -1944,7 +2017,7 @@ Example: </strong></span>FILTER1="parent ffff: matchall action simple sdata Inpu
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.24"></a><p class="title"><b>Table 31. team-port setting</b></p>
+<a name="id-1.2.10.7.26"></a><p class="title"><b>Table 33. team-port setting</b></p>
 <div class="table-contents"><table class="table" summary="team-port setting" border="1">
 <colgroup>
 <col>
@@ -1967,7 +2040,7 @@ Example: </strong></span>FILTER1="parent ffff: matchall action simple sdata Inpu
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.25"></a><p class="title"><b>Table 32. team setting</b></p>
+<a name="id-1.2.10.7.27"></a><p class="title"><b>Table 34. team setting</b></p>
 <div class="table-contents"><table class="table" summary="team setting" border="1">
 <colgroup>
 <col>
@@ -1990,7 +2063,7 @@ Example: </strong></span>FILTER1="parent ffff: matchall action simple sdata Inpu
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.26"></a><p class="title"><b>Table 33. user setting</b></p>
+<a name="id-1.2.10.7.28"></a><p class="title"><b>Table 35. user setting</b></p>
 <div class="table-contents"><table class="table" summary="user setting" border="1">
 <colgroup>
 <col>
@@ -2015,7 +2088,25 @@ Example: </strong></span>NM_USER_FOO__BAR=something</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.27"></a><p class="title"><b>Table 34. vlan setting</b></p>
+<a name="id-1.2.10.7.29"></a><p class="title"><b>Table 36. veth setting</b></p>
+<div class="table-contents"><table class="table" summary="veth setting" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Property</th>
+<th>Ifcfg-rh Variable</th>
+<th>Default</th>
+<th>Description</th>
+</tr></thead>
+<tbody></tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="table">
+<a name="id-1.2.10.7.30"></a><p class="title"><b>Table 37. vlan setting</b></p>
 <div class="table-contents"><table class="table" summary="vlan setting" border="1">
 <colgroup>
 <col>
@@ -2078,7 +2169,7 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.28"></a><p class="title"><b>Table 35. vrf setting</b></p>
+<a name="id-1.2.10.7.31"></a><p class="title"><b>Table 38. vrf setting</b></p>
 <div class="table-contents"><table class="table" summary="vrf setting" border="1">
 <colgroup>
 <col>
@@ -2096,7 +2187,7 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.29"></a><p class="title"><b>Table 36. wifi-p2p setting</b></p>
+<a name="id-1.2.10.7.32"></a><p class="title"><b>Table 39. wifi-p2p setting</b></p>
 <div class="table-contents"><table class="table" summary="wifi-p2p setting" border="1">
 <colgroup>
 <col>
@@ -2114,7 +2205,7 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.30"></a><p class="title"><b>Table 37. 802-3-ethernet setting</b></p>
+<a name="id-1.2.10.7.33"></a><p class="title"><b>Table 40. 802-3-ethernet setting</b></p>
 <div class="table-contents"><table class="table" summary="802-3-ethernet setting" border="1">
 <colgroup>
 <col>
@@ -2215,7 +2306,7 @@ Allowed values: </strong></span>"qeth", "lcs" or "ctc"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.31"></a><p class="title"><b>Table 38. wireguard setting</b></p>
+<a name="id-1.2.10.7.34"></a><p class="title"><b>Table 41. wireguard setting</b></p>
 <div class="table-contents"><table class="table" summary="wireguard setting" border="1">
 <colgroup>
 <col>
@@ -2233,7 +2324,7 @@ Allowed values: </strong></span>"qeth", "lcs" or "ctc"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.32"></a><p class="title"><b>Table 39. 802-11-wireless-security setting</b></p>
+<a name="id-1.2.10.7.35"></a><p class="title"><b>Table 42. 802-11-wireless-security setting</b></p>
 <div class="table-contents"><table class="table" summary="802-11-wireless-security setting" border="1">
 <colgroup>
 <col>
@@ -2255,7 +2346,7 @@ Allowed values: </strong></span>"qeth", "lcs" or "ctc"</td>
 <td align="left"> </td>
 <td align="left">Key management menthod.<span class="bold"><strong>
 
-Allowed values: </strong></span>IEEE8021X, WPA-PSK, WPA-EAP</td>
+Allowed values: </strong></span>IEEE8021X, WPA-PSK, WPA-EAP, WPA-EAP-SUITE-B-192</td>
 </tr>
 <tr>
 <td align="left">wep-tx-keyidx</td>
@@ -2415,7 +2506,7 @@ Allowed values: </strong></span>default, disable, optional, required</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.33"></a><p class="title"><b>Table 40. 802-11-wireless setting</b></p>
+<a name="id-1.2.10.7.36"></a><p class="title"><b>Table 43. 802-11-wireless setting</b></p>
 <div class="table-contents"><table class="table" summary="802-11-wireless setting" border="1">
 <colgroup>
 <col>
@@ -2572,7 +2663,7 @@ Allowed values: </strong></span>"yes", "no"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.34"></a><p class="title"><b>Table 41. wpan setting</b></p>
+<a name="id-1.2.10.7.37"></a><p class="title"><b>Table 44. wpan setting</b></p>
 <div class="table-contents"><table class="table" summary="wpan setting" border="1">
 <colgroup>
 <col>

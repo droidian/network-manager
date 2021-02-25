@@ -1,10 +1,10 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2017 Red Hat, Inc.
  * Copyright (C) 2007 - 2008 Novell, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-ip-config.h"
 
@@ -5888,6 +5888,10 @@ nm_setting_ip_config_class_init(NMSettingIPConfigClass *klass)
      * The "trust-ad" setting is only honored if the profile contributes
      * name servers to resolv.conf, and if all contributing profiles have
      * "trust-ad" enabled.
+     *
+     * When using a caching DNS plugin (dnsmasq or systemd-resolved in
+     * NetworkManager.conf) then "edns0" and "trust-ad" are automatically
+     * added.
      *
      * Since: 1.2
      **/

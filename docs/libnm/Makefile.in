@@ -325,8 +325,6 @@ PERL = @PERL@
 PKG_CONFIG = @PKG_CONFIG@
 PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
 PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
-POLKIT_CFLAGS = @POLKIT_CFLAGS@
-POLKIT_LIBS = @POLKIT_LIBS@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
@@ -489,6 +487,7 @@ IGNORE_HFILES = \
 	nm-crypto-impl.h \
 	nm-crypto.h \
 	nm-dbus-helpers.h \
+	nm-default-libnm-core.h \
 	nm-device-private.h \
 	nm-dhcp4-config.h \
 	nm-dhcp6-config.h \
@@ -509,7 +508,7 @@ IGNORE_HFILES = \
 	\
 	nm-auth-subject.h \
 	nm-common-macros.h \
-	nm-ethtool-utils.h \
+	nm-ethtool-base.h \
 	nm-libnm-core-utils.h \
 	\
 	nm-dispatcher-api.h \
@@ -568,7 +567,8 @@ SETUP_FILES = \
 
 
 # include common portion ...
-EXTRA_DIST = $(HTML_IMAGES) $(SETUP_FILES) version.xml.in meson.build
+EXTRA_DIST = $(HTML_IMAGES) $(SETUP_FILES) version.xml.in meson.build \
+	$(NULL)
 DOC_STAMPS = setup-build.stamp scan-build.stamp sgml-build.stamp \
 	html-build.stamp pdf-build.stamp \
 	sgml.stamp html.stamp pdf.stamp
@@ -587,8 +587,8 @@ REPORT_FILES = \
 	$(DOC_MODULE)-unused.txt
 
 CLEANFILES = $(SCANOBJ_FILES) $(REPORT_FILES) $(DOC_STAMPS) \
-	gtkdoc-check.test libnm-sections.txt libnm-overrides.txt \
-	html/* tmpl/* xml/*
+	gtkdoc-check.test html/* tmpl/* xml/* libnm-overrides.txt \
+	libnm-sections.txt libnm.actions $(NULL)
 @GTK_DOC_BUILD_HTML_FALSE@HTML_BUILD_STAMP = 
 @GTK_DOC_BUILD_HTML_TRUE@HTML_BUILD_STAMP = html-build.stamp
 @GTK_DOC_BUILD_PDF_FALSE@PDF_BUILD_STAMP = 
@@ -624,7 +624,6 @@ GTK_DOC_V_XREF_0 = @echo "  DOC   Fixing cross-references";
 GTK_DOC_V_PDF = $(GTK_DOC_V_PDF_@AM_V@)
 GTK_DOC_V_PDF_ = $(GTK_DOC_V_PDF_@AM_DEFAULT_V@)
 GTK_DOC_V_PDF_0 = @echo "  DOC   Building PDF";
-DISTCLEANFILES = libnm.actions
 all: all-am
 
 .SUFFIXES:
@@ -742,7 +741,6 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
-	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"

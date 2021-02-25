@@ -1,10 +1,10 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2008 Novell, Inc.
  * Copyright (C) 2007 - 2008 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-libnm.h"
 
 #include "nm-vpn-plugin-old.h"
 

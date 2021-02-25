@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2012 Colin Walters <walters@verbum.org>.
  * Copyright (C) 2014 Red Hat, Inc.
@@ -656,11 +656,11 @@ NM_G_ERROR_MSG(GError *error)
 
 #if _NM_CC_SUPPORT_GENERIC
     /* returns @value, if the type of @value matches @type.
- * This requires support for C11 _Generic(). If no support is
- * present, this returns @value directly.
- *
- * It's useful to check the let the compiler ensure that @value is
- * of a certain type. */
+     * This requires support for C11 _Generic(). If no support is
+     * present, this returns @value directly.
+     *
+     * It's useful to check the let the compiler ensure that @value is
+     * of a certain type. */
     #define _NM_ENSURE_TYPE(type, value) (_Generic((value), type : (value)))
     #define _NM_ENSURE_TYPE_CONST(type, value)              \
         (_Generic((value), const type                       \
@@ -770,7 +770,7 @@ NM_G_ERROR_MSG(GError *error)
     {                                    \
         return NM_CACHED_QUARK(string);  \
     }                                    \
-    struct _dummy_struct_for_trailing_semicolon
+    _NM_DUMMY_STRUCT_FOR_TRAILING_SEMICOLON
 
 /*****************************************************************************/
 
@@ -1038,6 +1038,14 @@ nm_g_object_unref(gpointer obj)
  */
 #define nm_clear_g_free(pp) nm_clear_pointer(pp, g_free)
 
+/* Our nm_clear_pointer() is more typesafe than g_clear_pointer() and
+ * should be preferred.
+ *
+ * For g_clear_object() that is not the case (because g_object_unref()
+ * anyway takes a void pointer). So using g_clear_object() is fine.
+ *
+ * Still have a nm_clear_g_object() because that returns a boolean
+ * indication whether anything was cleared. */
 #define nm_clear_g_object(pp) nm_clear_pointer(pp, g_object_unref)
 
 /**
@@ -1602,6 +1610,16 @@ _nm_strndup_a_step(char *s, const char *str, gsize len)
             _s_snd = g_alloca(_len_snd + 1);                       \
         }                                                          \
         _nm_strndup_a_step(_s_snd, _str_snd, _len_snd);            \
+    })
+
+#define nm_strdup_maybe_a(alloca_maxlen, str, out_str_free)               \
+    ({                                                                    \
+        const char *const _str_snd = (str);                               \
+                                                                          \
+        (char *) nm_memdup_maybe_a(alloca_maxlen,                         \
+                                   _str_snd,                              \
+                                   _str_snd ? strlen(_str_snd) + 1u : 0u, \
+                                   out_str_free);                         \
     })
 
 /*****************************************************************************/

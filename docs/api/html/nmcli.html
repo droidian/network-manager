@@ -653,29 +653,43 @@
           <code class="option">connection.type</code> property (or use the <code class="option">type</code> alias)
           to one of known NetworkManager connection types:</p>
 <div class="itemizedlist"><ul class="itemizedlist compact" style="list-style-type: disc; ">
-<li class="listitem"><p><code class="literal">ethernet</code></p></li>
-<li class="listitem"><p><code class="literal">wifi</code></p></li>
-<li class="listitem"><p><code class="literal">wimax</code></p></li>
-<li class="listitem"><p><code class="literal">pppoe</code></p></li>
-<li class="listitem"><p><code class="literal">gsm</code></p></li>
-<li class="listitem"><p><code class="literal">cdma</code></p></li>
-<li class="listitem"><p><code class="literal">infiniband</code></p></li>
-<li class="listitem"><p><code class="literal">bluetooth</code></p></li>
-<li class="listitem"><p><code class="literal">vlan</code></p></li>
-<li class="listitem"><p><code class="literal">bond</code></p></li>
-<li class="listitem"><p><code class="literal">bond-slave</code></p></li>
-<li class="listitem"><p><code class="literal">team</code></p></li>
-<li class="listitem"><p><code class="literal">team-slave</code></p></li>
-<li class="listitem"><p><code class="literal">bridge</code></p></li>
-<li class="listitem"><p><code class="literal">bridge-slave</code></p></li>
-<li class="listitem"><p><code class="literal">vpn</code></p></li>
-<li class="listitem"><p><code class="literal">olpc-mesh</code></p></li>
+<li class="listitem"><p><code class="literal">6lowpan</code></p></li>
+<li class="listitem"><p><code class="literal">802-11-olpc-mesh</code> (alias <code class="literal">olpc-mesh</code>)</p></li>
+<li class="listitem"><p><code class="literal">802-11-wireless</code> (alias <code class="literal">wifi</code>)</p></li>
+<li class="listitem"><p><code class="literal">802-3-ethernet</code> (alias <code class="literal">ethernet</code>)</p></li>
 <li class="listitem"><p><code class="literal">adsl</code></p></li>
-<li class="listitem"><p><code class="literal">tun</code></p></li>
-<li class="listitem"><p><code class="literal">ip-tunnel</code></p></li>
-<li class="listitem"><p><code class="literal">macvlan</code></p></li>
-<li class="listitem"><p><code class="literal">vxlan</code></p></li>
+<li class="listitem"><p><code class="literal">bluetooth</code></p></li>
+<li class="listitem"><p><code class="literal">bond</code></p></li>
+<li class="listitem"><p><code class="literal">bond-slave</code> (deprecated for ethernet with master)</p></li>
+<li class="listitem"><p><code class="literal">bridge</code></p></li>
+<li class="listitem"><p><code class="literal">bridge-slave</code> (deprecated for ethernet with master)</p></li>
+<li class="listitem"><p><code class="literal">cdma</code></p></li>
 <li class="listitem"><p><code class="literal">dummy</code></p></li>
+<li class="listitem"><p><code class="literal">generic</code></p></li>
+<li class="listitem"><p><code class="literal">gsm</code></p></li>
+<li class="listitem"><p><code class="literal">infiniband</code></p></li>
+<li class="listitem"><p><code class="literal">ip-tunnel</code></p></li>
+<li class="listitem"><p><code class="literal">macsec</code></p></li>
+<li class="listitem"><p><code class="literal">macvlan</code></p></li>
+<li class="listitem"><p><code class="literal">olpc-mesh</code></p></li>
+<li class="listitem"><p><code class="literal">ovs-bridge</code></p></li>
+<li class="listitem"><p><code class="literal">ovs-dpdk</code></p></li>
+<li class="listitem"><p><code class="literal">ovs-interface</code></p></li>
+<li class="listitem"><p><code class="literal">ovs-patch</code></p></li>
+<li class="listitem"><p><code class="literal">ovs-port</code></p></li>
+<li class="listitem"><p><code class="literal">pppoe</code></p></li>
+<li class="listitem"><p><code class="literal">team</code></p></li>
+<li class="listitem"><p><code class="literal">team-slave</code> (deprecated for ethernet with master)</p></li>
+<li class="listitem"><p><code class="literal">tun</code></p></li>
+<li class="listitem"><p><code class="literal">veth</code></p></li>
+<li class="listitem"><p><code class="literal">vlan</code></p></li>
+<li class="listitem"><p><code class="literal">vpn</code></p></li>
+<li class="listitem"><p><code class="literal">vrf</code></p></li>
+<li class="listitem"><p><code class="literal">vxlan</code></p></li>
+<li class="listitem"><p><code class="literal">wifi-p2p</code></p></li>
+<li class="listitem"><p><code class="literal">wimax</code></p></li>
+<li class="listitem"><p><code class="literal">wireguard</code></p></li>
+<li class="listitem"><p><code class="literal">wpan</code></p></li>
 </ul></div>
 <p>The most typical uses are described in the <a class="link" href="nmcli.html#examples" title="Examples">Examples</a> section.</p>
 <p>Aside from the properties and values two special options are accepted:</p>

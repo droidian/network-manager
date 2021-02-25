@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2015 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-tun.h"
 
@@ -266,7 +266,7 @@ nm_setting_tun_init(NMSettingTun *self)
 NMSetting *
 nm_setting_tun_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_TUN, NULL);
+    return g_object_new(NM_TYPE_SETTING_TUN, NULL);
 }
 
 static void

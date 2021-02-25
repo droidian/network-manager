@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (C) 2016 Red Hat, Inc.
  */
@@ -7,7 +7,7 @@
  * @short_description: The editor page for IP tunnel connections
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-client.h"
 
 #include "nmt-page-ip-tunnel.h"
 

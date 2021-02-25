@@ -68,7 +68,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>OpenVSwitch can be managed. This means the OVS device plugin is loaded. Since: 1.24</p>
+<p>OpenVSwitch can be managed. This means the OVS device plugin is loaded. Since: 1.24.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -784,7 +784,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>an 802.11 Wi-Fi P2P device (Since: 1.16)</p>
+<p>an 802.11 Wi-Fi P2P device. Since: 1.16.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -799,7 +799,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>A VRF (Virtual Routing and Forwarding) interface (Since: 1.24)</p>
+<p>A VRF (Virtual Routing and Forwarding) interface. Since: 1.24.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -1446,6 +1446,21 @@
 </td>
 <td class="enum_member_description">
 <p>WPA/RSN Opportunistic Wireless Encryption transition mode is supported. Since: 1.26.</p>
+<p></p>
+</td>
+<td class="auto-generated"> </td>
+</tr>
+<tr>
+<td class="enum_member_name">
+<p>NM_802_11_AP_SEC_KEY_MGMT_EAP_SUITE_B_192</p>
+<p></p>
+</td>
+<td class="enum_member_value">
+<p>= <code class="literal">0x00002000</code></p>
+<p></p>
+</td>
+<td class="enum_member_description">
+<p>WPA3 Enterprise Suite-B 192 bit mode is supported. Since: 1.30.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -3983,7 +3998,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>upon rollback, delete any new connection added after the checkpoint (Since: 1.6)</p>
+<p>upon rollback, delete any new connection added after the checkpoint. Since: 1.6.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -3998,7 +4013,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>upon rollback, disconnect any new device appeared after the checkpoint (Since: 1.6)</p>
+<p>upon rollback, disconnect any new device appeared after the checkpoint. Since: 1.6.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -4013,7 +4028,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>by default, creating a checkpoint fails if there are already existing checkoints that reference the same devices. With this flag, creation of such checkpoints is allowed, however, if an older checkpoint that references overlapping devices gets rolled back, it will automatically destroy this checkpoint during rollback. This allows to create several overlapping checkpoints in parallel, and rollback to them at will. With the special case that rolling back to an older checkpoint will invalidate all overlapping younger checkpoints. This opts-in that the checkpoint can be automatically destroyed by the rollback of an older checkpoint. (Since: 1.12)</p>
+<p>by default, creating a checkpoint fails if there are already existing checkoints that reference the same devices. With this flag, creation of such checkpoints is allowed, however, if an older checkpoint that references overlapping devices gets rolled back, it will automatically destroy this checkpoint during rollback. This allows to create several overlapping checkpoints in parallel, and rollback to them at will. With the special case that rolling back to an older checkpoint will invalidate all overlapping younger checkpoints. This opts-in that the checkpoint can be automatically destroyed by the rollback of an older checkpoint. Since: 1.12.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -4188,7 +4203,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>the profile was generated to represent an external configuration of a networking device. Since: 1.26</p>
+<p>the profile was generated to represent an external configuration of a networking device. Since: 1.26.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -4328,7 +4343,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>the lifetime of the activation is bound to the visibility of the connection profile, which in turn depends on "connection.permissions" and whether a session for the user exists. Since: 1.16</p>
+<p>the lifetime of the activation is bound to the visibility of the connection profile, which in turn depends on "connection.permissions" and whether a session for the user exists. Since: 1.16.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>
@@ -4343,7 +4358,7 @@
 <p></p>
 </td>
 <td class="enum_member_description">
-<p>the active connection was generated to represent an external configuration of a networking device. Since: 1.26</p>
+<p>the active connection was generated to represent an external configuration of a networking device. Since: 1.26.</p>
 <p></p>
 </td>
 <td class="auto-generated"> </td>

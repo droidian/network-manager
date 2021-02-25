@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2013 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-libnm.h"
 
 #include "nm-device-generic.h"
 
@@ -133,7 +133,7 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_generic = NML_DBUS_META_IFACE_INIT_PROP(
     NM_DBUS_INTERFACE_DEVICE_GENERIC,
     nm_device_generic_get_type,
-    NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_HIGH,
+    NML_DBUS_META_INTERFACE_PRIO_INSTANTIATE_30,
     NML_DBUS_META_IFACE_DBUS_PROPERTIES(
         NML_DBUS_META_PROPERTY_INIT_FCN("HwAddress",
                                         0,

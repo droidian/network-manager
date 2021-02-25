@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2008 Novell, Inc.
  * Copyright (C) 2007 - 2014 Red Hat, Inc.
@@ -479,6 +479,11 @@ void nm_client_dbus_set_property(NMClient *          client,
 
 NM_AVAILABLE_IN_1_24
 gboolean nm_client_dbus_set_property_finish(NMClient *client, GAsyncResult *result, GError **error);
+
+/*****************************************************************************/
+
+NM_AVAILABLE_IN_1_30
+void nm_utils_print(int output_mode, const char *msg);
 
 G_END_DECLS
 

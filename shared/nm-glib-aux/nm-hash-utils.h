@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2017 Red Hat, Inc.
  */
@@ -415,6 +415,14 @@ nm_hash_obfuscate_ptr(guint static_seed, gconstpointer val)
  * macro uses a particular static seed that should be used by when comparing pointer
  * values in a global context. */
 #define NM_HASH_OBFUSCATE_PTR(ptr) (nm_hash_obfuscate_ptr(1678382159u, ptr))
+
+#define NM_HASH_OBFUSCATE_PTR_STR(ptr, buf)                                                        \
+    ({                                                                                             \
+        gconstpointer _ptr = (ptr);                                                                \
+                                                                                                   \
+        _ptr ? nm_sprintf_buf(buf, "[" NM_HASH_OBFUSCATE_PTR_FMT "]", NM_HASH_OBFUSCATE_PTR(_ptr)) \
+             : "(null)";                                                                           \
+    })
 
 static inline const char *
 nm_hash_obfuscated_ptr_str(gconstpointer ptr, char buf[static 17])

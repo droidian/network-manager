@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Copyright (C) 2013 - 2017 Red Hat, Inc.
  */
@@ -11,7 +11,7 @@
  * access points displayed by "nmtui connect".
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-client.h"
 
 #include <stdlib.h>
 
@@ -92,6 +92,7 @@ nmt_connect_device_free(NmtConnectDevice *nmtdev)
 }
 
 static const char *device_sort_order[]   = {"NMDeviceEthernet",
+                                          "NMDeviceVeth",
                                           "NMDeviceInfiniband",
                                           "NMDeviceWifi",
                                           NM_SETTING_VLAN_SETTING_NAME,

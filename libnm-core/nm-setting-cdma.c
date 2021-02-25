@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2013 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-cdma.h"
 
@@ -251,7 +251,7 @@ nm_setting_cdma_init(NMSettingCdma *setting)
 NMSetting *
 nm_setting_cdma_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_CDMA, NULL);
+    return g_object_new(NM_TYPE_SETTING_CDMA, NULL);
 }
 
 static void

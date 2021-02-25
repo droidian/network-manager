@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: LGPL-2.1+
+# SPDX-License-Identifier: LGPL-2.1-or-later
 
 libnm_inc = include_directories('.')
 
@@ -7,11 +7,6 @@ libnm_nm_default_dep = declare_dependency(
   include_directories: libnm_inc,
   dependencies: libnm_core_nm_default_dep,
 )
-
-c_flags = [
-  '-DG_LOG_DOMAIN="@0@"'.format(libnm_name),
-  '-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_LIBNM',
-]
 
 libnm_headers = files(
   'NetworkManager.h',
@@ -40,6 +35,7 @@ libnm_headers = files(
   'nm-device-ppp.h',
   'nm-device-team.h',
   'nm-device-tun.h',
+  'nm-device-veth.h',
   'nm-device-vlan.h',
   'nm-device-vrf.h',
   'nm-device-vxlan.h',
@@ -50,6 +46,7 @@ libnm_headers = files(
   'nm-device-wpan.h',
   'nm-device.h',
   'nm-dhcp-config.h',
+  'nm-ethtool-utils.h',
   'nm-ip-config.h',
   'nm-object.h',
   'nm-remote-connection.h',
@@ -68,14 +65,12 @@ install_headers(
   subdir: libnm_name,
 )
 
-enum_types = 'nm-enum-types'
-
 libnm_enum_sources = gnome.mkenums(
-  enum_types,
+  'nm-enum-types',
   sources: libnm_headers + [nm_version_macro_header],
   identifier_prefix: nm_id_prefix,
-  c_template: enum_types + '.c.template',
-  h_template: enum_types + '.h.template',
+  c_template: 'nm-enum-types.c.template',
+  h_template: 'nm-enum-types.h.template',
   install_header: true,
   install_dir: libnm_pkgincludedir,
 )
@@ -106,6 +101,7 @@ libnm_sources = files(
   'nm-device-ppp.c',
   'nm-device-team.c',
   'nm-device-tun.c',
+  'nm-device-veth.c',
   'nm-device-vlan.c',
   'nm-device-vrf.c',
   'nm-device-vxlan.c',
@@ -134,29 +130,21 @@ libnm_sources = files(
   'nm-wimax-nsp.c',
 )
 
-deps = [
-  libnmdbus_dep,
-  libnm_libnm_core_intern_dep,
-  libnm_nm_default_dep,
-  libnm_udev_aux_dep,
-  libudev_dep,
-]
-
-liblibnm = static_library(
-  'libnm',
+libnm_static = static_library(
+  'nm-static',
   sources: libnm_sources + libnm_enum_sources,
-  dependencies: deps,
-  c_args: c_flags,
+  dependencies: [
+    libnmdbus_dep,
+    libnm_libnm_core_intern_dep,
+    libnm_nm_default_dep,
+    libnm_udev_aux_dep,
+    libudev_dep,
+  ],
+  c_args: [
+    '-DG_LOG_DOMAIN="libnm"',
+  ],
   link_with: libnm_systemd_logging_stub,
 )
-
-links = [
-  liblibnm,
-  libnm_core,
-  libnmdbus,
-  libnm_systemd_logging_stub,
-  libnm_utils_base,
-]
 
 linker_script = join_paths(meson.current_source_dir(), 'libnm.ver')
 
@@ -164,7 +152,13 @@ libnm = shared_library(
   'nm',
   version: libnm_version,
   dependencies: libnm_nm_default_dep,
-  link_whole: links,
+  link_whole: [
+    libnm_static,
+    libnm_core,
+    libnmdbus,
+    libnm_systemd_logging_stub,
+    libnm_glib_aux,
+  ],
   link_args: '-Wl,--version-script,@0@'.format(linker_script),
   link_depends: linker_script,
   install: true,
@@ -208,7 +202,10 @@ if enable_introspection
     symbol_prefix: nm_id_prefix.to_lower(),
     header: 'NetworkManager.h',
     export_packages: libnm_name,
-    extra_args: c_flags,
+    extra_args: [
+      '-DG_LOG_DOMAIN="libnm"',
+      '-DNETWORKMANAGER_COMPILATION',
+    ],
     install: true,
   )
 
@@ -294,18 +291,13 @@ if enable_introspection
 
 endif
 
-if enable_tests
-  subdir('tests')
-endif
-
 libnm_libnm_aux = static_library(
   'nm-libnm-aux',
   sources: files(
     'nm-libnm-aux/nm-libnm-aux.c',
   ),
   c_args: [
-    '-DG_LOG_DOMAIN="@0@"'.format('libnmc'),
-    '-DNETWORKMANAGER_COMPILATION=NM_NETWORKMANAGER_COMPILATION_CLIENT',
+    '-DG_LOG_DOMAIN="libnmc"',
   ],
   dependencies: [
     libnm_core_nm_default_dep,
@@ -318,3 +310,7 @@ libnm_libnm_aux_dep = declare_dependency(
   include_directories: [shared_inc],
   link_with: [libnm_libnm_aux],
 )
+
+if enable_tests
+  subdir('tests')
+endif

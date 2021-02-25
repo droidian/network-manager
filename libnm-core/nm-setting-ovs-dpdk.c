@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2019 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-ovs-dpdk.h"
 
@@ -109,7 +109,7 @@ nm_setting_ovs_dpdk_init(NMSettingOvsDpdk *self)
 NMSetting *
 nm_setting_ovs_dpdk_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_OVS_DPDK, NULL);
+    return g_object_new(NM_TYPE_SETTING_OVS_DPDK, NULL);
 }
 
 static void

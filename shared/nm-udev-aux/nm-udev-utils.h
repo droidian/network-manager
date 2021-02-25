@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2017 Red Hat, Inc.
  */
@@ -24,7 +24,7 @@ NMUdevClient *nm_udev_client_new(const char *const *subsystems,
                                  NMUdevClientEvent  event_handler,
                                  gpointer           event_user_data);
 
-NMUdevClient *nm_udev_client_unref(NMUdevClient *self);
+NMUdevClient *nm_udev_client_destroy(NMUdevClient *self);
 
 struct udev *nm_udev_client_get_udev(NMUdevClient *self);
 

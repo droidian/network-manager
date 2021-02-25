@@ -1,10 +1,10 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2007 - 2013 Red Hat, Inc.
  * Copyright (C) 2007 - 2008 Novell, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm-core/nm-default-libnm-core.h"
 
 #include "nm-setting-ppp.h"
 
@@ -512,7 +512,7 @@ nm_setting_ppp_init(NMSettingPpp *self)
 NMSetting *
 nm_setting_ppp_new(void)
 {
-    return (NMSetting *) g_object_new(NM_TYPE_SETTING_PPP, NULL);
+    return g_object_new(NM_TYPE_SETTING_PPP, NULL);
 }
 
 static void

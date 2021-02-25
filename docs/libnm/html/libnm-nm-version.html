@@ -137,6 +137,12 @@
 <a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-28-FOR:CAPS" title="NM_DEPRECATED_IN_1_28_FOR()">NM_DEPRECATED_IN_1_28_FOR</a><span class="c_punctuation">()</span>
 </td>
 </tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-30-FOR:CAPS" title="NM_DEPRECATED_IN_1_30_FOR()">NM_DEPRECATED_IN_1_30_FOR</a><span class="c_punctuation">()</span>
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -284,6 +290,14 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="libnm-nm-version.html#NM-AVAILABLE-IN-1-28:CAPS" title="NM_AVAILABLE_IN_1_28">NM_AVAILABLE_IN_1_28</a></td>
 </tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-version.html#NM-DEPRECATED-IN-1-30:CAPS" title="NM_DEPRECATED_IN_1_30">NM_DEPRECATED_IN_1_30</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="libnm-nm-version.html#NM-AVAILABLE-IN-1-30:CAPS" title="NM_AVAILABLE_IN_1_30">NM_AVAILABLE_IN_1_30</a></td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -385,6 +399,12 @@ NM_DEPRECATED_IN_1_24_FOR ();</pre>
 <div class="refsect2">
 <a name="NM-DEPRECATED-IN-1-28-FOR:CAPS"></a><h3>NM_DEPRECATED_IN_1_28_FOR()</h3>
 <pre class="programlisting">    #define NM_DEPRECATED_IN_1_28_FOR(f) G_DEPRECATED_FOR(f)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEPRECATED-IN-1-30-FOR:CAPS"></a><h3>NM_DEPRECATED_IN_1_30_FOR()</h3>
+<pre class="programlisting">    #define NM_DEPRECATED_IN_1_30_FOR(f) G_DEPRECATED_FOR(f)
 </pre>
 </div>
 </div>
@@ -589,6 +609,18 @@ NM_DEPRECATED_IN_1_24_FOR ();</pre>
 <div class="refsect2">
 <a name="NM-AVAILABLE-IN-1-28:CAPS"></a><h3>NM_AVAILABLE_IN_1_28</h3>
 <pre class="programlisting">    #define NM_AVAILABLE_IN_1_28 G_UNAVAILABLE(1, 28)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEPRECATED-IN-1-30:CAPS"></a><h3>NM_DEPRECATED_IN_1_30</h3>
+<pre class="programlisting">    #define NM_DEPRECATED_IN_1_30        G_DEPRECATED
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-AVAILABLE-IN-1-30:CAPS"></a><h3>NM_AVAILABLE_IN_1_30</h3>
+<pre class="programlisting">    #define NM_AVAILABLE_IN_1_30 G_UNAVAILABLE(1, 30)
 </pre>
 </div>
 </div>

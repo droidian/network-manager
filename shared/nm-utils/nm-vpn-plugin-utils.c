@@ -1,9 +1,9 @@
-/* SPDX-License-Identifier: LGPL-2.1+ */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 /*
  * Copyright (C) 2016, 2018 Red Hat, Inc.
  */
 
-#include "nm-default.h"
+#include "libnm/nm-default-client.h"
 
 #include "nm-vpn-plugin-utils.h"
 

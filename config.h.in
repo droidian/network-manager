@@ -219,8 +219,8 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* polkit-agent package prefix */
-#undef POLKIT_PACKAGE_PREFIX
+/* path to polkit-agent-helper-1 binary */
+#undef POLKIT_AGENT_HELPER_1_PATH
 
 /* Define to path of pppd binary */
 #undef PPPD_PATH
