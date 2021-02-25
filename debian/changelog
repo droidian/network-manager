@@ -1,4 +1,4 @@
-network-manager (1.30.0-1ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.30.0-1ubuntu1) hirsute; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
     - Use systemd-resolved instead of dnsmasq
@@ -39,7 +39,7 @@ network-manager (1.30.0-1ubuntu1) UNRELEASED; urgency=medium
       + temporarly revert an upstream commit that made udev enabled under lxc,
         the new systemd doesn't work there (lp: #1914062)
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 25 Feb 2021 11:37:02 +0100
+ -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 25 Feb 2021 15:30:59 +0100
 
 network-manager (1.30.0-1) unstable; urgency=medium
 
