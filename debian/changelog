@@ -1,3 +1,9 @@
+network-manager (1.30.0-1ubuntu2) hirsute; urgency=medium
+
+  * Configure with --enable-lto.
+
+ -- Matthias Klose <doko@ubuntu.com>  Mon, 29 Mar 2021 11:48:39 +0200
+
 network-manager (1.30.0-1ubuntu1) hirsute; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
