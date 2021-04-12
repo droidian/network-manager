@@ -1,3 +1,12 @@
+network-manager (1.30.0-1ubuntu3) hirsute; urgency=medium
+
+  * SECURITY UPDATE: crash via setting match.path
+    - debian/patches/CVE-2021-20297.patch: fix match in
+      src/core/nm-core-utils.c.
+    - CVE-2021-20297
+
+ -- Marc Deslauriers <marc.deslauriers@ubuntu.com>  Mon, 12 Apr 2021 06:56:47 -0400
+
 network-manager (1.30.0-1ubuntu2) hirsute; urgency=medium
 
   * Configure with --enable-lto.
