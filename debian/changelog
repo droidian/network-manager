@@ -1,3 +1,9 @@
+network-manager (1.30.0-1ubuntu4) impish; urgency=medium
+
+  * d/t/nm.py: adapt to changes dnsmasq behavior (LP: #1894619)
+
+ -- Christian Ehrhardt <christian.ehrhardt@canonical.com>  Fri, 02 Jul 2021 11:13:46 +0200
+
 network-manager (1.30.0-1ubuntu3) hirsute; urgency=medium
 
   * SECURITY UPDATE: crash via setting match.path
