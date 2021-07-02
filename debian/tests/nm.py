@@ -357,7 +357,7 @@ class NetworkManagerTest(network_test_base.NetworkTestBase):
                 expected_ip_a.append('inet6 2600::[0-9a-f]+/')
             else:
                 # has address with our prefix and MAC
-                expected_ip_a.append('inet6 2600::[0-9a-f:]+/64 scope global (?:tentative )?(?:mngtmpaddr )?(?:noprefixroute )?dynamic')
+                expected_ip_a.append('inet6 2600::[0-9a-f:]+/64 scope global (?:tentative )?(?:mngtmpaddr )?(?:noprefixroute )?(dynamic|\n\s*valid_lft forever preferred_lft forever)')
                 # has address with our prefix and random IP (Privacy
                 # Extension), if requested
                 priv_re = 'inet6 2600:[0-9a-f:]+/64 scope global temporary (?:tentative )?(?:mngtmpaddr )?dynamic'
