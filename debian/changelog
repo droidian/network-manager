@@ -7,6 +7,8 @@ network-manager (1.32.2-0ubuntu1) UNRELEASED; urgency=medium
     - remove, the issue was fixed in systemd
   * debian/patches/CVE-2021-20297.patch:
     - remove, the fix is in the new version
+  * debian/libnm0.symbols
+    - updated for the new version
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 05 Jul 2021 20:36:31 +0200
 
