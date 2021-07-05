@@ -1,3 +1,13 @@
+network-manager (1.32.2-0ubuntu1) UNRELEASED; urgency=medium
+
+  * New upstream version
+  * debian/patches/ubuntu_revert_systemd.patch:
+    - remove, the issue was fixed in systemd
+  * debian/patches/CVE-2021-20297.patch:
+    - remove, the fix is in the new version
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 05 Jul 2021 20:36:31 +0200
+
 network-manager (1.30.0-1ubuntu4) impish; urgency=medium
 
   * d/t/nm.py: adapt to changes dnsmasq behavior (LP: #1894619)

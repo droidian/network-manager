@@ -44,7 +44,7 @@ Index: network-manager/src/core/dns/nm-dns-manager.c
          gboolean    need_edns0;
          gboolean    need_trust;
  
-@@ -2031,7 +2031,7 @@ nm_dns_manager_stop(NMDnsManager *self)
+@@ -2012,7 +2012,7 @@ nm_dns_manager_stop(NMDnsManager *self)
      _LOGT("stopping...");
  
      /* If we're quitting, leave a valid resolv.conf in place, not one
