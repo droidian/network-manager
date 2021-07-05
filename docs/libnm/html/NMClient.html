@@ -1188,10 +1188,35 @@ nm_dns_entry_get_vpn (<em class="parameter"><code><a class="link" href="NMClient
 <pre class="programlisting"><a class="link" href="NMClient.html" title="NMClient"><span class="returnvalue">NMClient</span></a> *
 nm_client_new (<em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
-<p>Creates a new <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a>.</p>
-<p>Note that this will do blocking D-Bus calls to initialize the
-client. You can use <a class="link" href="NMClient.html#nm-client-new-async" title="nm_client_new_async ()"><code class="function">nm_client_new_async()</code></a> if you want to avoid
-that.</p>
+<p>Creates a new <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> synchronously.</p>
+<p>Note that this will block until a NMClient instance is fully initialized.
+This does nothing beside calling <a href="https://developer.gnome.org/gio/unstable/GInitable.html#g-initable-new"><code class="function">g_initable_new()</code></a>. You are free to call
+<a href="https://developer.gnome.org/gio/unstable/GInitable.html#g-initable-new"><code class="function">g_initable_new()</code></a> or <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#g-object-new"><code class="function">g_object_new()</code></a>/<a href="https://developer.gnome.org/gio/unstable/GInitable.html#g-initable-init"><code class="function">g_initable_init()</code></a> directly for more
+control, to set GObject properties or get access to the NMClient instance
+while it is still initializing.</p>
+<p>Using the synchronous initialization creates an <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> instance
+that uses an internal <a href="https://developer.gnome.org/glib/unstable/glib-The-Main-Event-Loop.html#GMainContext"><span class="type">GMainContext</span></a>. This context is invisible to the
+user. This introduces an additional overhead that is payed not
+only during object initialization, but for the entire lifetime of
+this object.
+Also, due to this internal <a href="https://developer.gnome.org/glib/unstable/glib-The-Main-Event-Loop.html#GMainContext"><span class="type">GMainContext</span></a>, the events are no longer
+in sync with other messages from <a href="https://developer.gnome.org/gio/unstable/GDBusConnection.html#GDBusConnection-struct"><span class="type">GDBusConnection</span></a> (but all events
+of the NMClient will themselves still be ordered).
+For a serious program, you should therefore avoid these problems by
+using <a href="https://developer.gnome.org/gio/unstable/GAsyncInitable.html#g-async-initable-init-async"><code class="function">g_async_initable_init_async()</code></a> or <a class="link" href="NMClient.html#nm-client-new-async" title="nm_client_new_async ()"><code class="function">nm_client_new_async()</code></a> instead.
+The sync initialization is still useful for simple scripts or interactive
+testing for example via pygobject.</p>
+<p>Creating an <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> instance can only fail for two reasons. First, if you didn't
+provide a <a class="link" href="NMClient.html#NM-CLIENT-DBUS-CONNECTION:CAPS" title="NM_CLIENT_DBUS_CONNECTION"><code class="literal">NM_CLIENT_DBUS_CONNECTION</code></a> and the call to <a href="https://developer.gnome.org/gio/unstable/GDBusConnection.html#g-bus-get"><code class="function">g_bus_get()</code></a>
+fails. You can avoid that by using <a href="https://developer.gnome.org/gio/unstable/GInitable.html#g-initable-new"><code class="function">g_initable_new()</code></a> directly and
+set a D-Bus connection.
+Second, if you cancelled the creation. If you do that, then note
+that after the failure there might still be idle actions pending
+which keep <a class="link" href="NMClient.html#nm-client-get-main-context" title="nm_client_get_main_context ()"><code class="function">nm_client_get_main_context()</code></a> alive. That means,
+in that case you must continue iterating the context to avoid
+leaks. See <a class="link" href="NMClient.html#nm-client-get-context-busy-watcher" title="nm_client_get_context_busy_watcher ()"><code class="function">nm_client_get_context_busy_watcher()</code></a>.</p>
+<p>Creating an <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> instance when NetworkManager is not running
+does not cause a failure.</p>
 <div class="refsect3">
 <a name="nm-client-new.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1226,11 +1251,25 @@ that.</p>
 nm_client_new_async (<em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GCancellable.html#GCancellable-struct"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                      <em class="parameter"><code><a href="https://developer.gnome.org/gio/unstable/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
                      <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
-<p>Creates a new <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> and begins asynchronously initializing it.
+<p>Creates a new <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> asynchronously.
 <em class="parameter"><code>callback</code></em>
- will be called when it is done; use
-<a class="link" href="NMClient.html#nm-client-new-finish" title="nm_client_new_finish ()"><code class="function">nm_client_new_finish()</code></a> to get the result. Note that on an error,
-the callback can be invoked with two first parameters as NULL.</p>
+ will be called when it is done. Use
+<a class="link" href="NMClient.html#nm-client-new-finish" title="nm_client_new_finish ()"><code class="function">nm_client_new_finish()</code></a> to get the result.</p>
+<p>This does nothing beside calling <a href="https://developer.gnome.org/gio/unstable/GAsyncInitable.html#g-async-initable-new-async"><code class="function">g_async_initable_new_async()</code></a>. You are free to
+call <a href="https://developer.gnome.org/gio/unstable/GAsyncInitable.html#g-async-initable-new-async"><code class="function">g_async_initable_new_async()</code></a> or <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#g-object-new"><code class="function">g_object_new()</code></a>/<a href="https://developer.gnome.org/gio/unstable/GAsyncInitable.html#g-async-initable-init-async"><code class="function">g_async_initable_init_async()</code></a>
+directly for more control, to set GObject properties or get access to the NMClient
+instance while it is still initializing.</p>
+<p>Creating an <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> instance can only fail for two reasons. First, if you didn't
+provide a <a class="link" href="NMClient.html#NM-CLIENT-DBUS-CONNECTION:CAPS" title="NM_CLIENT_DBUS_CONNECTION"><code class="literal">NM_CLIENT_DBUS_CONNECTION</code></a> and the call to <a href="https://developer.gnome.org/gio/unstable/GDBusConnection.html#g-bus-get"><code class="function">g_bus_get()</code></a>
+fails. You can avoid that by using <a href="https://developer.gnome.org/gio/unstable/GAsyncInitable.html#g-async-initable-new-async"><code class="function">g_async_initable_new_async()</code></a> directly and
+set a D-Bus connection.
+Second, if you cancelled the creation. If you do that, then note
+that after the failure there might still be idle actions pending
+which keep <a class="link" href="NMClient.html#nm-client-get-main-context" title="nm_client_get_main_context ()"><code class="function">nm_client_get_main_context()</code></a> alive. That means,
+in that case you must continue iterating the context to avoid
+leaks. See <a class="link" href="NMClient.html#nm-client-get-context-busy-watcher" title="nm_client_get_context_busy_watcher ()"><code class="function">nm_client_get_context_busy_watcher()</code></a>.</p>
+<p>Creating an <a class="link" href="NMClient.html" title="NMClient"><span class="type">NMClient</span></a> instance when NetworkManager is not running
+does not cause a failure.</p>
 <div class="refsect3">
 <a name="nm-client-new-async.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1416,14 +1455,21 @@ still outstanding and queued in the GMainContext. These outstanding callbacks
 keep the GMainContext alive. In order to fully release all resources,
 the user must keep iterating the main context until all these callbacks
 are handled. Of course, at this point no more actual callbacks will be invoked
-for the user, those are all internally cancelled.</p>
+for the user, those are all cancelled internally.</p>
 <p>This just leaves one problem: how long does the user need to keep the
 GMainContext running to ensure everything is cleaned up? The answer is
 this GObject. Subscribe a weak reference to the returned object and keep
 iterating the main context until the object got unreferenced.</p>
-<p>Note that after the NMClient instance gets destroyed, the remaining callbacks
-will be invoked right away. That means, the user won't have to iterate the
-main context much longer. </p>
+<p>Note that after the NMClient instance gets destroyed, all outstanding operations
+will be cancelled right away. That means, the user needs to iterate the <a href="https://developer.gnome.org/glib/unstable/glib-The-Main-Event-Loop.html#GMainContext"><span class="type">GMainContext</span></a>
+a bit longer, but it is guaranteed that the cleanup happens soon after.</p>
+<p>The way of using the context-busy-watch, is by registering a weak pointer to
+see when it gets destroyed. That means, user code should not take additional
+references on this object to not keep it alive longer.</p>
+<p>If you plan to exit the program after releasing the NMClient instance
+you may not need to worry about these "leaks". Also, if you anyway plan to continue
+iterating the <a href="https://developer.gnome.org/glib/unstable/glib-The-Main-Event-Loop.html#GMainContext"><span class="type">GMainContext</span></a> afterwards, then you don't need to care when exactly
+NMClient is gone completely. </p>
 <p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.22</p>

@@ -12,19 +12,23 @@
 #include <linux/pkt_sched.h>
 #include <linux/if_ether.h>
 
-#include "nm-glib-aux/nm-c-list.h"
+#include "libnm-glib-aux/nm-c-list.h"
 
-#include "nm-libnm-core-intern/nm-common-macros.h"
+#include "libnm-glib-aux/nm-uuid.h"
+#include "libnm-glib-aux/nm-str-buf.h"
+#include "libnm-base/nm-net-aux.h"
+#include "libnm-core-aux-intern/nm-common-macros.h"
 #include "nm-utils.h"
 #include "nm-setting-connection.h"
 #include "nm-setting-ip4-config.h"
 #include "nm-setting-ip6-config.h"
-#include "nm-core-internal.h"
-#include "platform/nmp-object.h"
+#include "libnm-core-intern/nm-core-internal.h"
+#include "libnm-platform/nmp-object.h"
 
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
+#include "libnm-platform/nm-linux-platform.h"
 #include "nm-auth-utils.h"
-#include "systemd/nm-sd-utils-shared.h"
+#include "libnm-systemd-shared/nm-sd-utils-shared.h"
 
 /*****************************************************************************/
 
@@ -252,7 +256,7 @@ nm_utils_complete_generic(NMPlatform *         platform,
 
         g_object_set(G_OBJECT(s_con),
                      NM_SETTING_CONNECTION_UUID,
-                     nm_utils_uuid_generate_buf(uuid),
+                     nm_uuid_generate_random_str_arr(uuid),
                      NULL);
     }
 
@@ -902,9 +906,15 @@ nm_match_spec_device_by_pllink(const NMPlatformLink *pllink,
 NMPlatformRoutingRule *
 nm_ip_routing_rule_to_platform(const NMIPRoutingRule *rule, NMPlatformRoutingRule *out_pl)
 {
+    gboolean uid_range_has;
+    guint32  uid_range_start = 0;
+    guint32  uid_range_end   = 0;
+
     nm_assert(rule);
     nm_assert(nm_ip_routing_rule_validate(rule, NULL));
     nm_assert(out_pl);
+
+    uid_range_has = nm_ip_routing_rule_get_uid_range(rule, &uid_range_start, &uid_range_end);
 
     *out_pl = (NMPlatformRoutingRule){
         .addr_family = nm_ip_routing_rule_get_addr_family(rule),
@@ -932,6 +942,12 @@ nm_ip_routing_rule_to_platform(const NMIPRoutingRule *rule, NMPlatformRoutingRul
         .table   = nm_ip_routing_rule_get_table(rule),
         .suppress_prefixlen_inverse =
             ~((guint32) nm_ip_routing_rule_get_suppress_prefixlength(rule)),
+        .uid_range_has = uid_range_has,
+        .uid_range =
+            {
+                .start = uid_range_start,
+                .end   = uid_range_end,
+            },
     };
 
     nm_ip_routing_rule_get_xifname_bin(rule, TRUE, out_pl->iifname);
@@ -1293,9 +1309,9 @@ nm_utils_ip_route_attribute_to_platform(int                addr_family,
 
     if ((variant = nm_ip_route_get_attribute(s_route, NM_IP_ROUTE_ATTRIBUTE_TYPE))
         && g_variant_is_of_type(variant, G_VARIANT_TYPE_STRING)) {
-        guint8 type;
+        int type;
 
-        type = nm_utils_route_type_by_name(g_variant_get_string(variant, NULL));
+        type = nm_net_aux_rtnl_rtntype_a2n(g_variant_get_string(variant, NULL));
         nm_assert(NM_IN_SET(type, RTN_UNICAST, RTN_LOCAL));
 
         r->type_coerced = nm_platform_route_type_coerce(type);
@@ -1482,12 +1498,7 @@ nm_utils_ip_addresses_to_dbus(int                          addr_family,
                         : (guint32) 0,
                 };
 
-                g_variant_builder_add(&builder_legacy,
-                                      "@au",
-                                      g_variant_new_fixed_array(G_VARIANT_TYPE_UINT32,
-                                                                dbus_addr,
-                                                                3,
-                                                                sizeof(guint32)));
+                g_variant_builder_add(&builder_legacy, "@au", nm_g_variant_new_au(dbus_addr, 3));
             } else {
                 g_variant_builder_add(
                     &builder_legacy,
@@ -1609,12 +1620,7 @@ nm_utils_ip_routes_to_dbus(int                          addr_family,
                     r->r4.metric,
                 };
 
-                g_variant_builder_add(&builder_legacy,
-                                      "@au",
-                                      g_variant_new_fixed_array(G_VARIANT_TYPE_UINT32,
-                                                                dbus_route,
-                                                                4,
-                                                                sizeof(guint32)));
+                g_variant_builder_add(&builder_legacy, "@au", nm_g_variant_new_au(dbus_route, 4));
             } else {
                 g_variant_builder_add(&builder_legacy,
                                       "(@ayu@ayu)",
@@ -1632,200 +1638,60 @@ nm_utils_ip_routes_to_dbus(int                          addr_family,
 
 /*****************************************************************************/
 
-typedef struct {
-    char *table;
-    char *rule;
-} ShareRule;
+/* Singleton NMPlatform subclass instance and cached class object */
+NM_DEFINE_SINGLETON_INSTANCE(NMPlatform);
 
-struct _NMUtilsShareRules {
-    GArray *rules;
-};
+NM_DEFINE_SINGLETON_REGISTER(NMPlatform);
 
-static void
-_share_rule_clear(gpointer data)
+/**
+ * nm_platform_setup:
+ * @instance: the #NMPlatform instance
+ *
+ * Failing to set up #NMPlatform singleton results in a fatal error,
+ * as well as trying to initialize it multiple times without freeing
+ * it.
+ *
+ * NetworkManager will typically use only one platform object during
+ * its run. Test programs might want to switch platform implementations,
+ * though.
+ */
+void
+nm_platform_setup(NMPlatform *instance)
 {
-    ShareRule *rule = data;
+    g_return_if_fail(NM_IS_PLATFORM(instance));
+    g_return_if_fail(!singleton_instance);
 
-    g_free(rule->table);
-    g_free(rule->rule);
+    singleton_instance = instance;
+
+    nm_singleton_instance_register();
+
+    nm_log_dbg(LOGD_CORE,
+               "setup %s singleton (" NM_HASH_OBFUSCATE_PTR_FMT ")",
+               "NMPlatform",
+               NM_HASH_OBFUSCATE_PTR(instance));
 }
 
-NMUtilsShareRules *
-nm_utils_share_rules_new(void)
+/**
+ * nm_platform_get:
+ * @self: platform instance
+ *
+ * Retrieve #NMPlatform singleton. Use this whenever you want to connect to
+ * #NMPlatform signals. It is an error to call it before nm_platform_setup().
+ *
+ * Returns: (transfer none): The #NMPlatform singleton reference.
+ */
+NMPlatform *
+nm_platform_get()
 {
-    NMUtilsShareRules *self;
+    g_assert(singleton_instance);
 
-    self  = g_slice_new(NMUtilsShareRules);
-    *self = (NMUtilsShareRules){
-        .rules = g_array_sized_new(FALSE, FALSE, sizeof(ShareRule), 10),
-    };
-
-    g_array_set_clear_func(self->rules, _share_rule_clear);
-    return self;
+    return singleton_instance;
 }
+
+/*****************************************************************************/
 
 void
-nm_utils_share_rules_free(NMUtilsShareRules *self)
+nm_linux_platform_setup(void)
 {
-    if (!self)
-        return;
-
-    g_array_unref(self->rules);
-    nm_g_slice_free(self);
-}
-
-void
-nm_utils_share_rules_add_rule_take(NMUtilsShareRules *self, const char *table, char *rule_take)
-{
-    ShareRule *rule;
-
-    g_return_if_fail(self);
-    g_return_if_fail(table);
-    g_return_if_fail(rule_take);
-
-    rule  = nm_g_array_append_new(self->rules, ShareRule);
-    *rule = (ShareRule){
-        .table = g_strdup(table),
-        .rule  = g_steal_pointer(&rule_take),
-    };
-}
-
-void
-nm_utils_share_rules_apply(NMUtilsShareRules *self, gboolean shared)
-{
-    guint i;
-
-    g_return_if_fail(self);
-
-    if (self->rules->len == 0)
-        return;
-
-    /* depending on whether we share or unshare, we add/remote the rules
-     * in opposite order. */
-    if (shared)
-        i = self->rules->len - 1;
-    else
-        i = 0;
-
-    for (;;) {
-        gs_free_error GError *error = NULL;
-        ShareRule *           rule;
-        gs_free const char ** argv = NULL;
-        gs_free char *        cmd  = NULL;
-        int                   status;
-
-        rule = &g_array_index(self->rules, ShareRule, i);
-
-        cmd  = g_strdup_printf("%s --table %s %s %s",
-                              IPTABLES_PATH,
-                              rule->table,
-                              shared ? "--insert" : "--delete",
-                              rule->rule);
-        argv = nm_utils_strsplit_set(cmd, " ");
-
-        nm_log_info(LOGD_SHARING, "Executing: %s", cmd);
-        if (!g_spawn_sync("/",
-                          (char **) argv,
-                          (char **) NM_PTRARRAY_EMPTY(const char *),
-                          G_SPAWN_STDOUT_TO_DEV_NULL | G_SPAWN_STDERR_TO_DEV_NULL,
-                          NULL,
-                          NULL,
-                          NULL,
-                          NULL,
-                          &status,
-                          &error)) {
-            nm_log_warn(LOGD_SHARING, "Error executing command: %s", error->message);
-            goto next;
-        }
-        if (WEXITSTATUS(status)) {
-            nm_log_warn(LOGD_SHARING, "** Command returned exit status %d.", WEXITSTATUS(status));
-        }
-
-next:
-        if (shared) {
-            if (i == 0)
-                break;
-            i--;
-        } else {
-            i++;
-            if (i >= self->rules->len)
-                break;
-        }
-    }
-}
-
-void
-nm_utils_share_rules_add_all_rules(NMUtilsShareRules *self,
-                                   const char *       ip_iface,
-                                   in_addr_t          addr,
-                                   guint              plen)
-{
-    in_addr_t netmask;
-    in_addr_t network;
-    char      str_mask[NM_UTILS_INET_ADDRSTRLEN];
-    char      str_addr[NM_UTILS_INET_ADDRSTRLEN];
-
-    nm_assert(self);
-
-    netmask = _nm_utils_ip4_prefix_to_netmask(plen);
-    _nm_utils_inet4_ntop(netmask, str_mask);
-
-    network = addr & netmask;
-    _nm_utils_inet4_ntop(network, str_addr);
-
-    nm_utils_share_rules_add_rule_v(
-        self,
-        "nat",
-        "POSTROUTING --source %s/%s ! --destination %s/%s --jump MASQUERADE",
-        str_addr,
-        str_mask,
-        str_addr,
-        str_mask);
-    nm_utils_share_rules_add_rule_v(
-        self,
-        "filter",
-        "FORWARD --destination %s/%s --out-interface %s --match state --state "
-        "ESTABLISHED,RELATED --jump ACCEPT",
-        str_addr,
-        str_mask,
-        ip_iface);
-    nm_utils_share_rules_add_rule_v(self,
-                                    "filter",
-                                    "FORWARD --source %s/%s --in-interface %s --jump ACCEPT",
-                                    str_addr,
-                                    str_mask,
-                                    ip_iface);
-    nm_utils_share_rules_add_rule_v(self,
-                                    "filter",
-                                    "FORWARD --in-interface %s --out-interface %s --jump ACCEPT",
-                                    ip_iface,
-                                    ip_iface);
-    nm_utils_share_rules_add_rule_v(self,
-                                    "filter",
-                                    "FORWARD --out-interface %s --jump REJECT",
-                                    ip_iface);
-    nm_utils_share_rules_add_rule_v(self,
-                                    "filter",
-                                    "FORWARD --in-interface %s --jump REJECT",
-                                    ip_iface);
-    nm_utils_share_rules_add_rule_v(
-        self,
-        "filter",
-        "INPUT --in-interface %s --protocol udp --destination-port 67 --jump ACCEPT",
-        ip_iface);
-    nm_utils_share_rules_add_rule_v(
-        self,
-        "filter",
-        "INPUT --in-interface %s --protocol tcp --destination-port 67 --jump ACCEPT",
-        ip_iface);
-    nm_utils_share_rules_add_rule_v(
-        self,
-        "filter",
-        "INPUT --in-interface %s --protocol udp --destination-port 53 --jump ACCEPT",
-        ip_iface);
-    nm_utils_share_rules_add_rule_v(
-        self,
-        "filter",
-        "INPUT --in-interface %s --protocol tcp --destination-port 53 --jump ACCEPT",
-        ip_iface);
+    nm_platform_setup(nm_linux_platform_new(FALSE, FALSE));
 }

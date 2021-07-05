@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <linux/if.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/resource.h>
@@ -20,7 +21,7 @@
 #include "nm-dbus-interface.h"
 #include "NetworkManagerUtils.h"
 #include "nm-manager.h"
-#include "platform/nm-linux-platform.h"
+#include "libnm-platform/nm-linux-platform.h"
 #include "nm-dbus-manager.h"
 #include "devices/nm-device.h"
 #include "dhcp/nm-dhcp-manager.h"
@@ -29,11 +30,11 @@
 #include "nm-dispatcher.h"
 #include "settings/nm-settings.h"
 #include "nm-auth-manager.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-dbus-object.h"
 #include "nm-connectivity.h"
 #include "dns/nm-dns-manager.h"
-#include "systemd/nm-sd.h"
+#include "libnm-systemd-core/nm-sd.h"
 #include "nm-netns.h"
 
 #if !defined(NM_DIST_VERSION)
@@ -508,7 +509,7 @@ main(int argc, char *argv[])
      * physical interfaces.
      */
     nm_log_dbg(LOGD_CORE, "setting up local loopback");
-    nm_platform_link_set_up(NM_PLATFORM_GET, 1, NULL);
+    nm_platform_link_change_flags(NM_PLATFORM_GET, 1, IFF_UP, TRUE);
 
     success = TRUE;
 

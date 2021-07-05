@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/18/2021
+.\"      Date: 06/30/2021
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.30.0
+.\"    Source: NetworkManager 1.32.2
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.30\&.0" "Configuration"
+.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.32\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1452,6 +1452,21 @@ Properties:
 .RS 4
 .RE
 .PP
+\fBpause\-autoneg\fR
+.RS 4
+Whether to automatically negotiate on pause frame of flow control mechanism defined by IEEE 802\&.3x standard\&.
+.RE
+.PP
+\fBpause\-rx\fR
+.RS 4
+Whether RX pause should be enabled\&. Only valid when automatic negotiation is disabled
+.RE
+.PP
+\fBpause\-tx\fR
+.RS 4
+Whether TX pause should be enabled\&. Only valid when automatic negotiation is disabled
+.RE
+.PP
 \fBring\-rx\fR
 .RS 4
 .RE
@@ -1640,9 +1655,9 @@ Properties:
 .RS 4
 Alias: ip4
 .sp
-Array of IP addresses\&.
+A list of IPv4 addresses and their prefix length\&. Multiple addresses can be separated by comma\&. For example "192\&.168\&.1\&.5/24, 10\&.1\&.0\&.5/24"\&.
 .sp
-Format: array of array of uint32
+Format: a comma separated list of addresses
 .RE
 .PP
 \fBdad\-timeout\fR
@@ -1803,9 +1818,9 @@ Format: uint32
 .PP
 \fBroutes\fR
 .RS 4
-Array of IP routes\&.
+A list of IPv4 destination addresses, prefix length, optional IPv4 next hop addresses, optional route metric, optional attribute\&. The valid syntax is: "ip[/prefix] [next\-hop] [metric] [attribute=val]\&.\&.\&.[,ip[/prefix]\&.\&.\&.]"\&. For example "192\&.0\&.2\&.0/24 10\&.1\&.1\&.1 77, 198\&.51\&.100\&.0/24"\&.
 .sp
-Format: array of array of uint32
+Format: a comma separated list of routes
 .RE
 .PP
 \fBrouting\-rules\fR
@@ -2239,7 +2254,7 @@ Format: array of string
 .PP
 \fBkernel\-command\-line\fR
 .RS 4
-A list of kernel command line arguments to match\&. This may be used to check whether a specific kernel command line option is set (or if prefixed with the exclamation mark unset)\&. The argument must either be a single word, or an assignment (i\&.e\&. two words, separated "=")\&. In the former case the kernel command line is searched for the word appearing as is, or as left hand side of an assignment\&. In the latter case, the exact assignment is looked for with right and left hand side matching\&. See NMSettingMatch:interface\-name for how special characters \*(Aq|\*(Aq, \*(Aq&\*(Aq, \*(Aq!\*(Aq and \*(Aq\e\*(Aq are used for optional and mandatory matches and inverting the pattern\&.
+A list of kernel command line arguments to match\&. This may be used to check whether a specific kernel command line option is set (or unset, if prefixed with the exclamation mark)\&. The argument must either be a single word, or an assignment (i\&.e\&. two words, joined by "=")\&. In the former case the kernel command line is searched for the word appearing as is, or as left hand side of an assignment\&. In the latter case, the exact assignment is looked for with right and left hand side matching\&. Wildcard patterns are not supported\&. See NMSettingMatch:interface\-name for how special characters \*(Aq|\*(Aq, \*(Aq&\*(Aq, \*(Aq!\*(Aq and \*(Aq\e\*(Aq are used for optional and mandatory matches and inverting the match\&.
 .sp
 Format: array of string
 .RE
@@ -2271,7 +2286,7 @@ Format: uint32
 .RS 4
 Alias: dhcp\-anycast
 .sp
-Anycast DHCP MAC address used when requesting an IP address via DHCP\&. The specific anycast address used determines which DHCP server class answers the request\&.
+Anycast DHCP MAC address used when requesting an IP address via DHCP\&. The specific anycast address used determines which DHCP server class answers the request\&. This is currently only implemented by dhclient DHCP plugin\&.
 .sp
 Format: byte array
 .RE
@@ -2703,14 +2718,14 @@ Properties:
 .PP
 \fBqdiscs\fR
 .RS 4
-Array of TC queueing disciplines\&.
+Array of TC queueing disciplines\&. When the "tc" setting is present, qdiscs from this property are applied upon activation\&. If the property is empty, all qdiscs are removed and the device will only have the default qdisc assigned by kernel according to the "net\&.core\&.default_qdisc" sysctl\&. If the "tc" setting is not present, NetworkManager doesn\*(Aqt touch the qdiscs present on the interface\&.
 .sp
 Format: array of vardict
 .RE
 .PP
 \fBtfilters\fR
 .RS 4
-Array of TC traffic filters\&.
+Array of TC traffic filters\&. When the "tc" setting is present, filters from this property are applied upon activation\&. If the property is empty, NetworkManager removes all the filters\&. If the "tc" setting is not present, NetworkManager doesn\*(Aqt touch the filters present on the interface\&.
 .sp
 Format: array of vardict
 .RE
@@ -3253,6 +3268,13 @@ Wired Ethernet Settings\&.
 .PP
 Properties:
 .PP
+\fBaccept\-all\-mac\-addresses\fR
+.RS 4
+When TRUE, setup the interface to accept packets for all MAC addresses\&. This is enabling the kernel interface flag IFF_PROMISC\&. When FALSE, the interface will only accept the packets with the interface destination mac address or broadcast\&.
+.sp
+Format: NMTernary (int32)
+.RE
+.PP
 \fBauto\-negotiate\fR
 .RS 4
 When TRUE, enforce auto\-negotiation of speed and duplex mode\&. If "speed" and "duplex" properties are both specified, only that single mode will be advertised and accepted during the link auto\-negotiation process: this works only for BASE\-T 802\&.3 specifications and is useful for enforcing gigabits modes, as in these cases link negotiation is mandatory\&. When FALSE, "speed" and "duplex" properties should be both set or link configuration will be skipped\&.
@@ -3593,7 +3615,7 @@ Format: array of string
 .PP
 \fBkey\-mgmt\fR
 .RS 4
-Key management used for the connection\&. One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa\-psk" (infrastructure WPA\-PSK), "sae" (SAE), "owe" (Opportunistic Wireless Encryption), "wpa\-eap" (WPA\-Enterprise) or "wpa\-eap\-suite\-b\-192" (WPA3\-Enterprise Suite B)\&. This property must be set for any Wi\-Fi connection that uses security\&.
+Key management used for the connection\&. One of "none" (WEP or no password protection), "ieee8021x" (Dynamic WEP), "owe" (Opportunistic Wireless Encryption), "wpa\-psk" (WPA2 + WPA3 personal), "sae" (WPA3 personal only), "wpa\-eap" (WPA2 + WPA3 enterprise) or "wpa\-eap\-suite\-b\-192" (WPA3 enterprise only)\&. This property must be set for any Wi\-Fi connection that uses security\&.
 .sp
 Format: string
 .RE

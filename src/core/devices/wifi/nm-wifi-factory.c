@@ -15,7 +15,7 @@
 #include "nm-device-olpc-mesh.h"
 #include "nm-device-iwd.h"
 #include "settings/nm-settings-connection.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "nm-config.h"
 
 /*****************************************************************************/
@@ -74,7 +74,8 @@ create_device(NMDeviceFactory *     factory,
               NMConnection *        connection,
               gboolean *            out_ignore)
 {
-    gs_free char *backend = NULL;
+    gs_free char *backend_free = NULL;
+    const char *  backend;
 
     g_return_val_if_fail(iface != NULL, NULL);
     g_return_val_if_fail(plink != NULL, NULL);
@@ -89,7 +90,7 @@ create_device(NMDeviceFactory *     factory,
                                                          plink,
                                                          "wifi",
                                                          NULL);
-    nm_strstrip(backend);
+    backend = nm_strstrip_avoid_copy_a(300, backend, &backend_free);
 
     nm_log_dbg(LOGD_PLATFORM | LOGD_WIFI,
                "(%s) config: backend is %s%s%s%s",
@@ -97,9 +98,9 @@ create_device(NMDeviceFactory *     factory,
                NM_PRINT_FMT_QUOTE_STRING(backend),
                WITH_IWD ? " (iwd support enabled)" : "");
     if (!backend || !g_ascii_strcasecmp(backend, "wpa_supplicant")) {
-        NMDevice *               device;
-        NMDeviceWifiCapabilities capabilities;
-        NM80211Mode              mode;
+        NMDevice *                device;
+        _NMDeviceWifiCapabilities capabilities;
+        _NM80211Mode              mode;
 
         if (!nm_platform_wifi_get_capabilities(NM_PLATFORM_GET, plink->ifindex, &capabilities)) {
             nm_log_warn(LOGD_PLATFORM | LOGD_WIFI,
@@ -114,7 +115,7 @@ create_device(NMDeviceFactory *     factory,
          * them if/when they change to a handled type.
          */
         mode = nm_platform_wifi_get_mode(NM_PLATFORM_GET, plink->ifindex);
-        if (mode == NM_802_11_MODE_UNKNOWN) {
+        if (mode == _NM_802_11_MODE_UNKNOWN) {
             *out_ignore = TRUE;
             return NULL;
         }

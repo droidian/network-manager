@@ -2,12 +2,12 @@
 .\"     Title: nm-cloud-setup
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/18/2021
+.\"      Date: 06/30/2021
 .\"    Manual: Automatic Network Configuration in Cloud with NetworkManager
-.\"    Source: NetworkManager 1.30.0
+.\"    Source: NetworkManager 1.32.2
 .\"  Language: English
 .\"
-.TH "NM\-CLOUD\-SETUP" "8" "" "NetworkManager 1\&.30\&.0" "Automatic Network Configuratio"
+.TH "NM\-CLOUD\-SETUP" "8" "" "NetworkManager 1\&.32\&.2" "Automatic Network Configuratio"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -157,6 +157,39 @@ no\&.
 NM_CLOUD_SETUP_GCP: boolean, whether Google GCP support is enabled\&. Defaults to
 no\&.
 .RE
+.SH "EXAMPLE SETUP FOR CONFIGURING AND PREDEPLOYING NM\-CLOUD\-SETUP"
+.PP
+As detailed before, nm\-cloud\-setup needs to be explicitly enabled\&. As it runs as a systemd service and timer, that basically means to enable and configure those\&. This can be done by dropping the correct files and symlinks to disk\&.
+.PP
+The following example enables nm\-cloud\-setup for Amazon EC2 cloud:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+dnf install \-y NetworkManager\-cloud\-setup
+
+mkdir \-p /etc/systemd/system/nm\-cloud\-setup\&.service\&.d
+cat > /etc/systemd/system/nm\-cloud\-setup\&.service\&.d/10\-enable\-ec2\&.conf << EOF
+[Service]
+Environment=NM_CLOUD_SETUP_EC2=yes
+EOF
+
+# systemctl enable nm\-cloud\-setup\&.service
+mkdir \-p /etc/systemd/system/NetworkManager\&.service\&.wants/
+ln \-s /usr/lib/systemd/system/nm\-cloud\-setup\&.service /etc/systemd/system/NetworkManager\&.service\&.wants/nm\-cloud\-setup\&.service
+
+# systemctl enable nm\-cloud\-setup\&.timer
+mkdir \-p /etc/systemd/system/timers\&.target\&.wants/
+ln \-s /etc/systemd/system/timers\&.target\&.wants/nm\-cloud\-setup\&.timer /usr/lib/systemd/system/nm\-cloud\-setup\&.timer
+
+# systemctl daemon\-reload
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
 .SH "SUPPORTED CLOUD PROVIDERS"
 .SS "Amazon EC2 (AWS)"
 .PP
@@ -408,7 +441,8 @@ to get the list of (indexes of) IP addresses on that interface\&.
 .IP \(bu 2.3
 .\}
 Then, for each IP address index fetch the address at
-http://169\&.254\&.169\&.254/metadata/instance/network/interface/$IFACE_INDEX/ipv4/ipAddress/$ADDR_INDEX/privateIpAddress?format=text&api\-version=2017\-04\-02\&. Also fetch the size of the subnet (the netmask) for the interface from
+http://169\&.254\&.169\&.254/metadata/instance/network/interface/$IFACE_INDEX/ipv4/ipAddress/$ADDR_INDEX/privateIpAddress?format=text&api\-version=2017\-04\-02\&. Also fetch the size of the subnet and prefix for the interface from
+http://169\&.254\&.169\&.254/metadata/instance/network/interface/$IFACE_INDEX/ipv4/subnet/0/address/?format=text&api\-version=2017\-04\-02\&. and
 http://169\&.254\&.169\&.254/metadata/instance/network/interface/$IFACE_INDEX/ipv4/subnet/0/prefix/?format=text&api\-version=2017\-04\-02\&.
 .RE
 .sp

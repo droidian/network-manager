@@ -25,6 +25,7 @@
     (G_TYPE_INSTANCE_GET_CLASS((obj), NM_TYPE_DHCP_CLIENT, NMDhcpClientClass))
 
 #define NM_DHCP_CLIENT_ADDR_FAMILY             "addr-family"
+#define NM_DHCP_CLIENT_ANYCAST_ADDRESS         "anycast-address"
 #define NM_DHCP_CLIENT_FLAGS                   "flags"
 #define NM_DHCP_CLIENT_HWADDR                  "hwaddr"
 #define NM_DHCP_CLIENT_BROADCAST_HWADDR        "broadcast-hwaddr"
@@ -51,7 +52,7 @@ typedef enum {
     NM_DHCP_STATE_BOUND,      /* new lease */
     NM_DHCP_STATE_EXTENDED,   /* lease extended */
     NM_DHCP_STATE_TIMEOUT,    /* timed out contacting server */
-    NM_DHCP_STATE_DONE,       /* client quit or stopped */
+    NM_DHCP_STATE_DONE,       /* client reported it's stopping */
     NM_DHCP_STATE_EXPIRE,     /* lease expired or NAKed */
     NM_DHCP_STATE_FAIL,       /* failed for some reason */
     NM_DHCP_STATE_TERMINATED, /* client is no longer running */
@@ -59,6 +60,8 @@ typedef enum {
     __NM_DHCP_STATE_MAX,
     NM_DHCP_STATE_MAX = __NM_DHCP_STATE_MAX - 1,
 } NMDhcpState;
+
+const char *nm_dhcp_state_to_string(NMDhcpState state);
 
 struct _NMDhcpClientPrivate;
 
@@ -68,25 +71,27 @@ typedef struct {
     CList                        dhcp_client_lst;
 } NMDhcpClient;
 
-typedef enum {
-    NM_DHCP_CLIENT_FLAGS_INFO_ONLY = (1LL << 0),
-    NM_DHCP_CLIENT_FLAGS_USE_FQDN  = (1LL << 1),
+typedef enum _nm_packed {
+    NM_DHCP_CLIENT_FLAGS_NONE = 0,
+
+    NM_DHCP_CLIENT_FLAGS_INFO_ONLY         = (1LL << 0),
+    NM_DHCP_CLIENT_FLAGS_USE_FQDN          = (1LL << 1),
+    NM_DHCP_CLIENT_FLAGS_REQUEST_BROADCAST = (1LL << 2),
+
+    _NM_DHCP_CLIENT_FLAGS_LAST,
+    NM_DHCP_CLIENT_FLAGS_ALL = ((_NM_DHCP_CLIENT_FLAGS_LAST - 1) << 1) - 1,
 } NMDhcpClientFlags;
 
 typedef struct {
     GObjectClass parent;
 
-    gboolean (*ip4_start)(NMDhcpClient *self,
-                          const char *  anycast_addr,
-                          const char *  last_ip4_address,
-                          GError **     error);
+    gboolean (*ip4_start)(NMDhcpClient *self, const char *last_ip4_address, GError **error);
 
     gboolean (*accept)(NMDhcpClient *self, GError **error);
 
     gboolean (*decline)(NMDhcpClient *self, const char *error_message, GError **error);
 
     gboolean (*ip6_start)(NMDhcpClient *            self,
-                          const char *              anycast_addr,
                           const struct in6_addr *   ll_addr,
                           NMSettingIP6ConfigPrivacy privacy,
                           guint                     needed_prefixes,
@@ -126,6 +131,8 @@ GBytes *nm_dhcp_client_get_hw_addr(NMDhcpClient *self);
 
 GBytes *nm_dhcp_client_get_broadcast_hw_addr(NMDhcpClient *self);
 
+const char *nm_dhcp_client_get_anycast_address(NMDhcpClient *self);
+
 guint32 nm_dhcp_client_get_route_table(NMDhcpClient *self);
 
 void nm_dhcp_client_set_route_table(NMDhcpClient *self, guint32 route_table);
@@ -148,22 +155,18 @@ const char *const *nm_dhcp_client_get_reject_servers(NMDhcpClient *self);
 
 NMDhcpHostnameFlags nm_dhcp_client_get_hostname_flags(NMDhcpClient *self);
 
-gboolean nm_dhcp_client_get_info_only(NMDhcpClient *self);
-
-gboolean nm_dhcp_client_get_use_fqdn(NMDhcpClient *self);
+NMDhcpClientFlags nm_dhcp_client_get_client_flags(NMDhcpClient *self);
 
 GBytes *nm_dhcp_client_get_vendor_class_identifier(NMDhcpClient *self);
 
 gboolean nm_dhcp_client_start_ip4(NMDhcpClient *self,
                                   GBytes *      client_id,
-                                  const char *  dhcp_anycast_addr,
                                   const char *  last_ip4_address,
                                   GError **     error);
 
 gboolean nm_dhcp_client_start_ip6(NMDhcpClient *            self,
                                   GBytes *                  client_id,
                                   gboolean                  enforce_duid,
-                                  const char *              dhcp_anycast_addr,
                                   const struct in6_addr *   ll_addr,
                                   NMSettingIP6ConfigPrivacy privacy,
                                   guint                     needed_prefixes,

@@ -13,10 +13,10 @@
 #include "nm-act-request.h"
 #include "nm-device-private.h"
 #include "nm-ip4-config.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "nm-device-factory.h"
 #include "nm-setting-dummy.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 
 #define _NMLOG_DEVICE_TYPE NMDeviceDummy
 #include "nm-device-logging.h"
@@ -121,12 +121,10 @@ nm_device_dummy_init(NMDeviceDummy *self)
 static const NMDBusInterfaceInfoExtended interface_info_device_dummy = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_DEVICE_DUMMY,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("HwAddress",
-                                                             "s",
-                                                             NM_DEVICE_HW_ADDRESS), ), ),
-    .legacy_property_changed = TRUE,
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("HwAddress",
+                                                           "s",
+                                                           NM_DEVICE_HW_ADDRESS), ), ),
 };
 
 static void

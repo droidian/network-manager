@@ -9,7 +9,7 @@
 
 #include "nm-active-connection.h"
 #include "nm-act-request.h"
-#include "nm-libnm-core-intern/nm-auth-subject.h"
+#include "libnm-core-aux-intern/nm-auth-subject.h"
 #include "nm-core-utils.h"
 #include "nm-dbus-interface.h"
 #include "devices/nm-device.h"
@@ -229,14 +229,16 @@ restore_and_activate_connection(NMCheckpoint *self, DeviceCheckpoint *dev_checkp
         if (need_update) {
             _LOGD("rollback: updating connection %s", nm_settings_connection_get_uuid(connection));
             persist_mode = NM_SETTINGS_CONNECTION_PERSIST_MODE_KEEP;
-            nm_settings_connection_update(connection,
-                                          dev_checkpoint->settings_connection,
-                                          persist_mode,
-                                          sett_flags,
-                                          sett_mask,
-                                          NM_SETTINGS_CONNECTION_UPDATE_REASON_NONE,
-                                          "checkpoint-rollback",
-                                          NULL);
+            nm_settings_connection_update(
+                connection,
+                dev_checkpoint->settings_connection,
+                persist_mode,
+                sett_flags,
+                sett_mask,
+                NM_SETTINGS_CONNECTION_UPDATE_REASON_RESET_SYSTEM_SECRETS
+                    | NM_SETTINGS_CONNECTION_UPDATE_REASON_UPDATE_NON_SECRET,
+                "checkpoint-rollback",
+                NULL);
         }
     } else {
         /* The connection was deleted, recreate it */
@@ -737,16 +739,12 @@ dispose(GObject *object)
 static const NMDBusInterfaceInfoExtended interface_info_checkpoint = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_CHECKPOINT,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Devices",
-                                                             "ao",
-                                                             NM_CHECKPOINT_DEVICES),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Created", "x", NM_CHECKPOINT_CREATED),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("RollbackTimeout",
-                                                             "u",
-                                                             NM_CHECKPOINT_ROLLBACK_TIMEOUT), ), ),
-    .legacy_property_changed = TRUE,
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Devices", "ao", NM_CHECKPOINT_DEVICES),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Created", "x", NM_CHECKPOINT_CREATED),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("RollbackTimeout",
+                                                           "u",
+                                                           NM_CHECKPOINT_ROLLBACK_TIMEOUT), ), ),
 };
 
 static void

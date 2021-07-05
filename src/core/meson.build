@@ -1,27 +1,27 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-src_inc = include_directories('.')
+src_core_inc = include_directories('.')
 
 core_plugin_dep = declare_dependency(
-  sources: libnm_core_enum_sources[1],
   include_directories: [
-    src_inc,
+    src_core_inc,
     top_inc,
-    shared_inc,
-    libnm_core_inc,
+    libnm_core_public_inc,
   ],
   dependencies: [
+    libnm_core_public_dep,
     glib_dep,
   ],
 )
 
 core_default_dep = declare_dependency(
-  sources: libnm_core_enum_sources[1],
-  include_directories: src_inc,
+  include_directories: [
+    src_core_inc,
+    src_inc,
+    top_inc,
+  ],
   dependencies: [
-    libnm_core_nm_default_dep,
-    libnm_log_core_dep,
-    libnm_platform_dep,
+    libnm_core_public_dep,
   ],
 )
 
@@ -30,18 +30,7 @@ install_data(
   install_dir: dbus_conf_dir,
 )
 
-subdir('systemd')
-
 core_plugins = []
-
-daemon_c_flags = [
-  '-DG_LOG_DOMAIN="NetworkManager"',
-]
-
-platform_wifi_wext_source = files()
-if enable_wext
-  platform_wifi_wext_source += files('platform/wifi/nm-wifi-utils-wext.c')
-endif
 
 libNetworkManagerBase = static_library(
   'NetworkManagerBase',
@@ -54,13 +43,6 @@ libNetworkManagerBase = static_library(
     'dhcp/nm-dhcp-options.c',
     'ndisc/nm-lndp-ndisc.c',
     'ndisc/nm-ndisc.c',
-    'platform/wifi/nm-wifi-utils-nl80211.c',
-    'platform/wifi/nm-wifi-utils.c',
-    'platform/wpan/nm-wpan-utils.c',
-    'platform/nm-linux-platform.c',
-    'platform/nm-platform.c',
-    'platform/nmp-object.c',
-    'platform/nmp-rules-manager.c',
     'main-utils.c',
     'NetworkManagerUtils.c',
     'nm-core-utils.c',
@@ -73,23 +55,19 @@ libNetworkManagerBase = static_library(
     'nm-ip-config.c',
     'nm-ip4-config.c',
     'nm-ip6-config.c',
-  ) + platform_wifi_wext_source,
+  ),
   dependencies: [
     core_default_dep,
-    libn_dhcp4_dep,
-    libnm_core_dep,
-    libnm_systemd_shared_dep,
-    libnm_udev_aux_dep,
+    libnm_core_public_dep,
     libsystemd_dep,
     libudev_dep,
   ],
-  c_args: daemon_c_flags,
 )
 
 nm_deps = [
+  libnm_core_public_dep,
   core_default_dep,
   dl_dep,
-  libn_acd_dep,
   libndp_dep,
   libudev_dep,
   logind_dep,
@@ -119,6 +97,7 @@ libNetworkManager = static_library(
     'devices/nm-device-bond.c',
     'devices/nm-device-bridge.c',
     'devices/nm-device.c',
+    'devices/nm-device-utils.c',
     'devices/nm-device-dummy.c',
     'devices/nm-device-ethernet.c',
     'devices/nm-device-ethernet-utils.c',
@@ -182,7 +161,8 @@ libNetworkManager = static_library(
     'nm-dcb.c',
     'nm-dhcp-config.c',
     'nm-dispatcher.c',
-    'nm-firewall-manager.c',
+    'nm-firewall-utils.c',
+    'nm-firewalld-manager.c',
     'nm-hostname-manager.c',
     'nm-keep-alive.c',
     'nm-manager.c',
@@ -194,7 +174,6 @@ libNetworkManager = static_library(
     'nm-sleep-monitor.c',
   ),
   dependencies: nm_deps,
-  c_args: daemon_c_flags,
   link_with: [
     libNetworkManagerBase,
     libnm_systemd_core,
@@ -207,16 +186,28 @@ executable(
   'nm-iface-helper.c',
   dependencies: [
     core_default_dep,
-    dl_dep,
-    libndp_dep,
+    glib_dep,
     libudev_dep,
-    libn_acd_dep,
+    libndp_dep,
+    dl_dep,
   ],
-  c_args: daemon_c_flags,
   link_with: [
     libNetworkManagerBase,
+    libnm_core_aux_intern,
+    libnm_core_impl,
+    libnm_crypto,
     libnm_systemd_core,
+    libnm_platform,
     libnm_systemd_shared,
+    libnm_base,
+    libnm_udev_aux,
+    libnm_log_core,
+    libnm_glib_aux,
+    libnm_std_aux,
+    libn_acd,
+    libn_dhcp4,
+    libc_rbtree,
+    libc_siphash,
   ],
   link_args: ldflags_linker_script_binary,
   link_depends: linker_script_binary,
@@ -225,7 +216,7 @@ executable(
 )
 
 if enable_tests
-  test_c_flags = daemon_c_flags
+  test_c_flags = []
   if require_root_tests
     test_c_flags += ['-DREQUIRE_ROOT_TESTS=1']
   endif
@@ -244,7 +235,23 @@ if enable_tests
 
   libNetworkManagerTest_dep = declare_dependency(
     dependencies: core_default_dep,
-    link_with: libNetworkManagerTest,
+    link_with: [
+      libNetworkManagerTest,
+      libnm_core_aux_intern,
+      libnm_core_impl,
+      libnm_crypto,
+      libnm_platform,
+      libnm_base,
+      libnm_systemd_shared,
+      libnm_udev_aux,
+      libnm_log_core,
+      libnm_glib_aux,
+      libnm_std_aux,
+      libn_acd,
+      libn_dhcp4,
+      libc_siphash,
+      libc_rbtree,
+    ],
   )
 
   subdir('dnsmasq/tests')
@@ -261,7 +268,6 @@ if enable_ppp
 endif
 
 subdir('devices')
-subdir('initrd')
 subdir('settings/plugins')
 
 # NetworkManager binary
@@ -274,13 +280,27 @@ subdir('settings/plugins')
 NetworkManager_all_sym = executable(
   'NetworkManager-all-sym',
   'main.c',
-  dependencies: nm_deps,
-  c_args: daemon_c_flags,
+  dependencies: [
+    nm_deps,
+    libudev_dep,
+  ],
   link_args: '-Wl,--no-gc-sections',
   link_whole: [
     libNetworkManager,
     libNetworkManagerBase,
-    libnm_core,
+    libnm_core_aux_intern,
+    libnm_core_impl,
+    libnm_crypto,
+    libnm_platform,
+    libnm_base,
+    libnm_log_core,
+    libnm_udev_aux,
+    libnm_glib_aux,
+    libnm_std_aux,
+    libn_acd,
+    libn_dhcp4,
+    libc_rbtree,
+    libc_siphash,
   ],
 )
 
@@ -301,9 +321,27 @@ ver_script = custom_target(
 NetworkManager = executable(
   'NetworkManager',
   'main.c',
-  dependencies: nm_deps,
-  c_args: daemon_c_flags,
-  link_with: libNetworkManager,
+  dependencies: [
+    nm_deps,
+    libudev_dep,
+  ],
+  link_with: [
+    libNetworkManager,
+    libNetworkManagerBase,
+    libnm_core_aux_intern,
+    libnm_core_impl,
+    libnm_crypto,
+    libnm_platform,
+    libnm_base,
+    libnm_udev_aux,
+    libnm_log_core,
+    libnm_glib_aux,
+    libnm_std_aux,
+    libn_acd,
+    libn_dhcp4,
+    libc_rbtree,
+    libc_siphash,
+  ],
   link_args: [
     '-rdynamic',
     '-Wl,--version-script,@0@'.format(ver_script.full_path()),

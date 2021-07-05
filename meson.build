@@ -4,9 +4,9 @@ project(
   'NetworkManager', 'c',
 # NOTE: When incrementing version also:
 #  - add corresponding NM_VERSION_x_y_z macros in
-#    "shared/nm-version-macros.h.in"
+#    "src/libnm-core-public/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.30.0',
+  version: '1.32.2',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -530,26 +530,29 @@ if polkit_agent_helper_1_path[0] != '/'
 endif
 config_h.set_quoted('POLKIT_AGENT_HELPER_1_PATH', polkit_agent_helper_1_path)
 
-
+crypto_nss_dep = dependency(
+  'nss',
+  required: false,
+)
+crypto_gnutls_dep = dependency(
+  'gnutls',
+  version: '>= 2.12',
+  required: false,
+)
 crypto = get_option('crypto')
 if crypto == 'nss'
-    crypto_dep = dependency('nss', required: false)
-    assert(crypto_dep.found(), 'Requires nss crypto support')
-elif crypto == 'gnutls'
-    crypto_dep = dependency(
-      'gnutls',
-      version: '>= 2.12',
-      required: false,
-    )
-    assert(crypto_dep.found(), 'Requires gnutls crypto support')
+    assert(crypto_nss_dep.found(), 'Requires nss crypto support')
+    crypto_dep = crypto_nss_dep
 else
-  error('bug')
+    assert(crypto == 'gnutls', 'Unexpected setting "crypto=' + crypto + '"')
+    assert(crypto_gnutls_dep.found(), 'Requires gnutls crypto support')
+    crypto_dep = crypto_gnutls_dep
 endif
 
 dbus_conf_dir = get_option('dbus_conf_dir')
 if dbus_conf_dir == ''
   assert(dbus_dep.found(), 'D-Bus required but not found, please provide a valid system bus config dir')
-  dbus_conf_dir = join_paths(dbus_dep.get_pkgconfig_variable('sysconfdir', define_variable: ['sysconfdir', nm_sysconfdir]), 'dbus-1', 'system.d')
+  dbus_conf_dir = join_paths(dbus_dep.get_pkgconfig_variable('datadir'), 'dbus-1', 'system.d')
 endif
 
 dbus_interfaces_dir = dbus_dep.get_pkgconfig_variable('interfaces_dir',  define_variable: ['datadir', nm_datadir])
@@ -688,7 +691,8 @@ dnssec_ts_paths = ['/usr/local/libexec',
                    '/usr/lib/dnssec-trigger']
 
 # 0: cmdline option, 1: paths, 2: fallback
-progs = [['iptables',       default_paths,   '/sbin/iptables'],
+progs = [['iptables',       default_paths,   '/usr/sbin/iptables'],
+         ['nft',            default_paths,   '/usr/sbin/nft'],
          ['dnsmasq',        default_paths,   ''],
          ['dnssec_trigger', dnssec_ts_paths, join_paths(nm_libexecdir, 'dnssec-trigger-script') ],
         ]
@@ -782,11 +786,17 @@ config_h.set('NM_MORE_ASSERTS', more_asserts)
 more_logging = get_option('more_logging')
 config_h.set10('NM_MORE_LOGGING', more_logging)
 
-generic_support_src = 'int main() { int a = 0; int b = _Generic (a, int: 4); return b + a; };'
-config_h.set10('_NM_CC_SUPPORT_GENERIC', cc.compiles(generic_support_src))
+config_h.set10('_NM_CC_SUPPORT_GENERIC',
+  cc.compiles(
+    'int foo(void); static const char *const buf[1] = { "a" }; int foo() { int a = 0; int b = _Generic (a, int: 4) + _Generic(buf, const char *const*: 5); return b + a; }'
+  )
+)
 
-auto_support_src = 'int main() { int a = 0; __auto_type b = a; return b + a; };'
-config_h.set10('_NM_CC_SUPPORT_AUTO_TYPE', cc.compiles(auto_support_src))
+config_h.set10('_NM_CC_SUPPORT_AUTO_TYPE',
+  cc.compiles(
+    'int main() { int a = 0; __auto_type b = a; return b + a; };'
+  )
+)
 
 # Vala bindings
 vapi_opt = get_option('vapi')
@@ -916,12 +926,7 @@ fi
 content_files = []
 
 subdir('introspection')
-subdir('shared')
-subdir('libnm-core')
-subdir('src/core')
-subdir('libnm')
-subdir('dispatcher')
-subdir('clients')
+subdir('src')
 subdir('data')
 subdir('po')
 
@@ -1040,6 +1045,8 @@ if enable_ppp
 endif
 output += '\n'
 output += '  jansson: ' + jansson_msg + '\n'
+output += '  iptables: ' + config_h.get('IPTABLES_PATH') + '\n'
+output += '  nft: ' + config_h.get('NFT_PATH') + '\n'
 output += '  modemmanager-1: ' + enable_modem_manager.to_string() + '\n'
 output += '  ofono: ' + enable_ofono.to_string() + '\n'
 output += '  concheck: ' + enable_concheck.to_string() + '\n'

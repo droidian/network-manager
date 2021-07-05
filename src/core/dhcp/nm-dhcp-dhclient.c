@@ -21,7 +21,7 @@
     #include <arpa/inet.h>
     #include <ctype.h>
 
-    #include "nm-glib-aux/nm-dedup-multi.h"
+    #include "libnm-glib-aux/nm-dedup-multi.h"
 
     #include "nm-utils.h"
     #include "nm-dhcp-dhclient-utils.h"
@@ -151,7 +151,7 @@ merge_dhclient_config(NMDhcpDhclient *    self,
                       const char *        iface,
                       const char *        conf_file,
                       GBytes *            client_id,
-                      const char *        anycast_addr,
+                      const char *        anycast_address,
                       const char *        hostname,
                       guint32             timeout,
                       gboolean            use_fqdn,
@@ -180,7 +180,7 @@ merge_dhclient_config(NMDhcpDhclient *    self,
     new = nm_dhcp_dhclient_create_config(iface,
                                          addr_family,
                                          client_id,
-                                         anycast_addr,
+                                         anycast_address,
                                          hostname,
                                          timeout,
                                          use_fqdn,
@@ -280,7 +280,7 @@ create_dhclient_config(NMDhcpDhclient *    self,
                        const char *        iface,
                        const char *        uuid,
                        GBytes *            client_id,
-                       const char *        dhcp_anycast_addr,
+                       const char *        anycast_address,
                        const char *        hostname,
                        guint32             timeout,
                        gboolean            use_fqdn,
@@ -312,7 +312,7 @@ create_dhclient_config(NMDhcpDhclient *    self,
                                iface,
                                new,
                                client_id,
-                               dhcp_anycast_addr,
+                               anycast_address,
                                hostname,
                                timeout,
                                use_fqdn,
@@ -435,6 +435,12 @@ dhclient_start(NMDhcpClient *client,
     if (release)
         g_ptr_array_add(argv, (gpointer) "-r");
 
+    if (!release
+        && NM_FLAGS_HAS(nm_dhcp_client_get_client_flags(NM_DHCP_CLIENT(self)),
+                        NM_DHCP_CLIENT_FLAGS_REQUEST_BROADCAST)) {
+        g_ptr_array_add(argv, (gpointer) "-B");
+    }
+
     if (addr_family == AF_INET6) {
         g_ptr_array_add(argv, (gpointer) "-6");
 
@@ -508,10 +514,7 @@ dhclient_start(NMDhcpClient *client,
 }
 
 static gboolean
-ip4_start(NMDhcpClient *client,
-          const char *  dhcp_anycast_addr,
-          const char *  last_ip4_address,
-          GError **     error)
+ip4_start(NMDhcpClient *client, const char *last_ip4_address, GError **error)
 {
     NMDhcpDhclient *       self = NM_DHCP_DHCLIENT(client);
     NMDhcpDhclientPrivate *priv = NM_DHCP_DHCLIENT_GET_PRIVATE(self);
@@ -520,19 +523,20 @@ ip4_start(NMDhcpClient *client,
 
     client_id = nm_dhcp_client_get_client_id(client);
 
-    priv->conf_file = create_dhclient_config(self,
-                                             AF_INET,
-                                             nm_dhcp_client_get_iface(client),
-                                             nm_dhcp_client_get_uuid(client),
-                                             client_id,
-                                             dhcp_anycast_addr,
-                                             nm_dhcp_client_get_hostname(client),
-                                             nm_dhcp_client_get_timeout(client),
-                                             nm_dhcp_client_get_use_fqdn(client),
-                                             nm_dhcp_client_get_hostname_flags(client),
-                                             nm_dhcp_client_get_mud_url(client),
-                                             nm_dhcp_client_get_reject_servers(client),
-                                             &new_client_id);
+    priv->conf_file = create_dhclient_config(
+        self,
+        AF_INET,
+        nm_dhcp_client_get_iface(client),
+        nm_dhcp_client_get_uuid(client),
+        client_id,
+        nm_dhcp_client_get_anycast_address(client),
+        nm_dhcp_client_get_hostname(client),
+        nm_dhcp_client_get_timeout(client),
+        NM_FLAGS_HAS(nm_dhcp_client_get_client_flags(client), NM_DHCP_CLIENT_FLAGS_USE_FQDN),
+        nm_dhcp_client_get_hostname_flags(client),
+        nm_dhcp_client_get_mud_url(client),
+        nm_dhcp_client_get_reject_servers(client),
+        &new_client_id);
     if (!priv->conf_file) {
         nm_utils_error_set_literal(error,
                                    NM_UTILS_ERROR_UNKNOWN,
@@ -549,7 +553,6 @@ ip4_start(NMDhcpClient *client,
 
 static gboolean
 ip6_start(NMDhcpClient *            client,
-          const char *              dhcp_anycast_addr,
           const struct in6_addr *   ll_addr,
           NMSettingIP6ConfigPrivacy privacy,
           guint                     needed_prefixes,
@@ -566,7 +569,7 @@ ip6_start(NMDhcpClient *            client,
                                              nm_dhcp_client_get_iface(client),
                                              nm_dhcp_client_get_uuid(client),
                                              NULL,
-                                             dhcp_anycast_addr,
+                                             nm_dhcp_client_get_anycast_address(client),
                                              nm_dhcp_client_get_hostname(client),
                                              nm_dhcp_client_get_timeout(client),
                                              TRUE,
@@ -582,7 +585,10 @@ ip6_start(NMDhcpClient *            client,
     }
 
     return dhclient_start(client,
-                          nm_dhcp_client_get_info_only(NM_DHCP_CLIENT(self)) ? "-S" : "-N",
+                          NM_FLAGS_HAS(nm_dhcp_client_get_client_flags(NM_DHCP_CLIENT(self)),
+                                       NM_DHCP_CLIENT_FLAGS_INFO_ONLY)
+                              ? "-S"
+                              : "-N",
                           FALSE,
                           NULL,
                           needed_prefixes,

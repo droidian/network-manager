@@ -5,7 +5,7 @@
 #include "nm-l3cfg.h"
 #include "nm-l3-ipv4ll.h"
 #include "nm-netns.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 
 #include "platform/tests/test-common.h"
 
@@ -82,8 +82,8 @@ _test_fixture_1_setup(TestFixture1 *f, int test_idx)
     f->hwaddr0 = l0->l_address;
     f->hwaddr1 = l1->l_address;
 
-    g_assert(nm_platform_link_set_up(f->platform, f->ifindex0, NULL));
-    g_assert(nm_platform_link_set_up(f->platform, f->ifindex1, NULL));
+    g_assert(nm_platform_link_change_flags(f->platform, f->ifindex0, IFF_UP, TRUE) >= 0);
+    g_assert(nm_platform_link_change_flags(f->platform, f->ifindex1, IFF_UP, TRUE) >= 0);
 
     return f;
 }
@@ -187,6 +187,12 @@ _test_l3cfg_signal_notify(NML3Cfg *                   l3cfg,
             nm_assert(NM_IS_L3_CONFIG_DATA(ti->l3cd));
             nm_assert(ti->tag);
         }
+    } else if (notify_data->notify_type == NM_L3_CONFIG_NOTIFY_TYPE_L3CD_CHANGED) {
+        g_assert(!notify_data->l3cd_changed.l3cd_old
+                 || NM_IS_L3_CONFIG_DATA(notify_data->l3cd_changed.l3cd_old));
+        g_assert(!notify_data->l3cd_changed.l3cd_new
+                 || NM_IS_L3_CONFIG_DATA(notify_data->l3cd_changed.l3cd_new));
+        return;
     }
 
     switch (tdata->notify_type) {

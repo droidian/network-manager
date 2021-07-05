@@ -111,11 +111,13 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+target_triplet = @target@
 @GTK_DOC_BUILD_HTML_TRUE@am__append_1 = check-local-gtk-doc-patch
 subdir = docs/libnm
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/attributes.m4 \
 	$(top_srcdir)/m4/ax_lib_readline.m4 \
+	$(top_srcdir)/m4/ax_pthread.m4 \
 	$(top_srcdir)/m4/compiler_options.m4 \
 	$(top_srcdir)/m4/gettext.m4 $(top_srcdir)/m4/git-sha-record.m4 \
 	$(top_srcdir)/m4/gnome-code-coverage.m4 \
@@ -293,6 +295,7 @@ MSGFMT_015 = @MSGFMT_015@
 MSGMERGE = @MSGMERGE@
 NEWT_CFLAGS = @NEWT_CFLAGS@
 NEWT_LIBS = @NEWT_LIBS@
+NFT_PATH = @NFT_PATH@
 NM = @NM@
 NMEDIT = @NMEDIT@
 NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT = @NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT@
@@ -328,6 +331,10 @@ PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
+PTHREAD_CC = @PTHREAD_CC@
+PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
+PTHREAD_CXX = @PTHREAD_CXX@
+PTHREAD_LIBS = @PTHREAD_LIBS@
 PYTHON = @PYTHON@
 PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
 PYTHON_PLATFORM = @PYTHON_PLATFORM@
@@ -386,6 +393,7 @@ am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
+ax_pthread_config = @ax_pthread_config@
 bindir = @bindir@
 build = @build@
 build_alias = @build_alias@
@@ -436,7 +444,11 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 systemdsystemunitdir = @systemdsystemunitdir@
+target = @target@
 target_alias = @target_alias@
+target_cpu = @target_cpu@
+target_os = @target_os@
+target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
@@ -459,10 +471,15 @@ DOC_MAIN_SGML_FILE = $(DOC_MODULE)-docs.xml
 # gtk-doc will search all .c & .h files beneath here for inline comments
 # documenting functions and macros.
 DOC_SOURCE_DIR = \
-	$(top_srcdir)/libnm-core \
-	$(top_builddir)/libnm-core \
-	$(top_srcdir)/libnm \
-	$(top_builddir)/libnm
+	$(top_builddir)/src/libnm-core-public \
+	$(top_srcdir)/src/libnm-core-public \
+	$(top_builddir)/src/libnm-core-impl \
+	$(top_srcdir)/src/libnm-core-impl \
+	$(top_srcdir)/src/libnm-client-public \
+	$(top_builddir)/src/libnm-client-public \
+	$(top_srcdir)/src/libnm-client-impl \
+	$(top_builddir)/src/libnm-client-impl \
+	$(NULL)
 
 
 # Extra options to supply to gtkdoc-scan.
@@ -475,15 +492,14 @@ MKDB_OPTIONS = --sgml-mode --output-format=xml
 FIXXREF_OPTIONS = 
 
 # Used for dependencies.
-HFILE_GLOB = $(top_srcdir)/libnm-core/*.h $(top_srcdir)/libnm/*.h
-CFILE_GLOB = $(top_srcdir)/libnm-core/*.c $(top_srcdir)/libnm/*.c
+HFILE_GLOB = $(top_srcdir)/src/libnm-core-public/*.h $(top_srcdir)/src/libnm-client-public/*.h
+CFILE_GLOB = $(top_srcdir)/src/libnm-core-impl/*.c $(top_srcdir)/src/libnm-client-impl/*.c
 
 # Header files to ignore when scanning.
 IGNORE_HFILES = \
 	common.h \
 	nm-core-internal.h \
 	nm-core-tests-enum-types.h \
-	nm-core-types-internal.h \
 	nm-crypto-impl.h \
 	nm-crypto.h \
 	nm-dbus-helpers.h \
@@ -531,16 +547,16 @@ extra_files = libnm.png
 # CFLAGS and LDFLAGS for compiling scan program. Only needed
 # if $(DOC_MODULE).types is non-empty.
 GTKDOC_CFLAGS = \
-	-I$(top_srcdir)/libnm-core \
-	-I$(top_builddir)/libnm-core \
-	-I$(top_srcdir)/libnm \
-	-I$(top_builddir)/libnm \
+	-I$(top_builddir)/src/libnm-core-public \
+	-I$(top_srcdir)/src/libnm-core-public \
+	-I$(top_srcdir)/src/libnm-client-public \
+	-I$(top_builddir)/src/libnm-client-public \
 	-DNM_VERSION_MIN_REQUIRED=NM_VERSION_0_9_8 \
 	$(GLIB_CFLAGS) \
 	$(SANITIZER_EXEC_CFLAGS)
 
 GTKDOC_LIBS = \
-	$(top_builddir)/libnm/libnm.la \
+	$(top_builddir)/src/libnm-client-impl/libnm.la \
 	$(GLIB_LIBS) \
 	$(SANITIZER_EXEC_LDFLAGS)
 

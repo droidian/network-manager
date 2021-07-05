@@ -48,36 +48,35 @@ GType nm_settings_storage_get_type(void);
 NMSettingsStorage *
 nm_settings_storage_new(struct _NMSettingsPlugin *plugin, const char *uuid, const char *filename);
 
+/* forward declare so we don't have to include "nm-settings-plugin.h" here. */
+GType nm_settings_plugin_get_type(void);
+
 static inline struct _NMSettingsPlugin *
 nm_settings_storage_get_plugin(const NMSettingsStorage *self)
 {
-    GType nm_settings_plugin_get_type(void);
-
     g_return_val_if_fail(NM_IS_SETTINGS_STORAGE(self), NULL);
 
     nm_assert(G_TYPE_CHECK_INSTANCE_TYPE(self->_plugin, nm_settings_plugin_get_type()));
     return self->_plugin;
 }
 
+gboolean nm_uuid_is_normalized_full(const char *str);
+
 static inline const char *
 nm_settings_storage_get_uuid(const NMSettingsStorage *self)
 {
-    gboolean nm_utils_is_uuid(const char *str);
-
     g_return_val_if_fail(NM_IS_SETTINGS_STORAGE(self), NULL);
 
-    nm_assert(nm_utils_is_uuid(self->_uuid));
+    nm_assert(nm_uuid_is_normalized_full(self->_uuid));
     return self->_uuid;
 }
 
 static inline const char *
 nm_settings_storage_get_uuid_opt(const NMSettingsStorage *self)
 {
-    gboolean nm_utils_is_uuid(const char *str);
-
     g_return_val_if_fail(NM_IS_SETTINGS_STORAGE(self), NULL);
 
-    nm_assert(!self->_uuid || nm_utils_is_uuid(self->_uuid));
+    nm_assert(!self->_uuid || nm_uuid_is_normalized_full(self->_uuid));
     return self->_uuid;
 }
 

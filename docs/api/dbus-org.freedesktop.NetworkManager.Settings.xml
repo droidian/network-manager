@@ -30,9 +30,8 @@
   <refsect1 role="signal_proto">
     <title role="signal_proto.title">Signals</title>
     <synopsis>
-<link linkend="gdbus-signal-org-freedesktop-NetworkManager-Settings.PropertiesChanged">PropertiesChanged</link> (a{sv} properties);
-<link linkend="gdbus-signal-org-freedesktop-NetworkManager-Settings.NewConnection">NewConnection</link>     (o     connection);
-<link linkend="gdbus-signal-org-freedesktop-NetworkManager-Settings.ConnectionRemoved">ConnectionRemoved</link> (o     connection);
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager-Settings.NewConnection">NewConnection</link>     (o connection);
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager-Settings.ConnectionRemoved">ConnectionRemoved</link> (o connection);
 </synopsis>
   </refsect1>
   <refsect1 role="properties">
@@ -250,21 +249,6 @@ SaveHostname (IN  s hostname);
 </refsect1>
 <refsect1 role="details" id="gdbus-signals-org.freedesktop.NetworkManager.Settings">
   <title role="details.title">Signal Details</title>
-<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager-Settings.PropertiesChanged">
-  <title>The "PropertiesChanged" signal</title>
-  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager-Settings.PropertiesChanged"><primary sortas=".Settings::PropertiesChanged">org.freedesktop.NetworkManager.Settings::PropertiesChanged</primary></indexterm>
-<programlisting>
-PropertiesChanged (a{sv} properties);
-</programlisting>
-<para>        DEPRECATED. Use the standard "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" instead which exists since version NetworkManager 1.2.0.
-</para>
-<variablelist role="params">
-<varlistentry>
-  <term><literal>a{sv} <parameter>properties</parameter></literal>:</term>
-  <listitem><para>A dictionary mapping property names to variant boxed values</para></listitem>
-</varlistentry>
-</variablelist>
-</refsect2>
 <refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager-Settings.NewConnection">
   <title>The "NewConnection" signal</title>
   <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager-Settings.NewConnection"><primary sortas=".Settings::NewConnection">org.freedesktop.NetworkManager.Settings::NewConnection</primary></indexterm>

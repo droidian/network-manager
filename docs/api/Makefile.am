@@ -79,13 +79,14 @@ content_files = \
 	dbus-org.freedesktop.NetworkManager.VPN.Connection.xml \
 	dbus-org.freedesktop.NetworkManager.VPN.Plugin.xml \
 	dbus-org.freedesktop.NetworkManager.xml \
-	$(top_builddir)/libnm-core/nm-dbus-types.xml \
-	$(top_builddir)/libnm-core/nm-vpn-dbus-types.xml \
+	$(top_builddir)/src/libnm-core-public/nm-dbus-types.xml \
+	$(top_builddir)/src/libnm-core-public/nm-vpn-dbus-types.xml \
 	$(top_builddir)/man/nmcli.xml \
 	$(top_builddir)/man/nmtui.xml \
 	$(top_builddir)/man/nm-online.xml \
 	$(top_builddir)/man/nm-initrd-generator.xml \
 	$(top_builddir)/man/NetworkManager.xml \
+	$(top_builddir)/man/NetworkManager-dispatcher.xml \
 	$(top_builddir)/man/NetworkManager.conf.xml \
 	$(top_builddir)/man/nmcli-examples.xml \
 	$(top_builddir)/man/nm-settings-dbus.xml \

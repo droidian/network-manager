@@ -452,14 +452,6 @@
 </tr>
 <tr>
 <td class="function_type">
-<a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="returnvalue">NMLldpNeighbor</span></a> *
-</td>
-<td class="function_name">
-<a class="link" href="NMDevice.html#nm-lldp-neighbor-new" title="nm_lldp_neighbor_new ()">nm_lldp_neighbor_new</a> <span class="c_punctuation">()</span>
-</td>
-</tr>
-<tr>
-<td class="function_type">
 <span class="returnvalue">void</span>
 </td>
 <td class="function_name">
@@ -484,6 +476,22 @@
 </tr>
 <tr>
 <td class="function_type">
+<a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="NMDevice.html#nm-lldp-neighbor-get-attr-value" title="nm_lldp_neighbor_get_attr_value ()">nm_lldp_neighbor_get_attr_value</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="returnvalue">NMLldpNeighbor</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="NMDevice.html#nm-lldp-neighbor-new" title="nm_lldp_neighbor_new ()">nm_lldp_neighbor_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
@@ -503,14 +511,6 @@
 </td>
 <td class="function_name">
 <a class="link" href="NMDevice.html#nm-lldp-neighbor-get-attr-type" title="nm_lldp_neighbor_get_attr_type ()">nm_lldp_neighbor_get_attr_type</a> <span class="c_punctuation">()</span>
-</td>
-</tr>
-<tr>
-<td class="function_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *
-</td>
-<td class="function_name">
-<a class="link" href="NMDevice.html#nm-lldp-neighbor-get-attr-value" title="nm_lldp_neighbor_get_attr_value ()">nm_lldp_neighbor_get_attr_value</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 </tbody>
@@ -651,6 +651,10 @@
 <tr>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMDevice.html#NM-DEVICE-HW-ADDRESS:CAPS" title="NM_DEVICE_HW_ADDRESS">NM_DEVICE_HW_ADDRESS</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="NMDevice.html#NMLldpNeighbor-struct" title="NMLldpNeighbor">NMLldpNeighbor</a></td>
 </tr>
 </tbody>
 </table></div>
@@ -1068,7 +1072,7 @@ nm_device_set_autoconnect (<em class="parameter"><code><a class="link" href="NMD
 <div class="warning">
 <p><code class="literal">nm_device_set_autoconnect</code> has been deprecated since version 1.22 and should not be used in newly-written code.</p>
 <p>Use the async command <a class="link" href="NMClient.html#nm-client-dbus-set-property" title="nm_client_dbus_set_property ()"><code class="function">nm_client_dbus_set_property()</code></a> on
-<a class="link" href="NMObject.html#nm-object-get-path" title="nm_object_get_path ()"><code class="function">nm_object_get_path()</code></a>, <a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE:CAPS" title="NM_DBUS_INTERFACE_DEVICE"><code class="literal">NM_DBUS_INTERFACE_DEVICE</code></a> to set "AutoConnect" property to a "(b)" value.
+<a class="link" href="NMObject.html#nm-object-get-path" title="nm_object_get_path ()"><code class="function">nm_object_get_path()</code></a>, <a class="link" href="libnm-nm-dbus-interface.html#NM-DBUS-INTERFACE-DEVICE:CAPS" title="NM_DBUS_INTERFACE_DEVICE"><code class="literal">NM_DBUS_INTERFACE_DEVICE</code></a> to set "Autoconnect" property to a "(b)" value.
 This function is deprecated because it calls a synchronous D-Bus method
 and modifies the content of the NMClient cache client side.</p>
 </div>
@@ -2524,23 +2528,11 @@ that can be used on <em class="parameter"><code>device</code></em>
 </div>
 <hr>
 <div class="refsect2">
-<a name="nm-lldp-neighbor-new"></a><h3>nm_lldp_neighbor_new ()</h3>
-<pre class="programlisting"><a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="returnvalue">NMLldpNeighbor</span></a> *
-nm_lldp_neighbor_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
-<p>Creates a new <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> object.</p>
-<div class="refsect3">
-<a name="nm-lldp-neighbor-new.returns"></a><h4>Returns</h4>
-<p>the new <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> object. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
-</div>
-<p class="since">Since: 1.2</p>
-</div>
-<hr>
-<div class="refsect2">
 <a name="nm-lldp-neighbor-ref"></a><h3>nm_lldp_neighbor_ref ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 nm_lldp_neighbor_ref (<em class="parameter"><code><a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> *neighbor</code></em>);</pre>
 <p>Increases the reference count of the object.</p>
+<p>Since 1.32, ref-counting of <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> is thread-safe.</p>
 <div class="refsect3">
 <a name="nm-lldp-neighbor-ref.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -2565,6 +2557,7 @@ nm_lldp_neighbor_ref (<em class="parameter"><code><a class="link" href="NMDevice
 nm_lldp_neighbor_unref (<em class="parameter"><code><a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> *neighbor</code></em>);</pre>
 <p>Decreases the reference count of the object.  If the reference count
 reaches zero, the object will be destroyed.</p>
+<p>Since 1.32, ref-counting of <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> is thread-safe.</p>
 <div class="refsect3">
 <a name="nm-lldp-neighbor-unref.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -2607,6 +2600,65 @@ nm_lldp_neighbor_get_attr_names (<em class="parameter"><code><a class="link" hre
 <div class="refsect3">
 <a name="nm-lldp-neighbor-get-attr-names.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of attribute names. </p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.2</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-lldp-neighbor-get-attr-value"></a><h3>nm_lldp_neighbor_get_attr_value ()</h3>
+<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *
+nm_lldp_neighbor_get_attr_value (<em class="parameter"><code><a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> *neighbor</code></em>,
+                                 <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
+<p>Gets the value (as a GVariant) of attribute with name <em class="parameter"><code>name</code></em>
+ on <em class="parameter"><code>neighbor</code></em>
+</p>
+<div class="refsect3">
+<a name="nm-lldp-neighbor-get-attr-value.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>neighbor</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>name</p></td>
+<td class="parameter_description"><p>the attribute name</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-lldp-neighbor-get-attr-value.returns"></a><h4>Returns</h4>
+<p>the value or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the attribute with <em class="parameter"><code>name</code></em>
+was
+not found. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+<p class="since">Since: 1.18</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-lldp-neighbor-new"></a><h3>nm_lldp_neighbor_new ()</h3>
+<pre class="programlisting"><a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="returnvalue">NMLldpNeighbor</span></a> *
+nm_lldp_neighbor_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Creates a new <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> object.</p>
+<p>Note that <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> has no public API for mutating
+an instance. Also, libnm will not internally mutate a
+once exposed object. They are guaranteed to be immutable.
+Since 1.32, ref-counting is thread-safe.</p>
+<p>This function is not useful, as there is no public API to
+actually modify the (empty) instance.</p>
+<div class="refsect3">
+<a name="nm-lldp-neighbor-new.returns"></a><h4>Returns</h4>
+<p>the new <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> object. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -2663,7 +2715,7 @@ was found, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macr
 nm_lldp_neighbor_get_attr_uint_value (<em class="parameter"><code><a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> *neighbor</code></em>,
                                       <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
                                       <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *out_value</code></em>);</pre>
-<p>Gets the uint value of attribute with name <em class="parameter"><code>name</code></em>
+<p>Gets the uint32 value of attribute with name <em class="parameter"><code>name</code></em>
  on <em class="parameter"><code>neighbor</code></em>
 </p>
 <div class="refsect3">
@@ -2695,7 +2747,7 @@ nm_lldp_neighbor_get_attr_uint_value (<em class="parameter"><code><a class="link
 </div>
 <div class="refsect3">
 <a name="nm-lldp-neighbor-get-attr-uint-value.returns"></a><h4>Returns</h4>
-<p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if a uint attribute with name <em class="parameter"><code>name</code></em>
+<p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if a uint32 attribute with name <em class="parameter"><code>name</code></em>
 was found, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</p>
 </div>
 <p class="since">Since: 1.2</p>
@@ -2735,46 +2787,6 @@ nm_lldp_neighbor_get_attr_type (<em class="parameter"><code><a class="link" href
 </p>
 </div>
 <p class="since">Since: 1.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="nm-lldp-neighbor-get-attr-value"></a><h3>nm_lldp_neighbor_get_attr_value ()</h3>
-<pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *
-nm_lldp_neighbor_get_attr_value (<em class="parameter"><code><a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> *neighbor</code></em>,
-                                 <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
-<p>Gets the value (as a GVariant) of attribute with name <em class="parameter"><code>name</code></em>
- on <em class="parameter"><code>neighbor</code></em>
-</p>
-<div class="refsect3">
-<a name="nm-lldp-neighbor-get-attr-value.parameters"></a><h4>Parameters</h4>
-<div class="informaltable"><table class="informaltable" width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody>
-<tr>
-<td class="parameter_name"><p>neighbor</p></td>
-<td class="parameter_description"><p>the <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a></p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-<tr>
-<td class="parameter_name"><p>name</p></td>
-<td class="parameter_description"><p>the attribute name</p></td>
-<td class="parameter_annotations"> </td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect3">
-<a name="nm-lldp-neighbor-get-attr-value.returns"></a><h4>Returns</h4>
-<p>the value or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the attribute with <em class="parameter"><code>name</code></em>
-was
-not found. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
-</div>
-<p class="since">Since: 1.18</p>
 </div>
 </div>
 <div class="refsect1">
@@ -2970,6 +2982,83 @@ not found. </p>
 <a name="NM-DEVICE-HW-ADDRESS:CAPS"></a><h3>NM_DEVICE_HW_ADDRESS</h3>
 <pre class="programlisting">#define NM_DEVICE_HW_ADDRESS            "hw-address"
 </pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NMLldpNeighbor-struct"></a><h3>NMLldpNeighbor</h3>
+<pre class="programlisting">typedef struct _NMLldpNeighbor NMLldpNeighbor;</pre>
+<p>Supported attributes are:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-CHASSIS-ID-TYPE:CAPS" title="NM_LLDP_ATTR_CHASSIS_ID_TYPE"><span class="type">NM_LLDP_ATTR_CHASSIS_ID_TYPE</span></a> (type: 'u')</p></li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-CHASSIS-ID:CAPS" title="NM_LLDP_ATTR_CHASSIS_ID"><span class="type">NM_LLDP_ATTR_CHASSIS_ID</span></a> (type: 's')</p></li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-DESTINATION:CAPS" title="NM_LLDP_ATTR_DESTINATION"><span class="type">NM_LLDP_ATTR_DESTINATION</span></a> (type: 's')</p></li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PPVID:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_PPVID"><span class="type">NM_LLDP_ATTR_IEEE_802_1_PPVID</span></a> (type: 'u'). This attribute only reports the first PPVID
+and therefore it is deprecated in favor of NM_LLDP_ATTR_IEEE_802_1_PPVIDS which reports
+all the PPVID.</p></li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PPVID-FLAGS:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS"><span class="type">NM_LLDP_ATTR_IEEE_802_1_PPVID_FLAGS</span></a> (type: 'u'). This attribute only reports the first PPVID
+and therefore it is deprecated in favor of NM_LLDP_ATTR_IEEE_802_1_PPVIDS which reports
+all the PPVID.</p></li>
+<li class="listitem">
+<p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PPVIDS:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_PPVIDS"><span class="type">NM_LLDP_ATTR_IEEE_802_1_PPVIDS</span></a> (type: 'aa{sv}')</p>
+<p>An array of dictionaries where each element has keys:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem"><p>flags (type: 'u')</p></li>
+<li class="listitem"><p>ppvid (type: 'u')</p></li>
+</ul></div>
+</li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-PVID:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_PVID"><span class="type">NM_LLDP_ATTR_IEEE_802_1_PVID</span></a> (type: 'u')</p></li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-VID:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_VID"><span class="type">NM_LLDP_ATTR_IEEE_802_1_VID</span></a> (type: 'u'). This attribute only reports the first VLAN
+and therefore it is deprecated in favor of NM_LLDP_ATTR_IEEE_802_1_VLANS which reports
+all the VLANs.</p></li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-VLAN-NAME:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_VLAN_NAME"><span class="type">NM_LLDP_ATTR_IEEE_802_1_VLAN_NAME</span></a> (type: 's'). This attribute only reports the first VLAN
+and therefore it is deprecated in favor of NM_LLDP_ATTR_IEEE_802_1_VLANS which reports
+all the VLANs.</p></li>
+<li class="listitem">
+<p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-1-VLANS:CAPS" title="NM_LLDP_ATTR_IEEE_802_1_VLANS"><span class="type">NM_LLDP_ATTR_IEEE_802_1_VLANS</span></a> (type: 'aa{sv}')</p>
+<p>An array of dictionaries where each element has keys:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem"><p>name (type: 's')</p></li>
+<li class="listitem"><p>vid (type: 'u')</p></li>
+</ul></div>
+</li>
+<li class="listitem">
+<p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-3-MAC-PHY-CONF:CAPS" title="NM_LLDP_ATTR_IEEE_802_3_MAC_PHY_CONF"><span class="type">NM_LLDP_ATTR_IEEE_802_3_MAC_PHY_CONF</span></a> (type: 'a{sv}')</p>
+<p>Dictionary where each element has keys:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem"><p>autoneg (type: 'u')</p></li>
+<li class="listitem"><p>operational-mau-type (type: 'u')</p></li>
+<li class="listitem"><p>pmd-autoneg-cap (type: 'u')</p></li>
+</ul></div>
+</li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-3-MAX-FRAME-SIZE:CAPS" title="NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE"><span class="type">NM_LLDP_ATTR_IEEE_802_3_MAX_FRAME_SIZE</span></a> (type: 'u')</p></li>
+<li class="listitem">
+<p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-IEEE-802-3-POWER-VIA-MDI:CAPS" title="NM_LLDP_ATTR_IEEE_802_3_POWER_VIA_MDI"><span class="type">NM_LLDP_ATTR_IEEE_802_3_POWER_VIA_MDI</span></a> (type: 'a{sv}')</p>
+<p>Dictionary where each element has keys:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem"><p>mdi-power-support (type: 'u')</p></li>
+<li class="listitem"><p>power-class (type: 'u')</p></li>
+<li class="listitem"><p>pse-power-pair (type: 'u')</p></li>
+</ul></div>
+</li>
+<li class="listitem">
+<p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-MANAGEMENT-ADDRESSES:CAPS" title="NM_LLDP_ATTR_MANAGEMENT_ADDRESSES"><span class="type">NM_LLDP_ATTR_MANAGEMENT_ADDRESSES</span></a> (type: 'aa{sv}')</p>
+<p>An array of dictionaries where each element has keys:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem"><p>address (type: 'ay')</p></li>
+<li class="listitem"><p>address-subtype (type: 'u')</p></li>
+<li class="listitem"><p>interface-number (type: 'u')</p></li>
+<li class="listitem"><p>interface-number-subtype (type: 'u')</p></li>
+<li class="listitem"><p>object-id (type: 'ay')</p></li>
+</ul></div>
+</li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-PORT-DESCRIPTION:CAPS" title="NM_LLDP_ATTR_PORT_DESCRIPTION"><span class="type">NM_LLDP_ATTR_PORT_DESCRIPTION</span></a> (type: 's')</p></li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-PORT-ID-TYPE:CAPS" title="NM_LLDP_ATTR_PORT_ID_TYPE"><span class="type">NM_LLDP_ATTR_PORT_ID_TYPE</span></a> (type: 'u')</p></li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-PORT-ID:CAPS" title="NM_LLDP_ATTR_PORT_ID"><span class="type">NM_LLDP_ATTR_PORT_ID</span></a> (type: 's')</p></li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-RAW:CAPS" title="NM_LLDP_ATTR_RAW"><span class="type">NM_LLDP_ATTR_RAW</span></a> (type: 'ay')</p></li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-SYSTEM-CAPABILITIES:CAPS" title="NM_LLDP_ATTR_SYSTEM_CAPABILITIES"><span class="type">NM_LLDP_ATTR_SYSTEM_CAPABILITIES</span></a> (type: 'u')</p></li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-SYSTEM-DESCRIPTION:CAPS" title="NM_LLDP_ATTR_SYSTEM_DESCRIPTION"><span class="type">NM_LLDP_ATTR_SYSTEM_DESCRIPTION</span></a> (type: 's')</p></li>
+<li class="listitem"><p><a class="link" href="libnm-nm-dbus-interface.html#NM-LLDP-ATTR-SYSTEM-NAME:CAPS" title="NM_LLDP_ATTR_SYSTEM_NAME"><span class="type">NM_LLDP_ATTR_SYSTEM_NAME</span></a> (type: 's')</p></li>
+</ul></div>
 </div>
 </div>
 </div>

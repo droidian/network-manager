@@ -12,8 +12,9 @@
 #include <gmodule.h>
 #include <linux/if_ether.h>
 
-#include "nm-glib-aux/nm-dbus-aux.h"
-#include "nm-glib-aux/nm-c-list.h"
+#include "libnm-glib-aux/nm-uuid.h"
+#include "libnm-glib-aux/nm-dbus-aux.h"
+#include "libnm-glib-aux/nm-c-list.h"
 #include "nm-dbus-manager.h"
 #include "devices/nm-device-factory.h"
 #include "devices/nm-device-bridge.h"
@@ -23,9 +24,9 @@
 #include "nm-device-bt.h"
 #include "nm-manager.h"
 #include "nm-bluez5-dun.h"
-#include "nm-core-internal.h"
-#include "platform/nm-platform.h"
-#include "nm-std-aux/nm-dbus-compat.h"
+#include "libnm-core-intern/nm-core-internal.h"
+#include "libnm-platform/nm-platform.h"
+#include "libnm-std-aux/nm-dbus-compat.h"
 
 /*****************************************************************************/
 
@@ -574,11 +575,12 @@ _bzobj_to_string(const BzDBusObj *bzobj, char *buf, gsize len)
 #define _LOG_bzobj(bzobj, context)                           \
     G_STMT_START                                             \
     {                                                        \
-        const BzDBusObj *const _bzobj = (bzobj);             \
+        const BzDBusObj *const _bzobj   = (bzobj);           \
+        const char *const      _context = (context);         \
         char                   _buf[500];                    \
                                                              \
         _LOGT("change %-21s %s : { %s }",                    \
-              (context),                                     \
+              _context,                                      \
               _bzobj->object_path,                           \
               _bzobj_to_string(_bzobj, _buf, sizeof(_buf))); \
     }                                                        \
@@ -1321,7 +1323,7 @@ _conn_create_panu_connection(NMBluezManager *self, BzDBusObj *bzobj)
     char                          uuid[37];
     gs_free_error GError *error = NULL;
 
-    nm_utils_uuid_generate_buf(uuid);
+    nm_uuid_generate_random_str_arr(uuid);
     id = g_strdup_printf(_("%s Network"), bzobj->d_device.name);
 
     connection = nm_simple_connection_new();
@@ -2879,6 +2881,8 @@ dispose(GObject *object)
     g_clear_object(&priv->dbus_connection);
 
     nm_clear_pointer(&priv->bzobjs, g_hash_table_destroy);
+    nm_clear_pointer(&priv->conn_data_heads, g_hash_table_destroy);
+    nm_clear_pointer(&priv->conn_data_elems, g_hash_table_destroy);
 }
 
 static void

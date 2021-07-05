@@ -36,9 +36,8 @@
 <div class="refsect1">
 <a name="id-1.4.9.3.3"></a><h2>Signals</h2>
 <pre class="synopsis">
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-VPN-Connection.PropertiesChanged" title='The "PropertiesChanged" signal'>PropertiesChanged</a> (a{sv} properties);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-VPN-Connection.VpnStateChanged" title='The "VpnStateChanged" signal'>VpnStateChanged</a>   (u     state,
-                   u     reason);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-VPN-Connection.VpnStateChanged" title='The "VpnStateChanged" signal'>VpnStateChanged</a> (u state,
+                 u reason);
 </pre>
 </div>
 <div class="refsect1">
@@ -55,25 +54,6 @@
 </div>
 <div class="refsect1">
 <a name="gdbus-signals-org.freedesktop.NetworkManager.VPN.Connection"></a><h2>Signal Details</h2>
-<div class="refsect2">
-<a name="gdbus-signal-org-freedesktop-NetworkManager-VPN-Connection.PropertiesChanged"></a><h3>The "PropertiesChanged" signal</h3>
-<pre class="programlisting">
-PropertiesChanged (a{sv} properties);
-</pre>
-<p>        DEPRECATED. Use the standard "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" instead which exists since version NetworkManager 1.2.0.
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody><tr>
-<td><p><span class="term"><code class="literal">a{sv} <em class="parameter"><code>properties</code></em></code>:</span></p></td>
-<td><p>A dictionary mapping property names to variant boxed values</p></td>
-</tr></tbody>
-</table></div>
-</div>
-<hr>
 <div class="refsect2">
 <a name="gdbus-signal-org-freedesktop-NetworkManager-VPN-Connection.VpnStateChanged"></a><h3>The "VpnStateChanged" signal</h3>
 <pre class="programlisting">

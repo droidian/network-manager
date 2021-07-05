@@ -13,19 +13,20 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-#include "nm-std-aux/c-list-util.h"
-#include "nm-glib-aux/nm-c-list.h"
-#include "nm-glib-aux/nm-io-utils.h"
+#include "libnm-std-aux/c-list-util.h"
+#include "libnm-glib-aux/nm-c-list.h"
+#include "libnm-glib-aux/nm-uuid.h"
+#include "libnm-glib-aux/nm-io-utils.h"
 
 #include "nm-connection.h"
 #include "nm-setting.h"
 #include "nm-setting-connection.h"
 #include "nm-utils.h"
 #include "nm-config.h"
-#include "nm-core-internal.h"
-#include "nm-keyfile-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
+#include "libnm-core-intern/nm-keyfile-internal.h"
 
-#include "systemd/nm-sd-utils-shared.h"
+#include "libnm-systemd-shared/nm-sd-utils-shared.h"
 
 #include "settings/nm-settings-plugin.h"
 #include "settings/nm-settings-storage.h"
@@ -233,7 +234,7 @@ _read_from_file(const char * full_filename,
 
     nm_assert(!connection
               || (_nm_connection_verify(connection, NULL) == NM_SETTING_VERIFY_SUCCESS));
-    nm_assert(!connection || nm_utils_is_uuid(nm_connection_get_uuid(connection)));
+    nm_assert(!connection || nm_uuid_is_normalized(nm_connection_get_uuid(connection)));
 
     return connection;
 }
@@ -260,7 +261,7 @@ _nm_assert_storage(gpointer plugin /* NMSKeyfilePlugin  */,
 
     uuid = nms_keyfile_storage_get_uuid(storage);
 
-    nm_assert(nm_utils_is_uuid(uuid));
+    nm_assert(nm_uuid_is_normalized(uuid));
 
     nm_assert(((NMSKeyfileStorage *) storage)->is_meta_data
               || !(((NMSKeyfileStorage *) storage)->u.conn_data.connection)
@@ -1106,7 +1107,7 @@ nms_keyfile_plugin_set_nmmeta_tombstone(NMSKeyfilePlugin *  self,
     const char *                       dirname;
 
     nm_assert(NMS_IS_KEYFILE_PLUGIN(self));
-    nm_assert(nm_utils_is_uuid(uuid));
+    nm_assert(nm_uuid_is_normalized(uuid));
     nm_assert(!out_storage || !*out_storage);
     nm_assert(!shadowed_storage || (set && in_memory));
 
@@ -1246,9 +1247,9 @@ nms_keyfile_plugin_init(NMSKeyfilePlugin *plugin)
     /* dirname_libs are a set of read-only directories with lower priority than /etc or /run.
      * There is nothing complicated about having multiple of such directories, so dirname_libs
      * is a list (which currently only has at most one directory). */
-    priv->dirname_libs[0] = nm_sd_utils_path_simplify(g_strdup(NM_KEYFILE_PATH_NAME_LIB), FALSE);
+    priv->dirname_libs[0] = nm_sd_utils_path_simplify(g_strdup(NM_KEYFILE_PATH_NAME_LIB));
     priv->dirname_libs[1] = NULL;
-    priv->dirname_run     = nm_sd_utils_path_simplify(g_strdup(NM_KEYFILE_PATH_NAME_RUN), FALSE);
+    priv->dirname_run     = nm_sd_utils_path_simplify(g_strdup(NM_KEYFILE_PATH_NAME_RUN));
     priv->dirname_etc     = nm_config_data_get_value(NM_CONFIG_GET_DATA_ORIG,
                                                  NM_CONFIG_KEYFILE_GROUP_KEYFILE,
                                                  NM_CONFIG_KEYFILE_KEY_KEYFILE_PATH,
@@ -1261,10 +1262,9 @@ nms_keyfile_plugin_init(NMSKeyfilePlugin *plugin)
     } else if (!priv->dirname_etc || priv->dirname_etc[0] != '/') {
         /* either invalid path or unspecified. Use the default. */
         g_free(priv->dirname_etc);
-        priv->dirname_etc =
-            nm_sd_utils_path_simplify(g_strdup(NM_KEYFILE_PATH_NAME_ETC_DEFAULT), FALSE);
+        priv->dirname_etc = nm_sd_utils_path_simplify(g_strdup(NM_KEYFILE_PATH_NAME_ETC_DEFAULT));
     } else
-        nm_sd_utils_path_simplify(priv->dirname_etc, FALSE);
+        nm_sd_utils_path_simplify(priv->dirname_etc);
 
     /* no duplicates */
     if (NM_IN_STRSET(priv->dirname_libs[0], priv->dirname_etc, priv->dirname_run))

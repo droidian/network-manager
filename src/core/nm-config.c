@@ -13,9 +13,9 @@
 #include "nm-utils.h"
 #include "devices/nm-device.h"
 #include "NetworkManagerUtils.h"
-#include "nm-core-internal.h"
-#include "nm-keyfile-internal.h"
-#include "nm-keyfile-utils.h"
+#include "libnm-core-intern/nm-core-internal.h"
+#include "libnm-core-intern/nm-keyfile-internal.h"
+#include "libnm-core-intern/nm-keyfile-utils.h"
 
 #define DEFAULT_CONFIG_MAIN_FILE     NMCONFDIR "/NetworkManager.conf"
 #define DEFAULT_CONFIG_DIR           NMCONFDIR "/conf.d"
@@ -433,13 +433,7 @@ nm_config_set_no_auto_default_for_device(NMConfig *self, NMDevice *device)
 
     len = NM_PTRARRAY_LEN(no_auto_default_current);
 
-    idx = nm_utils_ptrarray_find_binary_search((gconstpointer *) no_auto_default_current,
-                                               len,
-                                               spec,
-                                               nm_strcmp_with_data,
-                                               NULL,
-                                               NULL,
-                                               NULL);
+    idx = nm_utils_strv_find_binary_search(no_auto_default_current, len, spec);
     if (idx >= 0) {
         /* @spec is already blocked. We don't have to update our in-memory representation.
          * Maybe we should write to no_auto_default_file anew, but let's save that too. */
@@ -842,8 +836,10 @@ static const ConfigGroup config_groups[] = {
                              NM_CONFIG_KEYFILE_KEY_MAIN_DEBUG,
                              NM_CONFIG_KEYFILE_KEY_MAIN_DHCP,
                              NM_CONFIG_KEYFILE_KEY_MAIN_DNS,
+                             NM_CONFIG_KEYFILE_KEY_MAIN_FIREWALL_BACKEND,
                              NM_CONFIG_KEYFILE_KEY_MAIN_HOSTNAME_MODE,
                              NM_CONFIG_KEYFILE_KEY_MAIN_IGNORE_CARRIER,
+                             NM_CONFIG_KEYFILE_KEY_MAIN_IWD_CONFIG_PATH,
                              NM_CONFIG_KEYFILE_KEY_MAIN_MONITOR_CONNECTION_FILES,
                              NM_CONFIG_KEYFILE_KEY_MAIN_NO_AUTO_DEFAULT,
                              NM_CONFIG_KEYFILE_KEY_MAIN_PLUGINS,
@@ -2115,7 +2111,7 @@ nm_config_set_values(NMConfig *self,
                                  "");
     }
 
-    if (!_nm_keyfile_equals(keyfile_intern_current, keyfile_new, TRUE))
+    if (!_nm_keyfile_equal(keyfile_intern_current, keyfile_new, TRUE))
         new_data = nm_config_data_new_update_keyfile_intern(priv->config_data, keyfile_new);
 
     _LOGD("set values(): %s", new_data ? "has changes" : "no changes");
@@ -3149,7 +3145,7 @@ nm_config_class_init(NMConfigClass *config_class)
                      NM_TYPE_CONFIG_DATA);
 
     G_STATIC_ASSERT_EXPR(sizeof(guint) == sizeof(NMConfigChangeFlags));
-    G_STATIC_ASSERT_EXPR(((gint64)((NMConfigChangeFlags) -1)) > ((gint64) 0));
+    G_STATIC_ASSERT_EXPR(((gint64) ((NMConfigChangeFlags) -1)) > ((gint64) 0));
 }
 
 static void

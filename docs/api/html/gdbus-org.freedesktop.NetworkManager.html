@@ -81,11 +81,10 @@
 <div class="refsect1">
 <a name="id-1.4.3.2.4"></a><h2>Signals</h2>
 <pre class="synopsis">
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.CheckPermissions" title='The "CheckPermissions" signal'>CheckPermissions</a>  ();
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.StateChanged" title='The "StateChanged" signal'>StateChanged</a>      (u     state);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.PropertiesChanged" title='The "PropertiesChanged" signal'>PropertiesChanged</a> (a{sv} properties);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.DeviceAdded" title='The "DeviceAdded" signal'>DeviceAdded</a>       (o     device_path);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.DeviceRemoved" title='The "DeviceRemoved" signal'>DeviceRemoved</a>     (o     device_path);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.CheckPermissions" title='The "CheckPermissions" signal'>CheckPermissions</a> ();
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.StateChanged" title='The "StateChanged" signal'>StateChanged</a>     (u state);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.DeviceAdded" title='The "DeviceAdded" signal'>DeviceAdded</a>      (o device_path);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.DeviceRemoved" title='The "DeviceRemoved" signal'>DeviceRemoved</a>    (o device_path);
 </pre>
 </div>
 <div class="refsect1">
@@ -694,25 +693,6 @@ StateChanged (u state);
 <tbody><tr>
 <td><p><span class="term"><code class="literal">u <em class="parameter"><code>state</code></em></code>:</span></p></td>
 <td><p>(<a class="link" href="nm-dbus-types.html#NMState" title="enum NMState">NMState</a>) The new state of NetworkManager.</p></td>
-</tr></tbody>
-</table></div>
-</div>
-<hr>
-<div class="refsect2">
-<a name="gdbus-signal-org-freedesktop-NetworkManager.PropertiesChanged"></a><h3>The "PropertiesChanged" signal</h3>
-<pre class="programlisting">
-PropertiesChanged (a{sv} properties);
-</pre>
-<p>        DEPRECATED. Use the standard "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" instead which exists since version NetworkManager 1.2.0.
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody><tr>
-<td><p><span class="term"><code class="literal">a{sv} <em class="parameter"><code>properties</code></em></code>:</span></p></td>
-<td><p>The changed properties.</p></td>
 </tr></tbody>
 </table></div>
 </div>

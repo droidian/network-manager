@@ -3,12 +3,10 @@
 ###############################################################################
 
 examples_C_glib_cppflags = \
-	-I$(top_srcdir)/shared \
-	-I$(top_builddir)/shared \
-	-I$(top_srcdir)/libnm-core \
-	-I$(top_builddir)/libnm-core \
-	-I$(top_srcdir)/libnm \
-	-I$(top_builddir)/libnm \
+	-I$(top_srcdir)/src/libnm-core-public \
+	-I$(top_builddir)/src/libnm-core-public \
+	-I$(top_srcdir)/src/libnm-client-public \
+	-I$(top_builddir)/src/libnm-client-public \
 	$(GLIB_CFLAGS)
 
 examples_C_glib_cppflags_gdbus = $(examples_C_glib_cppflags)
@@ -22,30 +20,32 @@ check_programs_norun += \
 	examples/C/glib/list-connections-gdbus \
 	examples/C/glib/list-connections-libnm \
 	examples/C/glib/monitor-nm-running-gdbus \
-	examples/C/glib/monitor-nm-state-gdbus
+	examples/C/glib/monitor-nm-state-gdbus \
+	examples/C/glib/vpn-import-libnm \
+	$(NULL)
 
 examples_C_glib_add_connection_gdbus_CPPFLAGS = $(examples_C_glib_cppflags_gdbus)
 examples_C_glib_add_connection_gdbus_LDADD = \
 	$(GLIB_LIBS) \
 	$(UUID_LIBS)
-$(examples_C_glib_add_connection_gdbus_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+$(examples_C_glib_add_connection_gdbus_OBJECTS): $(src_libnm_core_public_mkenums_h) $(src_libnm_client_public_mkenums_h)
 
 examples_C_glib_add_connection_libnm_CPPFLAGS = $(examples_C_glib_cppflags_libnm)
 examples_C_glib_add_connection_libnm_LDADD = \
-	libnm/libnm.la \
+	src/libnm-client-impl/libnm.la \
 	$(GLIB_LIBS)
-$(examples_C_glib_add_connection_libnm_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+$(examples_C_glib_add_connection_libnm_OBJECTS): $(src_libnm_core_public_mkenums_h) $(src_libnm_client_public_mkenums_h)
 
 examples_C_glib_get_active_connections_gdbus_CPPFLAGS = $(examples_C_glib_cppflags_gdbus)
 examples_C_glib_get_active_connections_gdbus_LDADD = \
 	$(GLIB_LIBS)
-$(examples_C_glib_get_active_connections_gdbus_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+$(examples_C_glib_get_active_connections_gdbus_OBJECTS): $(src_libnm_core_public_mkenums_h) $(src_libnm_client_public_mkenums_h)
 
 examples_C_glib_get_ap_info_libnm_CPPFLAGS = $(examples_C_glib_cppflags_libnm)
 examples_C_glib_get_ap_info_libnm_LDADD = \
-	libnm/libnm.la \
+	src/libnm-client-impl/libnm.la \
 	$(GLIB_LIBS)
-$(examples_C_glib_get_ap_info_libnm_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+$(examples_C_glib_get_ap_info_libnm_OBJECTS): $(src_libnm_core_public_mkenums_h) $(src_libnm_client_public_mkenums_h)
 
 examples_C_glib_list_connections_gdbus_CPPFLAGS = $(examples_C_glib_cppflags_gdbus)
 examples_C_glib_list_connections_gdbus_LDADD = \
@@ -53,9 +53,9 @@ examples_C_glib_list_connections_gdbus_LDADD = \
 
 examples_C_glib_list_connections_libnm_CPPFLAGS = $(examples_C_glib_cppflags_libnm)
 examples_C_glib_list_connections_libnm_LDADD = \
-	libnm/libnm.la \
+	src/libnm-client-impl/libnm.la \
 	$(GLIB_LIBS)
-$(examples_C_glib_list_connections_libnm_OBJECTS): $(libnm_core_lib_h_pub_mkenums)
+$(examples_C_glib_list_connections_libnm_OBJECTS): $(src_libnm_core_public_mkenums_h) $(src_libnm_client_public_mkenums_h)
 
 examples_C_glib_monitor_nm_running_gdbus_CPPFLAGS = $(examples_C_glib_cppflags_gdbus)
 examples_C_glib_monitor_nm_running_gdbus_LDADD = \
@@ -64,6 +64,12 @@ examples_C_glib_monitor_nm_running_gdbus_LDADD = \
 examples_C_glib_monitor_nm_state_gdbus_CPPFLAGS = $(examples_C_glib_cppflags_gdbus)
 examples_C_glib_monitor_nm_state_gdbus_LDADD = \
 	$(GLIB_LIBS)
+
+examples_C_glib_vpn_import_libnm_CPPFLAGS = $(examples_C_glib_cppflags_libnm)
+examples_C_glib_vpn_import_libnm_LDADD = \
+	src/libnm-client-impl/libnm.la \
+	$(GLIB_LIBS)
+$(examples_C_glib_vpn_import_libnm_OBJECTS): $(src_libnm_core_public_mkenums_h) $(src_libnm_client_public_mkenums_h)
 
 EXTRA_DIST += \
 	examples/C/glib/meson.build
@@ -75,8 +81,10 @@ EXTRA_DIST += \
 if WITH_QT
 
 examples_C_qt_cppflags = \
-	-I$(top_srcdir)/libnm-core \
-	-I$(top_builddir)/libnm-core \
+	-I$(top_builddir)/src/libnm-core-public \
+	-I$(top_srcdir)/src/libnm-core-public \
+	-I$(top_builddir)/libnm \
+	-I$(top_srcdir)/libnm \
 	-I$(builddir)/examples/C/qt \
 	$(DBUS_CFLAGS) \
 	$(QT_CFLAGS)

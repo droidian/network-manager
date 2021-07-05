@@ -78,6 +78,15 @@ is_available(NMDevice *device, NMDeviceCheckDevAvailableFlags flags)
 }
 
 static gboolean
+can_auto_connect(NMDevice *device, NMSettingsConnection *sett_conn, char **specific_object)
+{
+    NMDeviceOvsInterface *       self = NM_DEVICE_OVS_INTERFACE(device);
+    NMDeviceOvsInterfacePrivate *priv = NM_DEVICE_OVS_INTERFACE_GET_PRIVATE(self);
+
+    return nm_ovsdb_is_ready(priv->ovsdb);
+}
+
+static gboolean
 check_connection_compatible(NMDevice *device, NMConnection *connection, GError **error)
 {
     NMSettingOvsInterface *s_ovs_iface;
@@ -405,10 +414,7 @@ dispose(GObject *object)
 }
 
 static const NMDBusInterfaceInfoExtended interface_info_device_ovs_interface = {
-    .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
-        NM_DBUS_INTERFACE_DEVICE_OVS_INTERFACE,
-        .signals = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy, ), ),
-    .legacy_property_changed = TRUE,
+    .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(NM_DBUS_INTERFACE_DEVICE_OVS_INTERFACE, ),
 };
 
 static void
@@ -427,6 +433,7 @@ nm_device_ovs_interface_class_init(NMDeviceOvsInterfaceClass *klass)
     device_class->connection_type_check_compatible = NM_SETTING_OVS_INTERFACE_SETTING_NAME;
     device_class->link_types = NM_DEVICE_DEFINE_LINK_TYPES(NM_LINK_TYPE_OPENVSWITCH);
 
+    device_class->can_auto_connect                    = can_auto_connect;
     device_class->can_update_from_platform_link       = can_update_from_platform_link;
     device_class->deactivate                          = deactivate;
     device_class->deactivate_async                    = deactivate_async;

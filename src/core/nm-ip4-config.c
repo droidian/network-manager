@@ -12,14 +12,14 @@
 #include <resolv.h>
 #include <linux/rtnetlink.h>
 
-#include "nm-glib-aux/nm-dedup-multi.h"
+#include "libnm-glib-aux/nm-dedup-multi.h"
 
 #include "nm-utils.h"
-#include "platform/nmp-object.h"
-#include "platform/nm-platform.h"
-#include "nm-platform/nm-platform-utils.h"
+#include "libnm-platform/nmp-object.h"
+#include "libnm-platform/nm-platform.h"
+#include "libnm-platform/nm-platform-utils.h"
 #include "NetworkManagerUtils.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-dbus-object.h"
 
 /*****************************************************************************/
@@ -648,21 +648,6 @@ nm_ip4_config_add_dependent_routes(NMIP4Config *self,
 
         if (my_addr->external)
             continue;
-
-        /* Pre-generate local route added by kernel */
-        r                   = nmp_object_new(NMP_OBJECT_TYPE_IP4_ROUTE, NULL);
-        route               = NMP_OBJECT_CAST_IP4_ROUTE(r);
-        route->ifindex      = ifindex;
-        route->rt_source    = NM_IP_CONFIG_SOURCE_KERNEL;
-        route->network      = my_addr->address;
-        route->plen         = 32;
-        route->pref_src     = my_addr->address;
-        route->type_coerced = nm_platform_route_type_coerce(RTN_LOCAL);
-        route->scope_inv    = nm_platform_route_scope_inv(RT_SCOPE_HOST);
-        route->table_coerced =
-            nm_platform_route_table_coerce(is_vrf ? route_table : RT_TABLE_LOCAL);
-        _add_route(self, r, NULL, NULL);
-        nm_clear_pointer(&r, nmp_object_unref);
 
         if (nm_utils_ip4_address_is_zeronet(network)) {
             /* Kernel doesn't add device-routes for destinations that
@@ -1992,6 +1977,26 @@ nm_ip_config_dump(const NMIPConfig *self, const char *detail, NMLogLevel level, 
 
 /*****************************************************************************/
 
+gconstpointer
+nm_ip_config_find_first_address(const NMIPConfig *self, NMPlatformMatchFlags match_flag)
+{
+    NMDedupMultiIter           iter;
+    const NMPlatformIPAddress *address;
+
+    g_return_val_if_fail(NM_IS_IP_CONFIG(self), NULL);
+
+    nm_assert(!NM_FLAGS_ANY(
+        match_flag,
+        ~(NM_PLATFORM_MATCH_WITH_ADDRTYPE__ANY | NM_PLATFORM_MATCH_WITH_ADDRSTATE__ANY)));
+
+    nm_ip_config_iter_ip_address_for_each (&iter, self, &address) {
+        if (nm_platform_ip_address_match(nm_ip_config_get_addr_family(self), address, match_flag))
+            return address;
+    }
+
+    return NULL;
+}
+
 void
 nm_ip4_config_reset_addresses(NMIP4Config *self)
 {
@@ -3031,11 +3036,9 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
         g_value_take_variant(value, g_variant_builder_end(&builder_data));
         break;
     case PROP_NAMESERVERS:
-        g_value_take_variant(value,
-                             g_variant_new_fixed_array(G_VARIANT_TYPE_UINT32,
-                                                       priv->nameservers->data,
-                                                       priv->nameservers->len,
-                                                       sizeof(guint32)));
+        g_value_take_variant(
+            value,
+            nm_g_variant_new_au((const guint32 *) priv->nameservers->data, priv->nameservers->len));
         break;
     case PROP_DOMAINS:
         nm_utils_g_value_set_strv(value, priv->domains);
@@ -3060,11 +3063,9 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
         g_value_take_variant(value, g_variant_builder_end(&builder_data));
         break;
     case PROP_WINS_SERVERS:
-        g_value_take_variant(value,
-                             g_variant_new_fixed_array(G_VARIANT_TYPE_UINT32,
-                                                       priv->wins->data,
-                                                       priv->wins->len,
-                                                       sizeof(guint32)));
+        g_value_take_variant(
+            value,
+            nm_g_variant_new_au((const guint32 *) priv->wins->data, priv->wins->len));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -3162,44 +3163,40 @@ finalize(GObject *object)
 static const NMDBusInterfaceInfoExtended interface_info_ip4_config = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_IP4_CONFIG,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Addresses",
-                                                             "aau",
-                                                             NM_IP4_CONFIG_ADDRESSES),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("AddressData",
-                                                             "aa{sv}",
-                                                             NM_IP4_CONFIG_ADDRESS_DATA),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Gateway", "s", NM_IP4_CONFIG_GATEWAY),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Routes", "aau", NM_IP4_CONFIG_ROUTES),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("RouteData",
-                                                             "aa{sv}",
-                                                             NM_IP4_CONFIG_ROUTE_DATA),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Addresses",
+                                                           "aau",
+                                                           NM_IP4_CONFIG_ADDRESSES),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("AddressData",
+                                                           "aa{sv}",
+                                                           NM_IP4_CONFIG_ADDRESS_DATA),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Gateway", "s", NM_IP4_CONFIG_GATEWAY),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Routes", "aau", NM_IP4_CONFIG_ROUTES),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("RouteData",
+                                                           "aa{sv}",
+                                                           NM_IP4_CONFIG_ROUTE_DATA),
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("NameserverData",
                                                            "aa{sv}",
                                                            NM_IP4_CONFIG_NAMESERVER_DATA),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Nameservers",
-                                                             "au",
-                                                             NM_IP4_CONFIG_NAMESERVERS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Domains",
-                                                             "as",
-                                                             NM_IP4_CONFIG_DOMAINS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Searches",
-                                                             "as",
-                                                             NM_IP4_CONFIG_SEARCHES),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("DnsOptions",
-                                                             "as",
-                                                             NM_IP4_CONFIG_DNS_OPTIONS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("DnsPriority",
-                                                             "i",
-                                                             NM_IP4_CONFIG_DNS_PRIORITY),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Nameservers",
+                                                           "au",
+                                                           NM_IP4_CONFIG_NAMESERVERS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Domains", "as", NM_IP4_CONFIG_DOMAINS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Searches",
+                                                           "as",
+                                                           NM_IP4_CONFIG_SEARCHES),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("DnsOptions",
+                                                           "as",
+                                                           NM_IP4_CONFIG_DNS_OPTIONS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("DnsPriority",
+                                                           "i",
+                                                           NM_IP4_CONFIG_DNS_PRIORITY),
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("WinsServerData",
                                                            "as",
                                                            NM_IP4_CONFIG_WINS_SERVER_DATA),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("WinsServers",
-                                                             "au",
-                                                             NM_IP4_CONFIG_WINS_SERVERS), ), ),
-    .legacy_property_changed = TRUE,
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("WinsServers",
+                                                           "au",
+                                                           NM_IP4_CONFIG_WINS_SERVERS), ), ),
 };
 
 static void

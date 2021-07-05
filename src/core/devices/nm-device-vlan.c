@@ -16,11 +16,12 @@
 #include "settings/nm-settings.h"
 #include "nm-act-request.h"
 #include "nm-ip4-config.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "nm-device-factory.h"
 #include "nm-manager.h"
-#include "nm-core-internal.h"
-#include "platform/nmp-object.h"
+#include "libnm-core-intern/nm-core-internal.h"
+#include "libnm-platform/nmp-object.h"
+#include "libnm-platform/nm-platform-utils.h"
 
 #define _NMLOG_DEVICE_TYPE NMDeviceVlan
 #include "nm-device-logging.h"
@@ -436,7 +437,7 @@ update_connection(NMDevice *device, NMConnection *connection)
     const NMPlatformLink *plink;
     const NMPObject *     polnk;
     guint                 vlan_id;
-    guint                 vlan_flags;
+    _NMVlanFlags          vlan_flags;
 
     if (!s_vlan) {
         s_vlan = (NMSettingVlan *) nm_setting_vlan_new();
@@ -463,9 +464,9 @@ update_connection(NMDevice *device, NMConnection *connection)
     if (polnk)
         vlan_flags = polnk->lnk_vlan.flags;
     else
-        vlan_flags = NM_VLAN_FLAG_REORDER_HEADERS;
-    if (vlan_flags != nm_setting_vlan_get_flags(s_vlan))
-        g_object_set(s_vlan, NM_SETTING_VLAN_FLAGS, (NMVlanFlags) vlan_flags, NULL);
+        vlan_flags = _NM_VLAN_FLAG_REORDER_HEADERS;
+    if (NM_VLAN_FLAGS_CAST(vlan_flags) != nm_setting_vlan_get_flags(s_vlan))
+        g_object_set(s_vlan, NM_SETTING_VLAN_FLAGS, NM_VLAN_FLAGS_CAST(vlan_flags), NULL);
 
     if (polnk) {
         _nm_setting_vlan_set_priorities(s_vlan,
@@ -507,7 +508,7 @@ act_stage1_prepare(NMDevice *device, NMDeviceStateReason *out_failure_reason)
 
         nm_platform_link_vlan_change(nm_device_get_platform(device),
                                      nm_device_get_ifindex(device),
-                                     NM_VLAN_FLAGS_ALL,
+                                     _NM_VLAN_FLAGS_ALL,
                                      nm_setting_vlan_get_flags(s_vlan),
                                      TRUE,
                                      ingress_map,
@@ -546,17 +547,11 @@ nm_device_vlan_init(NMDeviceVlan *self)
 static const NMDBusInterfaceInfoExtended interface_info_device_vlan = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_DEVICE_VLAN,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("HwAddress",
-                                                             "s",
-                                                             NM_DEVICE_HW_ADDRESS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Carrier", "b", NM_DEVICE_CARRIER),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Parent", "o", NM_DEVICE_PARENT),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("VlanId",
-                                                             "u",
-                                                             NM_DEVICE_VLAN_ID), ), ),
-    .legacy_property_changed = TRUE,
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("HwAddress", "s", NM_DEVICE_HW_ADDRESS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Carrier", "b", NM_DEVICE_CARRIER),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Parent", "o", NM_DEVICE_PARENT),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("VlanId", "u", NM_DEVICE_VLAN_ID), ), ),
 };
 
 static void
@@ -674,7 +669,7 @@ get_connection_iface(NMDeviceFactory *factory, NMConnection *connection, const c
      * device, we create one for it using the VLAN ID and the parent
      * interface's name.
      */
-    return nm_utils_new_vlan_name(parent_iface, nm_setting_vlan_get_id(s_vlan));
+    return nmp_utils_new_vlan_name(parent_iface, nm_setting_vlan_get_id(s_vlan));
 }
 
 NM_DEVICE_FACTORY_DEFINE_INTERNAL(

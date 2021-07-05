@@ -7,15 +7,15 @@
 
 #include "nm-netns.h"
 
-#include "nm-glib-aux/nm-dedup-multi.h"
-#include "nm-glib-aux/nm-c-list.h"
+#include "libnm-glib-aux/nm-dedup-multi.h"
+#include "libnm-glib-aux/nm-c-list.h"
 
 #include "NetworkManagerUtils.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-l3cfg.h"
-#include "platform/nm-platform.h"
-#include "nm-platform/nmp-netns.h"
-#include "platform/nmp-rules-manager.h"
+#include "libnm-platform/nm-platform.h"
+#include "libnm-platform/nmp-netns.h"
+#include "libnm-platform/nmp-rules-manager.h"
 
 /*****************************************************************************/
 
@@ -263,7 +263,7 @@ nm_netns_shared_ip_reserve(NMNetns *self)
 
     if (!priv->shared_ips) {
         addr             = addr_start;
-        priv->shared_ips = g_hash_table_new(nm_puint32_hash, nm_puint32_equals);
+        priv->shared_ips = g_hash_table_new(nm_puint32_hash, nm_puint32_equal);
         g_object_ref(self);
     } else {
         guint32 count;
@@ -392,7 +392,7 @@ constructed(GObject *object)
     if (!priv->platform)
         g_return_if_reached();
 
-    priv->l3cfgs = g_hash_table_new_full(nm_pint_hash, nm_pint_equals, _l3cfg_data_free, NULL);
+    priv->l3cfgs = g_hash_table_new_full(nm_pint_hash, nm_pint_equal, _l3cfg_data_free, NULL);
 
     priv->platform_netns = nm_platform_netns_get(priv->platform);
 

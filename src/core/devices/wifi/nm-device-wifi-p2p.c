@@ -15,16 +15,16 @@
 #include "NetworkManagerUtils.h"
 #include "devices/nm-device-private.h"
 #include "nm-act-request.h"
-#include "nm-core-internal.h"
-#include "nm-glib-aux/nm-ref-string.h"
+#include "libnm-core-intern/nm-core-internal.h"
+#include "libnm-glib-aux/nm-ref-string.h"
 #include "nm-ip4-config.h"
 #include "nm-manager.h"
 #include "nm-manager.h"
 #include "nm-setting-wifi-p2p.h"
 #include "nm-utils.h"
 #include "nm-wifi-p2p-peer.h"
-#include "platform/nm-platform.h"
-#include "platform/nmp-object.h"
+#include "libnm-platform/nm-platform.h"
+#include "libnm-platform/nmp-object.h"
 #include "settings/nm-settings.h"
 
 #define _NMLOG_DEVICE_TYPE NMDeviceWifiP2P
@@ -1149,7 +1149,6 @@ static const NMDBusInterfaceInfoExtended interface_info_device_wifi_p2p = {
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Peers",
                                                            "ao",
                                                            NM_DEVICE_WIFI_P2P_PEERS), ), ),
-    .legacy_property_changed = FALSE,
 };
 
 /*****************************************************************************/

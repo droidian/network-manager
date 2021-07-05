@@ -15,8 +15,9 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#include "nm-glib-aux/nm-enum-utils.h"
-#include "nm-glib-aux/nm-io-utils.h"
+#include "libnm-glib-aux/nm-enum-utils.h"
+#include "libnm-glib-aux/nm-str-buf.h"
+#include "libnm-glib-aux/nm-io-utils.h"
 #include "nm-manager.h"
 #include "nm-setting-connection.h"
 #include "nm-setting-wired.h"
@@ -32,9 +33,9 @@
 #include "nm-setting-team.h"
 #include "nm-setting-team-port.h"
 #include "nm-utils.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "NetworkManagerUtils.h"
-#include "nm-base/nm-ethtool-base.h"
+#include "libnm-base/nm-ethtool-base.h"
 
 #include "nms-ifcfg-rh-common.h"
 #include "nms-ifcfg-rh-reader.h"
@@ -203,18 +204,18 @@ write_object(NMSetting8021x *                s_8021x,
     g_return_val_if_fail(ifcfg != NULL, FALSE);
     g_return_val_if_fail(objtype != NULL, FALSE);
 
-    scheme = (*(objtype->vtable->scheme_func))(s_8021x);
+    scheme = (*(objtype->vtable->scheme_func)) (s_8021x);
     switch (scheme) {
     case NM_SETTING_802_1X_CK_SCHEME_UNKNOWN:
         break;
     case NM_SETTING_802_1X_CK_SCHEME_BLOB:
-        blob = (*(objtype->vtable->blob_func))(s_8021x);
+        blob = (*(objtype->vtable->blob_func)) (s_8021x);
         break;
     case NM_SETTING_802_1X_CK_SCHEME_PATH:
-        value = (*(objtype->vtable->path_func))(s_8021x);
+        value = (*(objtype->vtable->path_func)) (s_8021x);
         break;
     case NM_SETTING_802_1X_CK_SCHEME_PKCS11:
-        value = (*(objtype->vtable->uri_func))(s_8021x);
+        value = (*(objtype->vtable->uri_func)) (s_8021x);
         break;
     default:
         g_set_error(error,
@@ -227,8 +228,8 @@ write_object(NMSetting8021x *                s_8021x,
     /* Set the password for certificate/private key. */
     nm_sprintf_buf(secret_name, "%s_PASSWORD", objtype->ifcfg_rh_key);
     nm_sprintf_buf(secret_flags, "%s_PASSWORD_FLAGS", objtype->ifcfg_rh_key);
-    password = (*(objtype->vtable->passwd_func))(s_8021x);
-    flags    = (*(objtype->vtable->pwflag_func))(s_8021x);
+    password = (*(objtype->vtable->passwd_func)) (s_8021x);
+    flags    = (*(objtype->vtable->pwflag_func)) (s_8021x);
     set_secret(ifcfg, secrets, secret_name, password, secret_flags, flags);
 
     if (!objtype->vtable->format_func)
@@ -298,6 +299,7 @@ write_blobs(GHashTable *blobs, GError **error)
                                         (const char *) g_bytes_get_data(blob, NULL),
                                         g_bytes_get_size(blob),
                                         0600,
+                                        NULL,
                                         NULL,
                                         &write_error)) {
             g_set_error(error,
@@ -862,7 +864,7 @@ write_wireless_setting(NMConnection *connection,
         return FALSE;
     }
     ssid_data = g_bytes_get_data(ssid, &ssid_len);
-    if (!ssid_len || ssid_len > 32) {
+    if (ssid_len == 0 || ssid_len > NM_IW_ESSID_MAX_SIZE) {
         g_set_error(error,
                     NM_SETTINGS_ERROR,
                     NM_SETTINGS_ERROR_FAILED,
@@ -903,9 +905,9 @@ write_wireless_setting(NMConnection *connection,
         svSetValueStr(ifcfg, "ESSID", str->str);
         g_string_free(str, TRUE);
     } else {
-        char buf[33];
+        char buf[NM_IW_ESSID_MAX_SIZE + 1];
 
-        nm_assert(ssid_len <= 32);
+        nm_assert(ssid_len <= NM_IW_ESSID_MAX_SIZE);
         memcpy(buf, ssid_data, ssid_len);
         buf[ssid_len] = '\0';
         svSetValueStr(ifcfg, "ESSID", buf);
@@ -1075,25 +1077,18 @@ write_hostname_setting(NMConnection *connection, shvarFile *ifcfg)
     svSetValueInt64_cond(ifcfg, "HOSTNAME_ONLY_FROM_DEFAULT", t != NM_TERNARY_DEFAULT, t);
 }
 
-static gboolean
-write_wired_setting(NMConnection *connection, shvarFile *ifcfg, GError **error)
+static void
+write_wired_setting_impl(NMSettingWired *s_wired, shvarFile *ifcfg, gboolean is_virtual)
 {
-    NMSettingWired *   s_wired;
     const char *const *s390_subchannels;
-    guint32            mtu, num_opts, i;
+    guint32            mtu;
+    guint32            num_opts;
+    guint32            i;
     const char *const *macaddr_blacklist;
 
-    s_wired = nm_connection_get_setting_wired(connection);
-    if (!s_wired) {
-        g_set_error(error,
-                    NM_SETTINGS_ERROR,
-                    NM_SETTINGS_ERROR_FAILED,
-                    "Missing '%s' setting",
-                    NM_SETTING_WIRED_SETTING_NAME);
-        return FALSE;
-    }
-
-    svSetValueStr(ifcfg, "HWADDR", nm_setting_wired_get_mac_address(s_wired));
+    svSetValue(ifcfg,
+               "HWADDR",
+               nm_setting_wired_get_mac_address(s_wired) ?: (is_virtual ? "" : NULL));
 
     svSetValueStr(ifcfg, "MACADDR", nm_setting_wired_get_cloned_mac_address(s_wired));
 
@@ -1137,7 +1132,7 @@ write_wired_setting(NMConnection *connection, shvarFile *ifcfg, GError **error)
     svSetValueStr(ifcfg, "CTCPROT", nm_setting_wired_get_s390_option_by_key(s_wired, "ctcprot"));
 
     num_opts = nm_setting_wired_get_num_s390_options(s_wired);
-    if (s390_subchannels && num_opts) {
+    if (num_opts > 0) {
         nm_auto_free_gstring GString *tmp = NULL;
 
         for (i = 0; i < num_opts; i++) {
@@ -1167,8 +1162,42 @@ write_wired_setting(NMConnection *connection, shvarFile *ifcfg, GError **error)
             svSetValueStr(ifcfg, "OPTIONS", tmp->str);
     }
 
+    svSetValueTernary(ifcfg,
+                      "ACCEPT_ALL_MAC_ADDRESSES",
+                      nm_setting_wired_get_accept_all_mac_addresses(s_wired));
+}
+
+static gboolean
+write_wired_setting(NMConnection *connection, shvarFile *ifcfg, GError **error)
+{
+    NMSettingWired *s_wired;
+
+    s_wired = nm_connection_get_setting_wired(connection);
+    if (!s_wired) {
+        g_set_error(error,
+                    NM_SETTINGS_ERROR,
+                    NM_SETTINGS_ERROR_FAILED,
+                    "Missing '%s' setting",
+                    NM_SETTING_WIRED_SETTING_NAME);
+        return FALSE;
+    }
+
     svSetValueStr(ifcfg, "TYPE", TYPE_ETHERNET);
 
+    write_wired_setting_impl(s_wired, ifcfg, FALSE);
+    return TRUE;
+}
+
+static gboolean
+write_wired_for_virtual(NMConnection *connection, shvarFile *ifcfg)
+{
+    NMSettingWired *s_wired;
+
+    s_wired = nm_connection_get_setting_wired(connection);
+    if (!s_wired)
+        return FALSE;
+
+    write_wired_setting_impl(s_wired, ifcfg, TRUE);
     return TRUE;
 }
 
@@ -1334,6 +1363,26 @@ write_ethtool_setting(NMConnection *connection, shvarFile *ifcfg, GError **error
             g_string_append(str, nms_ifcfg_rh_utils_get_ethtool_name(ethtool_id));
             g_string_append_printf(str, " %" G_GUINT32_FORMAT, u32);
         }
+        for (ethtool_id = _NM_ETHTOOL_ID_PAUSE_FIRST; ethtool_id <= _NM_ETHTOOL_ID_PAUSE_LAST;
+             ethtool_id++) {
+            nm_assert(nms_ifcfg_rh_utils_get_ethtool_name(ethtool_id));
+            if (!nm_setting_option_get_boolean(NM_SETTING(s_ethtool),
+                                               nm_ethtool_data[ethtool_id]->optname,
+                                               &b))
+                continue;
+
+            _ethtool_gstring_prepare(&str, &is_first, 'A', iface);
+            g_string_append_c(str, ' ');
+            g_string_append(str, nms_ifcfg_rh_utils_get_ethtool_name(ethtool_id));
+            g_string_append(str, b ? " on" : " off");
+        }
+
+        if (!str) {
+            /* Write an empty dummy "-A" option without arguments. This is to
+             * ensure that the reader will create an (all default) NMSettingEthtool.
+             * Also, it seems that `ethtool -A "$IFACE"` is silently accepted. */
+            _ethtool_gstring_prepare(&str, &is_first, 'A', iface);
+        }
     }
 
     if (str) {
@@ -1364,35 +1413,6 @@ vlan_priority_maplist_to_stringlist(NMSettingVlan *s_vlan, NMVlanPriorityMap map
     g_strfreev(strlist);
 
     return value;
-}
-
-static gboolean
-write_wired_for_virtual(NMConnection *connection, shvarFile *ifcfg)
-{
-    NMSettingWired *s_wired;
-    gboolean        has_wired = FALSE;
-
-    s_wired = nm_connection_get_setting_wired(connection);
-    if (s_wired) {
-        const char *device_mac, *cloned_mac;
-        guint32     mtu;
-
-        has_wired = TRUE;
-
-        device_mac = nm_setting_wired_get_mac_address(s_wired);
-        svSetValue(ifcfg, "HWADDR", device_mac ?: "");
-
-        cloned_mac = nm_setting_wired_get_cloned_mac_address(s_wired);
-        svSetValueStr(ifcfg, "MACADDR", cloned_mac);
-
-        svSetValueStr(ifcfg,
-                      "GENERATE_MAC_ADDRESS_MASK",
-                      nm_setting_wired_get_generate_mac_address_mask(s_wired));
-
-        mtu = nm_setting_wired_get_mtu(s_wired);
-        svSetValueInt64_cond(ifcfg, "MTU", mtu != 0, mtu);
-    }
-    return has_wired;
 }
 
 static gboolean
@@ -1542,36 +1562,40 @@ write_team_setting(NMConnection *connection, shvarFile *ifcfg, gboolean *wired, 
 
 static gboolean
 write_bridge_vlans(NMSetting * setting,
-                   const char *property_name,
+                   gboolean    is_port,
                    shvarFile * ifcfg,
                    const char *key,
                    GError **   error)
 {
-    gs_unref_ptrarray GPtrArray *vlans = NULL;
-    NMBridgeVlan *               vlan;
-    GString *                    string;
-    guint                        i;
+    GPtrArray *              vlans;
+    NMBridgeVlan *           vlan;
+    nm_auto_str_buf NMStrBuf strbuf = NM_STR_BUF_INIT(0, FALSE);
+    guint                    i;
 
-    g_object_get(setting, property_name, &vlans, NULL);
+    if (is_port)
+        vlans = _nm_setting_bridge_port_get_vlans(NM_SETTING_BRIDGE_PORT(setting));
+    else
+        vlans = _nm_setting_bridge_get_vlans(NM_SETTING_BRIDGE(setting));
 
     if (!vlans || !vlans->len)
         return TRUE;
 
-    string = g_string_new("");
     for (i = 0; i < vlans->len; i++) {
         gs_free char *vlan_str = NULL;
 
         vlan     = vlans->pdata[i];
         vlan_str = nm_bridge_vlan_to_str(vlan, error);
-        if (!vlan_str)
-            return FALSE;
-        if (string->len > 0)
-            g_string_append(string, ",");
-        nm_utils_escaped_tokens_escape_gstr_assert(vlan_str, ",", string);
+        if (!vlan_str) {
+            /* nm_bridge_vlan_to_str() cannot fail (for now). */
+            nm_assert_not_reached();
+            continue;
+        }
+        if (strbuf.len > 0)
+            nm_str_buf_append_c(&strbuf, ',');
+        nm_str_buf_append(&strbuf, nm_utils_escaped_tokens_escape_unnecessary(vlan_str, ","));
     }
 
-    svSetValueStr(ifcfg, key, string->str);
-    g_string_free(string, TRUE);
+    svSetValueStr(ifcfg, key, nm_str_buf_get_str(&strbuf));
     return TRUE;
 }
 
@@ -1807,11 +1831,7 @@ write_bridge_setting(NMConnection *connection, shvarFile *ifcfg, gboolean *wired
         svSetValueStr(ifcfg, "BRIDGING_OPTS", opts->str);
     g_string_free(opts, TRUE);
 
-    if (!write_bridge_vlans((NMSetting *) s_bridge,
-                            NM_SETTING_BRIDGE_VLANS,
-                            ifcfg,
-                            "BRIDGE_VLANS",
-                            error))
+    if (!write_bridge_vlans((NMSetting *) s_bridge, FALSE, ifcfg, "BRIDGE_VLANS", error))
         return FALSE;
 
     svSetValueStr(ifcfg, "TYPE", TYPE_BRIDGE);
@@ -1862,11 +1882,7 @@ write_bridge_port_setting(NMConnection *connection, shvarFile *ifcfg, GError **e
         svSetValueStr(ifcfg, "BRIDGING_OPTS", string->str);
     g_string_free(string, TRUE);
 
-    if (!write_bridge_vlans((NMSetting *) s_port,
-                            NM_SETTING_BRIDGE_PORT_VLANS,
-                            ifcfg,
-                            "BRIDGE_PORT_VLANS",
-                            error))
+    if (!write_bridge_vlans((NMSetting *) s_port, TRUE, ifcfg, "BRIDGE_PORT_VLANS", error))
         return FALSE;
 
     return TRUE;
@@ -2511,46 +2527,46 @@ write_sriov_setting(NMConnection *connection, shvarFile *ifcfg)
     }
 }
 
-static gboolean
-write_tc_setting(NMConnection *connection, shvarFile *ifcfg, GError **error)
+static void
+write_tc_setting(NMConnection *connection, shvarFile *ifcfg)
 {
     NMSettingTCConfig *s_tc;
-    guint              i, num, n;
+    guint              num_qdiscs;
+    guint              num_filters;
+    guint              i;
+    guint              n;
     char               tag[64];
 
     s_tc = nm_connection_get_setting_tc_config(connection);
     if (!s_tc)
-        return TRUE;
+        return;
 
-    num = nm_setting_tc_config_get_num_qdiscs(s_tc);
-    for (n = 1, i = 0; i < num; i++) {
+    num_qdiscs = nm_setting_tc_config_get_num_qdiscs(s_tc);
+    for (n = 1, i = 0; i < num_qdiscs; i++) {
         NMTCQdisc *   qdisc;
         gs_free char *str = NULL;
 
         qdisc = nm_setting_tc_config_get_qdisc(s_tc, i);
-        str   = nm_utils_tc_qdisc_to_str(qdisc, error);
-        if (!str)
-            return FALSE;
-
+        str   = nm_utils_tc_qdisc_to_str(qdisc, NULL);
+        nm_assert(str);
         svSetValueStr(ifcfg, numbered_tag(tag, "QDISC", n), str);
         n++;
     }
 
-    num = nm_setting_tc_config_get_num_tfilters(s_tc);
-    for (n = 1, i = 0; i < num; i++) {
+    num_filters = nm_setting_tc_config_get_num_tfilters(s_tc);
+    for (n = 1, i = 0; i < num_filters; i++) {
         NMTCTfilter * tfilter;
         gs_free char *str = NULL;
 
         tfilter = nm_setting_tc_config_get_tfilter(s_tc, i);
-        str     = nm_utils_tc_tfilter_to_str(tfilter, error);
-        if (!str)
-            return FALSE;
-
+        str     = nm_utils_tc_tfilter_to_str(tfilter, NULL);
+        nm_assert(str);
         svSetValueStr(ifcfg, numbered_tag(tag, "FILTER", n), str);
         n++;
     }
 
-    return TRUE;
+    if (num_qdiscs == 0 && num_filters == 0)
+        svSetValueBoolean(ifcfg, "TC_COMMIT", TRUE);
 }
 
 static void
@@ -3373,9 +3389,7 @@ do_write_construct(NMConnection *                  connection,
     write_match_setting(connection, ifcfg);
     write_hostname_setting(connection, ifcfg);
     write_sriov_setting(connection, ifcfg);
-
-    if (!write_tc_setting(connection, ifcfg, error))
-        return FALSE;
+    write_tc_setting(connection, ifcfg);
 
     route_path_is_svformat = utils_has_route_file_new_syntax(route_path);
 

@@ -11,12 +11,12 @@
 #include <linux/fib_rules.h>
 
 #include "nm-setting-wireguard.h"
-#include "nm-core-internal.h"
-#include "nm-glib-aux/nm-secret-utils.h"
+#include "libnm-core-intern/nm-core-internal.h"
+#include "libnm-glib-aux/nm-secret-utils.h"
 #include "nm-device-private.h"
-#include "platform/nm-platform.h"
-#include "platform/nmp-object.h"
-#include "platform/nmp-rules-manager.h"
+#include "libnm-platform/nm-platform.h"
+#include "libnm-platform/nmp-object.h"
+#include "libnm-platform/nmp-rules-manager.h"
 #include "nm-device-factory.h"
 #include "nm-active-connection.h"
 #include "nm-act-request.h"
@@ -66,7 +66,7 @@ G_STATIC_ASSERT(NM_WIREGUARD_SYMMETRIC_KEY_LEN == NMP_WIREGUARD_SYMMETRIC_KEY_LE
  * timestamp. */
 #define RETRY_IN_MSEC_ASAP ((gint64) G_MAXINT64)
 
-#define RETRY_IN_MSEC_MAX ((gint64)(30 * 60 * 1000))
+#define RETRY_IN_MSEC_MAX ((gint64) (30 * 60 * 1000))
 
 typedef enum {
     LINK_CONFIG_MODE_FULL,
@@ -669,7 +669,7 @@ _peers_resolve_retry_reschedule(NMDeviceWireGuard *self, gint64 new_next_try_at_
      * than expected. Also, rate-limit to 500 msec. */
     interval_ms = NM_CLAMP((new_next_try_at_nsec - now) / NM_UTILS_NSEC_PER_MSEC,
                            (gint64) 500,
-                           (gint64)(24 * 60 * 60 * 1000));
+                           (gint64) (24 * 60 * 60 * 1000));
 
     _LOGT(LOGD_DEVICE,
           "wireguard-peers: schedule rechecking peer endpoints in %u msec",
@@ -1939,11 +1939,9 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 
     switch (prop_id) {
     case PROP_PUBLIC_KEY:
-        g_value_take_variant(value,
-                             g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE,
-                                                       priv->lnk_curr.public_key,
-                                                       sizeof(priv->lnk_curr.public_key),
-                                                       1));
+        g_value_take_variant(
+            value,
+            nm_g_variant_new_ay(priv->lnk_curr.public_key, sizeof(priv->lnk_curr.public_key)));
         break;
     case PROP_LISTEN_PORT:
         g_value_set_uint(value, priv->lnk_curr.listen_port);

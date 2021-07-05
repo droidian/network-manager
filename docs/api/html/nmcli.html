@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="NetworkManager Reference Manual">
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
-<link rel="prev" href="NetworkManager.conf.html" title="NetworkManager.conf">
+<link rel="prev" href="NetworkManager-dispatcher.html" title="NetworkManager-dispatcher">
 <link rel="next" href="nmcli-examples.html" title="nmcli-examples">
 <meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
@@ -16,7 +16,7 @@
 <td width="100%" align="left" class="shortcuts"></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="manpages.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="NetworkManager.conf.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="NetworkManager-dispatcher.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="nmcli-examples.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
@@ -206,7 +206,7 @@
 </div>
 <div class="refsect1">
 <a name="general"></a><h2>General Commands</h2>
-<div class="cmdsynopsis"><p><code class="command">nmcli general</code>  { <span class="command"><strong>status</strong></span>  |   <span class="command"><strong>hostname</strong></span>  |   <span class="command"><strong>permissions</strong></span>  |   <span class="command"><strong>logging</strong></span> } [<em class="replaceable"><code>ARGUMENTS</code></em>...]</p></div>
+<div class="cmdsynopsis"><p><code class="command">nmcli general</code>  { <span class="command"><strong>status</strong></span>  |   <span class="command"><strong>hostname</strong></span>  |   <span class="command"><strong>permissions</strong></span>  |   <span class="command"><strong>logging</strong></span>  |   <span class="command"><strong>reload</strong></span> } [<em class="replaceable"><code>ARGUMENTS</code></em>...]</p></div>
 <p>Use this command to show NetworkManager status and permissions. You can also get
     and change system hostname, as well as NetworkManager logging level and domains.</p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -254,6 +254,65 @@
           <code class="option">domain</code> parameters. See
           <a class="link" href="NetworkManager.conf.html" title="NetworkManager.conf"><span class="citerefentry"><span class="refentrytitle">NetworkManager.conf</span>(5)</span></a>
           for available level and domain values.</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+          <span class="command"><strong>reload</strong></span>
+           [<em class="replaceable"><code>flags</code></em>...]
+        </span></p></td>
+<td>
+<p>
+            Reload NetworkManager's configuration and perform certain
+            updates, like flushing caches or rewriting external state to
+            disk. This is similar to sending SIGHUP to NetworkManager
+            but it allows for more fine-grained control over what to
+            reload through the flags argument. It also allows non-root
+            access via PolicyKit and contrary to signals it is
+            synchronous. Available flags are:
+          </p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="option">conf</code></span></p></td>
+<td><p>
+                Reload the NetworkManager.conf configuration from
+                disk. Note that this does not include connections, which
+                can be reloaded through <span class="command"><strong>nmcli connection
+                reload</strong></span> instead.
+              </p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">dns-rc</code></span></p></td>
+<td><p>
+                Update DNS configuration, which usually involves writing
+                /etc/resolv.conf anew. This is equivalent to sending the
+                SIGUSR1 signal to the NetworkManager process.
+              </p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">dns-full</code></span></p></td>
+<td><p>
+                Restart the DNS plugin. This is for example useful when
+                using dnsmasq plugin, which uses additional
+                configuration in
+                <code class="filename">/etc/NetworkManager/dnsmasq.d</code>. If
+                you edit those files, you can restart the DNS
+                plugin. This action shortly interrupts name resolution.
+              </p></td>
+</tr>
+</tbody>
+</table></div>
+<p>
+            With no flags, everything that is supported is reloaded,
+            which is identical to sending a SIGHUP. See
+            <span class="citerefentry"><span class="refentrytitle">NetworkManager</span>(8)</span>
+            for more details about signals.
+          </p>
+</td>
 </tr>
 </tbody>
 </table></div>

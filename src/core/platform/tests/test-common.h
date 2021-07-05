@@ -11,16 +11,34 @@
 #include <linux/if_link.h>
 #include <linux/ip6_tunnel.h>
 
-#include "platform/nm-platform.h"
-#include "platform/nmp-object.h"
+#include "libnm-platform/nm-platform.h"
+#include "libnm-platform/nmp-object.h"
 #include "platform/nm-fake-platform.h"
-#include "platform/nm-linux-platform.h"
+#include "libnm-platform/nm-linux-platform.h"
 
 #include "nm-test-utils-core.h"
 
 #define DEVICE_NAME "nm-test-device"
 
 /*****************************************************************************/
+
+#define nmtstp_normalize_jiffies_time(requested_value, kernel_value)                             \
+    ({                                                                                           \
+        typeof(kernel_value)  _kernel_value    = (kernel_value);                                 \
+        typeof(_kernel_value) _requested_value = (requested_value);                              \
+                                                                                                 \
+        /* kernel stores some values (like bridge's forward_delay) in jiffies. When converting
+         * back and forth (clock_t_to_jiffies()/jiffies_to_clock_t()), the value reported back
+         * to user space may have rounding errors (of +/- 1), depending on CONFIG_HZ setting.
+         *
+         * Normalize the requested_value to the kernel_value, if it look as if a rounding
+         * error happens. If the difference is larger than +/- 1, no normalization happens! */   \
+                                                                                                 \
+        ((_requested_value >= (NM_MAX(_kernel_value, 1) - 1))                                    \
+         && (_requested_value <= (NM_MIN(_kernel_value, ~((typeof(_kernel_value)) 0) - 1) + 1))) \
+            ? _kernel_value                                                                      \
+            : _requested_value;                                                                  \
+    })
 
 #define _NMLOG_PREFIX_NAME "platform-test"
 #define _NMLOG_DOMAIN      LOGD_PLATFORM
@@ -437,6 +455,11 @@ gboolean nmtstp_kernel_support_get(NMPlatformKernelSupportType type);
 void
 nmtstp_link_set_updown(NMPlatform *platform, gboolean external_command, int ifindex, gboolean up);
 
+const NMPlatformLnkBridge *
+nmtstp_link_bridge_normalize_jiffies_time(const NMPlatformLnkBridge *requested,
+                                          const NMPlatformLnkBridge *kernel,
+                                          NMPlatformLnkBridge *      dst);
+
 const NMPlatformLink *nmtstp_link_bridge_add(NMPlatform *               platform,
                                              gboolean                   external_command,
                                              const char *               name,
@@ -519,7 +542,7 @@ _nmtstp_env1_wrapper_setup(const NmtstTestData *test_data)
     g_assert_cmpint(NMTSTP_ENV1_IFINDEX, ==, -1);
 
     if (GPOINTER_TO_INT(p_ifup))
-        g_assert(nm_platform_link_set_up(NM_PLATFORM_GET, *p_ifindex, NULL));
+        g_assert(nm_platform_link_change_flags(NM_PLATFORM_GET, *p_ifindex, IFF_UP, TRUE) >= 0);
 
     nm_platform_process_events(NM_PLATFORM_GET);
 

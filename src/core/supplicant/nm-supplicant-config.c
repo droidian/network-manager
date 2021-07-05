@@ -10,11 +10,11 @@
 
 #include <stdlib.h>
 
-#include "nm-glib-aux/nm-str-buf.h"
-#include "nm-core-internal.h"
+#include "libnm-glib-aux/nm-str-buf.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-supplicant-settings-verify.h"
 #include "nm-setting.h"
-#include "nm-libnm-core-intern/nm-auth-subject.h"
+#include "libnm-core-aux-intern/nm-auth-subject.h"
 #include "NetworkManagerUtils.h"
 #include "nm-utils.h"
 #include "nm-setting-ip4-config.h"
@@ -334,11 +334,10 @@ nm_supplicant_config_to_variant(NMSupplicantConfig *self)
             break;
         case NM_SUPPL_OPT_TYPE_BYTES:
         case NM_SUPPL_OPT_TYPE_UTF8:
-            g_variant_builder_add(
-                &builder,
-                "{sv}",
-                key,
-                g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, option->value, option->len, 1));
+            g_variant_builder_add(&builder,
+                                  "{sv}",
+                                  key,
+                                  nm_g_variant_new_ay((const guint8 *) option->value, option->len));
             break;
         case NM_SUPPL_OPT_TYPE_KEYWORD:
         case NM_SUPPL_OPT_TYPE_STRING:
@@ -667,8 +666,8 @@ add_string_val(NMSupplicantConfig *self,
                             display_value,                                                \
                             error)                                                        \
     ({                                                                                    \
-        typeof(*(setting)) *_setting = (setting);                                         \
-        gboolean            _success = TRUE;                                              \
+        typeof(setting) _setting = (setting);                                             \
+        gboolean        _success = TRUE;                                                  \
                                                                                           \
         if (nm_setting_##setting_name##_get_num_##field_plural(_setting)) {               \
             const char _separator = (separator);                                          \
@@ -815,7 +814,7 @@ nm_supplicant_config_add_setting_wireless_security(NMSupplicantConfig *         
     nm_auto_free_gstring GString *key_mgmt_conf = NULL;
     const char *                  key_mgmt, *auth_alg;
     const char *                  psk;
-    gboolean                      set_pmf;
+    gboolean                      set_pmf, wps_disabled;
 
     g_return_val_if_fail(NM_IS_SUPPLICANT_CONFIG(self), FALSE);
     g_return_val_if_fail(setting != NULL, FALSE);
@@ -835,53 +834,82 @@ nm_supplicant_config_add_setting_wireless_security(NMSupplicantConfig *         
     }
 
     key_mgmt      = nm_setting_wireless_security_get_key_mgmt(setting);
-    key_mgmt_conf = g_string_new(key_mgmt);
-    if (nm_streq(key_mgmt, "wpa-psk")) {
-        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_PMF))
-            g_string_append(key_mgmt_conf, " wpa-psk-sha256");
-        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
-            g_string_append(key_mgmt_conf, " ft-psk");
-    } else if (nm_streq(key_mgmt, "wpa-eap")) {
-        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_PMF)) {
-            g_string_append(key_mgmt_conf, " wpa-eap-sha256");
+    key_mgmt_conf = g_string_new("");
 
+    if (nm_streq(key_mgmt, "none")) {
+        g_string_append(key_mgmt_conf, "NONE");
+
+    } else if (nm_streq(key_mgmt, "ieee8021x")) {
+        g_string_append(key_mgmt_conf, "IEEE8021X");
+
+    } else if (nm_streq(key_mgmt, "owe")) {
+        pmf = NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED;
+
+        g_string_append(key_mgmt_conf, "OWE");
+
+    } else if (nm_streq(key_mgmt, "wpa-psk")) {
+        if (pmf != NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED)
+            g_string_append(key_mgmt_conf, "WPA-PSK");
+        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_PMF))
+            g_string_append(key_mgmt_conf, " WPA-PSK-SHA256");
+        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
+            g_string_append(key_mgmt_conf, " FT-PSK");
+        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_SAE)) {
+            g_string_append(key_mgmt_conf, " SAE");
+            if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
+                g_string_append(key_mgmt_conf, " FT-SAE");
+        }
+
+    } else if (nm_streq(key_mgmt, "sae")) {
+        pmf = NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED;
+
+        g_string_append(key_mgmt_conf, "SAE");
+        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
+            g_string_append(key_mgmt_conf, " FT-SAE");
+
+    } else if (nm_streq(key_mgmt, "wpa-eap")) {
+        if (pmf != NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED)
+            g_string_append(key_mgmt_conf, "WPA-EAP");
+        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT)) {
+            g_string_append(key_mgmt_conf, " FT-EAP");
+            if (_get_capability(priv, NM_SUPPL_CAP_TYPE_SHA384))
+                g_string_append(key_mgmt_conf, " FT-EAP-SHA384");
+        }
+        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_PMF)) {
+            g_string_append(key_mgmt_conf, " WPA-EAP-SHA256");
             if (_get_capability(priv, NM_SUPPL_CAP_TYPE_SUITEB192)
                 && pmf == NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED)
-                g_string_append(key_mgmt_conf, " wpa-eap-suite-b-192");
+                g_string_append(key_mgmt_conf, " WPA-EAP-SUITE-B-192");
         }
-        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
-            g_string_append(key_mgmt_conf, " ft-eap");
-        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT)
-            && _get_capability(priv, NM_SUPPL_CAP_TYPE_SHA384))
-            g_string_append(key_mgmt_conf, " ft-eap-sha384");
+
         switch (fils) {
         case NM_SETTING_WIRELESS_SECURITY_FILS_REQUIRED:
             g_string_truncate(key_mgmt_conf, 0);
             if (!_get_capability(priv, NM_SUPPL_CAP_TYPE_PMF))
-                g_string_assign(key_mgmt_conf, "fils-sha256 fils-sha384");
+                g_string_assign(key_mgmt_conf, "FILS-SHA256 FILS-SHA384");
             /* fall-through */
         case NM_SETTING_WIRELESS_SECURITY_FILS_OPTIONAL:
-            if (_get_capability(priv, NM_SUPPL_CAP_TYPE_PMF))
-                g_string_append(key_mgmt_conf, " fils-sha256 fils-sha384");
-            if (_get_capability(priv, NM_SUPPL_CAP_TYPE_PMF)
-                && _get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
-                g_string_append(key_mgmt_conf, " ft-fils-sha256");
-            if (_get_capability(priv, NM_SUPPL_CAP_TYPE_PMF)
-                && _get_capability(priv, NM_SUPPL_CAP_TYPE_FT)
-                && _get_capability(priv, NM_SUPPL_CAP_TYPE_SHA384))
-                g_string_append(key_mgmt_conf, " ft-fils-sha384");
+            if (_get_capability(priv, NM_SUPPL_CAP_TYPE_PMF)) {
+                g_string_append(key_mgmt_conf, " FILS-SHA256 FILS-SHA384");
+                if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT)) {
+                    g_string_append(key_mgmt_conf, " FT-FILS-SHA256");
+                    if (_get_capability(priv, NM_SUPPL_CAP_TYPE_SHA384))
+                        g_string_append(key_mgmt_conf, " FT-FILS-SHA384");
+                }
+            }
             break;
+
         default:
             break;
         }
-    } else if (nm_streq(key_mgmt, "sae")) {
-        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
-            g_string_append(key_mgmt_conf, " ft-sae");
+
     } else if (nm_streq(key_mgmt, "wpa-eap-suite-b-192")) {
         pmf = NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED;
-        if (!nm_supplicant_config_add_option(self, "pairwise", "GCMP-256", -1, NULL, error)
-            || !nm_supplicant_config_add_option(self, "group", "GCMP-256", -1, NULL, error))
-            return FALSE;
+
+        g_string_append(key_mgmt_conf, "WPA-EAP-SUITE-B-192");
+        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT)
+            && _get_capability(priv, NM_SUPPL_CAP_TYPE_SHA384))
+            g_string_append(key_mgmt_conf, " FT-EAP-SHA384");
     }
 
     if (!add_string_val(self, key_mgmt_conf->str, "key_mgmt", TRUE, NULL, error))
@@ -950,10 +978,6 @@ nm_supplicant_config_add_setting_wireless_security(NMSupplicantConfig *         
         }
     }
 
-    /* Don't try to enable PMF on non-WPA/SAE/OWE networks */
-    if (!NM_IN_STRSET(key_mgmt, "wpa-eap", "wpa-eap-suite-b-192", "wpa-psk", "sae", "owe"))
-        pmf = NM_SETTING_WIRELESS_SECURITY_PMF_DISABLE;
-
     /* Check if we actually support PMF */
     set_pmf = TRUE;
     if (!_get_capability(priv, NM_SUPPL_CAP_TYPE_PMF)) {
@@ -968,7 +992,7 @@ nm_supplicant_config_add_setting_wireless_security(NMSupplicantConfig *         
     }
 
     /* Only WPA-specific things when using WPA */
-    if (NM_IN_STRSET(key_mgmt, "wpa-psk", "wpa-eap", "sae", "owe")) {
+    if (NM_IN_STRSET(key_mgmt, "owe", "wpa-psk", "sae", "wpa-eap", "wpa-eap-suite-b-192")) {
         if (!ADD_STRING_LIST_VAL(self,
                                  setting,
                                  wireless_security,
@@ -980,29 +1004,40 @@ nm_supplicant_config_add_setting_wireless_security(NMSupplicantConfig *         
                                  NULL,
                                  error))
             return FALSE;
-        if (!ADD_STRING_LIST_VAL(self,
-                                 setting,
-                                 wireless_security,
-                                 pairwise,
-                                 pairwise,
-                                 "pairwise",
-                                 ' ',
-                                 TRUE,
-                                 NULL,
-                                 error))
-            return FALSE;
-        if (!ADD_STRING_LIST_VAL(self,
-                                 setting,
-                                 wireless_security,
-                                 group,
-                                 groups,
-                                 "group",
-                                 ' ',
-                                 TRUE,
-                                 NULL,
-                                 error))
-            return FALSE;
 
+        if (nm_streq(key_mgmt, "wpa-eap-suite-b-192")) {
+            if (!nm_supplicant_config_add_option(self, "pairwise", "GCMP-256", -1, NULL, error))
+                return FALSE;
+            if (!nm_supplicant_config_add_option(self, "group", "GCMP-256", -1, NULL, error))
+                return FALSE;
+        } else {
+            if (!ADD_STRING_LIST_VAL(self,
+                                     setting,
+                                     wireless_security,
+                                     pairwise,
+                                     pairwise,
+                                     "pairwise",
+                                     ' ',
+                                     TRUE,
+                                     NULL,
+                                     error))
+                return FALSE;
+            if (!ADD_STRING_LIST_VAL(self,
+                                     setting,
+                                     wireless_security,
+                                     group,
+                                     groups,
+                                     "group",
+                                     ' ',
+                                     TRUE,
+                                     NULL,
+                                     error))
+                return FALSE;
+        }
+
+        /* We set the supplicants global "pmf" config value to "1" (optional),
+         * so no need to set it network-specific again if PMF_OPTIONAL is set.
+         */
         if (set_pmf
             && NM_IN_SET(pmf,
                          NM_SETTING_WIRELESS_SECURITY_PMF_DISABLE,
@@ -1100,6 +1135,13 @@ nm_supplicant_config_add_setting_wireless_security(NMSupplicantConfig *         
                                                  error))
                 return FALSE;
         }
+    }
+
+    wps_disabled = (nm_setting_wireless_security_get_wps_method(setting)
+                    == NM_SETTING_WIRELESS_SECURITY_WPS_METHOD_DISABLED);
+    if (wps_disabled) {
+        if (!nm_supplicant_config_add_option(self, "wps_disabled", "1", 1, NULL, error))
+            return FALSE;
     }
 
     return TRUE;

@@ -4,6 +4,7 @@
     <sub name="Manual Pages" link="manpages.html">
       <sub name="NetworkManager" link="NetworkManager.html"/>
       <sub name="NetworkManager.conf" link="NetworkManager.conf.html"/>
+      <sub name="NetworkManager-dispatcher" link="NetworkManager-dispatcher.html"/>
       <sub name="nmcli" link="nmcli.html"/>
       <sub name="nmcli-examples" link="nmcli-examples.html"/>
       <sub name="nmtui" link="nmtui.html"/>
@@ -188,7 +189,6 @@
     <keyword type="method" name="The CheckpointAdjustRollbackTimeout() method" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-method-org-freedesktop-NetworkManager.CheckpointAdjustRollbackTimeout"/>
     <keyword type="signal" name="The &quot;CheckPermissions&quot; signal" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.CheckPermissions"/>
     <keyword type="signal" name="The &quot;StateChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.StateChanged"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.PropertiesChanged"/>
     <keyword type="signal" name="The &quot;DeviceAdded&quot; signal" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.DeviceAdded"/>
     <keyword type="signal" name="The &quot;DeviceRemoved&quot; signal" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-signal-org-freedesktop-NetworkManager.DeviceRemoved"/>
     <keyword type="property" name="The &quot;Devices&quot; property" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.Devices"/>
@@ -229,7 +229,6 @@
     <keyword type="method" name="The LoadConnections() method" link="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.LoadConnections"/>
     <keyword type="method" name="The ReloadConnections() method" link="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.ReloadConnections"/>
     <keyword type="method" name="The SaveHostname() method" link="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.SaveHostname"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-signal-org-freedesktop-NetworkManager-Settings.PropertiesChanged"/>
     <keyword type="signal" name="The &quot;NewConnection&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-signal-org-freedesktop-NetworkManager-Settings.NewConnection"/>
     <keyword type="signal" name="The &quot;ConnectionRemoved&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-signal-org-freedesktop-NetworkManager-Settings.ConnectionRemoved"/>
     <keyword type="property" name="The &quot;Connections&quot; property" link="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-property-org-freedesktop-NetworkManager-Settings.Connections"/>
@@ -245,7 +244,6 @@
     <keyword type="method" name="The Update2() method" link="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-method-org-freedesktop-NetworkManager-Settings-Connection.Update2"/>
     <keyword type="signal" name="The &quot;Updated&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-Settings-Connection.Updated"/>
     <keyword type="signal" name="The &quot;Removed&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-Settings-Connection.Removed"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-Settings-Connection.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Unsaved&quot; property" link="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-property-org-freedesktop-NetworkManager-Settings-Connection.Unsaved"/>
     <keyword type="property" name="The &quot;Flags&quot; property" link="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-property-org-freedesktop-NetworkManager-Settings-Connection.Flags"/>
     <keyword type="property" name="The &quot;Filename&quot; property" link="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-property-org-freedesktop-NetworkManager-Settings-Connection.Filename"/>
@@ -285,30 +283,22 @@
     <keyword type="property" name="The &quot;Ip6Connectivity&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Ip6Connectivity"/>
     <keyword type="property" name="The &quot;InterfaceFlags&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.InterfaceFlags"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.HwAddress"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Statistics.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Statistics.PropertiesChanged"/>
     <keyword type="property" name="The &quot;RefreshRateMs&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Statistics.html#gdbus-property-org-freedesktop-NetworkManager-Device-Statistics.RefreshRateMs"/>
     <keyword type="property" name="The &quot;TxBytes&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Statistics.html#gdbus-property-org-freedesktop-NetworkManager-Device-Statistics.TxBytes"/>
     <keyword type="property" name="The &quot;RxBytes&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Statistics.html#gdbus-property-org-freedesktop-NetworkManager-Device-Statistics.RxBytes"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Adsl.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Adsl.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Carrier&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Adsl.html#gdbus-property-org-freedesktop-NetworkManager-Device-Adsl.Carrier"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Bluetooth.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Bluetooth.PropertiesChanged"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Bluetooth.html#gdbus-property-org-freedesktop-NetworkManager-Device-Bluetooth.HwAddress"/>
     <keyword type="property" name="The &quot;Name&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Bluetooth.html#gdbus-property-org-freedesktop-NetworkManager-Device-Bluetooth.Name"/>
     <keyword type="property" name="The &quot;BtCapabilities&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Bluetooth.html#gdbus-property-org-freedesktop-NetworkManager-Device-Bluetooth.BtCapabilities"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Bond.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Bond.PropertiesChanged"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Bond.html#gdbus-property-org-freedesktop-NetworkManager-Device-Bond.HwAddress"/>
     <keyword type="property" name="The &quot;Carrier&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Bond.html#gdbus-property-org-freedesktop-NetworkManager-Device-Bond.Carrier"/>
     <keyword type="property" name="The &quot;Slaves&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Bond.html#gdbus-property-org-freedesktop-NetworkManager-Device-Bond.Slaves"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Bridge.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Bridge.PropertiesChanged"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Bridge.html#gdbus-property-org-freedesktop-NetworkManager-Device-Bridge.HwAddress"/>
     <keyword type="property" name="The &quot;Carrier&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Bridge.html#gdbus-property-org-freedesktop-NetworkManager-Device-Bridge.Carrier"/>
     <keyword type="property" name="The &quot;Slaves&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Bridge.html#gdbus-property-org-freedesktop-NetworkManager-Device-Bridge.Slaves"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Dummy.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Dummy.PropertiesChanged"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Dummy.html#gdbus-property-org-freedesktop-NetworkManager-Device-Dummy.HwAddress"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Generic.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Generic.PropertiesChanged"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Generic.html#gdbus-property-org-freedesktop-NetworkManager-Device-Generic.HwAddress"/>
     <keyword type="property" name="The &quot;TypeDescription&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Generic.html#gdbus-property-org-freedesktop-NetworkManager-Device-Generic.TypeDescription"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html#gdbus-signal-org-freedesktop-NetworkManager-Device-IPTunnel.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Mode&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html#gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.Mode"/>
     <keyword type="property" name="The &quot;Parent&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html#gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.Parent"/>
     <keyword type="property" name="The &quot;Local&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html#gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.Local"/>
@@ -321,12 +311,10 @@
     <keyword type="property" name="The &quot;EncapsulationLimit&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html#gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.EncapsulationLimit"/>
     <keyword type="property" name="The &quot;FlowLabel&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html#gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.FlowLabel"/>
     <keyword type="property" name="The &quot;Flags&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel.html#gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.Flags"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Infiniband.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Infiniband.PropertiesChanged"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Infiniband.html#gdbus-property-org-freedesktop-NetworkManager-Device-Infiniband.HwAddress"/>
     <keyword type="property" name="The &quot;Carrier&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Infiniband.html#gdbus-property-org-freedesktop-NetworkManager-Device-Infiniband.Carrier"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Lowpan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Lowpan.HwAddress"/>
     <keyword type="property" name="The &quot;Parent&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Lowpan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Lowpan.Parent"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Macsec.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Macsec.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Parent&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Macsec.html#gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.Parent"/>
     <keyword type="property" name="The &quot;Sci&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Macsec.html#gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.Sci"/>
     <keyword type="property" name="The &quot;IcvLength&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Macsec.html#gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.IcvLength"/>
@@ -340,33 +328,24 @@
     <keyword type="property" name="The &quot;Es&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Macsec.html#gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.Es"/>
     <keyword type="property" name="The &quot;Scb&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Macsec.html#gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.Scb"/>
     <keyword type="property" name="The &quot;ReplayProtect&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Macsec.html#gdbus-property-org-freedesktop-NetworkManager-Device-Macsec.ReplayProtect"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Macvlan.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Macvlan.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Parent&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Macvlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Macvlan.Parent"/>
     <keyword type="property" name="The &quot;Mode&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Macvlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Macvlan.Mode"/>
     <keyword type="property" name="The &quot;NoPromisc&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Macvlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Macvlan.NoPromisc"/>
     <keyword type="property" name="The &quot;Tap&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Macvlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Macvlan.Tap"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Modem.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Modem.PropertiesChanged"/>
     <keyword type="property" name="The &quot;ModemCapabilities&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Modem.html#gdbus-property-org-freedesktop-NetworkManager-Device-Modem.ModemCapabilities"/>
     <keyword type="property" name="The &quot;CurrentCapabilities&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Modem.html#gdbus-property-org-freedesktop-NetworkManager-Device-Modem.CurrentCapabilities"/>
     <keyword type="property" name="The &quot;DeviceId&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Modem.html#gdbus-property-org-freedesktop-NetworkManager-Device-Modem.DeviceId"/>
     <keyword type="property" name="The &quot;OperatorCode&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Modem.html#gdbus-property-org-freedesktop-NetworkManager-Device-Modem.OperatorCode"/>
     <keyword type="property" name="The &quot;Apn&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Modem.html#gdbus-property-org-freedesktop-NetworkManager-Device-Modem.Apn"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.OlpcMesh.html#gdbus-signal-org-freedesktop-NetworkManager-Device-OlpcMesh.PropertiesChanged"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.OlpcMesh.html#gdbus-property-org-freedesktop-NetworkManager-Device-OlpcMesh.HwAddress"/>
     <keyword type="property" name="The &quot;Companion&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.OlpcMesh.html#gdbus-property-org-freedesktop-NetworkManager-Device-OlpcMesh.Companion"/>
     <keyword type="property" name="The &quot;ActiveChannel&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.OlpcMesh.html#gdbus-property-org-freedesktop-NetworkManager-Device-OlpcMesh.ActiveChannel"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.OvsBridge.html#gdbus-signal-org-freedesktop-NetworkManager-Device-OvsBridge.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Slaves&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.OvsBridge.html#gdbus-property-org-freedesktop-NetworkManager-Device-OvsBridge.Slaves"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.OvsInterface.html#gdbus-signal-org-freedesktop-NetworkManager-Device-OvsInterface.PropertiesChanged"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.OvsPort.html#gdbus-signal-org-freedesktop-NetworkManager-Device-OvsPort.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Slaves&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.OvsPort.html#gdbus-property-org-freedesktop-NetworkManager-Device-OvsPort.Slaves"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Ppp.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Ppp.PropertiesChanged"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Team.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Team.PropertiesChanged"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Team.html#gdbus-property-org-freedesktop-NetworkManager-Device-Team.HwAddress"/>
     <keyword type="property" name="The &quot;Carrier&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Team.html#gdbus-property-org-freedesktop-NetworkManager-Device-Team.Carrier"/>
     <keyword type="property" name="The &quot;Slaves&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Team.html#gdbus-property-org-freedesktop-NetworkManager-Device-Team.Slaves"/>
     <keyword type="property" name="The &quot;Config&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Team.html#gdbus-property-org-freedesktop-NetworkManager-Device-Team.Config"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Tun.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Tun.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Owner&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Tun.html#gdbus-property-org-freedesktop-NetworkManager-Device-Tun.Owner"/>
     <keyword type="property" name="The &quot;Group&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Tun.html#gdbus-property-org-freedesktop-NetworkManager-Device-Tun.Group"/>
     <keyword type="property" name="The &quot;Mode&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Tun.html#gdbus-property-org-freedesktop-NetworkManager-Device-Tun.Mode"/>
@@ -374,15 +353,12 @@
     <keyword type="property" name="The &quot;VnetHdr&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Tun.html#gdbus-property-org-freedesktop-NetworkManager-Device-Tun.VnetHdr"/>
     <keyword type="property" name="The &quot;MultiQueue&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Tun.html#gdbus-property-org-freedesktop-NetworkManager-Device-Tun.MultiQueue"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Tun.html#gdbus-property-org-freedesktop-NetworkManager-Device-Tun.HwAddress"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Veth.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Veth.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Peer&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Veth.html#gdbus-property-org-freedesktop-NetworkManager-Device-Veth.Peer"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Vlan.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Vlan.PropertiesChanged"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.HwAddress"/>
     <keyword type="property" name="The &quot;Carrier&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.Carrier"/>
     <keyword type="property" name="The &quot;Parent&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.Parent"/>
     <keyword type="property" name="The &quot;VlanId&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vlan.VlanId"/>
     <keyword type="property" name="The &quot;Table&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vrf.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vrf.Table"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Vxlan.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Vxlan.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Parent&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vxlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.Parent"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vxlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.HwAddress"/>
     <keyword type="property" name="The &quot;Id&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Vxlan.html#gdbus-property-org-freedesktop-NetworkManager-Device-Vxlan.Id"/>
@@ -409,7 +385,6 @@
     <keyword type="property" name="The &quot;PublicKey&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.WireGuard.html#gdbus-property-org-freedesktop-NetworkManager-Device-WireGuard.PublicKey"/>
     <keyword type="property" name="The &quot;ListenPort&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.WireGuard.html#gdbus-property-org-freedesktop-NetworkManager-Device-WireGuard.ListenPort"/>
     <keyword type="property" name="The &quot;FwMark&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.WireGuard.html#gdbus-property-org-freedesktop-NetworkManager-Device-WireGuard.FwMark"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Wired.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Wired.PropertiesChanged"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Wired.html#gdbus-property-org-freedesktop-NetworkManager-Device-Wired.HwAddress"/>
     <keyword type="property" name="The &quot;PermHwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Wired.html#gdbus-property-org-freedesktop-NetworkManager-Device-Wired.PermHwAddress"/>
     <keyword type="property" name="The &quot;Speed&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Wired.html#gdbus-property-org-freedesktop-NetworkManager-Device-Wired.Speed"/>
@@ -418,7 +393,6 @@
     <keyword type="method" name="The GetAccessPoints() method" link="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html#gdbus-method-org-freedesktop-NetworkManager-Device-Wireless.GetAccessPoints"/>
     <keyword type="method" name="The GetAllAccessPoints() method" link="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html#gdbus-method-org-freedesktop-NetworkManager-Device-Wireless.GetAllAccessPoints"/>
     <keyword type="method" name="The RequestScan() method" link="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html#gdbus-method-org-freedesktop-NetworkManager-Device-Wireless.RequestScan"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Wireless.PropertiesChanged"/>
     <keyword type="signal" name="The &quot;AccessPointAdded&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Wireless.AccessPointAdded"/>
     <keyword type="signal" name="The &quot;AccessPointRemoved&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Wireless.AccessPointRemoved"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html#gdbus-property-org-freedesktop-NetworkManager-Device-Wireless.HwAddress"/>
@@ -436,7 +410,6 @@
     <keyword type="method" name="The SetState() method" link="gdbus-org.freedesktop.NetworkManager.PPP.html#gdbus-method-org-freedesktop-NetworkManager-PPP.SetState"/>
     <keyword type="method" name="The SetIfindex() method" link="gdbus-org.freedesktop.NetworkManager.PPP.html#gdbus-method-org-freedesktop-NetworkManager-PPP.SetIfindex"/>
     <keyword type="signal" name="The &quot;StateChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-signal-org-freedesktop-NetworkManager-Connection-Active.StateChanged"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-signal-org-freedesktop-NetworkManager-Connection-Active.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Connection&quot; property" link="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Connection"/>
     <keyword type="property" name="The &quot;SpecificObject&quot; property" link="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.SpecificObject"/>
     <keyword type="property" name="The &quot;Id&quot; property" link="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Id"/>
@@ -453,11 +426,9 @@
     <keyword type="property" name="The &quot;Dhcp6Config&quot; property" link="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Dhcp6Config"/>
     <keyword type="property" name="The &quot;Vpn&quot; property" link="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Vpn"/>
     <keyword type="property" name="The &quot;Master&quot; property" link="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-property-org-freedesktop-NetworkManager-Connection-Active.Master"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-VPN-Connection.PropertiesChanged"/>
     <keyword type="signal" name="The &quot;VpnStateChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-VPN-Connection.VpnStateChanged"/>
     <keyword type="property" name="The &quot;VpnState&quot; property" link="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html#gdbus-property-org-freedesktop-NetworkManager-VPN-Connection.VpnState"/>
     <keyword type="property" name="The &quot;Banner&quot; property" link="gdbus-org.freedesktop.NetworkManager.VPN.Connection.html#gdbus-property-org-freedesktop-NetworkManager-VPN-Connection.Banner"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.IP4Config.html#gdbus-signal-org-freedesktop-NetworkManager-IP4Config.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Addresses&quot; property" link="gdbus-org.freedesktop.NetworkManager.IP4Config.html#gdbus-property-org-freedesktop-NetworkManager-IP4Config.Addresses"/>
     <keyword type="property" name="The &quot;AddressData&quot; property" link="gdbus-org.freedesktop.NetworkManager.IP4Config.html#gdbus-property-org-freedesktop-NetworkManager-IP4Config.AddressData"/>
     <keyword type="property" name="The &quot;Gateway&quot; property" link="gdbus-org.freedesktop.NetworkManager.IP4Config.html#gdbus-property-org-freedesktop-NetworkManager-IP4Config.Gateway"/>
@@ -471,7 +442,6 @@
     <keyword type="property" name="The &quot;DnsPriority&quot; property" link="gdbus-org.freedesktop.NetworkManager.IP4Config.html#gdbus-property-org-freedesktop-NetworkManager-IP4Config.DnsPriority"/>
     <keyword type="property" name="The &quot;WinsServers&quot; property" link="gdbus-org.freedesktop.NetworkManager.IP4Config.html#gdbus-property-org-freedesktop-NetworkManager-IP4Config.WinsServers"/>
     <keyword type="property" name="The &quot;WinsServerData&quot; property" link="gdbus-org.freedesktop.NetworkManager.IP4Config.html#gdbus-property-org-freedesktop-NetworkManager-IP4Config.WinsServerData"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.IP6Config.html#gdbus-signal-org-freedesktop-NetworkManager-IP6Config.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Addresses&quot; property" link="gdbus-org.freedesktop.NetworkManager.IP6Config.html#gdbus-property-org-freedesktop-NetworkManager-IP6Config.Addresses"/>
     <keyword type="property" name="The &quot;AddressData&quot; property" link="gdbus-org.freedesktop.NetworkManager.IP6Config.html#gdbus-property-org-freedesktop-NetworkManager-IP6Config.AddressData"/>
     <keyword type="property" name="The &quot;Gateway&quot; property" link="gdbus-org.freedesktop.NetworkManager.IP6Config.html#gdbus-property-org-freedesktop-NetworkManager-IP6Config.Gateway"/>
@@ -482,11 +452,8 @@
     <keyword type="property" name="The &quot;Searches&quot; property" link="gdbus-org.freedesktop.NetworkManager.IP6Config.html#gdbus-property-org-freedesktop-NetworkManager-IP6Config.Searches"/>
     <keyword type="property" name="The &quot;DnsOptions&quot; property" link="gdbus-org.freedesktop.NetworkManager.IP6Config.html#gdbus-property-org-freedesktop-NetworkManager-IP6Config.DnsOptions"/>
     <keyword type="property" name="The &quot;DnsPriority&quot; property" link="gdbus-org.freedesktop.NetworkManager.IP6Config.html#gdbus-property-org-freedesktop-NetworkManager-IP6Config.DnsPriority"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.DHCP4Config.html#gdbus-signal-org-freedesktop-NetworkManager-DHCP4Config.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Options&quot; property" link="gdbus-org.freedesktop.NetworkManager.DHCP4Config.html#gdbus-property-org-freedesktop-NetworkManager-DHCP4Config.Options"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.DHCP6Config.html#gdbus-signal-org-freedesktop-NetworkManager-DHCP6Config.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Options&quot; property" link="gdbus-org.freedesktop.NetworkManager.DHCP6Config.html#gdbus-property-org-freedesktop-NetworkManager-DHCP6Config.Options"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.AccessPoint.html#gdbus-signal-org-freedesktop-NetworkManager-AccessPoint.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Flags&quot; property" link="gdbus-org.freedesktop.NetworkManager.AccessPoint.html#gdbus-property-org-freedesktop-NetworkManager-AccessPoint.Flags"/>
     <keyword type="property" name="The &quot;WpaFlags&quot; property" link="gdbus-org.freedesktop.NetworkManager.AccessPoint.html#gdbus-property-org-freedesktop-NetworkManager-AccessPoint.WpaFlags"/>
     <keyword type="property" name="The &quot;RsnFlags&quot; property" link="gdbus-org.freedesktop.NetworkManager.AccessPoint.html#gdbus-property-org-freedesktop-NetworkManager-AccessPoint.RsnFlags"/>
@@ -507,7 +474,6 @@
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.WifiP2PPeer.html#gdbus-property-org-freedesktop-NetworkManager-WifiP2PPeer.HwAddress"/>
     <keyword type="property" name="The &quot;Strength&quot; property" link="gdbus-org.freedesktop.NetworkManager.WifiP2PPeer.html#gdbus-property-org-freedesktop-NetworkManager-WifiP2PPeer.Strength"/>
     <keyword type="property" name="The &quot;LastSeen&quot; property" link="gdbus-org.freedesktop.NetworkManager.WifiP2PPeer.html#gdbus-property-org-freedesktop-NetworkManager-WifiP2PPeer.LastSeen"/>
-    <keyword type="signal" name="The &quot;PropertiesChanged&quot; signal" link="gdbus-org.freedesktop.NetworkManager.Checkpoint.html#gdbus-signal-org-freedesktop-NetworkManager-Checkpoint.PropertiesChanged"/>
     <keyword type="property" name="The &quot;Devices&quot; property" link="gdbus-org.freedesktop.NetworkManager.Checkpoint.html#gdbus-property-org-freedesktop-NetworkManager-Checkpoint.Devices"/>
     <keyword type="property" name="The &quot;Created&quot; property" link="gdbus-org.freedesktop.NetworkManager.Checkpoint.html#gdbus-property-org-freedesktop-NetworkManager-Checkpoint.Created"/>
     <keyword type="property" name="The &quot;RollbackTimeout&quot; property" link="gdbus-org.freedesktop.NetworkManager.Checkpoint.html#gdbus-property-org-freedesktop-NetworkManager-Checkpoint.RollbackTimeout"/>
@@ -848,7 +814,9 @@
     <keyword type="constant" name="NM_DEVICE_INTERFACE_FLAG_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.32.4.2.1.4.1.1.1id-1.4.17.2.32.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_DEVICE_INTERFACE_FLAG_UP" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.32.4.2.1.4.2.1.1id-1.4.17.2.32.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_DEVICE_INTERFACE_FLAG_LOWER_UP" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.32.4.2.1.4.3.1.1id-1.4.17.2.32.4.2.1.4.3.1.2"/>
-    <keyword type="constant" name="NM_DEVICE_INTERFACE_FLAG_CARRIER" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.32.4.2.1.4.4.1.1id-1.4.17.2.32.4.2.1.4.4.1.2"/>
+    <keyword type="constant" name="NM_DEVICE_INTERFACE_FLAG_PROMISC" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.32.4.2.1.4.4.1.1id-1.4.17.2.32.4.2.1.4.4.1.2"/>
+    <keyword type="constant" name="NM_DEVICE_INTERFACE_FLAG_CARRIER" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.32.4.2.1.4.5.1.1id-1.4.17.2.32.4.2.1.4.5.1.2"/>
+    <keyword type="constant" name="NM_DEVICE_INTERFACE_FLAG_LLDP_CLIENT_ENABLED" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.32.4.2.1.4.6.1.1id-1.4.17.2.32.4.2.1.4.6.1.2"/>
     <keyword type="constant" name="NM_CLIENT_PERMISSION_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.1.1.1id-1.4.17.2.33.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_CLIENT_PERMISSION_ENABLE_DISABLE_NETWORK" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.2.1.1id-1.4.17.2.33.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_CLIENT_PERMISSION_ENABLE_DISABLE_WIFI" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.33.4.2.1.4.3.1.1id-1.4.17.2.33.4.2.1.4.3.1.2"/>

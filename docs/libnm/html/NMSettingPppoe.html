@@ -15,9 +15,7 @@
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMSettingPppoe.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMSettingPppoe.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMSettingPppoe.properties" class="shortcut">Properties</a></span>
+                  <a href="#NMSettingPppoe.description" class="shortcut">Description</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -89,47 +87,6 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="NMSettingPppoe.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody>
-<tr>
-<td class="property_type">
-<span class="type">char</span> *</td>
-<td class="property_name"><a class="link" href="NMSettingPppoe.html#NMSettingPppoe--parent" title="The “parent” property">parent</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type">
-<span class="type">char</span> *</td>
-<td class="property_name"><a class="link" href="NMSettingPppoe.html#NMSettingPppoe--password" title="The “password” property">password</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingPppoe.html#NMSettingPppoe--password-flags" title="The “password-flags” property">password-flags</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type">
-<span class="type">char</span> *</td>
-<td class="property_name"><a class="link" href="NMSettingPppoe.html#NMSettingPppoe--service" title="The “service” property">service</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type">
-<span class="type">char</span> *</td>
-<td class="property_name"><a class="link" href="NMSettingPppoe.html#NMSettingPppoe--username" title="The “username” property">username</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
 <a name="NMSettingPppoe.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -161,19 +118,8 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingPppoe.html#NM-SETTING-PPPOE-PASSWORD-FLAGS:CAPS" title="NM_SETTING_PPPOE_PASSWORD_FLAGS">NM_SETTING_PPPOE_PASSWORD_FLAGS</a></td>
 </tr>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMSettingPppoe.html#NMSettingPppoe-struct" title="NMSettingPppoe">NMSettingPppoe</a></td>
-</tr>
 </tbody>
 </table></div>
-</div>
-<div class="refsect1">
-<a name="NMSettingPppoe.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
-        <span class="lineart">╰──</span> NMSettingPppoe
-</pre>
 </div>
 <div class="refsect1">
 <a name="NMSettingPppoe.description"></a><h2>Description</h2>
@@ -216,7 +162,7 @@ nm_setting_pppoe_get_parent (<em class="parameter"><code><a class="link" href="N
 </div>
 <div class="refsect3">
 <a name="nm-setting-pppoe-get-parent.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingPppoe.html#NMSettingPppoe--parent" title="The “parent” property"><span class="type">“parent”</span></a> property of the setting</p>
+<p> the <span class="type">“parent”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.10</p>
 </div>
@@ -242,7 +188,7 @@ nm_setting_pppoe_get_service (<em class="parameter"><code><a class="link" href="
 </div>
 <div class="refsect3">
 <a name="nm-setting-pppoe-get-service.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingPppoe.html#NMSettingPppoe--service" title="The “service” property"><span class="type">“service”</span></a> property of the setting</p>
+<p> the <span class="type">“service”</span> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -267,7 +213,7 @@ nm_setting_pppoe_get_username (<em class="parameter"><code><a class="link" href=
 </div>
 <div class="refsect3">
 <a name="nm-setting-pppoe-get-username.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingPppoe.html#NMSettingPppoe--username" title="The “username” property"><span class="type">“username”</span></a> property of the setting</p>
+<p> the <span class="type">“username”</span> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -292,7 +238,7 @@ nm_setting_pppoe_get_password (<em class="parameter"><code><a class="link" href=
 </div>
 <div class="refsect3">
 <a name="nm-setting-pppoe-get-password.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingPppoe.html#NMSettingPppoe--password" title="The “password” property"><span class="type">“password”</span></a> property of the setting</p>
+<p> the <span class="type">“password”</span> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -317,7 +263,7 @@ nm_setting_pppoe_get_password_flags (<em class="parameter"><code><a class="link"
 </div>
 <div class="refsect3">
 <a name="nm-setting-pppoe-get-password-flags.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> pertaining to the <a class="link" href="NMSettingPppoe.html#NMSettingPppoe--password" title="The “password” property"><span class="type">“password”</span></a></p>
+<p> the <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> pertaining to the <span class="type">“password”</span></p>
 </div>
 </div>
 </div>
@@ -357,65 +303,6 @@ nm_setting_pppoe_get_password_flags (<em class="parameter"><code><a class="link"
 <a name="NM-SETTING-PPPOE-PASSWORD-FLAGS:CAPS"></a><h3>NM_SETTING_PPPOE_PASSWORD_FLAGS</h3>
 <pre class="programlisting">#define NM_SETTING_PPPOE_PASSWORD_FLAGS "password-flags"
 </pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingPppoe-struct"></a><h3>NMSettingPppoe</h3>
-<pre class="programlisting">typedef struct _NMSettingPppoe NMSettingPppoe;</pre>
-<p>PPP-over-Ethernet Settings</p>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMSettingPppoe.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMSettingPppoe--parent"></a><h3>The <code class="literal">“parent”</code> property</h3>
-<pre class="programlisting">  “parent”                   <span class="type">char</span> *</pre>
-<p>If given, specifies the parent interface name on which this PPPoE
-connection should be created.  If this property is not specified,
-the connection is activated on the interface specified in
-<a class="link" href="NMSettingConnection.html#NMSettingConnection--interface-name" title="The “interface-name” property"><span class="type">“interface-name”</span></a> of <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a>.</p>
-<p>Owner: NMSettingPppoe</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NULL</p>
-<p class="since">Since: 1.10</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingPppoe--password"></a><h3>The <code class="literal">“password”</code> property</h3>
-<pre class="programlisting">  “password”                 <span class="type">char</span> *</pre>
-<p>Password used to authenticate with the PPPoE service.</p>
-<p>Owner: NMSettingPppoe</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NULL</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingPppoe--password-flags"></a><h3>The <code class="literal">“password-flags”</code> property</h3>
-<pre class="programlisting">  “password-flags”           <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a></pre>
-<p>Flags indicating how to handle the <a class="link" href="NMSettingPppoe.html#NMSettingPppoe--password" title="The “password” property"><span class="type">“password”</span></a> property.</p>
-<p>Owner: NMSettingPppoe</p>
-<p>Flags: Read / Write</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingPppoe--service"></a><h3>The <code class="literal">“service”</code> property</h3>
-<pre class="programlisting">  “service”                  <span class="type">char</span> *</pre>
-<p>If specified, instruct PPPoE to only initiate sessions with access
-concentrators that provide the specified service.  For most providers,
-this should be left blank.  It is only required if there are multiple
-access concentrators or a specific service is known to be required.</p>
-<p>Owner: NMSettingPppoe</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NULL</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingPppoe--username"></a><h3>The <code class="literal">“username”</code> property</h3>
-<pre class="programlisting">  “username”                 <span class="type">char</span> *</pre>
-<p>Username used to authenticate with the PPPoE service.</p>
-<p>Owner: NMSettingPppoe</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NULL</p>
 </div>
 </div>
 </div>

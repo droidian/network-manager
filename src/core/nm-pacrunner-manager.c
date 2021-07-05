@@ -9,13 +9,13 @@
 
 #include "nm-utils.h"
 #include "NetworkManagerUtils.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "nm-dbus-manager.h"
 #include "nm-proxy-config.h"
 #include "nm-ip4-config.h"
 #include "nm-ip6-config.h"
 #include "c-list/src/c-list.h"
-#include "nm-glib-aux/nm-dbus-aux.h"
+#include "libnm-glib-aux/nm-dbus-aux.h"
 
 #define PACRUNNER_DBUS_SERVICE   "org.pacrunner"
 #define PACRUNNER_DBUS_INTERFACE "org.pacrunner.Manager"
@@ -198,6 +198,7 @@ _make_request_create_proxy_configuration(NMProxyConfig *proxy_config,
             g_variant_builder_add(&builder, "{sv}", "Script", g_variant_new_string(pac_script));
         }
         break;
+    case NM_PROXY_CONFIG_METHOD_UNKNOWN:
     case NM_PROXY_CONFIG_METHOD_NONE:
         g_variant_builder_add(&builder, "{sv}", "Method", g_variant_new_string("direct"));
         break;

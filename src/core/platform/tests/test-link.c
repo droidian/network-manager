@@ -11,11 +11,11 @@
 #include <sys/types.h>
 #include <linux/if_tun.h>
 
-#include "nm-glib-aux/nm-io-utils.h"
-#include "nm-base/nm-ethtool-base.h"
-#include "platform/nmp-object.h"
-#include "nm-platform/nmp-netns.h"
-#include "nm-platform/nm-platform-utils.h"
+#include "libnm-glib-aux/nm-io-utils.h"
+#include "libnm-base/nm-ethtool-base.h"
+#include "libnm-platform/nmp-object.h"
+#include "libnm-platform/nmp-netns.h"
+#include "libnm-platform/nm-platform-utils.h"
 
 #include "test-common.h"
 #include "nm-test-utils-core.h"
@@ -48,13 +48,15 @@ test_bogus(void)
     g_assert(!nm_platform_link_get_type(NM_PLATFORM_GET, BOGUS_IFINDEX));
     g_assert(!nm_platform_link_get_type_name(NM_PLATFORM_GET, BOGUS_IFINDEX));
 
-    g_assert(!nm_platform_link_set_up(NM_PLATFORM_GET, BOGUS_IFINDEX, NULL));
+    g_assert(!(nm_platform_link_change_flags(NM_PLATFORM_GET, BOGUS_IFINDEX, IFF_UP, TRUE) >= 0));
 
-    g_assert(!nm_platform_link_set_down(NM_PLATFORM_GET, BOGUS_IFINDEX));
+    g_assert(!(nm_platform_link_change_flags(NM_PLATFORM_GET, BOGUS_IFINDEX, IFF_UP, FALSE) >= 0));
 
-    g_assert(!nm_platform_link_set_arp(NM_PLATFORM_GET, BOGUS_IFINDEX));
+    g_assert(
+        !(nm_platform_link_change_flags(NM_PLATFORM_GET, BOGUS_IFINDEX, IFF_NOARP, TRUE) >= 0));
 
-    g_assert(!nm_platform_link_set_noarp(NM_PLATFORM_GET, BOGUS_IFINDEX));
+    g_assert(
+        !(nm_platform_link_change_flags(NM_PLATFORM_GET, BOGUS_IFINDEX, IFF_NOARP, FALSE) >= 0));
 
     g_assert(!nm_platform_link_is_up(NM_PLATFORM_GET, BOGUS_IFINDEX));
     g_assert(!nm_platform_link_is_connected(NM_PLATFORM_GET, BOGUS_IFINDEX));
@@ -147,7 +149,8 @@ software_add(NMLinkType link_type, const char *name)
                                                 NM_PLATFORM_SIGNAL_CHANGED,
                                                 link_callback,
                                                 parent_ifindex);
-            g_assert(nm_platform_link_set_up(NM_PLATFORM_GET, parent_ifindex, NULL));
+            g_assert(nm_platform_link_change_flags(NM_PLATFORM_GET, parent_ifindex, IFF_UP, TRUE)
+                     >= 0);
             if (was_up) {
                 /* when NM is running in the background, it will mess with addrgenmode which might cause additional signals. */
                 accept_signals(parent_changed, 0, 1);
@@ -233,7 +236,7 @@ test_slave(int master, int type, SignalData *master_changed)
      * See https://bugzilla.redhat.com/show_bug.cgi?id=910348
      */
     g_assert(!nm_platform_link_is_up(NM_PLATFORM_GET, ifindex));
-    g_assert(nm_platform_link_set_down(NM_PLATFORM_GET, ifindex));
+    g_assert(nm_platform_link_change_flags(NM_PLATFORM_GET, ifindex, IFF_UP, FALSE) >= 0);
     g_assert(!nm_platform_link_is_up(NM_PLATFORM_GET, ifindex));
     ensure_no_signal(link_changed);
 
@@ -263,7 +266,7 @@ test_slave(int master, int type, SignalData *master_changed)
                      &test_link_changed_signal_arg2);
 
     /* Set master up */
-    g_assert(nm_platform_link_set_up(NM_PLATFORM_GET, master, NULL));
+    g_assert(nm_platform_link_change_flags(NM_PLATFORM_GET, master, IFF_UP, TRUE) >= 0);
     g_assert(nm_platform_link_is_up(NM_PLATFORM_GET, master));
     accept_signals(master_changed, 1, 3);
 
@@ -284,7 +287,7 @@ test_slave(int master, int type, SignalData *master_changed)
     switch (nm_platform_link_get_type(NM_PLATFORM_GET, master)) {
     case NM_LINK_TYPE_BOND:
     case NM_LINK_TYPE_TEAM:
-        g_assert(nm_platform_link_set_down(NM_PLATFORM_GET, ifindex));
+        g_assert(nm_platform_link_change_flags(NM_PLATFORM_GET, ifindex, IFF_UP, FALSE) >= 0);
         accept_signal(link_changed);
         accept_signals(master_changed, 0, 3);
         break;
@@ -317,7 +320,7 @@ test_slave(int master, int type, SignalData *master_changed)
     }
 
     /* Set slave up and see if master gets up too */
-    g_assert(nm_platform_link_set_up(NM_PLATFORM_GET, ifindex, NULL));
+    g_assert(nm_platform_link_change_flags(NM_PLATFORM_GET, ifindex, IFF_UP, TRUE) >= 0);
     g_assert(nm_platform_link_is_connected(NM_PLATFORM_GET, ifindex));
     g_assert(nm_platform_link_is_connected(NM_PLATFORM_GET, master));
     accept_signals(link_changed, 1, 3);
@@ -439,10 +442,10 @@ test_software(NMLinkType link_type, const char *link_typename)
 
     /* Set ARP/NOARP */
     g_assert(nm_platform_link_uses_arp(NM_PLATFORM_GET, ifindex));
-    g_assert(nm_platform_link_set_noarp(NM_PLATFORM_GET, ifindex));
+    g_assert(nm_platform_link_change_flags(NM_PLATFORM_GET, ifindex, IFF_NOARP, TRUE) >= 0);
     g_assert(!nm_platform_link_uses_arp(NM_PLATFORM_GET, ifindex));
     accept_signals(link_changed, 1, 2);
-    g_assert(nm_platform_link_set_arp(NM_PLATFORM_GET, ifindex));
+    g_assert(nm_platform_link_change_flags(NM_PLATFORM_GET, ifindex, IFF_NOARP, FALSE) >= 0);
     g_assert(nm_platform_link_uses_arp(NM_PLATFORM_GET, ifindex));
     accept_signal(link_changed);
 
@@ -672,21 +675,21 @@ test_internal(void)
     /* Up/connected */
     g_assert(!nm_platform_link_is_up(NM_PLATFORM_GET, ifindex));
     g_assert(!nm_platform_link_is_connected(NM_PLATFORM_GET, ifindex));
-    g_assert(nm_platform_link_set_up(NM_PLATFORM_GET, ifindex, NULL));
+    g_assert(nm_platform_link_change_flags(NM_PLATFORM_GET, ifindex, IFF_UP, TRUE) >= 0);
     g_assert(nm_platform_link_is_up(NM_PLATFORM_GET, ifindex));
     g_assert(nm_platform_link_is_connected(NM_PLATFORM_GET, ifindex));
     accept_signals(link_changed, 1, 2);
-    g_assert(nm_platform_link_set_down(NM_PLATFORM_GET, ifindex));
+    g_assert(nm_platform_link_change_flags(NM_PLATFORM_GET, ifindex, IFF_UP, FALSE) >= 0);
     g_assert(!nm_platform_link_is_up(NM_PLATFORM_GET, ifindex));
     g_assert(!nm_platform_link_is_connected(NM_PLATFORM_GET, ifindex));
     accept_signal(link_changed);
 
     /* arp/noarp */
     g_assert(!nm_platform_link_uses_arp(NM_PLATFORM_GET, ifindex));
-    g_assert(nm_platform_link_set_arp(NM_PLATFORM_GET, ifindex));
+    g_assert(nm_platform_link_change_flags(NM_PLATFORM_GET, ifindex, IFF_NOARP, FALSE) >= 0);
     g_assert(nm_platform_link_uses_arp(NM_PLATFORM_GET, ifindex));
     accept_signal(link_changed);
-    g_assert(nm_platform_link_set_noarp(NM_PLATFORM_GET, ifindex));
+    g_assert(nm_platform_link_change_flags(NM_PLATFORM_GET, ifindex, IFF_NOARP, TRUE) >= 0);
     g_assert(!nm_platform_link_uses_arp(NM_PLATFORM_GET, ifindex));
     accept_signal(link_changed);
 
@@ -1303,7 +1306,7 @@ test_software_detect(gconstpointer user_data)
 
         if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "gre0")) {
             /* Seems that the ip_gre module is not loaded... try to load it. */
-            gracefully_skip = nm_utils_modprobe(NULL, TRUE, "ip_gre", NULL) != 0;
+            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "ip_gre", NULL) != 0;
         }
 
         if (!nmtstp_link_gre_add(NULL, ext, DEVICE_NAME, &lnk_gre)) {
@@ -1330,7 +1333,7 @@ test_software_detect(gconstpointer user_data)
 
         if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "gretap0")) {
             /* Seems that the ip_gre module is not loaded... try to load it. */
-            gracefully_skip = nm_utils_modprobe(NULL, TRUE, "ip_gre", NULL) != 0;
+            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "ip_gre", NULL) != 0;
         }
 
         if (!nmtstp_link_gre_add(NULL, ext, DEVICE_NAME, &lnk_gre)) {
@@ -1350,7 +1353,7 @@ test_software_detect(gconstpointer user_data)
 
         if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "tunl0")) {
             /* Seems that the ipip module is not loaded... try to load it. */
-            gracefully_skip = nm_utils_modprobe(NULL, TRUE, "ipip", NULL) != 0;
+            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "ipip", NULL) != 0;
         }
 
         lnk_ipip.local              = nmtst_inet4_from_string("1.2.3.4");
@@ -1376,7 +1379,7 @@ test_software_detect(gconstpointer user_data)
 
         if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "ip6tnl0")) {
             /* Seems that the ip6_tunnel module is not loaded... try to load it. */
-            gracefully_skip = nm_utils_modprobe(NULL, TRUE, "ip6_tunnel", NULL) != 0;
+            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "ip6_tunnel", NULL) != 0;
         }
 
         switch (test_data->test_mode) {
@@ -1418,7 +1421,7 @@ test_software_detect(gconstpointer user_data)
 
         if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "ip6gre0")) {
             /* Seems that the ip6_tunnel module is not loaded... try to load it. */
-            gracefully_skip = nm_utils_modprobe(NULL, TRUE, "ip6_gre", NULL) != 0;
+            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "ip6_gre", NULL) != 0;
         }
 
         lnk_ip6tnl.local          = *nmtst_inet6_from_string("fd01::42");
@@ -1445,7 +1448,7 @@ test_software_detect(gconstpointer user_data)
 
         if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "ip6gre0")) {
             /* Seems that the ip6_tunnel module is not loaded... try to load it. */
-            gracefully_skip = nm_utils_modprobe(NULL, TRUE, "ip6_gre", NULL) != 0;
+            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "ip6_gre", NULL) != 0;
         }
 
         lnk_ip6tnl.local          = *nmtst_inet6_from_string("fe80::abcd");
@@ -1526,7 +1529,7 @@ test_software_detect(gconstpointer user_data)
 
         if (!nm_platform_link_get_by_ifname(NM_PLATFORM_GET, "sit0")) {
             /* Seems that the sit module is not loaded... try to load it. */
-            gracefully_skip = nm_utils_modprobe(NULL, TRUE, "sit", NULL) != 0;
+            gracefully_skip = nmp_utils_modprobe(NULL, TRUE, "sit", NULL) != 0;
         }
 
         if (!nmtstp_link_sit_add(NULL, ext, DEVICE_NAME, &lnk_sit)) {
@@ -1679,17 +1682,25 @@ test_software_detect(gconstpointer user_data)
         case NM_LINK_TYPE_BRIDGE:
         {
             const NMPlatformLnkBridge *plnk = &lnk->lnk_bridge;
+            NMPlatformLnkBridge        lnk_bridge_norm_stack;
+            const NMPlatformLnkBridge *lnk_bridge_norm;
 
             g_assert(plnk == nm_platform_link_get_lnk_bridge(NM_PLATFORM_GET, ifindex, NULL));
-            g_assert_cmpint(nm_platform_lnk_bridge_cmp(&lnk_bridge, plnk), ==, 0);
-            g_assert_cmpint(plnk->forward_delay, ==, 1560);
-            g_assert_cmpint(plnk->hello_time, ==, 150);
-            g_assert_cmpint(plnk->max_age, ==, 2100);
-            g_assert_cmpint(plnk->ageing_time, ==, 2200);
+
+            lnk_bridge_norm = nmtstp_link_bridge_normalize_jiffies_time(&lnk_bridge,
+                                                                        plnk,
+                                                                        &lnk_bridge_norm_stack);
+
+            g_assert_cmpint(nm_platform_lnk_bridge_cmp(lnk_bridge_norm, plnk), ==, 0);
+
+            g_assert_cmpint(plnk->forward_delay, ==, lnk_bridge_norm->forward_delay);
+            g_assert_cmpint(plnk->hello_time, ==, lnk_bridge_norm->hello_time);
+            g_assert_cmpint(plnk->max_age, ==, lnk_bridge_norm->max_age);
+            g_assert_cmpint(plnk->ageing_time, ==, lnk_bridge_norm->ageing_time);
             g_assert_cmpint(plnk->stp_state, ==, TRUE);
             g_assert_cmpint(plnk->priority, ==, 22);
             g_assert_cmpint(plnk->vlan_protocol, ==, 0x8100);
-            g_assert_cmpint(plnk->vlan_stats_enabled, ==, lnk_bridge.vlan_stats_enabled);
+            g_assert_cmpint(plnk->vlan_stats_enabled, ==, lnk_bridge_norm->vlan_stats_enabled);
             g_assert_cmpint(plnk->group_fwd_mask, ==, 8);
             g_assert_cmpint(plnk->mcast_snooping, ==, TRUE);
             g_assert_cmpint(plnk->mcast_router, ==, 1);
@@ -1698,13 +1709,22 @@ test_software_detect(gconstpointer user_data)
             g_assert_cmpint(plnk->mcast_hash_max, ==, 1024);
             g_assert_cmpint(plnk->mcast_last_member_count, ==, 2);
             g_assert_cmpint(plnk->mcast_startup_query_count, ==, 3);
-            g_assert_cmpint(plnk->mcast_last_member_interval, ==, 5000);
-            g_assert_cmpint(plnk->mcast_membership_interval, ==, 25000);
-            g_assert_cmpint(plnk->mcast_querier_interval, ==, 26000);
-            g_assert_cmpint(plnk->mcast_query_interval, ==, 12000);
-            g_assert_cmpint(plnk->mcast_query_response_interval, ==, 5200);
-            g_assert_cmpint(plnk->mcast_startup_query_interval, ==, 3000);
-            g_assert_cmpint(nm_platform_lnk_bridge_cmp(&lnk_bridge, plnk), ==, 0);
+            g_assert_cmpint(plnk->mcast_last_member_interval,
+                            ==,
+                            lnk_bridge_norm->mcast_last_member_interval);
+            g_assert_cmpint(plnk->mcast_membership_interval,
+                            ==,
+                            lnk_bridge_norm->mcast_membership_interval);
+            g_assert_cmpint(plnk->mcast_querier_interval,
+                            ==,
+                            lnk_bridge_norm->mcast_querier_interval);
+            g_assert_cmpint(plnk->mcast_query_interval, ==, lnk_bridge_norm->mcast_query_interval);
+            g_assert_cmpint(plnk->mcast_query_response_interval,
+                            ==,
+                            lnk_bridge_norm->mcast_query_response_interval);
+            g_assert_cmpint(plnk->mcast_startup_query_interval,
+                            ==,
+                            lnk_bridge_norm->mcast_startup_query_interval);
             break;
         }
         case NM_LINK_TYPE_GRE:
@@ -2049,7 +2069,7 @@ _assert_xgress_qos_mappings_impl(int ifindex, gboolean is_ingress_map, int n_ent
     _assert_xgress_qos_mappings(ifindex, FALSE, n_entries, __VA_ARGS__)
 
 static void
-_assert_vlan_flags(int ifindex, NMVlanFlags flags)
+_assert_vlan_flags(int ifindex, _NMVlanFlags flags)
 {
     const NMPlatformLnkVlan *plnk;
 
@@ -2362,8 +2382,8 @@ test_vlan_set_xgress(void)
 
         g_assert(nm_platform_link_vlan_change(NM_PLATFORM_GET,
                                               ifindex,
-                                              NM_VLAN_FLAG_REORDER_HEADERS | NM_VLAN_FLAG_GVRP,
-                                              NM_VLAN_FLAG_REORDER_HEADERS,
+                                              _NM_VLAN_FLAG_REORDER_HEADERS | _NM_VLAN_FLAG_GVRP,
+                                              _NM_VLAN_FLAG_REORDER_HEADERS,
                                               TRUE,
                                               ingress_map,
                                               G_N_ELEMENTS(ingress_map),
@@ -2372,7 +2392,7 @@ test_vlan_set_xgress(void)
                                               G_N_ELEMENTS(egress_map)));
         _assert_ingress_qos_mappings(ifindex, 2, 4, 1, 6, 12);
         _assert_egress_qos_mappings(ifindex, 2, 1, 5, 3232, 7);
-        _assert_vlan_flags(ifindex, NM_VLAN_FLAG_REORDER_HEADERS);
+        _assert_vlan_flags(ifindex, _NM_VLAN_FLAG_REORDER_HEADERS);
     }
 
     {
@@ -2393,8 +2413,8 @@ test_vlan_set_xgress(void)
 
         g_assert(nm_platform_link_vlan_change(NM_PLATFORM_GET,
                                               ifindex,
-                                              NM_VLAN_FLAG_GVRP,
-                                              NM_VLAN_FLAG_GVRP,
+                                              _NM_VLAN_FLAG_GVRP,
+                                              _NM_VLAN_FLAG_GVRP,
                                               FALSE,
                                               ingress_map,
                                               G_N_ELEMENTS(ingress_map),
@@ -2403,7 +2423,7 @@ test_vlan_set_xgress(void)
                                               G_N_ELEMENTS(egress_map)));
         _assert_ingress_qos_mappings(ifindex, 2, 4, 1, 6, 12);
         _assert_egress_qos_mappings(ifindex, 2, 1, 7, 64, 4);
-        _assert_vlan_flags(ifindex, NM_VLAN_FLAG_REORDER_HEADERS | NM_VLAN_FLAG_GVRP);
+        _assert_vlan_flags(ifindex, _NM_VLAN_FLAG_REORDER_HEADERS | _NM_VLAN_FLAG_GVRP);
     }
 
     nmtstp_link_delete(NULL, -1, ifindex, DEVICE_NAME, TRUE);

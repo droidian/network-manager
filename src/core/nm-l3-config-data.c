@@ -8,11 +8,12 @@
 #include <linux/if_addr.h>
 #include <linux/rtnetlink.h>
 
-#include "nm-glib-aux/nm-enum-utils.h"
-#include "nm-core-internal.h"
-#include "platform/nm-platform.h"
-#include "nm-platform/nm-platform-utils.h"
-#include "platform/nmp-object.h"
+#include "libnm-core-intern/nm-core-internal.h"
+#include "libnm-glib-aux/nm-enum-utils.h"
+#include "libnm-glib-aux/nm-ref-string.h"
+#include "libnm-platform/nm-platform-utils.h"
+#include "libnm-platform/nm-platform.h"
+#include "libnm-platform/nmp-object.h"
 #include "NetworkManagerUtils.h"
 
 /*****************************************************************************/
@@ -52,7 +53,9 @@ struct _NML3ConfigData {
     GArray *wins;
     GArray *nis_servers;
 
-    char *nis_domain;
+    NMRefString *nis_domain;
+    NMRefString *proxy_pac_url;
+    NMRefString *proxy_pac_script;
 
     union {
         struct {
@@ -129,6 +132,10 @@ struct _NML3ConfigData {
     guint32 ndisc_retrans_timer_msec_val;
 
     NMTernary metered : 3;
+
+    NMTernary proxy_browser_only : 3;
+
+    NMProxyConfigMethod proxy_method : 4;
 
     NMSettingIP6ConfigPrivacy ip6_privacy : 4;
 
@@ -251,7 +258,7 @@ _garray_inaddr_get(GArray *arr, guint *out_len)
 }
 
 static gconstpointer
-_garray_inaddr_at(GArray *arr, guint idx, gboolean IS_IPv4)
+_garray_inaddr_at(GArray *arr, gboolean IS_IPv4, guint idx)
 {
     nm_assert(arr);
     nm_assert(idx < arr->len);
@@ -507,7 +514,7 @@ nm_l3_config_data_log(const NML3ConfigData *self,
                    _nm_utils_inet4_ntop(g_array_index(self->nis_servers, in_addr_t, i), sbuf_addr));
             }
             if (self->nis_domain)
-                _L("nis-domain: %s", self->nis_domain);
+                _L("nis-domain: %s", self->nis_domain->str);
         }
 
         if (self->dhcp_lease_x[IS_IPv4]) {
@@ -556,10 +563,20 @@ nm_l3_config_data_log(const NML3ConfigData *self,
                                            NULL)));
     }
 
-    if (self->metered != NM_TERNARY_DEFAULT) {
+    if (self->metered != NM_TERNARY_DEFAULT)
         _L("metered: %s", self->metered ? "yes" : "no");
-    }
 
+    if (self->proxy_browser_only != NM_TERNARY_DEFAULT)
+        _L("proxy-browser-only: %s", self->proxy_browser_only ? "yes" : "no");
+
+    if (self->proxy_method != NM_PROXY_CONFIG_METHOD_UNKNOWN)
+        _L("proxy-method: %s", self->proxy_method == NM_PROXY_CONFIG_METHOD_AUTO ? "auto" : "none");
+
+    if (self->proxy_pac_url)
+        _L("proxy-pac-url: %s", self->proxy_pac_url->str);
+
+    if (self->proxy_pac_script)
+        _L("proxy-pac-script: %s", self->proxy_pac_script->str);
 #undef _L
 }
 
@@ -642,6 +659,8 @@ nm_l3_config_data_new(NMDedupMultiIndex *multi_idx, int ifindex)
         .llmnr                         = NM_SETTING_CONNECTION_LLMNR_DEFAULT,
         .flags                         = NM_L3_CONFIG_DAT_FLAGS_NONE,
         .metered                       = NM_TERNARY_DEFAULT,
+        .proxy_browser_only            = NM_TERNARY_DEFAULT,
+        .proxy_method                  = NM_PROXY_CONFIG_METHOD_UNKNOWN,
         .route_table_sync_4            = NM_IP_ROUTE_TABLE_SYNC_MODE_NONE,
         .route_table_sync_6            = NM_IP_ROUTE_TABLE_SYNC_MODE_NONE,
         .source                        = NM_IP_CONFIG_SOURCE_UNKNOWN,
@@ -742,7 +761,9 @@ nm_l3_config_data_unref(const NML3ConfigData *self)
 
     nm_dedup_multi_index_unref(mutable->multi_idx);
 
-    g_free(mutable->nis_domain);
+    nm_ref_string_unref(mutable->nis_domain);
+    nm_ref_string_unref(mutable->proxy_pac_url);
+    nm_ref_string_unref(mutable->proxy_pac_script);
 
     nm_g_slice_free(mutable);
 }
@@ -796,8 +817,8 @@ nm_l3_config_data_lookup_route(const NML3ConfigData *   self,
                                int                      addr_family,
                                const NMPlatformIPRoute *needle)
 {
-    const gboolean IS_IPv4 = NM_IS_IPv4(addr_family);
-    NMPObject      obj_stack;
+    const int IS_IPv4 = NM_IS_IPv4(addr_family);
+    NMPObject obj_stack;
 
     nm_assert(_NM_IS_L3_CONFIG_DATA(self, TRUE));
     nm_assert_addr_family(addr_family);
@@ -895,7 +916,7 @@ nmtst_l3_config_data_get_obj_at(const NML3ConfigData *self, NMPObjectType obj_ty
 gboolean
 nm_l3_config_data_has_routes_with_type_local(const NML3ConfigData *self, int addr_family)
 {
-    const gboolean   IS_IPv4 = NM_IS_IPv4(addr_family);
+    const int        IS_IPv4 = NM_IS_IPv4(addr_family);
     NML3ConfigData * self_mutable;
     NMDedupMultiIter iter;
     const NMPObject *obj;
@@ -1178,7 +1199,7 @@ _l3_config_best_default_route_find_better(const NMPObject *obj_cur, const NMPObj
                 return c < 0 ? obj_cur : obj_cmp;
 
             /* as last resort, compare pointers. */
-            if (((uintptr_t)((void *) (obj_cmp))) < ((uintptr_t)((void *) (obj_cur))))
+            if (((uintptr_t) ((void *) (obj_cmp))) < ((uintptr_t) ((void *) (obj_cur))))
                 return obj_cmp;
         }
     }
@@ -1230,7 +1251,7 @@ nm_l3_config_data_add_route_full(NML3ConfigData *         self,
                                  const NMPObject **       out_obj_new,
                                  gboolean *               out_changed_best_default_route)
 {
-    const gboolean       IS_IPv4            = NM_IS_IPv4(addr_family);
+    const int            IS_IPv4            = NM_IS_IPv4(addr_family);
     nm_auto_nmpobj const NMPObject *obj_old = NULL;
     const NMPObject *               obj_new_2;
     gboolean                        changed                    = FALSE;
@@ -1364,6 +1385,14 @@ nm_l3_config_data_add_wins(NML3ConfigData *self, in_addr_t wins)
     return _garray_inaddr_add(&self->wins, AF_INET, &wins);
 }
 
+const in_addr_t *
+nm_l3_config_data_get_nis_servers(const NML3ConfigData *self, guint *out_len)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, TRUE));
+
+    return _garray_inaddr_get(self->nis_servers, out_len);
+}
+
 gboolean
 nm_l3_config_data_add_nis_server(NML3ConfigData *self, in_addr_t nis_server)
 {
@@ -1372,18 +1401,26 @@ nm_l3_config_data_add_nis_server(NML3ConfigData *self, in_addr_t nis_server)
     return _garray_inaddr_add(&self->nis_servers, AF_INET, &nis_server);
 }
 
+const char *
+nm_l3_config_data_get_nis_domain(const NML3ConfigData *self)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, TRUE));
+
+    return nm_ref_string_get_str(self->nis_domain);
+}
+
 gboolean
 nm_l3_config_data_set_nis_domain(NML3ConfigData *self, const char *nis_domain)
 {
     nm_assert(_NM_IS_L3_CONFIG_DATA(self, FALSE));
 
-    return nm_utils_strdup_reset(&self->nis_domain, nis_domain);
+    return nm_ref_string_reset_str(&self->nis_domain, nis_domain);
 }
 
 const char *const *
 nm_l3_config_data_get_domains(const NML3ConfigData *self, int addr_family, guint *out_len)
 {
-    nm_assert(_NM_IS_L3_CONFIG_DATA(self, FALSE));
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, TRUE));
     nm_assert_addr_family(addr_family);
     nm_assert(out_len);
 
@@ -1452,10 +1489,57 @@ nm_l3_config_data_add_dns_option(NML3ConfigData *self, int addr_family, const ch
     return TRUE;
 }
 
+const char *const *
+nm_l3_config_data_get_dns_options(const NML3ConfigData *self, int addr_family, guint *out_len)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, TRUE));
+    nm_assert_addr_family(addr_family);
+    nm_assert(out_len);
+
+    return nm_strv_ptrarray_get_unsafe(self->dns_options_x[NM_IS_IPv4(addr_family)], out_len);
+}
+
+gboolean
+nm_l3_config_data_get_dns_priority(const NML3ConfigData *self, int addr_family, int *out_prio)
+{
+    switch (addr_family) {
+    case AF_UNSPEC:
+        if (NM_FLAGS_ANY(self->flags, NM_L3_CONFIG_DAT_FLAGS_HAS_DNS_PRIORITY_4)) {
+            if (NM_FLAGS_ANY(self->flags, NM_L3_CONFIG_DAT_FLAGS_HAS_DNS_PRIORITY_6)) {
+                NM_SET_OUT(out_prio, MIN(self->dns_priority_4, self->dns_priority_6));
+                return TRUE;
+            }
+            NM_SET_OUT(out_prio, self->dns_priority_4);
+            return TRUE;
+        }
+        if (NM_FLAGS_ANY(self->flags, NM_L3_CONFIG_DAT_FLAGS_HAS_DNS_PRIORITY_6)) {
+            NM_SET_OUT(out_prio, self->dns_priority_6);
+            return TRUE;
+        }
+        break;
+    case AF_INET:
+        if (NM_FLAGS_ANY(self->flags, NM_L3_CONFIG_DAT_FLAGS_HAS_DNS_PRIORITY_4)) {
+            NM_SET_OUT(out_prio, self->dns_priority_4);
+            return TRUE;
+        }
+        break;
+    case AF_INET6:
+        if (NM_FLAGS_ANY(self->flags, NM_L3_CONFIG_DAT_FLAGS_HAS_DNS_PRIORITY_6)) {
+            NM_SET_OUT(out_prio, self->dns_priority_6);
+            return TRUE;
+        }
+        break;
+    default:
+        nm_assert_not_reached();
+    }
+    NM_SET_OUT(out_prio, 0);
+    return FALSE;
+}
+
 gboolean
 nm_l3_config_data_set_dns_priority(NML3ConfigData *self, int addr_family, int dns_priority)
 {
-    const gboolean           IS_IPv4 = NM_IS_IPv4(addr_family);
+    const int                IS_IPv4 = NM_IS_IPv4(addr_family);
     const NML3ConfigDatFlags has_dns_priority_flag =
         NM_L3_CONFIG_DAT_FLAGS_HAS_DNS_PRIORITY(IS_IPv4);
 
@@ -1471,6 +1555,14 @@ nm_l3_config_data_set_dns_priority(NML3ConfigData *self, int addr_family, int dn
     return TRUE;
 }
 
+NMSettingConnectionMdns
+nm_l3_config_data_get_mdns(const NML3ConfigData *self)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, TRUE));
+
+    return self->mdns;
+}
+
 gboolean
 nm_l3_config_data_set_mdns(NML3ConfigData *self, NMSettingConnectionMdns mdns)
 {
@@ -1481,6 +1573,14 @@ nm_l3_config_data_set_mdns(NML3ConfigData *self, NMSettingConnectionMdns mdns)
 
     self->mdns = mdns;
     return TRUE;
+}
+
+NMSettingConnectionLlmnr
+nm_l3_config_data_get_llmnr(const NML3ConfigData *self)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, TRUE));
+
+    return self->llmnr;
 }
 
 gboolean
@@ -1509,7 +1609,7 @@ nm_l3_config_data_set_route_table_sync(NML3ConfigData *       self,
                                        int                    addr_family,
                                        NMIPRouteTableSyncMode route_table_sync)
 {
-    const gboolean IS_IPv4 = NM_IS_IPv4(addr_family);
+    const int IS_IPv4 = NM_IS_IPv4(addr_family);
 
     nm_assert(_NM_IS_L3_CONFIG_DATA(self, FALSE));
     nm_assert_addr_family(addr_family);
@@ -1533,7 +1633,7 @@ gboolean
 nm_l3_config_data_set_metered(NML3ConfigData *self, NMTernary metered)
 {
     nm_assert(_NM_IS_L3_CONFIG_DATA(self, FALSE));
-    nm_assert(NM_IN_SET(metered, NM_TERNARY_DEFAULT, NM_TERNARY_FALSE, NM_TERNARY_TRUE));
+    nm_assert_is_ternary(metered);
 
     if (self->metered == metered)
         return FALSE;
@@ -1617,6 +1717,83 @@ nm_l3_config_data_set_ip6_privacy(NML3ConfigData *self, NMSettingIP6ConfigPrivac
     self->ip6_privacy = ip6_privacy;
     nm_assert(self->ip6_privacy == ip6_privacy);
     return TRUE;
+}
+
+NMProxyConfigMethod
+nm_l3_config_data_get_proxy_method(const NML3ConfigData *self)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, TRUE));
+
+    return self->proxy_method;
+}
+
+gboolean
+nm_l3_config_data_set_proxy_method(NML3ConfigData *self, NMProxyConfigMethod value)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, FALSE));
+    nm_assert(NM_IN_SET(value,
+                        NM_PROXY_CONFIG_METHOD_UNKNOWN,
+                        NM_PROXY_CONFIG_METHOD_NONE,
+                        NM_PROXY_CONFIG_METHOD_AUTO));
+
+    if (self->proxy_method == value)
+        return FALSE;
+
+    self->proxy_method = value;
+    return TRUE;
+}
+
+NMTernary
+nm_l3_config_data_get_proxy_browser_only(const NML3ConfigData *self)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, TRUE));
+
+    return self->proxy_browser_only;
+}
+
+gboolean
+nm_l3_config_data_set_proxy_browser_only(NML3ConfigData *self, NMTernary value)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, FALSE));
+    nm_assert_is_ternary(value);
+
+    if (value == self->proxy_browser_only)
+        return FALSE;
+
+    self->proxy_browser_only = value;
+    return TRUE;
+}
+
+const char *
+nm_l3_config_data_get_proxy_pac_url(const NML3ConfigData *self)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, TRUE));
+
+    return nm_ref_string_get_str(self->proxy_pac_url);
+}
+
+gboolean
+nm_l3_config_data_set_proxy_pac_url(NML3ConfigData *self, const char *value)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, FALSE));
+
+    return nm_ref_string_reset_str(&self->proxy_pac_url, value);
+}
+
+const char *
+nm_l3_config_data_get_proxy_pac_script(const NML3ConfigData *self)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, TRUE));
+
+    return nm_ref_string_get_str(self->proxy_pac_script);
+}
+
+gboolean
+nm_l3_config_data_set_proxy_pac_script(NML3ConfigData *self, const char *value)
+{
+    nm_assert(_NM_IS_L3_CONFIG_DATA(self, FALSE));
+
+    return nm_ref_string_reset_str(&self->proxy_pac_script, value);
 }
 
 gboolean
@@ -1780,13 +1957,16 @@ _dedup_multi_index_cmp(const NML3ConfigData *a, const NML3ConfigData *b, NMPObje
 }
 
 int
-nm_l3_config_data_cmp(const NML3ConfigData *a, const NML3ConfigData *b)
+nm_l3_config_data_cmp_full(const NML3ConfigData *a,
+                           const NML3ConfigData *b,
+                           NML3ConfigCmpFlags    cmp_flags)
 {
     int IS_IPv4;
 
     NM_CMP_SELF(a, b);
 
-    NM_CMP_DIRECT(a->ifindex, b->ifindex);
+    if (!NM_FLAGS_HAS(cmp_flags, NM_L3_CONFIG_CMP_FLAGS_IGNORE_IFINDEX))
+        NM_CMP_DIRECT(a->ifindex, b->ifindex);
 
     NM_CMP_DIRECT(a->flags, b->flags);
 
@@ -1823,12 +2003,16 @@ nm_l3_config_data_cmp(const NML3ConfigData *a, const NML3ConfigData *b)
 
     NM_CMP_RETURN(_garray_inaddr_cmp(a->wins, b->wins, AF_INET));
     NM_CMP_RETURN(_garray_inaddr_cmp(a->nis_servers, b->nis_servers, AF_INET));
-    NM_CMP_FIELD_STR0(a, b, nis_domain);
+    NM_CMP_DIRECT_REF_STRING(a->nis_domain, b->nis_domain);
     NM_CMP_DIRECT(a->mdns, b->mdns);
     NM_CMP_DIRECT(a->llmnr, b->llmnr);
     NM_CMP_DIRECT(a->mtu, b->mtu);
     NM_CMP_DIRECT(a->ip6_mtu, b->ip6_mtu);
     NM_CMP_DIRECT_UNSAFE(a->metered, b->metered);
+    NM_CMP_DIRECT_UNSAFE(a->proxy_browser_only, b->proxy_browser_only);
+    NM_CMP_DIRECT_UNSAFE(a->proxy_method, b->proxy_method);
+    NM_CMP_DIRECT_REF_STRING(a->proxy_pac_url, b->proxy_pac_url);
+    NM_CMP_DIRECT_REF_STRING(a->proxy_pac_script, b->proxy_pac_script);
     NM_CMP_DIRECT_UNSAFE(a->ip6_privacy, b->ip6_privacy);
 
     NM_CMP_DIRECT_UNSAFE(a->ndisc_hop_limit_set, b->ndisc_hop_limit_set);
@@ -1863,7 +2047,7 @@ _data_get_direct_route_for_host(const NML3ConfigData *self,
                                 gconstpointer         host,
                                 guint32               route_table)
 {
-    const gboolean            IS_IPv4        = NM_IS_IPv4(addr_family);
+    const int                 IS_IPv4        = NM_IS_IPv4(addr_family);
     const NMPObject *         best_route_obj = NULL;
     const NMPlatformIPXRoute *best_route     = NULL;
     const NMPObject *         item_obj;
@@ -1998,7 +2182,7 @@ nm_l3_config_data_add_dependent_routes(NML3ConfigData *self,
                                        guint32         route_metric,
                                        gboolean        is_vrf)
 {
-    const gboolean    IS_IPv4                        = NM_IS_IPv4(addr_family);
+    const int         IS_IPv4                        = NM_IS_IPv4(addr_family);
     gs_unref_ptrarray GPtrArray *extra_onlink_routes = NULL;
     const NMPObject *            my_addr_obj;
     const NMPObject *            my_route_obj;
@@ -2209,7 +2393,7 @@ _init_from_connection_ip(NML3ConfigData *self,
                          guint32         route_table,
                          guint32         route_metric)
 {
-    const gboolean     IS_IPv4 = NM_IS_IPv4(addr_family);
+    const int          IS_IPv4 = NM_IS_IPv4(addr_family);
     NMSettingIPConfig *s_ip;
     guint              naddresses;
     guint              nroutes;
@@ -2388,11 +2572,28 @@ nm_l3_config_data_new_from_connection(NMDedupMultiIndex *multi_idx,
                                       guint32            route_metric_6)
 {
     NML3ConfigData *self;
+    NMSettingProxy *s_proxy;
 
     self = nm_l3_config_data_new(multi_idx, ifindex);
 
     _init_from_connection_ip(self, AF_INET, connection, route_table_4, route_metric_4);
     _init_from_connection_ip(self, AF_INET6, connection, route_table_6, route_metric_6);
+
+    s_proxy = _nm_connection_get_setting(connection, NM_TYPE_SETTING_PROXY);
+    if (s_proxy) {
+        switch (nm_setting_proxy_get_method(s_proxy)) {
+        case NM_SETTING_PROXY_METHOD_NONE:
+            self->proxy_method = NM_PROXY_CONFIG_METHOD_NONE;
+            break;
+        case NM_SETTING_PROXY_METHOD_AUTO:
+            self->proxy_method     = NM_PROXY_CONFIG_METHOD_AUTO;
+            self->proxy_pac_url    = nm_ref_string_new(nm_setting_proxy_get_pac_url(s_proxy));
+            self->proxy_pac_script = nm_ref_string_new(nm_setting_proxy_get_pac_script(s_proxy));
+            break;
+        }
+        self->proxy_browser_only = (!!nm_setting_proxy_get_browser_only(s_proxy));
+    }
+
     return self;
 }
 
@@ -2433,7 +2634,7 @@ _init_from_platform(NML3ConfigData *          self,
                     NMPlatform *              platform,
                     NMSettingIP6ConfigPrivacy ipv6_privacy_rfc4941)
 {
-    const gboolean               IS_IPv4 = NM_IS_IPv4(addr_family);
+    const int                    IS_IPv4 = NM_IS_IPv4(addr_family);
     const NMDedupMultiHeadEntry *head_entry;
     const NMPObject *            plobj = NULL;
     NMDedupMultiIter             iter;
@@ -2534,6 +2735,9 @@ nm_l3_config_data_merge(NML3ConfigData *      self,
     nm_assert(default_route_table_x[1] != 0);
     nm_assert(default_route_metric_x[0] != 0); /* IPv6 route metric cannot be zero. */
 
+    nm_assert(!NM_FLAGS_HAS(merge_flags, NM_L3_CONFIG_MERGE_FLAGS_CLONE)
+              || nm_utils_is_power_of_two(merge_flags));
+
     for (IS_IPv4 = 1; IS_IPv4 >= 0; IS_IPv4--) {
         const int                addr_family = IS_IPv4 ? AF_INET : AF_INET6;
         const NML3ConfigDatFlags has_dns_priority_flag =
@@ -2588,28 +2792,31 @@ nm_l3_config_data_merge(NML3ConfigData *      self,
     }                                                   \
     G_STMT_END
 
-                if (r_src->table_any) {
-                    _ensure_r();
-                    r.rx.table_any     = FALSE;
-                    r.rx.table_coerced = default_route_table_x[IS_IPv4];
-                }
-
-                if (r_src->metric_any) {
-                    _ensure_r();
-                    r.rx.metric_any = FALSE;
-                    r.rx.metric = nm_add_clamped_u32(r.rx.metric, default_route_metric_x[IS_IPv4]);
-                }
-
-                if (NM_PLATFORM_IP_ROUTE_IS_DEFAULT(r_src)) {
-                    if (NM_FLAGS_HAS(merge_flags, NM_L3_CONFIG_MERGE_FLAGS_NO_DEFAULT_ROUTES)
-                        && !NM_FLAGS_HAS(src->flags,
-                                         NM_L3_CONFIG_DAT_FLAGS_IGNORE_MERGE_NO_DEFAULT_ROUTES))
-                        continue;
-                    if (default_route_penalty_x && default_route_penalty_x[IS_IPv4] > 0) {
+                if (!NM_FLAGS_HAS(merge_flags, NM_L3_CONFIG_MERGE_FLAGS_CLONE)) {
+                    if (r_src->table_any) {
                         _ensure_r();
+                        r.rx.table_any     = FALSE;
+                        r.rx.table_coerced = default_route_table_x[IS_IPv4];
+                    }
+
+                    if (r_src->metric_any) {
+                        _ensure_r();
+                        r.rx.metric_any = FALSE;
                         r.rx.metric =
-                            nm_utils_ip_route_metric_penalize(r.rx.metric,
-                                                              default_route_penalty_x[IS_IPv4]);
+                            nm_add_clamped_u32(r.rx.metric, default_route_metric_x[IS_IPv4]);
+                    }
+
+                    if (NM_PLATFORM_IP_ROUTE_IS_DEFAULT(r_src)) {
+                        if (NM_FLAGS_HAS(merge_flags, NM_L3_CONFIG_MERGE_FLAGS_NO_DEFAULT_ROUTES)
+                            && !NM_FLAGS_HAS(src->flags,
+                                             NM_L3_CONFIG_DAT_FLAGS_IGNORE_MERGE_NO_DEFAULT_ROUTES))
+                            continue;
+                        if (default_route_penalty_x && default_route_penalty_x[IS_IPv4] > 0) {
+                            _ensure_r();
+                            r.rx.metric =
+                                nm_utils_ip_route_metric_penalize(r.rx.metric,
+                                                                  default_route_penalty_x[IS_IPv4]);
+                        }
                     }
                 }
 
@@ -2653,8 +2860,8 @@ nm_l3_config_data_merge(NML3ConfigData *      self,
         _garray_inaddr_merge(&self->wins, src->wins, AF_INET);
         _garray_inaddr_merge(&self->nis_servers, src->nis_servers, AF_INET);
 
-        if (!self->nis_domain && src->nis_domain)
-            self->nis_domain = g_strdup(src->nis_domain);
+        if (!self->nis_domain)
+            self->nis_domain = nm_ref_string_ref(src->nis_domain);
     }
 
     if (self->mdns == NM_SETTING_CONNECTION_MDNS_DEFAULT)
@@ -2664,6 +2871,18 @@ nm_l3_config_data_merge(NML3ConfigData *      self,
         self->llmnr = src->llmnr;
 
     self->metered = NM_MAX((NMTernary) self->metered, (NMTernary) src->metered);
+
+    if (self->proxy_method == NM_PROXY_CONFIG_METHOD_UNKNOWN)
+        self->proxy_method = src->proxy_method;
+
+    if (self->proxy_browser_only == NM_TERNARY_DEFAULT)
+        self->proxy_browser_only = src->proxy_browser_only;
+
+    if (!self->proxy_pac_url)
+        self->proxy_pac_url = nm_ref_string_ref(src->proxy_pac_url);
+
+    if (!self->proxy_pac_script)
+        self->proxy_pac_script = nm_ref_string_ref(src->proxy_pac_script);
 
     if (self->ip6_privacy == NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN)
         self->ip6_privacy = src->ip6_privacy;
@@ -2689,8 +2908,16 @@ nm_l3_config_data_merge(NML3ConfigData *      self,
     if (self->ip6_mtu == 0u)
         self->ip6_mtu = src->ip6_mtu;
 
-    /* self->source does not get merged. */
-    /* self->dhcp_lease_x does not get merged. */
+    if (NM_FLAGS_HAS(merge_flags, NM_L3_CONFIG_MERGE_FLAGS_CLONE)) {
+        _nm_unused nm_auto_unref_dhcplease NMDhcpLease *dhcp_lease_6 =
+            g_steal_pointer(&self->dhcp_lease_x[0]);
+        _nm_unused nm_auto_unref_dhcplease NMDhcpLease *dhcp_lease_4 =
+            g_steal_pointer(&self->dhcp_lease_x[1]);
+
+        self->source          = src->source;
+        self->dhcp_lease_x[0] = nm_dhcp_lease_ref(self->dhcp_lease_x[0]);
+        self->dhcp_lease_x[1] = nm_dhcp_lease_ref(self->dhcp_lease_x[1]);
+    }
 }
 
 NML3ConfigData *
@@ -2707,6 +2934,17 @@ nm_l3_config_data_new_clone(const NML3ConfigData *src, int ifindex)
         ifindex = src->ifindex;
 
     self = nm_l3_config_data_new(src->multi_idx, ifindex);
-    nm_l3_config_data_merge(self, src, NM_L3_CONFIG_MERGE_FLAGS_NONE, NULL, NULL, NULL, NULL, NULL);
+    nm_l3_config_data_merge(self,
+                            src,
+                            NM_L3_CONFIG_MERGE_FLAGS_CLONE,
+                            NULL,
+                            NULL,
+                            NULL,
+                            NULL,
+                            NULL);
+
+    nm_assert(nm_l3_config_data_cmp_full(src, self, NM_L3_CONFIG_CMP_FLAGS_IGNORE_IFINDEX) == 0);
+    nm_assert(nm_l3_config_data_get_ifindex(self) == ifindex);
+
     return self;
 }

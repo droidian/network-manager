@@ -13,18 +13,18 @@
 #include <ctype.h>
 #include <net/if_arp.h>
 
-#include "nm-glib-aux/nm-dedup-multi.h"
-#include "nm-std-aux/unaligned.h"
+#include "libnm-glib-aux/nm-dedup-multi.h"
+#include "libnm-std-aux/unaligned.h"
 
 #include "nm-utils.h"
 #include "nm-dhcp-utils.h"
 #include "nm-dhcp-options.h"
 #include "nm-core-utils.h"
 #include "NetworkManagerUtils.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "nm-dhcp-client-logging.h"
-#include "systemd/nm-sd.h"
-#include "systemd/nm-sd-utils-dhcp.h"
+#include "libnm-systemd-core/nm-sd.h"
+#include "libnm-systemd-core/nm-sd-utils-dhcp.h"
 
 /*****************************************************************************/
 
@@ -85,29 +85,29 @@ lease_to_ip4_config(NMDedupMultiIndex *multi_idx,
     const struct in_addr *         addr_list;
     char                           addr_str[NM_UTILS_INET_ADDRSTRLEN];
     const char *                   s;
-    nm_auto_free_gstring GString *str      = NULL;
-    gs_free sd_dhcp_route **routes         = NULL;
-    const char *const *     search_domains = NULL;
-    guint16                 mtu;
-    int                     i, num;
-    const void *            data;
-    gsize                   data_len;
-    gboolean                metered                   = FALSE;
-    gboolean                has_router_from_classless = FALSE;
-    gboolean                has_classless_route       = FALSE;
-    gboolean                has_static_route          = FALSE;
-    const gint32            ts                        = nm_utils_get_monotonic_timestamp_sec();
-    gint64                  ts_time                   = time(NULL);
-    struct in_addr          a_address;
-    struct in_addr          a_netmask;
-    struct in_addr          a_next_server;
-    struct in_addr          server_id;
-    struct in_addr          broadcast;
-    const struct in_addr *  a_router;
-    guint32                 a_plen;
-    guint32                 a_lifetime;
-    guint32                 renewal;
-    guint32                 rebinding;
+    nm_auto_free_gstring GString *str           = NULL;
+    nm_auto_free sd_dhcp_route **routes         = NULL;
+    const char *const *          search_domains = NULL;
+    guint16                      mtu;
+    int                          i, num;
+    const void *                 data;
+    gsize                        data_len;
+    gboolean                     metered                   = FALSE;
+    gboolean                     has_router_from_classless = FALSE;
+    gboolean                     has_classless_route       = FALSE;
+    gboolean                     has_static_route          = FALSE;
+    const gint32                 ts                        = nm_utils_get_monotonic_timestamp_sec();
+    gint64                       ts_time                   = time(NULL);
+    struct in_addr               a_address;
+    struct in_addr               a_netmask;
+    struct in_addr               a_next_server;
+    struct in_addr               server_id;
+    struct in_addr               broadcast;
+    const struct in_addr *       a_router;
+    guint32                      a_plen;
+    guint32                      a_lifetime;
+    guint32                      renewal;
+    guint32                      rebinding;
     gs_free nm_sd_dhcp_option *private_options = NULL;
 
     nm_assert(lease != NULL);
@@ -153,7 +153,7 @@ lease_to_ip4_config(NMDedupMultiIndex *multi_idx,
     nm_dhcp_option_add_option_u64(options,
                                   AF_INET,
                                   NM_DHCP_OPTION_DHCP4_NM_EXPIRY,
-                                  (guint64)(ts_time + a_lifetime));
+                                  (guint64) (ts_time + a_lifetime));
 
     if (sd_dhcp_lease_get_next_server(lease, &a_next_server) == 0) {
         _nm_utils_inet4_ntop(a_next_server.s_addr, addr_str);
@@ -429,18 +429,33 @@ lease_to_ip4_config(NMDedupMultiIndex *multi_idx,
     num = nm_sd_dhcp_lease_get_private_options(lease, &private_options);
     if (num > 0) {
         for (i = 0; i < num; i++) {
-            char *option_string;
+            guint8        code       = private_options[i].code;
+            const guint8 *l_data     = private_options[i].data;
+            gsize         l_data_len = private_options[i].data_len;
+            char *        option_string;
 
-            option_string = nm_utils_bin2hexstr_full(private_options[i].data,
-                                                     private_options[i].data_len,
-                                                     ':',
-                                                     FALSE,
-                                                     NULL);
-            if (!options) {
-                g_free(option_string);
+            if (code == NM_DHCP_OPTION_DHCP4_PRIVATE_PROXY_AUTODISCOVERY) {
+                if (nm_dhcp_lease_data_parse_cstr(l_data, l_data_len, &l_data_len)) {
+                    nm_dhcp_option_add_option_utf8safe_escape(
+                        options,
+                        AF_INET,
+                        NM_DHCP_OPTION_DHCP4_PRIVATE_PROXY_AUTODISCOVERY,
+                        l_data,
+                        l_data_len);
+                }
                 continue;
             }
-            nm_dhcp_option_take_option(options, AF_INET, private_options[i].code, option_string);
+            if (code == NM_DHCP_OPTION_DHCP4_PRIVATE_CLASSLESS_STATIC_ROUTE) {
+                /* nettools and dhclient parse option 249 (Microsoft Classless Static Route)
+                 * as fallback for routes and ignores them from private options.
+                 *
+                 * The systemd plugin does not, and for consistency with nettools we
+                 * also don't expose it as private option either. */
+                continue;
+            }
+
+            option_string = nm_utils_bin2hexstr_full(l_data, l_data_len, ':', FALSE, NULL);
+            nm_dhcp_option_take_option(options, AF_INET, code, option_string);
         }
     }
     NM_SET_OUT(out_options, g_steal_pointer(&options));
@@ -543,10 +558,7 @@ dhcp_event_cb(sd_dhcp_client *client, int event, gpointer user_data)
 }
 
 static gboolean
-ip4_start(NMDhcpClient *client,
-          const char *  dhcp_anycast_addr,
-          const char *  last_ip4_address,
-          GError **     error)
+ip4_start(NMDhcpClient *client, const char *last_ip4_address, GError **error)
 {
     nm_auto(sd_dhcp_client_unrefp) sd_dhcp_client *sd_client  = NULL;
     NMDhcpSystemd *                                self       = NM_DHCP_SYSTEMD(client);
@@ -571,6 +583,8 @@ ip4_start(NMDhcpClient *client,
 
     g_return_val_if_fail(!priv->client4, FALSE);
     g_return_val_if_fail(!priv->client6, FALSE);
+
+    /* TODO: honor nm_dhcp_client_get_anycast_address() */
 
     r = sd_dhcp_client_new(&sd_client, FALSE);
     if (r < 0) {
@@ -632,6 +646,11 @@ ip4_start(NMDhcpClient *client,
             sd_dhcp_lease_get_address(lease, &last_addr);
     }
 
+    r = sd_dhcp_client_set_request_broadcast(sd_client,
+                                             NM_FLAGS_HAS(nm_dhcp_client_get_client_flags(client),
+                                                          NM_DHCP_CLIENT_FLAGS_REQUEST_BROADCAST));
+    nm_assert(r >= 0);
+
     if (last_addr.s_addr) {
         r = sd_dhcp_client_set_request_address(sd_client, &last_addr);
         if (r < 0) {
@@ -659,7 +678,7 @@ ip4_start(NMDhcpClient *client,
     r = sd_dhcp_client_set_client_id(sd_client,
                                      client_id_arr[0],
                                      client_id_arr + 1,
-                                     NM_MIN(client_id_len - 1, _NM_SD_MAX_CLIENT_ID_LEN));
+                                     NM_MIN(client_id_len - 1, _NM_MAX_CLIENT_ID_LEN));
     if (r < 0) {
         nm_utils_error_set_errno(error, r, "failed to set IPv4 client-id: %s");
         return FALSE;
@@ -844,14 +863,16 @@ bound6_handle(NMDhcpSystemd *self)
 
     _LOGD("lease available");
 
-    ip6_config = lease_to_ip6_config(nm_dhcp_client_get_multi_idx(NM_DHCP_CLIENT(self)),
-                                     iface,
-                                     nm_dhcp_client_get_ifindex(NM_DHCP_CLIENT(self)),
-                                     lease,
-                                     nm_dhcp_client_get_info_only(NM_DHCP_CLIENT(self)),
-                                     &options,
-                                     ts,
-                                     &error);
+    ip6_config =
+        lease_to_ip6_config(nm_dhcp_client_get_multi_idx(NM_DHCP_CLIENT(self)),
+                            iface,
+                            nm_dhcp_client_get_ifindex(NM_DHCP_CLIENT(self)),
+                            lease,
+                            NM_FLAGS_HAS(nm_dhcp_client_get_client_flags(NM_DHCP_CLIENT(self)),
+                                         NM_DHCP_CLIENT_FLAGS_INFO_ONLY),
+                            &options,
+                            ts,
+                            &error);
 
     if (!ip6_config) {
         _LOGW("%s", error->message);
@@ -905,7 +926,6 @@ dhcp6_event_cb(sd_dhcp6_client *client, int event, gpointer user_data)
 
 static gboolean
 ip6_start(NMDhcpClient *            client,
-          const char *              dhcp_anycast_addr,
           const struct in6_addr *   ll_addr,
           NMSettingIP6ConfigPrivacy privacy,
           guint                     needed_prefixes,
@@ -924,6 +944,8 @@ ip6_start(NMDhcpClient *            client,
     g_return_val_if_fail(!priv->client4, FALSE);
     g_return_val_if_fail(!priv->client6, FALSE);
 
+    /* TODO: honor nm_dhcp_client_get_anycast_address() */
+
     if (!(duid = nm_dhcp_client_get_client_id(client))
         || !(duid_arr = g_bytes_get_data(duid, &duid_len)) || duid_len < 2) {
         nm_utils_error_set_literal(error, NM_UTILS_ERROR_UNKNOWN, "missing DUID");
@@ -938,7 +960,7 @@ ip6_start(NMDhcpClient *            client,
 
     _LOGT("dhcp-client6: set %p", sd_client);
 
-    if (nm_dhcp_client_get_info_only(client)) {
+    if (NM_FLAGS_HAS(nm_dhcp_client_get_client_flags(client), NM_DHCP_CLIENT_FLAGS_INFO_ONLY)) {
         sd_dhcp6_client_set_address_request(sd_client, 0);
         if (needed_prefixes == 0)
             sd_dhcp6_client_set_information_request(sd_client, 1);

@@ -209,10 +209,10 @@ DEVICETYPE=TeamPort
               </p></td>
 </tr>
 <tr>
-<td><p><span class="term"><span class="bold"><strong>Semantic change of variables</strong></span></span></p></td>
+<td><p><span class="term"><span class="bold"><strong>Semantic change of variables and differences</strong></span></span></p></td>
 <td>
 <p>
-                NetworkManager had to slightly change the semantic for a few variables.
+                  NetworkManager changes the semantics for a few variables and there are other behavioral differences.
                 </p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><code class="literal">PEERDNS</code> -
@@ -234,6 +234,11 @@ DEVICETYPE=TeamPort
 <li class="listitem"><p><code class="literal">HWADDR</code> -
                     initscripts compare the currently set hardware address of a device, while
                     NetworkManager considers the permanent one.</p></li>
+<li class="listitem"><p><code class="literal">NOZEROCONF</code> -
+                    initscripts add an on-link route to 169.254.0.0/16 for ethernet profiles that don't
+                    explicitly opt-out by setting <code class="literal">NOZEROCONF</code> variable. NetworkManager does
+                    not do that. Instead a static, manual route with scope=253 (link) should be added to get
+                    that behavior.</p></li>
 </ul></div>
 </td>
 </tr>
@@ -251,7 +256,7 @@ DEVICETYPE=TeamPort
           are NetworkManager specific extensions not understood by traditional initscripts.
         </p>
 <div class="table">
-<a name="id-1.2.10.7.3"></a><p class="title"><b>Table 11. 6lowpan setting</b></p>
+<a name="id-1.2.11.7.3"></a><p class="title"><b>Table 11. 6lowpan setting</b></p>
 <div class="table-contents"><table class="table" summary="6lowpan setting" border="1">
 <colgroup>
 <col>
@@ -269,7 +274,7 @@ DEVICETYPE=TeamPort
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.4"></a><p class="title"><b>Table 12. 802-1x setting</b></p>
+<a name="id-1.2.11.7.4"></a><p class="title"><b>Table 12. 802-1x setting</b></p>
 <div class="table-contents"><table class="table" summary="802-1x setting" border="1">
 <colgroup>
 <col>
@@ -597,7 +602,7 @@ Example: </strong></span>IEEE_8021X_PRIVATE_KEY=/home/joe/mykey.p12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.5"></a><p class="title"><b>Table 13. bond setting</b></p>
+<a name="id-1.2.11.7.5"></a><p class="title"><b>Table 13. bond setting</b></p>
 <div class="table-contents"><table class="table" summary="bond setting" border="1">
 <colgroup>
 <col>
@@ -622,7 +627,7 @@ Example: </strong></span>BONDING_OPTS="miimon=100 mode=broadcast"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.6"></a><p class="title"><b>Table 14. bridge-port setting</b></p>
+<a name="id-1.2.11.7.6"></a><p class="title"><b>Table 14. bridge-port setting</b></p>
 <div class="table-contents"><table class="table" summary="bridge-port setting" border="1">
 <colgroup>
 <col>
@@ -671,7 +676,7 @@ Example: </strong></span>BRIDGE_PORT_VLANS="1 pvid untagged,20,300-400 untagged"
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.7"></a><p class="title"><b>Table 15. bridge setting</b></p>
+<a name="id-1.2.11.7.7"></a><p class="title"><b>Table 15. bridge setting</b></p>
 <div class="table-contents"><table class="table" summary="bridge setting" border="1">
 <colgroup>
 <col>
@@ -910,7 +915,7 @@ Example: </strong></span>BRIDGING_OPTS="multicast_startup_query_interval=4000"</
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.8"></a><p class="title"><b>Table 16. connection setting</b></p>
+<a name="id-1.2.11.7.8"></a><p class="title"><b>Table 16. connection setting</b></p>
 <div class="table-contents"><table class="table" summary="connection setting" border="1">
 <colgroup>
 <col>
@@ -1128,7 +1133,7 @@ Allowed values: </strong></span>a valid URL that points to recommended policy fo
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.9"></a><p class="title"><b>Table 17. dcb setting</b></p>
+<a name="id-1.2.11.7.9"></a><p class="title"><b>Table 17. dcb setting</b></p>
 <div class="table-contents"><table class="table" summary="dcb setting" border="1">
 <colgroup>
 <col>
@@ -1263,7 +1268,7 @@ Example: </strong></span>DCB_PG_UP2TC=01623701</td>
           used explicitly to enable DCB so that the rest of the DCB_* variables can apply.
         </p>
 <div class="table">
-<a name="id-1.2.10.7.11"></a><p class="title"><b>Table 18. ethtool setting</b></p>
+<a name="id-1.2.11.7.11"></a><p class="title"><b>Table 18. ethtool setting</b></p>
 <div class="table-contents"><table class="table" summary="ethtool setting" border="1">
 <colgroup>
 <col>
@@ -1281,7 +1286,7 @@ Example: </strong></span>DCB_PG_UP2TC=01623701</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.12"></a><p class="title"><b>Table 19. hostname setting</b></p>
+<a name="id-1.2.11.7.12"></a><p class="title"><b>Table 19. hostname setting</b></p>
 <div class="table-contents"><table class="table" summary="hostname setting" border="1">
 <colgroup>
 <col>
@@ -1336,7 +1341,7 @@ Example: </strong></span>HOSTNAME_ONLY_FROM_DEFAULT=0,1</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.13"></a><p class="title"><b>Table 20. infiniband setting</b></p>
+<a name="id-1.2.11.7.13"></a><p class="title"><b>Table 20. infiniband setting</b></p>
 <div class="table-contents"><table class="table" summary="infiniband setting" border="1">
 <colgroup>
 <col>
@@ -1391,7 +1396,7 @@ Example: </strong></span>PHYSDEV=ib0</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.14"></a><p class="title"><b>Table 21. ipv4 setting</b></p>
+<a name="id-1.2.11.7.14"></a><p class="title"><b>Table 21. ipv4 setting</b></p>
 <div class="table-contents"><table class="table" summary="ipv4 setting" border="1">
 <colgroup>
 <col>
@@ -1568,7 +1573,7 @@ Example: </strong></span>DHCP_VENDOR_CLASS_IDENTIFIER=foo</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.15"></a><p class="title"><b>Table 22. ipv6 setting</b></p>
+<a name="id-1.2.11.7.15"></a><p class="title"><b>Table 22. ipv6 setting</b></p>
 <div class="table-contents"><table class="table" summary="ipv6 setting" border="1">
 <colgroup>
 <col>
@@ -1654,12 +1659,18 @@ Example: </strong></span>IPV6_DEFAULTGW=abbe::1</td>
 Example: </strong></span>IPV6_DHCP_TIMEOUT=10</td>
 </tr>
 <tr>
+<td align="left">dhcp-hostname-flags</td>
+<td align="left">DHCPV6_HOSTNAME_FLAGS</td>
+<td align="left"> </td>
+<td align="left">flags for the DHCP hostname property<span class="bold"><strong>
+
+Example: </strong></span>DHCPV6_HOSTNAME_FLAGS=5</td>
+</tr>
+<tr>
 <td align="left">never-default</td>
 <td align="left">IPV6_DEFROUTE<span class="emphasis"><em>(+)</em></span>, (and IPV6_DEFAULTGW, IPV6_DEFAULTDEV in /etc/sysconfig/network)</td>
 <td align="left">IPV6_DEFROUTE=yes (when no variable specified)</td>
-<td align="left">IPV6_DEFROUTE=no tells NetworkManager that this connection should not be assigned the default IPv6 route. IPV6_DEFROUTE has the opposite meaning as 'never-default' property.<span class="bold"><strong>
-
-Example: </strong></span>DHCPV6_HOSTNAME_FLAGS=5 */ </td>
+<td align="left">IPV6_DEFROUTE=no tells NetworkManager that this connection should not be assigned the default IPv6 route. IPV6_DEFROUTE has the opposite meaning as 'never-default' property.</td>
 </tr>
 <tr>
 <td align="left">may-fail</td>
@@ -1751,7 +1762,7 @@ Example: </strong></span>DHCPV6_DUID=LL; DHCPV6_DUID=0301deadbeef0001; DHCPV6_DU
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.16"></a><p class="title"><b>Table 23. match setting</b></p>
+<a name="id-1.2.11.7.16"></a><p class="title"><b>Table 23. match setting</b></p>
 <div class="table-contents"><table class="table" summary="match setting" border="1">
 <colgroup>
 <col>
@@ -1776,7 +1787,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.17"></a><p class="title"><b>Table 24. ovs-bridge setting</b></p>
+<a name="id-1.2.11.7.17"></a><p class="title"><b>Table 24. ovs-bridge setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-bridge setting" border="1">
 <colgroup>
 <col>
@@ -1794,7 +1805,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.18"></a><p class="title"><b>Table 25. ovs-dpdk setting</b></p>
+<a name="id-1.2.11.7.18"></a><p class="title"><b>Table 25. ovs-dpdk setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-dpdk setting" border="1">
 <colgroup>
 <col>
@@ -1812,7 +1823,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.19"></a><p class="title"><b>Table 26. ovs-external-ids setting</b></p>
+<a name="id-1.2.11.7.19"></a><p class="title"><b>Table 26. ovs-external-ids setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-external-ids setting" border="1">
 <colgroup>
 <col>
@@ -1830,7 +1841,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.20"></a><p class="title"><b>Table 27. ovs-interface setting</b></p>
+<a name="id-1.2.11.7.20"></a><p class="title"><b>Table 27. ovs-interface setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-interface setting" border="1">
 <colgroup>
 <col>
@@ -1848,7 +1859,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.21"></a><p class="title"><b>Table 28. ovs-patch setting</b></p>
+<a name="id-1.2.11.7.21"></a><p class="title"><b>Table 28. ovs-patch setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-patch setting" border="1">
 <colgroup>
 <col>
@@ -1866,7 +1877,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.22"></a><p class="title"><b>Table 29. ovs-port setting</b></p>
+<a name="id-1.2.11.7.22"></a><p class="title"><b>Table 29. ovs-port setting</b></p>
 <div class="table-contents"><table class="table" summary="ovs-port setting" border="1">
 <colgroup>
 <col>
@@ -1884,7 +1895,7 @@ Example: </strong></span>MATCH_PATH="pci-0000:01:00.0 pci-0000:0c:00.0"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.23"></a><p class="title"><b>Table 30. proxy setting</b></p>
+<a name="id-1.2.11.7.23"></a><p class="title"><b>Table 30. proxy setting</b></p>
 <div class="table-contents"><table class="table" summary="proxy setting" border="1">
 <colgroup>
 <col>
@@ -1937,7 +1948,7 @@ Example: </strong></span>PAC_SCRIPT=/home/joe/proxy.pac</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.24"></a><p class="title"><b>Table 31. sriov setting</b></p>
+<a name="id-1.2.11.7.24"></a><p class="title"><b>Table 31. sriov setting</b></p>
 <div class="table-contents"><table class="table" summary="sriov setting" border="1">
 <colgroup>
 <col>
@@ -1982,7 +1993,7 @@ Example: </strong></span>SRIOV_AUTOPROBE_DRIVERS=0,1</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.25"></a><p class="title"><b>Table 32. tc setting</b></p>
+<a name="id-1.2.11.7.25"></a><p class="title"><b>Table 32. tc setting</b></p>
 <div class="table-contents"><table class="table" summary="tc setting" border="1">
 <colgroup>
 <col>
@@ -1999,17 +2010,19 @@ Example: </strong></span>SRIOV_AUTOPROBE_DRIVERS=0,1</td>
 <tbody>
 <tr>
 <td align="left">qdiscs</td>
-<td align="left">QDISC1<span class="emphasis"><em>(+)</em></span>, QDISC2<span class="emphasis"><em>(+)</em></span>, ...</td>
+<td align="left">QDISC1<span class="emphasis"><em>(+)</em></span>, QDISC2<span class="emphasis"><em>(+)</em></span>, ..., TC_COMMIT<span class="emphasis"><em>(+)</em></span>
+</td>
 <td align="left"> </td>
-<td align="left">Queueing disciplines<span class="bold"><strong>
+<td align="left">Queueing disciplines to set on the interface. When no QDISC1, QDISC2, ..., FILTER1, FILTER2, ... keys are present, NetworkManager doesn't touch qdiscs and filters present on the interface, unless TC_COMMIT is set to 'yes'.<span class="bold"><strong>
 
 Example: </strong></span>QDISC1=ingress, QDISC2="root handle 1234: fq_codel"</td>
 </tr>
 <tr>
 <td align="left">qdiscs</td>
-<td align="left">FILTER1<span class="emphasis"><em>(+)</em></span>, FILTER2<span class="emphasis"><em>(+)</em></span>, ...</td>
+<td align="left">FILTER1<span class="emphasis"><em>(+)</em></span>, FILTER2<span class="emphasis"><em>(+)</em></span>, ..., TC_COMMIT<span class="emphasis"><em>(+)</em></span>
+</td>
 <td align="left"> </td>
-<td align="left">Traffic filters<span class="bold"><strong>
+<td align="left">Traffic filters to set on the interface. When no QDISC1, QDISC2, ..., FILTER1, FILTER2, ... keys are present, NetworkManager doesn't touch qdiscs and filters present on the interface, unless TC_COMMIT is set to 'yes'.<span class="bold"><strong>
 
 Example: </strong></span>FILTER1="parent ffff: matchall action simple sdata Input", ...</td>
 </tr>
@@ -2017,7 +2030,7 @@ Example: </strong></span>FILTER1="parent ffff: matchall action simple sdata Inpu
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.26"></a><p class="title"><b>Table 33. team-port setting</b></p>
+<a name="id-1.2.11.7.26"></a><p class="title"><b>Table 33. team-port setting</b></p>
 <div class="table-contents"><table class="table" summary="team-port setting" border="1">
 <colgroup>
 <col>
@@ -2040,7 +2053,7 @@ Example: </strong></span>FILTER1="parent ffff: matchall action simple sdata Inpu
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.27"></a><p class="title"><b>Table 34. team setting</b></p>
+<a name="id-1.2.11.7.27"></a><p class="title"><b>Table 34. team setting</b></p>
 <div class="table-contents"><table class="table" summary="team setting" border="1">
 <colgroup>
 <col>
@@ -2063,7 +2076,7 @@ Example: </strong></span>FILTER1="parent ffff: matchall action simple sdata Inpu
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.28"></a><p class="title"><b>Table 35. user setting</b></p>
+<a name="id-1.2.11.7.28"></a><p class="title"><b>Table 35. user setting</b></p>
 <div class="table-contents"><table class="table" summary="user setting" border="1">
 <colgroup>
 <col>
@@ -2088,7 +2101,7 @@ Example: </strong></span>NM_USER_FOO__BAR=something</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.29"></a><p class="title"><b>Table 36. veth setting</b></p>
+<a name="id-1.2.11.7.29"></a><p class="title"><b>Table 36. veth setting</b></p>
 <div class="table-contents"><table class="table" summary="veth setting" border="1">
 <colgroup>
 <col>
@@ -2106,7 +2119,7 @@ Example: </strong></span>NM_USER_FOO__BAR=something</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.30"></a><p class="title"><b>Table 37. vlan setting</b></p>
+<a name="id-1.2.11.7.30"></a><p class="title"><b>Table 37. vlan setting</b></p>
 <div class="table-contents"><table class="table" summary="vlan setting" border="1">
 <colgroup>
 <col>
@@ -2129,9 +2142,9 @@ Example: </strong></span>NM_USER_FOO__BAR=something</td>
 </tr>
 <tr>
 <td align="left">id</td>
-<td align="left">VLAN_ID or DEVICE</td>
+<td align="left">VLAN_ID, DEVICE.</td>
 <td align="left"> </td>
-<td align="left">VLAN identifier.</td>
+<td align="left">VLAN identifier. If VLAN_ID is not set, it is attempted to be detected from the suffix of DEVICE=. Note that older versions of NetworkManager had a bug where they would prefer the detected ID from the DEVICE over VLAN_ID.</td>
 </tr>
 <tr>
 <td align="left">flags</td>
@@ -2169,7 +2182,7 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.31"></a><p class="title"><b>Table 38. vrf setting</b></p>
+<a name="id-1.2.11.7.31"></a><p class="title"><b>Table 38. vrf setting</b></p>
 <div class="table-contents"><table class="table" summary="vrf setting" border="1">
 <colgroup>
 <col>
@@ -2187,7 +2200,7 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.32"></a><p class="title"><b>Table 39. wifi-p2p setting</b></p>
+<a name="id-1.2.11.7.32"></a><p class="title"><b>Table 39. wifi-p2p setting</b></p>
 <div class="table-contents"><table class="table" summary="wifi-p2p setting" border="1">
 <colgroup>
 <col>
@@ -2205,7 +2218,7 @@ Example: </strong></span>PHYSDEV=eth0, VLAN_ID=12; or DEVICE=eth0.12</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.33"></a><p class="title"><b>Table 40. 802-3-ethernet setting</b></p>
+<a name="id-1.2.11.7.33"></a><p class="title"><b>Table 40. 802-3-ethernet setting</b></p>
 <div class="table-contents"><table class="table" summary="802-3-ethernet setting" border="1">
 <colgroup>
 <col>
@@ -2302,11 +2315,31 @@ Allowed values: </strong></span>"qeth", "lcs" or "ctc"</td>
 <td align="left"> </td>
 <td align="left">S390 device options. All options go to OPTIONS, except for "portname" and "ctcprot" that have their own variables.</td>
 </tr>
+<tr>
+<td align="left">wake-on-lan</td>
+<td align="left">ETHTOOL_OPTS, ETHTOOL_WAKE_ON_LAN</td>
+<td align="left"> </td>
+<td align="left">Wake on Lan mode for ethernet. The setting "ignore" is expressed with "ETHTOOL_WAKE_ON_LAN=ignore". Otherwise, the "ETHTOOL_OPTS" variable is set with the value "wol" and several of the characters "p|u|m|b|a|g|s|f|d" as explained in the ethtool manual page.</td>
+</tr>
+<tr>
+<td align="left">wake-on-lan-password</td>
+<td align="left">ETHTOOL_OPTS</td>
+<td align="left"> </td>
+<td align="left">Password for secure-on based Wake-on-Lan. It is added as "sopass" parameter in the ETHTOOL_OPTS variable.<span class="bold"><strong>
+
+Example: </strong></span>ETHTOOL_OPTS="wol gs sopass 00:11:22:33:44:55"</td>
+</tr>
+<tr>
+<td align="left">accept-all-mac-addresses</td>
+<td align="left">ACCEPT_ALL_MAC_ADDRESSES</td>
+<td align="left"> </td>
+<td align="left">Enforce the interface to accept all the packets.</td>
+</tr>
 </tbody>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.34"></a><p class="title"><b>Table 41. wireguard setting</b></p>
+<a name="id-1.2.11.7.34"></a><p class="title"><b>Table 41. wireguard setting</b></p>
 <div class="table-contents"><table class="table" summary="wireguard setting" border="1">
 <colgroup>
 <col>
@@ -2324,7 +2357,7 @@ Allowed values: </strong></span>"qeth", "lcs" or "ctc"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.35"></a><p class="title"><b>Table 42. 802-11-wireless-security setting</b></p>
+<a name="id-1.2.11.7.35"></a><p class="title"><b>Table 42. 802-11-wireless-security setting</b></p>
 <div class="table-contents"><table class="table" summary="802-11-wireless-security setting" border="1">
 <colgroup>
 <col>
@@ -2344,9 +2377,9 @@ Allowed values: </strong></span>"qeth", "lcs" or "ctc"</td>
 <td align="left">KEY_MGMT<span class="emphasis"><em>(+)</em></span>
 </td>
 <td align="left"> </td>
-<td align="left">Key management menthod.<span class="bold"><strong>
+<td align="left">Key management method.<span class="bold"><strong>
 
-Allowed values: </strong></span>IEEE8021X, WPA-PSK, WPA-EAP, WPA-EAP-SUITE-B-192</td>
+Allowed values: </strong></span>none, ieee8021x, owe, wpa-psk, sae, wpa-eap, wpa-eap-suite-b-192</td>
 </tr>
 <tr>
 <td align="left">wep-tx-keyidx</td>
@@ -2506,7 +2539,7 @@ Allowed values: </strong></span>default, disable, optional, required</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.36"></a><p class="title"><b>Table 43. 802-11-wireless setting</b></p>
+<a name="id-1.2.11.7.36"></a><p class="title"><b>Table 43. 802-11-wireless setting</b></p>
 <div class="table-contents"><table class="table" summary="802-11-wireless setting" border="1">
 <colgroup>
 <col>
@@ -2663,7 +2696,7 @@ Allowed values: </strong></span>"yes", "no"</td>
 </table></div>
 </div>
 <br class="table-break"><div class="table">
-<a name="id-1.2.10.7.37"></a><p class="title"><b>Table 44. wpan setting</b></p>
+<a name="id-1.2.11.7.37"></a><p class="title"><b>Table 44. wpan setting</b></p>
 <div class="table-contents"><table class="table" summary="wpan setting" border="1">
 <colgroup>
 <col>

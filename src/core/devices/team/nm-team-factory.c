@@ -10,8 +10,8 @@
 #include "nm-manager.h"
 #include "devices/nm-device-factory.h"
 #include "nm-device-team.h"
-#include "platform/nm-platform.h"
-#include "nm-core-internal.h"
+#include "libnm-platform/nm-platform.h"
+#include "libnm-core-intern/nm-core-internal.h"
 
 /*****************************************************************************/
 

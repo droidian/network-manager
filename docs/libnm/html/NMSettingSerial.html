@@ -16,8 +16,7 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMSettingSerial.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMSettingSerial.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMSettingSerial.properties" class="shortcut">Properties</a></span>
+                  <a href="#NMSettingSerial.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -94,43 +93,6 @@ serial communications</p>
 </table></div>
 </div>
 <div class="refsect1">
-<a name="NMSettingSerial.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingSerial.html#NMSettingSerial--baud" title="The “baud” property">baud</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingSerial.html#NMSettingSerial--bits" title="The “bits” property">bits</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a class="link" href="NMSettingSerial.html#NMSettingSerialParity" title="enum NMSettingSerialParity"><span class="type">NMSettingSerialParity</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingSerial.html#NMSettingSerial--parity" title="The “parity” property">parity</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint64"><span class="type">guint64</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingSerial.html#NMSettingSerial--send-delay" title="The “send-delay” property">send-delay</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingSerial.html#NMSettingSerial--stopbits" title="The “stopbits” property">stopbits</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
 <a name="NMSettingSerial.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -166,10 +128,6 @@ serial communications</p>
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingSerial.html#NM-SETTING-SERIAL-SEND-DELAY:CAPS" title="NM_SETTING_SERIAL_SEND_DELAY">NM_SETTING_SERIAL_SEND_DELAY</a></td>
 </tr>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMSettingSerial.html#NMSettingSerial-struct" title="NMSettingSerial">NMSettingSerial</a></td>
-</tr>
 </tbody>
 </table></div>
 </div>
@@ -177,9 +135,6 @@ serial communications</p>
 <a name="NMSettingSerial.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">╰──</span> NMSettingSerialParity
-    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
-        <span class="lineart">╰──</span> NMSettingSerial
 </pre>
 </div>
 <div class="refsect1">
@@ -223,7 +178,7 @@ nm_setting_serial_get_baud (<em class="parameter"><code><a class="link" href="NM
 </div>
 <div class="refsect3">
 <a name="nm-setting-serial-get-baud.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingSerial.html#NMSettingSerial--baud" title="The “baud” property"><span class="type">“baud”</span></a> property of the setting</p>
+<p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingSerial.html#NMSettingSerial--baud"><span class="type">“baud”</span></a> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -248,7 +203,7 @@ nm_setting_serial_get_bits (<em class="parameter"><code><a class="link" href="NM
 </div>
 <div class="refsect3">
 <a name="nm-setting-serial-get-bits.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingSerial.html#NMSettingSerial--bits" title="The “bits” property"><span class="type">“bits”</span></a> property of the setting</p>
+<p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingSerial.html#NMSettingSerial--bits"><span class="type">“bits”</span></a> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -273,7 +228,7 @@ nm_setting_serial_get_parity (<em class="parameter"><code><a class="link" href="
 </div>
 <div class="refsect3">
 <a name="nm-setting-serial-get-parity.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingSerial.html#NMSettingSerial--parity" title="The “parity” property"><span class="type">“parity”</span></a> property of the setting</p>
+<p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingSerial.html#NMSettingSerial--parity"><span class="type">“parity”</span></a> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -298,7 +253,7 @@ nm_setting_serial_get_stopbits (<em class="parameter"><code><a class="link" href
 </div>
 <div class="refsect3">
 <a name="nm-setting-serial-get-stopbits.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingSerial.html#NMSettingSerial--stopbits" title="The “stopbits” property"><span class="type">“stopbits”</span></a> property of the setting</p>
+<p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingSerial.html#NMSettingSerial--stopbits"><span class="type">“stopbits”</span></a> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -323,7 +278,7 @@ nm_setting_serial_get_send_delay (<em class="parameter"><code><a class="link" hr
 </div>
 <div class="refsect3">
 <a name="nm-setting-serial-get-send-delay.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingSerial.html#NMSettingSerial--send-delay" title="The “send-delay” property"><span class="type">“send-delay”</span></a> property of the setting</p>
+<p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingSerial.html#NMSettingSerial--send-delay"><span class="type">“send-delay”</span></a> property of the setting</p>
 </div>
 </div>
 </div>
@@ -401,64 +356,6 @@ nm_setting_serial_get_send_delay (<em class="parameter"><code><a class="link" hr
 <a name="NM-SETTING-SERIAL-SEND-DELAY:CAPS"></a><h3>NM_SETTING_SERIAL_SEND_DELAY</h3>
 <pre class="programlisting">#define NM_SETTING_SERIAL_SEND_DELAY "send-delay"
 </pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingSerial-struct"></a><h3>NMSettingSerial</h3>
-<pre class="programlisting">typedef struct _NMSettingSerial NMSettingSerial;</pre>
-<p>Serial Link Settings</p>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMSettingSerial.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMSettingSerial--baud"></a><h3>The <code class="literal">“baud”</code> property</h3>
-<pre class="programlisting">  “baud”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
-<p>Speed to use for communication over the serial port.  Note that this
-value usually has no effect for mobile broadband modems as they generally
-ignore speed settings and use the highest available speed.</p>
-<p>Owner: NMSettingSerial</p>
-<p>Flags: Read / Write</p>
-<p>Default value: 57600</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingSerial--bits"></a><h3>The <code class="literal">“bits”</code> property</h3>
-<pre class="programlisting">  “bits”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
-<p>Byte-width of the serial communication. The 8 in "8n1" for example.</p>
-<p>Owner: NMSettingSerial</p>
-<p>Flags: Read / Write</p>
-<p>Allowed values: [5,8]</p>
-<p>Default value: 8</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingSerial--parity"></a><h3>The <code class="literal">“parity”</code> property</h3>
-<pre class="programlisting">  “parity”                   <a class="link" href="NMSettingSerial.html#NMSettingSerialParity" title="enum NMSettingSerialParity"><span class="type">NMSettingSerialParity</span></a></pre>
-<p>Parity setting of the serial port.</p>
-<p>Owner: NMSettingSerial</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NM_SETTING_SERIAL_PARITY_NONE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingSerial--send-delay"></a><h3>The <code class="literal">“send-delay”</code> property</h3>
-<pre class="programlisting">  “send-delay”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint64"><span class="type">guint64</span></a></pre>
-<p>Time to delay between each byte sent to the modem, in microseconds.</p>
-<p>Owner: NMSettingSerial</p>
-<p>Flags: Read / Write</p>
-<p>Default value: 0</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingSerial--stopbits"></a><h3>The <code class="literal">“stopbits”</code> property</h3>
-<pre class="programlisting">  “stopbits”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
-<p>Number of stop bits for communication on the serial port.  Either 1 or 2.
-The 1 in "8n1" for example.</p>
-<p>Owner: NMSettingSerial</p>
-<p>Flags: Read / Write</p>
-<p>Allowed values: [1,2]</p>
-<p>Default value: 1</p>
 </div>
 </div>
 </div>

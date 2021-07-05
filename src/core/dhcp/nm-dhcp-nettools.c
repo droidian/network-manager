@@ -13,9 +13,9 @@
 #include <ctype.h>
 #include <net/if_arp.h>
 
-#include "nm-glib-aux/nm-dedup-multi.h"
-#include "nm-std-aux/unaligned.h"
-#include "nm-glib-aux/nm-str-buf.h"
+#include "libnm-glib-aux/nm-dedup-multi.h"
+#include "libnm-std-aux/unaligned.h"
+#include "libnm-glib-aux/nm-str-buf.h"
 
 #include "nm-utils.h"
 #include "nm-config.h"
@@ -23,11 +23,11 @@
 #include "nm-dhcp-options.h"
 #include "nm-core-utils.h"
 #include "NetworkManagerUtils.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "nm-dhcp-client-logging.h"
 #include "n-dhcp4/src/n-dhcp4.h"
-#include "systemd/nm-sd-utils-shared.h"
-#include "systemd/nm-sd-utils-dhcp.h"
+#include "libnm-systemd-shared/nm-sd-utils-shared.h"
+#include "libnm-systemd-core/nm-sd-utils-dhcp.h"
 
 /*****************************************************************************/
 
@@ -342,22 +342,27 @@ lease_parse_routes(NDhcp4ClientLease *lease,
     const guint8 *l_data;
     gsize         l_data_len;
     int           r;
+    guint         i;
 
-    r = _client_lease_query(lease,
-                            NM_DHCP_OPTION_DHCP4_CLASSLESS_STATIC_ROUTE,
-                            &l_data,
-                            &l_data_len);
-    if (r == 0) {
+    for (i = 0; i < 2; i++) {
+        const guint8 option_code = (i == 0) ? NM_DHCP_OPTION_DHCP4_CLASSLESS_STATIC_ROUTE
+                                            : NM_DHCP_OPTION_DHCP4_PRIVATE_CLASSLESS_STATIC_ROUTE;
+
+        if (_client_lease_query(lease, option_code, &l_data, &l_data_len) != 0)
+            continue;
+
         nm_str_buf_reset(sbuf);
-
-        has_classless = TRUE;
-
         while (lease_option_consume_route(&l_data, &l_data_len, TRUE, &dest, &plen, &gateway)) {
             _nm_utils_inet4_ntop(dest, dest_str);
             _nm_utils_inet4_ntop(gateway, gateway_str);
 
             nm_str_buf_append_required_delimiter(sbuf, ' ');
             nm_str_buf_append_printf(sbuf, "%s/%d %s", dest_str, (int) plen, gateway_str);
+
+            if (has_classless) {
+                /* Ignore private option if the standard one is present */
+                continue;
+            }
 
             if (plen == 0) {
                 /* if there are multiple default routes, we add them with differing
@@ -384,10 +389,8 @@ lease_parse_routes(NDhcp4ClientLease *lease,
                 NULL);
         }
 
-        nm_dhcp_option_add_option(options,
-                                  AF_INET,
-                                  NM_DHCP_OPTION_DHCP4_CLASSLESS_STATIC_ROUTE,
-                                  nm_str_buf_get_str(sbuf));
+        has_classless = TRUE;
+        nm_dhcp_option_add_option(options, AF_INET, option_code, nm_str_buf_get_str(sbuf));
     }
 
     r = _client_lease_query(lease, NM_DHCP_OPTION_DHCP4_STATIC_ROUTE, &l_data, &l_data_len);
@@ -693,8 +696,8 @@ lease_to_ip4_config(NMDedupMultiIndex *multi_idx,
 
         v_str = nm_utils_buf_utf8safe_escape((char *) l_data, l_data_len, 0, &to_free);
 
-        nm_dhcp_option_add_option(options, AF_INET, NM_DHCP_OPTION_DHCP4_NIS_DOMAIN, v_str);
-        nm_ip4_config_set_nis_domain(ip4_config, v_str);
+        nm_dhcp_option_add_option(options, AF_INET, NM_DHCP_OPTION_DHCP4_NIS_DOMAIN, v_str ?: "");
+        nm_ip4_config_set_nis_domain(ip4_config, v_str ?: "");
     }
 
     lease_parse_address_list(lease, ip4_config, NM_DHCP_OPTION_DHCP4_NIS_SERVERS, options, &sbuf);
@@ -871,7 +874,7 @@ dhcp4_event_cb(int fd, GIOCondition condition, gpointer user_data)
 }
 
 static gboolean
-nettools_create(NMDhcpNettools *self, const char *dhcp_anycast_addr, GError **error)
+nettools_create(NMDhcpNettools *self, GError **error)
 {
     NMDhcpNettoolsPrivate *priv = NM_DHCP_NETTOOLS_GET_PRIVATE(self);
     nm_auto(n_dhcp4_client_config_freep) NDhcp4ClientConfig *config = NULL;
@@ -889,6 +892,8 @@ nettools_create(NMDhcpNettools *self, const char *dhcp_anycast_addr, GError **er
     int                    r, fd, arp_type, transport;
 
     g_return_val_if_fail(!priv->client, FALSE);
+
+    /* TODO: honor nm_dhcp_client_get_anycast_address() */
 
     hwaddr = nm_dhcp_client_get_hw_addr(NM_DHCP_CLIENT(self));
     if (!hwaddr || !(hwaddr_arr = g_bytes_get_data(hwaddr, &hwaddr_len))
@@ -938,9 +943,13 @@ nettools_create(NMDhcpNettools *self, const char *dhcp_anycast_addr, GError **er
     n_dhcp4_client_config_set_transport(config, transport);
     n_dhcp4_client_config_set_mac(config, hwaddr_arr, hwaddr_len);
     n_dhcp4_client_config_set_broadcast_mac(config, bcast_hwaddr_arr, bcast_hwaddr_len);
+    n_dhcp4_client_config_set_request_broadcast(
+        config,
+        NM_FLAGS_HAS(nm_dhcp_client_get_client_flags(NM_DHCP_CLIENT(self)),
+                     NM_DHCP_CLIENT_FLAGS_REQUEST_BROADCAST));
     r = n_dhcp4_client_config_set_client_id(config,
                                             client_id_arr,
-                                            NM_MIN(client_id_len, 1 + _NM_SD_MAX_CLIENT_ID_LEN));
+                                            NM_MIN(client_id_len, 1 + _NM_MAX_CLIENT_ID_LEN));
     if (r) {
         set_error_nettools(error, r, "failed to set client-id");
         return FALSE;
@@ -1028,10 +1037,7 @@ fqdn_flags_to_wire(NMDhcpHostnameFlags flags)
 }
 
 static gboolean
-ip4_start(NMDhcpClient *client,
-          const char *  dhcp_anycast_addr,
-          const char *  last_ip4_address,
-          GError **     error)
+ip4_start(NMDhcpClient *client, const char *last_ip4_address, GError **error)
 {
     nm_auto(n_dhcp4_client_probe_config_freep) NDhcp4ClientProbeConfig *config = NULL;
     NMDhcpNettools *       self       = NM_DHCP_NETTOOLS(client);
@@ -1045,7 +1051,7 @@ ip4_start(NMDhcpClient *client,
 
     g_return_val_if_fail(!priv->probe, FALSE);
 
-    if (!nettools_create(self, dhcp_anycast_addr, error))
+    if (!nettools_create(self, error))
         return FALSE;
 
     r = n_dhcp4_client_probe_config_new(&config);
@@ -1110,7 +1116,7 @@ ip4_start(NMDhcpClient *client,
     }
     hostname = nm_dhcp_client_get_hostname(client);
     if (hostname) {
-        if (nm_dhcp_client_get_use_fqdn(client)) {
+        if (NM_FLAGS_HAS(nm_dhcp_client_get_client_flags(client), NM_DHCP_CLIENT_FLAGS_USE_FQDN)) {
             uint8_t             buffer[255];
             NMDhcpHostnameFlags flags;
             size_t              fqdn_len;

@@ -44,9 +44,8 @@
 <div class="refsect1">
 <a name="id-1.4.8.30.4"></a><h2>Signals</h2>
 <pre class="synopsis">
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Wireless.PropertiesChanged" title='The "PropertiesChanged" signal'>PropertiesChanged</a>  (a{sv} properties);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Wireless.AccessPointAdded" title='The "AccessPointAdded" signal'>AccessPointAdded</a>   (o     access_point);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Wireless.AccessPointRemoved" title='The "AccessPointRemoved" signal'>AccessPointRemoved</a> (o     access_point);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Wireless.AccessPointAdded" title='The "AccessPointAdded" signal'>AccessPointAdded</a>   (o access_point);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.Wireless.html#gdbus-signal-org-freedesktop-NetworkManager-Device-Wireless.AccessPointRemoved" title='The "AccessPointRemoved" signal'>AccessPointRemoved</a> (o access_point);
 </pre>
 </div>
 <div class="refsect1">
@@ -131,25 +130,6 @@ RequestScan (IN  a{sv} options);
 </div>
 <div class="refsect1">
 <a name="gdbus-signals-org.freedesktop.NetworkManager.Device.Wireless"></a><h2>Signal Details</h2>
-<div class="refsect2">
-<a name="gdbus-signal-org-freedesktop-NetworkManager-Device-Wireless.PropertiesChanged"></a><h3>The "PropertiesChanged" signal</h3>
-<pre class="programlisting">
-PropertiesChanged (a{sv} properties);
-</pre>
-<p>        DEPRECATED. Use the standard "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" instead which exists since version NetworkManager 1.2.0.
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody><tr>
-<td><p><span class="term"><code class="literal">a{sv} <em class="parameter"><code>properties</code></em></code>:</span></p></td>
-<td><p>A dictionary containing the changed parameters.</p></td>
-</tr></tbody>
-</table></div>
-</div>
-<hr>
 <div class="refsect2">
 <a name="gdbus-signal-org-freedesktop-NetworkManager-Device-Wireless.AccessPointAdded"></a><h3>The "AccessPointAdded" signal</h3>
 <pre class="programlisting">

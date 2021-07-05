@@ -7,17 +7,17 @@
 
 #include "nm-active-connection.h"
 
-#include "nm-libnm-core-intern/nm-common-macros.h"
+#include "libnm-core-aux-intern/nm-common-macros.h"
 #include "nm-dbus-interface.h"
 #include "devices/nm-device.h"
 #include "settings/nm-settings-connection.h"
 #include "nm-simple-connection.h"
 #include "nm-auth-utils.h"
 #include "nm-auth-manager.h"
-#include "nm-libnm-core-intern/nm-auth-subject.h"
+#include "libnm-core-aux-intern/nm-auth-subject.h"
 #include "nm-keep-alive.h"
 #include "NetworkManagerUtils.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 
 #define AUTH_CALL_ID_SHARED_WIFI_PERMISSION_FAILED ((NMAuthManagerCallId *) GINT_TO_POINTER(1))
 
@@ -516,11 +516,6 @@ nm_active_connection_clear_secrets(NMActiveConnection *self)
 
     priv = NM_ACTIVE_CONNECTION_GET_PRIVATE(self);
 
-    if (nm_settings_connection_has_unmodified_applied_connection(priv->settings_connection.obj,
-                                                                 priv->applied_connection,
-                                                                 NM_SETTING_COMPARE_FLAG_NONE)) {
-        nm_settings_connection_clear_secrets(priv->settings_connection.obj, FALSE, FALSE);
-    }
     nm_connection_clear_secrets(priv->applied_connection);
 }
 
@@ -1560,54 +1555,48 @@ static const GDBusSignalInfo signal_info_state_changed = NM_DEFINE_GDBUS_SIGNAL_
 static const NMDBusInterfaceInfoExtended interface_info_active_connection = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_ACTIVE_CONNECTION,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy,
-                                                &signal_info_state_changed, ),
+        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&signal_info_state_changed, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Connection",
-                                                             "o",
-                                                             NM_ACTIVE_CONNECTION_CONNECTION),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("SpecificObject",
-                                                             "o",
-                                                             NM_ACTIVE_CONNECTION_SPECIFIC_OBJECT),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Id", "s", NM_ACTIVE_CONNECTION_ID),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Uuid",
-                                                             "s",
-                                                             NM_ACTIVE_CONNECTION_UUID),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Type",
-                                                             "s",
-                                                             NM_ACTIVE_CONNECTION_TYPE),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Devices",
-                                                             "ao",
-                                                             NM_ACTIVE_CONNECTION_DEVICES),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("State",
-                                                             "u",
-                                                             NM_ACTIVE_CONNECTION_STATE),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("StateFlags",
-                                                             "u",
-                                                             NM_ACTIVE_CONNECTION_STATE_FLAGS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Default",
-                                                             "b",
-                                                             NM_ACTIVE_CONNECTION_DEFAULT),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Ip4Config",
-                                                             "o",
-                                                             NM_ACTIVE_CONNECTION_IP4_CONFIG),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Dhcp4Config",
-                                                             "o",
-                                                             NM_ACTIVE_CONNECTION_DHCP4_CONFIG),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Default6",
-                                                             "b",
-                                                             NM_ACTIVE_CONNECTION_DEFAULT6),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Ip6Config",
-                                                             "o",
-                                                             NM_ACTIVE_CONNECTION_IP6_CONFIG),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Dhcp6Config",
-                                                             "o",
-                                                             NM_ACTIVE_CONNECTION_DHCP6_CONFIG),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Vpn", "b", NM_ACTIVE_CONNECTION_VPN),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Master",
-                                                             "o",
-                                                             NM_ACTIVE_CONNECTION_MASTER), ), ),
-    .legacy_property_changed = TRUE,
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Connection",
+                                                           "o",
+                                                           NM_ACTIVE_CONNECTION_CONNECTION),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("SpecificObject",
+                                                           "o",
+                                                           NM_ACTIVE_CONNECTION_SPECIFIC_OBJECT),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Id", "s", NM_ACTIVE_CONNECTION_ID),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Uuid", "s", NM_ACTIVE_CONNECTION_UUID),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Type", "s", NM_ACTIVE_CONNECTION_TYPE),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Devices",
+                                                           "ao",
+                                                           NM_ACTIVE_CONNECTION_DEVICES),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("State",
+                                                           "u",
+                                                           NM_ACTIVE_CONNECTION_STATE),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("StateFlags",
+                                                           "u",
+                                                           NM_ACTIVE_CONNECTION_STATE_FLAGS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Default",
+                                                           "b",
+                                                           NM_ACTIVE_CONNECTION_DEFAULT),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Ip4Config",
+                                                           "o",
+                                                           NM_ACTIVE_CONNECTION_IP4_CONFIG),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Dhcp4Config",
+                                                           "o",
+                                                           NM_ACTIVE_CONNECTION_DHCP4_CONFIG),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Default6",
+                                                           "b",
+                                                           NM_ACTIVE_CONNECTION_DEFAULT6),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Ip6Config",
+                                                           "o",
+                                                           NM_ACTIVE_CONNECTION_IP6_CONFIG),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Dhcp6Config",
+                                                           "o",
+                                                           NM_ACTIVE_CONNECTION_DHCP6_CONFIG),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Vpn", "b", NM_ACTIVE_CONNECTION_VPN),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Master",
+                                                           "o",
+                                                           NM_ACTIVE_CONNECTION_MASTER), ), ),
 };
 
 static void

@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/18/2021
+.\"      Date: 06/30/2021
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.30.0
+.\"    Source: NetworkManager 1.32.2
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.30\&.0" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.32\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -71,6 +71,9 @@ NetworkManager can overwrite certain user configuration options via D\-Bus or ot
 NetworkManager\&.conf\&.
 .PP
 Certain settings from the configuration can be reloaded at runtime either by sending SIGHUP signal or via D\-Bus\*(Aq Reload call\&.
+.PP
+NetworkManager does not require any configuration in
+NetworkManager\&.conf\&. Depending on your use case, you may remove all files to restore the default configuration (factory reset)\&. But note that your distribution or other packages may drop configuration snippets for NetworkManager, such that they are part of the factory default\&.
 .SH "FILE FORMAT"
 .PP
 The configuration file format is so\-called key file (sort of ini\-style format)\&. It consists of sections (groups) of key\-value pairs\&. Lines beginning with a \*(Aq#\*(Aq and blank lines are considered comments\&. Sections are started by a header line containing the section enclosed in \*(Aq[\*(Aq and \*(Aq]\*(Aq, and ended implicitly by the start of the next section or the end of the file\&. Each key\-value pair must be contained in a section\&.
@@ -79,7 +82,7 @@ For keys that take a list of devices as their value, you can specify devices by 
 the section called \(lqDevice List Format\(rq
 below\&.
 .PP
-Minimal system settings configuration file looks like this:
+A simple configuration file looks like this:
 .sp
 .if n \{\
 .RS 4
@@ -254,7 +257,7 @@ systemd\-resolved: NetworkManager will push the DNS configuration to systemd\-re
 .sp
 unbound: NetworkManager will talk to unbound and dnssec\-triggerd, using "Conditional Forwarding" with DNSSEC support\&.
 /etc/resolv\&.conf
-will be managed by dnssec\-trigger daemon\&.
+will be managed by dnssec\-trigger daemon\&. This option is deprecated\&. Note that dnssec\-trigger ships a NetworkManager dispatcher script so this DNS plugin is not necessary\&.
 .sp
 none: NetworkManager will not modify resolv\&.conf\&. This implies
 rc\-manager\ \&unmanaged
@@ -381,6 +384,34 @@ name
 index
 (order slaves by their kernel index)\&.
 .RE
+.PP
+\fIfirewall\-backend\fR
+.RS 4
+The firewall backend for configuring masquerading with shared mode\&. Set to either
+iptables,
+nftables
+or
+none\&.
+iptables
+and
+nftables
+require
+iptables
+and
+nft
+application, respectively\&.
+none
+means to skip firewall configuration if the users wish to manage firewall themselves\&. If unspecified, it will be auto detected\&.
+.RE
+.PP
+\fIiwd\-config\-path\fR
+.RS 4
+If the value is "auto" (the default), IWD is queried for its current state directory when it appears on D\-Bus \-\- the directory where IWD keeps its network configuration files \-\- usually /var/lib/iwd\&. NetworkManager will then attempt to write copies of new or modified Wi\-Fi connection profiles, converted into the IWD format, into this directory thus making IWD connection properties editable\&. NM will overwrite existing files without preserving their contents\&.
+.sp
+The path can also be overriden by pointing to a specific existing and writable directory\&. On the other hand setting this to an empty string or any other value disables the profile conversion mechanism\&.
+.sp
+This mechanism allows editing connection profile settings such as the 802\&.1x configuration using NetworkManager clients\&. Without it such changes have no effect in IWD\&.
+.RE
 .SH "KEYFILE SECTION"
 .PP
 This section contains keyfile\-plugin\-specific options, and is normally only used when you are not using any other distro\-specific plugin\&.
@@ -401,6 +432,13 @@ The location where keyfiles are read and stored\&. This defaults to "/etc/Networ
 \fIunmanaged\-devices\fR
 .RS 4
 Set devices that should be ignored by NetworkManager\&.
+.sp
+A device unmanaged due to this option is strictly unmanaged and cannot be overruled by using the API like
+\fBnmcli device set $IFNAME managed yes\fR\&. Also, a device that is unmanaged for other reasons, like an udev rule, cannot be made managed with this option (e\&.g\&. by using an
+except:
+specifier)\&. These two points make it different from the
+device*\&.managed
+option which for that reason may be a better choice\&.
 .sp
 See
 the section called \(lqDevice List Format\(rq
@@ -994,7 +1032,11 @@ Whether the device is managed or not\&. A device can be marked as managed via ud
 .PP
 \fIcarrier\-wait\-timeout\fR
 .RS 4
-Specify the timeout for waiting for carrier in milliseconds\&. When the device loses carrier, NetworkManager does not react immediately\&. Instead, it waits for this timeout before considering the link lost\&. Also, on startup, NetworkManager considers the device as busy for this time, as long as the device has no carrier\&. This delays startup\-complete signal and NetworkManager\-wait\-online\&. Configuring this too high means to block NetworkManager\-wait\-online longer then necessary\&. Configuring it too low, means that NetworkManager will declare startup\-complete, although carrier is about to come and auto\-activation to kick in\&. The default is 5000 milliseconds\&.
+Specify the timeout for waiting for carrier in milliseconds\&. The default is 5000 milliseconds\&. This setting exists because certain drivers/hardware can take a long time to detect whether the cable is plugged in\&.
+.sp
+When the device loses carrier, NetworkManager does not react immediately\&. Instead, it waits for this timeout before considering the link lost\&.
+.sp
+Also, on startup, NetworkManager considers the device as busy for this time, as long as the device has no carrier\&. This delays startup\-complete signal and NetworkManager\-wait\-online\&. Configuring this too high means to block NetworkManager\-wait\-online longer than necessary when booting with cable unplugged\&. Configuring it too low, means that NetworkManager will declare startup\-complete too soon, although carrier is about to come and auto\-activation to kick in\&. Note that if a profile only has static IP configuration or Layer 3 configuration disabled, then it can already autoconnect without carrier on the device\&. Once such a profile reaches full activated state, startup\-complete is considered as reached even if the device has no carrier yet\&.
 .RE
 .PP
 \fIignore\-carrier\fR
@@ -1048,7 +1090,7 @@ wifi\&.backend
 is
 iwd, setting this to
 false
-forces IWD\*(Aqs autoconnect mechanism to be disabled for this device and connections will only be initiated by NetworkManager whether commaned by a client or automatically\&. Leaving it
+forces IWD\*(Aqs autoconnect mechanism to be disabled for this device and connections will only be initiated by NetworkManager whether commanded by a client or automatically\&. Leaving it
 true
 (default) stops NetworkManager from automatically initiating connections and allows IWD to use its network ranking and scanning logic to decide the best networks to autoconnect to next\&. Connections\*(Aq
 autoconnect\-priority,

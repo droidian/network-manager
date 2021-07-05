@@ -7,41 +7,11 @@
 #define __NM_TEST_UTILS_CORE_H__
 
 #include "NetworkManagerUtils.h"
-#include "nm-keyfile-internal.h"
+#include "libnm-core-intern/nm-keyfile-internal.h"
 
 #define _NMTST_INSIDE_CORE 1
 
-#include "nm-utils/nm-test-utils.h"
-
-/*****************************************************************************/
-
-#define NMTST_EXPECT_NM(level, msg) NMTST_EXPECT("NetworkManager", level, msg)
-
-#define NMTST_EXPECT_NM_ERROR(msg) NMTST_EXPECT_NM(G_LOG_LEVEL_MESSAGE, "*<error> [*] " msg)
-#define NMTST_EXPECT_NM_WARN(msg)  NMTST_EXPECT_NM(G_LOG_LEVEL_MESSAGE, "*<warn>  [*] " msg)
-#define NMTST_EXPECT_NM_INFO(msg)  NMTST_EXPECT_NM(G_LOG_LEVEL_INFO, "*<info>  [*] " msg)
-#define NMTST_EXPECT_NM_DEBUG(msg) NMTST_EXPECT_NM(G_LOG_LEVEL_DEBUG, "*<debug> [*] " msg)
-#define NMTST_EXPECT_NM_TRACE(msg) NMTST_EXPECT_NM(G_LOG_LEVEL_DEBUG, "*<trace> [*] " msg)
-
-static inline void
-nmtst_init_with_logging(int *argc, char ***argv, const char *log_level, const char *log_domains)
-{
-    __nmtst_init(argc, argv, FALSE, log_level, log_domains, NULL);
-}
-static inline void
-nmtst_init_assert_logging(int *argc, char ***argv, const char *log_level, const char *log_domains)
-{
-    gboolean set_logging;
-
-    __nmtst_init(argc, argv, TRUE, NULL, NULL, &set_logging);
-
-    if (!set_logging) {
-        gboolean success;
-
-        success = nm_logging_setup(log_level, log_domains, NULL, NULL);
-        g_assert(success);
-    }
-}
+#include "libnm-glib-aux/nm-test-utils.h"
 
 /*****************************************************************************/
 
@@ -347,7 +317,7 @@ nmtst_platform_ip6_routes_equal_aptr(const NMPObject *const *  a,
 
 #ifdef __NETWORKMANAGER_IP4_CONFIG_H__
 
-    #include "nm-glib-aux/nm-dedup-multi.h"
+    #include "libnm-glib-aux/nm-dedup-multi.h"
 
 static inline NMIP4Config *
 nmtst_ip4_config_new(int ifindex)
@@ -361,7 +331,7 @@ nmtst_ip4_config_new(int ifindex)
 
 #ifdef __NETWORKMANAGER_IP6_CONFIG_H__
 
-    #include "nm-glib-aux/nm-dedup-multi.h"
+    #include "libnm-glib-aux/nm-dedup-multi.h"
 
 static inline NMIP6Config *
 nmtst_ip6_config_new(int ifindex)

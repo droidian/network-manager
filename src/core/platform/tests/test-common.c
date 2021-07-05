@@ -1413,6 +1413,44 @@ nmtstp_ip6_address_del(NMPlatform *    platform,
     }                                                                                       \
     G_STMT_END
 
+/* Due to rounding errors with clock_t_to_jiffies()/jiffies_to_clock_t(), kernel cannot
+ * store all requested values. That means, when we try to configure a bridge with
+ * the @requested values, the actually configured settings are slightly off, as
+ * @kernel.
+ *
+ * This function takes @requested and returns it as @dst output. All fields
+ * that might be mangled by kernel (according to @kernel) are adjusted. The
+ * result is almost identical to @requested, but some fields might be adjusted
+ * to their @kernel value. */
+const NMPlatformLnkBridge *
+nmtstp_link_bridge_normalize_jiffies_time(const NMPlatformLnkBridge *requested,
+                                          const NMPlatformLnkBridge *kernel,
+                                          NMPlatformLnkBridge *      dst)
+{
+    if (dst != requested)
+        *dst = *requested;
+
+#define _normalize_field(dst, kernel, field)                                         \
+    G_STMT_START                                                                     \
+    {                                                                                \
+        (dst)->field = nmtstp_normalize_jiffies_time((dst)->field, (kernel)->field); \
+    }                                                                                \
+    G_STMT_END
+
+    _normalize_field(dst, kernel, forward_delay);
+    _normalize_field(dst, kernel, hello_time);
+    _normalize_field(dst, kernel, max_age);
+    _normalize_field(dst, kernel, ageing_time);
+    _normalize_field(dst, kernel, mcast_last_member_interval);
+    _normalize_field(dst, kernel, mcast_membership_interval);
+    _normalize_field(dst, kernel, mcast_querier_interval);
+    _normalize_field(dst, kernel, mcast_query_interval);
+    _normalize_field(dst, kernel, mcast_query_response_interval);
+    _normalize_field(dst, kernel, mcast_startup_query_interval);
+
+    return dst;
+}
+
 const NMPlatformLink *
 nmtstp_link_bridge_add(NMPlatform *               platform,
                        gboolean                   external_command,
@@ -1421,7 +1459,8 @@ nmtstp_link_bridge_add(NMPlatform *               platform,
 {
     const NMPlatformLink *     pllink = NULL;
     const NMPlatformLnkBridge *ll     = NULL;
-    int                        r      = 0;
+    NMPlatformLnkBridge        lnk_normalized;
+    int                        r = 0;
 
     g_assert(nm_utils_ifname_valid_kernel(name, NULL));
 
@@ -1541,6 +1580,8 @@ nmtstp_link_bridge_add(NMPlatform *               platform,
     _assert_pllink(platform, r == 0, pllink, name, NM_LINK_TYPE_BRIDGE);
 
     ll = NMP_OBJECT_CAST_LNK_BRIDGE(NMP_OBJECT_UP_CAST(pllink)->_link.netlink.lnk);
+
+    lnk = nmtstp_link_bridge_normalize_jiffies_time(lnk, ll, &lnk_normalized);
 
     g_assert_cmpint(lnk->forward_delay, ==, ll->forward_delay);
     g_assert_cmpint(lnk->hello_time, ==, ll->hello_time);
@@ -2243,9 +2284,9 @@ nmtstp_link_set_updown(NMPlatform *platform, gboolean external_command, int ifin
         nmtstp_run_command_check("ip link set %s %s", ifname, up ? "up" : "down");
     } else {
         if (up)
-            g_assert(nm_platform_link_set_up(platform, ifindex, NULL));
+            g_assert(nm_platform_link_change_flags(platform, ifindex, IFF_UP, TRUE) >= 0);
         else
-            g_assert(nm_platform_link_set_down(platform, ifindex));
+            g_assert(nm_platform_link_change_flags(platform, ifindex, IFF_UP, FALSE) >= 0);
     }
 
     /* Let's wait until we get the result */

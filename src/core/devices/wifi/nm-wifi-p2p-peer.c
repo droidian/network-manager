@@ -12,13 +12,13 @@
 
 #include "NetworkManagerUtils.h"
 #include "devices/nm-device.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-dbus-manager.h"
-#include "nm-glib-aux/nm-ref-string.h"
+#include "libnm-glib-aux/nm-ref-string.h"
 #include "nm-setting-wireless.h"
 #include "nm-utils.h"
 #include "nm-wifi-utils.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "supplicant/nm-supplicant-types.h"
 
 /*****************************************************************************/
@@ -608,7 +608,6 @@ static const NMDBusInterfaceInfoExtended interface_info_p2p_peer = {
             NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("LastSeen",
                                                            "i",
                                                            NM_WIFI_P2P_PEER_LAST_SEEN), ), ),
-    .legacy_property_changed = FALSE,
 };
 
 static void

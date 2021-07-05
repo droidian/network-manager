@@ -14,21 +14,22 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <linux/if.h>
 #include <linux/rtnetlink.h>
 
 #include "nm-proxy-config.h"
 #include "nm-ip4-config.h"
 #include "nm-ip6-config.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "nm-active-connection.h"
 #include "NetworkManagerUtils.h"
 #include "settings/nm-settings-connection.h"
 #include "nm-dispatcher.h"
 #include "nm-netns.h"
 #include "settings/nm-agent-manager.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-pacrunner-manager.h"
-#include "nm-firewall-manager.h"
+#include "nm-firewalld-manager.h"
 #include "nm-config.h"
 #include "nm-vpn-plugin-info.h"
 #include "nm-vpn-manager.h"
@@ -95,7 +96,7 @@ typedef struct {
     NMVpnPluginInfo * plugin_info;
     char *            bus_name;
 
-    NMFirewallManagerCallId *fw_call;
+    NMFirewalldManagerCallId *fw_call;
 
     NMNetns *netns;
 
@@ -341,7 +342,7 @@ fw_call_cleanup(NMVpnConnection *self)
     NMVpnConnectionPrivate *priv = NM_VPN_CONNECTION_GET_PRIVATE(self);
 
     if (priv->fw_call) {
-        nm_firewall_manager_cancel_call(priv->fw_call);
+        nm_firewalld_manager_cancel_call(priv->fw_call);
         g_warn_if_fail(!priv->fw_call);
         priv->fw_call = NULL;
     }
@@ -371,7 +372,7 @@ vpn_cleanup(NMVpnConnection *self, NMDevice *parent_dev)
     if (priv->ip_ifindex) {
         NMPlatform *platform = nm_netns_get_platform(priv->netns);
 
-        nm_platform_link_set_down(platform, priv->ip_ifindex);
+        nm_platform_link_change_flags(platform, priv->ip_ifindex, IFF_UP, FALSE);
         nm_platform_ip_route_flush(platform, AF_UNSPEC, priv->ip_ifindex);
         nm_platform_ip_address_flush(platform, AF_UNSPEC, priv->ip_ifindex);
     }
@@ -380,11 +381,11 @@ vpn_cleanup(NMVpnConnection *self, NMDevice *parent_dev)
 
     /* Remove zone from firewall */
     if (priv->ip_iface) {
-        nm_firewall_manager_remove_from_zone(nm_firewall_manager_get(),
-                                             priv->ip_iface,
-                                             NULL,
-                                             NULL,
-                                             NULL);
+        nm_firewalld_manager_remove_from_zone(nm_firewalld_manager_get(),
+                                              priv->ip_iface,
+                                              NULL,
+                                              NULL,
+                                              NULL);
     }
     /* Cancel pending firewall call */
     fw_call_cleanup(self);
@@ -398,11 +399,6 @@ vpn_cleanup(NMVpnConnection *self, NMDevice *parent_dev)
 
     g_free(priv->bus_name);
     priv->bus_name = NULL;
-
-    /* Clear out connection secrets to ensure that the settings service
-     * gets asked for them next time the connection is activated.
-     */
-    nm_active_connection_clear_secrets(NM_ACTIVE_CONNECTION(self));
 }
 
 static void
@@ -964,11 +960,6 @@ plugin_state_changed(NMVpnConnection *self, NMVpnServiceState new_service_state)
     priv->service_state = new_service_state;
 
     if (new_service_state == NM_VPN_SERVICE_STATE_STOPPED) {
-        /* Clear connection secrets to ensure secrets get requested each time the
-         * connection is activated.
-         */
-        nm_active_connection_clear_secrets(NM_ACTIVE_CONNECTION(self));
-
         if ((priv->vpn_state >= STATE_WAITING) && (priv->vpn_state <= STATE_ACTIVATED)) {
             VpnState old_state = priv->vpn_state;
 
@@ -1157,7 +1148,10 @@ nm_vpn_connection_apply_config(NMVpnConnection *self)
     apply_parent_device_config(self);
 
     if (priv->ip_ifindex > 0) {
-        nm_platform_link_set_up(nm_netns_get_platform(priv->netns), priv->ip_ifindex, NULL);
+        nm_platform_link_change_flags(nm_netns_get_platform(priv->netns),
+                                      priv->ip_ifindex,
+                                      IFF_UP,
+                                      TRUE);
 
         if (priv->ip4_config) {
             nm_assert(priv->ip_ifindex == nm_ip4_config_get_ifindex(priv->ip4_config));
@@ -1211,10 +1205,10 @@ _cleanup_failed_config(NMVpnConnection *self)
 }
 
 static void
-fw_change_zone_cb(NMFirewallManager *      firewall_manager,
-                  NMFirewallManagerCallId *call_id,
-                  GError *                 error,
-                  gpointer                 user_data)
+fw_change_zone_cb(NMFirewalldManager *      firewalld_manager,
+                  NMFirewalldManagerCallId *call_id,
+                  GError *                  error,
+                  gpointer                  user_data)
 {
     NMVpnConnection *       self = user_data;
     NMVpnConnectionPrivate *priv;
@@ -1270,12 +1264,12 @@ nm_vpn_connection_config_maybe_complete(NMVpnConnection *self, gboolean success)
                   NM_PRINT_FMT_QUOTED(zone, "'", zone, "'", "(default)"),
                   priv->ip_iface);
             fw_call_cleanup(self);
-            priv->fw_call = nm_firewall_manager_add_or_change_zone(nm_firewall_manager_get(),
-                                                                   priv->ip_iface,
-                                                                   zone,
-                                                                   FALSE,
-                                                                   fw_change_zone_cb,
-                                                                   self);
+            priv->fw_call = nm_firewalld_manager_add_or_change_zone(nm_firewalld_manager_get(),
+                                                                    priv->ip_iface,
+                                                                    zone,
+                                                                    FALSE,
+                                                                    fw_change_zone_cb,
+                                                                    self);
             return;
         } else if (nm_vpn_connection_apply_config(self))
             return;
@@ -1632,7 +1626,7 @@ nm_vpn_connection_ip4_config_get(NMVpnConnection *self, GVariant *dict)
                 route.metric        = route_metric;
                 route.rt_source     = NM_IP_CONFIG_SOURCE_VPN;
 
-                if (plen > 32 || plen == 0)
+                if (plen > 32)
                     break;
                 route.plen    = plen;
                 route.network = nm_utils_ip4_address_clear_host_address(route.network, plen);
@@ -1825,7 +1819,7 @@ nm_vpn_connection_ip6_config_get(NMVpnConnection *self, GVariant *dict)
             if (!ip6_addr_from_variant(dest, &route.network))
                 goto next;
 
-            if (prefix > 128 || prefix == 0)
+            if (prefix > 128)
                 goto next;
 
             route.plen = prefix;
@@ -2912,16 +2906,14 @@ static const GDBusSignalInfo signal_info_vpn_state_changed = NM_DEFINE_GDBUS_SIG
 static const NMDBusInterfaceInfoExtended interface_info_vpn_connection = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_VPN_CONNECTION,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy,
-                                                &signal_info_vpn_state_changed, ),
+        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&signal_info_vpn_state_changed, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("VpnState",
-                                                             "u",
-                                                             NM_VPN_CONNECTION_VPN_STATE),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Banner",
-                                                             "s",
-                                                             NM_VPN_CONNECTION_BANNER), ), ),
-    .legacy_property_changed = TRUE,
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("VpnState",
+                                                           "u",
+                                                           NM_VPN_CONNECTION_VPN_STATE),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Banner",
+                                                           "s",
+                                                           NM_VPN_CONNECTION_BANNER), ), ),
 };
 
 static void

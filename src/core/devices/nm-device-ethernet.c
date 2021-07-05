@@ -14,6 +14,7 @@
 #include <libudev.h>
 #include <linux/if_ether.h>
 
+#include "libnm-glib-aux/nm-uuid.h"
 #include "nm-device-private.h"
 #include "nm-act-request.h"
 #include "nm-ip4-config.h"
@@ -24,17 +25,17 @@
 #include "ppp/nm-ppp-manager.h"
 #include "ppp/nm-ppp-manager-call.h"
 #include "ppp/nm-ppp-status.h"
-#include "platform/nm-platform.h"
-#include "nm-platform/nm-platform-utils.h"
+#include "libnm-platform/nm-platform.h"
+#include "libnm-platform/nm-platform-utils.h"
 #include "nm-dcb.h"
 #include "settings/nm-settings-connection.h"
 #include "nm-config.h"
 #include "nm-device-ethernet-utils.h"
 #include "settings/nm-settings.h"
 #include "nm-device-factory.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "NetworkManagerUtils.h"
-#include "nm-udev-aux/nm-udev-utils.h"
+#include "libnm-udev-aux/nm-udev-utils.h"
 #include "nm-device-veth.h"
 
 #define _NMLOG_DEVICE_TYPE NMDeviceEthernet
@@ -730,7 +731,9 @@ supplicant_iface_state_cb(NMSupplicantInterface *iface,
 
     if (new_state == NM_SUPPLICANT_INTERFACE_STATE_DOWN) {
         supplicant_interface_release(self);
-        wired_auth_cond_fail(self, NM_DEVICE_STATE_REASON_SUPPLICANT_FAILED);
+        nm_device_state_changed(NM_DEVICE(self),
+                                NM_DEVICE_STATE_FAILED,
+                                NM_DEVICE_STATE_REASON_SUPPLICANT_FAILED);
         return;
     }
 
@@ -1716,11 +1719,11 @@ new_default_connection(NMDevice *self)
 
     /* Create a stable UUID. The UUID is also the Network_ID for stable-privacy addr-gen-mode,
      * thus when it changes we will also generate different IPv6 addresses. */
-    uuid = _nm_utils_uuid_generate_from_strings("default-wired",
-                                                nm_utils_machine_id_str(),
-                                                defname,
-                                                perm_hw_addr ?: iface,
-                                                NULL);
+    uuid = nm_uuid_generate_from_strings("default-wired",
+                                         nm_utils_machine_id_str(),
+                                         defname,
+                                         perm_hw_addr ?: iface,
+                                         NULL);
 
     g_object_set(setting,
                  NM_SETTING_CONNECTION_ID,
@@ -1745,7 +1748,7 @@ new_default_connection(NMDevice *self)
     if (dev)
         uprop = udev_device_get_property_value(dev, "NM_AUTO_DEFAULT_LINK_LOCAL_ONLY");
 
-    if (nm_udev_utils_property_as_boolean(uprop)) {
+    if (_nm_utils_ascii_str_to_bool(uprop, FALSE)) {
         setting = nm_setting_ip4_config_new();
         g_object_set(setting,
                      NM_SETTING_IP_CONFIG_METHOD,
@@ -1784,7 +1787,8 @@ update_connection(NMDevice *device, NMConnection *connection)
     const char *             mac      = nm_device_get_hw_address(device);
     const char *             mac_prop = NM_SETTING_WIRED_MAC_ADDRESS;
     GHashTableIter           iter;
-    gpointer                 key, value;
+    const char *             key;
+    const char *             value;
 
     if (!s_wired) {
         s_wired = (NMSettingWired *) nm_setting_wired_new();
@@ -1822,8 +1826,8 @@ update_connection(NMDevice *device, NMConnection *connection)
 
     _nm_setting_wired_clear_s390_options(s_wired);
     g_hash_table_iter_init(&iter, priv->s390_options);
-    while (g_hash_table_iter_next(&iter, &key, &value))
-        nm_setting_wired_add_s390_option(s_wired, (const char *) key, (const char *) value);
+    while (g_hash_table_iter_next(&iter, (gpointer *) &key, (gpointer *) &value))
+        nm_setting_wired_add_s390_option(s_wired, key, value);
 }
 
 static void
@@ -1998,24 +2002,16 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
 static const NMDBusInterfaceInfoExtended interface_info_device_wired = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_DEVICE_WIRED,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("HwAddress",
-                                                             "s",
-                                                             NM_DEVICE_HW_ADDRESS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("PermHwAddress",
-                                                             "s",
-                                                             NM_DEVICE_PERM_HW_ADDRESS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Speed",
-                                                             "u",
-                                                             NM_DEVICE_ETHERNET_SPEED),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("S390Subchannels",
-                                                             "as",
-                                                             NM_DEVICE_ETHERNET_S390_SUBCHANNELS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Carrier",
-                                                             "b",
-                                                             NM_DEVICE_CARRIER), ), ),
-    .legacy_property_changed = TRUE,
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("HwAddress", "s", NM_DEVICE_HW_ADDRESS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("PermHwAddress",
+                                                           "s",
+                                                           NM_DEVICE_PERM_HW_ADDRESS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Speed", "u", NM_DEVICE_ETHERNET_SPEED),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("S390Subchannels",
+                                                           "as",
+                                                           NM_DEVICE_ETHERNET_S390_SUBCHANNELS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Carrier", "b", NM_DEVICE_CARRIER), ), ),
 };
 
 static void
