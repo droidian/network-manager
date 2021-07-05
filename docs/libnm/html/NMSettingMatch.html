@@ -314,10 +314,14 @@ nm_setting_match_new (<em class="parameter"><code><span class="type">void</span>
 <p>Creates a new <a class="link" href="NMSettingMatch.html" title="NMSettingMatch"><span class="type">NMSettingMatch</span></a> object with default values.</p>
 <div class="refsect3">
 <a name="nm-setting-match-new.returns"></a><h4>Returns</h4>
-<p>the new empty <a class="link" href="NMSettingMatch.html" title="NMSettingMatch"><span class="type">NMSettingMatch</span></a> object. </p>
+<p>the new empty <a class="link" href="NMSettingMatch.html" title="NMSettingMatch"><span class="type">NMSettingMatch</span></a> object</p>
+<p>Note that this function was present in header files since version 1.14.
+But due to a bug the symbol is only exposed and usable since version 1.32.
+As workaround, use g_object_new(NM_TYPE_SETTING_MATCH) which works with all
+versions since 1.14. </p>
 <p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
-<p class="since">Since: 1.14</p>
+<p class="since">Since: 1.32</p>
 </div>
 <hr>
 <div class="refsect2">

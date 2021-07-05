@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 #include <gio/gunixfdlist.h>
 
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "NetworkManagerUtils.h"
 
 #if defined(SUSPEND_RESUME_UPOWER)
@@ -108,7 +108,7 @@ upower_resuming_cb(GDBusProxy *proxy, gpointer user_data)
     sleep_signal(user_data, FALSE);
 }
 
-#else /* USE_UPOWER */
+#else  /* USE_UPOWER */
 
 static void
 drop_inhibitor(NMSleepMonitor *self, gboolean force)

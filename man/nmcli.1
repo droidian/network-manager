@@ -2,12 +2,12 @@
 .\"     Title: nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/18/2021
+.\"      Date: 06/30/2021
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.30.0
+.\"    Source: NetworkManager 1.32.2
 .\"  Language: English
 .\"
-.TH "NMCLI" "1" "" "NetworkManager 1\&.30\&.0" "General Commands Manual"
+.TH "NMCLI" "1" "" "NetworkManager 1\&.32\&.2" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -241,7 +241,7 @@ not to wait but to exit immediately with a status of success\&. The default valu
 .RE
 .SH "GENERAL COMMANDS"
 .HP \w'\fBnmcli\ general\fR\ 'u
-\fBnmcli general\fR {\fBstatus\fR | \fBhostname\fR | \fBpermissions\fR | \fBlogging\fR} [\fIARGUMENTS\fR...]
+\fBnmcli general\fR {\fBstatus\fR | \fBhostname\fR | \fBpermissions\fR | \fBlogging\fR | \fBreload\fR} [\fIARGUMENTS\fR...]
 .PP
 Use this command to show NetworkManager status and permissions\&. You can also get and change system hostname, as well as NetworkManager logging level and domains\&.
 .PP
@@ -276,6 +276,33 @@ and, or,
 parameters\&. See
 \fBNetworkManager.conf\fR(5)
 for available level and domain values\&.
+.RE
+.PP
+\fBreload\fR [\fIflags\fR...]
+.RS 4
+Reload NetworkManager\*(Aqs configuration and perform certain updates, like flushing caches or rewriting external state to disk\&. This is similar to sending SIGHUP to NetworkManager but it allows for more fine\-grained control over what to reload through the flags argument\&. It also allows non\-root access via PolicyKit and contrary to signals it is synchronous\&. Available flags are:
+.PP
+\fBconf\fR
+.RS 4
+Reload the NetworkManager\&.conf configuration from disk\&. Note that this does not include connections, which can be reloaded through
+\fBnmcli connection reload\fR
+instead\&.
+.RE
+.PP
+\fBdns\-rc\fR
+.RS 4
+Update DNS configuration, which usually involves writing /etc/resolv\&.conf anew\&. This is equivalent to sending the SIGUSR1 signal to the NetworkManager process\&.
+.RE
+.PP
+\fBdns\-full\fR
+.RS 4
+Restart the DNS plugin\&. This is for example useful when using dnsmasq plugin, which uses additional configuration in
+/etc/NetworkManager/dnsmasq\&.d\&. If you edit those files, you can restart the DNS plugin\&. This action shortly interrupts name resolution\&.
+.RE
+.sp
+With no flags, everything that is supported is reloaded, which is identical to sending a SIGHUP\&. See
+\fBNetworkManager\fR(8)
+for more details about signals\&.
 .RE
 .SH "NETWORKING CONTROL COMMANDS"
 .HP \w'\fBnmcli\ networking\fR\ 'u

@@ -1,4 +1,68 @@
 =============================================
+NetworkManager-1.32.2
+Overview of changes since NetworkManager-1.32
+=============================================
+
+* hostname: prefer IPv4 addresses for reverse DNS lookup.
+* dhcp: ignore unauthenticated FORCERENEW messages with
+  internal, systemd-based DHCPv4 plugin (CVE-2020-13529).
+  This plugin is not used, unless the undocumented dhcp=systemd
+  option was set.
+* cloud-setup: preserve IP addresses, routes and rules from
+  currently active connection profile.
+* Various bugfixes and performance improvements.
+
+=============================================
+NetworkManager-1.32
+Overview of changes since NetworkManager-1.30
+=============================================
+
+* Add an 'accept-all-mac-addresses' property to the ethernet setting
+  to accept frames with any MAC address (also known as promiscuous
+  mode).
+* nmcli: fix setting property aliases to empty value to reset the
+  default value.
+* BEHAVIOR CHANGE: Enforce valid lower case UUID format for the "connection.uuid"
+  by normalizing the value. This changes the UUID of existing profiles with an
+  invalid or non-normalized value. Also normalize "connection.secondaries" to only
+  contain valid and distinct UUIDs. Profiles that set "connection.master" or the
+  "parent" properties to a non-normalized UUID need adjustment. Using such
+  non-normalized UUIDs should be rare and affect few users.
+* API CHANGE: D-Bus: remove long deprecated "PropertiesChanged" signal from D-Bus
+  API. They are replaced by standard "PropertiesChanged" signal on the
+  "org.freedesktop.DBus.Properties" interface. It is not expected that anybody
+  is still using this API.
+* Now NetworkManager uses systemd-resolved API to lookup the system
+  hostname via reverse DNS. If systemd-resolved is not available, a
+  'nm-daemon-helper' binary is spawned to perform the lookup using
+  the 'dns' NSS module.
+* dhcp: honor "ID_NET_DHCP_BROADCAST" udev attribute to set the broadcast flag.
+  This allows to configure devices in udev for which DHCPOFFER messages are to be
+  broadcast.
+* firewall: add nftables firewall backend for configuring IPv4 NAT with shared
+  mode. Now two backends are supported, "iptables" and "nftables". The default
+  gets detected based on whether /usr/sbin/nft or /usr/sbin/iptables is installed,
+  with nftables preferred.
+  Please note that SELinux might prevent NetworkManager from communicating with nft.
+* ethtool: add support for pause settings.
+* Support "prohibit"/"blackhole"/"unreachable" type routing rules.
+* Support uidrange attribute for policy routing rules.
+* Now NetworkManager preserves by default the existing traffic control
+  configuration (qdiscs and filters) when activating a connection.
+* wifi/iwd: mirror NetworkManager connection profiles to iwd config files.
+* API CHANGE: vala: fix wrongly generated vapi for WireGuard API.
+* wifi: fix parsing of Microsoft Network Cost information element for
+  detecting metered networks.
+* dhcp: support option 249 (Microsoft Classless Static Route) with nettools
+  internal DHCP plugin.
+* initrd: support the "rd.net.dhcp.retry" kernel argument for controlling retry
+  and timeout to get a DHCP lease.
+* API CHANGE: hide definitions of structs for NMSetting and NMSimpleConnection from
+  public headers.
+* Major restructuring of the source code.
+* Many bugfixes and minor improvements.
+
+=============================================
 NetworkManager-1.30
 Overview of changes since NetworkManager-1.28
 =============================================

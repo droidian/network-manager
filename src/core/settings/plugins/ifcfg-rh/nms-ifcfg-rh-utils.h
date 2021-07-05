@@ -7,7 +7,7 @@
 #define _UTILS_H_
 
 #include "nm-connection.h"
-#include "nm-base/nm-ethtool-base.h"
+#include "libnm-base/nm-ethtool-base.h"
 
 #include "shvar.h"
 
@@ -33,7 +33,7 @@ typedef struct {
     NMSIfcfgKeyTypeFlags key_flags;
 } NMSIfcfgKeyTypeInfo;
 
-extern const NMSIfcfgKeyTypeInfo nms_ifcfg_well_known_keys[247];
+extern const NMSIfcfgKeyTypeInfo nms_ifcfg_well_known_keys[249];
 
 const NMSIfcfgKeyTypeInfo *nms_ifcfg_well_known_key_find_info(const char *key, gssize *out_idx);
 

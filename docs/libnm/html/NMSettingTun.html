@@ -16,8 +16,7 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMSettingTun.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMSettingTun.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMSettingTun.properties" class="shortcut">Properties</a></span>
+                  <a href="#NMSettingTun.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -99,50 +98,6 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="NMSettingTun.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody>
-<tr>
-<td class="property_type">
-<span class="type">char</span> *</td>
-<td class="property_name"><a class="link" href="NMSettingTun.html#NMSettingTun--group" title="The “group” property">group</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingTun.html#NMSettingTun--mode" title="The “mode” property">mode</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingTun.html#NMSettingTun--multi-queue" title="The “multi-queue” property">multi-queue</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type">
-<span class="type">char</span> *</td>
-<td class="property_name"><a class="link" href="NMSettingTun.html#NMSettingTun--owner" title="The “owner” property">owner</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingTun.html#NMSettingTun--pi" title="The “pi” property">pi</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingTun.html#NMSettingTun--vnet-hdr" title="The “vnet-hdr” property">vnet-hdr</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
 <a name="NMSettingTun.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -182,10 +137,6 @@
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="NMSettingTun.html#NMSettingTunMode" title="enum NMSettingTunMode">NMSettingTunMode</a></td>
 </tr>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMSettingTun.html#NMSettingTun-struct" title="NMSettingTun">NMSettingTun</a></td>
-</tr>
 </tbody>
 </table></div>
 </div>
@@ -193,9 +144,6 @@
 <a name="NMSettingTun.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">╰──</span> NMSettingTunMode
-    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
-        <span class="lineart">╰──</span> NMSettingTun
 </pre>
 </div>
 <div class="refsect1">
@@ -239,7 +187,7 @@ nm_setting_tun_get_mode (<em class="parameter"><code><a class="link" href="NMSet
 </div>
 <div class="refsect3">
 <a name="nm-setting-tun-get-mode.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingTun.html#NMSettingTun--mode" title="The “mode” property"><span class="type">“mode”</span></a> property of the setting</p>
+<p> the <span class="type">“mode”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -265,7 +213,7 @@ nm_setting_tun_get_owner (<em class="parameter"><code><a class="link" href="NMSe
 </div>
 <div class="refsect3">
 <a name="nm-setting-tun-get-owner.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingTun.html#NMSettingTun--owner" title="The “owner” property"><span class="type">“owner”</span></a> property of the setting</p>
+<p> the <span class="type">“owner”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -291,7 +239,7 @@ nm_setting_tun_get_group (<em class="parameter"><code><a class="link" href="NMSe
 </div>
 <div class="refsect3">
 <a name="nm-setting-tun-get-group.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingTun.html#NMSettingTun--group" title="The “group” property"><span class="type">“group”</span></a> property of the setting</p>
+<p> the <span class="type">“group”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -317,7 +265,7 @@ nm_setting_tun_get_pi (<em class="parameter"><code><a class="link" href="NMSetti
 </div>
 <div class="refsect3">
 <a name="nm-setting-tun-get-pi.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingTun.html#NMSettingTun--pi" title="The “pi” property"><span class="type">“pi”</span></a> property of the setting</p>
+<p> the <span class="type">“pi”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -343,7 +291,7 @@ nm_setting_tun_get_vnet_hdr (<em class="parameter"><code><a class="link" href="N
 </div>
 <div class="refsect3">
 <a name="nm-setting-tun-get-vnet-hdr.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingTun.html#NMSettingTun--vnet-hdr" title="The “vnet-hdr” property"><span class="type">“vnet_hdr”</span></a> property of the setting</p>
+<p> the <span class="type">“vnet_hdr”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -369,7 +317,7 @@ nm_setting_tun_get_multi_queue (<em class="parameter"><code><a class="link" href
 </div>
 <div class="refsect3">
 <a name="nm-setting-tun-get-multi-queue.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingTun.html#NMSettingTun--multi-queue" title="The “multi-queue” property"><span class="type">“multi-queue”</span></a> property of the setting</p>
+<p> the <span class="type">“multi-queue”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -454,84 +402,6 @@ nm_setting_tun_get_multi_queue (<em class="parameter"><code><a class="link" href
 </tbody>
 </table></div>
 </div>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingTun-struct"></a><h3>NMSettingTun</h3>
-<pre class="programlisting">typedef struct _NMSettingTun NMSettingTun;</pre>
-<p>Tunnel Settings</p>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMSettingTun.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMSettingTun--group"></a><h3>The <code class="literal">“group”</code> property</h3>
-<pre class="programlisting">  “group”                    <span class="type">char</span> *</pre>
-<p>The group ID which will own the device. If set to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> everyone
-will be able to use the device.</p>
-<p>Owner: NMSettingTun</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NULL</p>
-<p class="since">Since: 1.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingTun--mode"></a><h3>The <code class="literal">“mode”</code> property</h3>
-<pre class="programlisting">  “mode”                     <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
-<p>The operating mode of the virtual device. Allowed values are
-<a class="link" href="NMSettingTun.html#NM-SETTING-TUN-MODE-TUN:CAPS"><code class="literal">NM_SETTING_TUN_MODE_TUN</code></a> to create a layer 3 device and
-<a class="link" href="NMSettingTun.html#NM-SETTING-TUN-MODE-TAP:CAPS"><code class="literal">NM_SETTING_TUN_MODE_TAP</code></a> to create an Ethernet-like layer 2
-one.</p>
-<p>Owner: NMSettingTun</p>
-<p>Flags: Read / Write</p>
-<p>Default value: 1</p>
-<p class="since">Since: 1.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingTun--multi-queue"></a><h3>The <code class="literal">“multi-queue”</code> property</h3>
-<pre class="programlisting">  “multi-queue”              <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>If the property is set to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, the interface will support
-multiple file descriptors (queues) to parallelize packet
-sending or receiving. Otherwise, the interface will only
-support a single queue.</p>
-<p>Owner: NMSettingTun</p>
-<p>Flags: Read / Write</p>
-<p>Default value: FALSE</p>
-<p class="since">Since: 1.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingTun--owner"></a><h3>The <code class="literal">“owner”</code> property</h3>
-<pre class="programlisting">  “owner”                    <span class="type">char</span> *</pre>
-<p>The user ID which will own the device. If set to <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> everyone
-will be able to use the device.</p>
-<p>Owner: NMSettingTun</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NULL</p>
-<p class="since">Since: 1.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingTun--pi"></a><h3>The <code class="literal">“pi”</code> property</h3>
-<pre class="programlisting">  “pi”                       <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>If <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> the interface will prepend a 4 byte header describing the
-physical interface to the packets.</p>
-<p>Owner: NMSettingTun</p>
-<p>Flags: Read / Write</p>
-<p>Default value: FALSE</p>
-<p class="since">Since: 1.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingTun--vnet-hdr"></a><h3>The <code class="literal">“vnet-hdr”</code> property</h3>
-<pre class="programlisting">  “vnet-hdr”                 <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>If <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> the IFF_VNET_HDR the tunnel packets will include a virtio
-network header.</p>
-<p>Owner: NMSettingTun</p>
-<p>Flags: Read / Write</p>
-<p>Default value: FALSE</p>
-<p class="since">Since: 1.2</p>
 </div>
 </div>
 </div>

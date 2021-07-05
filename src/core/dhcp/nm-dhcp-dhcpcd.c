@@ -65,10 +65,7 @@ nm_dhcp_dhcpcd_get_path(void)
 }
 
 static gboolean
-ip4_start(NMDhcpClient *client,
-          const char *  dhcp_anycast_addr,
-          const char *  last_ip4_address,
-          GError **     error)
+ip4_start(NMDhcpClient *client, const char *last_ip4_address, GError **error)
 {
     NMDhcpDhcpcd *    self            = NM_DHCP_DHCPCD(client);
     gs_unref_ptrarray GPtrArray *argv = NULL;
@@ -122,7 +119,7 @@ ip4_start(NMDhcpClient *client,
     hostname = nm_dhcp_client_get_hostname(client);
 
     if (hostname) {
-        if (nm_dhcp_client_get_use_fqdn(client)) {
+        if (NM_FLAGS_HAS(nm_dhcp_client_get_client_flags(client), NM_DHCP_CLIENT_FLAGS_USE_FQDN)) {
             g_ptr_array_add(argv, (gpointer) "-h");
             g_ptr_array_add(argv, (gpointer) hostname);
             g_ptr_array_add(argv, (gpointer) "-F");
@@ -169,27 +166,29 @@ stop(NMDhcpClient *client, gboolean release)
     int           sig, errsv;
 
     pid = nm_dhcp_client_get_pid(client);
-    sig = release ? SIGALRM : SIGTERM;
-    _LOGD("sending %s to dhcpcd pid %d", sig == SIGALRM ? "SIGALRM" : "SIGTERM", pid);
+    if (pid > 1) {
+        sig = release ? SIGALRM : SIGTERM;
+        _LOGD("sending %s to dhcpcd pid %d", sig == SIGALRM ? "SIGALRM" : "SIGTERM", pid);
 
-    /* dhcpcd-9.x features privilege separation.
-     * It's not our job to track all these processes so we rely on dhcpcd
-     * to always cleanup after itself.
-     * Because it also re-parents itself to PID 1, the process cannot be
-     * reaped or waited for.
-     * As such, just send the correct signal.
-     */
-    if (kill(pid, sig) == -1) {
-        errsv = errno;
-        _LOGE("failed to kill dhcpcd %d:%s", errsv, strerror(errsv));
+        /* dhcpcd-9.x features privilege separation.
+         * It's not our job to track all these processes so we rely on dhcpcd
+         * to always cleanup after itself.
+         * Because it also re-parents itself to PID 1, the process cannot be
+         * reaped or waited for.
+         * As such, just send the correct signal.
+         */
+        if (kill(pid, sig) == -1) {
+            errsv = errno;
+            _LOGE("failed to kill dhcpcd %d:%s", errsv, strerror(errsv));
+        }
+
+        /* When this function exits NM expects the PID to be -1.
+         * This means we also need to stop watching the pid.
+         * If we need to know the exit status then we need to refactor NM
+         * to allow a non -1 to mean we're waiting to exit still.
+         */
+        nm_dhcp_client_stop_watch_child(client, pid);
     }
-
-    /* When this function exits NM expects the PID to be -1.
-     * This means we also need to stop watching the pid.
-     * If we need to know the exit status then we need to refactor NM
-     * to allow a non -1 to mean we're waiting to exit still.
-     */
-    nm_dhcp_client_stop_watch_child(client, pid);
 }
 
 /*****************************************************************************/

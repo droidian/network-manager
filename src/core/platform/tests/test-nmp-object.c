@@ -8,8 +8,8 @@
 #include <libudev.h>
 #include <linux/pkt_sched.h>
 
-#include "platform/nmp-object.h"
-#include "nm-udev-aux/nm-udev-utils.h"
+#include "libnm-platform/nmp-object.h"
+#include "libnm-udev-aux/nm-udev-utils.h"
 
 #include "nm-test-utils-core.h"
 

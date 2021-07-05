@@ -7,7 +7,7 @@
 <link rel="home" href="index.html" title="NetworkManager Reference Manual">
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="NetworkManager.html" title="NetworkManager">
-<link rel="next" href="nmcli.html" title="nmcli">
+<link rel="next" href="NetworkManager-dispatcher.html" title="NetworkManager-dispatcher">
 <meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
@@ -17,7 +17,7 @@
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="manpages.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
 <td><a accesskey="p" href="NetworkManager.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="nmcli.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="NetworkManager-dispatcher.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="NetworkManager.conf"></a><div class="titlepage"></div>
@@ -72,6 +72,12 @@
     Certain settings from the configuration can be reloaded at runtime either by sending SIGHUP signal or via
     D-Bus' Reload call.
     </p>
+<p>
+    NetworkManager does not require any configuration in <code class="literal">NetworkManager.conf</code>. Depending
+    on your use case, you may remove all files to restore the default configuration (factory reset). But
+    note that your distribution or other packages may drop configuration snippets for NetworkManager, such
+    that they are part of the factory default.
+    </p>
 </div>
 <div class="refsect1">
 <a name="id-1.2.3.6"></a><h2>File Format</h2>
@@ -91,7 +97,7 @@
       below.
     </p>
 <p>
-      Minimal system settings configuration file looks like this:
+      A simple configuration file looks like this:
       </p>
 <pre class="programlisting">
 [main]
@@ -326,7 +332,9 @@ no-auto-default=*
 <p><code class="literal">unbound</code>: NetworkManager will talk
         to unbound and dnssec-triggerd, using "Conditional Forwarding"
         with DNSSEC support. <code class="filename">/etc/resolv.conf</code>
-        will be managed by dnssec-trigger daemon.</p>
+        will be managed by dnssec-trigger daemon. This option is
+        deprecated. Note that dnssec-trigger ships a NetworkManager dispatcher
+        script so this DNS plugin is not necessary.</p>
 <p><code class="literal">none</code>: NetworkManager will not
         modify resolv.conf. This implies
         <code class="literal">rc-manager</code> <code class="literal">unmanaged</code></p>
@@ -456,6 +464,47 @@ no-auto-default=*
             index).
           </p></td>
 </tr>
+<tr>
+<td><p><span class="term"><code class="varname">firewall-backend</code></span></p></td>
+<td><p>
+            The firewall backend for configuring masquerading
+            with shared mode.
+            Set to either <code class="literal">iptables</code>, <code class="literal">nftables</code>
+            or <code class="literal">none</code>.
+            <code class="literal">iptables</code> and <code class="literal">nftables</code>
+            require <code class="literal">iptables</code> and <code class="literal">nft</code>
+            application, respectively.
+            <code class="literal">none</code> means to skip firewall configuration if
+            the users wish to manage firewall themselves.
+            If unspecified, it will be auto detected.
+          </p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">iwd-config-path</code></span></p></td>
+<td>
+<p>
+            If the value is "auto" (the default), IWD is queried for its
+            current state directory when it appears on D-Bus -- the
+            directory where IWD keeps its network configuration files --
+            usually /var/lib/iwd.  NetworkManager will then attempt to
+            write copies of new or modified Wi-Fi connection profiles,
+            converted into the IWD format, into this directory thus making
+            IWD connection properties editable.  NM will overwrite existing
+            files without preserving their contents.
+          </p>
+<p>
+            The path can also be overriden by pointing to a specific
+            existing and writable directory.  On the other hand setting
+            this to an empty string or any other value disables the
+            profile conversion mechanism.
+          </p>
+<p>
+            This mechanism allows editing connection profile settings such
+            as the 802.1x configuration using NetworkManager clients.
+            Without it such changes have no effect in IWD.
+          </p>
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -489,21 +538,30 @@ no-auto-default=*
 <tr>
 <td><p><span class="term"><code class="varname">unmanaged-devices</code></span></p></td>
 <td>
-<p>Set devices that should be ignored by
-           NetworkManager.
-          </p>
-<p>See <a class="xref" href="NetworkManager.conf.html#device-spec" title="Device List Format">the section called “Device List Format”</a> for the syntax on how to
-           specify a device.
-          </p>
-<p>
-            Example:
+<p>Set devices that should be ignored by NetworkManager.
             </p>
+<p>
+              A device unmanaged due to this option is strictly
+              unmanaged and cannot be overruled by using the API like
+              <span class="command"><strong>nmcli device set $IFNAME managed yes</strong></span>.
+              Also, a device that is unmanaged for other reasons, like
+              an udev rule, cannot be made managed with this option (e.g. by
+              using an <code class="literal">except:</code> specifier).
+              These two points make it different from the <code class="literal">device*.managed</code>
+              option which for that reason may be a better choice.
+            </p>
+<p>See <a class="xref" href="NetworkManager.conf.html#device-spec" title="Device List Format">the section called “Device List Format”</a> for the syntax on how to
+              specify a device.
+            </p>
+<p>
+              Example:
+              </p>
 <pre class="programlisting">
 unmanaged-devices=interface-name:em4
 unmanaged-devices=mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface-name:eth2
 </pre>
 <p>
-          </p>
+            </p>
 </td>
 </tr>
 </tbody>
@@ -1005,19 +1063,32 @@ managed=1
 </tr>
 <tr>
 <td><p><a name="carrier-wait-timeout"></a><span class="term"><code class="varname">carrier-wait-timeout</code></span></p></td>
-<td><p>
+<td>
+<p>
               Specify the timeout for waiting for carrier in milliseconds.
+              The default is 5000 milliseconds.
+              This setting exists because certain drivers/hardware can take
+              a long time to detect whether the cable is plugged in.
+            </p>
+<p>
               When the device loses carrier, NetworkManager does not react
               immediately. Instead, it waits for this timeout before considering
-              the link lost. Also, on startup, NetworkManager considers the
+              the link lost.
+            </p>
+<p>
+              Also, on startup, NetworkManager considers the
               device as busy for this time, as long as the device has no carrier.
               This delays startup-complete signal and NetworkManager-wait-online.
               Configuring this too high means to block NetworkManager-wait-online
-              longer then necessary. Configuring it too low, means that NetworkManager
-              will declare startup-complete, although carrier is about to come
-              and auto-activation to kick in.
-              The default is 5000 milliseconds.
-            </p></td>
+              longer than necessary when booting with cable unplugged. Configuring
+              it too low, means that NetworkManager will declare startup-complete too
+              soon, although carrier is about to come and auto-activation to kick in.
+              Note that if a profile only has static IP configuration or Layer 3 configuration
+              disabled, then it can already autoconnect without carrier on the device.
+              Once such a profile reaches full activated state, startup-complete
+              is considered as reached even if the device has no carrier yet.
+            </p>
+</td>
 </tr>
 <tr>
 <td><p><a name="ignore-carrier"></a><span class="term"><code class="varname">ignore-carrier</code></span></p></td>
@@ -1092,7 +1163,7 @@ managed=1
               If <code class="literal">wifi.backend</code> is <code class="literal">iwd</code>, setting this to
               <code class="literal">false</code> forces IWD's autoconnect mechanism to be disabled for
               this device and connections will only be initiated by NetworkManager whether
-              commaned by a client or automatically.  Leaving it <code class="literal">true</code> (default)
+              commanded by a client or automatically.  Leaving it <code class="literal">true</code> (default)
               stops NetworkManager from automatically initiating connections and allows
               IWD to use its network ranking and scanning logic to decide the best networks
               to autoconnect to next.  Connections' <code class="literal">autoconnect-priority</code>,

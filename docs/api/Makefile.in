@@ -111,6 +111,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+target_triplet = @target@
 @BUILD_DOCS_TRUE@am__append_1 = settings-spec.xml
 @WITH_OPENVSWITCH_TRUE@am__append_2 = $(top_builddir)/man/nm-openvswitch.xml
 @BUILD_NM_CLOUD_SETUP_TRUE@am__append_3 = $(top_builddir)/man/nm-cloud-setup.xml
@@ -119,6 +120,7 @@ subdir = docs/api
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/attributes.m4 \
 	$(top_srcdir)/m4/ax_lib_readline.m4 \
+	$(top_srcdir)/m4/ax_pthread.m4 \
 	$(top_srcdir)/m4/compiler_options.m4 \
 	$(top_srcdir)/m4/gettext.m4 $(top_srcdir)/m4/git-sha-record.m4 \
 	$(top_srcdir)/m4/gnome-code-coverage.m4 \
@@ -296,6 +298,7 @@ MSGFMT_015 = @MSGFMT_015@
 MSGMERGE = @MSGMERGE@
 NEWT_CFLAGS = @NEWT_CFLAGS@
 NEWT_LIBS = @NEWT_LIBS@
+NFT_PATH = @NFT_PATH@
 NM = @NM@
 NMEDIT = @NMEDIT@
 NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT = @NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT@
@@ -331,6 +334,10 @@ PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 POSUB = @POSUB@
 PPPD_PATH = @PPPD_PATH@
 PPPD_PLUGIN_DIR = @PPPD_PLUGIN_DIR@
+PTHREAD_CC = @PTHREAD_CC@
+PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
+PTHREAD_CXX = @PTHREAD_CXX@
+PTHREAD_LIBS = @PTHREAD_LIBS@
 PYTHON = @PYTHON@
 PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
 PYTHON_PLATFORM = @PYTHON_PLATFORM@
@@ -389,6 +396,7 @@ am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
+ax_pthread_config = @ax_pthread_config@
 bindir = @bindir@
 build = @build@
 build_alias = @build_alias@
@@ -439,7 +447,11 @@ sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 sysconfdir = @sysconfdir@
 systemdsystemunitdir = @systemdsystemunitdir@
+target = @target@
 target_alias = @target_alias@
+target_cpu = @target_cpu@
+target_os = @target_os@
+target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
@@ -511,12 +523,13 @@ content_files = $(GENERATED_FILES) \
 	dbus-org.freedesktop.NetworkManager.VPN.Connection.xml \
 	dbus-org.freedesktop.NetworkManager.VPN.Plugin.xml \
 	dbus-org.freedesktop.NetworkManager.xml \
-	$(top_builddir)/libnm-core/nm-dbus-types.xml \
-	$(top_builddir)/libnm-core/nm-vpn-dbus-types.xml \
+	$(top_builddir)/src/libnm-core-public/nm-dbus-types.xml \
+	$(top_builddir)/src/libnm-core-public/nm-vpn-dbus-types.xml \
 	$(top_builddir)/man/nmcli.xml $(top_builddir)/man/nmtui.xml \
 	$(top_builddir)/man/nm-online.xml \
 	$(top_builddir)/man/nm-initrd-generator.xml \
 	$(top_builddir)/man/NetworkManager.xml \
+	$(top_builddir)/man/NetworkManager-dispatcher.xml \
 	$(top_builddir)/man/NetworkManager.conf.xml \
 	$(top_builddir)/man/nmcli-examples.xml \
 	$(top_builddir)/man/nm-settings-dbus.xml \

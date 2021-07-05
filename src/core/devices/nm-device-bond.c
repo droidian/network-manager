@@ -12,9 +12,9 @@
 
 #include "NetworkManagerUtils.h"
 #include "nm-device-private.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "nm-device-factory.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-ip4-config.h"
 
 #define _NMLOG_DEVICE_TYPE NMDeviceBond
@@ -108,6 +108,24 @@ _set_bond_attr(NMDevice *device, const char *attr, const char *value)
     NMDeviceBond *self    = NM_DEVICE_BOND(device);
     int           ifindex = nm_device_get_ifindex(device);
     gboolean      ret;
+
+    nm_assert(attr && attr[0]);
+    nm_assert(value);
+
+    if (nm_streq(value, NM_BOND_AD_ACTOR_SYSTEM_DEFAULT)
+        && nm_streq(attr, NM_SETTING_BOND_OPTION_AD_ACTOR_SYSTEM)) {
+        gs_free char *cur_val = NULL;
+
+        /* kernel does not allow setting ad_actor_system to "00:00:00:00:00:00". We would thus
+         * log an EINVAL error. Avoid that... at least, if the value is already "00:00:00:00:00:00". */
+        cur_val =
+            nm_platform_sysctl_master_get_option(nm_device_get_platform(device), ifindex, attr);
+        if (nm_streq0(cur_val, NM_BOND_AD_ACTOR_SYSTEM_DEFAULT))
+            return TRUE;
+
+        /* OK, the current value is different, and we will proceed setting "00:00:00:00:00:00".
+         * That will fail, and we will log a warning. There is nothing else to do. */
+    }
 
     ret =
         nm_platform_sysctl_master_set_option(nm_device_get_platform(device), ifindex, attr, value);
@@ -426,9 +444,10 @@ release_slave(NMDevice *device, NMDevice *slave, gboolean configure)
         _LOGD(LOGD_BOND, "bond slave %s is already released", nm_device_get_ip_iface(slave));
 
     if (configure) {
-        /* When the last slave is released the bond MAC will be set to a random
-         * value by kernel; remember the current one and restore it afterwards.
-         */
+        NMConnection *  applied;
+        NMSettingWired *s_wired;
+        const char *    cloned_mac;
+
         address = g_strdup(nm_device_get_hw_address(device));
 
         if (ifindex_slave > 0) {
@@ -443,9 +462,16 @@ release_slave(NMDevice *device, NMDevice *slave, gboolean configure)
             }
         }
 
-        nm_platform_process_events(nm_device_get_platform(device));
-        if (nm_device_update_hw_address(device))
-            nm_device_hw_addr_set(device, address, "restore", FALSE);
+        if ((applied = nm_device_get_applied_connection(device))
+            && ((s_wired = nm_connection_get_setting_wired(applied)))
+            && ((cloned_mac = nm_setting_wired_get_cloned_mac_address(s_wired)))) {
+            /* When the last slave is released the bond MAC will be set to a random
+             * value by kernel; if we have set a cloned-mac-address, we need to
+             * restore it to the previous value. */
+            nm_platform_process_events(nm_device_get_platform(device));
+            if (nm_device_update_hw_address(device))
+                nm_device_hw_addr_set(device, address, "restore", FALSE);
+        }
 
         /* Kernel bonding code "closes" the slave when releasing it, (which clears
          * IFF_UP), so we must bring it back up here to ensure carrier changes and
@@ -575,16 +601,10 @@ nm_device_bond_init(NMDeviceBond *self)
 static const NMDBusInterfaceInfoExtended interface_info_device_bond = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_DEVICE_BOND,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("HwAddress",
-                                                             "s",
-                                                             NM_DEVICE_HW_ADDRESS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Carrier", "b", NM_DEVICE_CARRIER),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Slaves",
-                                                             "ao",
-                                                             NM_DEVICE_SLAVES), ), ),
-    .legacy_property_changed = TRUE,
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("HwAddress", "s", NM_DEVICE_HW_ADDRESS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Carrier", "b", NM_DEVICE_CARRIER),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Slaves", "ao", NM_DEVICE_SLAVES), ), ),
 };
 
 static void

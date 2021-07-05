@@ -16,8 +16,7 @@
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
                   <a href="#NMSettingProxy.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMSettingProxy.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMSettingProxy.properties" class="shortcut">Properties</a></span>
+                  <a href="#NMSettingProxy.object-hierarchy" class="shortcut">Object Hierarchy</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -83,40 +82,6 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="NMSettingProxy.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingProxy.html#NMSettingProxy--browser-only" title="The “browser-only” property">browser-only</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><span class="type">int</span></td>
-<td class="property_name"><a class="link" href="NMSettingProxy.html#NMSettingProxy--method" title="The “method” property">method</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type">
-<span class="type">char</span> *</td>
-<td class="property_name"><a class="link" href="NMSettingProxy.html#NMSettingProxy--pac-script" title="The “pac-script” property">pac-script</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type">
-<span class="type">char</span> *</td>
-<td class="property_name"><a class="link" href="NMSettingProxy.html#NMSettingProxy--pac-url" title="The “pac-url” property">pac-url</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
 <a name="NMSettingProxy.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -148,10 +113,6 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingProxy.html#NM-SETTING-PROXY-PAC-SCRIPT:CAPS" title="NM_SETTING_PROXY_PAC_SCRIPT">NM_SETTING_PROXY_PAC_SCRIPT</a></td>
 </tr>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMSettingProxy.html#NMSettingProxy-struct" title="NMSettingProxy">NMSettingProxy</a></td>
-</tr>
 </tbody>
 </table></div>
 </div>
@@ -159,16 +120,13 @@
 <a name="NMSettingProxy.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Enumeration-and-Flag-Types.html">GEnum</a>
     <span class="lineart">╰──</span> NMSettingProxyMethod
-    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
-        <span class="lineart">╰──</span> NMSettingProxy
 </pre>
 </div>
 <div class="refsect1">
 <a name="NMSettingProxy.description"></a><h2>Description</h2>
 <p>The <a class="link" href="NMSettingProxy.html" title="NMSettingProxy"><span class="type">NMSettingProxy</span></a> object is a <a class="link" href="NMSetting.html" title="NMSetting"><span class="type">NMSetting</span></a> subclass that describes properties
 related to Proxy settings like PAC URL, PAC script etc.</p>
-<p>NetworkManager support 2 values for the <a class="link" href="NMSettingProxy.html#NMSettingProxy--method" title="The “method” property"><span class="type">“method”</span></a> property for
+<p>NetworkManager support 2 values for the <span class="type">“method”</span> property for
 proxy. If "auto" is specified then WPAD takes place and the appropriate details
 are pushed into PacRunner or user can override this URL with a new PAC URL or a
 PAC script. If "none" is selected then no proxy configuration is given to PacRunner
@@ -358,54 +316,6 @@ nm_setting_proxy_get_pac_script (<em class="parameter"><code><a class="link" hre
 <a name="NM-SETTING-PROXY-PAC-SCRIPT:CAPS"></a><h3>NM_SETTING_PROXY_PAC_SCRIPT</h3>
 <pre class="programlisting">#define NM_SETTING_PROXY_PAC_SCRIPT   "pac-script"
 </pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingProxy-struct"></a><h3>NMSettingProxy</h3>
-<pre class="programlisting">typedef struct _NMSettingProxy NMSettingProxy;</pre>
-<p>WWW Proxy Settings</p>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMSettingProxy.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMSettingProxy--browser-only"></a><h3>The <code class="literal">“browser-only”</code> property</h3>
-<pre class="programlisting">  “browser-only”             <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Whether the proxy configuration is for browser only.</p>
-<p>Owner: NMSettingProxy</p>
-<p>Flags: Read / Write</p>
-<p>Default value: FALSE</p>
-<p class="since">Since: 1.6</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingProxy--method"></a><h3>The <code class="literal">“method”</code> property</h3>
-<pre class="programlisting">  “method”                   <span class="type">int</span></pre>
-<p>Method for proxy configuration, Default is <a class="link" href="NMSettingProxy.html#NM-SETTING-PROXY-METHOD-NONE:CAPS"><code class="literal">NM_SETTING_PROXY_METHOD_NONE</code></a></p>
-<p>Owner: NMSettingProxy</p>
-<p>Flags: Read / Write</p>
-<p>Default value: 0</p>
-<p class="since">Since: 1.6</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingProxy--pac-script"></a><h3>The <code class="literal">“pac-script”</code> property</h3>
-<pre class="programlisting">  “pac-script”               <span class="type">char</span> *</pre>
-<p>PAC script for the connection.</p>
-<p>Owner: NMSettingProxy</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NULL</p>
-<p class="since">Since: 1.6</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingProxy--pac-url"></a><h3>The <code class="literal">“pac-url”</code> property</h3>
-<pre class="programlisting">  “pac-url”                  <span class="type">char</span> *</pre>
-<p>PAC URL for obtaining PAC file.</p>
-<p>Owner: NMSettingProxy</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NULL</p>
-<p class="since">Since: 1.6</p>
 </div>
 </div>
 </div>

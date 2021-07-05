@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/18/2021
+.\"      Date: 06/30/2021
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.30.0
+.\"    Source: NetworkManager 1.32.2
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.30\&.0" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.32\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -257,9 +257,9 @@ files for a single device, NM_CONTROLLED=no in one of the files will cause the d
 NetworkManager has introduced some new variable, not present in initscripts, to be able to store data for its new features\&. The variables are marked as extensions in the tables below\&.
 .RE
 .PP
-\fBSemantic change of variables\fR
+\fBSemantic change of variables and differences\fR
 .RS 4
-NetworkManager had to slightly change the semantic for a few variables\&.
+NetworkManager changes the semantics for a few variables and there are other behavioral differences\&.
 .sp
 .RS 4
 .ie n \{\
@@ -316,6 +316,20 @@ is used, NetworkManager assigns the interface 10\&.42\&.0\&.1, or it uses the fi
 .\}
 HWADDR
 \- initscripts compare the currently set hardware address of a device, while NetworkManager considers the permanent one\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+NOZEROCONF
+\- initscripts add an on\-link route to 169\&.254\&.0\&.0/16 for ethernet profiles that don\*(Aqt explicitly opt\-out by setting
+NOZEROCONF
+variable\&. NetworkManager does not do that\&. Instead a static, manual route with scope=253 (link) should be added to get that behavior\&.
 .RE
 .RE
 .PP
@@ -2176,6 +2190,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 method
@@ -2274,15 +2289,24 @@ A timeout after which the DHCP transaction fails in case of no response\&.\fB
 Example: \fRIPV6_DHCP_TIMEOUT=10
 T}
 T{
+dhcp\-hostname\-flags
+T}:T{
+DHCPV6_HOSTNAME_FLAGS
+T}:T{
+\ \&
+T}:T{
+flags for the DHCP hostname property\fB
+
+Example: \fRDHCPV6_HOSTNAME_FLAGS=5
+T}
+T{
 never\-default
 T}:T{
 IPV6_DEFROUTE\fI(+)\fR, (and IPV6_DEFAULTGW, IPV6_DEFAULTDEV in /etc/sysconfig/network)
 T}:T{
 IPV6_DEFROUTE=yes (when no variable specified)
 T}:T{
-IPV6_DEFROUTE=no tells NetworkManager that this connection should not be assigned the default IPv6 route\&. IPV6_DEFROUTE has the opposite meaning as \*(Aqnever\-default\*(Aq property\&.\fB
-
-Example: \fRDHCPV6_HOSTNAME_FLAGS=5 */
+IPV6_DEFROUTE=no tells NetworkManager that this connection should not be assigned the default IPv6 route\&. IPV6_DEFROUTE has the opposite meaning as \*(Aqnever\-default\*(Aq property\&.
 T}
 T{
 may\-fail
@@ -2707,22 +2731,22 @@ l l l l.
 T{
 qdiscs
 T}:T{
-QDISC1\fI(+)\fR, QDISC2\fI(+)\fR, \&.\&.\&.
+QDISC1\fI(+)\fR, QDISC2\fI(+)\fR, \&.\&.\&., TC_COMMIT\fI(+)\fR
 T}:T{
 \ \&
 T}:T{
-Queueing disciplines\fB
+Queueing disciplines to set on the interface\&. When no QDISC1, QDISC2, \&.\&.\&., FILTER1, FILTER2, \&.\&.\&. keys are present, NetworkManager doesn\*(Aqt touch qdiscs and filters present on the interface, unless TC_COMMIT is set to \*(Aqyes\*(Aq\&.\fB
 
 Example: \fRQDISC1=ingress, QDISC2="root handle 1234: fq_codel"
 T}
 T{
 qdiscs
 T}:T{
-FILTER1\fI(+)\fR, FILTER2\fI(+)\fR, \&.\&.\&.
+FILTER1\fI(+)\fR, FILTER2\fI(+)\fR, \&.\&.\&., TC_COMMIT\fI(+)\fR
 T}:T{
 \ \&
 T}:T{
-Traffic filters\fB
+Traffic filters to set on the interface\&. When no QDISC1, QDISC2, \&.\&.\&., FILTER1, FILTER2, \&.\&.\&. keys are present, NetworkManager doesn\*(Aqt touch qdiscs and filters present on the interface, unless TC_COMMIT is set to \*(Aqyes\*(Aq\&.\fB
 
 Example: \fRFILTER1="parent ffff: matchall action simple sdata Input", \&.\&.\&.
 T}
@@ -2882,11 +2906,11 @@ T}
 T{
 id
 T}:T{
-VLAN_ID or DEVICE
+VLAN_ID, DEVICE\&.
 T}:T{
 \ \&
 T}:T{
-VLAN identifier\&.
+VLAN identifier\&. If VLAN_ID is not set, it is attempted to be detected from the suffix of DEVICE=\&. Note that older versions of NetworkManager had a bug where they would prefer the detected ID from the DEVICE over VLAN_ID\&.
 T}
 T{
 flags
@@ -2997,6 +3021,9 @@ T}:T{
 Description
 T}
 .T&
+l l l l
+l l l l
+l l l l
 l l l l
 l l l l
 l l l l
@@ -3125,6 +3152,35 @@ T}:T{
 T}:T{
 S390 device options\&. All options go to OPTIONS, except for "portname" and "ctcprot" that have their own variables\&.
 T}
+T{
+wake\-on\-lan
+T}:T{
+ETHTOOL_OPTS, ETHTOOL_WAKE_ON_LAN
+T}:T{
+\ \&
+T}:T{
+Wake on Lan mode for ethernet\&. The setting "ignore" is expressed with "ETHTOOL_WAKE_ON_LAN=ignore"\&. Otherwise, the "ETHTOOL_OPTS" variable is set with the value "wol" and several of the characters "p|u|m|b|a|g|s|f|d" as explained in the ethtool manual page\&.
+T}
+T{
+wake\-on\-lan\-password
+T}:T{
+ETHTOOL_OPTS
+T}:T{
+\ \&
+T}:T{
+Password for secure\-on based Wake\-on\-Lan\&. It is added as "sopass" parameter in the ETHTOOL_OPTS variable\&.\fB
+
+Example: \fRETHTOOL_OPTS="wol gs sopass 00:11:22:33:44:55"
+T}
+T{
+accept\-all\-mac\-addresses
+T}:T{
+ACCEPT_ALL_MAC_ADDRESSES
+T}:T{
+\ \&
+T}:T{
+Enforce the interface to accept all the packets\&.
+T}
 .TE
 .sp 1
 .sp
@@ -3195,9 +3251,9 @@ KEY_MGMT\fI(+)\fR
 T}:T{
 \ \&
 T}:T{
-Key management menthod\&.\fB
+Key management method\&.\fB
 
-Allowed values: \fRIEEE8021X, WPA\-PSK, WPA\-EAP, WPA\-EAP\-SUITE\-B\-192
+Allowed values: \fRnone, ieee8021x, owe, wpa\-psk, sae, wpa\-eap, wpa\-eap\-suite\-b\-192
 T}
 T{
 wep\-tx\-keyidx

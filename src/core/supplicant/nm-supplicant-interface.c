@@ -12,13 +12,13 @@
 #include <linux/if_ether.h>
 
 #include "NetworkManagerUtils.h"
-#include "nm-core-internal.h"
-#include "nm-glib-aux/nm-c-list.h"
-#include "nm-glib-aux/nm-ref-string.h"
-#include "nm-std-aux/nm-dbus-compat.h"
+#include "libnm-core-intern/nm-core-internal.h"
+#include "libnm-glib-aux/nm-c-list.h"
+#include "libnm-glib-aux/nm-ref-string.h"
+#include "libnm-glib-aux/nm-dbus-aux.h"
+#include "libnm-std-aux/nm-dbus-compat.h"
 #include "nm-supplicant-config.h"
 #include "nm-supplicant-manager.h"
-#include "shared/nm-glib-aux/nm-dbus-aux.h"
 
 #define DBUS_TIMEOUT_MSEC 20000
 
@@ -267,30 +267,41 @@ security_from_vardict(GVariant *security)
     NM80211ApSecurityFlags flags = NM_802_11_AP_SEC_NONE;
     const char **          array;
     const char *           tmp;
+    gsize                  i;
+    const char *           v;
 
     nm_assert(g_variant_is_of_type(security, G_VARIANT_TYPE_VARDICT));
 
     if (g_variant_lookup(security, "KeyMgmt", "^a&s", &array)) {
-        if (g_strv_contains(array, "wpa-psk") || g_strv_contains(array, "wpa-ft-psk"))
-            flags |= NM_802_11_AP_SEC_KEY_MGMT_PSK;
-        if (g_strv_contains(array, "wpa-eap") || g_strv_contains(array, "wpa-ft-eap")
-            || g_strv_contains(array, "wpa-fils-sha256")
-            || g_strv_contains(array, "wpa-fils-sha384"))
-            flags |= NM_802_11_AP_SEC_KEY_MGMT_802_1X;
-        if (g_strv_contains(array, "sae"))
-            flags |= NM_802_11_AP_SEC_KEY_MGMT_SAE;
-        if (g_strv_contains(array, "owe"))
-            flags |= NM_802_11_AP_SEC_KEY_MGMT_OWE;
-        if (g_strv_contains(array, "wpa-eap-suite-b-192"))
-            flags |= NM_802_11_AP_SEC_KEY_MGMT_EAP_SUITE_B_192;
+        for (i = 0; (v = array[i]); i++) {
+            if (NM_IN_STRSET(v, "wpa-psk", "wpa-psk-sha256", "wpa-ft-psk"))
+                flags |= NM_802_11_AP_SEC_KEY_MGMT_PSK;
+            else if (NM_IN_STRSET(v,
+                                  "wpa-eap",
+                                  "wpa-eap-sha256",
+                                  "wpa-ft-eap",
+                                  "wpa-fils-sha256",
+                                  "wpa-fils-sha384",
+                                  "wpa-fils-ft-sha256",
+                                  "wpa-fils-ft-sha384"))
+                flags |= NM_802_11_AP_SEC_KEY_MGMT_802_1X;
+            else if (NM_IN_STRSET(v, "sae", "ft-sae"))
+                flags |= NM_802_11_AP_SEC_KEY_MGMT_SAE;
+            else if (NM_IN_STRSET(v, "owe"))
+                flags |= NM_802_11_AP_SEC_KEY_MGMT_OWE;
+            else if (NM_IN_STRSET(v, "wpa-eap-suite-b-192", "wpa-ft-eap-sha384"))
+                flags |= NM_802_11_AP_SEC_KEY_MGMT_EAP_SUITE_B_192;
+        }
         g_free(array);
     }
 
     if (g_variant_lookup(security, "Pairwise", "^a&s", &array)) {
-        if (g_strv_contains(array, "tkip"))
-            flags |= NM_802_11_AP_SEC_PAIR_TKIP;
-        if (g_strv_contains(array, "ccmp"))
-            flags |= NM_802_11_AP_SEC_PAIR_CCMP;
+        for (i = 0; (v = array[i]); i++) {
+            if (NM_IN_STRSET(v, "tkip"))
+                flags |= NM_802_11_AP_SEC_PAIR_TKIP;
+            else if (NM_IN_STRSET(v, "ccmp"))
+                flags |= NM_802_11_AP_SEC_PAIR_CCMP;
+        }
         g_free(array);
     }
 
@@ -359,8 +370,12 @@ _dbus_connection_call_simple_cb(GObject *source, GAsyncResult *result, gpointer 
     gs_free_error GError *error    = NULL;
     const char *          log_reason;
     gs_free char *        remote_error = NULL;
+    gpointer              p_suppress_warning;
+    gboolean              suppress_warning;
 
-    nm_utils_user_data_unpack(user_data, &self, &log_reason);
+    nm_utils_user_data_unpack(user_data, &self, &log_reason, &p_suppress_warning);
+
+    suppress_warning = GPOINTER_TO_INT(p_suppress_warning);
 
     res = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source), result, &error);
     if (nm_utils_error_is_cancelled(error))
@@ -371,37 +386,70 @@ _dbus_connection_call_simple_cb(GObject *source, GAsyncResult *result, gpointer 
         return;
     }
 
-    remote_error = g_dbus_error_get_remote_error(error);
-    if (!nm_streq0(remote_error, "fi.w1.wpa_supplicant1.NotConnected")) {
-        g_dbus_error_strip_remote_error(error);
-        _LOGW("call-%s: failed with %s", log_reason, error->message);
-        return;
+    if (!suppress_warning) {
+        remote_error = g_dbus_error_get_remote_error(error);
+        if (!nm_streq0(remote_error, "fi.w1.wpa_supplicant1.NotConnected")) {
+            g_dbus_error_strip_remote_error(error);
+            _LOGW("call-%s: failed with %s", log_reason, error->message);
+            return;
+        }
     }
 
     _LOGT("call-%s: failed with %s", log_reason, error->message);
 }
 
 static void
-_dbus_connection_call_simple(NMSupplicantInterface *self,
-                             const char *           interface_name,
-                             const char *           method_name,
-                             GVariant *             parameters,
-                             const GVariantType *   reply_type,
-                             const char *           log_reason)
+_dbus_connection_call_simple_full_impl(NMSupplicantInterface *self,
+                                       const char *           interface_name,
+                                       const char *           method_name,
+                                       GVariant *             parameters,
+                                       const GVariantType *   reply_type,
+                                       const char *           log_reason,
+                                       gboolean               suppress_warning)
 {
     NMSupplicantInterfacePrivate *priv = NM_SUPPLICANT_INTERFACE_GET_PRIVATE(self);
 
-    _dbus_connection_call(self,
-                          interface_name,
-                          method_name,
-                          parameters,
-                          reply_type,
-                          G_DBUS_CALL_FLAGS_NONE,
-                          DBUS_TIMEOUT_MSEC,
-                          priv->main_cancellable,
-                          _dbus_connection_call_simple_cb,
-                          nm_utils_user_data_pack(self, log_reason));
+    _dbus_connection_call(
+        self,
+        interface_name,
+        method_name,
+        parameters,
+        reply_type,
+        G_DBUS_CALL_FLAGS_NONE,
+        DBUS_TIMEOUT_MSEC,
+        priv->main_cancellable,
+        _dbus_connection_call_simple_cb,
+        nm_utils_user_data_pack(self, log_reason, GINT_TO_POINTER(suppress_warning)));
 }
+
+#define _dbus_connection_call_simple_full(self,              \
+                                          interface_name,    \
+                                          method_name,       \
+                                          parameters,        \
+                                          reply_type,        \
+                                          log_reason,        \
+                                          suppress_warning)  \
+    _dbus_connection_call_simple_full_impl((self),           \
+                                           (interface_name), \
+                                           (method_name),    \
+                                           (parameters),     \
+                                           (reply_type),     \
+                                           "" log_reason "", \
+                                           (suppress_warning))
+
+#define _dbus_connection_call_simple(self,                   \
+                                     interface_name,         \
+                                     method_name,            \
+                                     parameters,             \
+                                     reply_type,             \
+                                     log_reason)             \
+    _dbus_connection_call_simple_full_impl((self),           \
+                                           (interface_name), \
+                                           (method_name),    \
+                                           (parameters),     \
+                                           (reply_type),     \
+                                           "" log_reason "", \
+                                           FALSE)
 
 /*****************************************************************************/
 
@@ -557,7 +605,7 @@ _bss_info_properties_changed(NMSupplicantInterface *self,
     guint16        v_u16;
     guint32        v_u32;
     NM80211ApFlags p_ap_flags;
-    NM80211Mode    p_mode;
+    _NM80211Mode   p_mode;
     guint8         p_signal_percent;
     const guint8 * arr_data;
     gsize          arr_len;
@@ -586,7 +634,7 @@ _bss_info_properties_changed(NMSupplicantInterface *self,
         if (v_v) {
             if (g_variant_lookup(v_v, "Type", "&s", &v_s)) {
                 f = NM_802_11_AP_FLAGS_WPS;
-                if (nm_streq(v_s, "pcb"))
+                if (nm_streq(v_s, "pbc"))
                     f |= NM_802_11_AP_FLAGS_WPS_PBC;
                 else if (nm_streq(v_s, "pin"))
                     f |= NM_802_11_AP_FLAGS_WPS_PIN;
@@ -605,15 +653,15 @@ _bss_info_properties_changed(NMSupplicantInterface *self,
 
     if (nm_g_variant_lookup(properties, "Mode", "&s", &v_s)) {
         if (nm_streq(v_s, "infrastructure"))
-            p_mode = NM_802_11_MODE_INFRA;
+            p_mode = _NM_802_11_MODE_INFRA;
         else if (nm_streq(v_s, "ad-hoc"))
-            p_mode = NM_802_11_MODE_ADHOC;
+            p_mode = _NM_802_11_MODE_ADHOC;
         else if (nm_streq(v_s, "mesh"))
-            p_mode = NM_802_11_MODE_MESH;
+            p_mode = _NM_802_11_MODE_MESH;
         else
-            p_mode = NM_802_11_MODE_UNKNOWN;
+            p_mode = _NM_802_11_MODE_UNKNOWN;
     } else if (initial)
-        p_mode = NM_802_11_MODE_UNKNOWN;
+        p_mode = _NM_802_11_MODE_UNKNOWN;
     else
         p_mode = bss_info->mode;
     if (bss_info->mode != p_mode) {
@@ -1171,19 +1219,24 @@ parse_capabilities(NMSupplicantInterface *self, GVariant *capabilities)
     const gboolean                old_prop_scan_ssid   = priv->prop_scan_ssid;
     const guint32                 old_max_scan_ssids   = priv->max_scan_ssids;
     gboolean                      have_ft              = FALSE;
+    gboolean                      have_sae             = FALSE;
     gint32                        max_scan_ssids;
     const char **                 array;
 
     nm_assert(capabilities && g_variant_is_of_type(capabilities, G_VARIANT_TYPE_VARDICT));
 
     if (g_variant_lookup(capabilities, "KeyMgmt", "^a&s", &array)) {
-        have_ft = g_strv_contains(array, "wpa-ft-psk");
+        have_ft  = g_strv_contains(array, "wpa-ft-psk");
+        have_sae = g_strv_contains(array, "sae");
         g_free(array);
     }
 
     priv->iface_capabilities = NM_SUPPL_CAP_MASK_SET(priv->iface_capabilities,
                                                      NM_SUPPL_CAP_TYPE_FT,
                                                      have_ft ? NM_TERNARY_TRUE : NM_TERNARY_FALSE);
+    priv->iface_capabilities = NM_SUPPL_CAP_MASK_SET(priv->iface_capabilities,
+                                                     NM_SUPPL_CAP_TYPE_SAE,
+                                                     have_sae ? NM_TERNARY_TRUE : NM_TERNARY_FALSE);
 
     if (g_variant_lookup(capabilities, "Modes", "^a&s", &array)) {
         /* Setting p2p_capable might toggle _prop_p2p_available_get(). However,
@@ -1255,6 +1308,15 @@ _starting_check_ready(NMSupplicantInterface *self)
         return;
     }
 
+    _LOGD("interface supported features:"
+          " AP%c"
+          " FT%c"
+          " SAE%c"
+          "",
+          NM_SUPPL_CAP_TO_CHAR(priv->iface_capabilities, NM_SUPPL_CAP_TYPE_AP),
+          NM_SUPPL_CAP_TO_CHAR(priv->iface_capabilities, NM_SUPPL_CAP_TYPE_FT),
+          NM_SUPPL_CAP_TO_CHAR(priv->iface_capabilities, NM_SUPPL_CAP_TYPE_SAE));
+
     set_state(self, priv->supp_state);
 }
 
@@ -1277,6 +1339,10 @@ _get_capability(NMSupplicantInterfacePrivate *priv, NMSupplCapType type)
             if (iface_value != NM_TERNARY_DEFAULT)
                 value = iface_value;
         }
+        break;
+    case NM_SUPPL_CAP_TYPE_SAE:
+        nm_assert(NM_SUPPL_CAP_MASK_GET(priv->global_capabilities, type) == NM_TERNARY_DEFAULT);
+        value = NM_SUPPL_CAP_MASK_GET(priv->iface_capabilities, type);
         break;
     default:
         nm_assert(NM_SUPPL_CAP_MASK_GET(priv->iface_capabilities, type) == NM_TERNARY_DEFAULT);
@@ -1305,9 +1371,13 @@ nm_supplicant_interface_get_capabilities(NMSupplicantInterface *self)
     caps = NM_SUPPL_CAP_MASK_SET(caps,
                                  NM_SUPPL_CAP_TYPE_FT,
                                  _get_capability(priv, NM_SUPPL_CAP_TYPE_FT));
+    caps = NM_SUPPL_CAP_MASK_SET(caps,
+                                 NM_SUPPL_CAP_TYPE_SAE,
+                                 _get_capability(priv, NM_SUPPL_CAP_TYPE_SAE));
 
     nm_assert(!NM_FLAGS_ANY(priv->iface_capabilities,
-                            ~(NM_SUPPL_CAP_MASK_T_AP_MASK | NM_SUPPL_CAP_MASK_T_FT_MASK)));
+                            ~(NM_SUPPL_CAP_MASK_T_AP_MASK | NM_SUPPL_CAP_MASK_T_FT_MASK
+                              | NM_SUPPL_CAP_MASK_T_SAE_MASK)));
 
 #if NM_MORE_ASSERTS > 10
     {
@@ -1597,11 +1667,10 @@ _wps_handle_set_pc_cb(GVariant *res, GError *error, gpointer user_data)
          * enroll with any BSS in range. */
         if (!nm_utils_hwaddr_aton(wps_data->bssid, bssid_buf, sizeof(bssid_buf)))
             nm_assert_not_reached();
-        g_variant_builder_add(
-            &start_args,
-            "{sv}",
-            "Bssid",
-            g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, bssid_buf, ETH_ALEN, sizeof(guint8)));
+        g_variant_builder_add(&start_args,
+                              "{sv}",
+                              "Bssid",
+                              nm_g_variant_new_ay(bssid_buf, ETH_ALEN));
     }
 
     wps_data->needs_cancelling = TRUE;
@@ -1879,7 +1948,7 @@ _properties_changed_main(NMSupplicantInterface *self, GVariant *properties)
 
     if (nm_g_variant_lookup(properties, "CurrentBSS", "&o", &v_s)) {
         v_s = nm_dbus_path_not_empty(v_s);
-        if (!nm_ref_string_equals_str(priv->current_bss, v_s)) {
+        if (!nm_ref_string_equal_str(priv->current_bss, v_s)) {
             nm_ref_string_unref(priv->current_bss);
             priv->current_bss     = nm_ref_string_new(v_s);
             do_notify_current_bss = TRUE;
@@ -2699,12 +2768,13 @@ nm_supplicant_interface_p2p_cancel_connect(NMSupplicantInterface *self)
 {
     g_return_if_fail(NM_IS_SUPPLICANT_INTERFACE(self));
 
-    _dbus_connection_call_simple(self,
-                                 NM_WPAS_DBUS_IFACE_INTERFACE_P2P_DEVICE,
-                                 "Cancel",
-                                 NULL,
-                                 G_VARIANT_TYPE("()"),
-                                 "p2p-cancel");
+    _dbus_connection_call_simple_full(self,
+                                      NM_WPAS_DBUS_IFACE_INTERFACE_P2P_DEVICE,
+                                      "Cancel",
+                                      NULL,
+                                      G_VARIANT_TYPE("()"),
+                                      "p2p-cancel",
+                                      TRUE);
 }
 
 void

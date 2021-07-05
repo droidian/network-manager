@@ -17,7 +17,7 @@
 
 #include "nm-ip4-config.h"
 #include "devices/nm-device-private.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "ppp/nm-ppp-manager-call.h"
 #include "ppp/nm-ppp-status.h"
 #include "nm-setting-adsl.h"
@@ -265,7 +265,7 @@ pppoe_vcc_config(NMDeviceAdsl *self)
     _LOGD(LOGD_ADSL, "ATM setup successful");
 
     /* otherwise we're good for stage3 */
-    nm_platform_link_set_up(nm_device_get_platform(device), priv->nas_ifindex, NULL);
+    nm_platform_link_change_flags(nm_device_get_platform(device), priv->nas_ifindex, IFF_UP, TRUE);
 
     return TRUE;
 }
@@ -674,12 +674,8 @@ dispose(GObject *object)
 static const NMDBusInterfaceInfoExtended interface_info_device_adsl = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_DEVICE_ADSL,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Carrier",
-                                                             "b",
-                                                             NM_DEVICE_CARRIER), ), ),
-    .legacy_property_changed = TRUE,
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Carrier", "b", NM_DEVICE_CARRIER), ), ),
 };
 
 static void

@@ -15,9 +15,7 @@
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMSettingTeamPort.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMSettingTeamPort.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMSettingTeamPort.properties" class="shortcut">Properties</a></span>
+                  <a href="#NMSettingTeamPort.description" class="shortcut">Description</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -148,55 +146,6 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="NMSettingTeamPort.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody>
-<tr>
-<td class="property_type">
-<span class="type">char</span> *</td>
-<td class="property_name"><a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--config" title="The “config” property">config</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><span class="type">int</span></td>
-<td class="property_name"><a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--lacp-key" title="The “lacp-key” property">lacp-key</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><span class="type">int</span></td>
-<td class="property_name"><a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--lacp-prio" title="The “lacp-prio” property">lacp-prio</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</td>
-<td class="property_name"><a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--link-watchers" title="The “link-watchers” property">link-watchers</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><span class="type">int</span></td>
-<td class="property_name"><a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--prio" title="The “prio” property">prio</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><span class="type">int</span></td>
-<td class="property_name"><a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--queue-id" title="The “queue-id” property">queue-id</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--sticky" title="The “sticky” property">sticky</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
 <a name="NMSettingTeamPort.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -244,19 +193,8 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingTeamPort.html#NM-SETTING-TEAM-PORT-LACP-PRIO-DEFAULT:CAPS" title="NM_SETTING_TEAM_PORT_LACP_PRIO_DEFAULT">NM_SETTING_TEAM_PORT_LACP_PRIO_DEFAULT</a></td>
 </tr>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort-struct" title="NMSettingTeamPort">NMSettingTeamPort</a></td>
-</tr>
 </tbody>
 </table></div>
-</div>
-<div class="refsect1">
-<a name="NMSettingTeamPort.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
-        <span class="lineart">╰──</span> NMSettingTeamPort
-</pre>
 </div>
 <div class="refsect1">
 <a name="NMSettingTeamPort.description"></a><h2>Description</h2>
@@ -298,7 +236,7 @@ nm_setting_team_port_get_config (<em class="parameter"><code><a class="link" hre
 </div>
 <div class="refsect3">
 <a name="nm-setting-team-port-get-config.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--config" title="The “config” property"><span class="type">“config”</span></a> property of the setting</p>
+<p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingTeamPort.html#NMSettingTeamPort--config"><span class="type">“config”</span></a> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -323,7 +261,7 @@ nm_setting_team_port_get_queue_id (<em class="parameter"><code><a class="link" h
 </div>
 <div class="refsect3">
 <a name="nm-setting-team-port-get-queue-id.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--queue-id" title="The “queue-id” property"><span class="type">“queue_id”</span></a> property of the setting</p>
+<p> the <span class="type">“queue_id”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -349,7 +287,7 @@ nm_setting_team_port_get_prio (<em class="parameter"><code><a class="link" href=
 </div>
 <div class="refsect3">
 <a name="nm-setting-team-port-get-prio.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--prio" title="The “prio” property"><span class="type">“prio”</span></a> property of the setting</p>
+<p> the <span class="type">“prio”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -375,7 +313,7 @@ nm_setting_team_port_get_sticky (<em class="parameter"><code><a class="link" hre
 </div>
 <div class="refsect3">
 <a name="nm-setting-team-port-get-sticky.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--sticky" title="The “sticky” property"><span class="type">“sticky”</span></a> property of the setting</p>
+<p> the <span class="type">“sticky”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -401,7 +339,7 @@ nm_setting_team_port_get_lacp_prio (<em class="parameter"><code><a class="link" 
 </div>
 <div class="refsect3">
 <a name="nm-setting-team-port-get-lacp-prio.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--lacp-prio" title="The “lacp-prio” property"><span class="type">“lacp-prio”</span></a> property of the setting</p>
+<p> the <span class="type">“lacp-prio”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -427,7 +365,7 @@ nm_setting_team_port_get_lacp_key (<em class="parameter"><code><a class="link" h
 </div>
 <div class="refsect3">
 <a name="nm-setting-team-port-get-lacp-key.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingTeamPort.html#NMSettingTeamPort--lacp-key" title="The “lacp-key” property"><span class="type">“lacp-key”</span></a> property of the setting</p>
+<p> the <span class="type">“lacp-key”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -683,94 +621,6 @@ nm_setting_team_port_clear_link_watchers
 <a name="NM-SETTING-TEAM-PORT-LACP-PRIO-DEFAULT:CAPS"></a><h3>NM_SETTING_TEAM_PORT_LACP_PRIO_DEFAULT</h3>
 <pre class="programlisting">#define NM_SETTING_TEAM_PORT_LACP_PRIO_DEFAULT 255
 </pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingTeamPort-struct"></a><h3>NMSettingTeamPort</h3>
-<pre class="programlisting">typedef struct _NMSettingTeamPort NMSettingTeamPort;</pre>
-<p>Team Port Settings</p>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMSettingTeamPort.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMSettingTeamPort--config"></a><h3>The <code class="literal">“config”</code> property</h3>
-<pre class="programlisting">  “config”                   <span class="type">char</span> *</pre>
-<p>The JSON configuration for the team port. The property should contain raw
-JSON configuration data suitable for teamd, because the value is passed
-directly to teamd. If not specified, the default configuration is
-used. See man teamd.conf for the format details.</p>
-<p>Owner: NMSettingTeamPort</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NULL</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingTeamPort--lacp-key"></a><h3>The <code class="literal">“lacp-key”</code> property</h3>
-<pre class="programlisting">  “lacp-key”                 <span class="type">int</span></pre>
-<p>Corresponds to the teamd ports.PORTIFNAME.lacp_key.</p>
-<p>Owner: NMSettingTeamPort</p>
-<p>Flags: Read / Write</p>
-<p>Default value: -1</p>
-<p class="since">Since: 1.12</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingTeamPort--lacp-prio"></a><h3>The <code class="literal">“lacp-prio”</code> property</h3>
-<pre class="programlisting">  “lacp-prio”                <span class="type">int</span></pre>
-<p>Corresponds to the teamd ports.PORTIFNAME.lacp_prio.</p>
-<p>Owner: NMSettingTeamPort</p>
-<p>Flags: Read / Write</p>
-<p>Default value: -1</p>
-<p class="since">Since: 1.12</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingTeamPort--link-watchers"></a><h3>The <code class="literal">“link-watchers”</code> property</h3>
-<pre class="programlisting">  “link-watchers”            <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> *</pre>
-<p>Link watchers configuration for the connection: each link watcher is
-defined by a dictionary, whose keys depend upon the selected link
-watcher. Available link watchers are 'ethtool', 'nsna_ping' and
-'arp_ping' and it is specified in the dictionary with the key 'name'.
-Available keys are:   ethtool: 'delay-up', 'delay-down', 'init-wait';
-nsna_ping: 'init-wait', 'interval', 'missed-max', 'target-host';
-arp_ping: all the ones in nsna_ping and 'source-host', 'validate-active',
-'validate-inactive', 'send-always'. See teamd.conf man for more details.</p>
-<p><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GPtrArray(NMTeamLinkWatcher)]</span></p>
-<p>Owner: NMSettingTeamPort</p>
-<p>Flags: Read / Write</p>
-<p class="since">Since: 1.12</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingTeamPort--prio"></a><h3>The <code class="literal">“prio”</code> property</h3>
-<pre class="programlisting">  “prio”                     <span class="type">int</span></pre>
-<p>Corresponds to the teamd ports.PORTIFNAME.prio.</p>
-<p>Owner: NMSettingTeamPort</p>
-<p>Flags: Read / Write</p>
-<p>Default value: 0</p>
-<p class="since">Since: 1.12</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingTeamPort--queue-id"></a><h3>The <code class="literal">“queue-id”</code> property</h3>
-<pre class="programlisting">  “queue-id”                 <span class="type">int</span></pre>
-<p>Corresponds to the teamd ports.PORTIFNAME.queue_id.
-When set to -1 means the parameter is skipped from the json config.</p>
-<p>Owner: NMSettingTeamPort</p>
-<p>Flags: Read / Write</p>
-<p>Default value: -1</p>
-<p class="since">Since: 1.12</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingTeamPort--sticky"></a><h3>The <code class="literal">“sticky”</code> property</h3>
-<pre class="programlisting">  “sticky”                   <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Corresponds to the teamd ports.PORTIFNAME.sticky.</p>
-<p>Owner: NMSettingTeamPort</p>
-<p>Flags: Read / Write</p>
-<p>Default value: FALSE</p>
-<p class="since">Since: 1.12</p>
 </div>
 </div>
 </div>

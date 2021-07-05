@@ -15,9 +15,7 @@
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMSettingWimax.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMSettingWimax.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMSettingWimax.properties" class="shortcut">Properties</a></span>
+                  <a href="#NMSettingWimax.description" class="shortcut">Description</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -67,30 +65,6 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="NMSettingWimax.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody>
-<tr>
-<td class="property_type">
-<span class="type">char</span> *</td>
-<td class="property_name"><a class="link" href="NMSettingWimax.html#NMSettingWimax--mac-address" title="The “mac-address” property">mac-address</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type">
-<span class="type">char</span> *</td>
-<td class="property_name"><a class="link" href="NMSettingWimax.html#NMSettingWimax--network-name" title="The “network-name” property">network-name</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
 <a name="NMSettingWimax.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -110,19 +84,8 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingWimax.html#NM-SETTING-WIMAX-MAC-ADDRESS:CAPS" title="NM_SETTING_WIMAX_MAC_ADDRESS">NM_SETTING_WIMAX_MAC_ADDRESS</a></td>
 </tr>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMSettingWimax.html#NMSettingWimax-struct" title="NMSettingWimax">NMSettingWimax</a></td>
-</tr>
 </tbody>
 </table></div>
-</div>
-<div class="refsect1">
-<a name="NMSettingWimax.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
-        <span class="lineart">╰──</span> NMSettingWimax
-</pre>
 </div>
 <div class="refsect1">
 <a name="NMSettingWimax.description"></a><h2>Description</h2>
@@ -229,43 +192,6 @@ to.</p>
 <a name="NM-SETTING-WIMAX-MAC-ADDRESS:CAPS"></a><h3>NM_SETTING_WIMAX_MAC_ADDRESS</h3>
 <pre class="programlisting">#define NM_SETTING_WIMAX_MAC_ADDRESS  "mac-address"
 </pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingWimax-struct"></a><h3>NMSettingWimax</h3>
-<pre class="programlisting">typedef struct _NMSettingWimax NMSettingWimax;</pre>
-<p>WiMax Settings</p>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMSettingWimax.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMSettingWimax--mac-address"></a><h3>The <code class="literal">“mac-address”</code> property</h3>
-<pre class="programlisting">  “mac-address”              <span class="type">char</span> *</pre>
-<p>If specified, this connection will only apply to the WiMAX device whose
-MAC address matches. This property does not change the MAC address of the
-device (known as MAC spoofing).</p>
-<div class="warning">
-<p><code class="literal">NMSettingWimax:mac-address</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
-<p>WiMAX is no longer supported.</p>
-</div>
-<p>Owner: NMSettingWimax</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NULL</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingWimax--network-name"></a><h3>The <code class="literal">“network-name”</code> property</h3>
-<pre class="programlisting">  “network-name”             <span class="type">char</span> *</pre>
-<p>Network Service Provider (NSP) name of the WiMAX network this connection
-should use.</p>
-<div class="warning">
-<p><code class="literal">NMSettingWimax:network-name</code> has been deprecated since version 1.2 and should not be used in newly-written code.</p>
-<p>WiMAX is no longer supported.</p>
-</div>
-<p>Owner: NMSettingWimax</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NULL</p>
 </div>
 </div>
 </div>

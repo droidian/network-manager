@@ -17,14 +17,6 @@ typedef enum {
     NM_DEVICE_STAGE_STATE_COMPLETED = 2,
 } NMDeviceStageState;
 
-typedef enum {
-    NM_DEVICE_IP_STATE_NONE,
-    NM_DEVICE_IP_STATE_WAIT,
-    NM_DEVICE_IP_STATE_CONF,
-    NM_DEVICE_IP_STATE_DONE,
-    NM_DEVICE_IP_STATE_FAIL,
-} NMDeviceIPState;
-
 enum NMActStageReturn {
     NM_ACT_STAGE_RETURN_FAILURE = 0, /* Hard failure of activation */
     NM_ACT_STAGE_RETURN_SUCCESS,     /* Activation stage done */
@@ -116,8 +108,6 @@ nm_device_activate_ip6_state_done(NMDevice *self)
 {
     return nm_device_activate_get_ip_state(self, AF_INET6) == NM_DEVICE_IP_STATE_DONE;
 }
-
-void nm_device_set_dhcp_anycast_address(NMDevice *device, const char *addr);
 
 gboolean nm_device_dhcp4_renew(NMDevice *device, gboolean release);
 gboolean nm_device_dhcp6_renew(NMDevice *device, gboolean release);

@@ -13,10 +13,15 @@ DOC_MAIN_SGML_FILE=$(DOC_MODULE)-docs.xml
 # gtk-doc will search all .c & .h files beneath here for inline comments
 # documenting functions and macros.
 DOC_SOURCE_DIR= \
-	$(top_srcdir)/libnm-core \
-	$(top_builddir)/libnm-core \
-	$(top_srcdir)/libnm \
-	$(top_builddir)/libnm
+	$(top_builddir)/src/libnm-core-public \
+	$(top_srcdir)/src/libnm-core-public \
+	$(top_builddir)/src/libnm-core-impl \
+	$(top_srcdir)/src/libnm-core-impl \
+	$(top_srcdir)/src/libnm-client-public \
+	$(top_builddir)/src/libnm-client-public \
+	$(top_srcdir)/src/libnm-client-impl \
+	$(top_builddir)/src/libnm-client-impl \
+	$(NULL)
 
 # Extra options to supply to gtkdoc-scan.
 SCAN_OPTIONS=--rebuild-types --rebuild-sections --ignore-decorators="NM_AVAILABLE_IN_\d_\d\d?|NM_DEPRECATED_IN_\d_\d\d?"
@@ -28,15 +33,14 @@ MKDB_OPTIONS=--sgml-mode --output-format=xml
 FIXXREF_OPTIONS=
 
 # Used for dependencies.
-HFILE_GLOB=$(top_srcdir)/libnm-core/*.h $(top_srcdir)/libnm/*.h
-CFILE_GLOB=$(top_srcdir)/libnm-core/*.c $(top_srcdir)/libnm/*.c
+HFILE_GLOB=$(top_srcdir)/src/libnm-core-public/*.h $(top_srcdir)/src/libnm-client-public/*.h
+CFILE_GLOB=$(top_srcdir)/src/libnm-core-impl/*.c $(top_srcdir)/src/libnm-client-impl/*.c
 
 # Header files to ignore when scanning.
 IGNORE_HFILES= \
 	common.h \
 	nm-core-internal.h \
 	nm-core-tests-enum-types.h \
-	nm-core-types-internal.h \
 	nm-crypto-impl.h \
 	nm-crypto.h \
 	nm-dbus-helpers.h \
@@ -84,16 +88,16 @@ extra_files = libnm.png
 # CFLAGS and LDFLAGS for compiling scan program. Only needed
 # if $(DOC_MODULE).types is non-empty.
 GTKDOC_CFLAGS = \
-	-I$(top_srcdir)/libnm-core \
-	-I$(top_builddir)/libnm-core \
-	-I$(top_srcdir)/libnm \
-	-I$(top_builddir)/libnm \
+	-I$(top_builddir)/src/libnm-core-public \
+	-I$(top_srcdir)/src/libnm-core-public \
+	-I$(top_srcdir)/src/libnm-client-public \
+	-I$(top_builddir)/src/libnm-client-public \
 	-DNM_VERSION_MIN_REQUIRED=NM_VERSION_0_9_8 \
 	$(GLIB_CFLAGS) \
 	$(SANITIZER_EXEC_CFLAGS)
 
 GTKDOC_LIBS = \
-	$(top_builddir)/libnm/libnm.la \
+	$(top_builddir)/src/libnm-client-impl/libnm.la \
 	$(GLIB_LIBS) \
 	$(SANITIZER_EXEC_LDFLAGS)
 

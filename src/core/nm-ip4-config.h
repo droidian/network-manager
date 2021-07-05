@@ -10,8 +10,8 @@
 
 #include "nm-setting-ip4-config.h"
 
-#include "nm-glib-aux/nm-dedup-multi.h"
-#include "platform/nmp-object.h"
+#include "libnm-glib-aux/nm-dedup-multi.h"
+#include "libnm-platform/nmp-object.h"
 #include "nm-ip-config.h"
 
 /*****************************************************************************/
@@ -663,5 +663,8 @@ nm_ip_config_intersect_alloc(const NMIPConfig *a,
                                                             default_route_metric_penalty);
     }
 }
+
+gconstpointer nm_ip_config_find_first_address(const NMIPConfig *   self,
+                                              NMPlatformMatchFlags match_flag);
 
 #endif /* __NETWORKMANAGER_IP4_CONFIG_H__ */

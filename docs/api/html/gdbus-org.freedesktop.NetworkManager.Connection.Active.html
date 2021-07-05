@@ -36,9 +36,8 @@
 <div class="refsect1">
 <a name="id-1.4.9.2.3"></a><h2>Signals</h2>
 <pre class="synopsis">
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-signal-org-freedesktop-NetworkManager-Connection-Active.StateChanged" title='The "StateChanged" signal'>StateChanged</a>      (u     state,
-                   u     reason);
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-signal-org-freedesktop-NetworkManager-Connection-Active.PropertiesChanged" title='The "PropertiesChanged" signal'>PropertiesChanged</a> (a{sv} properties);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Connection.Active.html#gdbus-signal-org-freedesktop-NetworkManager-Connection-Active.StateChanged" title='The "StateChanged" signal'>StateChanged</a> (u state,
+              u reason);
 </pre>
 </div>
 <div class="refsect1">
@@ -107,25 +106,6 @@ StateChanged (u state,
 <td><p>(<a class="link" href="nm-dbus-types.html#NMActiveConnectionStateReason" title="enum NMActiveConnectionStateReason">NMActiveConnectionStateReason</a>) Reason code describing the change to the new state.</p></td>
 </tr>
 </tbody>
-</table></div>
-</div>
-<hr>
-<div class="refsect2">
-<a name="gdbus-signal-org-freedesktop-NetworkManager-Connection-Active.PropertiesChanged"></a><h3>The "PropertiesChanged" signal</h3>
-<pre class="programlisting">
-PropertiesChanged (a{sv} properties);
-</pre>
-<p>        DEPRECATED. Use the standard "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" instead which exists since version NetworkManager 1.2.0.
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody><tr>
-<td><p><span class="term"><code class="literal">a{sv} <em class="parameter"><code>properties</code></em></code>:</span></p></td>
-<td><p>A dictionary mapping property names to variant boxed values</p></td>
-</tr></tbody>
 </table></div>
 </div>
 </div>

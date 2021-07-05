@@ -7,8 +7,8 @@ dnl  - add corresponding NM_VERSION_x_y_z macros in
 dnl    "shared/nm-version-macros.h.in"
 dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
-m4_define([nm_minor_version], [30])
-m4_define([nm_micro_version], [0])
+m4_define([nm_minor_version], [32])
+m4_define([nm_micro_version], [2])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
 
@@ -727,7 +727,7 @@ AC_ARG_WITH(dbus-sys-dir,
 if test -n "$with_dbus_sys_dir" ; then
 	DBUS_SYS_DIR="$with_dbus_sys_dir"
 else
-	DBUS_SYS_DIR="${sysconfdir}/dbus-1/system.d"
+	DBUS_SYS_DIR="${datadir}/dbus-1/system.d"
 fi
 AC_SUBST(DBUS_SYS_DIR)
 
@@ -943,13 +943,12 @@ fi
 AC_DEFINE_UNQUOTED(NM_CONFIG_DEFAULT_MAIN_RC_MANAGER, "$config_dns_rc_manager_default", [Default value for main.rc-manager setting (--with-config-dns-rc-manager-default)])
 AC_SUBST(NM_CONFIG_DEFAULT_MAIN_RC_MANAGER, $config_dns_rc_manager_default)
 
-# iptables path
 AC_ARG_WITH(iptables,
-            AS_HELP_STRING([--with-iptables=/path/to/iptables], [path to iptables]))
+            AS_HELP_STRING([--with-iptables=/usr/sbin/iptables], [path to iptables]))
 if test "x${with_iptables}" = x; then
 	AC_PATH_PROG(IPTABLES_PATH, iptables, [], $PATH:/sbin:/usr/sbin)
-	if ! test -x "$IPTABLES_PATH"; then
-		AC_MSG_ERROR(iptables was not installed.)
+	if test "x$IPTABLES_PATH" = x; then
+		IPTABLES_PATH='/usr/sbin/iptables'
 	fi
 else
 	IPTABLES_PATH="$with_iptables"
@@ -957,7 +956,19 @@ fi
 AC_DEFINE_UNQUOTED(IPTABLES_PATH, "$IPTABLES_PATH", [Define to path of iptables binary])
 AC_SUBST(IPTABLES_PATH)
 
-# dnsmasq path
+AC_ARG_WITH(nft,
+            AS_HELP_STRING([--with-nft=/usr/sbin/nft], [path to nft]))
+if test "x${with_nft}" = x; then
+	AC_PATH_PROG(NFT_PATH, nft, [], $PATH:/sbin:/usr/sbin)
+	if test "x$NFT_PATH" = x; then
+		NFT_PATH='/usr/sbin/nft'
+	fi
+else
+	NFT_PATH="$with_nft"
+fi
+AC_DEFINE_UNQUOTED(NFT_PATH, "$NFT_PATH", [Define to path of nft binary])
+AC_SUBST(NFT_PATH)
+
 AC_ARG_WITH(dnsmasq,
             AS_HELP_STRING([--with-dnsmasq=/path/to/dnsmasq], [path to dnsmasq]))
 if test "x${with_dnsmasq}" = x; then
@@ -1177,7 +1188,7 @@ if test -n "$sanitizers"; then
 fi
 
 AC_MSG_CHECKING([CC support C11 _Generic()])
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([[int foo(void); int foo() { int a = 0; int b = _Generic (a, int: 4); return b + a; }]],
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[int foo(void); static const char *const buf[1] = { "a" }; int foo() { int a = 0; int b = _Generic (a, int: 4) + _Generic(buf, const char *const*: 5); return b + a; }]],
                                   [[foo();]])],
                   [cc_support_generic=1],
                   [cc_support_generic=0])
@@ -1229,9 +1240,15 @@ else
 fi
 AC_SUBST(NM_LOG_COMPILER, 'LOG_COMPILER = "$(top_srcdir)/tools/run-nm-test.sh" --called-from-make "$(abs_top_builddir)" "$(LIBTOOL)" "$(with_valgrind)" "'"$with_valgrind_suppressions"'" --launch-dbus=auto')
 
-AM_PATH_PYTHON([3], [], [PYTHON=])
-if test -z "$PYTHON"; then
-	AM_PATH_PYTHON([], [], [PYTHON=python])
+AX_PTHREAD([,AC_MSG_ERROR([Threads are required for the NetworkManager tests])])
+
+if test -n "$PYTHON" ; then
+    AM_PATH_PYTHON([], [], [])
+else
+    AM_PATH_PYTHON([3], [], [PYTHON=])
+    if test -z "$PYTHON"; then
+        AM_PATH_PYTHON([], [], [])
+    fi
 fi
 AC_SUBST(PYTHON, [$PYTHON])
 AC_DEFINE_UNQUOTED(TEST_NM_PYTHON, "$PYTHON", [Define python path for test binary])
@@ -1276,6 +1293,7 @@ AM_CONDITIONAL(WITH_PYTHON_BLACK, test "${BLACK}" != "")
 use_pregen_docs=no
 if test "$build_docs" != "yes" -a \
         -f "$srcdir"/man/NetworkManager.8 -a \
+        -f "$srcdir"/man/NetworkManager-dispatcher.8 -a \
         -f "$srcdir"/man/NetworkManager.conf.5 -a \
         -f "$srcdir"/man/nm-online.1 -a \
         -f "$srcdir"/man/nmcli-examples.7 -a \
@@ -1305,8 +1323,6 @@ AC_SUBST(AM_CFLAGS)
 
 AC_CONFIG_FILES([
 Makefile
-libnm-core/nm-version-macros.h
-libnm/libnm.pc
 po/Makefile.in
 data/org.freedesktop.NetworkManager.policy.in
 docs/api/Makefile
@@ -1314,6 +1330,8 @@ docs/api/version.xml
 docs/libnm/Makefile
 docs/libnm/version.xml
 NetworkManager.pc
+src/libnm-client-impl/libnm.pc
+src/libnm-core-public/nm-version-macros.h
 ])
 AC_OUTPUT
 
@@ -1365,6 +1383,8 @@ echo "  nmtui: $build_nmtui"
 echo "  nm-cloud-setup: $with_nm_cloud_setup"
 echo "  iwd: $ac_with_iwd"
 echo "  jansson: $have_jansson${JANSSON_SONAME:+ (soname: $JANSSON_SONAME)}"
+echo "  iptables: $IPTABLES_PATH"
+echo "  nft: $NFT_PATH"
 echo
 
 echo "Configuration plugins (main.plugins=${config_plugins_default})"

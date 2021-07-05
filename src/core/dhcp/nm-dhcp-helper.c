@@ -3,13 +3,13 @@
  * Copyright (C) 2007 - 2013 Red Hat, Inc.
  */
 
-#include "nm-glib-aux/nm-default-glib.h"
+#include "libnm-glib-aux/nm-default-glib.h"
 
 #include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
 
-#include "nm-utils/nm-vpn-plugin-macros.h"
+#include "libnm-glib-aux/nm-logging-syslog.h"
 
 #include "nm-dhcp-helper-api.h"
 
@@ -92,7 +92,7 @@ build_signal_parameters(void)
         g_variant_builder_add(&builder,
                               "{sv}",
                               name,
-                              g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, val, strlen(val), 1));
+                              nm_g_variant_new_ay((const guint8 *) val, strlen(val)));
 
 next:;
     }
@@ -154,7 +154,7 @@ do_connect:
                       error->message,
                       try_count,
                       (long long) (time_end - time_remaining - time_start) / 1000);
-                interval = NM_CLAMP((gint64)(100L * (1L << NM_MIN(try_count, 31))), 5000, 100000);
+                interval = NM_CLAMP((gint64) (100L * (1L << NM_MIN(try_count, 31))), 5000, 100000);
                 g_usleep(NM_MIN(interval, time_remaining));
                 g_clear_error(&error);
                 goto do_connect;
@@ -199,7 +199,7 @@ do_notify:
              * do some retry. */
             if (remaining_time > 0) {
                 _LOGi("failure to call notify: %s (retry %u)", error->message, try_count);
-                interval = NM_CLAMP((gint64)(100L * (1L << NM_MIN(try_count, 31))), 5000, 25000);
+                interval = NM_CLAMP((gint64) (100L * (1L << NM_MIN(try_count, 31))), 5000, 25000);
                 g_usleep(NM_MIN(interval, remaining_time));
                 g_clear_error(&error);
                 goto do_notify;

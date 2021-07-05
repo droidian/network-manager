@@ -3,10 +3,11 @@
 executable(
   'nm-dhcp-helper',
   'nm-dhcp-helper.c',
-  dependencies: glib_nm_default_dep,
-  c_args: [
-    '-DG_LOG_DOMAIN="nm-dhcp-helper"',
+  include_directories: [
+    src_inc,
+    top_inc,
   ],
+  dependencies: glib_dep,
   link_args: ldflags_linker_script_binary,
   link_depends: linker_script_binary,
   install: true,

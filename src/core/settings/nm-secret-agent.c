@@ -10,11 +10,11 @@
 #include <sys/types.h>
 #include <pwd.h>
 
-#include "nm-glib-aux/nm-c-list.h"
-#include "nm-glib-aux/nm-dbus-aux.h"
+#include "libnm-glib-aux/nm-c-list.h"
+#include "libnm-glib-aux/nm-dbus-aux.h"
 #include "nm-dbus-interface.h"
-#include "nm-core-internal.h"
-#include "nm-libnm-core-intern/nm-auth-subject.h"
+#include "libnm-core-intern/nm-core-internal.h"
+#include "libnm-core-aux-intern/nm-auth-subject.h"
 #include "nm-simple-connection.h"
 #include "NetworkManagerUtils.h"
 #include "c-list/src/c-list.h"
@@ -583,7 +583,7 @@ nm_secret_agent_delete_secrets(NMSecretAgent *       self,
     priv = NM_SECRET_AGENT_GET_PRIVATE(self);
 
     /* No secrets sent; agents must be smart enough to track secrets using the UUID or something */
-    dict = nm_connection_to_dbus(connection, NM_CONNECTION_SERIALIZE_NO_SECRETS);
+    dict = nm_connection_to_dbus(connection, NM_CONNECTION_SERIALIZE_WITH_NON_SECRET);
 
     call_id = _call_id_new(self, METHOD_DELETE_SECRETS, path, NULL, callback, callback_data);
 

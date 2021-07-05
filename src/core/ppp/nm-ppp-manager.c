@@ -28,8 +28,9 @@
 #include <linux/rtnetlink.h>
 
 #include "NetworkManagerUtils.h"
-#include "platform/nm-platform.h"
-#include "nm-core-internal.h"
+#include "libnm-platform/nm-platform.h"
+#include "libnm-platform/nm-platform-utils.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-act-request.h"
 #include "nm-ip4-config.h"
 #include "nm-ip6-config.h"
@@ -998,7 +999,7 @@ _ppp_manager_start(NMPPPManager *self,
 
     /* Make sure /dev/ppp exists (bgo #533064) */
     if (stat("/dev/ppp", &st) || !S_ISCHR(st.st_mode))
-        nm_utils_modprobe(NULL, FALSE, "ppp_generic", NULL);
+        nmp_utils_modprobe(NULL, FALSE, "ppp_generic", NULL);
 
     connection = nm_act_request_get_applied_connection(req);
     g_return_val_if_fail(connection, FALSE);
@@ -1445,11 +1446,11 @@ nm_ppp_manager_class_init(NMPPPManagerClass *manager_class)
                                   NULL,
                                   G_TYPE_NONE,
                                   2,
-                                  G_TYPE_UINT /*guint32 in_bytes*/,
-                                  G_TYPE_UINT /*guint32 out_bytes*/);
+                                  G_TYPE_UINT,  /* guint32 in_bytes */
+                                  G_TYPE_UINT); /* guint32 out_bytes */
 }
 
-NMPPPOps ppp_ops = {
+const NMPPPOps ppp_ops = {
     .create               = _ppp_manager_new,
     .set_route_parameters = _ppp_manager_set_route_parameters,
     .start                = _ppp_manager_start,

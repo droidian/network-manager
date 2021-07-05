@@ -11,15 +11,35 @@
 /* need math.h for isinf() and INFINITY. No need to link with -lm */
 #include <math.h>
 
+#include "libnm-glib-aux/nm-uuid.h"
 #include "NetworkManagerUtils.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-core-utils.h"
-#include "systemd/nm-sd-utils-core.h"
+#include "libnm-systemd-core/nm-sd-utils-core.h"
 
 #include "dns/nm-dns-manager.h"
 #include "nm-connectivity.h"
 
 #include "nm-test-utils-core.h"
+
+/*****************************************************************************/
+
+static void
+test_config_h(void)
+{
+#define ABSOLUTE_PATH(path)                  \
+    G_STMT_START                             \
+    {                                        \
+        g_assert_cmpstr("" path "", !=, ""); \
+        g_assert("" path ""[0] == '/');      \
+    }                                        \
+    G_STMT_END
+
+    ABSOLUTE_PATH(IPTABLES_PATH);
+    ABSOLUTE_PATH(NFT_PATH);
+}
+
+/*****************************************************************************/
 
 /* Reference implementation for nm_utils_ip6_address_clear_host_address.
  * Taken originally from set_address_masked(), src/ndisc/nm-lndp-ndisc.c
@@ -867,7 +887,7 @@ test_connection_no_match_vlan(void)
     /* Check that the connections do not match if VLAN flags differ */
     s_vlan_orig = nm_connection_get_setting_vlan(orig);
     g_assert(s_vlan_orig);
-    g_object_set(G_OBJECT(s_vlan_orig), NM_SETTING_VLAN_FLAGS, NM_VLAN_FLAG_REORDER_HEADERS, NULL);
+    g_object_set(G_OBJECT(s_vlan_orig), NM_SETTING_VLAN_FLAGS, _NM_VLAN_FLAG_REORDER_HEADERS, NULL);
 
     s_vlan_copy = nm_connection_get_setting_vlan(copy);
     g_assert(s_vlan_copy);
@@ -2231,7 +2251,7 @@ test_utils_file_is_in_path(void)
     g_assert(!nm_utils_file_is_in_path("//b///a/", "/b//"));
     g_assert(!nm_utils_file_is_in_path("//b///a/", "/b/a/"));
     g_assert(!nm_utils_file_is_in_path("//b///a", "/b/a/"));
-    g_assert(nm_utils_file_is_in_path("//b///a/.", "/b/a/"));
+    g_assert(!nm_utils_file_is_in_path("//b///a/.", "/b/a/"));
     g_assert(nm_utils_file_is_in_path("//b///a/..", "/b/a/"));
 }
 
@@ -2568,6 +2588,8 @@ int
 main(int argc, char **argv)
 {
     nmtst_init_with_logging(&argc, &argv, NULL, "ALL");
+
+    g_test_add_func("/general/test_config_h", test_config_h);
 
     g_test_add_func("/general/test_logging_domains", test_logging_domains);
     g_test_add_func("/general/test_logging_error", test_logging_error);

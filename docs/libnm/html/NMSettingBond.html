@@ -15,9 +15,7 @@
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMSettingBond.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMSettingBond.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMSettingBond.properties" class="shortcut">Properties</a></span>
+                  <a href="#NMSettingBond.description" class="shortcut">Description</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -118,22 +116,6 @@
 </td>
 </tr>
 </tbody>
-</table></div>
-</div>
-<div class="refsect1">
-<a name="NMSettingBond.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody><tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *</td>
-<td class="property_name"><a class="link" href="NMSettingBond.html#NMSettingBond--options" title="The “options” property">options</a></td>
-<td class="property_flags">Read / Write</td>
-</tr></tbody>
 </table></div>
 </div>
 <div class="refsect1">
@@ -260,19 +242,8 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingBond.html#NM-SETTING-BOND-OPTION-LP-INTERVAL:CAPS" title="NM_SETTING_BOND_OPTION_LP_INTERVAL">NM_SETTING_BOND_OPTION_LP_INTERVAL</a></td>
 </tr>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMSettingBond.html#NMSettingBond-struct" title="NMSettingBond">NMSettingBond</a></td>
-</tr>
 </tbody>
 </table></div>
-</div>
-<div class="refsect1">
-<a name="NMSettingBond.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
-        <span class="lineart">╰──</span> NMSettingBond
-</pre>
 </div>
 <div class="refsect1">
 <a name="NMSettingBond.description"></a><h2>Description</h2>
@@ -602,7 +573,7 @@ nm_setting_bond_get_option_default (<em class="parameter"><code><a class="link" 
 <div class="refsect3">
 <a name="nm-setting-bond-get-option-default.returns"></a><h4>Returns</h4>
 <p> the value of the bond option if not overridden by an entry in
-the <a class="link" href="NMSettingBond.html#NMSettingBond--options" title="The “options” property"><span class="type">“options”</span></a> property.</p>
+the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingBond.html#NMSettingBond--options"><span class="type">“options”</span></a> property.</p>
 </div>
 </div>
 <hr>
@@ -816,21 +787,6 @@ to the connection.</p>
 <a name="NM-SETTING-BOND-OPTION-LP-INTERVAL:CAPS"></a><h3>NM_SETTING_BOND_OPTION_LP_INTERVAL</h3>
 <pre class="programlisting">#define NM_SETTING_BOND_OPTION_LP_INTERVAL       "lp_interval"
 </pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingBond-struct"></a><h3>NMSettingBond</h3>
-<pre class="programlisting">typedef struct _NMSettingBond NMSettingBond;</pre>
-<p>Bonding Settings</p>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMSettingBond.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMSettingBond--options"></a><h3>The <code class="literal">“options”</code> property</h3>
-<pre class="programlisting">  “options”                  <a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *</pre>
-<p>Owner: NMSettingBond</p>
-<p>Flags: Read / Write</p>
 </div>
 </div>
 </div>

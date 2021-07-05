@@ -6,7 +6,7 @@
 #ifndef __NM_NETNS_H__
 #define __NM_NETNS_H__
 
-#include "nm-platform/nmp-base.h"
+#include "libnm-platform/nmp-base.h"
 
 #define NM_TYPE_NETNS            (nm_netns_get_type())
 #define NM_NETNS(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj), NM_TYPE_NETNS, NMNetns))
@@ -19,13 +19,15 @@
 
 typedef struct _NMNetnsClass NMNetnsClass;
 
+struct _NMPlatform;
+
 GType nm_netns_get_type(void);
 
 NMNetns *nm_netns_get(void);
-NMNetns *nm_netns_new(NMPlatform *platform);
+NMNetns *nm_netns_new(struct _NMPlatform *platform);
 
-NMPlatform *nm_netns_get_platform(NMNetns *self);
-NMPNetns *  nm_netns_get_platform_netns(NMNetns *self);
+struct _NMPlatform *nm_netns_get_platform(NMNetns *self);
+NMPNetns *          nm_netns_get_platform_netns(NMNetns *self);
 
 struct _NMPRulesManager *nm_netns_get_rules_manager(NMNetns *self);
 

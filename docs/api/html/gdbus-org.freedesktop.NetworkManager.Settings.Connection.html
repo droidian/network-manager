@@ -53,9 +53,8 @@
 <div class="refsect1">
 <a name="id-1.4.7.2.4"></a><h2>Signals</h2>
 <pre class="synopsis">
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-Settings-Connection.Updated" title='The "Updated" signal'>Updated</a>           ();
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-Settings-Connection.Removed" title='The "Removed" signal'>Removed</a>           ();
-<a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-Settings-Connection.PropertiesChanged" title='The "PropertiesChanged" signal'>PropertiesChanged</a> (a{sv} properties);
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-Settings-Connection.Updated" title='The "Updated" signal'>Updated</a> ();
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.Connection.html#gdbus-signal-org-freedesktop-NetworkManager-Settings-Connection.Removed" title='The "Removed" signal'>Removed</a> ();
 </pre>
 </div>
 <div class="refsect1">
@@ -294,25 +293,6 @@ Removed ();
         system's logged-in users. After receipt of this signal, the object no
         longer exists. Also see the Settings.ConnectionRemoved signal.
 </p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="gdbus-signal-org-freedesktop-NetworkManager-Settings-Connection.PropertiesChanged"></a><h3>The "PropertiesChanged" signal</h3>
-<pre class="programlisting">
-PropertiesChanged (a{sv} properties);
-</pre>
-<p>        DEPRECATED. Use the standard "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" instead which exists since version NetworkManager 1.2.0.
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody><tr>
-<td><p><span class="term"><code class="literal">a{sv} <em class="parameter"><code>properties</code></em></code>:</span></p></td>
-<td><p>A dictionary mapping property names to variant boxed values.</p></td>
-</tr></tbody>
-</table></div>
 </div>
 </div>
 <div class="refsect1">

@@ -68,7 +68,7 @@ def can_sudo():
             ).returncode
             == 0
         )
-    except:
+    except Exception:
         return False
 
 
@@ -222,7 +222,6 @@ def die_usage(msg):
 
 
 def parse_args(argv):
-    had_dash_dash = False
     args = {
         "mode": MODE_GET,
         "select_arg": None,
@@ -615,7 +614,9 @@ def do_apply(nmc, device, ids_arg, do_test):
         die("FAILURE to get applied connection after reapply")
 
     _print()
-    connection_print(connection, MODE_APPLY, [], device.get_path(), prefix="AFTER: ")
+    connection_print(
+        connection_after, MODE_APPLY, [], device.get_path(), prefix="AFTER: "
+    )
     _print()
 
     ovs_print_external_ids("AFTER-OVS-VSCTL: ")

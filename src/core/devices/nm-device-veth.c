@@ -7,11 +7,11 @@
 
 #include <stdlib.h>
 
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-device-veth.h"
 #include "nm-device-private.h"
 #include "nm-manager.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "nm-device-factory.h"
 #include "nm-setting-veth.h"
 
@@ -161,12 +161,8 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 static const NMDBusInterfaceInfoExtended interface_info_device_veth = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_DEVICE_VETH,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Peer",
-                                                             "o",
-                                                             NM_DEVICE_VETH_PEER), ), ),
-    .legacy_property_changed = TRUE,
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Peer", "o", NM_DEVICE_VETH_PEER), ), ),
 };
 
 static void

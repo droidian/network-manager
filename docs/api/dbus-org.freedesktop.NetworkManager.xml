@@ -53,11 +53,10 @@
   <refsect1 role="signal_proto">
     <title role="signal_proto.title">Signals</title>
     <synopsis>
-<link linkend="gdbus-signal-org-freedesktop-NetworkManager.CheckPermissions">CheckPermissions</link>  ();
-<link linkend="gdbus-signal-org-freedesktop-NetworkManager.StateChanged">StateChanged</link>      (u     state);
-<link linkend="gdbus-signal-org-freedesktop-NetworkManager.PropertiesChanged">PropertiesChanged</link> (a{sv} properties);
-<link linkend="gdbus-signal-org-freedesktop-NetworkManager.DeviceAdded">DeviceAdded</link>       (o     device_path);
-<link linkend="gdbus-signal-org-freedesktop-NetworkManager.DeviceRemoved">DeviceRemoved</link>     (o     device_path);
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager.CheckPermissions">CheckPermissions</link> ();
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager.StateChanged">StateChanged</link>     (u state);
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager.DeviceAdded">DeviceAdded</link>      (o device_path);
+<link linkend="gdbus-signal-org-freedesktop-NetworkManager.DeviceRemoved">DeviceRemoved</link>    (o device_path);
 </synopsis>
   </refsect1>
   <refsect1 role="properties">
@@ -563,21 +562,6 @@ StateChanged (u state);
 <varlistentry>
   <term><literal>u <parameter>state</parameter></literal>:</term>
   <listitem><para>(<link linkend="NMState">NMState</link>) The new state of NetworkManager.</para></listitem>
-</varlistentry>
-</variablelist>
-</refsect2>
-<refsect2 role="signal" id="gdbus-signal-org-freedesktop-NetworkManager.PropertiesChanged">
-  <title>The "PropertiesChanged" signal</title>
-  <indexterm zone="gdbus-signal-org-freedesktop-NetworkManager.PropertiesChanged"><primary sortas="Manager::PropertiesChanged">org.freedesktop.NetworkManager::PropertiesChanged</primary></indexterm>
-<programlisting>
-PropertiesChanged (a{sv} properties);
-</programlisting>
-<para>        DEPRECATED. Use the standard "PropertiesChanged" signal from "org.freedesktop.DBus.Properties" instead which exists since version NetworkManager 1.2.0.
-</para>
-<variablelist role="params">
-<varlistentry>
-  <term><literal>a{sv} <parameter>properties</parameter></literal>:</term>
-  <listitem><para>The changed properties.</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>

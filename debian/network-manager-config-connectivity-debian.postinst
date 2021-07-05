@@ -1,9 +1,0 @@
-#!/bin/sh
-
-set -e
-
-if [ "$1" = configure ]; then
-    invoke-rc.d network-manager force-reload || true
-fi
-
-#DEBHELPER#

@@ -13,13 +13,13 @@
 #include <linux/rtnetlink.h>
 #include <linux/if.h>
 
-#include "nm-glib-aux/nm-dedup-multi.h"
+#include "libnm-glib-aux/nm-dedup-multi.h"
 
 #include "nm-utils.h"
-#include "platform/nmp-object.h"
-#include "platform/nm-platform.h"
-#include "nm-platform/nm-platform-utils.h"
-#include "nm-core-internal.h"
+#include "libnm-platform/nmp-object.h"
+#include "libnm-platform/nm-platform.h"
+#include "libnm-platform/nm-platform-utils.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "NetworkManagerUtils.h"
 #include "nm-ip4-config.h"
 #include "ndisc/nm-ndisc.h"
@@ -396,23 +396,6 @@ nm_ip6_config_add_dependent_routes(NMIP6Config *self,
      *
      * For manually added IPv6 routes, add the device routes explicitly. */
 
-    /* Pre-generate multicast route */
-    {
-        nm_auto_nmpobj NMPObject *r = NULL;
-        NMPlatformIP6Route *      route;
-
-        r                         = nmp_object_new(NMP_OBJECT_TYPE_IP6_ROUTE, NULL);
-        route                     = NMP_OBJECT_CAST_IP6_ROUTE(r);
-        route->ifindex            = ifindex;
-        route->network.s6_addr[0] = 0xffu;
-        route->plen               = 8;
-        route->table_coerced      = nm_platform_route_table_coerce(RT_TABLE_LOCAL);
-        route->type_coerced       = nm_platform_route_type_coerce(RTN_UNICAST);
-        route->metric             = 256;
-
-        _add_route(self, r, NULL, NULL);
-    }
-
     nm_ip_config_iter_ip6_address_for_each (&iter, self, &my_addr) {
         NMPlatformIP6Route *route;
         gboolean            has_peer;
@@ -420,22 +403,6 @@ nm_ip6_config_add_dependent_routes(NMIP6Config *self,
 
         if (my_addr->external)
             continue;
-
-        {
-            nm_auto_nmpobj NMPObject *r = NULL;
-
-            /* Pre-generate local route added by kernel */
-            r                   = nmp_object_new(NMP_OBJECT_TYPE_IP6_ROUTE, NULL);
-            route               = NMP_OBJECT_CAST_IP6_ROUTE(r);
-            route->ifindex      = ifindex;
-            route->network      = my_addr->address;
-            route->plen         = 128;
-            route->type_coerced = nm_platform_route_type_coerce(RTN_LOCAL);
-            route->metric       = 0;
-            route->table_coerced =
-                nm_platform_route_table_coerce(is_vrf ? route_table : RT_TABLE_LOCAL);
-            _add_route(self, r, NULL, NULL);
-        }
 
         if (NM_FLAGS_HAS(my_addr->n_ifa_flags, IFA_F_NOPREFIXROUTE))
             continue;
@@ -1661,28 +1628,6 @@ nm_ip6_config_lookup_address(const NMIP6Config *self, const struct in6_addr *add
     return entry ? NMP_OBJECT_CAST_IP6_ADDRESS(entry->obj) : NULL;
 }
 
-const NMPlatformIP6Address *
-nm_ip6_config_find_first_address(const NMIP6Config *self, NMPlatformMatchFlags match_flag)
-{
-    const NMPlatformIP6Address *addr;
-    NMDedupMultiIter            iter;
-
-    g_return_val_if_fail(NM_IS_IP6_CONFIG(self), NULL);
-
-    nm_assert(!NM_FLAGS_ANY(
-        match_flag,
-        ~(NM_PLATFORM_MATCH_WITH_ADDRTYPE__ANY | NM_PLATFORM_MATCH_WITH_ADDRSTATE__ANY)));
-
-    nm_assert(NM_FLAGS_ANY(match_flag, NM_PLATFORM_MATCH_WITH_ADDRTYPE__ANY));
-    nm_assert(NM_FLAGS_ANY(match_flag, NM_PLATFORM_MATCH_WITH_ADDRSTATE__ANY));
-
-    nm_ip_config_iter_ip6_address_for_each (&iter, self, &addr) {
-        if (nm_platform_ip6_address_match(addr, match_flag))
-            return addr;
-    }
-    return NULL;
-}
-
 /**
  * nm_ip6_config_has_dad_pending_addresses
  * @self: configuration containing the addresses to check
@@ -2442,9 +2387,7 @@ nameservers_to_gvalue(GArray *array, GValue *value)
         struct in6_addr *addr;
 
         addr = &g_array_index(array, struct in6_addr, i++);
-        g_variant_builder_add(&builder,
-                              "@ay",
-                              g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, addr, 16, 1));
+        g_variant_builder_add(&builder, "@ay", nm_g_variant_new_ay_in6addr(addr));
     }
 
     g_value_take_variant(value, g_variant_builder_end(&builder));
@@ -2620,37 +2563,33 @@ finalize(GObject *object)
 static const NMDBusInterfaceInfoExtended interface_info_ip6_config = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_IP6_CONFIG,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Addresses",
-                                                             "a(ayuay)",
-                                                             NM_IP6_CONFIG_ADDRESSES),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("AddressData",
-                                                             "aa{sv}",
-                                                             NM_IP6_CONFIG_ADDRESS_DATA),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Gateway", "s", NM_IP6_CONFIG_GATEWAY),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Routes",
-                                                             "a(ayuayu)",
-                                                             NM_IP6_CONFIG_ROUTES),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("RouteData",
-                                                             "aa{sv}",
-                                                             NM_IP6_CONFIG_ROUTE_DATA),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Nameservers",
-                                                             "aay",
-                                                             NM_IP6_CONFIG_NAMESERVERS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Domains",
-                                                             "as",
-                                                             NM_IP6_CONFIG_DOMAINS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Searches",
-                                                             "as",
-                                                             NM_IP6_CONFIG_SEARCHES),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("DnsOptions",
-                                                             "as",
-                                                             NM_IP6_CONFIG_DNS_OPTIONS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("DnsPriority",
-                                                             "i",
-                                                             NM_IP6_CONFIG_DNS_PRIORITY), ), ),
-    .legacy_property_changed = TRUE,
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Addresses",
+                                                           "a(ayuay)",
+                                                           NM_IP6_CONFIG_ADDRESSES),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("AddressData",
+                                                           "aa{sv}",
+                                                           NM_IP6_CONFIG_ADDRESS_DATA),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Gateway", "s", NM_IP6_CONFIG_GATEWAY),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Routes",
+                                                           "a(ayuayu)",
+                                                           NM_IP6_CONFIG_ROUTES),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("RouteData",
+                                                           "aa{sv}",
+                                                           NM_IP6_CONFIG_ROUTE_DATA),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Nameservers",
+                                                           "aay",
+                                                           NM_IP6_CONFIG_NAMESERVERS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Domains", "as", NM_IP6_CONFIG_DOMAINS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Searches",
+                                                           "as",
+                                                           NM_IP6_CONFIG_SEARCHES),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("DnsOptions",
+                                                           "as",
+                                                           NM_IP6_CONFIG_DNS_OPTIONS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("DnsPriority",
+                                                           "i",
+                                                           NM_IP6_CONFIG_DNS_PRIORITY), ), ),
 };
 
 static void

@@ -12,9 +12,9 @@
 
 #include "NetworkManagerUtils.h"
 #include "nm-device-private.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "nm-device-factory.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 
 #define _NMLOG_DEVICE_TYPE NMDeviceBridge
 #include "nm-device-logging.h"
@@ -1033,7 +1033,7 @@ create_and_realize(NMDevice *             device,
     const char *        iface = nm_device_get_iface(device);
     const char *        hwaddr;
     gs_free char *      hwaddr_cloned = NULL;
-    guint8              mac_address[NM_UTILS_HWADDR_LEN_MAX];
+    guint8              mac_address[_NM_UTILS_HWADDR_LEN_MAX];
     NMPlatformLnkBridge props;
     int                 r;
     guint32             mtu = 0;
@@ -1142,16 +1142,10 @@ nm_device_bridge_init(NMDeviceBridge *self)
 static const NMDBusInterfaceInfoExtended interface_info_device_bridge = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_DEVICE_BRIDGE,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("HwAddress",
-                                                             "s",
-                                                             NM_DEVICE_HW_ADDRESS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Carrier", "b", NM_DEVICE_CARRIER),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Slaves",
-                                                             "ao",
-                                                             NM_DEVICE_SLAVES), ), ),
-    .legacy_property_changed = TRUE,
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("HwAddress", "s", NM_DEVICE_HW_ADDRESS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Carrier", "b", NM_DEVICE_CARRIER),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Slaves", "ao", NM_DEVICE_SLAVES), ), ),
 };
 
 static void

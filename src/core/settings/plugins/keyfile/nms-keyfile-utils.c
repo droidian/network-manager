@@ -10,8 +10,9 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#include "nm-glib-aux/nm-io-utils.h"
-#include "nm-keyfile-internal.h"
+#include "libnm-glib-aux/nm-uuid.h"
+#include "libnm-glib-aux/nm-io-utils.h"
+#include "libnm-core-intern/nm-keyfile-internal.h"
 #include "nm-utils.h"
 #include "nm-setting-wired.h"
 #include "nm-setting-wireless.h"
@@ -30,9 +31,9 @@
 const char *
 nms_keyfile_nmmeta_check_filename(const char *filename, guint *out_uuid_len)
 {
-    const char *uuid;
     const char *s;
     gsize       len;
+    char        uuid[37];
 
     s = strrchr(filename, '/');
     if (s)
@@ -50,17 +51,18 @@ nms_keyfile_nmmeta_check_filename(const char *filename, guint *out_uuid_len)
 
     len -= NM_STRLEN(NM_KEYFILE_PATH_SUFFIX_NMMETA);
 
-    if (!NM_IN_SET(len, 36, 40)) {
+    if (len != 36) {
         /* the remaining part of the filename has not the right length to
-         * contain a UUID (according to nm_utils_is_uuid()). */
+         * contain a UUID (according to nm_uuid_is_normalized()). */
         return NULL;
     }
 
-    uuid = nm_strndup_a(100, filename, len, NULL);
-    if (!nm_utils_is_uuid(uuid))
+    memcpy(uuid, filename, 36);
+    uuid[36] = '\0';
+    if (!nm_uuid_is_normalized(uuid))
         return NULL;
 
-    NM_SET_OUT(out_uuid_len, len);
+    NM_SET_OUT(out_uuid_len, 36);
     return filename;
 }
 
@@ -71,7 +73,7 @@ nms_keyfile_nmmeta_filename(const char *dirname, const char *uuid, gboolean temp
     char *s;
 
     nm_assert(dirname && dirname[0] == '/');
-    nm_assert(nm_utils_is_uuid(uuid) && !strchr(uuid, '/'));
+    nm_assert(nm_uuid_is_normalized(uuid) && !strchr(uuid, '/'));
 
     if (g_snprintf(filename,
                    sizeof(filename),
@@ -80,7 +82,7 @@ nms_keyfile_nmmeta_filename(const char *dirname, const char *uuid, gboolean temp
                    NM_KEYFILE_PATH_SUFFIX_NMMETA,
                    temporary ? "~" : "")
         >= sizeof(filename)) {
-        /* valid uuids are limited in length (nm_utils_is_uuid). The buffer should always
+        /* valid uuids are limited in length (nm_uuid_is_normalized). The buffer should always
          * be large enough. */
         nm_assert_not_reached();
     }
@@ -137,7 +139,11 @@ nms_keyfile_nmmeta_read(const char * dirname,
                                        NMMETA_KF_GROUP_NAME_NMMETA,
                                        NMMETA_KF_KEY_NAME_NMMETA_UUID,
                                        NULL);
-        if (!nm_streq0(v_uuid, uuid))
+        if (!v_uuid)
+            return FALSE;
+        if (strncmp(v_uuid, uuid, uuid_len) != 0)
+            return FALSE;
+        if (v_uuid[uuid_len] != '\0')
             return FALSE;
 
         loaded_path      = g_key_file_get_string(kf,
@@ -211,7 +217,7 @@ nms_keyfile_nmmeta_write(const char *dirname,
     int           errsv;
 
     nm_assert(dirname && dirname[0] == '/');
-    nm_assert(nm_utils_is_uuid(uuid) && !strchr(uuid, '/'));
+    nm_assert(nm_uuid_is_normalized(uuid) && !strchr(uuid, '/'));
     nm_assert(!loaded_path || loaded_path[0] == '/');
     nm_assert(!shadowed_storage || loaded_path);
 
@@ -269,7 +275,13 @@ nms_keyfile_nmmeta_write(const char *dirname,
 
         contents = g_key_file_to_data(kf, &length, NULL);
 
-        if (!nm_utils_file_set_contents(full_filename, contents, length, 0600, &errsv, NULL)) {
+        if (!nm_utils_file_set_contents(full_filename,
+                                        contents,
+                                        length,
+                                        0600,
+                                        NULL,
+                                        &errsv,
+                                        NULL)) {
             NM_SET_OUT(out_full_filename, g_steal_pointer(&full_filename_tmp));
             return -NM_ERRNO_NATIVE(errsv);
         }

@@ -13,12 +13,9 @@
 #include <linux/if.h>
 #include <linux/rtnetlink.h>
 
-#include "nm-utils.h"
-
-#include "nm-core-utils.h"
-#include "nm-platform/nm-platform-utils.h"
-#include "nm-platform-private.h"
-#include "nmp-object.h"
+#include "libnm-platform/nm-platform-utils.h"
+#include "libnm-platform/nm-platform-private.h"
+#include "libnm-platform/nmp-object.h"
 
 #include "nm-test-utils-core.h"
 
@@ -506,6 +503,21 @@ link_set_flags(NMPlatform *platform, NMFakePlatformLink *device, guint n_ifi_fla
     link_set_obj(platform, device, obj_tmp);
 }
 
+static int
+link_change_flags(NMPlatform *platform, int ifindex, unsigned flags_mask, unsigned flags_set)
+{
+    NMFakePlatformLink *device = link_get(platform, ifindex);
+
+    if (!device)
+        return -ENOENT;
+
+    link_set_flags(platform,
+                   device,
+                   NM_FLAGS_ASSIGN_MASK(device->obj->link.n_ifi_flags, flags_mask, flags_set));
+
+    return 0;
+}
+
 static void
 link_changed(NMPlatform *        platform,
              NMFakePlatformLink *device,
@@ -543,72 +555,13 @@ link_changed(NMPlatform *        platform,
     }
 }
 
-static gboolean
-link_set_up(NMPlatform *platform, int ifindex, gboolean *out_no_firmware)
-{
-    NMFakePlatformLink *device = link_get(platform, ifindex);
-
-    if (out_no_firmware)
-        *out_no_firmware = FALSE;
-
-    if (!device) {
-        _LOGE("failure changing link: netlink error (No such device)");
-        return FALSE;
-    }
-
-    link_set_flags(platform, device, NM_FLAGS_ASSIGN(device->obj->link.n_ifi_flags, IFF_UP, TRUE));
-    return TRUE;
-}
-
-static gboolean
-link_set_down(NMPlatform *platform, int ifindex)
-{
-    NMFakePlatformLink *device = link_get(platform, ifindex);
-
-    if (!device) {
-        _LOGE("failure changing link: netlink error (No such device)");
-        return FALSE;
-    }
-
-    link_set_flags(platform, device, NM_FLAGS_UNSET(device->obj->link.n_ifi_flags, IFF_UP));
-    return TRUE;
-}
-
-static gboolean
-link_set_arp(NMPlatform *platform, int ifindex)
-{
-    NMFakePlatformLink *device = link_get(platform, ifindex);
-
-    if (!device) {
-        _LOGE("failure changing link: netlink error (No such device)");
-        return FALSE;
-    }
-
-    link_set_flags(platform, device, NM_FLAGS_UNSET(device->obj->link.n_ifi_flags, IFF_NOARP));
-    return TRUE;
-}
-
-static gboolean
-link_set_noarp(NMPlatform *platform, int ifindex)
-{
-    NMFakePlatformLink *device = link_get(platform, ifindex);
-
-    if (!device) {
-        _LOGE("failure changing link: netlink error (No such device)");
-        return FALSE;
-    }
-
-    link_set_flags(platform, device, NM_FLAGS_SET(device->obj->link.n_ifi_flags, IFF_NOARP));
-    return TRUE;
-}
-
 static int
 link_set_address(NMPlatform *platform, int ifindex, gconstpointer addr, size_t len)
 {
     NMFakePlatformLink *device        = link_get(platform, ifindex);
     nm_auto_nmpobj NMPObject *obj_tmp = NULL;
 
-    if (len == 0 || len > NM_UTILS_HWADDR_LEN_MAX || !addr)
+    if (len == 0 || len > _NM_UTILS_HWADDR_LEN_MAX || !addr)
         g_return_val_if_reached(-NME_BUG);
 
     if (!device)
@@ -749,8 +702,8 @@ link_release(NMPlatform *platform, int master_idx, int slave_idx)
 static gboolean
 link_vlan_change(NMPlatform *            platform,
                  int                     ifindex,
-                 NMVlanFlags             flags_mask,
-                 NMVlanFlags             flags_set,
+                 _NMVlanFlags            flags_mask,
+                 _NMVlanFlags            flags_set,
                  gboolean                ingress_reset_all,
                  const NMVlanQosMapping *ingress_map,
                  gsize                   n_ingress_map,
@@ -799,7 +752,7 @@ infiniband_partition_add(NMPlatform *           platform,
     parent_device = link_get(platform, parent);
     g_return_val_if_fail(parent_device != NULL, FALSE);
 
-    nm_utils_new_infiniband_name(name, parent_device->obj->link.name, p_key);
+    nmp_utils_new_infiniband_name(name, parent_device->obj->link.name, p_key);
 
     link_add_one(platform, name, NM_LINK_TYPE_INFINIBAND, _infiniband_add_prepare, &d, out_link);
     return TRUE;
@@ -814,12 +767,12 @@ infiniband_partition_delete(NMPlatform *platform, int parent, int p_key)
     parent_device = link_get(platform, parent);
     g_return_val_if_fail(parent_device != NULL, FALSE);
 
-    nm_utils_new_infiniband_name(name, parent_device->obj->link.name, p_key);
+    nmp_utils_new_infiniband_name(name, parent_device->obj->link.name, p_key);
     return link_delete(platform, nm_platform_link_get_ifindex(platform, name));
 }
 
 static gboolean
-wifi_get_capabilities(NMPlatform *platform, int ifindex, NMDeviceWifiCapabilities *caps)
+wifi_get_capabilities(NMPlatform *platform, int ifindex, _NMDeviceWifiCapabilities *caps)
 {
     NMFakePlatformLink *device = link_get(platform, ifindex);
 
@@ -829,10 +782,10 @@ wifi_get_capabilities(NMPlatform *platform, int ifindex, NMDeviceWifiCapabilitie
         return FALSE;
 
     if (caps) {
-        *caps = (NM_WIFI_DEVICE_CAP_CIPHER_WEP40 | NM_WIFI_DEVICE_CAP_CIPHER_WEP104
-                 | NM_WIFI_DEVICE_CAP_CIPHER_TKIP | NM_WIFI_DEVICE_CAP_CIPHER_CCMP
-                 | NM_WIFI_DEVICE_CAP_WPA | NM_WIFI_DEVICE_CAP_RSN | NM_WIFI_DEVICE_CAP_AP
-                 | NM_WIFI_DEVICE_CAP_ADHOC);
+        *caps = (_NM_WIFI_DEVICE_CAP_CIPHER_WEP40 | _NM_WIFI_DEVICE_CAP_CIPHER_WEP104
+                 | _NM_WIFI_DEVICE_CAP_CIPHER_TKIP | _NM_WIFI_DEVICE_CAP_CIPHER_CCMP
+                 | _NM_WIFI_DEVICE_CAP_WPA | _NM_WIFI_DEVICE_CAP_RSN | _NM_WIFI_DEVICE_CAP_AP
+                 | _NM_WIFI_DEVICE_CAP_ADHOC);
     }
     return TRUE;
 }
@@ -861,14 +814,14 @@ wifi_get_rate(NMPlatform *platform, int ifindex)
     return 0;
 }
 
-static NM80211Mode
+static _NM80211Mode
 wifi_get_mode(NMPlatform *platform, int ifindex)
 {
-    return NM_802_11_MODE_UNKNOWN;
+    return _NM_802_11_MODE_UNKNOWN;
 }
 
 static void
-wifi_set_mode(NMPlatform *platform, int ifindex, NM80211Mode mode)
+wifi_set_mode(NMPlatform *platform, int ifindex, _NM80211Mode mode)
 {
     ;
 }
@@ -1357,13 +1310,10 @@ nm_fake_platform_class_init(NMFakePlatformClass *klass)
     platform_class->link_add    = link_add;
     platform_class->link_delete = link_delete;
 
-    platform_class->link_set_up    = link_set_up;
-    platform_class->link_set_down  = link_set_down;
-    platform_class->link_set_arp   = link_set_arp;
-    platform_class->link_set_noarp = link_set_noarp;
-
     platform_class->link_set_address = link_set_address;
     platform_class->link_set_mtu     = link_set_mtu;
+
+    platform_class->link_change_flags = link_change_flags;
 
     platform_class->link_get_driver_info = link_get_driver_info;
 

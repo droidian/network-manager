@@ -86,6 +86,9 @@
 /* Define if you have libaudit support */
 #undef HAVE_LIBAUDIT
 
+/* Define if you have a readline compatible library */
+#undef HAVE_LIBREADLINE
+
 /* Define to 1 if libsystemd is available */
 #undef HAVE_LIBSYSTEMD
 
@@ -95,8 +98,14 @@
 /* Define to 1 if you have the <pppd/pppd.h> header file. */
 #undef HAVE_PPPD_PPPD_H
 
+/* Have PTHREAD_PRIO_INHERIT. */
+#undef HAVE_PTHREAD_PRIO_INHERIT
+
 /* Define to 1 if you have the <readline.h> header file. */
 #undef HAVE_READLINE_H
+
+/* Define if your readline library has \`add_history' */
+#undef HAVE_READLINE_HISTORY
 
 /* Define to 1 if you have the <readline/history.h> header file. */
 #undef HAVE_READLINE_HISTORY_H
@@ -167,6 +176,9 @@
 /* Path to netconfig */
 #undef NETCONFIG_PATH
 
+/* Define to path of nft binary */
+#undef NFT_PATH
+
 /* The default value of the logging.audit configuration option */
 #undef NM_CONFIG_DEFAULT_LOGGING_AUDIT
 
@@ -224,6 +236,10 @@
 
 /* Define to path of pppd binary */
 #undef PPPD_PATH
+
+/* Define to necessary symbol if this constant uses a non-standard name on
+   your system. */
+#undef PTHREAD_CREATE_JOINABLE
 
 /* Path to resolvconf */
 #undef RESOLVCONF_PATH

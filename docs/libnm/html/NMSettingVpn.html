@@ -15,9 +15,7 @@
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts">
 <a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
-                  <a href="#NMSettingVpn.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
-                  <a href="#NMSettingVpn.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
-                  <a href="#NMSettingVpn.properties" class="shortcut">Properties</a></span>
+                  <a href="#NMSettingVpn.description" class="shortcut">Description</a></span>
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
@@ -183,52 +181,6 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="NMSettingVpn.properties"></a><h2>Properties</h2>
-<div class="informaltable"><table class="informaltable" border="0">
-<colgroup>
-<col width="150px" class="properties_type">
-<col width="300px" class="properties_name">
-<col width="200px" class="properties_flags">
-</colgroup>
-<tbody>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *</td>
-<td class="property_name"><a class="link" href="NMSettingVpn.html#NMSettingVpn--data" title="The “data” property">data</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingVpn.html#NMSettingVpn--persistent" title="The “persistent” property">persistent</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type">
-<a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *</td>
-<td class="property_name"><a class="link" href="NMSettingVpn.html#NMSettingVpn--secrets" title="The “secrets” property">secrets</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type">
-<span class="type">char</span> *</td>
-<td class="property_name"><a class="link" href="NMSettingVpn.html#NMSettingVpn--service-type" title="The “service-type” property">service-type</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></td>
-<td class="property_name"><a class="link" href="NMSettingVpn.html#NMSettingVpn--timeout" title="The “timeout” property">timeout</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-<tr>
-<td class="property_type">
-<span class="type">char</span> *</td>
-<td class="property_name"><a class="link" href="NMSettingVpn.html#NMSettingVpn--user-name" title="The “user-name” property">user-name</a></td>
-<td class="property_flags">Read / Write</td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
 <a name="NMSettingVpn.other"></a><h2>Types and Values</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
@@ -264,19 +216,8 @@
 <td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingVpn.html#NM-SETTING-VPN-TIMEOUT:CAPS" title="NM_SETTING_VPN_TIMEOUT">NM_SETTING_VPN_TIMEOUT</a></td>
 </tr>
-<tr>
-<td class="datatype_keyword"> </td>
-<td class="function_name"><a class="link" href="NMSettingVpn.html#NMSettingVpn-struct" title="NMSettingVpn">NMSettingVpn</a></td>
-</tr>
 </tbody>
 </table></div>
-</div>
-<div class="refsect1">
-<a name="NMSettingVpn.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="https://developer.gnome.org/gobject/unstable/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
-    <span class="lineart">╰──</span> <a class="link" href="NMSetting.html" title="NMSetting">NMSetting</a>
-        <span class="lineart">╰──</span> NMSettingVpn
-</pre>
 </div>
 <div class="refsect1">
 <a name="NMSettingVpn.description"></a><h2>Description</h2>
@@ -386,7 +327,7 @@ nm_setting_vpn_get_user_name (<em class="parameter"><code><a class="link" href="
 </div>
 <div class="refsect3">
 <a name="nm-setting-vpn-get-user-name.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingVpn.html#NMSettingVpn--user-name" title="The “user-name” property"><span class="type">“user-name”</span></a> property of the setting</p>
+<p> the <span class="type">“user-name”</span> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -411,7 +352,7 @@ nm_setting_vpn_get_persistent (<em class="parameter"><code><a class="link" href=
 </div>
 <div class="refsect3">
 <a name="nm-setting-vpn-get-persistent.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingVpn.html#NMSettingVpn--persistent" title="The “persistent” property"><span class="type">“persistent”</span></a> property of the setting</p>
+<p> the <span class="type">“persistent”</span> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -881,7 +822,7 @@ nm_setting_vpn_get_timeout (<em class="parameter"><code><a class="link" href="NM
 </div>
 <div class="refsect3">
 <a name="nm-setting-vpn-get-timeout.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSettingVpn.html#NMSettingVpn--timeout" title="The “timeout” property"><span class="type">“timeout”</span></a> property of the setting</p>
+<p> the <span class="type">“timeout”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -928,78 +869,6 @@ nm_setting_vpn_get_timeout (<em class="parameter"><code><a class="link" href="NM
 <a name="NM-SETTING-VPN-TIMEOUT:CAPS"></a><h3>NM_SETTING_VPN_TIMEOUT</h3>
 <pre class="programlisting">#define NM_SETTING_VPN_TIMEOUT      "timeout"
 </pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingVpn-struct"></a><h3>NMSettingVpn</h3>
-<pre class="programlisting">typedef struct _NMSettingVpn NMSettingVpn;</pre>
-<p>VPN Settings</p>
-</div>
-</div>
-<div class="refsect1">
-<a name="NMSettingVpn.property-details"></a><h2>Property Details</h2>
-<div class="refsect2">
-<a name="NMSettingVpn--data"></a><h3>The <code class="literal">“data”</code> property</h3>
-<pre class="programlisting">  “data”                     <a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *</pre>
-<p>Owner: NMSettingVpn</p>
-<p>Flags: Read / Write</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingVpn--persistent"></a><h3>The <code class="literal">“persistent”</code> property</h3>
-<pre class="programlisting">  “persistent”               <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>If the VPN service supports persistence, and this property is <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>,
-the VPN will attempt to stay connected across link changes and outages,
-until explicitly disconnected.</p>
-<p>Owner: NMSettingVpn</p>
-<p>Flags: Read / Write</p>
-<p>Default value: FALSE</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingVpn--secrets"></a><h3>The <code class="literal">“secrets”</code> property</h3>
-<pre class="programlisting">  “secrets”                  <a href="https://developer.gnome.org/glib/unstable/glib-Hash-Tables.html#GHashTable"><span class="type">GHashTable</span></a> *</pre>
-<p>Owner: NMSettingVpn</p>
-<p>Flags: Read / Write</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingVpn--service-type"></a><h3>The <code class="literal">“service-type”</code> property</h3>
-<pre class="programlisting">  “service-type”             <span class="type">char</span> *</pre>
-<p>D-Bus service name of the VPN plugin that this setting uses to connect to
-its network.  i.e. org.freedesktop.NetworkManager.vpnc for the vpnc
-plugin.</p>
-<p>Owner: NMSettingVpn</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NULL</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingVpn--timeout"></a><h3>The <code class="literal">“timeout”</code> property</h3>
-<pre class="programlisting">  “timeout”                  <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a></pre>
-<p>Timeout for the VPN service to establish the connection. Some services
-may take quite a long time to connect.
-Value of 0 means a default timeout, which is 60 seconds (unless overridden
-by vpn.timeout in configuration file). Values greater than zero mean
-timeout in seconds.</p>
-<p>Owner: NMSettingVpn</p>
-<p>Flags: Read / Write</p>
-<p>Default value: 0</p>
-<p class="since">Since: 1.2</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="NMSettingVpn--user-name"></a><h3>The <code class="literal">“user-name”</code> property</h3>
-<pre class="programlisting">  “user-name”                <span class="type">char</span> *</pre>
-<p>If the VPN connection requires a user name for authentication, that name
-should be provided here.  If the connection is available to more than one
-user, and the VPN requires each user to supply a different name, then
-leave this property empty.  If this property is empty, NetworkManager
-will automatically supply the username of the user which requested the
-VPN connection.</p>
-<p>Owner: NMSettingVpn</p>
-<p>Flags: Read / Write</p>
-<p>Default value: NULL</p>
 </div>
 </div>
 </div>

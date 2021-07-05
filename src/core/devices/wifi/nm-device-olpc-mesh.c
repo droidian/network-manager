@@ -28,7 +28,7 @@
 #include "nm-setting-connection.h"
 #include "nm-setting-olpc-mesh.h"
 #include "nm-manager.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 
 #define _NMLOG_DEVICE_TYPE NMDeviceOlpcMesh
 #include "devices/nm-device-logging.h"
@@ -122,6 +122,17 @@ complete_connection(NMDevice *           device,
 
 /*****************************************************************************/
 
+static const char *
+get_dhcp_anycast_address(NMDevice *device)
+{
+    NMSettingOlpcMesh *s_mesh;
+
+    s_mesh = nm_device_get_applied_setting(device, NM_TYPE_SETTING_OLPC_MESH);
+    return s_mesh ? nm_setting_olpc_mesh_get_dhcp_anycast_address(s_mesh) : NULL;
+}
+
+/*****************************************************************************/
+
 static NMActStageReturn
 act_stage1_prepare(NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
@@ -178,7 +189,6 @@ act_stage2_config(NMDevice *device, NMDeviceStateReason *out_failure_reason)
     NMDeviceOlpcMesh * self = NM_DEVICE_OLPC_MESH(device);
     NMSettingOlpcMesh *s_mesh;
     GBytes *           ssid;
-    const char *       anycast_addr;
     gboolean           success;
 
     s_mesh = nm_device_get_applied_setting(device, NM_TYPE_SETTING_OLPC_MESH);
@@ -196,9 +206,6 @@ act_stage2_config(NMDevice *device, NMDeviceStateReason *out_failure_reason)
         _LOGW(LOGD_WIFI, "Unable to set the mesh ID");
         return NM_ACT_STAGE_RETURN_FAILURE;
     }
-
-    anycast_addr = nm_setting_olpc_mesh_get_dhcp_anycast_address(s_mesh);
-    nm_device_set_dhcp_anycast_address(device, anycast_addr);
 
     if (!_mesh_set_channel(self, nm_setting_olpc_mesh_get_channel(s_mesh))) {
         _LOGW(LOGD_WIFI, "Unable to set the mesh channel");
@@ -492,19 +499,15 @@ dispose(GObject *object)
 static const NMDBusInterfaceInfoExtended interface_info_device_olpc_mesh = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_DEVICE_OLPC_MESH,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("HwAddress",
-                                                             "s",
-                                                             NM_DEVICE_HW_ADDRESS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Companion",
-                                                             "o",
-                                                             NM_DEVICE_OLPC_MESH_COMPANION),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L(
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("HwAddress", "s", NM_DEVICE_HW_ADDRESS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Companion",
+                                                           "o",
+                                                           NM_DEVICE_OLPC_MESH_COMPANION),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE(
                 "ActiveChannel",
                 "u",
                 NM_DEVICE_OLPC_MESH_ACTIVE_CHANNEL), ), ),
-    .legacy_property_changed = TRUE,
 };
 
 static void
@@ -531,6 +534,7 @@ nm_device_olpc_mesh_class_init(NMDeviceOlpcMeshClass *klass)
     device_class->act_stage2_config           = act_stage2_config;
     device_class->state_changed               = state_changed;
     device_class->get_dhcp_timeout_for_device = get_dhcp_timeout_for_device;
+    device_class->get_dhcp_anycast_address    = get_dhcp_anycast_address;
 
     obj_properties[PROP_COMPANION] = g_param_spec_string(NM_DEVICE_OLPC_MESH_COMPANION,
                                                          "",

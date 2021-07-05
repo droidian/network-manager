@@ -7,6 +7,7 @@
 #define __NETWORKMANAGER_SUPPLICANT_TYPES_H__
 
 #include "c-list/src/c-list.h"
+#include "libnm-base/nm-base.h"
 
 #define NM_WPAS_DBUS_SERVICE   "fi.w1.wpa_supplicant1"
 #define NM_WPAS_DBUS_PATH      "/fi/w1/wpa_supplicant1"
@@ -41,6 +42,7 @@ typedef enum {
     NM_SUPPL_CAP_TYPE_FILS,
     NM_SUPPL_CAP_TYPE_P2P,
     NM_SUPPL_CAP_TYPE_FT,
+    NM_SUPPL_CAP_TYPE_SAE,
     NM_SUPPL_CAP_TYPE_SHA384,
     NM_SUPPL_CAP_TYPE_MESH,
     NM_SUPPL_CAP_TYPE_FAST,
@@ -49,9 +51,9 @@ typedef enum {
     _NM_SUPPL_CAP_TYPE_NUM,
 } NMSupplCapType;
 
-#define NM_SUPPL_CAP_MASK_NO(type)   ((NMSupplCapMask)(1llu << ((type) *2u)))
-#define NM_SUPPL_CAP_MASK_YES(type)  ((NMSupplCapMask)(2llu << ((type) *2u)))
-#define NM_SUPPL_CAP_MASK_MASK(type) ((NMSupplCapMask)(3llu << ((type) *2u)))
+#define NM_SUPPL_CAP_MASK_NO(type)   ((NMSupplCapMask) (1llu << ((type) *2u)))
+#define NM_SUPPL_CAP_MASK_YES(type)  ((NMSupplCapMask) (2llu << ((type) *2u)))
+#define NM_SUPPL_CAP_MASK_MASK(type) ((NMSupplCapMask) (3llu << ((type) *2u)))
 
 typedef enum {
     NM_SUPPL_CAP_MASK_NONE = 0,
@@ -71,6 +73,7 @@ typedef enum {
     _NM_SUPPL_CAP_MASK_DEFINE(MESH),
     _NM_SUPPL_CAP_MASK_DEFINE(WFD),
     _NM_SUPPL_CAP_MASK_DEFINE(FT),
+    _NM_SUPPL_CAP_MASK_DEFINE(SAE),
     _NM_SUPPL_CAP_MASK_DEFINE(SHA384),
 #undef _NM_SUPPL_CAP_MASK_DEFINE
 } NMSupplCapMask;
@@ -111,7 +114,20 @@ NM_SUPPL_CAP_MASK_GET(NMSupplCapMask features, NMSupplCapType type)
 
     nm_assert(NM_IN_SET(f, 0, 1, 2));
 
-    return (NMTernary)(f - 1);
+    return (NMTernary) (f - 1);
+}
+
+static inline char
+NM_SUPPL_CAP_TO_CHAR(NMSupplCapMask features, NMSupplCapType type)
+{
+    NMTernary val;
+
+    val = NM_SUPPL_CAP_MASK_GET(features, type);
+    if (val == NM_TERNARY_TRUE)
+        return '+';
+    if (val == NM_TERNARY_FALSE)
+        return '-';
+    return '?';
 }
 
 /*****************************************************************************/
@@ -163,7 +179,7 @@ typedef struct _NMSupplicantBssInfo {
 
     NM80211ApFlags ap_flags : 5;
 
-    NM80211Mode mode : 4;
+    _NM80211Mode mode : 4;
 
     bool bssid_valid : 1;
 

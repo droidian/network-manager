@@ -17,14 +17,14 @@
 #include "devices/nm-device.h"
 #include "nm-setting-ip4-config.h"
 #include "nm-setting-connection.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "dns/nm-dns-manager.h"
 #include "vpn/nm-vpn-manager.h"
 #include "nm-auth-utils.h"
-#include "nm-firewall-manager.h"
+#include "nm-firewalld-manager.h"
 #include "nm-dispatcher.h"
 #include "nm-utils.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-manager.h"
 #include "settings/nm-settings.h"
 #include "settings/nm-settings-connection.h"
@@ -45,10 +45,10 @@ NM_GOBJECT_PROPERTIES_DEFINE(NMPolicy,
                              PROP_ACTIVATING_IP6_AC, );
 
 typedef struct {
-    NMManager *        manager;
-    NMNetns *          netns;
-    NMFirewallManager *firewall_manager;
-    CList              pending_activation_checks;
+    NMManager *         manager;
+    NMNetns *           netns;
+    NMFirewalldManager *firewalld_manager;
+    CList               pending_activation_checks;
 
     NMAgentManager *agent_mgr;
 
@@ -652,6 +652,7 @@ device_hostname_info_compare(gconstpointer a, gconstpointer b)
 
     NM_CMP_FIELD(info1, info2, priority);
     NM_CMP_FIELD_UNSAFE(info2, info1, is_default);
+    NM_CMP_FIELD_UNSAFE(info2, info1, IS_IPv4);
 
     return 0;
 }
@@ -2003,19 +2004,12 @@ device_state_changed(NMDevice *          device,
                           nm_settings_connection_get_id(sett_conn));
                 }
             }
-
-            nm_settings_connection_clear_secrets(sett_conn, FALSE, FALSE);
         }
         break;
     case NM_DEVICE_STATE_ACTIVATED:
         if (sett_conn) {
             /* Reset auto retries back to default since connection was successful */
             nm_settings_connection_autoconnect_retries_reset(sett_conn);
-
-            /* And clear secrets so they will always be requested from the
-             * settings service when the next connection is made.
-             */
-            nm_settings_connection_clear_secrets(sett_conn, FALSE, FALSE);
         }
 
         /* Add device's new IPv4 and IPv6 configs to DNS */
@@ -2525,7 +2519,7 @@ connection_added(NMSettings *settings, NMSettingsConnection *connection, gpointe
 }
 
 static void
-firewall_state_changed(NMFirewallManager *manager, gboolean initialized_now, gpointer user_data)
+firewall_state_changed(NMFirewalldManager *manager, gboolean initialized_now, gpointer user_data)
 {
     NMPolicy *       self = (NMPolicy *) user_data;
     NMPolicyPrivate *priv = NM_POLICY_GET_PRIVATE(self);
@@ -2539,7 +2533,7 @@ firewall_state_changed(NMFirewallManager *manager, gboolean initialized_now, gpo
         return;
     }
 
-    if (!nm_firewall_manager_get_running(manager))
+    if (!nm_firewalld_manager_get_running(manager))
         return;
 
     /* add interface of each device to correct zone */
@@ -2791,9 +2785,9 @@ constructed(GObject *object)
 
     priv->agent_mgr = g_object_ref(nm_agent_manager_get());
 
-    priv->firewall_manager = g_object_ref(nm_firewall_manager_get());
-    g_signal_connect(priv->firewall_manager,
-                     NM_FIREWALL_MANAGER_STATE_CHANGED,
+    priv->firewalld_manager = g_object_ref(nm_firewalld_manager_get());
+    g_signal_connect(priv->firewalld_manager,
+                     NM_FIREWALLD_MANAGER_STATE_CHANGED,
                      G_CALLBACK(firewall_state_changed),
                      self);
 
@@ -2896,9 +2890,9 @@ dispose(GObject *object)
     g_slist_free_full(priv->pending_secondaries, (GDestroyNotify) pending_secondary_data_free);
     priv->pending_secondaries = NULL;
 
-    if (priv->firewall_manager) {
-        g_signal_handlers_disconnect_by_func(priv->firewall_manager, firewall_state_changed, self);
-        g_clear_object(&priv->firewall_manager);
+    if (priv->firewalld_manager) {
+        g_signal_handlers_disconnect_by_func(priv->firewalld_manager, firewall_state_changed, self);
+        g_clear_object(&priv->firewalld_manager);
     }
 
     if (priv->agent_mgr) {

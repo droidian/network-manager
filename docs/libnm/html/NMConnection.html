@@ -1405,7 +1405,7 @@ nm_connection_is_type (<em class="parameter"><code><a class="link" href="NMConne
                        <em class="parameter"><code>const <span class="type">char</span> *type</code></em>);</pre>
 <p>A convenience function to check if the given <em class="parameter"><code>connection</code></em>
  is a particular
-type (ie wired, Wi-Fi, ppp, etc). Checks the <a class="link" href="NMSettingConnection.html#NMSettingConnection--type" title="The “type” property"><span class="type">“type”</span></a>
+type (ie wired, Wi-Fi, ppp, etc). Checks the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingConnection.html#NMSettingConnection--type"><span class="type">“type”</span></a>
 property of the connection and matches that against <em class="parameter"><code>type</code></em>
 .</p>
 <div class="refsect3">
@@ -2814,8 +2814,8 @@ an <code class="literal">NM_VARIANT_TYPE_CONNECTION</code> dictionary.</p>
 <hr>
 <div class="refsect2">
 <a name="NMConnectionSerializationFlags"></a><h3>enum NMConnectionSerializationFlags</h3>
-<p>These flags determine which properties are serialized when calling when
-calling <a class="link" href="NMConnection.html#nm-connection-to-dbus" title="nm_connection_to_dbus ()"><code class="function">nm_connection_to_dbus()</code></a>.</p>
+<p>These flags determine which properties are serialized when calling
+<a class="link" href="NMConnection.html#nm-connection-to-dbus" title="nm_connection_to_dbus ()"><code class="function">nm_connection_to_dbus()</code></a>.</p>
 <div class="refsect3">
 <a name="NMConnectionSerializationFlags.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -2833,24 +2833,65 @@ calling <a class="link" href="NMConnection.html#nm-connection-to-dbus" title="nm
 <td class="enum_member_annotations"> </td>
 </tr>
 <tr>
+<td class="enum_member_name"><p><a name="NM-CONNECTION-SERIALIZE-WITH-NON-SECRET:CAPS"></a>NM_CONNECTION_SERIALIZE_WITH_NON_SECRET</p></td>
+<td class="enum_member_description">
+<p>serialize properties that are
+not secrets. Since 1.32.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-SERIALIZE-NO-SECRETS:CAPS"></a>NM_CONNECTION_SERIALIZE_NO_SECRETS</p></td>
 <td class="enum_member_description">
-<p>do not include secrets</p>
+<p>this is a deprecated alias for
+<em class="parameter"><code>NM_CONNECTION_SERIALIZE_WITH_NON_SECRET</code></em>
+.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CONNECTION-SERIALIZE-WITH-SECRETS:CAPS"></a>NM_CONNECTION_SERIALIZE_WITH_SECRETS</p></td>
+<td class="enum_member_description">
+<p>serialize all secrets. This flag is
+ignored if any of <em class="parameter"><code>NM_CONNECTION_SERIALIZE_WITH_SECRETS_AGENT_OWNED</code></em>
+,
+<em class="parameter"><code>NM_CONNECTION_SERIALIZE_WITH_SECRETS_SYSTEM_OWNED</code></em>
+ or
+<em class="parameter"><code>NM_CONNECTION_SERIALIZE_WITH_SECRETS_NOT_SAVED</code></em>
+ is set. Since 1.32.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-SERIALIZE-ONLY-SECRETS:CAPS"></a>NM_CONNECTION_SERIALIZE_ONLY_SECRETS</p></td>
 <td class="enum_member_description">
-<p>only serialize secrets</p>
+<p>a deprecated alias for
+<em class="parameter"><code>NM_CONNECTION_SERIALIZE_WITH_SECRETS</code></em>
+.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="NM-CONNECTION-SERIALIZE-WITH-SECRETS-AGENT-OWNED:CAPS"></a>NM_CONNECTION_SERIALIZE_WITH_SECRETS_AGENT_OWNED</p></td>
 <td class="enum_member_description">
-<p>if set, only secrets that
-are agent owned will be serialized. Since: 1.20.</p>
+<p>serialize agent-owned
+secrets. Since: 1.20.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CONNECTION-SERIALIZE-WITH-SECRETS-SYSTEM-OWNED:CAPS"></a>NM_CONNECTION_SERIALIZE_WITH_SECRETS_SYSTEM_OWNED</p></td>
+<td class="enum_member_description">
+<p>serialize system-owned
+secrets. Since: 1.32.</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="NM-CONNECTION-SERIALIZE-WITH-SECRETS-NOT-SAVED:CAPS"></a>NM_CONNECTION_SERIALIZE_WITH_SECRETS_NOT_SAVED</p></td>
+<td class="enum_member_description">
+<p>serialize secrets that
+are marked as never saved. Since: 1.32.</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>

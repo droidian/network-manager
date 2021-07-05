@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-dbus
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/18/2021
+.\"      Date: 06/30/2021
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.30.0
+.\"    Source: NetworkManager 1.32.2
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.30\&.0" "Configuration"
+.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.32\&.2" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -2816,7 +2816,7 @@ array of string
 T}:T{
 \ \&
 T}:T{
-A list of kernel command line arguments to match\&. This may be used to check whether a specific kernel command line option is set (or if prefixed with the exclamation mark unset)\&. The argument must either be a single word, or an assignment (i\&.e\&. two words, separated "=")\&. In the former case the kernel command line is searched for the word appearing as is, or as left hand side of an assignment\&. In the latter case, the exact assignment is looked for with right and left hand side matching\&. See NMSettingMatch:interface\-name for how special characters \*(Aq|\*(Aq, \*(Aq&\*(Aq, \*(Aq!\*(Aq and \*(Aq\e\e\*(Aq are used for optional and mandatory matches and inverting the pattern\&.
+A list of kernel command line arguments to match\&. This may be used to check whether a specific kernel command line option is set (or unset, if prefixed with the exclamation mark)\&. The argument must either be a single word, or an assignment (i\&.e\&. two words, joined by "=")\&. In the former case the kernel command line is searched for the word appearing as is, or as left hand side of an assignment\&. In the latter case, the exact assignment is looked for with right and left hand side matching\&. Wildcard patterns are not supported\&. See NMSettingMatch:interface\-name for how special characters \*(Aq|\*(Aq, \*(Aq&\*(Aq, \*(Aq!\*(Aq and \*(Aq\e\e\*(Aq are used for optional and mandatory matches and inverting the match\&.
 T}
 T{
 path
@@ -2864,7 +2864,7 @@ byte array
 T}:T{
 \ \&
 T}:T{
-Anycast DHCP MAC address used when requesting an IP address via DHCP\&. The specific anycast address used determines which DHCP server class answers the request\&.
+Anycast DHCP MAC address used when requesting an IP address via DHCP\&. The specific anycast address used determines which DHCP server class answers the request\&. This is currently only implemented by dhclient DHCP plugin\&.
 T}
 T{
 ssid
@@ -3572,7 +3572,7 @@ array of vardict
 T}:T{
 \ \&
 T}:T{
-Array of TC queueing disciplines\&.
+Array of TC queueing disciplines\&. When the "tc" setting is present, qdiscs from this property are applied upon activation\&. If the property is empty, all qdiscs are removed and the device will only have the default qdisc assigned by kernel according to the "net\&.core\&.default_qdisc" sysctl\&. If the "tc" setting is not present, NetworkManager doesn\*(Aqt touch the qdiscs present on the interface\&.
 T}
 T{
 tfilters
@@ -3581,7 +3581,7 @@ array of vardict
 T}:T{
 \ \&
 T}:T{
-Array of TC traffic filters\&.
+Array of TC traffic filters\&. When the "tc" setting is present, filters from this property are applied upon activation\&. If the property is empty, NetworkManager removes all the filters\&. If the "tc" setting is not present, NetworkManager doesn\*(Aqt touch the filters present on the interface\&.
 T}
 .TE
 .sp 1
@@ -4445,7 +4445,17 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
+T{
+accept\-all\-mac\-addresses
+T}:T{
+NMTernary (int32)
+T}:T{
+\ \&
+T}:T{
+When TRUE, setup the interface to accept packets for all MAC addresses\&. This is enabling the kernel interface flag IFF_PROMISC\&. When FALSE, the interface will only accept the packets with the interface destination mac address or broadcast\&.
+T}
 T{
 assigned\-mac\-address
 T}:T{
@@ -4979,7 +4989,7 @@ string
 T}:T{
 \ \&
 T}:T{
-Key management used for the connection\&.  One of "none" (WEP), "ieee8021x" (Dynamic WEP), "wpa\-psk" (infrastructure WPA\-PSK), "sae" (SAE), "owe" (Opportunistic Wireless Encryption), "wpa\-eap" (WPA\-Enterprise) or "wpa\-eap\-suite\-b\-192" (WPA3\-Enterprise Suite B)\&. This property must be set for any Wi\-Fi connection that uses security\&.
+Key management used for the connection\&. One of "none" (WEP or no password protection), "ieee8021x" (Dynamic WEP), "owe" (Opportunistic Wireless Encryption), "wpa\-psk" (WPA2 + WPA3 personal), "sae" (WPA3 personal only), "wpa\-eap" (WPA2 + WPA3 enterprise) or "wpa\-eap\-suite\-b\-192" (WPA3 enterprise only)\&. This property must be set for any Wi\-Fi connection that uses security\&.
 T}
 T{
 leap\-password

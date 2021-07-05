@@ -16,19 +16,19 @@
 #include <signal.h>
 #include <linux/rtnetlink.h>
 
-#include "nm-glib-aux/nm-c-list.h"
+#include "libnm-glib-aux/nm-c-list.h"
 
 #include "main-utils.h"
 #include "NetworkManagerUtils.h"
-#include "platform/nm-linux-platform.h"
-#include "nm-platform/nm-platform-utils.h"
+#include "libnm-platform/nm-linux-platform.h"
+#include "libnm-platform/nm-platform-utils.h"
 #include "dhcp/nm-dhcp-manager.h"
 #include "ndisc/nm-ndisc.h"
 #include "ndisc/nm-lndp-ndisc.h"
 #include "nm-utils.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-setting-ip6-config.h"
-#include "systemd/nm-sd.h"
+#include "libnm-systemd-core/nm-sd.h"
 
 #if !defined(NM_DIST_VERSION)
     #define NM_DIST_VERSION VERSION
@@ -668,6 +668,7 @@ main(int argc, char *argv[])
                                                  global_opt.uuid,
                                                  RT_TABLE_MAIN,
                                                  global_opt.priority_v4,
+                                                 NM_DHCP_CLIENT_FLAGS_NONE,
                                                  !!global_opt.dhcp4_hostname,
                                                  global_opt.dhcp4_hostname,
                                                  global_opt.dhcp4_fqdn,

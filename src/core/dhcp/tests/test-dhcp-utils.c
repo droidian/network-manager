@@ -9,12 +9,12 @@
 #include <arpa/inet.h>
 #include <linux/rtnetlink.h>
 
-#include "nm-glib-aux/nm-dedup-multi.h"
+#include "libnm-glib-aux/nm-dedup-multi.h"
 #include "nm-utils.h"
 
 #include "dhcp/nm-dhcp-utils.h"
 #include "dhcp/nm-dhcp-options.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 
 #include "nm-test-utils-core.h"
 

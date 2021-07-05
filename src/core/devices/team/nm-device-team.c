@@ -15,15 +15,15 @@
 #include <teamdctl.h>
 #include <stdlib.h>
 
-#include "nm-glib-aux/nm-jansson.h"
+#include "libnm-glib-aux/nm-jansson.h"
 #include "NetworkManagerUtils.h"
 #include "devices/nm-device-private.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 #include "nm-config.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-dbus-manager.h"
 #include "nm-ip4-config.h"
-#include "nm-std-aux/nm-dbus-compat.h"
+#include "libnm-std-aux/nm-dbus-compat.h"
 
 #define _NMLOG_DEVICE_TYPE NMDeviceTeam
 #include "devices/nm-device-logging.h"
@@ -829,12 +829,12 @@ enslave_slave(NMDevice *device, NMDevice *slave, NMConnection *connection, gbool
                           "enslaved team port %s config not changed, not connected to teamd",
                           slave_iface);
                 } else {
-                    int   err;
-                    char *sanitized_config;
+                    gs_free char *sanitized_config = NULL;
+                    int           err;
 
-                    sanitized_config = g_strdelimit(g_strdup(config), "\r\n", ' ');
+                    sanitized_config = g_strdup(config);
+                    g_strdelimit(sanitized_config, "\r\n", ' ');
                     err = teamdctl_port_config_update_raw(priv->tdc, slave_iface, sanitized_config);
-                    g_free(sanitized_config);
                     if (err != 0) {
                         _LOGE(LOGD_TEAM,
                               "failed to update config for port %s (err=%d)",
@@ -1042,17 +1042,13 @@ dispose(GObject *object)
 static const NMDBusInterfaceInfoExtended interface_info_device_team = {
     .parent = NM_DEFINE_GDBUS_INTERFACE_INFO_INIT(
         NM_DBUS_INTERFACE_DEVICE_TEAM,
-        .signals    = NM_DEFINE_GDBUS_SIGNAL_INFOS(&nm_signal_info_property_changed_legacy, ),
         .properties = NM_DEFINE_GDBUS_PROPERTY_INFOS(
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("HwAddress",
-                                                             "s",
-                                                             NM_DEVICE_HW_ADDRESS),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Carrier", "b", NM_DEVICE_CARRIER),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Slaves", "ao", NM_DEVICE_SLAVES),
-            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE_L("Config",
-                                                             "s",
-                                                             NM_DEVICE_TEAM_CONFIG), ), ),
-    .legacy_property_changed = TRUE,
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("HwAddress", "s", NM_DEVICE_HW_ADDRESS),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Carrier", "b", NM_DEVICE_CARRIER),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Slaves", "ao", NM_DEVICE_SLAVES),
+            NM_DEFINE_DBUS_PROPERTY_INFO_EXTENDED_READABLE("Config",
+                                                           "s",
+                                                           NM_DEVICE_TEAM_CONFIG), ), ),
 };
 
 static void

@@ -22,13 +22,16 @@
 #include <net/if_arp.h>
 #include <net/ethernet.h>
 
-#include "nm-std-aux/unaligned.h"
-#include "nm-glib-aux/nm-random-utils.h"
-#include "nm-glib-aux/nm-io-utils.h"
-#include "nm-glib-aux/nm-secret-utils.h"
-#include "nm-glib-aux/nm-time-utils.h"
+#include "libnm-glib-aux/nm-uuid.h"
+#include "libnm-platform/nmp-base.h"
+#include "libnm-std-aux/unaligned.h"
+#include "libnm-glib-aux/nm-random-utils.h"
+#include "libnm-glib-aux/nm-io-utils.h"
+#include "libnm-glib-aux/nm-secret-utils.h"
+#include "libnm-glib-aux/nm-time-utils.h"
+#include "libnm-glib-aux/nm-str-buf.h"
 #include "nm-utils.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 #include "nm-setting-connection.h"
 #include "nm-setting-ip4-config.h"
 #include "nm-setting-ip6-config.h"
@@ -156,37 +159,6 @@ _nm_singleton_instance_register_destruction(GObject *instance)
 
 /*****************************************************************************/
 
-static double
-_exp10(guint16 ex)
-{
-    double v;
-
-    if (ex == 0)
-        return 1.0;
-
-    v = _exp10(ex / 2);
-    v = v * v;
-    if (ex % 2)
-        v *= 10;
-    return v;
-}
-
-/*
- * nm_utils_exp10:
- * @ex: the exponent
- *
- * Returns: 10^ex, or pow(10, ex), or exp10(ex).
- */
-double
-nm_utils_exp10(gint16 ex)
-{
-    if (ex >= 0)
-        return _exp10(ex);
-    return 1.0 / _exp10(-((gint32) ex));
-}
-
-/*****************************************************************************/
-
 gboolean
 nm_ether_addr_is_valid(const NMEtherAddr *addr)
 {
@@ -302,85 +274,6 @@ nm_utils_array_remove_at_indexes(GArray *array, const guint *indexes_to_delete, 
                 mm_len * elt_size);
     }
     g_array_set_size(array, res_length);
-}
-
-static const char *
-_trunk_first_line(char *str)
-{
-    char *s;
-
-    s = strchr(str, '\n');
-    if (s)
-        s[0] = '\0';
-    return str;
-}
-
-int
-nm_utils_modprobe(GError **error, gboolean suppress_error_logging, const char *arg1, ...)
-{
-    gs_unref_ptrarray GPtrArray *argv = NULL;
-    int                          exit_status;
-    gs_free char *               _log_str = NULL;
-#define ARGV_TO_STR(argv) \
-    (_log_str ? _log_str : (_log_str = g_strjoinv(" ", (char **) argv->pdata)))
-    GError *      local = NULL;
-    va_list       ap;
-    NMLogLevel    llevel  = suppress_error_logging ? LOGL_DEBUG : LOGL_ERR;
-    gs_free char *std_out = NULL, *std_err = NULL;
-
-    g_return_val_if_fail(!error || !*error, -1);
-    g_return_val_if_fail(arg1, -1);
-
-    /* construct the argument list */
-    argv = g_ptr_array_sized_new(4);
-    g_ptr_array_add(argv, "/sbin/modprobe");
-    g_ptr_array_add(argv, "--use-blacklist");
-    g_ptr_array_add(argv, (char *) arg1);
-
-    va_start(ap, arg1);
-    while ((arg1 = va_arg(ap, const char *)))
-        g_ptr_array_add(argv, (char *) arg1);
-    va_end(ap);
-
-    g_ptr_array_add(argv, NULL);
-
-    nm_log_dbg(LOGD_CORE, "modprobe: '%s'", ARGV_TO_STR(argv));
-    if (!g_spawn_sync(NULL,
-                      (char **) argv->pdata,
-                      NULL,
-                      0,
-                      NULL,
-                      NULL,
-                      &std_out,
-                      &std_err,
-                      &exit_status,
-                      &local)) {
-        nm_log(llevel,
-               LOGD_CORE,
-               NULL,
-               NULL,
-               "modprobe: '%s' failed: %s",
-               ARGV_TO_STR(argv),
-               local->message);
-        g_propagate_error(error, local);
-        return -1;
-    } else if (exit_status != 0) {
-        nm_log(llevel,
-               LOGD_CORE,
-               NULL,
-               NULL,
-               "modprobe: '%s' exited with error %d%s%s%s%s%s%s",
-               ARGV_TO_STR(argv),
-               exit_status,
-               std_out && *std_out ? " (" : "",
-               std_out && *std_out ? _trunk_first_line(std_out) : "",
-               std_out && *std_out ? ")" : "",
-               std_err && *std_err ? " (" : "",
-               std_err && *std_err ? _trunk_first_line(std_err) : "",
-               std_err && *std_err ? ")" : "");
-    }
-
-    return exit_status;
 }
 
 /*****************************************************************************/
@@ -693,9 +586,10 @@ static gulong
 _sleep_duration_convert_ms_to_us(guint32 sleep_duration_msec)
 {
     if (sleep_duration_msec > 0) {
-        guint64 x = (gint64) sleep_duration_msec * (guint64) 1000L;
+        guint64 x = ((guint64) sleep_duration_msec) * 1000UL;
 
-        return x < G_MAXULONG ? (gulong) x : G_MAXULONG;
+        nm_assert(x < G_MAXULONG);
+        return x;
     }
     return G_USEC_PER_SEC / 20;
 }
@@ -1269,7 +1163,7 @@ typedef struct {
         const char *value;
         gboolean    is_parsed;
         guint       len;
-        guint8      bin[NM_UTILS_HWADDR_LEN_MAX];
+        guint8      bin[_NM_UTILS_HWADDR_LEN_MAX];
     } hwaddr;
     struct {
         const char *value;
@@ -1956,7 +1850,8 @@ nm_wildcard_match_check(const char *str, const char *const *patterns, guint num_
 
         _pattern_parse(patterns[i], &p, &is_inverted, &is_mandatory);
 
-        match = (fnmatch(p, str, 0) == 0);
+        match = (fnmatch(p, str ?: "", 0) == 0);
+
         if (is_inverted)
             match = !match;
 
@@ -2047,65 +1942,6 @@ nm_utils_kernel_cmdline_match_check(const char *const *proc_cmdline,
     }
 
     return TRUE;
-}
-
-/*****************************************************************************/
-
-char *
-nm_utils_new_vlan_name(const char *parent_iface, guint32 vlan_id)
-{
-    guint id_len;
-    gsize parent_len;
-    char *ifname;
-
-    g_return_val_if_fail(parent_iface && *parent_iface, NULL);
-
-    if (vlan_id < 10)
-        id_len = 2;
-    else if (vlan_id < 100)
-        id_len = 3;
-    else if (vlan_id < 1000)
-        id_len = 4;
-    else {
-        g_return_val_if_fail(vlan_id < 4095, NULL);
-        id_len = 5;
-    }
-
-    ifname = g_new(char, IFNAMSIZ);
-
-    parent_len = strlen(parent_iface);
-    parent_len = MIN(parent_len, IFNAMSIZ - 1 - id_len);
-    memcpy(ifname, parent_iface, parent_len);
-    g_snprintf(&ifname[parent_len], IFNAMSIZ - parent_len, ".%u", vlan_id);
-
-    return ifname;
-}
-
-/* nm_utils_new_infiniband_name:
- * @name: the output-buffer where the value will be written. Must be
- *   not %NULL and point to a string buffer of at least IFNAMSIZ bytes.
- * @parent_name: the parent interface name
- * @p_key: the partition key.
- *
- * Returns: the infiniband name will be written to @name and @name
- *   is returned.
- */
-const char *
-nm_utils_new_infiniband_name(char *name, const char *parent_name, int p_key)
-{
-    g_return_val_if_fail(name, NULL);
-    g_return_val_if_fail(parent_name && parent_name[0], NULL);
-    g_return_val_if_fail(strlen(parent_name) < IFNAMSIZ, NULL);
-
-    /* technically, p_key of 0x0000 and 0x8000 is not allowed either. But we don't
-     * want to assert against that in nm_utils_new_infiniband_name(). So be more
-     * resilient here, and accept those. */
-    g_return_val_if_fail(p_key >= 0 && p_key <= 0xffff, NULL);
-
-    /* If parent+suffix is too long, kernel would just truncate
-     * the name. We do the same. See ipoib_vlan_add().  */
-    g_snprintf(name, IFNAMSIZ, "%s.%04x", parent_name, p_key);
-    return name;
 }
 
 /*****************************************************************************/
@@ -2538,134 +2374,6 @@ out:
     g_array_free(sorted_hashes, TRUE);
 }
 
-#define IPV6_PROPERTY_DIR "/proc/sys/net/ipv6/conf/"
-#define IPV4_PROPERTY_DIR "/proc/sys/net/ipv4/conf/"
-G_STATIC_ASSERT(sizeof(IPV4_PROPERTY_DIR) == sizeof(IPV6_PROPERTY_DIR));
-G_STATIC_ASSERT(NM_STRLEN(IPV6_PROPERTY_DIR) + IFNAMSIZ + 60
-                == NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE);
-
-/**
- * nm_utils_sysctl_ip_conf_path:
- * @addr_family: either AF_INET or AF_INET6.
- * @buf: the output buffer where to write the path. It
- *   must be at least NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE bytes
- *   long.
- * @ifname: an interface name
- * @property: a property name
- *
- * Returns: the path to IPv6 property @property on @ifname. Note that
- * this returns the input argument @buf.
- */
-const char *
-nm_utils_sysctl_ip_conf_path(int addr_family, char *buf, const char *ifname, const char *property)
-{
-    int len;
-
-    nm_assert(buf);
-    nm_assert_addr_family(addr_family);
-
-    g_assert(nm_utils_ifname_valid_kernel(ifname, NULL));
-    property = NM_ASSERT_VALID_PATH_COMPONENT(property);
-
-    len = g_snprintf(buf,
-                     NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE,
-                     "%s%s/%s",
-                     addr_family == AF_INET6 ? IPV6_PROPERTY_DIR : IPV4_PROPERTY_DIR,
-                     ifname,
-                     property);
-    g_assert(len < NM_UTILS_SYSCTL_IP_CONF_PATH_BUFSIZE - 1);
-    return buf;
-}
-
-gboolean
-nm_utils_sysctl_ip_conf_is_path(int         addr_family,
-                                const char *path,
-                                const char *ifname,
-                                const char *property)
-{
-    g_return_val_if_fail(path, FALSE);
-    NM_ASSERT_VALID_PATH_COMPONENT(property);
-    g_assert(!ifname || nm_utils_ifname_valid_kernel(ifname, NULL));
-
-    if (addr_family == AF_INET) {
-        if (!g_str_has_prefix(path, IPV4_PROPERTY_DIR))
-            return FALSE;
-        path += NM_STRLEN(IPV4_PROPERTY_DIR);
-    } else if (addr_family == AF_INET6) {
-        if (!g_str_has_prefix(path, IPV6_PROPERTY_DIR))
-            return FALSE;
-        path += NM_STRLEN(IPV6_PROPERTY_DIR);
-    } else
-        g_return_val_if_reached(FALSE);
-
-    if (ifname) {
-        if (!g_str_has_prefix(path, ifname))
-            return FALSE;
-        path += strlen(ifname);
-        if (path[0] != '/')
-            return FALSE;
-        path++;
-    } else {
-        const char *slash;
-        char        buf[IFNAMSIZ];
-        gsize       l;
-
-        slash = strchr(path, '/');
-        if (!slash)
-            return FALSE;
-        l = slash - path;
-        if (l >= IFNAMSIZ)
-            return FALSE;
-        memcpy(buf, path, l);
-        buf[l] = '\0';
-        if (!nm_utils_ifname_valid_kernel(buf, NULL))
-            return FALSE;
-        path = slash + 1;
-    }
-
-    if (!nm_streq(path, property))
-        return FALSE;
-
-    return TRUE;
-}
-
-gboolean
-nm_utils_is_valid_path_component(const char *name)
-{
-    const char *n;
-
-    if (name == NULL || name[0] == '\0')
-        return FALSE;
-
-    if (name[0] == '.') {
-        if (name[1] == '\0')
-            return FALSE;
-        if (name[1] == '.' && name[2] == '\0')
-            return FALSE;
-    }
-    n = name;
-    do {
-        if (*n == '/')
-            return FALSE;
-    } while (*(++n) != '\0');
-
-    return TRUE;
-}
-
-const char *
-NM_ASSERT_VALID_PATH_COMPONENT(const char *name)
-{
-    if (G_LIKELY(nm_utils_is_valid_path_component(name)))
-        return name;
-
-    nm_log_err(LOGD_CORE,
-               "Failed asserting path component: %s%s%s",
-               NM_PRINT_FMT_QUOTED(name, "\"", name, "\"", "(null)"));
-    g_error("FATAL: Failed asserting path component: %s%s%s",
-            NM_PRINT_FMT_QUOTED(name, "\"", name, "\"", "(null)"));
-    g_assert_not_reached();
-}
-
 /*****************************************************************************/
 
 typedef struct {
@@ -2697,7 +2405,7 @@ _uuid_data_init(UuidData *uuid_data, gboolean packed, gboolean is_fake, const NM
         nm_utils_bin2hexstr_full(uuid, sizeof(*uuid), '\0', FALSE, uuid_data->str);
     } else {
         G_STATIC_ASSERT_EXPR(sizeof(uuid_data->str) >= 37);
-        _nm_utils_uuid_unparse(uuid, uuid_data->str);
+        nm_uuid_unparse(uuid, uuid_data->str);
     }
     return uuid_data;
 }
@@ -2750,7 +2458,7 @@ again:
                                          (guint8 *) &uuid,
                                          sizeof(uuid),
                                          NULL)) {
-                if (!nm_utils_uuid_is_null(&uuid)) {
+                if (!nm_uuid_is_null(&uuid)) {
                     /* an all-zero machine-id is not valid. */
                     is_fake = FALSE;
                 }
@@ -2795,11 +2503,11 @@ again:
 
             /* the fake machine-id is based on secret-key/boot-id, but we hash it
              * again, so that they are not literally the same. */
-            nm_utils_uuid_generate_from_string_bin(&uuid,
-                                                   (const char *) seed_bin,
-                                                   seed_len,
-                                                   NM_UTILS_UUID_TYPE_VERSION5,
-                                                   (gpointer) hash_seed);
+            nm_uuid_generate_from_string(&uuid,
+                                         (const char *) seed_bin,
+                                         seed_len,
+                                         NM_UUID_TYPE_VERSION5,
+                                         (gpointer) hash_seed);
         }
 
         if (!g_once_init_enter(&lock))
@@ -2884,7 +2592,7 @@ _host_id_read_timestamp(gboolean      use_secret_key_file,
     now = time(NULL);
     *out_timestamp_ns =
         NM_MAX((gint64) 1,
-               (now * NM_UTILS_NSEC_PER_SEC) - ((gint64)(v % ((guint64)(EPOCH_TWO_YEARS)))));
+               (now * NM_UTILS_NSEC_PER_SEC) - ((gint64) (v % ((guint64) (EPOCH_TWO_YEARS)))));
     return FALSE;
 }
 
@@ -3027,6 +2735,7 @@ _host_id_read(guint8 **out_host_id, gsize *out_host_id_len)
                                                len,
                                                0600,
                                                NULL,
+                                               NULL,
                                                &error)) {
             nm_log_warn(
                 LOGD_CORE,
@@ -3148,10 +2857,10 @@ again:
                                    NULL,
                                    NULL,
                                    NULL);
-        if (!contents || !_nm_utils_uuid_parse(nm_strstrip(contents), &uuid)) {
+        if (!contents || !nm_uuid_parse(nm_strstrip(contents), &uuid)) {
             /* generate a random UUID instead. */
             is_fake = TRUE;
-            _nm_utils_uuid_generate_random(&uuid);
+            nm_uuid_generate_random(&uuid);
         }
 
         if (!g_once_init_enter(&lock))
@@ -3403,89 +3112,6 @@ nm_utils_get_ipv6_interface_identifier(NMLinkType          link_type,
         break;
     }
     return FALSE;
-}
-
-/*****************************************************************************/
-
-/**
- * nm_utils_ipv6_addr_set_interface_identifier:
- * @addr: output token encoded as %in6_addr
- * @iid: %NMUtilsIPv6IfaceId interface identifier
- *
- * Converts the %NMUtilsIPv6IfaceId to an %in6_addr (suitable for use
- * with Linux platform). This only copies the lower 8 bytes, ignoring
- * the /64 network prefix which is expected to be all-zero for a valid
- * token.
- */
-void
-nm_utils_ipv6_addr_set_interface_identifier(struct in6_addr *addr, const NMUtilsIPv6IfaceId iid)
-{
-    memcpy(addr->s6_addr + 8, &iid.id_u8, 8);
-}
-
-/**
- * nm_utils_ipv6_interface_identifier_get_from_addr:
- * @iid: output %NMUtilsIPv6IfaceId interface identifier set from the token
- * @addr: token encoded as %in6_addr
- *
- * Converts the %in6_addr encoded token (as used by Linux platform) to
- * the interface identifier.
- */
-void
-nm_utils_ipv6_interface_identifier_get_from_addr(NMUtilsIPv6IfaceId *   iid,
-                                                 const struct in6_addr *addr)
-{
-    memcpy(iid, addr->s6_addr + 8, 8);
-}
-
-/**
- * nm_utils_ipv6_interface_identifier_get_from_token:
- * @iid: output %NMUtilsIPv6IfaceId interface identifier set from the token
- * @token: token encoded as string
- *
- * Converts the %in6_addr encoded token (as used in ip6 settings) to
- * the interface identifier.
- *
- * Returns: %TRUE if the @token is a valid token, %FALSE otherwise
- */
-gboolean
-nm_utils_ipv6_interface_identifier_get_from_token(NMUtilsIPv6IfaceId *iid, const char *token)
-{
-    struct in6_addr i6_token;
-
-    g_return_val_if_fail(token, FALSE);
-
-    if (!inet_pton(AF_INET6, token, &i6_token))
-        return FALSE;
-
-    if (!_nm_utils_inet6_is_token(&i6_token))
-        return FALSE;
-
-    nm_utils_ipv6_interface_identifier_get_from_addr(iid, &i6_token);
-    return TRUE;
-}
-
-/**
- * nm_utils_inet6_interface_identifier_to_token:
- * @iid: %NMUtilsIPv6IfaceId interface identifier
- * @buf: the destination buffer of at least %NM_UTILS_INET_ADDRSTRLEN
- *   bytes.
- *
- * Converts the interface identifier to a string token.
- *
- * Returns: the input buffer filled with the id as string.
- */
-const char *
-nm_utils_inet6_interface_identifier_to_token(NMUtilsIPv6IfaceId iid,
-                                             char               buf[static INET6_ADDRSTRLEN])
-{
-    struct in6_addr i6_token = {.s6_addr = {
-                                    0,
-                                }};
-
-    nm_assert(buf);
-    nm_utils_ipv6_addr_set_interface_identifier(&i6_token, iid);
-    return _nm_utils_inet6_ntop(&i6_token, buf);
 }
 
 /*****************************************************************************/
@@ -4269,89 +3895,6 @@ nm_utils_g_value_set_strv(GValue *value, GPtrArray *strings)
 
 /*****************************************************************************/
 
-/**
- * Takes a pair @timestamp and @duration, and returns the remaining duration based
- * on the new timestamp @now.
- */
-guint32
-nm_utils_lifetime_rebase_relative_time_on_now(guint32 timestamp, guint32 duration, gint32 now)
-{
-    gint64 t;
-
-    nm_assert(now >= 0);
-
-    if (duration == NM_PLATFORM_LIFETIME_PERMANENT)
-        return NM_PLATFORM_LIFETIME_PERMANENT;
-
-    if (timestamp == 0) {
-        /* if the @timestamp is zero, assume it was just left unset and that the relative
-         * @duration starts counting from @now. This is convenient to construct an address
-         * and print it in nm_platform_ip4_address_to_string().
-         *
-         * In general it does not make sense to set the @duration without anchoring at
-         * @timestamp because you don't know the absolute expiration time when looking
-         * at the address at a later moment. */
-        timestamp = now;
-    }
-
-    /* For timestamp > now, just accept it and calculate the expected(?) result. */
-    t = (gint64) timestamp + (gint64) duration - (gint64) now;
-
-    if (t <= 0)
-        return 0;
-    if (t >= NM_PLATFORM_LIFETIME_PERMANENT)
-        return NM_PLATFORM_LIFETIME_PERMANENT - 1;
-    return t;
-}
-
-guint32
-nm_utils_lifetime_get(guint32  timestamp,
-                      guint32  lifetime,
-                      guint32  preferred,
-                      gint32   now,
-                      guint32 *out_preferred)
-{
-    guint32 t_lifetime, t_preferred;
-
-    nm_assert(now >= 0);
-
-    if (timestamp == 0 && lifetime == 0) {
-        /* We treat lifetime==0 && timestamp==0 addresses as permanent addresses to allow easy
-         * creation of such addresses (without requiring to set the lifetime fields to
-         * NM_PLATFORM_LIFETIME_PERMANENT). The real lifetime==0 addresses (E.g. DHCP6 telling us
-         * to drop an address will have timestamp set.
-         */
-        NM_SET_OUT(out_preferred, NM_PLATFORM_LIFETIME_PERMANENT);
-        g_return_val_if_fail(preferred == 0, NM_PLATFORM_LIFETIME_PERMANENT);
-        return NM_PLATFORM_LIFETIME_PERMANENT;
-    }
-
-    if (now <= 0)
-        now = nm_utils_get_monotonic_timestamp_sec();
-
-    t_lifetime = nm_utils_lifetime_rebase_relative_time_on_now(timestamp, lifetime, now);
-    if (!t_lifetime) {
-        NM_SET_OUT(out_preferred, 0);
-        return 0;
-    }
-
-    t_preferred = nm_utils_lifetime_rebase_relative_time_on_now(timestamp, preferred, now);
-
-    NM_SET_OUT(out_preferred, MIN(t_preferred, t_lifetime));
-
-    /* Assert that non-permanent addresses have a (positive) @timestamp. nm_utils_lifetime_rebase_relative_time_on_now()
-     * treats addresses with timestamp 0 as *now*. Addresses passed to _address_get_lifetime() always
-     * should have a valid @timestamp, otherwise on every re-sync, their lifetime will be extended anew.
-     */
-    g_return_val_if_fail(timestamp != 0
-                             || (lifetime == NM_PLATFORM_LIFETIME_PERMANENT
-                                 && preferred == NM_PLATFORM_LIFETIME_PERMANENT),
-                         t_lifetime);
-    g_return_val_if_fail(t_preferred <= t_lifetime, t_lifetime);
-
-    return t_lifetime;
-}
-
 const char *
 nm_utils_dnsmasq_status_to_string(int status, char *dest, gsize size)
 {
@@ -5065,9 +4608,12 @@ nm_wifi_utils_parse_ies(const guint8 *bytes,
         case WLAN_EID_VENDOR_SPECIFIC:
             if (len == 8 && bytes[0] == 0x00 /* OUI: Microsoft */
                 && bytes[1] == 0x50 && bytes[2] == 0xf2
-                && bytes[3] == 0x11)                     /* OUI type: Network cost */
-                NM_SET_OUT(out_metered, (bytes[7] > 1)); /* Cost level > 1 */
-            if (elem_len >= 10 && bytes[0] == 0x50       /* OUI: WiFi Alliance */
+                && bytes[3] == 0x11) /* OUI type: Network cost */
+            {
+                /* https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-nct/ */
+                NM_SET_OUT(out_metered, (bytes[4] > 1)); /* Cost level > 1 */
+            }
+            if (elem_len >= 10 && bytes[0] == 0x50 /* OUI: WiFi Alliance */
                 && bytes[1] == 0x6f && bytes[2] == 0x9a
                 && bytes[3] == 0x1c) /* OUI type: OWE Transition Mode */
                 NM_SET_OUT(out_owe_transition_mode, TRUE);
@@ -5102,16 +4648,329 @@ nm_wifi_utils_level_to_quality(int val)
 
 /*****************************************************************************/
 
-NM_UTILS_ENUM2STR_DEFINE(nm_icmpv6_router_pref_to_string,
-                         NMIcmpv6RouterPref,
-                         NM_UTILS_ENUM2STR(NM_ICMPV6_ROUTER_PREF_LOW, "low"),
-                         NM_UTILS_ENUM2STR(NM_ICMPV6_ROUTER_PREF_MEDIUM, "medium"),
-                         NM_UTILS_ENUM2STR(NM_ICMPV6_ROUTER_PREF_HIGH, "high"),
-                         NM_UTILS_ENUM2STR(NM_ICMPV6_ROUTER_PREF_INVALID, "invalid"), );
-
 NM_UTILS_LOOKUP_STR_DEFINE(nm_activation_type_to_string,
                            NMActivationType,
                            NM_UTILS_LOOKUP_DEFAULT_WARN("(unknown)"),
                            NM_UTILS_LOOKUP_STR_ITEM(NM_ACTIVATION_TYPE_MANAGED, "managed"),
                            NM_UTILS_LOOKUP_STR_ITEM(NM_ACTIVATION_TYPE_ASSUME, "assume"),
                            NM_UTILS_LOOKUP_STR_ITEM(NM_ACTIVATION_TYPE_EXTERNAL, "external"), );
+
+/*****************************************************************************/
+
+typedef struct {
+    GPid     pid;
+    GTask *  task;
+    gulong   cancellable_id;
+    GSource *child_watch_source;
+    GSource *timeout_source;
+
+    int      child_stdin;
+    int      child_stdout;
+    GSource *input_source;
+    GSource *output_source;
+
+    NMStrBuf in_buffer;
+    NMStrBuf out_buffer;
+    gsize    out_buffer_offset;
+} HelperInfo;
+
+#define _NMLOG_PREFIX_NAME "helper"
+#define _NMLOG_DOMAIN      LOGD_CORE
+#define _NMLOG2(level, info, ...)                                                   \
+    G_STMT_START                                                                    \
+    {                                                                               \
+        if (nm_logging_enabled((level), (_NMLOG_DOMAIN))) {                         \
+            HelperInfo *_info = (info);                                             \
+                                                                                    \
+            _nm_log((level),                                                        \
+                    (_NMLOG_DOMAIN),                                                \
+                    0,                                                              \
+                    NULL,                                                           \
+                    NULL,                                                           \
+                    _NMLOG_PREFIX_NAME "[" NM_HASH_OBFUSCATE_PTR_FMT                \
+                                       ",%d]: " _NM_UTILS_MACRO_FIRST(__VA_ARGS__), \
+                    NM_HASH_OBFUSCATE_PTR(_info),                                   \
+                    _info->pid _NM_UTILS_MACRO_REST(__VA_ARGS__));                  \
+        }                                                                           \
+    }                                                                               \
+    G_STMT_END
+
+static void
+helper_info_free(gpointer data)
+{
+    HelperInfo *info = data;
+
+    nm_clear_g_source_inst(&info->child_watch_source);
+    nm_clear_g_source_inst(&info->timeout_source);
+    g_object_unref(info->task);
+
+    nm_str_buf_destroy(&info->in_buffer);
+    nm_str_buf_destroy(&info->out_buffer);
+    nm_clear_g_source_inst(&info->input_source);
+    nm_clear_g_source_inst(&info->output_source);
+
+    if (info->child_stdout != -1)
+        nm_close(info->child_stdout);
+    if (info->child_stdin != -1)
+        nm_close(info->child_stdin);
+
+    if (info->pid != -1) {
+        nm_assert(info->pid > 1);
+        nm_utils_kill_child_async(info->pid, SIGKILL, LOGD_CORE, _NMLOG_PREFIX_NAME, 0, NULL, NULL);
+    }
+
+    g_free(info);
+}
+
+static void
+helper_complete(HelperInfo *info, GError *error)
+{
+    if (error) {
+        nm_clear_g_cancellable_disconnect(g_task_get_cancellable(info->task),
+                                          &info->cancellable_id);
+        g_task_return_error(info->task, error);
+        helper_info_free(info);
+        return;
+    }
+
+    if (info->input_source || info->output_source || info->pid != -1) {
+        /* Wait that pipes are closed and process has terminated */
+        return;
+    }
+
+    nm_clear_g_cancellable_disconnect(g_task_get_cancellable(info->task), &info->cancellable_id);
+    g_task_return_pointer(info->task, nm_str_buf_finalize(&info->in_buffer, NULL), g_free);
+    helper_info_free(info);
+}
+
+static gboolean
+helper_can_write(int fd, GIOCondition condition, gpointer user_data)
+{
+    HelperInfo *info = user_data;
+    gssize      n_written;
+    int         errsv;
+
+    if (NM_FLAGS_HAS(condition, G_IO_ERR)) {
+        errsv = EIO;
+        goto out_error;
+    } else if (NM_FLAGS_HAS(condition, G_IO_HUP)) {
+        errsv = EPIPE;
+        goto out_error;
+    }
+
+    n_written = write(info->child_stdin,
+                      &((nm_str_buf_get_str_unsafe(&info->out_buffer))[info->out_buffer_offset]),
+                      info->out_buffer.len - info->out_buffer_offset);
+    errsv     = errno;
+
+    if (n_written < 0 && errsv != EAGAIN)
+        goto out_error;
+
+    if (n_written > 0) {
+        if ((gsize) n_written >= (info->out_buffer.len - info->out_buffer_offset)) {
+            nm_assert((gsize) n_written == (info->out_buffer.len - info->out_buffer_offset));
+            nm_clear_g_source_inst(&info->output_source);
+            nm_close(info->child_stdin);
+            info->child_stdin = -1;
+            return G_SOURCE_CONTINUE;
+        }
+        info->out_buffer_offset += (gsize) n_written;
+    }
+
+    return G_SOURCE_CONTINUE;
+
+out_error:
+    nm_clear_g_source_inst(&info->output_source);
+    helper_complete(info,
+                    g_error_new(NM_UTILS_ERROR,
+                                NM_UTILS_ERROR_UNKNOWN,
+                                "error writing to helper: %d (%s)",
+                                errsv,
+                                nm_strerror_native(errsv)));
+    return G_SOURCE_CONTINUE;
+}
+
+static gboolean
+helper_have_data(int fd, GIOCondition condition, gpointer user_data)
+{
+    HelperInfo *info = user_data;
+    gssize      n_read;
+    GError *    error = NULL;
+
+    n_read = nm_utils_fd_read(fd, &info->in_buffer);
+    _LOG2T(info, "read returns %ld", (long) n_read);
+
+    if (n_read > 0)
+        return G_SOURCE_CONTINUE;
+
+    nm_clear_g_source_inst(&info->input_source);
+    nm_close(info->child_stdout);
+    info->child_stdout = -1;
+
+    _LOG2T(info, "stdout closed");
+
+    if (n_read < 0) {
+        error = g_error_new(NM_UTILS_ERROR,
+                            NM_UTILS_ERROR_UNKNOWN,
+                            "read from process returned %d (%s)",
+                            (int) -n_read,
+                            nm_strerror_native((int) -n_read));
+    }
+
+    helper_complete(info, error);
+    return G_SOURCE_CONTINUE;
+}
+
+static void
+helper_child_terminated(GPid pid, int status, gpointer user_data)
+{
+    HelperInfo *  info        = user_data;
+    GError *      error       = NULL;
+    gs_free char *status_desc = NULL;
+
+    _LOG2D(info, "process %s", (status_desc = nm_utils_get_process_exit_status_desc(status)));
+
+    info->pid = -1;
+    nm_clear_g_source_inst(&info->child_watch_source);
+
+    if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+        if (!status_desc)
+            status_desc = nm_utils_get_process_exit_status_desc(status);
+        error =
+            g_error_new(NM_UTILS_ERROR, NM_UTILS_ERROR_UNKNOWN, "helper process %s", status_desc);
+    }
+
+    helper_complete(info, error);
+}
+
+static gboolean
+helper_timeout(gpointer user_data)
+{
+    HelperInfo *info = user_data;
+
+    nm_clear_g_source_inst(&info->timeout_source);
+    helper_complete(info, g_error_new_literal(NM_UTILS_ERROR, NM_UTILS_ERROR_UNKNOWN, "timed out"));
+
+    return G_SOURCE_CONTINUE;
+}
+
+static void
+helper_cancelled(GObject *object, gpointer user_data)
+{
+    HelperInfo *info  = user_data;
+    GError *    error = NULL;
+
+    nm_clear_g_signal_handler(g_task_get_cancellable(info->task), &info->cancellable_id);
+    nm_utils_error_set_cancelled(&error, FALSE, NULL);
+    helper_complete(info, error);
+}
+
+void
+nm_utils_spawn_helper(const char *const * args,
+                      GCancellable *      cancellable,
+                      GAsyncReadyCallback callback,
+                      gpointer            cb_data)
+{
+    gs_free_error GError *error    = NULL;
+    gs_free char *        commands = NULL;
+    HelperInfo *          info;
+    int                   fd_flags;
+    const char *const *   arg;
+
+    nm_assert(args && args[0]);
+
+    info  = g_new(HelperInfo, 1);
+    *info = (HelperInfo){
+        .task         = nm_g_task_new(NULL, cancellable, nm_utils_spawn_helper, callback, cb_data),
+        .child_stdin  = -1,
+        .child_stdout = -1,
+        .pid          = -1,
+    };
+
+    if (!g_spawn_async_with_pipes("/",
+                                  (char **) NM_MAKE_STRV(LIBEXECDIR "/nm-daemon-helper"),
+                                  (char **) NM_MAKE_STRV(),
+                                  G_SPAWN_DO_NOT_REAP_CHILD,
+                                  NULL,
+                                  NULL,
+                                  &info->pid,
+                                  &info->child_stdin,
+                                  &info->child_stdout,
+                                  NULL,
+                                  &error)) {
+        info->child_stdin  = -1;
+        info->child_stdout = -1;
+        info->pid          = -1;
+        g_task_return_error(info->task,
+                            g_error_new(NM_UTILS_ERROR,
+                                        NM_UTILS_ERROR_UNKNOWN,
+                                        "error spawning nm-helper: %s",
+                                        error->message));
+        helper_info_free(info);
+        return;
+    }
+
+    _LOG2D(info, "spawned process with args: %s", (commands = g_strjoinv(" ", (char **) args)));
+
+    info->child_watch_source = g_child_watch_source_new(info->pid);
+    g_source_set_callback(info->child_watch_source,
+                          G_SOURCE_FUNC(helper_child_terminated),
+                          info,
+                          NULL);
+    g_source_attach(info->child_watch_source, g_main_context_get_thread_default());
+
+    info->timeout_source =
+        nm_g_timeout_source_new_seconds(20, G_PRIORITY_DEFAULT, helper_timeout, info, NULL);
+    g_source_attach(info->timeout_source, g_main_context_get_thread_default());
+
+    /* Set file descriptors as non-blocking */
+    fd_flags = fcntl(info->child_stdin, F_GETFD, 0);
+    fcntl(info->child_stdin, F_SETFL, fd_flags | O_NONBLOCK);
+    fd_flags = fcntl(info->child_stdout, F_GETFD, 0);
+    fcntl(info->child_stdout, F_SETFL, fd_flags | O_NONBLOCK);
+
+    /* Watch process stdin */
+    nm_str_buf_init(&info->out_buffer, 32, TRUE);
+    for (arg = args; *arg; arg++) {
+        nm_str_buf_append(&info->out_buffer, *arg);
+        nm_str_buf_append_c(&info->out_buffer, '\0');
+    }
+    info->output_source = nm_g_unix_fd_source_new(info->child_stdin,
+                                                  G_IO_OUT | G_IO_ERR | G_IO_HUP,
+                                                  G_PRIORITY_DEFAULT,
+                                                  helper_can_write,
+                                                  info,
+                                                  NULL);
+    g_source_attach(info->output_source, g_main_context_get_thread_default());
+
+    /* Watch process stdout */
+    nm_str_buf_init(&info->in_buffer, NM_UTILS_GET_NEXT_REALLOC_SIZE_1000, FALSE);
+    info->input_source = nm_g_unix_fd_source_new(info->child_stdout,
+                                                 G_IO_IN | G_IO_ERR | G_IO_HUP,
+                                                 G_PRIORITY_DEFAULT,
+                                                 helper_have_data,
+                                                 info,
+                                                 NULL);
+    g_source_attach(info->input_source, g_main_context_get_thread_default());
+
+    if (cancellable) {
+        gulong signal_id;
+
+        signal_id = g_cancellable_connect(cancellable, G_CALLBACK(helper_cancelled), info, NULL);
+        if (signal_id == 0) {
+            /* the request is already cancelled. Return. */
+            return;
+        }
+        info->cancellable_id = signal_id;
+    }
+}
+
+char *
+nm_utils_spawn_helper_finish(GAsyncResult *result, GError **error)
+{
+    GTask *task = G_TASK(result);
+
+    nm_assert(nm_g_task_is_valid(result, NULL, nm_utils_spawn_helper));
+
+    return g_task_propagate_pointer(task, error);
+}

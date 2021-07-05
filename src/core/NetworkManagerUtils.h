@@ -8,10 +8,10 @@
 #define __NETWORKMANAGER_UTILS_H__
 
 #include "nm-core-utils.h"
-#include "nm-glib-aux/nm-dedup-multi.h"
+#include "libnm-glib-aux/nm-dedup-multi.h"
 #include "nm-setting-ip-config.h"
 #include "nm-setting-ip6-config.h"
-#include "platform/nm-platform.h"
+#include "libnm-platform/nm-platform.h"
 
 /*****************************************************************************/
 
@@ -197,18 +197,20 @@ nm_dhcp_lease_get_options(NMDhcpLease *lease)
     return (GHashTable *) lease;
 }
 
-static inline void
+static inline NMDhcpLease *
 nm_dhcp_lease_ref(NMDhcpLease *lease)
 {
     if (lease)
         g_hash_table_ref((GHashTable *) lease);
+    return lease;
 }
 
-static inline void
+static inline NMDhcpLease *
 nm_dhcp_lease_unref(NMDhcpLease *lease)
 {
     if (lease)
         g_hash_table_unref((GHashTable *) lease);
+    return NULL;
 }
 
 static inline const char *
@@ -224,30 +226,12 @@ NM_AUTO_DEFINE_FCN(NMDhcpLease *, _nm_auto_unref_dhcplease, nm_dhcp_lease_unref)
 
 /*****************************************************************************/
 
-typedef struct _NMUtilsShareRules NMUtilsShareRules;
+void        nm_platform_setup(NMPlatform *instance);
+NMPlatform *nm_platform_get(void);
 
-NMUtilsShareRules *nm_utils_share_rules_new(void);
+#define NM_PLATFORM_GET (nm_platform_get())
 
-void nm_utils_share_rules_free(NMUtilsShareRules *self);
-
-void
-nm_utils_share_rules_add_rule_take(NMUtilsShareRules *self, const char *table, char *rule_take);
-
-static inline void
-nm_utils_share_rules_add_rule(NMUtilsShareRules *self, const char *table, const char *rule)
-{
-    nm_utils_share_rules_add_rule_take(self, table, g_strdup(rule));
-}
-
-#define nm_utils_share_rules_add_rule_v(self, table, ...) \
-    nm_utils_share_rules_add_rule_take((self), (table), g_strdup_printf(__VA_ARGS__))
-
-void nm_utils_share_rules_add_all_rules(NMUtilsShareRules *self,
-                                        const char *       ip_iface,
-                                        in_addr_t          addr,
-                                        guint              plen);
-
-void nm_utils_share_rules_apply(NMUtilsShareRules *self, gboolean shared);
+void nm_linux_platform_setup(void);
 
 /*****************************************************************************/
 

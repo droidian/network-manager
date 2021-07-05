@@ -14,11 +14,11 @@
     #include <selinux/label.h>
 #endif
 
-#include "nm-libnm-core-intern/nm-common-macros.h"
+#include "libnm-core-aux-intern/nm-common-macros.h"
 #include "nm-dbus-interface.h"
 #include "nm-connection.h"
 #include "nm-utils.h"
-#include "nm-core-internal.h"
+#include "libnm-core-intern/nm-core-internal.h"
 
 #include "NetworkManagerUtils.h"
 
@@ -182,7 +182,7 @@ nm_hostname_manager_read_hostname(NMHostnameManager *self)
 #if defined(HOSTNAME_PERSIST_GENTOO)
     hostname = read_hostname_gentoo(HOSTNAME_FILE);
 #elif defined(HOSTNAME_PERSIST_SLACKWARE)
-    hostname = read_hostname_slackware(HOSTNAME_FILE);
+    hostname     = read_hostname_slackware(HOSTNAME_FILE);
 #else
     if (g_file_get_contents(HOSTNAME_FILE, &hostname, NULL, NULL))
         g_strchomp(hostname);
