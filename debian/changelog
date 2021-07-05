@@ -1,6 +1,8 @@
 network-manager (1.32.2-0ubuntu1) UNRELEASED; urgency=medium
 
   * New upstream version
+  * debian/*.py:
+    - update python formatting to be compatible with the checks
   * debian/patches/ubuntu_revert_systemd.patch:
     - remove, the issue was fixed in systemd
   * debian/patches/CVE-2021-20297.patch:
