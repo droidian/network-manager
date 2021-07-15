@@ -3,4 +3,4 @@ Force-online-state-with-unmanaged-devices.patch
 # Ubuntu patches
 Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
 Update-dnsmasq-parameters.patch
-
+ubuntu_revert_systemd.patch
