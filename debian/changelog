@@ -1,10 +1,10 @@
-network-manager (1.32.10-0ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.32.10-0ubuntu1) impish; urgency=medium
 
   * New upstream version
   * debian/libnm0.symbols:
     - updated symbols for the new version
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 25 Aug 2021 15:26:59 +0200
+ -- Sebastien Bacher <seb128@debian.org>  Wed, 25 Aug 2021 16:10:58 +0200
 
 network-manager (1.32.2-0ubuntu2) impish; urgency=medium
 
