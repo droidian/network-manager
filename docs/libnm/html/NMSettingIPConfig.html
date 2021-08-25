@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingIP6Config.html" title="NMSettingIP6Config">
 <link rel="next" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel">
-<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -1124,6 +1124,14 @@ addressing, routing, and name service properties</p>
 </td>
 </tr>
 <tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="NMSettingIPConfig.html#nm-setting-ip-config-get-required-timeout" title="nm_setting_ip_config_get_required_timeout ()">nm_setting_ip_config_get_required_timeout</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
 <td class="function_type">const <span class="returnvalue">char</span> *
 </td>
 <td class="function_name">
@@ -1342,6 +1350,10 @@ addressing, routing, and name service properties</p>
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-REQUIRED-TIMEOUT:CAPS" title="NM_SETTING_IP_CONFIG_REQUIRED_TIMEOUT">NM_SETTING_IP_CONFIG_REQUIRED_TIMEOUT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMSettingIPConfig.html#NM-SETTING-IP-CONFIG-DHCP-IAID:CAPS" title="NM_SETTING_IP_CONFIG_DHCP_IAID">NM_SETTING_IP_CONFIG_DHCP_IAID</a></td>
 </tr>
 <tr>
@@ -1496,7 +1508,7 @@ nm_ip_address_new (<em class="parameter"><code><span class="type">int</span> fam
 <div class="refsect3">
 <a name="nm-ip-address-new.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> object, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1547,7 +1559,7 @@ correct size for <em class="parameter"><code>family</code></em>
 <div class="refsect3">
 <a name="nm-ip-address-new-binary.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> object, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1706,7 +1718,7 @@ nm_ip_address_dup (<em class="parameter"><code><a class="link" href="NMSettingIP
 <p>This API was part of public headers before 1.32.0 but
 was erroneously not exported in the ABI. It is thus only
 usable since 1.32.0. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.32</p>
 </div>
@@ -1947,7 +1959,7 @@ nm_ip_address_get_attribute_names (<em class="parameter"><code><a class="link" h
 <div class="refsect3">
 <a name="nm-ip-address-get-attribute-names.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of attribute names,. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1988,7 +2000,7 @@ on
 <em class="parameter"><code>address</code></em>
 , or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>address</code></em>
 has no such attribute. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2022,7 +2034,7 @@ nm_ip_address_set_attribute (<em class="parameter"><code><a class="link" href="N
 <tr>
 <td class="parameter_name"><p>value</p></td>
 <td class="parameter_description"><p>the value. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -2085,7 +2097,7 @@ nm_ip_route_new (<em class="parameter"><code><span class="type">int</span> famil
 <div class="refsect3">
 <a name="nm-ip-route-new.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> object, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2149,7 +2161,7 @@ point to buffers of the correct size for <em class="parameter"><code>family</cod
 <div class="refsect3">
 <a name="nm-ip-route-new-binary.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> object, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2307,7 +2319,7 @@ nm_ip_route_dup (<em class="parameter"><code><a class="link" href="NMSettingIPCo
 <p>This API was part of public headers before 1.32.0 but
 was erroneously not exported in the ABI. It is thus only
 usable since 1.32.0. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.32</p>
 </div>
@@ -2743,7 +2755,7 @@ nm_ip_route_get_attribute_names (<em class="parameter"><code><a class="link" hre
 <div class="refsect3">
 <a name="nm-ip-route-get-attribute-names.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of attribute names. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2784,7 +2796,7 @@ on
 <em class="parameter"><code>route</code></em>
 , or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>route</code></em>
 has no such attribute. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2818,7 +2830,7 @@ nm_ip_route_set_attribute (<em class="parameter"><code><a class="link" href="NMS
 <tr>
 <td class="parameter_name"><p>value</p></td>
 <td class="parameter_description"><p>the value. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -2915,7 +2927,7 @@ nm_ip_routing_rule_new (<em class="parameter"><code><span class="type">int</span
 <a name="nm-ip-routing-rule-new.returns"></a><h4>Returns</h4>
 <p>a newly created rule instance with the
 provided address family. The instance is unsealed. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.18</p>
 </div>
@@ -2945,7 +2957,7 @@ nm_ip_routing_rule_new_clone (<em class="parameter"><code>const <a class="link" 
 the same settings as <em class="parameter"><code>rule</code></em>
 . Note that the instance will
 always be unsealred. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.18</p>
 </div>
@@ -2976,7 +2988,7 @@ This is not thread-safe.</p>
 <p>the <em class="parameter"><code>self</code></em>
 argument with incremented
 reference count. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.18</p>
 </div>
@@ -3632,7 +3644,7 @@ nm_ip_routing_rule_get_from (<em class="parameter"><code>const <a class="link" h
 <a name="nm-ip-routing-rule-get-from.returns"></a><h4>Returns</h4>
 <p>the set from/src parameter or
 <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, if no value is set. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.18</p>
 </div>
@@ -3725,7 +3737,7 @@ nm_ip_routing_rule_get_to (<em class="parameter"><code>const <a class="link" hre
 <a name="nm-ip-routing-rule-get-to.returns"></a><h4>Returns</h4>
 <p>the set to/dst parameter or
 <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, if no value is set. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.18</p>
 </div>
@@ -3793,7 +3805,7 @@ nm_ip_routing_rule_get_iifname (<em class="parameter"><code>const <a class="link
 <div class="refsect3">
 <a name="nm-ip-routing-rule-get-iifname.returns"></a><h4>Returns</h4>
 <p>the set iifname or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if unset. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.18</p>
 </div>
@@ -3854,7 +3866,7 @@ nm_ip_routing_rule_get_oifname (<em class="parameter"><code>const <a class="link
 <div class="refsect3">
 <a name="nm-ip-routing-rule-get-oifname.returns"></a><h4>Returns</h4>
 <p>the set oifname or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if unset. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.18</p>
 </div>
@@ -4259,7 +4271,7 @@ conversion. Currently, not extra arguments are supported. </p></td>
 <div class="refsect3">
 <a name="nm-ip-routing-rule-from-string.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSettingIPConfig.html#NMIPRoutingRule"><span class="type">NMIPRoutingRule</span></a> or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.18</p>
 </div>
@@ -4308,7 +4320,7 @@ conversion. Currently, not extra arguments are supported. </p></td>
 <div class="refsect3">
 <a name="nm-ip-routing-rule-to-string.returns"></a><h4>Returns</h4>
 <p>the string representation or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.18</p>
 </div>
@@ -4334,7 +4346,7 @@ nm_setting_ip_config_get_method (<em class="parameter"><code><a class="link" hre
 </div>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-method.returns"></a><h4>Returns</h4>
-<p> the <span class="type">“method”</span> property of the setting; see
+<p> the <a href="NMSettingIPConfig.html#NMSettingIPConfig--method"><span class="type">“method”</span></a> property of the setting; see
 <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> and <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> for details of the
 methods available with each type.</p>
 </div>
@@ -5022,7 +5034,7 @@ nm_setting_ip_config_get_address (<em class="parameter"><code><a class="link" hr
 <a name="nm-setting-ip-config-get-address.returns"></a><h4>Returns</h4>
 <p>the address at index <em class="parameter"><code>idx</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -5233,7 +5245,7 @@ nm_setting_ip_config_get_route (<em class="parameter"><code><a class="link" href
 <a name="nm-setting-ip-config-get-route.returns"></a><h4>Returns</h4>
 <p>the route at index <em class="parameter"><code>idx</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -5373,7 +5385,7 @@ nm_setting_ip_config_clear_routes (<em class="parameter"><code><a class="link" h
 <a name="nm-setting-ip-config-get-route-metric"></a><h3>nm_setting_ip_config_get_route_metric ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
 nm_setting_ip_config_get_route_metric (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <span class="type">“route-metric”</span>
+<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--route-metric"><span class="type">“route-metric”</span></a>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-route-metric.parameters"></a><h4>Parameters</h4>
@@ -5393,7 +5405,7 @@ property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-route-metric.returns"></a><h4>Returns</h4>
 <p> the route metric that is used for routes that don't explicitly
-specify a metric. See <span class="type">“route-metric”</span> for more details.</p>
+specify a metric. See <a href="NMSettingIPConfig.html#NMSettingIPConfig--route-metric"><span class="type">“route-metric”</span></a> for more details.</p>
 </div>
 </div>
 <hr>
@@ -5401,7 +5413,7 @@ specify a metric. See <span class="type">“route-metric”</span> for more deta
 <a name="nm-setting-ip-config-get-route-table"></a><h3>nm_setting_ip_config_get_route_table ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
 nm_setting_ip_config_get_route_table (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <span class="type">“route-table”</span>
+<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--route-table"><span class="type">“route-table”</span></a>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-route-table.parameters"></a><h4>Parameters</h4>
@@ -5483,7 +5495,7 @@ nm_setting_ip_config_get_routing_rule (<em class="parameter"><code><a class="lin
 <a name="nm-setting-ip-config-get-routing-rule.returns"></a><h4>Returns</h4>
 <p>the routing rule at index <em class="parameter"><code>idx</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.18</p>
 </div>
@@ -5585,7 +5597,7 @@ nm_setting_ip_config_clear_routing_rules
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_ignore_auto_routes
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <span class="type">“ignore-auto-routes”</span>
+<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--ignore-auto-routes"><span class="type">“ignore-auto-routes”</span></a>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-ignore-auto-routes.parameters"></a><h4>Parameters</h4>
@@ -5614,7 +5626,7 @@ ignored.</p>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_ignore_auto_dns
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <span class="type">“ignore-auto-dns”</span>
+<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--ignore-auto-dns"><span class="type">“ignore-auto-dns”</span></a>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-ignore-auto-dns.parameters"></a><h4>Parameters</h4>
@@ -5643,7 +5655,7 @@ should be ignored.</p>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_ip_config_get_dhcp_hostname
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <span class="type">“dhcp-hostname”</span>
+<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname"><span class="type">“dhcp-hostname”</span></a>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-dhcp-hostname.parameters"></a><h4>Parameters</h4>
@@ -5671,7 +5683,7 @@ property.</p>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_dhcp_send_hostname
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <span class="type">“dhcp-send-hostname”</span>
+<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-send-hostname"><span class="type">“dhcp-send-hostname”</span></a>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-dhcp-send-hostname.parameters"></a><h4>Parameters</h4>
@@ -5701,7 +5713,7 @@ update DNS information for this machine.</p>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_never_default
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <span class="type">“never-default”</span>
+<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--never-default"><span class="type">“never-default”</span></a>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-never-default.parameters"></a><h4>Parameters</h4>
@@ -5729,7 +5741,7 @@ connection</p>
 <a name="nm-setting-ip-config-get-may-fail"></a><h3>nm_setting_ip_config_get_may_fail ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_may_fail (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <span class="type">“may-fail”</span>
+<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--may-fail"><span class="type">“may-fail”</span></a>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-may-fail.parameters"></a><h4>Parameters</h4>
@@ -5774,7 +5786,7 @@ nm_setting_ip_config_get_dad_timeout (<em class="parameter"><code><a class="link
 </div>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-dad-timeout.returns"></a><h4>Returns</h4>
-<p> the <span class="type">“dad-timeout”</span> property.</p>
+<p> the <a href="NMSettingIPConfig.html#NMSettingIPConfig--dad-timeout"><span class="type">“dad-timeout”</span></a> property.</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -5783,7 +5795,7 @@ nm_setting_ip_config_get_dad_timeout (<em class="parameter"><code><a class="link
 <a name="nm-setting-ip-config-get-dhcp-timeout"></a><h3>nm_setting_ip_config_get_dhcp_timeout ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
 nm_setting_ip_config_get_dhcp_timeout (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <span class="type">“dhcp-timeout”</span>
+<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-timeout"><span class="type">“dhcp-timeout”</span></a>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-dhcp-timeout.parameters"></a><h4>Parameters</h4>
@@ -5809,10 +5821,39 @@ the particular kind of device.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="nm-setting-ip-config-get-required-timeout"></a><h3>nm_setting_ip_config_get_required_timeout ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+nm_setting_ip_config_get_required_timeout
+                               (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
+<p>Returns the value contained in the <span class="type">“required-timeout”</span>
+property.</p>
+<div class="refsect3">
+<a name="nm-setting-ip-config-get-required-timeout.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>setting</p></td>
+<td class="parameter_description"><p>the <a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-setting-ip-config-get-required-timeout.returns"></a><h4>Returns</h4>
+<p> the required timeout for the address family</p>
+</div>
+<p class="since">Since: 1.34, 1.32.4</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="nm-setting-ip-config-get-dhcp-iaid"></a><h3>nm_setting_ip_config_get_dhcp_iaid ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_ip_config_get_dhcp_iaid (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <span class="type">“dhcp-iaid”</span>
+<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-iaid"><span class="type">“dhcp-iaid”</span></a>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-dhcp-iaid.parameters"></a><h4>Parameters</h4>
@@ -5841,7 +5882,7 @@ property.</p>
 <pre class="programlisting"><a class="link" href="NMSettingIPConfig.html#NMDhcpHostnameFlags" title="enum NMDhcpHostnameFlags"><span class="returnvalue">NMDhcpHostnameFlags</span></a>
 nm_setting_ip_config_get_dhcp_hostname_flags
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <span class="type">“dhcp-hostname-flags”</span>
+<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname-flags"><span class="type">“dhcp-hostname-flags”</span></a>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-dhcp-hostname-flags.parameters"></a><h4>Parameters</h4>
@@ -5897,7 +5938,7 @@ nm_setting_ip_config_get_dhcp_reject_servers
 <a name="nm-setting-ip-config-get-dhcp-reject-servers.returns"></a><h4>Returns</h4>
 <p>A <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> terminated array of DHCP reject servers. Even if no reject
 servers are configured, this always returns a non <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> value. </p>
-<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_len zero-terminated=1][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_len zero-terminated=1][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.28</p>
 </div>
@@ -6310,6 +6351,12 @@ rule verfies or fail.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="NM-SETTING-IP-CONFIG-REQUIRED-TIMEOUT:CAPS"></a><h3>NM_SETTING_IP_CONFIG_REQUIRED_TIMEOUT</h3>
+<pre class="programlisting">#define NM_SETTING_IP_CONFIG_REQUIRED_TIMEOUT    "required-timeout"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
 <a name="NM-SETTING-IP-CONFIG-DHCP-IAID:CAPS"></a><h3>NM_SETTING_IP_CONFIG_DHCP_IAID</h3>
 <pre class="programlisting">#define NM_SETTING_IP_CONFIG_DHCP_IAID           "dhcp-iaid"
 </pre>
@@ -6504,6 +6551,6 @@ incompatible with any other FQDN flag.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.1</div>
+<hr>Generated by GTK-Doc V1.33.0</div>
 </body>
 </html>

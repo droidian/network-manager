@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="NetworkManager.html" title="NetworkManager">
 <link rel="next" href="NetworkManager-dispatcher.html" title="NetworkManager-dispatcher">
-<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -830,6 +830,10 @@ ipv6.ip6-privacy=0
            and 100 for other profiles.</p></td>
 </tr>
 <tr>
+<td><p><span class="term"><code class="varname">ipv4.required-timeout</code></span></p></td>
+<td></td>
+</tr>
+<tr>
 <td><p><span class="term"><code class="varname">ipv4.route-metric</code></span></p></td>
 <td></td>
 </tr>
@@ -871,6 +875,10 @@ ipv6.ip6-privacy=0
 <td><p>If <code class="literal">ipv6.ip6-privacy</code> is unset, use the content of
             "/proc/sys/net/ipv6/conf/default/use_tempaddr" as last fallback.
           </p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="varname">ipv6.required-timeout</code></span></p></td>
+<td></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">ipv6.route-metric</code></span></p></td>
@@ -1123,6 +1131,63 @@ managed=1
 <p>
               This setting overwrites the deprecated <code class="literal">main.ignore-carrier</code>
               setting above.
+            </p>
+</td>
+</tr>
+<tr>
+<td><p><a name="keep-configuration"></a><span class="term"><code class="varname">keep-configuration</code></span></p></td>
+<td>
+<p>
+              On startup, NetworkManager tries to not interfere with
+              interfaces that are already configured. It does so by
+              generating a in-memory connection based on the interface
+              current configuration.
+            </p>
+<p>
+              If this generated connection matches one of the existing
+              persistent connections, the persistent connection gets
+              activated. If there is no match, the generated
+              connection gets activated as "external", which means
+              that the connection is considered as active, but
+              NetworkManager doesn't actually touch the interface.
+            </p>
+<p>
+              It is possible to disable this behavior by setting
+              <code class="literal">keep-configuration</code> to
+              <code class="literal">no</code>. In this way, on startup
+              NetworkManager always tries to activate the most
+              suitable persistent connection (the one with highest
+              autoconnect-priority or, in case of a tie, the one
+              activated most recently).
+            </p>
+<p>
+              Note that when NetworkManager gets restarted, it stores
+              the previous state in
+              <code class="filename">/run/NetworkManager</code>; in particular
+              it saves the UUID of the connection that was previously
+              active so that it can be activated again after the
+              restart. Therefore,
+              <code class="literal">keep-configuration</code> does not have
+              any effect on service restart.
+            </p>
+</td>
+</tr>
+<tr>
+<td><p><a name="allowed-connections"></a><span class="term"><code class="varname">allowed-connections</code></span></p></td>
+<td>
+<p>
+              A list of connections that can be activated on the
+              device. See <a class="xref" href="NetworkManager.conf.html#connection-spec" title="Connection List Format">the section called “Connection List Format”</a> for the
+              syntax to specify a connection. If this option is not
+              specified, all connections can be potentially activated
+              on the device, provided that the connection type and
+              other settings match.
+            </p>
+<p>
+              A notable use case for this is to filter which
+              connections can be activated based on how they were
+              created; see the <code class="literal">origin</code> keyword in
+              <a class="xref" href="NetworkManager.conf.html#connection-spec" title="Connection List Format">the section called “Connection List Format”</a>.
             </p>
 </td>
 </tr>
@@ -1644,6 +1709,66 @@ interface-name:vboxnet*,except:interface-name:vboxnet2
 <p>
       </p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="connection-spec"></a><h3>Connection List Format</h3>
+<p>
+          Connections can be specified using the following format:
+      </p>
+<p>
+      </p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term">*</span></p></td>
+<td><p>Matches every connection.</p></td>
+</tr>
+<tr>
+<td><p><span class="term">uuid:UUID</span></p></td>
+<td><p>Match the connection by UUID, for example
+          <code class="literal">"uuid:83037490-1d17-4986-a397-01f1db3a7fc2"</code></p></td>
+</tr>
+<tr>
+<td><p><span class="term">id=ID</span></p></td>
+<td><p>Match the connection by name.</p></td>
+</tr>
+<tr>
+<td><p><span class="term">origin:ORIGIN</span></p></td>
+<td><p>Match the connection by origin, stored in the
+          <code class="literal">org.freedesktop.NetworkManager.origin</code> tag of the user setting. For example, use
+          <code class="literal">"except:origin:nm-initrd-generator"</code> to forbid activation of connections created by the
+          initrd generator.</p></td>
+</tr>
+<tr>
+<td><p><span class="term">except:SPEC</span></p></td>
+<td>
+<p>Negative match of a connection. A negative match has higher priority then the positive
+          matches above.</p>
+<p>If there is a list consisting only of negative matches, the behavior is the same as if there is also
+          match-all. That means, if none of all the negative matches is satisfied, the overall result is still a
+          positive match.</p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term">SPEC[,;]SPEC</span></p></td>
+<td>
+<p>Multiple specs can be concatenated with commas or semicolons. The order does not matter as
+          matches are either inclusive or negative (<code class="literal">except:</code>), with negative matches having higher
+          priority.</p>
+<p>Backslash is supported to escape the separators ';' and ',', and to express special characters such as
+          newline ('\n'), tabulator ('\t'), whitespace ('\s') and backslash ('\\'). Whitespace is not a separator but
+          will be trimmed between two specs (unless escaped as '\s').</p>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p>
+      </p>
+</div>
 </div>
 <div class="refsect1">
 <a name="id-1.2.3.19"></a><h2>See Also</h2>
@@ -1659,6 +1784,6 @@ interface-name:vboxnet*,except:interface-name:vboxnet2
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.1</div>
+<hr>Generated by GTK-Doc V1.33.0</div>
 </body>
 </html>

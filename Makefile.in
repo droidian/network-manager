@@ -614,13 +614,16 @@ am__src_nm_cloud_setup_libnm_cloud_setup_core_a_SOURCES_DIST =  \
 	src/nm-cloud-setup/nmcs-provider-gcp.c \
 	src/nm-cloud-setup/nmcs-provider-gcp.h \
 	src/nm-cloud-setup/nmcs-provider-azure.c \
-	src/nm-cloud-setup/nmcs-provider-azure.h
+	src/nm-cloud-setup/nmcs-provider-azure.h \
+	src/nm-cloud-setup/nmcs-provider-aliyun.c \
+	src/nm-cloud-setup/nmcs-provider-aliyun.h
 @BUILD_NM_CLOUD_SETUP_TRUE@am_src_nm_cloud_setup_libnm_cloud_setup_core_a_OBJECTS = src/nm-cloud-setup/libnm_cloud_setup_core_a-nm-cloud-setup-utils.$(OBJEXT) \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/libnm_cloud_setup_core_a-nm-http-client.$(OBJEXT) \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider.$(OBJEXT) \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-ec2.$(OBJEXT) \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-gcp.$(OBJEXT) \
-@BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-azure.$(OBJEXT)
+@BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-azure.$(OBJEXT) \
+@BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-aliyun.$(OBJEXT)
 src_nm_cloud_setup_libnm_cloud_setup_core_a_OBJECTS =  \
 	$(am_src_nm_cloud_setup_libnm_cloud_setup_core_a_OBJECTS)
 introspection_libnmdbus_la_LIBADD =
@@ -2103,7 +2106,9 @@ src_core_tests_test_systemd_OBJECTS =  \
 src_core_tests_test_systemd_DEPENDENCIES =  \
 	src/libnm-systemd-core/libnm-systemd-core.la \
 	src/libnm-systemd-shared/libnm-systemd-shared.la \
+	src/libnm-glib-aux/libnm-glib-aux.la \
 	src/libnm-log-null/libnm-log-null.la \
+	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
 src_core_tests_test_systemd_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
@@ -2134,6 +2139,7 @@ src_libnm_client_aux_extern_tests_test_libnm_client_aux_DEPENDENCIES =  \
 	src/libnm-core-aux-extern/libnm-core-aux-extern.la \
 	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la src/libnm-client-impl/libnm.la \
 	$(am__DEPENDENCIES_1)
@@ -2327,6 +2333,7 @@ src_libnmc_setting_tests_test_libnmc_setting_DEPENDENCIES =  \
 	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 	src/libnm-base/libnm-base.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la src/libnm-client-impl/libnm.la \
 	$(am__DEPENDENCIES_1)
@@ -2408,6 +2415,7 @@ src_nm_dispatcher_tests_test_dispatcher_envp_OBJECTS =  \
 src_nm_dispatcher_tests_test_dispatcher_envp_DEPENDENCIES =  \
 	src/nm-dispatcher/libnm-dispatcher-core.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la src/libnm-client-impl/libnm.la \
 	$(am__DEPENDENCIES_1)
@@ -3207,6 +3215,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/n-dhcp4/src/util/$(DEPDIR)/libn_dhcp4_la-socket.Plo \
 	src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nm-cloud-setup-utils.Po \
 	src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nm-http-client.Po \
+	src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-aliyun.Po \
 	src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-azure.Po \
 	src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-ec2.Po \
 	src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-gcp.Po \
@@ -5667,6 +5676,7 @@ src_libnm_client_aux_extern_tests_test_libnm_client_aux_LDADD = \
 	src/libnm-core-aux-extern/libnm-core-aux-extern.la \
 	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	src/libnm-client-impl/libnm.la \
@@ -7874,7 +7884,9 @@ src_core_tests_test_systemd_LDFLAGS = \
 src_core_tests_test_systemd_LDADD = \
 	src/libnm-systemd-core/libnm-systemd-core.la \
 	src/libnm-systemd-shared/libnm-systemd-shared.la \
+	src/libnm-glib-aux/libnm-glib-aux.la \
 	src/libnm-log-null/libnm-log-null.la \
+	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	$(GLIB_LIBS) \
 	$(CODE_COVERAGE_LDFLAGS) \
@@ -7954,6 +7966,7 @@ src_nm_dispatcher_tests_test_dispatcher_envp_LDFLAGS = \
 src_nm_dispatcher_tests_test_dispatcher_envp_LDADD = \
 	src/nm-dispatcher/libnm-dispatcher-core.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	src/libnm-client-impl/libnm.la \
@@ -8075,6 +8088,7 @@ src_libnmc_setting_tests_test_libnmc_setting_LDADD = \
 	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 	src/libnm-base/libnm-base.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	src/libnm-client-impl/libnm.la \
@@ -8327,6 +8341,8 @@ src_nmcli_generate_docs_nm_settings_nmcli_LDFLAGS = \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/nmcs-provider-gcp.h \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/nmcs-provider-azure.c \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/nmcs-provider-azure.h \
+@BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/nmcs-provider-aliyun.c \
+@BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/nmcs-provider-aliyun.h \
 @BUILD_NM_CLOUD_SETUP_TRUE@	$(NULL)
 
 @BUILD_NM_CLOUD_SETUP_TRUE@src_nm_cloud_setup_libnm_cloud_setup_core_a_CPPFLAGS = \
@@ -8959,6 +8975,9 @@ src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-gcp.$(OBJEXT):  \
 	src/nm-cloud-setup/$(am__dirstamp) \
 	src/nm-cloud-setup/$(DEPDIR)/$(am__dirstamp)
 src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-azure.$(OBJEXT):  \
+	src/nm-cloud-setup/$(am__dirstamp) \
+	src/nm-cloud-setup/$(DEPDIR)/$(am__dirstamp)
+src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-aliyun.$(OBJEXT):  \
 	src/nm-cloud-setup/$(am__dirstamp) \
 	src/nm-cloud-setup/$(DEPDIR)/$(am__dirstamp)
 
@@ -12355,6 +12374,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/n-dhcp4/src/util/$(DEPDIR)/libn_dhcp4_la-socket.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nm-cloud-setup-utils.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nm-http-client.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-aliyun.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-azure.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-ec2.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-gcp.Po@am__quote@ # am--include-marker
@@ -12818,6 +12838,20 @@ src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-azure.obj: src/nm-clou
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nm-cloud-setup/nmcs-provider-azure.c' object='src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-azure.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nm_cloud_setup_libnm_cloud_setup_core_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-azure.obj `if test -f 'src/nm-cloud-setup/nmcs-provider-azure.c'; then $(CYGPATH_W) 'src/nm-cloud-setup/nmcs-provider-azure.c'; else $(CYGPATH_W) '$(srcdir)/src/nm-cloud-setup/nmcs-provider-azure.c'; fi`
+
+src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-aliyun.o: src/nm-cloud-setup/nmcs-provider-aliyun.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nm_cloud_setup_libnm_cloud_setup_core_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-aliyun.o -MD -MP -MF src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-aliyun.Tpo -c -o src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-aliyun.o `test -f 'src/nm-cloud-setup/nmcs-provider-aliyun.c' || echo '$(srcdir)/'`src/nm-cloud-setup/nmcs-provider-aliyun.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-aliyun.Tpo src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-aliyun.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nm-cloud-setup/nmcs-provider-aliyun.c' object='src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-aliyun.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nm_cloud_setup_libnm_cloud_setup_core_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-aliyun.o `test -f 'src/nm-cloud-setup/nmcs-provider-aliyun.c' || echo '$(srcdir)/'`src/nm-cloud-setup/nmcs-provider-aliyun.c
+
+src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-aliyun.obj: src/nm-cloud-setup/nmcs-provider-aliyun.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nm_cloud_setup_libnm_cloud_setup_core_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-aliyun.obj -MD -MP -MF src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-aliyun.Tpo -c -o src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-aliyun.obj `if test -f 'src/nm-cloud-setup/nmcs-provider-aliyun.c'; then $(CYGPATH_W) 'src/nm-cloud-setup/nmcs-provider-aliyun.c'; else $(CYGPATH_W) '$(srcdir)/src/nm-cloud-setup/nmcs-provider-aliyun.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-aliyun.Tpo src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-aliyun.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nm-cloud-setup/nmcs-provider-aliyun.c' object='src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-aliyun.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nm_cloud_setup_libnm_cloud_setup_core_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nm-cloud-setup/libnm_cloud_setup_core_a-nmcs-provider-aliyun.obj `if test -f 'src/nm-cloud-setup/nmcs-provider-aliyun.c'; then $(CYGPATH_W) 'src/nm-cloud-setup/nmcs-provider-aliyun.c'; else $(CYGPATH_W) '$(srcdir)/src/nm-cloud-setup/nmcs-provider-aliyun.c'; fi`
 
 introspection/libnmdbus_la-org.freedesktop.NetworkManager.AccessPoint.lo: introspection/org.freedesktop.NetworkManager.AccessPoint.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(introspection_libnmdbus_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT introspection/libnmdbus_la-org.freedesktop.NetworkManager.AccessPoint.lo -MD -MP -MF introspection/$(DEPDIR)/libnmdbus_la-org.freedesktop.NetworkManager.AccessPoint.Tpo -c -o introspection/libnmdbus_la-org.freedesktop.NetworkManager.AccessPoint.lo `test -f 'introspection/org.freedesktop.NetworkManager.AccessPoint.c' || echo '$(srcdir)/'`introspection/org.freedesktop.NetworkManager.AccessPoint.c
@@ -20098,6 +20132,7 @@ distclean: distclean-recursive
 	-rm -f src/n-dhcp4/src/util/$(DEPDIR)/libn_dhcp4_la-socket.Plo
 	-rm -f src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nm-cloud-setup-utils.Po
 	-rm -f src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nm-http-client.Po
+	-rm -f src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-aliyun.Po
 	-rm -f src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-azure.Po
 	-rm -f src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-ec2.Po
 	-rm -f src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-gcp.Po
@@ -20765,6 +20800,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/n-dhcp4/src/util/$(DEPDIR)/libn_dhcp4_la-socket.Plo
 	-rm -f src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nm-cloud-setup-utils.Po
 	-rm -f src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nm-http-client.Po
+	-rm -f src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-aliyun.Po
 	-rm -f src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-azure.Po
 	-rm -f src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-ec2.Po
 	-rm -f src/nm-cloud-setup/$(DEPDIR)/libnm_cloud_setup_core_a-nmcs-provider-gcp.Po

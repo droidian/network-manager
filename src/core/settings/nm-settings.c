@@ -388,6 +388,9 @@ typedef struct {
     guint kf_db_flush_idle_id_timestamps;
     guint kf_db_flush_idle_id_seen_bssids;
 
+    bool kf_db_pruned_timestamps;
+    bool kf_db_pruned_seen_bssid;
+
     bool started : 1;
 
     /* Whether NMSettingsConnections changed in a way that affects the comparison
@@ -495,6 +498,8 @@ _startup_complete_check_is_ready(NMSettings *          self,
     conn = nm_settings_connection_get_connection(sett_conn);
 
     nm_manager_for_each_device (priv->manager, device, tmp_lst) {
+        gs_free_error GError *error = NULL;
+
         if (!nm_device_is_real(device))
             continue;
 
@@ -505,7 +510,13 @@ _startup_complete_check_is_ready(NMSettings *          self,
             continue;
         }
 
-        if (!nm_device_check_connection_compatible(device, conn, NULL))
+        /* Check that device is compatible with the device. We are also happy
+         * with a device compatible but for which the connection is disallowed
+         * by NM configuration. */
+        if (!nm_device_check_connection_compatible(device, conn, &error)
+            && !g_error_matches(error,
+                                NM_UTILS_ERROR,
+                                NM_UTILS_ERROR_CONNECTION_AVAILABLE_DISALLOWED))
             continue;
 
         return TRUE;
@@ -3684,6 +3695,41 @@ again:
 
 /*****************************************************************************/
 
+static gboolean
+_kf_db_prune_predicate(const char *uuid, gpointer user_data)
+{
+    return !!nm_settings_get_connection_by_uuid(user_data, uuid);
+}
+
+static void
+_kf_db_to_file(NMSettings *self, gboolean is_timestamps, gboolean force_write)
+{
+    NMSettingsPrivate *priv = NM_SETTINGS_GET_PRIVATE(self);
+    NMKeyFileDB *      kf_db;
+    bool *             p_kf_db_pruned;
+
+    if (is_timestamps) {
+        kf_db          = priv->kf_db_timestamps;
+        p_kf_db_pruned = &priv->kf_db_pruned_timestamps;
+    } else {
+        kf_db          = priv->kf_db_seen_bssids;
+        p_kf_db_pruned = &priv->kf_db_pruned_seen_bssid;
+    }
+
+    if (!*p_kf_db_pruned) {
+        /* we only prune the DB once, because afterwards every
+         * add/remove of an connection will lead to a direct update. */
+        *p_kf_db_pruned = TRUE;
+        nm_key_file_db_prune(kf_db, _kf_db_prune_predicate, self);
+
+        /* once we also go over the directory, and see whether we
+         * have any left over temporary files to delete. */
+        nm_key_file_db_prune_tmp_files(kf_db);
+    }
+
+    nm_key_file_db_to_file(kf_db, force_write);
+}
+
 G_GNUC_PRINTF(4, 5)
 static void
 _kf_db_log_fcn(NMKeyFileDB *kf_db, int syslog_level, gpointer user_data, const char *fmt, ...)
@@ -3732,7 +3778,7 @@ _kf_db_got_dirty_flush(NMSettings *self, gboolean is_timestamps)
     }
 
     if (nm_key_file_db_is_dirty(kf_db))
-        nm_key_file_db_to_file(kf_db, FALSE);
+        _kf_db_to_file(self, is_timestamps, FALSE);
     else {
         _LOGT("[%s-keyfile]: skip saving changes to \"%s\"",
               prefix,
@@ -3785,15 +3831,10 @@ _kf_db_got_dirty_fcn(NMKeyFileDB *kf_db, gpointer user_data)
 void
 nm_settings_kf_db_write(NMSettings *self)
 {
-    NMSettingsPrivate *priv;
-
     g_return_if_fail(NM_IS_SETTINGS(self));
 
-    priv = NM_SETTINGS_GET_PRIVATE(self);
-    if (priv->kf_db_timestamps)
-        nm_key_file_db_to_file(priv->kf_db_timestamps, TRUE);
-    if (priv->kf_db_seen_bssids)
-        nm_key_file_db_to_file(priv->kf_db_seen_bssids, TRUE);
+    _kf_db_to_file(self, TRUE, TRUE);
+    _kf_db_to_file(self, FALSE, TRUE);
 }
 
 /*****************************************************************************/
@@ -4031,8 +4072,8 @@ finalize(GObject *object)
 
     nm_clear_g_source(&priv->kf_db_flush_idle_id_timestamps);
     nm_clear_g_source(&priv->kf_db_flush_idle_id_seen_bssids);
-    nm_key_file_db_to_file(priv->kf_db_timestamps, FALSE);
-    nm_key_file_db_to_file(priv->kf_db_seen_bssids, FALSE);
+    _kf_db_to_file(self, TRUE, FALSE);
+    _kf_db_to_file(self, FALSE, FALSE);
     nm_key_file_db_destroy(priv->kf_db_timestamps);
     nm_key_file_db_destroy(priv->kf_db_seen_bssids);
 

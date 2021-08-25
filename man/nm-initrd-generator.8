@@ -2,12 +2,12 @@
 .\"     Title: nm-initrd-generator
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/30/2021
+.\"      Date: 08/18/2021
 .\"    Manual: System Administration
-.\"    Source: NetworkManager 1.32.2
+.\"    Source: NetworkManager 1.32.10
 .\"  Language: English
 .\"
-.TH "NM\-INITRD\-GENERATOR" "8" "" "NetworkManager 1\&.32\&.2" "System Administration"
+.TH "NM\-INITRD\-GENERATOR" "8" "" "NetworkManager 1\&.32\&.10" "System Administration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -85,6 +85,9 @@ The options that appear on the kernel command line\&. The following options are 
 \fBvlan\fR
 .RE
 .RS 4
+\fBib\&.pkey\fR
+.RE
+.RS 4
 \fBbootdev\fR
 .RE
 .RS 4
@@ -95,6 +98,9 @@ The options that appear on the kernel command line\&. The following options are 
 .RE
 .RS 4
 \fBrd\&.bootif\fR
+.RE
+.RS 4
+\fBrd\&.ethtool\fR
 .RE
 .RS 4
 \fBrd\&.net\&.timeout\&.dhcp\fR
@@ -137,6 +143,48 @@ When an interface is configured with a static address and a gateway, the network
 .IP \(bu 2.3
 .\}
 network\-legacy configures interfaces one by one in the order in which they are announced by udev\&. If multiple interfaces specify a hostname (from command line or from DHCP), the one from the last interface activated wins\&. With NetworkManager, hostnames from command line have higher precedence over ones from DHCP, and the last that appears in the command line wins\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+NetworkManager supports the
+\fBib\&.pkey\fR=\fIPARENT\fR\&.\fIPKEY\fR
+argument to set up an Infiniband partition on IPoIB parent device
+\fIPARENT\fR
+using the specified partition key
+\fIPKEY\fR\&. The partition key must be in hexadecimal notation without leading "0x", for example "ib\&.pkey=ib0\&.8004"\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+NetworkManager supports the
+\fBrd\&.ethtool\fR=\fIINTERFACE\fR:\fIAUTONEG\fR:\fISPEED\fR
+kernel command line option to set up ethtool NIC configuration parameters
+\fIAUTONEG\fR
+and
+\fISPEED\fR\&. The
+\fIINTERFACE\fR
+being configured must be specified, and the other parameters are optional and can be left blank\&. When
+\fISPEED\fR
+is set, duplex mode is automatically set to \*(Aqfull\*(Aq\&.
+\fIINTERFACE\fR
+accepts string values,
+\fIAUTONEG\fR
+accepts boolean values (true and false / on or off / 0 or 1), and
+\fISPEED\fR
+accepts positive integer values\&.
 .RE
 .SH "EXIT STATUS"
 .PP

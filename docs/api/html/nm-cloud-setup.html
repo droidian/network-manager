@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nm-initrd-generator.html" title="nm-initrd-generator">
 <link rel="next" href="nm-openvswitch.html" title="nm-openvswitch">
-<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -143,6 +143,8 @@
 <li class="listitem"><p><code class="literal">NM_CLOUD_SETUP_EC2</code>: boolean, whether Amazon EC2 (AWS) support is enabled. Defaults
           to <code class="literal">no</code>.</p></li>
 <li class="listitem"><p><code class="literal">NM_CLOUD_SETUP_GCP</code>: boolean, whether Google GCP support is enabled. Defaults
+          to <code class="literal">no</code>.</p></li>
+<li class="listitem"><p><code class="literal">NM_CLOUD_SETUP_ALIYUN</code>: boolean, whether Alibaba Cloud (Aliyun) support is enabled. Defaults
           to <code class="literal">no</code>.</p></li>
 </ul></div>
 </div>
@@ -287,6 +289,50 @@ ln -s /etc/systemd/system/timers.target.wants/nm-cloud-setup.timer /usr/lib/syst
 </li>
 </ul></div>
 </div>
+<hr>
+<div class="refsect2">
+<a name="id-1.2.14.9.5"></a><h3>Alibaba Cloud (Aliyun)</h3>
+<p>For Aliyun, the tools tries to fetch configuration from <code class="literal">http://100.100.100.200/</code>. Currently, it only
+      configures IPv4 and does nothing about IPv6. It will do the following.</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>First fetch <code class="literal">http://100.100.100.200/2016-01-01/meta-data/</code> to determine whether the
+          expected API is present. This determines whether Aliyun environment is detected and whether to proceed
+          to configure the host using Aliyun meta data.</p></li>
+<li class="listitem"><p>Fetch <code class="literal">http://100.100.100.200/2016-01-01/meta-data/network/interfaces/macs/</code> to get the list
+          of available interface. Interfaces are identified by their MAC address.</p></li>
+<li class="listitem"><p>Then for each interface fetch <code class="literal">http://100.100.100.200/2016-01-01/meta-data/network/interfaces/macs/$MAC/vpc-cidr-block</code>
+          , <code class="literal">http://100.100.100.200/2016-01-01/meta-data/network/interfaces/macs/$MAC/private-ipv4s</code> and
+          <code class="literal">http://100.100.100.200/2016-01-01/meta-data/network/interfaces/macs/$MAC/netmask</code>.
+          Thereby we get a list of private IPv4 addresses, one CIDR subnet block and private IPv4 addresses prefix.</p></li>
+<li class="listitem">
+<p>Then nm-cloud-setup iterates over all interfaces for which it could fetch IP configuration.
+          If no ethernet device for the respective MAC address is found, it is skipped.
+          Also, if the device is currently not activated in NetworkManager or if the currently
+          activated profile has a user-data <code class="literal">org.freedesktop.nm-cloud-setup.skip=yes</code>,
+          it is skipped.</p>
+<p>Then, the tool will change the runtime configuration of the device.
+            </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem"><p>Add static IPv4 addresses for all the configured addresses from <code class="literal">private-ipv4s</code> with
+                prefix length according to <code class="literal">netmask</code>. For example,
+                we might have here 2 IP addresses like <code class="literal">"10.0.0.150/24,10.0.0.152/24"</code>.</p></li>
+<li class="listitem"><p>Choose a route table 30400 + the index of the interface and
+                  add a default route <code class="literal">0.0.0.0/0</code>. The gateway
+                  is the default gateway retrieved from metadata server. For
+                  example, we might get a route <code class="literal">"0.0.0.0/0 10.0.0.253 10 table=30400"</code>.</p></li>
+<li class="listitem"><p>Finally, add a policy routing rule for each address. For example
+                  <code class="literal">"priority 30400 from 10.0.0.150/32 table 30400, priority 30400 from 10.0.0.152/32 table 30400"</code>.</p></li>
+</ul></div>
+<p>
+            With above example, this roughly corresponds for interface <code class="literal">eth0</code> to
+            <span class="command"><strong>nmcli device modify "eth0" ipv4.addresses "10.0.0.150/24,10.0.0.152/24" ipv4.routes "0.0.0.0/0 10.0.0.253 10 table=30400" ipv4.routing-rules "priority 30400 from 10.0.0.150/32 table 30400, priority 30400 from 10.0.0.152/32 table 30400"</strong></span>.
+            Note that this replaces the previous addresses, routes and rules with the new information.
+            But also note that this only changes the run time configuration of the device. The
+            connection profile on disk is not affected.
+          </p>
+</li>
+</ul></div>
+</div>
 </div>
 <div class="refsect1">
 <a name="id-1.2.14.10"></a><h2>See Also</h2>
@@ -297,6 +343,6 @@ ln -s /etc/systemd/system/timers.target.wants/nm-cloud-setup.timer /usr/lib/syst
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.1</div>
+<hr>Generated by GTK-Doc V1.33.0</div>
 </body>
 </html>
