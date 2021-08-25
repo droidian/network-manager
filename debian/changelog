@@ -1,3 +1,9 @@
+network-manager (1.32.10-0ubuntu1) UNRELEASED; urgency=medium
+
+  * New upstream version
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 25 Aug 2021 15:26:59 +0200
+
 network-manager (1.32.2-0ubuntu2) impish; urgency=medium
 
   * debian/patches/ubuntu_revert_systemd.patch:
