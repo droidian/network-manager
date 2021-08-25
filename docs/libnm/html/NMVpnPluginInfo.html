@@ -8,7 +8,7 @@
 <link rel="up" href="ch06.html" title="VPN Plugin API Reference">
 <link rel="prev" href="NMVpnServicePlugin.html" title="NMVpnServicePlugin">
 <link rel="next" href="NMVpnEditor.html" title="NMVpnEditor">
-<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -398,7 +398,7 @@ must be present. </p></td>
 <a name="nm-vpn-plugin-info-new-search-file.returns"></a><h4>Returns</h4>
 <p>a newly created instance of plugin info
 or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no matching value was found. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.4</p>
 </div>
@@ -425,7 +425,7 @@ nm_vpn_plugin_info_get_name (<em class="parameter"><code><a class="link" href="N
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-get-name.returns"></a><h4>Returns</h4>
 <p>the name. Cannot be <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -452,7 +452,7 @@ nm_vpn_plugin_info_get_filename (<em class="parameter"><code><a class="link" hre
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-get-filename.returns"></a><h4>Returns</h4>
 <p>the filename. Can be <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -479,7 +479,7 @@ nm_vpn_plugin_info_get_service (<em class="parameter"><code><a class="link" href
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-get-service.returns"></a><h4>Returns</h4>
 <p>the service. Cannot be <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.4</p>
 </div>
@@ -506,7 +506,7 @@ nm_vpn_plugin_info_get_plugin (<em class="parameter"><code><a class="link" href=
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-get-plugin.returns"></a><h4>Returns</h4>
 <p>the plugin. Can be <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -533,7 +533,7 @@ nm_vpn_plugin_info_get_program (<em class="parameter"><code><a class="link" href
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-get-program.returns"></a><h4>Returns</h4>
 <p>the program. Can be <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -638,7 +638,7 @@ nm_vpn_plugin_info_get_aliases (<em class="parameter"><code><a class="link" href
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-get-aliases.returns"></a><h4>Returns</h4>
 <p>the aliases from the name-file. </p>
-<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> zero-terminated=1][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> zero-terminated=1][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.4</p>
 </div>
@@ -680,7 +680,7 @@ nm_vpn_plugin_info_lookup_property (<em class="parameter"><code><a class="link" 
 <a name="nm-vpn-plugin-info-lookup-property.returns"></a><h4>Returns</h4>
 <p><a class="link" href="NMVpnPluginInfo.html" title="NMVpnPluginInfo"><span class="type">NMVpnPluginInfo</span></a> is internally a <a href="https://developer.gnome.org/glib/unstable/glib-Key-value-file-parser.html#GKeyFile"><span class="type">GKeyFile</span></a>. Returns the matching
 property. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -719,7 +719,7 @@ nm_vpn_plugin_info_list_load (<em class="parameter"><code><span class="type">voi
 <a name="nm-vpn-plugin-info-list-load.returns"></a><h4>Returns</h4>
 <p>list of plugins
 loaded from the default directories rejecting duplicates. </p>
-<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMVpnPluginInfo][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMVpnPluginInfo][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -836,7 +836,7 @@ nm_vpn_plugin_info_list_find_by_name (<em class="parameter"><code><a href="https
 <a name="nm-vpn-plugin-info-list-find-by-name.returns"></a><h4>Returns</h4>
 <p>the first plugin with a matching <em class="parameter"><code>name</code></em>
 (or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>). </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -873,7 +873,7 @@ nm_vpn_plugin_info_list_find_by_filename
 <a name="nm-vpn-plugin-info-list-find-by-filename.returns"></a><h4>Returns</h4>
 <p>the first plugin with a matching <em class="parameter"><code>filename</code></em>
 (or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>). </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -911,7 +911,7 @@ or one of the provided aliases.</p></td>
 <a name="nm-vpn-plugin-info-list-find-by-service.returns"></a><h4>Returns</h4>
 <p>the first plugin with a matching <em class="parameter"><code>service</code></em>
 (or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>). </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -957,7 +957,7 @@ but it could be retrieved via <a class="link" href="NMVpnPluginInfo.html#nm-vpn-
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-list-find-service-type.returns"></a><h4>Returns</h4>
 <p>the resolved service-type or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on failure. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.4</p>
 </div>
@@ -1005,7 +1005,7 @@ with <a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-list-find-ser
 <a name="nm-vpn-plugin-info-list-get-service-types.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> terminated strv list of strings.
 The list itself and the values must be freed with <a href="https://developer.gnome.org/glib/unstable/glib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a>. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.4</p>
 </div>
@@ -1032,7 +1032,7 @@ nm_vpn_plugin_info_get_editor_plugin (<em class="parameter"><code><a class="link
 <div class="refsect3">
 <a name="nm-vpn-plugin-info-get-editor-plugin.returns"></a><h4>Returns</h4>
 <p>the cached <a class="link" href="NMVpnEditorPlugin.html" title="NMVpnEditorPlugin"><span class="type">NMVpnEditorPlugin</span></a> instance. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -1103,7 +1103,7 @@ and can be later retrieved again
 via <a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-get-editor-plugin" title="nm_vpn_plugin_info_get_editor_plugin ()"><code class="function">nm_vpn_plugin_info_get_editor_plugin()</code></a>. You can load the
 plugin only once, unless you reset the state via
 <a class="link" href="NMVpnPluginInfo.html#nm-vpn-plugin-info-set-editor-plugin" title="nm_vpn_plugin_info_set_editor_plugin ()"><code class="function">nm_vpn_plugin_info_set_editor_plugin()</code></a>. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -1148,6 +1148,6 @@ plugin only once, unless you reset the state via
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.1</div>
+<hr>Generated by GTK-Doc V1.33.0</div>
 </body>
 </html>

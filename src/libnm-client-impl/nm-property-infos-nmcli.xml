@@ -34,10 +34,11 @@
 <setting name="ip-tunnel">
 </setting>
 <setting name="ipv4">
-<property name="addresses" variable="addresses" format="a comma separated list of addresses" values="" default="" example="" description="A list of IPv4 addresses and their prefix length. Multiple addresses can be separated by comma. For example &quot;192.168.1.5/24, 10.1.0.5/24&quot;." />
+<property name="addresses" variable="addresses" format="a comma separated list of addresses" values="" default="" example="" description="A list of IPv4 addresses and their prefix length. Multiple addresses can be separated by comma. For example &quot;192.168.1.5/24, 10.1.0.5/24&quot;. The addresses are listed in increasing priority, meaning the last address will be the primary address." />
 <property name="routes" variable="routes" format="a comma separated list of routes" values="" default="" example="" description="A list of IPv4 destination addresses, prefix length, optional IPv4 next hop addresses, optional route metric, optional attribute. The valid syntax is: &quot;ip[/prefix] [next-hop] [metric] [attribute=val]...[,ip[/prefix]...]&quot;. For example &quot;192.0.2.0/24 10.1.1.1 77, 198.51.100.0/24&quot;." />
 </setting>
 <setting name="ipv6">
+<property name="addresses" variable="addresses" format="a comma separated list of addresses" values="" default="" example="" description="A list of IPv6 addresses and their prefix length. Multiple addresses can be separated by comma. For example &quot;2001:db8:85a3::8a2e:370:7334/64, 2001:db8:85a3::5/64&quot;. The addresses are listed in increasing priority, meaning the last address will be the primary address." />
 </setting>
 <setting name="macsec">
 </setting>

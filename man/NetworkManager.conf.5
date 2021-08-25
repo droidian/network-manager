@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 06/30/2021
+.\"      Date: 08/18/2021
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.32.2
+.\"    Source: NetworkManager 1.32.10
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.32\&.2" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.32\&.10" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -826,6 +826,10 @@ If left unspecified, the default is to not send the DHCP option to the server\&.
 If unspecified or zero, use 50 for VPN profiles and 100 for other profiles\&.
 .RE
 .PP
+\fIipv4\&.required\-timeout\fR
+.RS 4
+.RE
+.PP
 \fIipv4\&.route\-metric\fR
 .RS 4
 .RE
@@ -870,6 +874,10 @@ If unspecified or zero, use 50 for VPN profiles and 100 for other profiles\&.
 If
 ipv6\&.ip6\-privacy
 is unset, use the content of "/proc/sys/net/ipv6/conf/default/use_tempaddr" as last fallback\&.
+.RE
+.PP
+\fIipv6\&.required\-timeout\fR
+.RS 4
 .RE
 .PP
 \fIipv6\&.route\-metric\fR
@@ -1052,6 +1060,35 @@ Master types like bond, bridge and team ignore carrier by default, while other d
 This setting overwrites the deprecated
 main\&.ignore\-carrier
 setting above\&.
+.RE
+.PP
+\fIkeep\-configuration\fR
+.RS 4
+On startup, NetworkManager tries to not interfere with interfaces that are already configured\&. It does so by generating a in\-memory connection based on the interface current configuration\&.
+.sp
+If this generated connection matches one of the existing persistent connections, the persistent connection gets activated\&. If there is no match, the generated connection gets activated as "external", which means that the connection is considered as active, but NetworkManager doesn\*(Aqt actually touch the interface\&.
+.sp
+It is possible to disable this behavior by setting
+keep\-configuration
+to
+no\&. In this way, on startup NetworkManager always tries to activate the most suitable persistent connection (the one with highest autoconnect\-priority or, in case of a tie, the one activated most recently)\&.
+.sp
+Note that when NetworkManager gets restarted, it stores the previous state in
+/run/NetworkManager; in particular it saves the UUID of the connection that was previously active so that it can be activated again after the restart\&. Therefore,
+keep\-configuration
+does not have any effect on service restart\&.
+.RE
+.PP
+\fIallowed\-connections\fR
+.RS 4
+A list of connections that can be activated on the device\&. See
+the section called \(lqConnection List Format\(rq
+for the syntax to specify a connection\&. If this option is not specified, all connections can be potentially activated on the device, provided that the connection type and other settings match\&.
+.sp
+A notable use case for this is to filter which connections can be activated based on how they were created; see the
+origin
+keyword in
+the section called \(lqConnection List Format\(rq\&.
 .RE
 .PP
 \fIwifi\&.scan\-rand\-mac\-address\fR
@@ -1436,6 +1473,49 @@ interface\-name:vboxnet*,except:interface\-name:vboxnet2
 .RE
 .\}
 .sp
+.SS "Connection List Format"
+.PP
+Connections can be specified using the following format:
+.PP
+.PP
+*
+.RS 4
+Matches every connection\&.
+.RE
+.PP
+uuid:UUID
+.RS 4
+Match the connection by UUID, for example
+"uuid:83037490\-1d17\-4986\-a397\-01f1db3a7fc2"
+.RE
+.PP
+id=ID
+.RS 4
+Match the connection by name\&.
+.RE
+.PP
+origin:ORIGIN
+.RS 4
+Match the connection by origin, stored in the
+org\&.freedesktop\&.NetworkManager\&.origin
+tag of the user setting\&. For example, use
+"except:origin:nm\-initrd\-generator"
+to forbid activation of connections created by the initrd generator\&.
+.RE
+.PP
+except:SPEC
+.RS 4
+Negative match of a connection\&. A negative match has higher priority then the positive matches above\&.
+.sp
+If there is a list consisting only of negative matches, the behavior is the same as if there is also match\-all\&. That means, if none of all the negative matches is satisfied, the overall result is still a positive match\&.
+.RE
+.PP
+SPEC[,;]SPEC
+.RS 4
+Multiple specs can be concatenated with commas or semicolons\&. The order does not matter as matches are either inclusive or negative (except:), with negative matches having higher priority\&.
+.sp
+Backslash is supported to escape the separators \*(Aq;\*(Aq and \*(Aq,\*(Aq, and to express special characters such as newline (\*(Aq\en\*(Aq), tabulator (\*(Aq\et\*(Aq), whitespace (\*(Aq\es\*(Aq) and backslash (\*(Aq\e\e\*(Aq)\&. Whitespace is not a separator but will be trimmed between two specs (unless escaped as \*(Aq\es\*(Aq)\&.
+.RE
 .SH "SEE ALSO"
 .PP
 \fBNetworkManager\fR(8),

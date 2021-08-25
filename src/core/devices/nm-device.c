@@ -499,7 +499,17 @@ typedef struct _NMDevicePrivate {
 
     NMDeviceStageState stage1_sriov_state : 3;
 
+    bool ip_config_started : 1;
+
     char *current_stable_id;
+
+    union {
+        struct {
+            GSource *ip_req_timeout_source_6;
+            GSource *ip_req_timeout_source_4;
+        };
+        GSource *ip_req_timeout_source_x[2];
+    };
 
     /* Proxy Configuration */
     NMProxyConfig *    proxy_config;
@@ -766,6 +776,7 @@ static void sriov_op_cb(GError *error, gpointer user_data);
 
 static void device_ifindex_changed_cb(NMManager *manager, NMDevice *device_changed, NMDevice *self);
 static gboolean device_link_changed(NMDevice *self);
+static void     check_ip_state(NMDevice *self, gboolean may_fail, gboolean full_state_update);
 
 /*****************************************************************************/
 
@@ -1362,6 +1373,40 @@ out:
     nm_assert(timeout > 0);
     nm_assert(timeout <= G_MAXINT32);
     return timeout;
+}
+
+static guint32
+_prop_get_ipvx_required_timeout(NMDevice *self, int addr_family)
+{
+    NMConnection *     connection;
+    NMSettingIPConfig *s_ip;
+    int                timeout;
+
+    nm_assert(NM_IS_DEVICE(self));
+    nm_assert_addr_family(addr_family);
+
+    connection = nm_device_get_applied_connection(self);
+    if (!connection)
+        return 0;
+
+    s_ip = nm_connection_get_setting_ip_config(connection, addr_family);
+    if (!s_ip)
+        return 0;
+
+    timeout = nm_setting_ip_config_get_required_timeout(s_ip);
+    nm_assert(timeout >= -1);
+
+    if (timeout > -1)
+        return (guint32) timeout;
+
+    return nm_config_data_get_connection_default_int64(
+        NM_CONFIG_GET_DATA,
+        NM_IS_IPv4(addr_family) ? NM_CON_DEFAULT("ipv4.required-timeout")
+                                : NM_CON_DEFAULT("ipv6.required-timeout"),
+        self,
+        0,
+        G_MAXINT32,
+        0);
 }
 
 /**
@@ -2787,13 +2832,71 @@ _add_capabilities(NMDevice *self, NMDeviceCapabilities capabilities)
 
 /*****************************************************************************/
 
+static gboolean
+ip_required_timeout_x(NMDevice *self, int addr_family)
+{
+    NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE(self);
+
+    _LOGD(LOGD_CORE,
+          "required-timeout expired for IPv%c",
+          nm_utils_addr_family_to_char(addr_family));
+    nm_clear_g_source_inst(&priv->ip_req_timeout_source_x[NM_IS_IPv4(addr_family)]);
+    check_ip_state(self, FALSE, TRUE);
+    return G_SOURCE_CONTINUE;
+}
+
+static gboolean
+ip_required_timeout_4(gpointer data)
+{
+    return ip_required_timeout_x(data, AF_INET);
+}
+
+static gboolean
+ip_required_timeout_6(gpointer data)
+{
+    return ip_required_timeout_x(data, AF_INET6);
+}
+
 static void
 _set_ip_state(NMDevice *self, int addr_family, NMDeviceIPState new_state)
 {
     NMDevicePrivate *priv    = NM_DEVICE_GET_PRIVATE(self);
     const int        IS_IPv4 = NM_IS_IPv4(addr_family);
+    guint            timeout_msec;
+    int              v4;
 
     nm_assert_addr_family(addr_family);
+
+    if (new_state == NM_DEVICE_IP_STATE_CONF && !priv->ip_config_started) {
+        /* Start the required-timeout timers when one of IPv4/IPv6
+         * enters the CONF state. This means that if there is no carrier and
+         * ipv4.method=auto,ipv6.method=manual, the timeout for IPv4 will
+         * start as soon as connection is activated, even if DHCPv4 did not
+         * start yet.
+         */
+        priv->ip_config_started = TRUE;
+
+        for (v4 = 1; v4 >= 0; v4--) {
+            char buf[32];
+
+            nm_assert(!priv->ip_req_timeout_source_x[v4]);
+            if ((timeout_msec = _prop_get_ipvx_required_timeout(self, v4 ? AF_INET : AF_INET6))) {
+                _LOGD(LOGD_CORE,
+                      "required-timeout in %s msec for IPv%c",
+                      timeout_msec == G_MAXINT32 ? "∞" : nm_sprintf_buf(buf, "%u", timeout_msec),
+                      v4 ? '4' : '6');
+
+                if (timeout_msec == G_MAXINT32) {
+                    priv->ip_req_timeout_source_x[v4] = g_source_ref(nm_g_source_sentinel_get(0));
+                } else {
+                    priv->ip_req_timeout_source_x[v4] =
+                        nm_g_timeout_add_source(timeout_msec,
+                                                v4 ? ip_required_timeout_4 : ip_required_timeout_6,
+                                                self);
+                }
+            }
+        }
+    }
 
     if (priv->ip_state_x[IS_IPv4] == new_state)
         return;
@@ -4671,10 +4774,6 @@ nm_device_master_enslave_slave(NMDevice *self, NMDevice *slave, NMConnection *co
      */
     nm_device_update_hw_address(self);
 
-    /* Send ARP announcements if did not yet and have addresses. */
-    if (priv->ip_state_4 == NM_DEVICE_IP_STATE_DONE && !priv->acd.announcing)
-        nm_device_arp_announce(self);
-
     /* Restart IP configuration if we're waiting for slaves.  Do this
      * after updating the hardware address as IP config may need the
      * new address.
@@ -5003,6 +5102,10 @@ nm_device_set_carrier(NMDevice *self, gboolean carrier)
             nm_device_remove_pending_action(self, NM_PENDING_ACTION_CARRIER_WAIT, FALSE);
             _carrier_wait_check_queued_act_request(self);
         }
+
+        /* Send ARP announcements if did not yet and have carrier. */
+        if (priv->ip_state_4 == NM_DEVICE_IP_STATE_DONE && !priv->acd.announcing)
+            nm_device_arp_announce(self);
     } else {
         if (priv->carrier_wait_id)
             nm_device_add_pending_action(self, NM_PENDING_ACTION_CARRIER_WAIT, FALSE);
@@ -6576,6 +6679,7 @@ check_ip_state(NMDevice *self, gboolean may_fail, gboolean full_state_update)
     gboolean           ip4_disabled = FALSE, ip6_disabled = FALSE;
     NMSettingIPConfig *s_ip4, *s_ip6;
     NMDeviceState      state;
+    int                IS_IPv4;
 
     if (full_state_update && nm_device_get_state(self) != NM_DEVICE_STATE_IP_CONFIG)
         return;
@@ -6603,6 +6707,13 @@ check_ip_state(NMDevice *self, gboolean may_fail, gboolean full_state_update)
         /* Both method completed (or disabled), proceed with activation */
         nm_device_state_changed(self, NM_DEVICE_STATE_IP_CHECK, NM_DEVICE_STATE_REASON_NONE);
         return;
+    }
+
+    for (IS_IPv4 = 1; IS_IPv4 >= 0; IS_IPv4--) {
+        if (priv->ip_state_x[IS_IPv4] == NM_DEVICE_IP_STATE_CONF
+            && priv->ip_req_timeout_source_x[IS_IPv4]) {
+            return;
+        }
     }
 
     if ((priv->ip_state_4 == NM_DEVICE_IP_STATE_FAIL
@@ -7128,6 +7239,16 @@ _get_maybe_ipv6_disabled(NMDevice *self)
     return (nm_platform_sysctl_get_int32(platform, NMP_SYSCTL_PATHID_ABSOLUTE(path), 0) == 0);
 }
 
+/*
+ * nm_device_generate_connection:
+ *
+ * Generates a connection from an existing interface.
+ *
+ * If the device doesn't have an IP configuration and it's not a port or a
+ * controller, then no connection gets generated and the function returns
+ * %NULL. In such case, @maybe_later is set to %TRUE if a connection can be
+ * generated later when an IP address is assigned to the interface.
+ */
 NMConnection *
 nm_device_generate_connection(NMDevice *self,
                               NMDevice *master,
@@ -7384,6 +7505,8 @@ check_connection_compatible(NMDevice *self, NMConnection *connection, GError **e
     gs_free char *        conn_iface = NULL;
     NMDeviceClass *       klass;
     NMSettingMatch *      s_match;
+    const GSList *        specs;
+    gboolean              has_match = FALSE;
 
     klass = NM_DEVICE_GET_CLASS(self);
     if (klass->connection_type_check_compatible) {
@@ -7460,6 +7583,15 @@ check_connection_compatible(NMDevice *self, NMConnection *connection, GError **e
         }
     }
 
+    specs =
+        nm_config_data_get_device_allowed_connections_specs(NM_CONFIG_GET_DATA, self, &has_match);
+    if (has_match && !nm_utils_connection_match_spec_list(connection, specs, FALSE)) {
+        nm_utils_error_set_literal(error,
+                                   NM_UTILS_ERROR_CONNECTION_AVAILABLE_DISALLOWED,
+                                   "device configuration doesn't allow this connection");
+        return FALSE;
+    }
+
     return TRUE;
 }
 
@@ -7526,7 +7658,7 @@ nm_device_check_slave_connection_compatible(NMDevice *self, NMConnection *slave)
  *
  * Returns: %TRUE if the device is capable of assuming connections, %FALSE if not
  */
-static gboolean
+gboolean
 nm_device_can_assume_connections(NMDevice *self)
 {
     return !!NM_DEVICE_GET_CLASS(self)->update_connection;
@@ -9857,6 +9989,7 @@ dhcp6_start_with_link_ready(NMDevice *self, NMConnection *connection)
     gboolean                    iaid_explicit;
     NMSettingConnection *       s_con;
     const NMPlatformIP6Address *ll_addr = NULL;
+    int                         ip_ifindex;
 
     g_return_val_if_fail(connection, FALSE);
 
@@ -9876,7 +10009,13 @@ dhcp6_start_with_link_ready(NMDevice *self, NMConnection *connection)
         return FALSE;
     }
 
-    pllink = nm_platform_link_get(nm_device_get_platform(self), nm_device_get_ip_ifindex(self));
+    ip_ifindex = nm_device_get_ip_ifindex(self);
+    if (ip_ifindex <= 0) {
+        _LOGD(LOGD_DHCP6, "can't start DHCPv6: interface is gone");
+        return FALSE;
+    }
+
+    pllink = nm_platform_link_get(nm_device_get_platform(self), ip_ifindex);
     if (pllink)
         hwaddr = nmp_link_address_get_as_bytes(&pllink->l_address);
 
@@ -9887,7 +10026,7 @@ dhcp6_start_with_link_ready(NMDevice *self, NMConnection *connection)
         nm_dhcp_manager_get(),
         nm_device_get_multi_index(self),
         nm_device_get_ip_iface(self),
-        nm_device_get_ip_ifindex(self),
+        ip_ifindex,
         &ll_addr->address,
         nm_connection_get_uuid(connection),
         nm_device_get_route_table(self, AF_INET6),
@@ -9997,7 +10136,9 @@ nm_device_request_ip6_prefixes(NMDevice *self, int needed_prefixes)
         _LOGD(LOGD_IP6, "ipv6-pd: asking DHCPv6 for %d prefixes", needed_prefixes);
         nm_device_dhcp6_renew(self, FALSE);
     } else {
-        _LOGI(LOGD_IP6, "ipv6-pd: device doesn't use DHCPv6, can't request prefixes");
+        priv->dhcp6.mode = NM_NDISC_DHCP_LEVEL_OTHERCONF;
+        _LOGD(LOGD_DEVICE | LOGD_DHCP6, "ipv6-pd: starting DHCPv6 to request a prefix");
+        dhcp6_start(self, FALSE);
     }
 }
 
@@ -10541,10 +10682,30 @@ _commit_mtu(NMDevice *self, const NMIP4Config *config)
         }
     }
 
+#define _IP6_MTU_SYS()                                                                         \
+    ({                                                                                         \
+        if (!ip6_mtu_sysctl.initialized) {                                                     \
+            ip6_mtu_sysctl.value       = nm_device_sysctl_ip_conf_get_int_checked(self,        \
+                                                                            AF_INET6,    \
+                                                                            "mtu",       \
+                                                                            10,          \
+                                                                            0,           \
+                                                                            G_MAXUINT32, \
+                                                                            0);          \
+            ip6_mtu_sysctl.initialized = TRUE;                                                 \
+        }                                                                                      \
+        ip6_mtu_sysctl.value;                                                                  \
+    })
+
     if (mtu_desired && NM_DEVICE_GET_CLASS(self)->mtu_force_set && !priv->mtu_force_set_done) {
         priv->mtu_force_set_done = TRUE;
-
         if (mtu_desired == mtu_plat) {
+            if (!priv->mtu_initial && !priv->ip6_mtu_initial) {
+                /* before touching any of the MTU parameters, record the
+                 * original setting to restore on deactivation. */
+                priv->mtu_initial     = mtu_plat;
+                priv->ip6_mtu_initial = _IP6_MTU_SYS();
+            }
             mtu_plat--;
             if (NM_DEVICE_GET_CLASS(self)->set_platform_mtu(self, mtu_desired - 1)) {
                 _LOGD(LOGD_DEVICE, "mtu: force-set MTU to %u", mtu_desired - 1);
@@ -10563,20 +10724,6 @@ _commit_mtu(NMDevice *self, const NMIP4Config *config)
           ip6_mtu == ip6_mtu_orig ? "" : nm_sprintf_buf(sbuf2, " (was %u)", (guint) ip6_mtu_orig),
           ifindex);
 
-#define _IP6_MTU_SYS()                                                                         \
-    ({                                                                                         \
-        if (!ip6_mtu_sysctl.initialized) {                                                     \
-            ip6_mtu_sysctl.value       = nm_device_sysctl_ip_conf_get_int_checked(self,        \
-                                                                            AF_INET6,    \
-                                                                            "mtu",       \
-                                                                            10,          \
-                                                                            0,           \
-                                                                            G_MAXUINT32, \
-                                                                            0);          \
-            ip6_mtu_sysctl.initialized = TRUE;                                                 \
-        }                                                                                      \
-        ip6_mtu_sysctl.value;                                                                  \
-    })
     if ((mtu_desired && mtu_desired != mtu_plat) || (ip6_mtu && ip6_mtu != _IP6_MTU_SYS())) {
         gboolean anticipated_failure = FALSE;
 
@@ -11805,10 +11952,11 @@ activate_stage5_ip_config_result_x(NMDevice *self, int addr_family)
     const char *     method;
     int              ip_ifindex;
     int              errsv;
-    gboolean         do_announce = FALSE;
 
     req = nm_device_get_act_request(self);
     g_assert(req);
+
+    nm_clear_g_source_inst(&priv->ip_req_timeout_source_x[IS_IPv4]);
 
     /* Interface must be IFF_UP before IP config can be applied */
     ip_ifindex = nm_device_get_ip_ifindex(self);
@@ -11931,31 +12079,13 @@ activate_stage5_ip_config_result_x(NMDevice *self, int addr_family)
         }
     }
 
-    if (IS_IPv4) {
-        /* Send ARP announcements */
-
-        if (nm_device_is_master(self)) {
-            CList *    iter;
-            SlaveInfo *info;
-
-            /* Skip announcement if there are no device enslaved, for two reasons:
-             * 1) the master has a temporary MAC address until the first slave comes
-             * 2) announcements are going to be dropped anyway without slaves
-             */
-            do_announce = FALSE;
-
-            c_list_for_each (iter, &priv->slaves) {
-                info = c_list_entry(iter, SlaveInfo, lst_slave);
-                if (info->slave_is_enslaved) {
-                    do_announce = TRUE;
-                    break;
-                }
-            }
-        } else
-            do_announce = TRUE;
-
-        if (do_announce)
-            nm_device_arp_announce(self);
+    if (IS_IPv4 && priv->carrier) {
+        /* We send ARP announcements only when the link gets carrier,
+         * otherwise the announcements would be lost. Furthermore, for
+         * controllers having carrier implies that there is at least one
+         * port and therefore the MAC address is the correct one.
+         */
+        nm_device_arp_announce(self);
     }
 
     if (IS_IPv4) {
@@ -13697,18 +13827,24 @@ void
 nm_device_replace_vpn6_config(NMDevice *self, NMIP6Config *old, NMIP6Config *config)
 {
     NMDevicePrivate *priv = NM_DEVICE_GET_PRIVATE(self);
+    NMDeviceState    state;
 
     nm_assert(!old || NM_IS_IP6_CONFIG(old));
+    nm_assert(!old || nm_ip6_config_get_ifindex(old) > 0);
+    nm_assert(!old || nm_device_get_ip_ifindex(self) == 0
+              || nm_device_get_ip_ifindex(self) == nm_ip6_config_get_ifindex(old));
     nm_assert(!config || NM_IS_IP6_CONFIG(config));
-    nm_assert(!old || nm_ip6_config_get_ifindex(old) == nm_device_get_ip_ifindex(self));
-    nm_assert(!config || nm_ip6_config_get_ifindex(config) == nm_device_get_ip_ifindex(self));
+    nm_assert(!config || nm_ip6_config_get_ifindex(config) > 0);
+    nm_assert(!config || nm_device_get_ip_ifindex(self) == nm_ip6_config_get_ifindex(config));
 
     if (!_replace_vpn_config_in_list(&priv->vpn_configs_6, (GObject *) old, (GObject *) config))
         return;
 
-    /* NULL to use existing configs */
-    if (!ip_config_merge_and_apply(self, AF_INET6, TRUE))
-        _LOGW(LOGD_IP6, "failed to set VPN routes for device");
+    state = nm_device_get_state(self);
+    if (state >= NM_DEVICE_STATE_IP_CONFIG && state <= NM_DEVICE_STATE_ACTIVATED) {
+        if (!ip_config_merge_and_apply(self, AF_INET6, TRUE))
+            _LOGW(LOGD_IP6, "failed to set VPN routes for device");
+    }
 }
 
 NMIP6Config *
@@ -15777,6 +15913,10 @@ _cleanup_generic_pre(NMDevice *self, CleanupType cleanup_type)
 
     _cleanup_ip_pre(self, AF_INET, cleanup_type);
     _cleanup_ip_pre(self, AF_INET6, cleanup_type);
+
+    priv->ip_config_started = FALSE;
+    nm_clear_g_source_inst(&priv->ip_req_timeout_source_4);
+    nm_clear_g_source_inst(&priv->ip_req_timeout_source_6);
 }
 
 static void

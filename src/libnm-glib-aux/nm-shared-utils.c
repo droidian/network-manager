@@ -15,7 +15,9 @@
 #include <glib-unix.h>
 #include <net/if.h>
 #include <net/ethernet.h>
+#include <pthread.h>
 
+#include "c-list/src/c-list.h"
 #include "nm-errno.h"
 #include "nm-str-buf.h"
 
@@ -2990,13 +2992,13 @@ nm_utils_buf_utf8safe_escape(gconstpointer           buf,
     if (g_utf8_validate(str, buflen, &p) && nul_terminated) {
         /* note that g_utf8_validate() does not allow NUL character inside @str. Good.
          * We can treat @str like a NUL terminated string. */
-        if (!NM_STRCHAR_ANY(
-                str,
-                ch,
-                (ch == '\\'
-                 || (NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL) && ch < ' ')
-                 || (NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII)
-                     && ((guchar) ch) >= 127))))
+        if (!NM_STRCHAR_ANY(str,
+                            ch,
+                            (ch == '\\'
+                             || (NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL)
+                                 && nm_ascii_is_ctrl_or_del(ch))
+                             || (NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII)
+                                 && nm_ascii_is_non_ascii(ch)))))
             return str;
     }
 
@@ -3013,9 +3015,10 @@ nm_utils_buf_utf8safe_escape(gconstpointer           buf,
             nm_assert(ch);
             if (ch == '\\')
                 nm_str_buf_append_c(&strbuf, '\\', '\\');
-            else if ((NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL) && ch < ' ')
+            else if ((NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL)
+                      && nm_ascii_is_ctrl_or_del(ch))
                      || (NM_FLAGS_HAS(flags, NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII)
-                         && ((guchar) ch) >= 127))
+                         && nm_ascii_is_non_ascii(ch)))
                 _str_buf_append_c_escape_octal(&strbuf, ch);
             else
                 nm_str_buf_append_c(&strbuf, ch);
@@ -4932,14 +4935,14 @@ _nm_g_source_sentinel_get_init(GSource **p_source)
     };
     GSource *source;
 
-again:
     source = g_source_new((GSourceFuncs *) &source_funcs, sizeof(GSource));
     g_source_set_priority(source, G_PRIORITY_DEFAULT_IDLE);
     g_source_set_name(source, "nm_g_source_sentinel");
 
     if (!g_atomic_pointer_compare_and_exchange(p_source, NULL, source)) {
         g_source_unref(source);
-        goto again;
+        source = g_atomic_pointer_get(p_source);
+        nm_assert(source);
     }
 
     return source;
@@ -6356,4 +6359,81 @@ nm_utils_get_process_exit_status_desc(int status)
         return g_strdup("resumed by SIGCONT)");
     else
         return g_strdup_printf("exited with unknown status 0x%x", status);
+}
+
+/*****************************************************************************/
+
+typedef struct {
+    CList          lst;
+    gpointer       tls_data;
+    GDestroyNotify destroy_notify;
+} TlsRegData;
+
+static pthread_key_t _tls_reg_key;
+
+static void
+_tls_reg_destroy(gpointer data)
+{
+    CList *     lst_head = data;
+    TlsRegData *entry;
+
+    if (!lst_head)
+        return;
+
+    /* For no strong reason are we destroying the elements in reverse
+     * order than they were added. It seems a bit more sensible (but shouldn't
+     * matter nor should you rely on that). */
+    while ((entry = c_list_last_entry(lst_head, TlsRegData, lst))) {
+        c_list_unlink_stale(&entry->lst);
+        entry->destroy_notify(entry->tls_data);
+        nm_g_slice_free(entry);
+    }
+
+    nm_g_slice_free(lst_head);
+}
+
+static void
+_tls_reg_make_key(void)
+{
+    if (pthread_key_create(&_tls_reg_key, _tls_reg_destroy) != 0)
+        g_return_if_reached();
+}
+
+/**
+ * nm_utils_thread_local_register_destroy:
+ * @tls_data: the thread local storage data that should be destroyed when the thread
+ *   exits. This pointer will be "owned" by the current thread. There is no way
+ *   to un-register the destruction.
+ * @destroy_notify: the free function that will be called when the thread exits.
+ *
+ * If _nm_tread_local storage is heap allocated it requires freeing the pointer
+ * when the thread exits. Use this function to register the pointer to be
+ * released.
+ *
+ * This function does not change errno.
+ */
+void
+nm_utils_thread_local_register_destroy(gpointer tls_data, GDestroyNotify destroy_notify)
+{
+    NM_AUTO_PROTECT_ERRNO(errsv);
+    static pthread_once_t key_once = PTHREAD_ONCE_INIT;
+    CList *               lst_head;
+    TlsRegData *          entry;
+
+    nm_assert(destroy_notify);
+
+    if (pthread_once(&key_once, _tls_reg_make_key) != 0)
+        g_return_if_reached();
+
+    if ((lst_head = pthread_getspecific(_tls_reg_key)) == NULL) {
+        lst_head = g_slice_new(CList);
+        c_list_init(lst_head);
+        if (pthread_setspecific(_tls_reg_key, lst_head) != 0)
+            g_return_if_reached();
+    }
+
+    entry                 = g_slice_new(TlsRegData);
+    entry->tls_data       = tls_data;
+    entry->destroy_notify = destroy_notify;
+    c_list_link_tail(lst_head, &entry->lst);
 }

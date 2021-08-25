@@ -2,7 +2,9 @@
 
 #include "libnm-client-aux-extern/nm-default-client.h"
 
-#include "nmcs-provider-ec2.h"
+#include "nmcs-provider-aliyun.h"
+
+#include <arpa/inet.h>
 
 #include "nm-cloud-setup-utils.h"
 
@@ -10,14 +12,14 @@
 
 #define HTTP_TIMEOUT_MS 3000
 
-#define NM_EC2_HOST              "169.254.169.254"
-#define NM_EC2_BASE              "http://" NM_EC2_HOST
-#define NM_EC2_API_VERSION       "2018-09-24"
-#define NM_EC2_METADATA_URL_BASE /* $NM_EC2_BASE/$NM_EC2_API_VERSION */ \
+#define NM_ALIYUN_HOST              "100.100.100.200"
+#define NM_ALIYUN_BASE              "http://" NM_ALIYUN_HOST
+#define NM_ALIYUN_API_VERSION       "2016-01-01"
+#define NM_ALIYUN_METADATA_URL_BASE /* $NM_ALIYUN_BASE/$NM_ALIYUN_API_VERSION */ \
     "/meta-data/network/interfaces/macs/"
 
 static const char *
-_ec2_base(void)
+_aliyun_base(void)
 {
     static const char *base_cached = NULL;
     const char *       base;
@@ -28,41 +30,44 @@ again:
         /* The base URI can be set via environment variable.
          * This is mainly for testing, it's not usually supposed to be configured.
          * Consider this private API! */
-        base = g_getenv(NMCS_ENV_VARIABLE("NM_CLOUD_SETUP_EC2_HOST"));
-        base = nmcs_utils_uri_complete_interned(base) ?: ("" NM_EC2_BASE);
+        base = g_getenv(NMCS_ENV_VARIABLE("NM_CLOUD_SETUP_ALIYUN_HOST"));
 
         if (!g_atomic_pointer_compare_and_exchange(&base_cached, NULL, base))
             goto again;
     }
-
+    base = nmcs_utils_uri_complete_interned(base) ?: ("" NM_ALIYUN_BASE);
     return base;
 }
 
-#define _ec2_uri_concat(...) nmcs_utils_uri_build_concat(_ec2_base(), __VA_ARGS__)
-#define _ec2_uri_interfaces(...) \
-    _ec2_uri_concat(NM_EC2_API_VERSION, NM_EC2_METADATA_URL_BASE, ##__VA_ARGS__)
+#define _aliyun_uri_concat(...) nmcs_utils_uri_build_concat(_aliyun_base(), __VA_ARGS__)
+#define _aliyun_uri_interfaces(...) \
+    _aliyun_uri_concat(NM_ALIYUN_API_VERSION, NM_ALIYUN_METADATA_URL_BASE, ##__VA_ARGS__)
 
 /*****************************************************************************/
 
-struct _NMCSProviderEC2 {
+struct _NMCSProviderAliyun {
     NMCSProvider parent;
 };
 
-struct _NMCSProviderEC2Class {
+struct _NMCSProviderAliyunClass {
     NMCSProviderClass parent;
 };
 
-G_DEFINE_TYPE(NMCSProviderEC2, nmcs_provider_ec2, NMCS_TYPE_PROVIDER);
+G_DEFINE_TYPE(NMCSProviderAliyun, nmcs_provider_aliyun, NMCS_TYPE_PROVIDER);
 
 /*****************************************************************************/
 
-static gboolean
-_detect_get_meta_data_check_cb(long     response_code,
-                               GBytes * response,
-                               gpointer check_user_data,
-                               GError **error)
+static void
+filter_chars(char *str, const char *chars)
 {
-    return response_code == 200 && nmcs_utils_parse_get_full_line(response, "ami-id");
+    gsize i;
+    gsize j;
+
+    for (i = 0, j = 0; str[i]; i++) {
+        if (!strchr(chars, str[i]))
+            str[j++] = str[i];
+    }
+    str[j] = '\0';
 }
 
 static void
@@ -82,7 +87,7 @@ _detect_get_meta_data_done_cb(GObject *source, GAsyncResult *result, gpointer us
     if (get_error) {
         nm_utils_error_set(&error,
                            NM_UTILS_ERROR_UNKNOWN,
-                           "failure to get EC2 metadata: %s",
+                           "failure to get ALIYUN metadata: %s",
                            get_error->message);
         g_task_return_error(task, g_steal_pointer(&error));
         return;
@@ -100,14 +105,14 @@ detect(NMCSProvider *provider, GTask *task)
     http_client = nmcs_provider_get_http_client(provider);
 
     nm_http_client_poll_get(http_client,
-                            (uri = _ec2_uri_concat("latest/meta-data/")),
+                            (uri = _aliyun_uri_concat(NM_ALIYUN_API_VERSION "/meta-data/")),
                             HTTP_TIMEOUT_MS,
                             256 * 1024,
                             7000,
                             1000,
                             NULL,
                             g_task_get_cancellable(task),
-                            _detect_get_meta_data_check_cb,
+                            NULL,
                             NULL,
                             _detect_get_meta_data_done_cb,
                             task);
@@ -115,11 +120,18 @@ detect(NMCSProvider *provider, GTask *task)
 
 /*****************************************************************************/
 
+typedef enum {
+    GET_CONFIG_FETCH_DONE_TYPE_SUBNET_VPC_CIDR_BLOCK,
+    GET_CONFIG_FETCH_DONE_TYPE_PRIVATE_IPV4S,
+    GET_CONFIG_FETCH_DONE_TYPE_NETMASK,
+    GET_CONFIG_FETCH_DONE_TYPE_GATEWAY,
+} GetConfigFetchDoneType;
+
 static void
-_get_config_fetch_done_cb(NMHttpClient *http_client,
-                          GAsyncResult *result,
-                          gpointer      user_data,
-                          gboolean      is_local_ipv4)
+_get_config_fetch_done_cb(NMHttpClient *         http_client,
+                          GAsyncResult *         result,
+                          gpointer               user_data,
+                          GetConfigFetchDoneType fetch_type)
 {
     NMCSProviderGetConfigTaskData *get_config_data;
     const char *                   hwaddr = NULL;
@@ -128,6 +140,11 @@ _get_config_fetch_done_cb(NMHttpClient *http_client,
     NMCSProviderGetConfigIfaceData *config_iface_data;
     in_addr_t                       tmp_addr;
     int                             tmp_prefix;
+    in_addr_t                       netmask_bin;
+    in_addr_t                       gateway_bin;
+    gs_free const char **           s_addrs = NULL;
+    gsize                           i;
+    gsize                           len;
 
     nm_utils_user_data_unpack(user_data, &get_config_data, &hwaddr);
 
@@ -141,38 +158,61 @@ _get_config_fetch_done_cb(NMHttpClient *http_client,
 
     config_iface_data = g_hash_table_lookup(get_config_data->result_dict, hwaddr);
 
-    if (is_local_ipv4) {
-        gs_free const char **s_addrs = NULL;
-        gsize                i, len;
+    switch (fetch_type) {
+    case GET_CONFIG_FETCH_DONE_TYPE_PRIVATE_IPV4S:
 
         s_addrs = nm_utils_strsplit_set_full(g_bytes_get_data(response, NULL),
-                                             "\n",
+                                             ",",
                                              NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP);
         len     = NM_PTRARRAY_LEN(s_addrs);
-
         nm_assert(!config_iface_data->has_ipv4s);
         nm_assert(!config_iface_data->ipv4s_arr);
         config_iface_data->has_ipv4s = TRUE;
         config_iface_data->ipv4s_len = 0;
         if (len > 0) {
             config_iface_data->ipv4s_arr = g_new(in_addr_t, len);
-
             for (i = 0; i < len; i++) {
-                if (nm_utils_parse_inaddr_bin(AF_INET, s_addrs[i], NULL, &tmp_addr))
+                filter_chars((char *) s_addrs[i], "[]\"");
+                if (nm_utils_parse_inaddr_bin(AF_INET, s_addrs[i], NULL, &tmp_addr)) {
                     config_iface_data->ipv4s_arr[config_iface_data->ipv4s_len++] = tmp_addr;
+                }
             }
         }
-    } else {
+        break;
+
+    case GET_CONFIG_FETCH_DONE_TYPE_SUBNET_VPC_CIDR_BLOCK:
+
         if (nm_utils_parse_inaddr_prefix_bin(AF_INET,
                                              g_bytes_get_data(response, NULL),
                                              NULL,
                                              &tmp_addr,
                                              &tmp_prefix)) {
             nm_assert(!config_iface_data->has_cidr);
-            config_iface_data->has_cidr    = TRUE;
-            config_iface_data->cidr_prefix = tmp_prefix;
-            config_iface_data->cidr_addr   = tmp_addr;
+            config_iface_data->has_cidr  = TRUE;
+            config_iface_data->cidr_addr = tmp_addr;
         }
+        break;
+
+    case GET_CONFIG_FETCH_DONE_TYPE_NETMASK:
+
+        if (nm_utils_parse_inaddr_bin(AF_INET,
+                                      g_bytes_get_data(response, NULL),
+                                      NULL,
+                                      &netmask_bin)) {
+            config_iface_data->cidr_prefix = nm_utils_ip4_netmask_to_prefix(netmask_bin);
+        };
+        break;
+
+    case GET_CONFIG_FETCH_DONE_TYPE_GATEWAY:
+
+        if (nm_utils_parse_inaddr_bin(AF_INET,
+                                      g_bytes_get_data(response, NULL),
+                                      NULL,
+                                      &gateway_bin)) {
+            config_iface_data->has_gateway = TRUE;
+            config_iface_data->gateway     = gateway_bin;
+        };
+        break;
     }
 
 out:
@@ -181,17 +221,39 @@ out:
 }
 
 static void
-_get_config_fetch_done_cb_subnet_ipv4_cidr_block(GObject *     source,
-                                                 GAsyncResult *result,
-                                                 gpointer      user_data)
+_get_config_fetch_done_cb_vpc_cidr_block(GObject *source, GAsyncResult *result, gpointer user_data)
 {
-    _get_config_fetch_done_cb(NM_HTTP_CLIENT(source), result, user_data, FALSE);
+    _get_config_fetch_done_cb(NM_HTTP_CLIENT(source),
+                              result,
+                              user_data,
+                              GET_CONFIG_FETCH_DONE_TYPE_SUBNET_VPC_CIDR_BLOCK);
 }
 
 static void
-_get_config_fetch_done_cb_local_ipv4s(GObject *source, GAsyncResult *result, gpointer user_data)
+_get_config_fetch_done_cb_private_ipv4s(GObject *source, GAsyncResult *result, gpointer user_data)
 {
-    _get_config_fetch_done_cb(NM_HTTP_CLIENT(source), result, user_data, TRUE);
+    _get_config_fetch_done_cb(NM_HTTP_CLIENT(source),
+                              result,
+                              user_data,
+                              GET_CONFIG_FETCH_DONE_TYPE_PRIVATE_IPV4S);
+}
+
+static void
+_get_config_fetch_done_cb_netmask(GObject *source, GAsyncResult *result, gpointer user_data)
+{
+    _get_config_fetch_done_cb(NM_HTTP_CLIENT(source),
+                              result,
+                              user_data,
+                              GET_CONFIG_FETCH_DONE_TYPE_NETMASK);
+}
+
+static void
+_get_config_fetch_done_cb_gateway(GObject *source, GAsyncResult *result, gpointer user_data)
+{
+    _get_config_fetch_done_cb(NM_HTTP_CLIENT(source),
+                              result,
+                              user_data,
+                              GET_CONFIG_FETCH_DONE_TYPE_GATEWAY);
 }
 
 typedef struct {
@@ -236,6 +298,8 @@ _get_config_metadata_ready_cb(GObject *source, GAsyncResult *result, gpointer us
         NMCSProviderGetConfigIfaceData *config_iface_data;
         gs_free char *                  uri1 = NULL;
         gs_free char *                  uri2 = NULL;
+        gs_free char *                  uri3 = NULL;
+        gs_free char *                  uri4 = NULL;
         const char *                    hwaddr;
 
         if (!g_hash_table_lookup_extended(get_config_data->result_dict,
@@ -266,9 +330,9 @@ _get_config_metadata_ready_cb(GObject *source, GAsyncResult *result, gpointer us
         get_config_data->n_pending++;
         nm_http_client_poll_get(
             http_client,
-            (uri1 = _ec2_uri_interfaces(v_mac_data->path,
-                                        NM_STR_HAS_SUFFIX(v_mac_data->path, "/") ? "" : "/",
-                                        "subnet-ipv4-cidr-block")),
+            (uri1 = _aliyun_uri_interfaces(v_mac_data->path,
+                                           NM_STR_HAS_SUFFIX(v_mac_data->path, "/") ? "" : "/",
+                                           "vpc-cidr-block")),
             HTTP_TIMEOUT_MS,
             512 * 1024,
             10000,
@@ -277,15 +341,15 @@ _get_config_metadata_ready_cb(GObject *source, GAsyncResult *result, gpointer us
             get_config_data->intern_cancellable,
             NULL,
             NULL,
-            _get_config_fetch_done_cb_subnet_ipv4_cidr_block,
+            _get_config_fetch_done_cb_vpc_cidr_block,
             nm_utils_user_data_pack(get_config_data, hwaddr));
 
         get_config_data->n_pending++;
         nm_http_client_poll_get(
             http_client,
-            (uri2 = _ec2_uri_interfaces(v_mac_data->path,
-                                        NM_STR_HAS_SUFFIX(v_mac_data->path, "/") ? "" : "/",
-                                        "local-ipv4s")),
+            (uri2 = _aliyun_uri_interfaces(v_mac_data->path,
+                                           NM_STR_HAS_SUFFIX(v_mac_data->path, "/") ? "" : "/",
+                                           "private-ipv4s")),
             HTTP_TIMEOUT_MS,
             512 * 1024,
             10000,
@@ -294,7 +358,41 @@ _get_config_metadata_ready_cb(GObject *source, GAsyncResult *result, gpointer us
             get_config_data->intern_cancellable,
             NULL,
             NULL,
-            _get_config_fetch_done_cb_local_ipv4s,
+            _get_config_fetch_done_cb_private_ipv4s,
+            nm_utils_user_data_pack(get_config_data, hwaddr));
+
+        get_config_data->n_pending++;
+        nm_http_client_poll_get(
+            http_client,
+            (uri3 = _aliyun_uri_interfaces(v_mac_data->path,
+                                           NM_STR_HAS_SUFFIX(v_mac_data->path, "/") ? "" : "/",
+                                           "netmask")),
+            HTTP_TIMEOUT_MS,
+            512 * 1024,
+            10000,
+            1000,
+            NULL,
+            get_config_data->intern_cancellable,
+            NULL,
+            NULL,
+            _get_config_fetch_done_cb_netmask,
+            nm_utils_user_data_pack(get_config_data, hwaddr));
+
+        get_config_data->n_pending++;
+        nm_http_client_poll_get(
+            http_client,
+            (uri4 = _aliyun_uri_interfaces(v_mac_data->path,
+                                           NM_STR_HAS_SUFFIX(v_mac_data->path, "/") ? "" : "/",
+                                           "gateway")),
+            HTTP_TIMEOUT_MS,
+            512 * 1024,
+            10000,
+            1000,
+            NULL,
+            get_config_data->intern_cancellable,
+            NULL,
+            NULL,
+            _get_config_fetch_done_cb_gateway,
             nm_utils_user_data_pack(get_config_data, hwaddr));
     }
 
@@ -382,7 +480,7 @@ get_config(NMCSProvider *provider, NMCSProviderGetConfigTaskData *get_config_dat
      * around from the start...
      */
     nm_http_client_poll_get(nmcs_provider_get_http_client(provider),
-                            (uri = _ec2_uri_interfaces()),
+                            (uri = _aliyun_uri_interfaces()),
                             HTTP_TIMEOUT_MS,
                             256 * 1024,
                             15000,
@@ -398,16 +496,16 @@ get_config(NMCSProvider *provider, NMCSProviderGetConfigTaskData *get_config_dat
 /*****************************************************************************/
 
 static void
-nmcs_provider_ec2_init(NMCSProviderEC2 *self)
+nmcs_provider_aliyun_init(NMCSProviderAliyun *self)
 {}
 
 static void
-nmcs_provider_ec2_class_init(NMCSProviderEC2Class *klass)
+nmcs_provider_aliyun_class_init(NMCSProviderAliyunClass *klass)
 {
     NMCSProviderClass *provider_class = NMCS_PROVIDER_CLASS(klass);
 
-    provider_class->_name                 = "ec2";
-    provider_class->_env_provider_enabled = NMCS_ENV_VARIABLE("NM_CLOUD_SETUP_EC2");
+    provider_class->_name                 = "aliyun";
+    provider_class->_env_provider_enabled = NMCS_ENV_VARIABLE("NM_CLOUD_SETUP_ALIYUN");
     provider_class->detect                = detect;
     provider_class->get_config            = get_config;
 }

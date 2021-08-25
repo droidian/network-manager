@@ -1258,6 +1258,7 @@ typedef enum {
     NM_UTILS_ERROR_CONNECTION_AVAILABLE_INCOMPATIBLE,
     NM_UTILS_ERROR_CONNECTION_AVAILABLE_UNMANAGED_DEVICE,
     NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY,
+    NM_UTILS_ERROR_CONNECTION_AVAILABLE_DISALLOWED,
 
     NM_UTILS_ERROR_SETTING_MISSING,
 
@@ -1446,10 +1447,14 @@ GType nm_g_type_find_implementing_class_for_property(GType gtype, const char *pn
 typedef enum {
     NM_UTILS_STR_UTF8_SAFE_FLAG_NONE = 0,
 
-    /* This flag only has an effect during escaping. */
+    /* This flag only has an effect during escaping.
+     *
+     * It will backslash escape ascii characters according to nm_ascii_is_ctrl_or_del(). */
     NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL = 0x0001,
 
-    /* This flag only has an effect during escaping. */
+    /* This flag only has an effect during escaping.
+     *
+     * It will backslash escape ascii characters according to nm_ascii_is_non_ascii(). */
     NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII = 0x0002,
 
     /* This flag only has an effect during escaping to ensure we
@@ -2438,6 +2443,40 @@ nm_hexchar(int x, gboolean upper_case)
     return upper_case ? _nm_hexchar_table_upper[x & 15] : _nm_hexchar_table_lower[x & 15];
 }
 
+static inline gboolean
+nm_ascii_is_ctrl(char ch)
+{
+    /* 0 to ' '-1 is the C0 range.
+     *
+     * Other ranges may also be considered control characters, but NOT
+     * CONSIDERED by this function. For example:
+     *   - DEL (127) is also a control character.
+     *   - SP (' ', 0x20) is also considered a control character.
+     *   - DEL+1 (0x80) to 0x9F is C1 range.
+     *   - NBSP (0xA0) and SHY (0xAD) are ISO 8859 special characters
+     */
+    return ((guchar) ch) < ' ';
+}
+
+static inline gboolean
+nm_ascii_is_ctrl_or_del(char ch)
+{
+    return ((guchar) ch) < ' ' || ch == 127;
+}
+
+static inline gboolean
+nm_ascii_is_non_ascii(char ch)
+{
+    return ((guchar) ch) > 127;
+}
+
+static inline gboolean
+nm_ascii_is_regular(char ch)
+{
+    /* same as(!nm_ascii_is_ctrl_or_del(ch) && !nm_ascii_is_non_ascii(ch)) */
+    return ch >= ' ' && ch < 127;
+}
+
 char *nm_utils_bin2hexstr_full(gconstpointer addr,
                                gsize         length,
                                char          delimiter,
@@ -2948,5 +2987,9 @@ void nm_crypto_md5_hash(const guint8 *salt,
 /*****************************************************************************/
 
 char *nm_utils_get_process_exit_status_desc(int status);
+
+/*****************************************************************************/
+
+void nm_utils_thread_local_register_destroy(gpointer tls_data, GDestroyNotify destroy_notify);
 
 #endif /* __NM_SHARED_UTILS_H__ */

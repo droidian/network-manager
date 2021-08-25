@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMDeviceWpan.html" title="NMDeviceWpan">
 <link rel="next" href="NMVpnConnection.html" title="NMVpnConnection">
-<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -278,7 +278,7 @@ nm_active_connection_get_connection (<em class="parameter"><code><a class="link"
 <a name="nm-active-connection-get-connection.returns"></a><h4>Returns</h4>
 <p>the <a class="link" href="NMRemoteConnection.html" title="NMRemoteConnection"><span class="type">NMRemoteConnection</span></a> which this
 <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> is an active instance of. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -529,7 +529,7 @@ nm_active_connection_get_master (<em class="parameter"><code><a class="link" hre
 <div class="refsect3">
 <a name="nm-active-connection-get-master.returns"></a><h4>Returns</h4>
 <p>the master <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> of the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a>. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -584,7 +584,7 @@ nm_active_connection_get_ip4_config (<em class="parameter"><code><a class="link"
 <a name="nm-active-connection-get-ip4-config.returns"></a><h4>Returns</h4>
 <p>the IPv4 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the connection is
 not in the <a class="link" href="libnm-nm-dbus-interface.html#NM-ACTIVE-CONNECTION-STATE-ACTIVATED:CAPS"><code class="literal">NM_ACTIVE_CONNECTION_STATE_ACTIVATED</code></a> state. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -614,7 +614,7 @@ nm_active_connection_get_dhcp4_config (<em class="parameter"><code><a class="lin
 <p>the IPv4 <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the connection
 does not use DHCP, or is not in the <a class="link" href="libnm-nm-dbus-interface.html#NM-ACTIVE-CONNECTION-STATE-ACTIVATED:CAPS"><code class="literal">NM_ACTIVE_CONNECTION_STATE_ACTIVATED</code></a>
 state. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -669,7 +669,7 @@ nm_active_connection_get_ip6_config (<em class="parameter"><code><a class="link"
 <a name="nm-active-connection-get-ip6-config.returns"></a><h4>Returns</h4>
 <p>the IPv6 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the connection is
 not in the <a class="link" href="libnm-nm-dbus-interface.html#NM-ACTIVE-CONNECTION-STATE-ACTIVATED:CAPS"><code class="literal">NM_ACTIVE_CONNECTION_STATE_ACTIVATED</code></a> state. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -699,7 +699,7 @@ nm_active_connection_get_dhcp6_config (<em class="parameter"><code><a class="lin
 <p>the IPv6 <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the connection
 does not use DHCPv6, or is not in the <a class="link" href="libnm-nm-dbus-interface.html#NM-ACTIVE-CONNECTION-STATE-ACTIVATED:CAPS"><code class="literal">NM_ACTIVE_CONNECTION_STATE_ACTIVATED</code></a>
 state. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -829,6 +829,6 @@ nm_active_connection_get_vpn (<em class="parameter"><code><a class="link" href="
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.1</div>
+<hr>Generated by GTK-Doc V1.33.0</div>
 </body>
 </html>

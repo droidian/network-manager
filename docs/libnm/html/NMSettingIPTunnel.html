@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingIPConfig.html" title="NMSettingIPConfig">
 <link rel="next" href="NMSettingMacsec.html" title="NMSettingMacsec">
-<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -240,7 +240,7 @@ nm_setting_ip_tunnel_new (<em class="parameter"><code><span class="type">void</s
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-new.returns"></a><h4>Returns</h4>
 <p>the new empty <a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> object. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -249,7 +249,7 @@ nm_setting_ip_tunnel_new (<em class="parameter"><code><span class="type">void</s
 <a name="nm-setting-ip-tunnel-get-parent"></a><h3>nm_setting_ip_tunnel_get_parent ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_ip_tunnel_get_parent (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
-<p>Returns the <span class="type">“parent”</span> property of the setting</p>
+<p>Returns the <a href="NMSettingIPTunnel.html#NMSettingIPTunnel--parent"><span class="type">“parent”</span></a> property of the setting</p>
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-get-parent.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -276,7 +276,7 @@ nm_setting_ip_tunnel_get_parent (<em class="parameter"><code><a class="link" hre
 <a name="nm-setting-ip-tunnel-get-mode"></a><h3>nm_setting_ip_tunnel_get_mode ()</h3>
 <pre class="programlisting"><a class="link" href="libnm-nm-dbus-interface.html#NMIPTunnelMode" title="enum NMIPTunnelMode"><span class="returnvalue">NMIPTunnelMode</span></a>
 nm_setting_ip_tunnel_get_mode (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
-<p>Returns the <span class="type">“mode”</span> property of the setting.</p>
+<p>Returns the <a href="NMSettingIPTunnel.html#NMSettingIPTunnel--mode"><span class="type">“mode”</span></a> property of the setting.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-get-mode.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -303,7 +303,7 @@ nm_setting_ip_tunnel_get_mode (<em class="parameter"><code><a class="link" href=
 <a name="nm-setting-ip-tunnel-get-local"></a><h3>nm_setting_ip_tunnel_get_local ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_ip_tunnel_get_local (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
-<p>Returns the <span class="type">“local”</span> property of the setting.</p>
+<p>Returns the <a href="NMSettingIPTunnel.html#NMSettingIPTunnel--local"><span class="type">“local”</span></a> property of the setting.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-get-local.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -330,7 +330,7 @@ nm_setting_ip_tunnel_get_local (<em class="parameter"><code><a class="link" href
 <a name="nm-setting-ip-tunnel-get-remote"></a><h3>nm_setting_ip_tunnel_get_remote ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_ip_tunnel_get_remote (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
-<p>Returns the <span class="type">“remote”</span> property of the setting.</p>
+<p>Returns the <a href="NMSettingIPTunnel.html#NMSettingIPTunnel--remote"><span class="type">“remote”</span></a> property of the setting.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-get-remote.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -357,7 +357,7 @@ nm_setting_ip_tunnel_get_remote (<em class="parameter"><code><a class="link" hre
 <a name="nm-setting-ip-tunnel-get-ttl"></a><h3>nm_setting_ip_tunnel_get_ttl ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_tunnel_get_ttl (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
-<p>Returns the <span class="type">“ttl”</span> property of the setting.</p>
+<p>Returns the <a href="NMSettingIPTunnel.html#NMSettingIPTunnel--ttl"><span class="type">“ttl”</span></a> property of the setting.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-get-ttl.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -384,7 +384,7 @@ nm_setting_ip_tunnel_get_ttl (<em class="parameter"><code><a class="link" href="
 <a name="nm-setting-ip-tunnel-get-tos"></a><h3>nm_setting_ip_tunnel_get_tos ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_tunnel_get_tos (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
-<p>Returns the <span class="type">“tos”</span> property of the setting.</p>
+<p>Returns the <a href="NMSettingIPTunnel.html#NMSettingIPTunnel--tos"><span class="type">“tos”</span></a> property of the setting.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-get-tos.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -412,7 +412,7 @@ nm_setting_ip_tunnel_get_tos (<em class="parameter"><code><a class="link" href="
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_tunnel_get_path_mtu_discovery
                                (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
-<p>Returns the <span class="type">“path-mtu-discovery”</span> property of the setting.</p>
+<p>Returns the <a href="NMSettingIPTunnel.html#NMSettingIPTunnel--path-mtu-discovery"><span class="type">“path-mtu-discovery”</span></a> property of the setting.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-get-path-mtu-discovery.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -439,7 +439,7 @@ nm_setting_ip_tunnel_get_path_mtu_discovery
 <a name="nm-setting-ip-tunnel-get-input-key"></a><h3>nm_setting_ip_tunnel_get_input_key ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_ip_tunnel_get_input_key (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
-<p>Returns the <span class="type">“input-key”</span> property of the setting.</p>
+<p>Returns the <a href="NMSettingIPTunnel.html#NMSettingIPTunnel--input-key"><span class="type">“input-key”</span></a> property of the setting.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-get-input-key.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -466,7 +466,7 @@ nm_setting_ip_tunnel_get_input_key (<em class="parameter"><code><a class="link" 
 <a name="nm-setting-ip-tunnel-get-output-key"></a><h3>nm_setting_ip_tunnel_get_output_key ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_ip_tunnel_get_output_key (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
-<p>Returns the <span class="type">“output-key”</span> property of the setting.</p>
+<p>Returns the <a href="NMSettingIPTunnel.html#NMSettingIPTunnel--output-key"><span class="type">“output-key”</span></a> property of the setting.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-get-output-key.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -494,7 +494,7 @@ nm_setting_ip_tunnel_get_output_key (<em class="parameter"><code><a class="link"
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_tunnel_get_encapsulation_limit
                                (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
-<p>Returns the <span class="type">“encapsulation-limit”</span> property of the setting.</p>
+<p>Returns the <a href="NMSettingIPTunnel.html#NMSettingIPTunnel--encapsulation-limit"><span class="type">“encapsulation-limit”</span></a> property of the setting.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-get-encapsulation-limit.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -521,7 +521,7 @@ nm_setting_ip_tunnel_get_encapsulation_limit
 <a name="nm-setting-ip-tunnel-get-flow-label"></a><h3>nm_setting_ip_tunnel_get_flow_label ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_tunnel_get_flow_label (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
-<p>Returns the <span class="type">“flow-label”</span> property of the setting.</p>
+<p>Returns the <a href="NMSettingIPTunnel.html#NMSettingIPTunnel--flow-label"><span class="type">“flow-label”</span></a> property of the setting.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-get-flow-label.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -548,7 +548,7 @@ nm_setting_ip_tunnel_get_flow_label (<em class="parameter"><code><a class="link"
 <a name="nm-setting-ip-tunnel-get-mtu"></a><h3>nm_setting_ip_tunnel_get_mtu ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
 nm_setting_ip_tunnel_get_mtu (<em class="parameter"><code><a class="link" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel"><span class="type">NMSettingIPTunnel</span></a> *setting</code></em>);</pre>
-<p>Returns the <span class="type">“mtu”</span> property of the setting.</p>
+<p>Returns the <a href="NMSettingIPTunnel.html#NMSettingIPTunnel--mtu"><span class="type">“mtu”</span></a> property of the setting.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-tunnel-get-mtu.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -716,6 +716,6 @@ nm_setting_ip_tunnel_get_flags (<em class="parameter"><code><a class="link" href
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.1</div>
+<hr>Generated by GTK-Doc V1.33.0</div>
 </body>
 </html>
