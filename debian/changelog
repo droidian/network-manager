@@ -1,6 +1,8 @@
 network-manager (1.32.10-0ubuntu1) UNRELEASED; urgency=medium
 
   * New upstream version
+  * debian/libnm0.symbols:
+    - updated symbols for the new version
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 25 Aug 2021 15:26:59 +0200
 
