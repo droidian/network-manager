@@ -74,6 +74,16 @@
         NM_CONNECTION(g_object_ref(_1_connection));                              \
     })
 
+#define _parse_no_con(ARGV)                                        \
+    G_STMT_START                                                   \
+    {                                                              \
+        gs_unref_hashtable GHashTable *_0_connections = NULL;      \
+                                                                   \
+        _0_connections = _parse_cons(ARGV);                        \
+        g_assert_cmpint(g_hash_table_size(_0_connections), ==, 0); \
+    }                                                              \
+    G_STMT_END
+
 /*****************************************************************************/
 
 static void
@@ -290,7 +300,7 @@ test_dhcp_timeout(void)
 static void
 test_if_auto_with_mtu(void)
 {
-    const char *const *ARGV                  = NM_MAKE_STRV("ip=eth0:auto:1666");
+    const char *const *ARGV                  = NM_MAKE_STRV("ip=eth0:auto:1666", "=");
     gs_unref_object NMConnection *connection = NULL;
     NMSettingConnection *         s_con;
     NMSettingWired *              s_wired;
@@ -461,7 +471,7 @@ test_if_ip4_manual(void)
 static void
 test_if_ip4_manual_no_dev(void)
 {
-    const char *const *  ARGV = NM_MAKE_STRV("ip=192.0.2.2::192.0.2.1:24:::");
+    const char *const *  ARGV = NM_MAKE_STRV("ip=192.0.2.2::192.0.2.1:24:::", "=foo");
     NMConnection *       connection;
     NMSettingConnection *s_con;
     NMSettingIPConfig *  s_ip4;
@@ -2461,6 +2471,26 @@ test_rd_ethtool(void)
     g_hash_table_unref(connections);
 }
 
+/*****************************************************************************/
+
+static void
+test_plain_equal_char(void)
+{
+    _parse_no_con(NM_MAKE_STRV("="));
+    _parse_no_con(NM_MAKE_STRV("=foo"));
+    _parse_no_con(NM_MAKE_STRV("BOOT_IMAGE=(hd0,msdos2)/boot/vmlinuz-5.13.10-100.fc33.x86_64",
+                               "root=UUID=ff252b4a-8294-4961-abcb-74c8fc868db7",
+                               "ro",
+                               "rhgb",
+                               "quiet",
+                               "pci",
+                               "=",
+                               "nomsi,",
+                               "noaer"));
+}
+
+/*****************************************************************************/
+
 NMTST_DEFINE();
 
 int
@@ -2516,6 +2546,7 @@ main(int argc, char **argv)
     g_test_add_func("/initrd/cmdline/infiniband/pkey", test_infiniband_pkey);
     g_test_add_func("/initrd/cmdline/carrier_timeout", test_carrier_timeout);
     g_test_add_func("/initrd/cmdline/rd_ethtool", test_rd_ethtool);
+    g_test_add_func("/initrd/cmdline/plain_equal_char", test_plain_equal_char);
 
     return g_test_run();
 }
