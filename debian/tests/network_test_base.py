@@ -15,6 +15,7 @@ import os
 import os.path
 import time
 import tempfile
+import shutil
 import subprocess
 import re
 import unittest
@@ -25,7 +26,7 @@ from glob import glob
 # check availability of programs, and cleanly skip test if they are not
 # available
 for program in ["wpa_supplicant", "hostapd", "dnsmasq", "dhclient"]:
-    if subprocess.call(["which", program], stdout=subprocess.PIPE) != 0:
+    if shutil.which(program) is None:
         sys.stderr.write(
             "%s is required for this test suite, but not available. Skipping\n"
             % program
