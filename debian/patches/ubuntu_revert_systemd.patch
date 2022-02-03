@@ -1,11 +1,14 @@
 Description: temporarly revert an upstream commit that made udev enabled under lxc
+
 the new systemd doesn't work there (lp: #1914062)
+---
+ src/libnm-platform/nm-linux-platform.c | 25 +------------------------
+ 1 file changed, 1 insertion(+), 24 deletions(-)
 
-
-Index: network-manager/src/libnm-platform/nm-linux-platform.c
-===================================================================
---- network-manager.orig/src/libnm-platform/nm-linux-platform.c
-+++ network-manager/src/libnm-platform/nm-linux-platform.c
+diff --git a/src/libnm-platform/nm-linux-platform.c b/src/libnm-platform/nm-linux-platform.c
+index 78df53e..2f3d852 100644
+--- a/src/libnm-platform/nm-linux-platform.c
++++ b/src/libnm-platform/nm-linux-platform.c
 @@ -29,7 +29,6 @@
  #include <poll.h>
  #include <sys/ioctl.h>
@@ -14,7 +17,7 @@ Index: network-manager/src/libnm-platform/nm-linux-platform.c
  #include <unistd.h>
  
  #include "libnm-glib-aux/nm-c-list.h"
-@@ -9525,34 +9524,12 @@ constructed(GObject *_object)
+@@ -9598,34 +9597,12 @@ constructed(GObject *_object)
      }
  }
  
@@ -41,7 +44,7 @@ Index: network-manager/src/libnm-platform/nm-linux-platform.c
 -}
 -
  NMPlatform *
- nm_linux_platform_new(gboolean log_with_ptr, gboolean netns_support)
+ nm_linux_platform_new(gboolean log_with_ptr, gboolean netns_support, gboolean cache_tc)
  {
      gboolean use_udev = FALSE;
  
