@@ -191,14 +191,13 @@ _value_strsplit(const char *value, ValueStrsplitMode split_mode, gsize *out_len)
     /* note that all modes remove empty tokens (",", "a,,b", ",,"). */
     switch (split_mode) {
     case VALUE_STRSPLIT_MODE_OBJLIST:
-        strv = nm_utils_strsplit_set_full(value,
-                                          ESCAPED_TOKENS_DELIMITERS,
-                                          NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP);
+        strv =
+            nm_strsplit_set_full(value, ESCAPED_TOKENS_DELIMITERS, NM_STRSPLIT_SET_FLAGS_STRSTRIP);
         break;
     case VALUE_STRSPLIT_MODE_MULTILIST:
-        strv = nm_utils_strsplit_set_full(value,
-                                          ESCAPED_TOKENS_WITH_SPACES_DELIMTERS,
-                                          NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP);
+        strv = nm_strsplit_set_full(value,
+                                    ESCAPED_TOKENS_WITH_SPACES_DELIMTERS,
+                                    NM_STRSPLIT_SET_FLAGS_STRSTRIP);
         break;
     case VALUE_STRSPLIT_MODE_ESCAPED_TOKENS:
         strv = nm_utils_escaped_tokens_split(value, ESCAPED_TOKENS_DELIMITERS);
@@ -309,7 +308,7 @@ _parse_ip_route(int family, const char *str, GError **error)
     nm_assert(!error || !*error);
 
     str_clean = nm_strstrip_avoid_copy_a(300, str, &str_clean_free);
-    routev    = nm_utils_strsplit_set(str_clean, " \t");
+    routev    = nm_strsplit_set(str_clean, " \t");
     if (!routev) {
         g_set_error(error, 1, 0, "'%s' is not valid. %s", str, ROUTE_SYNTAX);
         return NULL;
@@ -922,7 +921,7 @@ _get_fcn_gobject_impl(const NMMetaPropertyInfo *property_info,
         nm_assert(property_info->property_type->set_fcn == _set_fcn_optionlist);
 
         strdict = g_value_get_boxed(&val);
-        keys    = nm_utils_strdict_get_keys(strdict, TRUE, NULL);
+        keys    = nm_strdict_get_keys(strdict, TRUE, NULL);
         if (!keys)
             return NULL;
 
@@ -1494,7 +1493,7 @@ static gboolean _set_fcn_gobject_mtu(ARGS_SET_FCN)
 
 /* Ideally we'll be able to get this from a public header. */
 #ifndef IEEE802154_ADDR_LEN
-    #define IEEE802154_ADDR_LEN 8
+#define IEEE802154_ADDR_LEN 8
 #endif
 
 static gboolean _set_fcn_gobject_mac(ARGS_SET_FCN)
@@ -1702,7 +1701,7 @@ static const char *const *_values_fcn_gobject_enum(ARGS_VALUES_FCN)
     /* the gobject_enum.value_infos are currently ignored for the list of
      * values. They only declare additional (hidden) aliases for the setter. */
 
-    v = nm_utils_strv_make_deep_copied(nm_utils_enum_get_values(gtype, min, max));
+    v = nm_strv_make_deep_copied(nm_utils_enum_get_values(gtype, min, max));
     return (const char *const *) (*out_to_free = v);
 }
 
@@ -2271,7 +2270,7 @@ static gboolean _set_fcn_gobject_bytes(ARGS_SET_FCN)
     }
 
     /* Otherwise, consider the following format: AA b 0xCc D */
-    strv  = nm_utils_strsplit_set(value, " \t");
+    strv  = nm_strsplit_set(value, " \t");
     array = g_byte_array_sized_new(NM_PTRARRAY_LEN(strv));
     for (iter = strv; iter && *iter; iter++) {
         int    v;
@@ -2916,7 +2915,7 @@ static gboolean _set_fcn_dcb_flags(ARGS_SET_FCN)
         const char *const *  iter;
 
         /* Check for individual flag numbers */
-        strv = nm_utils_strsplit_set(value, " \t,");
+        strv = nm_strsplit_set(value, " \t,");
         for (iter = strv; iter && *iter; iter++) {
             t = _nm_utils_ascii_str_to_int64(*iter, 0, 0, DCB_ALL_FLAGS, -1);
 
@@ -2957,7 +2956,7 @@ dcb_parse_uint_array(const char *val,
     const char *const *  iter;
     gsize                i;
 
-    items = nm_utils_strsplit_set_with_empty(val, ",");
+    items = nm_strsplit_set_with_empty(val, ",");
     if (NM_PTRARRAY_LEN(items) != 8) {
         g_set_error_literal(error, 1, 0, _("must contain 8 comma-separated numbers"));
         return FALSE;
@@ -3589,7 +3588,7 @@ _multilist_remove_by_value_fcn_ip_config_dhcp_reject_servers(NMSettingIPConfig *
     gssize             idx;
 
     strv = nm_setting_ip_config_get_dhcp_reject_servers(setting, &num);
-    idx  = nm_utils_strv_find_first((char **) strv, num, item);
+    idx  = nm_strv_find_first(strv, num, item);
     if (idx >= 0)
         nm_setting_ip_config_remove_dhcp_reject_server(setting, idx);
     return TRUE;
@@ -4033,7 +4032,7 @@ static gboolean _set_fcn_wired_s390_subchannels(ARGS_SET_FCN)
     if (_SET_FCN_DO_RESET_DEFAULT(property_info, modifier, value))
         return _gobject_property_reset_default(setting, property_info->property_name);
 
-    strv = nm_utils_strsplit_set(value, " ,\t");
+    strv = nm_strsplit_set(value, " ,\t");
     len  = NM_PTRARRAY_LEN(strv);
     if (len != 2 && len != 3) {
         g_set_error(error, 1, 0, _("'%s' is not valid; 2 or 3 strings should be provided"), value);
@@ -4318,7 +4317,7 @@ static gboolean _set_fcn_ethtool(ARGS_SET_FCN)
     if (!nmc_string_to_ternary_full(value,
                                     NMC_STRING_TO_TERNARY_FLAGS_IGNORE_FOR_DEFAULT,
                                     &t,
-                                    error)) {
+                                    NULL)) {
         g_set_error(error,
                     NM_UTILS_ERROR,
                     NM_UTILS_ERROR_INVALID_ARGUMENT,
@@ -5050,6 +5049,18 @@ static const NMMetaPropertyInfo *const property_infos_BOND[] = {
 };
 
 #undef  _CURRENT_NM_META_SETTING_TYPE
+#define _CURRENT_NM_META_SETTING_TYPE NM_META_SETTING_TYPE_BOND_PORT
+static const NMMetaPropertyInfo *const property_infos_BOND_PORT[] = {
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_BOND_PORT_QUEUE_ID,
+        .is_cli_option =                TRUE,
+        .property_alias =               "queue-id",
+        .prompt =                       N_("Queue ID [0]"),
+        .property_type =                &_pt_gobject_int,
+    ),
+    NULL
+};
+
+#undef  _CURRENT_NM_META_SETTING_TYPE
 #define _CURRENT_NM_META_SETTING_TYPE NM_META_SETTING_TYPE_BRIDGE
 static const NMMetaPropertyInfo *const property_infos_BRIDGE[] = {
     PROPERTY_INFO_WITH_DESC (NM_SETTING_BRIDGE_MAC_ADDRESS,
@@ -5459,6 +5470,14 @@ static const NMMetaPropertyInfo *const property_infos_CONNECTION[] = {
         .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
             PROPERTY_TYP_DATA_SUBTYPE (gobject_enum,
                 .get_gtype =            nm_setting_connection_llmnr_get_type,
+            ),
+        ),
+    ),
+    PROPERTY_INFO_WITH_DESC (NM_SETTING_CONNECTION_DNS_OVER_TLS,
+        .property_type =                &_pt_gobject_enum,
+        .property_typ_data = DEFINE_PROPERTY_TYP_DATA (
+            PROPERTY_TYP_DATA_SUBTYPE (gobject_enum,
+                .get_gtype =            nm_setting_connection_dns_over_tls_get_type,
             ),
         ),
     ),
@@ -8114,6 +8133,7 @@ _setting_init_fcn_wireless (ARGS_SETTING_INIT_FCN)
 #define SETTING_PRETTY_NAME_ADSL                N_("ADSL connection")
 #define SETTING_PRETTY_NAME_BLUETOOTH           N_("bluetooth connection")
 #define SETTING_PRETTY_NAME_BOND                N_("Bond device")
+#define SETTING_PRETTY_NAME_BOND_PORT           N_("Bond port")
 #define SETTING_PRETTY_NAME_BRIDGE              N_("Bridge device")
 #define SETTING_PRETTY_NAME_BRIDGE_PORT         N_("Bridge port")
 #define SETTING_PRETTY_NAME_CDMA                N_("CDMA mobile broadband connection")
@@ -8218,6 +8238,7 @@ const NMMetaSettingInfoEditor nm_meta_setting_infos_editor[] = {
             NM_META_SETTING_VALID_PART_ITEM (ETHTOOL,               FALSE),
         ),
     ),
+    SETTING_INFO (BOND_PORT),
     SETTING_INFO (BRIDGE,
         .valid_parts = NM_META_SETTING_VALID_PARTS (
             NM_META_SETTING_VALID_PART_ITEM (CONNECTION,            TRUE),
@@ -8498,6 +8519,11 @@ static const NMMetaSettingValidPartItem *const valid_settings_noslave[] = {
     NULL,
 };
 
+static const NMMetaSettingValidPartItem *const valid_settings_slave_bond[] = {
+    NM_META_SETTING_VALID_PART_ITEM(BOND_PORT, TRUE),
+    NULL,
+};
+
 static const NMMetaSettingValidPartItem *const valid_settings_slave_bridge[] = {
     NM_META_SETTING_VALID_PART_ITEM(BRIDGE_PORT, TRUE),
     NULL,
@@ -8527,7 +8553,7 @@ nm_meta_setting_info_valid_parts_for_slave_type(const char *slave_type, const ch
     }
     if (nm_streq(slave_type, NM_SETTING_BOND_SETTING_NAME)) {
         NM_SET_OUT(out_slave_name, "bond-slave");
-        return NM_PTRARRAY_EMPTY(const NMMetaSettingValidPartItem *);
+        return valid_settings_slave_bond;
     }
     if (nm_streq(slave_type, NM_SETTING_BRIDGE_SETTING_NAME)) {
         NM_SET_OUT(out_slave_name, "bridge-slave");

@@ -1785,6 +1785,12 @@ global:
 	nm_utils_print;
 } libnm_1_28_0;
 
+libnm_1_30_8 {
+	#nm_ip_address_dup@libnm_1_30_8;
+	#nm_ip_route_dup@libnm_1_30_8;
+	#nm_setting_ip_config_get_required_timeout@libnm_1_30_8;
+} libnm_1_30_0;
+
 libnm_1_32_0 {
 global:
 	nm_ethtool_optname_is_pause;
@@ -1798,3 +1804,15 @@ libnm_1_32_4 {
 global:
 	nm_setting_ip_config_get_required_timeout;
 } libnm_1_32_0;
+
+libnm_1_34_0 {
+global:
+	nm_device_get_ports;
+	nm_ip_routing_rule_get_uid_range;
+	nm_ip_routing_rule_set_uid_range;
+	nm_setting_bond_port_get_queue_id;
+	nm_setting_bond_port_get_type;
+	nm_setting_bond_port_new;
+	nm_setting_connection_get_dns_over_tls;
+	nm_setting_connection_dns_over_tls_get_type;
+} libnm_1_32_4;

@@ -6,7 +6,7 @@
 #include "libnm-client-impl/nm-default-libnm.h"
 
 #if defined(HAVE_DECL_MEMFD_CREATE) && HAVE_DECL_MEMFD_CREATE
-    #include <linux/memfd.h>
+#include <linux/memfd.h>
 #endif
 
 #include <sys/mman.h>
@@ -2758,7 +2758,7 @@ test_types(void)
 
     for (i_type = 0; i_type < G_N_ELEMENTS(get_type_fcns); i_type++) {
         nm_auto_unref_gtypeclass GObjectClass *klass_unref = NULL;
-        GType                                  gtype       = (get_type_fcns[i_type]) ();
+        GType                                  gtype       = (get_type_fcns[i_type])();
         GObjectClass *                         klass;
 
         g_assert(g_str_has_prefix(g_type_name(gtype), "NM"));
@@ -2836,6 +2836,11 @@ test_nml_dbus_meta(void)
         }
 
         g_assert((mif->n_dbus_properties > 0) == (!!mif->dbus_properties));
+
+        if (nm_streq(mif->dbus_iface_name, "org.freedesktop.NetworkManager.Device"))
+            g_assert(nm_streq(
+                mif->dbus_properties[_NML_DEVICE_META_PROPERTY_INDEX_PORTS].dbus_property_name,
+                "Ports"));
 
         if (mif->interface_prio == NML_DBUS_META_INTERFACE_PRIO_NONE) {
             g_assert(!mif->get_type_fcn);
@@ -3068,7 +3073,7 @@ check_dbus_properties:
                 pspec = mif->obj_properties[mpr->obj_properties_idx];
             }
 
-            if (mpr->use_notify_update_prop) {
+            if (mpr->notify_update_prop) {
                 g_assert(mpr->notify_update_prop);
             } else {
                 if (klass)
@@ -3129,7 +3134,7 @@ check_dbus_properties:
 
                 g_assert_cmpstr(expected_property_name, ==, pspec->name);
 
-                if (!mpr->use_notify_update_prop) {
+                if (!mpr->notify_update_prop) {
                     for (p_expected_type_2 = &expected_types[0];
                          p_expected_type_2 < &expected_types[G_N_ELEMENTS(expected_types)];
                          p_expected_type_2++) {

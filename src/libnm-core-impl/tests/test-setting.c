@@ -7,6 +7,8 @@
 
 #include <linux/pkt_sched.h>
 #include <net/if.h>
+#include <linux/if_ether.h>
+#include <linux/if_infiniband.h>
 
 #include "libnm-glib-aux/nm-uuid.h"
 #include "libnm-glib-aux/nm-json-aux.h"
@@ -119,7 +121,7 @@ test_nm_meta_setting_types_by_priority(void)
     G_STATIC_ASSERT_EXPR(_NM_META_SETTING_TYPE_NUM
                          == G_N_ELEMENTS(nm_meta_setting_types_by_priority));
 
-    G_STATIC_ASSERT_EXPR(_NM_META_SETTING_TYPE_NUM == 51);
+    G_STATIC_ASSERT_EXPR(_NM_META_SETTING_TYPE_NUM == 52);
 
     arr = g_ptr_array_new_with_free_func(g_object_unref);
 
@@ -150,7 +152,7 @@ test_nm_meta_setting_types_by_priority(void)
         for (j = 0; j < i; j++) {
             NMSetting *other = arr->pdata[j];
 
-            if (_nmtst_nm_setting_sort(other, setting) >= 0) {
+            if (_nm_setting_sort_for_nm_assert(other, setting) >= 0) {
                 g_error("sort order for nm_meta_setting_types_by_priority[%d vs %d] is wrong: %s "
                         "should be before %s",
                         j,
@@ -874,6 +876,34 @@ test_bond_normalize(void)
 
 /*****************************************************************************/
 
+static void
+test_dummy_normalize(void)
+{
+    gs_unref_object NMConnection *connection = NULL;
+    NMSettingConnection *         s_con;
+
+    connection = nm_simple_connection_new();
+    s_con      = NM_SETTING_CONNECTION(nm_setting_connection_new());
+    nm_connection_add_setting(connection, NM_SETTING(s_con));
+
+    g_object_set(s_con,
+                 NM_SETTING_CONNECTION_ID,
+                 "dummy-test",
+                 NM_SETTING_CONNECTION_UUID,
+                 nm_uuid_generate_random_str_a(),
+                 NM_SETTING_CONNECTION_TYPE,
+                 NM_SETTING_DUMMY_SETTING_NAME,
+                 NULL);
+
+    nmtst_assert_connection_unnormalizable(connection, 0, 0);
+
+    g_object_set(s_con, NM_SETTING_CONNECTION_INTERFACE_NAME, "dummy1", NULL);
+
+    nmtst_connection_normalize(connection);
+}
+
+/*****************************************************************************/
+
 #define DCB_FLAGS_ALL \
     (NM_SETTING_DCB_FLAG_ENABLE | NM_SETTING_DCB_FLAG_ADVERTISE | NM_SETTING_DCB_FLAG_WILLING)
 
@@ -1183,7 +1213,7 @@ test_nm_json(void)
 #endif
 
 #if WITH_JANSSON != defined(JANSSON_SONAME)
-    #error "WITH_JANSON and JANSSON_SONAME are defined inconsistently."
+#error "WITH_JANSON and JANSSON_SONAME are defined inconsistently."
 #endif
 }
 
@@ -3219,7 +3249,7 @@ _rndt_wired_add_s390_options(NMSettingWired *s_wired, char **out_keyfile_entries
         g_assert(k);
         g_assert(v);
 
-        idx = nm_utils_strv_find_first((char **) opt_keys, n_opts, k);
+        idx = nm_strv_find_first(opt_keys, n_opts, k);
         g_assert(idx >= 0);
         g_assert(!opt_found[idx]);
         opt_found[idx] = TRUE;
@@ -3619,6 +3649,12 @@ test_roundtrip_conversion(gconstpointer test_data)
 
         s_wg = NM_SETTING_WIREGUARD(nm_connection_get_setting(con, NM_TYPE_SETTING_WIREGUARD));
 
+        s_ip.s_4 = NM_SETTING_IP_CONFIG(nm_connection_get_setting(con, NM_TYPE_SETTING_IP4_CONFIG));
+        g_assert_cmpstr(nm_setting_ip_config_get_method(s_ip.s_4), ==, "disabled");
+
+        s_ip.s_6 = NM_SETTING_IP_CONFIG(nm_connection_get_setting(con, NM_TYPE_SETTING_IP6_CONFIG));
+        g_assert_cmpstr(nm_setting_ip_config_get_method(s_ip.s_6), ==, "disabled");
+
         g_ptr_array_add(kf_data_arr,
                         g_strdup_printf("[connection]\n"
                                         "id=%s\n"
@@ -3636,7 +3672,7 @@ test_roundtrip_conversion(gconstpointer test_data)
                                         "[ipv6]\n"
                                         "addr-gen-mode=stable-privacy\n"
                                         "dns-search=\n"
-                                        "method=ignore\n"
+                                        "method=disabled\n"
                                         "\n"
                                         "[proxy]\n"
                                         "",
@@ -3693,7 +3729,7 @@ test_roundtrip_conversion(gconstpointer test_data)
                 "[ipv6]\n"
                 "addr-gen-mode=stable-privacy\n"
                 "dns-search=\n"
-                "method=ignore\n"
+                "method=disabled\n"
                 "\n"
                 "[proxy]\n"
                 "",
@@ -4354,6 +4390,9 @@ test_setting_metadata(void)
         guint                      prop_idx;
         gs_free GParamSpec **property_specs = NULL;
         guint                n_property_specs;
+        guint                n_param_spec;
+        guint                i;
+        guint                j;
 
         g_assert(sis);
 
@@ -4370,7 +4409,21 @@ test_setting_metadata(void)
         g_assert_cmpint(sis->property_infos_len, >, 0);
         g_assert(sis->property_infos);
 
+        {
+            int offset;
+
+            if (sis->private_offset < 0) {
+                offset = g_type_class_get_instance_private_offset(sis->setting_class);
+                g_assert_cmpint(sis->private_offset, ==, offset);
+            } else {
+                /* it would be nice to assert that this class has no private data.
+                 * But we cannot. */
+            }
+        }
+
         h_properties = g_hash_table_new(nm_str_hash, g_str_equal);
+
+        n_param_spec = 0;
 
         for (prop_idx = 0; prop_idx < sis->property_infos_len; prop_idx++) {
             const NMSettInfoProperty *sip = &sis->property_infos[prop_idx];
@@ -4380,6 +4433,9 @@ test_setting_metadata(void)
 
             g_assert(sip->name);
 
+            if (sip->param_spec)
+                n_param_spec++;
+
             if (prop_idx > 0)
                 g_assert_cmpint(strcmp(sis->property_infos[prop_idx - 1].name, sip->name), <, 0);
 
@@ -4387,17 +4443,152 @@ test_setting_metadata(void)
             g_assert(sip->property_type->dbus_type);
             g_assert(g_variant_type_string_is_valid((const char *) sip->property_type->dbus_type));
 
+            if (sip->property_type->direct_type == NM_VALUE_TYPE_NONE) {
+                g_assert_cmpint(sip->direct_offset, ==, 0);
+            } else if (sip->property_type->direct_type == NM_VALUE_TYPE_BOOL) {
+                g_assert(sip->property_type == &nm_sett_info_propert_type_direct_boolean);
+                g_assert(g_variant_type_equal(sip->property_type->dbus_type, "b"));
+                g_assert(sip->property_type->to_dbus_fcn
+                         == _nm_setting_property_to_dbus_fcn_direct);
+                g_assert(sip->param_spec);
+                g_assert(sip->param_spec->value_type == G_TYPE_BOOLEAN);
+                can_set_including_default = TRUE;
+            } else if (sip->property_type->direct_type == NM_VALUE_TYPE_INT32) {
+                const GParamSpecInt *pspec;
+
+                g_assert(sip->property_type == &nm_sett_info_propert_type_direct_int32);
+                g_assert(g_variant_type_equal(sip->property_type->dbus_type, "i"));
+                g_assert(sip->property_type->to_dbus_fcn
+                         == _nm_setting_property_to_dbus_fcn_direct);
+                g_assert(sip->param_spec);
+                g_assert(sip->param_spec->value_type == G_TYPE_INT);
+
+                pspec = NM_G_PARAM_SPEC_CAST_INT(sip->param_spec);
+                g_assert_cmpint(pspec->minimum, <=, pspec->maximum);
+                g_assert_cmpint(pspec->default_value, >=, pspec->minimum);
+                g_assert_cmpint(pspec->default_value, <=, pspec->maximum);
+
+                g_assert_cmpint(pspec->minimum, >=, (gint64) G_MININT32);
+                g_assert_cmpint(pspec->maximum, <=, (gint64) G_MAXINT32);
+
+                can_set_including_default = TRUE;
+            } else if (sip->property_type->direct_type == NM_VALUE_TYPE_UINT32) {
+                const GParamSpecUInt *pspec;
+
+                g_assert(sip->property_type == &nm_sett_info_propert_type_direct_uint32);
+                g_assert(g_variant_type_equal(sip->property_type->dbus_type, "u"));
+                g_assert(sip->property_type->to_dbus_fcn
+                         == _nm_setting_property_to_dbus_fcn_direct);
+                g_assert(sip->param_spec);
+                g_assert(sip->param_spec->value_type == G_TYPE_UINT);
+
+                pspec = NM_G_PARAM_SPEC_CAST_UINT(sip->param_spec);
+                g_assert_cmpint(pspec->minimum, <=, pspec->maximum);
+                g_assert_cmpint(pspec->default_value, >=, pspec->minimum);
+                g_assert_cmpint(pspec->default_value, <=, pspec->maximum);
+
+                g_assert_cmpint(pspec->maximum, <=, (guint64) G_MAXUINT32);
+
+                can_set_including_default = TRUE;
+            } else if (sip->property_type->direct_type == NM_VALUE_TYPE_UINT64) {
+                const GParamSpecUInt64 *pspec;
+
+                g_assert(sip->property_type == &nm_sett_info_propert_type_direct_uint64);
+                g_assert(g_variant_type_equal(sip->property_type->dbus_type, "t"));
+                g_assert(sip->property_type->to_dbus_fcn
+                         == _nm_setting_property_to_dbus_fcn_direct);
+                g_assert(sip->param_spec);
+                g_assert(sip->param_spec->value_type == G_TYPE_UINT64);
+
+                pspec = NM_G_PARAM_SPEC_CAST_UINT64(sip->param_spec);
+                g_assert_cmpuint(pspec->minimum, <=, pspec->maximum);
+                g_assert_cmpuint(pspec->default_value, >=, pspec->minimum);
+                g_assert_cmpuint(pspec->default_value, <=, pspec->maximum);
+
+                g_assert_cmpuint(pspec->maximum, <=, G_MAXUINT64);
+
+                can_set_including_default = TRUE;
+            } else if (sip->property_type->direct_type == NM_VALUE_TYPE_ENUM) {
+                const GParamSpecEnum *pspec;
+
+                g_assert(sip->property_type == &nm_sett_info_propert_type_direct_enum);
+                g_assert(g_variant_type_equal(sip->property_type->dbus_type, "i"));
+                g_assert(sip->property_type->to_dbus_fcn
+                         == _nm_setting_property_to_dbus_fcn_direct);
+                g_assert(sip->param_spec);
+                g_assert(g_type_is_a(sip->param_spec->value_type, G_TYPE_ENUM));
+                g_assert(sip->param_spec->value_type != G_TYPE_ENUM);
+
+                pspec = NM_G_PARAM_SPEC_CAST_ENUM(sip->param_spec);
+                g_assert(G_TYPE_FROM_CLASS(pspec->enum_class) == sip->param_spec->value_type);
+                g_assert(g_enum_get_value(pspec->enum_class, pspec->default_value));
+
+                can_set_including_default = TRUE;
+            } else if (sip->property_type->direct_type == NM_VALUE_TYPE_FLAGS) {
+                const GParamSpecFlags *pspec;
+
+                g_assert(sip->property_type == &nm_sett_info_propert_type_direct_flags);
+                g_assert(g_variant_type_equal(sip->property_type->dbus_type, "u"));
+                g_assert(sip->property_type->to_dbus_fcn
+                         == _nm_setting_property_to_dbus_fcn_direct);
+                g_assert(sip->param_spec);
+                g_assert(g_type_is_a(sip->param_spec->value_type, G_TYPE_FLAGS));
+                g_assert(sip->param_spec->value_type != G_TYPE_FLAGS);
+
+                pspec = NM_G_PARAM_SPEC_CAST_FLAGS(sip->param_spec);
+                g_assert_cmpint(pspec->flags_class->mask, !=, 0);
+                g_assert_cmpint(pspec->default_value,
+                                ==,
+                                pspec->flags_class->mask & pspec->default_value);
+
+                can_set_including_default = TRUE;
+            } else if (sip->property_type->direct_type == NM_VALUE_TYPE_STRING) {
+                if (sip->property_type == &nm_sett_info_propert_type_direct_mac_address) {
+                    g_assert(g_variant_type_equal(sip->property_type->dbus_type, "ay"));
+                    g_assert(sip->property_type->to_dbus_fcn
+                             == _nm_setting_property_to_dbus_fcn_direct_mac_address);
+                    g_assert(NM_IN_SET((guint) sip->direct_set_string_mac_address_len,
+                                       ETH_ALEN,
+                                       8,
+                                       INFINIBAND_ALEN));
+                } else {
+                    g_assert(g_variant_type_equal(sip->property_type->dbus_type, "s"));
+                    g_assert(sip->property_type->to_dbus_fcn
+                             == _nm_setting_property_to_dbus_fcn_direct);
+                }
+                g_assert(sip->param_spec);
+                g_assert(sip->param_spec->value_type == G_TYPE_STRING);
+            } else if (sip->property_type->direct_type == NM_VALUE_TYPE_BYTES) {
+                g_assert(g_variant_type_equal(sip->property_type->dbus_type, "ay"));
+                g_assert(sip->property_type->to_dbus_fcn
+                         == _nm_setting_property_to_dbus_fcn_direct);
+                g_assert(sip->param_spec);
+                g_assert(sip->param_spec->value_type == G_TYPE_BYTES);
+            } else
+                g_assert_not_reached();
+
+            if (sip->direct_set_string_ascii_strdown)
+                g_assert(sip->property_type->direct_type == NM_VALUE_TYPE_STRING);
+
+            if (sip->direct_set_string_mac_address_len != 0) {
+                g_assert(NM_IN_SET(sip->property_type,
+                                   &nm_sett_info_propert_type_direct_string,
+                                   &nm_sett_info_propert_type_direct_mac_address));
+                g_assert(sip->property_type->direct_type == NM_VALUE_TYPE_STRING);
+            }
+
+            g_assert(((sip->direct_set_string_mac_address_len != 0)
+                      + (!!sip->direct_set_string_ascii_strdown)
+                      + (sip->direct_set_string_ip_address_addr_family != 0))
+                     <= 1);
+
             if (!sip->property_type->to_dbus_fcn) {
                 /* it's allowed to have no to_dbus_fcn(), to ignore a property. But such
-                 * properties must not have a param_spec and no gprop_to_dbus_fcn. */
+                 * properties must not have a param_spec. */
                 g_assert(!sip->param_spec);
-                g_assert(!sip->to_dbus_data.none);
             } else if (sip->property_type->to_dbus_fcn == _nm_setting_property_to_dbus_fcn_gprop) {
                 g_assert(sip->param_spec);
                 switch (sip->property_type->typdata_to_dbus.gprop_type) {
-                case NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_BYTES:
-                    g_assert(sip->param_spec->value_type == G_TYPE_BYTES);
-                    goto check_done;
                 case NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_ENUM:
                     g_assert(g_type_is_a(sip->param_spec->value_type, G_TYPE_ENUM));
                     goto check_done;
@@ -4410,39 +4601,81 @@ test_setting_metadata(void)
                 case NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_STRDICT:
                     g_assert(sip->param_spec->value_type == G_TYPE_HASH_TABLE);
                     goto check_done;
-                case NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_MAC_ADDRESS:
-                    g_assert(sip->param_spec->value_type == G_TYPE_STRING);
-                    goto check_done;
                 case NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_DEFAULT:
                     goto check_done;
                 }
                 g_assert_not_reached();
 check_done:;
-                if (sip->property_type->typdata_to_dbus.gprop_type
-                    != NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_DEFAULT)
-                    g_assert(!sip->to_dbus_data.gprop_to_dbus_fcn);
                 can_set_including_default = TRUE;
-            } else if (sip->property_type->to_dbus_fcn
-                       == _nm_setting_property_to_dbus_fcn_get_boolean) {
-                g_assert(sip->param_spec);
-                g_assert(sip->param_spec->value_type == G_TYPE_BOOLEAN);
-                g_assert(sip->to_dbus_data.get_boolean);
-                can_set_including_default = TRUE;
-            } else if (sip->property_type->to_dbus_fcn
-                       == _nm_setting_property_to_dbus_fcn_get_string) {
-                g_assert(sip->param_spec);
-                g_assert(sip->param_spec->value_type == G_TYPE_STRING);
-                g_assert(sip->to_dbus_data.get_string);
             }
 
             if (!can_set_including_default)
-                g_assert(!sip->to_dbus_data.including_default);
+                g_assert(!sip->to_dbus_including_default);
 
-            g_assert(!sip->property_type->from_dbus_fcn
-                     || !sip->property_type->gprop_from_dbus_fcn);
+            g_assert(sip->property_type->from_dbus_fcn || !sip->param_spec);
+            if (sip->property_type->typdata_from_dbus.gprop_fcn) {
+                g_assert(sip->property_type->from_dbus_fcn
+                         == _nm_setting_property_from_dbus_fcn_gprop);
+            }
+            if (sip->property_type->from_dbus_direct_allow_transform) {
+                g_assert(sip->property_type->from_dbus_fcn
+                         == _nm_setting_property_from_dbus_fcn_direct);
+            }
+            if (sip->property_type->from_dbus_fcn == _nm_setting_property_from_dbus_fcn_direct) {
+                /* for the moment, all direct properties allow transformation. */
+                g_assert(sip->property_type->from_dbus_direct_allow_transform);
+            }
+
+            if (sip->property_type->from_dbus_fcn == _nm_setting_property_from_dbus_fcn_gprop)
+                g_assert(sip->param_spec);
+            if (sip->property_type->from_dbus_fcn) {
+                if (sip->property_type->direct_type != NM_VALUE_TYPE_NONE) {
+                    g_assert(NM_IN_SET(sip->property_type->from_dbus_fcn,
+                                       _nm_setting_property_from_dbus_fcn_direct_ip_config_gateway,
+                                       _nm_setting_property_from_dbus_fcn_direct_mac_address,
+                                       _nm_setting_property_from_dbus_fcn_direct));
+                }
+            }
+
+            g_assert(sip->property_type->from_dbus_is_full
+                     == NM_IN_SET(sip->property_type->from_dbus_fcn,
+                                  _nm_setting_property_from_dbus_fcn_direct,
+                                  _nm_setting_property_from_dbus_fcn_gprop,
+                                  _nm_setting_property_from_dbus_fcn_ignore));
 
             if (!g_hash_table_insert(h_properties, (char *) sip->name, sip->param_spec))
                 g_assert_not_reached();
+
+            if (sip->property_type->compare_fcn == _nm_setting_property_compare_fcn_default) {
+                g_assert(sip->param_spec);
+                g_assert_cmpstr(sip->name, !=, NM_SETTING_NAME);
+            } else if (sip->property_type->compare_fcn == _nm_setting_property_compare_fcn_direct) {
+                g_assert(sip->param_spec);
+                g_assert(sip->property_type->direct_type != NM_VALUE_TYPE_NONE);
+                g_assert(NM_IN_SET(sip->property_type->to_dbus_fcn,
+                                   _nm_setting_property_to_dbus_fcn_direct,
+                                   _nm_setting_property_to_dbus_fcn_direct_mac_address));
+            } else if (sip->property_type->compare_fcn == _nm_setting_property_compare_fcn_ignore) {
+                if (NM_IN_SET(sip->property_type,
+                              &nm_sett_info_propert_type_deprecated_ignore_i,
+                              &nm_sett_info_propert_type_deprecated_ignore_u,
+                              &nm_sett_info_propert_type_assigned_mac_address)) {
+                    /* pass */
+                } else if (!sip->param_spec) {
+                    /* pass */
+                } else if (nm_streq(sip->name, NM_SETTING_NAME)) {
+                    /* pass */
+                } else {
+                    /* ignoring a property for comparison make only sense in very specific cases. */
+                    g_assert_not_reached();
+                }
+            } else if (sip->property_type->compare_fcn) {
+                /* pass */
+            } else {
+                g_assert_not_reached();
+            }
+            g_assert((sip->property_type->compare_fcn != _nm_setting_property_compare_fcn_direct)
+                     || (sip->property_type->direct_type != NM_VALUE_TYPE_NONE));
 
             property_types_data = g_hash_table_lookup(h_property_types, sip->property_type);
             if (!property_types_data) {
@@ -4460,32 +4693,51 @@ check_done:;
 
                 g_assert_cmpstr(sip->name, ==, sip->param_spec->name);
 
+                g_assert(NM_FLAGS_HAS(sip->param_spec->flags, G_PARAM_WRITABLE)
+                         != nm_streq(sip->name, NM_SETTING_NAME));
+                g_assert((sip->property_type == &nm_sett_info_propert_type_setting_name)
+                         == nm_streq(sip->name, NM_SETTING_NAME));
+
                 g_value_init(&val, sip->param_spec->value_type);
                 g_object_get_property(G_OBJECT(setting), sip->name, &val);
 
                 if (sip->param_spec->value_type == G_TYPE_STRING) {
-                    const char *default_value;
-
-                    default_value = ((const GParamSpecString *) sip->param_spec)->default_value;
-                    if (default_value) {
-                        /* having a string property with a default != NULL is really ugly. They
-                         * should be best avoided... */
-                        if (meta_type == NM_META_SETTING_TYPE_DCB
-                            && nm_streq(sip->name, NM_SETTING_DCB_APP_FCOE_MODE)) {
-                            /* Whitelist the properties that have a non-NULL default value. */
-                            g_assert_cmpstr(default_value, ==, NM_SETTING_DCB_FCOE_MODE_FABRIC);
-                        } else
-                            g_assert_not_reached();
-                    }
+                    /* String properties should all have a default value of NULL. Otherwise,
+                     * it's ugly. */
+                    g_assert_cmpstr(((const GParamSpecString *) sip->param_spec)->default_value,
+                                    ==,
+                                    NULL);
+                    g_assert(!NM_G_PARAM_SPEC_GET_DEFAULT_STRING(sip->param_spec));
 
                     if (nm_streq(sip->name, NM_SETTING_NAME))
                         g_assert_cmpstr(g_value_get_string(&val), ==, msi->setting_name);
                     else
-                        g_assert_cmpstr(g_value_get_string(&val), ==, default_value);
+                        g_assert_cmpstr(g_value_get_string(&val), ==, NULL);
                 }
 
                 if (NM_FLAGS_HAS(sip->param_spec->flags, NM_SETTING_PARAM_TO_DBUS_IGNORE_FLAGS))
                     g_assert(sip->property_type->to_dbus_fcn);
+
+                g_assert(!NM_FLAGS_HAS(sip->param_spec->flags, G_PARAM_CONSTRUCT));
+                g_assert(!NM_FLAGS_HAS(sip->param_spec->flags, G_PARAM_CONSTRUCT_ONLY));
+
+                if (NM_FLAGS_HAS(sip->param_spec->flags, NM_SETTING_PARAM_SECRET)) {
+                    if (sip->param_spec->value_type == G_TYPE_STRING) {
+                        g_assert_cmpstr(NM_G_PARAM_SPEC_GET_DEFAULT_STRING(sip->param_spec),
+                                        ==,
+                                        NULL);
+                    } else if (sip->param_spec->value_type == G_TYPE_BYTES) {
+                        /* pass */
+                    } else if (sip->param_spec->value_type == G_TYPE_HASH_TABLE) {
+                        g_assert(NM_IS_SETTING_VPN(setting));
+                        g_assert_cmpstr(sip->name, ==, NM_SETTING_VPN_SECRETS);
+                    } else {
+                        g_error("secret %s.%s is of unexpected property type %s",
+                                nm_setting_get_name(setting),
+                                sip->name,
+                                g_type_name(sip->param_spec->value_type));
+                    }
+                }
             }
         }
 
@@ -4533,6 +4785,44 @@ check_done:;
             g_assert_cmpstr(sis->property_infos[0].name, ==, NM_SETTING_NAME);
         } else
             g_assert_cmpint(meta_type, !=, NM_META_SETTING_TYPE_ETHTOOL);
+
+        g_assert_cmpint(n_param_spec, >, 0);
+        g_assert_cmpint(n_param_spec, ==, sis->property_lookup_by_param_spec_len);
+        g_assert(sis->property_lookup_by_param_spec);
+        for (i = 0; i < sis->property_lookup_by_param_spec_len; i++) {
+            const NMSettInfoPropertLookupByParamSpec *p = &sis->property_lookup_by_param_spec[i];
+            guint                                     n_found;
+
+            if (i > 0) {
+                g_assert_cmpint(sis->property_lookup_by_param_spec[i - 1].param_spec_as_uint,
+                                <,
+                                p->param_spec_as_uint);
+            }
+            g_assert(p->property_info);
+            g_assert(p->property_info >= sis->property_infos);
+            g_assert(p->property_info < &sis->property_infos[sis->property_infos_len]);
+            g_assert(p->property_info
+                     == &sis->property_infos[p->property_info - sis->property_infos]);
+
+            g_assert(p->property_info->param_spec);
+            g_assert(p->param_spec_as_uint
+                     == ((uintptr_t) ((gpointer) p->property_info->param_spec)));
+
+            g_assert(_nm_sett_info_property_lookup_by_param_spec(sis, p->property_info->param_spec)
+                     == p->property_info);
+
+            n_found = 0;
+            for (j = 0; j < sis->property_infos_len; j++) {
+                const NMSettInfoProperty *pip2 = &sis->property_infos[j];
+
+                if (pip2->param_spec
+                    && p->param_spec_as_uint == ((uintptr_t) ((gpointer) pip2->param_spec))) {
+                    g_assert(pip2 == p->property_info);
+                    n_found++;
+                }
+            }
+            g_assert(n_found == 1);
+        }
     }
 
     {
@@ -4552,10 +4842,14 @@ check_done:;
                 const NMSettInfoPropertType *pt_2 = a_property_types[prop_idx_2];
 
                 if (!g_variant_type_equal(pt->dbus_type, pt_2->dbus_type)
-                    || pt->to_dbus_fcn != pt_2->to_dbus_fcn
+                    || pt->direct_type != pt_2->direct_type || pt->to_dbus_fcn != pt_2->to_dbus_fcn
                     || pt->from_dbus_fcn != pt_2->from_dbus_fcn
+                    || pt->compare_fcn != pt_2->compare_fcn
                     || pt->missing_from_dbus_fcn != pt_2->missing_from_dbus_fcn
-                    || pt->gprop_from_dbus_fcn != pt_2->gprop_from_dbus_fcn
+                    || memcmp(&pt->typdata_from_dbus,
+                              &pt_2->typdata_from_dbus,
+                              sizeof(pt->typdata_from_dbus))
+                           != 0
                     || memcmp(&pt->typdata_to_dbus,
                               &pt_2->typdata_to_dbus,
                               sizeof(pt->typdata_to_dbus))
@@ -4632,44 +4926,44 @@ test_setting_connection_secondaries_verify(void)
 
         g_object_set(s_con, NM_SETTING_CONNECTION_SECONDARIES, arr->pdata, NULL);
 
-#define _assert_secondaries(s_con, expected)                                                       \
-    G_STMT_START                                                                                   \
-    {                                                                                              \
-        NMSettingConnection *const _s_con    = (s_con);                                            \
-        const char *const *        _expected = (expected);                                         \
-        GArray *                   _secondaries;                                                   \
-        const guint                _expected_len = NM_PTRARRAY_LEN(_expected);                     \
-        gs_strfreev char **        _sec_strv     = NULL;                                           \
-        guint                      _i;                                                             \
-                                                                                                   \
-        g_assert(_expected);                                                                       \
-                                                                                                   \
-        if (nmtst_get_rand_bool()) {                                                               \
-            _secondaries = _nm_setting_connection_get_secondaries(_s_con);                         \
-            g_assert_cmpint(_expected_len, ==, nm_g_array_len(_secondaries));                      \
-            g_assert((_expected_len == 0) == (!_secondaries));                                     \
-            g_assert(nm_utils_strv_equal(_expected,                                                \
-                                         _secondaries ? nm_strvarray_get_strv(&_secondaries, NULL) \
-                                                      : NM_PTRARRAY_EMPTY(const char *)));         \
-        }                                                                                          \
-                                                                                                   \
-        if (nmtst_get_rand_bool()) {                                                               \
-            g_object_get(_s_con, NM_SETTING_CONNECTION_SECONDARIES, &_sec_strv, NULL);             \
-            g_assert_cmpint(_expected_len, ==, NM_PTRARRAY_LEN(_sec_strv));                        \
-            g_assert((_expected_len == 0) == (!_sec_strv));                                        \
-            g_assert(nm_utils_strv_equal(_expected, _sec_strv ?: NM_STRV_EMPTY()));                \
-        }                                                                                          \
-                                                                                                   \
-        g_assert_cmpint(nm_setting_connection_get_num_secondaries(_s_con), ==, _expected_len);     \
-        if (nmtst_get_rand_bool()) {                                                               \
-            for (_i = 0; _i < _expected_len; _i++) {                                               \
-                g_assert_cmpstr(nm_setting_connection_get_secondary(_s_con, _i),                   \
-                                ==,                                                                \
-                                _expected[_i]);                                                    \
-            }                                                                                      \
-            g_assert_null(nm_setting_connection_get_secondary(_s_con, _expected_len));             \
-        }                                                                                          \
-    }                                                                                              \
+#define _assert_secondaries(s_con, expected)                                                   \
+    G_STMT_START                                                                               \
+    {                                                                                          \
+        NMSettingConnection *const _s_con    = (s_con);                                        \
+        const char *const *        _expected = (expected);                                     \
+        GArray *                   _secondaries;                                               \
+        const guint                _expected_len = NM_PTRARRAY_LEN(_expected);                 \
+        gs_strfreev char **        _sec_strv     = NULL;                                       \
+        guint                      _i;                                                         \
+                                                                                               \
+        g_assert(_expected);                                                                   \
+                                                                                               \
+        if (nmtst_get_rand_bool()) {                                                           \
+            _secondaries = _nm_setting_connection_get_secondaries(_s_con);                     \
+            g_assert_cmpint(_expected_len, ==, nm_g_array_len(_secondaries));                  \
+            g_assert((_expected_len == 0) == (!_secondaries));                                 \
+            g_assert(nm_strv_equal(_expected,                                                  \
+                                   _secondaries ? nm_strvarray_get_strv(&_secondaries, NULL)   \
+                                                : NM_PTRARRAY_EMPTY(const char *)));           \
+        }                                                                                      \
+                                                                                               \
+        if (nmtst_get_rand_bool()) {                                                           \
+            g_object_get(_s_con, NM_SETTING_CONNECTION_SECONDARIES, &_sec_strv, NULL);         \
+            g_assert_cmpint(_expected_len, ==, NM_PTRARRAY_LEN(_sec_strv));                    \
+            g_assert((_expected_len == 0) == (!_sec_strv));                                    \
+            g_assert(nm_strv_equal(_expected, _sec_strv ?: NM_STRV_EMPTY()));                  \
+        }                                                                                      \
+                                                                                               \
+        g_assert_cmpint(nm_setting_connection_get_num_secondaries(_s_con), ==, _expected_len); \
+        if (nmtst_get_rand_bool()) {                                                           \
+            for (_i = 0; _i < _expected_len; _i++) {                                           \
+                g_assert_cmpstr(nm_setting_connection_get_secondary(_s_con, _i),               \
+                                ==,                                                            \
+                                _expected[_i]);                                                \
+            }                                                                                  \
+            g_assert_null(nm_setting_connection_get_secondary(_s_con, _expected_len));         \
+        }                                                                                      \
+    }                                                                                          \
     G_STMT_END
 
         _assert_secondaries(s_con, (const char *const *) arr->pdata);
@@ -4688,14 +4982,14 @@ test_setting_connection_secondaries_verify(void)
             if (is_normalized)
                 s = uuid_normalized;
 
-            if (nm_utils_strv_find_first((char **) arr_norm->pdata, arr_norm->len, s) >= 0)
+            if (nm_strv_ptrarray_find_first(arr_norm, s) >= 0)
                 continue;
 
             g_ptr_array_add(arr_norm, g_strdup(s));
         }
         g_ptr_array_add(arr_norm, NULL);
 
-        was_normalized = !nm_utils_strv_equal((char **) arr->pdata, (char **) arr_norm->pdata);
+        was_normalized = !nm_strv_equal((char **) arr->pdata, (char **) arr_norm->pdata);
 
         if (was_normalized)
             nmtst_assert_connection_verifies_and_normalizable(con);
@@ -4709,6 +5003,38 @@ test_setting_connection_secondaries_verify(void)
 
         _assert_secondaries(s_con, (const char *const *) arr_norm->pdata);
     }
+}
+
+/*****************************************************************************/
+
+static void
+test_6lowpan_1(void)
+{
+    gs_unref_object NMConnection *con = NULL;
+    NMSetting6Lowpan *            s_6low;
+    gs_free char *                value = NULL;
+
+    con = nmtst_create_minimal_connection("test-sec", NULL, NM_SETTING_6LOWPAN_SETTING_NAME, NULL);
+
+    s_6low = NM_SETTING_6LOWPAN(nm_connection_get_setting(con, NM_TYPE_SETTING_6LOWPAN));
+    g_assert(s_6low);
+
+    g_assert_cmpstr(nm_setting_6lowpan_get_parent(s_6low), ==, NULL);
+    g_object_get(s_6low, NM_SETTING_6LOWPAN_PARENT, &value, NULL);
+    g_assert_cmpstr(value, ==, NULL);
+    nm_clear_g_free(&value);
+
+    g_object_set(s_6low, NM_SETTING_6LOWPAN_PARENT, "hello", NULL);
+    g_assert_cmpstr(nm_setting_6lowpan_get_parent(s_6low), ==, "hello");
+    g_object_get(s_6low, NM_SETTING_6LOWPAN_PARENT, &value, NULL);
+    g_assert_cmpstr(value, ==, "hello");
+    nm_clear_g_free(&value);
+
+    g_object_set(s_6low, NM_SETTING_6LOWPAN_PARENT, "world", NULL);
+    g_assert_cmpstr(nm_setting_6lowpan_get_parent(s_6low), ==, "world");
+    g_object_get(s_6low, NM_SETTING_6LOWPAN_PARENT, &value, NULL);
+    g_assert_cmpstr(value, ==, "world");
+    nm_clear_g_free(&value);
 }
 
 /*****************************************************************************/
@@ -4741,6 +5067,8 @@ main(int argc, char **argv)
     g_test_add_func("/libnm/settings/bond/compare", test_bond_compare);
     g_test_add_func("/libnm/settings/bond/normalize", test_bond_normalize);
 
+    g_test_add_func("/libnm/settings/dummy/normalize", test_dummy_normalize);
+
     g_test_add_func("/libnm/settings/dcb/flags-valid", test_dcb_flags_valid);
     g_test_add_func("/libnm/settings/dcb/flags-invalid", test_dcb_flags_invalid);
     g_test_add_func("/libnm/settings/dcb/app-priorities", test_dcb_app_priorities);
@@ -4751,6 +5079,8 @@ main(int argc, char **argv)
     g_test_add_func("/libnm/settings/ethtool/coalesce", test_ethtool_coalesce);
     g_test_add_func("/libnm/settings/ethtool/ring", test_ethtool_ring);
     g_test_add_func("/libnm/settings/ethtool/pause", test_ethtool_pause);
+
+    g_test_add_func("/libnm/settings/6lowpan/1", test_6lowpan_1);
 
     g_test_add_func("/libnm/settings/sriov/vf", test_sriov_vf);
     g_test_add_func("/libnm/settings/sriov/vf-dup", test_sriov_vf_dup);

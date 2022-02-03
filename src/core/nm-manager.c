@@ -8,47 +8,46 @@
 
 #include "nm-manager.h"
 
-#include <stdlib.h>
 #include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/sendfile.h>
 #include <limits.h>
+#include <stdlib.h>
+#include <sys/sendfile.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#include "libnm-glib-aux/nm-c-list.h"
-
-#include "libnm-core-aux-intern/nm-common-macros.h"
-#include "nm-dbus-manager.h"
-#include "vpn/nm-vpn-manager.h"
-#include "devices/nm-device.h"
-#include "devices/nm-device-generic.h"
-#include "libnm-platform/nm-platform.h"
-#include "libnm-platform/nmp-object.h"
-#include "nm-hostname-manager.h"
-#include "nm-keep-alive.h"
-#include "nm-rfkill-manager.h"
-#include "dhcp/nm-dhcp-manager.h"
-#include "settings/nm-settings.h"
-#include "settings/nm-settings-connection.h"
-#include "nm-auth-utils.h"
-#include "nm-auth-manager.h"
 #include "NetworkManagerUtils.h"
 #include "devices/nm-device-factory.h"
-#include "nm-sleep-monitor.h"
-#include "nm-connectivity.h"
-#include "nm-policy.h"
-#include "nm-session-monitor.h"
-#include "nm-act-request.h"
+#include "devices/nm-device-generic.h"
+#include "devices/nm-device.h"
+#include "dhcp/nm-dhcp-manager.h"
+#include "libnm-core-aux-intern/nm-common-macros.h"
 #include "libnm-core-intern/nm-core-internal.h"
-#include "nm-config.h"
-#include "nm-audit-manager.h"
+#include "libnm-glib-aux/nm-c-list.h"
+#include "libnm-platform/nm-platform.h"
+#include "libnm-platform/nmp-object.h"
 #include "libnm-std-aux/nm-dbus-compat.h"
-#include "nm-checkpoint.h"
+#include "nm-act-request.h"
+#include "nm-audit-manager.h"
+#include "nm-auth-manager.h"
+#include "nm-auth-utils.h"
 #include "nm-checkpoint-manager.h"
+#include "nm-checkpoint.h"
+#include "nm-config.h"
+#include "nm-connectivity.h"
+#include "nm-dbus-manager.h"
 #include "nm-dbus-object.h"
 #include "nm-dispatcher.h"
-#include "NetworkManagerUtils.h"
+#include "nm-hostname-manager.h"
+#include "nm-keep-alive.h"
+#include "nm-policy.h"
+#include "nm-priv-helper-call.h"
+#include "nm-rfkill-manager.h"
+#include "nm-session-monitor.h"
+#include "nm-sleep-monitor.h"
+#include "settings/nm-settings-connection.h"
+#include "settings/nm-settings.h"
+#include "vpn/nm-vpn-manager.h"
 
 #define DEVICE_STATE_PRUNE_RATELIMIT_MAX 100u
 
@@ -214,6 +213,13 @@ struct _NMManager {
 
 typedef struct {
     NMDBusObjectClass parent;
+
+#if WITH_OPENVSWITCH
+    /* these fields only serve the purpose to use the symbols.*/
+    void (*_use_symbol_nm_priv_helper_call_get_fd)(void);
+    void (*_use_symbol_nm_priv_helper_utils_open_fd)(void);
+#endif
+
 } NMManagerClass;
 
 G_DEFINE_TYPE(NMManager, nm_manager, NM_TYPE_DBUS_OBJECT)
@@ -2854,9 +2860,10 @@ recheck_assume_connection(NMManager *self, NMDevice *device)
     g_return_val_if_fail(NM_IS_DEVICE(device), FALSE);
 
     if (!nm_device_get_managed(device, FALSE)) {
-        /* If the device is only unmanaged by NM_UNMANAGED_PLATFORM_INIT,
+        /* If the device is unmanaged by NM_UNMANAGED_PLATFORM_INIT or NM_UNMANAGED_PARENT,
          * don't reset the state now but wait until it becomes managed. */
-        if (nm_device_get_unmanaged_flags(device, NM_UNMANAGED_ALL) != NM_UNMANAGED_PLATFORM_INIT)
+        if (nm_device_get_unmanaged_flags(device, NM_UNMANAGED_ALL)
+            & ~(NM_UNMANAGED_PLATFORM_INIT | NM_UNMANAGED_PARENT))
             nm_device_assume_state_reset(device);
         _LOG2D(LOGD_DEVICE, device, "assume: don't assume because %s", "not managed");
         return FALSE;
@@ -2867,7 +2874,7 @@ recheck_assume_connection(NMManager *self, NMDevice *device)
         _LOG2D(LOGD_DEVICE,
                device,
                "assume: don't assume due to device state %s",
-               nm_device_state_to_str(state));
+               nm_device_state_to_string(state));
         return FALSE;
     }
 
@@ -3179,9 +3186,10 @@ _device_realize_finish(NMManager *self, NMDevice *device, const NMPlatformLink *
     nm_device_realize_finish(device, plink);
 
     if (!nm_device_get_managed(device, FALSE)) {
-        /* If the device is only unmanaged by NM_UNMANAGED_PLATFORM_INIT,
+        /* If the device is unmanaged by NM_UNMANAGED_PLATFORM_INIT or NM_UNMANAGED_PARENT,
          * don't reset the state now but wait until it becomes managed. */
-        if (nm_device_get_unmanaged_flags(device, NM_UNMANAGED_ALL) != NM_UNMANAGED_PLATFORM_INIT)
+        if (nm_device_get_unmanaged_flags(device, NM_UNMANAGED_ALL)
+            & ~(NM_UNMANAGED_PLATFORM_INIT | NM_UNMANAGED_PARENT))
             nm_device_assume_state_reset(device);
         return;
     }
@@ -4751,7 +4759,7 @@ active_connection_parent_active(NMActiveConnection *active,
     NMSettingsConnection *sett_conn;
     NMDevice *            parent;
 
-    g_signal_handlers_disconnect_by_func(active, (GCallback) active_connection_parent_active, self);
+    g_signal_handlers_disconnect_by_func(active, G_CALLBACK(active_connection_parent_active), self);
 
     if (!parent_ac) {
         _LOGW(LOGD_CORE,
@@ -4926,7 +4934,7 @@ _internal_activate_device(NMManager *self, NMActiveConnection *active, GError **
             /* We can't realize now; defer until the parent device is ready. */
             g_signal_connect(active,
                              NM_ACTIVE_CONNECTION_PARENT_ACTIVE,
-                             (GCallback) active_connection_parent_active,
+                             G_CALLBACK(active_connection_parent_active),
                              self);
             nm_active_connection_set_parent(active, parent_ac);
         } else {
@@ -6164,7 +6172,7 @@ sleep_devices_add(NMManager *self, NMDevice *device, gboolean suspending)
     g_hash_table_insert(priv->sleep_devices,
                         g_object_ref(device),
                         suspending ? nm_sleep_monitor_inhibit_take(priv->sleep_monitor) : NULL);
-    g_signal_connect(device, "notify::" NM_DEVICE_STATE, (GCallback) device_sleep_cb, self);
+    g_signal_connect(device, "notify::" NM_DEVICE_STATE, G_CALLBACK(device_sleep_cb), self);
     return TRUE;
 }
 
@@ -8076,7 +8084,7 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
         g_value_set_boolean(value, priv->sleeping);
         break;
     case PROP_DEVICES:
-        g_value_take_boxed(value, nm_utils_strv_make_deep_copied(_get_devices_paths(self, FALSE)));
+        g_value_take_boxed(value, nm_strv_make_deep_copied(_get_devices_paths(self, FALSE)));
         break;
     case PROP_METERED:
         g_value_set_uint(value, priv->metered);
@@ -8087,12 +8095,12 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
         nm_global_dns_config_to_dbus(dns_config, value);
         break;
     case PROP_ALL_DEVICES:
-        g_value_take_boxed(value, nm_utils_strv_make_deep_copied(_get_devices_paths(self, TRUE)));
+        g_value_take_boxed(value, nm_strv_make_deep_copied(_get_devices_paths(self, TRUE)));
         break;
     case PROP_CHECKPOINTS:
         g_value_take_boxed(
             value,
-            priv->checkpoint_mgr ? nm_utils_strv_make_deep_copied(
+            priv->checkpoint_mgr ? nm_strv_make_deep_copied(
                 nm_checkpoint_manager_get_checkpoint_paths(priv->checkpoint_mgr, NULL))
                                  : NULL);
         break;
@@ -8529,6 +8537,16 @@ nm_manager_class_init(NMManagerClass *manager_class)
 {
     GObjectClass *     object_class      = G_OBJECT_CLASS(manager_class);
     NMDBusObjectClass *dbus_object_class = NM_DBUS_OBJECT_CLASS(manager_class);
+
+#if WITH_OPENVSWITCH
+    /* Use the symbols. These symbols are in NetworkManager binary but will be
+     * used by the OVS device plugin. If we don't use the symbol here, it will
+     * be wrongly dropped. */
+    manager_class->_use_symbol_nm_priv_helper_call_get_fd =
+        (void (*)(void)) nm_priv_helper_call_get_fd;
+    manager_class->_use_symbol_nm_priv_helper_utils_open_fd =
+        (void (*)(void)) nm_priv_helper_utils_open_fd;
+#endif
 
     dbus_object_class->export_path     = NM_DBUS_EXPORT_PATH_STATIC(NM_DBUS_PATH);
     dbus_object_class->interface_infos = NM_DBUS_INTERFACE_INFOS(&interface_info_manager);

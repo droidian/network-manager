@@ -14,9 +14,12 @@
 #include <termios.h>
 #include <unistd.h>
 #include <locale.h>
-#include <glib-unix.h>
+#if HAVE_EDITLINE_READLINE
+#include <editline/readline.h>
+#else
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
 
 #include "libnmc-base/nm-client-utils.h"
 
@@ -28,9 +31,9 @@
 #include "settings.h"
 
 #if defined(NM_DIST_VERSION)
-    #define NMCLI_VERSION NM_DIST_VERSION
+#define NMCLI_VERSION NM_DIST_VERSION
 #else
-    #define NMCLI_VERSION VERSION
+#define NMCLI_VERSION VERSION
 #endif
 
 #define _NMC_COLOR_PALETTE_INIT()                              \

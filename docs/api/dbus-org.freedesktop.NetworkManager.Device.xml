@@ -60,6 +60,7 @@
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Ip6Connectivity">Ip6Connectivity</link>       readable   u
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.InterfaceFlags">InterfaceFlags</link>        readable   u
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.HwAddress">HwAddress</link>             readable   s
+<link linkend="gdbus-property-org-freedesktop-NetworkManager-Device.Ports">Ports</link>                 readable   ao
 </synopsis>
   </refsect1>
 <refsect1 role="desc" id="gdbus-interface-org-freedesktop-NetworkManager-Device">
@@ -543,6 +544,19 @@ HwAddress  readable   s
 <para>        The hardware address of the device.
 </para><para>        This replaces the other 'HwAddress' properties on the device-specific D-Bus interfaces.
 </para><para>        Since: 1.24
+</para>
+</refsect2>
+<refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-Device.Ports">
+  <title>The "Ports" property</title>
+  <indexterm zone="gdbus-property-org-freedesktop-NetworkManager-Device.Ports"><primary sortas=".Device:Ports">org.freedesktop.NetworkManager.Device:Ports</primary></indexterm>
+<programlisting>
+Ports  readable   ao
+</programlisting>
+<para>        The port devices of the controller device.
+</para><para>        Array of object paths representing devices which are currently set as
+        port of this device. This replaces the 'Slaves' properties on the
+        device-specific D-Bus interfaces.
+</para><para>        Since: 1.34
 </para>
 </refsect2>
 </refsect1>

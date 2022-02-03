@@ -17,6 +17,7 @@
 #include "devices/nm-device.h"
 #include "nm-manager.h"
 #include "nm-setting-ovs-external-ids.h"
+#include "nm-priv-helper-call.h"
 
 /*****************************************************************************/
 
@@ -25,7 +26,7 @@
 /*****************************************************************************/
 
 #if JANSSON_VERSION_HEX < 0x020400
-    #warning "requires at least libjansson 2.4"
+#warning "requires at least libjansson 2.4"
 #endif
 
 typedef struct {
@@ -118,9 +119,8 @@ enum {
 static guint signals[LAST_SIGNAL] = {0};
 
 typedef struct {
-    GSocketClient *    client;
     GSocketConnection *conn;
-    GCancellable *     cancellable;
+    GCancellable *     conn_cancellable;
     char               buf[4096]; /* Input buffer */
     size_t             bufp;      /* Last decoded byte in the input buffer. */
     GString *          input;     /* JSON stream waiting for decoding. */
@@ -753,6 +753,7 @@ _insert_interface(json_t *      params,
     NMSettingOvsInterface *s_ovs_iface;
     NMSettingOvsDpdk *     s_ovs_dpdk;
     NMSettingOvsPatch *    s_ovs_patch;
+    const char *           dpdk_devargs;
     json_t *               options = json_array();
     json_t *               row;
     guint32                mtu = 0;
@@ -777,9 +778,11 @@ _insert_interface(json_t *      params,
         s_ovs_patch = nm_connection_get_setting_ovs_patch(interface);
 
     if (s_ovs_dpdk) {
-        json_array_append_new(
-            options,
-            json_pack("[[s, s]]", "dpdk-devargs", nm_setting_ovs_dpdk_get_devargs(s_ovs_dpdk)));
+        dpdk_devargs = nm_setting_ovs_dpdk_get_devargs(s_ovs_dpdk);
+        if (dpdk_devargs)
+            json_array_append_new(options, json_pack("[[s, s]]", "dpdk-devargs", dpdk_devargs));
+        else
+            json_array_append_new(options, json_array());
     } else if (s_ovs_patch) {
         json_array_append_new(
             options,
@@ -1595,7 +1598,7 @@ ovsdb_got_update(NMOvsdb *self, json_t *msg)
         iter = json_object_iter(ovs);
         s    = json_object_iter_key(iter);
         if (s)
-            nm_utils_strdup_reset(&priv->db_uuid, s);
+            nm_strdup_reset(&priv->db_uuid, s);
     }
 
     json_object_foreach (interface, key, value) {
@@ -1665,8 +1668,8 @@ ovsdb_got_update(NMOvsdb *self, json_t *msg)
 
             nm_assert(nm_streq0(ovs_interface->name, name));
 
-            changed |= nm_utils_strdup_reset(&ovs_interface->type, type);
-            changed |= nm_utils_strdup_reset(&ovs_interface->connection_uuid, connection_uuid);
+            changed |= nm_strdup_reset(&ovs_interface->type, type);
+            changed |= nm_strdup_reset(&ovs_interface->connection_uuid, connection_uuid);
             if (!_external_ids_equal(ovs_interface->external_ids, external_ids_arr)) {
                 NM_SWAP(&ovs_interface->external_ids, &external_ids_arr);
                 changed = TRUE;
@@ -1776,8 +1779,8 @@ ovsdb_got_update(NMOvsdb *self, json_t *msg)
 
             nm_assert(nm_streq0(ovs_port->name, name));
 
-            changed |= nm_utils_strdup_reset(&ovs_port->name, name);
-            changed |= nm_utils_strdup_reset(&ovs_port->connection_uuid, connection_uuid);
+            changed |= nm_strdup_reset(&ovs_port->name, name);
+            changed |= nm_strdup_reset(&ovs_port->connection_uuid, connection_uuid);
             if (nm_strv_ptrarray_cmp(ovs_port->interfaces, interfaces) != 0) {
                 NM_SWAP(&ovs_port->interfaces, &interfaces);
                 changed = TRUE;
@@ -1881,8 +1884,8 @@ ovsdb_got_update(NMOvsdb *self, json_t *msg)
 
             nm_assert(nm_streq0(ovs_bridge->name, name));
 
-            changed = nm_utils_strdup_reset(&ovs_bridge->name, name);
-            changed = nm_utils_strdup_reset(&ovs_bridge->connection_uuid, connection_uuid);
+            changed = nm_strdup_reset(&ovs_bridge->name, name);
+            changed = nm_strdup_reset(&ovs_bridge->connection_uuid, connection_uuid);
             if (nm_strv_ptrarray_cmp(ovs_bridge->ports, ports) != 0) {
                 NM_SWAP(&ovs_bridge->ports, &ports);
                 changed = TRUE;
@@ -2223,7 +2226,7 @@ ovsdb_disconnect(NMOvsdb *self, gboolean retry, gboolean is_disposing)
 
     nm_assert(!retry || !is_disposing);
 
-    if (!priv->client)
+    if (!priv->conn && !priv->conn_cancellable)
         return;
 
     _LOGD("disconnecting from ovsdb, retry %d", retry);
@@ -2250,10 +2253,9 @@ ovsdb_disconnect(NMOvsdb *self, gboolean retry, gboolean is_disposing)
     priv->bufp = 0;
     g_string_truncate(priv->input, 0);
     g_string_truncate(priv->output, 0);
-    g_clear_object(&priv->client);
     g_clear_object(&priv->conn);
     nm_clear_g_free(&priv->db_uuid);
-    nm_clear_g_cancellable(&priv->cancellable);
+    nm_clear_g_cancellable(&priv->conn_cancellable);
 
     if (retry)
         ovsdb_try_connect(self);
@@ -2348,30 +2350,80 @@ _monitor_bridges_cb(NMOvsdb *self, json_t *result, GError *error, gpointer user_
 }
 
 static void
-_client_connect_cb(GObject *source_object, GAsyncResult *res, gpointer user_data)
+_ovsdb_connect_complete_with_fd(NMOvsdb *self, int fd_take)
 {
-    GSocketClient *    client = G_SOCKET_CLIENT(source_object);
-    NMOvsdb *          self   = NM_OVSDB(user_data);
-    NMOvsdbPrivate *   priv;
-    GError *           error = NULL;
-    GSocketConnection *conn;
+    NMOvsdbPrivate *priv            = NM_OVSDB_GET_PRIVATE(self);
+    gs_unref_object GSocket *socket = NULL;
+    gs_free_error GError *error     = NULL;
 
-    conn = g_socket_client_connect_finish(client, res, &error);
-    if (conn == NULL) {
-        if (!g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-            _LOGI("%s", error->message);
-
+    socket = g_socket_new_from_fd(nm_steal_fd(&fd_take), &error);
+    if (!socket) {
+        _LOGT("connect: failure to open socket for new FD: %s", error->message);
         ovsdb_disconnect(self, FALSE, FALSE);
-        g_clear_error(&error);
         return;
     }
 
-    priv       = NM_OVSDB_GET_PRIVATE(self);
-    priv->conn = conn;
-    g_clear_object(&priv->cancellable);
+    priv->conn = g_socket_connection_factory_create_connection(socket);
+    g_clear_object(&priv->conn_cancellable);
 
     ovsdb_read(self);
     ovsdb_next_command(self);
+}
+
+static void
+_ovsdb_connect_priv_helper_cb(int fd_take, GError *error, gpointer user_data)
+{
+    nm_auto_close int fd = fd_take;
+    NMOvsdb *         self;
+
+    if (nm_utils_error_is_cancelled(error))
+        return;
+
+    self = user_data;
+
+    if (error) {
+        _LOGT("connect: failure to get FD from nm-priv-helper: %s", error->message);
+        ovsdb_disconnect(self, FALSE, FALSE);
+        return;
+    }
+
+    _LOGT("connect: connected successfully with FD from nm-priv-helper");
+    _ovsdb_connect_complete_with_fd(self, nm_steal_fd(&fd));
+}
+
+static void
+_ovsdb_connect_idle(gpointer user_data, GCancellable *cancellable)
+{
+    NMOvsdb *         self;
+    NMOvsdbPrivate *  priv;
+    nm_auto_close int fd        = -1;
+    gs_free_error GError *error = NULL;
+
+    if (g_cancellable_is_cancelled(cancellable))
+        return;
+
+    self = user_data;
+    priv = NM_OVSDB_GET_PRIVATE(self);
+
+    fd = nm_priv_helper_utils_open_fd(NM_PRIV_HELPER_GET_FD_TYPE_OVSDB_SOCKET, &error);
+    if (fd == -ENOENT) {
+        _LOGT("connect: opening %s failed (\"%s\")", NM_OVSDB_SOCKET, error->message);
+        ovsdb_disconnect(self, FALSE, FALSE);
+        return;
+    }
+    if (fd < 0) {
+        _LOGT("connect: opening %s failed (\"%s\"). Retry with nm-priv-helper",
+              NM_OVSDB_SOCKET,
+              error->message);
+        nm_priv_helper_call_get_fd(NM_PRIV_HELPER_GET_FD_TYPE_OVSDB_SOCKET,
+                                   priv->conn_cancellable,
+                                   _ovsdb_connect_priv_helper_cb,
+                                   self);
+        return;
+    }
+
+    _LOGT("connect: opening %s succeeded", NM_OVSDB_SOCKET);
+    _ovsdb_connect_complete_with_fd(self, nm_steal_fd(&fd));
 }
 
 /**
@@ -2385,22 +2437,13 @@ static void
 ovsdb_try_connect(NMOvsdb *self)
 {
     NMOvsdbPrivate *priv = NM_OVSDB_GET_PRIVATE(self);
-    GSocketAddress *addr;
 
-    if (priv->client)
+    if (priv->conn || priv->conn_cancellable)
         return;
 
-    /* TODO: This should probably be made configurable via NetworkManager.conf */
-    addr = g_unix_socket_address_new(RUNSTATEDIR "/openvswitch/db.sock");
-
-    priv->client      = g_socket_client_new();
-    priv->cancellable = g_cancellable_new();
-    g_socket_client_connect_async(priv->client,
-                                  G_SOCKET_CONNECTABLE(addr),
-                                  priv->cancellable,
-                                  _client_connect_cb,
-                                  self);
-    g_object_unref(addr);
+    _LOGT("connect: start connecting socket %s on idle", NM_OVSDB_SOCKET);
+    priv->conn_cancellable = g_cancellable_new();
+    nm_utils_invoke_on_idle(priv->conn_cancellable, _ovsdb_connect_idle, self);
 
     /* Queue a monitor call before any other command, ensuring that we have an up
      * to date view of existing bridged that we need for add and remove ops. */
@@ -2534,12 +2577,10 @@ nm_ovsdb_set_external_ids(NMOvsdb *                self,
     gs_unref_hashtable GHashTable *exid_old = NULL;
     gs_unref_hashtable GHashTable *exid_new = NULL;
 
-    exid_old = s_exid_old
-                   ? nm_utils_strdict_clone(_nm_setting_ovs_external_ids_get_data(s_exid_old))
-                   : NULL;
-    exid_new = s_exid_new
-                   ? nm_utils_strdict_clone(_nm_setting_ovs_external_ids_get_data(s_exid_new))
-                   : NULL;
+    exid_old =
+        s_exid_old ? nm_strdict_clone(_nm_setting_ovs_external_ids_get_data(s_exid_old)) : NULL;
+    exid_new =
+        s_exid_new ? nm_strdict_clone(_nm_setting_ovs_external_ids_get_data(s_exid_new)) : NULL;
 
     ovsdb_call_method(self,
                       NULL,

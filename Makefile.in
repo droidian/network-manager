@@ -147,6 +147,7 @@ libexec_PROGRAMS = src/core/nm-iface-helper$(EXEEXT) \
 	src/nm-initrd-generator/nm-initrd-generator$(EXEEXT) \
 	src/core/dhcp/nm-dhcp-helper$(EXEEXT) \
 	src/nm-dispatcher/nm-dispatcher$(EXEEXT) \
+	src/nm-priv-helper/nm-priv-helper$(EXEEXT) \
 	src/nm-daemon-helper/nm-daemon-helper$(EXEEXT) \
 	$(am__EXEEXT_17)
 TESTS = $(am__EXEEXT_11)
@@ -269,41 +270,42 @@ TESTS = $(am__EXEEXT_11)
 @WITH_TEAMDCTL_TRUE@am__append_47 = src/core/devices/team/libnm-device-plugin-team.la
 @WITH_TEAMDCTL_TRUE@am__append_48 = check-local-devices-team
 @WITH_OPENVSWITCH_TRUE@am__append_49 = src/core/devices/ovs/libnm-device-plugin-ovs.la
-@BUILD_DOCS_TRUE@am__append_50 = $(libnmc_setting_settings_doc_h)
-@BUILD_DOCS_TRUE@am__append_51 = check-local-settings-docs
+@WITH_OPENVSWITCH_TRUE@am__append_50 = check-local-devices-ovs
+@BUILD_DOCS_TRUE@am__append_51 = $(libnmc_setting_settings_doc_h)
+@BUILD_DOCS_TRUE@am__append_52 = check-local-settings-docs
 
 ###############################################################################
 # src/nmcli
 ###############################################################################
-@BUILD_NMCLI_TRUE@am__append_52 = src/nmcli/nmcli
-@BUILD_NMCLI_TRUE@am__append_53 = install-data-hook-nmcli
-@BUILD_NMCLI_TRUE@am__append_54 = uninstall-hook-nmcli
+@BUILD_NMCLI_TRUE@am__append_53 = src/nmcli/nmcli
+@BUILD_NMCLI_TRUE@am__append_54 = install-data-hook-nmcli
+@BUILD_NMCLI_TRUE@am__append_55 = uninstall-hook-nmcli
 
 ###############################################################################
 # src/libnmt-newt
 ###############################################################################
-@BUILD_NMTUI_TRUE@am__append_55 = src/libnmt-newt/libnmt-newt.a
+@BUILD_NMTUI_TRUE@am__append_56 = src/libnmt-newt/libnmt-newt.a
 
 ###############################################################################
 # src/nmtui
 ###############################################################################
-@BUILD_NMTUI_TRUE@am__append_56 = src/nmtui/nmtui
-@BUILD_NMTUI_TRUE@am__append_57 = install-exec-hook-nmtui
-@BUILD_NMTUI_TRUE@am__append_58 = uninstall-hook-nmtui
+@BUILD_NMTUI_TRUE@am__append_57 = src/nmtui/nmtui
+@BUILD_NMTUI_TRUE@am__append_58 = install-exec-hook-nmtui
+@BUILD_NMTUI_TRUE@am__append_59 = uninstall-hook-nmtui
 
 ###############################################################################
 # src/nm-cloud-setup
 ###############################################################################
-@BUILD_NM_CLOUD_SETUP_TRUE@am__append_59 = src/nm-cloud-setup/libnm-cloud-setup-core.a
-@BUILD_NM_CLOUD_SETUP_TRUE@am__append_60 = src/nm-cloud-setup/nm-cloud-setup
-@BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@am__append_61 = \
+@BUILD_NM_CLOUD_SETUP_TRUE@am__append_60 = src/nm-cloud-setup/libnm-cloud-setup-core.a
+@BUILD_NM_CLOUD_SETUP_TRUE@am__append_61 = src/nm-cloud-setup/nm-cloud-setup
+@BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@am__append_62 = \
 @BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@	src/nm-cloud-setup/nm-cloud-setup.service \
 @BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@	src/nm-cloud-setup/nm-cloud-setup.timer \
 @BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@	$(NULL)
 
-@BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@am__append_62 = install-data-hook-cloud-setup
-@BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@am__append_63 = uninstall-hook-cloud-setup
-@BUILD_NM_CLOUD_SETUP_TRUE@am__append_64 = \
+@BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@am__append_63 = install-data-hook-cloud-setup
+@BUILD_NM_CLOUD_SETUP_TRUE@@HAVE_SYSTEMD_TRUE@am__append_64 = uninstall-hook-cloud-setup
+@BUILD_NM_CLOUD_SETUP_TRUE@am__append_65 = \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/90-nm-cloud-setup.sh \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/meson.build \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/nm-cloud-setup.service.in \
@@ -311,62 +313,63 @@ TESTS = $(am__EXEEXT_11)
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/tests/meson.build \
 @BUILD_NM_CLOUD_SETUP_TRUE@	$(NULL)
 
-@BUILD_NM_CLOUD_SETUP_TRUE@am__append_65 = \
+@BUILD_NM_CLOUD_SETUP_TRUE@am__append_66 = \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/nm-cloud-setup/nm-cloud-setup.service
 
-@BUILD_NM_CLOUD_SETUP_TRUE@am__append_66 = src/nm-cloud-setup/tests/test-cloud-setup-general
+@BUILD_NM_CLOUD_SETUP_TRUE@am__append_67 = src/nm-cloud-setup/tests/test-cloud-setup-general
 
 ###############################################################################
 # data
 ###############################################################################
-@HAVE_SYSTEMD_TRUE@am__append_67 = \
+@HAVE_SYSTEMD_TRUE@am__append_68 = \
 @HAVE_SYSTEMD_TRUE@	data/NetworkManager.service \
 @HAVE_SYSTEMD_TRUE@	data/NetworkManager-wait-online.service \
 @HAVE_SYSTEMD_TRUE@	data/NetworkManager-dispatcher.service \
+@HAVE_SYSTEMD_TRUE@	data/nm-priv-helper.service \
 @HAVE_SYSTEMD_TRUE@	$(NULL)
 
-@HAVE_INTROSPECTION_TRUE@am__append_68 = $(man_nm_settings_xml)
-@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_69 = man/nm-settings-ifcfg-rh.5
-@CONFIG_PLUGIN_IFCFG_RH_FALSE@am__append_70 = man/nm-settings-ifcfg-rh.5
+@HAVE_INTROSPECTION_TRUE@am__append_69 = $(man_nm_settings_xml)
+@CONFIG_PLUGIN_IFCFG_RH_TRUE@am__append_70 = man/nm-settings-ifcfg-rh.5
 @CONFIG_PLUGIN_IFCFG_RH_FALSE@am__append_71 = man/nm-settings-ifcfg-rh.5
-@WITH_OPENVSWITCH_TRUE@am__append_72 = man/nm-openvswitch.7
-@WITH_OPENVSWITCH_FALSE@am__append_73 = man/nm-openvswitch.7
+@CONFIG_PLUGIN_IFCFG_RH_FALSE@am__append_72 = man/nm-settings-ifcfg-rh.5
+@WITH_OPENVSWITCH_TRUE@am__append_73 = man/nm-openvswitch.7
 @WITH_OPENVSWITCH_FALSE@am__append_74 = man/nm-openvswitch.7
-@BUILD_NM_CLOUD_SETUP_TRUE@am__append_75 = man/nm-cloud-setup.8
-@BUILD_NM_CLOUD_SETUP_FALSE@am__append_76 = man/nm-cloud-setup.8
+@WITH_OPENVSWITCH_FALSE@am__append_75 = man/nm-openvswitch.7
+@BUILD_NM_CLOUD_SETUP_TRUE@am__append_76 = man/nm-cloud-setup.8
 @BUILD_NM_CLOUD_SETUP_FALSE@am__append_77 = man/nm-cloud-setup.8
-@HAVE_DOCS_TRUE@am__append_78 = install-data-hook-man
-@HAVE_DOCS_TRUE@am__append_79 = uninstall-hook-man
-@HAVE_DOCS_TRUE@am__append_80 = $(man_pages) $(man_pages_autogen)
-@BUILD_DOCS_TRUE@am__append_81 = $(man_pages) $(man_pages_autogen)
+@BUILD_NM_CLOUD_SETUP_FALSE@am__append_78 = man/nm-cloud-setup.8
+@HAVE_DOCS_TRUE@am__append_79 = install-data-hook-man
+@HAVE_DOCS_TRUE@am__append_80 = uninstall-hook-man
+@HAVE_DOCS_TRUE@am__append_81 = $(man_pages) $(man_pages_autogen)
+@BUILD_DOCS_TRUE@am__append_82 = $(man_pages) $(man_pages_autogen)
 
 ###############################################################################
 # vapi
 ###############################################################################
-@ENABLE_VAPIGEN_TRUE@am__append_82 = \
+@ENABLE_VAPIGEN_TRUE@am__append_83 = \
 @ENABLE_VAPIGEN_TRUE@	vapi/libnm.vapi
 
-@ENABLE_VAPIGEN_TRUE@am__append_83 = \
+@ENABLE_VAPIGEN_TRUE@am__append_84 = \
 @ENABLE_VAPIGEN_TRUE@	$(VAPIGEN_VAPIS) \
 @ENABLE_VAPIGEN_TRUE@	$(VAPIGEN_VAPIS:.vapi=.deps)
 
-@ENABLE_VAPIGEN_TRUE@am__append_84 = $(VAPIGEN_VAPIS)
+@ENABLE_VAPIGEN_TRUE@am__append_85 = $(VAPIGEN_VAPIS)
 
 ###############################################################################
-@ENABLE_TESTS_TRUE@am__append_85 = $(check_programs) $(check_programs_norun)
-@ENABLE_TESTS_TRUE@am__append_86 = $(check_ltlibraries)
-@ENABLE_TESTS_FALSE@am__append_87 = $(check_programs) $(check_programs_norun)
-@ENABLE_TESTS_FALSE@am__append_88 = $(check_ltlibraries)
-@WITH_QT_TRUE@am__append_89 = \
+@ENABLE_TESTS_TRUE@am__append_86 = $(check_programs) $(check_programs_norun)
+@ENABLE_TESTS_TRUE@am__append_87 = $(check_ltlibraries)
+@ENABLE_TESTS_FALSE@am__append_88 = $(check_programs) $(check_programs_norun)
+@ENABLE_TESTS_FALSE@am__append_89 = $(check_ltlibraries)
+@WITH_QT_TRUE@am__append_90 = \
 @WITH_QT_TRUE@	examples/C/qt/add-connection-wired \
 @WITH_QT_TRUE@	examples/C/qt/list-connections \
 @WITH_QT_TRUE@	examples/C/qt/change-ipv4-addresses \
 @WITH_QT_TRUE@	examples/C/qt/monitor-nm-running
 
-@WITH_QT_TRUE@am__append_90 = \
+@WITH_QT_TRUE@am__append_91 = \
 @WITH_QT_TRUE@	examples/C/qt/monitor-nm-running.moc
 
-@WITH_PYTHON_BLACK_TRUE@am__append_91 = check-python-black
+@WITH_PYTHON_BLACK_TRUE@am__append_92 = check-python-black
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/attributes.m4 \
@@ -394,7 +397,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES = data/org.freedesktop.NetworkManager.policy.in \
-	NetworkManager.pc src/libnm-client-impl/libnm.pc \
+	src/libnm-client-impl/libnm.pc \
 	src/libnm-core-public/nm-version-macros.h
 CONFIG_CLEAN_VPATH_FILES =
 @BUILD_NMCLI_TRUE@am__EXEEXT_1 = src/nmcli/nmcli$(EXEEXT)
@@ -455,7 +458,6 @@ am__EXEEXT_11 = src/libnm-platform/tests/test-nm-platform$(EXEEXT) \
 	src/core/platform/tests/test-platform-general$(EXEEXT) \
 	src/core/platform/tests/test-route-fake$(EXEEXT) \
 	src/core/platform/tests/test-route-linux$(EXEEXT) \
-	src/core/platform/tests/test-tc-fake$(EXEEXT) \
 	src/core/platform/tests/test-tc-linux$(EXEEXT) \
 	src/core/devices/tests/test-lldp$(EXEEXT) \
 	src/core/devices/tests/test-acd$(EXEEXT) \
@@ -988,6 +990,7 @@ am_src_core_libNetworkManager_la_OBJECTS =  \
 	src/core/libNetworkManager_la-nm-policy.lo \
 	src/core/libNetworkManager_la-nm-rfkill-manager.lo \
 	src/core/libNetworkManager_la-nm-session-monitor.lo \
+	src/core/libNetworkManager_la-nm-priv-helper-call.lo \
 	src/core/libNetworkManager_la-nm-keep-alive.lo \
 	src/core/libNetworkManager_la-nm-sleep-monitor.lo
 src_core_libNetworkManager_la_OBJECTS =  \
@@ -1004,6 +1007,7 @@ am_src_core_libNetworkManagerBase_la_OBJECTS =  \
 	src/core/libNetworkManagerBase_la-nm-netns.lo \
 	src/core/libNetworkManagerBase_la-nm-l3-config-data.lo \
 	src/core/libNetworkManagerBase_la-nm-l3-ipv4ll.lo \
+	src/core/libNetworkManagerBase_la-nm-l3-ipv6ll.lo \
 	src/core/libNetworkManagerBase_la-nm-l3cfg.lo \
 	src/core/libNetworkManagerBase_la-nm-ip-config.lo \
 	src/core/libNetworkManagerBase_la-nm-ip4-config.lo \
@@ -1122,7 +1126,8 @@ src_core_settings_plugins_ifupdown_libnms_ifupdown_core_la_OBJECTS = $(am_src_co
 src_libnm_base_libnm_base_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_src_libnm_base_libnm_base_la_OBJECTS =  \
 	src/libnm-base/libnm_base_la-nm-ethtool-base.lo \
-	src/libnm-base/libnm_base_la-nm-net-aux.lo
+	src/libnm-base/libnm_base_la-nm-net-aux.lo \
+	src/libnm-base/libnm_base_la-nm-priv-helper-utils.lo
 src_libnm_base_libnm_base_la_OBJECTS =  \
 	$(am_src_libnm_base_libnm_base_la_OBJECTS)
 src_libnm_base_libnm_base_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
@@ -1258,6 +1263,7 @@ am__objects_8 =  \
 	src/libnm-core-impl/libnm_core_impl_la-nm-setting-8021x.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-setting-adsl.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-setting-bluetooth.lo \
+	src/libnm-core-impl/libnm_core_impl_la-nm-setting-bond-port.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-setting-bond.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-setting-bridge-port.lo \
 	src/libnm-core-impl/libnm_core_impl_la-nm-setting-bridge.lo \
@@ -1488,7 +1494,7 @@ am_src_libnm_systemd_core_libnm_systemd_core_la_OBJECTS = src/libnm-systemd-core
 	src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-dhcp6-lease.lo \
 	src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4acd.lo \
 	src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4ll.lo \
-	src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp.lo \
+	src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp-rx.lo \
 	src/libnm-systemd-core/src/libsystemd/sd-event/libnm_systemd_core_la-event-util.lo \
 	src/libnm-systemd-core/src/libsystemd/sd-event/libnm_systemd_core_la-sd-event.lo \
 	src/libnm-systemd-core/src/libsystemd/sd-id128/libnm_systemd_core_la-id128-util.lo \
@@ -1513,6 +1519,7 @@ am_src_libnm_systemd_shared_libnm_systemd_shared_la_OBJECTS = src/libnm-systemd-
 	src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-hexdecoct.lo \
 	src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-hostname-util.lo \
 	src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-in-addr-util.lo \
+	src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-inotify-util.lo \
 	src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-io-util.lo \
 	src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-memory-util.lo \
 	src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-mempool.lo \
@@ -1974,17 +1981,6 @@ src_core_platform_tests_test_route_linux_LINK = $(LIBTOOL) $(AM_V_lt) \
 	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(src_core_platform_tests_test_route_linux_LDFLAGS) $(LDFLAGS) \
 	-o $@
-am_src_core_platform_tests_test_tc_fake_OBJECTS =  \
-	src/core/platform/tests/test_tc_fake-test-tc.$(OBJEXT)
-src_core_platform_tests_test_tc_fake_OBJECTS =  \
-	$(am_src_core_platform_tests_test_tc_fake_OBJECTS)
-src_core_platform_tests_test_tc_fake_DEPENDENCIES =  \
-	$(am__DEPENDENCIES_4)
-src_core_platform_tests_test_tc_fake_LINK = $(LIBTOOL) $(AM_V_lt) \
-	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
-	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(src_core_platform_tests_test_tc_fake_LDFLAGS) $(LDFLAGS) -o \
-	$@
 am_src_core_platform_tests_test_tc_linux_OBJECTS =  \
 	src/core/platform/tests/test_tc_linux-test-tc.$(OBJEXT)
 src_core_platform_tests_test_tc_linux_OBJECTS =  \
@@ -2355,6 +2351,7 @@ src_nm_cloud_setup_nm_cloud_setup_OBJECTS =  \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-base/libnm-base.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-glib-aux/libnm-glib-aux.la \
+@BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-log-null/libnm-log-null.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-std-aux/libnm-std-aux.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/c-siphash/libc-siphash.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-client-impl/libnm.la \
@@ -2373,6 +2370,7 @@ src_nm_cloud_setup_tests_test_cloud_setup_general_OBJECTS = src/nm-cloud-setup/t
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-base/libnm-base.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-glib-aux/libnm-glib-aux.la \
+@BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-log-null/libnm-log-null.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-std-aux/libnm-std-aux.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/c-siphash/libc-siphash.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-client-impl/libnm.la \
@@ -2401,6 +2399,7 @@ src_nm_dispatcher_nm_dispatcher_DEPENDENCIES =  \
 	src/nm-dispatcher/libnm-dispatcher-core.la \
 	src/libnm-client-impl/libnm.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la $(am__DEPENDENCIES_1)
 src_nm_dispatcher_nm_dispatcher_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
@@ -2497,12 +2496,27 @@ src_nm_online_nm_online_OBJECTS =  \
 src_nm_online_nm_online_DEPENDENCIES = src/libnm-client-impl/libnm.la \
 	src/libnm-client-aux-extern/libnm-client-aux-extern.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la $(am__DEPENDENCIES_1)
 src_nm_online_nm_online_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(src_nm_online_nm_online_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_src_nm_priv_helper_nm_priv_helper_OBJECTS =  \
+	src/nm-priv-helper/nm_priv_helper-nm-priv-helper.$(OBJEXT)
+src_nm_priv_helper_nm_priv_helper_OBJECTS =  \
+	$(am_src_nm_priv_helper_nm_priv_helper_OBJECTS)
+src_nm_priv_helper_nm_priv_helper_DEPENDENCIES =  \
+	src/libnm-base/libnm-base.la \
+	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
+	src/libnm-std-aux/libnm-std-aux.la \
+	src/c-siphash/libc-siphash.la $(am__DEPENDENCIES_1)
+src_nm_priv_helper_nm_priv_helper_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(src_nm_priv_helper_nm_priv_helper_LDFLAGS) $(LDFLAGS) -o $@
 am_src_nmcli_generate_docs_nm_settings_nmcli_OBJECTS = src/nmcli/generate_docs_nm_settings_nmcli-generate-docs-nm-settings-nmcli.$(OBJEXT)
 src_nmcli_generate_docs_nm_settings_nmcli_OBJECTS =  \
 	$(am_src_nmcli_generate_docs_nm_settings_nmcli_OBJECTS)
@@ -2514,6 +2528,7 @@ src_nmcli_generate_docs_nm_settings_nmcli_DEPENDENCIES =  \
 	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 	src/libnm-base/libnm-base.la src/libnm-client-impl/libnm.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la $(am__DEPENDENCIES_1)
 src_nmcli_generate_docs_nm_settings_nmcli_LINK = $(LIBTOOL) $(AM_V_lt) \
@@ -2546,6 +2561,7 @@ src_nmcli_nmcli_OBJECTS = $(am_src_nmcli_nmcli_OBJECTS)
 @BUILD_NMCLI_TRUE@	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 @BUILD_NMCLI_TRUE@	src/libnm-base/libnm-base.la \
 @BUILD_NMCLI_TRUE@	src/libnm-glib-aux/libnm-glib-aux.la \
+@BUILD_NMCLI_TRUE@	src/libnm-log-null/libnm-log-null.la \
 @BUILD_NMCLI_TRUE@	src/libnm-std-aux/libnm-std-aux.la \
 @BUILD_NMCLI_TRUE@	src/c-siphash/libc-siphash.la \
 @BUILD_NMCLI_TRUE@	src/libnm-client-aux-extern/libnm-client-aux-extern.la \
@@ -2576,21 +2592,23 @@ am__src_nmtui_nmtui_SOURCES_DIST = src/nmtui/nmtui.c src/nmtui/nmtui.h \
 	src/nmtui/nmt-ip-entry.c src/nmtui/nmt-ip-entry.h \
 	src/nmtui/nmt-mac-entry.c src/nmtui/nmt-mac-entry.h \
 	src/nmtui/nmt-mtu-entry.c src/nmtui/nmt-mtu-entry.h \
+	src/nmtui/nmt-page-bond-port.c src/nmtui/nmt-page-bond-port.h \
 	src/nmtui/nmt-page-bond.c src/nmtui/nmt-page-bond.h \
-	src/nmtui/nmt-page-bridge.c src/nmtui/nmt-page-bridge.h \
 	src/nmtui/nmt-page-bridge-port.c \
-	src/nmtui/nmt-page-bridge-port.h src/nmtui/nmt-page-dsl.c \
+	src/nmtui/nmt-page-bridge-port.h src/nmtui/nmt-page-bridge.c \
+	src/nmtui/nmt-page-bridge.h src/nmtui/nmt-page-dsl.c \
 	src/nmtui/nmt-page-dsl.h src/nmtui/nmt-page-ethernet.c \
 	src/nmtui/nmt-page-ethernet.h src/nmtui/nmt-page-infiniband.c \
 	src/nmtui/nmt-page-infiniband.h src/nmtui/nmt-page-ip-tunnel.c \
 	src/nmtui/nmt-page-ip-tunnel.h src/nmtui/nmt-page-ip4.c \
 	src/nmtui/nmt-page-ip4.h src/nmtui/nmt-page-ip6.c \
 	src/nmtui/nmt-page-ip6.h src/nmtui/nmt-page-ppp.c \
-	src/nmtui/nmt-page-ppp.h src/nmtui/nmt-page-team.c \
-	src/nmtui/nmt-page-team.h src/nmtui/nmt-page-team-port.c \
-	src/nmtui/nmt-page-team-port.h src/nmtui/nmt-page-vlan.c \
+	src/nmtui/nmt-page-ppp.h src/nmtui/nmt-page-team-port.c \
+	src/nmtui/nmt-page-team-port.h src/nmtui/nmt-page-team.c \
+	src/nmtui/nmt-page-team.h src/nmtui/nmt-page-vlan.c \
 	src/nmtui/nmt-page-vlan.h src/nmtui/nmt-page-wifi.c \
-	src/nmtui/nmt-page-wifi.h src/nmtui/nmt-password-dialog.c \
+	src/nmtui/nmt-page-wifi.h src/nmtui/nmt-page-wireguard.c \
+	src/nmtui/nmt-page-wireguard.h src/nmtui/nmt-password-dialog.c \
 	src/nmtui/nmt-password-dialog.h \
 	src/nmtui/nmt-password-fields.c \
 	src/nmtui/nmt-password-fields.h src/nmtui/nmt-route-editor.c \
@@ -2598,8 +2616,11 @@ am__src_nmtui_nmtui_SOURCES_DIST = src/nmtui/nmtui.c src/nmtui/nmtui.h \
 	src/nmtui/nmt-route-entry.h src/nmtui/nmt-route-table.c \
 	src/nmtui/nmt-route-table.h src/nmtui/nmt-slave-list.c \
 	src/nmtui/nmt-slave-list.h src/nmtui/nmt-utils.c \
-	src/nmtui/nmt-utils.h src/nmtui/nmt-widget-list.c \
-	src/nmtui/nmt-widget-list.h
+	src/nmtui/nmt-utils.h src/nmtui/nmt-wireguard-peer-editor.c \
+	src/nmtui/nmt-wireguard-peer-editor.h \
+	src/nmtui/nmt-wireguard-peer-list.c \
+	src/nmtui/nmt-wireguard-peer-list.h \
+	src/nmtui/nmt-widget-list.c src/nmtui/nmt-widget-list.h
 @BUILD_NMTUI_TRUE@am_src_nmtui_nmtui_OBJECTS =  \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmtui.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmtui-connect.$(OBJEXT) \
@@ -2619,9 +2640,10 @@ am__src_nmtui_nmtui_SOURCES_DIST = src/nmtui/nmtui.c src/nmtui/nmtui.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-ip-entry.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-mac-entry.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-mtu-entry.$(OBJEXT) \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-bond-port.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-bond.$(OBJEXT) \
-@BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-bridge.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-bridge-port.$(OBJEXT) \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-bridge.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-dsl.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-ethernet.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-infiniband.$(OBJEXT) \
@@ -2629,10 +2651,11 @@ am__src_nmtui_nmtui_SOURCES_DIST = src/nmtui/nmtui.c src/nmtui/nmtui.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-ip4.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-ip6.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-ppp.$(OBJEXT) \
-@BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-team.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-team-port.$(OBJEXT) \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-team.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-vlan.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-wifi.$(OBJEXT) \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-page-wireguard.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-password-dialog.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-password-fields.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-route-editor.$(OBJEXT) \
@@ -2640,6 +2663,8 @@ am__src_nmtui_nmtui_SOURCES_DIST = src/nmtui/nmtui.c src/nmtui/nmtui.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-route-table.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-slave-list.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-utils.$(OBJEXT) \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-wireguard-peer-editor.$(OBJEXT) \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-wireguard-peer-list.$(OBJEXT) \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmtui-nmt-widget-list.$(OBJEXT)
 src_nmtui_nmtui_OBJECTS = $(am_src_nmtui_nmtui_OBJECTS)
 @BUILD_NMTUI_TRUE@src_nmtui_nmtui_DEPENDENCIES =  \
@@ -2651,6 +2676,7 @@ src_nmtui_nmtui_OBJECTS = $(am_src_nmtui_nmtui_OBJECTS)
 @BUILD_NMTUI_TRUE@	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 @BUILD_NMTUI_TRUE@	src/libnm-base/libnm-base.la \
 @BUILD_NMTUI_TRUE@	src/libnm-glib-aux/libnm-glib-aux.la \
+@BUILD_NMTUI_TRUE@	src/libnm-log-null/libnm-log-null.la \
 @BUILD_NMTUI_TRUE@	src/libnm-std-aux/libnm-std-aux.la \
 @BUILD_NMTUI_TRUE@	src/c-siphash/libc-siphash.la \
 @BUILD_NMTUI_TRUE@	src/libnm-client-impl/libnm.la \
@@ -2755,6 +2781,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip6-config.Plo \
 	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-config-data.Plo \
 	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv4ll.Plo \
+	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv6ll.Plo \
 	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3cfg.Plo \
 	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-netns.Plo \
 	src/core/$(DEPDIR)/libNetworkManager_la-nm-act-request.Plo \
@@ -2778,6 +2805,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/core/$(DEPDIR)/libNetworkManager_la-nm-manager.Plo \
 	src/core/$(DEPDIR)/libNetworkManager_la-nm-pacrunner-manager.Plo \
 	src/core/$(DEPDIR)/libNetworkManager_la-nm-policy.Plo \
+	src/core/$(DEPDIR)/libNetworkManager_la-nm-priv-helper-call.Plo \
 	src/core/$(DEPDIR)/libNetworkManager_la-nm-proxy-config.Plo \
 	src/core/$(DEPDIR)/libNetworkManager_la-nm-rfkill-manager.Plo \
 	src/core/$(DEPDIR)/libNetworkManager_la-nm-session-monitor.Plo \
@@ -2883,7 +2911,6 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/core/platform/tests/$(DEPDIR)/test_platform_general-test-platform-general.Po \
 	src/core/platform/tests/$(DEPDIR)/test_route_fake-test-route.Po \
 	src/core/platform/tests/$(DEPDIR)/test_route_linux-test-route.Po \
-	src/core/platform/tests/$(DEPDIR)/test_tc_fake-test-tc.Po \
 	src/core/platform/tests/$(DEPDIR)/test_tc_linux-test-tc.Po \
 	src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-manager-call.Plo \
 	src/core/ppp/$(DEPDIR)/libnm_ppp_plugin_la-nm-ppp-manager.Plo \
@@ -2933,6 +2960,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/core/vpn/$(DEPDIR)/libNetworkManager_la-nm-vpn-manager.Plo \
 	src/libnm-base/$(DEPDIR)/libnm_base_la-nm-ethtool-base.Plo \
 	src/libnm-base/$(DEPDIR)/libnm_base_la-nm-net-aux.Plo \
+	src/libnm-base/$(DEPDIR)/libnm_base_la-nm-priv-helper-utils.Plo \
 	src/libnm-client-aux-extern/$(DEPDIR)/libnm_client_aux_extern_la-nm-libnm-aux.Plo \
 	src/libnm-client-aux-extern/tests/$(DEPDIR)/test_libnm_client_aux-test-libnm-client-aux.Po \
 	src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-access-point.Plo \
@@ -3008,6 +3036,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-8021x.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-adsl.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bluetooth.Plo \
+	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bond-port.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bond.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bridge-port.Plo \
 	src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bridge.Plo \
@@ -3127,7 +3156,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp6-lease.Plo \
 	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4acd.Plo \
 	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4ll.Plo \
-	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp.Plo \
+	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Plo \
 	src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-event-util.Plo \
 	src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-sd-event.Plo \
 	src/libnm-systemd-core/src/libsystemd/sd-id128/$(DEPDIR)/libnm_systemd_core_la-id128-util.Plo \
@@ -3148,6 +3177,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-hexdecoct.Plo \
 	src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-hostname-util.Plo \
 	src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-in-addr-util.Plo \
+	src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-inotify-util.Plo \
 	src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-io-util.Plo \
 	src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-memory-util.Plo \
 	src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-mempool.Plo \
@@ -3237,6 +3267,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/nm-initrd-generator/tests/$(DEPDIR)/test_dt_reader-test-dt-reader.Po \
 	src/nm-initrd-generator/tests/$(DEPDIR)/test_ibft_reader-test-ibft-reader.Po \
 	src/nm-online/$(DEPDIR)/nm_online-nm-online.Po \
+	src/nm-priv-helper/$(DEPDIR)/nm_priv_helper-nm-priv-helper.Po \
 	src/nmcli/$(DEPDIR)/generate_docs_nm_settings_nmcli-generate-docs-nm-settings-nmcli.Po \
 	src/nmcli/$(DEPDIR)/nmcli-agent.Po \
 	src/nmcli/$(DEPDIR)/nmcli-common.Po \
@@ -3261,6 +3292,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/nmtui/$(DEPDIR)/nmtui-nmt-ip-entry.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmt-mac-entry.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmt-mtu-entry.Po \
+	src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond-port.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge-port.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Po \
@@ -3275,6 +3307,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmt-page-vlan.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmt-page-wifi.Po \
+	src/nmtui/$(DEPDIR)/nmtui-nmt-page-wireguard.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmt-password-dialog.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmt-password-fields.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmt-route-editor.Po \
@@ -3283,6 +3316,8 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/nmtui/$(DEPDIR)/nmtui-nmt-slave-list.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmt-utils.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmt-widget-list.Po \
+	src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-editor.Po \
+	src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-list.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmtui-connect.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmtui-edit.Po \
 	src/nmtui/$(DEPDIR)/nmtui-nmtui-hostname.Po \
@@ -3413,7 +3448,6 @@ SOURCES = $(src_libnmt_newt_libnmt_newt_a_SOURCES) \
 	src/core/platform/tests/test-platform-general.c \
 	$(src_core_platform_tests_test_route_fake_SOURCES) \
 	$(src_core_platform_tests_test_route_linux_SOURCES) \
-	$(src_core_platform_tests_test_tc_fake_SOURCES) \
 	$(src_core_platform_tests_test_tc_linux_SOURCES) \
 	$(src_core_settings_plugins_ifcfg_rh_tests_test_ifcfg_rh_SOURCES) \
 	src/core/settings/plugins/ifupdown/tests/test-ifupdown.c \
@@ -3454,6 +3488,7 @@ SOURCES = $(src_libnmt_newt_libnmt_newt_a_SOURCES) \
 	src/nm-initrd-generator/tests/test-dt-reader.c \
 	src/nm-initrd-generator/tests/test-ibft-reader.c \
 	src/nm-online/nm-online.c \
+	$(src_nm_priv_helper_nm_priv_helper_SOURCES) \
 	$(src_nmcli_generate_docs_nm_settings_nmcli_SOURCES) \
 	$(src_nmcli_nmcli_SOURCES) $(src_nmtui_nmtui_SOURCES)
 DIST_SOURCES = $(am__src_libnmt_newt_libnmt_newt_a_SOURCES_DIST) \
@@ -3541,7 +3576,6 @@ DIST_SOURCES = $(am__src_libnmt_newt_libnmt_newt_a_SOURCES_DIST) \
 	src/core/platform/tests/test-platform-general.c \
 	$(src_core_platform_tests_test_route_fake_SOURCES) \
 	$(src_core_platform_tests_test_route_linux_SOURCES) \
-	$(src_core_platform_tests_test_tc_fake_SOURCES) \
 	$(src_core_platform_tests_test_tc_linux_SOURCES) \
 	$(am__src_core_settings_plugins_ifcfg_rh_tests_test_ifcfg_rh_SOURCES_DIST) \
 	src/core/settings/plugins/ifupdown/tests/test-ifupdown.c \
@@ -3580,6 +3614,7 @@ DIST_SOURCES = $(am__src_libnmt_newt_libnmt_newt_a_SOURCES_DIST) \
 	src/nm-initrd-generator/tests/test-dt-reader.c \
 	src/nm-initrd-generator/tests/test-ibft-reader.c \
 	src/nm-online/nm-online.c \
+	$(src_nm_priv_helper_nm_priv_helper_SOURCES) \
 	$(src_nmcli_generate_docs_nm_settings_nmcli_SOURCES) \
 	$(am__src_nmcli_nmcli_SOURCES_DIST) \
 	$(am__src_nmtui_nmtui_SOURCES_DIST)
@@ -3816,9 +3851,8 @@ TEST_LOG_COMPILE = $(TEST_LOG_COMPILER) $(AM_TEST_LOG_FLAGS) \
 	$(TEST_LOG_FLAGS)
 DIST_SUBDIRS = . po docs/libnm docs/api
 am__DIST_COMMON = $(srcdir)/Makefile.examples $(srcdir)/Makefile.in \
-	$(srcdir)/Makefile.vapigen $(srcdir)/NetworkManager.pc.in \
-	$(srcdir)/config-extra.h.mk $(srcdir)/config.h.in \
-	$(top_srcdir)/build-aux/compile \
+	$(srcdir)/Makefile.vapigen $(srcdir)/config-extra.h.mk \
+	$(srcdir)/config.h.in $(top_srcdir)/build-aux/compile \
 	$(top_srcdir)/build-aux/config.guess \
 	$(top_srcdir)/build-aux/config.rpath \
 	$(top_srcdir)/build-aux/config.sub \
@@ -4239,9 +4273,9 @@ noinst_LTLIBRARIES = src/c-siphash/libc-siphash.la \
 	src/libnm-systemd-shared/libnm-systemd-shared.la \
 	src/nm-initrd-generator/libnmi-core.la $(am__append_22) \
 	$(am__append_30) $(am__append_37) $(am__append_42) \
-	src/nm-dispatcher/libnm-dispatcher-core.la $(am__append_86)
-check_LTLIBRARIES = $(am__append_88)
-noinst_LIBRARIES = $(am__append_55) $(am__append_59)
+	src/nm-dispatcher/libnm-dispatcher-core.la $(am__append_87)
+check_LTLIBRARIES = $(am__append_89)
+noinst_LIBRARIES = $(am__append_56) $(am__append_60)
 noinst_DATA = $(am__append_11)
 dist_libexec_SCRIPTS = $(am__append_26)
 
@@ -4257,26 +4291,27 @@ core_plugins = $(am__append_19) $(am__append_21) $(am__append_29) \
 	$(am__append_33) $(am__append_44) $(am__append_47) \
 	$(am__append_49)
 service_DATA = 
-man_MANS = $(am__append_80)
+man_MANS = $(am__append_81)
 examples_DATA = data/server.conf
 CLEANFILES = $(introspection_sources) $(DBUS_INTERFACE_DOCS) \
 	src/core/NetworkManager.ver $(am__append_23) \
 	$(dispatcher_nmdbus_dispatcher_sources) \
 	src/nm-dispatcher/org.freedesktop.nm_dispatcher.service \
-	$(am__append_65) src/tests/client/test-client.log \
+	src/nm-priv-helper/org.freedesktop.nm-priv-helper.service \
+	$(am__append_66) src/tests/client/test-client.log \
 	data/NetworkManager-dispatcher.service \
 	data/NetworkManager-wait-online.service \
-	data/NetworkManager.service data/server.conf $(NULL) \
-	$(am__append_68) man/common.ent $(am__append_81) \
-	$(am__append_84) $(GLIB_GENERATED) $(INTROSPECTION_GIRS) \
-	$(typelib_DATA) cscope.in.out cscope.out cscope.po.out $(NULL) \
-	$(am__append_90)
+	data/NetworkManager.service data/nm-priv-helper.service \
+	data/server.conf $(NULL) $(am__append_69) man/common.ent \
+	$(am__append_82) $(am__append_85) $(GLIB_GENERATED) \
+	$(INTROSPECTION_GIRS) $(typelib_DATA) cscope.in.out cscope.out \
+	cscope.po.out $(NULL) $(am__append_91)
 
 ###############################################################################
 DISTCLEANFILES = config-extra.h intltool-extract intltool-merge \
 	intltool-update $(polkit_policy_DATA) \
 	src/libnm-client-impl/libnm.pc $(am__append_14) \
-	$(am__append_15) $(am__append_50)
+	$(am__append_15) $(am__append_51)
 
 ###############################################################################
 
@@ -4653,6 +4688,7 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux.h $(NULL) \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bond-eth-type \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bond-main \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bond-mode-numeric \
+	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bond-port \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bond-slave \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bond-slave-ib \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bridge-component \
@@ -4897,6 +4933,9 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux.h $(NULL) \
 	src/nm-dispatcher/tests/dispatcher-vpn-down \
 	src/nm-dispatcher/tests/dispatcher-vpn-up \
 	src/nm-dispatcher/tests/meson.build $(NULL) \
+	src/nm-priv-helper/nm-priv-helper.conf \
+	src/nm-priv-helper/org.freedesktop.nm-priv-helper.service.in \
+	src/nm-priv-helper/meson.build $(NULL) \
 	src/nm-daemon-helper/meson.build $(NULL) \
 	src/nm-online/meson.build src/libnmc-base/qrcodegen.c \
 	src/libnmc-base/qrcodegen.h $(NULL) \
@@ -4911,7 +4950,7 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux.h $(NULL) \
 	src/libnmc-setting/meson.build \
 	src/libnmc-setting/tests/meson.build \
 	src/libnmt-newt/meson.build src/nmtui/meson.build \
-	$(am__append_64) src/tests/client/test-client.sh \
+	$(am__append_65) src/tests/client/test-client.sh \
 	src/tests/client/test-client.py \
 	src/tests/client/test-client.check-on-disk/test_001.expected \
 	src/tests/client/test-client.check-on-disk/test_002.expected \
@@ -4922,22 +4961,21 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux.h $(NULL) \
 	data/NetworkManager-dispatcher.service.in \
 	data/NetworkManager-wait-online-systemd-pre200.service.in \
 	data/NetworkManager-wait-online.service.in \
-	data/NetworkManager.service.in data/meson.build \
-	data/nm-shared.xml data/server.conf.in $(NULL) \
-	$(am__append_70) $(am__append_73) $(am__append_76) \
+	data/NetworkManager.service.in data/nm-priv-helper.service.in \
+	data/meson.build data/nm-shared.xml data/server.conf.in \
+	$(NULL) $(am__append_71) $(am__append_74) $(am__append_77) \
 	man/common.ent.in $(man_nm_settings_xml) $(addsuffix \
 	.xsl,$(basename $(man_nm_settings_xml))) $(man_pages) \
 	$(addsuffix .xml,$(basename $(man_pages))) \
 	$(man_pages_autogen) $(NULL) man/meson.build \
 	vapi/NM-1.0.metadata vapi/libnm.deps vapi/meson.build \
-	CONTRIBUTING.md COPYING.LGPL COPYING.GFDL NetworkManager.pc.in \
-	intltool-extract.in intltool-merge.in intltool-update.in \
-	linker-script-binary.ver linker-script-devices.ver \
-	linker-script-settings.ver src/core/ppp/nm-ppp-plugin.ver \
-	Makefile.glib autogen.sh lsan.suppressions \
-	valgrind.suppressions meson.build meson_options.txt \
-	config.h.meson config-extra.h.meson docs/meson.build \
-	po/meson.build src/meson.build \
+	CONTRIBUTING.md COPYING.LGPL COPYING.GFDL intltool-extract.in \
+	intltool-merge.in intltool-update.in linker-script-binary.ver \
+	linker-script-devices.ver linker-script-settings.ver \
+	src/core/ppp/nm-ppp-plugin.ver Makefile.glib autogen.sh \
+	lsan.suppressions valgrind.suppressions meson.build \
+	meson_options.txt config.h.meson config-extra.h.meson \
+	docs/meson.build po/meson.build src/meson.build \
 	src/libnm-core-public/nm-version-macros.h.in \
 	src/contrib/nm-vpn-editor-plugin-call.h \
 	tools/check-config-options.sh tools/check-docs.sh \
@@ -4992,6 +5030,7 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux.h $(NULL) \
 	examples/python/gi/nm-add-connection2.py \
 	examples/python/gi/nm-connection-update-stable-id.py \
 	examples/python/gi/nm-keyfile.py \
+	examples/python/gi/nm-up-many.py \
 	examples/python/gi/nm-update2.py examples/python/gi/nm-wg-set \
 	examples/python/gi/ovs-external-ids.py \
 	examples/python/gi/setting-user-data.py \
@@ -5007,16 +5046,16 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux.h $(NULL) \
 EXTRA_LTLIBRARIES = 
 dist_hook = dist-hook-settings-ifcfg-rh-alias-files
 dist_dependencies = src/libnm-core-public/nm-vpn-dbus-types.xml \
-	src/libnm-core-public/nm-dbus-types.xml $(am__append_71) \
-	$(am__append_74) $(am__append_77) $(man_pages) \
+	src/libnm-core-public/nm-dbus-types.xml $(am__append_72) \
+	$(am__append_75) $(am__append_78) $(man_pages) \
 	$(man_pages_autogen)
 dist_configure_check = $(am__append_2)
 install_data_hook = install-data-hook-dirs $(am__append_27) \
-	install-data-hook-dispatcher $(am__append_53) $(am__append_62) \
-	$(am__append_78)
-install_exec_hook = $(am__append_57)
-uninstall_hook = $(am__append_54) $(am__append_58) $(am__append_63) \
+	install-data-hook-dispatcher $(am__append_54) $(am__append_63) \
 	$(am__append_79)
+install_exec_hook = $(am__append_58)
+uninstall_hook = $(am__append_55) $(am__append_59) $(am__append_64) \
+	$(am__append_80)
 BUILT_SOURCES = src/libnm-core-public/nm-vpn-dbus-types.xml \
 	src/libnm-core-public/nm-dbus-types.xml $(gir_DATA) \
 	$(typelib_DATA)
@@ -5029,9 +5068,9 @@ GLIB_GENERATED = $(src_libnm_core_public_mkenums_h) \
 man_pages = man/NetworkManager.8 man/NetworkManager-dispatcher.8 \
 	man/NetworkManager.conf.5 man/nm-online.1 \
 	man/nm-initrd-generator.8 man/nmcli-examples.7 man/nmcli.1 \
-	man/nmtui.1 $(NULL) $(am__append_72) $(am__append_75)
+	man/nmtui.1 $(NULL) $(am__append_73) $(am__append_76)
 man_pages_autogen = man/nm-settings-dbus.5 man/nm-settings-keyfile.5 \
-	man/nm-settings-nmcli.5 $(NULL) $(am__append_69)
+	man/nm-settings-nmcli.5 $(NULL) $(am__append_70)
 
 ###############################################################################
 
@@ -5091,7 +5130,6 @@ check_programs = src/libnm-platform/tests/test-nm-platform \
 	src/core/platform/tests/test-platform-general \
 	src/core/platform/tests/test-route-fake \
 	src/core/platform/tests/test-route-linux \
-	src/core/platform/tests/test-tc-fake \
 	src/core/platform/tests/test-tc-linux $(NULL) \
 	src/core/devices/tests/test-lldp \
 	src/core/devices/tests/test-acd \
@@ -5103,7 +5141,7 @@ check_programs = src/libnm-platform/tests/test-nm-platform \
 	src/core/tests/test-l3cfg src/core/tests/test-systemd \
 	src/core/tests/test-utils src/core/tests/test-wired-defname \
 	$(NULL) src/nm-dispatcher/tests/test-dispatcher-envp \
-	src/libnmc-setting/tests/test-libnmc-setting $(am__append_66)
+	src/libnmc-setting/tests/test-libnmc-setting $(am__append_67)
 check_programs_norun = $(am__append_17) $(am__append_41) \
 	src/core/platform/tests/monitor \
 	src/core/ndisc/tests/test-ndisc-linux \
@@ -5115,7 +5153,7 @@ check_programs_norun = $(am__append_17) $(am__append_41) \
 	examples/C/glib/list-connections-libnm \
 	examples/C/glib/monitor-nm-running-gdbus \
 	examples/C/glib/monitor-nm-state-gdbus \
-	examples/C/glib/vpn-import-libnm $(NULL) $(am__append_89)
+	examples/C/glib/vpn-import-libnm $(NULL) $(am__append_90)
 
 ###############################################################################
 
@@ -5130,16 +5168,18 @@ check_ltlibraries = $(am__append_7) $(am__append_8) \
 check_local = check-docs check-local-exports-libnm $(am__append_13) \
 	check-config-options $(am__append_24) $(am__append_31) \
 	check-local-devices-adsl $(am__append_35) $(am__append_45) \
-	$(am__append_48) $(am__append_51) check-local-tests-client \
-	check-local-gitlab-ci $(am__append_91) check-tree \
-	check-po-msgfmt
-VAPIGEN_VAPIS = $(am__append_82)
+	$(am__append_48) $(am__append_50) $(am__append_52) \
+	check-local-tests-client check-local-gitlab-ci \
+	$(am__append_92) check-tree check-po-msgfmt
+VAPIGEN_VAPIS = $(am__append_83)
 dbusservice_DATA = $(am__append_28) \
 	src/nm-dispatcher/nm-dispatcher.conf \
+	src/nm-priv-helper/nm-priv-helper.conf \
 	src/core/org.freedesktop.NetworkManager.conf
 dbusactivation_DATA =  \
-	src/nm-dispatcher/org.freedesktop.nm_dispatcher.service
-systemdsystemunit_DATA = $(am__append_61) $(am__append_67)
+	src/nm-dispatcher/org.freedesktop.nm_dispatcher.service \
+	src/nm-priv-helper/org.freedesktop.nm-priv-helper.service
+systemdsystemunit_DATA = $(am__append_62) $(am__append_68)
 INTROSPECTION_GIRS = $(am__append_10)
 INTROSPECTION_SCANNER_ARGS = 
 INTROSPECTION_COMPILER_ARGS = 
@@ -5156,7 +5196,7 @@ pkgconfig_DATA = src/libnm-client-impl/libnm.pc
 pppd_plugindir = $(PPPD_PLUGIN_DIR)
 pppd_plugin_LTLIBRARIES = $(am__append_20)
 vapidir = $(datadir)/vala/vapi
-vapi_DATA = $(am__append_83)
+vapi_DATA = $(am__append_84)
 examplesdir = $(docdir)/examples
 rundir = $(runstatedir)/NetworkManager
 statedir = $(localstatedir)/lib/NetworkManager
@@ -5458,6 +5498,8 @@ src_libnm_base_libnm_base_la_SOURCES = \
 	src/libnm-base/nm-ethtool-utils-base.h \
 	src/libnm-base/nm-net-aux.c \
 	src/libnm-base/nm-net-aux.h \
+	src/libnm-base/nm-priv-helper-utils.c \
+	src/libnm-base/nm-priv-helper-utils.h \
 	$(NULL)
 
 src_libnm_base_libnm_base_la_LDFLAGS = \
@@ -5982,6 +6024,7 @@ src_libnm_core_impl_lib_h_pub_real = \
 	src/libnm-core-public/nm-setting-8021x.h \
 	src/libnm-core-public/nm-setting-adsl.h \
 	src/libnm-core-public/nm-setting-bluetooth.h \
+	src/libnm-core-public/nm-setting-bond-port.h \
 	src/libnm-core-public/nm-setting-bond.h \
 	src/libnm-core-public/nm-setting-bridge-port.h \
 	src/libnm-core-public/nm-setting-bridge.h \
@@ -6065,6 +6108,7 @@ src_libnm_core_impl_lib_c_settings_real = \
 	src/libnm-core-impl/nm-setting-8021x.c \
 	src/libnm-core-impl/nm-setting-adsl.c \
 	src/libnm-core-impl/nm-setting-bluetooth.c \
+	src/libnm-core-impl/nm-setting-bond-port.c \
 	src/libnm-core-impl/nm-setting-bond.c \
 	src/libnm-core-impl/nm-setting-bridge-port.c \
 	src/libnm-core-impl/nm-setting-bridge.c \
@@ -6620,6 +6664,7 @@ src_libnm_systemd_shared_libnm_systemd_shared_la_SOURCES = \
 	src/libnm-systemd-shared/sd-adapt-shared/arphrd-list.h \
 	src/libnm-systemd-shared/sd-adapt-shared/blockdev-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/build.h \
+	src/libnm-systemd-shared/sd-adapt-shared/chase-symlinks.h \
 	src/libnm-systemd-shared/sd-adapt-shared/copy.h \
 	src/libnm-systemd-shared/sd-adapt-shared/def.h \
 	src/libnm-systemd-shared/sd-adapt-shared/dhcp-server-internal.h \
@@ -6632,6 +6677,7 @@ src_libnm_systemd_shared_libnm_systemd_shared_la_SOURCES = \
 	src/libnm-systemd-shared/sd-adapt-shared/locale-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/memfd-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/missing_fs.h \
+	src/libnm-systemd-shared/sd-adapt-shared/missing_ioprio.h \
 	src/libnm-systemd-shared/sd-adapt-shared/missing_keyctl.h \
 	src/libnm-systemd-shared/sd-adapt-shared/missing_magic.h \
 	src/libnm-systemd-shared/sd-adapt-shared/missing_network.h \
@@ -6645,6 +6691,7 @@ src_libnm_systemd_shared_libnm_systemd_shared_la_SOURCES = \
 	src/libnm-systemd-shared/sd-adapt-shared/os-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/raw-clone.h \
 	src/libnm-systemd-shared/sd-adapt-shared/rlimit-util.h \
+	src/libnm-systemd-shared/sd-adapt-shared/sync-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/sysctl-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/terminal-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/unaligned.h \
@@ -6684,6 +6731,8 @@ src_libnm_systemd_shared_libnm_systemd_shared_la_SOURCES = \
 	src/libnm-systemd-shared/src/basic/hostname-util.h \
 	src/libnm-systemd-shared/src/basic/in-addr-util.c \
 	src/libnm-systemd-shared/src/basic/in-addr-util.h \
+	src/libnm-systemd-shared/src/basic/inotify-util.c \
+	src/libnm-systemd-shared/src/basic/inotify-util.h \
 	src/libnm-systemd-shared/src/basic/io-util.c \
 	src/libnm-systemd-shared/src/basic/io-util.h \
 	src/libnm-systemd-shared/src/basic/list.h \
@@ -6805,11 +6854,11 @@ src_libnm_systemd_core_libnm_systemd_core_la_SOURCES = \
 	src/libnm-systemd-core/src/libsystemd-network/dhcp6-network.c \
 	src/libnm-systemd-core/src/libsystemd-network/dhcp6-option.c \
 	src/libnm-systemd-core/src/libsystemd-network/dhcp6-protocol.h \
-	src/libnm-systemd-core/src/libsystemd-network/lldp-internal.h \
 	src/libnm-systemd-core/src/libsystemd-network/lldp-neighbor.c \
 	src/libnm-systemd-core/src/libsystemd-network/lldp-neighbor.h \
 	src/libnm-systemd-core/src/libsystemd-network/lldp-network.c \
 	src/libnm-systemd-core/src/libsystemd-network/lldp-network.h \
+	src/libnm-systemd-core/src/libsystemd-network/lldp-rx-internal.h \
 	src/libnm-systemd-core/src/libsystemd-network/network-common.c \
 	src/libnm-systemd-core/src/libsystemd-network/network-common.h \
 	src/libnm-systemd-core/src/libsystemd-network/network-internal.c \
@@ -6820,7 +6869,7 @@ src_libnm_systemd_core_libnm_systemd_core_la_SOURCES = \
 	src/libnm-systemd-core/src/libsystemd-network/sd-dhcp6-lease.c \
 	src/libnm-systemd-core/src/libsystemd-network/sd-ipv4acd.c \
 	src/libnm-systemd-core/src/libsystemd-network/sd-ipv4ll.c \
-	src/libnm-systemd-core/src/libsystemd-network/sd-lldp.c \
+	src/libnm-systemd-core/src/libsystemd-network/sd-lldp-rx.c \
 	src/libnm-systemd-core/src/libsystemd/sd-event/event-source.h \
 	src/libnm-systemd-core/src/libsystemd/sd-event/event-util.c \
 	src/libnm-systemd-core/src/libsystemd/sd-event/event-util.h \
@@ -6839,6 +6888,7 @@ src_libnm_systemd_core_libnm_systemd_core_la_SOURCES = \
 	src/libnm-systemd-core/src/systemd/sd-id128.h \
 	src/libnm-systemd-core/src/systemd/sd-ipv4acd.h \
 	src/libnm-systemd-core/src/systemd/sd-ipv4ll.h \
+	src/libnm-systemd-core/src/systemd/sd-lldp-rx.h \
 	src/libnm-systemd-core/src/systemd/sd-lldp.h \
 	src/libnm-systemd-core/src/systemd/sd-ndisc.h \
 	$(NULL)
@@ -6879,6 +6929,8 @@ src_core_libNetworkManagerBase_la_SOURCES = \
 	src/core/nm-l3-config-data.h \
 	src/core/nm-l3-ipv4ll.c \
 	src/core/nm-l3-ipv4ll.h \
+	src/core/nm-l3-ipv6ll.c \
+	src/core/nm-l3-ipv6ll.h \
 	src/core/nm-l3cfg.c \
 	src/core/nm-l3cfg.h \
 	src/core/nm-ip-config.c \
@@ -7086,8 +7138,10 @@ src_core_libNetworkManager_la_SOURCES = \
 	src/core/nm-policy.h \
 	src/core/nm-rfkill-manager.c \
 	src/core/nm-rfkill-manager.h \
-	src/core/nm-session-monitor.h \
 	src/core/nm-session-monitor.c \
+	src/core/nm-session-monitor.h \
+	src/core/nm-priv-helper-call.c \
+	src/core/nm-priv-helper-call.h \
 	src/core/nm-keep-alive.c \
 	src/core/nm-keep-alive.h \
 	src/core/nm-sleep-monitor.c \
@@ -7780,10 +7834,6 @@ src_core_platform_tests_test_route_linux_SOURCES = src/core/platform/tests/test-
 src_core_platform_tests_test_route_linux_CPPFLAGS = $(src_core_tests_cppflags_linux)
 src_core_platform_tests_test_route_linux_LDFLAGS = $(src_core_platform_tests_ldflags)
 src_core_platform_tests_test_route_linux_LDADD = $(src_core_platform_tests_libadd)
-src_core_platform_tests_test_tc_fake_SOURCES = src/core/platform/tests/test-tc.c
-src_core_platform_tests_test_tc_fake_CPPFLAGS = $(src_core_tests_cppflags_fake)
-src_core_platform_tests_test_tc_fake_LDFLAGS = $(src_core_platform_tests_ldflags)
-src_core_platform_tests_test_tc_fake_LDADD = $(src_core_platform_tests_libadd)
 src_core_platform_tests_test_tc_linux_SOURCES = src/core/platform/tests/test-tc.c
 src_core_platform_tests_test_tc_linux_CPPFLAGS = $(src_core_tests_cppflags_linux)
 src_core_platform_tests_test_tc_linux_LDFLAGS = $(src_core_platform_tests_ldflags)
@@ -7941,6 +7991,7 @@ src_nm_dispatcher_nm_dispatcher_LDADD = \
 	src/nm-dispatcher/libnm-dispatcher-core.la \
 	src/libnm-client-impl/libnm.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	$(GLIB_LIBS) \
@@ -7975,6 +8026,35 @@ src_nm_dispatcher_tests_test_dispatcher_envp_LDADD = \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	src/libnm-client-impl/libnm.la \
+	$(GLIB_LIBS) \
+	$(NULL)
+
+src_nm_priv_helper_nm_priv_helper_SOURCES = \
+	src/nm-priv-helper/nm-priv-helper.c \
+	$(NULL)
+
+src_nm_priv_helper_nm_priv_helper_CPPFLAGS = \
+	$(dflt_cppflags) \
+	-I$(builddir)/src/libnm-core-public \
+	-I$(srcdir)/src/libnm-core-public \
+	-I$(builddir)/src/libnm-client-public \
+	-I$(srcdir)/src/libnm-client-public \
+	-I$(srcdir)/src \
+	-I$(builddir)/src \
+	$(GLIB_CFLAGS) \
+	$(NULL)
+
+src_nm_priv_helper_nm_priv_helper_LDFLAGS = \
+	-Wl,--version-script="$(srcdir)/linker-script-binary.ver" \
+	$(SANITIZER_EXEC_LDFLAGS) \
+	$(NULL)
+
+src_nm_priv_helper_nm_priv_helper_LDADD = \
+	src/libnm-base/libnm-base.la \
+	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
+	src/libnm-std-aux/libnm-std-aux.la \
+	src/c-siphash/libc-siphash.la \
 	$(GLIB_LIBS) \
 	$(NULL)
 
@@ -8013,6 +8093,7 @@ src_nm_online_nm_online_LDADD = \
 	src/libnm-client-impl/libnm.la \
 	src/libnm-client-aux-extern/libnm-client-aux-extern.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	$(GLIB_LIBS) \
@@ -8129,6 +8210,7 @@ src_libnmc_setting_tests_test_libnmc_setting_LDADD = \
 @BUILD_NMCLI_TRUE@	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 @BUILD_NMCLI_TRUE@	src/libnm-base/libnm-base.la \
 @BUILD_NMCLI_TRUE@	src/libnm-glib-aux/libnm-glib-aux.la \
+@BUILD_NMCLI_TRUE@	src/libnm-log-null/libnm-log-null.la \
 @BUILD_NMCLI_TRUE@	src/libnm-std-aux/libnm-std-aux.la \
 @BUILD_NMCLI_TRUE@	src/c-siphash/libc-siphash.la \
 @BUILD_NMCLI_TRUE@	src/libnm-client-aux-extern/libnm-client-aux-extern.la \
@@ -8157,6 +8239,7 @@ src_nmcli_generate_docs_nm_settings_nmcli_LDADD = \
 	src/libnm-base/libnm-base.la \
 	src/libnm-client-impl/libnm.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	$(GLIB_LIBS) \
@@ -8256,12 +8339,14 @@ src_nmcli_generate_docs_nm_settings_nmcli_LDFLAGS = \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-mac-entry.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-mtu-entry.c \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-mtu-entry.h \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-bond-port.c \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-bond-port.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-bond.c \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-bond.h \
-@BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-bridge.c \
-@BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-bridge.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-bridge-port.c \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-bridge-port.h \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-bridge.c \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-bridge.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-dsl.c \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-dsl.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-ethernet.c \
@@ -8276,14 +8361,16 @@ src_nmcli_generate_docs_nm_settings_nmcli_LDFLAGS = \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-ip6.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-ppp.c \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-ppp.h \
-@BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-team.c \
-@BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-team.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-team-port.c \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-team-port.h \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-team.c \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-team.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-vlan.c \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-vlan.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-wifi.c \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-wifi.h \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-wireguard.c \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmt-page-wireguard.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-password-dialog.c \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-password-dialog.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-password-fields.c \
@@ -8298,6 +8385,10 @@ src_nmcli_generate_docs_nm_settings_nmcli_LDFLAGS = \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-slave-list.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-utils.c \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-utils.h \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmt-wireguard-peer-editor.c \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmt-wireguard-peer-editor.h \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmt-wireguard-peer-list.c \
+@BUILD_NMTUI_TRUE@	src/nmtui/nmt-wireguard-peer-list.h \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-widget-list.c \
 @BUILD_NMTUI_TRUE@	src/nmtui/nmt-widget-list.h \
 @BUILD_NMTUI_TRUE@	$(NULL)
@@ -8320,6 +8411,7 @@ src_nmcli_generate_docs_nm_settings_nmcli_LDFLAGS = \
 @BUILD_NMTUI_TRUE@	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 @BUILD_NMTUI_TRUE@	src/libnm-base/libnm-base.la \
 @BUILD_NMTUI_TRUE@	src/libnm-glib-aux/libnm-glib-aux.la \
+@BUILD_NMTUI_TRUE@	src/libnm-log-null/libnm-log-null.la \
 @BUILD_NMTUI_TRUE@	src/libnm-std-aux/libnm-std-aux.la \
 @BUILD_NMTUI_TRUE@	src/c-siphash/libc-siphash.la \
 @BUILD_NMTUI_TRUE@	src/libnm-client-impl/libnm.la \
@@ -8376,6 +8468,7 @@ src_nmcli_generate_docs_nm_settings_nmcli_LDFLAGS = \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-base/libnm-base.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-glib-aux/libnm-glib-aux.la \
+@BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-log-null/libnm-log-null.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-std-aux/libnm-std-aux.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/c-siphash/libc-siphash.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-client-impl/libnm.la \
@@ -8400,6 +8493,7 @@ src_nmcli_generate_docs_nm_settings_nmcli_LDFLAGS = \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-base/libnm-base.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-glib-aux/libnm-glib-aux.la \
+@BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-log-null/libnm-log-null.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-std-aux/libnm-std-aux.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/c-siphash/libc-siphash.la \
 @BUILD_NM_CLOUD_SETUP_TRUE@	src/libnm-client-impl/libnm.la \
@@ -8585,8 +8679,6 @@ $(srcdir)/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 distclean-hdr:
 	-rm -f config.h stamp-h1
 data/org.freedesktop.NetworkManager.policy.in: $(top_builddir)/config.status $(top_srcdir)/data/org.freedesktop.NetworkManager.policy.in.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-NetworkManager.pc: $(top_builddir)/config.status $(srcdir)/NetworkManager.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 src/libnm-client-impl/libnm.pc: $(top_builddir)/config.status $(top_srcdir)/src/libnm-client-impl/libnm.pc.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
@@ -9612,6 +9704,8 @@ src/core/libNetworkManager_la-nm-rfkill-manager.lo:  \
 	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
 src/core/libNetworkManager_la-nm-session-monitor.lo:  \
 	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
+src/core/libNetworkManager_la-nm-priv-helper-call.lo:  \
+	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
 src/core/libNetworkManager_la-nm-keep-alive.lo:  \
 	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
 src/core/libNetworkManager_la-nm-sleep-monitor.lo:  \
@@ -9644,6 +9738,8 @@ src/core/libNetworkManagerBase_la-nm-netns.lo:  \
 src/core/libNetworkManagerBase_la-nm-l3-config-data.lo:  \
 	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
 src/core/libNetworkManagerBase_la-nm-l3-ipv4ll.lo:  \
+	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
+src/core/libNetworkManagerBase_la-nm-l3-ipv6ll.lo:  \
 	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
 src/core/libNetworkManagerBase_la-nm-l3cfg.lo:  \
 	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
@@ -9779,6 +9875,9 @@ src/libnm-base/libnm_base_la-nm-ethtool-base.lo:  \
 	src/libnm-base/$(am__dirstamp) \
 	src/libnm-base/$(DEPDIR)/$(am__dirstamp)
 src/libnm-base/libnm_base_la-nm-net-aux.lo:  \
+	src/libnm-base/$(am__dirstamp) \
+	src/libnm-base/$(DEPDIR)/$(am__dirstamp)
+src/libnm-base/libnm_base_la-nm-priv-helper-utils.lo:  \
 	src/libnm-base/$(am__dirstamp) \
 	src/libnm-base/$(DEPDIR)/$(am__dirstamp)
 
@@ -10028,6 +10127,9 @@ src/libnm-core-impl/libnm_core_impl_la-nm-setting-adsl.lo:  \
 	src/libnm-core-impl/$(am__dirstamp) \
 	src/libnm-core-impl/$(DEPDIR)/$(am__dirstamp)
 src/libnm-core-impl/libnm_core_impl_la-nm-setting-bluetooth.lo:  \
+	src/libnm-core-impl/$(am__dirstamp) \
+	src/libnm-core-impl/$(DEPDIR)/$(am__dirstamp)
+src/libnm-core-impl/libnm_core_impl_la-nm-setting-bond-port.lo:  \
 	src/libnm-core-impl/$(am__dirstamp) \
 	src/libnm-core-impl/$(DEPDIR)/$(am__dirstamp)
 src/libnm-core-impl/libnm_core_impl_la-nm-setting-bond.lo:  \
@@ -10468,7 +10570,7 @@ src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4acd.l
 src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4ll.lo:  \
 	src/libnm-systemd-core/src/libsystemd-network/$(am__dirstamp) \
 	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/$(am__dirstamp)
-src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp.lo:  \
+src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp-rx.lo:  \
 	src/libnm-systemd-core/src/libsystemd-network/$(am__dirstamp) \
 	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/$(am__dirstamp)
 src/libnm-systemd-core/src/libsystemd/sd-event/$(am__dirstamp):
@@ -10552,6 +10654,9 @@ src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-hostname-util.lo:  \
 	src/libnm-systemd-shared/src/basic/$(am__dirstamp) \
 	src/libnm-systemd-shared/src/basic/$(DEPDIR)/$(am__dirstamp)
 src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-in-addr-util.lo:  \
+	src/libnm-systemd-shared/src/basic/$(am__dirstamp) \
+	src/libnm-systemd-shared/src/basic/$(DEPDIR)/$(am__dirstamp)
+src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-inotify-util.lo:  \
 	src/libnm-systemd-shared/src/basic/$(am__dirstamp) \
 	src/libnm-systemd-shared/src/basic/$(DEPDIR)/$(am__dirstamp)
 src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-io-util.lo:  \
@@ -11118,13 +11223,6 @@ src/core/platform/tests/test_route_linux-test-route.$(OBJEXT):  \
 src/core/platform/tests/test-route-linux$(EXEEXT): $(src_core_platform_tests_test_route_linux_OBJECTS) $(src_core_platform_tests_test_route_linux_DEPENDENCIES) $(EXTRA_src_core_platform_tests_test_route_linux_DEPENDENCIES) src/core/platform/tests/$(am__dirstamp)
 	@rm -f src/core/platform/tests/test-route-linux$(EXEEXT)
 	$(AM_V_CCLD)$(src_core_platform_tests_test_route_linux_LINK) $(src_core_platform_tests_test_route_linux_OBJECTS) $(src_core_platform_tests_test_route_linux_LDADD) $(LIBS)
-src/core/platform/tests/test_tc_fake-test-tc.$(OBJEXT):  \
-	src/core/platform/tests/$(am__dirstamp) \
-	src/core/platform/tests/$(DEPDIR)/$(am__dirstamp)
-
-src/core/platform/tests/test-tc-fake$(EXEEXT): $(src_core_platform_tests_test_tc_fake_OBJECTS) $(src_core_platform_tests_test_tc_fake_DEPENDENCIES) $(EXTRA_src_core_platform_tests_test_tc_fake_DEPENDENCIES) src/core/platform/tests/$(am__dirstamp)
-	@rm -f src/core/platform/tests/test-tc-fake$(EXEEXT)
-	$(AM_V_CCLD)$(src_core_platform_tests_test_tc_fake_LINK) $(src_core_platform_tests_test_tc_fake_OBJECTS) $(src_core_platform_tests_test_tc_fake_LDADD) $(LIBS)
 src/core/platform/tests/test_tc_linux-test-tc.$(OBJEXT):  \
 	src/core/platform/tests/$(am__dirstamp) \
 	src/core/platform/tests/$(DEPDIR)/$(am__dirstamp)
@@ -11526,6 +11624,19 @@ src/nm-online/nm_online-nm-online.$(OBJEXT):  \
 src/nm-online/nm-online$(EXEEXT): $(src_nm_online_nm_online_OBJECTS) $(src_nm_online_nm_online_DEPENDENCIES) $(EXTRA_src_nm_online_nm_online_DEPENDENCIES) src/nm-online/$(am__dirstamp)
 	@rm -f src/nm-online/nm-online$(EXEEXT)
 	$(AM_V_CCLD)$(src_nm_online_nm_online_LINK) $(src_nm_online_nm_online_OBJECTS) $(src_nm_online_nm_online_LDADD) $(LIBS)
+src/nm-priv-helper/$(am__dirstamp):
+	@$(MKDIR_P) src/nm-priv-helper
+	@: > src/nm-priv-helper/$(am__dirstamp)
+src/nm-priv-helper/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) src/nm-priv-helper/$(DEPDIR)
+	@: > src/nm-priv-helper/$(DEPDIR)/$(am__dirstamp)
+src/nm-priv-helper/nm_priv_helper-nm-priv-helper.$(OBJEXT):  \
+	src/nm-priv-helper/$(am__dirstamp) \
+	src/nm-priv-helper/$(DEPDIR)/$(am__dirstamp)
+
+src/nm-priv-helper/nm-priv-helper$(EXEEXT): $(src_nm_priv_helper_nm_priv_helper_OBJECTS) $(src_nm_priv_helper_nm_priv_helper_DEPENDENCIES) $(EXTRA_src_nm_priv_helper_nm_priv_helper_DEPENDENCIES) src/nm-priv-helper/$(am__dirstamp)
+	@rm -f src/nm-priv-helper/nm-priv-helper$(EXEEXT)
+	$(AM_V_CCLD)$(src_nm_priv_helper_nm_priv_helper_LINK) $(src_nm_priv_helper_nm_priv_helper_OBJECTS) $(src_nm_priv_helper_nm_priv_helper_LDADD) $(LIBS)
 src/nmcli/$(am__dirstamp):
 	@$(MKDIR_P) src/nmcli
 	@: > src/nmcli/$(am__dirstamp)
@@ -11602,12 +11713,14 @@ src/nmtui/nmtui-nmt-mac-entry.$(OBJEXT): src/nmtui/$(am__dirstamp) \
 	src/nmtui/$(DEPDIR)/$(am__dirstamp)
 src/nmtui/nmtui-nmt-mtu-entry.$(OBJEXT): src/nmtui/$(am__dirstamp) \
 	src/nmtui/$(DEPDIR)/$(am__dirstamp)
+src/nmtui/nmtui-nmt-page-bond-port.$(OBJEXT):  \
+	src/nmtui/$(am__dirstamp) src/nmtui/$(DEPDIR)/$(am__dirstamp)
 src/nmtui/nmtui-nmt-page-bond.$(OBJEXT): src/nmtui/$(am__dirstamp) \
-	src/nmtui/$(DEPDIR)/$(am__dirstamp)
-src/nmtui/nmtui-nmt-page-bridge.$(OBJEXT): src/nmtui/$(am__dirstamp) \
 	src/nmtui/$(DEPDIR)/$(am__dirstamp)
 src/nmtui/nmtui-nmt-page-bridge-port.$(OBJEXT):  \
 	src/nmtui/$(am__dirstamp) src/nmtui/$(DEPDIR)/$(am__dirstamp)
+src/nmtui/nmtui-nmt-page-bridge.$(OBJEXT): src/nmtui/$(am__dirstamp) \
+	src/nmtui/$(DEPDIR)/$(am__dirstamp)
 src/nmtui/nmtui-nmt-page-dsl.$(OBJEXT): src/nmtui/$(am__dirstamp) \
 	src/nmtui/$(DEPDIR)/$(am__dirstamp)
 src/nmtui/nmtui-nmt-page-ethernet.$(OBJEXT):  \
@@ -11622,14 +11735,16 @@ src/nmtui/nmtui-nmt-page-ip6.$(OBJEXT): src/nmtui/$(am__dirstamp) \
 	src/nmtui/$(DEPDIR)/$(am__dirstamp)
 src/nmtui/nmtui-nmt-page-ppp.$(OBJEXT): src/nmtui/$(am__dirstamp) \
 	src/nmtui/$(DEPDIR)/$(am__dirstamp)
-src/nmtui/nmtui-nmt-page-team.$(OBJEXT): src/nmtui/$(am__dirstamp) \
-	src/nmtui/$(DEPDIR)/$(am__dirstamp)
 src/nmtui/nmtui-nmt-page-team-port.$(OBJEXT):  \
 	src/nmtui/$(am__dirstamp) src/nmtui/$(DEPDIR)/$(am__dirstamp)
+src/nmtui/nmtui-nmt-page-team.$(OBJEXT): src/nmtui/$(am__dirstamp) \
+	src/nmtui/$(DEPDIR)/$(am__dirstamp)
 src/nmtui/nmtui-nmt-page-vlan.$(OBJEXT): src/nmtui/$(am__dirstamp) \
 	src/nmtui/$(DEPDIR)/$(am__dirstamp)
 src/nmtui/nmtui-nmt-page-wifi.$(OBJEXT): src/nmtui/$(am__dirstamp) \
 	src/nmtui/$(DEPDIR)/$(am__dirstamp)
+src/nmtui/nmtui-nmt-page-wireguard.$(OBJEXT):  \
+	src/nmtui/$(am__dirstamp) src/nmtui/$(DEPDIR)/$(am__dirstamp)
 src/nmtui/nmtui-nmt-password-dialog.$(OBJEXT):  \
 	src/nmtui/$(am__dirstamp) src/nmtui/$(DEPDIR)/$(am__dirstamp)
 src/nmtui/nmtui-nmt-password-fields.$(OBJEXT):  \
@@ -11644,6 +11759,10 @@ src/nmtui/nmtui-nmt-slave-list.$(OBJEXT): src/nmtui/$(am__dirstamp) \
 	src/nmtui/$(DEPDIR)/$(am__dirstamp)
 src/nmtui/nmtui-nmt-utils.$(OBJEXT): src/nmtui/$(am__dirstamp) \
 	src/nmtui/$(DEPDIR)/$(am__dirstamp)
+src/nmtui/nmtui-nmt-wireguard-peer-editor.$(OBJEXT):  \
+	src/nmtui/$(am__dirstamp) src/nmtui/$(DEPDIR)/$(am__dirstamp)
+src/nmtui/nmtui-nmt-wireguard-peer-list.$(OBJEXT):  \
+	src/nmtui/$(am__dirstamp) src/nmtui/$(DEPDIR)/$(am__dirstamp)
 src/nmtui/nmtui-nmt-widget-list.$(OBJEXT): src/nmtui/$(am__dirstamp) \
 	src/nmtui/$(DEPDIR)/$(am__dirstamp)
 
@@ -11834,6 +11953,7 @@ mostlyclean-compile:
 	-rm -f src/nm-initrd-generator/*.lo
 	-rm -f src/nm-initrd-generator/tests/*.$(OBJEXT)
 	-rm -f src/nm-online/*.$(OBJEXT)
+	-rm -f src/nm-priv-helper/*.$(OBJEXT)
 	-rm -f src/nmcli/*.$(OBJEXT)
 	-rm -f src/nmtui/*.$(OBJEXT)
 
@@ -11917,6 +12037,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip6-config.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-config-data.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv4ll.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv6ll.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3cfg.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-netns.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-act-request.Plo@am__quote@ # am--include-marker
@@ -11940,6 +12061,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-manager.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-pacrunner-manager.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-policy.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-priv-helper-call.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-proxy-config.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-rfkill-manager.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-session-monitor.Plo@am__quote@ # am--include-marker
@@ -12045,7 +12167,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/platform/tests/$(DEPDIR)/test_platform_general-test-platform-general.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/platform/tests/$(DEPDIR)/test_route_fake-test-route.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/platform/tests/$(DEPDIR)/test_route_linux-test-route.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/core/platform/tests/$(DEPDIR)/test_tc_fake-test-tc.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/platform/tests/$(DEPDIR)/test_tc_linux-test-tc.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-manager-call.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/ppp/$(DEPDIR)/libnm_ppp_plugin_la-nm-ppp-manager.Plo@am__quote@ # am--include-marker
@@ -12095,6 +12216,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/vpn/$(DEPDIR)/libNetworkManager_la-nm-vpn-manager.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-base/$(DEPDIR)/libnm_base_la-nm-ethtool-base.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-base/$(DEPDIR)/libnm_base_la-nm-net-aux.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-base/$(DEPDIR)/libnm_base_la-nm-priv-helper-utils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-client-aux-extern/$(DEPDIR)/libnm_client_aux_extern_la-nm-libnm-aux.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-client-aux-extern/tests/$(DEPDIR)/test_libnm_client_aux-test-libnm-client-aux.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-access-point.Plo@am__quote@ # am--include-marker
@@ -12170,6 +12292,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-8021x.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-adsl.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bluetooth.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bond-port.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bond.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bridge-port.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bridge.Plo@am__quote@ # am--include-marker
@@ -12289,7 +12412,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp6-lease.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4acd.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4ll.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-event-util.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-sd-event.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd/sd-id128/$(DEPDIR)/libnm_systemd_core_la-id128-util.Plo@am__quote@ # am--include-marker
@@ -12310,6 +12433,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-hexdecoct.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-hostname-util.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-in-addr-util.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-inotify-util.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-io-util.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-memory-util.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-mempool.Plo@am__quote@ # am--include-marker
@@ -12399,6 +12523,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/nm-initrd-generator/tests/$(DEPDIR)/test_dt_reader-test-dt-reader.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nm-initrd-generator/tests/$(DEPDIR)/test_ibft_reader-test-ibft-reader.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nm-online/$(DEPDIR)/nm_online-nm-online.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/nm-priv-helper/$(DEPDIR)/nm_priv_helper-nm-priv-helper.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmcli/$(DEPDIR)/generate_docs_nm_settings_nmcli-generate-docs-nm-settings-nmcli.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmcli/$(DEPDIR)/nmcli-agent.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmcli/$(DEPDIR)/nmcli-common.Po@am__quote@ # am--include-marker
@@ -12423,6 +12548,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-ip-entry.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-mac-entry.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-mtu-entry.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond-port.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge-port.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Po@am__quote@ # am--include-marker
@@ -12437,6 +12563,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-page-vlan.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-page-wifi.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-page-wireguard.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-password-dialog.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-password-fields.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-route-editor.Po@am__quote@ # am--include-marker
@@ -12445,6 +12572,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-slave-list.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-utils.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-widget-list.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-editor.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-list.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmtui-connect.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmtui-edit.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/nmtui/$(DEPDIR)/nmtui-nmtui-hostname.Po@am__quote@ # am--include-marker
@@ -13971,6 +14100,13 @@ src/core/libNetworkManager_la-nm-session-monitor.lo: src/core/nm-session-monitor
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/libNetworkManager_la-nm-session-monitor.lo `test -f 'src/core/nm-session-monitor.c' || echo '$(srcdir)/'`src/core/nm-session-monitor.c
 
+src/core/libNetworkManager_la-nm-priv-helper-call.lo: src/core/nm-priv-helper-call.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/libNetworkManager_la-nm-priv-helper-call.lo -MD -MP -MF src/core/$(DEPDIR)/libNetworkManager_la-nm-priv-helper-call.Tpo -c -o src/core/libNetworkManager_la-nm-priv-helper-call.lo `test -f 'src/core/nm-priv-helper-call.c' || echo '$(srcdir)/'`src/core/nm-priv-helper-call.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/$(DEPDIR)/libNetworkManager_la-nm-priv-helper-call.Tpo src/core/$(DEPDIR)/libNetworkManager_la-nm-priv-helper-call.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/nm-priv-helper-call.c' object='src/core/libNetworkManager_la-nm-priv-helper-call.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/libNetworkManager_la-nm-priv-helper-call.lo `test -f 'src/core/nm-priv-helper-call.c' || echo '$(srcdir)/'`src/core/nm-priv-helper-call.c
+
 src/core/libNetworkManager_la-nm-keep-alive.lo: src/core/nm-keep-alive.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/libNetworkManager_la-nm-keep-alive.lo -MD -MP -MF src/core/$(DEPDIR)/libNetworkManager_la-nm-keep-alive.Tpo -c -o src/core/libNetworkManager_la-nm-keep-alive.lo `test -f 'src/core/nm-keep-alive.c' || echo '$(srcdir)/'`src/core/nm-keep-alive.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/$(DEPDIR)/libNetworkManager_la-nm-keep-alive.Tpo src/core/$(DEPDIR)/libNetworkManager_la-nm-keep-alive.Plo
@@ -14047,6 +14183,13 @@ src/core/libNetworkManagerBase_la-nm-l3-ipv4ll.lo: src/core/nm-l3-ipv4ll.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/nm-l3-ipv4ll.c' object='src/core/libNetworkManagerBase_la-nm-l3-ipv4ll.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/libNetworkManagerBase_la-nm-l3-ipv4ll.lo `test -f 'src/core/nm-l3-ipv4ll.c' || echo '$(srcdir)/'`src/core/nm-l3-ipv4ll.c
+
+src/core/libNetworkManagerBase_la-nm-l3-ipv6ll.lo: src/core/nm-l3-ipv6ll.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/libNetworkManagerBase_la-nm-l3-ipv6ll.lo -MD -MP -MF src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv6ll.Tpo -c -o src/core/libNetworkManagerBase_la-nm-l3-ipv6ll.lo `test -f 'src/core/nm-l3-ipv6ll.c' || echo '$(srcdir)/'`src/core/nm-l3-ipv6ll.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv6ll.Tpo src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv6ll.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/nm-l3-ipv6ll.c' object='src/core/libNetworkManagerBase_la-nm-l3-ipv6ll.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/libNetworkManagerBase_la-nm-l3-ipv6ll.lo `test -f 'src/core/nm-l3-ipv6ll.c' || echo '$(srcdir)/'`src/core/nm-l3-ipv6ll.c
 
 src/core/libNetworkManagerBase_la-nm-l3cfg.lo: src/core/nm-l3cfg.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/libNetworkManagerBase_la-nm-l3cfg.lo -MD -MP -MF src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3cfg.Tpo -c -o src/core/libNetworkManagerBase_la-nm-l3cfg.lo `test -f 'src/core/nm-l3cfg.c' || echo '$(srcdir)/'`src/core/nm-l3cfg.c
@@ -14243,6 +14386,13 @@ src/libnm-base/libnm_base_la-nm-net-aux.lo: src/libnm-base/nm-net-aux.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-base/nm-net-aux.c' object='src/libnm-base/libnm_base_la-nm-net-aux.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_base_libnm_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-base/libnm_base_la-nm-net-aux.lo `test -f 'src/libnm-base/nm-net-aux.c' || echo '$(srcdir)/'`src/libnm-base/nm-net-aux.c
+
+src/libnm-base/libnm_base_la-nm-priv-helper-utils.lo: src/libnm-base/nm-priv-helper-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_base_libnm_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-base/libnm_base_la-nm-priv-helper-utils.lo -MD -MP -MF src/libnm-base/$(DEPDIR)/libnm_base_la-nm-priv-helper-utils.Tpo -c -o src/libnm-base/libnm_base_la-nm-priv-helper-utils.lo `test -f 'src/libnm-base/nm-priv-helper-utils.c' || echo '$(srcdir)/'`src/libnm-base/nm-priv-helper-utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-base/$(DEPDIR)/libnm_base_la-nm-priv-helper-utils.Tpo src/libnm-base/$(DEPDIR)/libnm_base_la-nm-priv-helper-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-base/nm-priv-helper-utils.c' object='src/libnm-base/libnm_base_la-nm-priv-helper-utils.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_base_libnm_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-base/libnm_base_la-nm-priv-helper-utils.lo `test -f 'src/libnm-base/nm-priv-helper-utils.c' || echo '$(srcdir)/'`src/libnm-base/nm-priv-helper-utils.c
 
 src/libnm-client-aux-extern/libnm_client_aux_extern_la-nm-libnm-aux.lo: src/libnm-client-aux-extern/nm-libnm-aux.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_client_aux_extern_libnm_client_aux_extern_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-client-aux-extern/libnm_client_aux_extern_la-nm-libnm-aux.lo -MD -MP -MF src/libnm-client-aux-extern/$(DEPDIR)/libnm_client_aux_extern_la-nm-libnm-aux.Tpo -c -o src/libnm-client-aux-extern/libnm_client_aux_extern_la-nm-libnm-aux.lo `test -f 'src/libnm-client-aux-extern/nm-libnm-aux.c' || echo '$(srcdir)/'`src/libnm-client-aux-extern/nm-libnm-aux.c
@@ -14677,6 +14827,13 @@ src/libnm-core-impl/libnm_core_impl_la-nm-setting-bluetooth.lo: src/libnm-core-i
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-core-impl/nm-setting-bluetooth.c' object='src/libnm-core-impl/libnm_core_impl_la-nm-setting-bluetooth.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-core-impl/libnm_core_impl_la-nm-setting-bluetooth.lo `test -f 'src/libnm-core-impl/nm-setting-bluetooth.c' || echo '$(srcdir)/'`src/libnm-core-impl/nm-setting-bluetooth.c
+
+src/libnm-core-impl/libnm_core_impl_la-nm-setting-bond-port.lo: src/libnm-core-impl/nm-setting-bond-port.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-core-impl/libnm_core_impl_la-nm-setting-bond-port.lo -MD -MP -MF src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bond-port.Tpo -c -o src/libnm-core-impl/libnm_core_impl_la-nm-setting-bond-port.lo `test -f 'src/libnm-core-impl/nm-setting-bond-port.c' || echo '$(srcdir)/'`src/libnm-core-impl/nm-setting-bond-port.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bond-port.Tpo src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bond-port.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-core-impl/nm-setting-bond-port.c' object='src/libnm-core-impl/libnm_core_impl_la-nm-setting-bond-port.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-core-impl/libnm_core_impl_la-nm-setting-bond-port.lo `test -f 'src/libnm-core-impl/nm-setting-bond-port.c' || echo '$(srcdir)/'`src/libnm-core-impl/nm-setting-bond-port.c
 
 src/libnm-core-impl/libnm_core_impl_la-nm-setting-bond.lo: src/libnm-core-impl/nm-setting-bond.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-core-impl/libnm_core_impl_la-nm-setting-bond.lo -MD -MP -MF src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bond.Tpo -c -o src/libnm-core-impl/libnm_core_impl_la-nm-setting-bond.lo `test -f 'src/libnm-core-impl/nm-setting-bond.c' || echo '$(srcdir)/'`src/libnm-core-impl/nm-setting-bond.c
@@ -15490,12 +15647,12 @@ src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4ll.lo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4ll.lo `test -f 'src/libnm-systemd-core/src/libsystemd-network/sd-ipv4ll.c' || echo '$(srcdir)/'`src/libnm-systemd-core/src/libsystemd-network/sd-ipv4ll.c
 
-src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp.lo: src/libnm-systemd-core/src/libsystemd-network/sd-lldp.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp.lo -MD -MP -MF src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp.Tpo -c -o src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp.lo `test -f 'src/libnm-systemd-core/src/libsystemd-network/sd-lldp.c' || echo '$(srcdir)/'`src/libnm-systemd-core/src/libsystemd-network/sd-lldp.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp.Tpo src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-systemd-core/src/libsystemd-network/sd-lldp.c' object='src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp.lo' libtool=yes @AMDEPBACKSLASH@
+src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp-rx.lo: src/libnm-systemd-core/src/libsystemd-network/sd-lldp-rx.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp-rx.lo -MD -MP -MF src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Tpo -c -o src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp-rx.lo `test -f 'src/libnm-systemd-core/src/libsystemd-network/sd-lldp-rx.c' || echo '$(srcdir)/'`src/libnm-systemd-core/src/libsystemd-network/sd-lldp-rx.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Tpo src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-systemd-core/src/libsystemd-network/sd-lldp-rx.c' object='src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp-rx.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp.lo `test -f 'src/libnm-systemd-core/src/libsystemd-network/sd-lldp.c' || echo '$(srcdir)/'`src/libnm-systemd-core/src/libsystemd-network/sd-lldp.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp-rx.lo `test -f 'src/libnm-systemd-core/src/libsystemd-network/sd-lldp-rx.c' || echo '$(srcdir)/'`src/libnm-systemd-core/src/libsystemd-network/sd-lldp-rx.c
 
 src/libnm-systemd-core/src/libsystemd/sd-event/libnm_systemd_core_la-event-util.lo: src/libnm-systemd-core/src/libsystemd/sd-event/event-util.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-systemd-core/src/libsystemd/sd-event/libnm_systemd_core_la-event-util.lo -MD -MP -MF src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-event-util.Tpo -c -o src/libnm-systemd-core/src/libsystemd/sd-event/libnm_systemd_core_la-event-util.lo `test -f 'src/libnm-systemd-core/src/libsystemd/sd-event/event-util.c' || echo '$(srcdir)/'`src/libnm-systemd-core/src/libsystemd/sd-event/event-util.c
@@ -15636,6 +15793,13 @@ src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-in-addr-util.lo: src/
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-systemd-shared/src/basic/in-addr-util.c' object='src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-in-addr-util.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_shared_libnm_systemd_shared_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-in-addr-util.lo `test -f 'src/libnm-systemd-shared/src/basic/in-addr-util.c' || echo '$(srcdir)/'`src/libnm-systemd-shared/src/basic/in-addr-util.c
+
+src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-inotify-util.lo: src/libnm-systemd-shared/src/basic/inotify-util.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_shared_libnm_systemd_shared_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-inotify-util.lo -MD -MP -MF src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-inotify-util.Tpo -c -o src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-inotify-util.lo `test -f 'src/libnm-systemd-shared/src/basic/inotify-util.c' || echo '$(srcdir)/'`src/libnm-systemd-shared/src/basic/inotify-util.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-inotify-util.Tpo src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-inotify-util.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-systemd-shared/src/basic/inotify-util.c' object='src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-inotify-util.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_shared_libnm_systemd_shared_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-inotify-util.lo `test -f 'src/libnm-systemd-shared/src/basic/inotify-util.c' || echo '$(srcdir)/'`src/libnm-systemd-shared/src/basic/inotify-util.c
 
 src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-io-util.lo: src/libnm-systemd-shared/src/basic/io-util.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_shared_libnm_systemd_shared_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-io-util.lo -MD -MP -MF src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-io-util.Tpo -c -o src/libnm-systemd-shared/src/basic/libnm_systemd_shared_la-io-util.lo `test -f 'src/libnm-systemd-shared/src/basic/io-util.c' || echo '$(srcdir)/'`src/libnm-systemd-shared/src/basic/io-util.c
@@ -16477,20 +16641,6 @@ src/core/platform/tests/test_route_linux-test-route.obj: src/core/platform/tests
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_platform_tests_test_route_linux_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/platform/tests/test_route_linux-test-route.obj `if test -f 'src/core/platform/tests/test-route.c'; then $(CYGPATH_W) 'src/core/platform/tests/test-route.c'; else $(CYGPATH_W) '$(srcdir)/src/core/platform/tests/test-route.c'; fi`
 
-src/core/platform/tests/test_tc_fake-test-tc.o: src/core/platform/tests/test-tc.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_platform_tests_test_tc_fake_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/platform/tests/test_tc_fake-test-tc.o -MD -MP -MF src/core/platform/tests/$(DEPDIR)/test_tc_fake-test-tc.Tpo -c -o src/core/platform/tests/test_tc_fake-test-tc.o `test -f 'src/core/platform/tests/test-tc.c' || echo '$(srcdir)/'`src/core/platform/tests/test-tc.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/platform/tests/$(DEPDIR)/test_tc_fake-test-tc.Tpo src/core/platform/tests/$(DEPDIR)/test_tc_fake-test-tc.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/platform/tests/test-tc.c' object='src/core/platform/tests/test_tc_fake-test-tc.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_platform_tests_test_tc_fake_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/platform/tests/test_tc_fake-test-tc.o `test -f 'src/core/platform/tests/test-tc.c' || echo '$(srcdir)/'`src/core/platform/tests/test-tc.c
-
-src/core/platform/tests/test_tc_fake-test-tc.obj: src/core/platform/tests/test-tc.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_platform_tests_test_tc_fake_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/platform/tests/test_tc_fake-test-tc.obj -MD -MP -MF src/core/platform/tests/$(DEPDIR)/test_tc_fake-test-tc.Tpo -c -o src/core/platform/tests/test_tc_fake-test-tc.obj `if test -f 'src/core/platform/tests/test-tc.c'; then $(CYGPATH_W) 'src/core/platform/tests/test-tc.c'; else $(CYGPATH_W) '$(srcdir)/src/core/platform/tests/test-tc.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/platform/tests/$(DEPDIR)/test_tc_fake-test-tc.Tpo src/core/platform/tests/$(DEPDIR)/test_tc_fake-test-tc.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/platform/tests/test-tc.c' object='src/core/platform/tests/test_tc_fake-test-tc.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_platform_tests_test_tc_fake_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/platform/tests/test_tc_fake-test-tc.obj `if test -f 'src/core/platform/tests/test-tc.c'; then $(CYGPATH_W) 'src/core/platform/tests/test-tc.c'; else $(CYGPATH_W) '$(srcdir)/src/core/platform/tests/test-tc.c'; fi`
-
 src/core/platform/tests/test_tc_linux-test-tc.o: src/core/platform/tests/test-tc.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_platform_tests_test_tc_linux_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/platform/tests/test_tc_linux-test-tc.o -MD -MP -MF src/core/platform/tests/$(DEPDIR)/test_tc_linux-test-tc.Tpo -c -o src/core/platform/tests/test_tc_linux-test-tc.o `test -f 'src/core/platform/tests/test-tc.c' || echo '$(srcdir)/'`src/core/platform/tests/test-tc.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/platform/tests/$(DEPDIR)/test_tc_linux-test-tc.Tpo src/core/platform/tests/$(DEPDIR)/test_tc_linux-test-tc.Po
@@ -17121,6 +17271,20 @@ src/nm-online/nm_online-nm-online.obj: src/nm-online/nm-online.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nm_online_nm_online_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nm-online/nm_online-nm-online.obj `if test -f 'src/nm-online/nm-online.c'; then $(CYGPATH_W) 'src/nm-online/nm-online.c'; else $(CYGPATH_W) '$(srcdir)/src/nm-online/nm-online.c'; fi`
 
+src/nm-priv-helper/nm_priv_helper-nm-priv-helper.o: src/nm-priv-helper/nm-priv-helper.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nm_priv_helper_nm_priv_helper_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nm-priv-helper/nm_priv_helper-nm-priv-helper.o -MD -MP -MF src/nm-priv-helper/$(DEPDIR)/nm_priv_helper-nm-priv-helper.Tpo -c -o src/nm-priv-helper/nm_priv_helper-nm-priv-helper.o `test -f 'src/nm-priv-helper/nm-priv-helper.c' || echo '$(srcdir)/'`src/nm-priv-helper/nm-priv-helper.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nm-priv-helper/$(DEPDIR)/nm_priv_helper-nm-priv-helper.Tpo src/nm-priv-helper/$(DEPDIR)/nm_priv_helper-nm-priv-helper.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nm-priv-helper/nm-priv-helper.c' object='src/nm-priv-helper/nm_priv_helper-nm-priv-helper.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nm_priv_helper_nm_priv_helper_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nm-priv-helper/nm_priv_helper-nm-priv-helper.o `test -f 'src/nm-priv-helper/nm-priv-helper.c' || echo '$(srcdir)/'`src/nm-priv-helper/nm-priv-helper.c
+
+src/nm-priv-helper/nm_priv_helper-nm-priv-helper.obj: src/nm-priv-helper/nm-priv-helper.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nm_priv_helper_nm_priv_helper_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nm-priv-helper/nm_priv_helper-nm-priv-helper.obj -MD -MP -MF src/nm-priv-helper/$(DEPDIR)/nm_priv_helper-nm-priv-helper.Tpo -c -o src/nm-priv-helper/nm_priv_helper-nm-priv-helper.obj `if test -f 'src/nm-priv-helper/nm-priv-helper.c'; then $(CYGPATH_W) 'src/nm-priv-helper/nm-priv-helper.c'; else $(CYGPATH_W) '$(srcdir)/src/nm-priv-helper/nm-priv-helper.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nm-priv-helper/$(DEPDIR)/nm_priv_helper-nm-priv-helper.Tpo src/nm-priv-helper/$(DEPDIR)/nm_priv_helper-nm-priv-helper.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nm-priv-helper/nm-priv-helper.c' object='src/nm-priv-helper/nm_priv_helper-nm-priv-helper.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nm_priv_helper_nm_priv_helper_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nm-priv-helper/nm_priv_helper-nm-priv-helper.obj `if test -f 'src/nm-priv-helper/nm-priv-helper.c'; then $(CYGPATH_W) 'src/nm-priv-helper/nm-priv-helper.c'; else $(CYGPATH_W) '$(srcdir)/src/nm-priv-helper/nm-priv-helper.c'; fi`
+
 src/nmcli/generate_docs_nm_settings_nmcli-generate-docs-nm-settings-nmcli.o: src/nmcli/generate-docs-nm-settings-nmcli.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmcli_generate_docs_nm_settings_nmcli_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmcli/generate_docs_nm_settings_nmcli-generate-docs-nm-settings-nmcli.o -MD -MP -MF src/nmcli/$(DEPDIR)/generate_docs_nm_settings_nmcli-generate-docs-nm-settings-nmcli.Tpo -c -o src/nmcli/generate_docs_nm_settings_nmcli-generate-docs-nm-settings-nmcli.o `test -f 'src/nmcli/generate-docs-nm-settings-nmcli.c' || echo '$(srcdir)/'`src/nmcli/generate-docs-nm-settings-nmcli.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmcli/$(DEPDIR)/generate_docs_nm_settings_nmcli-generate-docs-nm-settings-nmcli.Tpo src/nmcli/$(DEPDIR)/generate_docs_nm_settings_nmcli-generate-docs-nm-settings-nmcli.Po
@@ -17513,6 +17677,20 @@ src/nmtui/nmtui-nmt-mtu-entry.obj: src/nmtui/nmt-mtu-entry.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-mtu-entry.obj `if test -f 'src/nmtui/nmt-mtu-entry.c'; then $(CYGPATH_W) 'src/nmtui/nmt-mtu-entry.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-mtu-entry.c'; fi`
 
+src/nmtui/nmtui-nmt-page-bond-port.o: src/nmtui/nmt-page-bond-port.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-bond-port.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond-port.Tpo -c -o src/nmtui/nmtui-nmt-page-bond-port.o `test -f 'src/nmtui/nmt-page-bond-port.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-bond-port.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond-port.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond-port.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-bond-port.c' object='src/nmtui/nmtui-nmt-page-bond-port.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-bond-port.o `test -f 'src/nmtui/nmt-page-bond-port.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-bond-port.c
+
+src/nmtui/nmtui-nmt-page-bond-port.obj: src/nmtui/nmt-page-bond-port.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-bond-port.obj -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond-port.Tpo -c -o src/nmtui/nmtui-nmt-page-bond-port.obj `if test -f 'src/nmtui/nmt-page-bond-port.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-bond-port.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-bond-port.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond-port.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond-port.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-bond-port.c' object='src/nmtui/nmtui-nmt-page-bond-port.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-bond-port.obj `if test -f 'src/nmtui/nmt-page-bond-port.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-bond-port.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-bond-port.c'; fi`
+
 src/nmtui/nmtui-nmt-page-bond.o: src/nmtui/nmt-page-bond.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-bond.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond.Tpo -c -o src/nmtui/nmtui-nmt-page-bond.o `test -f 'src/nmtui/nmt-page-bond.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-bond.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond.Po
@@ -17527,20 +17705,6 @@ src/nmtui/nmtui-nmt-page-bond.obj: src/nmtui/nmt-page-bond.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-bond.obj `if test -f 'src/nmtui/nmt-page-bond.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-bond.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-bond.c'; fi`
 
-src/nmtui/nmtui-nmt-page-bridge.o: src/nmtui/nmt-page-bridge.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-bridge.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Tpo -c -o src/nmtui/nmtui-nmt-page-bridge.o `test -f 'src/nmtui/nmt-page-bridge.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-bridge.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-bridge.c' object='src/nmtui/nmtui-nmt-page-bridge.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-bridge.o `test -f 'src/nmtui/nmt-page-bridge.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-bridge.c
-
-src/nmtui/nmtui-nmt-page-bridge.obj: src/nmtui/nmt-page-bridge.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-bridge.obj -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Tpo -c -o src/nmtui/nmtui-nmt-page-bridge.obj `if test -f 'src/nmtui/nmt-page-bridge.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-bridge.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-bridge.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-bridge.c' object='src/nmtui/nmtui-nmt-page-bridge.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-bridge.obj `if test -f 'src/nmtui/nmt-page-bridge.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-bridge.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-bridge.c'; fi`
-
 src/nmtui/nmtui-nmt-page-bridge-port.o: src/nmtui/nmt-page-bridge-port.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-bridge-port.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge-port.Tpo -c -o src/nmtui/nmtui-nmt-page-bridge-port.o `test -f 'src/nmtui/nmt-page-bridge-port.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-bridge-port.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge-port.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge-port.Po
@@ -17554,6 +17718,20 @@ src/nmtui/nmtui-nmt-page-bridge-port.obj: src/nmtui/nmt-page-bridge-port.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-bridge-port.c' object='src/nmtui/nmtui-nmt-page-bridge-port.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-bridge-port.obj `if test -f 'src/nmtui/nmt-page-bridge-port.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-bridge-port.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-bridge-port.c'; fi`
+
+src/nmtui/nmtui-nmt-page-bridge.o: src/nmtui/nmt-page-bridge.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-bridge.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Tpo -c -o src/nmtui/nmtui-nmt-page-bridge.o `test -f 'src/nmtui/nmt-page-bridge.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-bridge.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-bridge.c' object='src/nmtui/nmtui-nmt-page-bridge.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-bridge.o `test -f 'src/nmtui/nmt-page-bridge.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-bridge.c
+
+src/nmtui/nmtui-nmt-page-bridge.obj: src/nmtui/nmt-page-bridge.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-bridge.obj -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Tpo -c -o src/nmtui/nmtui-nmt-page-bridge.obj `if test -f 'src/nmtui/nmt-page-bridge.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-bridge.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-bridge.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-bridge.c' object='src/nmtui/nmtui-nmt-page-bridge.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-bridge.obj `if test -f 'src/nmtui/nmt-page-bridge.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-bridge.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-bridge.c'; fi`
 
 src/nmtui/nmtui-nmt-page-dsl.o: src/nmtui/nmt-page-dsl.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-dsl.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-dsl.Tpo -c -o src/nmtui/nmtui-nmt-page-dsl.o `test -f 'src/nmtui/nmt-page-dsl.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-dsl.c
@@ -17653,20 +17831,6 @@ src/nmtui/nmtui-nmt-page-ppp.obj: src/nmtui/nmt-page-ppp.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-ppp.obj `if test -f 'src/nmtui/nmt-page-ppp.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-ppp.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-ppp.c'; fi`
 
-src/nmtui/nmtui-nmt-page-team.o: src/nmtui/nmt-page-team.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-team.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Tpo -c -o src/nmtui/nmtui-nmt-page-team.o `test -f 'src/nmtui/nmt-page-team.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-team.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-team.c' object='src/nmtui/nmtui-nmt-page-team.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-team.o `test -f 'src/nmtui/nmt-page-team.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-team.c
-
-src/nmtui/nmtui-nmt-page-team.obj: src/nmtui/nmt-page-team.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-team.obj -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Tpo -c -o src/nmtui/nmtui-nmt-page-team.obj `if test -f 'src/nmtui/nmt-page-team.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-team.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-team.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-team.c' object='src/nmtui/nmtui-nmt-page-team.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-team.obj `if test -f 'src/nmtui/nmt-page-team.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-team.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-team.c'; fi`
-
 src/nmtui/nmtui-nmt-page-team-port.o: src/nmtui/nmt-page-team-port.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-team-port.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-team-port.Tpo -c -o src/nmtui/nmtui-nmt-page-team-port.o `test -f 'src/nmtui/nmt-page-team-port.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-team-port.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-team-port.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-team-port.Po
@@ -17680,6 +17844,20 @@ src/nmtui/nmtui-nmt-page-team-port.obj: src/nmtui/nmt-page-team-port.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-team-port.c' object='src/nmtui/nmtui-nmt-page-team-port.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-team-port.obj `if test -f 'src/nmtui/nmt-page-team-port.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-team-port.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-team-port.c'; fi`
+
+src/nmtui/nmtui-nmt-page-team.o: src/nmtui/nmt-page-team.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-team.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Tpo -c -o src/nmtui/nmtui-nmt-page-team.o `test -f 'src/nmtui/nmt-page-team.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-team.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-team.c' object='src/nmtui/nmtui-nmt-page-team.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-team.o `test -f 'src/nmtui/nmt-page-team.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-team.c
+
+src/nmtui/nmtui-nmt-page-team.obj: src/nmtui/nmt-page-team.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-team.obj -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Tpo -c -o src/nmtui/nmtui-nmt-page-team.obj `if test -f 'src/nmtui/nmt-page-team.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-team.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-team.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-team.c' object='src/nmtui/nmtui-nmt-page-team.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-team.obj `if test -f 'src/nmtui/nmt-page-team.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-team.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-team.c'; fi`
 
 src/nmtui/nmtui-nmt-page-vlan.o: src/nmtui/nmt-page-vlan.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-vlan.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-vlan.Tpo -c -o src/nmtui/nmtui-nmt-page-vlan.o `test -f 'src/nmtui/nmt-page-vlan.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-vlan.c
@@ -17708,6 +17886,20 @@ src/nmtui/nmtui-nmt-page-wifi.obj: src/nmtui/nmt-page-wifi.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-wifi.c' object='src/nmtui/nmtui-nmt-page-wifi.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-wifi.obj `if test -f 'src/nmtui/nmt-page-wifi.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-wifi.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-wifi.c'; fi`
+
+src/nmtui/nmtui-nmt-page-wireguard.o: src/nmtui/nmt-page-wireguard.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-wireguard.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-wireguard.Tpo -c -o src/nmtui/nmtui-nmt-page-wireguard.o `test -f 'src/nmtui/nmt-page-wireguard.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-wireguard.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-wireguard.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-wireguard.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-wireguard.c' object='src/nmtui/nmtui-nmt-page-wireguard.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-wireguard.o `test -f 'src/nmtui/nmt-page-wireguard.c' || echo '$(srcdir)/'`src/nmtui/nmt-page-wireguard.c
+
+src/nmtui/nmtui-nmt-page-wireguard.obj: src/nmtui/nmt-page-wireguard.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-page-wireguard.obj -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-page-wireguard.Tpo -c -o src/nmtui/nmtui-nmt-page-wireguard.obj `if test -f 'src/nmtui/nmt-page-wireguard.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-wireguard.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-wireguard.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-page-wireguard.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-page-wireguard.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-page-wireguard.c' object='src/nmtui/nmtui-nmt-page-wireguard.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-page-wireguard.obj `if test -f 'src/nmtui/nmt-page-wireguard.c'; then $(CYGPATH_W) 'src/nmtui/nmt-page-wireguard.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-page-wireguard.c'; fi`
 
 src/nmtui/nmtui-nmt-password-dialog.o: src/nmtui/nmt-password-dialog.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-password-dialog.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-password-dialog.Tpo -c -o src/nmtui/nmtui-nmt-password-dialog.o `test -f 'src/nmtui/nmt-password-dialog.c' || echo '$(srcdir)/'`src/nmtui/nmt-password-dialog.c
@@ -17806,6 +17998,34 @@ src/nmtui/nmtui-nmt-utils.obj: src/nmtui/nmt-utils.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-utils.c' object='src/nmtui/nmtui-nmt-utils.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-utils.obj `if test -f 'src/nmtui/nmt-utils.c'; then $(CYGPATH_W) 'src/nmtui/nmt-utils.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-utils.c'; fi`
+
+src/nmtui/nmtui-nmt-wireguard-peer-editor.o: src/nmtui/nmt-wireguard-peer-editor.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-wireguard-peer-editor.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-editor.Tpo -c -o src/nmtui/nmtui-nmt-wireguard-peer-editor.o `test -f 'src/nmtui/nmt-wireguard-peer-editor.c' || echo '$(srcdir)/'`src/nmtui/nmt-wireguard-peer-editor.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-editor.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-editor.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-wireguard-peer-editor.c' object='src/nmtui/nmtui-nmt-wireguard-peer-editor.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-wireguard-peer-editor.o `test -f 'src/nmtui/nmt-wireguard-peer-editor.c' || echo '$(srcdir)/'`src/nmtui/nmt-wireguard-peer-editor.c
+
+src/nmtui/nmtui-nmt-wireguard-peer-editor.obj: src/nmtui/nmt-wireguard-peer-editor.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-wireguard-peer-editor.obj -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-editor.Tpo -c -o src/nmtui/nmtui-nmt-wireguard-peer-editor.obj `if test -f 'src/nmtui/nmt-wireguard-peer-editor.c'; then $(CYGPATH_W) 'src/nmtui/nmt-wireguard-peer-editor.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-wireguard-peer-editor.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-editor.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-editor.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-wireguard-peer-editor.c' object='src/nmtui/nmtui-nmt-wireguard-peer-editor.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-wireguard-peer-editor.obj `if test -f 'src/nmtui/nmt-wireguard-peer-editor.c'; then $(CYGPATH_W) 'src/nmtui/nmt-wireguard-peer-editor.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-wireguard-peer-editor.c'; fi`
+
+src/nmtui/nmtui-nmt-wireguard-peer-list.o: src/nmtui/nmt-wireguard-peer-list.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-wireguard-peer-list.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-list.Tpo -c -o src/nmtui/nmtui-nmt-wireguard-peer-list.o `test -f 'src/nmtui/nmt-wireguard-peer-list.c' || echo '$(srcdir)/'`src/nmtui/nmt-wireguard-peer-list.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-list.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-list.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-wireguard-peer-list.c' object='src/nmtui/nmtui-nmt-wireguard-peer-list.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-wireguard-peer-list.o `test -f 'src/nmtui/nmt-wireguard-peer-list.c' || echo '$(srcdir)/'`src/nmtui/nmt-wireguard-peer-list.c
+
+src/nmtui/nmtui-nmt-wireguard-peer-list.obj: src/nmtui/nmt-wireguard-peer-list.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-wireguard-peer-list.obj -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-list.Tpo -c -o src/nmtui/nmtui-nmt-wireguard-peer-list.obj `if test -f 'src/nmtui/nmt-wireguard-peer-list.c'; then $(CYGPATH_W) 'src/nmtui/nmt-wireguard-peer-list.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-wireguard-peer-list.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-list.Tpo src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-list.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/nmtui/nmt-wireguard-peer-list.c' object='src/nmtui/nmtui-nmt-wireguard-peer-list.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/nmtui/nmtui-nmt-wireguard-peer-list.obj `if test -f 'src/nmtui/nmt-wireguard-peer-list.c'; then $(CYGPATH_W) 'src/nmtui/nmt-wireguard-peer-list.c'; else $(CYGPATH_W) '$(srcdir)/src/nmtui/nmt-wireguard-peer-list.c'; fi`
 
 src/nmtui/nmtui-nmt-widget-list.o: src/nmtui/nmt-widget-list.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_nmtui_nmtui_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/nmtui/nmtui-nmt-widget-list.o -MD -MP -MF src/nmtui/$(DEPDIR)/nmtui-nmt-widget-list.Tpo -c -o src/nmtui/nmtui-nmt-widget-list.o `test -f 'src/nmtui/nmt-widget-list.c' || echo '$(srcdir)/'`src/nmtui/nmt-widget-list.c
@@ -17997,6 +18217,7 @@ clean-libtool:
 	-rm -rf src/nm-initrd-generator/.libs src/nm-initrd-generator/_libs
 	-rm -rf src/nm-initrd-generator/tests/.libs src/nm-initrd-generator/tests/_libs
 	-rm -rf src/nm-online/.libs src/nm-online/_libs
+	-rm -rf src/nm-priv-helper/.libs src/nm-priv-helper/_libs
 	-rm -rf src/nmcli/.libs src/nmcli/_libs
 	-rm -rf src/nmtui/.libs src/nmtui/_libs
 
@@ -19007,13 +19228,6 @@ src/core/platform/tests/test-route-linux.log: src/core/platform/tests/test-route
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-src/core/platform/tests/test-tc-fake.log: src/core/platform/tests/test-tc-fake$(EXEEXT)
-	@p='src/core/platform/tests/test-tc-fake$(EXEEXT)'; \
-	b='src/core/platform/tests/test-tc-fake'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
 src/core/platform/tests/test-tc-linux.log: src/core/platform/tests/test-tc-linux$(EXEEXT)
 	@p='src/core/platform/tests/test-tc-linux$(EXEEXT)'; \
 	b='src/core/platform/tests/test-tc-linux'; \
@@ -19578,6 +19792,8 @@ distclean-generic:
 	-rm -f src/nm-initrd-generator/tests/$(am__dirstamp)
 	-rm -f src/nm-online/$(DEPDIR)/$(am__dirstamp)
 	-rm -f src/nm-online/$(am__dirstamp)
+	-rm -f src/nm-priv-helper/$(DEPDIR)/$(am__dirstamp)
+	-rm -f src/nm-priv-helper/$(am__dirstamp)
 	-rm -f src/nmcli/$(DEPDIR)/$(am__dirstamp)
 	-rm -f src/nmcli/$(am__dirstamp)
 	-rm -f src/nmtui/$(DEPDIR)/$(am__dirstamp)
@@ -19675,6 +19891,7 @@ distclean: distclean-recursive
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip6-config.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-config-data.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv4ll.Plo
+	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv6ll.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3cfg.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-netns.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-act-request.Plo
@@ -19698,6 +19915,7 @@ distclean: distclean-recursive
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-manager.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-pacrunner-manager.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-policy.Plo
+	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-priv-helper-call.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-proxy-config.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-rfkill-manager.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-session-monitor.Plo
@@ -19803,7 +20021,6 @@ distclean: distclean-recursive
 	-rm -f src/core/platform/tests/$(DEPDIR)/test_platform_general-test-platform-general.Po
 	-rm -f src/core/platform/tests/$(DEPDIR)/test_route_fake-test-route.Po
 	-rm -f src/core/platform/tests/$(DEPDIR)/test_route_linux-test-route.Po
-	-rm -f src/core/platform/tests/$(DEPDIR)/test_tc_fake-test-tc.Po
 	-rm -f src/core/platform/tests/$(DEPDIR)/test_tc_linux-test-tc.Po
 	-rm -f src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-manager-call.Plo
 	-rm -f src/core/ppp/$(DEPDIR)/libnm_ppp_plugin_la-nm-ppp-manager.Plo
@@ -19853,6 +20070,7 @@ distclean: distclean-recursive
 	-rm -f src/core/vpn/$(DEPDIR)/libNetworkManager_la-nm-vpn-manager.Plo
 	-rm -f src/libnm-base/$(DEPDIR)/libnm_base_la-nm-ethtool-base.Plo
 	-rm -f src/libnm-base/$(DEPDIR)/libnm_base_la-nm-net-aux.Plo
+	-rm -f src/libnm-base/$(DEPDIR)/libnm_base_la-nm-priv-helper-utils.Plo
 	-rm -f src/libnm-client-aux-extern/$(DEPDIR)/libnm_client_aux_extern_la-nm-libnm-aux.Plo
 	-rm -f src/libnm-client-aux-extern/tests/$(DEPDIR)/test_libnm_client_aux-test-libnm-client-aux.Po
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-access-point.Plo
@@ -19928,6 +20146,7 @@ distclean: distclean-recursive
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-8021x.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-adsl.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bluetooth.Plo
+	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bond-port.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bond.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bridge-port.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bridge.Plo
@@ -20047,7 +20266,7 @@ distclean: distclean-recursive
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp6-lease.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4acd.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4ll.Plo
-	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp.Plo
+	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-event-util.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-sd-event.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd/sd-id128/$(DEPDIR)/libnm_systemd_core_la-id128-util.Plo
@@ -20068,6 +20287,7 @@ distclean: distclean-recursive
 	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-hexdecoct.Plo
 	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-hostname-util.Plo
 	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-in-addr-util.Plo
+	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-inotify-util.Plo
 	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-io-util.Plo
 	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-memory-util.Plo
 	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-mempool.Plo
@@ -20157,6 +20377,7 @@ distclean: distclean-recursive
 	-rm -f src/nm-initrd-generator/tests/$(DEPDIR)/test_dt_reader-test-dt-reader.Po
 	-rm -f src/nm-initrd-generator/tests/$(DEPDIR)/test_ibft_reader-test-ibft-reader.Po
 	-rm -f src/nm-online/$(DEPDIR)/nm_online-nm-online.Po
+	-rm -f src/nm-priv-helper/$(DEPDIR)/nm_priv_helper-nm-priv-helper.Po
 	-rm -f src/nmcli/$(DEPDIR)/generate_docs_nm_settings_nmcli-generate-docs-nm-settings-nmcli.Po
 	-rm -f src/nmcli/$(DEPDIR)/nmcli-agent.Po
 	-rm -f src/nmcli/$(DEPDIR)/nmcli-common.Po
@@ -20181,6 +20402,7 @@ distclean: distclean-recursive
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-ip-entry.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-mac-entry.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-mtu-entry.Po
+	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond-port.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge-port.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Po
@@ -20195,6 +20417,7 @@ distclean: distclean-recursive
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-vlan.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-wifi.Po
+	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-wireguard.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-password-dialog.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-password-fields.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-route-editor.Po
@@ -20203,6 +20426,8 @@ distclean: distclean-recursive
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-slave-list.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-utils.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-widget-list.Po
+	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-editor.Po
+	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-list.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmtui-connect.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmtui-edit.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmtui-hostname.Po
@@ -20343,6 +20568,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip6-config.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-config-data.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv4ll.Plo
+	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv6ll.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3cfg.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-netns.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-act-request.Plo
@@ -20366,6 +20592,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-manager.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-pacrunner-manager.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-policy.Plo
+	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-priv-helper-call.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-proxy-config.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-rfkill-manager.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-session-monitor.Plo
@@ -20471,7 +20698,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/core/platform/tests/$(DEPDIR)/test_platform_general-test-platform-general.Po
 	-rm -f src/core/platform/tests/$(DEPDIR)/test_route_fake-test-route.Po
 	-rm -f src/core/platform/tests/$(DEPDIR)/test_route_linux-test-route.Po
-	-rm -f src/core/platform/tests/$(DEPDIR)/test_tc_fake-test-tc.Po
 	-rm -f src/core/platform/tests/$(DEPDIR)/test_tc_linux-test-tc.Po
 	-rm -f src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-manager-call.Plo
 	-rm -f src/core/ppp/$(DEPDIR)/libnm_ppp_plugin_la-nm-ppp-manager.Plo
@@ -20521,6 +20747,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/core/vpn/$(DEPDIR)/libNetworkManager_la-nm-vpn-manager.Plo
 	-rm -f src/libnm-base/$(DEPDIR)/libnm_base_la-nm-ethtool-base.Plo
 	-rm -f src/libnm-base/$(DEPDIR)/libnm_base_la-nm-net-aux.Plo
+	-rm -f src/libnm-base/$(DEPDIR)/libnm_base_la-nm-priv-helper-utils.Plo
 	-rm -f src/libnm-client-aux-extern/$(DEPDIR)/libnm_client_aux_extern_la-nm-libnm-aux.Plo
 	-rm -f src/libnm-client-aux-extern/tests/$(DEPDIR)/test_libnm_client_aux-test-libnm-client-aux.Po
 	-rm -f src/libnm-client-impl/$(DEPDIR)/libnm_client_impl_la-nm-access-point.Plo
@@ -20596,6 +20823,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-8021x.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-adsl.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bluetooth.Plo
+	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bond-port.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bond.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bridge-port.Plo
 	-rm -f src/libnm-core-impl/$(DEPDIR)/libnm_core_impl_la-nm-setting-bridge.Plo
@@ -20715,7 +20943,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp6-lease.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4acd.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4ll.Plo
-	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp.Plo
+	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-event-util.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-sd-event.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd/sd-id128/$(DEPDIR)/libnm_systemd_core_la-id128-util.Plo
@@ -20736,6 +20964,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-hexdecoct.Plo
 	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-hostname-util.Plo
 	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-in-addr-util.Plo
+	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-inotify-util.Plo
 	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-io-util.Plo
 	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-memory-util.Plo
 	-rm -f src/libnm-systemd-shared/src/basic/$(DEPDIR)/libnm_systemd_shared_la-mempool.Plo
@@ -20825,6 +21054,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/nm-initrd-generator/tests/$(DEPDIR)/test_dt_reader-test-dt-reader.Po
 	-rm -f src/nm-initrd-generator/tests/$(DEPDIR)/test_ibft_reader-test-ibft-reader.Po
 	-rm -f src/nm-online/$(DEPDIR)/nm_online-nm-online.Po
+	-rm -f src/nm-priv-helper/$(DEPDIR)/nm_priv_helper-nm-priv-helper.Po
 	-rm -f src/nmcli/$(DEPDIR)/generate_docs_nm_settings_nmcli-generate-docs-nm-settings-nmcli.Po
 	-rm -f src/nmcli/$(DEPDIR)/nmcli-agent.Po
 	-rm -f src/nmcli/$(DEPDIR)/nmcli-common.Po
@@ -20849,6 +21079,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-ip-entry.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-mac-entry.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-mtu-entry.Po
+	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond-port.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-bond.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge-port.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-bridge.Po
@@ -20863,6 +21094,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-team.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-vlan.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-wifi.Po
+	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-page-wireguard.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-password-dialog.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-password-fields.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-route-editor.Po
@@ -20871,6 +21103,8 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-slave-list.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-utils.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-widget-list.Po
+	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-editor.Po
+	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmt-wireguard-peer-list.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmtui-connect.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmtui-edit.Po
 	-rm -f src/nmtui/$(DEPDIR)/nmtui-nmtui-hostname.Po
@@ -21370,6 +21604,11 @@ $(src_nm_dispatcher_tests_test_dispatcher_envp_OBJECTS): $(src_libnm_client_publ
 
 $(src_nm_dispatcher_tests_test_dispatcher_envp_OBJECTS): $(src_libnm_core_public_mkenums_h)
 
+src/nm-priv-helper/org.freedesktop.nm-priv-helper.service: $(srcdir)/src/nm-priv-helper/org.freedesktop.nm-priv-helper.service.in
+	@sed \
+	-e 's|@libexecdir[@]|$(libexecdir)|g' \
+	$< >$@
+
 $(src_nm_online_nm_online_OBJECTS): $(src_libnm_core_public_mkenums_h)
 $(src_nm_online_nm_online_OBJECTS): $(src_libnm_client_public_mkenums_h)
 
@@ -21461,6 +21700,9 @@ check-local-gitlab-ci:
 @HAVE_SYSTEMD_200_FALSE@@HAVE_SYSTEMD_TRUE@	$(AM_V_GEN) $(data_edit) $< >$@
 
 @HAVE_SYSTEMD_TRUE@data/NetworkManager-dispatcher.service: $(srcdir)/data/NetworkManager-dispatcher.service.in
+@HAVE_SYSTEMD_TRUE@	$(AM_V_GEN) $(data_edit) $< >$@
+
+@HAVE_SYSTEMD_TRUE@data/nm-priv-helper.service: $(srcdir)/data/nm-priv-helper.service.in
 @HAVE_SYSTEMD_TRUE@	$(AM_V_GEN) $(data_edit) $< >$@
 
 data/server.conf: $(srcdir)/data/server.conf.in

@@ -120,10 +120,10 @@ typedef enum { /*< skip >*/
  * the index NMP_CACHE_ID_TYPE_OBJECT_BY_IFINDEX with
  * matching v4/v6 and ifindex -- or maybe not at all if it isn't visible.
  * */
-typedef enum { /*< skip >*/
-               NMP_CACHE_ID_TYPE_NONE,
+typedef enum {
+    NMP_CACHE_ID_TYPE_NONE,
 
-               /* all the objects of a certain type.
+    /* all the objects of a certain type.
      *
      * This index is special. It is the only one that contains *all* object.
      * Other indexes may consider some object as non "partitionable", hence
@@ -136,20 +136,20 @@ typedef enum { /*< skip >*/
      * expose all links, even invisible ones. For addresses/routes, this
      * distinction doesn't exist, as all addresses/routes that are alive
      * are visible as well. */
-               NMP_CACHE_ID_TYPE_OBJECT_TYPE,
+    NMP_CACHE_ID_TYPE_OBJECT_TYPE,
 
-               /* index for the link objects by ifname. */
-               NMP_CACHE_ID_TYPE_LINK_BY_IFNAME,
+    /* index for the link objects by ifname. */
+    NMP_CACHE_ID_TYPE_LINK_BY_IFNAME,
 
-               /* indices for the visible default-routes, ignoring ifindex.
+    /* indices for the visible default-routes, ignoring ifindex.
      * This index only contains two partitions: all visible default-routes,
      * separate for IPv4 and IPv6. */
-               NMP_CACHE_ID_TYPE_DEFAULT_ROUTES,
+    NMP_CACHE_ID_TYPE_DEFAULT_ROUTES,
 
-               /* all the objects that have an ifindex (by object-type) for an ifindex. */
-               NMP_CACHE_ID_TYPE_OBJECT_BY_IFINDEX,
+    /* all the objects that have an ifindex (by object-type) for an ifindex. */
+    NMP_CACHE_ID_TYPE_OBJECT_BY_IFINDEX,
 
-               /* Consider all the destination fields of a route, that is, the ID without the ifindex
+    /* Consider all the destination fields of a route, that is, the ID without the ifindex
      * and gateway (meaning: network/plen,metric).
      * The reason for this is that `ip route change` can replace an existing route
      * and modify its ifindex/gateway. Effectively, that means it deletes an existing
@@ -157,15 +157,15 @@ typedef enum { /*< skip >*/
      * sends one RTM_NEWADDR notification without notifying about the deletion. We detect
      * that by having this index to contain overlapping routes which require special
      * cache-resync. */
-               NMP_CACHE_ID_TYPE_ROUTES_BY_WEAK_ID,
+    NMP_CACHE_ID_TYPE_ROUTES_BY_WEAK_ID,
 
-               /* a filter for objects that track an explicit address family.
+    /* a filter for objects that track an explicit address family.
      *
      * Note that currently on NMPObjectRoutingRule is indexed by this filter. */
-               NMP_CACHE_ID_TYPE_OBJECT_BY_ADDR_FAMILY,
+    NMP_CACHE_ID_TYPE_OBJECT_BY_ADDR_FAMILY,
 
-               __NMP_CACHE_ID_TYPE_MAX,
-               NMP_CACHE_ID_TYPE_MAX = __NMP_CACHE_ID_TYPE_MAX - 1,
+    __NMP_CACHE_ID_TYPE_MAX,
+    NMP_CACHE_ID_TYPE_MAX = __NMP_CACHE_ID_TYPE_MAX - 1,
 } NMPCacheIdType;
 
 typedef struct {
@@ -625,6 +625,20 @@ nmp_object_unref(const NMPObject *obj)
         _changed;                       \
     })
 
+#define nm_clear_nmp_object_up_cast(ptr)                 \
+    ({                                                   \
+        typeof(ptr)   _ptr = (ptr);                      \
+        typeof(*_ptr) _pptr;                             \
+        gboolean      _changed = FALSE;                  \
+                                                         \
+        if (_ptr && (_pptr = *_ptr)) {                   \
+            *_ptr = NULL;                                \
+            nmp_object_unref(NMP_OBJECT_UP_CAST(_pptr)); \
+            _changed = TRUE;                             \
+        }                                                \
+        _changed;                                        \
+    })
+
 static inline gboolean
 nmp_object_ref_set(const NMPObject **pp, const NMPObject *obj)
 {
@@ -638,6 +652,25 @@ nmp_object_ref_set(const NMPObject **pp, const NMPObject *obj)
         nmp_object_ref(obj);
         *pp = obj;
         nmp_object_unref(p);
+        _changed = TRUE;
+    }
+    return _changed;
+}
+
+static inline gboolean
+nmp_object_ref_set_up_cast(gpointer pp, gconstpointer obj)
+{
+    gboolean         _changed = FALSE;
+    const NMPObject *p;
+    gconstpointer *  pp2 = pp;
+
+    nm_assert(!pp2 || !*pp2 || NMP_OBJECT_IS_VALID(NMP_OBJECT_UP_CAST(*pp2)));
+    nm_assert(!obj || NMP_OBJECT_IS_VALID(NMP_OBJECT_UP_CAST(obj)));
+
+    if (pp2 && ((p = *pp2) != obj)) {
+        nmp_object_ref(NMP_OBJECT_UP_CAST(obj));
+        *pp2 = obj;
+        nmp_object_unref(NMP_OBJECT_UP_CAST(p));
         _changed = TRUE;
     }
     return _changed;
@@ -671,7 +704,22 @@ const char *nmp_object_to_string(const NMPObject *     obj,
                                  char *                buf,
                                  gsize                 buf_size);
 void        nmp_object_hash_update(const NMPObject *obj, NMHashState *h);
-int         nmp_object_cmp(const NMPObject *obj1, const NMPObject *obj2);
+
+typedef enum {
+    NMP_OBJECT_CMP_FLAGS_NONE = 0,
+
+    /* Warning: this flag is currently only implemented for certain object types
+     * (address and routes). */
+    NMP_OBJECT_CMP_FLAGS_IGNORE_IFINDEX = (1llu << 0),
+} NMPObjectCmpFlags;
+
+int nmp_object_cmp_full(const NMPObject *obj1, const NMPObject *obj2, NMPObjectCmpFlags flags);
+
+static inline int
+nmp_object_cmp(const NMPObject *obj1, const NMPObject *obj2)
+{
+    return nmp_object_cmp_full(obj1, obj2, NMP_OBJECT_CMP_FLAGS_NONE);
+}
 
 static inline gboolean
 nmp_object_equal(const NMPObject *obj1, const NMPObject *obj2)
@@ -1049,6 +1097,21 @@ nm_platform_lookup_object_by_addr_family(NMPlatform *  platform,
 
 /*****************************************************************************/
 
+static inline gboolean
+nmp_object_get_assume_config_once(const NMPObject *obj)
+{
+    switch (NMP_OBJECT_GET_TYPE(obj)) {
+    case NMP_OBJECT_TYPE_IP4_ADDRESS:
+    case NMP_OBJECT_TYPE_IP6_ADDRESS:
+        return NMP_OBJECT_CAST_IP_ADDRESS(obj)->a_assume_config_once;
+    case NMP_OBJECT_TYPE_IP4_ROUTE:
+    case NMP_OBJECT_TYPE_IP6_ROUTE:
+        return NMP_OBJECT_CAST_IP_ROUTE(obj)->r_assume_config_once;
+    default:
+        return nm_assert_unreachable_val(FALSE);
+    }
+}
+
 static inline const char *
 nmp_object_link_get_ifname(const NMPObject *obj)
 {
@@ -1058,7 +1121,7 @@ nmp_object_link_get_ifname(const NMPObject *obj)
 }
 
 static inline gboolean
-nmp_object_ip_route_is_best_defaut_route(const NMPObject *obj)
+nmp_object_ip_route_is_best_default_route(const NMPObject *obj)
 {
     const NMPlatformIPRoute *r = NMP_OBJECT_CAST_IP_ROUTE(obj);
 

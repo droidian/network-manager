@@ -41,7 +41,7 @@
         </p>
 <p>
           An alternative to use of libnm is the use of the
-          <a class="ulink" href="https://developer.gnome.org/NetworkManager/stable/spec.html" target="_top">D-Bus API</a>
+          <a class="ulink" href="https://networkmanager.dev/docs/api/latest/spec.html" target="_top">D-Bus API</a>,
           directly.  This gives you larger flexibility and reduces the overhead of linking
           with the libnm library. This makes sense if your task is simple and you have a good
           D-Bus library at your disposal. Activating a particular connection profile
@@ -96,7 +96,7 @@
         </p>
 <pre class="screen"><code class="prompt">$ </code><strong class="userinput"><code>cc $(pkg-config --libs --cflags libnm) -o hello-nm hello-nm.c</code></strong>
   <code class="prompt">$ </code><strong class="userinput"><code>./hello-nm</code></strong>
-  NetworkManager version: 1.32.12
+  NetworkManager version: 1.34.0
 
   <code class="prompt">$ </code></pre>
 <p>

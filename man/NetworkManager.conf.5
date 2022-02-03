@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 09/22/2021
+.\"      Date: 01/13/2022
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.32.12
+.\"    Source: NetworkManager 1.34.0
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.32\&.12" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.34\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -739,6 +739,11 @@ If unspecified, the ultimate default values depends on the DNS plugin\&. With sy
 \fIconnection\&.mdns\fR
 .RS 4
 If unspecified, the ultimate default values depends on the DNS plugin\&. With systemd\-resolved the default currently is "no" (0) and for all other plugins also "no" (0)\&.
+.RE
+.PP
+\fIconnection\&.dns\-over\-tls\fR
+.RS 4
+If unspecified, the ultimate default values depends on the DNS plugin\&. With systemd\-resolved the default currently is global setting and for all other plugins "no" (0)\&.
 .RE
 .PP
 \fIconnection\&.stable\-id\fR

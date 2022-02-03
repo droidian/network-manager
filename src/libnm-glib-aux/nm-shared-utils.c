@@ -12,7 +12,6 @@
 #include <poll.h>
 #include <fcntl.h>
 #include <sys/syscall.h>
-#include <glib-unix.h>
 #include <net/if.h>
 #include <net/ethernet.h>
 #include <pthread.h>
@@ -100,6 +99,29 @@ nm_ip_addr_set_from_untrusted(int           addr_family,
     return TRUE;
 }
 
+gboolean
+nm_ip_addr_set_from_variant(int addr_family, gpointer dst, GVariant *variant, int *out_addr_family)
+{
+    gconstpointer bytes;
+    gsize         len;
+
+    g_return_val_if_fail(dst, FALSE);
+    g_return_val_if_fail(variant, FALSE);
+
+    /* This function always expects IP addressea a byte arrays ("ay"). Note that
+     * several NetworkManager API uses "u" (32 bit unsigned intergers) for IPv4 addresses.
+     * So this function won't work in those cases.
+     *
+     * Btw, using "u" for IPv4 address messes badly with the endianness (host
+     * vs network byte order). Don't do that.
+     */
+    g_return_val_if_fail(g_variant_is_of_type(variant, G_VARIANT_TYPE("ay")), FALSE);
+
+    bytes = g_variant_get_fixed_array(variant, &len, sizeof(guint8));
+
+    return nm_ip_addr_set_from_untrusted(addr_family, dst, bytes, len, out_addr_family);
+}
+
 /*****************************************************************************/
 
 G_STATIC_ASSERT(ETH_ALEN == sizeof(struct ether_addr));
@@ -141,9 +163,9 @@ _nm_utils_inet6_is_token(const struct in6_addr *in6addr)
  * token.
  */
 void
-nm_utils_ipv6_addr_set_interface_identifier(struct in6_addr *addr, const NMUtilsIPv6IfaceId iid)
+nm_utils_ipv6_addr_set_interface_identifier(struct in6_addr *addr, const NMUtilsIPv6IfaceId *iid)
 {
-    memcpy(addr->s6_addr + 8, &iid.id_u8, 8);
+    memcpy(addr->s6_addr + 8, &iid->id_u8, 8);
 }
 
 /**
@@ -199,8 +221,8 @@ nm_utils_ipv6_interface_identifier_get_from_token(NMUtilsIPv6IfaceId *iid, const
  * Returns: the input buffer filled with the id as string.
  */
 const char *
-nm_utils_inet6_interface_identifier_to_token(NMUtilsIPv6IfaceId iid,
-                                             char               buf[static INET6_ADDRSTRLEN])
+nm_utils_inet6_interface_identifier_to_token(const NMUtilsIPv6IfaceId *iid,
+                                             char                      buf[static INET6_ADDRSTRLEN])
 {
     struct in6_addr i6_token = {.s6_addr = {
                                     0,
@@ -264,7 +286,7 @@ _nm_assert_on_main_thread(void)
 /*****************************************************************************/
 
 void
-nm_utils_strbuf_append_c(char **buf, gsize *len, char c)
+nm_strbuf_append_c(char **buf, gsize *len, char c)
 {
     switch (*len) {
     case 0:
@@ -284,7 +306,7 @@ nm_utils_strbuf_append_c(char **buf, gsize *len, char c)
 }
 
 void
-nm_utils_strbuf_append_bin(char **buf, gsize *len, gconstpointer str, gsize str_len)
+nm_strbuf_append_bin(char **buf, gsize *len, gconstpointer str, gsize str_len)
 {
     switch (*len) {
     case 0:
@@ -319,7 +341,7 @@ nm_utils_strbuf_append_bin(char **buf, gsize *len, gconstpointer str, gsize str_
 }
 
 void
-nm_utils_strbuf_append_str(char **buf, gsize *len, const char *str)
+nm_strbuf_append_str(char **buf, gsize *len, const char *str)
 {
     gsize src_len;
 
@@ -353,7 +375,7 @@ nm_utils_strbuf_append_str(char **buf, gsize *len, const char *str)
 }
 
 void
-nm_utils_strbuf_append(char **buf, gsize *len, const char *format, ...)
+nm_strbuf_append(char **buf, gsize *len, const char *format, ...)
 {
     char *  p = *buf;
     va_list args;
@@ -376,25 +398,25 @@ nm_utils_strbuf_append(char **buf, gsize *len, const char *format, ...)
 }
 
 /**
- * nm_utils_strbuf_seek_end:
+ * nm_strbuf_seek_end:
  * @buf: the input/output buffer
  * @len: the input/output length of the buffer.
  *
- * Commonly, one uses nm_utils_strbuf_append*(), to incrementally
+ * Commonly, one uses nm_strbuf_append*(), to incrementally
  * append strings to the buffer. However, sometimes we need to use
  * existing API to write to the buffer.
  * After doing so, we want to adjust the buffer counter.
  * Essentially,
  *
  *   g_snprintf (buf, len, ...);
- *   nm_utils_strbuf_seek_end (&buf, &len);
+ *   nm_strbuf_seek_end (&buf, &len);
  *
  * is almost the same as
  *
- *   nm_utils_strbuf_append (&buf, &len, ...);
+ *   nm_strbuf_append (&buf, &len, ...);
  *
  * The only difference is the behavior when the string got truncated:
- * nm_utils_strbuf_append() will recognize that and set the remaining
+ * nm_strbuf_append() will recognize that and set the remaining
  * length to zero.
  *
  * In general, the behavior is:
@@ -412,13 +434,13 @@ nm_utils_strbuf_append(char **buf, gsize *len, const char *format, ...)
  *    the NUL byte. This would happen with
  *
  *       strncpy (buf, long_str, len);
- *       nm_utils_strbuf_seek_end (&buf, &len).
+ *       nm_strbuf_seek_end (&buf, &len).
  *
  *    where strncpy() does truncate the string and not NUL terminate it.
- *    nm_utils_strbuf_seek_end() would then NUL terminate it.
+ *    nm_strbuf_seek_end() would then NUL terminate it.
  */
 void
-nm_utils_strbuf_seek_end(char **buf, gsize *len)
+nm_strbuf_seek_end(char **buf, gsize *len)
 {
     gsize l;
     char *end;
@@ -455,7 +477,7 @@ truncate:
 /*****************************************************************************/
 
 GBytes *
-nm_gbytes_get_empty(void)
+nm_g_bytes_get_empty(void)
 {
     static GBytes *bytes = NULL;
     GBytes *       b;
@@ -487,8 +509,18 @@ nm_g_bytes_new_from_str(const char *str)
     return g_bytes_new_take(nm_memdup(str, l + 1u), l);
 }
 
+GBytes *
+nm_g_bytes_new_from_variant_ay(GVariant *var)
+{
+    if (!var)
+        return NULL;
+    if (!g_variant_is_of_type(var, G_VARIANT_TYPE_BYTESTRING))
+        g_return_val_if_reached(NULL);
+    return g_variant_get_data_as_bytes(var);
+}
+
 /**
- * nm_utils_gbytes_equal_mem:
+ * nm_g_bytes_equal_mem:
  * @bytes: (allow-none): a #GBytes array to compare. Note that
  *   %NULL is treated like an #GBytes array of length zero.
  * @mem_data: the data pointer with @mem_len bytes
@@ -498,7 +530,7 @@ nm_g_bytes_new_from_str(const char *str)
  *   special case, a %NULL @bytes is treated like an empty array.
  */
 gboolean
-nm_utils_gbytes_equal_mem(GBytes *bytes, gconstpointer mem_data, gsize mem_len)
+nm_g_bytes_equal_mem(GBytes *bytes, gconstpointer mem_data, gsize mem_len)
 {
     gconstpointer p;
     gsize         l;
@@ -516,7 +548,7 @@ nm_utils_gbytes_equal_mem(GBytes *bytes, gconstpointer mem_data, gsize mem_len)
 }
 
 GVariant *
-nm_utils_gbytes_to_variant_ay(GBytes *bytes)
+nm_g_bytes_to_variant_ay(const GBytes *bytes)
 {
     const guint8 *p = NULL;
     gsize         l = 0;
@@ -524,7 +556,7 @@ nm_utils_gbytes_to_variant_ay(GBytes *bytes)
     if (!bytes) {
         /* for convenience, accept NULL to return an empty variant */
     } else
-        p = g_bytes_get_data(bytes, &l);
+        p = g_bytes_get_data((GBytes *) bytes, &l);
 
     return nm_g_variant_new_ay(p, l);
 }
@@ -557,6 +589,12 @@ GVariant *
 nm_g_variant_singleton_u_0(void)
 {
     return _variant_singleton_get(g_variant_new_uint32(0));
+}
+
+GVariant *
+nm_g_variant_singleton_i_0(void)
+{
+    return _variant_singleton_get(g_variant_new_int32(0));
 }
 
 GVariant *
@@ -603,6 +641,24 @@ _variant_singleton_get_array_init(GVariant **p_singleton, const char *variant_ty
     })
 
 GVariant *
+nm_g_variant_singleton_au(void)
+{
+    return _variant_singleton_get_array("u");
+}
+
+GVariant *
+nm_g_variant_singleton_aay(void)
+{
+    return _variant_singleton_get_array("ay");
+}
+
+GVariant *
+nm_g_variant_singleton_as(void)
+{
+    return _variant_singleton_get_array("s");
+}
+
+GVariant *
 nm_g_variant_singleton_aLsvI(void)
 {
     return _variant_singleton_get_array("{sv}");
@@ -620,10 +676,37 @@ nm_g_variant_singleton_aaLsvI(void)
     return _variant_singleton_get_array("a{sv}");
 }
 
+GVariant *
+nm_g_variant_singleton_ao(void)
+{
+    return _variant_singleton_get_array("o");
+}
+
+GVariant *
+nm_g_variant_maybe_singleton_i(gint32 value)
+{
+    /* Warning: this function always returns a non-floating reference
+     * that must be consumed (and later unrefed) by the caller.
+     *
+     * The instance is either a singleton instance or a newly created
+     * instance.
+     *
+     * The idea of this is that common values (zero) can use the immutable
+     * singleton/flyweight instance and avoid allocating a new instance in
+     * the (presumable) common case.
+     */
+    switch (value) {
+    case 0:
+        return g_variant_ref(nm_g_variant_singleton_i_0());
+    default:
+        return g_variant_take_ref(g_variant_new_int32(value));
+    }
+}
+
 /*****************************************************************************/
 
 GHashTable *
-nm_utils_strdict_clone(GHashTable *src)
+nm_strdict_clone(GHashTable *src)
 {
     GHashTable *   dst;
     GHashTableIter iter;
@@ -645,7 +728,7 @@ nm_utils_strdict_clone(GHashTable *src)
  * Returns a floating reference.
  */
 GVariant *
-nm_utils_strdict_to_variant_ass(GHashTable *strdict)
+nm_strdict_to_variant_ass(GHashTable *strdict)
 {
     gs_free NMUtilsNamedValue *values_free = NULL;
     NMUtilsNamedValue          values_prepared[20];
@@ -666,7 +749,7 @@ nm_utils_strdict_to_variant_ass(GHashTable *strdict)
 /*****************************************************************************/
 
 GVariant *
-nm_utils_strdict_to_variant_asv(GHashTable *strdict)
+nm_strdict_to_variant_asv(GHashTable *strdict)
 {
     gs_free NMUtilsNamedValue *values_free = NULL;
     NMUtilsNamedValue          values_prepared[20];
@@ -715,7 +798,7 @@ nm_strquote(char *buf, gsize buf_len, const char *str)
     const char *const buf0 = buf;
 
     if (!str) {
-        nm_utils_strbuf_append_str(&buf, &buf_len, "(null)");
+        nm_strbuf_append_str(&buf, &buf_len, "(null)");
         goto out;
     }
 
@@ -734,7 +817,7 @@ nm_strquote(char *buf, gsize buf_len, const char *str)
     *(buf++) = '"';
     buf_len--;
 
-    nm_utils_strbuf_append_str(&buf, &buf_len, str);
+    nm_strbuf_append_str(&buf, &buf_len, str);
 
     /* if the string was too long we indicate truncation with a
      * '^' instead of a closing quote. */
@@ -762,7 +845,7 @@ out:
 
 /*****************************************************************************/
 
-char _nm_utils_to_string_buffer[];
+_nm_thread_local char _nm_utils_to_string_buffer[] = {0};
 
 void
 nm_utils_to_string_buffer_init(char **buf, gsize *len)
@@ -818,7 +901,7 @@ nm_utils_flags2str(const NMUtilsFlags2StrDesc *descs,
     if (!flags) {
         for (i = 0; i < n_descs; i++) {
             if (!descs[i].flag) {
-                nm_utils_strbuf_append_str(&p, &len, descs[i].name);
+                nm_strbuf_append_str(&p, &len, descs[i].name);
                 break;
             }
         }
@@ -830,14 +913,14 @@ nm_utils_flags2str(const NMUtilsFlags2StrDesc *descs,
             flags &= ~descs[i].flag;
 
             if (buf[0] != '\0')
-                nm_utils_strbuf_append_c(&p, &len, ',');
-            nm_utils_strbuf_append_str(&p, &len, descs[i].name);
+                nm_strbuf_append_c(&p, &len, ',');
+            nm_strbuf_append_str(&p, &len, descs[i].name);
         }
     }
     if (flags) {
         if (buf[0] != '\0')
-            nm_utils_strbuf_append_c(&p, &len, ',');
-        nm_utils_strbuf_append(&p, &len, "0x%x", flags);
+            nm_strbuf_append_c(&p, &len, ',');
+        nm_strbuf_append(&p, &len, "0x%x", flags);
     }
     return buf;
 };
@@ -1733,7 +1816,7 @@ _char_lookup_has_all(const CharLookupTable *lookup, const char *candidates)
 }
 
 /**
- * nm_utils_strsplit_set_full:
+ * nm_strsplit_set_full:
  * @str: the string to split.
  * @delimiters: the set of delimiters.
  * @flags: additional flags for controlling the operation.
@@ -1747,7 +1830,7 @@ _char_lookup_has_all(const CharLookupTable *lookup, const char *candidates)
  * This never returns an empty array.
  *
  * Returns: %NULL if @str is %NULL or "".
- *   If @str only contains delimiters and %NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY
+ *   If @str only contains delimiters and %NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY
  *   is not set, it also returns %NULL.
  *   Otherwise, a %NULL terminated strv array containing the split words.
  *   (delimiter characters are removed).
@@ -1758,7 +1841,7 @@ _char_lookup_has_all(const CharLookupTable *lookup, const char *candidates)
  *   like "g_strstrip((char *) iter[0])".
  */
 const char **
-nm_utils_strsplit_set_full(const char *str, const char *delimiters, NMUtilsStrsplitSetFlags flags)
+nm_strsplit_set_full(const char *str, const char *delimiters, NMUtilsStrsplitSetFlags flags)
 {
     const char **   ptr;
     gsize           num_tokens;
@@ -1767,12 +1850,11 @@ nm_utils_strsplit_set_full(const char *str, const char *delimiters, NMUtilsStrsp
     const char *    c_str;
     char *          s;
     CharLookupTable ch_lookup;
-    const gboolean  f_escaped = NM_FLAGS_HAS(flags, NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED);
+    const gboolean  f_escaped = NM_FLAGS_HAS(flags, NM_STRSPLIT_SET_FLAGS_ESCAPED);
     const gboolean  f_allow_escaping =
-        f_escaped || NM_FLAGS_HAS(flags, NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING);
-    const gboolean f_preserve_empty =
-        NM_FLAGS_HAS(flags, NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY);
-    const gboolean f_strstrip = NM_FLAGS_HAS(flags, NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP);
+        f_escaped || NM_FLAGS_HAS(flags, NM_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING);
+    const gboolean f_preserve_empty = NM_FLAGS_HAS(flags, NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY);
+    const gboolean f_strstrip       = NM_FLAGS_HAS(flags, NM_STRSPLIT_SET_FLAGS_STRSTRIP);
 
     if (!str)
         return NULL;
@@ -1791,8 +1873,8 @@ nm_utils_strsplit_set_full(const char *str, const char *delimiters, NMUtilsStrsp
     }
 
     if (!str[0]) {
-        /* We return %NULL here, also with NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY.
-         * That makes nm_utils_strsplit_set_full() with NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY
+        /* We return %NULL here, also with NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY.
+         * That makes nm_strsplit_set_full() with NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY
          * different from g_strsplit_set(), which would in this case return an empty array.
          * If you need to handle %NULL, and "" specially, then check the input string first. */
         return NULL;
@@ -2175,7 +2257,7 @@ nm_utils_escaped_tokens_options_split(char *str, const char **out_key, const cha
  * with the flags "EXTRACT_UNQUOTE | EXTRACT_RELAX". This is what
  * systemd uses to parse /proc/cmdline, and we do too.
  *
- * Splits the string. We have nm_utils_strsplit_set() which
+ * Splits the string. We have nm_strsplit_set() which
  * supports a variety of flags. However, extending that already
  * complex code to also support quotation and escaping is hard.
  * Instead, add a naive implementation.
@@ -2262,7 +2344,7 @@ nm_utils_strsplit_quoted(const char *str)
 /*****************************************************************************/
 
 /**
- * nm_utils_strv_find_first:
+ * _nm_strv_find_first:
  * @list: the strv list to search
  * @len: the length of the list, or a negative value if @list is %NULL terminated.
  * @needle: the value to search for. The search is done using strcmp().
@@ -2275,7 +2357,7 @@ nm_utils_strsplit_quoted(const char *str)
  * Returns: index of first occurrence or -1 if @needle is not found in @list.
  */
 gssize
-nm_utils_strv_find_first(char **list, gssize len, const char *needle)
+_nm_strv_find_first(const char *const *list, gssize len, const char *needle)
 {
     gssize i;
 
@@ -2337,13 +2419,80 @@ nm_strv_has_duplicate(const char *const *strv, gssize len, gboolean is_sorted)
     return FALSE;
 }
 
-char **
-_nm_utils_strv_cleanup(char **  strv,
-                       gboolean strip_whitespace,
-                       gboolean skip_empty,
-                       gboolean skip_repeated)
+gboolean
+nm_strv_is_same_unordered(const char *const *strv1,
+                          gssize             len1,
+                          const char *const *strv2,
+                          gssize             len2)
 {
-    guint i, j;
+    gs_free const char **ss1_free = NULL;
+    gs_free const char **ss2_free = NULL;
+    gsize                l2;
+    gsize                l;
+    gsize                i;
+
+    if (len1 < 0)
+        l = NM_PTRARRAY_LEN(strv1);
+    else
+        l = (gsize) len1;
+
+    if (len2 < 0)
+        l2 = NM_PTRARRAY_LEN(strv2);
+    else
+        l2 = (gsize) len2;
+
+    if (l != l2)
+        return FALSE;
+
+    if (l == 0) {
+        /* An empty array. We treat (NULL, -1), (NULL, 0) and ([...], 0)
+         * all the same. */
+        return TRUE;
+    }
+
+    if (l > 1) {
+        strv1 = nm_memdup_maybe_a(300, strv1, sizeof(char *) * l, &ss1_free);
+        strv2 = nm_memdup_maybe_a(300, strv2, sizeof(char *) * l2, &ss2_free);
+        _nm_strv_sort((const char **) strv1, l);
+        _nm_strv_sort((const char **) strv2, l);
+    }
+
+    for (i = 0; i < l; i++) {
+        if (!nm_streq0(strv1[i], strv2[i]))
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
+const char **
+nm_strv_cleanup_const(const char **strv, gboolean skip_empty, gboolean skip_repeated)
+{
+    gsize i;
+    gsize j;
+
+    if (!strv || !*strv)
+        return strv;
+
+    if (!skip_empty && !skip_repeated)
+        return strv;
+
+    j = 0;
+    for (i = 0; strv[i]; i++) {
+        if ((skip_empty && !*strv[i])
+            || (skip_repeated && nm_strv_find_first(strv, j, strv[i]) >= 0))
+            continue;
+        strv[j++] = strv[i];
+    }
+    strv[j] = NULL;
+    return strv;
+}
+
+char **
+nm_strv_cleanup(char **strv, gboolean strip_whitespace, gboolean skip_empty, gboolean skip_repeated)
+{
+    gsize i;
+    gsize j;
 
     if (!strv || !*strv)
         return strv;
@@ -2359,7 +2508,7 @@ _nm_utils_strv_cleanup(char **  strv,
     j = 0;
     for (i = 0; strv[i]; i++) {
         if ((skip_empty && !*strv[i])
-            || (skip_repeated && nm_utils_strv_find_first(strv, j, strv[i]) >= 0))
+            || (skip_repeated && nm_strv_find_first(strv, j, strv[i]) >= 0))
             g_free(strv[i]);
         else
             strv[j++] = strv[i];
@@ -3762,7 +3911,7 @@ nm_utils_hashtable_cmp(const GHashTable *a,
 }
 
 char **
-nm_utils_strv_make_deep_copied(const char **strv)
+nm_strv_make_deep_copied(const char **strv)
 {
     gsize i;
 
@@ -3779,7 +3928,7 @@ nm_utils_strv_make_deep_copied(const char **strv)
 }
 
 char **
-nm_utils_strv_make_deep_copied_n(const char **strv, gsize len)
+nm_strv_make_deep_copied_n(const char **strv, gsize len)
 {
     gsize i;
 
@@ -3822,7 +3971,7 @@ nm_utils_strv_make_deep_copied_n(const char **strv, gsize len)
  *   cloned or not.
  */
 char **
-_nm_utils_strv_dup(const char *const *strv, gssize len, gboolean deep_copied)
+_nm_strv_dup(const char *const *strv, gssize len, gboolean deep_copied)
 {
     gsize  i, l;
     char **v;
@@ -3858,7 +4007,7 @@ _nm_utils_strv_dup(const char *const *strv, gssize len, gboolean deep_copied)
 }
 
 const char **
-_nm_utils_strv_dup_packed(const char *const *strv, gssize len)
+_nm_strv_dup_packed(const char *const *strv, gssize len)
 
 {
     gs_free gsize *str_len_free = NULL;
@@ -4219,7 +4368,7 @@ nm_utils_get_start_time_for_pid(pid_t pid, char *out_state, pid_t *out_ppid)
 
     state = p[0];
 
-    tokens = nm_utils_strsplit_set(p, " ");
+    tokens = nm_strsplit_set(p, " ");
 
     if (NM_PTRARRAY_LEN(tokens) < 20)
         goto fail;
@@ -4247,7 +4396,7 @@ fail:
 /*****************************************************************************/
 
 /**
- * _nm_utils_strv_sort:
+ * _nm_strv_sort:
  * @strv: pointer containing strings that will be sorted
  *   in-place, %NULL is allowed, unless @len indicates
  *   that there are more elements.
@@ -4261,7 +4410,7 @@ fail:
  * comparison.
  */
 void
-_nm_utils_strv_sort(const char **strv, gssize len)
+_nm_strv_sort(const char **strv, gssize len)
 {
     GCompareDataFunc cmp;
     gsize            l;
@@ -4283,7 +4432,7 @@ _nm_utils_strv_sort(const char **strv, gssize len)
 }
 
 /**
- * _nm_utils_strv_cmp_n:
+ * _nm_strv_cmp_n:
  * @strv1: a string array
  * @len1: the length of @strv1, or -1 for NULL terminated array.
  * @strv2: a string array
@@ -4306,7 +4455,7 @@ _nm_utils_strv_sort(const char **strv, gssize len)
  * Returns: 0 if the arrays are equal (using strcmp).
  **/
 int
-_nm_utils_strv_cmp_n(const char *const *strv1, gssize len1, const char *const *strv2, gssize len2)
+_nm_strv_cmp_n(const char *const *strv1, gssize len1, const char *const *strv2, gssize len2)
 {
     gsize n, n2;
 
@@ -5015,12 +5164,12 @@ nm_g_unix_signal_source_new(int            signum,
 }
 
 GSource *
-nm_g_unix_fd_source_new(int          fd,
-                        GIOCondition io_condition,
-                        int          priority,
-                        gboolean (*source_func)(int fd, GIOCondition condition, gpointer user_data),
-                        gpointer       user_data,
-                        GDestroyNotify destroy_notify)
+nm_g_unix_fd_source_new(int               fd,
+                        GIOCondition      io_condition,
+                        int               priority,
+                        GUnixFDSourceFunc source_func,
+                        gpointer          user_data,
+                        GDestroyNotify    destroy_notify)
 {
     GSource *source;
 
@@ -5029,6 +5178,23 @@ nm_g_unix_fd_source_new(int          fd,
     if (priority != G_PRIORITY_DEFAULT)
         g_source_set_priority(source, priority);
     g_source_set_callback(source, G_SOURCE_FUNC(source_func), user_data, destroy_notify);
+    return source;
+}
+
+GSource *
+nm_g_child_watch_source_new(GPid            pid,
+                            int             priority,
+                            GChildWatchFunc handler,
+                            gpointer        user_data,
+                            GDestroyNotify  notify)
+{
+    GSource *source;
+
+    source = g_child_watch_source_new(pid);
+
+    if (priority != G_PRIORITY_DEFAULT)
+        g_source_set_priority(source, priority);
+    g_source_set_callback(source, G_SOURCE_FUNC(handler), user_data, notify);
     return source;
 }
 
@@ -6363,6 +6529,35 @@ nm_utils_get_process_exit_status_desc(int status)
 
 /*****************************************************************************/
 
+gboolean
+nm_utils_validate_hostname(const char *hostname)
+{
+    const char *p;
+    gboolean    dot = TRUE;
+
+    if (!hostname || !hostname[0])
+        return FALSE;
+
+    for (p = hostname; *p; p++) {
+        if (*p == '.') {
+            if (dot)
+                return FALSE;
+            dot = TRUE;
+        } else {
+            if (!g_ascii_isalnum(*p) && (*p != '-') && (*p != '_'))
+                return FALSE;
+            dot = FALSE;
+        }
+    }
+
+    if (dot)
+        return FALSE;
+
+    return (p - hostname <= HOST_NAME_MAX);
+}
+
+/*****************************************************************************/
+
 typedef struct {
     CList          lst;
     gpointer       tls_data;
@@ -6436,4 +6631,34 @@ nm_utils_thread_local_register_destroy(gpointer tls_data, GDestroyNotify destroy
     entry->tls_data       = tls_data;
     entry->destroy_notify = destroy_notify;
     c_list_link_tail(lst_head, &entry->lst);
+}
+
+/*****************************************************************************/
+
+static gboolean
+_iterate_for_msec_timeout(gpointer user_data)
+{
+    GSource **p_source = user_data;
+
+    nm_clear_g_source_inst(p_source);
+    return G_SOURCE_CONTINUE;
+}
+
+void
+nm_g_main_context_iterate_for_msec(GMainContext *context, guint timeout_msec)
+{
+    GSource *source;
+
+    /* In production is this function not very useful. It is however useful to
+     * have in the toolbox for printf debugging. */
+
+    source = g_timeout_source_new(timeout_msec);
+    g_source_set_callback(source, _iterate_for_msec_timeout, &source, NULL);
+
+    if (!context)
+        context = g_main_context_default();
+
+    g_source_attach(source, context);
+    while (source)
+        g_main_context_iteration(context, TRUE);
 }

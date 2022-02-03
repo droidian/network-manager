@@ -505,6 +505,8 @@ src_libnm_base_libnm_base_la_SOURCES = \
 	src/libnm-base/nm-ethtool-utils-base.h \
 	src/libnm-base/nm-net-aux.c \
 	src/libnm-base/nm-net-aux.h \
+	src/libnm-base/nm-priv-helper-utils.c \
+	src/libnm-base/nm-priv-helper-utils.h \
 	$(NULL)
 
 src_libnm_base_libnm_base_la_LDFLAGS = \
@@ -1174,6 +1176,7 @@ src_libnm_core_impl_lib_h_pub_real = \
 	src/libnm-core-public/nm-setting-8021x.h \
 	src/libnm-core-public/nm-setting-adsl.h \
 	src/libnm-core-public/nm-setting-bluetooth.h \
+	src/libnm-core-public/nm-setting-bond-port.h \
 	src/libnm-core-public/nm-setting-bond.h \
 	src/libnm-core-public/nm-setting-bridge-port.h \
 	src/libnm-core-public/nm-setting-bridge.h \
@@ -1254,6 +1257,7 @@ src_libnm_core_impl_lib_c_settings_real = \
 	src/libnm-core-impl/nm-setting-8021x.c \
 	src/libnm-core-impl/nm-setting-adsl.c \
 	src/libnm-core-impl/nm-setting-bluetooth.c \
+	src/libnm-core-impl/nm-setting-bond-port.c \
 	src/libnm-core-impl/nm-setting-bond.c \
 	src/libnm-core-impl/nm-setting-bridge-port.c \
 	src/libnm-core-impl/nm-setting-bridge.c \
@@ -2114,6 +2118,7 @@ src_libnm_systemd_shared_libnm_systemd_shared_la_SOURCES = \
 	src/libnm-systemd-shared/sd-adapt-shared/arphrd-list.h \
 	src/libnm-systemd-shared/sd-adapt-shared/blockdev-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/build.h \
+	src/libnm-systemd-shared/sd-adapt-shared/chase-symlinks.h \
 	src/libnm-systemd-shared/sd-adapt-shared/copy.h \
 	src/libnm-systemd-shared/sd-adapt-shared/def.h \
 	src/libnm-systemd-shared/sd-adapt-shared/dhcp-server-internal.h \
@@ -2126,6 +2131,7 @@ src_libnm_systemd_shared_libnm_systemd_shared_la_SOURCES = \
 	src/libnm-systemd-shared/sd-adapt-shared/locale-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/memfd-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/missing_fs.h \
+	src/libnm-systemd-shared/sd-adapt-shared/missing_ioprio.h \
 	src/libnm-systemd-shared/sd-adapt-shared/missing_keyctl.h \
 	src/libnm-systemd-shared/sd-adapt-shared/missing_magic.h \
 	src/libnm-systemd-shared/sd-adapt-shared/missing_network.h \
@@ -2139,6 +2145,7 @@ src_libnm_systemd_shared_libnm_systemd_shared_la_SOURCES = \
 	src/libnm-systemd-shared/sd-adapt-shared/os-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/raw-clone.h \
 	src/libnm-systemd-shared/sd-adapt-shared/rlimit-util.h \
+	src/libnm-systemd-shared/sd-adapt-shared/sync-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/sysctl-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/terminal-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/unaligned.h \
@@ -2178,6 +2185,8 @@ src_libnm_systemd_shared_libnm_systemd_shared_la_SOURCES = \
 	src/libnm-systemd-shared/src/basic/hostname-util.h \
 	src/libnm-systemd-shared/src/basic/in-addr-util.c \
 	src/libnm-systemd-shared/src/basic/in-addr-util.h \
+	src/libnm-systemd-shared/src/basic/inotify-util.c \
+	src/libnm-systemd-shared/src/basic/inotify-util.h \
 	src/libnm-systemd-shared/src/basic/io-util.c \
 	src/libnm-systemd-shared/src/basic/io-util.h \
 	src/libnm-systemd-shared/src/basic/list.h \
@@ -2301,11 +2310,11 @@ src_libnm_systemd_core_libnm_systemd_core_la_SOURCES = \
 	src/libnm-systemd-core/src/libsystemd-network/dhcp6-network.c \
 	src/libnm-systemd-core/src/libsystemd-network/dhcp6-option.c \
 	src/libnm-systemd-core/src/libsystemd-network/dhcp6-protocol.h \
-	src/libnm-systemd-core/src/libsystemd-network/lldp-internal.h \
 	src/libnm-systemd-core/src/libsystemd-network/lldp-neighbor.c \
 	src/libnm-systemd-core/src/libsystemd-network/lldp-neighbor.h \
 	src/libnm-systemd-core/src/libsystemd-network/lldp-network.c \
 	src/libnm-systemd-core/src/libsystemd-network/lldp-network.h \
+	src/libnm-systemd-core/src/libsystemd-network/lldp-rx-internal.h \
 	src/libnm-systemd-core/src/libsystemd-network/network-common.c \
 	src/libnm-systemd-core/src/libsystemd-network/network-common.h \
 	src/libnm-systemd-core/src/libsystemd-network/network-internal.c \
@@ -2316,7 +2325,7 @@ src_libnm_systemd_core_libnm_systemd_core_la_SOURCES = \
 	src/libnm-systemd-core/src/libsystemd-network/sd-dhcp6-lease.c \
 	src/libnm-systemd-core/src/libsystemd-network/sd-ipv4acd.c \
 	src/libnm-systemd-core/src/libsystemd-network/sd-ipv4ll.c \
-	src/libnm-systemd-core/src/libsystemd-network/sd-lldp.c \
+	src/libnm-systemd-core/src/libsystemd-network/sd-lldp-rx.c \
 	src/libnm-systemd-core/src/libsystemd/sd-event/event-source.h \
 	src/libnm-systemd-core/src/libsystemd/sd-event/event-util.c \
 	src/libnm-systemd-core/src/libsystemd/sd-event/event-util.h \
@@ -2335,6 +2344,7 @@ src_libnm_systemd_core_libnm_systemd_core_la_SOURCES = \
 	src/libnm-systemd-core/src/systemd/sd-id128.h \
 	src/libnm-systemd-core/src/systemd/sd-ipv4acd.h \
 	src/libnm-systemd-core/src/systemd/sd-ipv4ll.h \
+	src/libnm-systemd-core/src/systemd/sd-lldp-rx.h \
 	src/libnm-systemd-core/src/systemd/sd-lldp.h \
 	src/libnm-systemd-core/src/systemd/sd-ndisc.h \
 	$(NULL)
@@ -2378,6 +2388,8 @@ src_core_libNetworkManagerBase_la_SOURCES = \
 	src/core/nm-l3-config-data.h \
 	src/core/nm-l3-ipv4ll.c \
 	src/core/nm-l3-ipv4ll.h \
+	src/core/nm-l3-ipv6ll.c \
+	src/core/nm-l3-ipv6ll.h \
 	src/core/nm-l3cfg.c \
 	src/core/nm-l3cfg.h \
 	src/core/nm-ip-config.c \
@@ -2588,8 +2600,10 @@ src_core_libNetworkManager_la_SOURCES = \
 	src/core/nm-policy.h \
 	src/core/nm-rfkill-manager.c \
 	src/core/nm-rfkill-manager.h \
-	src/core/nm-session-monitor.h \
 	src/core/nm-session-monitor.c \
+	src/core/nm-session-monitor.h \
+	src/core/nm-priv-helper-call.c \
+	src/core/nm-priv-helper-call.h \
 	src/core/nm-keep-alive.c \
 	src/core/nm-keep-alive.h \
 	src/core/nm-sleep-monitor.c \
@@ -3402,6 +3416,7 @@ EXTRA_DIST += \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bond-eth-type \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bond-main \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bond-mode-numeric \
+	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bond-port \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bond-slave \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bond-slave-ib \
 	src/core/settings/plugins/ifcfg-rh/tests/network-scripts/ifcfg-test-bridge-component \
@@ -4117,6 +4132,8 @@ check-local-devices-ovs: src/core/devices/ovs/libnm-device-plugin-ovs.la
 	$(srcdir)/tools/check-exports.sh $(builddir)/src/core/devices/ovs/.libs/libnm-device-plugin-ovs.so "$(srcdir)/linker-script-devices.ver"
 	$(call check_so_symbols,$(builddir)/src/core/devices/ovs/.libs/libnm-device-plugin-ovs.so)
 
+check_local += check-local-devices-ovs
+
 endif
 
 EXTRA_DIST += \
@@ -4169,7 +4186,6 @@ check_programs += \
 	src/core/platform/tests/test-platform-general \
 	src/core/platform/tests/test-route-fake \
 	src/core/platform/tests/test-route-linux \
-	src/core/platform/tests/test-tc-fake \
 	src/core/platform/tests/test-tc-linux \
 	$(NULL)
 
@@ -4224,11 +4240,6 @@ src_core_platform_tests_test_route_linux_SOURCES = src/core/platform/tests/test-
 src_core_platform_tests_test_route_linux_CPPFLAGS = $(src_core_tests_cppflags_linux)
 src_core_platform_tests_test_route_linux_LDFLAGS = $(src_core_platform_tests_ldflags)
 src_core_platform_tests_test_route_linux_LDADD = $(src_core_platform_tests_libadd)
-
-src_core_platform_tests_test_tc_fake_SOURCES = src/core/platform/tests/test-tc.c
-src_core_platform_tests_test_tc_fake_CPPFLAGS = $(src_core_tests_cppflags_fake)
-src_core_platform_tests_test_tc_fake_LDFLAGS = $(src_core_platform_tests_ldflags)
-src_core_platform_tests_test_tc_fake_LDADD = $(src_core_platform_tests_libadd)
 
 src_core_platform_tests_test_tc_linux_SOURCES = src/core/platform/tests/test-tc.c
 src_core_platform_tests_test_tc_linux_CPPFLAGS = $(src_core_tests_cppflags_linux)
@@ -4518,6 +4529,7 @@ src_nm_dispatcher_nm_dispatcher_LDADD = \
 	src/nm-dispatcher/libnm-dispatcher-core.la \
 	src/libnm-client-impl/libnm.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	$(GLIB_LIBS) \
@@ -4612,6 +4624,57 @@ EXTRA_DIST += \
 	$(NULL)
 
 ###############################################################################
+# src/nm-priv-helper
+###############################################################################
+
+libexec_PROGRAMS += src/nm-priv-helper/nm-priv-helper
+
+src_nm_priv_helper_nm_priv_helper_SOURCES = \
+	src/nm-priv-helper/nm-priv-helper.c \
+	$(NULL)
+
+src_nm_priv_helper_nm_priv_helper_CPPFLAGS = \
+	$(dflt_cppflags) \
+	-I$(builddir)/src/libnm-core-public \
+	-I$(srcdir)/src/libnm-core-public \
+	-I$(builddir)/src/libnm-client-public \
+	-I$(srcdir)/src/libnm-client-public \
+	-I$(srcdir)/src \
+	-I$(builddir)/src \
+	$(GLIB_CFLAGS) \
+	$(NULL)
+
+src_nm_priv_helper_nm_priv_helper_LDFLAGS = \
+	-Wl,--version-script="$(srcdir)/linker-script-binary.ver" \
+	$(SANITIZER_EXEC_LDFLAGS) \
+	$(NULL)
+
+src_nm_priv_helper_nm_priv_helper_LDADD = \
+	src/libnm-base/libnm-base.la \
+	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
+	src/libnm-std-aux/libnm-std-aux.la \
+	src/c-siphash/libc-siphash.la \
+	$(GLIB_LIBS) \
+	$(NULL)
+
+src/nm-priv-helper/org.freedesktop.nm-priv-helper.service: $(srcdir)/src/nm-priv-helper/org.freedesktop.nm-priv-helper.service.in
+	@sed \
+	-e 's|@libexecdir[@]|$(libexecdir)|g' \
+	$< >$@
+
+dbusactivation_DATA += src/nm-priv-helper/org.freedesktop.nm-priv-helper.service
+CLEANFILES += src/nm-priv-helper/org.freedesktop.nm-priv-helper.service
+
+dbusservice_DATA += src/nm-priv-helper/nm-priv-helper.conf
+
+EXTRA_DIST += \
+	src/nm-priv-helper/nm-priv-helper.conf \
+	src/nm-priv-helper/org.freedesktop.nm-priv-helper.service.in \
+	src/nm-priv-helper/meson.build \
+	$(NULL)
+
+###############################################################################
 # src/nm-daemon-helper
 ###############################################################################
 
@@ -4662,6 +4725,7 @@ src_nm_online_nm_online_LDADD = \
 	src/libnm-client-impl/libnm.la \
 	src/libnm-client-aux-extern/libnm-client-aux-extern.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	$(GLIB_LIBS) \
@@ -4840,6 +4904,7 @@ src_nmcli_nmcli_LDADD = \
 	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 	src/libnm-base/libnm-base.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	src/libnm-client-aux-extern/libnm-client-aux-extern.la \
@@ -4888,6 +4953,7 @@ src_nmcli_generate_docs_nm_settings_nmcli_LDADD = \
 	src/libnm-base/libnm-base.la \
 	src/libnm-client-impl/libnm.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	$(GLIB_LIBS) \
@@ -5022,12 +5088,14 @@ src_nmtui_nmtui_SOURCES = \
 	src/nmtui/nmt-mac-entry.h \
 	src/nmtui/nmt-mtu-entry.c \
 	src/nmtui/nmt-mtu-entry.h \
+	src/nmtui/nmt-page-bond-port.c \
+	src/nmtui/nmt-page-bond-port.h \
 	src/nmtui/nmt-page-bond.c \
 	src/nmtui/nmt-page-bond.h \
-	src/nmtui/nmt-page-bridge.c \
-	src/nmtui/nmt-page-bridge.h \
 	src/nmtui/nmt-page-bridge-port.c \
 	src/nmtui/nmt-page-bridge-port.h \
+	src/nmtui/nmt-page-bridge.c \
+	src/nmtui/nmt-page-bridge.h \
 	src/nmtui/nmt-page-dsl.c \
 	src/nmtui/nmt-page-dsl.h \
 	src/nmtui/nmt-page-ethernet.c \
@@ -5042,14 +5110,16 @@ src_nmtui_nmtui_SOURCES = \
 	src/nmtui/nmt-page-ip6.h \
 	src/nmtui/nmt-page-ppp.c \
 	src/nmtui/nmt-page-ppp.h \
-	src/nmtui/nmt-page-team.c \
-	src/nmtui/nmt-page-team.h \
 	src/nmtui/nmt-page-team-port.c \
 	src/nmtui/nmt-page-team-port.h \
+	src/nmtui/nmt-page-team.c \
+	src/nmtui/nmt-page-team.h \
 	src/nmtui/nmt-page-vlan.c \
 	src/nmtui/nmt-page-vlan.h \
 	src/nmtui/nmt-page-wifi.c \
 	src/nmtui/nmt-page-wifi.h \
+	src/nmtui/nmt-page-wireguard.c \
+	src/nmtui/nmt-page-wireguard.h \
 	src/nmtui/nmt-password-dialog.c \
 	src/nmtui/nmt-password-dialog.h \
 	src/nmtui/nmt-password-fields.c \
@@ -5064,6 +5134,10 @@ src_nmtui_nmtui_SOURCES = \
 	src/nmtui/nmt-slave-list.h \
 	src/nmtui/nmt-utils.c \
 	src/nmtui/nmt-utils.h \
+	src/nmtui/nmt-wireguard-peer-editor.c \
+	src/nmtui/nmt-wireguard-peer-editor.h \
+	src/nmtui/nmt-wireguard-peer-list.c \
+	src/nmtui/nmt-wireguard-peer-list.h \
 	src/nmtui/nmt-widget-list.c \
 	src/nmtui/nmt-widget-list.h \
 	$(NULL)
@@ -5086,6 +5160,7 @@ src_nmtui_nmtui_LDADD = \
 	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 	src/libnm-base/libnm-base.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	src/libnm-client-impl/libnm.la \
@@ -5176,6 +5251,7 @@ src_nm_cloud_setup_nm_cloud_setup_LDADD = \
 	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 	src/libnm-base/libnm-base.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	src/libnm-client-impl/libnm.la \
@@ -5240,6 +5316,7 @@ src_nm_cloud_setup_tests_test_cloud_setup_general_LDADD = \
 	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 	src/libnm-base/libnm-base.la \
 	src/libnm-glib-aux/libnm-glib-aux.la \
+	src/libnm-log-null/libnm-log-null.la \
 	src/libnm-std-aux/libnm-std-aux.la \
 	src/c-siphash/libc-siphash.la \
 	src/libnm-client-impl/libnm.la \
@@ -5291,6 +5368,7 @@ systemdsystemunit_DATA += \
 	data/NetworkManager.service \
 	data/NetworkManager-wait-online.service \
 	data/NetworkManager-dispatcher.service \
+	data/nm-priv-helper.service \
 	$(NULL)
 
 data/NetworkManager.service: $(srcdir)/data/NetworkManager.service.in
@@ -5305,6 +5383,9 @@ data/NetworkManager-wait-online.service: $(srcdir)/data/NetworkManager-wait-onli
 endif
 
 data/NetworkManager-dispatcher.service: $(srcdir)/data/NetworkManager-dispatcher.service.in
+	$(AM_V_GEN) $(data_edit) $< >$@
+
+data/nm-priv-helper.service: $(srcdir)/data/nm-priv-helper.service.in
 	$(AM_V_GEN) $(data_edit) $< >$@
 
 endif
@@ -5336,6 +5417,7 @@ EXTRA_DIST += \
 	data/NetworkManager-wait-online-systemd-pre200.service.in \
 	data/NetworkManager-wait-online.service.in \
 	data/NetworkManager.service.in \
+	data/nm-priv-helper.service.in \
 	data/meson.build \
 	data/nm-shared.xml \
 	data/server.conf.in \
@@ -5345,6 +5427,7 @@ CLEANFILES += \
 	data/NetworkManager-dispatcher.service \
 	data/NetworkManager-wait-online.service \
 	data/NetworkManager.service \
+	data/nm-priv-helper.service \
 	data/server.conf \
 	$(NULL)
 
@@ -5542,7 +5625,6 @@ EXTRA_DIST += \
 	COPYING.LGPL \
 	COPYING.GFDL \
 	\
-	NetworkManager.pc.in \
 	intltool-extract.in \
 	intltool-merge.in \
 	intltool-update.in \

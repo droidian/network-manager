@@ -17,7 +17,7 @@
 #include <pwd.h>
 
 #if HAVE_SELINUX
-    #include <selinux/selinux.h>
+#include <selinux/selinux.h>
 #endif
 
 #include "libnm-core-aux-intern/nm-common-macros.h"
@@ -1352,7 +1352,7 @@ _connection_changed_track(NMSettings *       self,
               || (_nm_connection_verify(connection, NULL) == NM_SETTING_VERIFY_SUCCESS));
     nm_assert(!connection || nm_streq0(uuid, nm_connection_get_uuid(connection)));
 
-    nmtst_connection_assert_unchanging(connection);
+    nm_assert_connection_unchanging(connection);
 
     sett_conn_entry =
         _sett_conn_entries_get(self, uuid) ?: _sett_conn_entries_create_and_add(self, uuid);
@@ -3372,7 +3372,7 @@ load_plugins(NMSettings *self, const char *const *plugins, GError **error)
             continue;
         }
 
-        if (nm_utils_strv_find_first((char **) plugins, iter - plugins, pname) >= 0) {
+        if (nm_strv_find_first(plugins, iter - plugins, pname) >= 0) {
             /* the plugin is already mentioned in the list previously.
              * Don't load a duplicate. */
             continue;
@@ -3452,7 +3452,7 @@ impl_settings_save_hostname(NMDBusObject *                     obj,
     g_variant_get(parameters, "(&s)", &hostname);
 
     /* Minimal validation of the hostname */
-    if (!nm_hostname_manager_validate_hostname(hostname)) {
+    if (!nm_utils_validate_hostname(hostname)) {
         error_code   = NM_SETTINGS_ERROR_INVALID_HOSTNAME;
         error_reason = "The hostname was too long or contained invalid characters";
         goto err;
@@ -3938,7 +3938,7 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
             priv->connections_len,
             G_STRUCT_OFFSET(NMSettingsConnection, _connections_lst),
             TRUE);
-        g_value_take_boxed(value, nm_utils_strv_make_deep_copied(strv));
+        g_value_take_boxed(value, nm_strv_make_deep_copied(strv));
         break;
     case PROP_STARTUP_COMPLETE:
         g_value_set_boolean(value, !nm_settings_get_startup_complete_blocked_reason(self, FALSE));

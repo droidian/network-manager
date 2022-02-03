@@ -38,7 +38,7 @@
 #include "nm-netns.h"
 
 #if !defined(NM_DIST_VERSION)
-    #define NM_DIST_VERSION VERSION
+#define NM_DIST_VERSION VERSION
 #endif
 
 #define NM_DEFAULT_PID_FILE NMRUNDIR "/NetworkManager.pid"
@@ -326,6 +326,7 @@ main(int argc, char *argv[])
 
     if (global_opt.show_version) {
         fprintf(stdout, NM_DIST_VERSION "\n");
+        nm_config_cmd_line_options_free(config_cli);
         exit(0);
     }
 
@@ -374,6 +375,7 @@ main(int argc, char *argv[])
         fprintf(stderr,
                 _("%s.  Please use --help to see a list of valid options.\n"),
                 error->message);
+        nm_config_cmd_line_options_free(config_cli);
         exit(1);
     }
 

@@ -8,7 +8,7 @@
 #define __NM_CONNECTION_H__
 
 #if !defined(__NETWORKMANAGER_H_INSIDE__) && !defined(NETWORKMANAGER_COMPILATION)
-    #error "Only <NetworkManager.h> can be included directly."
+#error "Only <NetworkManager.h> can be included directly."
 #endif
 
 #include "nm-core-types.h"
@@ -29,9 +29,20 @@ G_BEGIN_DECLS
 #define NM_CONNECTION_CHANGED         "changed"
 
 /*
+ * NM_CONNECTION_NORMALIZE_PARAM_IP4_CONFIG_METHOD: overwrite the ip4 method
+ * when normalizing ip4 configuration. This only takes effect, if the profile
+ * has no IPv4 settings and new settings are to be added. If omitted, this
+ * defaults depends on the profile type but usually it is "auto".
+ *
+ * Since: 1.34
+ */
+#define NM_CONNECTION_NORMALIZE_PARAM_IP4_CONFIG_METHOD "ip4-config-method"
+
+/*
  * NM_CONNECTION_NORMALIZE_PARAM_IP6_CONFIG_METHOD: overwrite the ip6 method
- * when normalizing ip6 configuration. If omitted, this defaults to
- * @NM_SETTING_IP6_CONFIG_METHOD_AUTO.
+ * when normalizing ip6 configuration. This only takes effect, if the profile
+ * has no IPv6 settings and new settings are to be added. If omitted, this
+ * defaults depends on the profile type but usually it is "auto".
  */
 #define NM_CONNECTION_NORMALIZE_PARAM_IP6_CONFIG_METHOD "ip6-config-method"
 

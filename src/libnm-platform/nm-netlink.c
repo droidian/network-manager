@@ -13,7 +13,7 @@
 /*****************************************************************************/
 
 #ifndef SOL_NETLINK
-    #define SOL_NETLINK 270
+#define SOL_NETLINK 270
 #endif
 
 /*****************************************************************************/
@@ -24,7 +24,7 @@
 #define NL_NO_AUTO_ACK       (1 << 5)
 
 #ifndef NETLINK_EXT_ACK
-    #define NETLINK_EXT_ACK 11
+#define NETLINK_EXT_ACK 11
 #endif
 
 struct nl_msg {
@@ -162,28 +162,28 @@ nl_nlmsghdr_to_str(const struct nlmsghdr *hdr, char *buf, gsize len)
     }
 
     if (s)
-        nm_utils_strbuf_append_str(&buf, &len, s);
+        nm_strbuf_append_str(&buf, &len, s);
     else
-        nm_utils_strbuf_append(&buf, &len, "(%u)", (unsigned) hdr->nlmsg_type);
+        nm_strbuf_append(&buf, &len, "(%u)", (unsigned) hdr->nlmsg_type);
 
     flags = hdr->nlmsg_flags;
 
     if (!flags) {
-        nm_utils_strbuf_append_str(&buf, &len, ", flags 0");
+        nm_strbuf_append_str(&buf, &len, ", flags 0");
         goto flags_done;
     }
 
-#define _F(f, n)                                                   \
-    G_STMT_START                                                   \
-    {                                                              \
-        if (NM_FLAGS_ALL(flags, f)) {                              \
-            flags &= ~(f);                                         \
-            nm_utils_strbuf_append(&buf, &len, "%s%s", prefix, n); \
-            if (!flags)                                            \
-                goto flags_done;                                   \
-            prefix = ",";                                          \
-        }                                                          \
-    }                                                              \
+#define _F(f, n)                                             \
+    G_STMT_START                                             \
+    {                                                        \
+        if (NM_FLAGS_ALL(flags, f)) {                        \
+            flags &= ~(f);                                   \
+            nm_strbuf_append(&buf, &len, "%s%s", prefix, n); \
+            if (!flags)                                      \
+                goto flags_done;                             \
+            prefix = ",";                                    \
+        }                                                    \
+    }                                                        \
     G_STMT_END
 
     prefix       = ", flags ";
@@ -225,11 +225,11 @@ nl_nlmsghdr_to_str(const struct nlmsghdr *hdr, char *buf, gsize len)
 
     if (flags_before != flags)
         prefix = ";";
-    nm_utils_strbuf_append(&buf, &len, "%s0x%04x", prefix, flags);
+    nm_strbuf_append(&buf, &len, "%s0x%04x", prefix, flags);
 
 flags_done:
 
-    nm_utils_strbuf_append(&buf, &len, ", seq %u", (unsigned) hdr->nlmsg_seq);
+    nm_strbuf_append(&buf, &len, ", seq %u", (unsigned) hdr->nlmsg_seq);
 
     return b;
 }
@@ -585,21 +585,21 @@ nla_nest_end(struct nl_msg *msg, struct nlattr *start)
     return _nest_end(msg, start, 0);
 }
 
-static const uint16_t nla_attr_minlen[NLA_TYPE_MAX + 1] = {
+static const uint8_t nla_attr_minlen[NLA_TYPE_MAX + 1] = {
     [NLA_U8]     = sizeof(uint8_t),
     [NLA_U16]    = sizeof(uint16_t),
     [NLA_U32]    = sizeof(uint32_t),
     [NLA_U64]    = sizeof(uint64_t),
     [NLA_STRING] = 1,
-    [NLA_FLAG]   = 0,
 };
 
 static int
 validate_nla(const struct nlattr *nla, int maxtype, const struct nla_policy *policy)
 {
     const struct nla_policy *pt;
-    unsigned int             minlen = 0;
-    int                      type   = nla_type(nla);
+    uint8_t                  minlen;
+    uint16_t                 len;
+    int                      type = nla_type(nla);
 
     if (type < 0 || type > maxtype)
         return 0;
@@ -609,25 +609,30 @@ validate_nla(const struct nlattr *nla, int maxtype, const struct nla_policy *pol
     if (pt->type > NLA_TYPE_MAX)
         g_return_val_if_reached(-NME_BUG);
 
-    if (pt->minlen)
+    if (pt->minlen > 0)
         minlen = pt->minlen;
-    else if (pt->type != NLA_UNSPEC)
+    else
         minlen = nla_attr_minlen[pt->type];
 
-    if (nla_len(nla) < minlen)
+    len = nla_len(nla);
+
+    if (len < minlen)
         return -NME_UNSPEC;
 
-    if (pt->maxlen && nla_len(nla) > pt->maxlen)
+    if (pt->maxlen > 0 && len > pt->maxlen)
         return -NME_UNSPEC;
 
-    if (pt->type == NLA_STRING) {
-        const char *data;
+    switch (pt->type) {
+    case NLA_STRING:
+    {
+        const char *data = nla_data(nla);
 
         nm_assert(minlen > 0);
 
-        data = nla_data(nla);
-        if (data[nla_len(nla) - 1] != '\0')
+        if (data[len - 1u] != '\0')
             return -NME_UNSPEC;
+        break;
+    }
     }
 
     return 0;

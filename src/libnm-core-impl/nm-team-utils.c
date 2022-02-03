@@ -523,11 +523,10 @@ _team_attr_data_cmp(const TeamAttrData *attr_data,
     } else if (!is_port && attr_data->team_attr == NM_TEAM_ATTRIBUTE_MASTER_RUNNER_TX_HASH) {
         v_ptrarray_a = *((const GPtrArray *const *) val_a);
         v_ptrarray_b = *((const GPtrArray *const *) val_b);
-        NM_CMP_RETURN(
-            nm_utils_strv_cmp_n(v_ptrarray_a ? (const char *const *) v_ptrarray_a->pdata : NULL,
-                                v_ptrarray_a ? v_ptrarray_a->len : 0u,
-                                v_ptrarray_b ? (const char *const *) v_ptrarray_b->pdata : NULL,
-                                v_ptrarray_b ? v_ptrarray_b->len : 0u));
+        NM_CMP_RETURN(nm_strv_cmp_n(v_ptrarray_a ? (const char *const *) v_ptrarray_a->pdata : NULL,
+                                    v_ptrarray_a ? v_ptrarray_a->len : 0u,
+                                    v_ptrarray_b ? (const char *const *) v_ptrarray_b->pdata : NULL,
+                                    v_ptrarray_b ? v_ptrarray_b->len : 0u));
     } else
         nm_assert_not_reached();
     return 0;
@@ -1136,12 +1135,12 @@ _team_setting_value_master_runner_tx_hash_set_list(NMTeamSetting *    self,
     gboolean                                changed;
     guint                                   i;
 
-    if (nm_utils_strv_cmp_n(self->d.master.runner_tx_hash
-                                ? (const char *const *) self->d.master.runner_tx_hash->pdata
-                                : NULL,
-                            self->d.master.runner_tx_hash ? self->d.master.runner_tx_hash->len : 0u,
-                            arr,
-                            len)
+    if (nm_strv_cmp_n(self->d.master.runner_tx_hash
+                          ? (const char *const *) self->d.master.runner_tx_hash->pdata
+                          : NULL,
+                      self->d.master.runner_tx_hash ? self->d.master.runner_tx_hash->len : 0u,
+                      arr,
+                      len)
         == 0) {
         changed = FALSE;
         goto out;
@@ -2245,8 +2244,7 @@ _team_setting_verify_properties(const NMTeamSetting *self, GError **error)
             } else if (attr_data->value_type == NM_VALUE_TYPE_STRING) {
                 const char *v = *((const char *const *) p_field);
 
-                if (nm_utils_strv_find_first((char **) attr_data->range.r_string.valid_names, -1, v)
-                    < 0) {
+                if (nm_strv_find_first(attr_data->range.r_string.valid_names, -1, v) < 0) {
                     g_set_error(error,
                                 NM_CONNECTION_ERROR,
                                 NM_CONNECTION_ERROR_INVALID_SETTING,
@@ -2265,9 +2263,7 @@ _team_setting_verify_properties(const NMTeamSetting *self, GError **error)
                 for (i = 0; i < self->d.master.runner_tx_hash->len; i++) {
                     const char *val = self->d.master.runner_tx_hash->pdata[i];
 
-                    if (!val
-                        || (nm_utils_strv_find_first((char **) _valid_names_runner_tx_hash, -1, val)
-                            < 0)) {
+                    if (!val || (nm_strv_find_first(_valid_names_runner_tx_hash, -1, val) < 0)) {
                         g_set_error(error,
                                     NM_CONNECTION_ERROR,
                                     NM_CONNECTION_ERROR_INVALID_SETTING,
@@ -2293,8 +2289,7 @@ _team_setting_verify_properties(const NMTeamSetting *self, GError **error)
             if (!_team_setting_has_field(self, attr_data))
                 continue;
             if (self->d.master.runner
-                && (nm_utils_strv_find_first((char **) e->valid_runners, -1, self->d.master.runner)
-                    >= 0))
+                && (nm_strv_find_first(e->valid_runners, -1, self->d.master.runner) >= 0))
                 continue;
             if (e->valid_runners[1] == NULL) {
                 g_set_error(error,
@@ -2729,18 +2724,12 @@ _nm_setting_get_team_setting(struct _NMSetting *setting)
     return _nm_setting_team_port_get_team_setting(NM_SETTING_TEAM_PORT(setting));
 }
 
-static GVariant *
-_nm_team_settings_property_to_dbus(const NMSettInfoSetting *               sett_info,
-                                   guint                                   property_idx,
-                                   NMConnection *                          connection,
-                                   NMSetting *                             setting,
-                                   NMConnectionSerializationFlags          flags,
-                                   const NMConnectionSerializationOptions *options)
+GVariant *
+_nm_team_settings_property_to_dbus(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 {
     NMTeamSetting *     self = _nm_setting_get_team_setting(setting);
     const TeamAttrData *attr_data =
-        _team_attr_data_get(self->d.is_port,
-                            sett_info->property_infos[property_idx].param_spec->param_id);
+        _team_attr_data_get(self->d.is_port, property_info->param_spec->param_id);
 
     if (attr_data->team_attr == NM_TEAM_ATTRIBUTE_CONFIG) {
         const char *config;
@@ -2779,34 +2768,40 @@ _nm_team_settings_property_to_dbus(const NMSettInfoSetting *               sett_
     return NULL;
 }
 
-static void
-_nm_team_settings_property_from_dbus_link_watchers(GVariant *dbus_value, GValue *prop_value)
+void
+_nm_team_settings_property_from_dbus_link_watchers(
+    _NM_SETT_INFO_PROP_FROM_DBUS_GPROP_FCN_ARGS _nm_nil)
 {
-    g_value_take_boxed(prop_value,
-                       _nm_utils_team_link_watchers_from_variant(dbus_value, FALSE, NULL));
+    g_value_take_boxed(to, _nm_utils_team_link_watchers_from_variant(from, FALSE, NULL));
 }
 
 const NMSettInfoPropertType nm_sett_info_propert_type_team_b =
     NM_SETT_INFO_PROPERT_TYPE_DBUS_INIT(G_VARIANT_TYPE_BOOLEAN,
-                                        .to_dbus_fcn = _nm_team_settings_property_to_dbus, );
+                                        .compare_fcn   = _nm_setting_property_compare_fcn_default,
+                                        .to_dbus_fcn   = _nm_team_settings_property_to_dbus,
+                                        .from_dbus_fcn = _nm_setting_property_from_dbus_fcn_gprop,
+                                        .from_dbus_is_full = TRUE);
 
 const NMSettInfoPropertType nm_sett_info_propert_type_team_i =
     NM_SETT_INFO_PROPERT_TYPE_DBUS_INIT(G_VARIANT_TYPE_INT32,
-                                        .to_dbus_fcn = _nm_team_settings_property_to_dbus, );
+                                        .compare_fcn   = _nm_setting_property_compare_fcn_default,
+                                        .to_dbus_fcn   = _nm_team_settings_property_to_dbus,
+                                        .from_dbus_fcn = _nm_setting_property_from_dbus_fcn_gprop,
+                                        .from_dbus_is_full = TRUE);
 
 const NMSettInfoPropertType nm_sett_info_propert_type_team_s =
     NM_SETT_INFO_PROPERT_TYPE_DBUS_INIT(G_VARIANT_TYPE_STRING,
-                                        .to_dbus_fcn = _nm_team_settings_property_to_dbus, );
+                                        .compare_fcn   = _nm_setting_property_compare_fcn_default,
+                                        .to_dbus_fcn   = _nm_team_settings_property_to_dbus,
+                                        .from_dbus_fcn = _nm_setting_property_from_dbus_fcn_gprop,
+                                        .from_dbus_is_full = TRUE);
 
 const NMSettInfoPropertType nm_sett_info_propert_type_team_as =
     NM_SETT_INFO_PROPERT_TYPE_DBUS_INIT(NM_G_VARIANT_TYPE("as"),
-                                        .to_dbus_fcn = _nm_team_settings_property_to_dbus, );
-
-const NMSettInfoPropertType nm_sett_info_propert_type_team_link_watchers =
-    NM_SETT_INFO_PROPERT_TYPE_DBUS_INIT(NM_G_VARIANT_TYPE("aa{sv}"),
-                                        .to_dbus_fcn = _nm_team_settings_property_to_dbus,
-                                        .gprop_from_dbus_fcn =
-                                            _nm_team_settings_property_from_dbus_link_watchers, );
+                                        .compare_fcn   = _nm_setting_property_compare_fcn_default,
+                                        .to_dbus_fcn   = _nm_team_settings_property_to_dbus,
+                                        .from_dbus_fcn = _nm_setting_property_from_dbus_fcn_gprop,
+                                        .from_dbus_is_full = TRUE);
 
 /*****************************************************************************/
 

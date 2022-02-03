@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.2.2.2.1"></a><p class="title"><b>Table 45. </b></p>
+<a name="id-1.3.3.2.2.2.1"></a><p class="title"><b>Table 46. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -63,13 +63,13 @@
 <td><pre class="screen">autoconnect</pre></td>
 <td><pre class="screen">boolean</pre></td>
 <td><pre class="screen">TRUE</pre></td>
-<td>Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection. Note that autoconnect is not implemented for VPN profiles. See "secondaries" as an alternative to automatically connect VPN profiles.</td>
+<td>Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection. Autoconnect happens when the circumstances are suitable. That means for example that the device is currently managed and not active. Autoconnect thus never replaces or competes with an already active profile. Note that autoconnect is not implemented for VPN profiles. See "secondaries" as an alternative to automatically connect VPN profiles.</td>
 </tr>
 <tr>
 <td><pre class="screen">autoconnect-priority</pre></td>
 <td><pre class="screen">int32</pre></td>
 <td><pre class="screen">0</pre></td>
-<td>The autoconnect priority. If the connection is set to autoconnect, connections with higher priority will be preferred. Defaults to 0. The higher number means higher priority.</td>
+<td>The autoconnect priority in range -999 to 999. If the connection is set to autoconnect, connections with higher priority will be preferred. The higher number means higher priority. Defaults to 0. Note that this property only matters if there are more than one candidate profile to select for autoconnect. In case of equal priority, the profile used most recently is chosen.</td>
 </tr>
 <tr>
 <td><pre class="screen">autoconnect-retries</pre></td>
@@ -82,6 +82,12 @@
 <td><pre class="screen">NMSettingConnectionAutoconnectSlaves (int32)</pre></td>
 <td><pre class="screen"></pre></td>
 <td>Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection. This only has a real effect for master connections. The properties "autoconnect", "autoconnect-priority" and "autoconnect-retries" are unrelated to this setting. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, -1: default. If -1 (default) is set, global connection.autoconnect-slaves is read to determine the real value. If it is default as well, this fallbacks to 0.</td>
+</tr>
+<tr>
+<td><pre class="screen">dns-over-tls</pre></td>
+<td><pre class="screen">int32</pre></td>
+<td><pre class="screen">-1</pre></td>
+<td>Whether DNSOverTls (dns-over-tls) is enabled for the connection. DNSOverTls is a technology which uses TLS to encrypt dns traffic. The permitted values are: "yes" (2) use DNSOverTls and disabled fallback, "opportunistic" (1) use DNSOverTls but allow fallback to unencrypted resolution, "no" (0) don't ever use DNSOverTls. If unspecified "default" depends on the plugin used. Systemd-resolved uses global setting. This feature requires a plugin which supports DNSOverTls. Otherwise, the setting has no effect. One such plugin is dns-systemd-resolved.</td>
 </tr>
 <tr>
 <td><pre class="screen">gateway-ping-timeout</pre></td>

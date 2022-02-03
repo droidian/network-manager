@@ -10,9 +10,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ioctl.h>
-#include <readline/readline.h>
+#if HAVE_EDITLINE_READLINE
+#include <editline/readline.h>
+#else
 #include <readline/history.h>
-
+#include <readline/readline.h>
+#endif
 #include "libnm-client-aux-extern/nm-libnm-aux.h"
 
 #include "libnmc-base/nm-vpn-helpers.h"
@@ -291,7 +294,7 @@ static gconstpointer _metagen_dhcp_config_get_fcn(NMC_META_GENERIC_INFO_GET_FCN_
         if (!table)
             goto arr_out;
 
-        arr2 = (char **) nm_utils_strdict_get_keys(table, TRUE, &n);
+        arr2 = (char **) nm_strdict_get_keys(table, TRUE, &n);
         if (!n)
             goto arr_out;
 
@@ -708,8 +711,8 @@ get_secrets_from_user(const NmcConfig *nmc_config,
                         continue;
                     } else {
                         /* Prefill the password if we have it. */
-                        rl_startup_hook          = nmc_rl_set_deftext;
-                        nmc_rl_pre_input_deftext = g_strdup(secret->value);
+                        rl_startup_hook = nmc_rl_set_deftext;
+                        nm_strdup_reset(&nmc_rl_pre_input_deftext, secret->value);
                     }
                 }
                 if (msg)
@@ -1007,10 +1010,14 @@ nmc_readline_echo(const NmcConfig *nmc_config, gboolean echo_on, const char *pro
     va_list       args;
     gs_free char *prompt = NULL;
     char *        str;
+#if HAVE_READLINE_HISTORY
     nm_auto_free HISTORY_STATE *saved_history  = NULL;
     HISTORY_STATE               passwd_history = {
         0,
     };
+#else
+    int start, curpos;
+#endif
 
     va_start(args, prompt_fmt);
     prompt = g_strdup_vprintf(prompt_fmt, args);
@@ -1020,8 +1027,12 @@ nmc_readline_echo(const NmcConfig *nmc_config, gboolean echo_on, const char *pro
 
     /* Hide the actual password */
     if (!echo_on) {
+#if HAVE_READLINE_HISTORY
         saved_history = history_get_history_state();
         history_set_history_state(&passwd_history);
+#else
+        start  = where_history();
+#endif
         /* stifling history is important as it tells readline to
          * not store anything, otherwise sensitive data could be
          * leaked */
@@ -1034,7 +1045,13 @@ nmc_readline_echo(const NmcConfig *nmc_config, gboolean echo_on, const char *pro
     /* Restore the non-hiding behavior */
     if (!echo_on) {
         rl_redisplay_function = rl_redisplay;
+#if HAVE_READLINE_HISTORY
         history_set_history_state(saved_history);
+#else
+        curpos = where_history();
+        while (curpos > start)
+            remove_history(curpos--);
+#endif
     }
 
     return str;
@@ -1133,17 +1150,14 @@ nmc_rl_gen_func_ifnames(const char *text, int state)
     return ret;
 }
 
-/* for pre-filling a string to readline prompt */
 char *nmc_rl_pre_input_deftext;
 
-int
-nmc_rl_set_deftext(void)
+int nmc_rl_set_deftext(_NMC_RL_STARTUPHOOK_ARGS)
 {
     if (nmc_rl_pre_input_deftext && rl_startup_hook) {
         rl_insert_text(nmc_rl_pre_input_deftext);
-        g_free(nmc_rl_pre_input_deftext);
-        nmc_rl_pre_input_deftext = NULL;
-        rl_startup_hook          = NULL;
+        nm_clear_g_free(&nmc_rl_pre_input_deftext);
+        rl_startup_hook = NULL;
     }
     return 0;
 }
@@ -1287,7 +1301,7 @@ call_cmd(NmCli *nmc, GTask *task, const NMCCommand *cmd, int argc, const char *c
         *call = (CmdCall){
             .cmd  = cmd,
             .argc = argc,
-            .argv = nm_utils_strv_dup(argv, argc, TRUE),
+            .argv = nm_strv_dup(argv, argc, TRUE),
             .task = task,
         };
         nmc_client_new_async(NULL,

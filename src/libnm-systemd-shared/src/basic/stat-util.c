@@ -10,10 +10,11 @@
 #include <unistd.h>
 
 #include "alloc-util.h"
+#include "chase-symlinks.h"
 #include "dirent-util.h"
+#include "errno-util.h"
 #include "fd-util.h"
 #include "fileio.h"
-#include "fs-util.h"
 #include "macro.h"
 #include "missing_fs.h"
 #include "missing_magic.h"
@@ -159,6 +160,7 @@ int path_is_read_only_fs(const char *path) {
 
         return false;
 }
+#endif /* NM_IGNORED */
 
 int files_same(const char *filea, const char *fileb, int flags) {
         struct stat a, b;
@@ -176,6 +178,7 @@ int files_same(const char *filea, const char *fileb, int flags) {
                a.st_ino == b.st_ino;
 }
 
+#if 0 /* NM_IGNORED */
 bool is_fs_type(const struct statfs *s, statfs_f_type_t magic_value) {
         assert(s);
         assert_cc(sizeof(statfs_f_type_t) >= sizeof(s->f_type));

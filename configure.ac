@@ -7,8 +7,8 @@ dnl  - add corresponding NM_VERSION_x_y_z macros in
 dnl    "shared/nm-version-macros.h.in"
 dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
-m4_define([nm_minor_version], [32])
-m4_define([nm_micro_version], [12])
+m4_define([nm_minor_version], [34])
+m4_define([nm_micro_version], [0])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
 
@@ -166,7 +166,6 @@ AC_SUBST(nmdatadir, '${datadir}'/$PACKAGE, [NetworkManager shared data directory
 AC_SUBST(nmstatedir, '${localstatedir}'/lib/$PACKAGE, [NetworkManager persistent state directory])
 AC_SUBST(nmrundir, '${runstatedir}'/$PACKAGE, [NetworkManager runtime state directory])
 
-AC_GNU_SOURCE
 AC_CHECK_FUNCS([__secure_getenv secure_getenv])
 
 # Alternative configuration plugins
@@ -852,6 +851,11 @@ if test "${enable_ovs}" != "no"; then
 	fi
 fi
 AM_CONDITIONAL(WITH_OPENVSWITCH, test "${enable_ovs}" = "yes")
+if test "${enable_ovs}" = "yes" ; then
+    AC_DEFINE(WITH_OPENVSWITCH, 1, [Whether we build with OVS plugin])
+else
+    AC_DEFINE(WITH_OPENVSWITCH, 0, [Whether we build with OVS plugin])
+fi
 
 # DHCP client support
 AC_ARG_WITH([dhclient],
@@ -1044,13 +1048,21 @@ fi
 
 PKG_CHECK_MODULES(LIBNDP, [libndp])
 
+AX_LIB_READLINE
+
 AC_ARG_WITH(nmcli,
-            AS_HELP_STRING([--with-nmcli=yes|no], [Build nmcli]))
-if test "$with_nmcli" != no; then
-	AX_LIB_READLINE
-	build_nmcli=yes
+            AS_HELP_STRING([--with-nmcli=yes|no], [Build nmcli]),
+            [],
+            [with_nmcli=yes])
+if test "$with_nmcli" == yes; then
+    if test "$with_readline" = none; then
+        AC_MSG_FAILURE([nmcli requires readline library. Use --with-readline or --with-nmcli=no])
+    fi
+    build_nmcli=yes
+elif test "$with_nmcli" == no; then
+    build_nmcli=no
 else
-	build_nmcli=no
+    AC_MSG_ERROR([invalid --with-nmcli option. Valid options are --with-nmcli=yes|no])
 fi
 AM_CONDITIONAL(BUILD_NMCLI, test "$build_nmcli" = yes)
 
@@ -1329,7 +1341,6 @@ docs/api/Makefile
 docs/api/version.xml
 docs/libnm/Makefile
 docs/libnm/version.xml
-NetworkManager.pc
 src/libnm-client-impl/libnm.pc
 src/libnm-core-public/nm-version-macros.h
 ])
@@ -1421,4 +1432,5 @@ echo "  crypto: $with_crypto (have-gnutls: $have_crypto_gnutls, have-nss: $have_
 echo "  sanitizers: $sanitizers"
 echo "  Mozilla Public Suffix List: $with_libpsl"
 echo "  eBPF: $have_ebpf"
+echo "  readline: $with_readline"
 echo

@@ -17,7 +17,7 @@
  * and some test programs.
  **/
 #if !((NETWORKMANAGER_COMPILATION) &NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_CORE_INTERNAL)
-    #error Cannot use this header.
+#error Cannot use this header.
 #endif
 
 #include "libnm-base/nm-base.h"
@@ -29,6 +29,7 @@
 #include "nm-setting-adsl.h"
 #include "nm-setting-bluetooth.h"
 #include "nm-setting-bond.h"
+#include "nm-setting-bond-port.h"
 #include "nm-setting-bridge-port.h"
 #include "nm-setting-bridge.h"
 #include "nm-setting-cdma.h"
@@ -79,6 +80,7 @@
 #include "nm-vpn-dbus-interface.h"
 #include "nm-vpn-editor-plugin.h"
 #include "libnm-core-aux-intern/nm-libnm-core-utils.h"
+#include "libnm-glib-aux/nm-value-type.h"
 
 #define NM_USER_TAG_ORIGIN "org.freedesktop.NetworkManager.origin"
 
@@ -170,17 +172,17 @@ NM_VLAN_FLAGS_CAST(_NMVlanFlags v)
 static inline NMTernary
 NM_TERNARY_FROM_OPTION_BOOL(NMOptionBool v)
 {
-    nm_assert(NM_IN_SET(v, NM_OPTION_BOOL_DEFAULT, NM_OPTION_BOOL_TRUE, NM_OPTION_BOOL_FALSE));
+    nm_assert_is_ternary(v);
 
-    return (NMTernary) v;
+    return (int) v;
 }
 
 static inline NMOptionBool
 NM_TERNARY_TO_OPTION_BOOL(NMTernary v)
 {
-    nm_assert(NM_IN_SET(v, NM_TERNARY_DEFAULT, NM_TERNARY_TRUE, NM_TERNARY_FALSE));
+    nm_assert_is_ternary(v);
 
-    return (NMOptionBool) v;
+    return (int) v;
 }
 
 /*****************************************************************************/
@@ -270,11 +272,11 @@ gboolean _nm_connection_ensure_normalized(NMConnection * connection,
 gboolean _nm_connection_remove_setting(NMConnection *connection, GType setting_type);
 
 #if NM_MORE_ASSERTS
-extern const char _nmtst_connection_unchanging_user_data;
-void              nmtst_connection_assert_unchanging(NMConnection *connection);
+extern const char _nm_assert_connection_unchanging_user_data;
+void              nm_assert_connection_unchanging(NMConnection *connection);
 #else
 static inline void
-nmtst_connection_assert_unchanging(NMConnection *connection)
+nm_assert_connection_unchanging(NMConnection *connection)
 {}
 #endif
 
@@ -340,10 +342,10 @@ GPtrArray *
 _nm_utils_copy_array(const GPtrArray *array, NMUtilsCopyFunc copy_func, GDestroyNotify free_func);
 GPtrArray *_nm_utils_copy_object_array(const GPtrArray *array);
 
-GSList *_nm_utils_strv_to_slist(char **strv, gboolean deep_copy);
+GSList *nm_strv_to_gslist(char **strv, gboolean deep_copy);
 char ** _nm_utils_slist_to_strv(const GSList *slist, gboolean deep_copy);
 
-GPtrArray *_nm_utils_strv_to_ptrarray(char **strv);
+GPtrArray *nm_strv_to_ptrarray(char **strv);
 char **    _nm_utils_ptrarray_to_strv(const GPtrArray *ptrarray);
 
 gboolean _nm_utils_check_file(const char *              filename,
@@ -654,48 +656,84 @@ GVariant *nm_utils_hwaddr_to_dbus(const char *str);
 typedef struct _NMSettInfoSetting  NMSettInfoSetting;
 typedef struct _NMSettInfoProperty NMSettInfoProperty;
 
-typedef GVariant *(*NMSettInfoPropToDBusFcn)(const NMSettInfoSetting *               sett_info,
-                                             guint                                   property_idx,
-                                             NMConnection *                          connection,
-                                             NMSetting *                             setting,
-                                             NMConnectionSerializationFlags          flags,
-                                             const NMConnectionSerializationOptions *options);
-typedef gboolean (*NMSettInfoPropFromDBusFcn)(NMSetting *         setting,
-                                              GVariant *          connection_dict,
-                                              const char *        property,
-                                              GVariant *          value,
-                                              NMSettingParseFlags parse_flags,
-                                              GError **           error);
-typedef gboolean (*NMSettInfoPropMissingFromDBusFcn)(NMSetting *         setting,
-                                                     GVariant *          connection_dict,
-                                                     const char *        property,
-                                                     NMSettingParseFlags parse_flags,
-                                                     GError **           error);
-typedef GVariant *(*NMSettInfoPropGPropToDBusFcn)(const GValue *from);
-typedef void (*NMSettInfoPropGPropFromDBusFcn)(GVariant *from, GValue *to);
-
 const NMSettInfoSetting *nmtst_sett_info_settings(void);
 
 typedef enum _nm_packed {
     NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_DEFAULT = 0,
-    NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_BYTES,
     NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_ENUM,
     NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_FLAGS,
     NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_GARRAY_UINT,
     NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_STRDICT,
-    NM_SETTING_PROPERTY_TO_DBUS_FCN_GPROP_TYPE_MAC_ADDRESS,
 } NMSettingPropertyToDBusFcnGPropType;
 
 typedef struct {
     const GVariantType *dbus_type;
 
-    NMSettInfoPropToDBusFcn          to_dbus_fcn;
-    NMSettInfoPropFromDBusFcn        from_dbus_fcn;
-    NMSettInfoPropMissingFromDBusFcn missing_from_dbus_fcn;
+    /* If this is not NM_VALUE_TYPE_UNSPEC, then this is a "direct" property,
+     * meaning that _nm_setting_get_private() at NMSettInfoProperty.direct_offset
+     * gives direct access to the field.
+     *
+     * Direct properties can use this information to generically implement access
+     * to the property value. */
+    NMValueType direct_type;
 
-    /* Simpler variants of @from_dbus_fcn that operate solely
-     * on the GValue value of the GObject property. */
-    NMSettInfoPropGPropFromDBusFcn gprop_from_dbus_fcn;
+    /* Whether from_dbus_fcn() has special capabilities
+     *
+     * - whether the from_dbus_fcn expects to handle differences between
+     *   the D-Bus types and can convert between them. Otherwise, the caller
+     *   will already pre-validate that the D-Bus types match.
+     * - by default, with NM_SETTING_PARSE_FLAGS_BEST_EFFORT all errors from
+     *   from_dbus_fcn() are ignored. If true, then error are propagated. */
+    bool from_dbus_is_full : 1;
+
+    /* Only if from_dbus_fcn is set to _nm_setting_property_from_dbus_fcn_direct.
+     * Historically, libnm used g_dbus_gvariant_to_gvalue() and g_value_transform() to
+     * convert from D-Bus to the GObject property. Thereby, various transformations are
+     * allowed and supported. If this is TRUE, then such transformations are still
+     * allowed for backward compatibility. */
+    bool from_dbus_direct_allow_transform : 1;
+
+#define _NM_SETT_INFO_PROP_COMPARE_FCN_ARGS                                           \
+    const NMSettInfoSetting *sett_info, const NMSettInfoProperty *property_info,      \
+        NMConnection *con_a, NMSetting *set_a, NMConnection *con_b, NMSetting *set_b, \
+        NMSettingCompareFlags flags
+
+    /* compare_fcn() returns a ternary, where DEFAULT means that the property should not
+     * be compared due to the compare @flags. A TRUE/FALSE result means that the property is
+     * equal/not-equal.
+     *
+     * The "b" setting may be %NULL, in which case the function only determines whether
+     * the setting should be compared (TRUE) or not (DEFAULT). */
+    NMTernary (*compare_fcn)(_NM_SETT_INFO_PROP_COMPARE_FCN_ARGS _nm_nil);
+
+#define _NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS                                                 \
+    const NMSettInfoSetting *sett_info, const NMSettInfoProperty *property_info,            \
+        NMConnection *connection, NMSetting *setting, NMConnectionSerializationFlags flags, \
+        const NMConnectionSerializationOptions *options
+
+    GVariant *(*to_dbus_fcn)(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil);
+
+#define _NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS                                    \
+    const NMSettInfoSetting *sett_info, const NMSettInfoProperty *property_info, \
+        NMSetting *setting, GVariant *connection_dict, GVariant *value,          \
+        NMSettingParseFlags parse_flags, NMTernary *out_is_modified, GError **error
+
+    gboolean (*from_dbus_fcn)(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil);
+
+#define _NM_SETT_INFO_PROP_MISSING_FROM_DBUS_FCN_ARGS                    \
+    NMSetting *setting, GVariant *connection_dict, const char *property, \
+        NMSettingParseFlags parse_flags, GError **error
+
+    gboolean (*missing_from_dbus_fcn)(_NM_SETT_INFO_PROP_MISSING_FROM_DBUS_FCN_ARGS _nm_nil);
+
+    struct {
+#define _NM_SETT_INFO_PROP_FROM_DBUS_GPROP_FCN_ARGS GVariant *from, GValue *to
+
+        /* Only if from_dbus_fcn is set to _nm_setting_property_from_dbus_fcn_gprop.
+         * This is an optional handler for converting between GVariant and
+         * GValue. */
+        void (*gprop_fcn)(_NM_SETT_INFO_PROP_FROM_DBUS_GPROP_FCN_ARGS _nm_nil);
+    } typdata_from_dbus;
 
     struct {
         union {
@@ -712,21 +750,40 @@ struct _NMSettInfoProperty {
 
     const NMSettInfoPropertType *property_type;
 
-    struct {
-        union {
-            gpointer                     none;
-            NMSettInfoPropGPropToDBusFcn gprop_to_dbus_fcn;
-            gboolean (*get_boolean)(NMSetting *);
-            const char *(*get_string)(NMSetting *);
-        };
+    /* This only has meaning for direct properties (property_type->direct_type != NM_VALUE_TYPE_UNSPEC).
+     * In that case, this is the offset where _nm_setting_get_private() can find
+     * the direct location. */
+    guint16 direct_offset;
 
-        /* Usually, properties that are set to the default value for the GParamSpec
-         * are not serialized to GVariant (and NULL is returned by to_dbus_data().
-         * Set this flag to force always converting the property even if the value
-         * is the default. */
-        bool including_default : 1;
-    } to_dbus_data;
+    /* If TRUE, this is a NM_VALUE_TYPE_STRING direct property, and the setter will
+     * normalize the string via g_ascii_strdown(). */
+    bool direct_set_string_ascii_strdown : 1;
+
+    /* If non-zero, this is a NM_VALUE_TYPE_STRING direct property. Actually, it is
+     * a _nm_setting_property_define_direct_mac_address(), and the setter will
+     * call _nm_utils_hwaddr_canonical_or_invalid() on the string, with the specified
+     * MAC address length. */
+    guint8 direct_set_string_mac_address_len : 5;
+
+    /* If non-zero, this is the addr-family (AF_INET/AF_INET6) for normalizing an IP
+     * address. */
+    guint8 direct_set_string_ip_address_addr_family : 5;
+
+    /* Usually, properties that are set to the default value for the GParamSpec
+     * are not serialized to GVariant (and NULL is returned by to_dbus_data().
+     * Set this flag to force always converting the property even if the value
+     * is the default. */
+    bool to_dbus_including_default : 1;
 };
+
+typedef struct {
+    /* we want to do binary search by "GParamSpec *", but unrelated pointers
+     * are not directly comparable in C. No problem, we convert them to
+     * uintptr_t for the search, that is guaranteed to work. */
+    uintptr_t param_spec_as_uint;
+
+    const NMSettInfoProperty *property_info;
+} NMSettInfoPropertLookupByParamSpec;
 
 typedef struct {
     const GVariantType *(*get_variant_type)(const struct _NMSettInfoSetting *sett_info,
@@ -767,12 +824,32 @@ struct _NMSettInfoSetting {
      */
     const NMSettInfoProperty *const *property_infos_sorted;
 
-    guint                property_infos_len;
+    const NMSettInfoPropertLookupByParamSpec *property_lookup_by_param_spec;
+
+    guint16 property_infos_len;
+
+    guint16 property_lookup_by_param_spec_len;
+
+    /* the offset in bytes to get the private data from the @self pointer. */
+    gint16 private_offset;
+
     NMSettInfoSettDetail detail;
 };
 
+#define NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS ((gint16) G_MININT16)
+
+static inline gpointer
+_nm_setting_get_private(NMSetting *self, const NMSettInfoSetting *sett_info, guint16 offset)
+{
+    nm_assert(NM_IS_SETTING(self));
+    nm_assert(sett_info);
+    nm_assert(NM_SETTING_GET_CLASS(self) == sett_info->setting_class);
+
+    return ((((char *) ((gpointer) self)) + sett_info->private_offset) + offset);
+}
+
 static inline const NMSettInfoProperty *
-_nm_sett_info_property_info_get_sorted(const NMSettInfoSetting *sett_info, guint idx)
+_nm_sett_info_property_info_get_sorted(const NMSettInfoSetting *sett_info, guint16 idx)
 {
     nm_assert(sett_info);
     nm_assert(idx < sett_info->property_infos_len);
@@ -905,5 +982,7 @@ _nm_variant_attribute_spec_find_binary_search(const NMVariantAttributeSpec *cons
 /*****************************************************************************/
 
 gboolean _nm_ip_tunnel_mode_is_layer2(NMIPTunnelMode mode);
+
+GPtrArray *_nm_setting_ip_config_get_dns_array(NMSettingIPConfig *setting);
 
 #endif

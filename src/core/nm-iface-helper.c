@@ -5,7 +5,6 @@
 
 #include "src/core/nm-default-daemon.h"
 
-#include <glib-unix.h>
 #include <getopt.h>
 #include <locale.h>
 #include <stdlib.h>
@@ -31,7 +30,7 @@
 #include "libnm-systemd-core/nm-sd.h"
 
 #if !defined(NM_DIST_VERSION)
-    #define NM_DIST_VERSION VERSION
+#define NM_DIST_VERSION VERSION
 #endif
 
 #define NMIH_PID_FILE_FMT NMRUNDIR "/nm-iface-helper-%d.pid"
@@ -93,24 +92,29 @@ static struct {
 /*****************************************************************************/
 
 static void
-dhcp4_state_changed(NMDhcpClient *client,
-                    NMDhcpState   state,
-                    NMIP4Config * ip4_config,
-                    GHashTable *  options,
-                    gpointer      user_data)
+_dhcp_client_notify_cb(NMDhcpClient *                client,
+                       const NMDhcpClientNotifyData *notify_data,
+                       gpointer                      user_data)
 {
     static NMIP4Config *last_config = NULL;
     NMIP4Config *       existing;
     gs_unref_ptrarray GPtrArray *ip4_dev_route_blacklist = NULL;
     gs_free_error GError *error                          = NULL;
+    NMIP4Config *         ip4_config;
 
-    g_return_if_fail(!ip4_config || NM_IS_IP4_CONFIG(ip4_config));
+    if (!notify_data || notify_data->notify_type != NM_DHCP_CLIENT_NOTIFY_TYPE_STATE_CHANGED)
+        g_return_if_reached();
 
-    _LOGD(LOGD_DHCP4, "new DHCPv4 client state %d", state);
+    nm_assert(!notify_data->state_changed.ip_config
+              || NM_IS_IP4_CONFIG(notify_data->state_changed.ip_config));
 
-    switch (state) {
+    _LOGD(LOGD_DHCP4, "new DHCPv4 client state %d", (int) notify_data->state_changed.dhcp_state);
+
+    switch (notify_data->state_changed.dhcp_state) {
     case NM_DHCP_STATE_BOUND:
     case NM_DHCP_STATE_EXTENDED:
+        ip4_config = NM_IP4_CONFIG(notify_data->state_changed.ip_config);
+
         g_assert(ip4_config);
         g_assert(nm_ip4_config_get_ifindex(ip4_config) == gl.ifindex);
 
@@ -177,41 +181,33 @@ ndisc_config_changed(NMNDisc *          ndisc,
     }
 
     if (changed & NM_NDISC_CONFIG_ADDRESSES) {
-        guint8  plen;
         guint32 ifa_flags;
 
         /* Check, whether kernel is recent enough to help user space handling RA.
          * If it's not supported, we have no ipv6-privacy and must add autoconf
          * addresses as /128. The reason for the /128 is to prevent the kernel
          * from adding a prefix route for this address. */
-        ifa_flags = 0;
-        if (nm_platform_kernel_support_get(NM_PLATFORM_KERNEL_SUPPORT_TYPE_EXTENDED_IFA_FLAGS)) {
-            ifa_flags |= IFA_F_NOPREFIXROUTE;
-            if (NM_IN_SET(global_opt.tempaddr,
-                          NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_TEMP_ADDR,
-                          NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_PUBLIC_ADDR))
-                ifa_flags |= IFA_F_MANAGETEMPADDR;
-            plen = 64;
-        } else
-            plen = 128;
+        ifa_flags = IFA_F_NOPREFIXROUTE;
+        if (NM_IN_SET(global_opt.tempaddr,
+                      NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_TEMP_ADDR,
+                      NM_SETTING_IP6_CONFIG_PRIVACY_PREFER_PUBLIC_ADDR))
+            ifa_flags |= IFA_F_MANAGETEMPADDR;
 
         nm_ip6_config_reset_addresses_ndisc(ndisc_config,
                                             rdata->addresses,
                                             rdata->addresses_n,
-                                            plen,
+                                            64,
                                             ifa_flags);
     }
 
     if (NM_FLAGS_ANY(changed, NM_NDISC_CONFIG_ROUTES | NM_NDISC_CONFIG_GATEWAYS)) {
-        nm_ip6_config_reset_routes_ndisc(
-            ndisc_config,
-            rdata->gateways,
-            rdata->gateways_n,
-            rdata->routes,
-            rdata->routes_n,
-            RT_TABLE_MAIN,
-            global_opt.priority_v6,
-            nm_platform_kernel_support_get(NM_PLATFORM_KERNEL_SUPPORT_TYPE_RTA_PREF));
+        nm_ip6_config_reset_routes_ndisc(ndisc_config,
+                                         rdata->gateways,
+                                         rdata->gateways_n,
+                                         rdata->routes,
+                                         rdata->routes_n,
+                                         RT_TABLE_MAIN,
+                                         global_opt.priority_v6);
     }
 
     if (changed & NM_NDISC_CONFIG_DHCP_LEVEL) {
@@ -685,8 +681,8 @@ main(int argc, char *argv[])
             g_error("failure to start DHCP: %s", error->message);
 
         g_signal_connect(dhcp4_client,
-                         NM_DHCP_CLIENT_SIGNAL_STATE_CHANGED,
-                         G_CALLBACK(dhcp4_state_changed),
+                         NM_DHCP_CLIENT_NOTIFY,
+                         G_CALLBACK(_dhcp_client_notify_cb),
                          NULL);
     }
 
@@ -698,7 +694,9 @@ main(int argc, char *argv[])
         guint32           default_ra_timeout;
         int               max_addresses;
 
-        nm_platform_link_set_user_ipv6ll_enabled(NM_PLATFORM_GET, gl.ifindex, TRUE);
+        nm_platform_link_set_inet6_addr_gen_mode(NM_PLATFORM_GET,
+                                                 gl.ifindex,
+                                                 NM_IN6_ADDR_GEN_MODE_NONE);
 
         if (global_opt.stable_id
             && (global_opt.stable_id[0] >= '0' && global_opt.stable_id[0] <= '9')
@@ -710,12 +708,12 @@ main(int argc, char *argv[])
             stable_id   = &global_opt.stable_id[2];
         }
 
-        nm_lndp_ndisc_get_sysctl(NM_PLATFORM_GET,
-                                 global_opt.ifname,
-                                 &max_addresses,
-                                 &router_solicitations,
-                                 &router_solicitation_interval,
-                                 &default_ra_timeout);
+        nm_ndisc_get_sysctl(NM_PLATFORM_GET,
+                            global_opt.ifname,
+                            &max_addresses,
+                            &router_solicitations,
+                            &router_solicitation_interval,
+                            &default_ra_timeout);
 
         ndisc = nm_lndp_ndisc_new(NM_PLATFORM_GET,
                                   gl.ifindex,

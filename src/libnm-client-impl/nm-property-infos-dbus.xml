@@ -7,6 +7,8 @@
 </setting>
 <setting name="bluetooth">
 </setting>
+<setting name="bond-port">
+</setting>
 <setting name="bond">
 <property name="interface-name" variable="interface-name" format="string" values="" default="" example="" description="Deprecated in favor of connection.interface-name, but can be used for backward-compatibility with older daemons, to set the bond's interface name." />
 </setting>

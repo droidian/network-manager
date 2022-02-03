@@ -25,6 +25,7 @@
 #define NM_PLATFORM_NETNS_SUPPORT "netns-support"
 #define NM_PLATFORM_USE_UDEV      "use-udev"
 #define NM_PLATFORM_LOG_WITH_PTR  "log-with-ptr"
+#define NM_PLATFORM_CACHE_TC      "cache-tc"
 
 /*****************************************************************************/
 
@@ -42,10 +43,10 @@ typedef gboolean (*NMPObjectPredicateFunc)(const NMPObject *obj, gpointer user_d
 
 /* workaround for older libnl version, that does not define these flags. */
 #ifndef IFA_F_MANAGETEMPADDR
-    #define IFA_F_MANAGETEMPADDR 0x100
+#define IFA_F_MANAGETEMPADDR 0x100
 #endif
 #ifndef IFA_F_NOPREFIXROUTE
-    #define IFA_F_NOPREFIXROUTE 0x200
+#define IFA_F_NOPREFIXROUTE 0x200
 #endif
 
 #define NM_RT_SCOPE_LINK 253 /* RT_SCOPE_LINK */
@@ -231,6 +232,9 @@ struct _NMPlatformLink {
     /* IFLA_ADDRESS */
     NMPLinkAddress l_address;
 
+    /* IFLA_PERM_ADDRESS */
+    NMPLinkAddress l_perm_address;
+
     /* IFLA_BROADCAST */
     NMPLinkAddress l_broadcast;
 
@@ -314,18 +318,18 @@ typedef enum {
      * IFA_FLAGS attribute. */         \
     guint32 n_ifa_flags;                                                                     \
                                                                                              \
-    guint8 plen;                                                                             \
-                                                                                             \
     /* FIXME(l3cfg): the external marker won't be necessary anymore, because we only
      * merge addresses we care about, and ignore (don't remove) external addresses. */         \
     bool external : 1;                                                                       \
                                                                                              \
     bool use_ip4_broadcast_address : 1;                                                      \
                                                                                              \
-    /* Whether the address is ready to be configured. By default, an address is, but this
-     * flag may indicate that the address is just for tracking purpose only, but the ACD
-     * state is not yet ready for the address to be configured. */    \
-    bool ip4acd_not_ready : 1;                                                               \
+    /* Whether the address is should be configured once during assume. This is a meta flag
+     * that is not honored by NMPlatform (netlink code). Instead, it can be used by the upper
+     * layers which use NMPlatformIPAddress to track addresses that should be configured. */   \
+    bool a_assume_config_once : 1;                                                           \
+                                                                                             \
+    guint8 plen;                                                                             \
     ;
 
 /**
@@ -347,6 +351,11 @@ typedef struct {
  **/
 struct _NMPlatformIP4Address {
     __NMPlatformIPAddress_COMMON;
+
+    /* Whether the address is ready to be configured. By default, an address is, but this
+     * flag may indicate that the address is just for tracking purpose only, but the ACD
+     * state is not yet ready for the address to be configured. */
+    bool a_acd_not_ready : 1;
 
     /* The local address IFA_LOCAL. */
     in_addr_t address;
@@ -470,6 +479,11 @@ typedef union {
      * and is not reflected on netlink. */   \
     bool is_external : 1;                                                                 \
                                                                                           \
+    /* Whether the route is should be configured once during assume. This is a meta flag
+     * that is not honored by NMPlatform (netlink code). Instead, it can be used by the upper
+     * layers which use NMPlatformIPRoute to track routes that should be configured. */  \
+    bool r_assume_config_once : 1;                                                        \
+                                                                                          \
     /* rtnh_flags
      *
      * Routes with rtm_flags RTM_F_CLONED are hidden by platform and
@@ -518,8 +532,7 @@ typedef union {
      * it means RTN_UNSPEC otherwise the type value is preserved.
      * */                                                                          \
     guint8 type_coerced;                                                                  \
-                                                                                          \
-    /*end*/
+    ;
 
 typedef struct {
     __NMPlatformIPRoute_COMMON;
@@ -612,6 +625,10 @@ typedef union {
 } NMPlatformIPXRoute;
 
 #undef __NMPlatformIPRoute_COMMON
+
+#define NM_PLATFORM_IP4_ROUTE_INIT(...) (&((const NMPlatformIP4Route){__VA_ARGS__}))
+
+#define NM_PLATFORM_IP6_ROUTE_INIT(...) (&((const NMPlatformIP6Route){__VA_ARGS__}))
 
 typedef struct {
     /* struct fib_rule_uid_range */
@@ -1008,13 +1025,11 @@ typedef void (*NMPlatformAsyncCallback)(GError *error, gpointer user_data);
 /*****************************************************************************/
 
 typedef enum {
-    NM_PLATFORM_KERNEL_SUPPORT_TYPE_EXTENDED_IFA_FLAGS,
-    NM_PLATFORM_KERNEL_SUPPORT_TYPE_USER_IPV6LL,
-    NM_PLATFORM_KERNEL_SUPPORT_TYPE_RTA_PREF,
     NM_PLATFORM_KERNEL_SUPPORT_TYPE_FRA_L3MDEV,
     NM_PLATFORM_KERNEL_SUPPORT_TYPE_FRA_UID_RANGE,
     NM_PLATFORM_KERNEL_SUPPORT_TYPE_FRA_PROTOCOL,
     NM_PLATFORM_KERNEL_SUPPORT_TYPE_IFLA_BR_VLAN_STATS_ENABLED,
+    NM_PLATFORM_KERNEL_SUPPORT_TYPE_IFLA_PERM_ADDRESS,
 
     /* this also includes FRA_SPORT_RANGE and FRA_DPORT_RANGE which
      * were added at the same time. */
@@ -1105,13 +1120,12 @@ typedef struct {
                              unsigned    flags_mask,
                              unsigned    flags_set);
 
-    int (*link_set_user_ipv6ll_enabled)(NMPlatform *self, int ifindex, gboolean enabled);
-    gboolean (*link_set_token)(NMPlatform *self, int ifindex, NMUtilsIPv6IfaceId iid);
+    int (*link_set_inet6_addr_gen_mode)(NMPlatform *self, int ifindex, guint8 enabled);
+    gboolean (*link_set_token)(NMPlatform *self, int ifindex, const NMUtilsIPv6IfaceId *iid);
 
-    gboolean (*link_get_permanent_address)(NMPlatform *self,
-                                           int         ifindex,
-                                           guint8 *    buf,
-                                           size_t *    length);
+    gboolean (*link_get_permanent_address_ethtool)(NMPlatform *    self,
+                                                   int             ifindex,
+                                                   NMPLinkAddress *out_address);
     int (*link_set_address)(NMPlatform *self, int ifindex, gconstpointer address, size_t length);
     int (*link_set_mtu)(NMPlatform *self, int ifindex, guint32 mtu);
     gboolean (*link_set_name)(NMPlatform *self, int ifindex, const char *name);
@@ -1253,8 +1267,10 @@ typedef struct {
                             const NMPlatformRoutingRule *routing_rule);
 
     int (*qdisc_add)(NMPlatform *self, NMPNlmFlags flags, const NMPlatformQdisc *qdisc);
+    int (*qdisc_delete)(NMPlatform *self, int ifindex, guint32 parent, gboolean log_error);
 
     int (*tfilter_add)(NMPlatform *self, NMPNlmFlags flags, const NMPlatformTfilter *tfilter);
+    int (*tfilter_delete)(NMPlatform *self, int ifindex, guint32 parent, gboolean log_error);
 } NMPlatformClass;
 
 /* NMPlatform signals
@@ -1391,6 +1407,14 @@ _nm_platform_uint8_inv(guint8 scope)
     return (guint8) ~scope;
 }
 
+static inline int
+_nm_platform_link_get_inet6_addr_gen_mode(const NMPlatformLink *pllink)
+{
+    if (!pllink)
+        return -ENODEV;
+    return _nm_platform_uint8_inv(pllink->inet6_addr_gen_mode_inv);
+}
+
 /**
  * nm_platform_route_type_coerce:
  * @table: the route type, in its original value.
@@ -1426,6 +1450,7 @@ nm_platform_route_type_uncoerce(guint8 type_coerced)
 
 gboolean nm_platform_get_use_udev(NMPlatform *self);
 gboolean nm_platform_get_log_with_ptr(NMPlatform *self);
+gboolean nm_platform_get_cache_tc(NMPlatform *self);
 
 NMPNetns *nm_platform_netns_get(NMPlatform *self);
 gboolean  nm_platform_netns_push(NMPlatform *self, NMPNetns **netns);
@@ -1808,7 +1833,7 @@ gboolean    nm_platform_link_is_up(NMPlatform *self, int ifindex);
 gboolean    nm_platform_link_is_connected(NMPlatform *self, int ifindex);
 gboolean    nm_platform_link_uses_arp(NMPlatform *self, int ifindex);
 guint32     nm_platform_link_get_mtu(NMPlatform *self, int ifindex);
-gboolean    nm_platform_link_get_user_ipv6ll_enabled(NMPlatform *self, int ifindex);
+int         nm_platform_link_get_inet6_addr_gen_mode(NMPlatform *self, int ifindex);
 
 gconstpointer nm_platform_link_get_address(NMPlatform *self, int ifindex, size_t *length);
 
@@ -1858,11 +1883,16 @@ const char *nm_platform_link_get_path(NMPlatform *self, int ifindex);
 
 struct udev_device *nm_platform_link_get_udev_device(NMPlatform *self, int ifindex);
 
-int      nm_platform_link_set_user_ipv6ll_enabled(NMPlatform *self, int ifindex, gboolean enabled);
-gboolean nm_platform_link_set_ipv6_token(NMPlatform *self, int ifindex, NMUtilsIPv6IfaceId iid);
-
+int nm_platform_link_set_inet6_addr_gen_mode(NMPlatform *self, int ifindex, guint8 mode);
 gboolean
-nm_platform_link_get_permanent_address(NMPlatform *self, int ifindex, guint8 *buf, size_t *length);
+nm_platform_link_set_ipv6_token(NMPlatform *self, int ifindex, const NMUtilsIPv6IfaceId *iid);
+
+gboolean nm_platform_link_get_permanent_address_ethtool(NMPlatform *    self,
+                                                        int             ifindex,
+                                                        NMPLinkAddress *out_address);
+gboolean nm_platform_link_get_permanent_address(NMPlatform *          self,
+                                                const NMPlatformLink *plink,
+                                                NMPLinkAddress *      out_address);
 int nm_platform_link_set_address(NMPlatform *self, int ifindex, const void *address, size_t length);
 int nm_platform_link_set_mtu(NMPlatform *self, int ifindex, guint32 mtu);
 gboolean nm_platform_link_set_name(NMPlatform *self, int ifindex, const char *name);
@@ -2113,7 +2143,7 @@ nm_platform_ip6_address_sync(NMPlatform *self,
 
 gboolean nm_platform_ip_address_flush(NMPlatform *self, int addr_family, int ifindex);
 
-static inline gconstpointer
+static inline gpointer
 nm_platform_ip_address_get_peer_address(int addr_family, const NMPlatformIPAddress *addr)
 {
     nm_assert_addr_family(addr_family);
@@ -2193,11 +2223,14 @@ int nm_platform_routing_rule_add(NMPlatform *                 self,
                                  NMPNlmFlags                  flags,
                                  const NMPlatformRoutingRule *routing_rule);
 
-int      nm_platform_qdisc_add(NMPlatform *self, NMPNlmFlags flags, const NMPlatformQdisc *qdisc);
-gboolean nm_platform_qdisc_sync(NMPlatform *self, int ifindex, GPtrArray *known_qdiscs);
-
+int nm_platform_qdisc_add(NMPlatform *self, NMPNlmFlags flags, const NMPlatformQdisc *qdisc);
+int nm_platform_qdisc_delete(NMPlatform *self, int ifindex, guint32 parent, gboolean log_error);
 int nm_platform_tfilter_add(NMPlatform *self, NMPNlmFlags flags, const NMPlatformTfilter *tfilter);
-gboolean nm_platform_tfilter_sync(NMPlatform *self, int ifindex, GPtrArray *known_tfilters);
+int nm_platform_tfilter_delete(NMPlatform *self, int ifindex, guint32 parent, gboolean log_error);
+gboolean nm_platform_tc_sync(NMPlatform *self,
+                             int         ifindex,
+                             GPtrArray * known_qdiscs,
+                             GPtrArray * known_tfilters);
 
 const char *nm_platform_link_to_string(const NMPlatformLink *link, char *buf, gsize len);
 const char *nm_platform_lnk_bridge_to_string(const NMPlatformLnkBridge *lnk, char *buf, gsize len);
@@ -2386,6 +2419,14 @@ void nm_platform_ip4_dev_route_blacklist_set(NMPlatform *self,
                                              GPtrArray * ip4_dev_route_blacklist);
 
 struct _NMDedupMultiIndex *nm_platform_get_multi_idx(NMPlatform *self);
+
+/*****************************************************************************/
+
+NMPlatformIP4Route *nm_platform_ip4_address_generate_device_route(const NMPlatformIP4Address *addr,
+                                                                  int                 ifindex,
+                                                                  guint32             route_table,
+                                                                  guint32             route_metric,
+                                                                  NMPlatformIP4Route *dst);
 
 /*****************************************************************************/
 

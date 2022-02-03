@@ -12,7 +12,7 @@
 #include "sd-dhcp-client.h"
 
 #include "dhcp-protocol.h"
-#include "log-link.h"
+#include "network-common.h"
 #include "socket-util.h"
 
 typedef struct sd_dhcp_option {
@@ -29,6 +29,8 @@ typedef struct DHCPServerData {
 } DHCPServerData;
 
 extern const struct hash_ops dhcp_option_hash_ops;
+
+typedef struct sd_dhcp_client sd_dhcp_client;
 
 int dhcp_network_bind_raw_socket(int ifindex, union sockaddr_union *link, uint32_t xid,
                                  const uint8_t *mac_addr, size_t mac_addr_len,
@@ -62,6 +64,8 @@ void dhcp_packet_append_ip_headers(DHCPPacket *packet, be32_t source_addr,
 
 int dhcp_packet_verify_headers(DHCPPacket *packet, size_t len, bool checksum, uint16_t port);
 
+void dhcp_client_set_test_mode(sd_dhcp_client *client, bool test_mode);
+
 /* If we are invoking callbacks of a dhcp-client, ensure unreffing the
  * client from the callback doesn't destroy the object we are working
  * on */
@@ -71,10 +75,10 @@ int dhcp_packet_verify_headers(DHCPPacket *packet, size_t len, bool checksum, ui
 #define log_dhcp_client_errno(client, error, fmt, ...)          \
         log_interface_prefix_full_errno(                        \
                 "DHCPv4 client: ",                              \
-                sd_dhcp_client_get_ifname(client),              \
+                sd_dhcp_client, client,                         \
                 error, fmt, ##__VA_ARGS__)
 #define log_dhcp_client(client, fmt, ...)                       \
         log_interface_prefix_full_errno_zerook(                 \
                 "DHCPv4 client: ",                              \
-                sd_dhcp_client_get_ifname(client),              \
+                sd_dhcp_client, client,                         \
                 0, fmt, ##__VA_ARGS__)

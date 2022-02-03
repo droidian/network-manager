@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.45.2.2.1"></a><p class="title"><b>Table 88. </b></p>
+<a name="id-1.3.3.45.2.2.1"></a><p class="title"><b>Table 89. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -123,7 +123,7 @@
 <td><pre class="screen">s390-options</pre></td>
 <td><pre class="screen">dict of string to string</pre></td>
 <td><pre class="screen">{}</pre></td>
-<td>Dictionary of key/value pairs of s390-specific device options.  Both keys and values must be strings.  Allowed keys include "portno", "layer2", "portname", "protocol", among others.  Key names must contain only alphanumeric characters (ie, [a-zA-Z0-9]).</td>
+<td>Dictionary of key/value pairs of s390-specific device options.  Both keys and values must be strings.  Allowed keys include "portno", "layer2", "portname", "protocol", among others.  Key names must contain only alphanumeric characters (ie, [a-zA-Z0-9]). Currently, NetworkManager itself does nothing with this information. However, s390utils ships a udev rule which parses this information and applies it to the interface.</td>
 </tr>
 <tr>
 <td><pre class="screen">s390-subchannels</pre></td>

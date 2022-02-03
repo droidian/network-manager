@@ -56,6 +56,7 @@ G_STATIC_ASSERT(_nm_alignof(NMPlatformIPAddress) == _nm_alignof(NMPlatformIPXAdd
 
 G_STATIC_ASSERT(sizeof(((NMPLinkAddress *) NULL)->data) == _NM_UTILS_HWADDR_LEN_MAX);
 G_STATIC_ASSERT(sizeof(((NMPlatformLink *) NULL)->l_address.data) == _NM_UTILS_HWADDR_LEN_MAX);
+G_STATIC_ASSERT(sizeof(((NMPlatformLink *) NULL)->l_perm_address.data) == _NM_UTILS_HWADDR_LEN_MAX);
 G_STATIC_ASSERT(sizeof(((NMPlatformLink *) NULL)->l_broadcast.data) == _NM_UTILS_HWADDR_LEN_MAX);
 
 static const char *
@@ -175,12 +176,14 @@ enum {
     PROP_NETNS_SUPPORT,
     PROP_USE_UDEV,
     PROP_LOG_WITH_PTR,
+    PROP_CACHE_TC,
     LAST_PROP,
 };
 
 typedef struct _NMPlatformPrivate {
     bool use_udev : 1;
     bool log_with_ptr : 1;
+    bool cache_tc : 1;
 
     guint              ip4_dev_route_blacklist_check_id;
     guint              ip4_dev_route_blacklist_gc_timeout_id;
@@ -209,6 +212,12 @@ gboolean
 nm_platform_get_log_with_ptr(NMPlatform *self)
 {
     return NM_PLATFORM_GET_PRIVATE(self)->log_with_ptr;
+}
+
+gboolean
+nm_platform_get_cache_tc(NMPlatform *self)
+{
+    return NM_PLATFORM_GET_PRIVATE(self)->cache_tc;
 }
 
 /*****************************************************************************/
@@ -299,24 +308,6 @@ static const struct {
     const char *name;
     const char *desc;
 } _nm_platform_kernel_support_info[_NM_PLATFORM_KERNEL_SUPPORT_NUM] = {
-    [NM_PLATFORM_KERNEL_SUPPORT_TYPE_EXTENDED_IFA_FLAGS] =
-        {
-            .compile_time_default = TRUE,
-            .name                 = "EXTENDED_IFA_FLAGS",
-            .desc                 = "IPv6 temporary addresses support",
-        },
-    [NM_PLATFORM_KERNEL_SUPPORT_TYPE_USER_IPV6LL] =
-        {
-            .compile_time_default = TRUE,
-            .name                 = "USER_IPV6LL",
-            .desc                 = "IFLA_INET6_ADDR_GEN_MODE support",
-        },
-    [NM_PLATFORM_KERNEL_SUPPORT_TYPE_RTA_PREF] =
-        {
-            .compile_time_default = (RTA_MAX >= 20 /* RTA_PREF */),
-            .name                 = "RTA_PREF",
-            .desc                 = "ability to set router preference for IPv6 routes",
-        },
     [NM_PLATFORM_KERNEL_SUPPORT_TYPE_FRA_L3MDEV] =
         {
             .compile_time_default = (FRA_MAX >= 19 /* FRA_L3MDEV */),
@@ -347,6 +338,12 @@ static const struct {
             .compile_time_default = (IFLA_BR_MAX >= 41 /* IFLA_BR_VLAN_STATS_ENABLED */),
             .name                 = "IFLA_BR_VLAN_STATS_ENABLE",
             .desc                 = "IFLA_BR_VLAN_STATS_ENABLE bridge link attribute",
+        },
+    [NM_PLATFORM_KERNEL_SUPPORT_TYPE_IFLA_PERM_ADDRESS] =
+        {
+            .compile_time_default = (IFLA_MAX >= 54 /* IFLA_PERM_ADDRESS */),
+            .name                 = "IFLA_PERM_ADDRESS",
+            .desc                 = "IFLA_PERM_ADDRESS netlink attribute",
         },
 };
 
@@ -1229,25 +1226,25 @@ nm_platform_link_add(NMPlatform *           self,
 
                switch (type) {
                case NM_LINK_TYPE_BRIDGE:
-                   nm_utils_strbuf_append_str(&buf_p, &buf_len, ", ");
+                   nm_strbuf_append_str(&buf_p, &buf_len, ", ");
                    nm_platform_lnk_bridge_to_string((const NMPlatformLnkBridge *) extra_data,
                                                     buf_p,
                                                     buf_len);
                    break;
                case NM_LINK_TYPE_VLAN:
-                   nm_utils_strbuf_append_str(&buf_p, &buf_len, ", ");
+                   nm_strbuf_append_str(&buf_p, &buf_len, ", ");
                    nm_platform_lnk_vlan_to_string((const NMPlatformLnkVlan *) extra_data,
                                                   buf_p,
                                                   buf_len);
                    break;
                case NM_LINK_TYPE_VRF:
-                   nm_utils_strbuf_append_str(&buf_p, &buf_len, ", ");
+                   nm_strbuf_append_str(&buf_p, &buf_len, ", ");
                    nm_platform_lnk_vrf_to_string((const NMPlatformLnkVrf *) extra_data,
                                                  buf_p,
                                                  buf_len);
                    break;
                case NM_LINK_TYPE_VXLAN:
-                   nm_utils_strbuf_append_str(&buf_p, &buf_len, ", ");
+                   nm_strbuf_append_str(&buf_p, &buf_len, ", ");
                    nm_platform_lnk_vxlan_to_string((const NMPlatformLnkVxlan *) extra_data,
                                                    buf_p,
                                                    buf_len);
@@ -1257,13 +1254,13 @@ nm_platform_link_add(NMPlatform *           self,
                    break;
                case NM_LINK_TYPE_GRE:
                case NM_LINK_TYPE_GRETAP:
-                   nm_utils_strbuf_append_str(&buf_p, &buf_len, ", ");
+                   nm_strbuf_append_str(&buf_p, &buf_len, ", ");
                    nm_platform_lnk_gre_to_string((const NMPlatformLnkGre *) extra_data,
                                                  buf_p,
                                                  buf_len);
                    break;
                case NM_LINK_TYPE_SIT:
-                   nm_utils_strbuf_append_str(&buf_p, &buf_len, ", ");
+                   nm_strbuf_append_str(&buf_p, &buf_len, ", ");
                    nm_platform_lnk_sit_to_string((const NMPlatformLnkSit *) extra_data,
                                                  buf_p,
                                                  buf_len);
@@ -1271,26 +1268,26 @@ nm_platform_link_add(NMPlatform *           self,
                case NM_LINK_TYPE_IP6TNL:
                case NM_LINK_TYPE_IP6GRE:
                case NM_LINK_TYPE_IP6GRETAP:
-                   nm_utils_strbuf_append_str(&buf_p, &buf_len, ", ");
+                   nm_strbuf_append_str(&buf_p, &buf_len, ", ");
                    nm_platform_lnk_ip6tnl_to_string((const NMPlatformLnkIp6Tnl *) extra_data,
                                                     buf_p,
                                                     buf_len);
                    break;
                case NM_LINK_TYPE_IPIP:
-                   nm_utils_strbuf_append_str(&buf_p, &buf_len, ", ");
+                   nm_strbuf_append_str(&buf_p, &buf_len, ", ");
                    nm_platform_lnk_ipip_to_string((const NMPlatformLnkIpIp *) extra_data,
                                                   buf_p,
                                                   buf_len);
                    break;
                case NM_LINK_TYPE_MACSEC:
-                   nm_utils_strbuf_append_str(&buf_p, &buf_len, ", ");
+                   nm_strbuf_append_str(&buf_p, &buf_len, ", ");
                    nm_platform_lnk_macsec_to_string((const NMPlatformLnkMacsec *) extra_data,
                                                     buf_p,
                                                     buf_len);
                    break;
                case NM_LINK_TYPE_MACVLAN:
                case NM_LINK_TYPE_MACVTAP:
-                   nm_utils_strbuf_append_str(&buf_p, &buf_len, ", ");
+                   nm_strbuf_append_str(&buf_p, &buf_len, ", ");
                    nm_platform_lnk_macvlan_to_string((const NMPlatformLnkMacvlan *) extra_data,
                                                      buf_p,
                                                      buf_len);
@@ -1611,7 +1608,7 @@ nm_platform_link_uses_arp(NMPlatform *self, int ifindex)
  * Returns: %TRUE a tokenized identifier was available
  */
 gboolean
-nm_platform_link_set_ipv6_token(NMPlatform *self, int ifindex, NMUtilsIPv6IfaceId iid)
+nm_platform_link_set_ipv6_token(NMPlatform *self, int ifindex, const NMUtilsIPv6IfaceId *iid)
 {
     _CHECK_SELF(self, klass, FALSE);
 
@@ -1649,47 +1646,20 @@ nm_platform_link_get_udev_device(NMPlatform *self, int ifindex)
     return obj_cache ? obj_cache->_link.udev.device : NULL;
 }
 
-/**
- * nm_platform_link_get_user_ip6vll_enabled:
- * @self: platform instance
- * @ifindex: Interface index
- *
- * Check whether NM handles IPv6LL address creation for the link.  If the
- * platform or OS doesn't support changing the IPv6LL address mode, this call
- * will fail and return %FALSE.
- *
- * Returns: %TRUE if NM handles the IPv6LL address for @ifindex
- */
-gboolean
-nm_platform_link_get_user_ipv6ll_enabled(NMPlatform *self, int ifindex)
+int
+nm_platform_link_get_inet6_addr_gen_mode(NMPlatform *self, int ifindex)
 {
-    const NMPlatformLink *pllink;
-
-    pllink = nm_platform_link_get(self, ifindex);
-    if (pllink && pllink->inet6_addr_gen_mode_inv)
-        return _nm_platform_uint8_inv(pllink->inet6_addr_gen_mode_inv) == NM_IN6_ADDR_GEN_MODE_NONE;
-    return FALSE;
+    return _nm_platform_link_get_inet6_addr_gen_mode(nm_platform_link_get(self, ifindex));
 }
 
-/**
- * nm_platform_link_set_user_ip6vll_enabled:
- * @self: platform instance
- * @ifindex: Interface index
- *
- * Set whether NM handles IPv6LL address creation for the link.  If the
- * platform or OS doesn't support changing the IPv6LL address mode, this call
- * will fail and return %FALSE.
- *
- * Returns: the negative nm-error on failure.
- */
 int
-nm_platform_link_set_user_ipv6ll_enabled(NMPlatform *self, int ifindex, gboolean enabled)
+nm_platform_link_set_inet6_addr_gen_mode(NMPlatform *self, int ifindex, guint8 mode)
 {
     _CHECK_SELF(self, klass, -NME_BUG);
 
     g_return_val_if_fail(ifindex > 0, -NME_BUG);
 
-    return klass->link_set_user_ipv6ll_enabled(self, ifindex, enabled);
+    return klass->link_set_inet6_addr_gen_mode(self, ifindex, mode);
 }
 
 /**
@@ -1736,7 +1706,7 @@ nm_platform_link_get_address(NMPlatform *self, int ifindex, size_t *length)
 }
 
 /**
- * nm_platform_link_get_permanent_address:
+ * nm_platform_link_get_permanent_address_ethtool:
  * @self: platform instance
  * @ifindex: Interface index
  * @buf: buffer of at least %_NM_UTILS_HWADDR_LEN_MAX bytes, on success
@@ -1747,20 +1717,45 @@ nm_platform_link_get_address(NMPlatform *self, int ifindex, size_t *length)
  * address.
  */
 gboolean
-nm_platform_link_get_permanent_address(NMPlatform *self, int ifindex, guint8 *buf, size_t *length)
+nm_platform_link_get_permanent_address_ethtool(NMPlatform *    self,
+                                               int             ifindex,
+                                               NMPLinkAddress *out_address)
 {
     _CHECK_SELF(self, klass, FALSE);
 
-    if (length)
-        *length = 0;
+    if (out_address)
+        out_address->len = 0;
 
     g_return_val_if_fail(ifindex > 0, FALSE);
-    g_return_val_if_fail(buf, FALSE);
-    g_return_val_if_fail(length, FALSE);
+    g_return_val_if_fail(out_address, FALSE);
 
-    if (klass->link_get_permanent_address)
-        return klass->link_get_permanent_address(self, ifindex, buf, length);
+    if (klass->link_get_permanent_address_ethtool)
+        return klass->link_get_permanent_address_ethtool(self, ifindex, out_address);
     return FALSE;
+}
+
+gboolean
+nm_platform_link_get_permanent_address(NMPlatform *          self,
+                                       const NMPlatformLink *plink,
+                                       NMPLinkAddress *      out_address)
+{
+    _CHECK_SELF(self, klass, FALSE);
+    nm_assert(out_address);
+
+    if (!plink)
+        return FALSE;
+    if (plink->l_perm_address.len > 0) {
+        *out_address = plink->l_perm_address;
+        return TRUE;
+    }
+    if (nm_platform_kernel_support_get_full(NM_PLATFORM_KERNEL_SUPPORT_TYPE_IFLA_PERM_ADDRESS,
+                                            FALSE)
+        == NM_OPTION_BOOL_TRUE) {
+        /* kernel supports the netlink API IFLA_PERM_ADDRESS, but we don't have the
+         * address cached. There is no need to fallback to ethtool ioctl. */
+        return FALSE;
+    }
+    return nm_platform_link_get_permanent_address_ethtool(self, plink->ifindex, out_address);
 }
 
 gboolean
@@ -2336,13 +2331,13 @@ nm_platform_link_wireguard_change(NMPlatform *                              self
             gsize len = sizeof(buf_peers);
             guint i;
 
-            nm_utils_strbuf_append_str(&b, &len, " { ");
+            nm_strbuf_append_str(&b, &len, " { ");
             for (i = 0; i < peers_len; i++) {
-                nm_utils_strbuf_append_str(&b, &len, " { ");
+                nm_strbuf_append_str(&b, &len, " { ");
                 nm_platform_wireguard_peer_to_string(&peers[i], b, len);
-                nm_utils_strbuf_seek_end(&b, &len);
+                nm_strbuf_seek_end(&b, &len);
                 if (peer_flags) {
-                    nm_utils_strbuf_append(
+                    nm_strbuf_append(
                         &b,
                         &len,
                         " (%s)",
@@ -2350,9 +2345,9 @@ nm_platform_link_wireguard_change(NMPlatform *                              self
                                                                buf_change_flags,
                                                                sizeof(buf_change_flags)));
                 }
-                nm_utils_strbuf_append_str(&b, &len, " } ");
+                nm_strbuf_append_str(&b, &len, " } ");
             }
-            nm_utils_strbuf_append_str(&b, &len, "}");
+            nm_strbuf_append_str(&b, &len, "}");
         }
 
         _LOG3D("link: change wireguard ifindex %d, %s, (%s), %u peers%s",
@@ -2531,6 +2526,8 @@ slave_category(NMPlatform *self, int slave)
     switch (nm_platform_link_get_type(self, master)) {
     case NM_LINK_TYPE_BRIDGE:
         return "brport";
+    case NM_LINK_TYPE_BOND:
+        return "bonding_slave";
     default:
         return NULL;
     }
@@ -2620,30 +2617,30 @@ nm_platform_link_vlan_change(NMPlatform *            self,
         len  = sizeof(buf);
 
         if (flags_mask)
-            nm_utils_strbuf_append(&b,
-                                   &len,
-                                   " flags 0x%x/0x%x",
-                                   (unsigned) flags_set,
-                                   (unsigned) flags_mask);
+            nm_strbuf_append(&b,
+                             &len,
+                             " flags 0x%x/0x%x",
+                             (unsigned) flags_set,
+                             (unsigned) flags_mask);
 
         if (ingress_reset_all || n_ingress_map) {
-            nm_utils_strbuf_append_str(&b, &len, " ingress-qos-map");
+            nm_strbuf_append_str(&b, &len, " ingress-qos-map");
             nm_platform_vlan_qos_mapping_to_string("", ingress_map, n_ingress_map, b, len);
             i = strlen(b);
             b += i;
             len -= i;
             if (ingress_reset_all)
-                nm_utils_strbuf_append_str(&b, &len, " (reset-all)");
+                nm_strbuf_append_str(&b, &len, " (reset-all)");
         }
 
         if (egress_reset_all || n_egress_map) {
-            nm_utils_strbuf_append_str(&b, &len, " egress-qos-map");
+            nm_strbuf_append_str(&b, &len, " egress-qos-map");
             nm_platform_vlan_qos_mapping_to_string("", egress_map, n_egress_map, b, len);
             i = strlen(b);
             b += i;
             len -= i;
             if (egress_reset_all)
-                nm_utils_strbuf_append_str(&b, &len, " (reset-all)");
+                nm_strbuf_append_str(&b, &len, " (reset-all)");
         }
 
         _LOG3D("link: change vlan %s", buf);
@@ -3668,7 +3665,7 @@ _addr_array_clean_expired(int          addr_family,
         }
 #endif
 
-        if (!NM_IS_IPv4(addr_family) && NM_FLAGS_HAS(a->n_ifa_flags, IFA_F_TEMPORARY)) {
+        if (!NM_IS_IPv4(addr_family) && NM_FLAGS_HAS(a->n_ifa_flags, IFA_F_SECONDARY)) {
             /* temporary addresses are never added explicitly by NetworkManager but
              * kernel adds them via mngtempaddr flag.
              *
@@ -3913,7 +3910,6 @@ nm_platform_ip_address_sync(NMPlatform *self,
     gs_unref_hashtable GHashTable *known_addresses_idx = NULL;
     GPtrArray *                    plat_addresses;
     GHashTable *                   known_subnets = NULL;
-    guint32                        ifa_flags;
     guint                          i_plat;
     guint                          i_know;
     guint                          i;
@@ -4140,10 +4136,6 @@ next_plat:;
     if (IS_IPv4)
         ip4_addr_subnets_destroy_index(known_subnets, known_addresses);
 
-    ifa_flags = nm_platform_kernel_support_get(NM_PLATFORM_KERNEL_SUPPORT_TYPE_EXTENDED_IFA_FLAGS)
-                    ? IFA_F_NOPREFIXROUTE
-                    : 0;
-
     /* Add missing addresses. New addresses are added by kernel with top
      * priority.
      */
@@ -4178,7 +4170,7 @@ next_plat:;
                     nm_platform_ip4_broadcast_address_from_addr(&known_address->a4),
                     lifetime,
                     preferred,
-                    ifa_flags,
+                    IFA_F_NOPREFIXROUTE,
                     known_address->a4.label)) {
                 /* ignore error, for unclear reasons. */
             }
@@ -4190,7 +4182,7 @@ next_plat:;
                                              known_address->a6.peer_address,
                                              lifetime,
                                              preferred,
-                                             ifa_flags | known_address->a6.n_ifa_flags))
+                                             IFA_F_NOPREFIXROUTE | known_address->a6.n_ifa_flags))
                 return FALSE;
         }
     }
@@ -4278,7 +4270,7 @@ nm_platform_ip_address_get_prune_list(NMPlatform *self,
 
         if (!IS_IPv4) {
             if (exclude_ipv6_temporary_addrs
-                && NM_FLAGS_HAS(NMP_OBJECT_CAST_IP_ADDRESS(obj)->n_ifa_flags, IFA_F_TEMPORARY))
+                && NM_FLAGS_HAS(NMP_OBJECT_CAST_IP_ADDRESS(obj)->n_ifa_flags, IFA_F_SECONDARY))
                 continue;
         }
 
@@ -5311,92 +5303,13 @@ nm_platform_qdisc_add(NMPlatform *self, NMPNlmFlags flags, const NMPlatformQdisc
     return klass->qdisc_add(self, flags, qdisc);
 }
 
-/**
- * nm_platform_qdisc_sync:
- * @self: the #NMPlatform instance
- * @ifindex: the ifindex where to configure the qdiscs.
- * @known_qdiscs: the list of qdiscs (#NMPObject).
- *
- * The function promises not to take any reference to the qdisc
- * instances from @known_qdiscs, nor to keep them around after
- * the function returns. This is important, because it allows the
- * caller to pass NMPlatformQdisc instances which "kind" string
- * have a limited lifetime.
- *
- * Returns: %TRUE on success.
- */
-gboolean
-nm_platform_qdisc_sync(NMPlatform *self, int ifindex, GPtrArray *known_qdiscs)
+int
+nm_platform_qdisc_delete(NMPlatform *self, int ifindex, guint32 parent, gboolean log_error)
 {
-    gs_unref_ptrarray GPtrArray *plat_qdiscs = NULL;
-    NMPLookup                    lookup;
-    guint                        i;
-    gboolean                     success            = TRUE;
-    gs_unref_hashtable GHashTable *known_qdiscs_idx = NULL;
+    _CHECK_SELF(self, klass, -NME_BUG);
 
-    nm_assert(NM_IS_PLATFORM(self));
-    nm_assert(ifindex > 0);
-
-    known_qdiscs_idx =
-        g_hash_table_new((GHashFunc) nmp_object_id_hash, (GEqualFunc) nmp_object_id_equal);
-    if (known_qdiscs) {
-        for (i = 0; i < known_qdiscs->len; i++) {
-            const NMPObject *q = g_ptr_array_index(known_qdiscs, i);
-
-            if (!g_hash_table_insert(known_qdiscs_idx, (gpointer) q, (gpointer) q)) {
-                _LOGW("duplicate qdisc %s", nm_platform_qdisc_to_string(&q->qdisc, NULL, 0));
-                return FALSE;
-            }
-        }
-    }
-
-    plat_qdiscs =
-        nm_platform_lookup_clone(self,
-                                 nmp_lookup_init_object(&lookup, NMP_OBJECT_TYPE_QDISC, ifindex),
-                                 NULL,
-                                 NULL);
-    if (plat_qdiscs) {
-        for (i = 0; i < plat_qdiscs->len; i++) {
-            const NMPObject *p = g_ptr_array_index(plat_qdiscs, i);
-            const NMPObject *k;
-
-            /* look up known qdisc with same parent */
-            k = g_hash_table_lookup(known_qdiscs_idx, p);
-
-            if (k) {
-                const NMPlatformQdisc *qdisc_k = NMP_OBJECT_CAST_QDISC(k);
-                const NMPlatformQdisc *qdisc_p = NMP_OBJECT_CAST_QDISC(p);
-
-                /* check other fields */
-                if (nm_platform_qdisc_cmp_full(qdisc_k, qdisc_p, FALSE) != 0
-                    || (qdisc_k->handle != qdisc_p->handle && qdisc_k != 0)) {
-                    k = NULL;
-                }
-            }
-
-            if (k) {
-                g_hash_table_remove(known_qdiscs_idx, k);
-            } else {
-                /* can't delete qdisc with zero handle */
-                if (TC_H_MAJ(p->qdisc.handle) != 0) {
-                    success &= nm_platform_object_delete(self, p);
-                }
-            }
-        }
-    }
-
-    if (known_qdiscs) {
-        for (i = 0; i < known_qdiscs->len; i++) {
-            const NMPObject *q = g_ptr_array_index(known_qdiscs, i);
-
-            if (g_hash_table_contains(known_qdiscs_idx, q)) {
-                success &=
-                    (nm_platform_qdisc_add(self, NMP_NLM_FLAG_ADD, NMP_OBJECT_CAST_QDISC(q)) >= 0);
-            }
-        }
-    }
-
-    return success;
+    _LOG3D("deleting a qdisc: parent 0x%08x", parent);
+    return klass->qdisc_delete(self, ifindex, parent, log_error);
 }
 
 /*****************************************************************************/
@@ -5414,55 +5327,58 @@ nm_platform_tfilter_add(NMPlatform *self, NMPNlmFlags flags, const NMPlatformTfi
     return klass->tfilter_add(self, flags, tfilter);
 }
 
+int
+nm_platform_tfilter_delete(NMPlatform *self, int ifindex, guint32 parent, gboolean log_error)
+{
+    _CHECK_SELF(self, klass, -NME_BUG);
+
+    _LOG3D("deleting a tfilter: parent 0x%08x", parent);
+    return klass->tfilter_delete(self, ifindex, parent, log_error);
+}
+
 /**
- * nm_platform_qdisc_sync:
+ * nm_platform_tc_sync:
  * @self: the #NMPlatform instance
- * @ifindex: the ifindex where to configure the qdiscs.
+ * @ifindex: the ifindex where to configure qdiscs and filters.
+ * @known_qdiscs: the list of qdiscs (#NMPObject).
  * @known_tfilters: the list of tfilters (#NMPObject).
  *
- * The function promises not to take any reference to the tfilter
- * instances from @known_tfilters, nor to keep them around after
- * the function returns. This is important, because it allows the
- * caller to pass NMPlatformTfilter instances which "kind" string
- * have a limited lifetime.
+ * The function promises not to take any reference to the
+ * instances from @known_qdiscs and @known_tfilters, nor to
+ * keep them around after the function returns. This is important,
+ * because it allows the caller to pass NMPlatformQdisc and
+ * NMPlatformTfilter instances which "kind" string have a limited
+ * lifetime.
  *
  * Returns: %TRUE on success.
  */
 gboolean
-nm_platform_tfilter_sync(NMPlatform *self, int ifindex, GPtrArray *known_tfilters)
+nm_platform_tc_sync(NMPlatform *self,
+                    int         ifindex,
+                    GPtrArray * known_qdiscs,
+                    GPtrArray * known_tfilters)
 {
-    gs_unref_ptrarray GPtrArray *plat_tfilters = NULL;
-    NMPLookup                    lookup;
-    guint                        i;
-    gboolean                     success              = TRUE;
-    gs_unref_hashtable GHashTable *known_tfilters_idx = NULL;
+    guint    i;
+    gboolean success = TRUE;
 
     nm_assert(NM_IS_PLATFORM(self));
     nm_assert(ifindex > 0);
 
-    known_tfilters_idx =
-        g_hash_table_new((GHashFunc) nmp_object_id_hash, (GEqualFunc) nmp_object_id_equal);
+    nm_platform_qdisc_delete(self, ifindex, TC_H_ROOT, FALSE);
+    nm_platform_qdisc_delete(self, ifindex, TC_H_INGRESS, FALSE);
 
-    if (known_tfilters) {
-        for (i = 0; i < known_tfilters->len; i++) {
-            const NMPObject *q = g_ptr_array_index(known_tfilters, i);
+    /* At this point we can only have a root default qdisc
+     * (which can't be deleted). Ensure it doesn't have any
+     * filters attached.
+     */
+    nm_platform_tfilter_delete(self, ifindex, TC_H_ROOT, FALSE);
 
-            g_hash_table_insert(known_tfilters_idx, (gpointer) q, (gpointer) q);
-        }
-    }
+    if (known_qdiscs) {
+        for (i = 0; i < known_qdiscs->len; i++) {
+            const NMPObject *q = g_ptr_array_index(known_qdiscs, i);
 
-    plat_tfilters =
-        nm_platform_lookup_clone(self,
-                                 nmp_lookup_init_object(&lookup, NMP_OBJECT_TYPE_TFILTER, ifindex),
-                                 NULL,
-                                 NULL);
-
-    if (plat_tfilters) {
-        for (i = 0; i < plat_tfilters->len; i++) {
-            const NMPObject *q = g_ptr_array_index(plat_tfilters, i);
-
-            if (!g_hash_table_lookup(known_tfilters_idx, q))
-                success &= nm_platform_object_delete(self, q);
+            success &=
+                (nm_platform_qdisc_add(self, NMP_NLM_FLAG_ADD, NMP_OBJECT_CAST_QDISC(q)) >= 0);
         }
     }
 
@@ -5493,7 +5409,7 @@ nm_platform_vlan_qos_mapping_to_string(const char *            name,
     nm_utils_to_string_buffer_init(&buf, &len);
 
     if (!n_map) {
-        nm_utils_strbuf_append_str(&buf, &len, "");
+        nm_strbuf_append_str(&buf, &len, "");
         return buf;
     }
 
@@ -5503,14 +5419,14 @@ nm_platform_vlan_qos_mapping_to_string(const char *            name,
     b = buf;
 
     if (name) {
-        nm_utils_strbuf_append_str(&b, &len, name);
-        nm_utils_strbuf_append_str(&b, &len, " {");
+        nm_strbuf_append_str(&b, &len, name);
+        nm_strbuf_append_str(&b, &len, " {");
     } else
-        nm_utils_strbuf_append_c(&b, &len, '{');
+        nm_strbuf_append_c(&b, &len, '{');
 
     for (i = 0; i < n_map; i++)
-        nm_utils_strbuf_append(&b, &len, " %u:%u", map[i].from, map[i].to);
-    nm_utils_strbuf_append_str(&b, &len, " }");
+        nm_strbuf_append(&b, &len, " %u:%u", map[i].from, map[i].to);
+    nm_strbuf_append_str(&b, &len, " }");
     return buf;
 }
 
@@ -5566,6 +5482,7 @@ nm_platform_link_to_string(const NMPlatformLink *link, char *buf, gsize len)
     gsize       l;
     char        str_addrmode[30];
     char        str_address[_NM_UTILS_HWADDR_LEN_MAX * 3];
+    char        str_perm_address[_NM_UTILS_HWADDR_LEN_MAX * 3];
     char        str_broadcast[_NM_UTILS_HWADDR_LEN_MAX * 3];
     char        str_inet6_token[NM_UTILS_INET_ADDRSTRLEN];
     const char *str_link_type;
@@ -5576,13 +5493,13 @@ nm_platform_link_to_string(const NMPlatformLink *link, char *buf, gsize len)
     s = str_highlighted_flags;
     l = sizeof(str_highlighted_flags);
     if (NM_FLAGS_HAS(link->n_ifi_flags, IFF_NOARP))
-        nm_utils_strbuf_append_str(&s, &l, "NOARP,");
+        nm_strbuf_append_str(&s, &l, "NOARP,");
     if (NM_FLAGS_HAS(link->n_ifi_flags, IFF_UP))
-        nm_utils_strbuf_append_str(&s, &l, "UP");
+        nm_strbuf_append_str(&s, &l, "UP");
     else
-        nm_utils_strbuf_append_str(&s, &l, "DOWN");
+        nm_strbuf_append_str(&s, &l, "DOWN");
     if (link->connected)
-        nm_utils_strbuf_append_str(&s, &l, ",LOWER_UP");
+        nm_strbuf_append_str(&s, &l, ",LOWER_UP");
     nm_assert(s > str_highlighted_flags && l > 0);
 
     if (link->n_ifi_flags) {
@@ -5604,6 +5521,7 @@ nm_platform_link_to_string(const NMPlatformLink *link, char *buf, gsize len)
         parent[0] = 0;
 
     _nmp_link_address_to_string(&link->l_address, str_address);
+    _nmp_link_address_to_string(&link->l_perm_address, str_perm_address);
     _nmp_link_address_to_string(&link->l_broadcast, str_broadcast);
 
     str_link_type = nm_link_type_to_string(link->type);
@@ -5623,6 +5541,7 @@ nm_platform_link_to_string(const NMPlatformLink *link, char *buf, gsize len)
         "%s"      /* is-in-udev */
         "%s%s"    /* addr-gen-mode */
         "%s%s"    /* l_address */
+        "%s%s"    /* l_perm_address */
         "%s%s"    /* l_broadcast */
         "%s%s"    /* inet6_token */
         "%s%s"    /* driver */
@@ -5648,11 +5567,13 @@ nm_platform_link_to_string(const NMPlatformLink *link, char *buf, gsize len)
                                       : "",
         str_address[0] ? " addr " : "",
         str_address[0] ? str_address : "",
+        str_perm_address[0] ? " permaddr " : "",
+        str_perm_address[0] ? str_perm_address : "",
         str_broadcast[0] ? " brd " : "",
         str_broadcast[0] ? str_broadcast : "",
         link->inet6_token.id ? " inet6token " : "",
         link->inet6_token.id
-            ? nm_utils_inet6_interface_identifier_to_token(link->inet6_token, str_inet6_token)
+            ? nm_utils_inet6_interface_identifier_to_token(&link->inet6_token, str_inet6_token)
             : "",
         link->driver ? " driver " : "",
         link->driver ?: "",
@@ -6067,9 +5988,9 @@ nm_platform_lnk_vlan_to_string(const NMPlatformLnkVlan *lnk, char *buf, gsize le
 
     b = buf;
 
-    nm_utils_strbuf_append(&b, &len, "vlan %u", lnk->id);
+    nm_strbuf_append(&b, &len, "vlan %u", lnk->id);
     if (lnk->flags)
-        nm_utils_strbuf_append(&b, &len, " flags 0x%x", lnk->flags);
+        nm_strbuf_append(&b, &len, " flags 0x%x", lnk->flags);
     return buf;
 }
 
@@ -6083,7 +6004,7 @@ nm_platform_lnk_vrf_to_string(const NMPlatformLnkVrf *lnk, char *buf, gsize len)
 
     b = buf;
 
-    nm_utils_strbuf_append(&b, &len, "table %u", lnk->table);
+    nm_strbuf_append(&b, &len, "table %u", lnk->table);
     return buf;
 }
 
@@ -6208,36 +6129,36 @@ nm_platform_wireguard_peer_to_string(const NMPWireGuardPeer *peer, char *buf, gs
     } else
         s_endpoint[0] = '\0';
 
-    nm_utils_strbuf_append(
-        &buf,
-        &len,
-        "public-key %s"
-        "%s"                                                   /* preshared-key */
-        "%s"                                                   /* endpoint */
-        " rx %" G_GUINT64_FORMAT " tx %" G_GUINT64_FORMAT "%s" /* persistent-keepalive */
-        "%s",                                                  /* allowed-ips */
-        public_key_b64,
-        nm_utils_memeqzero_secret(peer->preshared_key, sizeof(peer->preshared_key))
-            ? ""
-            : " preshared-key (hidden)",
-        s_endpoint,
-        peer->rx_bytes,
-        peer->tx_bytes,
-        peer->persistent_keepalive_interval > 0
-            ? nm_sprintf_buf(s_keepalive,
-                             " keepalive %u",
-                             (guint) peer->persistent_keepalive_interval)
-            : "",
-        peer->allowed_ips_len > 0 ? " allowed-ips" : "");
+    nm_strbuf_append(&buf,
+                     &len,
+                     "public-key %s"
+                     "%s" /* preshared-key */
+                     "%s" /* endpoint */
+                     " rx %" G_GUINT64_FORMAT " tx %" G_GUINT64_FORMAT
+                     "%s"  /* persistent-keepalive */
+                     "%s", /* allowed-ips */
+                     public_key_b64,
+                     nm_utils_memeqzero_secret(peer->preshared_key, sizeof(peer->preshared_key))
+                         ? ""
+                         : " preshared-key (hidden)",
+                     s_endpoint,
+                     peer->rx_bytes,
+                     peer->tx_bytes,
+                     peer->persistent_keepalive_interval > 0
+                         ? nm_sprintf_buf(s_keepalive,
+                                          " keepalive %u",
+                                          (guint) peer->persistent_keepalive_interval)
+                         : "",
+                     peer->allowed_ips_len > 0 ? " allowed-ips" : "");
 
     for (i = 0; i < peer->allowed_ips_len; i++) {
         const NMPWireGuardAllowedIP *allowed_ip = &peer->allowed_ips[i];
 
-        nm_utils_strbuf_append(&buf,
-                               &len,
-                               " %s/%u",
-                               nm_utils_inet_ntop(allowed_ip->family, &allowed_ip->addr, s_addr),
-                               allowed_ip->mask);
+        nm_strbuf_append(&buf,
+                         &len,
+                         " %s/%u",
+                         nm_utils_inet_ntop(allowed_ip->family, &allowed_ip->addr, s_addr),
+                         allowed_ip->mask);
     }
 
     return buf0;
@@ -6353,7 +6274,8 @@ nm_platform_ip4_address_to_string(const NMPlatformIP4Address *address, char *buf
         "%s" /* label */
         " src %s"
         "%s" /* external */
-        "%s" /* ip4acd_not_ready */
+        "%s" /* a_acd_not_ready */
+        "%s" /* a_assume_config_once */
         "",
         s_address,
         address->plen,
@@ -6372,7 +6294,8 @@ nm_platform_ip4_address_to_string(const NMPlatformIP4Address *address, char *buf
         str_label,
         nmp_utils_ip_config_source_to_string(address->addr_source, s_source, sizeof(s_source)),
         address->external ? " ext" : "",
-        address->ip4acd_not_ready ? " ip4acd-not-ready" : "");
+        address->a_acd_not_ready ? " ip4acd-not-ready" : "",
+        address->a_assume_config_once ? " assume-config-once" : "");
     g_free(str_peer);
     return buf;
 }
@@ -6406,17 +6329,22 @@ NM_UTILS_ENUM2STR_DEFINE(nm_platform_link_inet6_addrgenmode2str,
                          NM_UTILS_ENUM2STR(NM_IN6_ADDR_GEN_MODE_STABLE_PRIVACY, "stable-privacy"),
                          NM_UTILS_ENUM2STR(NM_IN6_ADDR_GEN_MODE_RANDOM, "random"), );
 
+G_STATIC_ASSERT(IFA_F_SECONDARY == IFA_F_TEMPORARY);
+
 NM_UTILS_FLAGS2STR_DEFINE(nm_platform_addr_flags2str,
                           unsigned,
                           NM_UTILS_FLAGS2STR(IFA_F_SECONDARY, "secondary"),
                           NM_UTILS_FLAGS2STR(IFA_F_NODAD, "nodad"),
                           NM_UTILS_FLAGS2STR(IFA_F_OPTIMISTIC, "optimistic"),
+                          NM_UTILS_FLAGS2STR(IFA_F_DADFAILED, "dadfailed"),
                           NM_UTILS_FLAGS2STR(IFA_F_HOMEADDRESS, "homeaddress"),
                           NM_UTILS_FLAGS2STR(IFA_F_DEPRECATED, "deprecated"),
+                          NM_UTILS_FLAGS2STR(IFA_F_TENTATIVE, "tentative"),
                           NM_UTILS_FLAGS2STR(IFA_F_PERMANENT, "permanent"),
                           NM_UTILS_FLAGS2STR(IFA_F_MANAGETEMPADDR, "mngtmpaddr"),
                           NM_UTILS_FLAGS2STR(IFA_F_NOPREFIXROUTE, "noprefixroute"),
-                          NM_UTILS_FLAGS2STR(IFA_F_TENTATIVE, "tentative"), );
+                          NM_UTILS_FLAGS2STR(IFA_F_MCAUTOJOIN, "mcautojoin"),
+                          NM_UTILS_FLAGS2STR(IFA_F_STABLE_PRIVACY, "stable-privacy"), );
 
 NM_UTILS_ENUM2STR_DEFINE(nm_platform_route_scope2str,
                          int,
@@ -6486,7 +6414,10 @@ nm_platform_ip6_address_to_string(const NMPlatformIP6Address *address, char *buf
     g_snprintf(
         buf,
         len,
-        "%s/%d lft %s pref %s%s%s%s%s src %s%s",
+        "%s/%d lft %s pref %s%s%s%s%s src %s"
+        "%s" /* external */
+        "%s" /* a_assume_config_once */
+        "",
         s_address,
         address->plen,
         str_lft_p,
@@ -6496,7 +6427,8 @@ nm_platform_ip6_address_to_string(const NMPlatformIP6Address *address, char *buf
         str_dev,
         _to_string_ifa_flags(address->n_ifa_flags, s_flags, sizeof(s_flags)),
         nmp_utils_ip_config_source_to_string(address->addr_source, s_source, sizeof(s_source)),
-        address->external ? " ext" : "");
+        address->external ? " external" : "",
+        address->a_assume_config_once ? " assume-config-once" : "");
     g_free(str_peer);
     return buf;
 }
@@ -6529,7 +6461,7 @@ _rtm_flags_to_string_full(char *buf, gsize buf_size, unsigned rtm_flags)
     if (!rtm_flags)
         return "";
 
-    nm_utils_strbuf_append_str(&buf, &buf_size, " rtm_flags ");
+    nm_strbuf_append_str(&buf, &buf_size, " rtm_flags ");
     _rtm_flags_to_string(rtm_flags, buf, buf_size);
     nm_assert(strlen(buf) < buf_size);
     return buf0;
@@ -6588,6 +6520,7 @@ nm_platform_ip4_route_to_string(const NMPlatformIP4Route *route, char *buf, gsiz
         "%s"                                   /* initrwnd */
         "%s"                                   /* mtu */
         "%s"                                   /* is_external */
+        "%s"                                   /* r_assume_config_once */
         "",
         nm_net_aux_rtnl_rtntype_n2a_maybe_buf(nm_platform_route_type_uncoerce(route->type_coerced),
                                               str_type),
@@ -6644,7 +6577,8 @@ nm_platform_ip4_route_to_string(const NMPlatformIP4Route *route, char *buf, gsiz
                                                        route->lock_mtu ? "lock " : "",
                                                        route->mtu)
                                       : "",
-        route->is_external ? " (E)" : "");
+        route->is_external ? " is-external" : "",
+        route->r_assume_config_once ? " assume-config-once" : "");
     return buf;
 }
 
@@ -6715,6 +6649,7 @@ nm_platform_ip6_route_to_string(const NMPlatformIP6Route *route, char *buf, gsiz
         "%s"                                   /* mtu */
         "%s"                                   /* pref */
         "%s"                                   /* is_external */
+        "%s"                                   /* r_assume_config_once */
         "",
         nm_net_aux_rtnl_rtntype_n2a_maybe_buf(nm_platform_route_type_uncoerce(route->type_coerced),
                                               str_type),
@@ -6775,7 +6710,8 @@ nm_platform_ip6_route_to_string(const NMPlatformIP6Route *route, char *buf, gsiz
             " pref %s",
             nm_icmpv6_router_pref_to_string(route->rt_pref, str_pref2, sizeof(str_pref2)))
                        : "",
-        route->is_external ? " (E)" : "");
+        route->is_external ? " is-external" : "",
+        route->r_assume_config_once ? " assume-config-once" : "");
 
     return buf;
 }
@@ -6801,18 +6737,18 @@ _routing_rule_addr_to_string(char **         buf,
 
     if (plen == 0 && is_zero) {
         if (is_src)
-            nm_utils_strbuf_append_str(buf, len, " from all");
+            nm_strbuf_append_str(buf, len, " from all");
         else
-            nm_utils_strbuf_append_str(buf, len, "");
+            nm_strbuf_append_str(buf, len, "");
         return;
     }
 
-    nm_utils_strbuf_append_str(buf, len, is_src ? " from " : " to ");
+    nm_strbuf_append_str(buf, len, is_src ? " from " : " to ");
 
-    nm_utils_strbuf_append_str(buf, len, nm_utils_inet_ntop(addr_family, addr, s_addr));
+    nm_strbuf_append_str(buf, len, nm_utils_inet_ntop(addr_family, addr, s_addr));
 
     if (plen != (addr_size * 8))
-        nm_utils_strbuf_append(buf, len, "/%u", plen);
+        nm_strbuf_append(buf, len, "/%u", plen);
 }
 
 static void
@@ -6822,11 +6758,11 @@ _routing_rule_port_range_to_string(char **                   buf,
                                    const char *              name)
 {
     if (port_range->start == 0 && port_range->end == 0)
-        nm_utils_strbuf_append_str(buf, len, "");
+        nm_strbuf_append_str(buf, len, "");
     else {
-        nm_utils_strbuf_append(buf, len, " %s %u", name, port_range->start);
+        nm_strbuf_append(buf, len, " %s %u", name, port_range->start);
         if (port_range->start != port_range->end)
-            nm_utils_strbuf_append(buf, len, "-%u", port_range->end);
+            nm_strbuf_append(buf, len, "-%u", port_range->end);
     }
 }
 
@@ -6853,14 +6789,14 @@ nm_platform_routing_rule_to_string(const NMPlatformRoutingRule *routing_rule, ch
     rr_flags = routing_rule->flags;
 
     rr_flags = NM_FLAGS_UNSET(rr_flags, FIB_RULE_INVERT);
-    nm_utils_strbuf_append(&buf,
-                           &len,
-                           "[%c] " /* addr-family */
-                           "%u:"   /* priority */
-                           "%s",   /* not/FIB_RULE_INVERT */
-                           nm_utils_addr_family_to_char(routing_rule->addr_family),
-                           routing_rule->priority,
-                           (NM_FLAGS_HAS(routing_rule->flags, FIB_RULE_INVERT) ? " not" : ""));
+    nm_strbuf_append(&buf,
+                     &len,
+                     "[%c] " /* addr-family */
+                     "%u:"   /* priority */
+                     "%s",   /* not/FIB_RULE_INVERT */
+                     nm_utils_addr_family_to_char(routing_rule->addr_family),
+                     routing_rule->priority,
+                     (NM_FLAGS_HAS(routing_rule->flags, FIB_RULE_INVERT) ? " not" : ""));
 
     _routing_rule_addr_to_string(&buf,
                                  &len,
@@ -6877,53 +6813,53 @@ nm_platform_routing_rule_to_string(const NMPlatformRoutingRule *routing_rule, ch
                                  FALSE);
 
     if (routing_rule->tos)
-        nm_utils_strbuf_append(&buf, &len, " tos 0x%02x", routing_rule->tos);
+        nm_strbuf_append(&buf, &len, " tos 0x%02x", routing_rule->tos);
 
     if (routing_rule->fwmark != 0 || routing_rule->fwmask != 0) {
-        nm_utils_strbuf_append(&buf, &len, " fwmark %#x", (unsigned) routing_rule->fwmark);
+        nm_strbuf_append(&buf, &len, " fwmark %#x", (unsigned) routing_rule->fwmark);
         if (routing_rule->fwmark != 0xFFFFFFFFu)
-            nm_utils_strbuf_append(&buf, &len, "/%#x", (unsigned) routing_rule->fwmask);
+            nm_strbuf_append(&buf, &len, "/%#x", (unsigned) routing_rule->fwmask);
     }
 
     if (routing_rule->iifname[0]) {
-        nm_utils_strbuf_append(&buf, &len, " iif %s", routing_rule->iifname);
+        nm_strbuf_append(&buf, &len, " iif %s", routing_rule->iifname);
         rr_flags = NM_FLAGS_UNSET(rr_flags, FIB_RULE_IIF_DETACHED);
         if (NM_FLAGS_HAS(routing_rule->flags, FIB_RULE_IIF_DETACHED))
-            nm_utils_strbuf_append_str(&buf, &len, " [detached]");
+            nm_strbuf_append_str(&buf, &len, " [detached]");
     }
 
     if (routing_rule->oifname[0]) {
-        nm_utils_strbuf_append(&buf, &len, " oif %s", routing_rule->oifname);
+        nm_strbuf_append(&buf, &len, " oif %s", routing_rule->oifname);
         rr_flags = NM_FLAGS_UNSET(rr_flags, FIB_RULE_OIF_DETACHED);
         if (NM_FLAGS_HAS(routing_rule->flags, FIB_RULE_OIF_DETACHED))
-            nm_utils_strbuf_append_str(&buf, &len, " [detached]");
+            nm_strbuf_append_str(&buf, &len, " [detached]");
     }
 
     if (routing_rule->l3mdev != 0) {
         if (routing_rule->l3mdev == 1)
-            nm_utils_strbuf_append_str(&buf, &len, " lookup [l3mdev-table]");
+            nm_strbuf_append_str(&buf, &len, " lookup [l3mdev-table]");
         else {
-            nm_utils_strbuf_append(&buf,
-                                   &len,
-                                   " lookup [l3mdev-table/%u]",
-                                   (unsigned) routing_rule->l3mdev);
+            nm_strbuf_append(&buf,
+                             &len,
+                             " lookup [l3mdev-table/%u]",
+                             (unsigned) routing_rule->l3mdev);
         }
     }
 
     if (routing_rule->uid_range_has || routing_rule->uid_range.start
         || routing_rule->uid_range.end) {
-        nm_utils_strbuf_append(&buf,
-                               &len,
-                               " uidrange %u-%u%s",
-                               routing_rule->uid_range.start,
-                               routing_rule->uid_range.end,
-                               routing_rule->uid_range_has ? "" : "(?)");
+        nm_strbuf_append(&buf,
+                         &len,
+                         " uidrange %u-%u%s",
+                         routing_rule->uid_range.start,
+                         routing_rule->uid_range.end,
+                         routing_rule->uid_range_has ? "" : "(?)");
     }
 
     if (routing_rule->ip_proto != 0) {
         /* we don't call getprotobynumber(), just print the numeric value.
          * This differs from what ip-rule prints. */
-        nm_utils_strbuf_append(&buf, &len, " ipproto %u", routing_rule->ip_proto);
+        nm_strbuf_append(&buf, &len, " ipproto %u", routing_rule->ip_proto);
     }
 
     _routing_rule_port_range_to_string(&buf, &len, &routing_rule->sport_range, "sport");
@@ -6931,25 +6867,25 @@ nm_platform_routing_rule_to_string(const NMPlatformRoutingRule *routing_rule, ch
     _routing_rule_port_range_to_string(&buf, &len, &routing_rule->dport_range, "dport");
 
     if (routing_rule->tun_id != 0) {
-        nm_utils_strbuf_append(&buf, &len, " tun_id %" G_GUINT64_FORMAT, routing_rule->tun_id);
+        nm_strbuf_append(&buf, &len, " tun_id %" G_GUINT64_FORMAT, routing_rule->tun_id);
     }
 
     if (routing_rule->table != 0) {
-        nm_utils_strbuf_append(&buf, &len, " lookup %u", routing_rule->table);
+        nm_strbuf_append(&buf, &len, " lookup %u", routing_rule->table);
     }
 
     if (routing_rule->suppress_prefixlen_inverse != 0) {
-        nm_utils_strbuf_append(&buf,
-                               &len,
-                               " suppress_prefixlen %d",
-                               (int) (~routing_rule->suppress_prefixlen_inverse));
+        nm_strbuf_append(&buf,
+                         &len,
+                         " suppress_prefixlen %d",
+                         (int) (~routing_rule->suppress_prefixlen_inverse));
     }
 
     if (routing_rule->suppress_ifgroup_inverse != 0) {
-        nm_utils_strbuf_append(&buf,
-                               &len,
-                               " suppress_ifgroup %d",
-                               (int) (~routing_rule->suppress_ifgroup_inverse));
+        nm_strbuf_append(&buf,
+                         &len,
+                         " suppress_ifgroup %d",
+                         (int) (~routing_rule->suppress_ifgroup_inverse));
     }
 
     if (routing_rule->flow) {
@@ -6958,7 +6894,7 @@ nm_platform_routing_rule_to_string(const NMPlatformRoutingRule *routing_rule, ch
          *
          * We don't follow the style how ip-rule prints flow/realms. It's confusing. Just
          * print the value hex. */
-        nm_utils_strbuf_append(&buf, &len, " realms 0x%08x", routing_rule->flow);
+        nm_strbuf_append(&buf, &len, " realms 0x%08x", routing_rule->flow);
     }
 
     if (routing_rule->action == RTN_NAT) {
@@ -6966,36 +6902,36 @@ nm_platform_routing_rule_to_string(const NMPlatformRoutingRule *routing_rule, ch
 
         /* NAT is deprecated for many years. We don't support RTA_GATEWAY/FRA_UNUSED2
          * for the gateway, and so do recent kernels ignore that parameter. */
-        nm_utils_strbuf_append_str(&buf, &len, " masquerade");
+        nm_strbuf_append_str(&buf, &len, " masquerade");
     } else if (routing_rule->action == FR_ACT_GOTO) {
         if (routing_rule->goto_target != 0)
-            nm_utils_strbuf_append(&buf, &len, " goto %u", routing_rule->goto_target);
+            nm_strbuf_append(&buf, &len, " goto %u", routing_rule->goto_target);
         else
-            nm_utils_strbuf_append_str(&buf, &len, " goto none");
+            nm_strbuf_append_str(&buf, &len, " goto none");
         rr_flags = NM_FLAGS_UNSET(rr_flags, FIB_RULE_UNRESOLVED);
         if (NM_FLAGS_HAS(routing_rule->flags, FIB_RULE_UNRESOLVED))
-            nm_utils_strbuf_append_str(&buf, &len, " unresolved");
+            nm_strbuf_append_str(&buf, &len, " unresolved");
     } else if (routing_rule->action != FR_ACT_TO_TBL) {
         char ss_buf[60];
 
-        nm_utils_strbuf_append(&buf,
-                               &len,
-                               " %s",
-                               nm_net_aux_rtnl_rtntype_n2a(routing_rule->action)
-                                   ?: nm_sprintf_buf(ss_buf, "action-%u", routing_rule->action));
+        nm_strbuf_append(&buf,
+                         &len,
+                         " %s",
+                         nm_net_aux_rtnl_rtntype_n2a(routing_rule->action)
+                             ?: nm_sprintf_buf(ss_buf, "action-%u", routing_rule->action));
     }
 
     if (routing_rule->protocol != RTPROT_UNSPEC)
-        nm_utils_strbuf_append(&buf, &len, " protocol %u", routing_rule->protocol);
+        nm_strbuf_append(&buf, &len, " protocol %u", routing_rule->protocol);
 
     if (routing_rule->goto_target != 0 && routing_rule->action != FR_ACT_GOTO) {
         /* a trailing target is set for an unexpected action. Print it. */
-        nm_utils_strbuf_append(&buf, &len, " goto-target %u", routing_rule->goto_target);
+        nm_strbuf_append(&buf, &len, " goto-target %u", routing_rule->goto_target);
     }
 
     if (rr_flags != 0) {
         /* we have some flags we didn't print about yet. */
-        nm_utils_strbuf_append(&buf, &len, " remaining-flags %x", rr_flags);
+        nm_strbuf_append(&buf, &len, " remaining-flags %x", rr_flags);
     }
 
     return buf0;
@@ -7012,53 +6948,53 @@ nm_platform_qdisc_to_string(const NMPlatformQdisc *qdisc, char *buf, gsize len)
 
     buf0 = buf;
 
-    nm_utils_strbuf_append(&buf,
-                           &len,
-                           "%s%s family %u handle %x parent %x info %x",
-                           qdisc->kind,
-                           _to_string_dev(NULL, qdisc->ifindex, str_dev, sizeof(str_dev)),
-                           qdisc->addr_family,
-                           qdisc->handle,
-                           qdisc->parent,
-                           qdisc->info);
+    nm_strbuf_append(&buf,
+                     &len,
+                     "%s%s family %u handle %x parent %x info %x",
+                     qdisc->kind,
+                     _to_string_dev(NULL, qdisc->ifindex, str_dev, sizeof(str_dev)),
+                     qdisc->addr_family,
+                     qdisc->handle,
+                     qdisc->parent,
+                     qdisc->info);
 
     if (nm_streq0(qdisc->kind, "fq_codel")) {
         if (qdisc->fq_codel.limit)
-            nm_utils_strbuf_append(&buf, &len, " limit %u", qdisc->fq_codel.limit);
+            nm_strbuf_append(&buf, &len, " limit %u", qdisc->fq_codel.limit);
         if (qdisc->fq_codel.flows)
-            nm_utils_strbuf_append(&buf, &len, " flows %u", qdisc->fq_codel.flows);
+            nm_strbuf_append(&buf, &len, " flows %u", qdisc->fq_codel.flows);
         if (qdisc->fq_codel.target)
-            nm_utils_strbuf_append(&buf, &len, " target %u", qdisc->fq_codel.target);
+            nm_strbuf_append(&buf, &len, " target %u", qdisc->fq_codel.target);
         if (qdisc->fq_codel.interval)
-            nm_utils_strbuf_append(&buf, &len, " interval %u", qdisc->fq_codel.interval);
+            nm_strbuf_append(&buf, &len, " interval %u", qdisc->fq_codel.interval);
         if (qdisc->fq_codel.quantum)
-            nm_utils_strbuf_append(&buf, &len, " quantum %u", qdisc->fq_codel.quantum);
+            nm_strbuf_append(&buf, &len, " quantum %u", qdisc->fq_codel.quantum);
         if (qdisc->fq_codel.ce_threshold != NM_PLATFORM_FQ_CODEL_CE_THRESHOLD_DISABLED)
-            nm_utils_strbuf_append(&buf, &len, " ce_threshold %u", qdisc->fq_codel.ce_threshold);
+            nm_strbuf_append(&buf, &len, " ce_threshold %u", qdisc->fq_codel.ce_threshold);
         if (qdisc->fq_codel.memory_limit != NM_PLATFORM_FQ_CODEL_MEMORY_LIMIT_UNSET)
-            nm_utils_strbuf_append(&buf, &len, " memory_limit %u", qdisc->fq_codel.memory_limit);
+            nm_strbuf_append(&buf, &len, " memory_limit %u", qdisc->fq_codel.memory_limit);
         if (qdisc->fq_codel.ecn)
-            nm_utils_strbuf_append(&buf, &len, " ecn");
+            nm_strbuf_append(&buf, &len, " ecn");
     } else if (nm_streq0(qdisc->kind, "sfq")) {
         if (qdisc->sfq.quantum)
-            nm_utils_strbuf_append(&buf, &len, " quantum %u", qdisc->sfq.quantum);
+            nm_strbuf_append(&buf, &len, " quantum %u", qdisc->sfq.quantum);
         if (qdisc->sfq.perturb_period)
-            nm_utils_strbuf_append(&buf, &len, " perturb %d", qdisc->sfq.perturb_period);
+            nm_strbuf_append(&buf, &len, " perturb %d", qdisc->sfq.perturb_period);
         if (qdisc->sfq.limit)
-            nm_utils_strbuf_append(&buf, &len, " limit %u", (guint) qdisc->sfq.limit);
+            nm_strbuf_append(&buf, &len, " limit %u", (guint) qdisc->sfq.limit);
         if (qdisc->sfq.divisor)
-            nm_utils_strbuf_append(&buf, &len, " divisor %u", qdisc->sfq.divisor);
+            nm_strbuf_append(&buf, &len, " divisor %u", qdisc->sfq.divisor);
         if (qdisc->sfq.flows)
-            nm_utils_strbuf_append(&buf, &len, " flows %u", qdisc->sfq.flows);
+            nm_strbuf_append(&buf, &len, " flows %u", qdisc->sfq.flows);
         if (qdisc->sfq.depth)
-            nm_utils_strbuf_append(&buf, &len, " depth %u", qdisc->sfq.depth);
+            nm_strbuf_append(&buf, &len, " depth %u", qdisc->sfq.depth);
     } else if (nm_streq0(qdisc->kind, "tbf")) {
-        nm_utils_strbuf_append(&buf, &len, " rate %" G_GUINT64_FORMAT, qdisc->tbf.rate);
-        nm_utils_strbuf_append(&buf, &len, " burst %u", qdisc->tbf.burst);
+        nm_strbuf_append(&buf, &len, " rate %" G_GUINT64_FORMAT, qdisc->tbf.rate);
+        nm_strbuf_append(&buf, &len, " burst %u", qdisc->tbf.burst);
         if (qdisc->tbf.limit)
-            nm_utils_strbuf_append(&buf, &len, " limit %u", qdisc->tbf.limit);
+            nm_strbuf_append(&buf, &len, " limit %u", qdisc->tbf.limit);
         if (qdisc->tbf.latency)
-            nm_utils_strbuf_append(&buf, &len, " latency %uns", qdisc->tbf.latency);
+            nm_strbuf_append(&buf, &len, " latency %uns", qdisc->tbf.latency);
     }
 
     return buf0;
@@ -7153,11 +7089,11 @@ nm_platform_tfilter_to_string(const NMPlatformTfilter *tfilter, char *buf, gsize
         p = act_buf;
         l = sizeof(act_buf);
 
-        nm_utils_strbuf_append(&p, &l, " \"%s\"", tfilter->action.kind);
+        nm_strbuf_append(&p, &l, " \"%s\"", tfilter->action.kind);
         if (nm_streq(tfilter->action.kind, NM_PLATFORM_ACTION_KIND_SIMPLE)) {
             gs_free char *t = NULL;
 
-            nm_utils_strbuf_append(
+            nm_strbuf_append(
                 &p,
                 &l,
                 " (\"%s\")",
@@ -7166,14 +7102,14 @@ nm_platform_tfilter_to_string(const NMPlatformTfilter *tfilter, char *buf, gsize
                                                  | NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_NON_ASCII,
                                              &t));
         } else if (nm_streq(tfilter->action.kind, NM_PLATFORM_ACTION_KIND_MIRRED)) {
-            nm_utils_strbuf_append(&p,
-                                   &l,
-                                   "%s%s%s%s dev %d",
-                                   tfilter->action.mirred.ingress ? " ingress" : "",
-                                   tfilter->action.mirred.egress ? " egress" : "",
-                                   tfilter->action.mirred.mirror ? " mirror" : "",
-                                   tfilter->action.mirred.redirect ? " redirect" : "",
-                                   tfilter->action.mirred.ifindex);
+            nm_strbuf_append(&p,
+                             &l,
+                             "%s%s%s%s dev %d",
+                             tfilter->action.mirred.ingress ? " ingress" : "",
+                             tfilter->action.mirred.egress ? " egress" : "",
+                             tfilter->action.mirred.mirror ? " mirror" : "",
+                             tfilter->action.mirred.redirect ? " redirect" : "",
+                             tfilter->action.mirred.ifindex);
         }
     } else
         act_buf[0] = '\0';
@@ -7345,6 +7281,9 @@ nm_platform_link_hash_update(const NMPlatformLink *obj, NMHashState *h)
                        obj->l_address.data,
                        NM_MIN(obj->l_address.len, sizeof(obj->l_address.data)));
     nm_hash_update_mem(h,
+                       obj->l_perm_address.data,
+                       NM_MIN(obj->l_perm_address.len, sizeof(obj->l_perm_address.data)));
+    nm_hash_update_mem(h,
                        obj->l_broadcast.data,
                        NM_MIN(obj->l_broadcast.len, sizeof(obj->l_broadcast.data)));
 }
@@ -7364,12 +7303,15 @@ nm_platform_link_cmp(const NMPlatformLink *a, const NMPlatformLink *b)
     NM_CMP_FIELD_BOOL(a, b, initialized);
     NM_CMP_FIELD(a, b, arptype);
     NM_CMP_FIELD(a, b, l_address.len);
+    NM_CMP_FIELD(a, b, l_perm_address.len);
     NM_CMP_FIELD(a, b, l_broadcast.len);
     NM_CMP_FIELD(a, b, inet6_addr_gen_mode_inv);
     NM_CMP_FIELD_STR_INTERNED(a, b, kind);
     NM_CMP_FIELD_STR_INTERNED(a, b, driver);
     if (a->l_address.len)
         NM_CMP_FIELD_MEMCMP_LEN(a, b, l_address.data, a->l_address.len);
+    if (a->l_perm_address.len)
+        NM_CMP_FIELD_MEMCMP_LEN(a, b, l_perm_address.data, a->l_perm_address.len);
     if (a->l_broadcast.len)
         NM_CMP_FIELD_MEMCMP_LEN(a, b, l_broadcast.data, a->l_broadcast.len);
     NM_CMP_FIELD_MEMCMP(a, b, inet6_token);
@@ -7853,20 +7795,20 @@ nm_platform_ip6_address_pretty_sort_cmp(const NMPlatformIP6Address *a1,
     NM_CMP_DIRECT(_address_pretty_sort_get_prio_6(&a2->address),
                   _address_pretty_sort_get_prio_6(&a1->address));
 
-    ipv6_privacy1 = NM_FLAGS_ANY(a1->n_ifa_flags, IFA_F_MANAGETEMPADDR | IFA_F_TEMPORARY);
-    ipv6_privacy2 = NM_FLAGS_ANY(a2->n_ifa_flags, IFA_F_MANAGETEMPADDR | IFA_F_TEMPORARY);
+    ipv6_privacy1 = NM_FLAGS_ANY(a1->n_ifa_flags, IFA_F_MANAGETEMPADDR | IFA_F_SECONDARY);
+    ipv6_privacy2 = NM_FLAGS_ANY(a2->n_ifa_flags, IFA_F_MANAGETEMPADDR | IFA_F_SECONDARY);
     if (ipv6_privacy1 || ipv6_privacy2) {
         gboolean public1 = TRUE;
         gboolean public2 = TRUE;
 
         if (ipv6_privacy1) {
-            if (a1->n_ifa_flags & IFA_F_TEMPORARY)
+            if (a1->n_ifa_flags & IFA_F_SECONDARY)
                 public1 = prefer_temp;
             else
                 public1 = !prefer_temp;
         }
         if (ipv6_privacy2) {
-            if (a2->n_ifa_flags & IFA_F_TEMPORARY)
+            if (a2->n_ifa_flags & IFA_F_SECONDARY)
                 public2 = prefer_temp;
             else
                 public2 = !prefer_temp;
@@ -7905,7 +7847,8 @@ nm_platform_ip4_address_hash_update(const NMPlatformIP4Address *obj, NMHashState
                         NM_HASH_COMBINE_BOOLS(guint8,
                                               obj->external,
                                               obj->use_ip4_broadcast_address,
-                                              obj->ip4acd_not_ready));
+                                              obj->a_acd_not_ready,
+                                              obj->a_assume_config_once));
     nm_hash_update_strarr(h, obj->label);
 }
 
@@ -7927,7 +7870,8 @@ nm_platform_ip4_address_cmp(const NMPlatformIP4Address *a, const NMPlatformIP4Ad
     NM_CMP_FIELD(a, b, n_ifa_flags);
     NM_CMP_FIELD_STR(a, b, label);
     NM_CMP_FIELD_UNSAFE(a, b, external);
-    NM_CMP_FIELD_UNSAFE(a, b, ip4acd_not_ready);
+    NM_CMP_FIELD_UNSAFE(a, b, a_acd_not_ready);
+    NM_CMP_FIELD_UNSAFE(a, b, a_assume_config_once);
     return 0;
 }
 
@@ -7944,7 +7888,7 @@ nm_platform_ip6_address_hash_update(const NMPlatformIP6Address *obj, NMHashState
                         obj->plen,
                         obj->address,
                         obj->peer_address,
-                        NM_HASH_COMBINE_BOOLS(guint8, obj->external));
+                        NM_HASH_COMBINE_BOOLS(guint8, obj->external, obj->a_assume_config_once));
 }
 
 int
@@ -7965,6 +7909,7 @@ nm_platform_ip6_address_cmp(const NMPlatformIP6Address *a, const NMPlatformIP6Ad
     NM_CMP_FIELD(a, b, preferred);
     NM_CMP_FIELD(a, b, n_ifa_flags);
     NM_CMP_FIELD_UNSAFE(a, b, external);
+    NM_CMP_FIELD_UNSAFE(a, b, a_assume_config_once);
     return 0;
 }
 
@@ -8065,7 +8010,7 @@ nm_platform_ip4_route_hash_update(const NMPlatformIP4Route *obj,
                             obj->initrwnd,
                             obj->mtu,
                             obj->r_rtm_flags,
-                            NM_HASH_COMBINE_BOOLS(guint8,
+                            NM_HASH_COMBINE_BOOLS(guint16,
                                                   obj->metric_any,
                                                   obj->table_any,
                                                   obj->lock_window,
@@ -8073,7 +8018,8 @@ nm_platform_ip4_route_hash_update(const NMPlatformIP4Route *obj,
                                                   obj->lock_initcwnd,
                                                   obj->lock_initrwnd,
                                                   obj->lock_mtu,
-                                                  obj->is_external));
+                                                  obj->is_external,
+                                                  obj->r_assume_config_once));
         break;
     }
 }
@@ -8163,8 +8109,10 @@ nm_platform_ip4_route_cmp(const NMPlatformIP4Route *a,
         NM_CMP_FIELD(a, b, initcwnd);
         NM_CMP_FIELD(a, b, initrwnd);
         NM_CMP_FIELD(a, b, mtu);
-        if (cmp_type == NM_PLATFORM_IP_ROUTE_CMP_TYPE_FULL)
+        if (cmp_type == NM_PLATFORM_IP_ROUTE_CMP_TYPE_FULL) {
             NM_CMP_FIELD_UNSAFE(a, b, is_external);
+            NM_CMP_FIELD_UNSAFE(a, b, r_assume_config_once);
+        }
         break;
     }
     return 0;
@@ -8249,7 +8197,7 @@ nm_platform_ip6_route_hash_update(const NMPlatformIP6Route *obj,
                             obj->rt_source,
                             obj->mss,
                             obj->r_rtm_flags,
-                            NM_HASH_COMBINE_BOOLS(guint8,
+                            NM_HASH_COMBINE_BOOLS(guint16,
                                                   obj->metric_any,
                                                   obj->table_any,
                                                   obj->lock_window,
@@ -8257,7 +8205,8 @@ nm_platform_ip6_route_hash_update(const NMPlatformIP6Route *obj,
                                                   obj->lock_initcwnd,
                                                   obj->lock_initrwnd,
                                                   obj->lock_mtu,
-                                                  obj->is_external),
+                                                  obj->is_external,
+                                                  obj->r_assume_config_once),
                             obj->window,
                             obj->cwnd,
                             obj->initcwnd,
@@ -8340,8 +8289,10 @@ nm_platform_ip6_route_cmp(const NMPlatformIP6Route *a,
             NM_CMP_DIRECT(_route_pref_normalize(a->rt_pref), _route_pref_normalize(b->rt_pref));
         else
             NM_CMP_FIELD(a, b, rt_pref);
-        if (cmp_type == NM_PLATFORM_IP_ROUTE_CMP_TYPE_FULL)
+        if (cmp_type == NM_PLATFORM_IP_ROUTE_CMP_TYPE_FULL) {
             NM_CMP_FIELD_UNSAFE(a, b, is_external);
+            NM_CMP_FIELD_UNSAFE(a, b, r_assume_config_once);
+        }
         break;
     }
     return 0;
@@ -8626,6 +8577,57 @@ nm_platform_ip4_address_addr_to_hash(NMPlatform *self, int ifindex)
 }
 
 /*****************************************************************************/
+
+NMPlatformIP4Route *
+nm_platform_ip4_address_generate_device_route(const NMPlatformIP4Address *addr,
+                                              int                         ifindex,
+                                              guint32                     route_table,
+                                              guint32                     route_metric,
+                                              NMPlatformIP4Route *        dst)
+{
+    in_addr_t network_4;
+
+    /* When you add an IPv4 address (without "noprefixroute" flag), then kernel will
+     * automatically add a device route for the IPv4 subnet. This function generates
+     * such a route for the given address. */
+
+    nm_assert(addr);
+    nm_assert(addr->plen <= 32);
+    if (addr->plen == 0)
+        return NULL;
+
+    if (addr->plen == 0)
+        return NULL;
+
+    network_4 = nm_utils_ip4_address_clear_host_address(addr->peer_address, addr->plen);
+
+    if (nm_utils_ip4_address_is_zeronet(network_4)) {
+        /* Kernel doesn't add device-routes for destinations that
+         * start with 0.x.y.z. Skip them. */
+        return NULL;
+    }
+
+    if (addr->plen == 32 && addr->address == addr->peer_address) {
+        /* Kernel doesn't add device-routes for /32 addresses unless
+         * they have a peer. */
+        return NULL;
+    }
+
+    *dst = (NMPlatformIP4Route){
+        .ifindex       = ifindex,
+        .rt_source     = NM_IP_CONFIG_SOURCE_KERNEL,
+        .network       = network_4,
+        .plen          = addr->plen,
+        .pref_src      = addr->address,
+        .table_coerced = nm_platform_route_table_coerce(route_table),
+        .metric        = route_metric,
+        .scope_inv     = nm_platform_route_scope_inv(NM_RT_SCOPE_LINK),
+    };
+
+    nm_platform_ip_route_normalize(AF_INET, (NMPlatformIPRoute *) dst);
+
+    return dst;
+}
 
 const char *
 nm_platform_signal_change_type_to_string(NMPlatformSignalChangeType change_type)
@@ -8918,6 +8920,10 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
         /* construct-only */
         priv->log_with_ptr = g_value_get_boolean(value);
         break;
+    case PROP_CACHE_TC:
+        /* construct-only */
+        priv->cache_tc = g_value_get_boolean(value);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
         break;
@@ -9001,6 +9007,15 @@ nm_platform_class_init(NMPlatformClass *platform_class)
                              "",
                              "",
                              TRUE,
+                             G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+
+    g_object_class_install_property(
+        object_class,
+        PROP_CACHE_TC,
+        g_param_spec_boolean(NM_PLATFORM_CACHE_TC,
+                             "",
+                             "",
+                             FALSE,
                              G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
 #define SIGNAL(signal, signal_id, method)                                                \

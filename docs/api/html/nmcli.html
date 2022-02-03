@@ -640,13 +640,13 @@
           internally blocked from autoconnecting again. Hence it will not autoconnect
           until reboot or until the user performs an action that unblocks autoconnect,
           like modifying the profile or explicitly activating it.</p>
-<p>In most cases you may want to use <span class="command"><strong>device disconnect</strong></span>
+<p>In most cases you may want to use <span class="command"><strong>device down</strong></span>
           command instead.</p>
 <p>The connection is identified by its name, UUID or D-Bus path. If
           <em class="replaceable"><code>ID</code></em> is ambiguous, a keyword <code class="option">id</code>,
           <code class="option">uuid</code>, <code class="option">path</code> or
           <code class="option">apath</code> can be used.</p>
-<p> See <span class="command"><strong>connection show</strong></span> above for the description of
+<p>See <span class="command"><strong>connection show</strong></span> above for the description of
           the <em class="replaceable"><code>ID</code></em>-specifying keywords.</p>
 <p>If <code class="option">--wait</code> option is not specified, the default timeout
           will be 10 seconds.</p>
@@ -939,7 +939,7 @@
 </div>
 <div class="refsect1">
 <a name="device"></a><h2>Device Management Commands</h2>
-<div class="cmdsynopsis"><p><code class="command">nmcli device</code>  { <span class="command"><strong>status</strong></span>  |   <span class="command"><strong>show</strong></span>  |   <span class="command"><strong>set</strong></span>  |   <span class="command"><strong>connect</strong></span>  |   <span class="command"><strong>reapply</strong></span>  |   <span class="command"><strong>modify</strong></span>  |   <span class="command"><strong>disconnect</strong></span>  |   <span class="command"><strong>delete</strong></span>  |   <span class="command"><strong>monitor</strong></span>  |   <span class="command"><strong>wifi</strong></span>  |   <span class="command"><strong>lldp</strong></span> } [<em class="replaceable"><code>ARGUMENTS</code></em>...]</p></div>
+<div class="cmdsynopsis"><p><code class="command">nmcli device</code>  { <span class="command"><strong>status</strong></span>  |   <span class="command"><strong>show</strong></span>  |   <span class="command"><strong>set</strong></span>  |   <span class="command"><strong>up</strong></span>  |   <span class="command"><strong>connect</strong></span>  |   <span class="command"><strong>reapply</strong></span>  |   <span class="command"><strong>modify</strong></span>  |   <span class="command"><strong>down</strong></span>  |   <span class="command"><strong>disconnect</strong></span>  |   <span class="command"><strong>delete</strong></span>  |   <span class="command"><strong>monitor</strong></span>  |   <span class="command"><strong>wifi</strong></span>  |   <span class="command"><strong>lldp</strong></span> } [<em class="replaceable"><code>ARGUMENTS</code></em>...]</p></div>
 <p>Show and manage network interfaces.</p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -982,7 +982,7 @@
 </tr>
 <tr>
 <td><p><span class="term">
-          <span class="command"><strong>connect</strong></span>
+          <span class="command"><strong>up</strong></span>
             <em class="replaceable"><code>ifname</code></em> 
         </span></p></td>
 <td>
@@ -992,10 +992,18 @@
 <p>If no compatible connection exists, a new profile with default
           settings will be created and activated. This differentiates
           <span class="command"><strong>nmcli connection up ifname "$DEVICE"</strong></span> from
-          <span class="command"><strong>nmcli device connect "$DEVICE"</strong></span></p>
+          <span class="command"><strong>nmcli device up "$DEVICE"</strong></span></p>
 <p>If <code class="option">--wait</code> option is not specified, the default timeout will be 90
           seconds.</p>
 </td>
+</tr>
+<tr>
+<td><p><span class="term">
+          <span class="command"><strong>connect</strong></span>
+            <em class="replaceable"><code>ifname</code></em> 
+        </span></p></td>
+<td><p>Alias for command <span class="command"><strong>up</strong></span>. Before version 1.34.0 <span class="command"><strong>up</strong></span>
+                was not supported.</p></td>
 </tr>
 <tr>
 <td><p><span class="term">
@@ -1023,7 +1031,7 @@
 </tr>
 <tr>
 <td><p><span class="term">
-          <span class="command"><strong>disconnect</strong></span>
+          <span class="command"><strong>down</strong></span>
             <em class="replaceable"><code>ifname</code></em>... 
         </span></p></td>
 <td>
@@ -1033,6 +1041,14 @@
 <p>If <code class="option">--wait</code> option is not specified, the default timeout
           will be 10 seconds.</p>
 </td>
+</tr>
+<tr>
+<td><p><span class="term">
+          <span class="command"><strong>disconnect</strong></span>
+            <em class="replaceable"><code>ifname</code></em>... 
+        </span></p></td>
+<td><p>Alias for command <span class="command"><strong>down</strong></span>. Before version 1.34.0 <span class="command"><strong>down</strong></span>
+                was not supported.</p></td>
 </tr>
 <tr>
 <td><p><span class="term">
@@ -1179,7 +1195,7 @@
           according to Wi-Fi device capabilities and activates it on the device. The
           hotspot is secured with WPA if device/driver supports that, otherwise WEP is
           used. Use <span class="command"><strong>connection down</strong></span> or <span class="command"><strong>device
-          disconnect</strong></span> to stop the hotspot.</p>
+          down</strong></span> to stop the hotspot.</p>
 <p>Parameters of the hotspot can be influenced by the optional
           parameters:</p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -1646,7 +1662,7 @@
 <td><p>shows the status for all devices.</p></td>
 </tr>
 <tr>
-<td><p><span class="term"><strong class="userinput"><code>nmcli dev disconnect em2</code></strong></span></p></td>
+<td><p><span class="term"><strong class="userinput"><code>nmcli dev down em2</code></strong></span></p></td>
 <td><p>disconnects a connection on interface em2 and marks the device as
           unavailable for auto-connecting. As a result, no connection will automatically
           be activated on the device until the device's 'autoconnect' is set to TRUE or

@@ -18,8 +18,8 @@
 #include <strings.h>
 
 #if SYSTEMD_JOURNAL
-    #define SD_JOURNAL_SUPPRESS_LOCATION
-    #include <systemd/sd-journal.h>
+#define SD_JOURNAL_SUPPRESS_LOCATION
+#include <systemd/sd-journal.h>
 #endif
 
 #include "libnm-glib-aux/nm-logging-base.h"
@@ -296,7 +296,7 @@ nm_logging_setup(const char *level, const char *domains, char **bad_domains, GEr
         }
     }
 
-    domains_v = nm_utils_strsplit_set(domains, ", ");
+    domains_v = nm_strsplit_set(domains, ", ");
     for (i_d = 0; domains_v && domains_v[i_d]; i_d++) {
         const char *   s = domains_v[i_d];
         const char *   p;
@@ -525,16 +525,16 @@ again:
         buf_p = _all_logging_domains_to_str;
         buf_l = sizeof(_all_logging_domains_to_str);
 
-        nm_utils_strbuf_append_str(&buf_p, &buf_l, LOGD_DEFAULT_STRING);
+        nm_strbuf_append_str(&buf_p, &buf_l, LOGD_DEFAULT_STRING);
         for (diter = &domain_desc[0]; diter->name; diter++) {
-            nm_utils_strbuf_append_c(&buf_p, &buf_l, ',');
-            nm_utils_strbuf_append_str(&buf_p, &buf_l, diter->name);
+            nm_strbuf_append_c(&buf_p, &buf_l, ',');
+            nm_strbuf_append_str(&buf_p, &buf_l, diter->name);
             if (diter->num == LOGD_DHCP6)
-                nm_utils_strbuf_append_str(&buf_p, &buf_l, "," LOGD_DHCP_STRING);
+                nm_strbuf_append_str(&buf_p, &buf_l, "," LOGD_DHCP_STRING);
             else if (diter->num == LOGD_IP6)
-                nm_utils_strbuf_append_str(&buf_p, &buf_l, "," LOGD_IP_STRING);
+                nm_strbuf_append_str(&buf_p, &buf_l, "," LOGD_IP_STRING);
         }
-        nm_utils_strbuf_append_str(&buf_p, &buf_l, LOGD_ALL_STRING);
+        nm_strbuf_append_str(&buf_p, &buf_l, LOGD_ALL_STRING);
 
         /* Did you modify the logging domains (or their names)? Adjust the size of
          * _all_logging_domains_to_str buffer above to have the exact size. */
@@ -600,7 +600,7 @@ _iovec_set_string(struct iovec *iov, const char *str)
     _iovec_set(iov, str, strlen(str));
 }
 
-    #define _iovec_set_string_literal(iov, str) _iovec_set((iov), "" str "", NM_STRLEN(str))
+#define _iovec_set_string_literal(iov, str) _iovec_set((iov), "" str "", NM_STRLEN(str))
 
 _nm_printf(3, 4) static void _iovec_set_format(struct iovec *iov,
                                                char **       iov_free,
@@ -618,34 +618,34 @@ _nm_printf(3, 4) static void _iovec_set_format(struct iovec *iov,
     *iov_free = str;
 }
 
-    #define _iovec_set_format_a(iov, reserve_extra, format, ...)                   \
-        G_STMT_START                                                               \
-        {                                                                          \
-            const gsize _size = (reserve_extra) + (NM_STRLEN(format) + 3);         \
-            char *const _buf  = g_alloca(_size);                                   \
-            int         _len;                                                      \
-                                                                                   \
-            G_STATIC_ASSERT_EXPR((reserve_extra) + (NM_STRLEN(format) + 3) <= 96); \
-                                                                                   \
-            _len = g_snprintf(_buf, _size, "" format "", ##__VA_ARGS__);           \
-                                                                                   \
-            nm_assert(_len >= 0);                                                  \
-            nm_assert(_len < _size);                                               \
-            nm_assert(_len == strlen(_buf));                                       \
-                                                                                   \
-            _iovec_set((iov), _buf, _len);                                         \
-        }                                                                          \
-        G_STMT_END
+#define _iovec_set_format_a(iov, reserve_extra, format, ...)                   \
+    G_STMT_START                                                               \
+    {                                                                          \
+        const gsize _size = (reserve_extra) + (NM_STRLEN(format) + 3);         \
+        char *const _buf  = g_alloca(_size);                                   \
+        int         _len;                                                      \
+                                                                               \
+        G_STATIC_ASSERT_EXPR((reserve_extra) + (NM_STRLEN(format) + 3) <= 96); \
+                                                                               \
+        _len = g_snprintf(_buf, _size, "" format "", ##__VA_ARGS__);           \
+                                                                               \
+        nm_assert(_len >= 0);                                                  \
+        nm_assert(_len < _size);                                               \
+        nm_assert(_len == strlen(_buf));                                       \
+                                                                               \
+        _iovec_set((iov), _buf, _len);                                         \
+    }                                                                          \
+    G_STMT_END
 
-    #define _iovec_set_format_str_a(iov, max_str_len, format, str_arg)  \
-        G_STMT_START                                                    \
-        {                                                               \
-            const char *_str_arg = (str_arg);                           \
-                                                                        \
-            nm_assert(_str_arg &&strlen(_str_arg) < (max_str_len));     \
-            _iovec_set_format_a((iov), (max_str_len), format, str_arg); \
-        }                                                               \
-        G_STMT_END
+#define _iovec_set_format_str_a(iov, max_str_len, format, str_arg)  \
+    G_STMT_START                                                    \
+    {                                                               \
+        const char *_str_arg = (str_arg);                           \
+                                                                    \
+        nm_assert(_str_arg &&strlen(_str_arg) < (max_str_len));     \
+        _iovec_set_format_a((iov), (max_str_len), format, str_arg); \
+    }                                                               \
+    G_STMT_END
 
 #endif
 
@@ -746,13 +746,13 @@ _nm_log_impl(const char *file,
         s_log_domains = s_log_domains_buf;
         l_log_domains = sizeof(s_log_domains_buf);
 
-        nm_utils_strbuf_append_str(&s_log_domains, &l_log_domains, "NM_LOG_DOMAINS=");
+        nm_strbuf_append_str(&s_log_domains, &l_log_domains, "NM_LOG_DOMAINS=");
         for (diter = &domain_desc[0]; dom_all != 0 && diter->name; diter++) {
             if (!NM_FLAGS_ANY(dom_all, diter->num))
                 continue;
             if (dom_all != domain)
-                nm_utils_strbuf_append_c(&s_log_domains, &l_log_domains, ',');
-            nm_utils_strbuf_append_str(&s_log_domains, &l_log_domains, diter->name);
+                nm_strbuf_append_c(&s_log_domains, &l_log_domains, ',');
+            nm_strbuf_append_str(&s_log_domains, &l_log_domains, diter->name);
             dom_all &= ~diter->num;
         }
         nm_assert(l_log_domains > 0);

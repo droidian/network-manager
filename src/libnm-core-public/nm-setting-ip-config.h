@@ -8,7 +8,7 @@
 #define NM_SETTING_IP_CONFIG_H
 
 #if !defined(__NETWORKMANAGER_H_INSIDE__) && !defined(NETWORKMANAGER_COMPILATION)
-    #error "Only <NetworkManager.h> can be included directly."
+#error "Only <NetworkManager.h> can be included directly."
 #endif
 
 #include "nm-setting.h"
@@ -248,11 +248,11 @@ NM_AVAILABLE_IN_1_20
 void nm_ip_routing_rule_set_suppress_prefixlength(NMIPRoutingRule *self,
                                                   gint32           suppress_prefixlength);
 
-NM_AVAILABLE_IN_1_32
+NM_AVAILABLE_IN_1_34
 gboolean nm_ip_routing_rule_get_uid_range(const NMIPRoutingRule *self,
                                           guint32 *              out_range_start,
                                           guint32 *              out_range_end);
-NM_AVAILABLE_IN_1_32
+NM_AVAILABLE_IN_1_34
 void nm_ip_routing_rule_set_uid_range(NMIPRoutingRule *self,
                                       guint32          uid_range_start,
                                       guint32          uid_range_end);
@@ -474,7 +474,7 @@ NM_AVAILABLE_IN_1_2
 int nm_setting_ip_config_get_dad_timeout(NMSettingIPConfig *setting);
 NM_AVAILABLE_IN_1_2
 int nm_setting_ip_config_get_dhcp_timeout(NMSettingIPConfig *setting);
-NM_AVAILABLE_IN_1_32_4
+NM_AVAILABLE_IN_1_34
 int nm_setting_ip_config_get_required_timeout(NMSettingIPConfig *setting);
 NM_AVAILABLE_IN_1_22
 const char *nm_setting_ip_config_get_dhcp_iaid(NMSettingIPConfig *setting);

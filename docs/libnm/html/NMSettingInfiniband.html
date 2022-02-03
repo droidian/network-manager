@@ -7,7 +7,7 @@
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingHostname.html" title="NMSettingHostname">
-<link rel="next" href="NMSettingIP4Config.html" title="NMSettingIP4Config">
+<link rel="next" href="NMSettingIPConfig.html" title="NMSettingIPConfig">
 <meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
@@ -20,7 +20,7 @@
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
 <td><a accesskey="p" href="NMSettingHostname.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="NMSettingIP4Config.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="NMSettingIPConfig.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="NMSettingInfiniband"></a><div class="titlepage"></div>
@@ -169,7 +169,7 @@ nm_setting_infiniband_get_mac_address (<em class="parameter"><code><a class="lin
 </div>
 <div class="refsect3">
 <a name="nm-setting-infiniband-get-mac-address.returns"></a><h4>Returns</h4>
-<p> the <a href="NMSettingInfiniband.html#NMSettingInfiniband--mac-address"><span class="type">“mac-address”</span></a> property of the setting</p>
+<p> the <span class="type">“mac-address”</span> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -194,7 +194,7 @@ nm_setting_infiniband_get_mtu (<em class="parameter"><code><a class="link" href=
 </div>
 <div class="refsect3">
 <a name="nm-setting-infiniband-get-mtu.returns"></a><h4>Returns</h4>
-<p> the <a href="NMSettingInfiniband.html#NMSettingInfiniband--mtu"><span class="type">“mtu”</span></a> property of the setting</p>
+<p> the <span class="type">“mtu”</span> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -285,8 +285,8 @@ nm_setting_infiniband_get_parent (<em class="parameter"><code><a class="link" hr
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_infiniband_get_virtual_interface_name
                                (<em class="parameter"><code><a class="link" href="NMSettingInfiniband.html" title="NMSettingInfiniband"><span class="type">NMSettingInfiniband</span></a> *setting</code></em>);</pre>
-<p>Returns the interface name created by combining <a href="NMSettingInfiniband.html#NMSettingInfiniband--parent"><span class="type">“parent”</span></a>
-and <a href="NMSettingInfiniband.html#NMSettingInfiniband--p-key"><span class="type">“p-key”</span></a>. (If either property is unset, this will
+<p>Returns the interface name created by combining <span class="type">“parent”</span>
+and <span class="type">“p-key”</span>. (If either property is unset, this will
 return <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.)</p>
 <div class="refsect3">
 <a name="nm-setting-infiniband-get-virtual-interface-name.parameters"></a><h4>Parameters</h4>

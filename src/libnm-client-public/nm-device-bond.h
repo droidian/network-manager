@@ -7,7 +7,7 @@
 #define __NM_DEVICE_BOND_H__
 
 #if !defined(__NETWORKMANAGER_H_INSIDE__) && !defined(NETWORKMANAGER_COMPILATION)
-    #error "Only <NetworkManager.h> can be included directly."
+#error "Only <NetworkManager.h> can be included directly."
 #endif
 
 #include "nm-device.h"
@@ -37,7 +37,9 @@ GType nm_device_bond_get_type(void);
 NM_DEPRECATED_IN_1_24_FOR(nm_device_get_hw_address)
 const char *nm_device_bond_get_hw_address(NMDeviceBond *device);
 
-gboolean         nm_device_bond_get_carrier(NMDeviceBond *device);
+gboolean nm_device_bond_get_carrier(NMDeviceBond *device);
+
+NM_DEPRECATED_IN_1_34_FOR(nm_device_get_ports)
 const GPtrArray *nm_device_bond_get_slaves(NMDeviceBond *device);
 
 G_END_DECLS

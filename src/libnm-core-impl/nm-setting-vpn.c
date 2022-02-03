@@ -47,11 +47,6 @@ typedef struct {
      */
     char *user_name;
 
-    /* Whether the VPN stays up across link changes, until the user
-     * explicitly disconnects it.
-     */
-    gboolean persistent;
-
     /* The hash table is created at setting object
      * init time and should not be replaced.  It is
      * a char * -> char * mapping, and both the key
@@ -72,6 +67,12 @@ typedef struct {
 
     /* Timeout for the VPN service to establish the connection */
     guint32 timeout;
+
+    /* Whether the VPN stays up across link changes, until the user
+     * explicitly disconnects it.
+     */
+    bool persistent;
+
 } NMSettingVpnPrivate;
 
 /**
@@ -240,7 +241,7 @@ nm_setting_vpn_get_data_keys(NMSettingVpn *setting, guint *out_length)
 {
     g_return_val_if_fail(NM_IS_SETTING_VPN(setting), NULL);
 
-    return nm_utils_strdict_get_keys(NM_SETTING_VPN_GET_PRIVATE(setting)->data, TRUE, out_length);
+    return nm_strdict_get_keys(NM_SETTING_VPN_GET_PRIVATE(setting)->data, TRUE, out_length);
 }
 
 /**
@@ -277,7 +278,7 @@ foreach_item_helper(NMSettingVpn *self, GHashTable **p_hash, NMVpnIterFunc func,
     nm_assert(NM_IS_SETTING_VPN(self));
     nm_assert(func);
 
-    keys = nm_utils_strv_make_deep_copied(nm_utils_strdict_get_keys(*p_hash, TRUE, &len));
+    keys = nm_strv_make_deep_copied(nm_strdict_get_keys(*p_hash, TRUE, &len));
     if (len == 0u) {
         nm_assert(!keys);
         return;
@@ -407,9 +408,7 @@ nm_setting_vpn_get_secret_keys(NMSettingVpn *setting, guint *out_length)
 {
     g_return_val_if_fail(NM_IS_SETTING_VPN(setting), NULL);
 
-    return nm_utils_strdict_get_keys(NM_SETTING_VPN_GET_PRIVATE(setting)->secrets,
-                                     TRUE,
-                                     out_length);
+    return nm_strdict_get_keys(NM_SETTING_VPN_GET_PRIVATE(setting)->secrets, TRUE, out_length);
 }
 
 /**
@@ -850,41 +849,30 @@ compare_property_secrets(NMSettingVpn *a, NMSettingVpn *b, NMSettingCompareFlags
 }
 
 static NMTernary
-compare_property(const NMSettInfoSetting *sett_info,
-                 guint                    property_idx,
-                 NMConnection *           con_a,
-                 NMSetting *              set_a,
-                 NMConnection *           con_b,
-                 NMSetting *              set_b,
-                 NMSettingCompareFlags    flags)
+compare_fcn_secrets(_NM_SETT_INFO_PROP_COMPARE_FCN_ARGS _nm_nil)
 {
-    if (nm_streq(sett_info->property_infos[property_idx].name, NM_SETTING_VPN_SECRETS)) {
-        if (NM_FLAGS_HAS(flags, NM_SETTING_COMPARE_FLAG_INFERRABLE))
-            return NM_TERNARY_DEFAULT;
-        return compare_property_secrets(NM_SETTING_VPN(set_a), NM_SETTING_VPN(set_b), flags);
-    }
-
-    return NM_SETTING_CLASS(nm_setting_vpn_parent_class)
-        ->compare_property(sett_info, property_idx, con_a, set_a, con_b, set_b, flags);
+    if (NM_FLAGS_HAS(flags, NM_SETTING_COMPARE_FLAG_INFERRABLE))
+        return NM_TERNARY_DEFAULT;
+    return compare_property_secrets(NM_SETTING_VPN(set_a), NM_SETTING_VPN(set_b), flags);
 }
 
 static gboolean
 clear_secrets(const NMSettInfoSetting *        sett_info,
-              guint                            property_idx,
+              const NMSettInfoProperty *       property_info,
               NMSetting *                      setting,
               NMSettingClearSecretsWithFlagsFn func,
               gpointer                         user_data)
 {
-    NMSettingVpnPrivate *priv      = NM_SETTING_VPN_GET_PRIVATE(setting);
-    GParamSpec *         prop_spec = sett_info->property_infos[property_idx].param_spec;
+    NMSettingVpnPrivate *priv = NM_SETTING_VPN_GET_PRIVATE(setting);
     GHashTableIter       iter;
     const char *         secret;
     gboolean             changed = TRUE;
 
-    if (!prop_spec || !NM_FLAGS_HAS(prop_spec->flags, NM_SETTING_PARAM_SECRET))
+    if (!property_info->param_spec
+        || !NM_FLAGS_HAS(property_info->param_spec->flags, NM_SETTING_PARAM_SECRET))
         return FALSE;
 
-    nm_assert(nm_streq(prop_spec->name, NM_SETTING_VPN_SECRETS));
+    nm_assert(nm_streq(property_info->param_spec->name, NM_SETTING_VPN_SECRETS));
 
     if (!priv->secrets)
         return FALSE;
@@ -913,12 +901,7 @@ clear_secrets(const NMSettInfoSetting *        sett_info,
 }
 
 static gboolean
-vpn_secrets_from_dbus(NMSetting *         setting,
-                      GVariant *          connection_dict,
-                      const char *        property,
-                      GVariant *          value,
-                      NMSettingParseFlags parse_flags,
-                      GError **           error)
+vpn_secrets_from_dbus(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
 {
     NMSettingVpn *       self                = NM_SETTING_VPN(setting);
     NMSettingVpnPrivate *priv                = NM_SETTING_VPN_GET_PRIVATE(self);
@@ -941,12 +924,7 @@ vpn_secrets_from_dbus(NMSetting *         setting,
 }
 
 static GVariant *
-vpn_secrets_to_dbus(const NMSettInfoSetting *               sett_info,
-                    guint                                   property_idx,
-                    NMConnection *                          connection,
-                    NMSetting *                             setting,
-                    NMConnectionSerializationFlags          flags,
-                    const NMConnectionSerializationOptions *options)
+vpn_secrets_to_dbus(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 {
     NMSettingVpnPrivate *priv = NM_SETTING_VPN_GET_PRIVATE(setting);
     GVariantBuilder      builder;
@@ -963,7 +941,7 @@ vpn_secrets_to_dbus(const NMSettInfoSetting *               sett_info,
 
     g_variant_builder_init(&builder, G_VARIANT_TYPE("a{ss}"));
 
-    keys = nm_utils_strdict_get_keys(priv->secrets, TRUE, &len);
+    keys = nm_strdict_get_keys(priv->secrets, TRUE, &len);
     for (i = 0; i < len; i++) {
         const char *         key          = keys[i];
         NMSettingSecretFlags secret_flags = NM_SETTING_SECRET_FLAG_NONE;
@@ -1130,7 +1108,6 @@ nm_setting_vpn_class_init(NMSettingVpnClass *klass)
     setting_class->get_secret_flags  = get_secret_flags;
     setting_class->set_secret_flags  = set_secret_flags;
     setting_class->need_secrets      = need_secrets;
-    setting_class->compare_property  = compare_property;
     setting_class->clear_secrets     = clear_secrets;
     setting_class->aggregate         = aggregate;
 
@@ -1172,13 +1149,14 @@ nm_setting_vpn_class_init(NMSettingVpnClass *klass)
      * the VPN will attempt to stay connected across link changes and outages,
      * until explicitly disconnected.
      **/
-    _nm_setting_property_define_boolean(properties_override,
-                                        obj_properties,
-                                        NM_SETTING_VPN_PERSISTENT,
-                                        PROP_PERSISTENT,
-                                        FALSE,
-                                        NM_SETTING_PARAM_NONE,
-                                        nm_setting_vpn_get_persistent);
+    _nm_setting_property_define_direct_boolean(properties_override,
+                                               obj_properties,
+                                               NM_SETTING_VPN_PERSISTENT,
+                                               PROP_PERSISTENT,
+                                               FALSE,
+                                               NM_SETTING_PARAM_NONE,
+                                               NMSettingVpnPrivate,
+                                               persistent);
 
     /**
      * NMSettingVpn:data: (type GHashTable(utf8,utf8)):
@@ -1229,6 +1207,7 @@ nm_setting_vpn_class_init(NMSettingVpnClass *klass)
         obj_properties[PROP_SECRETS],
         NM_SETT_INFO_PROPERT_TYPE_DBUS(NM_G_VARIANT_TYPE("a{ss}"),
                                        .to_dbus_fcn   = vpn_secrets_to_dbus,
+                                       .compare_fcn   = compare_fcn_secrets,
                                        .from_dbus_fcn = vpn_secrets_from_dbus, ));
 
     /**
@@ -1252,8 +1231,9 @@ nm_setting_vpn_class_init(NMSettingVpnClass *klass)
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
-    _nm_setting_class_commit_full(setting_class,
-                                  NM_META_SETTING_TYPE_VPN,
-                                  NULL,
-                                  properties_override);
+    _nm_setting_class_commit(setting_class,
+                             NM_META_SETTING_TYPE_VPN,
+                             NULL,
+                             properties_override,
+                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
 }

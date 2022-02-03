@@ -6,7 +6,7 @@ project(
 #  - add corresponding NM_VERSION_x_y_z macros in
 #    "src/libnm-core-public/nm-version-macros.h.in"
 #  - update number in configure.ac
-  version: '1.32.12',
+  version: '1.34.0',
   license: 'GPL2+',
   default_options: [
     'buildtype=debugoptimized',
@@ -644,6 +644,7 @@ enable_ovs = get_option('ovs')
 if enable_ovs
   assert(jansson_dep.found(), 'jansson is needed for Open vSwitch integration. Use -Dovs=false to disable it')
 endif
+config_h.set10('WITH_OPENVSWITCH', enable_ovs)
 
 # DNS resolv.conf managers
 config_dns_rc_manager_default = get_option('config_dns_rc_manager_default')
@@ -733,24 +734,36 @@ if enable_concheck
 endif
 config_h.set10('WITH_CONCHECK', enable_concheck)
 
+config_h.set10('HAVE_READLINE_HISTORY', false)
+config_h.set10('HAVE_EDITLINE_READLINE', false)
+with_readline = get_option('readline')
+if with_readline != 'none'
+  if with_readline == 'libreadline' or with_readline == 'auto'
+    readline = cc.find_library('readline', required: false)
+    if readline.found()
+      readline_dep = declare_dependency(link_args: '-lreadline')
+      config_h.set10('HAVE_READLINE_HISTORY', true)
+      with_readline = 'libreadline'
+    else
+      assert(with_readline == 'auto', 'libreadline was not found')
+    endif
+  endif
+  if with_readline == 'libedit' or with_readline == 'auto'
+    edit = dependency('libedit', required: false)
+    if edit.found()
+      readline_dep = declare_dependency(link_args: '-ledit')
+      config_h.set10('HAVE_EDITLINE_READLINE', true)
+      with_readline = 'libedit'
+    else
+      assert(with_readline == 'auto', 'libedit was not found')
+      with_readline = 'none'
+    endif
+  endif
+endif
+
 enable_nmcli = get_option('nmcli')
 if enable_nmcli
-  # FIXME: check for readline
-  # AX_LIB_READLINE
-  readline_dep = declare_dependency(link_args: '-lreadline')
-  '''
-  foreach readline_lib: ['-lreadline', '-ledit', '-leditline']
-    if not is_variable('readline_dep')
-      foreach termcap_lib: ['', '-lncurses', '-ltermcap', '-lcurses']
-        test_dep = declare_dependency(link_args: ' '.join([readline_lib, termcap_lib]))
-        if cc.has_function('readline', dependencies: test_dep) and cc.has_header('readline', dependencies: test_dep)
-          readline_dep = test_dep
-        endif
-      endforeach
-    endif
-  endforeach
-  '''
-  assert(readline_dep.found(), 'readline library with terminfo support is required (one of readline, edit, or editline, AND one of ncurses, curses, or termcap)')
+  assert(with_readline != 'none', 'nmcli requires readline library (-Dnmcli=false or -Dreadline=auto|libreadline|libedit|none)')
 endif
 
 enable_nmtui = get_option('nmtui')
@@ -1086,4 +1099,5 @@ output += '  sanitizers: ' + get_option('b_sanitize') + '\n'
 output += '  Mozilla Public Suffix List: ' + enable_libpsl.to_string() + '\n'
 output += '  vapi: ' + enable_vapi.to_string() + '\n'
 output += '  ebpf: ' + enable_ebpf.to_string() + '\n'
+output += '  readline: ' + with_readline + '\n'
 message(output)

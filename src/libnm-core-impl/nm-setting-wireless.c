@@ -63,7 +63,7 @@ typedef struct {
     guint32                   mtu;
     guint32                   powersave;
     guint32                   wowl;
-    bool                      hidden : 1;
+    bool                      hidden;
 } NMSettingWirelessPrivate;
 
 /**
@@ -690,10 +690,7 @@ nm_setting_wireless_add_seen_bssid(NMSettingWireless *setting, const char *bssid
     if (!priv->seen_bssids) {
         priv->seen_bssids = g_ptr_array_new_with_free_func(g_free);
     } else {
-        if (nm_utils_strv_find_first((char **) priv->seen_bssids->pdata,
-                                     priv->seen_bssids->len,
-                                     lower_bssid)
-            >= 0)
+        if (nm_strv_ptrarray_find_first(priv->seen_bssids, lower_bssid) >= 0)
             return FALSE;
     }
 
@@ -743,12 +740,7 @@ nm_setting_wireless_get_seen_bssid(NMSettingWireless *setting, guint32 i)
 }
 
 static GVariant *
-_to_dbus_fcn_seen_bssids(const NMSettInfoSetting *               sett_info,
-                         guint                                   property_idx,
-                         NMConnection *                          connection,
-                         NMSetting *                             setting,
-                         NMConnectionSerializationFlags          flags,
-                         const NMConnectionSerializationOptions *options)
+_to_dbus_fcn_seen_bssids(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 {
     if (options && options->seen_bssids)
         return options->seen_bssids[0] ? g_variant_new_strv(options->seen_bssids, -1) : NULL;
@@ -769,12 +761,7 @@ _to_dbus_fcn_seen_bssids(const NMSettInfoSetting *               sett_info,
 }
 
 static gboolean
-_from_dbus_fcn_seen_bssids(NMSetting *         setting,
-                           GVariant *          connection_dict,
-                           const char *        property,
-                           GVariant *          value,
-                           NMSettingParseFlags parse_flags,
-                           GError **           error)
+_from_dbus_fcn_seen_bssids(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
 {
     NMSettingWirelessPrivate *priv;
     gs_free const char **     s = NULL;
@@ -784,6 +771,7 @@ _from_dbus_fcn_seen_bssids(NMSetting *         setting,
     if (_nm_utils_is_manager_process) {
         /* in the manager process, we don't accept seen-bssid from the client.
          * Do nothing.  */
+        *out_is_modified = FALSE;
         return TRUE;
     }
 
@@ -1102,40 +1090,26 @@ mac_addr_rand_ok:
 }
 
 static NMTernary
-compare_property(const NMSettInfoSetting *sett_info,
-                 guint                    property_idx,
-                 NMConnection *           con_a,
-                 NMSetting *              set_a,
-                 NMConnection *           con_b,
-                 NMSetting *              set_b,
-                 NMSettingCompareFlags    flags)
+compare_fcn_cloned_mac_address(_NM_SETT_INFO_PROP_COMPARE_FCN_ARGS _nm_nil)
 {
-    if (sett_info->property_infos[property_idx].param_spec
-        == obj_properties[PROP_CLONED_MAC_ADDRESS]) {
-        return !set_b
-               || nm_streq0(NM_SETTING_WIRELESS_GET_PRIVATE(set_a)->cloned_mac_address,
-                            NM_SETTING_WIRELESS_GET_PRIVATE(set_b)->cloned_mac_address);
-    }
-    if (sett_info->property_infos[property_idx].param_spec == obj_properties[PROP_SEEN_BSSIDS]) {
-        return !set_b
-               || (nm_strv_ptrarray_cmp(NM_SETTING_WIRELESS_GET_PRIVATE(set_a)->seen_bssids,
-                                        NM_SETTING_WIRELESS_GET_PRIVATE(set_b)->seen_bssids)
-                   == 0);
-    }
+    return !set_b
+           || nm_streq0(NM_SETTING_WIRELESS_GET_PRIVATE(set_a)->cloned_mac_address,
+                        NM_SETTING_WIRELESS_GET_PRIVATE(set_b)->cloned_mac_address);
+}
 
-    return NM_SETTING_CLASS(nm_setting_wireless_parent_class)
-        ->compare_property(sett_info, property_idx, con_a, set_a, con_b, set_b, flags);
+static NMTernary
+compare_fcn_seen_bssids(_NM_SETT_INFO_PROP_COMPARE_FCN_ARGS _nm_nil)
+{
+    return !set_b
+           || (nm_strv_ptrarray_cmp(NM_SETTING_WIRELESS_GET_PRIVATE(set_a)->seen_bssids,
+                                    NM_SETTING_WIRELESS_GET_PRIVATE(set_b)->seen_bssids)
+               == 0);
 }
 
 /*****************************************************************************/
 
 static GVariant *
-nm_setting_wireless_get_security(const NMSettInfoSetting *               sett_info,
-                                 guint                                   property_idx,
-                                 NMConnection *                          connection,
-                                 NMSetting *                             setting,
-                                 NMConnectionSerializationFlags          flags,
-                                 const NMConnectionSerializationOptions *options)
+nm_setting_wireless_get_security(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 {
     if (!_nm_connection_serialize_non_secret(flags))
         return NULL;
@@ -1182,9 +1156,6 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
     NMSettingWirelessPrivate *priv    = NM_SETTING_WIRELESS_GET_PRIVATE(object);
 
     switch (prop_id) {
-    case PROP_SSID:
-        g_value_set_boxed(value, nm_setting_wireless_get_ssid(setting));
-        break;
     case PROP_MODE:
         g_value_set_string(value, nm_setting_wireless_get_mode(setting));
         break;
@@ -1194,17 +1165,11 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
     case PROP_CHANNEL:
         g_value_set_uint(value, nm_setting_wireless_get_channel(setting));
         break;
-    case PROP_BSSID:
-        g_value_set_string(value, nm_setting_wireless_get_bssid(setting));
-        break;
     case PROP_RATE:
         g_value_set_uint(value, nm_setting_wireless_get_rate(setting));
         break;
     case PROP_TX_POWER:
         g_value_set_uint(value, nm_setting_wireless_get_tx_power(setting));
-        break;
-    case PROP_MAC_ADDRESS:
-        g_value_set_string(value, nm_setting_wireless_get_mac_address(setting));
         break;
     case PROP_CLONED_MAC_ADDRESS:
         g_value_set_string(value, nm_setting_wireless_get_cloned_mac_address(setting));
@@ -1219,14 +1184,11 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
         g_value_set_uint(value, nm_setting_wireless_get_mtu(setting));
         break;
     case PROP_SEEN_BSSIDS:
-        g_value_take_boxed(value,
-                           priv->seen_bssids ? nm_utils_strv_dup((char **) priv->seen_bssids->pdata,
-                                                                 priv->seen_bssids->len,
-                                                                 TRUE)
-                                             : NULL);
-        break;
-    case PROP_HIDDEN:
-        g_value_set_boolean(value, nm_setting_wireless_get_hidden(setting));
+        g_value_take_boxed(
+            value,
+            priv->seen_bssids
+                ? nm_strv_dup((char **) priv->seen_bssids->pdata, priv->seen_bssids->len, TRUE)
+                : NULL);
         break;
     case PROP_POWERSAVE:
         g_value_set_uint(value, nm_setting_wireless_get_powersave(setting));
@@ -1241,7 +1203,7 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
         g_value_set_enum(value, priv->ap_isolation);
         break;
     default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+        _nm_setting_property_get_property_direct(object, prop_id, value, pspec);
         break;
     }
 }
@@ -1255,11 +1217,6 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
     gboolean                  bool_val;
 
     switch (prop_id) {
-    case PROP_SSID:
-        if (priv->ssid)
-            g_bytes_unref(priv->ssid);
-        priv->ssid = g_value_dup_boxed(value);
-        break;
     case PROP_MODE:
         g_free(priv->mode);
         priv->mode = g_value_dup_string(value);
@@ -1271,20 +1228,11 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
     case PROP_CHANNEL:
         priv->channel = g_value_get_uint(value);
         break;
-    case PROP_BSSID:
-        g_free(priv->bssid);
-        priv->bssid = g_value_dup_string(value);
-        break;
     case PROP_RATE:
         priv->rate = g_value_get_uint(value);
         break;
     case PROP_TX_POWER:
         priv->tx_power = g_value_get_uint(value);
-        break;
-    case PROP_MAC_ADDRESS:
-        g_free(priv->device_mac_address);
-        priv->device_mac_address =
-            _nm_utils_hwaddr_canonical_or_invalid(g_value_get_string(value), ETH_ALEN);
         break;
     case PROP_CLONED_MAC_ADDRESS:
         bool_val = !!priv->cloned_mac_address;
@@ -1337,9 +1285,6 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
         }
         break;
     }
-    case PROP_HIDDEN:
-        priv->hidden = g_value_get_boolean(value);
-        break;
     case PROP_POWERSAVE:
         priv->powersave = g_value_get_uint(value);
         break;
@@ -1353,7 +1298,7 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
         priv->ap_isolation = g_value_get_enum(value);
         break;
     default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+        _nm_setting_property_set_property_direct(object, prop_id, value, pspec);
         break;
     }
 }
@@ -1394,10 +1339,6 @@ finalize(GObject *object)
     g_free(priv->mode);
     g_free(priv->band);
 
-    if (priv->ssid)
-        g_bytes_unref(priv->ssid);
-    g_free(priv->bssid);
-    g_free(priv->device_mac_address);
     g_free(priv->cloned_mac_address);
     g_free(priv->generate_mac_address_mask);
     g_array_unref(priv->mac_address_blacklist);
@@ -1419,8 +1360,7 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
     object_class->get_property = get_property;
     object_class->finalize     = finalize;
 
-    setting_class->verify           = verify;
-    setting_class->compare_property = compare_property;
+    setting_class->verify = verify;
 
     /**
      * NMSettingWireless:ssid:
@@ -1440,11 +1380,13 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
      * example: ESSID="Quick Net"
      * ---end---
      */
-    obj_properties[PROP_SSID] = g_param_spec_boxed(NM_SETTING_WIRELESS_SSID,
-                                                   "",
-                                                   "",
-                                                   G_TYPE_BYTES,
-                                                   G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
+    _nm_setting_property_define_direct_bytes(properties_override,
+                                             obj_properties,
+                                             NM_SETTING_WIRELESS_SSID,
+                                             PROP_SSID,
+                                             NM_SETTING_PARAM_NONE,
+                                             NMSettingWirelessPrivate,
+                                             ssid);
 
     /**
      * NMSettingWireless:mode:
@@ -1530,14 +1472,14 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
      * example: BSSID=00:1E:BD:64:83:21
      * ---end---
      */
-    obj_properties[PROP_BSSID] = g_param_spec_string(NM_SETTING_WIRELESS_BSSID,
-                                                     "",
-                                                     "",
-                                                     NULL,
-                                                     G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
-    _nm_properties_override_gobj(properties_override,
-                                 obj_properties[PROP_BSSID],
-                                 &nm_sett_info_propert_type_mac_address);
+    _nm_setting_property_define_direct_mac_address(properties_override,
+                                                   obj_properties,
+                                                   NM_SETTING_WIRELESS_BSSID,
+                                                   PROP_BSSID,
+                                                   NM_SETTING_PARAM_NONE,
+                                                   NMSettingWirelessPrivate,
+                                                   bssid,
+                                                   .direct_set_string_mac_address_len = ETH_ALEN);
 
     /**
      * NMSettingWireless:rate:
@@ -1608,15 +1550,14 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
      *    permanent MAC address exists, the MAC address initially configured on the device.
      * ---end---
      */
-    obj_properties[PROP_MAC_ADDRESS] =
-        g_param_spec_string(NM_SETTING_WIRELESS_MAC_ADDRESS,
-                            "",
-                            "",
-                            NULL,
-                            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
-    _nm_properties_override_gobj(properties_override,
-                                 obj_properties[PROP_MAC_ADDRESS],
-                                 &nm_sett_info_propert_type_mac_address);
+    _nm_setting_property_define_direct_mac_address(properties_override,
+                                                   obj_properties,
+                                                   NM_SETTING_WIRELESS_MAC_ADDRESS,
+                                                   PROP_MAC_ADDRESS,
+                                                   NM_SETTING_PARAM_NONE,
+                                                   NMSettingWirelessPrivate,
+                                                   device_mac_address,
+                                                   .direct_set_string_mac_address_len = ETH_ALEN);
 
     /**
      * NMSettingWireless:cloned-mac-address:
@@ -1666,9 +1607,14 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
         "",
         NULL,
         G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE | G_PARAM_STATIC_STRINGS);
-    _nm_properties_override_gobj(properties_override,
-                                 obj_properties[PROP_CLONED_MAC_ADDRESS],
-                                 &nm_sett_info_propert_type_cloned_mac_address);
+    _nm_properties_override_gobj(
+        properties_override,
+        obj_properties[PROP_CLONED_MAC_ADDRESS],
+        NM_SETT_INFO_PROPERT_TYPE_DBUS(G_VARIANT_TYPE_BYTESTRING,
+                                       .compare_fcn           = compare_fcn_cloned_mac_address,
+                                       .to_dbus_fcn           = _nm_utils_hwaddr_cloned_get,
+                                       .from_dbus_fcn         = _nm_utils_hwaddr_cloned_set,
+                                       .missing_from_dbus_fcn = _nm_utils_hwaddr_cloned_not_set, ));
 
     /* ---dbus---
      * property: assigned-mac-address
@@ -1786,7 +1732,8 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
         obj_properties[PROP_SEEN_BSSIDS],
         NM_SETT_INFO_PROPERT_TYPE_DBUS(G_VARIANT_TYPE_STRING_ARRAY,
                                        .to_dbus_fcn   = _to_dbus_fcn_seen_bssids,
-                                       .from_dbus_fcn = _from_dbus_fcn_seen_bssids, ));
+                                       .from_dbus_fcn = _from_dbus_fcn_seen_bssids,
+                                       .compare_fcn   = compare_fcn_seen_bssids, ));
 
     /**
      * NMSettingWireless:mtu:
@@ -1833,13 +1780,14 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
      * description: Whether the network hides the SSID.
      * ---end---
      */
-    _nm_setting_property_define_boolean(properties_override,
-                                        obj_properties,
-                                        NM_SETTING_WIRELESS_HIDDEN,
-                                        PROP_HIDDEN,
-                                        FALSE,
-                                        NM_SETTING_PARAM_NONE,
-                                        nm_setting_wireless_get_hidden);
+    _nm_setting_property_define_direct_boolean(properties_override,
+                                               obj_properties,
+                                               NM_SETTING_WIRELESS_HIDDEN,
+                                               PROP_HIDDEN,
+                                               FALSE,
+                                               NM_SETTING_PARAM_NONE,
+                                               NMSettingWirelessPrivate,
+                                               hidden);
 
     /**
      * NMSettingWireless:powersave:
@@ -1916,7 +1864,8 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
         properties_override,
         "security",
         NM_SETT_INFO_PROPERT_TYPE_DBUS(G_VARIANT_TYPE_STRING,
-                                       .to_dbus_fcn = nm_setting_wireless_get_security, ));
+                                       .to_dbus_fcn = nm_setting_wireless_get_security,
+                                       .compare_fcn = _nm_setting_property_compare_fcn_ignore, ));
 
     /**
      * NMSettingWireless:wake-on-wlan:
@@ -1985,8 +1934,9 @@ nm_setting_wireless_class_init(NMSettingWirelessClass *klass)
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
-    _nm_setting_class_commit_full(setting_class,
-                                  NM_META_SETTING_TYPE_WIRELESS,
-                                  NULL,
-                                  properties_override);
+    _nm_setting_class_commit(setting_class,
+                             NM_META_SETTING_TYPE_WIRELESS,
+                             NULL,
+                             properties_override,
+                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
 }

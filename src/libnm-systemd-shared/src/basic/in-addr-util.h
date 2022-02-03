@@ -20,12 +20,6 @@ struct in_addr_data {
         union in_addr_union address;
 };
 
-struct in_addr_prefix {
-        int family;
-        uint8_t prefixlen;
-        union in_addr_union address;
-};
-
 bool in4_addr_is_null(const struct in_addr *a);
 static inline bool in4_addr_is_set(const struct in_addr *a) {
         return !in4_addr_is_null(a);
@@ -58,6 +52,7 @@ int in_addr_is_localhost(int family, const union in_addr_union *u);
 
 bool in4_addr_is_local_multicast(const struct in_addr *a);
 bool in4_addr_is_non_local(const struct in_addr *a);
+bool in6_addr_is_ipv4_mapped_address(const struct in6_addr *a);
 
 bool in4_addr_equal(const struct in_addr *a, const struct in_addr *b);
 bool in6_addr_equal(const struct in6_addr *a, const struct in6_addr *b);
@@ -123,8 +118,6 @@ void in6_addr_hash_func(const struct in6_addr *addr, struct siphash *state);
 int in6_addr_compare_func(const struct in6_addr *a, const struct in6_addr *b);
 
 extern const struct hash_ops in_addr_data_hash_ops;
-extern const struct hash_ops in_addr_prefix_hash_ops;
-extern const struct hash_ops in_addr_prefix_hash_ops_free;
 extern const struct hash_ops in6_addr_hash_ops;
 
 #define IPV4_ADDRESS_FMT_STR     "%u.%u.%u.%u"

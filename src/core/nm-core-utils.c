@@ -39,8 +39,8 @@
 #include "nm-setting-wireless-security.h"
 
 #ifdef __NM_SD_UTILS_H__
-    #error \
-        "nm-core-utils.c should stay independent of systemd utils. Are you looking for NetworkMangerUtils.c? "
+#error \
+    "nm-core-utils.c should stay independent of systemd utils. Are you looking for NetworkMangerUtils.c? "
 #endif
 
 G_STATIC_ASSERT(sizeof(NMUtilsTestFlags) <= sizeof(int));
@@ -458,7 +458,7 @@ _kc_invoke_callback(pid_t                   pid,
     data->sync.success      = success;
     data->sync.child_status = child_status;
 
-    g_idle_add(_kc_invoke_callback_idle, data);
+    nm_g_idle_add(_kc_invoke_callback_idle, data);
 }
 
 /* nm_utils_kill_child_async:
@@ -2484,8 +2484,6 @@ out:
 
 typedef struct {
     NMUuid bin;
-    char
-        _nul_sentinel; /* just for safety, if somebody accidentally uses the binary in a string context. */
 
     /* depending on whether the string is packed or not (with/without hyphens),
      * it's 32 or 36 characters long (plus the trailing NUL).
@@ -2503,9 +2501,8 @@ _uuid_data_init(UuidData *uuid_data, gboolean packed, gboolean is_fake, const NM
     nm_assert(uuid_data);
     nm_assert(uuid);
 
-    uuid_data->bin           = *uuid;
-    uuid_data->_nul_sentinel = '\0';
-    uuid_data->is_fake       = is_fake;
+    uuid_data->bin     = *uuid;
+    uuid_data->is_fake = is_fake;
     if (packed) {
         G_STATIC_ASSERT_EXPR(sizeof(uuid_data->str) >= (sizeof(*uuid) * 2 + 1));
         nm_utils_bin2hexstr_full(uuid, sizeof(*uuid), '\0', FALSE, uuid_data->str);
@@ -2573,7 +2570,7 @@ again:
 
         if (is_fake) {
             const guint8 *seed_bin;
-            const char *  hash_seed;
+            const NMUuid *hash_seed;
             gsize         seed_len;
 
             if (!allow_fake) {
@@ -2583,6 +2580,9 @@ again:
             }
 
             if (nm_utils_host_id_get(&seed_bin, &seed_len)) {
+                static const NMUuid u =
+                    NM_UUID_INIT(ab, 08, 5f, 06, b6, 29, 46, d1, a5, 53, 84, ee, ba, 56, 83, b6);
+
                 /* We have no valid machine-id but we have a valid secrey_key.
                  * Generate a fake machine ID by hashing the secret-key. The secret_key
                  * is commonly persisted, so it should be stable across reboots (despite
@@ -2595,8 +2595,11 @@ again:
                  * will call _machine_id_get(FALSE), so it won't allow accessing a fake
                  * machine-id, thus avoiding the problem. */
                 fake_type = "secret-key";
-                hash_seed = "ab085f06-b629-46d1-a553-84eeba5683b6";
+                hash_seed = &u;
             } else {
+                static const NMUuid u =
+                    NM_UUID_INIT(7f, f0, c8, f5, 53, 99, 49, 01, ab, 63, 61, bf, 59, 4a, be, 8b);
+
                 /* the secret-key is not valid/persistent either. That happens when we fail
                  * to read/write the secret-key to disk. Fallback to boot-id. The boot-id
                  * itself may be fake and randomly generated ad-hoc, but that is as best
@@ -2604,7 +2607,7 @@ again:
                 seed_bin  = (const guint8 *) nm_utils_boot_id_bin();
                 seed_len  = sizeof(NMUuid);
                 fake_type = "boot-id";
-                hash_seed = "7ff0c8f5-5399-4901-ab63-61bf594abe8b";
+                hash_seed = &u;
             }
 
             /* the fake machine-id is based on secret-key/boot-id, but we hash it
@@ -2613,7 +2616,7 @@ again:
                                          (const char *) seed_bin,
                                          seed_len,
                                          NM_UUID_TYPE_VERSION5,
-                                         (gpointer) hash_seed);
+                                         hash_seed);
         }
 
         if (!g_once_init_enter(&lock))
@@ -2874,10 +2877,11 @@ typedef struct {
     bool    timestamp_is_good : 1;
 } HostIdData;
 
+static const HostIdData *volatile host_id_static;
+
 static const HostIdData *
 _host_id_get(void)
 {
-    static const HostIdData *volatile host_id_static;
     const HostIdData *host_id;
 
 again:
@@ -2936,6 +2940,78 @@ gint64
 nm_utils_host_id_get_timestamp_ns(void)
 {
     return _host_id_get()->timestamp_ns;
+}
+
+static GArray *   nmtst_host_id_stack = NULL;
+static GMutex     nmtst_host_id_lock;
+const HostIdData *nmtst_host_id_static_0 = NULL;
+
+void
+nmtst_utils_host_id_push(const guint8 *host_id,
+                         gssize        host_id_len,
+                         gboolean      is_good,
+                         const gint64 *timestamp_ns)
+{
+    NM_G_MUTEX_LOCKED(&nmtst_host_id_lock);
+    gs_free char *str1_to_free = NULL;
+    HostIdData *  h;
+
+    g_assert(host_id_len >= -1);
+
+    if (host_id_len < 0)
+        host_id_len = host_id ? strlen((const char *) host_id) : 0;
+
+    nm_log_dbg(LOGD_CORE,
+               "nmtst: host-id push: \"%s\" (%zu), is-good=%d, timestamp=%" G_GINT64_FORMAT "%s",
+               nm_utils_buf_utf8safe_escape(host_id,
+                                            host_id_len,
+                                            NM_UTILS_STR_UTF8_SAFE_FLAG_ESCAPE_CTRL,
+                                            &str1_to_free),
+               (gsize) host_id_len,
+               !!is_good,
+               timestamp_ns ? *timestamp_ns : 0,
+               timestamp_ns ? "" : " (not-good)");
+
+    if (!nmtst_host_id_stack) {
+        nmtst_host_id_stack    = g_array_new(FALSE, FALSE, sizeof(HostIdData));
+        nmtst_host_id_static_0 = g_atomic_pointer_get(&host_id_static);
+    }
+
+    h = nm_g_array_append_new(nmtst_host_id_stack, HostIdData);
+
+    *h = (HostIdData){
+        .host_id           = nm_memdup(host_id, host_id_len),
+        .host_id_len       = host_id_len,
+        .timestamp_ns      = timestamp_ns ? *timestamp_ns : 0,
+        .is_good           = is_good,
+        .timestamp_is_good = !!timestamp_ns,
+    };
+
+    g_atomic_pointer_set(&host_id_static, h);
+}
+
+void
+nmtst_utils_host_id_pop(void)
+{
+    NM_G_MUTEX_LOCKED(&nmtst_host_id_lock);
+    HostIdData *h;
+
+    g_assert(nmtst_host_id_stack);
+    g_assert(nmtst_host_id_stack->len > 0);
+
+    nm_log_dbg(LOGD_CORE, "nmtst: host-id pop");
+
+    h = &g_array_index(nmtst_host_id_stack, HostIdData, nmtst_host_id_stack->len - 1);
+
+    g_free((char *) h->host_id);
+    g_array_set_size(nmtst_host_id_stack, nmtst_host_id_stack->len - 1u);
+
+    if (!g_atomic_pointer_compare_and_exchange(
+            &host_id_static,
+            h,
+            nmtst_host_id_stack->len == 0u ? nmtst_host_id_static_0
+                                           : nm_g_array_last(nmtst_host_id_stack, HostIdData)))
+        g_assert_not_reached();
 }
 
 /*****************************************************************************/
@@ -3423,15 +3499,14 @@ _is_reserved_ipv6_iid(const guint8 *iid)
     return FALSE;
 }
 
-static gboolean
-_set_stable_privacy(NMUtilsStableType stable_type,
-                    struct in6_addr * addr,
-                    const char *      ifname,
-                    const char *      network_id,
-                    guint32           dad_counter,
-                    const guint8 *    host_id,
-                    gsize             host_id_len,
-                    GError **         error)
+void
+nm_utils_ipv6_addr_set_stable_privacy_with_host_id(NMUtilsStableType stable_type,
+                                                   struct in6_addr * addr,
+                                                   const char *      ifname,
+                                                   const char *      network_id,
+                                                   guint32           dad_counter,
+                                                   const guint8 *    host_id,
+                                                   gsize             host_id_len)
 {
     nm_auto_free_checksum GChecksum *sum = NULL;
     guint8                           digest[NM_UTILS_CHECKSUM_LENGTH_SHA256];
@@ -3480,30 +3555,29 @@ _set_stable_privacy(NMUtilsStableType stable_type,
     }
 
     memcpy(addr->s6_addr + 8, &digest[0], 8);
-    return TRUE;
 }
 
-gboolean
-nm_utils_ipv6_addr_set_stable_privacy_impl(NMUtilsStableType stable_type,
-                                           struct in6_addr * addr,
-                                           const char *      ifname,
-                                           const char *      network_id,
-                                           guint32           dad_counter,
-                                           guint8 *          host_id,
-                                           gsize             host_id_len,
-                                           GError **         error)
+void
+nm_utils_ipv6_addr_set_stable_privacy(NMUtilsStableType stable_type,
+                                      struct in6_addr * addr,
+                                      const char *      ifname,
+                                      const char *      network_id,
+                                      guint32           dad_counter)
 {
-    return _set_stable_privacy(stable_type,
-                               addr,
-                               ifname,
-                               network_id,
-                               dad_counter,
-                               host_id,
-                               host_id_len,
-                               error);
+    const guint8 *host_id;
+    gsize         host_id_len;
+
+    nm_utils_host_id_get(&host_id, &host_id_len);
+
+    nm_utils_ipv6_addr_set_stable_privacy_with_host_id(stable_type,
+                                                       addr,
+                                                       ifname,
+                                                       network_id,
+                                                       dad_counter,
+                                                       host_id,
+                                                       host_id_len);
 }
 
-#define RFC7217_IDGEN_RETRIES 3
 /**
  * nm_utils_ipv6_addr_set_stable_privacy:
  *
@@ -3513,19 +3587,16 @@ nm_utils_ipv6_addr_set_stable_privacy_impl(NMUtilsStableType stable_type,
  * Returns: %TRUE on success, %FALSE if the address could not be generated.
  */
 gboolean
-nm_utils_ipv6_addr_set_stable_privacy(NMUtilsStableType stable_type,
-                                      struct in6_addr * addr,
-                                      const char *      ifname,
-                                      const char *      network_id,
-                                      guint32           dad_counter,
-                                      GError **         error)
+nm_utils_ipv6_addr_set_stable_privacy_may_fail(NMUtilsStableType stable_type,
+                                               struct in6_addr * addr,
+                                               const char *      ifname,
+                                               const char *      network_id,
+                                               guint32           dad_counter,
+                                               GError **         error)
 {
-    const guint8 *host_id;
-    gsize         host_id_len;
-
     g_return_val_if_fail(network_id, FALSE);
 
-    if (dad_counter >= RFC7217_IDGEN_RETRIES) {
+    if (dad_counter >= NM_STABLE_PRIVACY_RFC7217_IDGEN_RETRIES) {
         g_set_error_literal(error,
                             NM_UTILS_ERROR,
                             NM_UTILS_ERROR_UNKNOWN,
@@ -3533,16 +3604,8 @@ nm_utils_ipv6_addr_set_stable_privacy(NMUtilsStableType stable_type,
         return FALSE;
     }
 
-    nm_utils_host_id_get(&host_id, &host_id_len);
-
-    return _set_stable_privacy(stable_type,
-                               addr,
-                               ifname,
-                               network_id,
-                               dad_counter,
-                               host_id,
-                               host_id_len,
-                               error);
+    nm_utils_ipv6_addr_set_stable_privacy(stable_type, addr, ifname, network_id, dad_counter);
+    return TRUE;
 }
 
 /*****************************************************************************/
@@ -4069,8 +4132,8 @@ nm_utils_get_reverse_dns_domains_ip_4(guint32 addr, guint8 plen, GPtrArray *doma
         len = len0;
         str = s = g_malloc(len);
         for (i = octets; i > 0; i--)
-            nm_utils_strbuf_append(&s, &len, "%u.", p[i - 1] & 0xff);
-        nm_utils_strbuf_append_str(&s, &len, "in-addr.arpa");
+            nm_strbuf_append(&s, &len, "%u.", p[i - 1] & 0xff);
+        nm_strbuf_append_str(&s, &len, "in-addr.arpa");
 
         g_ptr_array_add(domains, str);
 
@@ -4121,8 +4184,8 @@ nm_utils_get_reverse_dns_domains_ip_6(const struct in6_addr *ip, guint8 plen, GP
         str = s = g_malloc(len);
 
         for (j = nibbles - 1; j >= 0; j--)
-            nm_utils_strbuf_append(&s, &len, "%x.", (addr.s6_addr[j / 2] >> N_SHIFT(j)) & 0xf);
-        nm_utils_strbuf_append_str(&s, &len, "ip6.arpa");
+            nm_strbuf_append(&s, &len, "%x.", (addr.s6_addr[j / 2] >> N_SHIFT(j)) & 0xf);
+        nm_strbuf_append_str(&s, &len, "ip6.arpa");
 
         g_ptr_array_add(domains, str);
 

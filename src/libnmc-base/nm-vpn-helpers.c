@@ -236,7 +236,7 @@ nm_vpn_openconnect_authenticate_helper(const char *host,
      * HOST='1.2.3.4'
      * FINGERPRINT='sha1:32bac90cf09a722e10ecc1942c67fe2ac8c21e2e'
      */
-    output_v = nm_utils_strsplit_set_with_empty(output, "\r\n");
+    output_v = nm_strsplit_set_with_empty(output, "\r\n");
     for (iter = output_v; iter && *iter; iter++) {
         char *s_mutable = (char *) *iter;
 
@@ -746,7 +746,7 @@ fail_invalid_secret:
         GPtrArray *        data_addr        = is_v4 ? data_addr_v4 : data_addr_v6;
         GPtrArray *        data_dns_search2 = data_dns_search;
 
-        if (data_dns && !data_addr) {
+        if (!data_addr) {
             /* When specifying "DNS", we also require an "Address" for the same address
              * family. That is because a NMSettingIPConfig cannot have @method_disabled
              * and DNS settings at the same time.
@@ -760,11 +760,6 @@ fail_invalid_secret:
                      NM_SETTING_IP_CONFIG_METHOD,
                      data_addr ? method_manual : method_disabled,
                      NULL);
-
-        /* For WireGuard profiles, always set dns-priority to a negative value,
-         * so that DNS servers on other profiles get ignored. This is also what
-         * wg-quick does, by calling `resolvconf -x`. */
-        g_object_set(s_ip, NM_SETTING_IP_CONFIG_DNS_PRIORITY, (int) -50, NULL);
 
         if (data_addr) {
             for (i = 0; i < data_addr->len; i++)

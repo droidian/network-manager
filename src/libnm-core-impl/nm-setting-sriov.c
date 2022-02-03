@@ -322,7 +322,7 @@ nm_sriov_vf_get_attribute_names(const NMSriovVF *vf)
     g_return_val_if_fail(vf, NULL);
     g_return_val_if_fail(vf->refcount > 0, NULL);
 
-    return nm_utils_strdict_get_keys(vf->attributes, TRUE, NULL);
+    return nm_strdict_get_keys(vf->attributes, TRUE, NULL);
 }
 
 /**
@@ -471,7 +471,7 @@ _nm_sriov_vf_attribute_validate_all(const NMSriovVF *vf, GError **error)
  * @vf: the #NMSriovVF
  * @vlan_id: the VLAN id
  *
- * Adds a VLAN to the VF.
+ * Adds a VLAN to the VF. Currently kernel only supports one VLAN per VF.
  *
  * Returns: %TRUE if the VLAN was added; %FALSE if it already existed
  *
@@ -535,7 +535,8 @@ vlan_id_compare(gconstpointer a, gconstpointer b, gpointer user_data)
  * @vf: the #NMSriovVF
  * @length: (out) (allow-none): on return, the number of VLANs configured
  *
- * Returns the VLANs currently configured on the VF.
+ * Returns the VLANs currently configured on the VF. Currently kernel only
+ * supports one VLAN per VF.
  *
  * Returns: (transfer none) (array length=length): a list of VLAN ids configured on the VF.
  *
@@ -875,12 +876,7 @@ _nm_setting_sriov_sort_vfs(NMSettingSriov *setting)
 /*****************************************************************************/
 
 static GVariant *
-vfs_to_dbus(const NMSettInfoSetting *               sett_info,
-            guint                                   property_idx,
-            NMConnection *                          connection,
-            NMSetting *                             setting,
-            NMConnectionSerializationFlags          flags,
-            const NMConnectionSerializationOptions *options)
+vfs_to_dbus(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 {
     gs_unref_ptrarray GPtrArray *vfs = NULL;
     GVariantBuilder              builder;
@@ -904,7 +900,7 @@ vfs_to_dbus(const NMSettInfoSetting *               sett_info,
                                   "index",
                                   g_variant_new_uint32(nm_sriov_vf_get_index(vf)));
 
-            attr_names = nm_utils_strdict_get_keys(vf->attributes, TRUE, NULL);
+            attr_names = nm_strdict_get_keys(vf->attributes, TRUE, NULL);
             if (attr_names) {
                 for (name = attr_names; *name; name++) {
                     g_variant_builder_add(&vf_builder,
@@ -956,12 +952,7 @@ vfs_to_dbus(const NMSettInfoSetting *               sett_info,
 }
 
 static gboolean
-vfs_from_dbus(NMSetting *         setting,
-              GVariant *          connection_dict,
-              const char *        property,
-              GVariant *          value,
-              NMSettingParseFlags parse_flags,
-              GError **           error)
+vfs_from_dbus(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
 {
     GPtrArray *  vfs;
     GVariantIter vf_iter;
@@ -1119,35 +1110,24 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
 }
 
 static NMTernary
-compare_property(const NMSettInfoSetting *sett_info,
-                 guint                    property_idx,
-                 NMConnection *           con_a,
-                 NMSetting *              set_a,
-                 NMConnection *           con_b,
-                 NMSetting *              set_b,
-                 NMSettingCompareFlags    flags)
+compare_fcn_vfs(_NM_SETT_INFO_PROP_COMPARE_FCN_ARGS _nm_nil)
 {
     NMSettingSriov *a;
     NMSettingSriov *b;
     guint           i;
 
-    if (nm_streq(sett_info->property_infos[property_idx].name, NM_SETTING_SRIOV_VFS)) {
-        if (set_b) {
-            a = NM_SETTING_SRIOV(set_a);
-            b = NM_SETTING_SRIOV(set_b);
+    if (set_b) {
+        a = NM_SETTING_SRIOV(set_a);
+        b = NM_SETTING_SRIOV(set_b);
 
-            if (a->vfs->len != b->vfs->len)
+        if (a->vfs->len != b->vfs->len)
+            return FALSE;
+        for (i = 0; i < a->vfs->len; i++) {
+            if (!nm_sriov_vf_equal(a->vfs->pdata[i], b->vfs->pdata[i]))
                 return FALSE;
-            for (i = 0; i < a->vfs->len; i++) {
-                if (!nm_sriov_vf_equal(a->vfs->pdata[i], b->vfs->pdata[i]))
-                    return FALSE;
-            }
         }
-        return TRUE;
     }
-
-    return NM_SETTING_CLASS(nm_setting_sriov_parent_class)
-        ->compare_property(sett_info, property_idx, con_a, set_a, con_b, set_b, flags);
+    return TRUE;
 }
 
 /*****************************************************************************/
@@ -1246,8 +1226,7 @@ nm_setting_sriov_class_init(NMSettingSriovClass *klass)
     object_class->set_property = set_property;
     object_class->finalize     = finalize;
 
-    setting_class->compare_property = compare_property;
-    setting_class->verify           = verify;
+    setting_class->verify = verify;
 
     /**
      * NMSettingSriov:total-vfs
@@ -1327,6 +1306,7 @@ nm_setting_sriov_class_init(NMSettingSriovClass *klass)
                                  obj_properties[PROP_VFS],
                                  NM_SETT_INFO_PROPERT_TYPE_DBUS(NM_G_VARIANT_TYPE("aa{sv}"),
                                                                 .to_dbus_fcn   = vfs_to_dbus,
+                                                                .compare_fcn   = compare_fcn_vfs,
                                                                 .from_dbus_fcn = vfs_from_dbus, ));
 
     /**
@@ -1365,8 +1345,9 @@ nm_setting_sriov_class_init(NMSettingSriovClass *klass)
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
-    _nm_setting_class_commit_full(setting_class,
-                                  NM_META_SETTING_TYPE_SRIOV,
-                                  NULL,
-                                  properties_override);
+    _nm_setting_class_commit(setting_class,
+                             NM_META_SETTING_TYPE_SRIOV,
+                             NULL,
+                             properties_override,
+                             0);
 }

@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-dbus
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 09/22/2021
+.\"      Date: 01/13/2022
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.32.12
+.\"    Source: NetworkManager 1.34.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.32\&.12" "Configuration"
+.TH "NM\-SETTINGS\-DBUS" "5" "" "NetworkManager 1\&.34\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -98,6 +98,7 @@ l l l l
 l l l l
 l l l l
 l l l l
+l l l l
 l l l l.
 T{
 auth\-retries
@@ -115,7 +116,7 @@ boolean
 T}:T{
 TRUE
 T}:T{
-Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available\&. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection\&. Note that autoconnect is not implemented for VPN profiles\&. See "secondaries" as an alternative to automatically connect VPN profiles\&.
+Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available\&. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection\&. Autoconnect happens when the circumstances are suitable\&. That means for example that the device is currently managed and not active\&. Autoconnect thus never replaces or competes with an already active profile\&. Note that autoconnect is not implemented for VPN profiles\&. See "secondaries" as an alternative to automatically connect VPN profiles\&.
 T}
 T{
 autoconnect\-priority
@@ -124,7 +125,7 @@ int32
 T}:T{
 0
 T}:T{
-The autoconnect priority\&. If the connection is set to autoconnect, connections with higher priority will be preferred\&. Defaults to 0\&. The higher number means higher priority\&.
+The autoconnect priority in range \-999 to 999\&. If the connection is set to autoconnect, connections with higher priority will be preferred\&. The higher number means higher priority\&. Defaults to 0\&. Note that this property only matters if there are more than one candidate profile to select for autoconnect\&. In case of equal priority, the profile used most recently is chosen\&.
 T}
 T{
 autoconnect\-retries
@@ -143,6 +144,15 @@ T}:T{
 \ \&
 T}:T{
 Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection\&. This only has a real effect for master connections\&. The properties "autoconnect", "autoconnect\-priority" and "autoconnect\-retries" are unrelated to this setting\&. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, \-1: default\&. If \-1 (default) is set, global connection\&.autoconnect\-slaves is read to determine the real value\&. If it is default as well, this fallbacks to 0\&.
+T}
+T{
+dns\-over\-tls
+T}:T{
+int32
+T}:T{
+\-1
+T}:T{
+Whether DNSOverTls (dns\-over\-tls) is enabled for the connection\&. DNSOverTls is a technology which uses TLS to encrypt dns traffic\&. The permitted values are: "yes" (2) use DNSOverTls and disabled fallback, "opportunistic" (1) use DNSOverTls but allow fallback to unencrypted resolution, "no" (0) don\*(Aqt ever use DNSOverTls\&. If unspecified "default" depends on the plugin used\&. Systemd\-resolved uses global setting\&. This feature requires a plugin which supports DNSOverTls\&. Otherwise, the setting has no effect\&. One such plugin is dns\-systemd\-resolved\&.
 T}
 T{
 gateway\-ping\-timeout
@@ -1475,9 +1485,9 @@ app\-fcoe\-mode
 T}:T{
 string
 T}:T{
-"fabric"
+\ \&
 T}:T{
-The FCoE controller mode; either "fabric" (default) or "vn2vn"\&.
+The FCoE controller mode; either "fabric" or "vn2vn"\&. Since 1\&.34, NULL is the default and means "fabric"\&. Before 1\&.34, NULL was rejected as invalid and the default was "fabric"\&.
 T}
 T{
 app\-fcoe\-priority
@@ -4573,7 +4583,7 @@ dict of string to string
 T}:T{
 {}
 T}:T{
-Dictionary of key/value pairs of s390\-specific device options\&.  Both keys and values must be strings\&.  Allowed keys include "portno", "layer2", "portname", "protocol", among others\&.  Key names must contain only alphanumeric characters (ie, [a\-zA\-Z0\-9])\&.
+Dictionary of key/value pairs of s390\-specific device options\&.  Both keys and values must be strings\&.  Allowed keys include "portno", "layer2", "portname", "protocol", among others\&.  Key names must contain only alphanumeric characters (ie, [a\-zA\-Z0\-9])\&. Currently, NetworkManager itself does nothing with this information\&. However, s390utils ships a udev rule which parses this information and applies it to the interface\&.
 T}
 T{
 s390\-subchannels
@@ -5222,6 +5232,34 @@ T}:T{
 65535
 T}:T{
 Short IEEE 802\&.15\&.4 address to be used within a restricted environment\&.
+T}
+.TE
+.sp 1
+.SS "bond\-port setting"
+.PP
+Bond Port Settings\&.
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Key Name
+T}:T{
+Value Type
+T}:T{
+Default Value
+T}:T{
+Value Description
+T}
+.T&
+l l l l.
+T{
+queue\-id
+T}:T{
+uint32
+T}:T{
+0
+T}:T{
+The queue ID of this bond port\&. The maximum value of queue ID is the number of TX queues currently active in device\&.
 T}
 .TE
 .sp 1

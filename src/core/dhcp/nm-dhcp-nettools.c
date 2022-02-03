@@ -601,7 +601,7 @@ lease_to_ip4_config(NMDedupMultiIndex *multi_idx,
         nm_str_buf_append_len0(&sbuf, (const char *) l_data, l_data_len);
 
         /* Multiple domains sometimes stuffed into option 15 "Domain Name". */
-        domains = nm_utils_strsplit_set(nm_str_buf_get_str(&sbuf), " ");
+        domains = nm_strsplit_set(nm_str_buf_get_str(&sbuf), " ");
 
         nm_str_buf_reset(&sbuf);
         if (domains) {
@@ -997,9 +997,7 @@ nettools_create(NMDhcpNettools *self, GError **error)
 
     n_dhcp4_client_get_fd(priv->client, &fd);
 
-    priv->event_source =
-        nm_g_unix_fd_source_new(fd, G_IO_IN, G_PRIORITY_DEFAULT, dhcp4_event_cb, self, NULL);
-    g_source_attach(priv->event_source, NULL);
+    priv->event_source = nm_g_unix_fd_add_source(fd, G_IO_IN, dhcp4_event_cb, self);
 
     return TRUE;
 }
@@ -1221,7 +1219,7 @@ ip4_start(NMDhcpClient *client, const char *last_ip4_address, GError **error)
         return FALSE;
     }
 
-    _LOGT("dhcp-client4: start %p", (gpointer) priv->client);
+    _LOGT("dhcp-client4: start " NM_HASH_OBFUSCATE_PTR_FMT, NM_HASH_OBFUSCATE_PTR(priv->client));
 
     nm_dhcp_client_start_timeout(client);
     return TRUE;
@@ -1235,7 +1233,7 @@ stop(NMDhcpClient *client, gboolean release)
 
     NM_DHCP_CLIENT_CLASS(nm_dhcp_nettools_parent_class)->stop(client, release);
 
-    _LOGT("dhcp-client4: stop %p", (gpointer) priv->client);
+    _LOGT("dhcp-client4: stop " NM_HASH_OBFUSCATE_PTR_FMT, NM_HASH_OBFUSCATE_PTR(priv->client));
 
     priv->probe = n_dhcp4_client_probe_free(priv->probe);
 }
@@ -1276,6 +1274,6 @@ nm_dhcp_nettools_class_init(NMDhcpNettoolsClass *class)
 
 const NMDhcpClientFactory _nm_dhcp_client_factory_nettools = {
     .name         = "nettools",
-    .get_type     = nm_dhcp_nettools_get_type,
-    .experimental = TRUE,
+    .get_type_4   = nm_dhcp_nettools_get_type,
+    .undocumented = TRUE,
 };

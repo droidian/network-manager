@@ -48,8 +48,9 @@ Carrier  readable   b
 <programlisting>
 Slaves  readable   ao
 </programlisting>
-<para>        Array of object paths representing devices which are currently enslaved to
-        this device.
+<para>        DEPRECATED. Use the "Ports" property in
+        "org.freedesktop.NetworkManager.Device" instead which exists since
+        version NetworkManager 1.34.0.
 </para>
 </refsect2>
 </refsect1>

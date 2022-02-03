@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-<refentry id="nm-settings-keyfile"><refentryinfo><title>nm-settings-keyfile</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-keyfile</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.32.12</refmiscinfo></refmeta><refnamediv><refname>nm-settings-keyfile</refname><refpurpose>Description of <emphasis>keyfile</emphasis> settings plugin</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
+<refentry id="nm-settings-keyfile"><refentryinfo><title>nm-settings-keyfile</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-keyfile</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.34.0</refmiscinfo></refmeta><refnamediv><refname>nm-settings-keyfile</refname><refpurpose>Description of <emphasis>keyfile</emphasis> settings plugin</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
           NetworkManager is based on the concept of connection profiles that contain
           network configuration (see <citerefentry><refentrytitle>nm-settings</refentrytitle><manvolnum>5</manvolnum></citerefentry> for details). The profiles can be
           stored in various formats. NetworkManager uses plugins for reading and writing
@@ -135,6 +135,7 @@ id=4
             Some of the NetworkManager setting names are somewhat hard to type or remember. Therefore
             <emphasis>keyfile</emphasis> introduces aliases that can be used instead of the names.
             <simplelist type="horiz" columns="1"><member><emphasis>setting name                 keyfile alias</emphasis></member><member>802-3-ethernet            =  ethernet</member><member>802-11-wireless           =  wifi</member><member>802-11-wireless-security  =  wifi-security</member></simplelist></para></formalpara>
+
 
 
 

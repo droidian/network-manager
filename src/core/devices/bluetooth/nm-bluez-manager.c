@@ -31,9 +31,9 @@
 /*****************************************************************************/
 
 #if WITH_BLUEZ5_DUN
-    #define _NM_BT_CAPABILITY_SUPPORTED_DUN NM_BT_CAPABILITY_DUN
+#define _NM_BT_CAPABILITY_SUPPORTED_DUN NM_BT_CAPABILITY_DUN
 #else
-    #define _NM_BT_CAPABILITY_SUPPORTED_DUN NM_BT_CAPABILITY_NONE
+#define _NM_BT_CAPABILITY_SUPPORTED_DUN NM_BT_CAPABILITY_NONE
 #endif
 #define _NM_BT_CAPABILITY_SUPPORTED (NM_BT_CAPABILITY_NAP | _NM_BT_CAPABILITY_SUPPORTED_DUN)
 
@@ -382,64 +382,56 @@ _bzobj_to_string(const BzDBusObj *bzobj, char *buf, gsize len)
         buf[0] = '\0';
 
     if (bzobj->d_has_adapter_iface) {
-        nm_utils_strbuf_append_str(&buf, &len, prefix);
+        nm_strbuf_append_str(&buf, &len, prefix);
         prefix = ", ";
-        nm_utils_strbuf_append_str(&buf, &len, "Adapter1 {");
+        nm_strbuf_append_str(&buf, &len, "Adapter1 {");
         if (bzobj->d_adapter.address) {
-            nm_utils_strbuf_append(&buf, &len, " d.address: \"%s\"", bzobj->d_adapter.address);
+            nm_strbuf_append(&buf, &len, " d.address: \"%s\"", bzobj->d_adapter.address);
             if (bzobj->d_adapter_powered)
-                nm_utils_strbuf_append_str(&buf, &len, ",");
+                nm_strbuf_append_str(&buf, &len, ",");
         }
         if (bzobj->d_adapter_powered)
-            nm_utils_strbuf_append(&buf, &len, " d.powered: 1");
-        nm_utils_strbuf_append_str(&buf, &len, " }");
+            nm_strbuf_append(&buf, &len, " d.powered: 1");
+        nm_strbuf_append_str(&buf, &len, " }");
     }
 
     if (bzobj->d_has_device_iface) {
         const char *prefix1 = "";
 
-        nm_utils_strbuf_append_str(&buf, &len, prefix);
+        nm_strbuf_append_str(&buf, &len, prefix);
         prefix = ", ";
-        nm_utils_strbuf_append_str(&buf, &len, "Device1 {");
+        nm_strbuf_append_str(&buf, &len, "Device1 {");
         if (bzobj->d_device.address) {
-            nm_utils_strbuf_append(&buf,
-                                   &len,
-                                   "%s d.address: \"%s\"",
-                                   prefix1,
-                                   bzobj->d_device.address);
+            nm_strbuf_append(&buf, &len, "%s d.address: \"%s\"", prefix1, bzobj->d_device.address);
             prefix1 = ",";
         }
         if (bzobj->d_device.name) {
-            nm_utils_strbuf_append(&buf, &len, "%s d.name: \"%s\"", prefix1, bzobj->d_device.name);
+            nm_strbuf_append(&buf, &len, "%s d.name: \"%s\"", prefix1, bzobj->d_device.name);
             prefix1 = ",";
         }
         if (bzobj->d_device.adapter) {
-            nm_utils_strbuf_append(&buf,
-                                   &len,
-                                   "%s d.adapter: \"%s\"",
-                                   prefix1,
-                                   bzobj->d_device.adapter);
+            nm_strbuf_append(&buf, &len, "%s d.adapter: \"%s\"", prefix1, bzobj->d_device.adapter);
             prefix1 = ",";
         }
         if (bzobj->d_device_capabilities != NM_BT_CAPABILITY_NONE) {
-            nm_utils_strbuf_append(&buf,
-                                   &len,
-                                   "%s d.capabilities: \"%s\"",
-                                   prefix1,
-                                   nm_bluetooth_capability_to_string(bzobj->d_device_capabilities,
-                                                                     sbuf_cap,
-                                                                     sizeof(sbuf_cap)));
+            nm_strbuf_append(&buf,
+                             &len,
+                             "%s d.capabilities: \"%s\"",
+                             prefix1,
+                             nm_bluetooth_capability_to_string(bzobj->d_device_capabilities,
+                                                               sbuf_cap,
+                                                               sizeof(sbuf_cap)));
             prefix1 = ",";
         }
         if (bzobj->d_device_connected) {
-            nm_utils_strbuf_append(&buf, &len, "%s d.connected: 1", prefix1);
+            nm_strbuf_append(&buf, &len, "%s d.connected: 1", prefix1);
             prefix1 = ",";
         }
         if (bzobj->d_device_paired) {
-            nm_utils_strbuf_append(&buf, &len, "%s d.paired: 1", prefix1);
+            nm_strbuf_append(&buf, &len, "%s d.paired: 1", prefix1);
             prefix1 = ",";
         }
-        nm_utils_strbuf_append_str(&buf, &len, " }");
+        nm_strbuf_append_str(&buf, &len, " }");
     }
 
     network_server_is_usable = _bzobjs_network_server_is_usable(bzobj, TRUE);
@@ -450,43 +442,43 @@ _bzobj_to_string(const BzDBusObj *bzobj, char *buf, gsize len)
         || !nm_streq0(bzobj->d_has_adapter_iface ? bzobj->d_adapter.address : NULL,
                       bzobj->x_network_server.adapter_address)
         || bzobj->x_network_server.device_br || bzobj->x_network_server.r_req_data) {
-        nm_utils_strbuf_append_str(&buf, &len, prefix);
+        nm_strbuf_append_str(&buf, &len, prefix);
         prefix = ", ";
 
-        nm_utils_strbuf_append(&buf, &len, "NetworkServer1 { ");
+        nm_strbuf_append(&buf, &len, "NetworkServer1 { ");
 
         if (!bzobj->d_has_network_server_iface)
-            nm_utils_strbuf_append(&buf, &len, " has-d-iface: 0, ");
+            nm_strbuf_append(&buf, &len, " has-d-iface: 0, ");
 
         if (network_server_is_usable != (!c_list_is_empty(&bzobj->x_network_server.lst)))
-            nm_utils_strbuf_append(&buf,
-                                   &len,
-                                   "usable: %d, used: %d",
-                                   !!network_server_is_usable,
-                                   !network_server_is_usable);
+            nm_strbuf_append(&buf,
+                             &len,
+                             "usable: %d, used: %d",
+                             !!network_server_is_usable,
+                             !network_server_is_usable);
         else if (network_server_is_usable)
-            nm_utils_strbuf_append(&buf, &len, "used: 1");
+            nm_strbuf_append(&buf, &len, "used: 1");
         else
-            nm_utils_strbuf_append(&buf, &len, "usable: 0");
+            nm_strbuf_append(&buf, &len, "usable: 0");
 
         if (!nm_streq0(bzobj->d_has_adapter_iface ? bzobj->d_adapter.address : NULL,
                        bzobj->x_network_server.adapter_address)) {
             if (bzobj->x_network_server.adapter_address)
-                nm_utils_strbuf_append(&buf,
-                                       &len,
-                                       ", adapter-address: \"%s\"",
-                                       bzobj->x_network_server.adapter_address);
+                nm_strbuf_append(&buf,
+                                 &len,
+                                 ", adapter-address: \"%s\"",
+                                 bzobj->x_network_server.adapter_address);
             else
-                nm_utils_strbuf_append(&buf, &len, ", adapter-address: <NULL>");
+                nm_strbuf_append(&buf, &len, ", adapter-address: <NULL>");
         }
 
         if (bzobj->x_network_server.device_br)
-            nm_utils_strbuf_append(&buf, &len, ", bridge-device: 1");
+            nm_strbuf_append(&buf, &len, ", bridge-device: 1");
 
         if (bzobj->x_network_server.r_req_data)
-            nm_utils_strbuf_append(&buf, &len, ", register-in-progress: 1");
+            nm_strbuf_append(&buf, &len, ", register-in-progress: 1");
 
-        nm_utils_strbuf_append_str(&buf, &len, " }");
+        nm_strbuf_append_str(&buf, &len, " }");
     }
 
     device_is_usable = _bzobjs_device_is_usable(bzobj, NULL, &create_panu_connection);
@@ -497,76 +489,72 @@ _bzobj_to_string(const BzDBusObj *bzobj, char *buf, gsize len)
         || bzobj->x_device_connect_bt_type != NM_BT_CAPABILITY_NONE
         || bzobj->x_device.connect_dun_context || bzobj->x_device.c_req_data
         || bzobj->x_device_is_connected != bzobj->d_network_connected) {
-        nm_utils_strbuf_append_str(&buf, &len, prefix);
+        nm_strbuf_append_str(&buf, &len, prefix);
         prefix = ", ";
-        nm_utils_strbuf_append_str(&buf, &len, "Network1 {");
+        nm_strbuf_append_str(&buf, &len, "Network1 {");
         if (bzobj->d_network.interface)
-            nm_utils_strbuf_append(&buf,
-                                   &len,
-                                   " d.interface: \"%s\", ",
-                                   bzobj->d_network.interface);
+            nm_strbuf_append(&buf, &len, " d.interface: \"%s\", ", bzobj->d_network.interface);
         if (bzobj->d_network_connected)
-            nm_utils_strbuf_append(&buf, &len, " d.connected: %d, ", !!bzobj->d_network_connected);
+            nm_strbuf_append(&buf, &len, " d.connected: %d, ", !!bzobj->d_network_connected);
         if (!bzobj->d_has_network_iface)
-            nm_utils_strbuf_append(&buf, &len, " has-d-iface: 0, ");
+            nm_strbuf_append(&buf, &len, " has-d-iface: 0, ");
         if (device_is_usable != bzobj->x_device_is_usable)
-            nm_utils_strbuf_append(&buf,
-                                   &len,
-                                   " usable: %d, used: %d",
-                                   !!device_is_usable,
-                                   !device_is_usable);
+            nm_strbuf_append(&buf,
+                             &len,
+                             " usable: %d, used: %d",
+                             !!device_is_usable,
+                             !device_is_usable);
         else if (device_is_usable)
-            nm_utils_strbuf_append(&buf, &len, " used: 1");
+            nm_strbuf_append(&buf, &len, " used: 1");
         else
-            nm_utils_strbuf_append(&buf, &len, " usable: 0");
+            nm_strbuf_append(&buf, &len, " usable: 0");
 
         if (create_panu_connection)
-            nm_utils_strbuf_append(&buf, &len, ", create-panu-connection: 1");
+            nm_strbuf_append(&buf, &len, ", create-panu-connection: 1");
 
         if (bzobj->x_device.panu_connection)
-            nm_utils_strbuf_append(&buf, &len, ", has-panu-connection: 1");
+            nm_strbuf_append(&buf, &len, ", has-panu-connection: 1");
 
         if (bzobj->x_device.device_bt)
-            nm_utils_strbuf_append(&buf, &len, ", has-device: 1");
+            nm_strbuf_append(&buf, &len, ", has-device: 1");
 
         if (bzobj->x_device_connect_bt_type != NM_BT_CAPABILITY_NONE
             || bzobj->x_device.connect_dun_context) {
-            nm_utils_strbuf_append(
-                &buf,
-                &len,
-                ", connect: %s%s",
-                nm_bluetooth_capability_to_string(bzobj->x_device_connect_bt_type,
-                                                  sbuf_cap,
-                                                  sizeof(sbuf_cap)),
-                bzobj->x_device.connect_dun_context ? ",with-dun-context" : "");
+            nm_strbuf_append(&buf,
+                             &len,
+                             ", connect: %s%s",
+                             nm_bluetooth_capability_to_string(bzobj->x_device_connect_bt_type,
+                                                               sbuf_cap,
+                                                               sizeof(sbuf_cap)),
+                             bzobj->x_device.connect_dun_context ? ",with-dun-context" : "");
         }
 
         if (bzobj->x_device.c_req_data)
-            nm_utils_strbuf_append(&buf, &len, ", connecting: 1");
+            nm_strbuf_append(&buf, &len, ", connecting: 1");
 
         if (bzobj->x_device_is_connected != bzobj->d_network_connected)
-            nm_utils_strbuf_append(&buf, &len, ", connected: %d", !!bzobj->x_device_is_connected);
+            nm_strbuf_append(&buf, &len, ", connected: %d", !!bzobj->x_device_is_connected);
 
-        nm_utils_strbuf_append_str(&buf, &len, " }");
+        nm_strbuf_append_str(&buf, &len, " }");
     }
 
     if (_bzobjs_is_dead(bzobj)) {
-        nm_utils_strbuf_append_str(&buf, &len, prefix);
+        nm_strbuf_append_str(&buf, &len, prefix);
         prefix = ", ";
-        nm_utils_strbuf_append_str(&buf, &len, "dead: 1");
+        nm_strbuf_append_str(&buf, &len, "dead: 1");
     }
 
     if (!c_list_is_empty(&bzobj->process_change_lst)) {
-        nm_utils_strbuf_append_str(&buf, &len, prefix);
+        nm_strbuf_append_str(&buf, &len, prefix);
         prefix = ", ";
-        nm_utils_strbuf_append(&buf, &len, "change-pending-on-idle: 1");
+        nm_strbuf_append(&buf, &len, "change-pending-on-idle: 1");
     }
 
     if (_bzobjs_adapter_is_usable_for_device(bzobj)
         != bzobj->was_usable_adapter_for_device_before) {
-        nm_utils_strbuf_append_str(&buf, &len, prefix);
+        nm_strbuf_append_str(&buf, &len, prefix);
         prefix = ", ";
-        nm_utils_strbuf_append(&buf, &len, "change-usable-adapter-for-device: 1");
+        nm_strbuf_append(&buf, &len, "change-usable-adapter-for-device: 1");
     }
 
     return buf0;
@@ -2864,9 +2852,7 @@ dispose(GObject *object)
      *   BzDBusObj instances and do necessary cleanup actions (like disconnecting devices
      *   or deleting panu_connection). */
 
-    nm_assert(c_list_is_empty(&priv->network_server_lst_head));
-    nm_assert(c_list_is_empty(&priv->process_change_lst_head));
-    nm_assert(priv->process_change_idle_id == 0);
+    nm_clear_g_source(&priv->process_change_idle_id);
 
     g_atomic_pointer_compare_and_exchange(&nm_bt_vtable_network_server,
                                           &priv->vtable_network_server,
@@ -2883,6 +2869,9 @@ dispose(GObject *object)
     nm_clear_pointer(&priv->bzobjs, g_hash_table_destroy);
     nm_clear_pointer(&priv->conn_data_heads, g_hash_table_destroy);
     nm_clear_pointer(&priv->conn_data_elems, g_hash_table_destroy);
+
+    nm_assert(c_list_is_empty(&priv->network_server_lst_head));
+    nm_assert(c_list_is_empty(&priv->process_change_lst_head));
 }
 
 static void

@@ -34,9 +34,9 @@ NM_GOBJECT_PROPERTIES_DEFINE(NMSettingBridgePort,
 
 typedef struct {
     GPtrArray *vlans;
-    guint16    priority;
-    guint16    path_cost;
-    bool       hairpin_mode : 1;
+    guint32    priority;
+    guint32    path_cost;
+    bool       hairpin_mode;
 } NMSettingBridgePortPrivate;
 
 /**
@@ -368,35 +368,13 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
 }
 
 static NMTernary
-compare_property(const NMSettInfoSetting *sett_info,
-                 guint                    property_idx,
-                 NMConnection *           con_a,
-                 NMSetting *              set_a,
-                 NMConnection *           con_b,
-                 NMSetting *              set_b,
-                 NMSettingCompareFlags    flags)
+compare_fcn_vlans(_NM_SETT_INFO_PROP_COMPARE_FCN_ARGS _nm_nil)
 {
-    NMSettingBridgePortPrivate *priv_a;
-    NMSettingBridgePortPrivate *priv_b;
-    guint                       i;
-
-    if (nm_streq(sett_info->property_infos[property_idx].name, NM_SETTING_BRIDGE_PORT_VLANS)) {
-        if (set_b) {
-            priv_a = NM_SETTING_BRIDGE_PORT_GET_PRIVATE(set_a);
-            priv_b = NM_SETTING_BRIDGE_PORT_GET_PRIVATE(set_b);
-
-            if (priv_a->vlans->len != priv_b->vlans->len)
-                return FALSE;
-            for (i = 0; i < priv_a->vlans->len; i++) {
-                if (nm_bridge_vlan_cmp(priv_a->vlans->pdata[i], priv_b->vlans->pdata[i]))
-                    return FALSE;
-            }
-        }
-        return TRUE;
+    if (set_b) {
+        return _nm_utils_bridge_compare_vlans(NM_SETTING_BRIDGE_PORT_GET_PRIVATE(set_a)->vlans,
+                                              NM_SETTING_BRIDGE_PORT_GET_PRIVATE(set_b)->vlans);
     }
-
-    return NM_SETTING_CLASS(nm_setting_bridge_port_parent_class)
-        ->compare_property(sett_info, property_idx, con_a, set_a, con_b, set_b, flags);
+    return TRUE;
 }
 
 /*****************************************************************************/
@@ -407,15 +385,6 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
     NMSettingBridgePortPrivate *priv = NM_SETTING_BRIDGE_PORT_GET_PRIVATE(object);
 
     switch (prop_id) {
-    case PROP_PRIORITY:
-        g_value_set_uint(value, priv->priority);
-        break;
-    case PROP_PATH_COST:
-        g_value_set_uint(value, priv->path_cost);
-        break;
-    case PROP_HAIRPIN_MODE:
-        g_value_set_boolean(value, priv->hairpin_mode);
-        break;
     case PROP_VLANS:
         g_value_take_boxed(value,
                            _nm_utils_copy_array(priv->vlans,
@@ -423,7 +392,7 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
                                                 (GDestroyNotify) nm_bridge_vlan_unref));
         break;
     default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+        _nm_setting_property_get_property_direct(object, prop_id, value, pspec);
         break;
     }
 }
@@ -434,15 +403,6 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
     NMSettingBridgePortPrivate *priv = NM_SETTING_BRIDGE_PORT_GET_PRIVATE(object);
 
     switch (prop_id) {
-    case PROP_PRIORITY:
-        priv->priority = g_value_get_uint(value);
-        break;
-    case PROP_PATH_COST:
-        priv->path_cost = g_value_get_uint(value);
-        break;
-    case PROP_HAIRPIN_MODE:
-        priv->hairpin_mode = g_value_get_boolean(value);
-        break;
     case PROP_VLANS:
         g_ptr_array_unref(priv->vlans);
         priv->vlans = _nm_utils_copy_array(g_value_get_boxed(value),
@@ -450,7 +410,7 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
                                            (GDestroyNotify) nm_bridge_vlan_unref);
         break;
     default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+        _nm_setting_property_set_property_direct(object, prop_id, value, pspec);
         break;
     }
 }
@@ -463,9 +423,6 @@ nm_setting_bridge_port_init(NMSettingBridgePort *setting)
     NMSettingBridgePortPrivate *priv = NM_SETTING_BRIDGE_PORT_GET_PRIVATE(setting);
 
     priv->vlans = g_ptr_array_new_with_free_func((GDestroyNotify) nm_bridge_vlan_unref);
-
-    priv->priority  = NM_BRIDGE_PORT_PRIORITY_DEF;
-    priv->path_cost = NM_BRIDGE_PORT_PATH_COST_DEF;
 }
 
 /**
@@ -500,12 +457,11 @@ nm_setting_bridge_port_class_init(NMSettingBridgePortClass *klass)
 
     g_type_class_add_private(klass, sizeof(NMSettingBridgePortPrivate));
 
-    object_class->finalize     = finalize;
     object_class->get_property = get_property;
     object_class->set_property = set_property;
+    object_class->finalize     = finalize;
 
-    setting_class->compare_property = compare_property;
-    setting_class->verify           = verify;
+    setting_class->verify = verify;
 
     /**
      * NMSettingBridgePort:priority:
@@ -520,14 +476,16 @@ nm_setting_bridge_port_class_init(NMSettingBridgePortClass *klass)
      * description: STP priority.
      * ---end---
      */
-    obj_properties[PROP_PRIORITY] =
-        g_param_spec_uint(NM_SETTING_BRIDGE_PORT_PRIORITY,
-                          "",
-                          "",
-                          NM_BRIDGE_PORT_PRIORITY_MIN,
-                          NM_BRIDGE_PORT_PRIORITY_MAX,
-                          NM_BRIDGE_PORT_PRIORITY_DEF,
-                          G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE | G_PARAM_STATIC_STRINGS);
+    _nm_setting_property_define_direct_uint32(properties_override,
+                                              obj_properties,
+                                              NM_SETTING_BRIDGE_PORT_PRIORITY,
+                                              PROP_PRIORITY,
+                                              NM_BRIDGE_PORT_PRIORITY_MIN,
+                                              NM_BRIDGE_PORT_PRIORITY_MAX,
+                                              NM_BRIDGE_PORT_PRIORITY_DEF,
+                                              NM_SETTING_PARAM_INFERRABLE,
+                                              NMSettingBridgePortPrivate,
+                                              priority);
 
     /**
      * NMSettingBridgePort:path-cost:
@@ -543,13 +501,16 @@ nm_setting_bridge_port_class_init(NMSettingBridgePortClass *klass)
      * description: STP cost.
      * ---end---
      */
-    obj_properties[PROP_PATH_COST] = g_param_spec_uint(NM_SETTING_BRIDGE_PORT_PATH_COST,
-                                                       "",
-                                                       "",
-                                                       NM_BRIDGE_PORT_PATH_COST_MIN,
-                                                       NM_BRIDGE_PORT_PATH_COST_MAX,
-                                                       NM_BRIDGE_PORT_PATH_COST_DEF,
-                                                       G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
+    _nm_setting_property_define_direct_uint32(properties_override,
+                                              obj_properties,
+                                              NM_SETTING_BRIDGE_PORT_PATH_COST,
+                                              PROP_PATH_COST,
+                                              NM_BRIDGE_PORT_PATH_COST_MIN,
+                                              NM_BRIDGE_PORT_PATH_COST_MAX,
+                                              NM_BRIDGE_PORT_PATH_COST_DEF,
+                                              NM_SETTING_PARAM_NONE,
+                                              NMSettingBridgePortPrivate,
+                                              path_cost);
 
     /**
      * NMSettingBridgePort:hairpin-mode:
@@ -564,13 +525,14 @@ nm_setting_bridge_port_class_init(NMSettingBridgePortClass *klass)
      * description: Hairpin mode of the bridge port.
      * ---end---
      */
-    _nm_setting_property_define_boolean(properties_override,
-                                        obj_properties,
-                                        NM_SETTING_BRIDGE_PORT_HAIRPIN_MODE,
-                                        PROP_HAIRPIN_MODE,
-                                        FALSE,
-                                        NM_SETTING_PARAM_INFERRABLE,
-                                        nm_setting_bridge_port_get_hairpin_mode);
+    _nm_setting_property_define_direct_boolean(properties_override,
+                                               obj_properties,
+                                               NM_SETTING_BRIDGE_PORT_HAIRPIN_MODE,
+                                               PROP_HAIRPIN_MODE,
+                                               FALSE,
+                                               NM_SETTING_PARAM_INFERRABLE,
+                                               NMSettingBridgePortPrivate,
+                                               hairpin_mode);
 
     /**
      * NMSettingBridgePort:vlans: (type GPtrArray(NMBridgeVlan))
@@ -603,14 +565,19 @@ nm_setting_bridge_port_class_init(NMSettingBridgePortClass *klass)
                                                     G_TYPE_PTR_ARRAY,
                                                     G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE
                                                         | G_PARAM_STATIC_STRINGS);
-    _nm_properties_override_gobj(properties_override,
-                                 obj_properties[PROP_VLANS],
-                                 &nm_sett_info_propert_type_bridge_vlans);
+    _nm_properties_override_gobj(
+        properties_override,
+        obj_properties[PROP_VLANS],
+        NM_SETT_INFO_PROPERT_TYPE_DBUS(NM_G_VARIANT_TYPE("aa{sv}"),
+                                       .compare_fcn   = compare_fcn_vlans,
+                                       .to_dbus_fcn   = _nm_utils_bridge_vlans_to_dbus,
+                                       .from_dbus_fcn = _nm_utils_bridge_vlans_from_dbus, ));
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
-    _nm_setting_class_commit_full(setting_class,
-                                  NM_META_SETTING_TYPE_BRIDGE_PORT,
-                                  NULL,
-                                  properties_override);
+    _nm_setting_class_commit(setting_class,
+                             NM_META_SETTING_TYPE_BRIDGE_PORT,
+                             NULL,
+                             properties_override,
+                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
 }

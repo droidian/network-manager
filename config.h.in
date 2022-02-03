@@ -68,14 +68,17 @@
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
+/* By default the libreadline is used as readline library */
+#undef HAVE_EDITLINE_READLINE
+
 /* has getrandom */
 #undef HAVE_GETRANDOM
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #undef HAVE_GETTEXT
 
-/* Define to 1 if you have the <history.h> header file. */
-#undef HAVE_HISTORY_H
+/* Define to 1 if you have the <histedit.h> header file. */
+#undef HAVE_HISTEDIT_H
 
 /* Define if you have the iconv() function and it works. */
 #undef HAVE_ICONV
@@ -101,17 +104,11 @@
 /* Have PTHREAD_PRIO_INHERIT. */
 #undef HAVE_PTHREAD_PRIO_INHERIT
 
-/* Define to 1 if you have the <readline.h> header file. */
-#undef HAVE_READLINE_H
-
-/* Define if your readline library has \`add_history' */
+/* Explicitly set to 0 when libreadline shall not be used */
 #undef HAVE_READLINE_HISTORY
 
 /* Define to 1 if you have the <readline/history.h> header file. */
 #undef HAVE_READLINE_HISTORY_H
-
-/* Define to 1 if you have the <readline/readline.h> header file. */
-#undef HAVE_READLINE_READLINE_H
 
 /* Define to 1 if you have the `secure_getenv' function. */
 #undef HAVE_SECURE_GETENV
@@ -355,6 +352,9 @@
 
 /* Define if you have oFono support (experimental) */
 #undef WITH_OFONO
+
+/* Whether we build with OVS plugin */
+#undef WITH_OPENVSWITCH
 
 /* Define if you have PPP support */
 #undef WITH_PPP

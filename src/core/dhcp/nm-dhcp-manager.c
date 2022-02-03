@@ -27,7 +27,6 @@
 typedef struct {
     const NMDhcpClientFactory *client_factory;
     char *                     default_hostname;
-    CList                      dhcp_client_lst_head;
 } NMDhcpManagerPrivate;
 
 struct _NMDhcpManager {
@@ -45,14 +44,6 @@ G_DEFINE_TYPE(NMDhcpManager, nm_dhcp_manager, G_TYPE_OBJECT)
 
 /*****************************************************************************/
 
-static void client_state_changed(NMDhcpClient * client,
-                                 NMDhcpState    state,
-                                 GObject *      ip_config,
-                                 GVariant *     options,
-                                 NMDhcpManager *self);
-
-/*****************************************************************************/
-
 /* default to installed helper, but can be modified for testing */
 const char *nm_dhcp_helper_path = LIBEXECDIR "/nm-dhcp-helper";
 
@@ -63,9 +54,9 @@ _client_factory_find_by_name(const char *name)
 {
     int i;
 
-    g_return_val_if_fail(name, NULL);
+    nm_assert(name);
 
-    for (i = 0; i < G_N_ELEMENTS(_nm_dhcp_manager_factories); i++) {
+    for (i = 0; i < (int) G_N_ELEMENTS(_nm_dhcp_manager_factories); i++) {
         const NMDhcpClientFactory *f = _nm_dhcp_manager_factories[i];
 
         if (f && nm_streq(f->name, name))
@@ -85,11 +76,10 @@ _client_factory_available(const NMDhcpClientFactory *client_factory)
 static GType
 _client_factory_get_gtype(const NMDhcpClientFactory *client_factory, int addr_family)
 {
-    GType                    gtype;
-    nm_auto_unref_gtypeclass NMDhcpClientClass *klass = NULL;
+    GType gtype;
+    GType (*get_type_fcn)(void);
 
     nm_assert(client_factory);
-    nm_assert_addr_family(addr_family);
 
     /* currently, the chosen DHCP plugin for IPv4 and IPv6 is configured in NetworkManager.conf
      * and cannot be reloaded. It would be nice to configure the plugin per address family
@@ -111,29 +101,22 @@ _client_factory_get_gtype(const NMDhcpClientFactory *client_factory, int addr_fa
      * to those plugins. But we don't intend to do so. The internal plugin is the way forward and
      * not extending other plugins. */
 
-    if (client_factory->get_type_per_addr_family)
-        gtype = client_factory->get_type_per_addr_family(addr_family);
+    if (NM_IS_IPv4(addr_family))
+        get_type_fcn = client_factory->get_type_4;
     else
-        gtype = client_factory->get_type();
+        get_type_fcn = client_factory->get_type_6;
 
-    if (client_factory == &_nm_dhcp_client_factory_internal) {
-        /* we are already using the internal plugin. Nothing to do. */
-        goto out;
+    if (!get_type_fcn) {
+        /* If the factory does not support the address family, we always
+         * fallback to the internal. */
+        if (NM_IS_IPv4(addr_family))
+            get_type_fcn = _nm_dhcp_client_factory_internal.get_type_4;
+        else
+            get_type_fcn = _nm_dhcp_client_factory_internal.get_type_6;
     }
 
-    klass = g_type_class_ref(gtype);
+    gtype = get_type_fcn();
 
-    nm_assert(NM_IS_DHCP_CLIENT_CLASS(klass));
-
-    if (addr_family == AF_INET6) {
-        if (!klass->ip6_start)
-            gtype = _client_factory_get_gtype(&_nm_dhcp_client_factory_internal, addr_family);
-    } else {
-        if (!klass->ip4_start)
-            gtype = _client_factory_get_gtype(&_nm_dhcp_client_factory_internal, addr_family);
-    }
-
-out:
     nm_assert(g_type_is_a(gtype, NM_TYPE_DHCP_CLIENT));
     nm_assert(({
         nm_auto_unref_gtypeclass NMDhcpClientClass *k = g_type_class_ref(gtype);
@@ -145,56 +128,6 @@ out:
 }
 
 /*****************************************************************************/
-
-static NMDhcpClient *
-get_client_for_ifindex(NMDhcpManager *manager, int addr_family, int ifindex)
-{
-    NMDhcpManagerPrivate *priv;
-    NMDhcpClient *        client;
-
-    g_return_val_if_fail(NM_IS_DHCP_MANAGER(manager), NULL);
-    g_return_val_if_fail(ifindex > 0, NULL);
-
-    priv = NM_DHCP_MANAGER_GET_PRIVATE(manager);
-
-    c_list_for_each_entry (client, &priv->dhcp_client_lst_head, dhcp_client_lst) {
-        if (nm_dhcp_client_get_ifindex(client) == ifindex
-            && nm_dhcp_client_get_addr_family(client) == addr_family)
-            return client;
-    }
-
-    return NULL;
-}
-
-static void
-remove_client(NMDhcpManager *self, NMDhcpClient *client)
-{
-    g_signal_handlers_disconnect_by_func(client, client_state_changed, self);
-    c_list_unlink(&client->dhcp_client_lst);
-
-    /* Stopping the client is left up to the controlling device
-     * explicitly since we may want to quit NetworkManager but not terminate
-     * the DHCP client.
-     */
-}
-
-static void
-remove_client_unref(NMDhcpManager *self, NMDhcpClient *client)
-{
-    remove_client(self, client);
-    g_object_unref(client);
-}
-
-static void
-client_state_changed(NMDhcpClient * client,
-                     NMDhcpState    state,
-                     GObject *      ip_config,
-                     GVariant *     options,
-                     NMDhcpManager *self)
-{
-    if (state >= NM_DHCP_STATE_TIMEOUT)
-        remove_client_unref(self, client);
-}
 
 static NMDhcpClient *
 client_start(NMDhcpManager *           self,
@@ -226,10 +159,10 @@ client_start(NMDhcpManager *           self,
              GError **                 error)
 {
     NMDhcpManagerPrivate *priv;
-    NMDhcpClient *        client;
-    gboolean              success = FALSE;
-    gsize                 hwaddr_len;
-    GType                 gtype;
+    gs_unref_object NMDhcpClient *client  = NULL;
+    gboolean                      success = FALSE;
+    gsize                         hwaddr_len;
+    GType                         gtype;
 
     g_return_val_if_fail(NM_IS_DHCP_MANAGER(self), NULL);
     g_return_val_if_fail(iface, NULL);
@@ -277,20 +210,6 @@ client_start(NMDhcpManager *           self,
     }
 
     priv = NM_DHCP_MANAGER_GET_PRIVATE(self);
-
-    /* Kill any old client instance */
-    client = get_client_for_ifindex(self, addr_family, ifindex);
-    if (client) {
-        /* FIXME: we cannot just call synchronously "stop()" and forget about the client.
-         * We need to wait for the client to be fully stopped because most/all clients
-         * cannot quit right away.
-         *
-         * FIXME(shutdown): also fix this during shutdown, to wait for all DHCP clients
-         * to be fully stopped. */
-        remove_client(self, client);
-        nm_dhcp_client_stop(client, FALSE);
-        g_object_unref(client);
-    }
 
     gtype = _client_factory_get_gtype(priv->client_factory, addr_family);
 
@@ -340,12 +259,6 @@ client_start(NMDhcpManager *           self,
                           NM_DHCP_CLIENT_ANYCAST_ADDRESS,
                           anycast_address,
                           NULL);
-    nm_assert(client && c_list_is_empty(&client->dhcp_client_lst));
-    c_list_link_tail(&priv->dhcp_client_lst_head, &client->dhcp_client_lst);
-    g_signal_connect(client,
-                     NM_DHCP_CLIENT_SIGNAL_STATE_CHANGED,
-                     G_CALLBACK(client_state_changed),
-                     self);
 
     /* unfortunately, our implementations work differently per address-family regarding client-id/DUID.
      *
@@ -385,12 +298,10 @@ client_start(NMDhcpManager *           self,
                                            error);
     }
 
-    if (!success) {
-        remove_client_unref(self, client);
+    if (!success)
         return NULL;
-    }
 
-    return g_object_ref(client);
+    return g_steal_pointer(&client);
 }
 
 /* Caller owns a reference to the NMDhcpClient on return */
@@ -596,9 +507,7 @@ nm_dhcp_manager_init(NMDhcpManager *self)
     int                        i;
     const NMDhcpClientFactory *client_factory = NULL;
 
-    c_list_init(&priv->dhcp_client_lst_head);
-
-    for (i = 0; i < G_N_ELEMENTS(_nm_dhcp_manager_factories); i++) {
+    for (i = 0; i < (int) G_N_ELEMENTS(_nm_dhcp_manager_factories); i++) {
         const NMDhcpClientFactory *f = _nm_dhcp_manager_factories[i];
 
         if (!f)
@@ -608,7 +517,7 @@ nm_dhcp_manager_init(NMDhcpManager *self)
                    "dhcp-init: enabled DHCP client '%s'%s%s",
                    f->name,
                    _client_factory_available(f) ? "" : " (not available)",
-                   f->experimental ? " (undocumented internal plugin)" : "");
+                   f->undocumented ? " (undocumented internal plugin)" : "");
     }
 
     /* Client-specific setup */
@@ -644,7 +553,7 @@ nm_dhcp_manager_init(NMDhcpManager *self)
             }
         }
         if (!client_factory) {
-            for (i = 0; i < G_N_ELEMENTS(_nm_dhcp_manager_factories); i++) {
+            for (i = 0; i < (int) G_N_ELEMENTS(_nm_dhcp_manager_factories); i++) {
                 client_factory = _client_factory_available(_nm_dhcp_manager_factories[i]);
                 if (client_factory)
                     break;
@@ -668,10 +577,6 @@ dispose(GObject *object)
 {
     NMDhcpManager *       self = NM_DHCP_MANAGER(object);
     NMDhcpManagerPrivate *priv = NM_DHCP_MANAGER_GET_PRIVATE(self);
-    NMDhcpClient *        client, *client_safe;
-
-    c_list_for_each_entry_safe (client, client_safe, &priv->dhcp_client_lst_head, dhcp_client_lst)
-        remove_client_unref(self, client);
 
     G_OBJECT_CLASS(nm_dhcp_manager_parent_class)->dispose(object);
 

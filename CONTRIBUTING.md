@@ -17,6 +17,12 @@ Report issues and send patches via [gitlab.freedesktop.org](https://gitlab.freed
 or our mailing list.
 
 
+Documentation
+-------------
+
+Find the documentation on [our website](https://networkmanager.dev/docs/).
+
+
 Legal
 -----
 
@@ -33,14 +39,22 @@ new contributions already must already agree to that.
 For more details see [RELICENSE.md](RELICENSE.md).
 
 
-Coding Standard
----------------
+Coding Style
+------------
 
-The formatting uses clang-format with clang 11.0. Run
-`./contrib/scripts/nm-code-format.sh -i` to reformat the code
-or call `clang-format` yourself.
-You may also call `./contrib/scripts/nm-code-format-container.sh`
-which runs a Fedora 33 container using podman.
+### clang-format
+
+The formatting is automated using clang-format. Run `./contrib/scripts/nm-code-format.sh -i`
+([[1]](contrib/scripts/nm-code-format.sh)) to reformat the code or run `clang-format` yourself.
+
+You may also call `./contrib/scripts/nm-code-format-container.sh` which runs a
+Fedora container using podman.
+
+As the generated format depends on the version of clang-format, you need to use the
+correct clang-format version. That is basically the version that our [gitlab-ci
+pipeline](https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/pipelines) uses
+for the "check-tree" test. This is the version from a recent Fedora installation.
+
 You are welcome to not bother and open a merge request with
 wrong formatting, but note that we then will automatically adjust
 your contribution before merging.
@@ -53,14 +67,24 @@ the reformatting commit with git-blame:
 $ git config --add 'blame.ignoreRevsFile' '.git-blame-ignore-revs'
 ```
 
+### Style
+
 Since our coding style is entirely automated, the following are just
 some details of the style we use:
 
-* Indent with 4 spaces. (_no_ tabs).
+* Use cleanup functions (`gs_free`, `gs_*`, `nm_auto*`) to let a stack
+  variable own a resource instead of explicit free. Combine them with
+  `g_steal_pointer()` to transfer ownership and with clear functions
+  (`g_clear_object()`, `nm_clear_g_free()`, `nm_clear*()`) to destroy
+  the resource early.
 
-* Have no space between the function name and the opening '('.
-  - GOOD: `g_strdup(x)`
-  - BAD:  `g_strdup (x)`
+* Use `GSource` instances instead of the source IDs from `g_idle_add()`, `g_timeout_add()`,
+  etc. Possibly use `nm_g_idle_add_source()`, `nm_g_timeout_add_source()`, etc.
+  and combine with `nm_clear_g_source_inst()`.
+
+* Don't use `GDBusProxy` or `GDBusObjectManager`. Use plain `GDBusConnection`.
+
+* Indent with spaces. (_no_ tabs).
 
 * C-style comments
   - GOOD: `f(x);  /* comment */`
@@ -70,12 +94,68 @@ some details of the style we use:
   - GOOD: `MyObject *object;`
   - BAD:  `MyObject *object = complex_and_long_init_function(arg1, arg2, arg3);`
 
-* 80-cols is a guideline, don't make the code uncomfortable in order to fit in
-  less than 80 cols.
+* Declare each variable on a separate line:
+  - BAD: `int i, j;`
 
 * Constants are CAPS_WITH_UNDERSCORES and use the preprocessor.
   - GOOD: `#define MY_CONSTANT 42`
   - BAD:  `static const unsigned myConstant = 42;`
+
+Additionally, we require to build without compiler warnings for the warnings
+that we enable. Also, our language is C11 with some GCC-isms (like typeof(),
+expression statements, cleanup attribute). In practice, we support various versions
+of GCC and clang. The supported C "dialect", compilers and libc are those that we
+can practically build and test in our CI. We don't target a theoretical, pure C11/POSIX
+standard or a libc/compiler that we cannot test.
+Patches for making NetworkManager more portable are welcome, if there is a
+practical use and CI tests. Glibc and musl libc are supported.
+
+### Checkpatch
+
+We have a [checkpatch.pl](contrib/scripts/checkpatch.pl) script, which is
+also run in our gitlab-ci. Review the warnings, but as these are just heuristics,
+there might be valid reasons to reject them. There is also a
+[git hook](contrib/scripts/checkpatch-git-post-commit-hook) which you can call
+from `.git/hooks/post-commit`.
+
+
+Building from Source
+--------------------
+
+First see that you have the required build dependencies. For Fedora/RHEL/Centos,
+you can look at [this](contrib/fedora/REQUIRED_PACKAGES)
+script and [here](contrib/debian/REQUIRED_PACKAGES)
+is a script for Debian/Ubuntu.
+
+Both meson and autotools are supported. You may choose whatever you prefer.
+For autotools the common steps are
+
+```
+./autogen.sh $CONFIGURE_OPTIONS
+make -j 8
+# optional: sudo make install
+```
+and for meson it's
+```
+meson build $CONFIGURE_OPTIONS
+ninja -C build
+# optional: sudo meson install
+```
+
+Beware to set the correct `$CONFIGURE_OPTIONS`. In particular, you may
+not want the default installation prefix and not overwrite files in
+`/usr`.
+
+### Fedora
+
+For Fedora/RHEL/CentOS, you can build an RPM from upstream sources with
+```
+   ./contrib/fedora/rpm/build_clean.sh -r
+```
+Pass `--help` to [build_clean.sh](contrib/fedora/rpm/build_clean.sh) for options.
+
+You may also use the [Copr project](https://copr.fedorainfracloud.org/coprs/networkmanager/)
+maintained by the upstream maintainers. There you find builds of latest `main` and stable branches.
 
 
 Unit Tests
@@ -90,12 +170,47 @@ files. The unit test fail in that case, to indicate that the generated
 files no longer match what is commited to git.
 You can also automatically regenerate the files by running `NM_TEST_REGENERATE=1 make check`.
 Note that test-client requires working translation.
-See the [comment](https://gitlab.freedesktop.org/NetworkManager/NetworkManager/-/blob/eee4332e8facfa5ff5940fa1655575d76ca143ea/src/tests/client/test-client.py#L19)
+See the [comment](src/tests/client/test-client.py#L14)
 for how to configure it.
 
 
-Assertions in NetworkManager code
----------------------------------
+Code Structure
+---------------------------
+
+`./contrib`- Contains a lot of required package, configuration for different platform and environment, build NM from source tree.
+
+`./data`- Contains some configurations and rules.
+
+`./docs`- Contains the generated documentation for libnm and for the D-Bus API.
+
+`./examples`- Some code examples for basic networking operations and status checking.
+
+`./introspection`- XML docs describing various D-Bus interface and their properties.
+
+`./m4`- Contains M4 macros source files for autoconf.
+
+`./man`- NM manual files.
+
+`./po`- contains text-based portable object file. These .PO files are referenced by GNU gettext as a property file and these files are human readable used for translating purpose.
+
+[`./src`](src/)- source code for libnm, nmcli, nm-cloud-setup, nmtui…
+
+`./tools`- tools for generating the intermediate files or merging the file.
+
+Cscope/ctags
+---------------------------
+
+NetworkManager's source code is large. It may be a good idea to use tools like cscope/ctags to index the
+source code and navigate it. These tools can integrate with editors like `Vim` and `Emacs`. See:
+
+- http://cscope.sourceforge.net/cscope_vim_tutorial.html
+- https://www.emacswiki.org/emacs/CScopeAndEmacs
+
+
+Miscellaneous
+---------------------------
+
+### Assertions in NetworkManager code
 
 There are different kind of assertions. Use the one that is appropriate.
 
@@ -168,8 +283,84 @@ For testing, you also want to run NetworkManager with environment variable
 but for assertions.
 
 
-Git Notes (refs/notes/bugs)
----------------------------
+### Header Includes
+
+Almost all C source header should include a certain set of default headers.
+That comes from the fact, that (almost) all source should include autotools' `"config.h"`
+as first.
+
+That means, (almost) all our C sources should start with
+```C
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
+
+#include "$BASE/nm-default$EXTRA.h"
+```
+that is, the first header is one of the several `"*/nm-default*.h"` headers.
+This header ensure that certain headers like [`libnm-std-aux/nm-std-aux.h`](src/libnm-std-aux/nm-std-aux.h)
+and basics like `nm_assert()` and `nm_auto_g_free` are available everywhere.
+
+The second include is the header that belongs to the C source file. This
+is so that header files are self-contained (aside what default dependencies that
+they get and everybody can rely on).
+
+The next includes are system headers with `<>`.
+
+Finally, all other headers from our source tree. Note that all build targets
+have `-I. -I./src/` in their build arguments. So to include a header like
+[`src/libnm-glib-aux/nm-random-utils.h`](src/libnm-glib-aux/nm-random-utils.h)
+you'd do `#include "libnm-glib-aux/nm-random-utils.h"`.
+
+Note that there are exceptions. For example, `src/libnm-std-aux/nm-linux-compat.h`](src/libnm-std-aux/nm-linux-compat.h)
+may need to be included before system headers as it is supposed to include headers
+from `src/linux-headers`](src/linux-headers).
+
+See an example [here](src/core/nm-manager.c#L1).
+
+### GObject Properties
+
+We use GObjects and GObject Properties in various cases. For example:
+
+1. In public API in libnm they are used and useful for providing a standard
+   GObject API. One advantage of GObject properties is that they work well
+   with introspection and bindings.
+
+1. `NMSetting` properties commonly are GObject properties. While we provide
+   C getters, they commonly don't have a setter. That is, settings can often
+   only set via `g_object_set()`.
+
+1. Our D-Bus API uses glue code. For the daemon, this is
+   [`nm-dbus-manager.[ch]`](src/core/nm-dbus-manager.c) and
+   [`nm-dbus-object.[ch]`](src/core/nm-dbus-object.c). For libnm's
+   `NMClient`, this is [`nm-object.c`](src/libnm-client-impl/nm-object.c).
+   These bindings rely on GObject properties.
+
+1. Sometimes it is convenient to use the functionality that GObject
+   properties provide. In particular, `notify::` property changed signals
+   or the ability to freeze/thaw the signals.
+
+1. Immutable objects are great, so there is a desire to have `G_PARAM_CONSTRUCT_ONLY`
+  properties. In that case, avoid adding a getter too, the property only needs to be
+  writable and you should access it via the C wrapper.
+
+In general, use GObject properties sparsely and avoid them (unless you need them for one of the
+reasons above).
+
+Almost always add a `#define` for the property name, and use for example
+`g_signal_connect(obj, "notify::"NM_TARGET_SOME_PROPERTY", ...)`. The goal is to
+be able to search the use of all properties.
+
+Almost always add C getter and setters and prefer them over `g_object_get()`
+and `g_object_set()`. This also stresses the point that you usually wouldn't use
+a GObject property aside the reasons above.
+
+When adding a GObject properties, do it for only one of the reasons above.
+For example, the property `NM_MANAGER_DEVICES` in the daemon is added to bind
+the property to D-Bus. Don't use that property otherwise and don't register
+a `notify::NM_MANAGER_DEVICES` for your own purpose. The reason is that GObject
+properties are harder to understand and they should be used sparsely and for
+one specific reason.
+
+### Git Notes (refs/notes/bugs)
 
 We use special tags in commit messages like "Fixes", "cherry picked from" and "Ignore-Backport".
 The [find-backports](contrib/scripts/find-backports) script uses these to find patches that
@@ -198,35 +389,3 @@ To resync our local notes use:
 ```
 $ git fetch origin refs/notes/bugs:refs/notes/bugs -f
 ```
-
-Code Structure
----------------------------
-
-`./contrib`- Contains a lot of required package, configuration for different platform and environment, build NM from source tree.
-
-`./data`- Contains some configurations and rules.
-
-`./docs`- Contains the generated documentation for libnm and for the D-Bus API.
-
-`./examples`- Some code examples for basic networking operations and status checking.
-
-`./introspection`- XML docs describing various D-Bus interface and their properties.
-
-`./m4`- Contains M4 macros source files for autoconf.
-
-`./man`- NM manual files.
-
-`./po`- contains text-based portable object file. These .PO files are referenced by GNU gettext as a property file and these files are human readable used for translating purpose.
-
-`./src`- source code for libnm, nmcli, nm-cloud-setup, nmtui…
-
-`./tools`- tools for generating the intermediate files or merging the file.
-
-Cscope/ctags
----------------------------
-
-NetworkManager's source code is large. It may be a good idea to use tools like cscope/ctags to index the
-source code and navigate it. These tools can integrate with editors like `Vim` and `Emacs`. See:
-
-- http://cscope.sourceforge.net/cscope_vim_tutorial.html
-- https://www.emacswiki.org/emacs/CScopeAndEmacs

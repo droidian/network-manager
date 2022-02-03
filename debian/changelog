@@ -1,3 +1,99 @@
+network-manager (1.34.0-2ubuntu1) UNRELEASED; urgency=medium
+
+  * Resynchronize on Debian, remaining changes:
+    - debian/control:
+      + Depend on isc-dhcp-client
+      + Recommend network-manager-pptp
+      + Suggest avahi-autoipd for IPv4LL support
+    - debian/rules:
+      + Run build tests
+      + Set --enable-lto.
+      + Build without symbolic functions, needed for tests to pass on Ubuntu
+      + Don't build the network-manager* packages on i386
+        (unneeded and depends on wpasupplicant)
+    - debian/rules, debian/network-manager.postinst:
+      + Don't restart NetworkManager on upgrade but recommend restarting
+        the computer
+    - debian/rules, debian/network-manager.postinst:
+      + Don't install sysvinit scripts or migrate from sysvinit
+    - d/network-manager.install, d/rules, d/10-dns-resolved.conf:
+      + Use systemd-resolved instead of dnsmasq
+    - d/network-manager.install, d/10-globally-managed-devices.conf:
+      + Explicitly unmanage everything that isn't WiFi or WWAN (mobile data)
+    - debian/network-manager.postinst:
+      + Don't add the netdev group.
+      + drop in an empty override file for NetworkManager to manage all
+        devices for upgrade from any version, as long as there is no
+        netplan configuration yet.
+    - d/network-manager.install, d/default-wifi-powersave-on.conf:
+      + Install a config file to enable WiFi powersave
+    - Add autopkgtests
+    - debian/source_network-manager.py, debian/network-manager.install,
+      debian/network-manager.links: Add apport hook
+    - Add network-manager-config-connectivity-ubuntu package
+    - d/NetworkManager.conf: disable MAC randomization feature. There is no
+      easy way for desktop users to disable this feature yet. And there are
+      reports that it doesn't work well with some systems.
+    - Update Vcs links to point to Ubuntu branch
+    - Add patches. See patch descriptions for more details:
+      + Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
+      + Update-dnsmasq-parameters.patch
+      + Disable-general-with-expect.patch
+      + libnm-Check-self-still-NMManager-or-not.patch
+      + dns-manager-don-t-merge-split-DNS-search-domains.patch (but disabled)
+      + Read-system-connections-from-run.patch
+      + ubuntu_revert_systemd.patch
+
+ -- Jeremy Bicha <jeremy.bicha@canonical.com>  Thu, 03 Feb 2022 09:47:11 -0500
+
+network-manager (1.34.0-2) unstable; urgency=medium
+
+  * Demote wpasupplicant to Recommends.
+    There are enough use cases for network-manager not involving Wi-Fi which
+    justifies to make this dependency optional. (Closes: #919619, #980218)
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 18 Jan 2022 20:59:36 +0100
+
+network-manager (1.34.0-1) unstable; urgency=medium
+
+  * New upstream version 1.34.0
+  * Rebase patches
+  * Install nm-priv-helper service
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 14 Jan 2022 00:18:58 +0100
+
+network-manager (1.32.12-1) unstable; urgency=medium
+
+  * New upstream version 1.32.12
+  * Rebase patches
+  * Update symbols file for libnm0
+  * Bump Standards-Version to 4.6.0
+  * Drop dh_missing override.
+    As --fail-missing is the default in compat 13, the override is no longer
+    necessary.
+  * Remove obsolete upgrade code
+  * Drop obsolete Breaks/Replaces
+  * Update debian/copyright
+  * Remove isc-dhcp-client from Suggests.
+    Unless explicitly configured otherwise the internal DHCP client is used.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 02 Oct 2021 09:42:17 +0200
+
+network-manager (1.30.6-1) unstable; urgency=medium
+
+  * New upstream version 1.30.6
+  * Rebase patches
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 16 Aug 2021 09:56:57 +0200
+
+network-manager (1.30.0-2) unstable; urgency=medium
+
+  * core: fix crash in nm_wildcard_match_check()
+    (CVE-2021-20297, Closes: #986809)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 12 Apr 2021 21:15:36 +0200
+
 network-manager (1.32.12-0ubuntu2) jammy; urgency=medium
 
   * debian/tests: drop which usage to fix adt failure in jammy

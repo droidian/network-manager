@@ -578,7 +578,7 @@ property.</p>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_sriov_vf_add_vlan (<em class="parameter"><code><a class="link" href="NMSettingSriov.html#NMSriovVF"><span class="type">NMSriovVF</span></a> *vf</code></em>,
                       <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> vlan_id</code></em>);</pre>
-<p>Adds a VLAN to the VF.</p>
+<p>Adds a VLAN to the VF. Currently kernel only supports one VLAN per VF.</p>
 <div class="refsect3">
 <a name="nm-sriov-vf-add-vlan.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -649,7 +649,8 @@ did not belong to the VF.</p>
 <pre class="programlisting">const <a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a> *
 nm_sriov_vf_get_vlan_ids (<em class="parameter"><code>const <a class="link" href="NMSettingSriov.html#NMSriovVF"><span class="type">NMSriovVF</span></a> *vf</code></em>,
                           <em class="parameter"><code><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *length</code></em>);</pre>
-<p>Returns the VLANs currently configured on the VF.</p>
+<p>Returns the VLANs currently configured on the VF. Currently kernel only
+supports one VLAN per VF.</p>
 <div class="refsect3">
 <a name="nm-sriov-vf-get-vlan-ids.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">

@@ -23,7 +23,7 @@
 #include "libnm-glib-aux/nm-secret-utils.h"
 #include "libnm-systemd-shared/nm-sd-utils-shared.h"
 #include "libnm-core-aux-intern/nm-common-macros.h"
-
+#include "libnm-core-aux-intern/nm-libnm-core-utils.h"
 #include "libnm-core-intern/nm-core-internal.h"
 #include "nm-keyfile.h"
 #include "nm-setting-private.h"
@@ -2483,7 +2483,7 @@ write_hash_of_string(GKeyFile *file, NMSetting *setting, const char *key, const 
 
     hash = g_value_get_boxed(value);
 
-    keys = nm_utils_strdict_get_keys(hash, TRUE, &l);
+    keys = nm_strdict_get_keys(hash, TRUE, &l);
     for (i = 0; i < l; i++) {
         gs_free char *to_free = NULL;
         const char *  property, *data;
@@ -3351,7 +3351,7 @@ _read_setting(KeyfileReaderInfo *info)
     gs_unref_object NMSetting *setting = NULL;
     const char *               alias;
     GType                      type;
-    guint                      i;
+    guint16                    i;
 
     alias = nm_keyfile_plugin_get_setting_name_for_alias(info->group);
     if (!alias)
@@ -3384,7 +3384,7 @@ _read_setting(KeyfileReaderInfo *info)
         if (n_keys > 0) {
             GHashTable *h = _nm_setting_option_hash(setting, TRUE);
 
-            nm_utils_strv_sort(keys, n_keys);
+            nm_strv_sort(keys, n_keys);
             for (k = 0; k < n_keys; k++) {
                 gs_free char *key           = keys[k];
                 gs_free_error GError *local = NULL;
@@ -3779,11 +3779,7 @@ nm_keyfile_read(GKeyFile *            keyfile,
             goto out_with_info_error;
     }
 
-    s_con = nm_connection_get_setting_connection(connection);
-    if (!s_con) {
-        s_con = NM_SETTING_CONNECTION(nm_setting_connection_new());
-        nm_connection_add_setting(connection, NM_SETTING(s_con));
-    }
+    s_con = _nm_connection_ensure_setting(connection, NM_TYPE_SETTING_CONNECTION);
 
     /* Make sure that we have 'interface-name' even if it was specified in the
      * "wrong" (ie, deprecated) group.
@@ -4088,7 +4084,7 @@ nm_keyfile_write(NMConnection *        connection,
     KeyfileWriterInfo               info;
     NMSetting **                    settings;
     int                             i;
-    guint                           j;
+    guint16                         j;
 
     g_return_val_if_fail(NM_IS_CONNECTION(connection), NULL);
     g_return_val_if_fail(!error || !*error, NULL);

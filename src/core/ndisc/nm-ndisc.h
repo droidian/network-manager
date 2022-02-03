@@ -48,6 +48,8 @@ typedef enum {
     NM_NDISC_DHCP_LEVEL_MANAGED
 } NMNDiscDHCPLevel;
 
+const char *nm_ndisc_dhcp_level_to_string(NMNDiscDHCPLevel level);
+
 #define NM_NDISC_INFINITY_U32 ((uint32_t) -1)
 
 /* It's important that this is G_MAXINT64, so that we can meaningfully do
@@ -239,7 +241,7 @@ static inline gboolean
 nm_ndisc_dad_addr_is_fail_candidate_event(NMPlatformSignalChangeType  change_type,
                                           const NMPlatformIP6Address *addr)
 {
-    return !NM_FLAGS_HAS(addr->n_ifa_flags, IFA_F_TEMPORARY)
+    return !NM_FLAGS_HAS(addr->n_ifa_flags, IFA_F_SECONDARY)
            && ((change_type == NM_PLATFORM_SIGNAL_CHANGED && addr->n_ifa_flags & IFA_F_DADFAILED)
                || (change_type == NM_PLATFORM_SIGNAL_REMOVED
                    && addr->n_ifa_flags & IFA_F_TENTATIVE));
@@ -253,7 +255,7 @@ nm_ndisc_dad_addr_is_fail_candidate(NMPlatform *platform, const NMPObject *obj)
     addr = NMP_OBJECT_CAST_IP6_ADDRESS(
         nm_platform_lookup_obj(platform, NMP_CACHE_ID_TYPE_OBJECT_TYPE, obj));
     if (addr
-        && (NM_FLAGS_HAS(addr->n_ifa_flags, IFA_F_TEMPORARY)
+        && (NM_FLAGS_HAS(addr->n_ifa_flags, IFA_F_SECONDARY)
             || !NM_FLAGS_HAS(addr->n_ifa_flags, IFA_F_DADFAILED))) {
         /* the address still/again exists and is not in DADFAILED state. Skip it. */
         return FALSE;
@@ -261,6 +263,15 @@ nm_ndisc_dad_addr_is_fail_candidate(NMPlatform *platform, const NMPObject *obj)
 
     return TRUE;
 }
+
+/*****************************************************************************/
+
+void nm_ndisc_get_sysctl(NMPlatform *platform,
+                         const char *ifname,
+                         int *       out_max_addresses,
+                         int *       out_router_solicitations,
+                         int *       out_router_solicitation_interval,
+                         guint32 *   out_default_ra_timeout);
 
 /*****************************************************************************/
 

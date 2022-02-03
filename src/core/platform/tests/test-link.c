@@ -580,6 +580,7 @@ test_bridge_addr(void)
     char                  addr[ETH_ALEN];
     NMPlatformLink        link;
     const NMPlatformLink *plink = NULL;
+    NMPLinkAddress        hw_perm_addr;
 
     nm_utils_hwaddr_aton("de:ad:be:ef:00:11", addr, sizeof(addr));
 
@@ -599,27 +600,49 @@ test_bridge_addr(void)
 
     plink = nm_platform_link_get(NM_PLATFORM_GET, link.ifindex);
     g_assert(plink);
+    g_assert(!nm_platform_link_get_permanent_address(NM_PLATFORM_GET, plink, &hw_perm_addr));
 
-    if (nm_platform_kernel_support_get(NM_PLATFORM_KERNEL_SUPPORT_TYPE_USER_IPV6LL)) {
-        g_assert(!nm_platform_link_get_user_ipv6ll_enabled(NM_PLATFORM_GET, link.ifindex));
+    if (nmtstp_is_root_test()) {
+        g_assert_cmpint(nm_platform_link_get_inet6_addr_gen_mode(NM_PLATFORM_GET, link.ifindex),
+                        ==,
+                        NM_IN6_ADDR_GEN_MODE_EUI64);
+        g_assert_cmpint(_nm_platform_link_get_inet6_addr_gen_mode(plink),
+                        ==,
+                        NM_IN6_ADDR_GEN_MODE_EUI64);
         g_assert_cmpint(_nm_platform_uint8_inv(plink->inet6_addr_gen_mode_inv),
                         ==,
                         NM_IN6_ADDR_GEN_MODE_EUI64);
 
         g_assert(NMTST_NM_ERR_SUCCESS(
-            nm_platform_link_set_user_ipv6ll_enabled(NM_PLATFORM_GET, link.ifindex, TRUE)));
-        g_assert(nm_platform_link_get_user_ipv6ll_enabled(NM_PLATFORM_GET, link.ifindex));
+            nm_platform_link_set_inet6_addr_gen_mode(NM_PLATFORM_GET,
+                                                     link.ifindex,
+                                                     NM_IN6_ADDR_GEN_MODE_NONE)));
+        g_assert_cmpint(nm_platform_link_get_inet6_addr_gen_mode(NM_PLATFORM_GET, link.ifindex),
+                        ==,
+                        NM_IN6_ADDR_GEN_MODE_NONE);
         plink = nm_platform_link_get(NM_PLATFORM_GET, link.ifindex);
         g_assert(plink);
+        g_assert(!nm_platform_link_get_permanent_address(NM_PLATFORM_GET, plink, &hw_perm_addr));
+        g_assert_cmpint(_nm_platform_link_get_inet6_addr_gen_mode(plink),
+                        ==,
+                        NM_IN6_ADDR_GEN_MODE_NONE);
         g_assert_cmpint(_nm_platform_uint8_inv(plink->inet6_addr_gen_mode_inv),
                         ==,
                         NM_IN6_ADDR_GEN_MODE_NONE);
 
         g_assert(NMTST_NM_ERR_SUCCESS(
-            nm_platform_link_set_user_ipv6ll_enabled(NM_PLATFORM_GET, link.ifindex, FALSE)));
-        g_assert(!nm_platform_link_get_user_ipv6ll_enabled(NM_PLATFORM_GET, link.ifindex));
+            nm_platform_link_set_inet6_addr_gen_mode(NM_PLATFORM_GET,
+                                                     link.ifindex,
+                                                     NM_IN6_ADDR_GEN_MODE_EUI64)));
+        g_assert_cmpint(nm_platform_link_get_inet6_addr_gen_mode(NM_PLATFORM_GET, link.ifindex),
+                        ==,
+                        NM_IN6_ADDR_GEN_MODE_EUI64);
         plink = nm_platform_link_get(NM_PLATFORM_GET, link.ifindex);
         g_assert(plink);
+        g_assert(!nm_platform_link_get_permanent_address(NM_PLATFORM_GET, plink, &hw_perm_addr));
+        g_assert_cmpint(_nm_platform_link_get_inet6_addr_gen_mode(plink),
+                        ==,
+                        NM_IN6_ADDR_GEN_MODE_EUI64);
         g_assert_cmpint(_nm_platform_uint8_inv(plink->inet6_addr_gen_mode_inv),
                         ==,
                         NM_IN6_ADDR_GEN_MODE_EUI64);
@@ -730,6 +753,7 @@ static void
 test_external(void)
 {
     const NMPlatformLink *pllink;
+    NMPLinkAddress        hw_perm_addr;
     SignalData *          link_added, *link_changed, *link_removed;
     int                   ifindex;
 
@@ -758,6 +782,7 @@ test_external(void)
 
     pllink = nm_platform_link_get(NM_PLATFORM_GET, ifindex);
     g_assert(pllink);
+    g_assert(!nm_platform_link_get_permanent_address(NM_PLATFORM_GET, pllink, &hw_perm_addr));
     if (!pllink->initialized) {
         /* we still lack the notification via UDEV. Expect another link changed signal. */
         wait_signal(link_changed);
@@ -1488,7 +1513,7 @@ test_software_detect(gconstpointer user_data)
          * The fix (17af2bce) is included kernel 4.7, dated 24 July, 2016.
          */
         for (i = ifindex_parent + 1; i < ifindex_parent + 100; i++) {
-            snprintf(buf, sizeof(buf), "/sys/class/macvtap/tap%d", i);
+            g_snprintf(buf, sizeof(buf), "/sys/class/macvtap/tap%d", i);
             if (!g_file_test(buf, G_FILE_TEST_IS_SYMLINK))
                 break;
 
@@ -2522,6 +2547,7 @@ test_nl_bugs_veth(void)
     const NMPlatformLink *pllink_veth0, *pllink_veth1;
     gs_free_error GError * error     = NULL;
     NMTstpNamespaceHandle *ns_handle = NULL;
+    NMPLinkAddress         hw_perm_addr;
 
     /* create veth pair. */
     ifindex_veth0 = nmtstp_link_veth_add(NM_PLATFORM_GET, -1, IFACE_VETH0, IFACE_VETH1)->ifindex;
@@ -2538,6 +2564,7 @@ test_nl_bugs_veth(void)
     /* assert that NMPlatformLink.parent is the peer-ifindex. */
     pllink_veth0 = nm_platform_link_get(NM_PLATFORM_GET, ifindex_veth0);
     g_assert(pllink_veth0);
+    g_assert(!nm_platform_link_get_permanent_address(NM_PLATFORM_GET, pllink_veth0, &hw_perm_addr));
     if (pllink_veth0->parent == 0) {
         /* Kernels prior to 4.1 dated 21 June, 2015 don't support exposing the veth peer
          * as IFA_LINK. skip the remainder of the test. */
@@ -2549,6 +2576,7 @@ test_nl_bugs_veth(void)
      * https://bugzilla.redhat.com/show_bug.cgi?id=1285827 in place. */
     pllink_veth1 = nm_platform_link_get(NM_PLATFORM_GET, ifindex_veth1);
     g_assert(pllink_veth1);
+    g_assert(!nm_platform_link_get_permanent_address(NM_PLATFORM_GET, pllink_veth1, &hw_perm_addr));
     g_assert_cmpint(pllink_veth1->parent, ==, ifindex_veth0);
 
     /* move one veth peer to another namespace and check that the
@@ -2588,6 +2616,7 @@ test_nl_bugs_spuroius_newlink(void)
     const char *          IFACE_DUMMY0 = "nm-test-dummy0";
     int                   ifindex_bond0, ifindex_dummy0;
     const NMPlatformLink *pllink;
+    NMPLinkAddress        hw_perm_addr;
     gboolean              wait_for_settle;
 
     /* see https://bugzilla.redhat.com/show_bug.cgi?id=1285719 */
@@ -2609,6 +2638,7 @@ test_nl_bugs_spuroius_newlink(void)
 
         pllink = nm_platform_link_get(NM_PLATFORM_GET, ifindex_dummy0);
         g_assert(pllink);
+        g_assert(!nm_platform_link_get_permanent_address(NM_PLATFORM_GET, pllink, &hw_perm_addr));
         if (pllink->master == ifindex_bond0)
             break;
     });
@@ -2621,6 +2651,7 @@ again:
     nm_platform_process_events(NM_PLATFORM_GET);
     pllink = nm_platform_link_get(NM_PLATFORM_GET, ifindex_bond0);
     g_assert(!pllink);
+    g_assert(!nm_platform_link_get_permanent_address(NM_PLATFORM_GET, pllink, &hw_perm_addr));
 
     if (wait_for_settle) {
         wait_for_settle = FALSE;
@@ -2641,6 +2672,7 @@ test_nl_bugs_spuroius_dellink(void)
     const char *          IFACE_DUMMY0  = "nm-test-dummy0";
     int                   ifindex_bridge0, ifindex_dummy0;
     const NMPlatformLink *pllink;
+    NMPLinkAddress        hw_perm_addr;
     gboolean              wait_for_settle;
 
     /* see https://bugzilla.redhat.com/show_bug.cgi?id=1285719 */
@@ -2663,6 +2695,7 @@ test_nl_bugs_spuroius_dellink(void)
 
         pllink = nm_platform_link_get(NM_PLATFORM_GET, ifindex_dummy0);
         g_assert(pllink);
+        g_assert(!nm_platform_link_get_permanent_address(NM_PLATFORM_GET, pllink, &hw_perm_addr));
         if (pllink->master == ifindex_bridge0)
             break;
     });
@@ -2677,8 +2710,10 @@ again:
     nm_platform_process_events(NM_PLATFORM_GET);
     pllink = nm_platform_link_get(NM_PLATFORM_GET, ifindex_bridge0);
     g_assert(pllink);
+    g_assert(!nm_platform_link_get_permanent_address(NM_PLATFORM_GET, pllink, &hw_perm_addr));
     pllink = nm_platform_link_get(NM_PLATFORM_GET, ifindex_dummy0);
     g_assert(pllink);
+    g_assert(!nm_platform_link_get_permanent_address(NM_PLATFORM_GET, pllink, &hw_perm_addr));
     g_assert_cmpint(pllink->parent, ==, 0);
 
     if (wait_for_settle) {
@@ -2716,7 +2751,7 @@ _test_netns_create_platform(void)
     netns = nmp_netns_new();
     g_assert(NMP_IS_NETNS(netns));
 
-    platform = nm_linux_platform_new(TRUE, TRUE);
+    platform = nm_linux_platform_new(TRUE, TRUE, TRUE);
     g_assert(NM_IS_LINUX_PLATFORM(platform));
 
     nmp_netns_pop(netns);
@@ -2805,7 +2840,7 @@ test_netns_general(gpointer fixture, gconstpointer test_data)
     if (_check_sysctl_skip())
         return;
 
-    platform_1 = nm_linux_platform_new(TRUE, TRUE);
+    platform_1 = nm_linux_platform_new(TRUE, TRUE, TRUE);
     platform_2 = _test_netns_create_platform();
 
     /* add some dummy devices. The "other-*" devices are there to bump the ifindex */
@@ -2933,7 +2968,7 @@ test_netns_set_netns(gpointer fixture, gconstpointer test_data)
     if (_test_netns_check_skip())
         return;
 
-    platforms[0] = platform_0 = nm_linux_platform_new(TRUE, TRUE);
+    platforms[0] = platform_0 = nm_linux_platform_new(TRUE, TRUE, TRUE);
     platforms[1] = platform_1 = _test_netns_create_platform();
     platforms[2] = platform_2 = _test_netns_create_platform();
 
@@ -3032,7 +3067,7 @@ test_netns_push(gpointer fixture, gconstpointer test_data)
     if (_check_sysctl_skip())
         return;
 
-    pl[0].platform = platform_0 = nm_linux_platform_new(TRUE, TRUE);
+    pl[0].platform = platform_0 = nm_linux_platform_new(TRUE, TRUE, TRUE);
     pl[1].platform = platform_1 = _test_netns_create_platform();
     pl[2].platform = platform_2 = _test_netns_create_platform();
 
@@ -3179,7 +3214,7 @@ test_netns_bind_to_path(gpointer fixture, gconstpointer test_data)
     if (_test_netns_check_skip())
         return;
 
-    platforms[0] = platform_0 = nm_linux_platform_new(TRUE, TRUE);
+    platforms[0] = platform_0 = nm_linux_platform_new(TRUE, TRUE, TRUE);
     platforms[1] = platform_1 = _test_netns_create_platform();
     platforms[2] = platform_2 = _test_netns_create_platform();
 
@@ -3344,7 +3379,7 @@ test_sysctl_netns_switch(void)
     if (_test_netns_check_skip())
         return;
 
-    platforms[0] = platform_0 = nm_linux_platform_new(TRUE, TRUE);
+    platforms[0] = platform_0 = nm_linux_platform_new(TRUE, TRUE, TRUE);
     platforms[1] = platform_1 = _test_netns_create_platform();
     platforms[2] = platform_2 = _test_netns_create_platform();
     PL                        = platforms[nmtst_get_rand_uint32() % 3];

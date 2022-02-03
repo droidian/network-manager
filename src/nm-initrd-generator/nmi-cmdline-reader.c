@@ -364,7 +364,7 @@ reader_read_all_connections_from_fw(Reader *reader, const char *sysfs_dir)
     gs_free const char **          keys = NULL;
 
     ibft = nmi_ibft_read(sysfs_dir);
-    keys = nm_utils_strdict_get_keys(ibft, TRUE, &length);
+    keys = nm_strdict_get_keys(ibft, TRUE, &length);
 
     for (i = 0; i < length; i++) {
         gs_unref_object NMConnection *connection = NULL;
@@ -394,6 +394,121 @@ reader_read_all_connections_from_fw(Reader *reader, const char *sysfs_dir)
         reader_add_connection(reader, "ofw", dt_connection);
 }
 
+#define _strv_is_same_unordered(strv, ...) \
+    nm_strv_is_same_unordered(NM_CAST_STRV_CC(strv), -1, NM_MAKE_STRV(__VA_ARGS__), -1)
+
+static void
+_strv_remove(const char **strv, const char *needle)
+{
+    gssize idx;
+    gsize  len;
+    gsize  i;
+
+    idx = nm_strv_find_first(strv, -1, needle);
+    if (idx < 0)
+        return;
+
+    /* Remove element at idx, by shifting the remaining ones
+     * (including the terminating NULL). */
+    len = NM_PTRARRAY_LEN(strv);
+    for (i = idx; i < len; i++)
+        strv[i] = strv[i + 1];
+}
+
+static const char *
+_parse_ip_method(const char *kind)
+{
+    const char *const KINDS[] = {
+        "none",
+        "dhcp",
+        "dhcp6",
+        "link6",
+        "auto",
+        "ibft",
+    };
+    gs_free char *       kind_to_free = NULL;
+    gs_free const char **strv         = NULL;
+    gsize                i;
+
+    kind = nm_strstrip_avoid_copy_a(300, kind, &kind_to_free);
+
+    if (nm_str_is_empty(kind)) {
+        /* Dracut defaults empty/missing to "dhcp". We treat them differently, as it
+         * depends on whether we have IP addresses too.
+         * https://github.com/dracutdevs/dracut/blob/3cc9f1c10c67dcdb5254e0eb69f19e9ab22abf20/modules.d/35network-legacy/parse-ip-opts.sh#L62 */
+        return "auto";
+    }
+
+    for (i = 0; i < G_N_ELEMENTS(KINDS); i++) {
+        if (nm_streq(kind, KINDS[i]))
+            return KINDS[i];
+    }
+
+    /* the following are (currently) treated as aliases. */
+    if (nm_streq(kind, "fw"))
+        return "ibft";
+    if (nm_streq(kind, "single-dhcp"))
+        return "dhcp";
+    if (nm_streq(kind, "off"))
+        return "none";
+    if (nm_streq(kind, "auto6"))
+        return "dhcp6";
+    if (NM_IN_STRSET(kind, "on", "any"))
+        return "auto";
+
+    if (!strchr(kind, ','))
+        return NULL;
+
+    /* dracut also supports combinations, separated by comma. We don't
+     * support arbitrary combinations, but accept specific subsets. */
+    strv = nm_strsplit_set_full(kind, ",", NM_STRSPLIT_SET_FLAGS_STRSTRIP);
+    if (!strv)
+        return NULL;
+
+    /* first normalize the strv array by replacing all entries by their
+     * normalized kind. */
+    for (i = 0; strv[i]; i++) {
+        strv[i] = _parse_ip_method(strv[i]);
+        if (!strv[i]) {
+            /* Unknown key. Not recognized.  */
+            return NULL;
+        }
+    }
+
+    /* sort list and remove duplicates. */
+    nm_strv_sort(strv, -1);
+    nm_strv_cleanup_const(strv, TRUE, TRUE);
+
+    if (nm_strv_find_first(strv, -1, "auto") >= 0) {
+        /* if "auto" is present, then "dhcp4", "dhcp6", and "local6" is implied. */
+        _strv_remove(strv, "dhcp4");
+        _strv_remove(strv, "dhcp6");
+        _strv_remove(strv, "local6");
+    } else if (nm_strv_find_first(strv, -1, "dhcp6") >= 0) {
+        /* if "dhcp6" is present, then "local6" is implied. */
+        _strv_remove(strv, "local6");
+    }
+
+    if (strv[0] && !strv[1]) {
+        /* there is only one value left. It's good. */
+        return strv[0];
+    }
+
+    /* only certain combinations are allowed... those are listed
+     * and mapped to a canonical value.
+     */
+    if (_strv_is_same_unordered(strv, "dhcp", "dhcp6"))
+        return "dhcp4+auto6";
+    /* For the moment, this maps to "auto". This might be revisited
+     * in the future to add new kinds like "dhcp+local6"
+     */
+    if (_strv_is_same_unordered(strv, "dhcp", "local6"))
+        return "auto";
+
+    /* undetected. */
+    return NULL;
+}
+
 static void
 reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
 {
@@ -403,7 +518,8 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
     gs_unref_hashtable GHashTable *ibft = NULL;
     const char *                   tmp;
     const char *                   tmp2;
-    const char *                   kind                       = NULL;
+    const char *                   tmp3;
+    const char *                   kind;
     const char *                   client_ip                  = NULL;
     const char *                   peer                       = NULL;
     const char *                   gateway_ip                 = NULL;
@@ -432,24 +548,17 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
     tmp = get_word(&argument, ':');
     if (!*argument) {
         /* ip={dhcp|on|any|dhcp6|auto6|link6|ibft} */
-        kind = tmp;
+        kind = _parse_ip_method(tmp);
+        if (!kind) {
+            /* invalid method. We treat it as "auto". */
+            kind = "auto";
+        }
     } else {
         tmp2 = get_word(&argument, ':');
-        if (NM_IN_STRSET(tmp2,
-                         "none",
-                         "off",
-                         "dhcp",
-                         "single-dhcp",
-                         "on"
-                         "any",
-                         "dhcp6",
-                         "auto",
-                         "auto6",
-                         "link6",
-                         "ibft")) {
+        if (!nm_str_is_empty(tmp2) && (tmp3 = _parse_ip_method(tmp2))) {
             /* <ifname>:{none|off|dhcp|on|any|dhcp6|auto|auto6|link6|ibft} */
             iface_spec = tmp;
-            kind       = tmp2;
+            kind       = tmp3;
         } else {
             /* <client-IP>:[<peer>]:<gateway-IP>:<netmask>:<client_hostname>:<kind> */
             client_ip = tmp;
@@ -466,7 +575,12 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
             netmask         = get_word(&argument, ':');
             client_hostname = get_word(&argument, ':');
             iface_spec      = get_word(&argument, ':');
-            kind            = get_word(&argument, ':');
+            tmp2            = get_word(&argument, ':');
+            kind            = _parse_ip_method(tmp2);
+            if (!kind) {
+                /* invalid method. We treat that as "auto". */
+                kind = "auto";
+            }
         }
 
         if (client_hostname && !nm_sd_hostname_is_valid(client_hostname, FALSE))
@@ -495,7 +609,7 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
         }
     }
 
-    if (iface_spec == NULL && NM_IN_STRSET(kind, "fw", "ibft")) {
+    if (iface_spec == NULL && nm_streq(kind, "ibft")) {
         reader_read_all_connections_from_fw(reader, sysfs_dir);
         return;
     }
@@ -592,7 +706,7 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
     }
 
     /* Dynamic IP configuration configured explicitly. */
-    if (NM_IN_STRSET(kind, "none", "off")) {
+    if (nm_streq(kind, "none")) {
         if (nm_setting_ip_config_get_num_addresses(s_ip6) == 0) {
             g_object_set(s_ip6,
                          NM_SETTING_IP_CONFIG_METHOD,
@@ -605,7 +719,7 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
                          NM_SETTING_IP4_CONFIG_METHOD_DISABLED,
                          NULL);
         }
-    } else if (NM_IN_STRSET(kind, "dhcp", "single-dhcp")) {
+    } else if (nm_streq(kind, "dhcp")) {
         g_object_set(s_ip4,
                      NM_SETTING_IP_CONFIG_METHOD,
                      NM_SETTING_IP4_CONFIG_METHOD_AUTO,
@@ -618,7 +732,7 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
                          NM_SETTING_IP6_CONFIG_METHOD_AUTO,
                          NULL);
         }
-    } else if (NM_IN_STRSET(kind, "auto6", "dhcp6")) {
+    } else if (nm_streq(kind, "dhcp6")) {
         g_object_set(s_ip6,
                      NM_SETTING_IP_CONFIG_METHOD,
                      NM_SETTING_IP6_CONFIG_METHOD_AUTO,
@@ -631,7 +745,17 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
                          NM_SETTING_IP4_CONFIG_METHOD_DISABLED,
                          NULL);
         }
-    } else if (nm_streq0(kind, "link6")) {
+    } else if (nm_streq(kind, "dhcp4+auto6")) {
+        /* Both DHCPv4 and IPv6 autoconf are enabled, and
+         * each of them is tried for at least IP_REQUIRED_TIMEOUT_MSEC,
+         * even if the other one completes before.
+         */
+        clear_ip4_required_timeout = FALSE;
+        g_object_set(s_ip6,
+                     NM_SETTING_IP_CONFIG_REQUIRED_TIMEOUT,
+                     NMI_IP_REQUIRED_TIMEOUT_MSEC,
+                     NULL);
+    } else if (nm_streq(kind, "link6")) {
         g_object_set(s_ip6,
                      NM_SETTING_IP_CONFIG_METHOD,
                      NM_SETTING_IP6_CONFIG_METHOD_LINK_LOCAL,
@@ -644,7 +768,7 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
                          NM_SETTING_IP4_CONFIG_METHOD_DISABLED,
                          NULL);
         }
-    } else if (nm_streq0(kind, "ibft")) {
+    } else if (nm_streq(kind, "ibft")) {
         NMSettingWired *s_wired;
         const char *    mac = NULL;
         const char *    ifname;
@@ -684,6 +808,7 @@ reader_parse_ip(Reader *reader, const char *sysfs_dir, char *argument)
             }
         }
     } else {
+        nm_assert(nm_streq(kind, "auto"));
         clear_ip4_required_timeout = FALSE;
     }
 
@@ -1059,60 +1184,60 @@ reader_parse_rd_znet(Reader *reader, char *argument, gboolean net_ifnames)
 static void
 reader_parse_ethtool(Reader *reader, char *argument)
 {
-    const char *    interface   = NULL;
-    NMConnection *  connection  = NULL;
-    NMSettingWired *s_wired     = NULL;
-    const char *    autoneg_str = NULL;
-    gboolean        autoneg     = FALSE;
-    const char *    speed_str   = NULL;
-    guint           speed       = 0;
+    NMConnection *  connection;
+    NMSettingWired *s_wired;
+    const char *    autoneg_str;
+    const char *    speed_str;
+    const char *    interface;
+    int             autoneg;
+    guint           speed;
 
     interface = get_word(&argument, ':');
     if (!interface) {
-        _LOGW(LOGD_CORE, "Impossible to set rd.ethtool options: invalid format");
+        _LOGW(LOGD_CORE, "rd.ethtool: interface unspecified. Ignore");
         return;
     }
-
-    if (!*argument) {
-        _LOGW(LOGD_CORE, "Could not find rd.ethtool options to set");
-        return;
-    }
-
-    connection = reader_get_connection(reader, interface, NM_SETTING_WIRED_SETTING_NAME, TRUE);
-    s_wired    = nm_connection_get_setting_wired(connection);
 
     autoneg_str = get_word(&argument, ':');
+    speed_str   = get_word(&argument, ':');
+
+    autoneg = -1;
     if (autoneg_str) {
         autoneg = _nm_utils_ascii_str_to_bool(autoneg_str, -1);
         if (autoneg == -1)
-            _LOGW(LOGD_CORE,
-                  "Invalid value for rd.ethtool.autoneg, rd.ethtool.autoneg was not set");
-        else
-            g_object_set(s_wired, NM_SETTING_WIRED_AUTO_NEGOTIATE, autoneg, NULL);
+            _LOGW(LOGD_CORE, "rd.ethtool: autoneg invalid. Must be boolean or empty");
     }
-    if (!*argument)
-        return;
 
-    speed_str = get_word(&argument, ':');
+    speed = 0;
     if (speed_str) {
-        speed = _nm_utils_ascii_str_to_int64(speed_str, 10, 0, G_MAXUINT32, -1);
-        if (speed == -1)
-            _LOGW(LOGD_CORE, "Invalid value for rd.ethtool.speed, rd.ethtool.speed was not set");
-        else
-            g_object_set(s_wired,
-                         NM_SETTING_WIRED_SPEED,
-                         speed,
-                         NM_SETTING_WIRED_DUPLEX,
-                         "full",
-                         NULL);
+        speed = _nm_utils_ascii_str_to_int64(speed_str, 10, 0, G_MAXUINT32, 0);
+        if (errno)
+            _LOGW(LOGD_CORE, "rd.ethtool: speed invalid. Must be an integer or empty");
     }
 
-    if (!*argument)
-        return;
-    else
+    if (speed == 0 && autoneg == FALSE) {
         _LOGW(LOGD_CORE,
-              "Invalid extra argument '%s' for rd.ethtool, this value was not set",
-              argument);
+              "rd.ethtool: autoneg ignored. Cannot disable autoneg without setting speed");
+    }
+
+    connection = reader_get_connection(reader, interface, NM_SETTING_WIRED_SETTING_NAME, TRUE);
+
+    if (autoneg != -1 || speed != 0) {
+        if (autoneg == -1)
+            autoneg = FALSE;
+        s_wired = nm_connection_get_setting_wired(connection);
+        g_object_set(s_wired,
+                     NM_SETTING_WIRED_AUTO_NEGOTIATE,
+                     (gboolean) autoneg,
+                     NM_SETTING_WIRED_SPEED,
+                     speed,
+                     NM_SETTING_WIRED_DUPLEX,
+                     speed == 0 ? NULL : "full",
+                     NULL);
+    }
+
+    if (*argument)
+        _LOGW(LOGD_CORE, "rd.ethtool: extra argument ignored");
 }
 
 static void
@@ -1239,7 +1364,7 @@ nmi_cmdline_reader_parse(const char *       sysfs_dir,
                 _nm_utils_ascii_str_to_int64(argument, 10, 1, G_MAXINT32, dhcp_num_tries);
         } else if (nm_streq(tag, "rd.net.dhcp.vendor-class")) {
             if (nm_utils_validate_dhcp4_vendor_class_id(argument, NULL))
-                nm_utils_strdup_reset(&reader->dhcp4_vci, argument);
+                nm_strdup_reset(&reader->dhcp4_vci, argument);
         } else if (nm_streq(tag, "rd.net.timeout.carrier")) {
             reader->carrier_timeout_sec =
                 _nm_utils_ascii_str_to_int64(argument, 10, 0, G_MAXINT32, 0);

@@ -44,16 +44,19 @@ typedef void (*free_func_t)(void *p);
 
 #define malloc0(n) (calloc(1, (n) ?: 1))
 
-static inline void *mfree(void *memory) {
-        free(memory);
-        return NULL;
-}
+#define mfree(memory)                           \
+        ({                                      \
+                free(memory);                   \
+                (typeof(memory)) NULL;          \
+        })
 
 #define free_and_replace(a, b)                  \
         ({                                      \
-                free(a);                        \
-                (a) = (b);                      \
-                (b) = NULL;                     \
+                typeof(a)* _a = &(a);           \
+                typeof(b)* _b = &(b);           \
+                free(*_a);                      \
+                (*_a) = (*_b);                  \
+                (*_b) = NULL;                   \
                 0;                              \
         })
 
@@ -78,6 +81,13 @@ void* memdup_suffix0(const void *p, size_t l); /* We can't use _alloc_() here, s
                 ((uint8_t*) _q_)[_l_] = 0;      \
                 memcpy_safe(_q_, p, _l_);       \
         })
+
+static inline void unsetp(void *p) {
+        /* A trivial "destructor" that can be used in cases where we want to
+         * unset a pointer from a _cleanup_ function. */
+
+        *(void**)p = NULL;
+}
 
 static inline void freep(void *p) {
         *(void**)p = mfree(*(void**) p);

@@ -85,14 +85,14 @@ send_rs(NMNDisc *ndisc, GError **error)
 static NMIcmpv6RouterPref
 _route_preference_coerce(enum ndp_route_preference pref)
 {
-#define _ASSERT_ENUM(v1, v2)                                       \
-    G_STMT_START                                                   \
-    {                                                              \
-        G_STATIC_ASSERT((NMIcmpv6RouterPref) (v1) == (v2));        \
-        G_STATIC_ASSERT((enum ndp_route_preference) (v2) == (v1)); \
-        G_STATIC_ASSERT((gint64) (v1) == (v2));                    \
-        G_STATIC_ASSERT((gint64) (v2) == (v1));                    \
-    }                                                              \
+#define _ASSERT_ENUM(v1, v2)                                      \
+    G_STMT_START                                                  \
+    {                                                             \
+        G_STATIC_ASSERT((NMIcmpv6RouterPref) (v1) == (v2));       \
+        G_STATIC_ASSERT((enum ndp_route_preference)(v2) == (v1)); \
+        G_STATIC_ASSERT((gint64) (v1) == (v2));                   \
+        G_STATIC_ASSERT((gint64) (v2) == (v1));                   \
+    }                                                             \
     G_STMT_END
 
     switch (pref) {
@@ -599,9 +599,7 @@ start(NMNDisc *ndisc)
 
     fd = ndp_get_eventfd(priv->ndp);
 
-    priv->event_source =
-        nm_g_unix_fd_source_new(fd, G_IO_IN, G_PRIORITY_DEFAULT, event_ready, ndisc, NULL);
-    g_source_attach(priv->event_source, NULL);
+    priv->event_source = nm_g_unix_fd_add_source(fd, G_IO_IN, event_ready, ndisc);
 
     /* Flush any pending messages to avoid using obsolete information */
     event_ready(fd, 0, ndisc);
@@ -662,69 +660,6 @@ static void
 stop(NMNDisc *ndisc)
 {
     _cleanup(ndisc);
-}
-
-/*****************************************************************************/
-
-static int
-ipv6_sysctl_get(NMPlatform *platform,
-                const char *ifname,
-                const char *property,
-                int         min,
-                int         max,
-                int         defval)
-{
-    return nm_platform_sysctl_ip_conf_get_int_checked(platform,
-                                                      AF_INET6,
-                                                      ifname,
-                                                      property,
-                                                      10,
-                                                      min,
-                                                      max,
-                                                      defval);
-}
-
-void
-nm_lndp_ndisc_get_sysctl(NMPlatform *platform,
-                         const char *ifname,
-                         int *       out_max_addresses,
-                         int *       out_router_solicitations,
-                         int *       out_router_solicitation_interval,
-                         guint32 *   out_default_ra_timeout)
-{
-    int router_solicitation_interval = 0;
-    int router_solicitations         = 0;
-
-    if (out_max_addresses) {
-        *out_max_addresses = ipv6_sysctl_get(platform,
-                                             ifname,
-                                             "max_addresses",
-                                             0,
-                                             G_MAXINT32,
-                                             NM_NDISC_MAX_ADDRESSES_DEFAULT);
-    }
-    if (out_router_solicitations || out_default_ra_timeout) {
-        router_solicitations = ipv6_sysctl_get(platform,
-                                               ifname,
-                                               "router_solicitations",
-                                               1,
-                                               G_MAXINT32,
-                                               NM_NDISC_ROUTER_SOLICITATIONS_DEFAULT);
-        NM_SET_OUT(out_router_solicitations, router_solicitations);
-    }
-    if (out_router_solicitation_interval || out_default_ra_timeout) {
-        router_solicitation_interval = ipv6_sysctl_get(platform,
-                                                       ifname,
-                                                       "router_solicitation_interval",
-                                                       1,
-                                                       G_MAXINT32,
-                                                       NM_NDISC_RFC4861_RTR_SOLICITATION_INTERVAL);
-        NM_SET_OUT(out_router_solicitation_interval, router_solicitation_interval);
-    }
-    if (out_default_ra_timeout) {
-        *out_default_ra_timeout =
-            NM_MAX((((gint64) router_solicitations) * router_solicitation_interval) + 1, 30);
-    }
 }
 
 /*****************************************************************************/

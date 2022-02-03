@@ -91,7 +91,7 @@
 <td>
 <p>
             Alias: autoconnect</p>
-<p>Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection. Note that autoconnect is not implemented for VPN profiles. See "secondaries" as an alternative to automatically connect VPN profiles.</p>
+<p>Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection. Autoconnect happens when the circumstances are suitable. That means for example that the device is currently managed and not active. Autoconnect thus never replaces or competes with an already active profile. Note that autoconnect is not implemented for VPN profiles. See "secondaries" as an alternative to automatically connect VPN profiles.</p>
 <p>
             Format: boolean</p>
 </td>
@@ -99,7 +99,7 @@
 <tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.connection.autoconnect-priority"></a>autoconnect-priority</code></span></p></td>
 <td>
-<p>The autoconnect priority. If the connection is set to autoconnect, connections with higher priority will be preferred. Defaults to 0. The higher number means higher priority.</p>
+<p>The autoconnect priority in range -999 to 999. If the connection is set to autoconnect, connections with higher priority will be preferred. The higher number means higher priority. Defaults to 0. Note that this property only matters if there are more than one candidate profile to select for autoconnect. In case of equal priority, the profile used most recently is chosen.</p>
 <p>
             Format: int32</p>
 </td>
@@ -118,6 +118,14 @@
 <p>Whether or not slaves of this connection should be automatically brought up when NetworkManager activates this connection. This only has a real effect for master connections. The properties "autoconnect", "autoconnect-priority" and "autoconnect-retries" are unrelated to this setting. The permitted values are: 0: leave slave connections untouched, 1: activate all the slave connections with this connection, -1: default. If -1 (default) is set, global connection.autoconnect-slaves is read to determine the real value. If it is default as well, this fallbacks to 0.</p>
 <p>
             Format: NMSettingConnectionAutoconnectSlaves (int32)</p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.connection.dns-over-tls"></a>dns-over-tls</code></span></p></td>
+<td>
+<p>Whether DNSOverTls (dns-over-tls) is enabled for the connection. DNSOverTls is a technology which uses TLS to encrypt dns traffic. The permitted values are: "yes" (2) use DNSOverTls and disabled fallback, "opportunistic" (1) use DNSOverTls but allow fallback to unencrypted resolution, "no" (0) don't ever use DNSOverTls. If unspecified "default" depends on the plugin used. Systemd-resolved uses global setting. This feature requires a plugin which supports DNSOverTls. Otherwise, the setting has no effect. One such plugin is dns-systemd-resolved.</p>
+<p>
+            Format: int32</p>
 </td>
 </tr>
 <tr>
@@ -374,8 +382,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.802-1x.ca-cert-password-flags"></a>ca-cert-password-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "ca-cert-password" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -408,8 +416,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.802-1x.client-cert-password-flags"></a>client-cert-password-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "client-cert-password" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -474,8 +482,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.802-1x.password-flags"></a>password-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "password" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -492,8 +500,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.802-1x.password-raw-flags"></a>password-raw-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "password-raw" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -574,8 +582,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.802-1x.phase2-ca-cert-password-flags"></a>phase2-ca-cert-password-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "phase2-ca-cert-password" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -608,8 +616,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.802-1x.phase2-client-cert-password-flags"></a>phase2-client-cert-password-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "phase2-client-cert-password" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -650,8 +658,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.802-1x.phase2-private-key-password-flags"></a>phase2-private-key-password-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "phase2-private-key-password" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -676,8 +684,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.802-1x.pin-flags"></a>pin-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "pin" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -702,8 +710,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.802-1x.private-key-password-flags"></a>private-key-password-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "private-key-password" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -764,8 +772,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.adsl.password-flags"></a>password-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "password" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -1214,8 +1222,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.cdma.password-flags"></a>password-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "password" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -1257,7 +1265,7 @@
 <tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.dcb.app-fcoe-mode"></a>app-fcoe-mode</code></span></p></td>
 <td>
-<p>The FCoE controller mode; either "fabric" (default) or "vn2vn".</p>
+<p>The FCoE controller mode; either "fabric" or "vn2vn". Since 1.34, NULL is the default and means "fabric". Before 1.34, NULL was rejected as invalid and the default was "fabric".</p>
 <p>
             Format: string</p>
 </td>
@@ -1818,8 +1826,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.gsm.password-flags"></a>password-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "password" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -1836,8 +1844,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.gsm.pin-flags"></a>pin-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "pin" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -2550,8 +2558,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.macsec.mka-cak-flags"></a>mka-cak-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "mka-cak" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -3148,8 +3156,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.pppoe.password-flags"></a>password-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "password" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -3345,17 +3353,424 @@
 <tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.tc.qdiscs"></a>qdiscs</code></span></p></td>
 <td>
-<p>Array of TC queueing disciplines. When the "tc" setting is present, qdiscs from this property are applied upon activation. If the property is empty, all qdiscs are removed and the device will only have the default qdisc assigned by kernel according to the "net.core.default_qdisc" sysctl. If the "tc" setting is not present, NetworkManager doesn't touch the qdiscs present on the interface.</p>
 <p>
-            Format: array of vardict</p>
+Array of TC queueing disciplines. qdisc is a basic block in the
+Linux traffic control subsystem
+</p>
+<p>
+Each qdisc can be specified by the following attributes:
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term">
+<code class="varname">handle HANDLE</code>
+</span></p></td>
+<td><p>
+specifies the qdisc handle. A qdisc, which potentially can have children, gets
+assigned a major number, called a 'handle', leaving the minor number namespace
+available for classes. The handle is expressed as '10:'. It is customary to
+explicitly assign a handle to qdiscs expected to have children.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">parent HANDLE</code>
+</span></p></td>
+<td><p>
+specifies the handle of the parent qdisc the current qdisc must be
+attached to.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">root</code>
+</span></p></td>
+<td><p>
+specifies that the qdisc is attached to the root of device.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">KIND</code>
+</span></p></td>
+<td><p>
+this is the qdisc kind. NetworkManager currently supports the
+following kinds: fq_codel, sfq, tbf. Each qdisc kind has a
+different set of parameters, described below. There are also some
+kinds like pfifo, pfifo_fast, prio supported by NetworkManager
+but their parameters are not supported by NetworkManager.
+</p></td>
+</tr>
+</tbody>
+</table></div>
+<p>
+Parameters for 'fq_codel':
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term">
+<code class="varname">limit U32</code>
+</span></p></td>
+<td><p>
+the hard limit on the real queue size.  When this limit is
+reached, incoming packets are dropped. Default is 10240 packets.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">memory_limit U32</code>
+</span></p></td>
+<td><p>
+sets a limit on the total number of bytes that can be queued in
+this FQ-CoDel instance. The lower of the packet limit of the
+limit parameter and the memory limit will be enforced. Default is
+32 MB.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">flows U32</code>
+</span></p></td>
+<td><p>
+the number of flows into which the incoming packets are
+classified. Due to the stochastic nature of hashing, multiple
+flows may end up being hashed into the same slot. Newer flows
+have priority over older ones. This parameter can be set only at
+load time since memory has to be allocated for the hash table.
+Default value is 1024.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">target U32</code>
+</span></p></td>
+<td><p>
+the acceptable minimum standing/persistent queue delay. This minimum
+delay is identified by tracking the local minimum queue delay that packets
+experience. The unit of measurement is microsecond(us). Default value is 5ms.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">interval U32</code>
+</span></p></td>
+<td><p>
+used to ensure that the measured minimum delay does not become too stale.
+The minimum delay must be experienced in the last epoch of length .B
+interval.  It should be set on the order of the worst-case RTT
+through the bottleneck to give endpoints sufficient time to
+react. Default value is 100ms.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">quantum U32</code>
+</span></p></td>
+<td><p>
+the number of bytes used as 'deficit' in the fair queuing
+algorithm. Default is set to 1514 bytes which corresponds to the
+Ethernet MTU plus the hardware header length of 14 bytes.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">ecn BOOL</code>
+</span></p></td>
+<td><p>
+can be used to mark packets instead of dropping them. ecn is turned
+on by default.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">ce_threshold U32</code>
+</span></p></td>
+<td><p>
+sets a threshold above which all packets are marked with ECN
+Congestion Experienced. This is useful for DCTCP-style congestion
+control algorithms that require marking at very shallow queueing
+thresholds.
+</p></td>
+</tr>
+</tbody>
+</table></div>
+<p>
+Parameters for 'sfq':
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term">
+<code class="varname">divisor U32</code>
+</span></p></td>
+<td><p>
+can be used to set a different hash table size, available
+from kernel 2.6.39 onwards.  The specified divisor must be
+a power of two and cannot be larger than 65536.  Default
+value: 1024.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">limit U32</code>
+</span></p></td>
+<td><p>
+Upper limit of the SFQ. Can be used to reduce the default
+length of 127 packets.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">depth U32</code>
+</span></p></td>
+<td><p>
+Limit of packets per flow. Default to
+127 and can be lowered.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">perturb_period U32</code>
+</span></p></td>
+<td><p>
+Interval in seconds for queue algorithm perturbation.
+Defaults to 0, which means that no perturbation occurs. Do
+not set too low for each perturbation may cause some
+packet reordering or losses. Advised value: 60 This value
+has no effect when external flow classification is used.
+Its better to increase divisor value to lower risk of hash
+collisions.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">quantum U32</code>
+</span></p></td>
+<td><p>
+Amount of bytes a flow is allowed to dequeue during a
+round of the round robin process.  Defaults to the MTU of
+the interface which is also the advised value and the
+minimum value.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">flows U32</code>
+</span></p></td>
+<td><p>
+Default value is 127.
+</p></td>
+</tr>
+</tbody>
+</table></div>
+<p>
+Parameters for 'tbf':
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term">
+<code class="varname">rate U64</code>
+</span></p></td>
+<td><p>
+Bandwidth or rate.  These parameters accept a floating
+point number, possibly followed by either a unit (both SI
+and IEC units supported), or a float followed by a percent
+character to specify the rate as a percentage of the
+device's speed.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">burst U32</code>
+</span></p></td>
+<td>
+<p>
+Also known as buffer or maxburst.  Size of the bucket, in
+bytes. This is the maximum amount of bytes that tokens can
+be available for instantaneously.  In general, larger
+shaping rates require a larger buffer. For 10mbit/s on
+Intel, you need at least 10kbyte buffer if you want to
+reach your configured rate!
+</p>
+<p>
+If your buffer is too small, packets may be dropped
+because more tokens arrive per timer tick than fit in your
+bucket.  The minimum buffer size can be calculated by
+dividing the rate by HZ.
+</p>
+<p>
+Token usage calculations are performed using a table which
+by default has a resolution of 8 packets.  This resolution
+can be changed by specifying the cell size with the burst.
+For example, to specify a 6000 byte buffer with a 16 byte
+cell size, set a burst of 6000/16. You will probably never
+have to set this. Must be an integral power of 2.
+</p>
+</td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">limit U32</code>
+</span></p></td>
+<td><p>
+Limit is the number of bytes that can be queued waiting
+for tokens to become available.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">latency U32</code>
+</span></p></td>
+<td><p>
+specifies the maximum amount of time a packet can
+sit in the TBF. The latency calculation takes into account
+the size of the bucket, the rate and possibly the peakrate
+(if set). The latency and limit are mutually exclusive.
+</p></td>
+</tr>
+</tbody>
+</table></div>
+<p>
+            Format: GPtrArray(NMTCQdisc)</p>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.tc.tfilters"></a>tfilters</code></span></p></td>
 <td>
-<p>Array of TC traffic filters. When the "tc" setting is present, filters from this property are applied upon activation. If the property is empty, NetworkManager removes all the filters. If the "tc" setting is not present, NetworkManager doesn't touch the filters present on the interface.</p>
 <p>
-            Format: array of vardict</p>
+Array of TC traffic filters. Traffic control can manage the packet content during
+classification by using filters.
+</p>
+<p>
+Each tfilters can be specified by the following attributes:
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term">
+<code class="varname">handle HANDLE</code>
+</span></p></td>
+<td><p>
+specifies the tfilters handle. A filter is used by a classful qdisc to determine in which class
+a packet will be enqueued. It is important to notice that filters reside within qdiscs. Therefore,
+see qdiscs handle for detailed information.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">parent HANDLE</code>
+</span></p></td>
+<td><p>
+specifies the handle of the parent qdisc the current qdisc must be
+attached to.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">root</code>
+</span></p></td>
+<td><p>
+specifies that the qdisc is attached to the root of device.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">KIND</code>
+</span></p></td>
+<td><p>
+this is the tfilters kind. NetworkManager currently supports
+following kinds: mirred, simple. Each filter kind has a
+different set of actions, described below. There are also some
+other kinds like matchall, basic, u32 supported by NetworkManager.
+</p></td>
+</tr>
+</tbody>
+</table></div>
+<p>
+Actions for 'mirred':
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term">
+<code class="varname">egress bool</code>
+</span></p></td>
+<td><p>
+Define whether the packet should exit from the interface.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">ingress bool</code>
+</span></p></td>
+<td><p>
+Define whether the packet should come into the interface.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">mirror bool</code>
+</span></p></td>
+<td><p>
+Define whether the packet should be copied to the destination space.
+</p></td>
+</tr>
+<tr>
+<td><p><span class="term">
+<code class="varname">redirect bool</code>
+</span></p></td>
+<td><p>
+Define whether the packet should be moved to the destination space.
+</p></td>
+</tr>
+</tbody>
+</table></div>
+<p>
+Action for 'simple':
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term">
+<code class="varname">sdata char[32]</code>
+</span></p></td>
+<td><p>
+The actual string to print.
+</p></td>
+</tr></tbody>
+</table></div>
+<p>
+            Format: GPtrArray(NMTCTfilter)</p>
 </td>
 </tr>
 </tbody>
@@ -4155,7 +4570,7 @@
 <tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.802-3-ethernet.s390-options"></a>s390-options</code></span></p></td>
 <td>
-<p>Dictionary of key/value pairs of s390-specific device options.  Both keys and values must be strings.  Allowed keys include "portno", "layer2", "portname", "protocol", among others.  Key names must contain only alphanumeric characters (ie, [a-zA-Z0-9]).</p>
+<p>Dictionary of key/value pairs of s390-specific device options.  Both keys and values must be strings.  Allowed keys include "portno", "layer2", "portname", "protocol", among others.  Key names must contain only alphanumeric characters (ie, [a-zA-Z0-9]). Currently, NetworkManager itself does nothing with this information. However, s390utils ships a udev rule which parses this information and applies it to the interface.</p>
 <p>
             Format: dict of string to string</p>
 </td>
@@ -4268,8 +4683,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.wireguard.private-key-flags"></a>private-key-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "private-key" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -4508,8 +4923,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.802-11-wireless-security.leap-password-flags"></a>leap-password-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "leap-password" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -4558,8 +4973,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.802-11-wireless-security.psk-flags"></a>psk-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "psk" property.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -4568,8 +4983,8 @@
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.802-11-wireless-security.wep-key-flags"></a>wep-key-flags</code></span></p></td>
 <td>
 <p>Flags indicating how to handle the "wep-key0", "wep-key1", "wep-key2", and "wep-key3" properties.
-           See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
-          </p>
+              See <a class="xref" href="nm-settings-dbus.html#secrets-flags" title="Secret flag types:">the section called “Secret flag types:”</a> for flag values.
+              </p>
 <p>
             Format: NMSettingSecretFlags (uint32)</p>
 </td>
@@ -4701,7 +5116,31 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.52"></a><h3>hostname setting</h3>
+<a name="id-1.2.9.4.52"></a><h3>bond-port setting</h3>
+<p>Bond Port Settings.</p>
+<p>
+        Properties:
+        </p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.bond-port.queue-id"></a>queue-id</code></span></p></td>
+<td>
+<p>
+            Alias: queue-id</p>
+<p>The queue ID of this bond port. The maximum value of queue ID is the number of TX queues currently active in device.</p>
+<p>
+            Format: uint32</p>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="id-1.2.9.4.53"></a><h3>hostname setting</h3>
 <p>Hostname settings.</p>
 <p>
         Properties:
@@ -4749,7 +5188,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.53"></a><h3>veth setting</h3>
+<a name="id-1.2.9.4.54"></a><h3>veth setting</h3>
 <p>Veth Settings.</p>
 <p>
         Properties:

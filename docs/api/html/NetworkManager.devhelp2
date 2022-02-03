@@ -67,6 +67,7 @@
         <sub name="" link="settings-802-11-wireless.html"/>
         <sub name="" link="settings-802-11-wireless-security.html"/>
         <sub name="" link="settings-wpan.html"/>
+        <sub name="" link="settings-bond-port.html"/>
         <sub name="" link="settings-hostname.html"/>
         <sub name="" link="settings-ovs-external-ids.html"/>
         <sub name="" link="settings-veth.html"/>
@@ -283,6 +284,7 @@
     <keyword type="property" name="The &quot;Ip6Connectivity&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Ip6Connectivity"/>
     <keyword type="property" name="The &quot;InterfaceFlags&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.InterfaceFlags"/>
     <keyword type="property" name="The &quot;HwAddress&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.HwAddress"/>
+    <keyword type="property" name="The &quot;Ports&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Ports"/>
     <keyword type="property" name="The &quot;RefreshRateMs&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Statistics.html#gdbus-property-org-freedesktop-NetworkManager-Device-Statistics.RefreshRateMs"/>
     <keyword type="property" name="The &quot;TxBytes&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Statistics.html#gdbus-property-org-freedesktop-NetworkManager-Device-Statistics.TxBytes"/>
     <keyword type="property" name="The &quot;RxBytes&quot; property" link="gdbus-org.freedesktop.NetworkManager.Device.Statistics.html#gdbus-property-org-freedesktop-NetworkManager-Device-Statistics.RxBytes"/>

@@ -44,8 +44,7 @@
 #define NM_DHCP_CLIENT_VENDOR_CLASS_IDENTIFIER "vendor-class-identifier"
 #define NM_DHCP_CLIENT_REJECT_SERVERS          "reject-servers"
 
-#define NM_DHCP_CLIENT_SIGNAL_STATE_CHANGED    "state-changed"
-#define NM_DHCP_CLIENT_SIGNAL_PREFIX_DELEGATED "prefix-delegated"
+#define NM_DHCP_CLIENT_NOTIFY "dhcp-notify"
 
 typedef enum {
     NM_DHCP_STATE_UNKNOWN = 0,
@@ -57,9 +56,26 @@ typedef enum {
     NM_DHCP_STATE_FAIL,       /* failed for some reason */
     NM_DHCP_STATE_TERMINATED, /* client is no longer running */
     NM_DHCP_STATE_NOOP,       /* state is a non operation for NetworkManager */
-    __NM_DHCP_STATE_MAX,
-    NM_DHCP_STATE_MAX = __NM_DHCP_STATE_MAX - 1,
 } NMDhcpState;
+
+typedef enum _nm_packed {
+    NM_DHCP_CLIENT_NOTIFY_TYPE_STATE_CHANGED,
+    NM_DHCP_CLIENT_NOTIFY_TYPE_PREFIX_DELEGATED,
+} NMDhcpClientNotifyType;
+
+typedef struct {
+    NMDhcpClientNotifyType notify_type;
+    union {
+        struct {
+            NMIPConfig *ip_config;
+            GHashTable *options;
+            NMDhcpState dhcp_state;
+        } state_changed;
+        struct {
+            const NMPlatformIP6Address *prefix;
+        } prefix_delegated;
+    };
+} NMDhcpClientNotifyData;
 
 const char *nm_dhcp_state_to_string(NMDhcpState state);
 
@@ -68,7 +84,6 @@ struct _NMDhcpClientPrivate;
 typedef struct {
     GObject                      parent;
     struct _NMDhcpClientPrivate *_priv;
-    CList                        dhcp_client_lst;
 } NMDhcpClient;
 
 typedef enum _nm_packed {
@@ -173,6 +188,7 @@ gboolean nm_dhcp_client_start_ip6(NMDhcpClient *            self,
                                   GError **                 error);
 
 gboolean nm_dhcp_client_accept(NMDhcpClient *self, GError **error);
+gboolean nm_dhcp_client_can_accept(NMDhcpClient *self);
 
 gboolean nm_dhcp_client_decline(NMDhcpClient *self, const char *error_message, GError **error);
 
@@ -217,11 +233,13 @@ gboolean nm_dhcp_client_server_id_is_rejected(NMDhcpClient *self, gconstpointer 
  *****************************************************************************/
 
 typedef struct {
-    GType (*get_type)(void);
-    GType (*get_type_per_addr_family)(int addr_family);
+    GType (*get_type_4)(void);
+    GType (*get_type_6)(void);
     const char *name;
     const char *(*get_path)(void);
-    bool experimental : 1;
+
+    /* whether this plugin is an undocumented, internal plugin. */
+    bool undocumented : 1;
 } NMDhcpClientFactory;
 
 GType nm_dhcp_nettools_get_type(void);

@@ -13,6 +13,11 @@
 
 #define _NM_MAX_CLIENT_ID_LEN (sizeof(guint32) + 128)
 
+enum {
+    NM_DNS_PRIORITY_DEFAULT_NORMAL = 100,
+    NM_DNS_PRIORITY_DEFAULT_VPN    = 50,
+};
+
 /*****************************************************************************/
 
 typedef enum {
@@ -385,5 +390,7 @@ typedef struct {
 #define NM_IW_ESSID_MAX_SIZE 32
 
 /****************************************************************************/
+
+#define NM_BOND_PORT_QUEUE_ID_DEF 0
 
 #endif /* __NM_LIBNM_BASE_H__ */

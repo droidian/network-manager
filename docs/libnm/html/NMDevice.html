@@ -128,6 +128,13 @@
 </td>
 </tr>
 <tr>
+<td class="function_type">const <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="NMDevice.html#nm-device-get-ports" title="nm_device_get_ports ()">nm_device_get_ports</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
 <td class="function_type">
 <span class="returnvalue">void</span>
 </td>
@@ -653,6 +660,10 @@
 <td class="function_name"><a class="link" href="NMDevice.html#NM-DEVICE-HW-ADDRESS:CAPS" title="NM_DEVICE_HW_ADDRESS">NM_DEVICE_HW_ADDRESS</a></td>
 </tr>
 <tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMDevice.html#NM-DEVICE-PORTS:CAPS" title="NM_DEVICE_PORTS">NM_DEVICE_PORTS</a></td>
+</tr>
+<tr>
 <td class="datatype_keyword"> </td>
 <td class="function_name"><a class="link" href="NMDevice.html#NMLldpNeighbor-struct" title="NMLldpNeighbor">NMLldpNeighbor</a></td>
 </tr>
@@ -996,6 +1007,38 @@ nm_device_get_managed (<em class="parameter"><code><a class="link" href="NMDevic
 <a name="nm-device-get-managed.returns"></a><h4>Returns</h4>
 <p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the device is managed by NetworkManager</p>
 </div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="nm-device-get-ports"></a><h3>nm_device_get_ports ()</h3>
+<pre class="programlisting">const <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *
+nm_device_get_ports (<em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>);</pre>
+<p>Gets the devices currently set as port of <em class="parameter"><code>device</code></em>
+.</p>
+<div class="refsect3">
+<a name="nm-device-get-ports.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>device</p></td>
+<td class="parameter_description"><p>a <a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="nm-device-get-ports.returns"></a><h4>Returns</h4>
+<p>the <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> containing <span class="type">NMDevices</span> that
+are slaves of <em class="parameter"><code>device</code></em>
+. This is the internal copy used by the device and
+must not be modified. </p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMDevice]</span></p>
+</div>
+<p class="since">Since: 1.34</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -2981,6 +3024,12 @@ nm_lldp_neighbor_get_attr_type (<em class="parameter"><code><a class="link" href
 <div class="refsect2">
 <a name="NM-DEVICE-HW-ADDRESS:CAPS"></a><h3>NM_DEVICE_HW_ADDRESS</h3>
 <pre class="programlisting">#define NM_DEVICE_HW_ADDRESS            "hw-address"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-DEVICE-PORTS:CAPS"></a><h3>NM_DEVICE_PORTS</h3>
+<pre class="programlisting">#define NM_DEVICE_PORTS                 "ports"
 </pre>
 </div>
 <hr>

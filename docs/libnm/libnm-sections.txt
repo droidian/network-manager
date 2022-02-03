@@ -276,6 +276,7 @@ nm_dns_entry_get_type
 NM_CONNECTION_SECRETS_UPDATED
 NM_CONNECTION_SECRETS_CLEARED
 NM_CONNECTION_CHANGED
+NM_CONNECTION_NORMALIZE_PARAM_IP4_CONFIG_METHOD
 NM_CONNECTION_NORMALIZE_PARAM_IP6_CONFIG_METHOD
 NMConnectionInterface
 nm_connection_add_setting
@@ -409,6 +410,7 @@ NM_TYPE_SETTING_802_1X_CK_FORMAT
 NM_TYPE_SETTING_802_1X_CK_SCHEME
 NM_TYPE_SETTING_COMPARE_FLAGS
 NM_TYPE_SETTING_CONNECTION_AUTOCONNECT_SLAVES
+NM_TYPE_SETTING_CONNECTION_DNS_OVER_TLS
 NM_TYPE_SETTING_CONNECTION_LLDP
 NM_TYPE_SETTING_CONNECTION_LLMNR
 NM_TYPE_SETTING_CONNECTION_MDNS
@@ -484,6 +486,7 @@ nm_setting_802_1x_ck_format_get_type
 nm_setting_802_1x_ck_scheme_get_type
 nm_setting_compare_flags_get_type
 nm_setting_connection_autoconnect_slaves_get_type
+nm_setting_connection_dns_over_tls_get_type
 nm_setting_connection_lldp_get_type
 nm_setting_connection_llmnr_get_type
 nm_setting_connection_mdns_get_type
@@ -534,6 +537,7 @@ NMSetting8021x
 NMSettingAdsl
 NMSettingBluetooth
 NMSettingBond
+NMSettingBondPort
 NMSettingBridge
 NMSettingBridgePort
 NMSettingCdma
@@ -745,6 +749,7 @@ NM_DEVICE_IP4_CONNECTIVITY
 NM_DEVICE_IP6_CONNECTIVITY
 NM_DEVICE_INTERFACE_FLAGS
 NM_DEVICE_HW_ADDRESS
+NM_DEVICE_PORTS
 nm_device_get_iface
 nm_device_get_ip_iface
 nm_device_get_device_type
@@ -757,6 +762,7 @@ nm_device_get_type_description
 nm_device_get_hw_address
 nm_device_get_capabilities
 nm_device_get_managed
+nm_device_get_ports
 nm_device_set_managed
 nm_device_get_autoconnect
 nm_device_set_autoconnect
@@ -1714,6 +1720,7 @@ nml_dbus_property_ao_clear
 nml_dbus_property_ao_clear_many
 nml_dbus_property_ao_notify_changed_many
 NMLDBusNotifyUpdatePropFlags
+nml_dbus_property_ao_notify
 NMLDBusMetaProperty
 NML_DBUS_META_PROPERTY_INIT
 NML_DBUS_META_PROPERTY_INIT_B
@@ -1777,6 +1784,7 @@ NML_IS_DBUS_OBJECT
 <FILE>nm-object</FILE>
 <TITLE>NMObject</TITLE>
 NM_OBJECT_PATH
+NM_OBJECT_CLIENT
 nm_object_get_path
 nm_object_get_client
 <SUBSECTION Standard>
@@ -2200,6 +2208,24 @@ nm_setting_bond_get_type
 </SECTION>
 
 <SECTION>
+<FILE>nm-setting-bond-port</FILE>
+<TITLE>NMSettingBondPort</TITLE>
+NM_SETTING_BOND_PORT_SETTING_NAME
+NM_SETTING_BOND_PORT_QUEUE_ID
+nm_setting_bond_port_new
+nm_setting_bond_port_get_queue_id
+<SUBSECTION Standard>
+NMSettingBondPortClass
+NM_IS_SETTING_BOND_PORT
+NM_IS_SETTING_BOND_PORT_CLASS
+NM_SETTING_BOND_PORT
+NM_SETTING_BOND_PORT_CLASS
+NM_SETTING_BOND_PORT_GET_CLASS
+NM_TYPE_SETTING_BOND_PORT
+nm_setting_bond_port_get_type
+</SECTION>
+
+<SECTION>
 <FILE>nm-setting-bridge</FILE>
 <TITLE>NMSettingBridge</TITLE>
 NM_SETTING_BRIDGE_SETTING_NAME
@@ -2377,12 +2403,14 @@ NM_SETTING_CONNECTION_LLDP
 NM_SETTING_CONNECTION_AUTH_RETRIES
 NM_SETTING_CONNECTION_MDNS
 NM_SETTING_CONNECTION_LLMNR
+NM_SETTING_CONNECTION_DNS_OVER_TLS
 NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT
 NM_SETTING_CONNECTION_MUD_URL
 NMSettingConnectionAutoconnectSlaves
 NMSettingConnectionLldp
 NMSettingConnectionMdns
 NMSettingConnectionLlmnr
+NMSettingConnectionDnsOverTls
 nm_setting_connection_new
 nm_setting_connection_get_id
 nm_setting_connection_get_uuid
@@ -2417,6 +2445,7 @@ nm_setting_connection_get_lldp
 nm_setting_connection_get_auth_retries
 nm_setting_connection_get_mdns
 nm_setting_connection_get_llmnr
+nm_setting_connection_get_dns_over_tls
 nm_setting_connection_get_wait_device_timeout
 nm_setting_connection_get_mud_url
 <SUBSECTION Standard>
@@ -4219,7 +4248,6 @@ nm_sett_info_propert_type_team_b
 nm_sett_info_propert_type_team_i
 nm_sett_info_propert_type_team_s
 nm_sett_info_propert_type_team_as
-nm_sett_info_propert_type_team_link_watchers
 NMTeamLinkWatcher
 </SECTION>
 
@@ -4413,7 +4441,9 @@ NM_AVAILABLE_IN_1_30
 NM_DEPRECATED_IN_1_32
 NM_DEPRECATED_IN_1_32_FOR
 NM_AVAILABLE_IN_1_32
-NM_AVAILABLE_IN_1_32_4
+NM_DEPRECATED_IN_1_34
+NM_DEPRECATED_IN_1_34_FOR
+NM_AVAILABLE_IN_1_34
 </SECTION>
 
 <SECTION>
@@ -4442,7 +4472,7 @@ NM_VERSION_1_26
 NM_VERSION_1_28
 NM_VERSION_1_30
 NM_VERSION_1_32
-NM_VERSION_1_32_4
+NM_VERSION_1_34
 NM_API_VERSION
 NM_VERSION_CUR_STABLE
 NM_VERSION_NEXT_STABLE

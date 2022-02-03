@@ -16,6 +16,7 @@
 #include "libnm-platform/nm-platform.h"
 #include "nm-device-factory.h"
 #include "nm-setting-dummy.h"
+#include "libnm-core-aux-intern/nm-libnm-core-utils.h"
 #include "libnm-core-intern/nm-core-internal.h"
 
 #define _NMLOG_DEVICE_TYPE NMDeviceDummy
@@ -48,26 +49,16 @@ complete_connection(NMDevice *           device,
                     NMConnection *const *existing_connections,
                     GError **            error)
 {
-    NMSettingDummy *s_dummy;
+    nm_utils_complete_generic_with_params(nm_device_get_platform(device),
+                                          connection,
+                                          NM_SETTING_DUMMY_SETTING_NAME,
+                                          existing_connections,
+                                          NULL,
+                                          _("Dummy connection"),
+                                          NULL,
+                                          nm_device_get_ip_iface(device));
 
-    nm_utils_complete_generic(nm_device_get_platform(device),
-                              connection,
-                              NM_SETTING_DUMMY_SETTING_NAME,
-                              existing_connections,
-                              NULL,
-                              _("Dummy connection"),
-                              NULL,
-                              NULL,
-                              TRUE);
-
-    s_dummy = nm_connection_get_setting_dummy(connection);
-    if (!s_dummy) {
-        g_set_error_literal(error,
-                            NM_DEVICE_ERROR,
-                            NM_DEVICE_ERROR_INVALID_CONNECTION,
-                            "A 'dummy' setting is required.");
-        return FALSE;
-    }
+    _nm_connection_ensure_setting(connection, NM_TYPE_SETTING_DUMMY);
 
     return TRUE;
 }
@@ -75,12 +66,7 @@ complete_connection(NMDevice *           device,
 static void
 update_connection(NMDevice *device, NMConnection *connection)
 {
-    NMSettingDummy *s_dummy = nm_connection_get_setting_dummy(connection);
-
-    if (!s_dummy) {
-        s_dummy = (NMSettingDummy *) nm_setting_dummy_new();
-        nm_connection_add_setting(connection, (NMSetting *) s_dummy);
-    }
+    _nm_connection_ensure_setting(connection, NM_TYPE_SETTING_DUMMY);
 }
 
 static gboolean

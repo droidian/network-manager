@@ -90,6 +90,7 @@ guint32
 nm_setting_vlan_get_id(NMSettingVlan *setting)
 {
     g_return_val_if_fail(NM_IS_SETTING_VLAN(setting), 0);
+
     return NM_SETTING_VLAN_GET_PRIVATE(setting)->id;
 }
 
@@ -676,22 +677,13 @@ verify(NMSetting *setting, NMConnection *connection, GError **error)
 }
 
 static GVariant *
-_override_flags_get(const NMSettInfoSetting *               sett_info,
-                    guint                                   property_idx,
-                    NMConnection *                          connection,
-                    NMSetting *                             setting,
-                    NMConnectionSerializationFlags          flags,
-                    const NMConnectionSerializationOptions *options)
+_override_flags_get(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 {
     return g_variant_new_uint32(nm_setting_vlan_get_flags((NMSettingVlan *) setting));
 }
 
 static gboolean
-_override_flags_not_set(NMSetting *         setting,
-                        GVariant *          connection_dict,
-                        const char *        property,
-                        NMSettingParseFlags parse_flags,
-                        GError **           error)
+_override_flags_not_set(_NM_SETT_INFO_PROP_MISSING_FROM_DBUS_FCN_ARGS _nm_nil)
 {
     /* we changed the default value for FLAGS. When an older client
      * doesn't serialize the property, we assume it is the old default. */
@@ -747,9 +739,6 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
     case PROP_PARENT:
         g_value_set_string(value, priv->parent);
         break;
-    case PROP_ID:
-        g_value_set_uint(value, priv->id);
-        break;
     case PROP_FLAGS:
         g_value_set_flags(value, priv->flags);
         break;
@@ -760,7 +749,7 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
         g_value_take_boxed(value, priority_maplist_to_strv(priv->egress_priority_map));
         break;
     default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+        _nm_setting_property_get_property_direct(object, prop_id, value, pspec);
         break;
     }
 }
@@ -776,9 +765,6 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
         g_free(priv->parent);
         priv->parent = g_value_dup_string(value);
         break;
-    case PROP_ID:
-        priv->id = g_value_get_uint(value);
-        break;
     case PROP_FLAGS:
         priv->flags = g_value_get_flags(value);
         break;
@@ -793,7 +779,7 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
             priority_strv_to_maplist(NM_VLAN_EGRESS_MAP, g_value_get_boxed(value));
         break;
     default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+        _nm_setting_property_set_property_direct(object, prop_id, value, pspec);
         break;
     }
 }
@@ -885,14 +871,16 @@ nm_setting_vlan_class_init(NMSettingVlanClass *klass)
      *   prefer the detected ID from the DEVICE over VLAN_ID.
      * ---end---
      */
-    obj_properties[PROP_ID] =
-        g_param_spec_uint(NM_SETTING_VLAN_ID,
-                          "",
-                          "",
-                          0,
-                          4095,
-                          0,
-                          G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE | G_PARAM_STATIC_STRINGS);
+    _nm_setting_property_define_direct_uint32(properties_override,
+                                              obj_properties,
+                                              NM_SETTING_VLAN_ID,
+                                              PROP_ID,
+                                              0,
+                                              4095,
+                                              0,
+                                              NM_SETTING_PARAM_INFERRABLE,
+                                              NMSettingVlanPrivate,
+                                              id);
 
     /**
      * NMSettingVlan:flags:
@@ -927,8 +915,11 @@ nm_setting_vlan_class_init(NMSettingVlanClass *klass)
         properties_override,
         obj_properties[PROP_FLAGS],
         NM_SETT_INFO_PROPERT_TYPE_DBUS(G_VARIANT_TYPE_UINT32,
-                                       .to_dbus_fcn           = _override_flags_get,
-                                       .missing_from_dbus_fcn = _override_flags_not_set, ));
+                                       .to_dbus_fcn = _override_flags_get,
+                                       .compare_fcn = _nm_setting_property_compare_fcn_default,
+                                       .missing_from_dbus_fcn = _override_flags_not_set,
+                                       .from_dbus_fcn = _nm_setting_property_from_dbus_fcn_gprop,
+                                       .from_dbus_is_full = TRUE));
 
     /**
      * NMSettingVlan:ingress-priority-map:
@@ -994,8 +985,9 @@ nm_setting_vlan_class_init(NMSettingVlanClass *klass)
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
-    _nm_setting_class_commit_full(setting_class,
-                                  NM_META_SETTING_TYPE_VLAN,
-                                  NULL,
-                                  properties_override);
+    _nm_setting_class_commit(setting_class,
+                             NM_META_SETTING_TYPE_VLAN,
+                             NULL,
+                             properties_override,
+                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
 }

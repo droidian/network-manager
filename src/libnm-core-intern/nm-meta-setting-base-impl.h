@@ -110,6 +110,7 @@ typedef enum _nm_packed {
     NM_META_SETTING_TYPE_ADSL,
     NM_META_SETTING_TYPE_BLUETOOTH,
     NM_META_SETTING_TYPE_BOND,
+    NM_META_SETTING_TYPE_BOND_PORT,
     NM_META_SETTING_TYPE_BRIDGE,
     NM_META_SETTING_TYPE_BRIDGE_PORT,
     NM_META_SETTING_TYPE_CDMA,
@@ -159,9 +160,9 @@ typedef enum _nm_packed {
 } NMMetaSettingType;
 
 #if _NM_META_SETTING_BASE_IMPL_LIBNM
-    #define _NMMetaSettingInfo_Alias _NMMetaSettingInfo
+#define _NMMetaSettingInfo_Alias _NMMetaSettingInfo
 #else
-    #define _NMMetaSettingInfo_Alias _NMMetaSettingInfoCli
+#define _NMMetaSettingInfo_Alias _NMMetaSettingInfoCli
 #endif
 
 struct _NMMetaSettingInfo_Alias {

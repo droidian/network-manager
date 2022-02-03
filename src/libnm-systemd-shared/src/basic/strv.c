@@ -305,6 +305,24 @@ int strv_split_full(char ***t, const char *s, const char *separators, ExtractFla
 }
 
 #if 0 /* NM_IGNORED */
+int strv_split_and_extend_full(char ***t, const char *s, const char *separators, bool filter_duplicates, ExtractFlags flags) {
+        _cleanup_strv_free_ char **l = NULL;
+        int r;
+
+        assert(t);
+        assert(s);
+
+        r = strv_split_full(&l, s, separators, flags);
+        if (r < 0)
+                return r;
+
+        r = strv_extend_strv(t, l, filter_duplicates);
+        if (r < 0)
+                return r;
+
+        return (int) strv_length(*t);
+}
+
 int strv_split_colon_pairs(char ***t, const char *s) {
         _cleanup_strv_free_ char **l = NULL;
         size_t n = 0;
@@ -831,6 +849,7 @@ char **strv_reverse(char **l) {
         return l;
 }
 
+#if 0 /* NM_IGNORED */
 char **strv_shell_escape(char **l, const char *bad) {
         char **s;
 
@@ -850,6 +869,7 @@ char **strv_shell_escape(char **l, const char *bad) {
 
         return l;
 }
+#endif /* NM_IGNORED */
 
 bool strv_fnmatch_full(char* const* patterns, const char *s, int flags, size_t *matched_pos) {
         for (size_t i = 0; patterns && patterns[i]; i++)

@@ -55,6 +55,7 @@
 #include "nm-setting-adsl.h"
 #include "nm-setting-bluetooth.h"
 #include "nm-setting-bond.h"
+#include "nm-setting-bond-port.h"
 #include "nm-setting-bridge.h"
 #include "nm-setting-bridge-port.h"
 #include "nm-setting-cdma.h"
@@ -118,13 +119,13 @@
 
 #if !defined(NETWORKMANAGER_COMPILATION) \
     && (!defined(NM_NO_INCLUDE_EXTRA_HEADERS) || !NM_NO_INCLUDE_EXTRA_HEADERS)
-    /* historically, NetworkManager.h drags in the following system headers.
+/* historically, NetworkManager.h drags in the following system headers.
      * These are not strictly necessary and the user may wish to opt out from
      * including them. */
-    #include <linux/if_ether.h>
-    #include <linux/if_infiniband.h>
-    #include <linux/if_vlan.h>
-    #include <netinet/in.h>
+#include <linux/if_ether.h>
+#include <linux/if_infiniband.h>
+#include <linux/if_vlan.h>
+#include <netinet/in.h>
 #endif
 
 #undef __NETWORKMANAGER_H_INSIDE__

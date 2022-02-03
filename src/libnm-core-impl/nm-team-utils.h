@@ -7,7 +7,7 @@
 #define __NM_TEAM_UITLS_H__
 
 #if !((NETWORKMANAGER_COMPILATION) &NM_NETWORKMANAGER_COMPILATION_WITH_LIBNM_CORE_PRIVATE)
-    #error Cannot use this header.
+#error Cannot use this header.
 #endif
 
 #include "libnm-glib-aux/nm-value-type.h"
@@ -266,6 +266,5 @@ extern const NMSettInfoPropertType nm_sett_info_propert_type_team_b;
 extern const NMSettInfoPropertType nm_sett_info_propert_type_team_i;
 extern const NMSettInfoPropertType nm_sett_info_propert_type_team_s;
 extern const NMSettInfoPropertType nm_sett_info_propert_type_team_as;
-extern const NMSettInfoPropertType nm_sett_info_propert_type_team_link_watchers;
 
 #endif /* __NM_TEAM_UITLS_H__ */

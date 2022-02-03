@@ -7,7 +7,7 @@
 #define __NM_DEVICE_BRIDGE_H__
 
 #if !defined(__NETWORKMANAGER_H_INSIDE__) && !defined(NETWORKMANAGER_COMPILATION)
-    #error "Only <NetworkManager.h> can be included directly."
+#error "Only <NetworkManager.h> can be included directly."
 #endif
 
 #include "nm-device.h"
@@ -38,7 +38,9 @@ GType nm_device_bridge_get_type(void);
 NM_DEPRECATED_IN_1_24_FOR(nm_device_get_hw_address)
 const char *nm_device_bridge_get_hw_address(NMDeviceBridge *device);
 
-gboolean         nm_device_bridge_get_carrier(NMDeviceBridge *device);
+gboolean nm_device_bridge_get_carrier(NMDeviceBridge *device);
+
+NM_DEPRECATED_IN_1_34_FOR(nm_device_get_ports)
 const GPtrArray *nm_device_bridge_get_slaves(NMDeviceBridge *device);
 
 G_END_DECLS

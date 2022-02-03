@@ -26,6 +26,7 @@
 #include "nmt-mtu-entry.h"
 
 #include "nmt-page-bond.h"
+#include "nmt-page-bond-port.h"
 #include "nmt-page-bridge.h"
 #include "nmt-page-bridge-port.h"
 #include "nmt-page-dsl.h"
@@ -39,6 +40,7 @@
 #include "nmt-page-team-port.h"
 #include "nmt-page-vlan.h"
 #include "nmt-page-wifi.h"
+#include "nmt-page-wireguard.h"
 
 #include "libnmc-setting/nm-meta-setting-access.h"
 
@@ -372,6 +374,8 @@ nmt_editor_constructed(GObject *object)
         page = nmt_page_wifi_new(priv->edit_connection, deventry);
     else if (nm_connection_is_type(priv->edit_connection, NM_SETTING_IP_TUNNEL_SETTING_NAME))
         page = nmt_page_ip_tunnel_new(priv->edit_connection, deventry);
+    else if (nm_connection_is_type(priv->edit_connection, NM_SETTING_WIREGUARD_SETTING_NAME))
+        page = nmt_page_wireguard_new(priv->edit_connection, deventry);
     else
         g_assert_not_reached();
 
@@ -384,6 +388,8 @@ nmt_editor_constructed(GObject *object)
             add_sections_for_page(editor, grid, nmt_page_bridge_port_new(priv->edit_connection));
         else if (!strcmp(slave_type, NM_SETTING_TEAM_SETTING_NAME))
             add_sections_for_page(editor, grid, nmt_page_team_port_new(priv->edit_connection));
+        else if (nm_streq(slave_type, NM_SETTING_BOND_SETTING_NAME))
+            add_sections_for_page(editor, grid, nmt_page_bond_port_new(priv->edit_connection));
     } else {
         NmtNewtWidget *section;
 

@@ -15,6 +15,7 @@
 #include "NetworkManagerUtils.h"
 #include "devices/nm-device-private.h"
 #include "nm-act-request.h"
+#include "libnm-core-aux-intern/nm-libnm-core-utils.h"
 #include "libnm-core-intern/nm-core-internal.h"
 #include "libnm-glib-aux/nm-ref-string.h"
 #include "nm-ip4-config.h"
@@ -302,10 +303,7 @@ complete_connection(NMDevice *           device,
     }
 
     /* Add a Wi-Fi P2P setting if one doesn't exist yet */
-    if (!s_wifi_p2p) {
-        s_wifi_p2p = NM_SETTING_WIFI_P2P(nm_setting_wifi_p2p_new());
-        nm_connection_add_setting(connection, NM_SETTING(s_wifi_p2p));
-    }
+    s_wifi_p2p = _nm_connection_ensure_setting(connection, NM_TYPE_SETTING_WIFI_P2P);
 
     g_object_set(G_OBJECT(s_wifi_p2p), NM_SETTING_WIFI_P2P_PEER, setting_peer, NULL);
 
@@ -560,13 +558,38 @@ act_stage3_ip_config_start(NMDevice *           device,
                            gpointer *           out_config,
                            NMDeviceStateReason *out_failure_reason)
 {
-    gboolean      indicate_addressing_running;
-    NMConnection *connection;
-    const char *  method;
+    NMDeviceWifiP2PPrivate *priv = NM_DEVICE_WIFI_P2P_GET_PRIVATE(device);
+    gboolean                indicate_addressing_running;
+    NMConnection *          connection;
+    const char *            method;
 
     connection = nm_device_get_applied_connection(device);
 
     method = nm_utils_get_ip_config_method(connection, addr_family);
+
+    /* We may have an address assigned by the group owner */
+    if (NM_IN_STRSET(method, NM_SETTING_IP4_CONFIG_METHOD_AUTO) && priv->group_iface
+        && !nm_supplicant_interface_get_p2p_group_owner(priv->group_iface)) {
+        in_addr_t addr;
+        guint8    plen;
+
+        if (nm_supplicant_interface_get_p2p_assigned_addr(priv->group_iface, &addr, &plen)) {
+            NMPlatformIP4Address address = {
+                .addr_source = NM_IP_CONFIG_SOURCE_DHCP,
+            };
+            gs_unref_object NMIP4Config *ip4_config = NULL;
+
+            nm_platform_ip4_address_set_addr(&address, addr, plen);
+
+            ip4_config = nm_device_ip4_config_new(device);
+            nm_ip4_config_add_address(ip4_config, &address);
+
+            nm_device_set_dev2_ip_config(device, AF_INET, NM_IP_CONFIG(ip4_config));
+
+            /* This just disables the addressing indicator. */
+            method = NM_SETTING_IP4_CONFIG_METHOD_DISABLED;
+        }
+    }
 
     if (addr_family == AF_INET)
         indicate_addressing_running = NM_IN_STRSET(method, NM_SETTING_IP4_CONFIG_METHOD_AUTO);
@@ -621,6 +644,11 @@ get_auto_ip_config_method(NMDevice *device, int addr_family)
 {
     NMDeviceWifiP2P *       self = NM_DEVICE_WIFI_P2P(device);
     NMDeviceWifiP2PPrivate *priv = NM_DEVICE_WIFI_P2P_GET_PRIVATE(self);
+
+    if (addr_family == AF_INET && priv->group_iface
+        && !nm_supplicant_interface_get_p2p_group_owner(priv->group_iface)
+        && nm_supplicant_interface_get_p2p_assigned_addr(priv->group_iface, NULL, NULL))
+        return NM_SETTING_IP4_CONFIG_METHOD_DISABLED;
 
     /* Override the AUTO method to mean shared if we are group owner. */
     if (priv->group_iface && nm_supplicant_interface_get_p2p_group_owner(priv->group_iface)) {
@@ -1163,7 +1191,7 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
     switch (prop_id) {
     case PROP_PEERS:
         list = nm_wifi_p2p_peers_get_paths(&priv->peers_lst_head);
-        g_value_take_boxed(value, nm_utils_strv_make_deep_copied(list));
+        g_value_take_boxed(value, nm_strv_make_deep_copied(list));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);

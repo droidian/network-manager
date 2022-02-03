@@ -902,8 +902,8 @@ typedef struct {
     guint32              fwmark;
     guint32              mtu;
     guint16              listen_port;
+    bool                 peer_routes;
     bool                 private_key_valid : 1;
-    bool                 peer_routes : 1;
 } NMSettingWireGuardPrivate;
 
 /**
@@ -1460,12 +1460,7 @@ nm_setting_wireguard_clear_peers(NMSettingWireGuard *self)
 /*****************************************************************************/
 
 static GVariant *
-_peers_dbus_only_synth(const NMSettInfoSetting *               sett_info,
-                       guint                                   property_idx,
-                       NMConnection *                          connection,
-                       NMSetting *                             setting,
-                       NMConnectionSerializationFlags          flags,
-                       const NMConnectionSerializationOptions *options)
+_peers_dbus_only_synth(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 {
     NMSettingWireGuard *       self = NM_SETTING_WIREGUARD(setting);
     NMSettingWireGuardPrivate *priv;
@@ -1563,12 +1558,7 @@ _peers_dbus_only_synth(const NMSettInfoSetting *               sett_info,
 }
 
 static gboolean
-_peers_dbus_only_set(NMSetting *         setting,
-                     GVariant *          connection_dict,
-                     const char *        property,
-                     GVariant *          value,
-                     NMSettingParseFlags parse_flags,
-                     GError **           error)
+_peers_dbus_only_set(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
 {
     GVariantIter iter_peers;
     GVariant *   peer_var;
@@ -1687,6 +1677,7 @@ _peers_dbus_only_set(NMSetting *         setting,
     success = TRUE;
 
 out:
+    *out_is_modified = peers_changed;
     if (peers_changed)
         _peers_notify(setting);
     return success;
@@ -1842,12 +1833,12 @@ need_secrets(NMSetting *setting)
 
 static gboolean
 clear_secrets(const NMSettInfoSetting *        sett_info,
-              guint                            property_idx,
+              const NMSettInfoProperty *       property_info,
               NMSetting *                      setting,
               NMSettingClearSecretsWithFlagsFn func,
               gpointer                         user_data)
 {
-    if (nm_streq(sett_info->property_infos[property_idx].name, NM_SETTING_WIREGUARD_PEERS)) {
+    if (nm_streq(property_info->name, NM_SETTING_WIREGUARD_PEERS)) {
         NMSettingWireGuardPrivate *priv          = NM_SETTING_WIREGUARD_GET_PRIVATE(setting);
         gboolean                   peers_changed = FALSE;
         guint                      i, j;
@@ -1894,7 +1885,7 @@ clear_secrets(const NMSettInfoSetting *        sett_info,
     }
 
     return NM_SETTING_CLASS(nm_setting_wireguard_parent_class)
-        ->clear_secrets(sett_info, property_idx, setting, func, user_data);
+        ->clear_secrets(sett_info, property_info, setting, func, user_data);
 }
 
 static int
@@ -1997,43 +1988,32 @@ update_one_secret(NMSetting *setting, const char *key, GVariant *value, GError *
 }
 
 static NMTernary
-compare_property(const NMSettInfoSetting *sett_info,
-                 guint                    property_idx,
-                 NMConnection *           con_a,
-                 NMSetting *              set_a,
-                 NMConnection *           con_b,
-                 NMSetting *              set_b,
-                 NMSettingCompareFlags    flags)
+compare_fcn_peers(_NM_SETT_INFO_PROP_COMPARE_FCN_ARGS _nm_nil)
 {
     NMSettingWireGuardPrivate *a_priv;
     NMSettingWireGuardPrivate *b_priv;
     guint                      i;
 
-    if (nm_streq(sett_info->property_infos[property_idx].name, NM_SETTING_WIREGUARD_PEERS)) {
-        if (NM_FLAGS_HAS(flags, NM_SETTING_COMPARE_FLAG_INFERRABLE))
-            return NM_TERNARY_DEFAULT;
+    if (NM_FLAGS_HAS(flags, NM_SETTING_COMPARE_FLAG_INFERRABLE))
+        return NM_TERNARY_DEFAULT;
 
-        if (!set_b)
-            return TRUE;
-
-        a_priv = NM_SETTING_WIREGUARD_GET_PRIVATE(set_a);
-        b_priv = NM_SETTING_WIREGUARD_GET_PRIVATE(set_b);
-
-        if (a_priv->peers_arr->len != b_priv->peers_arr->len)
-            return FALSE;
-        for (i = 0; i < a_priv->peers_arr->len; i++) {
-            NMWireGuardPeer *a_peer = _peers_get(a_priv, i)->peer;
-            NMWireGuardPeer *b_peer = _peers_get(b_priv, i)->peer;
-
-            if (nm_wireguard_peer_cmp(a_peer, b_peer, flags) != 0)
-                return FALSE;
-        }
-
+    if (!set_b)
         return TRUE;
+
+    a_priv = NM_SETTING_WIREGUARD_GET_PRIVATE(set_a);
+    b_priv = NM_SETTING_WIREGUARD_GET_PRIVATE(set_b);
+
+    if (a_priv->peers_arr->len != b_priv->peers_arr->len)
+        return FALSE;
+    for (i = 0; i < a_priv->peers_arr->len; i++) {
+        NMWireGuardPeer *a_peer = _peers_get(a_priv, i)->peer;
+        NMWireGuardPeer *b_peer = _peers_get(b_priv, i)->peer;
+
+        if (nm_wireguard_peer_cmp(a_peer, b_peer, flags) != 0)
+            return FALSE;
     }
 
-    return NM_SETTING_CLASS(nm_setting_wireguard_parent_class)
-        ->compare_property(sett_info, property_idx, con_a, set_a, con_b, set_b, flags);
+    return TRUE;
 }
 
 static void
@@ -2372,7 +2352,6 @@ nm_setting_wireguard_init(NMSettingWireGuard *setting)
 
     priv->peers_arr              = g_ptr_array_new();
     priv->peers_hash             = g_hash_table_new(nm_pstr_hash, nm_pstr_equal);
-    priv->peer_routes            = TRUE;
     priv->ip4_auto_default_route = NM_TERNARY_DEFAULT;
     priv->ip6_auto_default_route = NM_TERNARY_DEFAULT;
 }
@@ -2422,7 +2401,6 @@ nm_setting_wireguard_class_init(NMSettingWireGuardClass *klass)
     setting_class->need_secrets              = need_secrets;
     setting_class->clear_secrets             = clear_secrets;
     setting_class->update_one_secret         = update_one_secret;
-    setting_class->compare_property          = compare_property;
     setting_class->duplicate_copy_properties = duplicate_copy_properties;
     setting_class->enumerate_values          = enumerate_values;
     setting_class->aggregate                 = aggregate;
@@ -2514,13 +2492,14 @@ nm_setting_wireguard_class_init(NMSettingWireGuardClass *klass)
      *
      * Since: 1.16
      **/
-    _nm_setting_property_define_boolean(properties_override,
-                                        obj_properties,
-                                        NM_SETTING_WIREGUARD_PEER_ROUTES,
-                                        PROP_PEER_ROUTES,
-                                        TRUE,
-                                        NM_SETTING_PARAM_INFERRABLE,
-                                        nm_setting_wireguard_get_peer_routes);
+    _nm_setting_property_define_direct_boolean(properties_override,
+                                               obj_properties,
+                                               NM_SETTING_WIREGUARD_PEER_ROUTES,
+                                               PROP_PEER_ROUTES,
+                                               TRUE,
+                                               NM_SETTING_PARAM_INFERRABLE,
+                                               NMSettingWireGuardPrivate,
+                                               peer_routes);
 
     /**
      * NMSettingWireGuard:mtu:
@@ -2597,12 +2576,14 @@ nm_setting_wireguard_class_init(NMSettingWireGuardClass *klass)
         NM_SETTING_WIREGUARD_PEERS,
         NM_SETT_INFO_PROPERT_TYPE_DBUS(NM_G_VARIANT_TYPE("aa{sv}"),
                                        .to_dbus_fcn   = _peers_dbus_only_synth,
+                                       .compare_fcn   = compare_fcn_peers,
                                        .from_dbus_fcn = _peers_dbus_only_set, ));
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
-    _nm_setting_class_commit_full(setting_class,
-                                  NM_META_SETTING_TYPE_WIREGUARD,
-                                  NULL,
-                                  properties_override);
+    _nm_setting_class_commit(setting_class,
+                             NM_META_SETTING_TYPE_WIREGUARD,
+                             NULL,
+                             properties_override,
+                             G_STRUCT_OFFSET(NMSettingWireGuard, _priv));
 }

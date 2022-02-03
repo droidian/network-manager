@@ -8,7 +8,7 @@
 #define __NM_OBJECT_H__
 
 #if !defined(__NETWORKMANAGER_H_INSIDE__) && !defined(NETWORKMANAGER_COMPILATION)
-    #error "Only <NetworkManager.h> can be included directly."
+#error "Only <NetworkManager.h> can be included directly."
 #endif
 
 #include "nm-types.h"
@@ -22,7 +22,8 @@ G_BEGIN_DECLS
 #define NM_IS_OBJECT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), NM_TYPE_OBJECT))
 #define NM_OBJECT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj), NM_TYPE_OBJECT, NMObjectClass))
 
-#define NM_OBJECT_PATH "path"
+#define NM_OBJECT_PATH   "path"
+#define NM_OBJECT_CLIENT "client"
 
 /**
  * NMObject:

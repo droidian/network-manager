@@ -595,6 +595,10 @@
 </tr>
 <tr>
 <td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="NMConnection.html#NM-CONNECTION-NORMALIZE-PARAM-IP4-CONFIG-METHOD:CAPS" title="NM_CONNECTION_NORMALIZE_PARAM_IP4_CONFIG_METHOD">NM_CONNECTION_NORMALIZE_PARAM_IP4_CONFIG_METHOD</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
 <td class="function_name"><a class="link" href="NMConnection.html#NM-CONNECTION-NORMALIZE-PARAM-IP6-CONFIG-METHOD:CAPS" title="NM_CONNECTION_NORMALIZE_PARAM_IP6_CONFIG_METHOD">NM_CONNECTION_NORMALIZE_PARAM_IP6_CONFIG_METHOD</a></td>
 </tr>
 <tr>
@@ -1405,7 +1409,7 @@ nm_connection_is_type (<em class="parameter"><code><a class="link" href="NMConne
                        <em class="parameter"><code>const <span class="type">char</span> *type</code></em>);</pre>
 <p>A convenience function to check if the given <em class="parameter"><code>connection</code></em>
  is a particular
-type (ie wired, Wi-Fi, ppp, etc). Checks the <a href="NMSettingConnection.html#NMSettingConnection--type"><span class="type">“type”</span></a>
+type (ie wired, Wi-Fi, ppp, etc). Checks the <span class="type">“type”</span>
 property of the connection and matches that against <em class="parameter"><code>type</code></em>
 .</p>
 <div class="refsect3">
@@ -2749,6 +2753,12 @@ nm_connection_get_setting_vxlan (<em class="parameter"><code><a class="link" hre
 <div class="refsect2">
 <a name="NM-CONNECTION-CHANGED:CAPS"></a><h3>NM_CONNECTION_CHANGED</h3>
 <pre class="programlisting">#define NM_CONNECTION_CHANGED         "changed"
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="NM-CONNECTION-NORMALIZE-PARAM-IP4-CONFIG-METHOD:CAPS"></a><h3>NM_CONNECTION_NORMALIZE_PARAM_IP4_CONFIG_METHOD</h3>
+<pre class="programlisting">#define NM_CONNECTION_NORMALIZE_PARAM_IP4_CONFIG_METHOD "ip4-config-method"
 </pre>
 </div>
 <hr>

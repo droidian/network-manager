@@ -478,6 +478,38 @@ test_nm_hash(void)
     g_assert_cmpint(NM_HASH_COMBINE_BOOLS(guint16, 0, 0, 1, 1, 0, 0, 0, 1), ==, 0x031);
     g_assert_cmpint(NM_HASH_COMBINE_BOOLS(guint16, 0, 0, 0, 1, 1, 0, 0, 0, 1), ==, 0x031);
     g_assert_cmpint(NM_HASH_COMBINE_BOOLS(guint16, 1, 0, 0, 1, 1, 0, 0, 0, 1), ==, 0x131);
+    g_assert_cmpint(NM_HASH_COMBINE_BOOLS(guint16, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1),
+                    ==,
+                    0x131);
+    g_assert_cmpint(NM_HASH_COMBINE_BOOLS(guint16, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1),
+                    ==,
+                    0x8131);
+    g_assert_cmpint(
+        NM_HASH_COMBINE_BOOLS(guint32, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1),
+        ==,
+        0x8131);
+    g_assert_cmpint(
+        NM_HASH_COMBINE_BOOLS(guint32, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1),
+        ==,
+        0x28131);
+
+#if _NM_CC_SUPPORT_AUTO_TYPE
+    {
+        _nm_auto_type x = NM_HASH_COMBINE_BOOLS(guint8, 0, 0, 1, 1, 0, 0, 0, 1);
+
+        G_STATIC_ASSERT(sizeof(x) == 1);
+        g_assert(((typeof(x)) -1) > 0);
+    }
+
+    {
+        _nm_auto_type x = NM_HASH_COMBINE_BOOLS(guint16, 0, 0, 1, 1, 0, 0, 0, 1);
+
+        G_STATIC_ASSERT(sizeof(x) == 2);
+        g_assert(((typeof(x)) -1) > 0);
+    }
+#endif
+
+    NM_STATIC_ASSERT_EXPR_VOID(NM_HASH_COMBINE_BOOLS(int, 1, 0, 1) == 5);
 }
 
 /*****************************************************************************/
@@ -510,27 +542,25 @@ test_nm_g_slice_free_fcn(void)
 /*****************************************************************************/
 
 static void
-_do_test_nm_utils_strsplit_set_f_one(NMUtilsStrsplitSetFlags flags,
-                                     const char *            str,
-                                     gsize                   words_len,
-                                     const char *const *     exp_words)
+_do_test_nm_strsplit_set_f_one(NMUtilsStrsplitSetFlags flags,
+                               const char *            str,
+                               gsize                   words_len,
+                               const char *const *     exp_words)
 {
 #define DELIMITERS   " \n"
 #define DELIMITERS_C ' ', '\n'
 
     gs_free const char **words = NULL;
     gsize                i, j, k;
-    const gboolean       f_allow_escaping =
-        NM_FLAGS_HAS(flags, NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING);
-    const gboolean f_preserve_empty =
-        NM_FLAGS_HAS(flags, NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY);
+    const gboolean     f_allow_escaping = NM_FLAGS_HAS(flags, NM_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING);
+    const gboolean     f_preserve_empty = NM_FLAGS_HAS(flags, NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY);
     const char *       s1;
     gsize              initial_offset;
     gs_strfreev char **words_g = NULL;
 
-    g_assert(!NM_FLAGS_ANY(flags,
-                           ~(NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING
-                             | NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY)));
+    g_assert(!NM_FLAGS_ANY(
+        flags,
+        ~(NM_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING | NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY)));
 
     /* assert that the expected words are valid (and don't contain unescaped delimiters). */
     for (i = 0; i < words_len; i++) {
@@ -587,16 +617,16 @@ _do_test_nm_utils_strsplit_set_f_one(NMUtilsStrsplitSetFlags flags,
             }
             g_assert(words_g[words_len] == NULL);
             g_assert_cmpint(NM_PTRARRAY_LEN(words_g), ==, words_len);
-            g_assert(nm_utils_strv_cmp_n(exp_words, words_len, words_g, -1) == 0);
+            g_assert(nm_strv_cmp_n(exp_words, words_len, words_g, -1) == 0);
         }
     }
 
-    if (flags == NM_UTILS_STRSPLIT_SET_FLAGS_NONE && nmtst_get_rand_bool())
-        words = nm_utils_strsplit_set(str, DELIMITERS);
-    else if (flags == NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY && nmtst_get_rand_bool())
-        words = nm_utils_strsplit_set_with_empty(str, DELIMITERS);
+    if (flags == NM_STRSPLIT_SET_FLAGS_NONE && nmtst_get_rand_bool())
+        words = nm_strsplit_set(str, DELIMITERS);
+    else if (flags == NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY && nmtst_get_rand_bool())
+        words = nm_strsplit_set_with_empty(str, DELIMITERS);
     else
-        words = nm_utils_strsplit_set_full(str, DELIMITERS, flags);
+        words = nm_strsplit_set_full(str, DELIMITERS, flags);
 
     g_assert_cmpint(NM_PTRARRAY_LEN(words), ==, words_len);
 
@@ -611,7 +641,7 @@ _do_test_nm_utils_strsplit_set_f_one(NMUtilsStrsplitSetFlags flags,
         g_assert_cmpstr(exp_words[i], ==, words[i]);
     g_assert(words[words_len] == NULL);
 
-    g_assert(nm_utils_strv_cmp_n(exp_words, words_len, words, -1) == 0);
+    g_assert(nm_strv_cmp_n(exp_words, words_len, words, -1) == 0);
 
     s1 = words[0];
     g_assert(s1 >= (char *) &words[words_len + 1]);
@@ -719,14 +749,14 @@ _do_test_nm_utils_strsplit_set_f_one(NMUtilsStrsplitSetFlags flags,
 }
 
 static void
-_do_test_nm_utils_strsplit_set_f(NMUtilsStrsplitSetFlags flags,
-                                 const char *            str,
-                                 gsize                   words_len,
-                                 const char *const *     exp_words)
+_do_test_nm_strsplit_set_f(NMUtilsStrsplitSetFlags flags,
+                           const char *            str,
+                           gsize                   words_len,
+                           const char *const *     exp_words)
 {
-    _do_test_nm_utils_strsplit_set_f_one(flags, str, words_len, exp_words);
+    _do_test_nm_strsplit_set_f_one(flags, str, words_len, exp_words);
 
-    if (NM_FLAGS_HAS(flags, NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY)) {
+    if (NM_FLAGS_HAS(flags, NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY)) {
         gs_unref_ptrarray GPtrArray *exp_words2 = NULL;
         gsize                        k;
 
@@ -736,32 +766,32 @@ _do_test_nm_utils_strsplit_set_f(NMUtilsStrsplitSetFlags flags,
                 g_ptr_array_add(exp_words2, (gpointer) exp_words[k]);
         }
 
-        _do_test_nm_utils_strsplit_set_f_one(flags & (~NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY),
-                                             str,
-                                             exp_words2->len,
-                                             (const char *const *) exp_words2->pdata);
+        _do_test_nm_strsplit_set_f_one(flags & (~NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY),
+                                       str,
+                                       exp_words2->len,
+                                       (const char *const *) exp_words2->pdata);
     }
 }
 
-#define do_test_nm_utils_strsplit_set_f(flags, str, ...) \
-    _do_test_nm_utils_strsplit_set_f(flags, str, NM_NARG(__VA_ARGS__), NM_MAKE_STRV(__VA_ARGS__))
+#define do_test_nm_strsplit_set_f(flags, str, ...) \
+    _do_test_nm_strsplit_set_f(flags, str, NM_NARG(__VA_ARGS__), NM_MAKE_STRV(__VA_ARGS__))
 
-#define do_test_nm_utils_strsplit_set(allow_escaping, str, ...)                                   \
-    do_test_nm_utils_strsplit_set_f((allow_escaping) ? NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING \
-                                                     : NM_UTILS_STRSPLIT_SET_FLAGS_NONE,          \
-                                    str,                                                          \
-                                    ##__VA_ARGS__)
+#define do_test_nm_strsplit_set(allow_escaping, str, ...)                             \
+    do_test_nm_strsplit_set_f((allow_escaping) ? NM_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING \
+                                               : NM_STRSPLIT_SET_FLAGS_NONE,          \
+                              str,                                                    \
+                              ##__VA_ARGS__)
 
 static void
-_do_test_nm_utils_strsplit_set_simple(NMUtilsStrsplitSetFlags flags,
-                                      const char *            str,
-                                      gsize                   words_len,
-                                      const char *const *     exp_words)
+_do_test_nm_strsplit_set_simple(NMUtilsStrsplitSetFlags flags,
+                                const char *            str,
+                                gsize                   words_len,
+                                const char *const *     exp_words)
 {
     gs_free const char **tokens = NULL;
     gsize                n_tokens;
 
-    tokens = nm_utils_strsplit_set_full(str, DELIMITERS, flags);
+    tokens = nm_strsplit_set_full(str, DELIMITERS, flags);
 
     if (!tokens) {
         g_assert_cmpint(words_len, ==, 0);
@@ -772,7 +802,7 @@ _do_test_nm_utils_strsplit_set_simple(NMUtilsStrsplitSetFlags flags,
     g_assert_cmpint(words_len, >, 0);
     n_tokens = NM_PTRARRAY_LEN(tokens);
 
-    if (nm_utils_strv_cmp_n(exp_words, words_len, tokens, -1) != 0) {
+    if (nm_strv_cmp_n(exp_words, words_len, tokens, -1) != 0) {
         gsize i;
 
         g_print(">>> split \"%s\" (flags %x) got %zu tokens (%zu expected)\n",
@@ -794,107 +824,87 @@ _do_test_nm_utils_strsplit_set_simple(NMUtilsStrsplitSetFlags flags,
     }
     g_assert_cmpint(words_len, ==, NM_PTRARRAY_LEN(tokens));
 }
-#define do_test_nm_utils_strsplit_set_simple(flags, str, ...)   \
-    _do_test_nm_utils_strsplit_set_simple((flags),              \
-                                          (str),                \
-                                          NM_NARG(__VA_ARGS__), \
-                                          NM_MAKE_STRV(__VA_ARGS__))
+#define do_test_nm_strsplit_set_simple(flags, str, ...) \
+    _do_test_nm_strsplit_set_simple((flags), (str), NM_NARG(__VA_ARGS__), NM_MAKE_STRV(__VA_ARGS__))
 
 static void
-test_nm_utils_strsplit_set(void)
+test_nm_strsplit_set(void)
 {
     gs_unref_ptrarray GPtrArray *words_exp = NULL;
     guint                        test_run;
 
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_NONE, NULL);
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_NONE, "");
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_NONE, " ");
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_NONE, "a  b", "a", "b");
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_NONE, NULL);
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_NONE, "");
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_NONE, " ");
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_NONE, "a  b", "a", "b");
 
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, NULL);
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "");
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, " ", "", "");
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "  ", "", "", "");
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "a  ", "a", "", "");
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
-                                    "a  b",
-                                    "a",
-                                    "",
-                                    "b");
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
-                                    " ab  b",
-                                    "",
-                                    "ab",
-                                    "",
-                                    "b");
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
-                                    "ab  b",
-                                    "ab",
-                                    "",
-                                    "b");
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "abb", "abb");
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
-                                    "abb  bb ",
-                                    "abb",
-                                    "",
-                                    "bb",
-                                    "");
-    do_test_nm_utils_strsplit_set_f(NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
-                                    "abb bcb ",
-                                    "abb",
-                                    "bcb",
-                                    "");
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, NULL);
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "");
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, " ", "", "");
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "  ", "", "", "");
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "a  ", "a", "", "");
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "a  b", "a", "", "b");
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, " ab  b", "", "ab", "", "b");
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "ab  b", "ab", "", "b");
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "abb", "abb");
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
+                              "abb  bb ",
+                              "abb",
+                              "",
+                              "bb",
+                              "");
+    do_test_nm_strsplit_set_f(NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY, "abb bcb ", "abb", "bcb", "");
 
-    do_test_nm_utils_strsplit_set(FALSE, NULL);
-    do_test_nm_utils_strsplit_set(FALSE, "");
-    do_test_nm_utils_strsplit_set(FALSE, "\n");
-    do_test_nm_utils_strsplit_set(TRUE, " \t\n", "\t");
-    do_test_nm_utils_strsplit_set(FALSE, "a", "a");
-    do_test_nm_utils_strsplit_set(FALSE, "a b", "a", "b");
-    do_test_nm_utils_strsplit_set(FALSE, "a\rb", "a\rb");
-    do_test_nm_utils_strsplit_set(FALSE, "  a\rb  ", "a\rb");
-    do_test_nm_utils_strsplit_set(FALSE, "  a bbbd afds ere", "a", "bbbd", "afds", "ere");
-    do_test_nm_utils_strsplit_set(FALSE,
-                                  "1 2 3 4 5 6 7 8 9 0 "
-                                  "1 2 3 4 5 6 7 8 9 0 "
-                                  "1 2 3 4 5 6 7 8 9 0",
-                                  "1",
-                                  "2",
-                                  "3",
-                                  "4",
-                                  "5",
-                                  "6",
-                                  "7",
-                                  "8",
-                                  "9",
-                                  "0",
-                                  "1",
-                                  "2",
-                                  "3",
-                                  "4",
-                                  "5",
-                                  "6",
-                                  "7",
-                                  "8",
-                                  "9",
-                                  "0",
-                                  "1",
-                                  "2",
-                                  "3",
-                                  "4",
-                                  "5",
-                                  "6",
-                                  "7",
-                                  "8",
-                                  "9",
-                                  "0");
-    do_test_nm_utils_strsplit_set(TRUE, "\\", "\\");
-    do_test_nm_utils_strsplit_set(TRUE, "\\ ", "\\ ");
-    do_test_nm_utils_strsplit_set(TRUE, "\\\\", "\\\\");
-    do_test_nm_utils_strsplit_set(TRUE, "\\\t", "\\\t");
-    do_test_nm_utils_strsplit_set(TRUE, "foo\\", "foo\\");
-    do_test_nm_utils_strsplit_set(TRUE, "bar foo\\", "bar", "foo\\");
-    do_test_nm_utils_strsplit_set(TRUE, "\\ a b\\ \\  c", "\\ a", "b\\ \\ ", "c");
+    do_test_nm_strsplit_set(FALSE, NULL);
+    do_test_nm_strsplit_set(FALSE, "");
+    do_test_nm_strsplit_set(FALSE, "\n");
+    do_test_nm_strsplit_set(TRUE, " \t\n", "\t");
+    do_test_nm_strsplit_set(FALSE, "a", "a");
+    do_test_nm_strsplit_set(FALSE, "a b", "a", "b");
+    do_test_nm_strsplit_set(FALSE, "a\rb", "a\rb");
+    do_test_nm_strsplit_set(FALSE, "  a\rb  ", "a\rb");
+    do_test_nm_strsplit_set(FALSE, "  a bbbd afds ere", "a", "bbbd", "afds", "ere");
+    do_test_nm_strsplit_set(FALSE,
+                            "1 2 3 4 5 6 7 8 9 0 "
+                            "1 2 3 4 5 6 7 8 9 0 "
+                            "1 2 3 4 5 6 7 8 9 0",
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            "7",
+                            "8",
+                            "9",
+                            "0",
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            "7",
+                            "8",
+                            "9",
+                            "0",
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            "7",
+                            "8",
+                            "9",
+                            "0");
+    do_test_nm_strsplit_set(TRUE, "\\", "\\");
+    do_test_nm_strsplit_set(TRUE, "\\ ", "\\ ");
+    do_test_nm_strsplit_set(TRUE, "\\\\", "\\\\");
+    do_test_nm_strsplit_set(TRUE, "\\\t", "\\\t");
+    do_test_nm_strsplit_set(TRUE, "foo\\", "foo\\");
+    do_test_nm_strsplit_set(TRUE, "bar foo\\", "bar", "foo\\");
+    do_test_nm_strsplit_set(TRUE, "\\ a b\\ \\  c", "\\ a", "b\\ \\ ", "c");
 
     words_exp = g_ptr_array_new_with_free_func(g_free);
     for (test_run = 0; test_run < 100; test_run++) {
@@ -942,52 +952,40 @@ test_nm_utils_strsplit_set(void)
             words_len = 0;
         }
 
-        _do_test_nm_utils_strsplit_set_f((f_allow_escaping
-                                              ? NM_UTILS_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING
-                                              : NM_UTILS_STRSPLIT_SET_FLAGS_NONE)
-                                             | NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
-                                         str,
-                                         words_len,
-                                         (const char *const *) words_exp->pdata);
+        _do_test_nm_strsplit_set_f(
+            (f_allow_escaping ? NM_STRSPLIT_SET_FLAGS_ALLOW_ESCAPING : NM_STRSPLIT_SET_FLAGS_NONE)
+                | NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
+            str,
+            words_len,
+            (const char *const *) words_exp->pdata);
     }
 
-    do_test_nm_utils_strsplit_set_simple(NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED, "\t", "\t");
-    do_test_nm_utils_strsplit_set_simple(NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED
-                                             | NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP,
-                                         "\t");
-    do_test_nm_utils_strsplit_set_simple(NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED
-                                             | NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP
-                                             | NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
-                                         "\t",
-                                         "");
-    do_test_nm_utils_strsplit_set_simple(NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED
-                                             | NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP
-                                             | NM_UTILS_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
-                                         "\t\\\t\t\t\\\t",
-                                         "\t\t\t\t");
+    do_test_nm_strsplit_set_simple(NM_STRSPLIT_SET_FLAGS_ESCAPED, "\t", "\t");
+    do_test_nm_strsplit_set_simple(NM_STRSPLIT_SET_FLAGS_ESCAPED | NM_STRSPLIT_SET_FLAGS_STRSTRIP,
+                                   "\t");
+    do_test_nm_strsplit_set_simple(NM_STRSPLIT_SET_FLAGS_ESCAPED | NM_STRSPLIT_SET_FLAGS_STRSTRIP
+                                       | NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
+                                   "\t",
+                                   "");
+    do_test_nm_strsplit_set_simple(NM_STRSPLIT_SET_FLAGS_ESCAPED | NM_STRSPLIT_SET_FLAGS_STRSTRIP
+                                       | NM_STRSPLIT_SET_FLAGS_PRESERVE_EMPTY,
+                                   "\t\\\t\t\t\\\t",
+                                   "\t\t\t\t");
 
-    do_test_nm_utils_strsplit_set_simple(NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED, "\ta", "\ta");
-    do_test_nm_utils_strsplit_set_simple(NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED
-                                             | NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP,
-                                         "\ta",
-                                         "a");
-    do_test_nm_utils_strsplit_set_simple(NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED,
-                                         "\ta\\ b\t\\ ",
-                                         "\ta b\t ");
-    do_test_nm_utils_strsplit_set_simple(NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED
-                                             | NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP,
-                                         "\ta\\ b\t\\ \t",
-                                         "a b\t ");
-    do_test_nm_utils_strsplit_set_simple(NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED, "a\\  b", "a ", "b");
-    do_test_nm_utils_strsplit_set_simple(NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED,
-                                         "\ta\\  b",
-                                         "\ta ",
-                                         "b");
-    do_test_nm_utils_strsplit_set_simple(NM_UTILS_STRSPLIT_SET_FLAGS_ESCAPED
-                                             | NM_UTILS_STRSPLIT_SET_FLAGS_STRSTRIP,
-                                         "\ta\\  b",
-                                         "a ",
-                                         "b");
+    do_test_nm_strsplit_set_simple(NM_STRSPLIT_SET_FLAGS_ESCAPED, "\ta", "\ta");
+    do_test_nm_strsplit_set_simple(NM_STRSPLIT_SET_FLAGS_ESCAPED | NM_STRSPLIT_SET_FLAGS_STRSTRIP,
+                                   "\ta",
+                                   "a");
+    do_test_nm_strsplit_set_simple(NM_STRSPLIT_SET_FLAGS_ESCAPED, "\ta\\ b\t\\ ", "\ta b\t ");
+    do_test_nm_strsplit_set_simple(NM_STRSPLIT_SET_FLAGS_ESCAPED | NM_STRSPLIT_SET_FLAGS_STRSTRIP,
+                                   "\ta\\ b\t\\ \t",
+                                   "a b\t ");
+    do_test_nm_strsplit_set_simple(NM_STRSPLIT_SET_FLAGS_ESCAPED, "a\\  b", "a ", "b");
+    do_test_nm_strsplit_set_simple(NM_STRSPLIT_SET_FLAGS_ESCAPED, "\ta\\  b", "\ta ", "b");
+    do_test_nm_strsplit_set_simple(NM_STRSPLIT_SET_FLAGS_ESCAPED | NM_STRSPLIT_SET_FLAGS_STRSTRIP,
+                                   "\ta\\  b",
+                                   "a ",
+                                   "b");
 }
 
 /*****************************************************************************/
@@ -3062,8 +3060,7 @@ test_setting_new_from_dbus_bad(void)
                                                        "i",
                                                        10););
     conn = _connection_new_from_dbus(dict, &error);
-    g_assert(conn);
-    g_assert_no_error(error);
+    nmtst_assert_success(conn, error);
     setting = nm_connection_get_setting(conn, NM_TYPE_SETTING_WIRELESS);
     g_assert(setting);
     g_assert_cmpint(nm_setting_wireless_get_rate(NM_SETTING_WIRELESS(setting)), ==, 10);
@@ -3823,6 +3820,7 @@ test_connection_diff_a_only(void)
           {NM_SETTING_CONNECTION_AUTH_RETRIES, NM_SETTING_DIFF_RESULT_IN_A},
           {NM_SETTING_CONNECTION_MDNS, NM_SETTING_DIFF_RESULT_IN_A},
           {NM_SETTING_CONNECTION_LLMNR, NM_SETTING_DIFF_RESULT_IN_A},
+          {NM_SETTING_CONNECTION_DNS_OVER_TLS, NM_SETTING_DIFF_RESULT_IN_A},
           {NM_SETTING_CONNECTION_MUD_URL, NM_SETTING_DIFF_RESULT_IN_A},
           {NM_SETTING_CONNECTION_WAIT_DEVICE_TIMEOUT, NM_SETTING_DIFF_RESULT_IN_A},
           {NULL, NM_SETTING_DIFF_RESULT_UNKNOWN}}},
@@ -5016,7 +5014,7 @@ test_connection_changed_signal(void)
     connection = new_test_connection();
     g_signal_connect(connection,
                      NM_CONNECTION_CHANGED,
-                     (GCallback) test_connection_changed_cb,
+                     G_CALLBACK(test_connection_changed_cb),
                      &changed);
 
     /* Add new setting */
@@ -5042,7 +5040,7 @@ test_setting_connection_changed_signal(void)
     connection = nm_simple_connection_new();
     g_signal_connect(connection,
                      NM_CONNECTION_CHANGED,
-                     (GCallback) test_connection_changed_cb,
+                     G_CALLBACK(test_connection_changed_cb),
                      &changed);
 
     s_con = (NMSettingConnection *) nm_setting_connection_new();
@@ -5078,7 +5076,7 @@ test_setting_bond_changed_signal(void)
     connection = nm_simple_connection_new();
     g_signal_connect(connection,
                      NM_CONNECTION_CHANGED,
-                     (GCallback) test_connection_changed_cb,
+                     G_CALLBACK(test_connection_changed_cb),
                      &changed);
 
     s_bond = (NMSettingBond *) nm_setting_bond_new();
@@ -5104,7 +5102,7 @@ test_setting_ip4_changed_signal(void)
     connection = nm_simple_connection_new();
     g_signal_connect(connection,
                      NM_CONNECTION_CHANGED,
-                     (GCallback) test_connection_changed_cb,
+                     G_CALLBACK(test_connection_changed_cb),
                      &changed);
 
     s_ip4 = (NMSettingIPConfig *) nm_setting_ip4_config_new();
@@ -5180,7 +5178,7 @@ test_setting_ip6_changed_signal(void)
     connection = nm_simple_connection_new();
     g_signal_connect(connection,
                      NM_CONNECTION_CHANGED,
-                     (GCallback) test_connection_changed_cb,
+                     G_CALLBACK(test_connection_changed_cb),
                      &changed);
 
     s_ip6 = (NMSettingIPConfig *) nm_setting_ip6_config_new();
@@ -5247,7 +5245,7 @@ test_setting_vlan_changed_signal(void)
     connection = nm_simple_connection_new();
     g_signal_connect(connection,
                      NM_CONNECTION_CHANGED,
-                     (GCallback) test_connection_changed_cb,
+                     G_CALLBACK(test_connection_changed_cb),
                      &changed);
 
     s_vlan = (NMSettingVlan *) nm_setting_vlan_new();
@@ -5282,7 +5280,7 @@ test_setting_vpn_changed_signal(void)
     connection = nm_simple_connection_new();
     g_signal_connect(connection,
                      NM_CONNECTION_CHANGED,
-                     (GCallback) test_connection_changed_cb,
+                     G_CALLBACK(test_connection_changed_cb),
                      &changed);
 
     s_vpn = (NMSettingVpn *) nm_setting_vpn_new();
@@ -5309,7 +5307,7 @@ test_setting_wired_changed_signal(void)
     connection = nm_simple_connection_new();
     g_signal_connect(connection,
                      NM_CONNECTION_CHANGED,
-                     (GCallback) test_connection_changed_cb,
+                     G_CALLBACK(test_connection_changed_cb),
                      &changed);
 
     s_wired = (NMSettingWired *) nm_setting_wired_new();
@@ -5332,7 +5330,7 @@ test_setting_wireless_changed_signal(void)
     connection = nm_simple_connection_new();
     g_signal_connect(connection,
                      NM_CONNECTION_CHANGED,
-                     (GCallback) test_connection_changed_cb,
+                     G_CALLBACK(test_connection_changed_cb),
                      &changed);
 
     s_wifi = (NMSettingWireless *) nm_setting_wireless_new();
@@ -5353,7 +5351,7 @@ test_setting_wireless_security_changed_signal(void)
     connection = nm_simple_connection_new();
     g_signal_connect(connection,
                      NM_CONNECTION_CHANGED,
-                     (GCallback) test_connection_changed_cb,
+                     G_CALLBACK(test_connection_changed_cb),
                      &changed);
 
     s_wsec = (NMSettingWirelessSecurity *) nm_setting_wireless_security_new();
@@ -5420,7 +5418,7 @@ test_setting_802_1x_changed_signal(void)
     connection = nm_simple_connection_new();
     g_signal_connect(connection,
                      NM_CONNECTION_CHANGED,
-                     (GCallback) test_connection_changed_cb,
+                     G_CALLBACK(test_connection_changed_cb),
                      &changed);
 
     s_8021x = (NMSetting8021x *) nm_setting_802_1x_new();
@@ -7121,7 +7119,7 @@ test_hexstr2bin(void)
             g_assert(b);
         else
             g_assert(!b);
-        g_assert(nm_utils_gbytes_equal_mem(b, items[i].expected, items[i].expected_len));
+        g_assert(nm_g_bytes_equal_mem(b, items[i].expected, items[i].expected_len));
     }
 }
 
@@ -7209,11 +7207,10 @@ test_nm_strquote(void)
 
 /*****************************************************************************/
 
-#define UUID_NS_ZERO "00000000-0000-0000-0000-000000000000"
-#define UUID_NS_DNS  "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-#define UUID_NS_URL  "6ba7b811-9dad-11d1-80b4-00c04fd430c8"
-#define UUID_NS_OID  "6ba7b812-9dad-11d1-80b4-00c04fd430c8"
-#define UUID_NS_X500 "6ba7b814-9dad-11d1-80b4-00c04fd430c8"
+#define NM_UUID_NS_DNS  "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+#define NM_UUID_NS_URL  "6ba7b811-9dad-11d1-80b4-00c04fd430c8"
+#define NM_UUID_NS_OID  "6ba7b812-9dad-11d1-80b4-00c04fd430c8"
+#define NM_UUID_NS_X500 "6ba7b814-9dad-11d1-80b4-00c04fd430c8"
 
 static const NMUuid *
 _uuid(const char *str)
@@ -7230,11 +7227,18 @@ _test_uuid(int         uuid_type,
            const char *expected_uuid,
            const char *str,
            gssize      slen,
-           gpointer    type_args)
+           const char *type_args)
 {
-    gs_free char *uuid_test = NULL;
+    gs_free char *uuid_test   = NULL;
+    NMUuid        type_args_u = NM_UUID_INIT_ZERO();
 
-    uuid_test = nm_uuid_generate_from_string_str(str, slen, uuid_type, type_args);
+    if (type_args) {
+        if (!nm_uuid_parse(type_args, &type_args_u))
+            g_assert_not_reached();
+    }
+
+    uuid_test =
+        nm_uuid_generate_from_string_str(str, slen, uuid_type, type_args ? &type_args_u : NULL);
 
     g_assert(uuid_test);
     g_assert(nm_utils_is_uuid(uuid_test));
@@ -7245,7 +7249,7 @@ _test_uuid(int         uuid_type,
                 str,
                 (long long) slen,
                 NM_IN_SET(uuid_type, NM_UUID_TYPE_VERSION3, NM_UUID_TYPE_VERSION5)
-                    ? (((const char *) type_args) ?: "(all-zero)")
+                    ? (type_args ?: "(all-zero)")
                     : (type_args ? "(unknown)" : "(null)"),
                 uuid_test,
                 expected_uuid);
@@ -7260,8 +7264,8 @@ _test_uuid(int         uuid_type,
     }
 
     if (NM_IN_SET(uuid_type, NM_UUID_TYPE_VERSION3, NM_UUID_TYPE_VERSION5) && !type_args) {
-        /* For version3 and version5, a missing @type_args is equal to UUID_NS_ZERO */
-        _test_uuid(uuid_type, expected_uuid, str, slen, UUID_NS_ZERO);
+        /* For version3 and version5, a missing @type_args is equal to NM_UUID_NS_ZERO */
+        _test_uuid(uuid_type, expected_uuid, str, slen, NM_UUID_NS_ZERO);
     }
 }
 
@@ -7695,33 +7699,53 @@ test_nm_utils_uuid_generate_from_string(void)
     _test_uuid(NM_UUID_TYPE_VERSION3, "96e17d7a-ac89-38cf-95e1-bf5098da34e1", "test", -1, NULL);
     _test_uuid(NM_UUID_TYPE_VERSION3, "8156568e-4ae6-3f34-a93e-18e2c6cbbf78", "a\0b", 3, NULL);
 
-    _test_uuid(NM_UUID_TYPE_VERSION3, "c87ee674-4ddc-3efe-a74e-dfe25da5d7b3", "", -1, UUID_NS_DNS);
-    _test_uuid(NM_UUID_TYPE_VERSION3, "4c104dd0-4821-30d5-9ce3-0e7a1f8b7c0d", "a", -1, UUID_NS_DNS);
+    _test_uuid(NM_UUID_TYPE_VERSION3,
+               "c87ee674-4ddc-3efe-a74e-dfe25da5d7b3",
+               "",
+               -1,
+               NM_UUID_NS_DNS);
+    _test_uuid(NM_UUID_TYPE_VERSION3,
+               "4c104dd0-4821-30d5-9ce3-0e7a1f8b7c0d",
+               "a",
+               -1,
+               NM_UUID_NS_DNS);
     _test_uuid(NM_UUID_TYPE_VERSION3,
                "45a113ac-c7f2-30b0-90a5-a399ab912716",
                "test",
                -1,
-               UUID_NS_DNS);
+               NM_UUID_NS_DNS);
     _test_uuid(NM_UUID_TYPE_VERSION3,
                "002a0ada-f547-375a-bab5-896a11d1927e",
                "a\0b",
                3,
-               UUID_NS_DNS);
+               NM_UUID_NS_DNS);
     _test_uuid(NM_UUID_TYPE_VERSION3,
                "9a75f5f2-195e-31a9-9d07-8c18b5d3b285",
                "test123",
                -1,
-               UUID_NS_DNS);
-    _test_uuid(NM_UUID_TYPE_VERSION3, "ec794efe-a384-3b11-a0b6-ec8995bc6acc", "x", -1, UUID_NS_DNS);
+               NM_UUID_NS_DNS);
+    _test_uuid(NM_UUID_TYPE_VERSION3,
+               "ec794efe-a384-3b11-a0b6-ec8995bc6acc",
+               "x",
+               -1,
+               NM_UUID_NS_DNS);
 
     _test_uuid(NM_UUID_TYPE_VERSION5, "a7650b9f-f19f-5300-8a13-91160ea8de2c", "a\0b", 3, NULL);
-    _test_uuid(NM_UUID_TYPE_VERSION5, "4f3f2898-69e3-5a0d-820a-c4e87987dbce", "a", -1, UUID_NS_DNS);
-    _test_uuid(NM_UUID_TYPE_VERSION5, "05b16a01-46c6-56dd-bd6e-c6dfb4a1427a", "x", -1, UUID_NS_DNS);
+    _test_uuid(NM_UUID_TYPE_VERSION5,
+               "4f3f2898-69e3-5a0d-820a-c4e87987dbce",
+               "a",
+               -1,
+               NM_UUID_NS_DNS);
+    _test_uuid(NM_UUID_TYPE_VERSION5,
+               "05b16a01-46c6-56dd-bd6e-c6dfb4a1427a",
+               "x",
+               -1,
+               NM_UUID_NS_DNS);
     _test_uuid(NM_UUID_TYPE_VERSION5,
                "c9ed566a-6b79-5d3a-b2b7-96a936b48cf3",
                "test123",
                -1,
-               UUID_NS_DNS);
+               NM_UUID_NS_DNS);
 
     for (i = 0; i < G_N_ELEMENTS(zero_uuids); i++) {
         nm_sprintf_buf(i_str, "%u", i),
@@ -7730,8 +7754,8 @@ test_nm_utils_uuid_generate_from_string(void)
     }
     for (i = 0; i < G_N_ELEMENTS(dns_uuids); i++) {
         nm_sprintf_buf(i_str, "%u", i),
-            _test_uuid(NM_UUID_TYPE_VERSION3, dns_uuids[i].uuid3, i_str, -1, UUID_NS_DNS);
-        _test_uuid(NM_UUID_TYPE_VERSION5, dns_uuids[i].uuid5, i_str, -1, UUID_NS_DNS);
+            _test_uuid(NM_UUID_TYPE_VERSION3, dns_uuids[i].uuid3, i_str, -1, NM_UUID_NS_DNS);
+        _test_uuid(NM_UUID_TYPE_VERSION5, dns_uuids[i].uuid5, i_str, -1, NM_UUID_NS_DNS);
     }
 
     /* examples from cpython unit tests: */
@@ -7739,48 +7763,48 @@ test_nm_utils_uuid_generate_from_string(void)
                "6fa459ea-ee8a-3ca4-894e-db77e160355e",
                "python.org",
                -1,
-               UUID_NS_DNS);
+               NM_UUID_NS_DNS);
     _test_uuid(NM_UUID_TYPE_VERSION5,
                "886313e1-3b8a-5372-9b90-0c9aee199e5d",
                "python.org",
                -1,
-               UUID_NS_DNS);
+               NM_UUID_NS_DNS);
     _test_uuid(NM_UUID_TYPE_VERSION3,
                "9fe8e8c4-aaa8-32a9-a55c-4535a88b748d",
                "http://python.org/",
                -1,
-               UUID_NS_URL);
+               NM_UUID_NS_URL);
     _test_uuid(NM_UUID_TYPE_VERSION5,
                "4c565f0d-3f5a-5890-b41b-20cf47701c5e",
                "http://python.org/",
                -1,
-               UUID_NS_URL);
+               NM_UUID_NS_URL);
     _test_uuid(NM_UUID_TYPE_VERSION3,
                "dd1a1cef-13d5-368a-ad82-eca71acd4cd1",
                "1.3.6.1",
                -1,
-               UUID_NS_OID);
+               NM_UUID_NS_OID);
     _test_uuid(NM_UUID_TYPE_VERSION5,
                "1447fa61-5277-5fef-a9b3-fbc6e44f4af3",
                "1.3.6.1",
                -1,
-               UUID_NS_OID);
+               NM_UUID_NS_OID);
     _test_uuid(NM_UUID_TYPE_VERSION3,
                "658d3002-db6b-3040-a1d1-8ddd7d189a4d",
                "c=ca",
                -1,
-               UUID_NS_X500);
+               NM_UUID_NS_X500);
     _test_uuid(NM_UUID_TYPE_VERSION5,
                "cc957dd1-a972-5349-98cd-874190002798",
                "c=ca",
                -1,
-               UUID_NS_X500);
+               NM_UUID_NS_X500);
 
     _test_uuid(NM_UUID_TYPE_VERSION5,
                "74738ff5-5367-5958-9aee-98fffdcd1876",
                "www.example.org",
                -1,
-               UUID_NS_DNS);
+               NM_UUID_NS_DNS);
 }
 
 /*****************************************************************************/
@@ -7800,7 +7824,7 @@ __test_uuid(const char *expected_uuid, const char *str, gssize slen, char *uuid_
     }
     g_free(uuid_test);
 
-    uuid_test = nm_uuid_generate_from_string_str(str, slen, NM_UUID_TYPE_VERSION3, NM_UUID_NS1);
+    uuid_test = nm_uuid_generate_from_string_str(str, slen, NM_UUID_TYPE_VERSION3, &nm_uuid_ns_1);
 
     g_assert(uuid_test);
     g_assert(nm_utils_is_uuid(uuid_test));
@@ -7821,14 +7845,22 @@ __test_uuid(const char *expected_uuid, const char *str, gssize slen, char *uuid_
 static void
 test_nm_utils_uuid_generate_from_strings(void)
 {
-    const NMUuid uuid0 = {};
+    const NMUuid uuid0 = NM_UUID_INIT_ZERO();
+    const NMUuid uuid1 = {};
+    char         buf[37];
 
     g_assert_cmpmem(&uuid0, sizeof(uuid0), _uuid("00000000-0000-0000-0000-000000000000"), 16);
 
+    g_assert_cmpmem(&uuid0, sizeof(NMUuid), &uuid1, sizeof(NMUuid));
+
     g_assert(nm_uuid_is_null(NULL));
     g_assert(nm_uuid_is_null(&uuid0));
+    g_assert(nm_uuid_is_null(&nm_uuid_ns_zero));
     g_assert(nm_uuid_is_null(_uuid("00000000-0000-0000-0000-000000000000")));
     g_assert(!nm_uuid_is_null(_uuid("10000000-0000-0000-0000-000000000000")));
+
+    g_assert_cmpstr(NM_UUID_NS_1, ==, nm_uuid_unparse(&nm_uuid_ns_1, buf));
+    g_assert_cmpstr(NM_UUID_NS_ZERO, ==, nm_uuid_unparse(&nm_uuid_ns_zero, buf));
 
     _test_uuid("b07c334a-399b-32de-8d50-58e4e08f98e3", "", 0, NULL);
     _test_uuid("b8a426cb-bcb5-30a3-bd8f-6786fea72df9", "\0", 1, "");
@@ -7844,6 +7876,32 @@ test_nm_utils_uuid_generate_from_strings(void)
     _test_uuid("2bdd3d46-eb83-3c53-a41b-a724d04b5544", "a\0aa\0", 5, "a", "aa");
     _test_uuid("13d4b780-07c1-3ba7-b449-81c4844ef039", "aa\0aa\0", 6, "aa", "aa");
     _test_uuid("dd265bf7-c05a-3037-9939-b9629858a477", "a\0b\0", 4, "a", "b");
+}
+
+static void
+test_nm_uuid_init(void)
+{
+    char buf[37];
+
+    {
+        NMUuid u;
+
+        u = NM_UUID_INIT(47, c4, d7, f9, 2c, 81, 4f, 7b, be, ed, 63, 0a, 7f, 65, cc, 02);
+        g_assert_cmpstr("47c4d7f9-2c81-4f7b-beed-630a7f65cc02", ==, nm_uuid_unparse(&u, buf));
+    }
+    {
+        const NMUuid u =
+            NM_UUID_INIT(47, c4, d7, f9, 2c, 81, 4f, 7b, be, ed, 63, 0a, 7f, 65, cc, 02);
+
+        g_assert_cmpstr("47c4d7f9-2c81-4f7b-beed-630a7f65cc02", ==, nm_uuid_unparse(&u, buf));
+    }
+    {
+        const struct {
+            NMUuid u;
+        } u = {NM_UUID_INIT(47, c4, d7, f9, 2c, 81, 4f, 7b, be, ed, 63, 0a, 7f, 65, cc, 02)};
+
+        g_assert_cmpstr("47c4d7f9-2c81-4f7b-beed-630a7f65cc02", ==, nm_uuid_unparse(&u.u, buf));
+    }
 }
 
 /*****************************************************************************/
@@ -9787,11 +9845,53 @@ test_nm_va_args_macros(void)
     g_assert_cmpint(7, ==, GET_NARG_1(x, x, x, x, x, x, x));
     g_assert_cmpint(8, ==, GET_NARG_1(x, x, x, x, x, x, x, x));
     g_assert_cmpint(9, ==, GET_NARG_1(x, x, x, x, x, x, x, x, x));
-    g_assert_cmpint(10, ==, GET_NARG_1(x, x, x, x, x, x, x, x, x, x));
+    g_assert_cmpint(10, ==, NM_NARG(x, x, x, x, x, x, x, x, x, x));
 
     G_STATIC_ASSERT_EXPR(0 == GET_NARG_1());
     G_STATIC_ASSERT_EXPR(1 == GET_NARG_1(x));
     G_STATIC_ASSERT_EXPR(2 == GET_NARG_1(x, x));
+
+    /* clang-format off */
+    G_STATIC_ASSERT_EXPR(NM_NARG(
+                                 1,2,3,4,5,6,7,8,9,10,
+                                 1,2,3,4,5,6,7,8,9,20,
+                                 1,2,3,4,5,6,7,8,9,30
+                                 ) == 30);
+    G_STATIC_ASSERT_EXPR(NM_NARG(
+                                 1,2,3,4,5,6,7,8,9,10,
+                                 1,2,3,4,5,6,7,8,9,20,
+                                 1,2,3,4,5,6,7,8,9,30,
+                                 1,2,3,4,5,6,7,8,9,40,
+                                 1,2,3,4,5,6,7,8,9,50,
+                                 1,2,3,4,5,6,7,8,9,60,
+                                 1,2,3,4,5,6,7,8,9,70,
+                                 1,2,3,4,5,6,7,8,9,80
+                                 ) == 80);
+    G_STATIC_ASSERT_EXPR(NM_NARG(
+                                 1,2,3,4,5,6,7,8,9,10,
+                                 1,2,3,4,5,6,7,8,9,20,
+                                 1,2,3,4,5,6,7,8,9,30,
+                                 1,2,3,4,5,6,7,8,9,40,
+                                 1,2,3,4,5,6,7,8,9,50,
+                                 1,2,3,4,5,6,7,8,9,60,
+                                 1,2,3,4,5,6,7,8,9,70,
+                                 1,2,3,4,5,6,7,8,9,80,
+                                 1,2,3,4,5,6,7,8,9,90,
+                                 1,2,3,4,5,6,7,8,9,100,
+                                 1,2,3,4,5,6,7,8,9,110,
+                                 1,2,3,4,5,6,7,8,9,120
+                                 ) == 120);
+    /* clang-format on */
+
+    G_STATIC_ASSERT_EXPR(NM_NARG_MAX1() == 0);
+    G_STATIC_ASSERT_EXPR(NM_NARG_MAX1(1) == 1);
+    G_STATIC_ASSERT_EXPR(NM_NARG_MAX1(1, 2) == 1);
+    G_STATIC_ASSERT_EXPR(NM_NARG_MAX1(1, 2, 3) == 1);
+
+    G_STATIC_ASSERT_EXPR(NM_NARG_MAX2() == 0);
+    G_STATIC_ASSERT_EXPR(NM_NARG_MAX2(1) == 1);
+    G_STATIC_ASSERT_EXPR(NM_NARG_MAX2(1, 2) == 2);
+    G_STATIC_ASSERT_EXPR(NM_NARG_MAX2(1, 2, 3) == 2);
 }
 
 /*****************************************************************************/
@@ -10333,7 +10433,7 @@ _strsplit_quoted_assert_strv(const char *       topic,
     g_assert(strv1);
     g_assert(strv2);
 
-    if (nm_utils_strv_equal(strv1, strv2))
+    if (nm_strv_equal(strv1, strv2))
         return;
 
     for (i = 0; strv1[i]; i++) {
@@ -10420,6 +10520,60 @@ test_strsplit_quoted(void)
 
         _strsplit_quoted_test(s, NULL);
     }
+}
+
+/*****************************************************************************/
+
+static void
+test_nm_property_variant_to_gvalue(void)
+{
+#define _test_variant_to_gvalue_bad(variant, gtype)                                     \
+    G_STMT_START                                                                        \
+    {                                                                                   \
+        gs_unref_variant GVariant * _variant = (variant);                               \
+        GType                       _gtype   = (gtype);                                 \
+        nm_auto_unset_gvalue GValue _gvalue  = G_VALUE_INIT;                            \
+                                                                                        \
+        g_value_init(&_gvalue, _gtype);                                                 \
+        g_assert_cmpint(_nm_property_variant_to_gvalue(_variant, &_gvalue), ==, FALSE); \
+    }                                                                                   \
+    G_STMT_END
+
+#define _test_variant_to_gvalue(variant, gtype, check)                                 \
+    G_STMT_START                                                                       \
+    {                                                                                  \
+        gs_unref_variant GVariant * _variant = (variant);                              \
+        GType                       _gtype   = (gtype);                                \
+        nm_auto_unset_gvalue GValue _gvalue  = G_VALUE_INIT;                           \
+        _nm_unused GValue *const gg          = &_gvalue;                               \
+                                                                                       \
+        g_value_init(&_gvalue, _gtype);                                                \
+        g_assert_cmpint(_nm_property_variant_to_gvalue(_variant, &_gvalue), ==, TRUE); \
+        check;                                                                         \
+    }                                                                                  \
+    G_STMT_END
+
+#define _test_variant_to_gvalue_int(variant, gtype, gvalue_get, expected) \
+    _test_variant_to_gvalue((variant), (gtype), g_assert_cmpint(gvalue_get(gg), ==, (expected)))
+
+    _test_variant_to_gvalue_bad(g_variant_new_string(""), G_TYPE_BOOLEAN);
+    _test_variant_to_gvalue(g_variant_new_string(""),
+                            G_TYPE_STRING,
+                            g_assert_cmpstr(g_value_get_string(gg), ==, ""));
+    _test_variant_to_gvalue_int(g_variant_new_boolean(FALSE),
+                                G_TYPE_BOOLEAN,
+                                g_value_get_boolean,
+                                FALSE);
+    _test_variant_to_gvalue_int(g_variant_new_boolean(TRUE),
+                                G_TYPE_BOOLEAN,
+                                g_value_get_boolean,
+                                TRUE);
+    _test_variant_to_gvalue_int(g_variant_new_int32(0), G_TYPE_BOOLEAN, g_value_get_boolean, FALSE);
+    _test_variant_to_gvalue_int(g_variant_new_int32(1), G_TYPE_BOOLEAN, g_value_get_boolean, 1);
+    _test_variant_to_gvalue_int(g_variant_new_int32(2), G_TYPE_BOOLEAN, g_value_get_boolean, 1);
+    _test_variant_to_gvalue_int(g_variant_new_byte(0), G_TYPE_BOOLEAN, g_value_get_boolean, 0);
+    _test_variant_to_gvalue_int(g_variant_new_byte(1), G_TYPE_BOOLEAN, g_value_get_boolean, 1);
+    _test_variant_to_gvalue_int(g_variant_new_byte(2), G_TYPE_BOOLEAN, g_value_get_boolean, 1);
 }
 
 /*****************************************************************************/
@@ -10531,7 +10685,7 @@ main(int argc, char **argv)
     g_test_add_func("/core/general/test_c_list_sort", test_c_list_sort);
     g_test_add_func("/core/general/test_dedup_multi", test_dedup_multi);
     g_test_add_func("/core/general/test_utils_str_utf8safe", test_utils_str_utf8safe);
-    g_test_add_func("/core/general/test_nm_utils_strsplit_set", test_nm_utils_strsplit_set);
+    g_test_add_func("/core/general/test_nm_strsplit_set", test_nm_strsplit_set);
     g_test_add_func("/core/general/test_nm_utils_escaped_tokens", test_nm_utils_escaped_tokens);
     g_test_add_func("/core/general/test_nm_in_set", test_nm_in_set);
     g_test_add_func("/core/general/test_nm_in_strset", test_nm_in_strset);
@@ -10743,6 +10897,9 @@ main(int argc, char **argv)
     g_test_add_func("/core/general/test_setting_connection_permissions_property",
                     test_setting_connection_permissions_property);
 
+    g_test_add_func("/core/general/test_nm_property_variant_to_gvalue",
+                    test_nm_property_variant_to_gvalue);
+
     g_test_add_func("/core/general/test_connection_compare_same", test_connection_compare_same);
     g_test_add_func("/core/general/test_connection_compare_key_only_in_a",
                     test_connection_compare_key_only_in_a);
@@ -10810,6 +10967,7 @@ main(int argc, char **argv)
                     test_nm_utils_uuid_generate_from_string);
     g_test_add_func("/core/general/nm_uuid_generate_from_strings",
                     test_nm_utils_uuid_generate_from_strings);
+    g_test_add_func("/core/general/test_nm_uuid_init", test_nm_uuid_init);
 
     g_test_add_func("/core/general/_nm_utils_ascii_str_to_int64", test_nm_utils_ascii_str_to_int64);
     g_test_add_func("/core/general/nm_utils_is_power_of_two", test_nm_utils_is_power_of_two);

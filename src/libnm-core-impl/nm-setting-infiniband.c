@@ -379,7 +379,6 @@ finalize(GObject *object)
     NMSettingInfinibandPrivate *priv = NM_SETTING_INFINIBAND_GET_PRIVATE(object);
 
     g_free(priv->transport_mode);
-    g_free(priv->mac_address);
     g_free(priv->parent);
     g_free(priv->virtual_iface_name);
 
@@ -426,15 +425,15 @@ nm_setting_infiniband_class_init(NMSettingInfinibandClass *klass)
      * example: HWADDR=01:02:03:04:05:06:07:08:09:0A:01:02:03:04:05:06:07:08:09:11
      * ---end---
      */
-    obj_properties[PROP_MAC_ADDRESS] = g_param_spec_string(
-        NM_SETTING_INFINIBAND_MAC_ADDRESS,
-        "",
-        "",
-        NULL,
-        G_PARAM_READWRITE | NM_SETTING_PARAM_INFERRABLE | G_PARAM_STATIC_STRINGS);
-    _nm_properties_override_gobj(properties_override,
-                                 obj_properties[PROP_MAC_ADDRESS],
-                                 &nm_sett_info_propert_type_mac_address);
+    _nm_setting_property_define_direct_mac_address(properties_override,
+                                                   obj_properties,
+                                                   NM_SETTING_INFINIBAND_MAC_ADDRESS,
+                                                   PROP_MAC_ADDRESS,
+                                                   NM_SETTING_PARAM_INFERRABLE,
+                                                   NMSettingInfinibandPrivate,
+                                                   mac_address,
+                                                   .direct_set_string_mac_address_len =
+                                                       INFINIBAND_ALEN);
 
     /**
      * NMSettingInfiniband:mtu:
@@ -530,8 +529,9 @@ nm_setting_infiniband_class_init(NMSettingInfinibandClass *klass)
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
-    _nm_setting_class_commit_full(setting_class,
-                                  NM_META_SETTING_TYPE_INFINIBAND,
-                                  NULL,
-                                  properties_override);
+    _nm_setting_class_commit(setting_class,
+                             NM_META_SETTING_TYPE_INFINIBAND,
+                             NULL,
+                             properties_override,
+                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
 }

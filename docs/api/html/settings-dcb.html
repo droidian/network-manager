@@ -38,7 +38,7 @@
             Properties
         </h2>
 <div class="table">
-<a name="id-1.3.3.11.2.2.1"></a><p class="title"><b>Table 54. </b></p>
+<a name="id-1.3.3.11.2.2.1"></a><p class="title"><b>Table 55. </b></p>
 <div class="table-contents"><table class="table" border="1">
 <colgroup>
 <col>
@@ -62,8 +62,8 @@
 <tr>
 <td><pre class="screen">app-fcoe-mode</pre></td>
 <td><pre class="screen">string</pre></td>
-<td><pre class="screen">"fabric"</pre></td>
-<td>The FCoE controller mode; either "fabric" (default) or "vn2vn".</td>
+<td><pre class="screen"></pre></td>
+<td>The FCoE controller mode; either "fabric" or "vn2vn". Since 1.34, NULL is the default and means "fabric". Before 1.34, NULL was rejected as invalid and the default was "fabric".</td>
 </tr>
 <tr>
 <td><pre class="screen">app-fcoe-priority</pre></td>

@@ -9,6 +9,14 @@ import xml.etree.ElementTree as ET
 
 ###############################################################################
 
+
+def dbg(msg):
+    pass
+    # print("%s" % (msg,))
+
+
+###############################################################################
+
 _setting_name_order = [
     "connection",
     "6lowpan",
@@ -103,6 +111,13 @@ def node_set_attr(dst_node, name, nodes):
         dst_node.set(name, x)
 
 
+def find_first_not_none(itr):
+    for i in itr:
+        if i is not None:
+            return i
+    return None
+
+
 ###############################################################################
 
 gl_only_from_first = False
@@ -123,6 +138,9 @@ gl_input_files = list(argv[1:])
 
 ###############################################################################
 
+for f in gl_input_files:
+    dbg("> input file %s" % (f))
+
 xml_roots = list([ET.parse(f).getroot() for f in gl_input_files])
 
 assert all([root.tag == "nm-setting-docs" for root in xml_roots])
@@ -133,14 +151,18 @@ root_node = ET.Element("nm-setting-docs")
 
 for setting_name in iter_keys_of_dicts(settings_roots, key_fcn_setting_name):
 
+    dbg("> > setting_name: %s" % (setting_name))
+
     settings = list([d.get(setting_name) for d in settings_roots])
 
     if gl_only_from_first and settings[0] is None:
+        dbg("> > > skip (only-from-first")
         continue
 
     properties = list([node_to_dict(s, "property", "name") for s in settings])
 
     if gl_only_from_first and not properties[0]:
+        dbg("> > > skip (no properties")
         continue
 
     setting_node = ET.SubElement(root_node, "setting")
@@ -151,16 +173,28 @@ for setting_name in iter_keys_of_dicts(settings_roots, key_fcn_setting_name):
     node_set_attr(setting_node, "name_upper", settings)
     node_set_attr(setting_node, "alias", settings)
 
+    dbg("> > > create node")
+
     for property_name in iter_keys_of_dicts(properties):
 
+        dbg("> > > > property_name: %s" % (property_name))
+
         properties_attrs = list([p.get(property_name) for p in properties])
+        description_docbook = find_first_not_none(
+            p_attr.find("description-docbook")
+            for p_attr in properties_attrs
+            if p_attr is not None
+        )
 
         if gl_only_from_first and properties_attrs[0] is None:
+            dbg("> > > > skip (only-from-first")
             continue
 
         property_node = ET.SubElement(setting_node, "property")
         property_node.set("name", property_name)
         property_node.set("name_upper", property_name.upper().replace("-", "_"))
+
+        dbg("> > > > > create node")
 
         x = node_get_attr(properties_attrs, "format")
         if x:
@@ -171,5 +205,8 @@ for setting_name in iter_keys_of_dicts(settings_roots, key_fcn_setting_name):
         node_set_attr(property_node, "default", properties_attrs)
         node_set_attr(property_node, "description", properties_attrs)
         node_set_attr(property_node, "alias", properties_attrs)
+        if description_docbook is not None:
+            property_node.insert(0, description_docbook)
+
 
 ET.ElementTree(root_node).write(gl_output_xml_file)

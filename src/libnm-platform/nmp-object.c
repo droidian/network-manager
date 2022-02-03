@@ -949,30 +949,30 @@ _vt_cmd_obj_to_string_link(const NMPObject *     obj,
     case NMP_OBJECT_TO_STRING_ID:
         return klass->cmd_plobj_to_string_id(&obj->object, buf, buf_size);
     case NMP_OBJECT_TO_STRING_ALL:
-        nm_utils_strbuf_append(&b,
-                               &buf_size,
-                               "[%s,%p,%u,%calive,%cvisible,%cin-nl,%p; ",
-                               klass->obj_type_name,
-                               obj,
-                               obj->parent._ref_count,
-                               nmp_object_is_alive(obj) ? '+' : '-',
-                               nmp_object_is_visible(obj) ? '+' : '-',
-                               obj->_link.netlink.is_in_netlink ? '+' : '-',
-                               obj->_link.udev.device);
+        nm_strbuf_append(&b,
+                         &buf_size,
+                         "[%s,%p,%u,%calive,%cvisible,%cin-nl,%p; ",
+                         klass->obj_type_name,
+                         obj,
+                         obj->parent._ref_count,
+                         nmp_object_is_alive(obj) ? '+' : '-',
+                         nmp_object_is_visible(obj) ? '+' : '-',
+                         obj->_link.netlink.is_in_netlink ? '+' : '-',
+                         obj->_link.udev.device);
         NMP_OBJECT_GET_CLASS(obj)->cmd_plobj_to_string(&obj->object, b, buf_size);
-        nm_utils_strbuf_seek_end(&b, &buf_size);
+        nm_strbuf_seek_end(&b, &buf_size);
         if (obj->_link.netlink.lnk) {
-            nm_utils_strbuf_append_str(&b, &buf_size, "; ");
+            nm_strbuf_append_str(&b, &buf_size, "; ");
             nmp_object_to_string(obj->_link.netlink.lnk, NMP_OBJECT_TO_STRING_ALL, b, buf_size);
-            nm_utils_strbuf_seek_end(&b, &buf_size);
+            nm_strbuf_seek_end(&b, &buf_size);
         }
-        nm_utils_strbuf_append_c(&b, &buf_size, ']');
+        nm_strbuf_append_c(&b, &buf_size, ']');
         return buf;
     case NMP_OBJECT_TO_STRING_PUBLIC:
         NMP_OBJECT_GET_CLASS(obj)->cmd_plobj_to_string(&obj->object, b, buf_size);
         if (obj->_link.netlink.lnk) {
-            nm_utils_strbuf_seek_end(&b, &buf_size);
-            nm_utils_strbuf_append_str(&b, &buf_size, "; ");
+            nm_strbuf_seek_end(&b, &buf_size);
+            nm_strbuf_append_str(&b, &buf_size, "; ");
             nmp_object_to_string(obj->_link.netlink.lnk, NMP_OBJECT_TO_STRING_PUBLIC, b, buf_size);
         }
         return buf;
@@ -1065,29 +1065,28 @@ _vt_cmd_obj_to_string_lnk_wireguard(const NMPObject *     obj,
     case NMP_OBJECT_TO_STRING_ALL:
         b = buf;
 
-        nm_utils_strbuf_append(
-            &b,
-            &buf_size,
-            "[%s,%p,%u,%calive,%cvisible; %s"
-            "%s",
-            klass->obj_type_name,
-            obj,
-            obj->parent._ref_count,
-            nmp_object_is_alive(obj) ? '+' : '-',
-            nmp_object_is_visible(obj) ? '+' : '-',
-            nmp_object_to_string(obj, NMP_OBJECT_TO_STRING_PUBLIC, buf2, sizeof(buf2)),
-            obj->_lnk_wireguard.peers_len > 0 ? " peers {" : "");
+        nm_strbuf_append(&b,
+                         &buf_size,
+                         "[%s,%p,%u,%calive,%cvisible; %s"
+                         "%s",
+                         klass->obj_type_name,
+                         obj,
+                         obj->parent._ref_count,
+                         nmp_object_is_alive(obj) ? '+' : '-',
+                         nmp_object_is_visible(obj) ? '+' : '-',
+                         nmp_object_to_string(obj, NMP_OBJECT_TO_STRING_PUBLIC, buf2, sizeof(buf2)),
+                         obj->_lnk_wireguard.peers_len > 0 ? " peers {" : "");
 
         for (i = 0; i < obj->_lnk_wireguard.peers_len; i++) {
             const NMPWireGuardPeer *peer = &obj->_lnk_wireguard.peers[i];
 
-            nm_utils_strbuf_append_str(&b, &buf_size, " { ");
+            nm_strbuf_append_str(&b, &buf_size, " { ");
             nm_platform_wireguard_peer_to_string(peer, b, buf_size);
-            nm_utils_strbuf_seek_end(&b, &buf_size);
-            nm_utils_strbuf_append_str(&b, &buf_size, " }");
+            nm_strbuf_seek_end(&b, &buf_size);
+            nm_strbuf_append_str(&b, &buf_size, " }");
         }
         if (obj->_lnk_wireguard.peers_len)
-            nm_utils_strbuf_append_str(&b, &buf_size, " }");
+            nm_strbuf_append_str(&b, &buf_size, " }");
 
         return buf;
     case NMP_OBJECT_TO_STRING_PUBLIC:
@@ -1199,9 +1198,11 @@ _vt_cmd_obj_hash_update_lnk_wireguard(const NMPObject *obj, NMHashState *h)
 }
 
 int
-nmp_object_cmp(const NMPObject *obj1, const NMPObject *obj2)
+nmp_object_cmp_full(const NMPObject *obj1, const NMPObject *obj2, NMPObjectCmpFlags flags)
 {
-    const NMPClass *klass1, *klass2;
+    const NMPClass *klass1;
+    const NMPClass *klass2;
+    NMPObject       obj_stackcopy;
 
     NM_CMP_SELF(obj1, obj2);
 
@@ -1214,6 +1215,22 @@ nmp_object_cmp(const NMPObject *obj1, const NMPObject *obj2)
     if (klass1 != klass2) {
         nm_assert(klass1->obj_type != klass2->obj_type);
         return klass1->obj_type < klass2->obj_type ? -1 : 1;
+    }
+
+    if (NM_FLAGS_HAS(flags, NMP_OBJECT_CMP_FLAGS_IGNORE_IFINDEX)) {
+        if (!NM_IN_SET(klass1,
+                       nmp_class_from_type(NMP_OBJECT_TYPE_IP4_ADDRESS),
+                       nmp_class_from_type(NMP_OBJECT_TYPE_IP6_ADDRESS),
+                       nmp_class_from_type(NMP_OBJECT_TYPE_IP4_ROUTE),
+                       nmp_class_from_type(NMP_OBJECT_TYPE_IP6_ROUTE))) {
+            /* This flag is currently only implemented for certain types.
+             * That is, because we just create a stack copy, and that naive
+             * approach only knows for types where we know that it works. */
+        } else if (obj1->obj_with_ifindex.ifindex != obj2->obj_with_ifindex.ifindex) {
+            nmp_object_stackinit(&obj_stackcopy, klass1->obj_type, &obj2->obj_with_ifindex);
+            obj_stackcopy.obj_with_ifindex.ifindex = obj1->obj_with_ifindex.ifindex;
+            obj2                                   = &obj_stackcopy;
+        }
     }
 
     if (klass1->cmd_obj_cmp)
@@ -2079,6 +2096,9 @@ nmp_lookup_init_obj_type(NMPLookup *lookup, NMPObjectType obj_type)
     nm_assert(lookup);
 
     switch (obj_type) {
+    default:
+        nm_assert_not_reached();
+        /* fall-through */
     case NMP_OBJECT_TYPE_LINK:
     case NMP_OBJECT_TYPE_IP4_ADDRESS:
     case NMP_OBJECT_TYPE_IP6_ADDRESS:
@@ -2090,9 +2110,6 @@ nmp_lookup_init_obj_type(NMPLookup *lookup, NMPObjectType obj_type)
         _nmp_object_stackinit_from_type(&lookup->selector_obj, obj_type);
         lookup->cache_id_type = NMP_CACHE_ID_TYPE_OBJECT_TYPE;
         return _L(lookup);
-    default:
-        nm_assert_not_reached();
-        return NULL;
     }
 }
 
@@ -2107,7 +2124,7 @@ nmp_lookup_init_link_by_ifname(NMPLookup *lookup, const char *ifname)
 
     o = _nmp_object_stackinit_from_type(&lookup->selector_obj, NMP_OBJECT_TYPE_LINK);
     if (g_strlcpy(o->link.name, ifname, sizeof(o->link.name)) >= sizeof(o->link.name))
-        g_return_val_if_reached(NULL);
+        nm_assert_not_reached();
     lookup->cache_id_type = NMP_CACHE_ID_TYPE_LINK_BY_IFNAME;
     return _L(lookup);
 }

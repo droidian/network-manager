@@ -11,11 +11,11 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=512286
  src/core/nm-manager.c | 115 ++++++++++++++++++++++++++++++++++++++++++++++++++
  1 file changed, 115 insertions(+)
 
-Index: network-manager/src/core/nm-manager.c
-===================================================================
---- network-manager.orig/src/core/nm-manager.c
-+++ network-manager/src/core/nm-manager.c
-@@ -52,6 +52,8 @@
+diff --git a/src/core/nm-manager.c b/src/core/nm-manager.c
+index 3c9660c..62ffdd0 100644
+--- a/src/core/nm-manager.c
++++ b/src/core/nm-manager.c
+@@ -51,6 +51,8 @@
  
  #define DEVICE_STATE_PRUNE_RATELIMIT_MAX 100u
  
@@ -24,7 +24,7 @@ Index: network-manager/src/core/nm-manager.c
  /*****************************************************************************/
  
  typedef struct {
-@@ -187,6 +189,10 @@ typedef struct {
+@@ -186,6 +188,10 @@ typedef struct {
      GFileMonitor *fw_monitor;
      guint         fw_changed_id;
  
@@ -35,7 +35,7 @@ Index: network-manager/src/core/nm-manager.c
      guint timestamp_update_id;
  
      guint devices_inited_id;
-@@ -1471,6 +1477,27 @@ find_best_device_state(NMManager *manage
+@@ -1477,6 +1483,27 @@ find_best_device_state(NMManager *manager)
      return best_state;
  }
  
@@ -63,7 +63,7 @@ Index: network-manager/src/core/nm-manager.c
  static void
  nm_manager_update_metered(NMManager *self)
  {
-@@ -1517,6 +1544,9 @@ nm_manager_update_state(NMManager *self)
+@@ -1523,6 +1550,9 @@ nm_manager_update_state(NMManager *self)
      else
          new_state = find_best_device_state(self);
  
@@ -73,10 +73,11 @@ Index: network-manager/src/core/nm-manager.c
      if (new_state >= NM_STATE_CONNECTED_LOCAL && priv->connectivity_state == NM_CONNECTIVITY_FULL) {
          new_state = NM_STATE_CONNECTED_GLOBAL;
      }
-@@ -6647,6 +6677,62 @@ impl_manager_set_logging(NMDBusObject *
+@@ -6671,6 +6701,62 @@ impl_manager_set_logging(NMDBusObject *                     obj,
+         g_dbus_method_invocation_return_value(invocation, NULL);
  }
  
- static void
++static void
 +check_ifstate_file(gpointer user_data)
 +{
 +    NMManager        *self   = NM_MANAGER(user_data);
@@ -132,11 +133,10 @@ Index: network-manager/src/core/nm-manager.c
 +    }
 +}
 +
-+static void
+ static void
  impl_manager_get_logging(NMDBusObject *                     obj,
                           const NMDBusInterfaceInfoExtended *interface_info,
-                          const NMDBusMethodInfoExtended *   method_info,
-@@ -6969,6 +7055,9 @@ nm_manager_start(NMManager *self, GError
+@@ -6999,6 +7085,9 @@ nm_manager_start(NMManager *self, GError **error)
      nm_clear_g_source(&priv->devices_inited_id);
      priv->devices_inited_id = g_idle_add_full(G_PRIORITY_LOW + 10, devices_inited_cb, self, NULL);
  
@@ -146,7 +146,7 @@ Index: network-manager/src/core/nm-manager.c
      return TRUE;
  }
  
-@@ -7949,6 +8038,22 @@ nm_manager_init(NMManager *self)
+@@ -7979,6 +8068,22 @@ nm_manager_init(NMManager *self)
          _LOGW(LOGD_CORE, "failed to monitor kernel firmware directory '%s'.", KERNEL_FIRMWARE_DIR);
      }
  
@@ -169,7 +169,7 @@ Index: network-manager/src/core/nm-manager.c
      /* Update timestamps in active connections */
      priv->timestamp_update_id =
          g_timeout_add_seconds(300,
-@@ -8232,6 +8337,16 @@ dispose(GObject *object)
+@@ -8262,6 +8367,16 @@ dispose(GObject *object)
          g_clear_object(&priv->fw_monitor);
      }
  

@@ -12,9 +12,9 @@
 #include <sys/syscall.h>
 
 #if USE_SYS_RANDOM_H
-    #include <sys/random.h>
+#include <sys/random.h>
 #else
-    #include <linux/random.h>
+#include <linux/random.h>
 #endif
 
 #include "nm-shared-utils.h"
@@ -23,15 +23,15 @@
 /*****************************************************************************/
 
 #if !defined(SYS_getrandom) && defined(__NR_getrandom)
-    #define SYS_getrandom __NR_getrandom
+#define SYS_getrandom __NR_getrandom
 #endif
 
 #ifndef GRND_NONBLOCK
-    #define GRND_NONBLOCK 0x01
+#define GRND_NONBLOCK 0x01
 #endif
 
 #ifndef GRND_INSECURE
-    #define GRND_INSECURE 0x04
+#define GRND_INSECURE 0x04
 #endif
 
 #if !HAVE_GETRANDOM && defined(SYS_getrandom)
@@ -40,8 +40,8 @@ getrandom(void *buf, size_t buflen, unsigned flags)
 {
     return syscall(SYS_getrandom, buf, buflen, flags);
 }
-    #undef HAVE_GETRANDOM
-    #define HAVE_GETRANDOM 1
+#undef HAVE_GETRANDOM
+#define HAVE_GETRANDOM 1
 #endif
 
 /*****************************************************************************/

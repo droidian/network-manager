@@ -1,8 +1,37 @@
-================================================
-NetworkManager-1.32.12
-Overview of changes since NetworkManager-1.32.10
-================================================
+=============================================
+NetworkManager-1.34
+Overview of changes since NetworkManager-1.32
+=============================================
 
+* initrd: wait for both IPv4 and IPv6 with "ip=dhcp,dhcp6"
+* core: better handle sd-resolved errors when resolving hostnames
+* nmcli: fix import WireGuard profile with DNS domain and address
+  family disabled 
+* ndisc: send router solicitations before expiry
+* policy: send earlier the ip configs to the DNS manager
+* core: support linking with LLD 13
+* wireguard: importing wg-quick configuration files with nmcli
+  no longer sets a negative, exclusive "dns-priority". This plays
+  better with common split DNS setups that use systemd-resolved.
+  Adjust the "dns-priority" to your liking after import yourself.
+* NetworkManager no longer listens for netlink events for traffic
+  control objects (qdiscs and filters).
+* core: add internal nm-priv-helper service for separating privileges
+  and have a way to drop capabilities from NetworkManager daemon.
+* bond: add support for setting queue-id of bond port.
+* dns: support configuring DNS over TLS (DoT) with systemd-resolved.
+* nmtui: add support for WireGuard profiles.
+* nmcli: add aliases `nmcli device up|down` beside connect|disconnect.
+* conscious language: Deprecate 'Device.Slaves' D-Bus property in favor of new
+  'Device.Ports' property. Depracate 'nm_device_*_get_slaves()' in favor of
+  'nm_device_get_ports()' in libnm.
+* nmcli: invoking nmcli command without arguments will now show 'default'
+  instead of null address in route4 or route6 section.
+
+The following changes were backported to 1.32.x releases between 1.32.0
+and 1.32.12 are also present in NetworkManager-1.34:
+
+- 1.32.12:
 * Fix wrong order of addresses when restarting NetworkManager.
 * Preserve the IPv6 ff00::/8 route added by kernel in the local table,
   necessary for multicast communication.
@@ -12,11 +41,7 @@ Overview of changes since NetworkManager-1.32.10
 * cloud-setup: use suppress_prefixlength rule to honor
   non-default-routes in the main table.
 
-===============================================
-NetworkManager-1.32.10
-Overview of changes since NetworkManager-1.32.8
-===============================================
-
+- 1.32.10:
 * core: fix the order of IPv6 addresses changing on service restart.
 * initrd: add command line option to configure link autonegotiation
   and speed.
@@ -25,20 +50,12 @@ Overview of changes since NetworkManager-1.32.8
   names.
 * udev: also react to "move" (and "change") udev actions in our rules.
 
-===============================================
-NetworkManager-1.32.8
-Overview of changes since NetworkManager-1.32.6
-===============================================
-
+- 1.32.8:
 * firewalld: configure zones on "Reloaded" signal.
 * core: fix wrong MTU for bridge interfaces.
 * cloud-setup: fix gateway address for Aliyun cloud.
 
-===============================================
-NetworkManager-1.32.6
-Overview of changes since NetworkManager-1.32.4
-===============================================
-
+- 1.32.6:
 * core: fix adding stale local routes when address changes.
 * initrd: tag generated profiles with origin in user data.
 * core: introduce "allowed-connections" option to disallow
@@ -50,11 +67,7 @@ Overview of changes since NetworkManager-1.32.4
   device state file for initrd/kickstart.
 * initrd: add "ib.pkey=" command line option
 
-===============================================
-NetworkManager-1.32.4
-Overview of changes since NetworkManager-1.32.2
-===============================================
-
+- 1.32.4:
 * core: remove stale entries from "seen-bssids" and "timestamp"
   files in "/var/lib/NetworkManager".
 * bond: support the peer_notif_delay option.
@@ -72,11 +85,7 @@ Overview of changes since NetworkManager-1.32.2
 * nmcli: show DNS SEARCH field in device information.
 * cloud-setup: add support for Aliyun cloud.
 
-=============================================
-NetworkManager-1.32.2
-Overview of changes since NetworkManager-1.32
-=============================================
-
+- 1.32.2:
 * hostname: prefer IPv4 addresses for reverse DNS lookup.
 * dhcp: ignore unauthenticated FORCERENEW messages with
   internal, systemd-based DHCPv4 plugin (CVE-2020-13529).

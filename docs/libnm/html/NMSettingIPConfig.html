@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
-<link rel="prev" href="NMSettingIP6Config.html" title="NMSettingIP6Config">
+<link rel="prev" href="NMSettingInfiniband.html" title="NMSettingInfiniband">
 <link rel="next" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel">
 <meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
@@ -20,7 +20,7 @@
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="NMSettingIP6Config.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="NMSettingInfiniband.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="NMSettingIPTunnel.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
@@ -4117,7 +4117,7 @@ or 0 if the range is not set. </p></td>
 <a name="nm-ip-routing-rule-get-uid-range.returns"></a><h4>Returns</h4>
 <p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if a uid range is set.</p>
 </div>
-<p class="since">Since: 1.32. Due to a bug, the symbols of this function</p>
+<p class="since">Since: 1.34</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -4155,7 +4155,7 @@ If set to an invalid range, the range gets unset.</p>
 </tbody>
 </table></div>
 </div>
-<p class="since">Since: 1.32. Due to a bug, the symbols of this function</p>
+<p class="since">Since: 1.34</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -4346,7 +4346,7 @@ nm_setting_ip_config_get_method (<em class="parameter"><code><a class="link" hre
 </div>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-method.returns"></a><h4>Returns</h4>
-<p> the <a href="NMSettingIPConfig.html#NMSettingIPConfig--method"><span class="type">“method”</span></a> property of the setting; see
+<p> the <span class="type">“method”</span> property of the setting; see
 <a class="link" href="NMSettingIP4Config.html" title="NMSettingIP4Config"><span class="type">NMSettingIP4Config</span></a> and <a class="link" href="NMSettingIP6Config.html" title="NMSettingIP6Config"><span class="type">NMSettingIP6Config</span></a> for details of the
 methods available with each type.</p>
 </div>
@@ -5385,7 +5385,7 @@ nm_setting_ip_config_clear_routes (<em class="parameter"><code><a class="link" h
 <a name="nm-setting-ip-config-get-route-metric"></a><h3>nm_setting_ip_config_get_route_metric ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
 nm_setting_ip_config_get_route_metric (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--route-metric"><span class="type">“route-metric”</span></a>
+<p>Returns the value contained in the <span class="type">“route-metric”</span>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-route-metric.parameters"></a><h4>Parameters</h4>
@@ -5405,7 +5405,7 @@ property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-route-metric.returns"></a><h4>Returns</h4>
 <p> the route metric that is used for routes that don't explicitly
-specify a metric. See <a href="NMSettingIPConfig.html#NMSettingIPConfig--route-metric"><span class="type">“route-metric”</span></a> for more details.</p>
+specify a metric. See <span class="type">“route-metric”</span> for more details.</p>
 </div>
 </div>
 <hr>
@@ -5413,7 +5413,7 @@ specify a metric. See <a href="NMSettingIPConfig.html#NMSettingIPConfig--route-m
 <a name="nm-setting-ip-config-get-route-table"></a><h3>nm_setting_ip_config_get_route_table ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>
 nm_setting_ip_config_get_route_table (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--route-table"><span class="type">“route-table”</span></a>
+<p>Returns the value contained in the <span class="type">“route-table”</span>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-route-table.parameters"></a><h4>Parameters</h4>
@@ -5597,7 +5597,7 @@ nm_setting_ip_config_clear_routing_rules
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_ignore_auto_routes
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--ignore-auto-routes"><span class="type">“ignore-auto-routes”</span></a>
+<p>Returns the value contained in the <span class="type">“ignore-auto-routes”</span>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-ignore-auto-routes.parameters"></a><h4>Parameters</h4>
@@ -5626,7 +5626,7 @@ ignored.</p>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_ignore_auto_dns
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--ignore-auto-dns"><span class="type">“ignore-auto-dns”</span></a>
+<p>Returns the value contained in the <span class="type">“ignore-auto-dns”</span>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-ignore-auto-dns.parameters"></a><h4>Parameters</h4>
@@ -5655,7 +5655,7 @@ should be ignored.</p>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_ip_config_get_dhcp_hostname
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname"><span class="type">“dhcp-hostname”</span></a>
+<p>Returns the value contained in the <span class="type">“dhcp-hostname”</span>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-dhcp-hostname.parameters"></a><h4>Parameters</h4>
@@ -5683,7 +5683,7 @@ property.</p>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_dhcp_send_hostname
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-send-hostname"><span class="type">“dhcp-send-hostname”</span></a>
+<p>Returns the value contained in the <span class="type">“dhcp-send-hostname”</span>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-dhcp-send-hostname.parameters"></a><h4>Parameters</h4>
@@ -5713,7 +5713,7 @@ update DNS information for this machine.</p>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_never_default
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--never-default"><span class="type">“never-default”</span></a>
+<p>Returns the value contained in the <span class="type">“never-default”</span>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-never-default.parameters"></a><h4>Parameters</h4>
@@ -5741,7 +5741,7 @@ connection</p>
 <a name="nm-setting-ip-config-get-may-fail"></a><h3>nm_setting_ip_config_get_may_fail ()</h3>
 <pre class="programlisting"><a href="https://developer.gnome.org/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 nm_setting_ip_config_get_may_fail (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--may-fail"><span class="type">“may-fail”</span></a>
+<p>Returns the value contained in the <span class="type">“may-fail”</span>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-may-fail.parameters"></a><h4>Parameters</h4>
@@ -5786,7 +5786,7 @@ nm_setting_ip_config_get_dad_timeout (<em class="parameter"><code><a class="link
 </div>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-dad-timeout.returns"></a><h4>Returns</h4>
-<p> the <a href="NMSettingIPConfig.html#NMSettingIPConfig--dad-timeout"><span class="type">“dad-timeout”</span></a> property.</p>
+<p> the <span class="type">“dad-timeout”</span> property.</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -5795,7 +5795,7 @@ nm_setting_ip_config_get_dad_timeout (<em class="parameter"><code><a class="link
 <a name="nm-setting-ip-config-get-dhcp-timeout"></a><h3>nm_setting_ip_config_get_dhcp_timeout ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
 nm_setting_ip_config_get_dhcp_timeout (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-timeout"><span class="type">“dhcp-timeout”</span></a>
+<p>Returns the value contained in the <span class="type">“dhcp-timeout”</span>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-dhcp-timeout.parameters"></a><h4>Parameters</h4>
@@ -5846,14 +5846,14 @@ property.</p>
 <a name="nm-setting-ip-config-get-required-timeout.returns"></a><h4>Returns</h4>
 <p> the required timeout for the address family</p>
 </div>
-<p class="since">Since: 1.34, 1.32.4</p>
+<p class="since">Since: 1.34</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="nm-setting-ip-config-get-dhcp-iaid"></a><h3>nm_setting_ip_config_get_dhcp_iaid ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 nm_setting_ip_config_get_dhcp_iaid (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-iaid"><span class="type">“dhcp-iaid”</span></a>
+<p>Returns the value contained in the <span class="type">“dhcp-iaid”</span>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-dhcp-iaid.parameters"></a><h4>Parameters</h4>
@@ -5882,7 +5882,7 @@ property.</p>
 <pre class="programlisting"><a class="link" href="NMSettingIPConfig.html#NMDhcpHostnameFlags" title="enum NMDhcpHostnameFlags"><span class="returnvalue">NMDhcpHostnameFlags</span></a>
 nm_setting_ip_config_get_dhcp_hostname_flags
                                (<em class="parameter"><code><a class="link" href="NMSettingIPConfig.html" title="NMSettingIPConfig"><span class="type">NMSettingIPConfig</span></a> *setting</code></em>);</pre>
-<p>Returns the value contained in the <a href="NMSettingIPConfig.html#NMSettingIPConfig--dhcp-hostname-flags"><span class="type">“dhcp-hostname-flags”</span></a>
+<p>Returns the value contained in the <span class="type">“dhcp-hostname-flags”</span>
 property.</p>
 <div class="refsect3">
 <a name="nm-setting-ip-config-get-dhcp-hostname-flags.parameters"></a><h4>Parameters</h4>

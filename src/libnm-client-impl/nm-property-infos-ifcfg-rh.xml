@@ -45,6 +45,9 @@
 </setting>
 <setting name="bluetooth">
 </setting>
+<setting name="bond-port">
+<property name="queue-id" variable="BONDING_OPTS: queue-id=" format="" values="0 - 65535" default="0" example="" description="Queue ID." />
+</setting>
 <setting name="bond">
 <property name="options" variable="BONDING_OPTS" format="" values="" default="" example="BONDING_OPTS=&quot;miimon=100 mode=broadcast&quot;" description="Bonding options." />
 </setting>
@@ -106,6 +109,7 @@
 <property name="auth-retries" variable="AUTH_RETRIES(+)" format="" values="" default="0" example="" description="Number of retries for authentication." />
 <property name="mdns" variable="MDNS(+)" format="" values="yes,no,resolve" default="missing variable means global default" example="MDNS=yes" description="Whether or not mDNS is enabled for the connection" />
 <property name="llmnr" variable="LLMNR(+)" format="" values="yes,no,resolve" default="missing variable means global default" example="LLMNR=yes" description="Whether or not LLMNR is enabled for the connection" />
+<property name="dns-over-tls" variable="DNS_OVER_TLS(+)" format="" values="yes,no,opportunistic" default="missing variable means global default" example="" description="Whether or not DNSOverTls is enabled for the connection" />
 <property name="wait-device-timeout" variable="DEVTIMEOUT(+)" format="" values="timeout in seconds." default="" example="DEVTIMEOUT=5" description="for initscripts compatibility, this variable must be a whole integer. If necessary, NetworkManager stores also a fractional component for the milliseconds." />
 <property name="mud-url" variable="MUD_URL" format="" values="a valid URL that points to recommended policy for this device" default="" example="https://yourdevice.example.com/model.json" description="MUD_URL to be sent by device (See RFC 8520)." />
 </setting>

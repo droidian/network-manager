@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include <gio/gio.h>
+#include <glib-unix.h>
 
 /*****************************************************************************/
 
@@ -39,10 +40,6 @@
 /*****************************************************************************/
 
 #include "nm-glib.h"
-
-/*****************************************************************************/
-
-#define nm_offsetofend(t, m) (G_STRUCT_OFFSET(t, m) + sizeof(((t *) NULL)->m))
 
 /*****************************************************************************/
 
@@ -155,280 +152,6 @@ _nm_auto_freev(gpointer ptr)
 
 /*****************************************************************************/
 
-#define _NM_MACRO_SELECT_ARG_64(_1,  \
-                                _2,  \
-                                _3,  \
-                                _4,  \
-                                _5,  \
-                                _6,  \
-                                _7,  \
-                                _8,  \
-                                _9,  \
-                                _10, \
-                                _11, \
-                                _12, \
-                                _13, \
-                                _14, \
-                                _15, \
-                                _16, \
-                                _17, \
-                                _18, \
-                                _19, \
-                                _20, \
-                                _21, \
-                                _22, \
-                                _23, \
-                                _24, \
-                                _25, \
-                                _26, \
-                                _27, \
-                                _28, \
-                                _29, \
-                                _30, \
-                                _31, \
-                                _32, \
-                                _33, \
-                                _34, \
-                                _35, \
-                                _36, \
-                                _37, \
-                                _38, \
-                                _39, \
-                                _40, \
-                                _41, \
-                                _42, \
-                                _43, \
-                                _44, \
-                                _45, \
-                                _46, \
-                                _47, \
-                                _48, \
-                                _49, \
-                                _50, \
-                                _51, \
-                                _52, \
-                                _53, \
-                                _54, \
-                                _55, \
-                                _56, \
-                                _57, \
-                                _58, \
-                                _59, \
-                                _60, \
-                                _61, \
-                                _62, \
-                                _63, \
-                                N,   \
-                                ...) \
-    N
-
-/* http://stackoverflow.com/a/2124385/354393
- * https://stackoverflow.com/questions/11317474/macro-to-count-number-of-arguments
- */
-
-#define NM_NARG(...)                       \
-    _NM_MACRO_SELECT_ARG_64(,              \
-                            ##__VA_ARGS__, \
-                            62,            \
-                            61,            \
-                            60,            \
-                            59,            \
-                            58,            \
-                            57,            \
-                            56,            \
-                            55,            \
-                            54,            \
-                            53,            \
-                            52,            \
-                            51,            \
-                            50,            \
-                            49,            \
-                            48,            \
-                            47,            \
-                            46,            \
-                            45,            \
-                            44,            \
-                            43,            \
-                            42,            \
-                            41,            \
-                            40,            \
-                            39,            \
-                            38,            \
-                            37,            \
-                            36,            \
-                            35,            \
-                            34,            \
-                            33,            \
-                            32,            \
-                            31,            \
-                            30,            \
-                            29,            \
-                            28,            \
-                            27,            \
-                            26,            \
-                            25,            \
-                            24,            \
-                            23,            \
-                            22,            \
-                            21,            \
-                            20,            \
-                            19,            \
-                            18,            \
-                            17,            \
-                            16,            \
-                            15,            \
-                            14,            \
-                            13,            \
-                            12,            \
-                            11,            \
-                            10,            \
-                            9,             \
-                            8,             \
-                            7,             \
-                            6,             \
-                            5,             \
-                            4,             \
-                            3,             \
-                            2,             \
-                            1,             \
-                            0)
-#define NM_NARG_MAX1(...)                  \
-    _NM_MACRO_SELECT_ARG_64(,              \
-                            ##__VA_ARGS__, \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            1,             \
-                            0)
-#define NM_NARG_MAX2(...)                  \
-    _NM_MACRO_SELECT_ARG_64(,              \
-                            ##__VA_ARGS__, \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            2,             \
-                            1,             \
-                            0)
-
-#define _NM_MACRO_CALL(macro, ...) macro(__VA_ARGS__)
-
-/*****************************************************************************/
-
 #define _NM_MACRO_COMMA_IF_ARGS(...) \
     _NM_MACRO_CALL(G_PASTE(__NM_MACRO_COMMA_IF_ARGS_, NM_NARG_MAX1(__VA_ARGS__)), __VA_ARGS__)
 #define __NM_MACRO_COMMA_IF_ARGS_0()
@@ -449,9 +172,9 @@ _nm_auto_freev(gpointer ptr)
 /*****************************************************************************/
 
 #if defined(__GNUC__)
-    #define _NM_PRAGMA_WARNING_DO(warning) G_STRINGIFY(GCC diagnostic ignored warning)
+#define _NM_PRAGMA_WARNING_DO(warning) G_STRINGIFY(GCC diagnostic ignored warning)
 #elif defined(__clang__)
-    #define _NM_PRAGMA_WARNING_DO(warning) G_STRINGIFY(clang diagnostic ignored warning)
+#define _NM_PRAGMA_WARNING_DO(warning) G_STRINGIFY(clang diagnostic ignored warning)
 #endif
 
 /* you can only suppress a specific warning that the compiler
@@ -461,23 +184,22 @@ _nm_auto_freev(gpointer ptr)
  * same name for the same warning. */
 
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
-    #define NM_PRAGMA_WARNING_DISABLE(warning) \
-        _Pragma("GCC diagnostic push") _Pragma(_NM_PRAGMA_WARNING_DO(warning))
+#define NM_PRAGMA_WARNING_DISABLE(warning) \
+    _Pragma("GCC diagnostic push") _Pragma(_NM_PRAGMA_WARNING_DO(warning))
 #elif defined(__clang__)
-    #define NM_PRAGMA_WARNING_DISABLE(warning)                         \
-        _Pragma("clang diagnostic push")                               \
-            _Pragma(_NM_PRAGMA_WARNING_DO("-Wunknown-warning-option")) \
-                _Pragma(_NM_PRAGMA_WARNING_DO(warning))
+#define NM_PRAGMA_WARNING_DISABLE(warning)                                                      \
+    _Pragma("clang diagnostic push") _Pragma(_NM_PRAGMA_WARNING_DO("-Wunknown-warning-option")) \
+        _Pragma(_NM_PRAGMA_WARNING_DO(warning))
 #else
-    #define NM_PRAGMA_WARNING_DISABLE(warning)
+#define NM_PRAGMA_WARNING_DISABLE(warning)
 #endif
 
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
-    #define NM_PRAGMA_WARNING_REENABLE _Pragma("GCC diagnostic pop")
+#define NM_PRAGMA_WARNING_REENABLE _Pragma("GCC diagnostic pop")
 #elif defined(__clang__)
-    #define NM_PRAGMA_WARNING_REENABLE _Pragma("clang diagnostic pop")
+#define NM_PRAGMA_WARNING_REENABLE _Pragma("clang diagnostic pop")
 #else
-    #define NM_PRAGMA_WARNING_REENABLE
+#define NM_PRAGMA_WARNING_REENABLE
 #endif
 
 /*****************************************************************************/
@@ -502,37 +224,9 @@ NM_G_ERROR_MSG(GError *error)
 
 /*****************************************************************************/
 
-#ifndef _NM_CC_SUPPORT_AUTO_TYPE
-    #if (defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)))
-        #define _NM_CC_SUPPORT_AUTO_TYPE 1
-    #else
-        #define _NM_CC_SUPPORT_AUTO_TYPE 0
-    #endif
-#endif
-
-#ifndef _NM_CC_SUPPORT_GENERIC
-    /* In the meantime, NetworkManager requires C11 and _Generic() should always be available.
-     * However, shared/nm-utils may also be used in VPN/applet, which possibly did not yet
-     * bump the C standard requirement. Leave this for the moment, but eventually we can
-     * drop it.
-     *
-     * Technically, gcc 4.9 already has some support for _Generic(). But there seems
-     * to be issues with propagating "const char *[5]" to "const char **". Only assume
-     * we have _Generic() since gcc 5. */
-    #if (defined(__GNUC__) && __GNUC__ >= 5) || (defined(__clang__))
-        #define _NM_CC_SUPPORT_GENERIC 1
-    #else
-        #define _NM_CC_SUPPORT_GENERIC 0
-    #endif
-#endif
-
-#if _NM_CC_SUPPORT_AUTO_TYPE
-    #define _nm_auto_type __auto_type
-#endif
-
 #if _NM_CC_SUPPORT_GENERIC
-    #define _NM_CONSTCAST_FULL_1(type, obj_expr, obj) \
-        (_Generic ((obj_expr), \
+#define _NM_CONSTCAST_FULL_1(type, obj_expr, obj) \
+    (_Generic ((obj_expr), \
                const void        *const: ((const type *) (obj)), \
                const void        *     : ((const type *) (obj)), \
                      void        *const: ((      type *) (obj)), \
@@ -541,8 +235,8 @@ NM_G_ERROR_MSG(GError *error)
                const type        *     : ((const type *) (obj)), \
                      type        *const: ((      type *) (obj)), \
                      type        *     : ((      type *) (obj))))
-    #define _NM_CONSTCAST_FULL_2(type, obj_expr, obj, alias_type2) \
-        (_Generic ((obj_expr), \
+#define _NM_CONSTCAST_FULL_2(type, obj_expr, obj, alias_type2) \
+    (_Generic ((obj_expr), \
                const void        *const: ((const type *) (obj)), \
                const void        *     : ((const type *) (obj)), \
                      void        *const: ((      type *) (obj)), \
@@ -555,8 +249,8 @@ NM_G_ERROR_MSG(GError *error)
                const type        *     : ((const type *) (obj)), \
                      type        *const: ((      type *) (obj)), \
                      type        *     : ((      type *) (obj))))
-    #define _NM_CONSTCAST_FULL_3(type, obj_expr, obj, alias_type2, alias_type3) \
-        (_Generic ((obj_expr), \
+#define _NM_CONSTCAST_FULL_3(type, obj_expr, obj, alias_type2, alias_type3) \
+    (_Generic ((obj_expr), \
                const void        *const: ((const type *) (obj)), \
                const void        *     : ((const type *) (obj)), \
                      void        *const: ((      type *) (obj)), \
@@ -573,8 +267,8 @@ NM_G_ERROR_MSG(GError *error)
                const type        *     : ((const type *) (obj)), \
                      type        *const: ((      type *) (obj)), \
                      type        *     : ((      type *) (obj))))
-    #define _NM_CONSTCAST_FULL_4(type, obj_expr, obj, alias_type2, alias_type3, alias_type4) \
-        (_Generic ((obj_expr), \
+#define _NM_CONSTCAST_FULL_4(type, obj_expr, obj, alias_type2, alias_type3, alias_type4) \
+    (_Generic ((obj_expr), \
                const void        *const: ((const type *) (obj)), \
                const void        *     : ((const type *) (obj)), \
                      void        *const: ((      type *) (obj)), \
@@ -595,34 +289,34 @@ NM_G_ERROR_MSG(GError *error)
                const type        *     : ((const type *) (obj)), \
                      type        *const: ((      type *) (obj)), \
                      type        *     : ((      type *) (obj))))
-    #define _NM_CONSTCAST_FULL_x(type, obj_expr, obj, n, ...) \
-        (_NM_CONSTCAST_FULL_##n(type, obj_expr, obj, ##__VA_ARGS__))
-    #define _NM_CONSTCAST_FULL_y(type, obj_expr, obj, n, ...) \
-        (_NM_CONSTCAST_FULL_x(type, obj_expr, obj, n, ##__VA_ARGS__))
-    #define NM_CONSTCAST_FULL(type, obj_expr, obj, ...) \
-        (_NM_CONSTCAST_FULL_y(type, obj_expr, obj, NM_NARG(dummy, ##__VA_ARGS__), ##__VA_ARGS__))
+#define _NM_CONSTCAST_FULL_x(type, obj_expr, obj, n, ...) \
+    (_NM_CONSTCAST_FULL_##n(type, obj_expr, obj, ##__VA_ARGS__))
+#define _NM_CONSTCAST_FULL_y(type, obj_expr, obj, n, ...) \
+    (_NM_CONSTCAST_FULL_x(type, obj_expr, obj, n, ##__VA_ARGS__))
+#define NM_CONSTCAST_FULL(type, obj_expr, obj, ...) \
+    (_NM_CONSTCAST_FULL_y(type, obj_expr, obj, NM_NARG(dummy, ##__VA_ARGS__), ##__VA_ARGS__))
 #else
-    #define NM_CONSTCAST_FULL(type, obj_expr, obj, ...) ((type *) (obj))
+#define NM_CONSTCAST_FULL(type, obj_expr, obj, ...) ((type *) (obj))
 #endif
 
 #define NM_CONSTCAST(type, obj, ...) NM_CONSTCAST_FULL(type, (obj), (obj), ##__VA_ARGS__)
 
 #if _NM_CC_SUPPORT_GENERIC
-    #define NM_UNCONST_PTR(type, arg) \
-        _Generic((arg), const type * : ((type *) (arg)), type * : ((type *) (arg)))
+#define NM_UNCONST_PTR(type, arg) \
+    _Generic((arg), const type * : ((type *) (arg)), type * : ((type *) (arg)))
 #else
-    #define NM_UNCONST_PTR(type, arg) ((type *) (arg))
+#define NM_UNCONST_PTR(type, arg) ((type *) (arg))
 #endif
 
 #if _NM_CC_SUPPORT_GENERIC
-    #define NM_UNCONST_PPTR(type, arg) \
-        _Generic ((arg), \
+#define NM_UNCONST_PPTR(type, arg) \
+    _Generic ((arg), \
               const type *     *: ((type **) (arg)), \
                     type *     *: ((type **) (arg)), \
               const type *const*: ((type **) (arg)), \
                     type *const*: ((type **) (arg)))
 #else
-    #define NM_UNCONST_PPTR(type, arg) ((type **) (arg))
+#define NM_UNCONST_PPTR(type, arg) ((type **) (arg))
 #endif
 
 #define NM_GOBJECT_CAST(type, obj, is_check, ...)                     \
@@ -649,71 +343,42 @@ NM_G_ERROR_MSG(GError *error)
         _ptr;                     \
     })
 
-#if _NM_CC_SUPPORT_GENERIC
-    /* returns @value, if the type of @value matches @type.
-     * This requires support for C11 _Generic(). If no support is
-     * present, this returns @value directly.
-     *
-     * It's useful to check the let the compiler ensure that @value is
-     * of a certain type. */
-    #define _NM_ENSURE_TYPE(type, value) (_Generic((value), type : (value)))
-    #define _NM_ENSURE_TYPE_CONST(type, value)               \
-        (_Generic((value), const type                        \
-                  : ((const type) (value)), const type const \
-                  : ((const type) (value)), type             \
-                  : ((const type) (value)), type const       \
-                  : ((const type) (value))))
-#else
-    #define _NM_ENSURE_TYPE(type, value)       (value)
-    #define _NM_ENSURE_TYPE_CONST(type, value) ((const type) (value))
-#endif
-
-#if _NM_CC_SUPPORT_GENERIC && (!defined(__clang__) || __clang_major__ > 3)
-    #define NM_STRUCT_OFFSET_ENSURE_TYPE(type, container, field) \
-        (_Generic((&(((container *) NULL)->field))[0], type : G_STRUCT_OFFSET(container, field)))
-#else
-    #define NM_STRUCT_OFFSET_ENSURE_TYPE(type, container, field) G_STRUCT_OFFSET(container, field)
-#endif
-
 /* Casts (arg) to (type**), but also having a compile time check that
  * the arg is some sort of pointer to a pointer.
  *
  * The only purpose of this macro is some additional compile time safety,
  * that the argument is a pointer to pointer. But then it will C cast any kind
  * of such argument. */
-#define NM_CAST_PPTR(type, arg)                                   \
-    ({                                                            \
-        typeof(*(arg)) *const        _arg  = (arg);               \
-        typeof(*_arg)                _arg2 = _arg ? *_arg : NULL; \
-        _nm_unused const void *const _arg3 = _arg2;               \
-                                                                  \
-        (type **) _arg;                                           \
+#define NM_CAST_PPTR(type, arg)     \
+    ({                              \
+        _NM_ENSURE_POINTER(*(arg)); \
+        (type **) (arg);            \
     })
 
 #if _NM_CC_SUPPORT_GENERIC
-    /* these macros cast (value) to
-     *  - "const char **"      (for "MC", mutable-const)
-     *  - "const char *const*" (for "CC", const-const)
-     * The point is to do this cast, but only accepting pointers
-     * that are compatible already.
-     *
-     * The problem is, if you add a function like g_strdupv(), the input
-     * argument is not modified (CC), but you want to make it work also
-     * for "char **". C doesn't allow this form of casting (for good reasons),
-     * so the function makes a choice like g_strdupv(char**). That means,
-     * every time you want to call it with a const argument, you need to
-     * explicitly cast it.
-     *
-     * These macros do the cast, but they only accept a compatible input
-     * type, otherwise they will fail compilation.
-     */
-    #define NM_CAST_STRV_MC(value) \
-        (_Generic ((value), \
+/* these macros cast (value) to
+ *  - "const char **"      (for "MC", mutable-const)
+ *  - "const char *const*" (for "CC", const-const)
+ * The point is to do this cast, but only accepting pointers
+ * that are compatible already.
+ *
+ * The problem is, if you add a function like g_strdupv(), the input
+ * argument is not modified (CC), but you want to make it work also
+ * for "char **". C doesn't allow this form of casting (for good reasons),
+ * so the function makes a choice like g_strdupv(char**). That means,
+ * every time you want to call it with a const argument, you need to
+ * explicitly cast it.
+ *
+ * These macros do the cast, but they only accept a compatible input
+ * type, otherwise they will fail compilation.
+ */
+#define NM_CAST_STRV_MC(value) \
+    (_Generic ((value), \
                const char *     *: (const char *     *) (value), \
                      char *     *: (const char *     *) (value), \
                            void *: (const char *     *) (value)))
-    #define NM_CAST_STRV_CC(value) \
-        (_Generic ((value), \
+#define NM_CAST_STRV_CC(value) \
+    (_Generic ((value), \
                const char *const*: (const char *const*) (value), \
                const char *     *: (const char *const*) (value), \
                      char *const*: (const char *const*) (value), \
@@ -727,18 +392,18 @@ NM_G_ERROR_MSG(GError *error)
                      const void *const: (const char *const*) (value), \
                            void *const: (const char *const*) (value)))
 #else
-    #define NM_CAST_STRV_MC(value) ((const char **) (value))
-    #define NM_CAST_STRV_CC(value) ((const char *const *) (value))
+#define NM_CAST_STRV_MC(value) ((const char **) (value))
+#define NM_CAST_STRV_CC(value) ((const char *const *) (value))
 #endif
 
 #if _NM_CC_SUPPORT_GENERIC
-    #define NM_PROPAGATE_CONST(test_expr, ptr) \
-        (_Generic ((test_expr), \
+#define NM_PROPAGATE_CONST(test_expr, ptr) \
+    (_Generic ((test_expr), \
                const typeof (*(test_expr)) *: ((const typeof (*(ptr)) *) (ptr)), \
                                      default: (_Generic ((test_expr), \
                                                          typeof (*(test_expr)) *: (ptr)))))
 #else
-    #define NM_PROPAGATE_CONST(test_expr, ptr) (ptr)
+#define NM_PROPAGATE_CONST(test_expr, ptr) (ptr)
 #endif
 
 /* with the way it is implemented, the caller may or may not pass a trailing
@@ -958,16 +623,16 @@ nm_str_realloc(char *str)
 #define _NM_GET_PRIVATE(self, type, is_check, ...) \
     (&(NM_GOBJECT_CAST_NON_NULL(type, (self), is_check, ##__VA_ARGS__)->_priv))
 #if _NM_CC_SUPPORT_AUTO_TYPE
-    #define _NM_GET_PRIVATE_PTR(self, type, is_check, ...)                       \
-        ({                                                                       \
-            _nm_auto_type _self_get_private =                                    \
-                NM_GOBJECT_CAST_NON_NULL(type, (self), is_check, ##__VA_ARGS__); \
-                                                                                 \
-            NM_PROPAGATE_CONST(_self_get_private, _self_get_private->_priv);     \
-        })
+#define _NM_GET_PRIVATE_PTR(self, type, is_check, ...)                       \
+    ({                                                                       \
+        _nm_auto_type _self_get_private =                                    \
+            NM_GOBJECT_CAST_NON_NULL(type, (self), is_check, ##__VA_ARGS__); \
+                                                                             \
+        NM_PROPAGATE_CONST(_self_get_private, _self_get_private->_priv);     \
+    })
 #else
-    #define _NM_GET_PRIVATE_PTR(self, type, is_check, ...) \
-        (NM_GOBJECT_CAST_NON_NULL(type, (self), is_check, ##__VA_ARGS__)->_priv)
+#define _NM_GET_PRIVATE_PTR(self, type, is_check, ...) \
+    (NM_GOBJECT_CAST_NON_NULL(type, (self), is_check, ##__VA_ARGS__)->_priv)
 #endif
 
 /*****************************************************************************/
@@ -1225,6 +890,12 @@ nm_g_variant_take_ref(GVariant *v)
     return v;
 }
 
+static inline gboolean
+nm_g_variant_equal(GVariant *a, GVariant *b)
+{
+    return (a == b) || (a && b && g_variant_equal(a, b));
+}
+
 /*****************************************************************************/
 
 #define NM_DIV_ROUND_UP(x, y)     \
@@ -1245,27 +916,21 @@ nm_g_variant_take_ref(GVariant *v)
         return (v);                          \
     }
 #define NM_UTILS_LOOKUP_ITEM(v, n) \
-    (void) 0;                      \
-case v:                            \
-    return (n);                    \
-    (void) 0
+    case v:                        \
+        return (n);
 #define NM_UTILS_LOOKUP_STR_ITEM(v, n) NM_UTILS_LOOKUP_ITEM(v, "" n "")
 #define NM_UTILS_LOOKUP_ITEM_IGNORE(v) \
-    (void) 0;                          \
-case v:                                \
-    break;                             \
-    (void) 0
+    case v:                            \
+        break;
 #define NM_UTILS_LOOKUP_ITEM_IGNORE_OTHER() \
-    (void) 0;                               \
-default:                                    \
-    break;                                  \
-    (void) 0
+    default:                                \
+        break;
 
 #define NM_UTILS_LOOKUP_DEFINE(fcn_name, lookup_type, result_type, unknown_val, ...) \
     result_type fcn_name(lookup_type val)                                            \
     {                                                                                \
         switch (val) {                                                               \
-            (void) 0, __VA_ARGS__(void) 0;                                           \
+            NM_VA_ARGS_JOIN(, __VA_ARGS__)                                           \
         };                                                                           \
         {                                                                            \
             unknown_val;                                                             \
@@ -1471,17 +1136,15 @@ nm_strcmp_p(gconstpointer a, gconstpointer b)
 /*****************************************************************************/
 
 static inline int
-_NM_IN_STRSET_ASCII_CASE_op_streq(const char *x, const char *s)
+_NM_IN_STRSET_EVAL_op_streq_ascii_case(const char *x1, const char *x)
 {
-    return s && g_ascii_strcasecmp(x, s) == 0;
+    return x && g_ascii_strcasecmp(x1, x) == 0;
 }
 
-#define NM_IN_STRSET_ASCII_CASE(x, ...)                     \
-    _NM_IN_STRSET_EVAL_N(||,                                \
-                         _NM_IN_STRSET_ASCII_CASE_op_streq, \
-                         x,                                 \
-                         NM_NARG(__VA_ARGS__),              \
-                         __VA_ARGS__)
+#define _NM_IN_STRSET_EVAL_OP_STREQ_ASCII_CASE(x, idx) \
+    _NM_IN_STRSET_EVAL_op_streq_ascii_case(_x1, x)
+#define NM_IN_STRSET_ASCII_CASE(x1, ...) \
+    _NM_IN_STRSET_EVAL(||, _NM_IN_STRSET_EVAL_OP_STREQ_ASCII_CASE, x1, __VA_ARGS__)
 
 #define NM_STR_HAS_SUFFIX_ASCII_CASE(str, suffix)                                               \
     ({                                                                                          \
@@ -1508,6 +1171,25 @@ _NM_IN_STRSET_ASCII_CASE_op_streq(const char *x, const char *s)
 /*****************************************************************************/
 
 #define nm_g_slice_free(ptr) g_slice_free(typeof(*(ptr)), ptr)
+
+/*****************************************************************************/
+
+static inline int
+nm_memcmp_n(gconstpointer p1, gsize len1, gconstpointer p2, gsize len2, gsize element_size)
+{
+    nm_assert(element_size > 0);
+
+    NM_CMP_DIRECT(len1, len2);
+    if (len1 > 0)
+        NM_CMP_DIRECT_MEMCMP(p1, p2, len1 * element_size);
+    return 0;
+}
+
+static inline int
+nm_memeq_n(gconstpointer p1, gsize len1, gconstpointer p2, gsize len2, gsize element_size)
+{
+    return nm_memcmp_n(p1, len1, p2, len2, element_size) == 0;
+}
 
 /*****************************************************************************/
 
@@ -1668,28 +1350,28 @@ _nm_strndup_a_step(char *s, const char *str, gsize len)
  *
  * Instead, this generic macro is supposed to handle all integers correctly. */
 #if _NM_CC_SUPPORT_GENERIC
-    #define nm_strdup_int(val)                                                       \
-        _Generic((val), char                                                         \
-                 : g_strdup_printf("%d", (int) (val)),                               \
-                                                                                     \
-                   signed char                                                       \
-                 : g_strdup_printf("%d", (signed) (val)), signed short               \
-                 : g_strdup_printf("%d", (signed) (val)), signed                     \
-                 : g_strdup_printf("%d", (signed) (val)), signed long                \
-                 : g_strdup_printf("%ld", (signed long) (val)), signed long long     \
-                 : g_strdup_printf("%lld", (signed long long) (val)),                \
-                                                                                     \
-                   unsigned char                                                     \
-                 : g_strdup_printf("%u", (unsigned) (val)), unsigned short           \
-                 : g_strdup_printf("%u", (unsigned) (val)), unsigned                 \
-                 : g_strdup_printf("%u", (unsigned) (val)), unsigned long            \
-                 : g_strdup_printf("%lu", (unsigned long) (val)), unsigned long long \
-                 : g_strdup_printf("%llu", (unsigned long long) (val)))
+#define nm_strdup_int(val)                                                       \
+    _Generic((val), char                                                         \
+             : g_strdup_printf("%d", (int) (val)),                               \
+                                                                                 \
+               signed char                                                       \
+             : g_strdup_printf("%d", (signed) (val)), signed short               \
+             : g_strdup_printf("%d", (signed) (val)), signed                     \
+             : g_strdup_printf("%d", (signed) (val)), signed long                \
+             : g_strdup_printf("%ld", (signed long) (val)), signed long long     \
+             : g_strdup_printf("%lld", (signed long long) (val)),                \
+                                                                                 \
+               unsigned char                                                     \
+             : g_strdup_printf("%u", (unsigned) (val)), unsigned short           \
+             : g_strdup_printf("%u", (unsigned) (val)), unsigned                 \
+             : g_strdup_printf("%u", (unsigned) (val)), unsigned long            \
+             : g_strdup_printf("%lu", (unsigned long) (val)), unsigned long long \
+             : g_strdup_printf("%llu", (unsigned long long) (val)))
 #else
-    #define nm_strdup_int(val)                                        \
-        ((sizeof(val) == sizeof(guint64) && ((typeof(val)) -1) > 0)   \
-             ? g_strdup_printf("%" G_GUINT64_FORMAT, (guint64) (val)) \
-             : g_strdup_printf("%" G_GINT64_FORMAT, (gint64) (val)))
+#define nm_strdup_int(val)                                        \
+    ((sizeof(val) == sizeof(guint64) && ((typeof(val)) -1) > 0)   \
+         ? g_strdup_printf("%" G_GUINT64_FORMAT, (guint64) (val)) \
+         : g_strdup_printf("%" G_GINT64_FORMAT, (gint64) (val)))
 #endif
 
 /*****************************************************************************/
@@ -1877,7 +1559,7 @@ nm_decode_version(guint version, guint *major, guint *minor, guint *micro)
 /*****************************************************************************/
 
 #ifdef _G_BOOLEAN_EXPR
-    /* g_assert() uses G_LIKELY(), which in turn uses _G_BOOLEAN_EXPR().
+/* g_assert() uses G_LIKELY(), which in turn uses _G_BOOLEAN_EXPR().
  * As glib's implementation uses a local variable _g_boolean_var_,
  * we cannot do
  *   g_assert (some_macro ());
@@ -1887,8 +1569,8 @@ nm_decode_version(guint version, guint *major, guint *minor, guint *micro)
  *
  * Workaround that by re-defining _G_BOOLEAN_EXPR()
  **/
-    #undef _G_BOOLEAN_EXPR
-    #define _G_BOOLEAN_EXPR(expr) NM_BOOLEAN_EXPR(expr)
+#undef _G_BOOLEAN_EXPR
+#define _G_BOOLEAN_EXPR(expr) NM_BOOLEAN_EXPR(expr)
 #endif
 
 /*****************************************************************************/
@@ -1910,6 +1592,24 @@ NM_AUTO_DEFINE_FCN_VOID0(GMutex *, _nm_auto_unlock_g_mutex, g_mutex_unlock);
     })
 
 #define NM_G_MUTEX_LOCKED(lock) _NM_G_MUTEX_LOCKED(lock, NM_UNIQ)
+
+/*****************************************************************************/
+
+static inline GObject *
+nm_g_object_freeze_notify(gpointer obj)
+{
+    if (obj)
+        g_object_freeze_notify(obj);
+    return obj;
+}
+
+static inline void
+nm_g_object_thaw_notify_clear(GObject **p_obj)
+{
+    nm_clear_pointer(p_obj, g_object_thaw_notify);
+}
+
+#define nm_auto_g_object_thaw_notify nm_auto(nm_g_object_thaw_notify_clear)
 
 /*****************************************************************************/
 

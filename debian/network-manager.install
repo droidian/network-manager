@@ -14,6 +14,7 @@ usr/share/man/
 usr/share/dbus-1/system-services/
 usr/share/dbus-1/system.d/org.freedesktop.NetworkManager.conf
 usr/share/dbus-1/system.d/nm-dispatcher.conf
+usr/share/dbus-1/system.d/nm-priv-helper.conf
 usr/share/polkit-1/
 usr/share/bash-completion/
 etc/NetworkManager/
@@ -22,9 +23,11 @@ lib/udev/rules.d/*.rules
 lib/systemd/system/NetworkManager.service
 lib/systemd/system/NetworkManager-dispatcher.service
 lib/systemd/system/NetworkManager-wait-online.service
+lib/systemd/system/nm-priv-helper.service
 debian/NetworkManager.conf etc/NetworkManager/
 debian/org.freedesktop.NetworkManager.pkla var/lib/polkit-1/localauthority/10-vendor.d/
-debian/10-*.conf usr/lib/NetworkManager/conf.d/
 debian/60-network-manager.rules usr/share/polkit-1/rules.d/
 debian/01-ifupdown etc/NetworkManager/dispatcher.d/
+debian/10-*.conf usr/lib/NetworkManager/conf.d/
+debian/default-wifi-powersave-on.conf etc/NetworkManager/conf.d
 debian/source_network-manager.py /usr/share/apport/package-hooks/

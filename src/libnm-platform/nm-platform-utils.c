@@ -308,14 +308,14 @@ _ethtool_edata_to_string(gpointer edata, gsize edata_size, char *sbuf, gsize sbu
 /*****************************************************************************/
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 27)
-    #define ethtool_cmd_speed(pedata) ((pedata)->speed)
+#define ethtool_cmd_speed(pedata) ((pedata)->speed)
 
-    #define ethtool_cmd_speed_set(pedata, speed) \
-        G_STMT_START                             \
-        {                                        \
-            (pedata)->speed = (guint16) (speed); \
-        }                                        \
-        G_STMT_END
+#define ethtool_cmd_speed_set(pedata, speed) \
+    G_STMT_START                             \
+    {                                        \
+        (pedata)->speed = (guint16) (speed); \
+    }                                        \
+    G_STMT_END
 #endif
 
 static int
@@ -554,7 +554,7 @@ _ASSERT_ethtool_feature_infos(void)
         for (k = 0; k < inf->n_kernel_names; k++) {
             const char *name = inf->kernel_names[k];
 
-            g_assert(nm_utils_strv_find_first((char **) inf->kernel_names, k, name) < 0);
+            g_assert(nm_strv_find_first(inf->kernel_names, k, name) < 0);
 
             /* these offload features are only informational and cannot be set from user-space
              * (NETIF_F_NEVER_CHANGE). We should not track them in _ethtool_feature_infos. */

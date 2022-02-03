@@ -40,7 +40,7 @@ void _nm_singleton_instance_register_destruction(GObject *instance);
 /* By default, the getter will assert that the singleton will be created only once. You can
  * change this by redefining NM_DEFINE_SINGLETON_ALLOW_MULTIPLE. */
 #ifndef NM_DEFINE_SINGLETON_ALLOW_MULTIPLE
-    #define NM_DEFINE_SINGLETON_ALLOW_MULTIPLE FALSE
+#define NM_DEFINE_SINGLETON_ALLOW_MULTIPLE FALSE
 #endif
 
 #define NM_DEFINE_SINGLETON_GETTER(TYPE, GETTER, GTYPE, ...)                                \
@@ -247,6 +247,33 @@ const char *const *   nm_utils_proc_cmdline_split(void);
 gboolean nm_utils_host_id_get(const guint8 **out_host_id, gsize *out_host_id_len);
 gint64   nm_utils_host_id_get_timestamp_ns(void);
 
+void nmtst_utils_host_id_push(const guint8 *host_id,
+                              gssize        host_id_len,
+                              gboolean      is_good,
+                              const gint64 *timestamp_ns);
+
+void nmtst_utils_host_id_pop(void);
+
+static inline void
+_nmtst_auto_utils_host_id_context_pop(const char *const *unused)
+{
+    nmtst_utils_host_id_pop();
+}
+
+#define _NMTST_UTILS_HOST_ID_CONTEXT(uniq, host_id)                      \
+    _nm_unused            nm_auto(_nmtst_auto_utils_host_id_context_pop) \
+        const char *const NM_UNIQ_T(_host_id_context_, uniq) = ({        \
+            const gint64 _timestamp_ns = 1631000672;                     \
+                                                                         \
+            nmtst_utils_host_id_push((const guint8 *) "" host_id "",     \
+                                     NM_STRLEN(host_id),                 \
+                                     TRUE,                               \
+                                     &_timestamp_ns);                    \
+            "" host_id "";                                               \
+        })
+
+#define NMTST_UTILS_HOST_ID_CONTEXT(host_id) _NMTST_UTILS_HOST_ID_CONTEXT(NM_UNIQ, host_id)
+
 /*****************************************************************************/
 
 int nm_utils_arp_type_detect_from_hwaddrlen(gsize hwaddr_len);
@@ -271,6 +298,8 @@ typedef enum {
     NM_UTILS_STABLE_TYPE_RANDOM    = 3,
 } NMUtilsStableType;
 
+#define NM_UTILS_STABLE_TYPE_NONE ((NMUtilsStableType) -1)
+
 NMUtilsStableType nm_utils_stable_id_parse(const char *stable_id,
                                            const char *deviceid,
                                            const char *hwaddr,
@@ -281,21 +310,28 @@ NMUtilsStableType nm_utils_stable_id_parse(const char *stable_id,
 char *nm_utils_stable_id_random(void);
 char *nm_utils_stable_id_generated_complete(const char *msg);
 
-gboolean nm_utils_ipv6_addr_set_stable_privacy_impl(NMUtilsStableType stable_type,
-                                                    struct in6_addr * addr,
-                                                    const char *      ifname,
-                                                    const char *      network_id,
-                                                    guint32           dad_counter,
-                                                    guint8 *          host_id,
-                                                    gsize             host_id_len,
-                                                    GError **         error);
+#define NM_STABLE_PRIVACY_RFC7217_IDGEN_RETRIES 3
 
-gboolean nm_utils_ipv6_addr_set_stable_privacy(NMUtilsStableType id_type,
-                                               struct in6_addr * addr,
-                                               const char *      ifname,
-                                               const char *      network_id,
-                                               guint32           dad_counter,
-                                               GError **         error);
+void nm_utils_ipv6_addr_set_stable_privacy_with_host_id(NMUtilsStableType stable_type,
+                                                        struct in6_addr * addr,
+                                                        const char *      ifname,
+                                                        const char *      network_id,
+                                                        guint32           dad_counter,
+                                                        const guint8 *    host_id,
+                                                        gsize             host_id_len);
+
+void nm_utils_ipv6_addr_set_stable_privacy(NMUtilsStableType stable_type,
+                                           struct in6_addr * addr,
+                                           const char *      ifname,
+                                           const char *      network_id,
+                                           guint32           dad_counter);
+
+gboolean nm_utils_ipv6_addr_set_stable_privacy_may_fail(NMUtilsStableType stable_type,
+                                                        struct in6_addr * addr,
+                                                        const char *      ifname,
+                                                        const char *      network_id,
+                                                        guint32           dad_counter,
+                                                        GError **         error);
 
 char *nm_utils_hw_addr_gen_random_eth(const char *current_mac_address,
                                       const char *generate_mac_address_mask);

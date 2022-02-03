@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="libnm Reference Manual">
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
-<link rel="prev" href="NMSettingIPTunnel.html" title="NMSettingIPTunnel">
+<link rel="prev" href="NMSettingIP6Config.html" title="NMSettingIP6Config">
 <link rel="next" href="NMSettingMacvlan.html" title="NMSettingMacvlan">
 <meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
@@ -20,7 +20,7 @@
 </td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="NMSettingIPTunnel.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="NMSettingIP6Config.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="NMSettingMacvlan.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
@@ -235,7 +235,7 @@ nm_setting_macsec_get_parent (<em class="parameter"><code><a class="link" href="
 </div>
 <div class="refsect3">
 <a name="nm-setting-macsec-get-parent.returns"></a><h4>Returns</h4>
-<p> the <a href="NMSettingMacsec.html#NMSettingMacsec--parent"><span class="type">“parent”</span></a> property of the setting</p>
+<p> the <span class="type">“parent”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -261,7 +261,7 @@ nm_setting_macsec_get_mode (<em class="parameter"><code><a class="link" href="NM
 </div>
 <div class="refsect3">
 <a name="nm-setting-macsec-get-mode.returns"></a><h4>Returns</h4>
-<p> the <a href="NMSettingMacsec.html#NMSettingMacsec--mode"><span class="type">“mode”</span></a> property of the setting</p>
+<p> the <span class="type">“mode”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -287,7 +287,7 @@ nm_setting_macsec_get_encrypt (<em class="parameter"><code><a class="link" href=
 </div>
 <div class="refsect3">
 <a name="nm-setting-macsec-get-encrypt.returns"></a><h4>Returns</h4>
-<p> the <a href="NMSettingMacsec.html#NMSettingMacsec--encrypt"><span class="type">“encrypt”</span></a> property of the setting</p>
+<p> the <span class="type">“encrypt”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -313,7 +313,7 @@ nm_setting_macsec_get_mka_cak (<em class="parameter"><code><a class="link" href=
 </div>
 <div class="refsect3">
 <a name="nm-setting-macsec-get-mka-cak.returns"></a><h4>Returns</h4>
-<p> the <a href="NMSettingMacsec.html#NMSettingMacsec--mka-cak"><span class="type">“mka-cak”</span></a> property of the setting</p>
+<p> the <span class="type">“mka-cak”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -339,7 +339,7 @@ nm_setting_macsec_get_mka_cak_flags (<em class="parameter"><code><a class="link"
 </div>
 <div class="refsect3">
 <a name="nm-setting-macsec-get-mka-cak-flags.returns"></a><h4>Returns</h4>
-<p> the <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> pertaining to the <a href="NMSettingMacsec.html#NMSettingMacsec--mka-cak"><span class="type">“mka-cak”</span></a></p>
+<p> the <a class="link" href="NMSetting.html#NMSettingSecretFlags" title="enum NMSettingSecretFlags"><span class="type">NMSettingSecretFlags</span></a> pertaining to the <span class="type">“mka-cak”</span></p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -365,7 +365,7 @@ nm_setting_macsec_get_mka_ckn (<em class="parameter"><code><a class="link" href=
 </div>
 <div class="refsect3">
 <a name="nm-setting-macsec-get-mka-ckn.returns"></a><h4>Returns</h4>
-<p> the <a href="NMSettingMacsec.html#NMSettingMacsec--mka-ckn"><span class="type">“mka-ckn”</span></a> property of the setting</p>
+<p> the <span class="type">“mka-ckn”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -391,7 +391,7 @@ nm_setting_macsec_get_port (<em class="parameter"><code><a class="link" href="NM
 </div>
 <div class="refsect3">
 <a name="nm-setting-macsec-get-port.returns"></a><h4>Returns</h4>
-<p> the <a href="NMSettingMacsec.html#NMSettingMacsec--port"><span class="type">“port”</span></a> property of the setting</p>
+<p> the <span class="type">“port”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -417,7 +417,7 @@ nm_setting_macsec_get_validation (<em class="parameter"><code><a class="link" hr
 </div>
 <div class="refsect3">
 <a name="nm-setting-macsec-get-validation.returns"></a><h4>Returns</h4>
-<p> the <a href="NMSettingMacsec.html#NMSettingMacsec--validation"><span class="type">“validation”</span></a> property of the setting</p>
+<p> the <span class="type">“validation”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.6</p>
 </div>
@@ -443,7 +443,7 @@ nm_setting_macsec_get_send_sci (<em class="parameter"><code><a class="link" href
 </div>
 <div class="refsect3">
 <a name="nm-setting-macsec-get-send-sci.returns"></a><h4>Returns</h4>
-<p> the <a href="NMSettingMacsec.html#NMSettingMacsec--send-sci"><span class="type">“send-sci”</span></a> property of the setting</p>
+<p> the <span class="type">“send-sci”</span> property of the setting</p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>

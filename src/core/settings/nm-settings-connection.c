@@ -346,7 +346,7 @@ _getsettings_cached_get(NMSettingsConnection *self, const NMConnectionSerializat
 
     priv->getsettings_cached.options = *options;
     priv->getsettings_cached.options.seen_bssids =
-        nm_utils_strv_dup_packed(priv->getsettings_cached.options.seen_bssids, -1);
+        nm_strv_dup_packed(priv->getsettings_cached.options.seen_bssids, -1);
 
     return priv->getsettings_cached.variant;
 }
@@ -382,7 +382,7 @@ _nm_settings_connection_set_connection(NMSettingsConnection *           self,
                                   NM_SETTING_COMPARE_FLAG_EXACT)) {
         connection_old   = priv->connection;
         priv->connection = g_object_ref(new_connection);
-        nmtst_connection_assert_unchanging(priv->connection);
+        nm_assert_connection_unchanging(priv->connection);
 
         _getsettings_cached_clear(priv);
         _nm_settings_notify_sorted_by_autoconnect_priority_maybe_changed(priv->settings);

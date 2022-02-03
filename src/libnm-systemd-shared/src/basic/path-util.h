@@ -64,7 +64,11 @@ static inline char* path_startswith(const char *path, const char *prefix) {
         return path_startswith_full(path, prefix, true);
 }
 int path_compare(const char *a, const char *b) _pure_;
-bool path_equal(const char *a, const char *b) _pure_;
+
+static inline bool path_equal(const char *a, const char *b) {
+        return path_compare(a, b) == 0;
+}
+
 bool path_equal_or_files_same(const char *a, const char *b, int flags);
 /* Compares only the last portion of the input paths, ie: the filenames */
 bool path_equal_filename(const char *a, const char *b);
@@ -97,9 +101,9 @@ int path_strv_make_absolute_cwd(char **l);
 char** path_strv_resolve(char **l, const char *root);
 char** path_strv_resolve_uniq(char **l, const char *root);
 
-int find_executable_full(const char *name, bool use_path_envvar, char **ret_filename, int *ret_fd);
+int find_executable_full(const char *name, const char *root, char **exec_search_path, bool use_path_envvar, char **ret_filename, int *ret_fd);
 static inline int find_executable(const char *name, char **ret_filename) {
-        return find_executable_full(name, true, ret_filename, NULL);
+        return find_executable_full(name, /* root= */ NULL, NULL, true, ret_filename, NULL);
 }
 
 bool paths_check_timestamp(const char* const* paths, usec_t *paths_ts_usec, bool update);

@@ -1,3 +1,7 @@
+Description: temporarly revert an upstream commit that made udev enabled under lxc
+the new systemd doesn't work there (lp: #1914062)
+
+
 Index: network-manager/src/libnm-platform/nm-linux-platform.c
 ===================================================================
 --- network-manager.orig/src/libnm-platform/nm-linux-platform.c

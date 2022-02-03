@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <linux/if_ether.h>
 
+#include "libnm-core-aux-intern/nm-libnm-core-utils.h"
 #include "libnm-core-intern/nm-core-internal.h"
 #include "nm-bluez-common.h"
 #include "nm-bluez-manager.h"
@@ -273,11 +274,7 @@ complete_connection(NMDevice *           device,
     s_serial = nm_connection_get_setting_serial(connection);
     s_ppp    = nm_connection_get_setting_ppp(connection);
 
-    s_bt = nm_connection_get_setting_bluetooth(connection);
-    if (!s_bt) {
-        s_bt = (NMSettingBluetooth *) nm_setting_bluetooth_new();
-        nm_connection_add_setting(connection, NM_SETTING(s_bt));
-    }
+    s_bt = _nm_connection_ensure_setting(connection, NM_TYPE_SETTING_BLUETOOTH);
 
     ctype = nm_setting_bluetooth_get_connection_type(s_bt);
     if (ctype) {
@@ -1007,21 +1004,21 @@ act_stage3_ip_config_start(NMDevice *           device,
                            gpointer *           out_config,
                            NMDeviceStateReason *out_failure_reason)
 {
-    NMDeviceBtPrivate *priv = NM_DEVICE_BT_GET_PRIVATE(device);
+    NMDeviceBtPrivate *priv    = NM_DEVICE_BT_GET_PRIVATE(device);
+    gboolean           autoip4 = FALSE;
+    NMActStageReturn   ret;
 
-    nm_assert_addr_family(addr_family);
+    if (priv->connect_bt_type != NM_BT_CAPABILITY_DUN)
+        goto out_chain_up;
 
-    if (priv->connect_bt_type == NM_BT_CAPABILITY_DUN) {
-        if (addr_family == AF_INET) {
-            return nm_modem_stage3_ip4_config_start(priv->modem,
-                                                    device,
-                                                    NM_DEVICE_CLASS(nm_device_bt_parent_class),
-                                                    out_failure_reason);
-        } else {
-            return nm_modem_stage3_ip6_config_start(priv->modem, device, out_failure_reason);
-        }
-    }
+    if (!NM_IS_IPv4(addr_family))
+        return nm_modem_stage3_ip6_config_start(priv->modem, device, out_failure_reason);
 
+    ret = nm_modem_stage3_ip4_config_start(priv->modem, device, &autoip4, out_failure_reason);
+    if (ret != NM_ACT_STAGE_RETURN_SUCCESS || !autoip4)
+        return ret;
+
+out_chain_up:
     return NM_DEVICE_CLASS(nm_device_bt_parent_class)
         ->act_stage3_ip_config_start(device, addr_family, out_config, out_failure_reason);
 }

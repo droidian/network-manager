@@ -7,6 +7,8 @@
 </setting>
 <setting name="bluetooth">
 </setting>
+<setting name="bond-port">
+</setting>
 <setting name="bond">
 </setting>
 <setting name="bridge-port">

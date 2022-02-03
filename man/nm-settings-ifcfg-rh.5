@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-ifcfg-rh
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 09/22/2021
+.\"      Date: 01/13/2022
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.32.12
+.\"    Source: NetworkManager 1.34.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.32\&.12" "Configuration"
+.TH "NM\-SETTINGS\-IFCFG\-RH" "5" "" "NetworkManager 1\&.34\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -814,7 +814,40 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&3.\ \&bond setting
+.B Table\ \&3.\ \&bond\-port setting
+.TS
+allbox tab(:);
+lB lB lB lB.
+T{
+Property
+T}:T{
+Ifcfg\-rh Variable
+T}:T{
+Default
+T}:T{
+Description
+T}
+.T&
+l l l l.
+T{
+queue\-id
+T}:T{
+BONDING_OPTS: queue\-id=
+T}:T{
+0
+T}:T{
+Queue ID\&.\fB
+
+Allowed values: \fR0 \- 65535
+T}
+.TE
+.sp 1
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&4.\ \&bond setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -847,7 +880,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&4.\ \&bridge\-port setting
+.B Table\ \&5.\ \&bridge\-port setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -914,7 +947,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&5.\ \&bridge setting
+.B Table\ \&6.\ \&bridge setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1245,7 +1278,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&6.\ \&connection setting
+.B Table\ \&7.\ \&connection setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1259,6 +1292,7 @@ T}:T{
 Description
 T}
 .T&
+l l l l
 l l l l
 l l l l
 l l l l
@@ -1508,6 +1542,17 @@ Example: \fRLLMNR=yes\fB
 Allowed values: \fRyes,no,resolve
 T}
 T{
+dns\-over\-tls
+T}:T{
+DNS_OVER_TLS\fI(+)\fR
+T}:T{
+missing variable means global default
+T}:T{
+Whether or not DNSOverTls is enabled for the connection\fB
+
+Allowed values: \fRyes,no,opportunistic
+T}
+T{
 wait\-device\-timeout
 T}:T{
 DEVTIMEOUT\fI(+)\fR
@@ -1540,7 +1585,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&7.\ \&dcb setting
+.B Table\ \&8.\ \&dcb setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1735,7 +1780,7 @@ All DCB related configuration is a NetworkManager extension\&. DCB=yes must be u
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&8.\ \&ethtool setting
+.B Table\ \&9.\ \&ethtool setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1757,7 +1802,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&9.\ \&hostname setting
+.B Table\ \&10.\ \&hostname setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1826,7 +1871,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&10.\ \&infiniband setting
+.B Table\ \&11.\ \&infiniband setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -1903,7 +1948,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&11.\ \&ipv4 setting
+.B Table\ \&12.\ \&ipv4 setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2156,7 +2201,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&12.\ \&ipv6 setting
+.B Table\ \&13.\ \&ipv6 setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2423,7 +2468,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&13.\ \&match setting
+.B Table\ \&14.\ \&match setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2456,7 +2501,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&14.\ \&ovs\-bridge setting
+.B Table\ \&15.\ \&ovs\-bridge setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2478,7 +2523,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&15.\ \&ovs\-dpdk setting
+.B Table\ \&16.\ \&ovs\-dpdk setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2500,7 +2545,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&16.\ \&ovs\-external\-ids setting
+.B Table\ \&17.\ \&ovs\-external\-ids setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2522,7 +2567,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&17.\ \&ovs\-interface setting
+.B Table\ \&18.\ \&ovs\-interface setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2544,7 +2589,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&18.\ \&ovs\-patch setting
+.B Table\ \&19.\ \&ovs\-patch setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2566,7 +2611,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&19.\ \&ovs\-port setting
+.B Table\ \&20.\ \&ovs\-port setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2588,7 +2633,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&20.\ \&proxy setting
+.B Table\ \&21.\ \&proxy setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2655,7 +2700,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&21.\ \&sriov setting
+.B Table\ \&22.\ \&sriov setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2712,7 +2757,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&22.\ \&tc setting
+.B Table\ \&23.\ \&tc setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2757,7 +2802,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&23.\ \&team\-port setting
+.B Table\ \&24.\ \&team\-port setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2788,7 +2833,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&24.\ \&team setting
+.B Table\ \&25.\ \&team setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2819,7 +2864,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&25.\ \&user setting
+.B Table\ \&26.\ \&user setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2852,7 +2897,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&26.\ \&veth setting
+.B Table\ \&27.\ \&veth setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2874,7 +2919,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&27.\ \&vlan setting
+.B Table\ \&28.\ \&vlan setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2963,7 +3008,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&28.\ \&vrf setting
+.B Table\ \&29.\ \&vrf setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -2985,7 +3030,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&29.\ \&wifi\-p2p setting
+.B Table\ \&30.\ \&wifi\-p2p setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3007,7 +3052,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&30.\ \&802\-3\-ethernet setting
+.B Table\ \&31.\ \&802\-3\-ethernet setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3188,7 +3233,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&31.\ \&wireguard setting
+.B Table\ \&32.\ \&wireguard setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3210,7 +3255,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&32.\ \&802\-11\-wireless\-security setting
+.B Table\ \&33.\ \&802\-11\-wireless\-security setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3457,7 +3502,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&33.\ \&802\-11\-wireless setting
+.B Table\ \&34.\ \&802\-11\-wireless setting
 .TS
 allbox tab(:);
 lB lB lB lB.
@@ -3680,7 +3725,7 @@ T}
 .nr an-no-space-flag 1
 .nr an-break-flag 1
 .br
-.B Table\ \&34.\ \&wpan setting
+.B Table\ \&35.\ \&wpan setting
 .TS
 allbox tab(:);
 lB lB lB lB.

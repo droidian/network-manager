@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 #include "alloc-util.h"
+#include "chase-symlinks.h"
 #include "fd-util.h"
 #include "fileio.h"
 #include "fs-util.h"
@@ -27,10 +28,22 @@
 #include "socket-util.h"
 #include "stdio-util.h"
 #include "string-util.h"
+#include "sync-util.h"
 #include "tmpfile-util.h"
 
-/* The maximum size of the file we'll read in one go. */
-#define READ_FULL_BYTES_MAX (4U*1024U*1024U - 1)
+/* The maximum size of the file we'll read in one go in read_full_file() (64M). */
+#define READ_FULL_BYTES_MAX (64U*1024U*1024U - 1U)
+
+/* The maximum size of virtual files (i.e. procfs, sysfs, and other virtual "API" files) we'll read in one go
+ * in read_virtual_file(). Note that this limit is different (and much lower) than the READ_FULL_BYTES_MAX
+ * limit. This reflects the fact that we use different strategies for reading virtual and regular files:
+ * virtual files we generally have to read in a single read() syscall since the kernel doesn't support
+ * continuation read()s for them. Thankfully they are somewhat size constrained. Thus we can allocate the
+ * full potential buffer in advance. Regular files OTOH can be much larger, and there we grow the allocations
+ * exponentially in a loop. We use a size limit of 4M-2 because 4M-1 is the maximum buffer that /proc/sys/
+ * allows us to read() (larger reads will fail with ENOMEM), and we want to read one extra byte so that we
+ * can detect EOFs. */
+#define READ_VIRTUAL_BYTES_MAX (4U*1024U*1024U - 2U)
 
 int fopen_unlocked(const char *path, const char *options, FILE **ret) {
         assert(ret);
@@ -138,6 +151,30 @@ int write_string_stream_ts(
                 fd = fileno(f);
                 if (fd < 0)
                         return -EBADF;
+        }
+
+        if (flags & WRITE_STRING_FILE_SUPPRESS_REDUNDANT_VIRTUAL) {
+                _cleanup_free_ char *t = NULL;
+
+                /* If value to be written is same as that of the existing value, then suppress the write. */
+
+                if (fd < 0) {
+                        fd = fileno(f);
+                        if (fd < 0)
+                                return -EBADF;
+                }
+
+                /* Read an additional byte to detect cases where the prefix matches but the rest
+                 * doesn't. Also, 0 returned by read_virtual_file_fd() means the read was truncated and
+                 * it won't be equal to the new value. */
+                if (read_virtual_file_fd(fd, strlen(line)+1, &t, NULL) > 0 &&
+                    streq_skip_trailing_chars(line, t, NEWLINE)) {
+                        log_debug("No change in value '%s', supressing write", line);
+                        return 0;
+                }
+
+                if (lseek(fd, 0, SEEK_SET) < 0)
+                        return -errno;
         }
 
         needs_nl = !(flags & WRITE_STRING_FILE_AVOID_NEWLINE) && !endswith(line, "\n");
@@ -255,10 +292,11 @@ int write_string_file_ts(
                 assert(!ts);
 
         /* We manually build our own version of fopen(..., "we") that works without O_CREAT and with O_NOFOLLOW if needed. */
-        fd = open(fn, O_WRONLY|O_CLOEXEC|O_NOCTTY |
+        fd = open(fn, O_CLOEXEC|O_NOCTTY |
                   (FLAGS_SET(flags, WRITE_STRING_FILE_NOFOLLOW) ? O_NOFOLLOW : 0) |
                   (FLAGS_SET(flags, WRITE_STRING_FILE_CREATE) ? O_CREAT : 0) |
-                  (FLAGS_SET(flags, WRITE_STRING_FILE_TRUNCATE) ? O_TRUNC : 0),
+                  (FLAGS_SET(flags, WRITE_STRING_FILE_TRUNCATE) ? O_TRUNC : 0) |
+                  (FLAGS_SET(flags, WRITE_STRING_FILE_SUPPRESS_REDUNDANT_VIRTUAL) ? O_RDWR : O_WRONLY),
                   (FLAGS_SET(flags, WRITE_STRING_FILE_MODE_0600) ? 0600 : 0666));
         if (fd < 0) {
                 r = -errno;
@@ -368,9 +406,8 @@ int verify_file(const char *fn, const char *blob, bool accept_extra_nl) {
 }
 #endif /* NM_IGNORED */
 
-int read_virtual_file(const char *filename, size_t max_size, char **ret_contents, size_t *ret_size) {
+int read_virtual_file_fd(int fd, size_t max_size, char **ret_contents, size_t *ret_size) {
         _cleanup_free_ char *buf = NULL;
-        _cleanup_close_ int fd = -1;
         size_t n, size;
         int n_retries;
         bool truncated = false;
@@ -388,11 +425,8 @@ int read_virtual_file(const char *filename, size_t max_size, char **ret_contents
          * contents* may be returned. (Though the read is still done using one syscall.) Returns 0 on
          * partial success, 1 if untruncated contents were read. */
 
-        fd = open(filename, O_RDONLY|O_CLOEXEC);
-        if (fd < 0)
-                return -errno;
-
-        assert(max_size <= READ_FULL_BYTES_MAX || max_size == SIZE_MAX);
+        assert(fd >= 0);
+        assert(max_size <= READ_VIRTUAL_BYTES_MAX || max_size == SIZE_MAX);
 
         /* Limit the number of attempts to read the number of bytes returned by fstat(). */
         n_retries = 3;
@@ -407,7 +441,7 @@ int read_virtual_file(const char *filename, size_t max_size, char **ret_contents
                         return -EBADF;
 
                 /* Be prepared for files from /proc which generally report a file size of 0. */
-                assert_cc(READ_FULL_BYTES_MAX < SSIZE_MAX);
+                assert_cc(READ_VIRTUAL_BYTES_MAX < SSIZE_MAX);
                 if (st.st_size > 0 && n_retries > 1) {
                         /* Let's use the file size if we have more than 1 attempt left. On the last attempt
                          * we'll ignore the file size */
@@ -421,13 +455,18 @@ int read_virtual_file(const char *filename, size_t max_size, char **ret_contents
                         } else {
                                 size = MIN((size_t) st.st_size, max_size);
 
-                                if (size > READ_FULL_BYTES_MAX)
+                                if (size > READ_VIRTUAL_BYTES_MAX)
                                         return -EFBIG;
                         }
 
                         n_retries--;
+                } else if (n_retries > 1) {
+                        /* Files in /proc are generally smaller than the page size so let's start with
+                         * a page size buffer from malloc and only use the max buffer on the final try. */
+                        size = MIN3(page_size() - 1, READ_VIRTUAL_BYTES_MAX, max_size);
+                        n_retries = 1;
                 } else {
-                        size = MIN(READ_FULL_BYTES_MAX, max_size);
+                        size = MIN(READ_VIRTUAL_BYTES_MAX, max_size);
                         n_retries = 0;
                 }
 
@@ -436,7 +475,7 @@ int read_virtual_file(const char *filename, size_t max_size, char **ret_contents
                         return -ENOMEM;
 
                 /* Use a bigger allocation if we got it anyway, but not more than the limit. */
-                size = MIN3(MALLOC_SIZEOF_SAFE(buf) - 1, max_size, READ_FULL_BYTES_MAX);
+                size = MIN3(MALLOC_SIZEOF_SAFE(buf) - 1, max_size, READ_VIRTUAL_BYTES_MAX);
 
                 for (;;) {
                         ssize_t k;
@@ -458,9 +497,14 @@ int read_virtual_file(const char *filename, size_t max_size, char **ret_contents
                 if (n <= size)
                         break;
 
-                /* If a maximum size is specified and we already read as much, no need to try again */
-                if (max_size != SIZE_MAX && n >= max_size) {
-                        n = max_size;
+                /* If a maximum size is specified and we already read more we know the file is larger, and
+                 * can handle this as truncation case. Note that if the size of what we read equals the
+                 * maximum size then this doesn't mean truncation, the file might or might not end on that
+                 * byte. We need to rerun the loop in that case, with a larger buffer size, so that we read
+                 * at least one more byte to be able to distinguish EOF from truncation. */
+                if (max_size != SIZE_MAX && n > max_size) {
+                        n = size; /* Make sure we never use more than what we sized the buffer for (so that
+                                   * we have one free byte in it for the trailing NUL we add below).*/
                         truncated = true;
                         break;
                 }
@@ -507,6 +551,18 @@ int read_virtual_file(const char *filename, size_t max_size, char **ret_contents
         return !truncated;
 }
 
+int read_virtual_file(const char *filename, size_t max_size, char **ret_contents, size_t *ret_size) {
+        _cleanup_close_ int fd = -1;
+
+        assert(filename);
+
+        fd = open(filename, O_RDONLY | O_NOCTTY | O_CLOEXEC);
+        if (fd < 0)
+                return -errno;
+
+        return read_virtual_file_fd(fd, max_size, ret_contents, ret_size);
+}
+
 int read_full_stream_full(
                 FILE *f,
                 const char *filename,
@@ -517,17 +573,16 @@ int read_full_stream_full(
                 size_t *ret_size) {
 
         _cleanup_free_ char *buf = NULL;
-        size_t n, n_next, l;
+        size_t n, n_next = 0, l;
         int fd, r;
 
         assert(f);
         assert(ret_contents);
         assert(!FLAGS_SET(flags, READ_FULL_FILE_UNBASE64 | READ_FULL_FILE_UNHEX));
+        assert(size != SIZE_MAX || !FLAGS_SET(flags, READ_FULL_FILE_FAIL_WHEN_LARGER));
 
-        if (offset != UINT64_MAX && offset > LONG_MAX)
+        if (offset != UINT64_MAX && offset > LONG_MAX) /* fseek() can only deal with "long" offsets */
                 return -ERANGE;
-
-        n_next = size != SIZE_MAX ? size : LINE_MAX; /* Start size */
 
         fd = fileno(f);
         if (fd >= 0) { /* If the FILE* object is backed by an fd (as opposed to memory or such, see
@@ -538,20 +593,20 @@ int read_full_stream_full(
                         return -errno;
 
                 if (S_ISREG(st.st_mode)) {
-                        if (size == SIZE_MAX) {
+
+                        /* Try to start with the right file size if we shall read the file in full. Note
+                         * that we increase the size to read here by one, so that the first read attempt
+                         * already makes us notice the EOF. If the reported size of the file is zero, we
+                         * avoid this logic however, since quite likely it might be a virtual file in procfs
+                         * that all report a zero file size. */
+
+                        if (st.st_size > 0 &&
+                            (size == SIZE_MAX || FLAGS_SET(flags, READ_FULL_FILE_FAIL_WHEN_LARGER))) {
+
                                 uint64_t rsize =
                                         LESS_BY((uint64_t) st.st_size, offset == UINT64_MAX ? 0 : offset);
 
-                                /* Safety check */
-                                if (rsize > READ_FULL_BYTES_MAX)
-                                        return -E2BIG;
-
-                                /* Start with the right file size. Note that we increase the size to read
-                                 * here by one, so that the first read attempt already makes us notice the
-                                 * EOF. If the reported size of the file is zero, we avoid this logic
-                                 * however, since quite likely it might be a virtual file in procfs that all
-                                 * report a zero file size. */
-                                if (st.st_size > 0)
+                                if (rsize < SIZE_MAX) /* overflow check */
                                         n_next = rsize + 1;
                         }
 
@@ -559,6 +614,17 @@ int read_full_stream_full(
                                 (void) warn_file_is_world_accessible(filename, &st, NULL, 0);
                 }
         }
+
+        /* If we don't know how much to read, figure it out now. If we shall read a part of the file, then
+         * allocate the requested size. If we shall load the full file start with LINE_MAX. Note that if
+         * READ_FULL_FILE_FAIL_WHEN_LARGER we consider the specified size a safety limit, and thus also start
+         * with LINE_MAX, under assumption the file is most likely much shorter. */
+        if (n_next == 0)
+                n_next = size != SIZE_MAX && !FLAGS_SET(flags, READ_FULL_FILE_FAIL_WHEN_LARGER) ? size : LINE_MAX;
+
+        /* Never read more than we need to determine that our own limit is hit */
+        if (n_next > READ_FULL_BYTES_MAX)
+                n_next = READ_FULL_BYTES_MAX + 1;
 
         if (offset != UINT64_MAX && fseek(f, offset, SEEK_SET) < 0)
                 return -errno;
@@ -568,6 +634,11 @@ int read_full_stream_full(
                 char *t;
                 size_t k;
 
+                /* If we shall fail when reading overly large data, then read exactly one byte more than the
+                 * specified size at max, since that'll tell us if there's anymore data beyond the limit*/
+                if (FLAGS_SET(flags, READ_FULL_FILE_FAIL_WHEN_LARGER) && n_next > size)
+                        n_next = size + 1;
+
                 if (flags & READ_FULL_FILE_SECURE) {
                         t = malloc(n_next + 1);
                         if (!t) {
@@ -576,7 +647,7 @@ int read_full_stream_full(
                         }
                         memcpy_safe(t, buf, n);
                         explicit_bzero_safe(buf, n);
-                        buf = mfree(buf);
+                        free(buf);
                 } else {
                         t = realloc(buf, n_next + 1);
                         if (!t)
@@ -601,14 +672,18 @@ int read_full_stream_full(
                 if (feof(f))
                         break;
 
-                if (size != SIZE_MAX) { /* If we got asked to read some specific size, we already sized the buffer right, hence leave */
+                if (size != SIZE_MAX && !FLAGS_SET(flags, READ_FULL_FILE_FAIL_WHEN_LARGER)) { /* If we got asked to read some specific size, we already sized the buffer right, hence leave */
                         assert(l == size);
                         break;
                 }
 
                 assert(k > 0); /* we can't have read zero bytes because that would have been EOF */
 
-                /* Safety check */
+                if (FLAGS_SET(flags, READ_FULL_FILE_FAIL_WHEN_LARGER) && l > size) {
+                        r = -E2BIG;
+                        goto finalize;
+                }
+
                 if (n >= READ_FULL_BYTES_MAX) {
                         r = -E2BIG;
                         goto finalize;
@@ -697,8 +772,6 @@ int read_full_file_full(
                 if (dir_fd == AT_FDCWD)
                         r = sockaddr_un_set_path(&sa.un, filename);
                 else {
-                        char procfs_path[STRLEN("/proc/self/fd/") + DECIMAL_STR_MAX(int)];
-
                         /* If we shall operate relative to some directory, then let's use O_PATH first to
                          * open the socket inode, and then connect to it via /proc/self/fd/. We have to do
                          * this since there's not connectat() that takes a directory fd as first arg. */
@@ -707,8 +780,7 @@ int read_full_file_full(
                         if (dfd < 0)
                                 return -errno;
 
-                        xsprintf(procfs_path, "/proc/self/fd/%i", dfd);
-                        r = sockaddr_un_set_path(&sa.un, procfs_path);
+                        r = sockaddr_un_set_path(&sa.un, FORMAT_PROC_FD_PATH(dfd));
                 }
                 if (r < 0)
                         return r;
@@ -875,9 +947,11 @@ DIR *xopendirat(int fd, const char *name, int flags) {
         return d;
 }
 
-static int mode_to_flags(const char *mode) {
+int fopen_mode_to_flags(const char *mode) {
         const char *p;
         int flags;
+
+        assert(mode);
 
         if ((p = startswith(mode, "r+")))
                 flags = O_RDWR;
@@ -931,7 +1005,7 @@ int xfopenat(int dir_fd, const char *path, const char *mode, int flags, FILE **r
         } else {
                 int fd, mode_flags;
 
-                mode_flags = mode_to_flags(mode);
+                mode_flags = fopen_mode_to_flags(mode);
                 if (mode_flags < 0)
                         return mode_flags;
 
@@ -1071,39 +1145,6 @@ int search_and_fopen_nulstr(
 
         return search_and_fopen_internal(filename, mode, root, s, ret, ret_path);
 }
-
-int chase_symlinks_and_fopen_unlocked(
-                const char *path,
-                const char *root,
-                unsigned chase_flags,
-                const char *open_flags,
-                FILE **ret_file,
-                char **ret_path) {
-
-        _cleanup_close_ int fd = -1;
-        _cleanup_free_ char *final_path = NULL;
-        int mode_flags, r;
-
-        assert(path);
-        assert(open_flags);
-        assert(ret_file);
-
-        mode_flags = mode_to_flags(open_flags);
-        if (mode_flags < 0)
-                return mode_flags;
-
-        fd = chase_symlinks_and_open(path, root, chase_flags, mode_flags, ret_path ? &final_path : NULL);
-        if (fd < 0)
-                return fd;
-
-        r = take_fdopen_unlocked(&fd, open_flags, ret_file);
-        if (r < 0)
-                return r;
-
-        if (ret_path)
-                *ret_path = TAKE_PTR(final_path);
-        return 0;
-}
 #endif /* NM_IGNORED */
 
 int fflush_and_check(FILE *f) {
@@ -1134,10 +1175,7 @@ int fflush_sync_and_check(FILE *f) {
         if (fd < 0)
                 return 0;
 
-        if (fsync(fd) < 0)
-                return -errno;
-
-        r = fsync_directory_of_file(fd);
+        r = fsync_full(fd);
         if (r < 0)
                 return r;
 
@@ -1409,18 +1447,3 @@ int warn_file_is_world_accessible(const char *filename, struct stat *st, const c
                             filename, st->st_mode & 07777);
         return 0;
 }
-
-#if 0 /* NM_IGNORED */
-int rename_and_apply_smack_floor_label(const char *from, const char *to) {
-        int r = 0;
-        if (rename(from, to) < 0)
-                return -errno;
-
-#if HAVE_SMACK_RUN_LABEL
-        r = mac_smack_apply(to, SMACK_ATTR_ACCESS, SMACK_FLOOR_LABEL);
-        if (r < 0)
-                return r;
-#endif
-        return r;
-}
-#endif /* NM_IGNORED */

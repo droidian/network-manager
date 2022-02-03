@@ -88,6 +88,7 @@
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Ip6Connectivity" title='The "Ip6Connectivity" property'>Ip6Connectivity</a>       readable   u
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.InterfaceFlags" title='The "InterfaceFlags" property'>InterfaceFlags</a>        readable   u
 <a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.HwAddress" title='The "HwAddress" property'>HwAddress</a>             readable   s
+<a class="link" href="gdbus-org.freedesktop.NetworkManager.Device.html#gdbus-property-org-freedesktop-NetworkManager-Device.Ports" title='The "Ports" property'>Ports</a>                 readable   ao
 </pre>
 </div>
 <div class="refsect1">
@@ -600,6 +601,21 @@ HwAddress  readable   s
 <p>        This replaces the other 'HwAddress' properties on the device-specific D-Bus interfaces.
 </p>
 <p>        Since: 1.24
+</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="gdbus-property-org-freedesktop-NetworkManager-Device.Ports"></a><h3>The "Ports" property</h3>
+<pre class="programlisting">
+Ports  readable   ao
+</pre>
+<p>        The port devices of the controller device.
+</p>
+<p>        Array of object paths representing devices which are currently set as
+        port of this device. This replaces the 'Slaves' properties on the
+        device-specific D-Bus interfaces.
+</p>
+<p>        Since: 1.34
 </p>
 </div>
 </div>

@@ -208,7 +208,6 @@ finalize(GObject *object)
     NMSettingWimaxPrivate *priv = NM_SETTING_WIMAX_GET_PRIVATE(object);
 
     g_free(priv->network_name);
-    g_free(priv->mac_address);
 
     G_OBJECT_CLASS(nm_setting_wimax_parent_class)->finalize(object);
 }
@@ -252,20 +251,20 @@ nm_setting_wimax_class_init(NMSettingWimaxClass *klass)
      *
      * Deprecated: 1.2: WiMAX is no longer supported.
      **/
-    obj_properties[PROP_MAC_ADDRESS] =
-        g_param_spec_string(NM_SETTING_WIMAX_MAC_ADDRESS,
-                            "",
-                            "",
-                            NULL,
-                            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
-    _nm_properties_override_gobj(properties_override,
-                                 obj_properties[PROP_MAC_ADDRESS],
-                                 &nm_sett_info_propert_type_mac_address);
+    _nm_setting_property_define_direct_mac_address(properties_override,
+                                                   obj_properties,
+                                                   NM_SETTING_WIMAX_MAC_ADDRESS,
+                                                   PROP_MAC_ADDRESS,
+                                                   NM_SETTING_PARAM_NONE,
+                                                   NMSettingWimaxPrivate,
+                                                   mac_address,
+                                                   .direct_set_string_mac_address_len = ETH_ALEN);
 
     g_object_class_install_properties(object_class, _PROPERTY_ENUMS_LAST, obj_properties);
 
-    _nm_setting_class_commit_full(setting_class,
-                                  NM_META_SETTING_TYPE_WIMAX,
-                                  NULL,
-                                  properties_override);
+    _nm_setting_class_commit(setting_class,
+                             NM_META_SETTING_TYPE_WIMAX,
+                             NULL,
+                             properties_override,
+                             NM_SETT_INFO_PRIVATE_OFFSET_FROM_CLASS);
 }

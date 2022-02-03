@@ -19,7 +19,7 @@
 #include <linux/fs.h>
 
 #if WITH_LIBPSL
-    #include <libpsl.h>
+#include <libpsl.h>
 #endif
 
 #include "libnm-glib-aux/nm-str-buf.h"
@@ -42,17 +42,17 @@
 #define HASH_LEN NM_UTILS_CHECKSUM_LENGTH_SHA1
 
 #ifndef RESOLVCONF_PATH
-    #define RESOLVCONF_PATH "/sbin/resolvconf"
-    #define HAS_RESOLVCONF  0
+#define RESOLVCONF_PATH "/sbin/resolvconf"
+#define HAS_RESOLVCONF  0
 #else
-    #define HAS_RESOLVCONF 1
+#define HAS_RESOLVCONF 1
 #endif
 
 #ifndef NETCONFIG_PATH
-    #define NETCONFIG_PATH "/sbin/netconfig"
-    #define HAS_NETCONFIG  0
+#define NETCONFIG_PATH "/sbin/netconfig"
+#define HAS_NETCONFIG  0
 #else
-    #define HAS_NETCONFIG 1
+#define HAS_NETCONFIG 1
 #endif
 
 /*****************************************************************************/
@@ -272,7 +272,7 @@ _dns_config_ip_data_new(NMDnsConfigData * data,
     g_signal_connect(ip_config,
                      NM_IS_IP4_CONFIG(ip_config) ? "notify::" NM_IP4_CONFIG_DNS_PRIORITY
                                                  : "notify::" NM_IP6_CONFIG_DNS_PRIORITY,
-                     (GCallback) _ip_config_dns_priority_changed,
+                     G_CALLBACK(_ip_config_dns_priority_changed),
                      ip_data);
 
     _ASSERT_dns_config_ip_data(ip_data);
@@ -1327,7 +1327,7 @@ get_ip_rdns_domains(NMIPConfig *ip_config)
     /* Free the array and return NULL if the only element was the ending NULL */
     strv = (char **) g_ptr_array_free(domains, (domains->len == 1));
 
-    return _nm_utils_strv_cleanup(strv, FALSE, FALSE, TRUE);
+    return nm_strv_cleanup(strv, FALSE, FALSE, TRUE);
 }
 
 static gboolean
@@ -1744,8 +1744,8 @@ plugin_skip:;
         nameservers    = g_new0(char *, 2);
         nameservers[0] = g_strdup(lladdr);
 
-        need_edns0 = nm_utils_strv_find_first(options, -1, NM_SETTING_DNS_OPTION_EDNS0) < 0;
-        need_trust = nm_utils_strv_find_first(options, -1, NM_SETTING_DNS_OPTION_TRUST_AD) < 0;
+        need_edns0 = nm_strv_find_first(options, -1, NM_SETTING_DNS_OPTION_EDNS0) < 0;
+        need_trust = nm_strv_find_first(options, -1, NM_SETTING_DNS_OPTION_TRUST_AD) < 0;
 
         if (need_edns0 || need_trust) {
             gsize len;
@@ -2128,10 +2128,7 @@ _resolvconf_resolved_managed(void)
          * We want to handle that, because systemd-resolved might not
          * have started yet. */
         full_path = g_file_read_link(_PATH_RESCONF, NULL);
-        if (nm_utils_strv_find_first((char **) RESOLVED_PATHS,
-                                     G_N_ELEMENTS(RESOLVED_PATHS),
-                                     full_path)
-            >= 0)
+        if (nm_strv_find_first(RESOLVED_PATHS, G_N_ELEMENTS(RESOLVED_PATHS), full_path) >= 0)
             return TRUE;
 
         /* see if resolv.conf is a symlink that resolves exactly one
@@ -2143,10 +2140,7 @@ _resolvconf_resolved_managed(void)
          * We want to handle that, because systemd-resolved might not
          * have started yet. */
         real_path = realpath(_PATH_RESCONF, NULL);
-        if (nm_utils_strv_find_first((char **) RESOLVED_PATHS,
-                                     G_N_ELEMENTS(RESOLVED_PATHS),
-                                     real_path)
-            >= 0)
+        if (nm_strv_find_first(RESOLVED_PATHS, G_N_ELEMENTS(RESOLVED_PATHS), real_path) >= 0)
             return TRUE;
 
         /* fall-through and resolve the symlink, to check the file

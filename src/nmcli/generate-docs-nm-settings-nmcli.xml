@@ -227,7 +227,7 @@
         <property name="s390-nettype"
                   description="s390 network device type; one of &quot;qeth&quot;, &quot;lcs&quot;, or &quot;ctc&quot;, representing the different types of virtual network devices available on s390 systems." />
         <property name="s390-options"
-                  description="Dictionary of key/value pairs of s390-specific device options.  Both keys and values must be strings.  Allowed keys include &quot;portno&quot;, &quot;layer2&quot;, &quot;portname&quot;, &quot;protocol&quot;, among others.  Key names must contain only alphanumeric characters (ie, [a-zA-Z0-9])." />
+                  description="Dictionary of key/value pairs of s390-specific device options.  Both keys and values must be strings.  Allowed keys include &quot;portno&quot;, &quot;layer2&quot;, &quot;portname&quot;, &quot;protocol&quot;, among others.  Key names must contain only alphanumeric characters (ie, [a-zA-Z0-9]). Currently, NetworkManager itself does nothing with this information. However, s390utils ships a udev rule which parses this information and applies it to the interface." />
         <property name="wake-on-lan"
                   description="The NMSettingWiredWakeOnLan options to enable. Not all devices support all options. May be any combination of NM_SETTING_WIRED_WAKE_ON_LAN_PHY (0x2), NM_SETTING_WIRED_WAKE_ON_LAN_UNICAST (0x4), NM_SETTING_WIRED_WAKE_ON_LAN_MULTICAST (0x8), NM_SETTING_WIRED_WAKE_ON_LAN_BROADCAST (0x10), NM_SETTING_WIRED_WAKE_ON_LAN_ARP (0x20), NM_SETTING_WIRED_WAKE_ON_LAN_MAGIC (0x40) or the special values NM_SETTING_WIRED_WAKE_ON_LAN_DEFAULT (0x1) (to use global settings) and NM_SETTING_WIRED_WAKE_ON_LAN_IGNORE (0x8000) (to disable management of Wake-on-LAN in NetworkManager)." />
         <property name="wake-on-lan-password"
@@ -266,6 +266,11 @@
     <setting name="bond" >
         <property name="options"
                   description="Dictionary of key/value pairs of bonding options.  Both keys and values must be strings. Option names must contain only alphanumeric characters (ie, [a-zA-Z0-9])." />
+    </setting>
+    <setting name="bond-port" >
+        <property name="queue-id"
+                  alias="queue-id"
+                  description="The queue ID of this bond port. The maximum value of queue ID is the number of TX queues currently active in device." />
     </setting>
     <setting name="bridge" >
         <property name="mac-address"
@@ -375,9 +380,9 @@
                   description="The name of the network interface this connection is bound to. If not set, then the connection can be attached to any interface of the appropriate type (subject to restrictions imposed by other settings). For software devices this specifies the name of the created device. For connection types where interface names cannot easily be made persistent (e.g. mobile broadband or USB Ethernet), this property should not be used. Setting this property restricts the interfaces a connection can be used with, and if interface names change or are reordered the connection may be applied to the wrong interface." />
         <property name="autoconnect"
                   alias="autoconnect"
-                  description="Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection. Note that autoconnect is not implemented for VPN profiles. See &quot;secondaries&quot; as an alternative to automatically connect VPN profiles." />
+                  description="Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection. Autoconnect happens when the circumstances are suitable. That means for example that the device is currently managed and not active. Autoconnect thus never replaces or competes with an already active profile. Note that autoconnect is not implemented for VPN profiles. See &quot;secondaries&quot; as an alternative to automatically connect VPN profiles." />
         <property name="autoconnect-priority"
-                  description="The autoconnect priority. If the connection is set to autoconnect, connections with higher priority will be preferred. Defaults to 0. The higher number means higher priority." />
+                  description="The autoconnect priority in range -999 to 999. If the connection is set to autoconnect, connections with higher priority will be preferred. The higher number means higher priority. Defaults to 0. Note that this property only matters if there are more than one candidate profile to select for autoconnect. In case of equal priority, the profile used most recently is chosen." />
         <property name="autoconnect-retries"
                   description="The number of times a connection should be tried when autoactivating before giving up. Zero means forever, -1 means the global default (4 times if not overridden). Setting this to 1 means to try activation only once before blocking autoconnect. Note that after a timeout, NetworkManager will try to autoconnect again." />
         <property name="multi-connect"
@@ -412,6 +417,8 @@
                   description="Whether mDNS is enabled for the connection. The permitted values are: &quot;yes&quot; (2) register hostname and resolving for the connection, &quot;no&quot; (0) disable mDNS for the interface, &quot;resolve&quot; (1) do not register hostname but allow resolving of mDNS host names and &quot;default&quot; (-1) to allow lookup of a global default in NetworkManager.conf. If unspecified, &quot;default&quot; ultimately depends on the DNS plugin (which for systemd-resolved currently means &quot;no&quot;). This feature requires a plugin which supports mDNS. Otherwise, the setting has no effect. One such plugin is dns-systemd-resolved." />
         <property name="llmnr"
                   description="Whether Link-Local Multicast Name Resolution (LLMNR) is enabled for the connection. LLMNR is a protocol based on the Domain Name System (DNS) packet format that allows both IPv4 and IPv6 hosts to perform name resolution for hosts on the same local link. The permitted values are: &quot;yes&quot; (2) register hostname and resolving for the connection, &quot;no&quot; (0) disable LLMNR for the interface, &quot;resolve&quot; (1) do not register hostname but allow resolving of LLMNR host names If unspecified, &quot;default&quot; ultimately depends on the DNS plugin (which for systemd-resolved currently means &quot;yes&quot;). This feature requires a plugin which supports LLMNR. Otherwise, the setting has no effect. One such plugin is dns-systemd-resolved." />
+        <property name="dns-over-tls"
+                  description="Whether DNSOverTls (dns-over-tls) is enabled for the connection. DNSOverTls is a technology which uses TLS to encrypt dns traffic. The permitted values are: &quot;yes&quot; (2) use DNSOverTls and disabled fallback, &quot;opportunistic&quot; (1) use DNSOverTls but allow fallback to unencrypted resolution, &quot;no&quot; (0) don&apos;t ever use DNSOverTls. If unspecified &quot;default&quot; depends on the plugin used. Systemd-resolved uses global setting. This feature requires a plugin which supports DNSOverTls. Otherwise, the setting has no effect. One such plugin is dns-systemd-resolved." />
         <property name="mud-url"
                   description="If configured, set to a Manufacturer Usage Description (MUD) URL that points to manufacturer-recommended network policies for IoT devices. It is transmitted as a DHCPv4 or DHCPv6 option. The value must be a valid URL starting with &quot;https://&quot;. The special value &quot;none&quot; is allowed to indicate that no MUD URL is used. If the per-profile value is unspecified (the default), a global connection default gets consulted. If still unspecified, the ultimate default is &quot;none&quot;." />
         <property name="wait-device-timeout"
@@ -423,7 +430,7 @@
         <property name="app-fcoe-priority"
                   description="The highest User Priority (0 - 7) which FCoE frames should use, or -1 for default priority.  Only used when the &quot;app-fcoe-flags&quot; property includes the NM_SETTING_DCB_FLAG_ENABLE (0x1) flag." />
         <property name="app-fcoe-mode"
-                  description="The FCoE controller mode; either &quot;fabric&quot; (default) or &quot;vn2vn&quot;." />
+                  description="The FCoE controller mode; either &quot;fabric&quot; or &quot;vn2vn&quot;. Since 1.34, NULL is the default and means &quot;fabric&quot;. Before 1.34, NULL was rejected as invalid and the default was &quot;fabric&quot;." />
         <property name="app-iscsi-flags"
                   description="Specifies the NMSettingDcbFlags for the DCB iSCSI application.  Flags may be any combination of NM_SETTING_DCB_FLAG_ENABLE (0x1), NM_SETTING_DCB_FLAG_ADVERTISE (0x2), and NM_SETTING_DCB_FLAG_WILLING (0x4)." />
         <property name="app-iscsi-priority"

@@ -336,7 +336,7 @@ no_auto_default_from_file(const char *no_auto_default_file)
     gsize         i;
 
     if (no_auto_default_file && g_file_get_contents(no_auto_default_file, &data, NULL, NULL))
-        list = nm_utils_strsplit_set(data, "\n");
+        list = nm_strsplit_set(data, "\n");
 
     if (list) {
         for (i = 0; list[i]; i++)
@@ -433,7 +433,7 @@ nm_config_set_no_auto_default_for_device(NMConfig *self, NMDevice *device)
 
     len = NM_PTRARRAY_LEN(no_auto_default_current);
 
-    idx = nm_utils_strv_find_binary_search(no_auto_default_current, len, spec);
+    idx = nm_strv_find_binary_search(no_auto_default_current, len, spec);
     if (idx >= 0) {
         /* @spec is already blocked. We don't have to update our in-memory representation.
          * Maybe we should write to no_auto_default_file anew, but let's save that too. */
@@ -1122,14 +1122,12 @@ read_config(GKeyFile *  keyfile,
                     /* merge the string lists, by omitting duplicates. */
 
                     for (iter_val = old_val; iter_val && *iter_val; iter_val++) {
-                        if (last_char != '-'
-                            || nm_utils_strv_find_first(new_val, -1, *iter_val) < 0)
+                        if (last_char != '-' || nm_strv_find_first(new_val, -1, *iter_val) < 0)
                             g_ptr_array_add(new, g_strdup(*iter_val));
                     }
                     for (iter_val = new_val; iter_val && *iter_val; iter_val++) {
                         /* don't add duplicates. That means an "option=a,b"; "option+=a,c" results in "option=a,b,c" */
-                        if (last_char == '+'
-                            && nm_utils_strv_find_first(old_val, -1, *iter_val) < 0)
+                        if (last_char == '+' && nm_strv_find_first(old_val, -1, *iter_val) < 0)
                             g_ptr_array_add(new, *iter_val);
                         else
                             g_free(*iter_val);
@@ -1147,7 +1145,7 @@ read_config(GKeyFile *  keyfile,
                             gs_free char *             specs_joined = NULL;
 
                             g_ptr_array_add(new, NULL);
-                            specs = _nm_utils_strv_to_slist((char **) new->pdata, FALSE);
+                            specs = nm_strv_to_gslist((char **) new->pdata, FALSE);
 
                             specs_joined = nm_match_spec_join(specs);
 
@@ -1333,9 +1331,8 @@ read_entire_config(const NMConfigCmdLineOptions *cli,
         const char *filename = system_confs->pdata[i];
 
         /* if a same named file exists in config_dir or run_config_dir, skip it. */
-        if (nm_utils_strv_find_first((char **) confs->pdata, confs->len, filename) >= 0
-            || nm_utils_strv_find_first((char **) run_confs->pdata, run_confs->len, filename)
-                   >= 0) {
+        if (nm_strv_ptrarray_find_first(confs, filename) >= 0
+            || nm_strv_ptrarray_find_first(run_confs, filename) >= 0) {
             g_ptr_array_remove_index(system_confs, i);
             continue;
         }
@@ -1349,7 +1346,7 @@ read_entire_config(const NMConfigCmdLineOptions *cli,
         const char *filename = run_confs->pdata[i];
 
         /* if a same named file exists in config_dir, skip it. */
-        if (nm_utils_strv_find_first((char **) confs->pdata, confs->len, filename) >= 0) {
+        if (nm_strv_ptrarray_find_first(confs, filename) >= 0) {
             g_ptr_array_remove_index(run_confs, i);
             continue;
         }

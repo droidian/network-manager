@@ -17,6 +17,7 @@
 #include "nm-device-wifi-p2p.h"
 #include "nm-wifi-ap.h"
 #include "libnm-core-aux-intern/nm-common-macros.h"
+#include "libnm-core-aux-intern/nm-libnm-core-utils.h"
 #include "devices/nm-device.h"
 #include "devices/nm-device-private.h"
 #include "nm-dbus-manager.h"
@@ -321,7 +322,7 @@ _scan_request_ssids_track(NMDeviceWifiPrivate *priv, const GPtrArray *ssids)
     now_msec = nm_utils_get_monotonic_timestamp_msec();
 
     if (!priv->scan_request_ssids_hash)
-        priv->scan_request_ssids_hash = g_hash_table_new(nm_pgbytes_hash, nm_pgbytes_equal);
+        priv->scan_request_ssids_hash = g_hash_table_new(nm_pg_bytes_hash, nm_pg_bytes_equal);
 
     /* Do a little dance. New elements shall keep their order as in @ssids, but all
      * new elements should be sorted in the list preexisting elements of the list.
@@ -1205,10 +1206,7 @@ complete_connection(NMDevice *           device,
     }
 
     /* Add a wifi setting if one doesn't exist yet */
-    if (!s_wifi) {
-        s_wifi = (NMSettingWireless *) nm_setting_wireless_new();
-        nm_connection_add_setting(connection, NM_SETTING(s_wifi));
-    }
+    s_wifi = _nm_connection_ensure_setting(connection, NM_TYPE_SETTING_WIRELESS);
 
     if (ap)
         ssid = nm_wifi_ap_get_ssid(ap);
@@ -1571,7 +1569,7 @@ _scan_request_ssids_build_hidden(NMDeviceWifi *self,
     if (ssids) {
         if (ssids->len < max_scan_ssids) {
             /* Add wildcard SSID using a static wildcard SSID used for every scan */
-            g_ptr_array_insert(ssids, 0, g_bytes_ref(nm_gbytes_get_empty()));
+            g_ptr_array_insert(ssids, 0, g_bytes_ref(nm_g_bytes_get_empty()));
         }
         if (ssids->len >= max_scan_ssids) {
             /* there is no more space. Use what we have. */
@@ -1592,10 +1590,10 @@ _scan_request_ssids_build_hidden(NMDeviceWifi *self,
     if (!ssids) {
         ssids = g_ptr_array_new_full(max_scan_ssids, (GDestroyNotify) g_bytes_unref);
         /* Add wildcard SSID using a static wildcard SSID used for every scan */
-        g_ptr_array_insert(ssids, 0, g_bytes_ref(nm_gbytes_get_empty()));
+        g_ptr_array_insert(ssids, 0, g_bytes_ref(nm_g_bytes_get_empty()));
     }
 
-    unique_ssids = g_hash_table_new(nm_gbytes_hash, nm_gbytes_equal);
+    unique_ssids = g_hash_table_new(nm_g_bytes_hash, nm_g_bytes_equal);
     for (i = 1; i < ssids->len; i++) {
         if (!g_hash_table_add(unique_ssids, ssids->pdata[i]))
             nm_assert_not_reached();
@@ -1673,12 +1671,7 @@ _scan_supplicant_request_scan_cb(NMSupplicantInterface *supp_iface,
      * Artificially keep the scanning state on, for another SCAN_EXTRA_DELAY_MSEC msec. */
     nm_clear_g_source_inst(&priv->scan_request_delay_source);
     priv->scan_request_delay_source =
-        nm_g_source_attach(nm_g_timeout_source_new(SCAN_EXTRA_DELAY_MSEC,
-                                                   G_PRIORITY_DEFAULT,
-                                                   _scan_request_delay_cb,
-                                                   self,
-                                                   NULL),
-                           NULL);
+        nm_g_timeout_add_source(SCAN_EXTRA_DELAY_MSEC, _scan_request_delay_cb, self);
 
     g_clear_object(&priv->scan_request_cancellable);
     _scan_notify_is_scanning(self);
@@ -3646,7 +3639,7 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
         break;
     case PROP_ACCESS_POINTS:
         list = nm_wifi_aps_get_paths(&priv->aps_lst_head, TRUE);
-        g_value_take_boxed(value, nm_utils_strv_make_deep_copied(list));
+        g_value_take_boxed(value, nm_strv_make_deep_copied(list));
         break;
     case PROP_ACTIVE_ACCESS_POINT:
         nm_dbus_utils_g_value_set_object_path(value, priv->current_ap);
