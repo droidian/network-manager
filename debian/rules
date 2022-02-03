@@ -8,9 +8,6 @@ endif
 
 export PYTHON=/usr/bin/python3
 
-# Without this the tests fail, cannot register existing type 'NMAgentManagerError'
-export DEB_LDFLAGS_MAINT_STRIP = -Wl,-Bsymbolic-functions
-
 PPPD_PLUGIN_DIR := $(shell dh_ppp --plugin-dir)
 
 %:
