@@ -1,3 +1,9 @@
+network-manager (1.34.0-2ubuntu3) jammy; urgency=medium
+
+  * d/tests/control: Have nm.py autopkgtest Depend on wpasupplicant
+
+ -- Jeremy Bicha <jeremy.bicha@canonical.com>  Mon, 07 Feb 2022 16:40:52 -0500
+
 network-manager (1.34.0-2ubuntu2) jammy; urgency=medium
 
   * Revert "Try removing ubuntu_revert_systemd.patch" and refresh the patch
