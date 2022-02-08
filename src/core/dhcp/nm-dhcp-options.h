@@ -163,6 +163,7 @@ typedef enum {
     NM_DHCP_OPTION_DHCP6_DOMAIN_LIST  = 24,
     NM_DHCP_OPTION_DHCP6_SNTP_SERVERS = 31,
     NM_DHCP_OPTION_DHCP6_FQDN         = 39,
+    NM_DHCP_OPTION_DHCP6_NTP_SERVER   = 56, /* RFC 5908 */
     NM_DHCP_OPTION_DHCP6_MUD_URL      = 112,
 
     /* Internal values */
@@ -187,7 +188,7 @@ typedef struct {
 } NMDhcpOption;
 
 extern const NMDhcpOption _nm_dhcp_option_dhcp4_options[143];
-extern const NMDhcpOption _nm_dhcp_option_dhcp6_options[16];
+extern const NMDhcpOption _nm_dhcp_option_dhcp6_options[17];
 
 static inline const char *
 nm_dhcp_option_get_name(const NMDhcpOption *option)
@@ -210,7 +211,7 @@ nm_dhcp_option_request_string(int addr_family, guint option)
 void nm_dhcp_option_take_option(GHashTable *options, int addr_family, guint option, char *value);
 void
 nm_dhcp_option_add_option(GHashTable *options, int addr_family, guint option, const char *value);
-void nm_dhcp_option_add_option_utf8safe_escape(GHashTable *  options,
+void nm_dhcp_option_add_option_utf8safe_escape(GHashTable   *options,
                                                int           addr_family,
                                                guint         option,
                                                const guint8 *data,

@@ -294,7 +294,7 @@
 </setting>
 <setting name="802-11-wireless-security">
 <property name="key-mgmt" variable="KEY_MGMT(+)" format="" values="none, ieee8021x, owe, wpa-psk, sae, wpa-eap, wpa-eap-suite-b-192" default="" example="" description="Key management method." />
-<property name="wep-tx-keyidx" variable="DEFAULTKEY" format="" values="1, 2, 3, 4" default="1" example="" description="Index of active WEP key." />
+<property name="wep-tx-keyidx" variable="DEFAULTKEY" format="" values="1, 2, 3, 4" default="1" example="" description="Index of active WEP key. Note that in ifcfg format the index starts counting at 1, while NetworkManager API otherwise is zero based." />
 <property name="auth-alg" variable="SECURITYMODE(+)" format="" values="restricted, open, leap" default="" example="" description="Authentication algorithm for WEP." />
 <property name="proto" variable="WPA_ALLOW_WPA(+), WPA_ALLOW_WPA2(+)" format="" values="yes, no" default="no" example="" description="Allowed WPA protocols, WPA and WPA2 (RSN)." />
 <property name="pairwise" variable="CIPHER_PAIRWISE(+)" format="" values="CCMP, TKIP" default="" example="" description="Restrict pairwise encryption algorithms, specified as a space separated list." />

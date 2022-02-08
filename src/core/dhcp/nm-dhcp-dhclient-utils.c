@@ -15,7 +15,6 @@
 #include "libnm-glib-aux/nm-dedup-multi.h"
 
 #include "nm-dhcp-utils.h"
-#include "nm-ip4-config.h"
 #include "nm-utils.h"
 #include "libnm-platform/nm-platform.h"
 #include "NetworkManagerUtils.h"
@@ -98,9 +97,9 @@ grab_request_options(GPtrArray *store, const char *line)
 }
 
 static void
-add_ip4_config(GString *           str,
-               GBytes *            client_id,
-               const char *        hostname,
+add_ip4_config(GString            *str,
+               GBytes             *client_id,
+               const char         *hostname,
                gboolean            use_fqdn,
                NMDhcpHostnameFlags hostname_flags)
 {
@@ -205,10 +204,12 @@ static GBytes *
 read_client_id(const char *str)
 {
     gs_free char *s = NULL;
-    char *        p;
-    int           i = 0, j = 0;
+    char         *p;
+    int           i = 0;
+    int           j = 0;
+    gsize         l;
 
-    nm_assert(!strncmp(str, CLIENTID_TAG, NM_STRLEN(CLIENTID_TAG)));
+    nm_assert(NM_STR_HAS_PREFIX(str, CLIENTID_TAG));
     str += NM_STRLEN(CLIENTID_TAG);
 
     if (!g_ascii_isspace(*str))
@@ -249,8 +250,9 @@ read_client_id(const char *str)
     /* Otherwise, try to read a hexadecimal sequence */
     s = g_strdup(str);
     g_strchomp(s);
-    if (s[strlen(s) - 1] == ';')
-        s[strlen(s) - 1] = '\0';
+    l = strlen(s);
+    if (l > 0 && s[l - 1] == ';')
+        s[l - 1] = '\0';
 
     return nm_utils_hexstr2bin(s);
 }
@@ -259,7 +261,7 @@ static gboolean
 read_interface(const char *line, char *interface, guint size)
 {
     gs_free char *dup = g_strdup(line + NM_STRLEN("interface"));
-    char *        ptr = dup, *end;
+    char         *ptr = dup, *end;
 
     while (g_ascii_isspace(*ptr))
         ptr++;
@@ -288,25 +290,25 @@ read_interface(const char *line, char *interface, guint size)
 }
 
 char *
-nm_dhcp_dhclient_create_config(const char *        interface,
+nm_dhcp_dhclient_create_config(const char         *interface,
                                int                 addr_family,
-                               GBytes *            client_id,
-                               const char *        anycast_address,
-                               const char *        hostname,
+                               GBytes             *client_id,
+                               const char         *anycast_address,
+                               const char         *hostname,
                                guint32             timeout,
                                gboolean            use_fqdn,
                                NMDhcpHostnameFlags hostname_flags,
-                               const char *        mud_url,
-                               const char *const * reject_servers,
-                               const char *        orig_path,
-                               const char *        orig_contents,
-                               GBytes **           out_new_client_id)
+                               const char         *mud_url,
+                               const char *const  *reject_servers,
+                               const char         *orig_path,
+                               const char         *orig_contents,
+                               GBytes            **out_new_client_id)
 {
-    nm_auto_free_gstring GString *new_contents = NULL;
-    gs_unref_ptrarray GPtrArray *fqdn_opts     = NULL;
-    gs_unref_ptrarray GPtrArray *reqs          = NULL;
-    gboolean                     reset_reqlist = FALSE;
-    int                          i;
+    nm_auto_free_gstring GString *new_contents  = NULL;
+    gs_unref_ptrarray GPtrArray  *fqdn_opts     = NULL;
+    gs_unref_ptrarray GPtrArray  *reqs          = NULL;
+    gboolean                      reset_reqlist = FALSE;
+    int                           i;
 
     g_return_val_if_fail(!anycast_address || nm_utils_hwaddr_valid(anycast_address, ETH_ALEN),
                          NULL);
@@ -318,8 +320,8 @@ nm_dhcp_dhclient_create_config(const char *        interface,
     reqs         = g_ptr_array_new_full(5, g_free);
 
     if (orig_contents) {
-        gs_free const char **lines = NULL;
-        gsize                line_i;
+        gs_free const char          **lines = NULL;
+        gsize                         line_i;
         nm_auto_free_gstring GString *blocks_stack = NULL;
         guint                         blocks_skip  = 0;
         gboolean                      in_alsoreq   = FALSE;
@@ -385,11 +387,10 @@ nm_dhcp_dhclient_create_config(const char *        interface,
              * fail the dhcp process before dhcp-timeout. So, always skip importing timeout
              * as we will need to add one greater than dhcp-timeout.
              */
-            if (!strncmp(p, TIMEOUT_TAG, strlen(TIMEOUT_TAG))
-                || !strncmp(p, RETRY_TAG, strlen(RETRY_TAG)))
+            if (NM_STR_HAS_PREFIX(p, TIMEOUT_TAG) || NM_STR_HAS_PREFIX(p, RETRY_TAG))
                 continue;
 
-            if (!strncmp(p, CLIENTID_TAG, strlen(CLIENTID_TAG))) {
+            if (NM_STR_HAS_PREFIX(p, CLIENTID_TAG)) {
                 /* Override config file "dhcp-client-id" and use one from the connection */
                 if (client_id)
                     continue;
@@ -402,16 +403,16 @@ nm_dhcp_dhclient_create_config(const char *        interface,
 
             /* Override config file hostname and use one from the connection */
             if (hostname) {
-                if (strncmp(p, HOSTNAME4_TAG, strlen(HOSTNAME4_TAG)) == 0)
+                if (NM_STR_HAS_PREFIX(p, HOSTNAME4_TAG))
                     continue;
-                if (strncmp(p, FQDN_TAG, strlen(FQDN_TAG)) == 0)
+                if (NM_STR_HAS_PREFIX(p, FQDN_TAG))
                     continue;
             }
 
             /* To let user's FQDN options (except "fqdn.fqdn") override the
              * default ones set by NM, add them later
              */
-            if (!strncmp(p, FQDN_TAG_PREFIX, NM_STRLEN(FQDN_TAG_PREFIX))) {
+            if (NM_STR_HAS_PREFIX(p, FQDN_TAG_PREFIX)) {
                 if (!fqdn_opts)
                     fqdn_opts = g_ptr_array_new_full(5, g_free);
                 g_ptr_array_add(fqdn_opts, g_strdup(p + NM_STRLEN(FQDN_TAG_PREFIX)));
@@ -423,9 +424,9 @@ nm_dhcp_dhclient_create_config(const char *        interface,
                 continue;
 
             /* Check for "request" */
-            if (!strncmp(p, REQ_TAG, strlen(REQ_TAG))) {
+            if (NM_STR_HAS_PREFIX(p, REQ_TAG)) {
                 in_req = TRUE;
-                p += strlen(REQ_TAG);
+                p += NM_STRLEN(REQ_TAG);
                 g_ptr_array_set_size(reqs, 0);
                 reset_reqlist = TRUE;
             }
@@ -437,9 +438,9 @@ nm_dhcp_dhclient_create_config(const char *        interface,
             }
 
             /* Check for "also require" */
-            if (!strncmp(p, ALSOREQ_TAG, strlen(ALSOREQ_TAG))) {
+            if (NM_STR_HAS_PREFIX(p, ALSOREQ_TAG)) {
                 in_alsoreq = TRUE;
-                p += strlen(ALSOREQ_TAG);
+                p += NM_STRLEN(ALSOREQ_TAG);
             }
 
             if (in_alsoreq) {
@@ -526,10 +527,10 @@ nm_dhcp_dhclient_create_config(const char *        interface,
 char *
 nm_dhcp_dhclient_escape_duid(GBytes *duid)
 {
-    char *        escaped;
+    char         *escaped;
     const guint8 *s, *s0;
     gsize         len;
-    char *        d;
+    char         *d;
 
     g_return_val_if_fail(duid, NULL);
 
@@ -563,7 +564,7 @@ isoctal(const guint8 *p)
 GBytes *
 nm_dhcp_dhclient_unescape_duid(const char *duid)
 {
-    GByteArray *  unescaped;
+    GByteArray   *unescaped;
     const guint8 *p = (const guint8 *) duid;
     guint         i, len;
     guint8        octal;
@@ -610,7 +611,7 @@ error:
 GBytes *
 nm_dhcp_dhclient_read_duid(const char *leasefile, GError **error)
 {
-    gs_free char *       contents   = NULL;
+    gs_free char        *contents   = NULL;
     gs_free const char **contents_v = NULL;
     gsize                i;
 
@@ -623,7 +624,7 @@ nm_dhcp_dhclient_read_duid(const char *leasefile, GError **error)
     contents_v = nm_strsplit_set(contents, "\n\r");
     for (i = 0; contents_v && contents_v[i]; i++) {
         const char *p = nm_str_skip_leading_spaces(contents_v[i]);
-        GBytes *    duid;
+        GBytes     *duid;
 
         if (!NM_STR_HAS_PREFIX(p, DUID_PREFIX))
             continue;
@@ -648,10 +649,10 @@ nm_dhcp_dhclient_read_duid(const char *leasefile, GError **error)
 gboolean
 nm_dhcp_dhclient_save_duid(const char *leasefile, GBytes *duid, GError **error)
 {
-    gs_free char *       escaped_duid = NULL;
-    gs_free const char **lines        = NULL;
-    nm_auto_free_gstring GString *s   = NULL;
-    const char *const *           iter;
+    gs_free char                 *escaped_duid = NULL;
+    gs_free const char          **lines        = NULL;
+    nm_auto_free_gstring GString *s            = NULL;
+    const char *const            *iter;
     gsize                         len = 0;
 
     g_return_val_if_fail(leasefile != NULL, FALSE);

@@ -143,7 +143,7 @@ check_PROGRAMS = $(am__EXEEXT_16)
 sbin_PROGRAMS = src/core/NetworkManager$(EXEEXT)
 bin_PROGRAMS = src/nm-online/nm-online$(EXEEXT) $(am__EXEEXT_1) \
 	$(am__EXEEXT_2)
-libexec_PROGRAMS = src/core/nm-iface-helper$(EXEEXT) \
+libexec_PROGRAMS =  \
 	src/nm-initrd-generator/nm-initrd-generator$(EXEEXT) \
 	src/core/dhcp/nm-dhcp-helper$(EXEEXT) \
 	src/nm-dispatcher/nm-dispatcher$(EXEEXT) \
@@ -256,6 +256,8 @@ TESTS = $(am__EXEEXT_11)
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@am__append_43 = \
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/core/devices/wifi/nm-device-iwd.c \
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/core/devices/wifi/nm-device-iwd.h \
+@WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/core/devices/wifi/nm-device-iwd-p2p.c \
+@WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/core/devices/wifi/nm-device-iwd-p2p.h \
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/core/devices/wifi/nm-iwd-manager.c \
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/core/devices/wifi/nm-iwd-manager.h \
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	$(NULL)
@@ -460,15 +462,12 @@ am__EXEEXT_11 = src/libnm-platform/tests/test-nm-platform$(EXEEXT) \
 	src/core/platform/tests/test-route-linux$(EXEEXT) \
 	src/core/platform/tests/test-tc-linux$(EXEEXT) \
 	src/core/devices/tests/test-lldp$(EXEEXT) \
-	src/core/devices/tests/test-acd$(EXEEXT) \
 	src/core/ndisc/tests/test-ndisc-fake$(EXEEXT) \
 	src/core/supplicant/tests/test-supplicant-config$(EXEEXT) \
 	src/core/tests/config/test-config$(EXEEXT) \
 	src/core/tests/test-core$(EXEEXT) \
 	src/core/tests/test-core-with-expect$(EXEEXT) \
 	src/core/tests/test-dcb$(EXEEXT) \
-	src/core/tests/test-ip4-config$(EXEEXT) \
-	src/core/tests/test-ip6-config$(EXEEXT) \
 	src/core/tests/test-l3cfg$(EXEEXT) \
 	src/core/tests/test-systemd$(EXEEXT) \
 	src/core/tests/test-utils$(EXEEXT) \
@@ -830,9 +829,12 @@ am__src_core_devices_wifi_libnm_wifi_base_la_SOURCES_DIST =  \
 	src/core/devices/wifi/nm-wifi-utils.h \
 	src/core/devices/wifi/nm-device-iwd.c \
 	src/core/devices/wifi/nm-device-iwd.h \
+	src/core/devices/wifi/nm-device-iwd-p2p.c \
+	src/core/devices/wifi/nm-device-iwd-p2p.h \
 	src/core/devices/wifi/nm-iwd-manager.c \
 	src/core/devices/wifi/nm-iwd-manager.h
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@am__objects_3 = src/core/devices/wifi/libnm_wifi_base_la-nm-device-iwd.lo \
+@WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/core/devices/wifi/libnm_wifi_base_la-nm-device-iwd-p2p.lo \
 @WITH_IWD_TRUE@@WITH_WIFI_TRUE@	src/core/devices/wifi/libnm_wifi_base_la-nm-iwd-manager.lo
 @WITH_WIFI_TRUE@am_src_core_devices_wifi_libnm_wifi_base_la_OBJECTS = src/core/devices/wifi/libnm_wifi_base_la-nm-device-olpc-mesh.lo \
 @WITH_WIFI_TRUE@	src/core/devices/wifi/libnm_wifi_base_la-nm-device-wifi-p2p.lo \
@@ -914,7 +916,6 @@ src_core_libNetworkManager_la_DEPENDENCIES =  \
 am_src_core_libNetworkManager_la_OBJECTS =  \
 	src/core/libNetworkManager_la-nm-checkpoint.lo \
 	src/core/libNetworkManager_la-nm-checkpoint-manager.lo \
-	src/core/devices/libNetworkManager_la-nm-acd-manager.lo \
 	src/core/devices/libNetworkManager_la-nm-lldp-listener.lo \
 	src/core/devices/libNetworkManager_la-nm-device-utils.lo \
 	src/core/devices/libNetworkManager_la-nm-device.lo \
@@ -950,6 +951,7 @@ am_src_core_libNetworkManager_la_OBJECTS =  \
 	src/core/dns/libNetworkManager_la-nm-dns-unbound.lo \
 	src/core/dnsmasq/libNetworkManager_la-nm-dnsmasq-manager.lo \
 	src/core/dnsmasq/libNetworkManager_la-nm-dnsmasq-utils.lo \
+	src/core/ppp/libNetworkManager_la-nm-ppp-mgr.lo \
 	src/core/ppp/libNetworkManager_la-nm-ppp-manager-call.lo \
 	src/core/libNetworkManager_la-nm-hostname-manager.lo \
 	src/core/settings/libNetworkManager_la-nm-agent-manager.lo \
@@ -982,7 +984,6 @@ am_src_core_libNetworkManager_la_OBJECTS =  \
 	src/core/libNetworkManager_la-nm-dispatcher.lo \
 	src/core/libNetworkManager_la-nm-firewall-utils.lo \
 	src/core/libNetworkManager_la-nm-firewalld-manager.lo \
-	src/core/libNetworkManager_la-nm-proxy-config.lo \
 	src/core/libNetworkManager_la-nm-auth-manager.lo \
 	src/core/libNetworkManager_la-nm-auth-utils.lo \
 	src/core/libNetworkManager_la-nm-manager.lo \
@@ -1010,8 +1011,6 @@ am_src_core_libNetworkManagerBase_la_OBJECTS =  \
 	src/core/libNetworkManagerBase_la-nm-l3-ipv6ll.lo \
 	src/core/libNetworkManagerBase_la-nm-l3cfg.lo \
 	src/core/libNetworkManagerBase_la-nm-ip-config.lo \
-	src/core/libNetworkManagerBase_la-nm-ip4-config.lo \
-	src/core/libNetworkManagerBase_la-nm-ip6-config.lo \
 	src/core/dhcp/libNetworkManagerBase_la-nm-dhcp-client.lo \
 	src/core/dhcp/libNetworkManagerBase_la-nm-dhcp-nettools.lo \
 	src/core/dhcp/libNetworkManagerBase_la-nm-dhcp-utils.lo \
@@ -1492,8 +1491,6 @@ am_src_libnm_systemd_core_libnm_systemd_core_la_OBJECTS = src/libnm-systemd-core
 	src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-dhcp-lease.lo \
 	src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-dhcp6-client.lo \
 	src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-dhcp6-lease.lo \
-	src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4acd.lo \
-	src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4ll.lo \
 	src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp-rx.lo \
 	src/libnm-systemd-core/src/libsystemd/sd-event/libnm_systemd_core_la-event-util.lo \
 	src/libnm-systemd-core/src/libsystemd/sd-event/libnm_systemd_core_la-sd-event.lo \
@@ -1729,16 +1726,6 @@ src_core_devices_bluetooth_tests_nm_bt_test_LINK = $(LIBTOOL) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(src_core_devices_bluetooth_tests_nm_bt_test_LDFLAGS) \
 	$(LDFLAGS) -o $@
-src_core_devices_tests_test_acd_SOURCES =  \
-	src/core/devices/tests/test-acd.c
-src_core_devices_tests_test_acd_OBJECTS =  \
-	src/core/devices/tests/test_acd-test-acd.$(OBJEXT)
-src_core_devices_tests_test_acd_DEPENDENCIES =  \
-	src/core/libNetworkManagerTest.la
-src_core_devices_tests_test_acd_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(AM_CFLAGS) $(CFLAGS) \
-	$(src_core_devices_tests_test_acd_LDFLAGS) $(LDFLAGS) -o $@
 src_core_devices_tests_test_lldp_SOURCES =  \
 	src/core/devices/tests/test-lldp.c
 src_core_devices_tests_test_lldp_OBJECTS =  \
@@ -1840,32 +1827,6 @@ src_core_ndisc_tests_test_ndisc_linux_LINK = $(LIBTOOL) $(AM_V_lt) \
 	$(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(src_core_ndisc_tests_test_ndisc_linux_LDFLAGS) $(LDFLAGS) -o \
 	$@
-am_src_core_nm_iface_helper_OBJECTS =  \
-	src/core/nm_iface_helper-nm-iface-helper.$(OBJEXT)
-src_core_nm_iface_helper_OBJECTS =  \
-	$(am_src_core_nm_iface_helper_OBJECTS)
-src_core_nm_iface_helper_DEPENDENCIES =  \
-	src/core/libNetworkManagerBase.la \
-	src/libnm-core-aux-extern/libnm-core-aux-extern.la \
-	src/libnm-core-impl/libnm-core-impl.la $(libnm_crypto_lib) \
-	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
-	src/libnm-platform/libnm-platform.la \
-	src/libnm-base/libnm-base.la \
-	src/libnm-log-core/libnm-log-core.la \
-	src/libnm-udev-aux/libnm-udev-aux.la \
-	src/libnm-glib-aux/libnm-glib-aux.la \
-	src/libnm-std-aux/libnm-std-aux.la \
-	src/libnm-systemd-core/libnm-systemd-core.la \
-	src/libnm-systemd-shared/libnm-systemd-shared.la \
-	src/n-acd/libn-acd.la src/n-dhcp4/libn-dhcp4.la \
-	src/c-rbtree/libc-rbtree.la src/c-siphash/libc-siphash.la \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
-src_core_nm_iface_helper_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(AM_CFLAGS) $(CFLAGS) $(src_core_nm_iface_helper_LDFLAGS) \
-	$(LDFLAGS) -o $@
 src_core_platform_tests_monitor_SOURCES =  \
 	src/core/platform/tests/monitor.c
 src_core_platform_tests_monitor_OBJECTS =  \
@@ -2070,24 +2031,6 @@ src_core_tests_test_dcb_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(src_core_tests_test_dcb_LDFLAGS) \
 	$(LDFLAGS) -o $@
-src_core_tests_test_ip4_config_SOURCES =  \
-	src/core/tests/test-ip4-config.c
-src_core_tests_test_ip4_config_OBJECTS =  \
-	src/core/tests/test_ip4_config-test-ip4-config.$(OBJEXT)
-src_core_tests_test_ip4_config_DEPENDENCIES = $(src_core_tests_ldadd)
-src_core_tests_test_ip4_config_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(AM_CFLAGS) $(CFLAGS) \
-	$(src_core_tests_test_ip4_config_LDFLAGS) $(LDFLAGS) -o $@
-src_core_tests_test_ip6_config_SOURCES =  \
-	src/core/tests/test-ip6-config.c
-src_core_tests_test_ip6_config_OBJECTS =  \
-	src/core/tests/test_ip6_config-test-ip6-config.$(OBJEXT)
-src_core_tests_test_ip6_config_DEPENDENCIES = $(src_core_tests_ldadd)
-src_core_tests_test_ip6_config_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(AM_CFLAGS) $(CFLAGS) \
-	$(src_core_tests_test_ip6_config_LDFLAGS) $(LDFLAGS) -o $@
 src_core_tests_test_l3cfg_SOURCES = src/core/tests/test-l3cfg.c
 src_core_tests_test_l3cfg_OBJECTS =  \
 	src/core/tests/test_l3cfg-test-l3cfg.$(OBJEXT)
@@ -2777,8 +2720,6 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-dbus-object.Plo \
 	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-dbus-utils.Plo \
 	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip-config.Plo \
-	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip4-config.Plo \
-	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip6-config.Plo \
 	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-config-data.Plo \
 	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv4ll.Plo \
 	src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv6ll.Plo \
@@ -2806,12 +2747,9 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/core/$(DEPDIR)/libNetworkManager_la-nm-pacrunner-manager.Plo \
 	src/core/$(DEPDIR)/libNetworkManager_la-nm-policy.Plo \
 	src/core/$(DEPDIR)/libNetworkManager_la-nm-priv-helper-call.Plo \
-	src/core/$(DEPDIR)/libNetworkManager_la-nm-proxy-config.Plo \
 	src/core/$(DEPDIR)/libNetworkManager_la-nm-rfkill-manager.Plo \
 	src/core/$(DEPDIR)/libNetworkManager_la-nm-session-monitor.Plo \
 	src/core/$(DEPDIR)/libNetworkManager_la-nm-sleep-monitor.Plo \
-	src/core/$(DEPDIR)/nm_iface_helper-nm-iface-helper.Po \
-	src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-acd-manager.Plo \
 	src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-6lowpan.Plo \
 	src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-bond.Plo \
 	src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-bridge.Plo \
@@ -2849,9 +2787,9 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/core/devices/ovs/$(DEPDIR)/libnm_device_plugin_ovs_la-nm-ovsdb.Plo \
 	src/core/devices/team/$(DEPDIR)/libnm_device_plugin_team_la-nm-device-team.Plo \
 	src/core/devices/team/$(DEPDIR)/libnm_device_plugin_team_la-nm-team-factory.Plo \
-	src/core/devices/tests/$(DEPDIR)/test_acd-test-acd.Po \
 	src/core/devices/tests/$(DEPDIR)/test_lldp-test-lldp.Po \
 	src/core/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Plo \
+	src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-iwd-p2p.Plo \
 	src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-iwd.Plo \
 	src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-olpc-mesh.Plo \
 	src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-wifi-p2p.Plo \
@@ -2913,6 +2851,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/core/platform/tests/$(DEPDIR)/test_route_linux-test-route.Po \
 	src/core/platform/tests/$(DEPDIR)/test_tc_linux-test-tc.Po \
 	src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-manager-call.Plo \
+	src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-mgr.Plo \
 	src/core/ppp/$(DEPDIR)/libnm_ppp_plugin_la-nm-ppp-manager.Plo \
 	src/core/ppp/$(DEPDIR)/nm_pppd_plugin_la-nm-pppd-plugin.Plo \
 	src/core/settings/$(DEPDIR)/libNetworkManager_la-nm-agent-manager.Plo \
@@ -2948,8 +2887,6 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/core/tests/$(DEPDIR)/test_core-test-core.Po \
 	src/core/tests/$(DEPDIR)/test_core_with_expect-test-core-with-expect.Po \
 	src/core/tests/$(DEPDIR)/test_dcb-test-dcb.Po \
-	src/core/tests/$(DEPDIR)/test_ip4_config-test-ip4-config.Po \
-	src/core/tests/$(DEPDIR)/test_ip6_config-test-ip6-config.Po \
 	src/core/tests/$(DEPDIR)/test_l3cfg-test-l3cfg.Po \
 	src/core/tests/$(DEPDIR)/test_systemd-test-systemd.Po \
 	src/core/tests/$(DEPDIR)/test_utils-test-utils.Po \
@@ -3154,8 +3091,6 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp-lease.Plo \
 	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp6-client.Plo \
 	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp6-lease.Plo \
-	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4acd.Plo \
-	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4ll.Plo \
 	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Plo \
 	src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-event-util.Plo \
 	src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-sd-event.Plo \
@@ -3426,7 +3361,6 @@ SOURCES = $(src_libnmt_newt_libnmt_newt_a_SOURCES) \
 	$(src_core_NetworkManager_SOURCES) \
 	$(src_core_NetworkManager_all_sym_SOURCES) \
 	src/core/devices/bluetooth/tests/nm-bt-test.c \
-	src/core/devices/tests/test-acd.c \
 	src/core/devices/tests/test-lldp.c \
 	$(src_core_devices_wifi_tests_test_devices_wifi_SOURCES) \
 	$(src_core_devices_wwan_tests_test_service_providers_SOURCES) \
@@ -3436,7 +3370,6 @@ SOURCES = $(src_libnmt_newt_libnmt_newt_a_SOURCES) \
 	src/core/dnsmasq/tests/test-dnsmasq-utils.c \
 	src/core/ndisc/tests/test-ndisc-fake.c \
 	src/core/ndisc/tests/test-ndisc-linux.c \
-	$(src_core_nm_iface_helper_SOURCES) \
 	src/core/platform/tests/monitor.c \
 	$(src_core_platform_tests_test_address_fake_SOURCES) \
 	$(src_core_platform_tests_test_address_linux_SOURCES) \
@@ -3456,8 +3389,7 @@ SOURCES = $(src_libnmt_newt_libnmt_newt_a_SOURCES) \
 	$(src_core_tests_config_test_config_SOURCES) \
 	src/core/tests/test-core.c \
 	src/core/tests/test-core-with-expect.c \
-	src/core/tests/test-dcb.c src/core/tests/test-ip4-config.c \
-	src/core/tests/test-ip6-config.c src/core/tests/test-l3cfg.c \
+	src/core/tests/test-dcb.c src/core/tests/test-l3cfg.c \
 	src/core/tests/test-systemd.c src/core/tests/test-utils.c \
 	src/core/tests/test-wired-defname.c \
 	src/libnm-client-aux-extern/tests/test-libnm-client-aux.c \
@@ -3554,7 +3486,6 @@ DIST_SOURCES = $(am__src_libnmt_newt_libnmt_newt_a_SOURCES_DIST) \
 	$(src_core_NetworkManager_SOURCES) \
 	$(src_core_NetworkManager_all_sym_SOURCES) \
 	src/core/devices/bluetooth/tests/nm-bt-test.c \
-	src/core/devices/tests/test-acd.c \
 	src/core/devices/tests/test-lldp.c \
 	$(am__src_core_devices_wifi_tests_test_devices_wifi_SOURCES_DIST) \
 	$(am__src_core_devices_wwan_tests_test_service_providers_SOURCES_DIST) \
@@ -3564,7 +3495,6 @@ DIST_SOURCES = $(am__src_libnmt_newt_libnmt_newt_a_SOURCES_DIST) \
 	src/core/dnsmasq/tests/test-dnsmasq-utils.c \
 	src/core/ndisc/tests/test-ndisc-fake.c \
 	src/core/ndisc/tests/test-ndisc-linux.c \
-	$(src_core_nm_iface_helper_SOURCES) \
 	src/core/platform/tests/monitor.c \
 	$(src_core_platform_tests_test_address_fake_SOURCES) \
 	$(src_core_platform_tests_test_address_linux_SOURCES) \
@@ -3584,8 +3514,7 @@ DIST_SOURCES = $(am__src_libnmt_newt_libnmt_newt_a_SOURCES_DIST) \
 	$(src_core_tests_config_test_config_SOURCES) \
 	src/core/tests/test-core.c \
 	src/core/tests/test-core-with-expect.c \
-	src/core/tests/test-dcb.c src/core/tests/test-ip4-config.c \
-	src/core/tests/test-ip6-config.c src/core/tests/test-l3cfg.c \
+	src/core/tests/test-dcb.c src/core/tests/test-l3cfg.c \
 	src/core/tests/test-systemd.c src/core/tests/test-utils.c \
 	src/core/tests/test-wired-defname.c \
 	src/libnm-client-aux-extern/tests/test-libnm-client-aux.c \
@@ -4054,6 +3983,7 @@ NM_CONFIG_DEFAULT_LOGGING_BACKEND_TEXT = @NM_CONFIG_DEFAULT_LOGGING_BACKEND_TEXT
 NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT_TEXT = @NM_CONFIG_DEFAULT_MAIN_AUTH_POLKIT_TEXT@
 NM_CONFIG_DEFAULT_MAIN_DHCP = @NM_CONFIG_DEFAULT_MAIN_DHCP@
 NM_CONFIG_DEFAULT_MAIN_RC_MANAGER = @NM_CONFIG_DEFAULT_MAIN_RC_MANAGER@
+NM_CONFIG_DEFAULT_WIFI_BACKEND_TEXT = @NM_CONFIG_DEFAULT_WIFI_BACKEND_TEXT@
 NM_DIST_VERSION = @NM_DIST_VERSION@
 NM_LOG_COMPILER = @NM_LOG_COMPILER@
 NM_MAJOR_VERSION = @NM_MAJOR_VERSION@
@@ -5131,13 +5061,11 @@ check_programs = src/libnm-platform/tests/test-nm-platform \
 	src/core/platform/tests/test-route-fake \
 	src/core/platform/tests/test-route-linux \
 	src/core/platform/tests/test-tc-linux $(NULL) \
-	src/core/devices/tests/test-lldp \
-	src/core/devices/tests/test-acd \
+	src/core/devices/tests/test-lldp $(NULL) \
 	src/core/ndisc/tests/test-ndisc-fake \
 	src/core/supplicant/tests/test-supplicant-config \
 	src/core/tests/config/test-config src/core/tests/test-core \
 	src/core/tests/test-core-with-expect src/core/tests/test-dcb \
-	src/core/tests/test-ip4-config src/core/tests/test-ip6-config \
 	src/core/tests/test-l3cfg src/core/tests/test-systemd \
 	src/core/tests/test-utils src/core/tests/test-wired-defname \
 	$(NULL) src/nm-dispatcher/tests/test-dispatcher-envp \
@@ -5253,7 +5181,8 @@ data_edit = sed \
 	-e 's|@NM_CONFIG_DEFAULT_LOGGING_BACKEND_TEXT[@]|$(NM_CONFIG_DEFAULT_LOGGING_BACKEND_TEXT)|g' \
 	-e 's|@NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT[@]|$(NM_CONFIG_DEFAULT_LOGGING_AUDIT_TEXT)|g' \
 	-e 's|@NM_CONFIG_DEFAULT_MAIN_RC_MANAGER[@]|$(NM_CONFIG_DEFAULT_MAIN_RC_MANAGER)|g' \
-	-e 's|@NM_CONFIG_DEFAULT_MAIN_DHCP[@]|$(NM_CONFIG_DEFAULT_MAIN_DHCP)|g'
+	-e 's|@NM_CONFIG_DEFAULT_MAIN_DHCP[@]|$(NM_CONFIG_DEFAULT_MAIN_DHCP)|g' \
+	-e 's|@NM_CONFIG_DEFAULT_WIFI_BACKEND_TEXT[@]|$(NM_CONFIG_DEFAULT_WIFI_BACKEND_TEXT)|g'
 
 
 ###############################################################################
@@ -6670,8 +6599,10 @@ src_libnm_systemd_shared_libnm_systemd_shared_la_SOURCES = \
 	src/libnm-systemd-shared/sd-adapt-shared/dhcp-server-internal.h \
 	src/libnm-systemd-shared/sd-adapt-shared/dirent-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/errno-list.h \
+	src/libnm-systemd-shared/sd-adapt-shared/filesystems.h \
 	src/libnm-systemd-shared/sd-adapt-shared/glob-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/gunicode.h \
+	src/libnm-systemd-shared/sd-adapt-shared/hmac.h \
 	src/libnm-systemd-shared/sd-adapt-shared/idn-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/ioprio.h \
 	src/libnm-systemd-shared/sd-adapt-shared/locale-util.h \
@@ -6686,6 +6617,7 @@ src_libnm_systemd_shared_libnm_systemd_shared_la_SOURCES = \
 	src/libnm-systemd-shared/sd-adapt-shared/missing_timerfd.h \
 	src/libnm-systemd-shared/sd-adapt-shared/mkdir.h \
 	src/libnm-systemd-shared/sd-adapt-shared/namespace-util.h \
+	src/libnm-systemd-shared/sd-adapt-shared/netif-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/nm-sd-adapt-shared.h \
 	src/libnm-systemd-shared/sd-adapt-shared/nulstr-util.h \
 	src/libnm-systemd-shared/sd-adapt-shared/os-util.h \
@@ -6793,7 +6725,7 @@ src_libnm_systemd_shared_libnm_systemd_shared_la_SOURCES = \
 	src/libnm-systemd-shared/src/fundamental/macro-fundamental.h \
 	src/libnm-systemd-shared/src/fundamental/string-util-fundamental.c \
 	src/libnm-systemd-shared/src/fundamental/string-util-fundamental.h \
-	src/libnm-systemd-shared/src/fundamental/type.h \
+	src/libnm-systemd-shared/src/fundamental/types-fundamental.h \
 	src/libnm-systemd-shared/src/shared/dns-domain.c \
 	src/libnm-systemd-shared/src/shared/dns-domain.h \
 	src/libnm-systemd-shared/src/shared/log-link.h \
@@ -6867,8 +6799,6 @@ src_libnm_systemd_core_libnm_systemd_core_la_SOURCES = \
 	src/libnm-systemd-core/src/libsystemd-network/sd-dhcp-lease.c \
 	src/libnm-systemd-core/src/libsystemd-network/sd-dhcp6-client.c \
 	src/libnm-systemd-core/src/libsystemd-network/sd-dhcp6-lease.c \
-	src/libnm-systemd-core/src/libsystemd-network/sd-ipv4acd.c \
-	src/libnm-systemd-core/src/libsystemd-network/sd-ipv4ll.c \
 	src/libnm-systemd-core/src/libsystemd-network/sd-lldp-rx.c \
 	src/libnm-systemd-core/src/libsystemd/sd-event/event-source.h \
 	src/libnm-systemd-core/src/libsystemd/sd-event/event-util.c \
@@ -6886,8 +6816,6 @@ src_libnm_systemd_core_libnm_systemd_core_la_SOURCES = \
 	src/libnm-systemd-core/src/systemd/sd-dhcp6-option.h \
 	src/libnm-systemd-core/src/systemd/sd-event.h \
 	src/libnm-systemd-core/src/systemd/sd-id128.h \
-	src/libnm-systemd-core/src/systemd/sd-ipv4acd.h \
-	src/libnm-systemd-core/src/systemd/sd-ipv4ll.h \
 	src/libnm-systemd-core/src/systemd/sd-lldp-rx.h \
 	src/libnm-systemd-core/src/systemd/sd-lldp.h \
 	src/libnm-systemd-core/src/systemd/sd-ndisc.h \
@@ -6935,10 +6863,6 @@ src_core_libNetworkManagerBase_la_SOURCES = \
 	src/core/nm-l3cfg.h \
 	src/core/nm-ip-config.c \
 	src/core/nm-ip-config.h \
-	src/core/nm-ip4-config.c \
-	src/core/nm-ip4-config.h \
-	src/core/nm-ip6-config.c \
-	src/core/nm-ip6-config.h \
 	\
 	src/core/dhcp/nm-dhcp-client.c \
 	src/core/dhcp/nm-dhcp-client.h \
@@ -6974,8 +6898,6 @@ src_core_libNetworkManager_la_SOURCES = \
 	src/core/nm-checkpoint-manager.c \
 	src/core/nm-checkpoint-manager.h \
 	\
-	src/core/devices/nm-acd-manager.c \
-	src/core/devices/nm-acd-manager.h \
 	src/core/devices/nm-lldp-listener.c \
 	src/core/devices/nm-lldp-listener.h \
 	src/core/devices/nm-device-utils.c \
@@ -7051,6 +6973,8 @@ src_core_libNetworkManager_la_SOURCES = \
 	src/core/dnsmasq/nm-dnsmasq-utils.c \
 	src/core/dnsmasq/nm-dnsmasq-utils.h \
 	\
+	src/core/ppp/nm-ppp-mgr.c \
+	src/core/ppp/nm-ppp-mgr.h \
 	src/core/ppp/nm-ppp-manager-call.c \
 	src/core/ppp/nm-ppp-manager-call.h \
 	src/core/ppp/nm-ppp-manager.h \
@@ -7124,8 +7048,6 @@ src_core_libNetworkManager_la_SOURCES = \
 	src/core/nm-firewall-utils.h \
 	src/core/nm-firewalld-manager.c \
 	src/core/nm-firewalld-manager.h \
-	src/core/nm-proxy-config.c \
-	src/core/nm-proxy-config.h \
 	src/core/nm-auth-manager.c \
 	src/core/nm-auth-manager.h \
 	src/core/nm-auth-utils.c \
@@ -7231,41 +7153,6 @@ src_core_NetworkManager_LDFLAGS = \
 	-Wl,--version-script="src/core/NetworkManager.ver" \
 	$(SANITIZER_EXEC_LDFLAGS) \
 	$(NULL)
-
-
-###############################################################################
-src_core_nm_iface_helper_CPPFLAGS = $(src_core_cppflags)
-src_core_nm_iface_helper_SOURCES = \
-	src/core/nm-iface-helper.c
-
-src_core_nm_iface_helper_LDADD = \
-	src/core/libNetworkManagerBase.la \
-	src/libnm-core-aux-extern/libnm-core-aux-extern.la \
-	src/libnm-core-impl/libnm-core-impl.la \
-	$(libnm_crypto_lib) \
-	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
-	src/libnm-platform/libnm-platform.la \
-	src/libnm-base/libnm-base.la \
-	src/libnm-log-core/libnm-log-core.la \
-	src/libnm-udev-aux/libnm-udev-aux.la \
-	src/libnm-glib-aux/libnm-glib-aux.la \
-	src/libnm-std-aux/libnm-std-aux.la \
-	src/libnm-systemd-core/libnm-systemd-core.la \
-	src/libnm-systemd-shared/libnm-systemd-shared.la \
-	src/n-acd/libn-acd.la \
-	src/n-dhcp4/libn-dhcp4.la \
-	src/c-rbtree/libc-rbtree.la \
-	src/c-siphash/libc-siphash.la \
-	$(SYSTEMD_JOURNAL_LIBS) \
-	$(GLIB_LIBS) \
-	$(LIBUDEV_LIBS) \
-	$(LIBNDP_LIBS) \
-	$(DL_LIBS) \
-	$(NULL)
-
-src_core_nm_iface_helper_LDFLAGS = \
-	-Wl,--version-script="$(srcdir)/linker-script-binary.ver" \
-	$(SANITIZER_EXEC_LDFLAGS)
 
 src_nm_initrd_generator_libnmi_core_la_CPPFLAGS = \
 	$(dflt_cppflags) \
@@ -7851,11 +7738,6 @@ src_core_devices_tests_test_lldp_LDFLAGS = $(src_core_devices_tests_ldflags)
 src_core_devices_tests_test_lldp_LDADD = \
 	src/core/libNetworkManagerTest.la
 
-src_core_devices_tests_test_acd_CPPFLAGS = $(src_core_cppflags_test)
-src_core_devices_tests_test_acd_LDFLAGS = $(src_core_devices_tests_ldflags)
-src_core_devices_tests_test_acd_LDADD = \
-	src/core/libNetworkManagerTest.la
-
 
 ###############################################################################
 # src/core/ndisc/tests
@@ -7904,12 +7786,6 @@ src_core_tests_ldflags = \
 src_core_tests_ldadd = \
 	src/core/libNetworkManagerTest.la
 
-src_core_tests_test_ip4_config_CPPFLAGS = $(src_core_cppflags_test)
-src_core_tests_test_ip4_config_LDFLAGS = $(src_core_tests_ldflags)
-src_core_tests_test_ip4_config_LDADD = $(src_core_tests_ldadd)
-src_core_tests_test_ip6_config_CPPFLAGS = $(src_core_cppflags_test)
-src_core_tests_test_ip6_config_LDFLAGS = $(src_core_tests_ldflags)
-src_core_tests_test_ip6_config_LDADD = $(src_core_tests_ldadd)
 src_core_tests_test_dcb_CPPFLAGS = $(src_core_cppflags_test)
 src_core_tests_test_dcb_LDFLAGS = $(src_core_tests_ldflags)
 src_core_tests_test_dcb_LDADD = $(src_core_tests_ldadd)
@@ -9394,6 +9270,9 @@ src/core/devices/wifi/libnm_wifi_base_la-nm-wifi-utils.lo:  \
 src/core/devices/wifi/libnm_wifi_base_la-nm-device-iwd.lo:  \
 	src/core/devices/wifi/$(am__dirstamp) \
 	src/core/devices/wifi/$(DEPDIR)/$(am__dirstamp)
+src/core/devices/wifi/libnm_wifi_base_la-nm-device-iwd-p2p.lo:  \
+	src/core/devices/wifi/$(am__dirstamp) \
+	src/core/devices/wifi/$(DEPDIR)/$(am__dirstamp)
 src/core/devices/wifi/libnm_wifi_base_la-nm-iwd-manager.lo:  \
 	src/core/devices/wifi/$(am__dirstamp) \
 	src/core/devices/wifi/$(DEPDIR)/$(am__dirstamp)
@@ -9449,9 +9328,6 @@ src/core/devices/$(am__dirstamp):
 src/core/devices/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/core/devices/$(DEPDIR)
 	@: > src/core/devices/$(DEPDIR)/$(am__dirstamp)
-src/core/devices/libNetworkManager_la-nm-acd-manager.lo:  \
-	src/core/devices/$(am__dirstamp) \
-	src/core/devices/$(DEPDIR)/$(am__dirstamp)
 src/core/devices/libNetworkManager_la-nm-lldp-listener.lo:  \
 	src/core/devices/$(am__dirstamp) \
 	src/core/devices/$(DEPDIR)/$(am__dirstamp)
@@ -9581,6 +9457,9 @@ src/core/ppp/$(am__dirstamp):
 src/core/ppp/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/core/ppp/$(DEPDIR)
 	@: > src/core/ppp/$(DEPDIR)/$(am__dirstamp)
+src/core/ppp/libNetworkManager_la-nm-ppp-mgr.lo:  \
+	src/core/ppp/$(am__dirstamp) \
+	src/core/ppp/$(DEPDIR)/$(am__dirstamp)
 src/core/ppp/libNetworkManager_la-nm-ppp-manager-call.lo:  \
 	src/core/ppp/$(am__dirstamp) \
 	src/core/ppp/$(DEPDIR)/$(am__dirstamp)
@@ -9688,8 +9567,6 @@ src/core/libNetworkManager_la-nm-firewall-utils.lo:  \
 	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
 src/core/libNetworkManager_la-nm-firewalld-manager.lo:  \
 	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
-src/core/libNetworkManager_la-nm-proxy-config.lo:  \
-	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
 src/core/libNetworkManager_la-nm-auth-manager.lo:  \
 	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
 src/core/libNetworkManager_la-nm-auth-utils.lo:  \
@@ -9744,10 +9621,6 @@ src/core/libNetworkManagerBase_la-nm-l3-ipv6ll.lo:  \
 src/core/libNetworkManagerBase_la-nm-l3cfg.lo:  \
 	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
 src/core/libNetworkManagerBase_la-nm-ip-config.lo:  \
-	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
-src/core/libNetworkManagerBase_la-nm-ip4-config.lo:  \
-	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
-src/core/libNetworkManagerBase_la-nm-ip6-config.lo:  \
 	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
 src/core/dhcp/libNetworkManagerBase_la-nm-dhcp-client.lo:  \
 	src/core/dhcp/$(am__dirstamp) \
@@ -10564,12 +10437,6 @@ src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-dhcp6-cli
 src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-dhcp6-lease.lo:  \
 	src/libnm-systemd-core/src/libsystemd-network/$(am__dirstamp) \
 	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/$(am__dirstamp)
-src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4acd.lo:  \
-	src/libnm-systemd-core/src/libsystemd-network/$(am__dirstamp) \
-	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/$(am__dirstamp)
-src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4ll.lo:  \
-	src/libnm-systemd-core/src/libsystemd-network/$(am__dirstamp) \
-	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/$(am__dirstamp)
 src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp-rx.lo:  \
 	src/libnm-systemd-core/src/libsystemd-network/$(am__dirstamp) \
 	src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/$(am__dirstamp)
@@ -11037,13 +10904,6 @@ src/core/devices/tests/$(am__dirstamp):
 src/core/devices/tests/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/core/devices/tests/$(DEPDIR)
 	@: > src/core/devices/tests/$(DEPDIR)/$(am__dirstamp)
-src/core/devices/tests/test_acd-test-acd.$(OBJEXT):  \
-	src/core/devices/tests/$(am__dirstamp) \
-	src/core/devices/tests/$(DEPDIR)/$(am__dirstamp)
-
-src/core/devices/tests/test-acd$(EXEEXT): $(src_core_devices_tests_test_acd_OBJECTS) $(src_core_devices_tests_test_acd_DEPENDENCIES) $(EXTRA_src_core_devices_tests_test_acd_DEPENDENCIES) src/core/devices/tests/$(am__dirstamp)
-	@rm -f src/core/devices/tests/test-acd$(EXEEXT)
-	$(AM_V_CCLD)$(src_core_devices_tests_test_acd_LINK) $(src_core_devices_tests_test_acd_OBJECTS) $(src_core_devices_tests_test_acd_LDADD) $(LIBS)
 src/core/devices/tests/test_lldp-test-lldp.$(OBJEXT):  \
 	src/core/devices/tests/$(am__dirstamp) \
 	src/core/devices/tests/$(DEPDIR)/$(am__dirstamp)
@@ -11140,12 +11000,6 @@ src/core/ndisc/tests/test_ndisc_linux-test-ndisc-linux.$(OBJEXT):  \
 src/core/ndisc/tests/test-ndisc-linux$(EXEEXT): $(src_core_ndisc_tests_test_ndisc_linux_OBJECTS) $(src_core_ndisc_tests_test_ndisc_linux_DEPENDENCIES) $(EXTRA_src_core_ndisc_tests_test_ndisc_linux_DEPENDENCIES) src/core/ndisc/tests/$(am__dirstamp)
 	@rm -f src/core/ndisc/tests/test-ndisc-linux$(EXEEXT)
 	$(AM_V_CCLD)$(src_core_ndisc_tests_test_ndisc_linux_LINK) $(src_core_ndisc_tests_test_ndisc_linux_OBJECTS) $(src_core_ndisc_tests_test_ndisc_linux_LDADD) $(LIBS)
-src/core/nm_iface_helper-nm-iface-helper.$(OBJEXT):  \
-	src/core/$(am__dirstamp) src/core/$(DEPDIR)/$(am__dirstamp)
-
-src/core/nm-iface-helper$(EXEEXT): $(src_core_nm_iface_helper_OBJECTS) $(src_core_nm_iface_helper_DEPENDENCIES) $(EXTRA_src_core_nm_iface_helper_DEPENDENCIES) src/core/$(am__dirstamp)
-	@rm -f src/core/nm-iface-helper$(EXEEXT)
-	$(AM_V_CCLD)$(src_core_nm_iface_helper_LINK) $(src_core_nm_iface_helper_OBJECTS) $(src_core_nm_iface_helper_LDADD) $(LIBS)
 src/core/platform/tests/monitor-monitor.$(OBJEXT):  \
 	src/core/platform/tests/$(am__dirstamp) \
 	src/core/platform/tests/$(DEPDIR)/$(am__dirstamp)
@@ -11325,20 +11179,6 @@ src/core/tests/test_dcb-test-dcb.$(OBJEXT):  \
 src/core/tests/test-dcb$(EXEEXT): $(src_core_tests_test_dcb_OBJECTS) $(src_core_tests_test_dcb_DEPENDENCIES) $(EXTRA_src_core_tests_test_dcb_DEPENDENCIES) src/core/tests/$(am__dirstamp)
 	@rm -f src/core/tests/test-dcb$(EXEEXT)
 	$(AM_V_CCLD)$(src_core_tests_test_dcb_LINK) $(src_core_tests_test_dcb_OBJECTS) $(src_core_tests_test_dcb_LDADD) $(LIBS)
-src/core/tests/test_ip4_config-test-ip4-config.$(OBJEXT):  \
-	src/core/tests/$(am__dirstamp) \
-	src/core/tests/$(DEPDIR)/$(am__dirstamp)
-
-src/core/tests/test-ip4-config$(EXEEXT): $(src_core_tests_test_ip4_config_OBJECTS) $(src_core_tests_test_ip4_config_DEPENDENCIES) $(EXTRA_src_core_tests_test_ip4_config_DEPENDENCIES) src/core/tests/$(am__dirstamp)
-	@rm -f src/core/tests/test-ip4-config$(EXEEXT)
-	$(AM_V_CCLD)$(src_core_tests_test_ip4_config_LINK) $(src_core_tests_test_ip4_config_OBJECTS) $(src_core_tests_test_ip4_config_LDADD) $(LIBS)
-src/core/tests/test_ip6_config-test-ip6-config.$(OBJEXT):  \
-	src/core/tests/$(am__dirstamp) \
-	src/core/tests/$(DEPDIR)/$(am__dirstamp)
-
-src/core/tests/test-ip6-config$(EXEEXT): $(src_core_tests_test_ip6_config_OBJECTS) $(src_core_tests_test_ip6_config_DEPENDENCIES) $(EXTRA_src_core_tests_test_ip6_config_DEPENDENCIES) src/core/tests/$(am__dirstamp)
-	@rm -f src/core/tests/test-ip6-config$(EXEEXT)
-	$(AM_V_CCLD)$(src_core_tests_test_ip6_config_LINK) $(src_core_tests_test_ip6_config_OBJECTS) $(src_core_tests_test_ip6_config_LDADD) $(LIBS)
 src/core/tests/test_l3cfg-test-l3cfg.$(OBJEXT):  \
 	src/core/tests/$(am__dirstamp) \
 	src/core/tests/$(DEPDIR)/$(am__dirstamp)
@@ -12033,8 +11873,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-dbus-object.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-dbus-utils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip-config.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip4-config.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip6-config.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-config-data.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv4ll.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv6ll.Plo@am__quote@ # am--include-marker
@@ -12062,12 +11900,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-pacrunner-manager.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-policy.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-priv-helper-call.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-proxy-config.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-rfkill-manager.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-session-monitor.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/libNetworkManager_la-nm-sleep-monitor.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/core/$(DEPDIR)/nm_iface_helper-nm-iface-helper.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-acd-manager.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-6lowpan.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-bond.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-bridge.Plo@am__quote@ # am--include-marker
@@ -12105,9 +11940,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/ovs/$(DEPDIR)/libnm_device_plugin_ovs_la-nm-ovsdb.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/team/$(DEPDIR)/libnm_device_plugin_team_la-nm-device-team.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/team/$(DEPDIR)/libnm_device_plugin_team_la-nm-team-factory.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/tests/$(DEPDIR)/test_acd-test-acd.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/tests/$(DEPDIR)/test_lldp-test-lldp.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-iwd-p2p.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-iwd.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-olpc-mesh.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-wifi-p2p.Plo@am__quote@ # am--include-marker
@@ -12169,6 +12004,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/platform/tests/$(DEPDIR)/test_route_linux-test-route.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/platform/tests/$(DEPDIR)/test_tc_linux-test-tc.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-manager-call.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-mgr.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/ppp/$(DEPDIR)/libnm_ppp_plugin_la-nm-ppp-manager.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/ppp/$(DEPDIR)/nm_pppd_plugin_la-nm-pppd-plugin.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/settings/$(DEPDIR)/libNetworkManager_la-nm-agent-manager.Plo@am__quote@ # am--include-marker
@@ -12204,8 +12040,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/tests/$(DEPDIR)/test_core-test-core.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/tests/$(DEPDIR)/test_core_with_expect-test-core-with-expect.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/tests/$(DEPDIR)/test_dcb-test-dcb.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/core/tests/$(DEPDIR)/test_ip4_config-test-ip4-config.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/core/tests/$(DEPDIR)/test_ip6_config-test-ip6-config.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/tests/$(DEPDIR)/test_l3cfg-test-l3cfg.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/tests/$(DEPDIR)/test_systemd-test-systemd.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/core/tests/$(DEPDIR)/test_utils-test-utils.Po@am__quote@ # am--include-marker
@@ -12410,8 +12244,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp-lease.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp6-client.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp6-lease.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4acd.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4ll.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-event-util.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-sd-event.Plo@am__quote@ # am--include-marker
@@ -13498,6 +13330,13 @@ src/core/devices/wifi/libnm_wifi_base_la-nm-device-iwd.lo: src/core/devices/wifi
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_devices_wifi_libnm_wifi_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/devices/wifi/libnm_wifi_base_la-nm-device-iwd.lo `test -f 'src/core/devices/wifi/nm-device-iwd.c' || echo '$(srcdir)/'`src/core/devices/wifi/nm-device-iwd.c
 
+src/core/devices/wifi/libnm_wifi_base_la-nm-device-iwd-p2p.lo: src/core/devices/wifi/nm-device-iwd-p2p.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_devices_wifi_libnm_wifi_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/devices/wifi/libnm_wifi_base_la-nm-device-iwd-p2p.lo -MD -MP -MF src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-iwd-p2p.Tpo -c -o src/core/devices/wifi/libnm_wifi_base_la-nm-device-iwd-p2p.lo `test -f 'src/core/devices/wifi/nm-device-iwd-p2p.c' || echo '$(srcdir)/'`src/core/devices/wifi/nm-device-iwd-p2p.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-iwd-p2p.Tpo src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-iwd-p2p.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/devices/wifi/nm-device-iwd-p2p.c' object='src/core/devices/wifi/libnm_wifi_base_la-nm-device-iwd-p2p.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_devices_wifi_libnm_wifi_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/devices/wifi/libnm_wifi_base_la-nm-device-iwd-p2p.lo `test -f 'src/core/devices/wifi/nm-device-iwd-p2p.c' || echo '$(srcdir)/'`src/core/devices/wifi/nm-device-iwd-p2p.c
+
 src/core/devices/wifi/libnm_wifi_base_la-nm-iwd-manager.lo: src/core/devices/wifi/nm-iwd-manager.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_devices_wifi_libnm_wifi_base_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/devices/wifi/libnm_wifi_base_la-nm-iwd-manager.lo -MD -MP -MF src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-iwd-manager.Tpo -c -o src/core/devices/wifi/libnm_wifi_base_la-nm-iwd-manager.lo `test -f 'src/core/devices/wifi/nm-iwd-manager.c' || echo '$(srcdir)/'`src/core/devices/wifi/nm-iwd-manager.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-iwd-manager.Tpo src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-iwd-manager.Plo
@@ -13567,13 +13406,6 @@ src/core/libNetworkManager_la-nm-checkpoint-manager.lo: src/core/nm-checkpoint-m
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/nm-checkpoint-manager.c' object='src/core/libNetworkManager_la-nm-checkpoint-manager.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/libNetworkManager_la-nm-checkpoint-manager.lo `test -f 'src/core/nm-checkpoint-manager.c' || echo '$(srcdir)/'`src/core/nm-checkpoint-manager.c
-
-src/core/devices/libNetworkManager_la-nm-acd-manager.lo: src/core/devices/nm-acd-manager.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/devices/libNetworkManager_la-nm-acd-manager.lo -MD -MP -MF src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-acd-manager.Tpo -c -o src/core/devices/libNetworkManager_la-nm-acd-manager.lo `test -f 'src/core/devices/nm-acd-manager.c' || echo '$(srcdir)/'`src/core/devices/nm-acd-manager.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-acd-manager.Tpo src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-acd-manager.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/devices/nm-acd-manager.c' object='src/core/devices/libNetworkManager_la-nm-acd-manager.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/devices/libNetworkManager_la-nm-acd-manager.lo `test -f 'src/core/devices/nm-acd-manager.c' || echo '$(srcdir)/'`src/core/devices/nm-acd-manager.c
 
 src/core/devices/libNetworkManager_la-nm-lldp-listener.lo: src/core/devices/nm-lldp-listener.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/devices/libNetworkManager_la-nm-lldp-listener.lo -MD -MP -MF src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-lldp-listener.Tpo -c -o src/core/devices/libNetworkManager_la-nm-lldp-listener.lo `test -f 'src/core/devices/nm-lldp-listener.c' || echo '$(srcdir)/'`src/core/devices/nm-lldp-listener.c
@@ -13820,6 +13652,13 @@ src/core/dnsmasq/libNetworkManager_la-nm-dnsmasq-utils.lo: src/core/dnsmasq/nm-d
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/dnsmasq/libNetworkManager_la-nm-dnsmasq-utils.lo `test -f 'src/core/dnsmasq/nm-dnsmasq-utils.c' || echo '$(srcdir)/'`src/core/dnsmasq/nm-dnsmasq-utils.c
 
+src/core/ppp/libNetworkManager_la-nm-ppp-mgr.lo: src/core/ppp/nm-ppp-mgr.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/ppp/libNetworkManager_la-nm-ppp-mgr.lo -MD -MP -MF src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-mgr.Tpo -c -o src/core/ppp/libNetworkManager_la-nm-ppp-mgr.lo `test -f 'src/core/ppp/nm-ppp-mgr.c' || echo '$(srcdir)/'`src/core/ppp/nm-ppp-mgr.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-mgr.Tpo src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-mgr.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/ppp/nm-ppp-mgr.c' object='src/core/ppp/libNetworkManager_la-nm-ppp-mgr.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/ppp/libNetworkManager_la-nm-ppp-mgr.lo `test -f 'src/core/ppp/nm-ppp-mgr.c' || echo '$(srcdir)/'`src/core/ppp/nm-ppp-mgr.c
+
 src/core/ppp/libNetworkManager_la-nm-ppp-manager-call.lo: src/core/ppp/nm-ppp-manager-call.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/ppp/libNetworkManager_la-nm-ppp-manager-call.lo -MD -MP -MF src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-manager-call.Tpo -c -o src/core/ppp/libNetworkManager_la-nm-ppp-manager-call.lo `test -f 'src/core/ppp/nm-ppp-manager-call.c' || echo '$(srcdir)/'`src/core/ppp/nm-ppp-manager-call.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-manager-call.Tpo src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-manager-call.Plo
@@ -14044,13 +13883,6 @@ src/core/libNetworkManager_la-nm-firewalld-manager.lo: src/core/nm-firewalld-man
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/libNetworkManager_la-nm-firewalld-manager.lo `test -f 'src/core/nm-firewalld-manager.c' || echo '$(srcdir)/'`src/core/nm-firewalld-manager.c
 
-src/core/libNetworkManager_la-nm-proxy-config.lo: src/core/nm-proxy-config.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/libNetworkManager_la-nm-proxy-config.lo -MD -MP -MF src/core/$(DEPDIR)/libNetworkManager_la-nm-proxy-config.Tpo -c -o src/core/libNetworkManager_la-nm-proxy-config.lo `test -f 'src/core/nm-proxy-config.c' || echo '$(srcdir)/'`src/core/nm-proxy-config.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/$(DEPDIR)/libNetworkManager_la-nm-proxy-config.Tpo src/core/$(DEPDIR)/libNetworkManager_la-nm-proxy-config.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/nm-proxy-config.c' object='src/core/libNetworkManager_la-nm-proxy-config.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/libNetworkManager_la-nm-proxy-config.lo `test -f 'src/core/nm-proxy-config.c' || echo '$(srcdir)/'`src/core/nm-proxy-config.c
-
 src/core/libNetworkManager_la-nm-auth-manager.lo: src/core/nm-auth-manager.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManager_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/libNetworkManager_la-nm-auth-manager.lo -MD -MP -MF src/core/$(DEPDIR)/libNetworkManager_la-nm-auth-manager.Tpo -c -o src/core/libNetworkManager_la-nm-auth-manager.lo `test -f 'src/core/nm-auth-manager.c' || echo '$(srcdir)/'`src/core/nm-auth-manager.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/$(DEPDIR)/libNetworkManager_la-nm-auth-manager.Tpo src/core/$(DEPDIR)/libNetworkManager_la-nm-auth-manager.Plo
@@ -14204,20 +14036,6 @@ src/core/libNetworkManagerBase_la-nm-ip-config.lo: src/core/nm-ip-config.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/nm-ip-config.c' object='src/core/libNetworkManagerBase_la-nm-ip-config.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/libNetworkManagerBase_la-nm-ip-config.lo `test -f 'src/core/nm-ip-config.c' || echo '$(srcdir)/'`src/core/nm-ip-config.c
-
-src/core/libNetworkManagerBase_la-nm-ip4-config.lo: src/core/nm-ip4-config.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/libNetworkManagerBase_la-nm-ip4-config.lo -MD -MP -MF src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip4-config.Tpo -c -o src/core/libNetworkManagerBase_la-nm-ip4-config.lo `test -f 'src/core/nm-ip4-config.c' || echo '$(srcdir)/'`src/core/nm-ip4-config.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip4-config.Tpo src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip4-config.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/nm-ip4-config.c' object='src/core/libNetworkManagerBase_la-nm-ip4-config.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/libNetworkManagerBase_la-nm-ip4-config.lo `test -f 'src/core/nm-ip4-config.c' || echo '$(srcdir)/'`src/core/nm-ip4-config.c
-
-src/core/libNetworkManagerBase_la-nm-ip6-config.lo: src/core/nm-ip6-config.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/libNetworkManagerBase_la-nm-ip6-config.lo -MD -MP -MF src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip6-config.Tpo -c -o src/core/libNetworkManagerBase_la-nm-ip6-config.lo `test -f 'src/core/nm-ip6-config.c' || echo '$(srcdir)/'`src/core/nm-ip6-config.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip6-config.Tpo src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip6-config.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/nm-ip6-config.c' object='src/core/libNetworkManagerBase_la-nm-ip6-config.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/libNetworkManagerBase_la-nm-ip6-config.lo `test -f 'src/core/nm-ip6-config.c' || echo '$(srcdir)/'`src/core/nm-ip6-config.c
 
 src/core/dhcp/libNetworkManagerBase_la-nm-dhcp-client.lo: src/core/dhcp/nm-dhcp-client.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_libNetworkManagerBase_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/dhcp/libNetworkManagerBase_la-nm-dhcp-client.lo -MD -MP -MF src/core/dhcp/$(DEPDIR)/libNetworkManagerBase_la-nm-dhcp-client.Tpo -c -o src/core/dhcp/libNetworkManagerBase_la-nm-dhcp-client.lo `test -f 'src/core/dhcp/nm-dhcp-client.c' || echo '$(srcdir)/'`src/core/dhcp/nm-dhcp-client.c
@@ -15633,20 +15451,6 @@ src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-dhcp6-lea
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-dhcp6-lease.lo `test -f 'src/libnm-systemd-core/src/libsystemd-network/sd-dhcp6-lease.c' || echo '$(srcdir)/'`src/libnm-systemd-core/src/libsystemd-network/sd-dhcp6-lease.c
 
-src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4acd.lo: src/libnm-systemd-core/src/libsystemd-network/sd-ipv4acd.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4acd.lo -MD -MP -MF src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4acd.Tpo -c -o src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4acd.lo `test -f 'src/libnm-systemd-core/src/libsystemd-network/sd-ipv4acd.c' || echo '$(srcdir)/'`src/libnm-systemd-core/src/libsystemd-network/sd-ipv4acd.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4acd.Tpo src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4acd.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-systemd-core/src/libsystemd-network/sd-ipv4acd.c' object='src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4acd.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4acd.lo `test -f 'src/libnm-systemd-core/src/libsystemd-network/sd-ipv4acd.c' || echo '$(srcdir)/'`src/libnm-systemd-core/src/libsystemd-network/sd-ipv4acd.c
-
-src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4ll.lo: src/libnm-systemd-core/src/libsystemd-network/sd-ipv4ll.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4ll.lo -MD -MP -MF src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4ll.Tpo -c -o src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4ll.lo `test -f 'src/libnm-systemd-core/src/libsystemd-network/sd-ipv4ll.c' || echo '$(srcdir)/'`src/libnm-systemd-core/src/libsystemd-network/sd-ipv4ll.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4ll.Tpo src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4ll.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-systemd-core/src/libsystemd-network/sd-ipv4ll.c' object='src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4ll.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-ipv4ll.lo `test -f 'src/libnm-systemd-core/src/libsystemd-network/sd-ipv4ll.c' || echo '$(srcdir)/'`src/libnm-systemd-core/src/libsystemd-network/sd-ipv4ll.c
-
 src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp-rx.lo: src/libnm-systemd-core/src/libsystemd-network/sd-lldp-rx.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp-rx.lo -MD -MP -MF src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Tpo -c -o src/libnm-systemd-core/src/libsystemd-network/libnm_systemd_core_la-sd-lldp-rx.lo `test -f 'src/libnm-systemd-core/src/libsystemd-network/sd-lldp-rx.c' || echo '$(srcdir)/'`src/libnm-systemd-core/src/libsystemd-network/sd-lldp-rx.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Tpo src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Plo
@@ -16319,20 +16123,6 @@ src/core/devices/bluetooth/tests/nm_bt_test-nm-bt-test.obj: src/core/devices/blu
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_devices_bluetooth_tests_nm_bt_test_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/devices/bluetooth/tests/nm_bt_test-nm-bt-test.obj `if test -f 'src/core/devices/bluetooth/tests/nm-bt-test.c'; then $(CYGPATH_W) 'src/core/devices/bluetooth/tests/nm-bt-test.c'; else $(CYGPATH_W) '$(srcdir)/src/core/devices/bluetooth/tests/nm-bt-test.c'; fi`
 
-src/core/devices/tests/test_acd-test-acd.o: src/core/devices/tests/test-acd.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_devices_tests_test_acd_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/devices/tests/test_acd-test-acd.o -MD -MP -MF src/core/devices/tests/$(DEPDIR)/test_acd-test-acd.Tpo -c -o src/core/devices/tests/test_acd-test-acd.o `test -f 'src/core/devices/tests/test-acd.c' || echo '$(srcdir)/'`src/core/devices/tests/test-acd.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/devices/tests/$(DEPDIR)/test_acd-test-acd.Tpo src/core/devices/tests/$(DEPDIR)/test_acd-test-acd.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/devices/tests/test-acd.c' object='src/core/devices/tests/test_acd-test-acd.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_devices_tests_test_acd_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/devices/tests/test_acd-test-acd.o `test -f 'src/core/devices/tests/test-acd.c' || echo '$(srcdir)/'`src/core/devices/tests/test-acd.c
-
-src/core/devices/tests/test_acd-test-acd.obj: src/core/devices/tests/test-acd.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_devices_tests_test_acd_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/devices/tests/test_acd-test-acd.obj -MD -MP -MF src/core/devices/tests/$(DEPDIR)/test_acd-test-acd.Tpo -c -o src/core/devices/tests/test_acd-test-acd.obj `if test -f 'src/core/devices/tests/test-acd.c'; then $(CYGPATH_W) 'src/core/devices/tests/test-acd.c'; else $(CYGPATH_W) '$(srcdir)/src/core/devices/tests/test-acd.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/devices/tests/$(DEPDIR)/test_acd-test-acd.Tpo src/core/devices/tests/$(DEPDIR)/test_acd-test-acd.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/devices/tests/test-acd.c' object='src/core/devices/tests/test_acd-test-acd.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_devices_tests_test_acd_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/devices/tests/test_acd-test-acd.obj `if test -f 'src/core/devices/tests/test-acd.c'; then $(CYGPATH_W) 'src/core/devices/tests/test-acd.c'; else $(CYGPATH_W) '$(srcdir)/src/core/devices/tests/test-acd.c'; fi`
-
 src/core/devices/tests/test_lldp-test-lldp.o: src/core/devices/tests/test-lldp.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_devices_tests_test_lldp_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/devices/tests/test_lldp-test-lldp.o -MD -MP -MF src/core/devices/tests/$(DEPDIR)/test_lldp-test-lldp.Tpo -c -o src/core/devices/tests/test_lldp-test-lldp.o `test -f 'src/core/devices/tests/test-lldp.c' || echo '$(srcdir)/'`src/core/devices/tests/test-lldp.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/devices/tests/$(DEPDIR)/test_lldp-test-lldp.Tpo src/core/devices/tests/$(DEPDIR)/test_lldp-test-lldp.Po
@@ -16472,20 +16262,6 @@ src/core/ndisc/tests/test_ndisc_linux-test-ndisc-linux.obj: src/core/ndisc/tests
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/ndisc/tests/test-ndisc-linux.c' object='src/core/ndisc/tests/test_ndisc_linux-test-ndisc-linux.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_ndisc_tests_test_ndisc_linux_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/ndisc/tests/test_ndisc_linux-test-ndisc-linux.obj `if test -f 'src/core/ndisc/tests/test-ndisc-linux.c'; then $(CYGPATH_W) 'src/core/ndisc/tests/test-ndisc-linux.c'; else $(CYGPATH_W) '$(srcdir)/src/core/ndisc/tests/test-ndisc-linux.c'; fi`
-
-src/core/nm_iface_helper-nm-iface-helper.o: src/core/nm-iface-helper.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_nm_iface_helper_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/nm_iface_helper-nm-iface-helper.o -MD -MP -MF src/core/$(DEPDIR)/nm_iface_helper-nm-iface-helper.Tpo -c -o src/core/nm_iface_helper-nm-iface-helper.o `test -f 'src/core/nm-iface-helper.c' || echo '$(srcdir)/'`src/core/nm-iface-helper.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/$(DEPDIR)/nm_iface_helper-nm-iface-helper.Tpo src/core/$(DEPDIR)/nm_iface_helper-nm-iface-helper.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/nm-iface-helper.c' object='src/core/nm_iface_helper-nm-iface-helper.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_nm_iface_helper_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/nm_iface_helper-nm-iface-helper.o `test -f 'src/core/nm-iface-helper.c' || echo '$(srcdir)/'`src/core/nm-iface-helper.c
-
-src/core/nm_iface_helper-nm-iface-helper.obj: src/core/nm-iface-helper.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_nm_iface_helper_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/nm_iface_helper-nm-iface-helper.obj -MD -MP -MF src/core/$(DEPDIR)/nm_iface_helper-nm-iface-helper.Tpo -c -o src/core/nm_iface_helper-nm-iface-helper.obj `if test -f 'src/core/nm-iface-helper.c'; then $(CYGPATH_W) 'src/core/nm-iface-helper.c'; else $(CYGPATH_W) '$(srcdir)/src/core/nm-iface-helper.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/$(DEPDIR)/nm_iface_helper-nm-iface-helper.Tpo src/core/$(DEPDIR)/nm_iface_helper-nm-iface-helper.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/nm-iface-helper.c' object='src/core/nm_iface_helper-nm-iface-helper.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_nm_iface_helper_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/nm_iface_helper-nm-iface-helper.obj `if test -f 'src/core/nm-iface-helper.c'; then $(CYGPATH_W) 'src/core/nm-iface-helper.c'; else $(CYGPATH_W) '$(srcdir)/src/core/nm-iface-helper.c'; fi`
 
 src/core/platform/tests/monitor-monitor.o: src/core/platform/tests/monitor.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_platform_tests_monitor_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/platform/tests/monitor-monitor.o -MD -MP -MF src/core/platform/tests/$(DEPDIR)/monitor-monitor.Tpo -c -o src/core/platform/tests/monitor-monitor.o `test -f 'src/core/platform/tests/monitor.c' || echo '$(srcdir)/'`src/core/platform/tests/monitor.c
@@ -16780,34 +16556,6 @@ src/core/tests/test_dcb-test-dcb.obj: src/core/tests/test-dcb.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/tests/test-dcb.c' object='src/core/tests/test_dcb-test-dcb.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_tests_test_dcb_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/tests/test_dcb-test-dcb.obj `if test -f 'src/core/tests/test-dcb.c'; then $(CYGPATH_W) 'src/core/tests/test-dcb.c'; else $(CYGPATH_W) '$(srcdir)/src/core/tests/test-dcb.c'; fi`
-
-src/core/tests/test_ip4_config-test-ip4-config.o: src/core/tests/test-ip4-config.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_tests_test_ip4_config_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/tests/test_ip4_config-test-ip4-config.o -MD -MP -MF src/core/tests/$(DEPDIR)/test_ip4_config-test-ip4-config.Tpo -c -o src/core/tests/test_ip4_config-test-ip4-config.o `test -f 'src/core/tests/test-ip4-config.c' || echo '$(srcdir)/'`src/core/tests/test-ip4-config.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/tests/$(DEPDIR)/test_ip4_config-test-ip4-config.Tpo src/core/tests/$(DEPDIR)/test_ip4_config-test-ip4-config.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/tests/test-ip4-config.c' object='src/core/tests/test_ip4_config-test-ip4-config.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_tests_test_ip4_config_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/tests/test_ip4_config-test-ip4-config.o `test -f 'src/core/tests/test-ip4-config.c' || echo '$(srcdir)/'`src/core/tests/test-ip4-config.c
-
-src/core/tests/test_ip4_config-test-ip4-config.obj: src/core/tests/test-ip4-config.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_tests_test_ip4_config_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/tests/test_ip4_config-test-ip4-config.obj -MD -MP -MF src/core/tests/$(DEPDIR)/test_ip4_config-test-ip4-config.Tpo -c -o src/core/tests/test_ip4_config-test-ip4-config.obj `if test -f 'src/core/tests/test-ip4-config.c'; then $(CYGPATH_W) 'src/core/tests/test-ip4-config.c'; else $(CYGPATH_W) '$(srcdir)/src/core/tests/test-ip4-config.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/tests/$(DEPDIR)/test_ip4_config-test-ip4-config.Tpo src/core/tests/$(DEPDIR)/test_ip4_config-test-ip4-config.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/tests/test-ip4-config.c' object='src/core/tests/test_ip4_config-test-ip4-config.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_tests_test_ip4_config_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/tests/test_ip4_config-test-ip4-config.obj `if test -f 'src/core/tests/test-ip4-config.c'; then $(CYGPATH_W) 'src/core/tests/test-ip4-config.c'; else $(CYGPATH_W) '$(srcdir)/src/core/tests/test-ip4-config.c'; fi`
-
-src/core/tests/test_ip6_config-test-ip6-config.o: src/core/tests/test-ip6-config.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_tests_test_ip6_config_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/tests/test_ip6_config-test-ip6-config.o -MD -MP -MF src/core/tests/$(DEPDIR)/test_ip6_config-test-ip6-config.Tpo -c -o src/core/tests/test_ip6_config-test-ip6-config.o `test -f 'src/core/tests/test-ip6-config.c' || echo '$(srcdir)/'`src/core/tests/test-ip6-config.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/tests/$(DEPDIR)/test_ip6_config-test-ip6-config.Tpo src/core/tests/$(DEPDIR)/test_ip6_config-test-ip6-config.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/tests/test-ip6-config.c' object='src/core/tests/test_ip6_config-test-ip6-config.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_tests_test_ip6_config_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/tests/test_ip6_config-test-ip6-config.o `test -f 'src/core/tests/test-ip6-config.c' || echo '$(srcdir)/'`src/core/tests/test-ip6-config.c
-
-src/core/tests/test_ip6_config-test-ip6-config.obj: src/core/tests/test-ip6-config.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_tests_test_ip6_config_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/tests/test_ip6_config-test-ip6-config.obj -MD -MP -MF src/core/tests/$(DEPDIR)/test_ip6_config-test-ip6-config.Tpo -c -o src/core/tests/test_ip6_config-test-ip6-config.obj `if test -f 'src/core/tests/test-ip6-config.c'; then $(CYGPATH_W) 'src/core/tests/test-ip6-config.c'; else $(CYGPATH_W) '$(srcdir)/src/core/tests/test-ip6-config.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/core/tests/$(DEPDIR)/test_ip6_config-test-ip6-config.Tpo src/core/tests/$(DEPDIR)/test_ip6_config-test-ip6-config.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/core/tests/test-ip6-config.c' object='src/core/tests/test_ip6_config-test-ip6-config.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_tests_test_ip6_config_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/core/tests/test_ip6_config-test-ip6-config.obj `if test -f 'src/core/tests/test-ip6-config.c'; then $(CYGPATH_W) 'src/core/tests/test-ip6-config.c'; else $(CYGPATH_W) '$(srcdir)/src/core/tests/test-ip6-config.c'; fi`
 
 src/core/tests/test_l3cfg-test-l3cfg.o: src/core/tests/test-l3cfg.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_core_tests_test_l3cfg_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/core/tests/test_l3cfg-test-l3cfg.o -MD -MP -MF src/core/tests/$(DEPDIR)/test_l3cfg-test-l3cfg.Tpo -c -o src/core/tests/test_l3cfg-test-l3cfg.o `test -f 'src/core/tests/test-l3cfg.c' || echo '$(srcdir)/'`src/core/tests/test-l3cfg.c
@@ -19242,13 +18990,6 @@ src/core/devices/tests/test-lldp.log: src/core/devices/tests/test-lldp$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-src/core/devices/tests/test-acd.log: src/core/devices/tests/test-acd$(EXEEXT)
-	@p='src/core/devices/tests/test-acd$(EXEEXT)'; \
-	b='src/core/devices/tests/test-acd'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
 src/core/ndisc/tests/test-ndisc-fake.log: src/core/ndisc/tests/test-ndisc-fake$(EXEEXT)
 	@p='src/core/ndisc/tests/test-ndisc-fake$(EXEEXT)'; \
 	b='src/core/ndisc/tests/test-ndisc-fake'; \
@@ -19287,20 +19028,6 @@ src/core/tests/test-core-with-expect.log: src/core/tests/test-core-with-expect$(
 src/core/tests/test-dcb.log: src/core/tests/test-dcb$(EXEEXT)
 	@p='src/core/tests/test-dcb$(EXEEXT)'; \
 	b='src/core/tests/test-dcb'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-src/core/tests/test-ip4-config.log: src/core/tests/test-ip4-config$(EXEEXT)
-	@p='src/core/tests/test-ip4-config$(EXEEXT)'; \
-	b='src/core/tests/test-ip4-config'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-src/core/tests/test-ip6-config.log: src/core/tests/test-ip6-config$(EXEEXT)
-	@p='src/core/tests/test-ip6-config$(EXEEXT)'; \
-	b='src/core/tests/test-ip6-config'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -19887,8 +19614,6 @@ distclean: distclean-recursive
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-dbus-object.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-dbus-utils.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip-config.Plo
-	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip4-config.Plo
-	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip6-config.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-config-data.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv4ll.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv6ll.Plo
@@ -19916,12 +19641,9 @@ distclean: distclean-recursive
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-pacrunner-manager.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-policy.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-priv-helper-call.Plo
-	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-proxy-config.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-rfkill-manager.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-session-monitor.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-sleep-monitor.Plo
-	-rm -f src/core/$(DEPDIR)/nm_iface_helper-nm-iface-helper.Po
-	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-acd-manager.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-6lowpan.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-bond.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-bridge.Plo
@@ -19959,9 +19681,9 @@ distclean: distclean-recursive
 	-rm -f src/core/devices/ovs/$(DEPDIR)/libnm_device_plugin_ovs_la-nm-ovsdb.Plo
 	-rm -f src/core/devices/team/$(DEPDIR)/libnm_device_plugin_team_la-nm-device-team.Plo
 	-rm -f src/core/devices/team/$(DEPDIR)/libnm_device_plugin_team_la-nm-team-factory.Plo
-	-rm -f src/core/devices/tests/$(DEPDIR)/test_acd-test-acd.Po
 	-rm -f src/core/devices/tests/$(DEPDIR)/test_lldp-test-lldp.Po
 	-rm -f src/core/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Plo
+	-rm -f src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-iwd-p2p.Plo
 	-rm -f src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-iwd.Plo
 	-rm -f src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-olpc-mesh.Plo
 	-rm -f src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-wifi-p2p.Plo
@@ -20023,6 +19745,7 @@ distclean: distclean-recursive
 	-rm -f src/core/platform/tests/$(DEPDIR)/test_route_linux-test-route.Po
 	-rm -f src/core/platform/tests/$(DEPDIR)/test_tc_linux-test-tc.Po
 	-rm -f src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-manager-call.Plo
+	-rm -f src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-mgr.Plo
 	-rm -f src/core/ppp/$(DEPDIR)/libnm_ppp_plugin_la-nm-ppp-manager.Plo
 	-rm -f src/core/ppp/$(DEPDIR)/nm_pppd_plugin_la-nm-pppd-plugin.Plo
 	-rm -f src/core/settings/$(DEPDIR)/libNetworkManager_la-nm-agent-manager.Plo
@@ -20058,8 +19781,6 @@ distclean: distclean-recursive
 	-rm -f src/core/tests/$(DEPDIR)/test_core-test-core.Po
 	-rm -f src/core/tests/$(DEPDIR)/test_core_with_expect-test-core-with-expect.Po
 	-rm -f src/core/tests/$(DEPDIR)/test_dcb-test-dcb.Po
-	-rm -f src/core/tests/$(DEPDIR)/test_ip4_config-test-ip4-config.Po
-	-rm -f src/core/tests/$(DEPDIR)/test_ip6_config-test-ip6-config.Po
 	-rm -f src/core/tests/$(DEPDIR)/test_l3cfg-test-l3cfg.Po
 	-rm -f src/core/tests/$(DEPDIR)/test_systemd-test-systemd.Po
 	-rm -f src/core/tests/$(DEPDIR)/test_utils-test-utils.Po
@@ -20264,8 +19985,6 @@ distclean: distclean-recursive
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp-lease.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp6-client.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp6-lease.Plo
-	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4acd.Plo
-	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4ll.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-event-util.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-sd-event.Plo
@@ -20564,8 +20283,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-dbus-object.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-dbus-utils.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip-config.Plo
-	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip4-config.Plo
-	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-ip6-config.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-config-data.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv4ll.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManagerBase_la-nm-l3-ipv6ll.Plo
@@ -20593,12 +20310,9 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-pacrunner-manager.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-policy.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-priv-helper-call.Plo
-	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-proxy-config.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-rfkill-manager.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-session-monitor.Plo
 	-rm -f src/core/$(DEPDIR)/libNetworkManager_la-nm-sleep-monitor.Plo
-	-rm -f src/core/$(DEPDIR)/nm_iface_helper-nm-iface-helper.Po
-	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-acd-manager.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-6lowpan.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-bond.Plo
 	-rm -f src/core/devices/$(DEPDIR)/libNetworkManager_la-nm-device-bridge.Plo
@@ -20636,9 +20350,9 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/core/devices/ovs/$(DEPDIR)/libnm_device_plugin_ovs_la-nm-ovsdb.Plo
 	-rm -f src/core/devices/team/$(DEPDIR)/libnm_device_plugin_team_la-nm-device-team.Plo
 	-rm -f src/core/devices/team/$(DEPDIR)/libnm_device_plugin_team_la-nm-team-factory.Plo
-	-rm -f src/core/devices/tests/$(DEPDIR)/test_acd-test-acd.Po
 	-rm -f src/core/devices/tests/$(DEPDIR)/test_lldp-test-lldp.Po
 	-rm -f src/core/devices/wifi/$(DEPDIR)/libnm_device_plugin_wifi_la-nm-wifi-factory.Plo
+	-rm -f src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-iwd-p2p.Plo
 	-rm -f src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-iwd.Plo
 	-rm -f src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-olpc-mesh.Plo
 	-rm -f src/core/devices/wifi/$(DEPDIR)/libnm_wifi_base_la-nm-device-wifi-p2p.Plo
@@ -20700,6 +20414,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/core/platform/tests/$(DEPDIR)/test_route_linux-test-route.Po
 	-rm -f src/core/platform/tests/$(DEPDIR)/test_tc_linux-test-tc.Po
 	-rm -f src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-manager-call.Plo
+	-rm -f src/core/ppp/$(DEPDIR)/libNetworkManager_la-nm-ppp-mgr.Plo
 	-rm -f src/core/ppp/$(DEPDIR)/libnm_ppp_plugin_la-nm-ppp-manager.Plo
 	-rm -f src/core/ppp/$(DEPDIR)/nm_pppd_plugin_la-nm-pppd-plugin.Plo
 	-rm -f src/core/settings/$(DEPDIR)/libNetworkManager_la-nm-agent-manager.Plo
@@ -20735,8 +20450,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/core/tests/$(DEPDIR)/test_core-test-core.Po
 	-rm -f src/core/tests/$(DEPDIR)/test_core_with_expect-test-core-with-expect.Po
 	-rm -f src/core/tests/$(DEPDIR)/test_dcb-test-dcb.Po
-	-rm -f src/core/tests/$(DEPDIR)/test_ip4_config-test-ip4-config.Po
-	-rm -f src/core/tests/$(DEPDIR)/test_ip6_config-test-ip6-config.Po
 	-rm -f src/core/tests/$(DEPDIR)/test_l3cfg-test-l3cfg.Po
 	-rm -f src/core/tests/$(DEPDIR)/test_systemd-test-systemd.Po
 	-rm -f src/core/tests/$(DEPDIR)/test_utils-test-utils.Po
@@ -20941,8 +20654,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp-lease.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp6-client.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-dhcp6-lease.Plo
-	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4acd.Plo
-	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-ipv4ll.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd-network/$(DEPDIR)/libnm_systemd_core_la-sd-lldp-rx.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-event-util.Plo
 	-rm -f src/libnm-systemd-core/src/libsystemd/sd-event/$(DEPDIR)/libnm_systemd_core_la-sd-event.Plo
@@ -21439,8 +21150,6 @@ src/core/NetworkManager.ver: src/core/NetworkManager-all-sym $(core_plugins)
 
 $(src_core_NetworkManager_OBJECTS): $(src_libnm_core_public_mkenums_h)
 
-$(src_core_nm_iface_helper_OBJECTS): $(src_libnm_core_public_mkenums_h)
-
 $(src_nm_initrd_generator_libnmi_core_la_OBJECTS):            $(src_libnm_core_public_mkenums_h)
 $(src_nm_initrd_generator_nm_initrd_generator_OBJECTS):       $(src_libnm_core_public_mkenums_h)
 $(src_nm_initrd_generator_tests_test_cmdline_reader_OBJECTS): $(src_libnm_core_public_mkenums_h)
@@ -21550,7 +21259,6 @@ $(src_core_platform_tests_test_tc_fake_OBJECTS):          $(src_libnm_core_publi
 $(src_core_platform_tests_test_tc_linux_OBJECTS):         $(src_libnm_core_public_mkenums_h)
 
 $(src_core_devices_tests_test_lldp_OBJECTS): $(src_libnm_core_public_mkenums_h)
-$(src_core_devices_tests_test_acd_OBJECTS): $(src_libnm_core_public_mkenums_h)
 
 $(src_core_ndisc_tests_test_ndisc_linux_OBJECTS): $(src_libnm_core_public_mkenums_h)
 $(src_core_ndisc_tests_test_ndisc_fake_OBJECTS): $(src_libnm_core_public_mkenums_h)
@@ -21562,8 +21270,6 @@ $(src_core_tests_config_test_config_OBJECTS): $(src_libnm_core_public_mkenums_h)
 $(src_core_tests_test_core_OBJECTS): $(src_libnm_core_public_mkenums_h)
 $(src_core_tests_test_core_with_expect_OBJECTS): $(src_libnm_core_public_mkenums_h)
 $(src_core_tests_test_dcb_OBJECTS): $(src_libnm_core_public_mkenums_h)
-$(src_core_tests_test_ip4_config_OBJECTS): $(src_libnm_core_public_mkenums_h)
-$(src_core_tests_test_ip6_config_OBJECTS): $(src_libnm_core_public_mkenums_h)
 $(src_core_tests_test_l3cfg_OBJECTS): $(src_libnm_core_public_mkenums_h)
 $(src_core_tests_test_utils_OBJECTS): $(src_libnm_core_public_mkenums_h)
 $(src_core_tests_test_wired_defname_OBJECTS): $(src_libnm_core_public_mkenums_h)

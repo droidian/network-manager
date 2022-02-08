@@ -1444,8 +1444,10 @@
     <keyword type="macro" name="NM_SETTING_OVS_BRIDGE_DATAPATH_TYPE" link="NMSettingOvsBridge.html#NM-SETTING-OVS-BRIDGE-DATAPATH-TYPE:CAPS"/>
     <keyword type="function" name="nm_setting_ovs_dpdk_new ()" link="NMSettingOvsDpdk.html#nm-setting-ovs-dpdk-new" since="1.20"/>
     <keyword type="function" name="nm_setting_ovs_dpdk_get_devargs ()" link="NMSettingOvsDpdk.html#nm-setting-ovs-dpdk-get-devargs" since="1.20"/>
+    <keyword type="function" name="nm_setting_ovs_dpdk_get_n_rxq ()" link="NMSettingOvsDpdk.html#nm-setting-ovs-dpdk-get-n-rxq" since="1.36"/>
     <keyword type="macro" name="NM_SETTING_OVS_DPDK_SETTING_NAME" link="NMSettingOvsDpdk.html#NM-SETTING-OVS-DPDK-SETTING-NAME:CAPS"/>
     <keyword type="macro" name="NM_SETTING_OVS_DPDK_DEVARGS" link="NMSettingOvsDpdk.html#NM-SETTING-OVS-DPDK-DEVARGS:CAPS"/>
+    <keyword type="macro" name="NM_SETTING_OVS_DPDK_N_RXQ" link="NMSettingOvsDpdk.html#NM-SETTING-OVS-DPDK-N-RXQ:CAPS"/>
     <keyword type="function" name="nm_setting_ovs_external_ids_new ()" link="NMSettingOvsExternalIDs.html#nm-setting-ovs-external-ids-new" since="1.30"/>
     <keyword type="function" name="nm_setting_ovs_external_ids_get_data_keys ()" link="NMSettingOvsExternalIDs.html#nm-setting-ovs-external-ids-get-data-keys"/>
     <keyword type="function" name="nm_setting_ovs_external_ids_get_data ()" link="NMSettingOvsExternalIDs.html#nm-setting-ovs-external-ids-get-data" since="1.30"/>
@@ -2672,6 +2674,7 @@
     <keyword type="macro" name="NM_DEPRECATED_IN_1_30_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-30-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_32_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-32-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_34_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-34-FOR:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_36_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-36-FOR:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MIN_REQUIRED" link="libnm-nm-version.html#NM-VERSION-MIN-REQUIRED:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MAX_ALLOWED" link="libnm-nm-version.html#NM-VERSION-MAX-ALLOWED:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_0_9_10" link="libnm-nm-version.html#NM-DEPRECATED-IN-0-9-10:CAPS"/>
@@ -2712,6 +2715,8 @@
     <keyword type="macro" name="NM_AVAILABLE_IN_1_32" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-32:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_34" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-34:CAPS"/>
     <keyword type="macro" name="NM_AVAILABLE_IN_1_34" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-34:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_36" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-36:CAPS"/>
+    <keyword type="macro" name="NM_AVAILABLE_IN_1_36" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-36:CAPS"/>
     <keyword type="function" name="nm_vpn_service_plugin_get_connection ()" link="NMVpnServicePlugin.html#nm-vpn-service-plugin-get-connection" since="1.2"/>
     <keyword type="function" name="nm_vpn_service_plugin_secrets_required ()" link="NMVpnServicePlugin.html#nm-vpn-service-plugin-secrets-required" since="1.2"/>
     <keyword type="function" name="nm_vpn_service_plugin_set_login_banner ()" link="NMVpnServicePlugin.html#nm-vpn-service-plugin-set-login-banner"/>
@@ -2997,6 +3002,7 @@
     <keyword type="constant" name="NM_DEVICE_MODEM_CAPABILITY_CDMA_EVDO" link="libnm-nm-dbus-interface.html#NM-DEVICE-MODEM-CAPABILITY-CDMA-EVDO:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_MODEM_CAPABILITY_GSM_UMTS" link="libnm-nm-dbus-interface.html#NM-DEVICE-MODEM-CAPABILITY-GSM-UMTS:CAPS"/>
     <keyword type="constant" name="NM_DEVICE_MODEM_CAPABILITY_LTE" link="libnm-nm-dbus-interface.html#NM-DEVICE-MODEM-CAPABILITY-LTE:CAPS"/>
+    <keyword type="constant" name="NM_DEVICE_MODEM_CAPABILITY_5GNR" link="libnm-nm-dbus-interface.html#NM-DEVICE-MODEM-CAPABILITY-5GNR:CAPS"/>
     <keyword type="constant" name="NM_WIMAX_NSP_NETWORK_TYPE_UNKNOWN" link="libnm-nm-dbus-interface.html#NM-WIMAX-NSP-NETWORK-TYPE-UNKNOWN:CAPS"/>
     <keyword type="constant" name="NM_WIMAX_NSP_NETWORK_TYPE_HOME" link="libnm-nm-dbus-interface.html#NM-WIMAX-NSP-NETWORK-TYPE-HOME:CAPS"/>
     <keyword type="constant" name="NM_WIMAX_NSP_NETWORK_TYPE_PARTNER" link="libnm-nm-dbus-interface.html#NM-WIMAX-NSP-NETWORK-TYPE-PARTNER:CAPS"/>

@@ -22,7 +22,7 @@
  * Evaluates to the minor version number of NetworkManager which this source
  * is compiled against.
  */
-#define NM_MINOR_VERSION (34)
+#define NM_MINOR_VERSION (35)
 
 /**
  * NM_MICRO_VERSION:
@@ -30,7 +30,7 @@
  * Evaluates to the micro version number of NetworkManager which this source
  * compiled against.
  */
-#define NM_MICRO_VERSION (0)
+#define NM_MICRO_VERSION (90)
 
 /**
  * NM_CHECK_VERSION:
@@ -69,13 +69,14 @@
 #define NM_VERSION_1_30   (NM_ENCODE_VERSION (1, 30, 0))
 #define NM_VERSION_1_32   (NM_ENCODE_VERSION (1, 32, 0))
 #define NM_VERSION_1_34   (NM_ENCODE_VERSION (1, 34, 0))
+#define NM_VERSION_1_36   (NM_ENCODE_VERSION (1, 36, 0))
 
 /* For releases, NM_API_VERSION is equal to NM_VERSION.
  *
  * For development builds, NM_API_VERSION is the next
  * stable API after NM_VERSION. When you run a development
  * version, you are already using the future API, even if
- * it is not yet release. Hence, the currently used API
+ * it is not yet released. Hence, the currently used API
  * version is the future one.  */
 #define NM_API_VERSION \
     (((NM_MINOR_VERSION % 2) == 1) \
