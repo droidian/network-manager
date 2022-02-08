@@ -12,7 +12,7 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=512286
  1 file changed, 115 insertions(+)
 
 diff --git a/src/core/nm-manager.c b/src/core/nm-manager.c
-index 3c9660c..62ffdd0 100644
+index b440b22..b4599d9 100644
 --- a/src/core/nm-manager.c
 +++ b/src/core/nm-manager.c
 @@ -51,6 +51,8 @@
@@ -73,7 +73,7 @@ index 3c9660c..62ffdd0 100644
      if (new_state >= NM_STATE_CONNECTED_LOCAL && priv->connectivity_state == NM_CONNECTIVITY_FULL) {
          new_state = NM_STATE_CONNECTED_GLOBAL;
      }
-@@ -6671,6 +6701,62 @@ impl_manager_set_logging(NMDBusObject *                     obj,
+@@ -6659,6 +6689,62 @@ impl_manager_set_logging(NMDBusObject                      *obj,
          g_dbus_method_invocation_return_value(invocation, NULL);
  }
  
@@ -134,9 +134,9 @@ index 3c9660c..62ffdd0 100644
 +}
 +
  static void
- impl_manager_get_logging(NMDBusObject *                     obj,
+ impl_manager_get_logging(NMDBusObject                      *obj,
                           const NMDBusInterfaceInfoExtended *interface_info,
-@@ -6999,6 +7085,9 @@ nm_manager_start(NMManager *self, GError **error)
+@@ -6987,6 +7073,9 @@ nm_manager_start(NMManager *self, GError **error)
      nm_clear_g_source(&priv->devices_inited_id);
      priv->devices_inited_id = g_idle_add_full(G_PRIORITY_LOW + 10, devices_inited_cb, self, NULL);
  
@@ -146,7 +146,7 @@ index 3c9660c..62ffdd0 100644
      return TRUE;
  }
  
-@@ -7979,6 +8068,22 @@ nm_manager_init(NMManager *self)
+@@ -7967,6 +8056,22 @@ nm_manager_init(NMManager *self)
          _LOGW(LOGD_CORE, "failed to monitor kernel firmware directory '%s'.", KERNEL_FIRMWARE_DIR);
      }
  
@@ -169,7 +169,7 @@ index 3c9660c..62ffdd0 100644
      /* Update timestamps in active connections */
      priv->timestamp_update_id =
          g_timeout_add_seconds(300,
-@@ -8262,6 +8367,16 @@ dispose(GObject *object)
+@@ -8252,6 +8357,16 @@ dispose(GObject *object)
          g_clear_object(&priv->fw_monitor);
      }
  

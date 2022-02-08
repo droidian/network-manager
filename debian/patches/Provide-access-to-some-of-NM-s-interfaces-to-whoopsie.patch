@@ -6,13 +6,13 @@ Whoopsie is the crash database reporting daemon. It needs access to some of
 the information NM keeps about devices to avoid sending data over the network
 when connected to 3G or other systems that are potentially billable.
 ---
- src/org.freedesktop.NetworkManager.conf | 13 +++++++++++++
+ src/core/org.freedesktop.NetworkManager.conf | 13 +++++++++++++
  1 file changed, 13 insertions(+)
 
-Index: network-manager/src/core/org.freedesktop.NetworkManager.conf
-===================================================================
---- network-manager.orig/src/core/org.freedesktop.NetworkManager.conf
-+++ network-manager/src/core/org.freedesktop.NetworkManager.conf
+diff --git a/src/core/org.freedesktop.NetworkManager.conf b/src/core/org.freedesktop.NetworkManager.conf
+index 5c2af2e..f56c7fb 100644
+--- a/src/core/org.freedesktop.NetworkManager.conf
++++ b/src/core/org.freedesktop.NetworkManager.conf
 @@ -37,6 +37,19 @@
          <allow own="org.freedesktop.NetworkManager.dnsmasq"/>
          <allow send_destination="org.freedesktop.NetworkManager.dnsmasq"/>
