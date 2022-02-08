@@ -1,3 +1,9 @@
+network-manager (1.35.90-0ubuntu1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Jeremy Bicha <jeremy.bicha@canonical.com>  Tue, 08 Feb 2022 12:10:13 -0500
+
 network-manager (1.34.0-2ubuntu3) jammy; urgency=medium
 
   * d/tests/control: Have nm.py autopkgtest Depend on wpasupplicant
