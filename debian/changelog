@@ -1,3 +1,9 @@
+network-manager (1.35.91-0ubuntu1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Jeremy Bicha <jeremy.bicha@canonical.com>  Thu, 10 Feb 2022 08:34:29 -0500
+
 network-manager (1.35.90-0ubuntu1) jammy; urgency=medium
 
   * New upstream release
