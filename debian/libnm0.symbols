@@ -28,6 +28,7 @@ libnm.so.0 libnm0 #MINVER#
  libnm_1_32_0@libnm_1_32_0 1.32.12
  libnm_1_32_4@libnm_1_32_4 1.32.12
  libnm_1_34_0@libnm_1_34_0 1.34.0
+ libnm_1_36_0@libnm_1_36_0 1.35.91
  libnm_1_4_0@libnm_1_4_0 1.4.0
  libnm_1_6_0@libnm_1_6_0 1.5.90
  libnm_1_8_0@libnm_1_8_0 1.8.0
@@ -1121,6 +1122,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_setting_ovs_bridge_get_type@libnm_1_10_0 1.9.90
  nm_setting_ovs_bridge_new@libnm_1_10_0 1.9.90
  nm_setting_ovs_dpdk_get_devargs@libnm_1_20_0 1.19.90
+ nm_setting_ovs_dpdk_get_n_rxq@libnm_1_36_0 1.35.91
  nm_setting_ovs_dpdk_get_type@libnm_1_20_0 1.19.90
  nm_setting_ovs_dpdk_new@libnm_1_20_0 1.19.90
  nm_setting_ovs_external_ids_check_key@libnm_1_30_0 1.29.90
