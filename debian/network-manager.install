@@ -26,7 +26,7 @@ lib/systemd/system/NetworkManager-wait-online.service
 lib/systemd/system/nm-priv-helper.service
 debian/NetworkManager.conf etc/NetworkManager/
 debian/org.freedesktop.NetworkManager.pkla var/lib/polkit-1/localauthority/10-vendor.d/
-debian/60-network-manager.rules usr/share/polkit-1/rules.d/
+debian/org.freedesktop.NetworkManager.rules usr/share/polkit-1/rules.d/
 debian/01-ifupdown etc/NetworkManager/dispatcher.d/
 debian/10-*.conf usr/lib/NetworkManager/conf.d/
 debian/default-wifi-powersave-on.conf etc/NetworkManager/conf.d

@@ -12,7 +12,7 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=512286
  1 file changed, 115 insertions(+)
 
 diff --git a/src/core/nm-manager.c b/src/core/nm-manager.c
-index b440b22..b4599d9 100644
+index b440b22..9b1057f 100644
 --- a/src/core/nm-manager.c
 +++ b/src/core/nm-manager.c
 @@ -51,6 +51,8 @@
@@ -73,8 +73,8 @@ index b440b22..b4599d9 100644
      if (new_state >= NM_STATE_CONNECTED_LOCAL && priv->connectivity_state == NM_CONNECTIVITY_FULL) {
          new_state = NM_STATE_CONNECTED_GLOBAL;
      }
-@@ -6659,6 +6689,62 @@ impl_manager_set_logging(NMDBusObject                      *obj,
-         g_dbus_method_invocation_return_value(invocation, NULL);
+@@ -6673,6 +6703,62 @@ impl_manager_get_logging(NMDBusObject                      *obj,
+         g_variant_new("(ss)", nm_logging_level_to_string(), nm_logging_domains_to_string()));
  }
  
 +static void
@@ -133,9 +133,9 @@ index b440b22..b4599d9 100644
 +    }
 +}
 +
- static void
- impl_manager_get_logging(NMDBusObject                      *obj,
-                          const NMDBusInterfaceInfoExtended *interface_info,
+ typedef struct {
+     NMManager             *self;
+     GDBusMethodInvocation *context;
 @@ -6987,6 +7073,9 @@ nm_manager_start(NMManager *self, GError **error)
      nm_clear_g_source(&priv->devices_inited_id);
      priv->devices_inited_id = g_idle_add_full(G_PRIORITY_LOW + 10, devices_inited_cb, self, NULL);

@@ -499,73 +499,6 @@ nm_l3cfg_ipconfig_acquire(NML3Cfg *self, int addr_family)
 
 /*****************************************************************************/
 
-NMIPConfig *
-nm_l3cfg_ipconfig_get(NML3Cfg *self, int addr_family)
-{
-    g_return_val_if_fail(NM_IS_L3CFG(self), NULL);
-    nm_assert_addr_family(addr_family);
-
-    return self->priv.p->ipconfig_x[NM_IS_IPv4(addr_family)];
-}
-
-static void
-_ipconfig_toggle_notify(gpointer data, GObject *object, gboolean is_last_ref)
-{
-    NML3Cfg    *self     = NM_L3CFG(data);
-    NMIPConfig *ipconfig = NM_IP_CONFIG(object);
-
-    if (!is_last_ref) {
-        /* This happens while we take another ref below. Ignore the signal. */
-        nm_assert(!NM_IN_SET(ipconfig, self->priv.p->ipconfig_4, self->priv.p->ipconfig_6));
-        return;
-    }
-
-    if (ipconfig == self->priv.p->ipconfig_4)
-        self->priv.p->ipconfig_4 = NULL;
-    else {
-        nm_assert(ipconfig == self->priv.p->ipconfig_6);
-        self->priv.p->ipconfig_6 = NULL;
-    }
-
-    /* We take a second reference to keep the instance alive, while also removing the
-     * toggle ref. This will notify the function again, but we will ignore that. */
-    g_object_ref(ipconfig);
-
-    g_object_remove_toggle_ref(G_OBJECT(ipconfig), _ipconfig_toggle_notify, self);
-
-    /* pass on the reference, and unexport on idle. */
-    nm_ip_config_take_and_unexport_on_idle(g_steal_pointer(&ipconfig));
-}
-
-NMIPConfig *
-nm_l3cfg_ipconfig_acquire(NML3Cfg *self, int addr_family)
-{
-    NMIPConfig *ipconfig;
-
-    g_return_val_if_fail(NM_IS_L3CFG(self), NULL);
-    nm_assert_addr_family(addr_family);
-
-    ipconfig = self->priv.p->ipconfig_x[NM_IS_IPv4(addr_family)];
-
-    if (ipconfig)
-        return g_object_ref(ipconfig);
-
-    ipconfig = nm_ip_config_new(addr_family, self);
-
-    self->priv.p->ipconfig_x[NM_IS_IPv4(addr_family)] = ipconfig;
-
-    /* The ipconfig keeps self alive. We use a toggle reference
-     * to avoid a cycle. But we anyway wouldn't want a strong reference,
-     * because the user releases the instance by unrefing it, and we
-     * notice that via the weak reference. */
-    g_object_add_toggle_ref(G_OBJECT(ipconfig), _ipconfig_toggle_notify, self);
-
-    /* We keep the toggle reference, and return the other reference to the caller. */
-    return g_steal_pointer(&ipconfig);
-}
-
-/*****************************************************************************/
-
 gboolean
 nm_l3cfg_is_vrf(const NML3Cfg *self)
 {
@@ -3013,6 +2946,23 @@ nm_l3cfg_get_acd_addr_info(NML3Cfg *self, in_addr_t addr)
 }
 
 /*****************************************************************************/
+
+gboolean
+nm_l3cfg_has_temp_not_available_obj(NML3Cfg *self, int addr_family)
+{
+    ObjStateData *obj_state;
+
+    nm_assert(NM_IS_L3CFG(self));
+    nm_assert_addr_family(addr_family);
+
+    c_list_for_each_entry (obj_state,
+                           &self->priv.p->obj_state_temporary_not_available_lst_head,
+                           os_temporary_not_available_lst) {
+        if (NMP_OBJECT_GET_ADDR_FAMILY(obj_state->obj) == addr_family)
+            return TRUE;
+    }
+    return FALSE;
+}
 
 gboolean
 nm_l3cfg_check_ready(NML3Cfg               *self,

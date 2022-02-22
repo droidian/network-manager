@@ -58,7 +58,6 @@ Depends: ${shlibs:Depends},
          policykit-1
 Recommends: ppp,
             dnsmasq-base,
-            iptables,
             modemmanager,
             network-manager-pptp,
             wireless-regdb,
@@ -66,6 +65,7 @@ Recommends: ppp,
             libpam-systemd,
 Suggests: avahi-autoipd,
           libteam-utils,
+          iptables,
 Breaks: ${misc:Breaks}
 Description: network management framework (daemon and userspace tools)
  NetworkManager is a system network service that manages your network devices
