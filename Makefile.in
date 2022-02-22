@@ -1429,8 +1429,8 @@ am__src_libnm_platform_libnm_platform_la_SOURCES_DIST =  \
 	src/libnm-platform/nmp-netns.c src/libnm-platform/nmp-netns.h \
 	src/libnm-platform/nmp-object.c \
 	src/libnm-platform/nmp-object.h \
-	src/libnm-platform/nmp-rules-manager.c \
-	src/libnm-platform/nmp-rules-manager.h \
+	src/libnm-platform/nmp-route-manager.c \
+	src/libnm-platform/nmp-route-manager.h \
 	src/libnm-platform/wifi/nm-wifi-utils-nl80211.c \
 	src/libnm-platform/wifi/nm-wifi-utils-nl80211.h \
 	src/libnm-platform/wifi/nm-wifi-utils-private.h \
@@ -1448,7 +1448,7 @@ am_src_libnm_platform_libnm_platform_la_OBJECTS =  \
 	src/libnm-platform/libnm_platform_la-nm-platform.lo \
 	src/libnm-platform/libnm_platform_la-nmp-netns.lo \
 	src/libnm-platform/libnm_platform_la-nmp-object.lo \
-	src/libnm-platform/libnm_platform_la-nmp-rules-manager.lo \
+	src/libnm-platform/libnm_platform_la-nmp-route-manager.lo \
 	src/libnm-platform/wifi/libnm_platform_la-nm-wifi-utils-nl80211.lo \
 	src/libnm-platform/wifi/libnm_platform_la-nm-wifi-utils.lo \
 	src/libnm-platform/wpan/libnm_platform_la-nm-wpan-utils.lo \
@@ -3064,7 +3064,7 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/libnm-platform/$(DEPDIR)/libnm_platform_la-nm-platform.Plo \
 	src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-netns.Plo \
 	src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-object.Plo \
-	src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-rules-manager.Plo \
+	src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-route-manager.Plo \
 	src/libnm-platform/tests/$(DEPDIR)/test_nm_platform-test-nm-platform.Po \
 	src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-nl80211.Plo \
 	src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-wext.Plo \
@@ -4227,7 +4227,7 @@ CLEANFILES = $(introspection_sources) $(DBUS_INTERFACE_DOCS) \
 	src/core/NetworkManager.ver $(am__append_23) \
 	$(dispatcher_nmdbus_dispatcher_sources) \
 	src/nm-dispatcher/org.freedesktop.nm_dispatcher.service \
-	src/nm-priv-helper/org.freedesktop.nm-priv-helper.service \
+	src/nm-priv-helper/org.freedesktop.nm_priv_helper.service \
 	$(am__append_66) src/tests/client/test-client.log \
 	data/NetworkManager-dispatcher.service \
 	data/NetworkManager-wait-online.service \
@@ -4864,7 +4864,7 @@ EXTRA_DIST = src/c-stdaux/src/c-stdaux.h $(NULL) \
 	src/nm-dispatcher/tests/dispatcher-vpn-up \
 	src/nm-dispatcher/tests/meson.build $(NULL) \
 	src/nm-priv-helper/nm-priv-helper.conf \
-	src/nm-priv-helper/org.freedesktop.nm-priv-helper.service.in \
+	src/nm-priv-helper/org.freedesktop.nm_priv_helper.service.in \
 	src/nm-priv-helper/meson.build $(NULL) \
 	src/nm-daemon-helper/meson.build $(NULL) \
 	src/nm-online/meson.build src/libnmc-base/qrcodegen.c \
@@ -5106,7 +5106,7 @@ dbusservice_DATA = $(am__append_28) \
 	src/core/org.freedesktop.NetworkManager.conf
 dbusactivation_DATA =  \
 	src/nm-dispatcher/org.freedesktop.nm_dispatcher.service \
-	src/nm-priv-helper/org.freedesktop.nm-priv-helper.service
+	src/nm-priv-helper/org.freedesktop.nm_priv_helper.service
 systemdsystemunit_DATA = $(am__append_62) $(am__append_68)
 INTROSPECTION_GIRS = $(am__append_10)
 INTROSPECTION_SCANNER_ARGS = 
@@ -5503,8 +5503,8 @@ src_libnm_platform_libnm_platform_la_SOURCES =  \
 	src/libnm-platform/nmp-netns.c src/libnm-platform/nmp-netns.h \
 	src/libnm-platform/nmp-object.c \
 	src/libnm-platform/nmp-object.h \
-	src/libnm-platform/nmp-rules-manager.c \
-	src/libnm-platform/nmp-rules-manager.h \
+	src/libnm-platform/nmp-route-manager.c \
+	src/libnm-platform/nmp-route-manager.h \
 	src/libnm-platform/wifi/nm-wifi-utils-nl80211.c \
 	src/libnm-platform/wifi/nm-wifi-utils-nl80211.h \
 	src/libnm-platform/wifi/nm-wifi-utils-private.h \
@@ -10317,7 +10317,7 @@ src/libnm-platform/libnm_platform_la-nmp-netns.lo:  \
 src/libnm-platform/libnm_platform_la-nmp-object.lo:  \
 	src/libnm-platform/$(am__dirstamp) \
 	src/libnm-platform/$(DEPDIR)/$(am__dirstamp)
-src/libnm-platform/libnm_platform_la-nmp-rules-manager.lo:  \
+src/libnm-platform/libnm_platform_la-nmp-route-manager.lo:  \
 	src/libnm-platform/$(am__dirstamp) \
 	src/libnm-platform/$(DEPDIR)/$(am__dirstamp)
 src/libnm-platform/wifi/$(am__dirstamp):
@@ -12217,7 +12217,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/$(DEPDIR)/libnm_platform_la-nm-platform.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-netns.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-object.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-rules-manager.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-route-manager.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/tests/$(DEPDIR)/test_nm_platform-test-nm-platform.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-nl80211.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-wext.Plo@am__quote@ # am--include-marker
@@ -15269,12 +15269,12 @@ src/libnm-platform/libnm_platform_la-nmp-object.lo: src/libnm-platform/nmp-objec
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_platform_libnm_platform_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-platform/libnm_platform_la-nmp-object.lo `test -f 'src/libnm-platform/nmp-object.c' || echo '$(srcdir)/'`src/libnm-platform/nmp-object.c
 
-src/libnm-platform/libnm_platform_la-nmp-rules-manager.lo: src/libnm-platform/nmp-rules-manager.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_platform_libnm_platform_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-platform/libnm_platform_la-nmp-rules-manager.lo -MD -MP -MF src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-rules-manager.Tpo -c -o src/libnm-platform/libnm_platform_la-nmp-rules-manager.lo `test -f 'src/libnm-platform/nmp-rules-manager.c' || echo '$(srcdir)/'`src/libnm-platform/nmp-rules-manager.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-rules-manager.Tpo src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-rules-manager.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-platform/nmp-rules-manager.c' object='src/libnm-platform/libnm_platform_la-nmp-rules-manager.lo' libtool=yes @AMDEPBACKSLASH@
+src/libnm-platform/libnm_platform_la-nmp-route-manager.lo: src/libnm-platform/nmp-route-manager.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_platform_libnm_platform_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-platform/libnm_platform_la-nmp-route-manager.lo -MD -MP -MF src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-route-manager.Tpo -c -o src/libnm-platform/libnm_platform_la-nmp-route-manager.lo `test -f 'src/libnm-platform/nmp-route-manager.c' || echo '$(srcdir)/'`src/libnm-platform/nmp-route-manager.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-route-manager.Tpo src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-route-manager.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-platform/nmp-route-manager.c' object='src/libnm-platform/libnm_platform_la-nmp-route-manager.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_platform_libnm_platform_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-platform/libnm_platform_la-nmp-rules-manager.lo `test -f 'src/libnm-platform/nmp-rules-manager.c' || echo '$(srcdir)/'`src/libnm-platform/nmp-rules-manager.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_platform_libnm_platform_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-platform/libnm_platform_la-nmp-route-manager.lo `test -f 'src/libnm-platform/nmp-route-manager.c' || echo '$(srcdir)/'`src/libnm-platform/nmp-route-manager.c
 
 src/libnm-platform/wifi/libnm_platform_la-nm-wifi-utils-nl80211.lo: src/libnm-platform/wifi/nm-wifi-utils-nl80211.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_platform_libnm_platform_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-platform/wifi/libnm_platform_la-nm-wifi-utils-nl80211.lo -MD -MP -MF src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-nl80211.Tpo -c -o src/libnm-platform/wifi/libnm_platform_la-nm-wifi-utils-nl80211.lo `test -f 'src/libnm-platform/wifi/nm-wifi-utils-nl80211.c' || echo '$(srcdir)/'`src/libnm-platform/wifi/nm-wifi-utils-nl80211.c
@@ -19958,7 +19958,7 @@ distclean: distclean-recursive
 	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nm-platform.Plo
 	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-netns.Plo
 	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-object.Plo
-	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-rules-manager.Plo
+	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-route-manager.Plo
 	-rm -f src/libnm-platform/tests/$(DEPDIR)/test_nm_platform-test-nm-platform.Po
 	-rm -f src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-nl80211.Plo
 	-rm -f src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-wext.Plo
@@ -20627,7 +20627,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nm-platform.Plo
 	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-netns.Plo
 	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-object.Plo
-	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-rules-manager.Plo
+	-rm -f src/libnm-platform/$(DEPDIR)/libnm_platform_la-nmp-route-manager.Plo
 	-rm -f src/libnm-platform/tests/$(DEPDIR)/test_nm_platform-test-nm-platform.Po
 	-rm -f src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-nl80211.Plo
 	-rm -f src/libnm-platform/wifi/$(DEPDIR)/libnm_platform_la-nm-wifi-utils-wext.Plo
@@ -21310,7 +21310,7 @@ $(src_nm_dispatcher_tests_test_dispatcher_envp_OBJECTS): $(src_libnm_client_publ
 
 $(src_nm_dispatcher_tests_test_dispatcher_envp_OBJECTS): $(src_libnm_core_public_mkenums_h)
 
-src/nm-priv-helper/org.freedesktop.nm-priv-helper.service: $(srcdir)/src/nm-priv-helper/org.freedesktop.nm-priv-helper.service.in
+src/nm-priv-helper/org.freedesktop.nm_priv_helper.service: $(srcdir)/src/nm-priv-helper/org.freedesktop.nm_priv_helper.service.in
 	@sed \
 	-e 's|@libexecdir[@]|$(libexecdir)|g' \
 	$< >$@

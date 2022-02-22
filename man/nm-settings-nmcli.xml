@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-<refentry id="nm-settings-nmcli"><refentryinfo><title>nm-settings-nmcli</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.35.90</refmiscinfo></refmeta><refnamediv><refname>nm-settings-nmcli</refname><refpurpose>Description of settings and properties of NetworkManager connection profiles for nmcli</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
+<refentry id="nm-settings-nmcli"><refentryinfo><title>nm-settings-nmcli</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.35.91</refmiscinfo></refmeta><refnamediv><refname>nm-settings-nmcli</refname><refpurpose>Description of settings and properties of NetworkManager connection profiles for nmcli</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
           NetworkManager is based on a concept of connection profiles, sometimes referred to as
           connections only. These connection profiles contain a network configuration. When
           NetworkManager activates a connection profile on a network device the configuration will
@@ -300,8 +300,76 @@
             Format: boolean</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv4.required-timeout">required-timeout</option></term><listitem><para>The minimum time interval in milliseconds for which dynamic IP configuration should be tried before the connection succeeds. This property is useful for example if both IPv4 and IPv6 are enabled and are allowed to fail. Normally the connection succeeds as soon as one of the two address families completes; by setting a required timeout for e.g. IPv4, one can ensure that even if IP6 succeeds earlier than IPv4, NetworkManager waits some time for IPv4 before the connection becomes active. Note that if "may-fail" is FALSE for the same address family, this property has no effect as NetworkManager needs to wait for the full DHCP timeout. A zero value means that no required timeout is present, -1 means the default value (either configuration ipvx.required-timeout override or zero).</para><para>
             Format: int32</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv4.route-metric">route-metric</option></term><listitem><para>The default metric for routes that don't explicitly specify a metric. The default value -1 means that the metric is chosen automatically based on the device type. The metric applies to dynamic routes, manual (static) routes that don't have an explicit metric setting, address prefix routes, and the default route. Note that for IPv6, the kernel accepts zero (0) but coerces it to 1024 (user default). Hence, setting this property to zero effectively mean setting it to 1024. For IPv4, zero is a regular value for the metric.</para><para>
             Format: int64</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv4.route-table">route-table</option></term><listitem><para>Enable policy routing (source routing) and set the routing table used when adding routes. This affects all routes, including device-routes, IPv4LL, DHCP, SLAAC, default-routes and static routes. But note that static routes can individually overwrite the setting by explicitly specifying a non-zero routing table. If the table setting is left at zero, it is eligible to be overwritten via global configuration. If the property is zero even after applying the global configuration value, policy routing is disabled for the address family of this connection. Policy routing disabled means that NetworkManager will add all routes to the main table (except static routes that explicitly configure a different table). Additionally, NetworkManager will not delete any extraneous routes from tables except the main table. This is to preserve backward compatibility for users who manage routing tables outside of NetworkManager.</para><para>
-            Format: uint32</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv4.routes">routes</option></term><listitem><para>A list of IPv4 destination addresses, prefix length, optional IPv4 next hop addresses, optional route metric, optional attribute. The valid syntax is: "ip[/prefix] [next-hop] [metric] [attribute=val]...[,ip[/prefix]...]". For example "192.0.2.0/24 10.1.1.1 77, 198.51.100.0/24".</para><para>
-            Format: a comma separated list of routes</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv4.routing-rules">routing-rules</option></term><listitem><para/></listitem></varlistentry></variablelist></para></refsect2><refsect2><title>ipv6 setting</title><para>IPv6 Settings.</para><para>
+            Format: uint32</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv4.routes">routes</option></term><listitem><para>
+A list of IPv4 destination addresses, prefix length, optional IPv4
+next hop addresses, optional route metric, optional attribute. The valid syntax is:
+"ip[/prefix] [next-hop] [metric] [attribute=val]...[,ip[/prefix]...]".
+For example "192.0.2.0/24 10.1.1.1 77, 198.51.100.0/24".
+</para><para>
+Various attributes are supported:
+<itemizedlist>
+<listitem>
+<para><literal>"cwnd"</literal> - an unsigned 32 bit integer.</para>
+</listitem>
+<listitem>
+<para><literal>"initcwnd"</literal> - an unsigned 32 bit integer.</para>
+</listitem>
+<listitem>
+<para><literal>"initrwnd"</literal> - an unsigned 32 bit integer.</para>
+</listitem>
+<listitem>
+<para><literal>"lock-cwnd"</literal> - a boolean value.</para>
+</listitem>
+<listitem>
+<para><literal>"lock-initcwnd"</literal> - a boolean value.</para>
+</listitem>
+<listitem>
+<para><literal>"lock-initrwnd"</literal> - a boolean value.</para>
+</listitem>
+<listitem>
+<para><literal>"lock-mtu"</literal> - a boolean value.</para>
+</listitem>
+<listitem>
+<para><literal>"lock-window"</literal> - a boolean value.</para>
+</listitem>
+<listitem>
+<para><literal>"mtu"</literal> - an unsigned 32 bit integer.</para>
+</listitem>
+<listitem>
+<para><literal>"onlink"</literal> - a boolean value.</para>
+</listitem>
+<listitem>
+<para><literal>"scope"</literal> - an unsigned 8 bit integer. IPv4 only.</para>
+</listitem>
+<listitem>
+<para><literal>"src"</literal> - an IPv4 address.</para>
+</listitem>
+<listitem>
+<para><literal>"table"</literal> - an unsigned 32 bit integer. The default depends on ipv4.route-table.</para>
+</listitem>
+<listitem>
+<para><literal>"tos"</literal> - an unsigned 8 bit integer. IPv4 only.</para>
+</listitem>
+<listitem>
+<para><literal>"type"</literal> - one of <literal>unicast</literal>, <literal>local</literal>, <literal>blackhole</literal>,
+<literal>unavailable</literal>, <literal>prohibit</literal>. The default is <literal>unicast</literal>.</para>
+</listitem>
+<listitem>
+<para><literal>"window"</literal> - an unsigned 32 bit integer.</para>
+</listitem>
+</itemizedlist>
+</para><para>
+For details see also `man ip-route`.
+</para><para>
+            Format: a comma separated list of routes</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv4.routing-rules">routing-rules</option></term><listitem><para>
+A comma separated list of routing rules for policy routing. The format
+is based on <command>ip rule add</command> syntax and mostly compatible.
+One difference is that routing rules in NetworkManager always need a
+fixed priority.
+</para><para>
+Example: <literal>priority 5 from 192.167.4.0/24 table 45</literal>
+</para><para>
+            Format: a comma separated list of routing rules</para></listitem></varlistentry></variablelist></para></refsect2><refsect2><title>ipv6 setting</title><para>IPv6 Settings.</para><para>
         Properties:
         <variablelist><varlistentry><term><option id="nm-settings-nmcli.property.ipv6.addr-gen-mode">addr-gen-mode</option></term><listitem><para>Configure method for creating the address for use with RFC4862 IPv6 Stateless Address Autoconfiguration. The permitted values are: NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_EUI64 (0) or NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY (1). If the property is set to EUI64, the addresses will be generated using the interface tokens derived from hardware address. This makes the host part of the address to stay constant, making it possible to track host's presence when it changes networks. The address changes when the interface hardware is replaced. The value of stable-privacy enables use of cryptographically secure hash of a secret host-specific key along with the connection's stable-id and the network address as specified by RFC7217. This makes it impossible to use the address track host's presence, and makes the address stable when the network interface hardware is replaced. On D-Bus, the absence of an addr-gen-mode setting equals enabling stable-privacy. For keyfile plugin, the absence of the setting on disk means EUI64 so that the property doesn't change on upgrade from older versions. Note that this setting is distinct from the Privacy Extensions as configured by "ip6-privacy" property and it does not affect the temporary addresses configured with this option.</para><para>
             Format: int32</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv6.addresses">addresses</option></term><listitem><para>
@@ -328,8 +396,72 @@
             Format: int32</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv6.required-timeout">required-timeout</option></term><listitem><para>The minimum time interval in milliseconds for which dynamic IP configuration should be tried before the connection succeeds. This property is useful for example if both IPv4 and IPv6 are enabled and are allowed to fail. Normally the connection succeeds as soon as one of the two address families completes; by setting a required timeout for e.g. IPv4, one can ensure that even if IP6 succeeds earlier than IPv4, NetworkManager waits some time for IPv4 before the connection becomes active. Note that if "may-fail" is FALSE for the same address family, this property has no effect as NetworkManager needs to wait for the full DHCP timeout. A zero value means that no required timeout is present, -1 means the default value (either configuration ipvx.required-timeout override or zero).</para><para>
             Format: int32</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv6.route-metric">route-metric</option></term><listitem><para>The default metric for routes that don't explicitly specify a metric. The default value -1 means that the metric is chosen automatically based on the device type. The metric applies to dynamic routes, manual (static) routes that don't have an explicit metric setting, address prefix routes, and the default route. Note that for IPv6, the kernel accepts zero (0) but coerces it to 1024 (user default). Hence, setting this property to zero effectively mean setting it to 1024. For IPv4, zero is a regular value for the metric.</para><para>
             Format: int64</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv6.route-table">route-table</option></term><listitem><para>Enable policy routing (source routing) and set the routing table used when adding routes. This affects all routes, including device-routes, IPv4LL, DHCP, SLAAC, default-routes and static routes. But note that static routes can individually overwrite the setting by explicitly specifying a non-zero routing table. If the table setting is left at zero, it is eligible to be overwritten via global configuration. If the property is zero even after applying the global configuration value, policy routing is disabled for the address family of this connection. Policy routing disabled means that NetworkManager will add all routes to the main table (except static routes that explicitly configure a different table). Additionally, NetworkManager will not delete any extraneous routes from tables except the main table. This is to preserve backward compatibility for users who manage routing tables outside of NetworkManager.</para><para>
-            Format: uint32</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv6.routes">routes</option></term><listitem><para>Array of IP routes.</para><para>
-            Format: array of legacy IPv6 route struct</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv6.routing-rules">routing-rules</option></term><listitem><para/></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv6.token">token</option></term><listitem><para>Configure the token for draft-chown-6man-tokenised-ipv6-identifiers-02 IPv6 tokenized interface identifiers. Useful with eui64 addr-gen-mode.</para><para>
+            Format: uint32</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv6.routes">routes</option></term><listitem><para>
+A list of IPv6 destination addresses, prefix length, optional IPv6
+next hop addresses, optional route metric, optional attribute. The valid syntax is:
+"ip[/prefix] [next-hop] [metric] [attribute=val]...[,ip[/prefix]...]".
+</para><para>
+Various attributes are supported:
+<itemizedlist>
+<listitem>
+<para><literal>"cwnd"</literal> - an unsigned 32 bit integer.</para>
+</listitem>
+<listitem>
+<para><literal>"from"</literal> - an IPv6 address with optional prefix. IPv6 only.</para>
+</listitem>
+<listitem>
+<para><literal>"initcwnd"</literal> - an unsigned 32 bit integer.</para>
+</listitem>
+<listitem>
+<para><literal>"initrwnd"</literal> - an unsigned 32 bit integer.</para>
+</listitem>
+<listitem>
+<para><literal>"lock-cwnd"</literal> - a boolean value.</para>
+</listitem>
+<listitem>
+<para><literal>"lock-initcwnd"</literal> - a boolean value.</para>
+</listitem>
+<listitem>
+<para><literal>"lock-initrwnd"</literal> - a boolean value.</para>
+</listitem>
+<listitem>
+<para><literal>"lock-mtu"</literal> - a boolean value.</para>
+</listitem>
+<listitem>
+<para><literal>"lock-window"</literal> - a boolean value.</para>
+</listitem>
+<listitem>
+<para><literal>"mtu"</literal> - an unsigned 32 bit integer.</para>
+</listitem>
+<listitem>
+<para><literal>"onlink"</literal> - a boolean value.</para>
+</listitem>
+<listitem>
+<para><literal>"src"</literal> - an IPv6 address.</para>
+</listitem>
+<listitem>
+<para><literal>"table"</literal> - an unsigned 32 bit integer. The default depends on ipv6.route-table.</para>
+</listitem>
+<listitem>
+<para><literal>"type"</literal> - one of <literal>unicast</literal>, <literal>local</literal>, <literal>blackhole</literal>,
+<literal>unavailable</literal>, <literal>prohibit</literal>. The default is <literal>unicast</literal>.</para>
+</listitem>
+<listitem>
+<para><literal>"window"</literal> - an unsigned 32 bit integer.</para>
+</listitem>
+</itemizedlist>
+</para><para>
+For details see also `man ip-route`.
+</para><para>
+            Format: a comma separated list of routes</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv6.routing-rules">routing-rules</option></term><listitem><para>
+A comma separated list of routing rules for policy routing. The format
+is based on <command>ip rule add</command> syntax and mostly compatible.
+One difference is that routing rules in NetworkManager always need a
+fixed priority.
+</para><para>
+Example: <literal>priority 5 from 1:2:3::5/128 table 45</literal>
+</para><para>
+            Format: a comma separated list of routing rules</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ipv6.token">token</option></term><listitem><para>Configure the token for draft-chown-6man-tokenised-ipv6-identifiers-02 IPv6 tokenized interface identifiers. Useful with eui64 addr-gen-mode.</para><para>
             Format: string</para></listitem></varlistentry></variablelist></para></refsect2><refsect2><title>ip-tunnel setting</title><para>IP Tunneling Settings.</para><para>
         Properties:
         <variablelist><varlistentry><term><option id="nm-settings-nmcli.property.ip-tunnel.encapsulation-limit">encapsulation-limit</option></term><listitem><para>How many additional levels of encapsulation are permitted to be prepended to packets. This property applies only to IPv6 tunnels.</para><para>
@@ -481,9 +613,7 @@ Linux traffic control subsystem
 Each qdisc can be specified by the following attributes:
 </para><variablelist>
 <varlistentry>
-<term>
-<varname>handle HANDLE</varname>
-</term>
+<term><varname>handle HANDLE</varname></term>
 <listitem>
 <para>
 specifies the qdisc handle. A qdisc, which potentially can have children, gets
@@ -494,9 +624,7 @@ explicitly assign a handle to qdiscs expected to have children.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>parent HANDLE</varname>
-</term>
+<term><varname>parent HANDLE</varname></term>
 <listitem>
 <para>
 specifies the handle of the parent qdisc the current qdisc must be
@@ -505,9 +633,7 @@ attached to.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>root</varname>
-</term>
+<term><varname>root</varname></term>
 <listitem>
 <para>
 specifies that the qdisc is attached to the root of device.
@@ -515,9 +641,7 @@ specifies that the qdisc is attached to the root of device.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>KIND</varname>
-</term>
+<term><varname>KIND</varname></term>
 <listitem>
 <para>
 this is the qdisc kind. NetworkManager currently supports the
@@ -532,9 +656,7 @@ but their parameters are not supported by NetworkManager.
 Parameters for 'fq_codel':
 </para><variablelist>
 <varlistentry>
-<term>
-<varname>limit U32</varname>
-</term>
+<term><varname>limit U32</varname></term>
 <listitem>
 <para>
 the hard limit on the real queue size.  When this limit is
@@ -543,9 +665,7 @@ reached, incoming packets are dropped. Default is 10240 packets.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>memory_limit U32</varname>
-</term>
+<term><varname>memory_limit U32</varname></term>
 <listitem>
 <para>
 sets a limit on the total number of bytes that can be queued in
@@ -556,9 +676,7 @@ limit parameter and the memory limit will be enforced. Default is
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>flows U32</varname>
-</term>
+<term><varname>flows U32</varname></term>
 <listitem>
 <para>
 the number of flows into which the incoming packets are
@@ -571,9 +689,7 @@ Default value is 1024.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>target U32</varname>
-</term>
+<term><varname>target U32</varname></term>
 <listitem>
 <para>
 the acceptable minimum standing/persistent queue delay. This minimum
@@ -583,9 +699,7 @@ experience. The unit of measurement is microsecond(us). Default value is 5ms.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>interval U32</varname>
-</term>
+<term><varname>interval U32</varname></term>
 <listitem>
 <para>
 used to ensure that the measured minimum delay does not become too stale.
@@ -597,9 +711,7 @@ react. Default value is 100ms.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>quantum U32</varname>
-</term>
+<term><varname>quantum U32</varname></term>
 <listitem>
 <para>
 the number of bytes used as 'deficit' in the fair queuing
@@ -609,9 +721,7 @@ Ethernet MTU plus the hardware header length of 14 bytes.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>ecn BOOL</varname>
-</term>
+<term><varname>ecn BOOL</varname></term>
 <listitem>
 <para>
 can be used to mark packets instead of dropping them. ecn is turned
@@ -620,9 +730,7 @@ on by default.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>ce_threshold U32</varname>
-</term>
+<term><varname>ce_threshold U32</varname></term>
 <listitem>
 <para>
 sets a threshold above which all packets are marked with ECN
@@ -636,9 +744,7 @@ thresholds.
 Parameters for 'sfq':
 </para><variablelist>
 <varlistentry>
-<term>
-<varname>divisor U32</varname>
-</term>
+<term><varname>divisor U32</varname></term>
 <listitem>
 <para>
 can be used to set a different hash table size, available
@@ -649,9 +755,7 @@ value: 1024.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>limit U32</varname>
-</term>
+<term><varname>limit U32</varname></term>
 <listitem>
 <para>
 Upper limit of the SFQ. Can be used to reduce the default
@@ -660,9 +764,7 @@ length of 127 packets.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>depth U32</varname>
-</term>
+<term><varname>depth U32</varname></term>
 <listitem>
 <para>
 Limit of packets per flow. Default to
@@ -671,9 +773,7 @@ Limit of packets per flow. Default to
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>perturb_period U32</varname>
-</term>
+<term><varname>perturb_period U32</varname></term>
 <listitem>
 <para>
 Interval in seconds for queue algorithm perturbation.
@@ -687,9 +787,7 @@ collisions.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>quantum U32</varname>
-</term>
+<term><varname>quantum U32</varname></term>
 <listitem>
 <para>
 Amount of bytes a flow is allowed to dequeue during a
@@ -700,9 +798,7 @@ minimum value.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>flows U32</varname>
-</term>
+<term><varname>flows U32</varname></term>
 <listitem>
 <para>
 Default value is 127.
@@ -713,9 +809,7 @@ Default value is 127.
 Parameters for 'tbf':
 </para><variablelist>
 <varlistentry>
-<term>
-<varname>rate U64</varname>
-</term>
+<term><varname>rate U64</varname></term>
 <listitem>
 <para>
 Bandwidth or rate.  These parameters accept a floating
@@ -727,9 +821,7 @@ device's speed.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>burst U32</varname>
-</term>
+<term><varname>burst U32</varname></term>
 <listitem>
 <para>
 Also known as buffer or maxburst.  Size of the bucket, in
@@ -756,9 +848,7 @@ have to set this. Must be an integral power of 2.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>limit U32</varname>
-</term>
+<term><varname>limit U32</varname></term>
 <listitem>
 <para>
 Limit is the number of bytes that can be queued waiting
@@ -767,9 +857,7 @@ for tokens to become available.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>latency U32</varname>
-</term>
+<term><varname>latency U32</varname></term>
 <listitem>
 <para>
 specifies the maximum amount of time a packet can
@@ -787,9 +875,7 @@ classification by using filters.
 Each tfilters can be specified by the following attributes:
 </para><variablelist>
 <varlistentry>
-<term>
-<varname>handle HANDLE</varname>
-</term>
+<term><varname>handle HANDLE</varname></term>
 <listitem>
 <para>
 specifies the tfilters handle. A filter is used by a classful qdisc to determine in which class
@@ -799,9 +885,7 @@ see qdiscs handle for detailed information.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>parent HANDLE</varname>
-</term>
+<term><varname>parent HANDLE</varname></term>
 <listitem>
 <para>
 specifies the handle of the parent qdisc the current qdisc must be
@@ -810,9 +894,7 @@ attached to.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>root</varname>
-</term>
+<term><varname>root</varname></term>
 <listitem>
 <para>
 specifies that the qdisc is attached to the root of device.
@@ -820,9 +902,7 @@ specifies that the qdisc is attached to the root of device.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>KIND</varname>
-</term>
+<term><varname>KIND</varname></term>
 <listitem>
 <para>
 this is the tfilters kind. NetworkManager currently supports
@@ -836,9 +916,7 @@ other kinds like matchall, basic, u32 supported by NetworkManager.
 Actions for 'mirred':
 </para><variablelist>
 <varlistentry>
-<term>
-<varname>egress bool</varname>
-</term>
+<term><varname>egress bool</varname></term>
 <listitem>
 <para>
 Define whether the packet should exit from the interface.
@@ -846,9 +924,7 @@ Define whether the packet should exit from the interface.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>ingress bool</varname>
-</term>
+<term><varname>ingress bool</varname></term>
 <listitem>
 <para>
 Define whether the packet should come into the interface.
@@ -856,9 +932,7 @@ Define whether the packet should come into the interface.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>mirror bool</varname>
-</term>
+<term><varname>mirror bool</varname></term>
 <listitem>
 <para>
 Define whether the packet should be copied to the destination space.
@@ -866,9 +940,7 @@ Define whether the packet should be copied to the destination space.
 </listitem>
 </varlistentry>
 <varlistentry>
-<term>
-<varname>redirect bool</varname>
-</term>
+<term><varname>redirect bool</varname></term>
 <listitem>
 <para>
 Define whether the packet should be moved to the destination space.
@@ -879,9 +951,7 @@ Define whether the packet should be moved to the destination space.
 Action for 'simple':
 </para><variablelist>
 <varlistentry>
-<term>
-<varname>sdata char[32]</varname>
-</term>
+<term><varname>sdata char[32]</varname></term>
 <listitem>
 <para>
 The actual string to print.

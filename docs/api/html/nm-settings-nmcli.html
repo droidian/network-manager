@@ -2157,14 +2157,58 @@
 <tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.ipv4.routes"></a>routes</code></span></p></td>
 <td>
-<p>A list of IPv4 destination addresses, prefix length, optional IPv4 next hop addresses, optional route metric, optional attribute. The valid syntax is: "ip[/prefix] [next-hop] [metric] [attribute=val]...[,ip[/prefix]...]". For example "192.0.2.0/24 10.1.1.1 77, 198.51.100.0/24".</p>
+<p>
+A list of IPv4 destination addresses, prefix length, optional IPv4
+next hop addresses, optional route metric, optional attribute. The valid syntax is:
+"ip[/prefix] [next-hop] [metric] [attribute=val]...[,ip[/prefix]...]".
+For example "192.0.2.0/24 10.1.1.1 77, 198.51.100.0/24".
+</p>
+<p>
+Various attributes are supported:
+</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><code class="literal">"cwnd"</code> - an unsigned 32 bit integer.</p></li>
+<li class="listitem"><p><code class="literal">"initcwnd"</code> - an unsigned 32 bit integer.</p></li>
+<li class="listitem"><p><code class="literal">"initrwnd"</code> - an unsigned 32 bit integer.</p></li>
+<li class="listitem"><p><code class="literal">"lock-cwnd"</code> - a boolean value.</p></li>
+<li class="listitem"><p><code class="literal">"lock-initcwnd"</code> - a boolean value.</p></li>
+<li class="listitem"><p><code class="literal">"lock-initrwnd"</code> - a boolean value.</p></li>
+<li class="listitem"><p><code class="literal">"lock-mtu"</code> - a boolean value.</p></li>
+<li class="listitem"><p><code class="literal">"lock-window"</code> - a boolean value.</p></li>
+<li class="listitem"><p><code class="literal">"mtu"</code> - an unsigned 32 bit integer.</p></li>
+<li class="listitem"><p><code class="literal">"onlink"</code> - a boolean value.</p></li>
+<li class="listitem"><p><code class="literal">"scope"</code> - an unsigned 8 bit integer. IPv4 only.</p></li>
+<li class="listitem"><p><code class="literal">"src"</code> - an IPv4 address.</p></li>
+<li class="listitem"><p><code class="literal">"table"</code> - an unsigned 32 bit integer. The default depends on ipv4.route-table.</p></li>
+<li class="listitem"><p><code class="literal">"tos"</code> - an unsigned 8 bit integer. IPv4 only.</p></li>
+<li class="listitem"><p><code class="literal">"type"</code> - one of <code class="literal">unicast</code>, <code class="literal">local</code>, <code class="literal">blackhole</code>,
+<code class="literal">unavailable</code>, <code class="literal">prohibit</code>. The default is <code class="literal">unicast</code>.</p></li>
+<li class="listitem"><p><code class="literal">"window"</code> - an unsigned 32 bit integer.</p></li>
+</ul></div>
+<p>
+</p>
+<p>
+For details see also `man ip-route`.
+</p>
 <p>
             Format: a comma separated list of routes</p>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.ipv4.routing-rules"></a>routing-rules</code></span></p></td>
-<td><p></p></td>
+<td>
+<p>
+A comma separated list of routing rules for policy routing. The format
+is based on <span class="command"><strong>ip rule add</strong></span> syntax and mostly compatible.
+One difference is that routing rules in NetworkManager always need a
+fixed priority.
+</p>
+<p>
+Example: <code class="literal">priority 5 from 192.167.4.0/24 table 45</code>
+</p>
+<p>
+            Format: a comma separated list of routing rules</p>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -2373,14 +2417,56 @@
 <tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.ipv6.routes"></a>routes</code></span></p></td>
 <td>
-<p>Array of IP routes.</p>
 <p>
-            Format: array of legacy IPv6 route struct</p>
+A list of IPv6 destination addresses, prefix length, optional IPv6
+next hop addresses, optional route metric, optional attribute. The valid syntax is:
+"ip[/prefix] [next-hop] [metric] [attribute=val]...[,ip[/prefix]...]".
+</p>
+<p>
+Various attributes are supported:
+</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><code class="literal">"cwnd"</code> - an unsigned 32 bit integer.</p></li>
+<li class="listitem"><p><code class="literal">"from"</code> - an IPv6 address with optional prefix. IPv6 only.</p></li>
+<li class="listitem"><p><code class="literal">"initcwnd"</code> - an unsigned 32 bit integer.</p></li>
+<li class="listitem"><p><code class="literal">"initrwnd"</code> - an unsigned 32 bit integer.</p></li>
+<li class="listitem"><p><code class="literal">"lock-cwnd"</code> - a boolean value.</p></li>
+<li class="listitem"><p><code class="literal">"lock-initcwnd"</code> - a boolean value.</p></li>
+<li class="listitem"><p><code class="literal">"lock-initrwnd"</code> - a boolean value.</p></li>
+<li class="listitem"><p><code class="literal">"lock-mtu"</code> - a boolean value.</p></li>
+<li class="listitem"><p><code class="literal">"lock-window"</code> - a boolean value.</p></li>
+<li class="listitem"><p><code class="literal">"mtu"</code> - an unsigned 32 bit integer.</p></li>
+<li class="listitem"><p><code class="literal">"onlink"</code> - a boolean value.</p></li>
+<li class="listitem"><p><code class="literal">"src"</code> - an IPv6 address.</p></li>
+<li class="listitem"><p><code class="literal">"table"</code> - an unsigned 32 bit integer. The default depends on ipv6.route-table.</p></li>
+<li class="listitem"><p><code class="literal">"type"</code> - one of <code class="literal">unicast</code>, <code class="literal">local</code>, <code class="literal">blackhole</code>,
+<code class="literal">unavailable</code>, <code class="literal">prohibit</code>. The default is <code class="literal">unicast</code>.</p></li>
+<li class="listitem"><p><code class="literal">"window"</code> - an unsigned 32 bit integer.</p></li>
+</ul></div>
+<p>
+</p>
+<p>
+For details see also `man ip-route`.
+</p>
+<p>
+            Format: a comma separated list of routes</p>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.ipv6.routing-rules"></a>routing-rules</code></span></p></td>
-<td><p></p></td>
+<td>
+<p>
+A comma separated list of routing rules for policy routing. The format
+is based on <span class="command"><strong>ip rule add</strong></span> syntax and mostly compatible.
+One difference is that routing rules in NetworkManager always need a
+fixed priority.
+</p>
+<p>
+Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
+</p>
+<p>
+            Format: a comma separated list of routing rules</p>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.ipv6.token"></a>token</code></span></p></td>
@@ -3377,9 +3463,7 @@ Each qdisc can be specified by the following attributes:
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term">
-<code class="varname">handle HANDLE</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">handle HANDLE</code></span></p></td>
 <td><p>
 specifies the qdisc handle. A qdisc, which potentially can have children, gets
 assigned a major number, called a 'handle', leaving the minor number namespace
@@ -3388,26 +3472,20 @@ explicitly assign a handle to qdiscs expected to have children.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">parent HANDLE</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">parent HANDLE</code></span></p></td>
 <td><p>
 specifies the handle of the parent qdisc the current qdisc must be
 attached to.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">root</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">root</code></span></p></td>
 <td><p>
 specifies that the qdisc is attached to the root of device.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">KIND</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">KIND</code></span></p></td>
 <td><p>
 this is the qdisc kind. NetworkManager currently supports the
 following kinds: fq_codel, sfq, tbf. Each qdisc kind has a
@@ -3428,18 +3506,14 @@ Parameters for 'fq_codel':
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term">
-<code class="varname">limit U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">limit U32</code></span></p></td>
 <td><p>
 the hard limit on the real queue size.  When this limit is
 reached, incoming packets are dropped. Default is 10240 packets.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">memory_limit U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">memory_limit U32</code></span></p></td>
 <td><p>
 sets a limit on the total number of bytes that can be queued in
 this FQ-CoDel instance. The lower of the packet limit of the
@@ -3448,9 +3522,7 @@ limit parameter and the memory limit will be enforced. Default is
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">flows U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">flows U32</code></span></p></td>
 <td><p>
 the number of flows into which the incoming packets are
 classified. Due to the stochastic nature of hashing, multiple
@@ -3461,9 +3533,7 @@ Default value is 1024.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">target U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">target U32</code></span></p></td>
 <td><p>
 the acceptable minimum standing/persistent queue delay. This minimum
 delay is identified by tracking the local minimum queue delay that packets
@@ -3471,9 +3541,7 @@ experience. The unit of measurement is microsecond(us). Default value is 5ms.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">interval U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">interval U32</code></span></p></td>
 <td><p>
 used to ensure that the measured minimum delay does not become too stale.
 The minimum delay must be experienced in the last epoch of length .B
@@ -3483,9 +3551,7 @@ react. Default value is 100ms.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">quantum U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">quantum U32</code></span></p></td>
 <td><p>
 the number of bytes used as 'deficit' in the fair queuing
 algorithm. Default is set to 1514 bytes which corresponds to the
@@ -3493,18 +3559,14 @@ Ethernet MTU plus the hardware header length of 14 bytes.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">ecn BOOL</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">ecn BOOL</code></span></p></td>
 <td><p>
 can be used to mark packets instead of dropping them. ecn is turned
 on by default.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">ce_threshold U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">ce_threshold U32</code></span></p></td>
 <td><p>
 sets a threshold above which all packets are marked with ECN
 Congestion Experienced. This is useful for DCTCP-style congestion
@@ -3524,9 +3586,7 @@ Parameters for 'sfq':
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term">
-<code class="varname">divisor U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">divisor U32</code></span></p></td>
 <td><p>
 can be used to set a different hash table size, available
 from kernel 2.6.39 onwards.  The specified divisor must be
@@ -3535,27 +3595,21 @@ value: 1024.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">limit U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">limit U32</code></span></p></td>
 <td><p>
 Upper limit of the SFQ. Can be used to reduce the default
 length of 127 packets.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">depth U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">depth U32</code></span></p></td>
 <td><p>
 Limit of packets per flow. Default to
 127 and can be lowered.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">perturb_period U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">perturb_period U32</code></span></p></td>
 <td><p>
 Interval in seconds for queue algorithm perturbation.
 Defaults to 0, which means that no perturbation occurs. Do
@@ -3567,9 +3621,7 @@ collisions.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">quantum U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">quantum U32</code></span></p></td>
 <td><p>
 Amount of bytes a flow is allowed to dequeue during a
 round of the round robin process.  Defaults to the MTU of
@@ -3578,9 +3630,7 @@ minimum value.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">flows U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">flows U32</code></span></p></td>
 <td><p>
 Default value is 127.
 </p></td>
@@ -3597,9 +3647,7 @@ Parameters for 'tbf':
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term">
-<code class="varname">rate U64</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">rate U64</code></span></p></td>
 <td><p>
 Bandwidth or rate.  These parameters accept a floating
 point number, possibly followed by either a unit (both SI
@@ -3609,9 +3657,7 @@ device's speed.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">burst U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">burst U32</code></span></p></td>
 <td>
 <p>
 Also known as buffer or maxburst.  Size of the bucket, in
@@ -3638,18 +3684,14 @@ have to set this. Must be an integral power of 2.
 </td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">limit U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">limit U32</code></span></p></td>
 <td><p>
 Limit is the number of bytes that can be queued waiting
 for tokens to become available.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">latency U32</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">latency U32</code></span></p></td>
 <td><p>
 specifies the maximum amount of time a packet can
 sit in the TBF. The latency calculation takes into account
@@ -3680,9 +3722,7 @@ Each tfilters can be specified by the following attributes:
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term">
-<code class="varname">handle HANDLE</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">handle HANDLE</code></span></p></td>
 <td><p>
 specifies the tfilters handle. A filter is used by a classful qdisc to determine in which class
 a packet will be enqueued. It is important to notice that filters reside within qdiscs. Therefore,
@@ -3690,26 +3730,20 @@ see qdiscs handle for detailed information.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">parent HANDLE</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">parent HANDLE</code></span></p></td>
 <td><p>
 specifies the handle of the parent qdisc the current qdisc must be
 attached to.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">root</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">root</code></span></p></td>
 <td><p>
 specifies that the qdisc is attached to the root of device.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">KIND</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">KIND</code></span></p></td>
 <td><p>
 this is the tfilters kind. NetworkManager currently supports
 following kinds: mirred, simple. Each filter kind has a
@@ -3729,33 +3763,25 @@ Actions for 'mirred':
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term">
-<code class="varname">egress bool</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">egress bool</code></span></p></td>
 <td><p>
 Define whether the packet should exit from the interface.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">ingress bool</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">ingress bool</code></span></p></td>
 <td><p>
 Define whether the packet should come into the interface.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">mirror bool</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">mirror bool</code></span></p></td>
 <td><p>
 Define whether the packet should be copied to the destination space.
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">
-<code class="varname">redirect bool</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">redirect bool</code></span></p></td>
 <td><p>
 Define whether the packet should be moved to the destination space.
 </p></td>
@@ -3771,9 +3797,7 @@ Action for 'simple':
 <col>
 </colgroup>
 <tbody><tr>
-<td><p><span class="term">
-<code class="varname">sdata char[32]</code>
-</span></p></td>
+<td><p><span class="term"><code class="varname">sdata char[32]</code></span></p></td>
 <td><p>
 The actual string to print.
 </p></td>

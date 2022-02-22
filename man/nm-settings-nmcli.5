@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 02/04/2022
+.\"      Date: 02/10/2022
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.35.90
+.\"    Source: NetworkManager 1.35.91
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.35\&.90" "Configuration"
+.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.35\&.91" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -1834,11 +1834,221 @@ Format: uint32
 .RS 4
 A list of IPv4 destination addresses, prefix length, optional IPv4 next hop addresses, optional route metric, optional attribute\&. The valid syntax is: "ip[/prefix] [next\-hop] [metric] [attribute=val]\&.\&.\&.[,ip[/prefix]\&.\&.\&.]"\&. For example "192\&.0\&.2\&.0/24 10\&.1\&.1\&.1 77, 198\&.51\&.100\&.0/24"\&.
 .sp
+Various attributes are supported:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"cwnd"
+\- an unsigned 32 bit integer\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"initcwnd"
+\- an unsigned 32 bit integer\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"initrwnd"
+\- an unsigned 32 bit integer\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"lock\-cwnd"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"lock\-initcwnd"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"lock\-initrwnd"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"lock\-mtu"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"lock\-window"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"mtu"
+\- an unsigned 32 bit integer\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"onlink"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"scope"
+\- an unsigned 8 bit integer\&. IPv4 only\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"src"
+\- an IPv4 address\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"table"
+\- an unsigned 32 bit integer\&. The default depends on ipv4\&.route\-table\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"tos"
+\- an unsigned 8 bit integer\&. IPv4 only\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"type"
+\- one of
+unicast,
+local,
+blackhole,
+unavailable,
+prohibit\&. The default is
+unicast\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"window"
+\- an unsigned 32 bit integer\&.
+.RE
+.sp
+For details see also `man ip\-route`\&.
+.sp
 Format: a comma separated list of routes
 .RE
 .PP
 \fBrouting\-rules\fR
 .RS 4
+A comma separated list of routing rules for policy routing\&. The format is based on
+\fBip rule add\fR
+syntax and mostly compatible\&. One difference is that routing rules in NetworkManager always need a fixed priority\&.
+.sp
+Example:
+priority 5 from 192\&.167\&.4\&.0/24 table 45
+.sp
+Format: a comma separated list of routing rules
 .RE
 .SS "ipv6 setting"
 .PP
@@ -2013,13 +2223,211 @@ Format: uint32
 .PP
 \fBroutes\fR
 .RS 4
-Array of IP routes\&.
+A list of IPv6 destination addresses, prefix length, optional IPv6 next hop addresses, optional route metric, optional attribute\&. The valid syntax is: "ip[/prefix] [next\-hop] [metric] [attribute=val]\&.\&.\&.[,ip[/prefix]\&.\&.\&.]"\&.
 .sp
-Format: array of legacy IPv6 route struct
+Various attributes are supported:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"cwnd"
+\- an unsigned 32 bit integer\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"from"
+\- an IPv6 address with optional prefix\&. IPv6 only\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"initcwnd"
+\- an unsigned 32 bit integer\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"initrwnd"
+\- an unsigned 32 bit integer\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"lock\-cwnd"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"lock\-initcwnd"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"lock\-initrwnd"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"lock\-mtu"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"lock\-window"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"mtu"
+\- an unsigned 32 bit integer\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"onlink"
+\- a boolean value\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"src"
+\- an IPv6 address\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"table"
+\- an unsigned 32 bit integer\&. The default depends on ipv6\&.route\-table\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"type"
+\- one of
+unicast,
+local,
+blackhole,
+unavailable,
+prohibit\&. The default is
+unicast\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+"window"
+\- an unsigned 32 bit integer\&.
+.RE
+.sp
+For details see also `man ip\-route`\&.
+.sp
+Format: a comma separated list of routes
 .RE
 .PP
 \fBrouting\-rules\fR
 .RS 4
+A comma separated list of routing rules for policy routing\&. The format is based on
+\fBip rule add\fR
+syntax and mostly compatible\&. One difference is that routing rules in NetworkManager always need a fixed priority\&.
+.sp
+Example:
+priority 5 from 1:2:3::5/128 table 45
+.sp
+Format: a comma separated list of routing rules
 .RE
 .PP
 \fBtoken\fR

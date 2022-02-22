@@ -603,8 +603,8 @@ src_libnm_platform_libnm_platform_la_SOURCES = \
 	src/libnm-platform/nmp-netns.h \
 	src/libnm-platform/nmp-object.c \
 	src/libnm-platform/nmp-object.h \
-	src/libnm-platform/nmp-rules-manager.c \
-	src/libnm-platform/nmp-rules-manager.h \
+	src/libnm-platform/nmp-route-manager.c \
+	src/libnm-platform/nmp-route-manager.h \
 	src/libnm-platform/wifi/nm-wifi-utils-nl80211.c \
 	src/libnm-platform/wifi/nm-wifi-utils-nl80211.h \
 	src/libnm-platform/wifi/nm-wifi-utils-private.h \
@@ -4595,19 +4595,19 @@ src_nm_priv_helper_nm_priv_helper_LDADD = \
 	$(GLIB_LIBS) \
 	$(NULL)
 
-src/nm-priv-helper/org.freedesktop.nm-priv-helper.service: $(srcdir)/src/nm-priv-helper/org.freedesktop.nm-priv-helper.service.in
+src/nm-priv-helper/org.freedesktop.nm_priv_helper.service: $(srcdir)/src/nm-priv-helper/org.freedesktop.nm_priv_helper.service.in
 	@sed \
 	-e 's|@libexecdir[@]|$(libexecdir)|g' \
 	$< >$@
 
-dbusactivation_DATA += src/nm-priv-helper/org.freedesktop.nm-priv-helper.service
-CLEANFILES += src/nm-priv-helper/org.freedesktop.nm-priv-helper.service
+dbusactivation_DATA += src/nm-priv-helper/org.freedesktop.nm_priv_helper.service
+CLEANFILES += src/nm-priv-helper/org.freedesktop.nm_priv_helper.service
 
 dbusservice_DATA += src/nm-priv-helper/nm-priv-helper.conf
 
 EXTRA_DIST += \
 	src/nm-priv-helper/nm-priv-helper.conf \
-	src/nm-priv-helper/org.freedesktop.nm-priv-helper.service.in \
+	src/nm-priv-helper/org.freedesktop.nm_priv_helper.service.in \
 	src/nm-priv-helper/meson.build \
 	$(NULL)
 
