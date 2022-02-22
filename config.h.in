@@ -195,6 +195,9 @@
    (--with-config-dns-rc-manager-default) */
 #undef NM_CONFIG_DEFAULT_MAIN_RC_MANAGER
 
+/* Default configuration option for wifi.backend */
+#undef NM_CONFIG_DEFAULT_WIFI_BACKEND
+
 /* Define the distribution version string */
 #undef NM_DIST_VERSION
 

@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 01/13/2022
+.\"      Date: 02/04/2022
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.34.0
+.\"    Source: NetworkManager 1.35.90
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.34\&.0" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.35\&.90" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -209,8 +209,13 @@ for the syntax how to specify a device\&.
 .PP
 \fIconfigure\-and\-quit\fR
 .RS 4
-When set to \*(Aqtrue\*(Aq, NetworkManager quits after performing initial network configuration but spawns small helpers to preserve DHCP leases and IPv6 addresses\&. This is useful in environments where network setup is more or less static or it is desirable to save process time but still handle some dynamic configurations\&. When this option is
-true, network configuration for Wi\-Fi, WWAN, Bluetooth, ADSL, and PPPoE interfaces cannot be preserved due to their use of external services, and these devices will be deconfigured when NetworkManager quits even though other interface\*(Aqs configuration may be preserved\&. Also, to preserve DHCP addresses the \*(Aqdhcp\*(Aq option must be set to \*(Aqinternal\*(Aq\&. The default value of the \*(Aqconfigure\-and\-quit\*(Aq option is \*(Aqfalse\*(Aq, meaning that NetworkManager will continue running after initial network configuration and continue responding to system and hardware events, D\-Bus requests, and user commands\&.
+This option is no longer useful to configure in NetworkManager\&.conf file\&. It can however also be configured on the command line with the same values, where it has some use\&.
+.sp
+When set to \*(Aqinitrd\*(Aq, NetworkManager does not connect to D\-Bus and quits after configuring the network\&. This is an implementation detail how the NetworkManager module of dracut can run NetworkManager\&. An alternative to this is having NetworkManager as a systemd service with D\-Bus in initrd\&.
+.sp
+The value \*(Aqtrue\*(Aq is unsupported since version 1\&.36\&. Previously this was a mode where NetworkManager would quit after configuring the network and run helper processes for DHCP and SLAAC\&.
+.sp
+Otherwise, NetworkManager runs a system service with D\-Bus and does not quit during normal operation\&.
 .RE
 .PP
 \fIhostname\-mode\fR
@@ -1112,7 +1117,7 @@ Specify the Wi\-Fi backend used for the device\&. Currently, supported are
 wpa_supplicant
 and
 iwd
-(experimental)\&.
+(experimental)\&. If unspecified, the default is "wpa_supplicant"\&.
 .RE
 .PP
 \fIwifi\&.scan\-generate\-mac\-address\-mask\fR

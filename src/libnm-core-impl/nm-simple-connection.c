@@ -139,7 +139,7 @@ NMConnection *
 nm_simple_connection_new_clone(NMConnection *connection)
 {
     NMConnection *clone;
-    const char *  path;
+    const char   *path;
 
     g_return_val_if_fail(NM_IS_CONNECTION(connection), NULL);
 
@@ -163,8 +163,6 @@ dispose(GObject *object)
     g_signal_handlers_disconnect_by_data(object,
                                          (gpointer) &_nm_assert_connection_unchanging_user_data);
 #endif
-
-    nm_connection_clear_secrets(connection);
 
     _nm_connection_private_clear(_GET_PRIVATE(connection));
 

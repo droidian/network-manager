@@ -48,11 +48,11 @@ NM_GOBJECT_PROPERTIES_DEFINE_BASE(PROP_IP6_PRIVACY,
 typedef struct {
     NMSettingIPConfigPrivate parent;
 
-    char *                        token;
-    char *                        dhcp_duid;
-    NMSettingIP6ConfigPrivacy     ip6_privacy;
-    NMSettingIP6ConfigAddrGenMode addr_gen_mode;
-    gint32                        ra_timeout;
+    char  *token;
+    char  *dhcp_duid;
+    int    ip6_privacy;
+    gint32 addr_gen_mode;
+    gint32 ra_timeout;
 } NMSettingIP6ConfigPrivate;
 
 /**
@@ -175,9 +175,9 @@ static gboolean
 verify(NMSetting *setting, NMConnection *connection, GError **error)
 {
     NMSettingIP6ConfigPrivate *priv = NM_SETTING_IP6_CONFIG_GET_PRIVATE(setting);
-    NMSettingIPConfig *        s_ip = NM_SETTING_IP_CONFIG(setting);
+    NMSettingIPConfig         *s_ip = NM_SETTING_IP_CONFIG(setting);
     NMSettingVerifyResult      ret;
-    const char *               method;
+    const char                *method;
     gboolean                   token_needs_normalization = FALSE;
 
     ret = NM_SETTING_CLASS(nm_setting_ip6_config_parent_class)->verify(setting, connection, error);
@@ -385,7 +385,7 @@ static GVariant *
 ip6_addresses_get(_NM_SETT_INFO_PROP_TO_DBUS_FCN_ARGS _nm_nil)
 {
     gs_unref_ptrarray GPtrArray *addrs = NULL;
-    const char *                 gateway;
+    const char                  *gateway;
 
     g_object_get(setting, NM_SETTING_IP_CONFIG_ADDRESSES, &addrs, NULL);
     gateway = nm_setting_ip_config_get_gateway(NM_SETTING_IP_CONFIG(setting));
@@ -396,7 +396,7 @@ static gboolean
 ip6_addresses_set(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
 {
     GPtrArray *addrs;
-    char *     gateway = NULL;
+    char      *gateway = NULL;
 
     if (!_nm_setting_use_legacy_property(setting, connection_dict, "addresses", "address-data")) {
         *out_is_modified = FALSE;
@@ -502,72 +502,11 @@ ip6_route_data_set(_NM_SETT_INFO_PROP_FROM_DBUS_FCN_ARGS _nm_nil)
 /*****************************************************************************/
 
 static void
-get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
-{
-    NMSettingIP6ConfigPrivate *priv = NM_SETTING_IP6_CONFIG_GET_PRIVATE(object);
-
-    switch (prop_id) {
-    case PROP_IP6_PRIVACY:
-        g_value_set_enum(value, priv->ip6_privacy);
-        break;
-    case PROP_ADDR_GEN_MODE:
-        g_value_set_int(value, priv->addr_gen_mode);
-        break;
-    case PROP_TOKEN:
-        g_value_set_string(value, priv->token);
-        break;
-    case PROP_DHCP_DUID:
-        g_value_set_string(value, priv->dhcp_duid);
-        break;
-    case PROP_RA_TIMEOUT:
-        g_value_set_int(value, priv->ra_timeout);
-        break;
-    default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
-        break;
-    }
-}
-
-static void
-set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
-{
-    NMSettingIP6ConfigPrivate *priv = NM_SETTING_IP6_CONFIG_GET_PRIVATE(object);
-
-    switch (prop_id) {
-    case PROP_IP6_PRIVACY:
-        priv->ip6_privacy = g_value_get_enum(value);
-        break;
-    case PROP_ADDR_GEN_MODE:
-        priv->addr_gen_mode = g_value_get_int(value);
-        break;
-    case PROP_TOKEN:
-        g_free(priv->token);
-        priv->token = g_value_dup_string(value);
-        break;
-    case PROP_DHCP_DUID:
-        g_free(priv->dhcp_duid);
-        priv->dhcp_duid = g_value_dup_string(value);
-        break;
-    case PROP_RA_TIMEOUT:
-        priv->ra_timeout = g_value_get_int(value);
-        break;
-    default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
-        break;
-    }
-}
-
-/*****************************************************************************/
-
-static void
 nm_setting_ip6_config_init(NMSettingIP6Config *setting)
 {
     NMSettingIP6ConfigPrivate *priv = NM_SETTING_IP6_CONFIG_GET_PRIVATE(setting);
 
     _nm_setting_ip_config_private_init(setting, &priv->parent);
-
-    priv->ip6_privacy   = NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN;
-    priv->addr_gen_mode = NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY;
 }
 
 /**
@@ -586,15 +525,15 @@ nm_setting_ip6_config_new(void)
 static void
 nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
 {
-    GObjectClass *          object_class            = G_OBJECT_CLASS(klass);
-    NMSettingClass *        setting_class           = NM_SETTING_CLASS(klass);
+    GObjectClass           *object_class            = G_OBJECT_CLASS(klass);
+    NMSettingClass         *setting_class           = NM_SETTING_CLASS(klass);
     NMSettingIPConfigClass *setting_ip_config_class = NM_SETTING_IP_CONFIG_CLASS(klass);
     GArray *properties_override = _nm_sett_info_property_override_create_array_ip_config(AF_INET6);
 
     g_type_class_add_private(klass, sizeof(NMSettingIP6ConfigPrivate));
 
-    object_class->get_property = get_property;
-    object_class->set_property = set_property;
+    object_class->get_property = _nm_setting_property_get_property_direct;
+    object_class->set_property = _nm_setting_property_set_property_direct;
 
     setting_class->verify = verify;
 
@@ -803,13 +742,15 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
      * example: IPV6_PRIVACY=rfc3041 IPV6_PRIVACY_PREFER_PUBLIC_IP=yes
      * ---end---
      */
-    obj_properties[PROP_IP6_PRIVACY] =
-        g_param_spec_enum(NM_SETTING_IP6_CONFIG_IP6_PRIVACY,
-                          "",
-                          "",
-                          NM_TYPE_SETTING_IP6_CONFIG_PRIVACY,
-                          NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN,
-                          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
+    _nm_setting_property_define_direct_enum(properties_override,
+                                            obj_properties,
+                                            NM_SETTING_IP6_CONFIG_IP6_PRIVACY,
+                                            PROP_IP6_PRIVACY,
+                                            NM_TYPE_SETTING_IP6_CONFIG_PRIVACY,
+                                            NM_SETTING_IP6_CONFIG_PRIVACY_UNKNOWN,
+                                            NM_SETTING_PARAM_NONE,
+                                            NMSettingIP6ConfigPrivate,
+                                            ip6_privacy);
 
     /**
      * NMSettingIP6Config:addr-gen-mode:
@@ -852,14 +793,16 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
      * example: IPV6_ADDR_GEN_MODE=stable-privacy
      * ---end---
      */
-    obj_properties[PROP_ADDR_GEN_MODE] =
-        g_param_spec_int(NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE,
-                         "",
-                         "",
-                         G_MININT,
-                         G_MAXINT,
-                         NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY,
-                         G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
+    _nm_setting_property_define_direct_int32(properties_override,
+                                             obj_properties,
+                                             NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE,
+                                             PROP_ADDR_GEN_MODE,
+                                             G_MININT32,
+                                             G_MAXINT32,
+                                             NM_SETTING_IP6_CONFIG_ADDR_GEN_MODE_STABLE_PRIVACY,
+                                             NM_SETTING_PARAM_NONE,
+                                             NMSettingIP6ConfigPrivate,
+                                             addr_gen_mode);
 
     /**
      * NMSettingIP6Config:token:
@@ -902,15 +845,16 @@ nm_setting_ip6_config_class_init(NMSettingIP6ConfigClass *klass)
      * example: IPV6_RA_TIMEOUT=10
      * ---end---
      */
-
-    obj_properties[PROP_RA_TIMEOUT] = g_param_spec_int(
-        NM_SETTING_IP6_CONFIG_RA_TIMEOUT,
-        "",
-        "",
-        0,
-        G_MAXINT32,
-        0,
-        G_PARAM_READWRITE | NM_SETTING_PARAM_FUZZY_IGNORE | G_PARAM_STATIC_STRINGS);
+    _nm_setting_property_define_direct_int32(properties_override,
+                                             obj_properties,
+                                             NM_SETTING_IP6_CONFIG_RA_TIMEOUT,
+                                             PROP_RA_TIMEOUT,
+                                             0,
+                                             G_MAXINT32,
+                                             0,
+                                             NM_SETTING_PARAM_FUZZY_IGNORE,
+                                             NMSettingIP6ConfigPrivate,
+                                             ra_timeout);
 
     /**
      * NMSettingIP6Config:dhcp-duid:

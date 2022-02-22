@@ -41,11 +41,11 @@ get_type_description(NMDevice *device)
 }
 
 static gboolean
-create_and_realize(NMDevice *             device,
-                   NMConnection *         connection,
-                   NMDevice *             parent,
+create_and_realize(NMDevice              *device,
+                   NMConnection          *connection,
+                   NMDevice              *parent,
                    const NMPlatformLink **out_plink,
-                   GError **              error)
+                   GError               **error)
 {
     /* The port will be added to ovsdb when an interface is enslaved,
      * because there's no such thing like an empty port. */
@@ -59,13 +59,16 @@ get_generic_capabilities(NMDevice *device)
     return NM_DEVICE_CAP_IS_SOFTWARE;
 }
 
-static NMActStageReturn
-act_stage3_ip_config_start(NMDevice *           device,
-                           int                  addr_family,
-                           gpointer *           out_config,
-                           NMDeviceStateReason *out_failure_reason)
+static gboolean
+ready_for_ip_config(NMDevice *device)
 {
-    return NM_ACT_STAGE_RETURN_IP_FAIL;
+    return FALSE;
+}
+
+static void
+act_stage3_ip_config(NMDevice *device, int addr_family)
+{
+    nm_device_devip_set_state(device, addr_family, NM_DEVICE_IP_STATE_READY, NULL);
 }
 
 static void
@@ -87,10 +90,10 @@ add_iface_cb(GError *error, gpointer user_data)
 static gboolean
 enslave_slave(NMDevice *device, NMDevice *slave, NMConnection *connection, gboolean configure)
 {
-    NMDeviceOvsPort *   self      = NM_DEVICE_OVS_PORT(device);
+    NMDeviceOvsPort    *self      = NM_DEVICE_OVS_PORT(device);
     NMActiveConnection *ac_port   = NULL;
     NMActiveConnection *ac_bridge = NULL;
-    NMDevice *          bridge_device;
+    NMDevice           *bridge_device;
 
     if (!configure)
         return TRUE;
@@ -143,18 +146,23 @@ release_slave(NMDevice *device, NMDevice *slave, gboolean configure)
 {
     NMDeviceOvsPort *self = NM_DEVICE_OVS_PORT(device);
 
+    _LOGI(LOGD_DEVICE, "releasing ovs interface %s", nm_device_get_ip_iface(slave));
+
+    /* Even if the an interface's device has gone away (e.g. externally
+     * removed and thus we're called with configure=FALSE), we still need
+     * to make sure its OVSDB entry is gone.
+     */
+    nm_ovsdb_del_interface(nm_ovsdb_get(),
+                           nm_device_get_iface(slave),
+                           del_iface_cb,
+                           g_object_ref(slave));
+
     if (configure) {
-        _LOGI(LOGD_DEVICE, "releasing ovs interface %s", nm_device_get_ip_iface(slave));
-        nm_ovsdb_del_interface(nm_ovsdb_get(),
-                               nm_device_get_iface(slave),
-                               del_iface_cb,
-                               g_object_ref(slave));
         /* Open VSwitch is going to delete this one. We must ignore what happens
          * next with the interface. */
         if (NM_IS_DEVICE_OVS_INTERFACE(slave))
             nm_device_update_from_platform_link(slave, NULL);
-    } else
-        _LOGI(LOGD_DEVICE, "ovs interface %s was released", nm_device_get_ip_iface(slave));
+    }
 }
 
 /*****************************************************************************/
@@ -174,7 +182,7 @@ static void
 nm_device_ovs_port_class_init(NMDeviceOvsPortClass *klass)
 {
     NMDBusObjectClass *dbus_object_class = NM_DBUS_OBJECT_CLASS(klass);
-    NMDeviceClass *    device_class      = NM_DEVICE_CLASS(klass);
+    NMDeviceClass     *device_class      = NM_DEVICE_CLASS(klass);
 
     dbus_object_class->interface_infos = NM_DBUS_INTERFACE_INFOS(&interface_info_device_ovs_port);
 
@@ -186,7 +194,8 @@ nm_device_ovs_port_class_init(NMDeviceOvsPortClass *klass)
     device_class->get_type_description                = get_type_description;
     device_class->create_and_realize                  = create_and_realize;
     device_class->get_generic_capabilities            = get_generic_capabilities;
-    device_class->act_stage3_ip_config_start          = act_stage3_ip_config_start;
+    device_class->act_stage3_ip_config                = act_stage3_ip_config;
+    device_class->ready_for_ip_config                 = ready_for_ip_config;
     device_class->enslave_slave                       = enslave_slave;
     device_class->release_slave                       = release_slave;
     device_class->can_reapply_change_ovs_external_ids = TRUE;

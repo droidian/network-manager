@@ -304,6 +304,7 @@
   </setting>
   <setting name="ovs-dpdk" description="OvsDpdk Link Settings" name_upper="OVS_DPDK" >
     <property name="devargs" name_upper="DEVARGS" type="string" description="Open vSwitch DPDK device arguments." />
+    <property name="n-rxq" name_upper="N_RXQ" type="uint32" default="0" description="Open vSwitch DPDK number of rx queues. Defaults to zero which means to leave the parameter in OVS unspecified and effectively configures one queue." />
   </setting>
   <setting name="ovs-external-ids" description="OVS External IDs Settings" name_upper="OVS_EXTERNAL_IDS" >
     <property name="data" name_upper="DATA" type="dict of string to string" default="{}" description="A dictionary of key/value pairs with exernal-ids for OVS." />

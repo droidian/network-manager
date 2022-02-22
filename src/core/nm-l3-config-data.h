@@ -128,30 +128,31 @@ NML3ConfigData *nm_l3_config_data_new_clone(const NML3ConfigData *src, int ifind
 
 NML3ConfigData *nm_l3_config_data_new_from_connection(NMDedupMultiIndex *multi_idx,
                                                       int                ifindex,
-                                                      NMConnection *     connection);
+                                                      NMConnection      *connection);
 
-NML3ConfigData *nm_l3_config_data_new_from_platform(NMDedupMultiIndex *       multi_idx,
+NML3ConfigData *nm_l3_config_data_new_from_platform(NMDedupMultiIndex        *multi_idx,
                                                     int                       ifindex,
-                                                    NMPlatform *              platform,
+                                                    NMPlatform               *platform,
                                                     NMSettingIP6ConfigPrivacy ipv6_privacy_rfc4941);
 
 typedef struct {
     NMOptionBool ip4acd_not_ready;
     NMOptionBool assume_config_once;
+    NMOptionBool force_commit;
 } NML3ConfigMergeHookResult;
 
-typedef gboolean (*NML3ConfigMergeHookAddObj)(const NML3ConfigData *     l3cd,
-                                              const NMPObject *          obj,
+typedef gboolean (*NML3ConfigMergeHookAddObj)(const NML3ConfigData      *l3cd,
+                                              const NMPObject           *obj,
                                               NML3ConfigMergeHookResult *result,
                                               gpointer                   user_data);
 
-void nm_l3_config_data_merge(NML3ConfigData *      self,
+void nm_l3_config_data_merge(NML3ConfigData       *self,
                              const NML3ConfigData *src,
                              NML3ConfigMergeFlags  merge_flags,
                              const guint32 *default_route_table_x /* length 2, for IS_IPv4 */,
                              const guint32 *default_route_metric_x /* length 2, for IS_IPv4 */,
                              const guint32 *default_route_penalty_x /* length 2, for IS_IPv4 */,
-                             const int *    default_dns_priority_x /* length 2, for IS_IPv4 */,
+                             const int     *default_dns_priority_x /* length 2, for IS_IPv4 */,
                              NML3ConfigMergeHookAddObj hook_add_obj,
                              gpointer                  hook_user_data);
 
@@ -160,17 +161,18 @@ GPtrArray *nm_l3_config_data_get_blacklisted_ip4_routes(const NML3ConfigData *se
 
 void nm_l3_config_data_add_dependent_onlink_routes(NML3ConfigData *self, int addr_family);
 
-void nm_l3_config_data_add_dependent_device_routes(NML3ConfigData *      self,
+void nm_l3_config_data_add_dependent_device_routes(NML3ConfigData       *self,
                                                    int                   addr_family,
                                                    guint32               route_table,
                                                    guint32               route_metric,
+                                                   gboolean              force_commit,
                                                    const NML3ConfigData *source);
 
 /*****************************************************************************/
 
 void nm_l3_config_data_log(const NML3ConfigData *self,
-                           const char *          title,
-                           const char *          prefix,
+                           const char           *title,
+                           const char           *prefix,
                            NMLogLevel            log_level,
                            NMLogDomain           log_domain);
 
@@ -196,18 +198,25 @@ NMDedupMultiIndex *nm_l3_config_data_get_multi_idx(const NML3ConfigData *self);
 /*****************************************************************************/
 
 typedef enum {
-    NM_L3_CONFIG_CMP_FLAGS_NONE,
-    NM_L3_CONFIG_CMP_FLAGS_IGNORE_IFINDEX = (1LL << 0),
+    NM_L3_CONFIG_CMP_FLAGS_NONE         = 0,
+    NM_L3_CONFIG_CMP_FLAGS_IFINDEX      = (1LL << 0),
+    NM_L3_CONFIG_CMP_FLAGS_ADDRESSES_ID = (1LL << 1),
+    NM_L3_CONFIG_CMP_FLAGS_ADDRESSES    = (1LL << 2),
+    NM_L3_CONFIG_CMP_FLAGS_ROUTES_ID    = (1LL << 3),
+    NM_L3_CONFIG_CMP_FLAGS_ROUTES       = (1LL << 4),
+    NM_L3_CONFIG_CMP_FLAGS_DNS          = (1LL << 5),
+    NM_L3_CONFIG_CMP_FLAGS_OTHER        = (1LL << 6),
+    NM_L3_CONFIG_CMP_FLAGS_ALL          = (1LL << 7) - 1,
 } NML3ConfigCmpFlags;
 
 int nm_l3_config_data_cmp_full(const NML3ConfigData *a,
                                const NML3ConfigData *b,
-                               NML3ConfigCmpFlags    cmp_flags);
+                               NML3ConfigCmpFlags    flags);
 
 static inline int
 nm_l3_config_data_cmp(const NML3ConfigData *a, const NML3ConfigData *b)
 {
-    return nm_l3_config_data_cmp_full(a, b, NM_L3_CONFIG_CMP_FLAGS_NONE);
+    return nm_l3_config_data_cmp_full(a, b, NM_L3_CONFIG_CMP_FLAGS_ALL);
 }
 
 static inline gboolean
@@ -222,20 +231,20 @@ const NMDedupMultiIdxType *nm_l3_config_data_lookup_index(const NML3ConfigData *
                                                           NMPObjectType         obj_type);
 
 const NMDedupMultiEntry *nm_l3_config_data_lookup_obj(const NML3ConfigData *self,
-                                                      const NMPObject *     obj);
+                                                      const NMPObject      *obj);
 
 const NMPlatformIP4Address *nm_l3_config_data_lookup_address_4(const NML3ConfigData *self,
                                                                in_addr_t             addr,
                                                                guint8                plen,
                                                                in_addr_t             peer_addr);
 
-const NMPlatformIP6Address *nm_l3_config_data_lookup_address_6(const NML3ConfigData * self,
+const NMPlatformIP6Address *nm_l3_config_data_lookup_address_6(const NML3ConfigData  *self,
                                                                const struct in6_addr *addr);
 
 const NMDedupMultiEntry *nm_l3_config_data_lookup_route_obj(const NML3ConfigData *self,
-                                                            const NMPObject *     needle);
+                                                            const NMPObject      *needle);
 
-const NMDedupMultiEntry *nm_l3_config_data_lookup_route(const NML3ConfigData *   self,
+const NMDedupMultiEntry *nm_l3_config_data_lookup_route(const NML3ConfigData    *self,
                                                         int                      addr_family,
                                                         const NMPlatformIPRoute *needle);
 
@@ -345,7 +354,7 @@ nmtst_l3_config_data_get_route_at_6(const NML3ConfigData *self, guint i)
 
 NML3ConfigDatFlags nm_l3_config_data_get_flags(const NML3ConfigData *self);
 
-void nm_l3_config_data_set_flags_full(NML3ConfigData *   self,
+void nm_l3_config_data_set_flags_full(NML3ConfigData    *self,
                                       NML3ConfigDatFlags flags,
                                       NML3ConfigDatFlags mask);
 
@@ -367,17 +376,17 @@ const NMPObject *nm_l3_config_data_get_first_obj(const NML3ConfigData *self,
                                                  NMPObjectType         obj_type,
                                                  gboolean (*predicate)(const NMPObject *obj));
 
-gboolean nm_l3_config_data_add_address_full(NML3ConfigData *           self,
+gboolean nm_l3_config_data_add_address_full(NML3ConfigData            *self,
                                             int                        addr_family,
-                                            const NMPObject *          obj_new,
+                                            const NMPObject           *obj_new,
                                             const NMPlatformIPAddress *pl_new,
                                             NML3ConfigAddFlags         add_flags,
-                                            const NMPObject **         out_obj_new);
+                                            const NMPObject          **out_obj_new);
 
 static inline gboolean
-nm_l3_config_data_add_address(NML3ConfigData *           self,
+nm_l3_config_data_add_address(NML3ConfigData            *self,
                               int                        addr_family,
-                              const NMPObject *          obj_new,
+                              const NMPObject           *obj_new,
                               const NMPlatformIPAddress *pl_new)
 {
     return nm_l3_config_data_add_address_full(self,
@@ -400,18 +409,18 @@ nm_l3_config_data_add_address_6(NML3ConfigData *self, const NMPlatformIP6Address
     return nm_l3_config_data_add_address(self, AF_INET6, NULL, NM_PLATFORM_IP_ADDRESS_CAST(addr));
 }
 
-gboolean nm_l3_config_data_add_route_full(NML3ConfigData *         self,
+gboolean nm_l3_config_data_add_route_full(NML3ConfigData          *self,
                                           int                      addr_family,
-                                          const NMPObject *        obj_new,
+                                          const NMPObject         *obj_new,
                                           const NMPlatformIPRoute *pl_new,
                                           NML3ConfigAddFlags       add_flags,
-                                          const NMPObject **       out_obj_new,
-                                          gboolean *               out_changed_best_default_route);
+                                          const NMPObject        **out_obj_new,
+                                          gboolean                *out_changed_best_default_route);
 
 static inline gboolean
-nm_l3_config_data_add_route(NML3ConfigData *         self,
+nm_l3_config_data_add_route(NML3ConfigData          *self,
                             int                      addr_family,
-                            const NMPObject *        obj_new,
+                            const NMPObject         *obj_new,
                             const NMPlatformIPRoute *pl_new)
 {
     return nm_l3_config_data_add_route_full(self,
@@ -446,10 +455,15 @@ NMSettingConnectionLlmnr nm_l3_config_data_get_llmnr(const NML3ConfigData *self)
 
 gboolean nm_l3_config_data_set_llmnr(NML3ConfigData *self, NMSettingConnectionLlmnr llmnr);
 
+NMSettingConnectionDnsOverTls nm_l3_config_data_get_dns_over_tls(const NML3ConfigData *self);
+
+gboolean nm_l3_config_data_set_dns_over_tls(NML3ConfigData               *self,
+                                            NMSettingConnectionDnsOverTls dns_over_tls);
+
 NMIPRouteTableSyncMode nm_l3_config_data_get_route_table_sync(const NML3ConfigData *self,
                                                               int                   addr_family);
 
-gboolean nm_l3_config_data_set_route_table_sync(NML3ConfigData *       self,
+gboolean nm_l3_config_data_set_route_table_sync(NML3ConfigData        *self,
                                                 int                    addr_family,
                                                 NMIPRouteTableSyncMode route_table_sync);
 
@@ -470,6 +484,10 @@ guint32 nm_l3_config_data_get_ip6_mtu(const NML3ConfigData *self);
 
 gboolean nm_l3_config_data_set_ip6_mtu(NML3ConfigData *self, guint32 ip6_mtu);
 
+NMUtilsIPv6IfaceId nm_l3_config_data_get_ip6_token(const NML3ConfigData *self);
+
+gboolean nm_l3_config_data_set_ip6_token(NML3ConfigData *self, NMUtilsIPv6IfaceId ipv6_token);
+
 const in_addr_t *nm_l3_config_data_get_wins(const NML3ConfigData *self, guint *out_len);
 
 gboolean nm_l3_config_data_add_wins(NML3ConfigData *self, in_addr_t wins);
@@ -477,7 +495,7 @@ gboolean nm_l3_config_data_add_wins(NML3ConfigData *self, in_addr_t wins);
 gconstpointer
 nm_l3_config_data_get_nameservers(const NML3ConfigData *self, int addr_family, guint *out_len);
 
-gboolean nm_l3_config_data_add_nameserver(NML3ConfigData *                       self,
+gboolean nm_l3_config_data_add_nameserver(NML3ConfigData                        *self,
                                           int                                    addr_family,
                                           gconstpointer /* (const NMIPAddr *) */ nameserver);
 
@@ -528,7 +546,7 @@ nm_l3_config_data_set_dns_priority(NML3ConfigData *self, int addr_family, int dn
 
 NMSettingIP6ConfigPrivacy nm_l3_config_data_get_ip6_privacy(const NML3ConfigData *self);
 
-gboolean nm_l3_config_data_set_ip6_privacy(NML3ConfigData *          self,
+gboolean nm_l3_config_data_set_ip6_privacy(NML3ConfigData           *self,
                                            NMSettingIP6ConfigPrivacy ip6_privacy);
 
 NMProxyConfigMethod nm_l3_config_data_get_proxy_method(const NML3ConfigData *self);
@@ -551,11 +569,11 @@ gboolean nm_l3_config_data_get_ndisc_hop_limit(const NML3ConfigData *self, int *
 gboolean nm_l3_config_data_set_ndisc_hop_limit(NML3ConfigData *self, int val);
 
 gboolean nm_l3_config_data_get_ndisc_reachable_time_msec(const NML3ConfigData *self,
-                                                         guint32 *             out_val);
+                                                         guint32              *out_val);
 gboolean nm_l3_config_data_set_ndisc_reachable_time_msec(NML3ConfigData *self, guint32 val);
 
 gboolean nm_l3_config_data_get_ndisc_retrans_timer_msec(const NML3ConfigData *self,
-                                                        guint32 *             out_val);
+                                                        guint32              *out_val);
 gboolean nm_l3_config_data_set_ndisc_retrans_timer_msec(NML3ConfigData *self, guint32 val);
 
 struct _NMDhcpLease *nm_l3_config_data_get_dhcp_lease(const NML3ConfigData *self, int addr_family);
@@ -565,7 +583,7 @@ nm_l3_config_data_set_dhcp_lease(NML3ConfigData *self, int addr_family, struct _
 
 gboolean nm_l3_config_data_set_dhcp_lease_from_options(NML3ConfigData *self,
                                                        int             addr_family,
-                                                       GHashTable *    options_take);
+                                                       GHashTable     *options_take);
 
 static inline const NMIPAddr *
 nmtst_l3_config_data_get_best_gateway(const NML3ConfigData *self, int addr_family)

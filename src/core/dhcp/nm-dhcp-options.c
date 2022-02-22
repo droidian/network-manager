@@ -201,6 +201,7 @@ const NMDhcpOption _nm_dhcp_option_dhcp6_options[] = {
     REQ(NM_DHCP_OPTION_DHCP6_DOMAIN_LIST, "dhcp6_domain_search", TRUE),
     REQ(NM_DHCP_OPTION_DHCP6_SNTP_SERVERS, "dhcp6_sntp_servers", TRUE),
     REQ(NM_DHCP_OPTION_DHCP6_FQDN, "fqdn_fqdn", FALSE),
+    REQ(NM_DHCP_OPTION_DHCP6_NTP_SERVER, "dhcp6_ntp_servers", TRUE),
     REQ(NM_DHCP_OPTION_DHCP6_MUD_URL, "dhcp6_mud_url", FALSE),
 
     /* Internal values */
@@ -235,6 +236,7 @@ static const NMDhcpOption *const _sorted_options_6[G_N_ELEMENTS(_nm_dhcp_option_
     A(13),
     A(14),
     A(15),
+    A(16),
 #undef A
 };
 
@@ -247,7 +249,7 @@ _sorted_options_generate_sort(gconstpointer pa, gconstpointer pb, gpointer user_
     const NMDhcpOption *const *b = pb;
 
     NM_CMP_DIRECT((*a)->option_num, (*b)->option_num);
-    return nm_assert_unreachable_val(0);
+    return 0;
 }
 
 static char *
@@ -272,7 +274,6 @@ _sorted_options_generate(const NMDhcpOption *base, const NMDhcpOption *const *so
 
 _nm_unused static void
 _ASSERT_sorted(int IS_IPv4, const NMDhcpOption *const *const sorted, int n)
-
 {
     const NMDhcpOption *const options =
         IS_IPv4 ? _nm_dhcp_option_dhcp4_options : _nm_dhcp_option_dhcp6_options;
@@ -283,6 +284,16 @@ _ASSERT_sorted(int IS_IPv4, const NMDhcpOption *const *const sorted, int n)
     for (i = 0; i < n; i++) {
         const NMDhcpOption *opt = sorted[i];
 
+        if (!opt || opt < options || opt >= &options[n]) {
+            g_error("%s:%d: _sorted_options_%c[%d] must be a valid pointer into "
+                    "_nm_dhcp_option_dhcp%c_options, but is %p",
+                    __FILE__,
+                    __LINE__,
+                    IS_IPv4 ? '4' : '6',
+                    i,
+                    IS_IPv4 ? '4' : '6',
+                    opt);
+        }
         g_assert(opt);
         g_assert(opt >= options);
         g_assert(opt < &options[n]);
@@ -291,7 +302,7 @@ _ASSERT_sorted(int IS_IPv4, const NMDhcpOption *const *const sorted, int n)
             const NMDhcpOption *opt2 = sorted[j];
 
             if (opt == opt2) {
-                g_error("%s:%d: the _sorted_options_%c at [%d] (opt=%u, %s) is duplicated at "
+                g_error("%s:%d: _sorted_options_%c[%d] (opt=%u, %s) is duplicated at "
                         "[%d] (SORT: %s)",
                         __FILE__,
                         __LINE__,
@@ -308,7 +319,7 @@ _ASSERT_sorted(int IS_IPv4, const NMDhcpOption *const *const sorted, int n)
             const NMDhcpOption *opt2 = sorted[i - 1];
 
             if (opt2->option_num >= opt->option_num) {
-                g_error("%s:%d: the _sorted_options_%c at [%d] (opt=%u, %s) should come before "
+                g_error("%s:%d: _sorted_options_%c[%d] (opt=%u, %s) should come before "
                         "[%d] (opt=%u, %s) (SORT: %s)",
                         __FILE__,
                         __LINE__,
@@ -396,14 +407,14 @@ nm_dhcp_option_add_option(GHashTable *options, int addr_family, guint option, co
 }
 
 void
-nm_dhcp_option_add_option_utf8safe_escape(GHashTable *  options,
+nm_dhcp_option_add_option_utf8safe_escape(GHashTable   *options,
                                           int           addr_family,
                                           guint         option,
                                           const guint8 *data,
                                           gsize         n_data)
 {
     gs_free char *to_free = NULL;
-    const char *  escaped;
+    const char   *escaped;
 
     escaped = nm_utils_buf_utf8safe_escape((char *) data,
                                            n_data,

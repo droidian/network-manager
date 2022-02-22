@@ -23,9 +23,9 @@ NM_GOBJECT_PROPERTIES_DEFINE_BASE(PROP_MODEM_CAPABILITIES,
                                   PROP_APN, );
 
 typedef struct {
-    char *  device_id;
-    char *  operator_code;
-    char *  apn;
+    char   *device_id;
+    char   *operator_code;
+    char   *apn;
     guint32 modem_capabilities;
     guint32 current_capabilities;
 } NMDeviceModemPrivate;
@@ -153,16 +153,18 @@ get_type_description(NMDevice *device)
         return NULL;
 }
 
-#define MODEM_CAPS_3GPP(caps) \
-    (caps & (NM_DEVICE_MODEM_CAPABILITY_GSM_UMTS | NM_DEVICE_MODEM_CAPABILITY_LTE))
+#define MODEM_CAPS_3GPP(caps)                                                          \
+    NM_FLAGS_ANY((caps),                                                               \
+                 (NM_DEVICE_MODEM_CAPABILITY_GSM_UMTS | NM_DEVICE_MODEM_CAPABILITY_LTE \
+                  | NM_DEVICE_MODEM_CAPABILITY_5GNR))
 
-#define MODEM_CAPS_3GPP2(caps) (caps & (NM_DEVICE_MODEM_CAPABILITY_CDMA_EVDO))
+#define MODEM_CAPS_3GPP2(caps) NM_FLAGS_ANY((caps), NM_DEVICE_MODEM_CAPABILITY_CDMA_EVDO)
 
 static gboolean
 connection_compatible(NMDevice *device, NMConnection *connection, GError **error)
 {
-    NMSettingGsm *            s_gsm;
-    NMSettingCdma *           s_cdma;
+    NMSettingGsm             *s_gsm;
+    NMSettingCdma            *s_cdma;
     NMDeviceModemCapabilities current_caps;
 
     if (!NM_DEVICE_CLASS(nm_device_modem_parent_class)
@@ -206,9 +208,9 @@ get_setting_type(NMDevice *device)
     NMDeviceModemCapabilities caps;
 
     caps = nm_device_modem_get_current_capabilities(NM_DEVICE_MODEM(device));
-    if (caps & (NM_DEVICE_MODEM_CAPABILITY_GSM_UMTS | NM_DEVICE_MODEM_CAPABILITY_LTE))
+    if (MODEM_CAPS_3GPP(caps))
         return NM_TYPE_SETTING_GSM;
-    else if (caps & NM_DEVICE_MODEM_CAPABILITY_CDMA_EVDO)
+    else if (MODEM_CAPS_3GPP2(caps))
         return NM_TYPE_SETTING_CDMA;
     else
         return G_TYPE_INVALID;
@@ -282,7 +284,7 @@ const NMLDBusMetaIface _nml_dbus_meta_iface_nm_device_modem = NML_DBUS_META_IFAC
 static void
 nm_device_modem_class_init(NMDeviceModemClass *modem_class)
 {
-    GObjectClass * object_class = G_OBJECT_CLASS(modem_class);
+    GObjectClass  *object_class = G_OBJECT_CLASS(modem_class);
     NMDeviceClass *device_class = NM_DEVICE_CLASS(modem_class);
 
     object_class->get_property = get_property;

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-<refentry id="nm-settings-nmcli"><refentryinfo><title>nm-settings-nmcli</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.34.0</refmiscinfo></refmeta><refnamediv><refname>nm-settings-nmcli</refname><refpurpose>Description of settings and properties of NetworkManager connection profiles for nmcli</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
+<refentry id="nm-settings-nmcli"><refentryinfo><title>nm-settings-nmcli</title><author>NetworkManager developers</author></refentryinfo><refmeta><refentrytitle>nm-settings-nmcli</refentrytitle><manvolnum>5</manvolnum><refmiscinfo class="source">NetworkManager</refmiscinfo><refmiscinfo class="manual">Configuration</refmiscinfo><refmiscinfo class="version">1.35.90</refmiscinfo></refmeta><refnamediv><refname>nm-settings-nmcli</refname><refpurpose>Description of settings and properties of NetworkManager connection profiles for nmcli</refpurpose></refnamediv><refsect1 id="description"><title>Description</title><para>
           NetworkManager is based on a concept of connection profiles, sometimes referred to as
           connections only. These connection profiles contain a network configuration. When
           NetworkManager activates a connection profile on a network device the configuration will
@@ -402,7 +402,8 @@
             Format: boolean</para></listitem></varlistentry></variablelist></para></refsect2><refsect2><title>ovs-dpdk setting</title><para>OvsDpdk Link Settings.</para><para>
         Properties:
         <variablelist><varlistentry><term><option id="nm-settings-nmcli.property.ovs-dpdk.devargs">devargs</option></term><listitem><para>Open vSwitch DPDK device arguments.</para><para>
-            Format: string</para></listitem></varlistentry></variablelist></para></refsect2><refsect2><title>ovs-interface setting</title><para>Open vSwitch Interface Settings.</para><para>
+            Format: string</para></listitem></varlistentry><varlistentry><term><option id="nm-settings-nmcli.property.ovs-dpdk.n-rxq">n-rxq</option></term><listitem><para>Open vSwitch DPDK number of rx queues. Defaults to zero which means to leave the parameter in OVS unspecified and effectively configures one queue.</para><para>
+            Format: uint32</para></listitem></varlistentry></variablelist></para></refsect2><refsect2><title>ovs-interface setting</title><para>Open vSwitch Interface Settings.</para><para>
         Properties:
         <variablelist><varlistentry><term><option id="nm-settings-nmcli.property.ovs-interface.type">type</option></term><listitem><para>The interface type. Either "internal", "system", "patch", "dpdk", or empty.</para><para>
             Format: string</para></listitem></varlistentry></variablelist></para></refsect2><refsect2><title>ovs-patch setting</title><para>OvsPatch Link Settings.</para><para>

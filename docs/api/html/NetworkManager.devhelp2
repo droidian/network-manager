@@ -635,6 +635,7 @@
     <keyword type="constant" name="NM_DEVICE_MODEM_CAPABILITY_CDMA_EVDO" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.13.4.2.1.4.3.1.1id-1.4.17.2.13.4.2.1.4.3.1.2"/>
     <keyword type="constant" name="NM_DEVICE_MODEM_CAPABILITY_GSM_UMTS" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.13.4.2.1.4.4.1.1id-1.4.17.2.13.4.2.1.4.4.1.2"/>
     <keyword type="constant" name="NM_DEVICE_MODEM_CAPABILITY_LTE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.13.4.2.1.4.5.1.1id-1.4.17.2.13.4.2.1.4.5.1.2"/>
+    <keyword type="constant" name="NM_DEVICE_MODEM_CAPABILITY_5GNR" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.13.4.2.1.4.6.1.1id-1.4.17.2.13.4.2.1.4.6.1.2"/>
     <keyword type="constant" name="NM_WIMAX_NSP_NETWORK_TYPE_UNKNOWN" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.14.4.2.1.4.1.1.1id-1.4.17.2.14.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_WIMAX_NSP_NETWORK_TYPE_HOME" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.14.4.2.1.4.2.1.1id-1.4.17.2.14.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_WIMAX_NSP_NETWORK_TYPE_PARTNER" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.14.4.2.1.4.3.1.1id-1.4.17.2.14.4.2.1.4.3.1.2"/>
