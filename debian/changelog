@@ -1,4 +1,4 @@
-network-manager (1.36.0-1ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.36.0-1ubuntu1) jammy; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
     - debian/control:
@@ -43,7 +43,7 @@ network-manager (1.36.0-1ubuntu1) UNRELEASED; urgency=medium
       + dns-manager-don-t-merge-split-DNS-search-domains.patch (but disabled)
       + Read-system-connections-from-run.patch
 
- -- Jeremy Bicha <jeremy.bicha@canonical.com>  Tue, 22 Feb 2022 17:06:55 -0500
+ -- Jeremy Bicha <jeremy.bicha@canonical.com>  Thu, 24 Feb 2022 15:06:34 -0500
 
 network-manager (1.36.0-1) unstable; urgency=medium
 
