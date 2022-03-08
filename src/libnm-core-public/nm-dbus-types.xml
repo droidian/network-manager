@@ -1647,6 +1647,11 @@
               <entry role="enum_member_value"><para>= <literal>0x08</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>by default, creating a checkpoint fails if there are already existing checkoints that reference the same devices. With this flag, creation of such checkpoints is allowed, however, if an older checkpoint that references overlapping devices gets rolled back, it will automatically destroy this checkpoint during rollback. This allows to create several overlapping checkpoints in parallel, and rollback to them at will. With the special case that rolling back to an older checkpoint will invalidate all overlapping younger checkpoints. This opts-in that the checkpoint can be automatically destroyed by the rollback of an older checkpoint. Since: 1.12.</para><para></para></entry>
             </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_CHECKPOINT_CREATE_FLAG_NO_PRESERVE_EXTERNAL_PORTS</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x10</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>during rollback, by default externally added ports attached to bridge devices are preserved. With this flag, the rollback detaches all external ports. This only has an effect for bridge ports. Before 1.38, 1.36.2, this was the default behavior. Since: 1.38, 1.36.2.</para><para></para></entry>
+            </row>
           </tbody>
         </tgroup>
       </informaltable>

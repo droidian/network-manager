@@ -332,6 +332,12 @@
 /* Define if you want connectivity checking support */
 #undef WITH_CONCHECK
 
+/* Build with ifcfg-rh settings plugin */
+#undef WITH_CONFIG_PLUGIN_IFCFG_RH
+
+/* Build with ifupdown settings plugin */
+#undef WITH_CONFIG_PLUGIN_IFUPDOWN
+
 /* Define if you have dhclient */
 #undef WITH_DHCLIENT
 

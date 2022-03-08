@@ -3144,6 +3144,7 @@
     <keyword type="constant" name="NM_CHECKPOINT_CREATE_FLAG_DELETE_NEW_CONNECTIONS" link="libnm-nm-dbus-interface.html#NM-CHECKPOINT-CREATE-FLAG-DELETE-NEW-CONNECTIONS:CAPS"/>
     <keyword type="constant" name="NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES" link="libnm-nm-dbus-interface.html#NM-CHECKPOINT-CREATE-FLAG-DISCONNECT-NEW-DEVICES:CAPS"/>
     <keyword type="constant" name="NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING" link="libnm-nm-dbus-interface.html#NM-CHECKPOINT-CREATE-FLAG-ALLOW-OVERLAPPING:CAPS"/>
+    <keyword type="constant" name="NM_CHECKPOINT_CREATE_FLAG_NO_PRESERVE_EXTERNAL_PORTS" link="libnm-nm-dbus-interface.html#NM-CHECKPOINT-CREATE-FLAG-NO-PRESERVE-EXTERNAL-PORTS:CAPS"/>
     <keyword type="constant" name="NM_ROLLBACK_RESULT_OK" link="libnm-nm-dbus-interface.html#NM-ROLLBACK-RESULT-OK:CAPS"/>
     <keyword type="constant" name="NM_ROLLBACK_RESULT_ERR_NO_DEVICE" link="libnm-nm-dbus-interface.html#NM-ROLLBACK-RESULT-ERR-NO-DEVICE:CAPS"/>
     <keyword type="constant" name="NM_ROLLBACK_RESULT_ERR_DEVICE_UNMANAGED" link="libnm-nm-dbus-interface.html#NM-ROLLBACK-RESULT-ERR-DEVICE-UNMANAGED:CAPS"/>

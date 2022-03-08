@@ -776,6 +776,7 @@
     <keyword type="constant" name="NM_CHECKPOINT_CREATE_FLAG_DELETE_NEW_CONNECTIONS" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.24.4.2.1.4.3.1.1id-1.4.17.2.24.4.2.1.4.3.1.2"/>
     <keyword type="constant" name="NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.24.4.2.1.4.4.1.1id-1.4.17.2.24.4.2.1.4.4.1.2"/>
     <keyword type="constant" name="NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.24.4.2.1.4.5.1.1id-1.4.17.2.24.4.2.1.4.5.1.2"/>
+    <keyword type="constant" name="NM_CHECKPOINT_CREATE_FLAG_NO_PRESERVE_EXTERNAL_PORTS" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.24.4.2.1.4.6.1.1id-1.4.17.2.24.4.2.1.4.6.1.2"/>
     <keyword type="constant" name="NM_ROLLBACK_RESULT_OK" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.25.4.2.1.4.1.1.1id-1.4.17.2.25.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_ROLLBACK_RESULT_ERR_NO_DEVICE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.25.4.2.1.4.2.1.1id-1.4.17.2.25.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_ROLLBACK_RESULT_ERR_DEVICE_UNMANAGED" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.25.4.2.1.4.3.1.1id-1.4.17.2.25.4.2.1.4.3.1.2"/>

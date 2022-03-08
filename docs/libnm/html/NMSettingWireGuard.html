@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingWired.html" title="NMSettingWired">
 <link rel="next" href="NMSettingWirelessSecurity.html" title="NMSettingWirelessSecurity">
-<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -453,7 +453,7 @@ nm_wireguard_peer_new (<em class="parameter"><code><span class="type">void</span
 <div class="refsect3">
 <a name="nm-wireguard-peer-new.returns"></a><h4>Returns</h4>
 <p>a new, default, unsealed <a class="link" href="NMSettingWireGuard.html#NMWireGuardPeer"><span class="type">NMWireGuardPeer</span></a> instance. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -491,7 +491,7 @@ as well. Otherwise, they will be removed.</p></td>
 <p>a clone of <em class="parameter"><code>self</code></em>
 . This instance
 is always unsealed. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -626,7 +626,7 @@ nm_wireguard_peer_get_public_key (<em class="parameter"><code>const <a class="li
 <div class="refsect3">
 <a name="nm-wireguard-peer-get-public-key.returns"></a><h4>Returns</h4>
 <p>the public key or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if unset. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -658,7 +658,7 @@ will be normalized (which may or may not modify the set value).</p>
 <td class="parameter_name"><p>public_key</p></td>
 <td class="parameter_description"><p>the new public
 key or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to clear the public key. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>accept_invalid</p></td>
@@ -701,7 +701,7 @@ nm_wireguard_peer_get_preshared_key (<em class="parameter"><code>const <a class=
 <div class="refsect3">
 <a name="nm-wireguard-peer-get-preshared-key.returns"></a><h4>Returns</h4>
 <p>the preshared key or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if unset. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -738,7 +738,7 @@ be accepted.</p>
 <td class="parameter_name"><p>preshared_key</p></td>
 <td class="parameter_description"><p>the new preshared
 key or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to clear the preshared key. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>accept_invalid</p></td>
@@ -903,7 +903,7 @@ nm_wireguard_peer_get_endpoint (<em class="parameter"><code>const <a class="link
 <div class="refsect3">
 <a name="nm-wireguard-peer-get-endpoint.returns"></a><h4>Returns</h4>
 <p>the endpoint or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if none was set. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -1027,7 +1027,7 @@ breaking API for introspection users. </p></td>
 .
 If <em class="parameter"><code>idx</code></em>
 is out of range, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> will be returned. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -1253,7 +1253,7 @@ nm_setting_wireguard_new (<em class="parameter"><code><span class="type">void</s
 <div class="refsect3">
 <a name="nm-setting-wireguard-new.returns"></a><h4>Returns</h4>
 <p>the new empty <a class="link" href="NMSettingWireGuard.html" title="NMSettingWireGuard"><span class="type">NMSettingWireGuard</span></a> object. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -1280,7 +1280,7 @@ nm_setting_wireguard_get_private_key (<em class="parameter"><code><a class="link
 <div class="refsect3">
 <a name="nm-setting-wireguard-get-private-key.returns"></a><h4>Returns</h4>
 <p>the set private-key or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -1422,7 +1422,7 @@ nm_setting_wireguard_get_peer (<em class="parameter"><code><a class="link" href=
 <p>the <a class="link" href="NMSettingWireGuard.html#NMWireGuardPeer"><span class="type">NMWireGuardPeer</span></a> entry at
 index <em class="parameter"><code>idx</code></em>
 . If the index is out of range, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is returned. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -1468,7 +1468,7 @@ this is set to the <a class="link" href="NMSettingWireGuard.html#nm-setting-wire
 <a name="nm-setting-wireguard-get-peer-by-public-key.returns"></a><h4>Returns</h4>
 <p>the <a class="link" href="NMSettingWireGuard.html#NMWireGuardPeer"><span class="type">NMWireGuardPeer</span></a> instance with a
 matching public key. If no such peer exists, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is returned. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -1831,6 +1831,6 @@ nm_setting_wireguard_get_ip6_auto_default_route
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.1</div>
+<hr>Generated by GTK-Doc V1.33.0</div>
 </body>
 </html>

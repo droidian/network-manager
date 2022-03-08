@@ -12,7 +12,7 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=512286
  1 file changed, 115 insertions(+)
 
 diff --git a/src/core/nm-manager.c b/src/core/nm-manager.c
-index b440b22..9b1057f 100644
+index 6c73d23..9a73a16 100644
 --- a/src/core/nm-manager.c
 +++ b/src/core/nm-manager.c
 @@ -51,6 +51,8 @@
@@ -88,7 +88,7 @@ index b440b22..9b1057f 100644
 +
 +    channel = g_io_channel_new_file(IFUPDOWN_STATE_FILE, "r", NULL);
 +    if (!channel) {
-+        nm_log_warn(LOGD_CORE, "Error: failed to open %s", IFUPDOWN_STATE_FILE);
++        nm_log_info(LOGD_CORE, "failed to open %s", IFUPDOWN_STATE_FILE);
 +        return;
 +    }
 +
@@ -146,7 +146,7 @@ index b440b22..9b1057f 100644
      return TRUE;
  }
  
-@@ -7967,6 +8056,22 @@ nm_manager_init(NMManager *self)
+@@ -7984,6 +8073,22 @@ nm_manager_init(NMManager *self)
          _LOGW(LOGD_CORE, "failed to monitor kernel firmware directory '%s'.", KERNEL_FIRMWARE_DIR);
      }
  
@@ -169,7 +169,7 @@ index b440b22..9b1057f 100644
      /* Update timestamps in active connections */
      priv->timestamp_update_id =
          g_timeout_add_seconds(300,
-@@ -8252,6 +8357,16 @@ dispose(GObject *object)
+@@ -8269,6 +8374,16 @@ dispose(GObject *object)
          g_clear_object(&priv->fw_monitor);
      }
  

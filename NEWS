@@ -1,4 +1,18 @@
 =============================================
+NetworkManager-1.36.2
+Overview of changes since NetworkManager-1.36
+=============================================
+
+* When the list of plugins is not specified via "main.plugins" in
+  NetworkManager.conf and no build-time default is set with
+  "--with-config-plugins-default" configure argument, now all known
+  plugins found in the plugin directory are loaded (and the built-in
+  "keyfile" plugin is preferred over others).
+* Preserve external ports during checkpoint rollback
+* Fix removal of ovsdb entry when an OVS interface goes away
+* Fix DNS configuration for WWAN connections
+
+=============================================
 NetworkManager-1.36
 Overview of changes since NetworkManager-1.34
 =============================================
