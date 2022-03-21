@@ -1,0 +1,86 @@
+From: Michael Biebl <biebl@debian.org>
+Date: Mon, 21 Mar 2022 15:39:19 +0100
+Subject: Revert "supplicant: detect the SAE interface capability"
+
+This reverts commit 4e018bef68046697dec9f8f698c4a3ff9a20f79a.
+---
+ src/core/supplicant/nm-supplicant-interface.c | 17 ++---------------
+ src/core/supplicant/nm-supplicant-types.h     |  2 --
+ 2 files changed, 2 insertions(+), 17 deletions(-)
+
+diff --git a/src/core/supplicant/nm-supplicant-interface.c b/src/core/supplicant/nm-supplicant-interface.c
+index 82ede56..f79f196 100644
+--- a/src/core/supplicant/nm-supplicant-interface.c
++++ b/src/core/supplicant/nm-supplicant-interface.c
+@@ -1171,24 +1171,19 @@ parse_capabilities(NMSupplicantInterface *self, GVariant *capabilities)
+     const gboolean                old_prop_scan_ssid   = priv->prop_scan_ssid;
+     const guint32                 old_max_scan_ssids   = priv->max_scan_ssids;
+     gboolean                      have_ft              = FALSE;
+-    gboolean                      have_sae             = FALSE;
+     gint32                        max_scan_ssids;
+     const char **                 array;
+ 
+     nm_assert(capabilities && g_variant_is_of_type(capabilities, G_VARIANT_TYPE_VARDICT));
+ 
+     if (g_variant_lookup(capabilities, "KeyMgmt", "^a&s", &array)) {
+-        have_ft  = g_strv_contains(array, "wpa-ft-psk");
+-        have_sae = g_strv_contains(array, "sae");
++        have_ft = g_strv_contains(array, "wpa-ft-psk");
+         g_free(array);
+     }
+ 
+     priv->iface_capabilities = NM_SUPPL_CAP_MASK_SET(priv->iface_capabilities,
+                                                      NM_SUPPL_CAP_TYPE_FT,
+                                                      have_ft ? NM_TERNARY_TRUE : NM_TERNARY_FALSE);
+-    priv->iface_capabilities = NM_SUPPL_CAP_MASK_SET(priv->iface_capabilities,
+-                                                     NM_SUPPL_CAP_TYPE_SAE,
+-                                                     have_sae ? NM_TERNARY_TRUE : NM_TERNARY_FALSE);
+ 
+     if (g_variant_lookup(capabilities, "Modes", "^a&s", &array)) {
+         /* Setting p2p_capable might toggle _prop_p2p_available_get(). However,
+@@ -1283,10 +1278,6 @@ _get_capability(NMSupplicantInterfacePrivate *priv, NMSupplCapType type)
+                 value = iface_value;
+         }
+         break;
+-    case NM_SUPPL_CAP_TYPE_SAE:
+-        nm_assert(NM_SUPPL_CAP_MASK_GET(priv->global_capabilities, type) == NM_TERNARY_DEFAULT);
+-        value = NM_SUPPL_CAP_MASK_GET(priv->iface_capabilities, type);
+-        break;
+     default:
+         nm_assert(NM_SUPPL_CAP_MASK_GET(priv->iface_capabilities, type) == NM_TERNARY_DEFAULT);
+         value = NM_SUPPL_CAP_MASK_GET(priv->global_capabilities, type);
+@@ -1314,13 +1305,9 @@ nm_supplicant_interface_get_capabilities(NMSupplicantInterface *self)
+     caps = NM_SUPPL_CAP_MASK_SET(caps,
+                                  NM_SUPPL_CAP_TYPE_FT,
+                                  _get_capability(priv, NM_SUPPL_CAP_TYPE_FT));
+-    caps = NM_SUPPL_CAP_MASK_SET(caps,
+-                                 NM_SUPPL_CAP_TYPE_SAE,
+-                                 _get_capability(priv, NM_SUPPL_CAP_TYPE_SAE));
+ 
+     nm_assert(!NM_FLAGS_ANY(priv->iface_capabilities,
+-                            ~(NM_SUPPL_CAP_MASK_T_AP_MASK | NM_SUPPL_CAP_MASK_T_FT_MASK
+-                              | NM_SUPPL_CAP_MASK_T_SAE_MASK)));
++                            ~(NM_SUPPL_CAP_MASK_T_AP_MASK | NM_SUPPL_CAP_MASK_T_FT_MASK)));
+ 
+ #if NM_MORE_ASSERTS > 10
+     {
+diff --git a/src/core/supplicant/nm-supplicant-types.h b/src/core/supplicant/nm-supplicant-types.h
+index 8836bba..adcf02d 100644
+--- a/src/core/supplicant/nm-supplicant-types.h
++++ b/src/core/supplicant/nm-supplicant-types.h
+@@ -41,7 +41,6 @@ typedef enum {
+     NM_SUPPL_CAP_TYPE_FILS,
+     NM_SUPPL_CAP_TYPE_P2P,
+     NM_SUPPL_CAP_TYPE_FT,
+-    NM_SUPPL_CAP_TYPE_SAE,
+     NM_SUPPL_CAP_TYPE_SHA384,
+     NM_SUPPL_CAP_TYPE_MESH,
+     NM_SUPPL_CAP_TYPE_FAST,
+@@ -72,7 +71,6 @@ typedef enum {
+     _NM_SUPPL_CAP_MASK_DEFINE(MESH),
+     _NM_SUPPL_CAP_MASK_DEFINE(WFD),
+     _NM_SUPPL_CAP_MASK_DEFINE(FT),
+-    _NM_SUPPL_CAP_MASK_DEFINE(SAE),
+     _NM_SUPPL_CAP_MASK_DEFINE(SHA384),
+ #undef _NM_SUPPL_CAP_MASK_DEFINE
+ } NMSupplCapMask;

@@ -1,1 +1,4 @@
 Force-online-state-with-unmanaged-devices.patch
+Revert-supplicant-enable-WPA3-for-WPA-PSK-connections.patch
+Revert-supplicant-print-interface-capabilities.patch
+Revert-supplicant-detect-the-SAE-interface-capability.patch

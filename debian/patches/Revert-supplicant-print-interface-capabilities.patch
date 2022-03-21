@@ -1,0 +1,104 @@
+From: Michael Biebl <biebl@debian.org>
+Date: Mon, 21 Mar 2022 15:39:18 +0100
+Subject: Revert "supplicant: print interface capabilities"
+
+This reverts commit 0109328085aec07b0d9fc560e6432e0be33a73b6.
+---
+ src/core/supplicant/nm-supplicant-interface.c |  9 --------
+ src/core/supplicant/nm-supplicant-manager.c   | 31 +++++++++++++++++++--------
+ src/core/supplicant/nm-supplicant-types.h     | 13 -----------
+ 3 files changed, 22 insertions(+), 31 deletions(-)
+
+diff --git a/src/core/supplicant/nm-supplicant-interface.c b/src/core/supplicant/nm-supplicant-interface.c
+index a38ebf1..82ede56 100644
+--- a/src/core/supplicant/nm-supplicant-interface.c
++++ b/src/core/supplicant/nm-supplicant-interface.c
+@@ -1260,15 +1260,6 @@ _starting_check_ready(NMSupplicantInterface *self)
+         return;
+     }
+ 
+-    _LOGD("interface supported features:"
+-          " AP%c"
+-          " FT%c"
+-          " SAE%c"
+-          "",
+-          NM_SUPPL_CAP_TO_CHAR(priv->iface_capabilities, NM_SUPPL_CAP_TYPE_AP),
+-          NM_SUPPL_CAP_TO_CHAR(priv->iface_capabilities, NM_SUPPL_CAP_TYPE_FT),
+-          NM_SUPPL_CAP_TO_CHAR(priv->iface_capabilities, NM_SUPPL_CAP_TYPE_SAE));
+-
+     set_state(self, priv->supp_state);
+ }
+ 
+diff --git a/src/core/supplicant/nm-supplicant-manager.c b/src/core/supplicant/nm-supplicant-manager.c
+index 7cf1a2b..4c326fa 100644
+--- a/src/core/supplicant/nm-supplicant-manager.c
++++ b/src/core/supplicant/nm-supplicant-manager.c
+@@ -168,6 +168,19 @@ _caps_set(NMSupplicantManagerPrivate *priv, NMSupplCapType type, NMTernary value
+     priv->capabilities = NM_SUPPL_CAP_MASK_SET(priv->capabilities, type, value);
+ }
+ 
++static char
++_caps_to_char(NMSupplicantManagerPrivate *priv, NMSupplCapType type)
++{
++    NMTernary val;
++
++    val = NM_SUPPL_CAP_MASK_GET(priv->capabilities, type);
++    if (val == NM_TERNARY_TRUE)
++        return '+';
++    if (val == NM_TERNARY_FALSE)
++        return '-';
++    return '?';
++}
++
+ /*****************************************************************************/
+ 
+ static void
+@@ -995,15 +1008,15 @@ _dbus_get_capabilities_cb(GVariant *res, GError *error, gpointer user_data)
+           " FAST%c"
+           " WFD%c"
+           "",
+-          NM_SUPPL_CAP_TO_CHAR(priv->capabilities, NM_SUPPL_CAP_TYPE_AP),
+-          NM_SUPPL_CAP_TO_CHAR(priv->capabilities, NM_SUPPL_CAP_TYPE_PMF),
+-          NM_SUPPL_CAP_TO_CHAR(priv->capabilities, NM_SUPPL_CAP_TYPE_FILS),
+-          NM_SUPPL_CAP_TO_CHAR(priv->capabilities, NM_SUPPL_CAP_TYPE_P2P),
+-          NM_SUPPL_CAP_TO_CHAR(priv->capabilities, NM_SUPPL_CAP_TYPE_FT),
+-          NM_SUPPL_CAP_TO_CHAR(priv->capabilities, NM_SUPPL_CAP_TYPE_SHA384),
+-          NM_SUPPL_CAP_TO_CHAR(priv->capabilities, NM_SUPPL_CAP_TYPE_MESH),
+-          NM_SUPPL_CAP_TO_CHAR(priv->capabilities, NM_SUPPL_CAP_TYPE_FAST),
+-          NM_SUPPL_CAP_TO_CHAR(priv->capabilities, NM_SUPPL_CAP_TYPE_WFD));
++          _caps_to_char(priv, NM_SUPPL_CAP_TYPE_AP),
++          _caps_to_char(priv, NM_SUPPL_CAP_TYPE_PMF),
++          _caps_to_char(priv, NM_SUPPL_CAP_TYPE_FILS),
++          _caps_to_char(priv, NM_SUPPL_CAP_TYPE_P2P),
++          _caps_to_char(priv, NM_SUPPL_CAP_TYPE_FT),
++          _caps_to_char(priv, NM_SUPPL_CAP_TYPE_SHA384),
++          _caps_to_char(priv, NM_SUPPL_CAP_TYPE_MESH),
++          _caps_to_char(priv, NM_SUPPL_CAP_TYPE_FAST),
++          _caps_to_char(priv, NM_SUPPL_CAP_TYPE_WFD));
+ 
+     nm_assert(g_hash_table_size(priv->supp_ifaces) == 0);
+     nm_assert(c_list_is_empty(&priv->supp_lst_head));
+diff --git a/src/core/supplicant/nm-supplicant-types.h b/src/core/supplicant/nm-supplicant-types.h
+index ae2db3f..8836bba 100644
+--- a/src/core/supplicant/nm-supplicant-types.h
++++ b/src/core/supplicant/nm-supplicant-types.h
+@@ -116,19 +116,6 @@ NM_SUPPL_CAP_MASK_GET(NMSupplCapMask features, NMSupplCapType type)
+     return (NMTernary)(f - 1);
+ }
+ 
+-static inline char
+-NM_SUPPL_CAP_TO_CHAR(NMSupplCapMask features, NMSupplCapType type)
+-{
+-    NMTernary val;
+-
+-    val = NM_SUPPL_CAP_MASK_GET(features, type);
+-    if (val == NM_TERNARY_TRUE)
+-        return '+';
+-    if (val == NM_TERNARY_FALSE)
+-        return '-';
+-    return '?';
+-}
+-
+ /*****************************************************************************/
+ 
+ /**
