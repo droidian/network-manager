@@ -233,6 +233,7 @@ void nm_utils_log_connection_diff(NMConnection *connection,
                                   const char   *dbus_path);
 
 gboolean nm_utils_is_specific_hostname(const char *name);
+gboolean nm_utils_shorten_hostname(const char *hostname, char **shortened);
 
 struct _NMUuid;
 
@@ -246,7 +247,7 @@ const char           *nm_utils_proc_cmdline(void);
 const char *const    *nm_utils_proc_cmdline_split(void);
 
 gboolean nm_utils_host_id_get(const guint8 **out_host_id, gsize *out_host_id_len);
-gint64   nm_utils_host_id_get_timestamp_ns(void);
+gint64   nm_utils_host_id_get_timestamp_nsec(void);
 
 void nmtst_utils_host_id_push(const guint8 *host_id,
                               gssize        host_id_len,

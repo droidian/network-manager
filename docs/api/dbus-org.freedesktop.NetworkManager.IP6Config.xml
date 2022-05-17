@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.IP6Config">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-IP6Config.top_of_page">org.freedesktop.NetworkManager.IP6Config</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-IP6Config.top_of_page"><primary sortas=".IP6Config">org.freedesktop.NetworkManager.IP6Config</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.IP6Config</refname>    <refpurpose>IPv6 Configuration Set</refpurpose>  </refnamediv>  <refsect1 role="properties">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.IP6Config</refname>    <refpurpose>IPv6 Configuration Set.</refpurpose>  </refnamediv>  <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-IP6Config.Addresses">Addresses</link>    readable   a(ayuay)

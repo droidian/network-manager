@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="NetworkManager.html" title="NetworkManager">
 <link rel="next" href="NetworkManager-dispatcher.html" title="NetworkManager-dispatcher">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -611,9 +611,37 @@ unmanaged-devices=mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface-name:eth
 <div class="refsect1">
 <a name="id-1.2.3.10"></a><h2>
 <code class="literal">logging</code> section</h2>
-<p>This section controls NetworkManager's logging.  Any
-    settings here are overridden by the <code class="option">--log-level</code>
-    and <code class="option">--log-domains</code> command-line options.</p>
+<p>
+    This section controls NetworkManager's logging.
+    Logging is very important to understand what NetworkManager is doing.
+    When you report a bug, do not unnecessarily filter or limit the log file.
+    Just enable <code class="literal">level=TRACE</code> and <code class="literal">domains=ALL</code>
+    to collect everything.
+    </p>
+<p>
+    Any settings here are overridden by the <code class="option">--log-level</code>
+    and <code class="option">--log-domains</code> command-line options.
+    Logging can also be reconfigured at runtime with
+    <span class="command"><strong>nmcli general logging level "$LEVEL" domains "$DOMAINS"</strong></span>.
+    However, often it is interesting to get a complete log from the
+    start. Especially, when debugging an issue, enable debug logging
+    in NetworkManager.conf and restart the service to enable verbose logging
+    early on.
+    </p>
+<p>
+    NetworkManager's logging aims not to contain private sensitive data
+    and you should be fine sharing the debug logs. Still, there will
+    be IP addresses and your network setup, if you consider that private
+    then review the log before sharing. Do not mangle the logfile in
+    a way that distorts the meaning too much.
+    </p>
+<p>
+    NetworkManager uses syslog or systemd-journald, depending on configuration.
+    In any case, debug logs are verbose and might be rate limited
+    or filtered by the logging daemon. For systemd-journald, see
+    <code class="literal">RateLimitIntervalSec</code> and <code class="literal">RateLimitBurst</code>
+    in <code class="literal">journald.conf</code> manual for how to disable that.
+    </p>
 <p>
       </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -624,22 +652,37 @@ unmanaged-devices=mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface-name:eth
 <tbody>
 <tr>
 <td><p><span class="term"><code class="varname">level</code></span></p></td>
-<td><p>The default logging verbosity level.
+<td>
+<p>The default logging verbosity level.
           One of <code class="literal">OFF</code>, <code class="literal">ERR</code>,
           <code class="literal">WARN</code>, <code class="literal">INFO</code>,
-          <code class="literal">DEBUG</code>, <code class="literal">TRACE</code>.  The ERR
-          level logs only critical errors.  WARN logs warnings that may
-          reflect operation. INFO logs various informational messages that
-          are useful for tracking state and operations.  DEBUG enables
-          verbose logging for debugging purposes. TRACE enables even more
-          verbose logging then DEBUG level.  Subsequent levels also log
-          all messages from earlier levels; thus setting the log level
-          to INFO also logs error and warning messages.</p></td>
+          <code class="literal">DEBUG</code>, <code class="literal">TRACE</code>,
+          in order of verbosity.
+          </p>
+<p>
+          <code class="literal">OFF</code> disables all logging. <code class="literal">INFO</code>
+          is the default verbosity for regular operation. <code class="literal">TRACE</code>
+          is for debugging.
+          </p>
+<p>
+          The other levels are in most cases not useful. For example, <code class="literal">DEBUG</code>
+          is between <code class="literal">TRACE</code> and <code class="literal">INFO</code>, but it's too
+          verbose for regular operation and lacks possibly interesting messages for debugging.
+          Almost always, when debugging an issue or reporting a bug, collect full
+          level <code class="literal">TRACE</code> logs to get the full picture.
+          </p>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="varname">domains</code></span></p></td>
 <td>
-<p>The following log domains are available:
+<p>Filter the messages by their topic. When debugging
+          an issue, it's better to collect all logs (<code class="literal">ALL</code> domain)
+          upfront. The unnecessary parts can always be ignored
+          later.
+          </p>
+<p>In the uncommon case to tune out certain topics, the following log
+          domains are available:
           PLATFORM, RFKILL, ETHER, WIFI, BT, MB, DHCP4, DHCP6, PPP,
           WIFI_SCAN, IP4, IP6, AUTOIP4, DNS, VPN, SHARING, SUPPLICANT,
           AGENTS, SETTINGS, SUSPEND, CORE, DEVICE, OLPC, WIMAX,
@@ -650,7 +693,11 @@ unmanaged-devices=mac:00:22:68:1c:59:b1;mac:00:1E:65:30:D1:C4;interface-name:eth
           ALL, DEFAULT, DHCP, IP.</p>
 <p>You can specify per-domain log level overrides by
           adding a colon and a log level to any domain. E.g.,
-          "<code class="literal">WIFI:DEBUG,WIFI_SCAN:OFF</code>".</p>
+          "<code class="literal">WIFI:DEBUG,WIFI_SCAN:OFF</code>".
+          Another example is <code class="literal">ALL,VPN_PLUGIN:TRACE</code>
+          to enable all the logging there is (see about <code class="literal">VPN_PLUGIN</code>
+          below).
+          </p>
 </td>
 </tr>
 <tr>
@@ -1794,6 +1841,6 @@ interface-name:vboxnet*,except:interface-name:vboxnet2
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

@@ -38,20 +38,20 @@
  *
  * 10: NMSettingUser
  */
-typedef enum { /*< skip >*/
-               NM_SETTING_PRIORITY_INVALID     = 0,
-               NM_SETTING_PRIORITY_CONNECTION  = 1,
-               NM_SETTING_PRIORITY_HW_BASE     = 2,
-               NM_SETTING_PRIORITY_HW_NON_BASE = 3,
-               NM_SETTING_PRIORITY_HW_AUX      = 4,
-               NM_SETTING_PRIORITY_AUX         = 5,
-               NM_SETTING_PRIORITY_IP          = 6,
-               NM_SETTING_PRIORITY_USER        = 10,
+typedef enum /*< skip >*/ {
+    NM_SETTING_PRIORITY_INVALID     = 0,
+    NM_SETTING_PRIORITY_CONNECTION  = 1,
+    NM_SETTING_PRIORITY_HW_BASE     = 2,
+    NM_SETTING_PRIORITY_HW_NON_BASE = 3,
+    NM_SETTING_PRIORITY_HW_AUX      = 4,
+    NM_SETTING_PRIORITY_AUX         = 5,
+    NM_SETTING_PRIORITY_IP          = 6,
+    NM_SETTING_PRIORITY_USER        = 10,
 } NMSettingPriority;
 
 /*****************************************************************************/
 
-typedef enum {
+typedef enum _nm_packed {
     NM_SETTING_802_1X_SCHEME_TYPE_CA_CERT,
     NM_SETTING_802_1X_SCHEME_TYPE_PHASE2_CA_CERT,
     NM_SETTING_802_1X_SCHEME_TYPE_CLIENT_CERT,
@@ -91,6 +91,8 @@ typedef struct {
 
 extern const NMSetting8021xSchemeVtable
     nm_setting_8021x_scheme_vtable[_NM_SETTING_802_1X_SCHEME_TYPE_NUM + 1];
+
+const NMSetting8021xSchemeVtable *nm_setting_8021x_scheme_vtable_by_setting_key(const char *key);
 
 /*****************************************************************************/
 

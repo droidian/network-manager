@@ -91,17 +91,17 @@ typedef struct _NMPWireGuardPeer {
 
 /*****************************************************************************/
 
-typedef enum { /*< skip >*/
-               NMP_OBJECT_TO_STRING_ID,
-               NMP_OBJECT_TO_STRING_PUBLIC,
-               NMP_OBJECT_TO_STRING_ALL,
+typedef enum {
+    NMP_OBJECT_TO_STRING_ID,
+    NMP_OBJECT_TO_STRING_PUBLIC,
+    NMP_OBJECT_TO_STRING_ALL,
 } NMPObjectToStringMode;
 
-typedef enum { /*< skip >*/
-               NMP_CACHE_OPS_UNCHANGED = NM_PLATFORM_SIGNAL_NONE,
-               NMP_CACHE_OPS_ADDED     = NM_PLATFORM_SIGNAL_ADDED,
-               NMP_CACHE_OPS_UPDATED   = NM_PLATFORM_SIGNAL_CHANGED,
-               NMP_CACHE_OPS_REMOVED   = NM_PLATFORM_SIGNAL_REMOVED,
+typedef enum {
+    NMP_CACHE_OPS_UNCHANGED = NM_PLATFORM_SIGNAL_NONE,
+    NMP_CACHE_OPS_ADDED     = NM_PLATFORM_SIGNAL_ADDED,
+    NMP_CACHE_OPS_UPDATED   = NM_PLATFORM_SIGNAL_CHANGED,
+    NMP_CACHE_OPS_REMOVED   = NM_PLATFORM_SIGNAL_REMOVED,
 } NMPCacheOpsType;
 
 /* The NMPCacheIdType are the different index types.
@@ -1096,21 +1096,6 @@ nm_platform_lookup_object_by_addr_family(NMPlatform   *platform,
 }
 
 /*****************************************************************************/
-
-static inline gboolean
-nmp_object_get_assume_config_once(const NMPObject *obj)
-{
-    switch (NMP_OBJECT_GET_TYPE(obj)) {
-    case NMP_OBJECT_TYPE_IP4_ADDRESS:
-    case NMP_OBJECT_TYPE_IP6_ADDRESS:
-        return NMP_OBJECT_CAST_IP_ADDRESS(obj)->a_assume_config_once;
-    case NMP_OBJECT_TYPE_IP4_ROUTE:
-    case NMP_OBJECT_TYPE_IP6_ROUTE:
-        return NMP_OBJECT_CAST_IP_ROUTE(obj)->r_assume_config_once;
-    default:
-        return nm_assert_unreachable_val(FALSE);
-    }
-}
 
 static inline gboolean
 nmp_object_get_force_commit(const NMPObject *obj)

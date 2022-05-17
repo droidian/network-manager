@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.Device.Generic">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Generic.top_of_page">org.freedesktop.NetworkManager.Device.Generic</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Device-Generic.top_of_page"><primary sortas=".Device.Generic">org.freedesktop.NetworkManager.Device.Generic</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Generic</refname>    <refpurpose>Unrecognized Device</refpurpose>  </refnamediv>  <refsect1 role="properties">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Generic</refname>    <refpurpose>Unrecognized Device.</refpurpose>  </refnamediv>  <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Generic.HwAddress">HwAddress</link>        readable   s

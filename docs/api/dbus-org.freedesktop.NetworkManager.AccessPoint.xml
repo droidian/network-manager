@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.AccessPoint">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-AccessPoint.top_of_page">org.freedesktop.NetworkManager.AccessPoint</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-AccessPoint.top_of_page"><primary sortas=".AccessPoint">org.freedesktop.NetworkManager.AccessPoint</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.AccessPoint</refname>    <refpurpose>Wi-Fi Access Point</refpurpose>  </refnamediv>  <refsect1 role="properties">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.AccessPoint</refname>    <refpurpose>Wi-Fi Access Point.</refpurpose>  </refnamediv>  <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-AccessPoint.Flags">Flags</link>       readable   u

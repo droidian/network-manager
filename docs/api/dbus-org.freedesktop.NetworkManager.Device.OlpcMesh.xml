@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.Device.OlpcMesh">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Device-OlpcMesh.top_of_page">org.freedesktop.NetworkManager.Device.OlpcMesh</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Device-OlpcMesh.top_of_page"><primary sortas=".Device.OlpcMesh">org.freedesktop.NetworkManager.Device.OlpcMesh</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.OlpcMesh</refname>    <refpurpose>OLPC Wireless Mesh Device</refpurpose>  </refnamediv>  <refsect1 role="properties">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.OlpcMesh</refname>    <refpurpose>OLPC Wireless Mesh Device.</refpurpose>  </refnamediv>  <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-OlpcMesh.HwAddress">HwAddress</link>      readable   s

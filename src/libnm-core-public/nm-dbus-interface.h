@@ -265,12 +265,12 @@ typedef enum {
  *
  * General device capability flags.
  **/
-typedef enum { /*< flags >*/
-               NM_DEVICE_CAP_NONE           = 0x00000000,
-               NM_DEVICE_CAP_NM_SUPPORTED   = 0x00000001,
-               NM_DEVICE_CAP_CARRIER_DETECT = 0x00000002,
-               NM_DEVICE_CAP_IS_SOFTWARE    = 0x00000004,
-               NM_DEVICE_CAP_SRIOV          = 0x00000008,
+typedef enum /*< flags >*/ {
+    NM_DEVICE_CAP_NONE           = 0x00000000,
+    NM_DEVICE_CAP_NM_SUPPORTED   = 0x00000001,
+    NM_DEVICE_CAP_CARRIER_DETECT = 0x00000002,
+    NM_DEVICE_CAP_IS_SOFTWARE    = 0x00000004,
+    NM_DEVICE_CAP_SRIOV          = 0x00000008,
 } NMDeviceCapabilities;
 
 /**
@@ -292,21 +292,21 @@ typedef enum { /*< flags >*/
  *
  * 802.11 specific device encryption and authentication capabilities.
  **/
-typedef enum { /*< flags >*/
-               NM_WIFI_DEVICE_CAP_NONE          = 0x00000000,
-               NM_WIFI_DEVICE_CAP_CIPHER_WEP40  = 0x00000001,
-               NM_WIFI_DEVICE_CAP_CIPHER_WEP104 = 0x00000002,
-               NM_WIFI_DEVICE_CAP_CIPHER_TKIP   = 0x00000004,
-               NM_WIFI_DEVICE_CAP_CIPHER_CCMP   = 0x00000008,
-               NM_WIFI_DEVICE_CAP_WPA           = 0x00000010,
-               NM_WIFI_DEVICE_CAP_RSN           = 0x00000020,
-               NM_WIFI_DEVICE_CAP_AP            = 0x00000040,
-               NM_WIFI_DEVICE_CAP_ADHOC         = 0x00000080,
-               NM_WIFI_DEVICE_CAP_FREQ_VALID    = 0x00000100,
-               NM_WIFI_DEVICE_CAP_FREQ_2GHZ     = 0x00000200,
-               NM_WIFI_DEVICE_CAP_FREQ_5GHZ     = 0x00000400,
-               NM_WIFI_DEVICE_CAP_MESH          = 0x00001000,
-               NM_WIFI_DEVICE_CAP_IBSS_RSN      = 0x00002000,
+typedef enum /*< flags >*/ {
+    NM_WIFI_DEVICE_CAP_NONE          = 0x00000000,
+    NM_WIFI_DEVICE_CAP_CIPHER_WEP40  = 0x00000001,
+    NM_WIFI_DEVICE_CAP_CIPHER_WEP104 = 0x00000002,
+    NM_WIFI_DEVICE_CAP_CIPHER_TKIP   = 0x00000004,
+    NM_WIFI_DEVICE_CAP_CIPHER_CCMP   = 0x00000008,
+    NM_WIFI_DEVICE_CAP_WPA           = 0x00000010,
+    NM_WIFI_DEVICE_CAP_RSN           = 0x00000020,
+    NM_WIFI_DEVICE_CAP_AP            = 0x00000040,
+    NM_WIFI_DEVICE_CAP_ADHOC         = 0x00000080,
+    NM_WIFI_DEVICE_CAP_FREQ_VALID    = 0x00000100,
+    NM_WIFI_DEVICE_CAP_FREQ_2GHZ     = 0x00000200,
+    NM_WIFI_DEVICE_CAP_FREQ_5GHZ     = 0x00000400,
+    NM_WIFI_DEVICE_CAP_MESH          = 0x00001000,
+    NM_WIFI_DEVICE_CAP_IBSS_RSN      = 0x00002000,
 } NMDeviceWifiCapabilities;
 
 /**
@@ -320,12 +320,12 @@ typedef enum { /*< flags >*/
  *
  * 802.11 access point flags.
  **/
-typedef enum { /*< underscore_name=nm_802_11_ap_flags, flags >*/
-               NM_802_11_AP_FLAGS_NONE    = 0x00000000,
-               NM_802_11_AP_FLAGS_PRIVACY = 0x00000001,
-               NM_802_11_AP_FLAGS_WPS     = 0x00000002,
-               NM_802_11_AP_FLAGS_WPS_PBC = 0x00000004,
-               NM_802_11_AP_FLAGS_WPS_PIN = 0x00000008,
+typedef enum /*< underscore_name=nm_802_11_ap_flags, flags >*/ {
+    NM_802_11_AP_FLAGS_NONE    = 0x00000000,
+    NM_802_11_AP_FLAGS_PRIVACY = 0x00000001,
+    NM_802_11_AP_FLAGS_WPS     = 0x00000002,
+    NM_802_11_AP_FLAGS_WPS_PBC = 0x00000004,
+    NM_802_11_AP_FLAGS_WPS_PIN = 0x00000008,
 } NM80211ApFlags;
 
 /**
@@ -361,22 +361,22 @@ typedef enum { /*< underscore_name=nm_802_11_ap_flags, flags >*/
  * the current security requirements of an access point as determined from the
  * access point's beacon.
  **/
-typedef enum { /*< underscore_name=nm_802_11_ap_security_flags, flags >*/
-               NM_802_11_AP_SEC_NONE                     = 0x00000000,
-               NM_802_11_AP_SEC_PAIR_WEP40               = 0x00000001,
-               NM_802_11_AP_SEC_PAIR_WEP104              = 0x00000002,
-               NM_802_11_AP_SEC_PAIR_TKIP                = 0x00000004,
-               NM_802_11_AP_SEC_PAIR_CCMP                = 0x00000008,
-               NM_802_11_AP_SEC_GROUP_WEP40              = 0x00000010,
-               NM_802_11_AP_SEC_GROUP_WEP104             = 0x00000020,
-               NM_802_11_AP_SEC_GROUP_TKIP               = 0x00000040,
-               NM_802_11_AP_SEC_GROUP_CCMP               = 0x00000080,
-               NM_802_11_AP_SEC_KEY_MGMT_PSK             = 0x00000100,
-               NM_802_11_AP_SEC_KEY_MGMT_802_1X          = 0x00000200,
-               NM_802_11_AP_SEC_KEY_MGMT_SAE             = 0x00000400,
-               NM_802_11_AP_SEC_KEY_MGMT_OWE             = 0x00000800,
-               NM_802_11_AP_SEC_KEY_MGMT_OWE_TM          = 0x00001000,
-               NM_802_11_AP_SEC_KEY_MGMT_EAP_SUITE_B_192 = 0x00002000,
+typedef enum /*< underscore_name=nm_802_11_ap_security_flags, flags >*/ {
+    NM_802_11_AP_SEC_NONE                     = 0x00000000,
+    NM_802_11_AP_SEC_PAIR_WEP40               = 0x00000001,
+    NM_802_11_AP_SEC_PAIR_WEP104              = 0x00000002,
+    NM_802_11_AP_SEC_PAIR_TKIP                = 0x00000004,
+    NM_802_11_AP_SEC_PAIR_CCMP                = 0x00000008,
+    NM_802_11_AP_SEC_GROUP_WEP40              = 0x00000010,
+    NM_802_11_AP_SEC_GROUP_WEP104             = 0x00000020,
+    NM_802_11_AP_SEC_GROUP_TKIP               = 0x00000040,
+    NM_802_11_AP_SEC_GROUP_CCMP               = 0x00000080,
+    NM_802_11_AP_SEC_KEY_MGMT_PSK             = 0x00000100,
+    NM_802_11_AP_SEC_KEY_MGMT_802_1X          = 0x00000200,
+    NM_802_11_AP_SEC_KEY_MGMT_SAE             = 0x00000400,
+    NM_802_11_AP_SEC_KEY_MGMT_OWE             = 0x00000800,
+    NM_802_11_AP_SEC_KEY_MGMT_OWE_TM          = 0x00001000,
+    NM_802_11_AP_SEC_KEY_MGMT_EAP_SUITE_B_192 = 0x00002000,
 } NM80211ApSecurityFlags;
 
 /**
@@ -412,10 +412,10 @@ typedef enum { /*< underscore_name=nm_802_11_mode >*/
  * #NMBluetoothCapabilities values indicate the usable capabilities of a
  * Bluetooth device.
  **/
-typedef enum { /*< flags >*/
-               NM_BT_CAPABILITY_NONE = 0x00000000,
-               NM_BT_CAPABILITY_DUN  = 0x00000001,
-               NM_BT_CAPABILITY_NAP  = 0x00000002,
+typedef enum /*< flags >*/ {
+    NM_BT_CAPABILITY_NONE = 0x00000000,
+    NM_BT_CAPABILITY_DUN  = 0x00000001,
+    NM_BT_CAPABILITY_NAP  = 0x00000002,
 } NMBluetoothCapabilities;
 
 /**
@@ -435,13 +435,13 @@ typedef enum { /*< flags >*/
  * specific access technologies the device supports use the ModemManager D-Bus
  * API.
  **/
-typedef enum { /*< flags >*/
-               NM_DEVICE_MODEM_CAPABILITY_NONE      = 0x00000000,
-               NM_DEVICE_MODEM_CAPABILITY_POTS      = 0x00000001,
-               NM_DEVICE_MODEM_CAPABILITY_CDMA_EVDO = 0x00000002,
-               NM_DEVICE_MODEM_CAPABILITY_GSM_UMTS  = 0x00000004,
-               NM_DEVICE_MODEM_CAPABILITY_LTE       = 0x00000008,
-               NM_DEVICE_MODEM_CAPABILITY_5GNR      = 0x00000040,
+typedef enum /*< flags >*/ {
+    NM_DEVICE_MODEM_CAPABILITY_NONE      = 0x00000000,
+    NM_DEVICE_MODEM_CAPABILITY_POTS      = 0x00000001,
+    NM_DEVICE_MODEM_CAPABILITY_CDMA_EVDO = 0x00000002,
+    NM_DEVICE_MODEM_CAPABILITY_GSM_UMTS  = 0x00000004,
+    NM_DEVICE_MODEM_CAPABILITY_LTE       = 0x00000008,
+    NM_DEVICE_MODEM_CAPABILITY_5GNR      = 0x00000040,
 } NMDeviceModemCapabilities;
 /* Note: the numeric values of NMDeviceModemCapabilities must be identical to the values
  * in MMModemCapability. See the G_STATIC_ASSERT() in nm-modem-broadband.c's get_capabilities().  */
@@ -834,16 +834,16 @@ typedef enum {
  *
  * #NMSecretAgentGetSecretsFlags values modify the behavior of a GetSecrets request.
  */
-typedef enum { /*< flags >*/
-               NM_SECRET_AGENT_GET_SECRETS_FLAG_NONE              = 0x0,
-               NM_SECRET_AGENT_GET_SECRETS_FLAG_ALLOW_INTERACTION = 0x1,
-               NM_SECRET_AGENT_GET_SECRETS_FLAG_REQUEST_NEW       = 0x2,
-               NM_SECRET_AGENT_GET_SECRETS_FLAG_USER_REQUESTED    = 0x4,
-               NM_SECRET_AGENT_GET_SECRETS_FLAG_WPS_PBC_ACTIVE    = 0x8,
+typedef enum /*< flags >*/ {
+    NM_SECRET_AGENT_GET_SECRETS_FLAG_NONE              = 0x0,
+    NM_SECRET_AGENT_GET_SECRETS_FLAG_ALLOW_INTERACTION = 0x1,
+    NM_SECRET_AGENT_GET_SECRETS_FLAG_REQUEST_NEW       = 0x2,
+    NM_SECRET_AGENT_GET_SECRETS_FLAG_USER_REQUESTED    = 0x4,
+    NM_SECRET_AGENT_GET_SECRETS_FLAG_WPS_PBC_ACTIVE    = 0x8,
 
-               /* Internal to NM; not part of the D-Bus API */
-               NM_SECRET_AGENT_GET_SECRETS_FLAG_ONLY_SYSTEM = 0x80000000,
-               NM_SECRET_AGENT_GET_SECRETS_FLAG_NO_ERRORS   = 0x40000000,
+    /* Internal to NM; not part of the D-Bus API */
+    NM_SECRET_AGENT_GET_SECRETS_FLAG_ONLY_SYSTEM = 0x80000000,
+    NM_SECRET_AGENT_GET_SECRETS_FLAG_NO_ERRORS   = 0x40000000,
 } NMSecretAgentGetSecretsFlags;
 
 /**
@@ -962,20 +962,20 @@ typedef enum {
  * @NM_CHECKPOINT_CREATE_FLAG_NO_PRESERVE_EXTERNAL_PORTS: during rollback,
  *   by default externally added ports attached to bridge devices are preserved.
  *   With this flag, the rollback detaches all external ports.
- *   This only has an effect for bridge ports. Before 1.38, 1.36.2, this was the default
- *   behavior. Since: 1.38, 1.36.2.
+ *   This only has an effect for bridge ports. Before 1.38, this was the default
+ *   behavior. Since: 1.38.
  *
  * The flags for CheckpointCreate call
  *
  * Since: 1.4 (gi flags generated since 1.12)
  */
-typedef enum { /*< flags >*/
-               NM_CHECKPOINT_CREATE_FLAG_NONE                       = 0,
-               NM_CHECKPOINT_CREATE_FLAG_DESTROY_ALL                = 0x01,
-               NM_CHECKPOINT_CREATE_FLAG_DELETE_NEW_CONNECTIONS     = 0x02,
-               NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES     = 0x04,
-               NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING          = 0x08,
-               NM_CHECKPOINT_CREATE_FLAG_NO_PRESERVE_EXTERNAL_PORTS = 0x10,
+typedef enum /*< flags >*/ {
+    NM_CHECKPOINT_CREATE_FLAG_NONE                       = 0,
+    NM_CHECKPOINT_CREATE_FLAG_DESTROY_ALL                = 0x01,
+    NM_CHECKPOINT_CREATE_FLAG_DELETE_NEW_CONNECTIONS     = 0x02,
+    NM_CHECKPOINT_CREATE_FLAG_DISCONNECT_NEW_DEVICES     = 0x04,
+    NM_CHECKPOINT_CREATE_FLAG_ALLOW_OVERLAPPING          = 0x08,
+    NM_CHECKPOINT_CREATE_FLAG_NO_PRESERVE_EXTERNAL_PORTS = 0x10,
 } NMCheckpointCreateFlags;
 
 /**
@@ -989,11 +989,11 @@ typedef enum { /*< flags >*/
  *
  * Since: 1.4
  **/
-typedef enum { /*< skip >*/
-               NM_ROLLBACK_RESULT_OK                   = 0,
-               NM_ROLLBACK_RESULT_ERR_NO_DEVICE        = 1,
-               NM_ROLLBACK_RESULT_ERR_DEVICE_UNMANAGED = 2,
-               NM_ROLLBACK_RESULT_ERR_FAILED           = 3,
+typedef enum /*< skip >*/ {
+    NM_ROLLBACK_RESULT_OK                   = 0,
+    NM_ROLLBACK_RESULT_ERR_NO_DEVICE        = 1,
+    NM_ROLLBACK_RESULT_ERR_DEVICE_UNMANAGED = 2,
+    NM_ROLLBACK_RESULT_ERR_FAILED           = 3,
 } NMRollbackResult;
 
 /**
@@ -1019,12 +1019,12 @@ typedef enum { /*< skip >*/
  *
  * Since: 1.12
  **/
-typedef enum { /*< flags >*/
-               NM_SETTINGS_CONNECTION_FLAG_NONE         = 0,
-               NM_SETTINGS_CONNECTION_FLAG_UNSAVED      = 0x01,
-               NM_SETTINGS_CONNECTION_FLAG_NM_GENERATED = 0x02,
-               NM_SETTINGS_CONNECTION_FLAG_VOLATILE     = 0x04,
-               NM_SETTINGS_CONNECTION_FLAG_EXTERNAL     = 0x08,
+typedef enum /*< flags >*/ {
+    NM_SETTINGS_CONNECTION_FLAG_NONE         = 0,
+    NM_SETTINGS_CONNECTION_FLAG_UNSAVED      = 0x01,
+    NM_SETTINGS_CONNECTION_FLAG_NM_GENERATED = 0x02,
+    NM_SETTINGS_CONNECTION_FLAG_VOLATILE     = 0x04,
+    NM_SETTINGS_CONNECTION_FLAG_EXTERNAL     = 0x08,
 } NMSettingsConnectionFlags;
 
 /**
@@ -1048,17 +1048,17 @@ typedef enum { /*< flags >*/
  *
  * Since: 1.10
  **/
-typedef enum { /*< flags >*/
-               NM_ACTIVATION_STATE_FLAG_NONE = 0,
+typedef enum /*< flags >*/ {
+    NM_ACTIVATION_STATE_FLAG_NONE = 0,
 
-               NM_ACTIVATION_STATE_FLAG_IS_MASTER                            = 0x1,
-               NM_ACTIVATION_STATE_FLAG_IS_SLAVE                             = 0x2,
-               NM_ACTIVATION_STATE_FLAG_LAYER2_READY                         = 0x4,
-               NM_ACTIVATION_STATE_FLAG_IP4_READY                            = 0x8,
-               NM_ACTIVATION_STATE_FLAG_IP6_READY                            = 0x10,
-               NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES                    = 0x20,
-               NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY = 0x40,
-               NM_ACTIVATION_STATE_FLAG_EXTERNAL                             = 0x80,
+    NM_ACTIVATION_STATE_FLAG_IS_MASTER                            = 0x1,
+    NM_ACTIVATION_STATE_FLAG_IS_SLAVE                             = 0x2,
+    NM_ACTIVATION_STATE_FLAG_LAYER2_READY                         = 0x4,
+    NM_ACTIVATION_STATE_FLAG_IP4_READY                            = 0x8,
+    NM_ACTIVATION_STATE_FLAG_IP6_READY                            = 0x10,
+    NM_ACTIVATION_STATE_FLAG_MASTER_HAS_SLAVES                    = 0x20,
+    NM_ACTIVATION_STATE_FLAG_LIFETIME_BOUND_TO_PROFILE_VISIBILITY = 0x40,
+    NM_ACTIVATION_STATE_FLAG_EXTERNAL                             = 0x80,
 } NMActivationStateFlags;
 
 /**
@@ -1075,11 +1075,11 @@ typedef enum { /*< flags >*/
  *
  * Since: 1.20
  */
-typedef enum { /*< flags >*/
-               NM_SETTINGS_ADD_CONNECTION2_FLAG_NONE              = 0,
-               NM_SETTINGS_ADD_CONNECTION2_FLAG_TO_DISK           = 0x1,
-               NM_SETTINGS_ADD_CONNECTION2_FLAG_IN_MEMORY         = 0x2,
-               NM_SETTINGS_ADD_CONNECTION2_FLAG_BLOCK_AUTOCONNECT = 0x20,
+typedef enum /*< flags >*/ {
+    NM_SETTINGS_ADD_CONNECTION2_FLAG_NONE              = 0,
+    NM_SETTINGS_ADD_CONNECTION2_FLAG_TO_DISK           = 0x1,
+    NM_SETTINGS_ADD_CONNECTION2_FLAG_IN_MEMORY         = 0x2,
+    NM_SETTINGS_ADD_CONNECTION2_FLAG_BLOCK_AUTOCONNECT = 0x20,
 } NMSettingsAddConnection2Flags;
 
 /**
@@ -1131,15 +1131,15 @@ typedef enum { /*< flags >*/
  *
  * Since: 1.12
  */
-typedef enum { /*< flags >*/
-               NM_SETTINGS_UPDATE2_FLAG_NONE               = 0,
-               NM_SETTINGS_UPDATE2_FLAG_TO_DISK            = 0x1,
-               NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY          = 0x2,
-               NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED = 0x4,
-               NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY     = 0x8,
-               NM_SETTINGS_UPDATE2_FLAG_VOLATILE           = 0x10,
-               NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT  = 0x20,
-               NM_SETTINGS_UPDATE2_FLAG_NO_REAPPLY         = 0x40,
+typedef enum /*< flags >*/ {
+    NM_SETTINGS_UPDATE2_FLAG_NONE               = 0,
+    NM_SETTINGS_UPDATE2_FLAG_TO_DISK            = 0x1,
+    NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY          = 0x2,
+    NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_DETACHED = 0x4,
+    NM_SETTINGS_UPDATE2_FLAG_IN_MEMORY_ONLY     = 0x8,
+    NM_SETTINGS_UPDATE2_FLAG_VOLATILE           = 0x10,
+    NM_SETTINGS_UPDATE2_FLAG_BLOCK_AUTOCONNECT  = 0x20,
+    NM_SETTINGS_UPDATE2_FLAG_NO_REAPPLY         = 0x40,
 } NMSettingsUpdate2Flags;
 
 /**
@@ -1178,12 +1178,12 @@ typedef enum {
  *
  * Since: 1.22
  */
-typedef enum {                                      /*< flags >*/
-               NM_MANAGER_RELOAD_FLAG_NONE     = 0, /*< skip >*/
-               NM_MANAGER_RELOAD_FLAG_CONF     = 0x1,
-               NM_MANAGER_RELOAD_FLAG_DNS_RC   = 0x2,
-               NM_MANAGER_RELOAD_FLAG_DNS_FULL = 0x4,
-               NM_MANAGER_RELOAD_FLAG_ALL      = 0x7, /*< skip >*/
+typedef enum /*< flags >*/ {
+    NM_MANAGER_RELOAD_FLAG_NONE     = 0, /*< skip >*/
+    NM_MANAGER_RELOAD_FLAG_CONF     = 0x1,
+    NM_MANAGER_RELOAD_FLAG_DNS_RC   = 0x2,
+    NM_MANAGER_RELOAD_FLAG_DNS_FULL = 0x4,
+    NM_MANAGER_RELOAD_FLAG_ALL      = 0x7, /*< skip >*/
 } NMManagerReloadFlags;
 
 /**
@@ -1205,15 +1205,15 @@ typedef enum {                                      /*< flags >*/
  *
  * Since: 1.22
  */
-typedef enum { /*< flags >*/
-               /* kernel flags */
-               NM_DEVICE_INTERFACE_FLAG_NONE     = 0, /*< skip >*/
-               NM_DEVICE_INTERFACE_FLAG_UP       = 0x1,
-               NM_DEVICE_INTERFACE_FLAG_LOWER_UP = 0x2,
-               NM_DEVICE_INTERFACE_FLAG_PROMISC  = 0x4,
-               /* NM-specific flags */
-               NM_DEVICE_INTERFACE_FLAG_CARRIER             = 0x10000,
-               NM_DEVICE_INTERFACE_FLAG_LLDP_CLIENT_ENABLED = 0x20000,
+typedef enum /*< flags >*/ {
+    /* kernel flags */
+    NM_DEVICE_INTERFACE_FLAG_NONE     = 0, /*< skip >*/
+    NM_DEVICE_INTERFACE_FLAG_UP       = 0x1,
+    NM_DEVICE_INTERFACE_FLAG_LOWER_UP = 0x2,
+    NM_DEVICE_INTERFACE_FLAG_PROMISC  = 0x4,
+    /* NM-specific flags */
+    NM_DEVICE_INTERFACE_FLAG_CARRIER             = 0x10000,
+    NM_DEVICE_INTERFACE_FLAG_LLDP_CLIENT_ENABLED = 0x20000,
 } NMDeviceInterfaceFlags;
 
 /**
@@ -1296,5 +1296,23 @@ typedef enum {
     NM_CLIENT_PERMISSION_RESULT_AUTH,
     NM_CLIENT_PERMISSION_RESULT_NO
 } NMClientPermissionResult;
+
+/**
+ * NMRadioFlags:
+ * @NM_RADIO_FLAG_NONE: an alias for numeric zero, no flags set.
+ * @NM_RADIO_FLAG_WLAN_AVAILABLE: A Wireless LAN device or rfkill switch
+ *   is detected in the system.
+ * @NM_RADIO_FLAG_WWAN_AVAILABLE: A Wireless WAN device or rfkill switch
+ *   is detected in the system.
+ *
+ * Flags related to radio interfaces.
+ *
+ * Since: 1.38
+ */
+typedef enum /*< flags >*/ {
+    NM_RADIO_FLAG_NONE           = 0,
+    NM_RADIO_FLAG_WLAN_AVAILABLE = 0x1,
+    NM_RADIO_FLAG_WWAN_AVAILABLE = 0x2,
+} NMRadioFlags;
 
 #endif /* __NM_DBUS_INTERFACE_H__ */

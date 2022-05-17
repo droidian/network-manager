@@ -22,11 +22,17 @@
 
 /*****************************************************************************/
 
+enum _NMBtCbState {
+    _NM_BT_CB_STATE_NONE    = 0, /* Registration not done    */
+    _NM_BT_CB_STATE_WAIT    = 1, /* Waiting for the callback */
+    _NM_BT_CB_STATE_SUCCESS = 2, /* Callback succeeded       */
+};
+
 struct _NMDeviceBridge {
     NMDevice      parent;
     GCancellable *bt_cancellable;
     bool          vlan_configured : 1;
-    bool          bt_registered : 1;
+    unsigned      bt_cb_state : 2;
 };
 
 struct _NMDeviceBridgeClass {
@@ -76,7 +82,8 @@ check_connection_available(NMDevice                      *device,
         if (!nm_bt_vtable_network_server->is_available(
                 nm_bt_vtable_network_server,
                 bdaddr,
-                (self->bt_cancellable || self->bt_registered) ? device : NULL)) {
+                (self->bt_cancellable || self->bt_cb_state != _NM_BT_CB_STATE_NONE) ? device
+                                                                                    : NULL)) {
             if (bdaddr)
                 nm_utils_error_set(error,
                                    NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY,
@@ -791,23 +798,68 @@ bridge_set_vlan_options(NMDevice *device, NMSettingBridge *s_bridge)
     return TRUE;
 }
 
+static void
+_platform_lnk_bridge_init_from_setting(NMSettingBridge *s_bridge, NMPlatformLnkBridge *props)
+{
+    *props = (NMPlatformLnkBridge){
+        .forward_delay = _DEFAULT_IF_ZERO(nm_setting_bridge_get_forward_delay(s_bridge) * 100u,
+                                          NM_BRIDGE_FORWARD_DELAY_DEF_SYS),
+        .hello_time    = _DEFAULT_IF_ZERO(nm_setting_bridge_get_hello_time(s_bridge) * 100u,
+                                       NM_BRIDGE_HELLO_TIME_DEF_SYS),
+        .max_age       = _DEFAULT_IF_ZERO(nm_setting_bridge_get_max_age(s_bridge) * 100u,
+                                    NM_BRIDGE_MAX_AGE_DEF_SYS),
+        .ageing_time   = nm_setting_bridge_get_ageing_time(s_bridge) * 100u,
+        .stp_state     = nm_setting_bridge_get_stp(s_bridge),
+        .priority      = nm_setting_bridge_get_priority(s_bridge),
+        .vlan_protocol = to_sysfs_vlan_protocol_sys(nm_setting_bridge_get_vlan_protocol(s_bridge)),
+        .vlan_stats_enabled = nm_setting_bridge_get_vlan_stats_enabled(s_bridge),
+        .group_fwd_mask     = nm_setting_bridge_get_group_forward_mask(s_bridge),
+        .mcast_snooping     = nm_setting_bridge_get_multicast_snooping(s_bridge),
+        .mcast_router =
+            to_sysfs_multicast_router_sys(nm_setting_bridge_get_multicast_router(s_bridge)),
+        .mcast_query_use_ifaddr    = nm_setting_bridge_get_multicast_query_use_ifaddr(s_bridge),
+        .mcast_querier             = nm_setting_bridge_get_multicast_querier(s_bridge),
+        .mcast_hash_max            = nm_setting_bridge_get_multicast_hash_max(s_bridge),
+        .mcast_last_member_count   = nm_setting_bridge_get_multicast_last_member_count(s_bridge),
+        .mcast_startup_query_count = nm_setting_bridge_get_multicast_startup_query_count(s_bridge),
+        .mcast_last_member_interval =
+            nm_setting_bridge_get_multicast_last_member_interval(s_bridge),
+        .mcast_membership_interval = nm_setting_bridge_get_multicast_membership_interval(s_bridge),
+        .mcast_querier_interval    = nm_setting_bridge_get_multicast_querier_interval(s_bridge),
+        .mcast_query_interval      = nm_setting_bridge_get_multicast_query_interval(s_bridge),
+        .mcast_query_response_interval =
+            nm_setting_bridge_get_multicast_query_response_interval(s_bridge),
+        .mcast_startup_query_interval =
+            nm_setting_bridge_get_multicast_startup_query_interval(s_bridge),
+    };
+
+    to_sysfs_group_address_sys(nm_setting_bridge_get_group_address(s_bridge), &props->group_addr);
+}
+
 static NMActStageReturn
 act_stage1_prepare(NMDevice *device, NMDeviceStateReason *out_failure_reason)
 {
-    NMConnection *connection;
-    NMSetting    *s_bridge;
-    const Option *option;
+    NMConnection       *connection;
+    NMSettingBridge    *s_bridge;
+    NMPlatformLnkBridge props;
+    int                 r;
+    int                 ifindex = nm_device_get_ifindex(device);
 
     connection = nm_device_get_applied_connection(device);
     g_return_val_if_fail(connection, NM_ACT_STAGE_RETURN_FAILURE);
 
-    s_bridge = (NMSetting *) nm_connection_get_setting_bridge(connection);
+    s_bridge = nm_connection_get_setting_bridge(connection);
     g_return_val_if_fail(s_bridge, NM_ACT_STAGE_RETURN_FAILURE);
 
-    for (option = master_options; option->name; option++)
-        commit_option(device, s_bridge, option, FALSE);
+    _platform_lnk_bridge_init_from_setting(s_bridge, &props);
 
-    if (!bridge_set_vlan_options(device, (NMSettingBridge *) s_bridge)) {
+    r = nm_platform_link_bridge_change(nm_device_get_platform(device), ifindex, &props);
+    if (r < 0) {
+        NM_SET_OUT(out_failure_reason, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
+        return NM_ACT_STAGE_RETURN_FAILURE;
+    }
+
+    if (!bridge_set_vlan_options(device, s_bridge)) {
         NM_SET_OUT(out_failure_reason, NM_DEVICE_STATE_REASON_CONFIG_FAILED);
         return NM_ACT_STAGE_RETURN_FAILURE;
     }
@@ -835,6 +887,7 @@ _bt_register_bridge_cb(GError *error, gpointer user_data)
         return;
     }
 
+    self->bt_cb_state = _NM_BT_CB_STATE_SUCCESS;
     nm_device_activate_schedule_stage2_device_config(NM_DEVICE(self), FALSE);
 }
 
@@ -846,12 +899,12 @@ _nm_device_bridge_notify_unregister_bt_nap(NMDevice *device, const char *reason)
     _LOGD(LOGD_DEVICE,
           "bluetooth NAP server unregistered from bridge: %s%s",
           reason,
-          self->bt_registered ? "" : " (was no longer registered)");
+          self->bt_cb_state != _NM_BT_CB_STATE_NONE ? "" : " (was no longer registered)");
 
     nm_clear_g_cancellable(&self->bt_cancellable);
 
-    if (self->bt_registered) {
-        self->bt_registered = FALSE;
+    if (self->bt_cb_state != _NM_BT_CB_STATE_NONE) {
+        self->bt_cb_state = _NM_BT_CB_STATE_NONE;
         nm_device_state_changed(device, NM_DEVICE_STATE_FAILED, NM_DEVICE_STATE_REASON_BT_FAILED);
     }
 }
@@ -879,8 +932,11 @@ act_stage2_config(NMDevice *device, NMDeviceStateReason *out_failure_reason)
     if (self->bt_cancellable)
         return NM_ACT_STAGE_RETURN_POSTPONE;
 
-    if (self->bt_registered)
+    if (self->bt_cb_state == _NM_BT_CB_STATE_WAIT)
         return NM_ACT_STAGE_RETURN_POSTPONE;
+
+    if (self->bt_cb_state == _NM_BT_CB_STATE_SUCCESS)
+        return NM_ACT_STAGE_RETURN_SUCCESS;
 
     self->bt_cancellable = g_cancellable_new();
     if (!nm_bt_vtable_network_server->register_bridge(nm_bt_vtable_network_server,
@@ -895,7 +951,7 @@ act_stage2_config(NMDevice *device, NMDeviceStateReason *out_failure_reason)
         return NM_ACT_STAGE_RETURN_FAILURE;
     }
 
-    self->bt_registered = TRUE;
+    self->bt_cb_state = _NM_BT_CB_STATE_WAIT;
     return NM_ACT_STAGE_RETURN_POSTPONE;
 }
 
@@ -906,14 +962,14 @@ deactivate(NMDevice *device)
 
     _LOGD(LOGD_DEVICE,
           "deactivate bridge%s",
-          self->bt_registered ? " (registered as NAP bluetooth device)" : "");
+          self->bt_cb_state != _NM_BT_CB_STATE_NONE ? " (registered as NAP bluetooth device)" : "");
 
     self->vlan_configured = FALSE;
 
     nm_clear_g_cancellable(&self->bt_cancellable);
 
-    if (self->bt_registered) {
-        self->bt_registered = FALSE;
+    if (self->bt_cb_state != _NM_BT_CB_STATE_NONE) {
+        self->bt_cb_state = _NM_BT_CB_STATE_NONE;
         nm_bt_vtable_network_server->unregister_bridge(nm_bt_vtable_network_server, device);
     }
 }
@@ -1054,39 +1110,7 @@ create_and_realize(NMDevice              *device,
         }
     }
 
-    props = (NMPlatformLnkBridge){
-        .forward_delay = _DEFAULT_IF_ZERO(nm_setting_bridge_get_forward_delay(s_bridge) * 100u,
-                                          NM_BRIDGE_FORWARD_DELAY_DEF_SYS),
-        .hello_time    = _DEFAULT_IF_ZERO(nm_setting_bridge_get_hello_time(s_bridge) * 100u,
-                                       NM_BRIDGE_HELLO_TIME_DEF_SYS),
-        .max_age       = _DEFAULT_IF_ZERO(nm_setting_bridge_get_max_age(s_bridge) * 100u,
-                                    NM_BRIDGE_MAX_AGE_DEF_SYS),
-        .ageing_time   = nm_setting_bridge_get_ageing_time(s_bridge) * 100u,
-        .stp_state     = nm_setting_bridge_get_stp(s_bridge),
-        .priority      = nm_setting_bridge_get_priority(s_bridge),
-        .vlan_protocol = to_sysfs_vlan_protocol_sys(nm_setting_bridge_get_vlan_protocol(s_bridge)),
-        .vlan_stats_enabled = nm_setting_bridge_get_vlan_stats_enabled(s_bridge),
-        .group_fwd_mask     = nm_setting_bridge_get_group_forward_mask(s_bridge),
-        .mcast_snooping     = nm_setting_bridge_get_multicast_snooping(s_bridge),
-        .mcast_router =
-            to_sysfs_multicast_router_sys(nm_setting_bridge_get_multicast_router(s_bridge)),
-        .mcast_query_use_ifaddr    = nm_setting_bridge_get_multicast_query_use_ifaddr(s_bridge),
-        .mcast_querier             = nm_setting_bridge_get_multicast_querier(s_bridge),
-        .mcast_hash_max            = nm_setting_bridge_get_multicast_hash_max(s_bridge),
-        .mcast_last_member_count   = nm_setting_bridge_get_multicast_last_member_count(s_bridge),
-        .mcast_startup_query_count = nm_setting_bridge_get_multicast_startup_query_count(s_bridge),
-        .mcast_last_member_interval =
-            nm_setting_bridge_get_multicast_last_member_interval(s_bridge),
-        .mcast_membership_interval = nm_setting_bridge_get_multicast_membership_interval(s_bridge),
-        .mcast_querier_interval    = nm_setting_bridge_get_multicast_querier_interval(s_bridge),
-        .mcast_query_interval      = nm_setting_bridge_get_multicast_query_interval(s_bridge),
-        .mcast_query_response_interval =
-            nm_setting_bridge_get_multicast_query_response_interval(s_bridge),
-        .mcast_startup_query_interval =
-            nm_setting_bridge_get_multicast_startup_query_interval(s_bridge),
-    };
-
-    to_sysfs_group_address_sys(nm_setting_bridge_get_group_address(s_bridge), &props.group_addr);
+    _platform_lnk_bridge_init_from_setting(s_bridge, &props);
 
     /* If mtu != 0, we set the MTU of the new bridge at creation time. However, kernel will still
      * automatically adjust the MTU of the bridge based on the minimum of the slave's MTU.

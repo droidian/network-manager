@@ -1014,7 +1014,7 @@ act_stage1_prepare(NMDevice *device, NMDeviceStateReason *out_failure_reason)
      * get confused and fail to negotiate the new connection. (rh #1023503)
      *
      * FIXME(shutdown): when exiting, we also need to wait before quitting,
-     * at least for additional NM_SHUTDOWN_TIMEOUT_MS seconds because
+     * at least for additional NM_SHUTDOWN_TIMEOUT_MAX_MSEC seconds because
      * otherwise after restart the device won't work for the first seconds.
      */
     if (priv->ppp_data.last_pppoe_time_msec != 0) {
@@ -1160,14 +1160,12 @@ _ppp_mgr_callback(NMPppMgr *ppp_mgr, const NMPppMgrCallbackData *callback_data, 
 
     if (device_state < NM_DEVICE_STATE_IP_CONFIG) {
         if (callback_data->data.state >= NM_PPP_MGR_STATE_HAVE_IFINDEX) {
-            gs_free char         *old_name = NULL;
-            gs_free_error GError *error    = NULL;
+            gs_free char *old_name = NULL;
 
-            if (!nm_device_take_over_link(device, callback_data->data.ifindex, &old_name, &error)) {
+            if (!nm_device_set_ip_ifindex(device, callback_data->data.ifindex)) {
                 _LOGW(LOGD_DEVICE | LOGD_PPP,
-                      "could not take control of link %d: %s",
-                      callback_data->data.ifindex,
-                      error->message);
+                      "could not set ip-ifindex %d",
+                      callback_data->data.ifindex);
                 _ppp_mgr_cleanup(self);
                 nm_device_state_changed(device,
                                         NM_DEVICE_STATE_FAILED,
@@ -1892,6 +1890,32 @@ is_available(NMDevice *device, NMDeviceCheckDevAvailableFlags flags)
     return !!nm_device_get_initial_hw_address(device);
 }
 
+static const char *
+get_ip_method_auto(NMDevice *device, int addr_family)
+{
+    NMSettingConnection *s_con;
+
+    s_con = nm_device_get_applied_setting(device, NM_TYPE_SETTING_CONNECTION);
+    g_return_val_if_fail(s_con,
+                         NM_IS_IPv4(addr_family) ? NM_SETTING_IP4_CONFIG_METHOD_AUTO
+                                                 : NM_SETTING_IP6_CONFIG_METHOD_AUTO);
+
+    if (!nm_streq(nm_setting_connection_get_connection_type(s_con),
+                  NM_SETTING_PPPOE_SETTING_NAME)) {
+        return NM_DEVICE_CLASS(nm_device_ethernet_parent_class)
+            ->get_ip_method_auto(device, addr_family);
+    }
+
+    if (NM_IS_IPv4(addr_family)) {
+        /* We cannot do DHCPv4 on a PPP link, instead we get "auto" IP addresses
+         * by pppd. Return "manual" here, which has the suitable effect to a
+         * (zero) manual addresses in addition. */
+        return NM_SETTING_IP6_CONFIG_METHOD_MANUAL;
+    }
+
+    return NM_SETTING_IP6_CONFIG_METHOD_AUTO;
+}
+
 static gboolean
 can_reapply_change(NMDevice   *device,
                    const char *setting_name,
@@ -2047,6 +2071,7 @@ nm_device_ethernet_class_init(NMDeviceEthernetClass *klass)
     device_class->act_stage2_config                              = act_stage2_config;
     device_class->act_stage3_ip_config                           = act_stage3_ip_config;
     device_class->get_configured_mtu                             = get_configured_mtu;
+    device_class->get_ip_method_auto                             = get_ip_method_auto;
     device_class->deactivate                                     = deactivate;
     device_class->get_s390_subchannels                           = get_s390_subchannels;
     device_class->update_connection                              = update_connection;

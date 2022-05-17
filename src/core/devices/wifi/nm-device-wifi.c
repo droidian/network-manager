@@ -978,14 +978,16 @@ deactivate_reset_hw_addr(NMDevice *device)
 static gboolean
 check_connection_compatible(NMDevice *device, NMConnection *connection, GError **error)
 {
-    NMDeviceWifi        *self = NM_DEVICE_WIFI(device);
-    NMDeviceWifiPrivate *priv = NM_DEVICE_WIFI_GET_PRIVATE(self);
-    NMSettingWireless   *s_wireless;
-    const char          *mac;
-    const char *const   *mac_blacklist;
-    int                  i;
-    const char          *mode;
-    const char          *perm_hw_addr;
+    NMDeviceWifi              *self = NM_DEVICE_WIFI(device);
+    NMDeviceWifiPrivate       *priv = NM_DEVICE_WIFI_GET_PRIVATE(self);
+    NMSettingWireless         *s_wireless;
+    NMSettingWirelessSecurity *s_wsec;
+    const char                *mac;
+    const char *const         *mac_blacklist;
+    int                        i;
+    const char                *mode;
+    const char                *perm_hw_addr;
+    const char                *key_mgmt;
 
     if (!NM_DEVICE_CLASS(nm_device_wifi_parent_class)
              ->check_connection_compatible(device, connection, error))
@@ -1067,6 +1069,20 @@ check_connection_compatible(NMDevice *device, NMConnection *connection, GError *
                                            "wpa_supplicant does not support Mesh mode");
                 return FALSE;
             }
+        }
+    }
+
+    s_wsec = nm_connection_get_setting_wireless_security(connection);
+    if (s_wsec) {
+        key_mgmt = nm_setting_wireless_security_get_key_mgmt(s_wsec);
+
+        if (nm_supplicant_interface_get_capability(priv->sup_iface, NM_SUPPL_CAP_TYPE_WEP)
+                == NM_TERNARY_FALSE
+            && NM_IN_STRSET(key_mgmt, "ieee8021x", "none")) {
+            nm_utils_error_set_literal(error,
+                                       NM_UTILS_ERROR_CONNECTION_AVAILABLE_TEMPORARY,
+                                       "wpa_supplicant does not support WEP encryption");
+            return FALSE;
         }
     }
 
@@ -2936,14 +2952,16 @@ build_supplicant_config(NMDeviceWifi *self,
         }
 
         s_8021x = nm_connection_get_setting_802_1x(connection);
-        if (!nm_supplicant_config_add_setting_wireless_security(config,
-                                                                s_wireless_sec,
-                                                                s_8021x,
-                                                                con_uuid,
-                                                                mtu,
-                                                                pmf,
-                                                                fils,
-                                                                error)) {
+        if (!nm_supplicant_config_add_setting_wireless_security(
+                config,
+                s_wireless_sec,
+                s_8021x,
+                con_uuid,
+                nm_setting_wireless_get_mode(s_wireless),
+                mtu,
+                pmf,
+                fils,
+                error)) {
             g_prefix_error(error, "802-11-wireless-security: ");
             goto error;
         }
@@ -3103,28 +3121,75 @@ act_stage1_prepare(NMDevice *device, NMDeviceStateReason *out_failure_reason)
 static void
 ensure_hotspot_frequency(NMDeviceWifi *self, NMSettingWireless *s_wifi, NMWifiAP *ap)
 {
-    NMDevice     *device     = NM_DEVICE(self);
-    const char   *band       = nm_setting_wireless_get_band(s_wifi);
-    const guint32 a_freqs[]  = {5180, 5200, 5220, 5745, 5765, 5785, 5805, 0};
-    const guint32 bg_freqs[] = {2412, 2437, 2462, 2472, 0};
-    guint32       freq       = 0;
+    guint32     a_freqs[]  = {5180, 5200, 5220, 5745, 5765, 5785, 5805, 0};
+    guint32     bg_freqs[] = {2412, 2437, 2462, 2472, 0};
+    guint32    *rnd_freqs;
+    guint       rnd_freqs_len;
+    NMDevice   *device = NM_DEVICE(self);
+    const char *band   = nm_setting_wireless_get_band(s_wifi);
+    guint32     freq;
+    guint64     rnd;
+    guint       i;
+    guint       l;
 
-    g_assert(ap);
+    nm_assert(ap);
+    nm_assert(NM_IN_STRSET(band, NULL, "a", "bg"));
 
     if (nm_wifi_ap_get_freq(ap))
         return;
 
-    if (g_strcmp0(band, "a") == 0)
-        freq = nm_platform_wifi_find_frequency(nm_device_get_platform(device),
-                                               nm_device_get_ifindex(device),
-                                               a_freqs);
-    else
-        freq = nm_platform_wifi_find_frequency(nm_device_get_platform(device),
-                                               nm_device_get_ifindex(device),
-                                               bg_freqs);
+    {
+        GBytes       *ssid;
+        gsize         ssid_len;
+        const guint8 *ssid_data;
+        const guint8  random_seed[16] = {0x9a,
+                                        0xdc,
+                                        0x86,
+                                        0x9a,
+                                        0xa8,
+                                        0xa2,
+                                        0x07,
+                                        0x97,
+                                        0xbe,
+                                        0x6d,
+                                        0xe6,
+                                        0x99,
+                                        0x9f,
+                                        0xa8,
+                                        0x09,
+                                        0x2b};
 
-    if (!freq)
-        freq = (g_strcmp0(band, "a") == 0) ? 5180 : 2462;
+        /* Calculate a stable "random" number based on the SSID. */
+        ssid      = nm_setting_wireless_get_ssid(s_wifi);
+        ssid_data = g_bytes_get_data(ssid, &ssid_len);
+        rnd       = c_siphash_hash(random_seed, ssid_data, ssid_len);
+    }
+
+    if (nm_streq0(band, "a")) {
+        rnd_freqs     = a_freqs;
+        rnd_freqs_len = G_N_ELEMENTS(a_freqs) - 1;
+    } else {
+        rnd_freqs     = bg_freqs;
+        rnd_freqs_len = G_N_ELEMENTS(bg_freqs) - 1;
+    }
+
+    /* shuffle the frequencies (inplace). The idea is to choose
+     * a different frequency depending on the SSID. */
+    for (i = 0, l = rnd_freqs_len; l > 1; i++, l--) {
+        /* Add an arbitrary chosen (prime) number to rnd, to get more "random"
+         * numbers. Since we only shuffle a handful of elements, that's good
+         * enough (and stable). */
+        rnd += 5630246189u;
+        NM_SWAP(&rnd_freqs[i], &rnd_freqs[i + (rnd % l)]);
+    }
+
+    freq = nm_platform_wifi_find_frequency(nm_device_get_platform(device),
+                                           nm_device_get_ifindex(device),
+                                           rnd_freqs);
+    if (freq == 0)
+        freq = rnd_freqs[0];
+
+    _LOGD(LOGD_WIFI, "set frequency for hotspot AP to %u", freq);
 
     if (nm_wifi_ap_set_freq(ap, freq))
         _ap_dump(self, LOGL_DEBUG, ap, "updated", 0);
@@ -3663,8 +3728,6 @@ nm_device_wifi_new(const char *iface, _NMDeviceWifiCapabilities capabilities)
                         NM_DEVICE_TYPE_WIFI,
                         NM_DEVICE_LINK_TYPE,
                         NM_LINK_TYPE_WIFI,
-                        NM_DEVICE_RFKILL_TYPE,
-                        RFKILL_TYPE_WLAN,
                         NM_DEVICE_WIFI_CAPABILITIES,
                         (guint) capabilities,
                         NULL);
@@ -3755,6 +3818,8 @@ nm_device_wifi_class_init(NMDeviceWifiClass *klass)
     device_class->reapply_connection       = reapply_connection;
 
     device_class->state_changed = device_state_changed;
+
+    device_class->rfkill_type = NM_RFKILL_TYPE_WLAN;
 
     obj_properties[PROP_MODE] = g_param_spec_uint(NM_DEVICE_WIFI_MODE,
                                                   "",

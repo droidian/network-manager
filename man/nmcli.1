@@ -2,12 +2,12 @@
 .\"     Title: nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 03/07/2022
+.\"      Date: 05/13/2022
 .\"    Manual: General Commands Manual
-.\"    Source: NetworkManager 1.36.2
+.\"    Source: NetworkManager 1.38.0
 .\"  Language: English
 .\"
-.TH "NMCLI" "1" "" "NetworkManager 1\&.36\&.2" "General Commands Manual"
+.TH "NMCLI" "1" "" "NetworkManager 1\&.38\&.0" "General Commands Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -389,7 +389,7 @@ and
 to watch for changes in certain devices or connections\&.
 .SH "CONNECTION MANAGEMENT COMMANDS"
 .HP \w'\fBnmcli\ connection\fR\ 'u
-\fBnmcli connection\fR {\fBshow\fR | \fBup\fR | \fBdown\fR | \fBmodify\fR | \fBadd\fR | \fBedit\fR | \fBclone\fR | \fBdelete\fR | \fBmonitor\fR | \fBreload\fR | \fBload\fR | \fBimport\fR | \fBexport\fR} [\fIARGUMENTS\fR...]
+\fBnmcli connection\fR {\fBshow\fR | \fBup\fR | \fBdown\fR | \fBmodify\fR | \fBadd\fR | \fBedit\fR | \fBclone\fR | \fBdelete\fR | \fBmonitor\fR | \fBreload\fR | \fBload\fR | \fBimport\fR | \fBexport\fR | \fBmigrate\fR} [\fIARGUMENTS\fR...]
 .PP
 NetworkManager stores all network configuration as "connections", which are collections of data (Layer2 details, IP addressing, etc\&.) that describe how to create or connect to a network\&. A connection is "active" when a device uses that connection\*(Aqs configuration to create or connect to a network\&. There may be multiple connections that apply to a device, but only one of them can be active on that device at any given time\&. The additional connections can be used to allow quick switching between different networks and configurations\&.
 .PP
@@ -1254,6 +1254,34 @@ could export a connection\&. If no
 \fIfile\fR
 is provided, the VPN configuration data will be printed to standard output\&.
 .RE
+.PP
+\fBmigrate\fR [\fB\-\-plugin\fR\ \fIplugin\fR...] [\fBid\fR | \fBuuid\fR | \fBpath\fR] [\fIID\fR...]
+.RS 4
+Migrate connection profiles to a different settings plugin, such as
+keyfile
+(default) or
+ifcfg\-rh\&.
+.sp
+The connection to be migrated is identified by its name, UUID or D\-Bus path\&. If
+\fIID\fR
+is ambiguous, a keyword
+\fBid\fR,
+\fBuuid\fR
+or
+\fBpath\fR
+can be used\&. See
+\fBconnection show\fR
+above for the description of the
+\fIID\fR\-specifying keywords\&.
+.sp
+If no connections are specified, the command acts on all available connections\&. Therefore, with no arguments, the command migrates all connection profiles to the
+keyfile
+plugin\&.
+.sp
+If
+\fB\-\-wait\fR
+option is not specified, the default timeout will be 10 seconds\&.
+.RE
 .SH "DEVICE MANAGEMENT COMMANDS"
 .HP \w'\fBnmcli\ device\fR\ 'u
 \fBnmcli device\fR {\fBstatus\fR | \fBshow\fR | \fBset\fR | \fBup\fR | \fBconnect\fR | \fBreapply\fR | \fBmodify\fR | \fBdown\fR | \fBdisconnect\fR | \fBdelete\fR | \fBmonitor\fR | \fBwifi\fR | \fBlldp\fR} [\fIARGUMENTS\fR...]
@@ -1551,9 +1579,19 @@ Connection that is being activated\&.
 Connection that is being disconnected\&.
 .RE
 .PP
+\fBconnection\-external\fR
+.RS 4
+Connection representing configuration created externally to NetworkManager\&.
+.RE
+.PP
 \fBconnection\-invisible\fR
 .RS 4
 Connection whose details is the user not permitted to see\&.
+.RE
+.PP
+\fBconnection\-deprecated\fR
+.RS 4
+Connection that uses deprecated settings\&. It might not be possible to activate it\&.
 .RE
 .PP
 \fBconnectivity\-full\fR
@@ -1594,6 +1632,11 @@ Device that is being configured\&.
 \fBdevice\-disconnected\fR
 .RS 4
 Device that is not connected\&.
+.RE
+.PP
+\fBdevice\-external\fR
+.RS 4
+Device configured externally to NetworkManager\&.
 .RE
 .PP
 \fBdevice\-firmware\-missing\fR
@@ -1709,6 +1752,11 @@ Wi\-Fi network with a poor signal level\&.
 \fBwifi\-signal\-unknown\fR
 .RS 4
 Wi\-Fi network that hasn\*(Aqt been actually seen (a hidden AP)\&.
+.RE
+.PP
+\fBwifi\-deprecated\fR
+.RS 4
+Wi\-Fi network that might be impossible to connect to due to use of deprecated functionality\&.
 .RE
 .PP
 \fBdisabled\fR

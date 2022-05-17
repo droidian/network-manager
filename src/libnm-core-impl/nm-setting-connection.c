@@ -71,32 +71,32 @@ NM_GOBJECT_PROPERTIES_DEFINE(NMSettingConnection,
                              PROP_MUD_URL, );
 
 typedef struct {
-    GArray *permissions;
-    GArray *secondaries;
-    char   *id;
-    char   *uuid;
-    char   *stable_id;
-    char   *interface_name;
-    char   *type;
-    char   *master;
-    char   *slave_type;
-    char   *zone;
-    char   *mud_url;
-    guint64 timestamp;
-    int     autoconnect_slaves;
-    int     metered;
-    gint32  autoconnect_priority;
-    gint32  autoconnect_retries;
-    gint32  multi_connect;
-    gint32  auth_retries;
-    gint32  mdns;
-    gint32  llmnr;
-    gint32  dns_over_tls;
-    gint32  wait_device_timeout;
-    gint32  lldp;
-    guint32 gateway_ping_timeout;
-    bool    autoconnect;
-    bool    read_only;
+    GArray     *permissions;
+    NMValueStrv secondaries;
+    char       *id;
+    char       *uuid;
+    char       *stable_id;
+    char       *interface_name;
+    char       *type;
+    char       *master;
+    char       *slave_type;
+    char       *zone;
+    char       *mud_url;
+    guint64     timestamp;
+    int         autoconnect_slaves;
+    int         metered;
+    gint32      autoconnect_priority;
+    gint32      autoconnect_retries;
+    gint32      multi_connect;
+    gint32      auth_retries;
+    gint32      mdns;
+    gint32      llmnr;
+    gint32      dns_over_tls;
+    gint32      wait_device_timeout;
+    gint32      lldp;
+    guint32     gateway_ping_timeout;
+    bool        autoconnect;
+    bool        read_only;
 } NMSettingConnectionPrivate;
 
 /**
@@ -757,7 +757,7 @@ nm_setting_connection_get_autoconnect_slaves(NMSettingConnection *setting)
 GArray *
 _nm_setting_connection_get_secondaries(NMSettingConnection *setting)
 {
-    return NM_SETTING_CONNECTION_GET_PRIVATE(setting)->secondaries;
+    return NM_SETTING_CONNECTION_GET_PRIVATE(setting)->secondaries.arr;
 }
 
 /**
@@ -771,7 +771,7 @@ nm_setting_connection_get_num_secondaries(NMSettingConnection *setting)
 {
     g_return_val_if_fail(NM_IS_SETTING_CONNECTION(setting), 0);
 
-    return nm_g_array_len(NM_SETTING_CONNECTION_GET_PRIVATE(setting)->secondaries);
+    return nm_g_array_len(NM_SETTING_CONNECTION_GET_PRIVATE(setting)->secondaries.arr);
 }
 
 /**
@@ -794,14 +794,14 @@ nm_setting_connection_get_secondary(NMSettingConnection *setting, guint32 idx)
 
     priv = NM_SETTING_CONNECTION_GET_PRIVATE(setting);
 
-    secondaries_len = nm_g_array_len(priv->secondaries);
+    secondaries_len = nm_g_array_len(priv->secondaries.arr);
     if (idx >= secondaries_len) {
         /* access one past the length is OK. */
         g_return_val_if_fail(idx == secondaries_len, NULL);
         return NULL;
     }
 
-    return nm_strvarray_get_idx(priv->secondaries, idx);
+    return nm_strvarray_get_idx(priv->secondaries.arr, idx);
 }
 
 /**
@@ -841,10 +841,10 @@ nm_setting_connection_add_secondary(NMSettingConnection *setting, const char *se
 
     priv = NM_SETTING_CONNECTION_GET_PRIVATE(setting);
 
-    if (nm_strvarray_find_first(priv->secondaries, sec_uuid) >= 0)
+    if (nm_strvarray_find_first(priv->secondaries.arr, sec_uuid) >= 0)
         return FALSE;
 
-    nm_strvarray_add(nm_strvarray_ensure(&priv->secondaries), sec_uuid);
+    nm_strvarray_add(nm_strvarray_ensure(&priv->secondaries.arr), sec_uuid);
     _notify(setting, PROP_SECONDARIES);
     return TRUE;
 }
@@ -865,9 +865,9 @@ nm_setting_connection_remove_secondary(NMSettingConnection *setting, guint32 idx
 
     priv = NM_SETTING_CONNECTION_GET_PRIVATE(setting);
 
-    g_return_if_fail(idx < nm_g_array_len(priv->secondaries));
+    g_return_if_fail(idx < nm_g_array_len(priv->secondaries.arr));
 
-    g_array_remove_index(priv->secondaries, idx);
+    g_array_remove_index(priv->secondaries.arr, idx);
     _notify(setting, PROP_SECONDARIES);
 }
 
@@ -890,7 +890,7 @@ nm_setting_connection_remove_secondary_by_value(NMSettingConnection *setting, co
 
     priv = NM_SETTING_CONNECTION_GET_PRIVATE(setting);
 
-    if (nm_strvarray_remove_first(priv->secondaries, sec_uuid)) {
+    if (nm_strvarray_remove_first(priv->secondaries.arr, sec_uuid)) {
         _notify(setting, PROP_SECONDARIES);
         return TRUE;
     }
@@ -1524,7 +1524,7 @@ after_interface_name:
         return NM_SETTING_VERIFY_NORMALIZABLE;
     }
 
-    if (!_nm_setting_connection_verify_secondaries(priv->secondaries, error))
+    if (!_nm_setting_connection_verify_secondaries(priv->secondaries.arr, error))
         return NM_SETTING_VERIFY_NORMALIZABLE;
 
     return TRUE;
@@ -1637,9 +1637,6 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
     case PROP_TIMESTAMP:
         g_value_set_uint64(value, nm_setting_connection_get_timestamp(setting));
         break;
-    case PROP_SECONDARIES:
-        g_value_take_boxed(value, nm_strvarray_get_strv_non_empty_dup(priv->secondaries, NULL));
-        break;
     default:
         _nm_setting_property_get_property_direct(object, prop_id, value, pspec);
         break;
@@ -1675,9 +1672,6 @@ set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *ps
     case PROP_TIMESTAMP:
         priv->timestamp = g_value_get_uint64(value);
         break;
-    case PROP_SECONDARIES:
-        nm_strvarray_set_strv(&priv->secondaries, g_value_get_boxed(value));
-        break;
     default:
         _nm_setting_property_set_property_direct(object, prop_id, value, pspec);
         break;
@@ -1709,7 +1703,7 @@ finalize(GObject *object)
     NMSettingConnectionPrivate *priv = NM_SETTING_CONNECTION_GET_PRIVATE(object);
 
     nm_clear_pointer(&priv->permissions, g_array_unref);
-    nm_clear_pointer(&priv->secondaries, g_array_unref);
+    nm_clear_pointer(&priv->secondaries.arr, g_array_unref);
 
     G_OBJECT_CLASS(nm_setting_connection_parent_class)->finalize(object);
 }
@@ -1808,7 +1802,8 @@ nm_setting_connection_class_init(NMSettingConnectionClass *klass)
      * is commonly also included, so that different systems end up generating
      * different IDs. Or with ipv6.addr-gen-mode=stable-privacy, also the device's
      * name is included, so that different interfaces yield different addresses.
-     * The per-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret-key.
+     * The per-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret_key.
+     * See NetworkManager(8) manual about the secret-key and the host identity.
      *
      * The '$' character is treated special to perform dynamic substitutions
      * at runtime. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}",
@@ -1958,6 +1953,15 @@ nm_setting_connection_class_init(NMSettingConnectionClass *klass)
      * Note that autoconnect is not implemented for VPN profiles. See
      * #NMSettingConnection:secondaries as an alternative to automatically
      * connect VPN profiles.
+     *
+     * If multiple profiles are ready to autoconnect on the same device,
+     * the one with the better "connection.autoconnect-priority" is chosen. If
+     * the priorities are equal, then the most recently connected profile is activated.
+     * If the profiles were not connected earlier or their
+     * "connection.timestamp" is identical, the choice is undefined.
+     *
+     * Depending on "connection.multi-connect", a profile can (auto)connect only
+     * once at a time or multiple times.
      **/
     /* ---ifcfg-rh---
      * property: autoconnect
@@ -2230,12 +2234,13 @@ nm_setting_connection_class_init(NMSettingConnectionClass *klass)
      *   together with this connection.
      * ---end---
      */
-    obj_properties[PROP_SECONDARIES] = g_param_spec_boxed(
-        NM_SETTING_CONNECTION_SECONDARIES,
-        "",
-        "",
-        G_TYPE_STRV,
-        G_PARAM_READWRITE | NM_SETTING_PARAM_FUZZY_IGNORE | G_PARAM_STATIC_STRINGS);
+    _nm_setting_property_define_direct_strv(properties_override,
+                                            obj_properties,
+                                            NM_SETTING_CONNECTION_SECONDARIES,
+                                            PROP_SECONDARIES,
+                                            NM_SETTING_PARAM_FUZZY_IGNORE,
+                                            NMSettingConnectionPrivate,
+                                            secondaries);
 
     /**
      * NMSettingConnection:gateway-ping-timeout:

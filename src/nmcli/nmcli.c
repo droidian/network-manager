@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <termios.h>
 #include <unistd.h>
 #include <locale.h>
 #if HAVE_EDITLINE_READLINE
@@ -44,6 +43,7 @@
             [NM_META_COLOR_CONNECTION_DISCONNECTING] = "31",   \
             [NM_META_COLOR_CONNECTION_INVISIBLE]     = "2",    \
             [NM_META_COLOR_CONNECTION_EXTERNAL]      = "32;2", \
+            [NM_META_COLOR_CONNECTION_DEPRECATED]    = "2",    \
             [NM_META_COLOR_CONNECTIVITY_FULL]        = "32",   \
             [NM_META_COLOR_CONNECTIVITY_LIMITED]     = "33",   \
             [NM_META_COLOR_CONNECTIVITY_NONE]        = "31",   \
@@ -74,6 +74,7 @@
             [NM_META_COLOR_WIFI_SIGNAL_GOOD]         = "33",   \
             [NM_META_COLOR_WIFI_SIGNAL_POOR]         = "36",   \
             [NM_META_COLOR_WIFI_SIGNAL_UNKNOWN]      = "2",    \
+            [NM_META_COLOR_WIFI_DEPRECATED]          = "2",    \
             [NM_META_COLOR_ENABLED]                  = "32",   \
             [NM_META_COLOR_DISABLED]                 = "31",   \
         },                                                     \
@@ -118,8 +119,7 @@ typedef struct {
 } ArgsInfo;
 
 /* --- Global variables --- */
-GMainLoop     *loop = NULL;
-struct termios termios_orig;
+GMainLoop *loop = NULL;
 
 NM_CACHED_QUARK_FCN("nmcli-error-quark", nmcli_error_quark);
 
@@ -551,6 +551,7 @@ static NM_UTILS_STRING_TABLE_LOOKUP_DEFINE(
     {"connection-external", NM_META_COLOR_CONNECTION_EXTERNAL},
     {"connection-invisible", NM_META_COLOR_CONNECTION_INVISIBLE},
     {"connection-unknown", NM_META_COLOR_CONNECTION_UNKNOWN},
+    {"connection-deprecated", NM_META_COLOR_CONNECTION_DEPRECATED},
     {"connectivity-full", NM_META_COLOR_CONNECTIVITY_FULL},
     {"connectivity-limited", NM_META_COLOR_CONNECTIVITY_LIMITED},
     {"connectivity-none", NM_META_COLOR_CONNECTIVITY_NONE},
@@ -587,7 +588,8 @@ static NM_UTILS_STRING_TABLE_LOOKUP_DEFINE(
     {"wifi-signal-fair", NM_META_COLOR_WIFI_SIGNAL_FAIR},
     {"wifi-signal-good", NM_META_COLOR_WIFI_SIGNAL_GOOD},
     {"wifi-signal-poor", NM_META_COLOR_WIFI_SIGNAL_POOR},
-    {"wifi-signal-unknown", NM_META_COLOR_WIFI_SIGNAL_UNKNOWN}, );
+    {"wifi-signal-unknown", NM_META_COLOR_WIFI_SIGNAL_UNKNOWN},
+    {"wifi-deprecated", NM_META_COLOR_WIFI_DEPRECATED}, );
 
 static gboolean
 parse_color_scheme(char *palette_buffer, NmcColorPalette *out_palette, GError **error)
@@ -935,7 +937,6 @@ nmc_clear_sigint(void)
 void
 nmc_exit(void)
 {
-    tcsetattr(STDIN_FILENO, TCSADRAIN, &termios_orig);
     nmc_cleanup_readline();
     exit(1);
 }
@@ -1025,9 +1026,6 @@ main(int argc, char *argv[])
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
     textdomain(GETTEXT_PACKAGE);
 #endif
-
-    /* Save terminal settings */
-    tcgetattr(STDIN_FILENO, &termios_orig);
 
     nm_cli.return_text = g_string_new(_("Success"));
     loop               = g_main_loop_new(NULL, FALSE);

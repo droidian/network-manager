@@ -2,12 +2,12 @@
 .\"     Title: nm-settings-nmcli
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 03/07/2022
+.\"      Date: 05/13/2022
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.36.2
+.\"    Source: NetworkManager 1.38.0
 .\"  Language: English
 .\"
-.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.36\&.2" "Configuration"
+.TH "NM\-SETTINGS\-NMCLI" "5" "" "NetworkManager 1\&.38\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -79,7 +79,7 @@ Format: int32
 .RS 4
 Alias: autoconnect
 .sp
-Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available\&. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection\&. Autoconnect happens when the circumstances are suitable\&. That means for example that the device is currently managed and not active\&. Autoconnect thus never replaces or competes with an already active profile\&. Note that autoconnect is not implemented for VPN profiles\&. See "secondaries" as an alternative to automatically connect VPN profiles\&.
+Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available\&. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection\&. Autoconnect happens when the circumstances are suitable\&. That means for example that the device is currently managed and not active\&. Autoconnect thus never replaces or competes with an already active profile\&. Note that autoconnect is not implemented for VPN profiles\&. See "secondaries" as an alternative to automatically connect VPN profiles\&. If multiple profiles are ready to autoconnect on the same device, the one with the better "connection\&.autoconnect\-priority" is chosen\&. If the priorities are equal, then the most recently connected profile is activated\&. If the profiles were not connected earlier or their "connection\&.timestamp" is identical, the choice is undefined\&. Depending on "connection\&.multi\-connect", a profile can (auto)connect only once at a time or multiple times\&.
 .sp
 Format: boolean
 .RE
@@ -220,7 +220,7 @@ Format: string
 .PP
 \fBstable\-id\fR
 .RS 4
-This represents the identity of the connection used for various purposes\&. It allows to configure multiple profiles to share the identity\&. Also, the stable\-id can contain placeholders that are substituted dynamically and deterministically depending on the context\&. The stable\-id is used for generating IPv6 stable private addresses with ipv6\&.addr\-gen\-mode=stable\-privacy\&. It is also used to seed the generated cloned MAC address for ethernet\&.cloned\-mac\-address=stable and wifi\&.cloned\-mac\-address=stable\&. It is also used as DHCP client identifier with ipv4\&.dhcp\-client\-id=stable and to derive the DHCP DUID with ipv6\&.dhcp\-duid=stable\-[llt,ll,uuid]\&. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm\&. For example, a per\-host key is commonly also included, so that different systems end up generating different IDs\&. Or with ipv6\&.addr\-gen\-mode=stable\-privacy, also the device\*(Aqs name is included, so that different interfaces yield different addresses\&. The per\-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret\-key\&. The \*(Aq$\*(Aq character is treated special to perform dynamic substitutions at runtime\&. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}"\&. These effectively create unique IDs per\-connection, per\-device, per\-boot, or every time\&. Note that "${DEVICE}" corresponds to the interface name of the device and "${MAC}" is the permanent MAC address of the device\&. Any unrecognized patterns following \*(Aq$\*(Aq are treated verbatim, however are reserved for future use\&. You are thus advised to avoid \*(Aq$\*(Aq or escape it as "$$"\&. For example, set it to "${CONNECTION}\-${BOOT}\-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates\&. If the value is unset, a global connection default is consulted\&. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection\&.
+This represents the identity of the connection used for various purposes\&. It allows to configure multiple profiles to share the identity\&. Also, the stable\-id can contain placeholders that are substituted dynamically and deterministically depending on the context\&. The stable\-id is used for generating IPv6 stable private addresses with ipv6\&.addr\-gen\-mode=stable\-privacy\&. It is also used to seed the generated cloned MAC address for ethernet\&.cloned\-mac\-address=stable and wifi\&.cloned\-mac\-address=stable\&. It is also used as DHCP client identifier with ipv4\&.dhcp\-client\-id=stable and to derive the DHCP DUID with ipv6\&.dhcp\-duid=stable\-[llt,ll,uuid]\&. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm\&. For example, a per\-host key is commonly also included, so that different systems end up generating different IDs\&. Or with ipv6\&.addr\-gen\-mode=stable\-privacy, also the device\*(Aqs name is included, so that different interfaces yield different addresses\&. The per\-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret_key\&. See NetworkManager(8) manual about the secret\-key and the host identity\&. The \*(Aq$\*(Aq character is treated special to perform dynamic substitutions at runtime\&. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}"\&. These effectively create unique IDs per\-connection, per\-device, per\-boot, or every time\&. Note that "${DEVICE}" corresponds to the interface name of the device and "${MAC}" is the permanent MAC address of the device\&. Any unrecognized patterns following \*(Aq$\*(Aq are treated verbatim, however are reserved for future use\&. You are thus advised to avoid \*(Aq$\*(Aq or escape it as "$$"\&. For example, set it to "${CONNECTION}\-${BOOT}\-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates\&. If the value is unset, a global connection default is consulted\&. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection\&.
 .sp
 Format: string
 .RE
@@ -2018,7 +2018,8 @@ unicast,
 local,
 blackhole,
 unavailable,
-prohibit\&. The default is
+prohibit,
+throw\&. The default is
 unicast\&.
 .RE
 .sp
@@ -2067,7 +2068,7 @@ Format: int32
 .RS 4
 Alias: ip6
 .sp
-A list of IPv6 addresses and their prefix length\&. Multiple addresses can be separated by comma\&. For example "2001:db8:85a3::8a2e:370:7334/64, 2001:db8:85a3::5/64"\&. The addresses are listed in increasing priority, meaning the last address will be the primary address\&.
+A list of IPv6 addresses and their prefix length\&. Multiple addresses can be separated by comma\&. For example "2001:db8:85a3::8a2e:370:7334/64, 2001:db8:85a3::5/64"\&. The addresses are listed in decreasing priority, meaning the first address will be the primary address\&. This can make a difference with IPv6 source address selection (RFC 6724, section 5)\&.
 .sp
 Format: a comma separated list of addresses
 .RE
@@ -2397,7 +2398,8 @@ unicast,
 local,
 blackhole,
 unavailable,
-prohibit\&. The default is
+prohibit,
+throw\&. The default is
 unicast\&.
 .RE
 .sp
@@ -3067,7 +3069,7 @@ Format: int32
 .RS 4
 Alias: pac\-script
 .sp
-PAC script for the connection\&.
+The PAC script\&. In the profile this must be an UTF\-8 encoded javascript code that defines a FindProxyForURL() function\&. When setting the property in nmcli, a filename is accepted too\&. In that case, nmcli will read the content of the file and set the script\&. The prefixes "file://" and "js://" are supported to explicitly differentiate between the two\&.
 .sp
 Format: string
 .RE

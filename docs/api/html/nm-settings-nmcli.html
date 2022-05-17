@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nm-settings-dbus.html" title="nm-settings-dbus">
 <link rel="next" href="nm-settings-keyfile.html" title="nm-settings-keyfile">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -67,7 +67,7 @@
           property.
         </p>
 <div class="refsect2">
-<a name="id-1.2.9.4.7"></a><h3>connection setting</h3>
+<a name="id-1.2.10.4.7"></a><h3>connection setting</h3>
 <p>General Connection Profile Settings.</p>
 <p>
         Properties:
@@ -91,7 +91,7 @@
 <td>
 <p>
             Alias: autoconnect</p>
-<p>Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection. Autoconnect happens when the circumstances are suitable. That means for example that the device is currently managed and not active. Autoconnect thus never replaces or competes with an already active profile. Note that autoconnect is not implemented for VPN profiles. See "secondaries" as an alternative to automatically connect VPN profiles.</p>
+<p>Whether or not the connection should be automatically connected by NetworkManager when the resources for the connection are available. TRUE to automatically activate the connection, FALSE to require manual intervention to activate the connection. Autoconnect happens when the circumstances are suitable. That means for example that the device is currently managed and not active. Autoconnect thus never replaces or competes with an already active profile. Note that autoconnect is not implemented for VPN profiles. See "secondaries" as an alternative to automatically connect VPN profiles. If multiple profiles are ready to autoconnect on the same device, the one with the better "connection.autoconnect-priority" is chosen. If the priorities are equal, then the most recently connected profile is activated. If the profiles were not connected earlier or their "connection.timestamp" is identical, the choice is undefined. Depending on "connection.multi-connect", a profile can (auto)connect only once at a time or multiple times.</p>
 <p>
             Format: boolean</p>
 </td>
@@ -251,7 +251,7 @@
 <tr>
 <td><p><span class="term"><code class="option"><a name="nm-settings-nmcli.property.connection.stable-id"></a>stable-id</code></span></p></td>
 <td>
-<p>This represents the identity of the connection used for various purposes. It allows to configure multiple profiles to share the identity. Also, the stable-id can contain placeholders that are substituted dynamically and deterministically depending on the context. The stable-id is used for generating IPv6 stable private addresses with ipv6.addr-gen-mode=stable-privacy. It is also used to seed the generated cloned MAC address for ethernet.cloned-mac-address=stable and wifi.cloned-mac-address=stable. It is also used as DHCP client identifier with ipv4.dhcp-client-id=stable and to derive the DHCP DUID with ipv6.dhcp-duid=stable-[llt,ll,uuid]. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm. For example, a per-host key is commonly also included, so that different systems end up generating different IDs. Or with ipv6.addr-gen-mode=stable-privacy, also the device's name is included, so that different interfaces yield different addresses. The per-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret-key. The '$' character is treated special to perform dynamic substitutions at runtime. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}". These effectively create unique IDs per-connection, per-device, per-boot, or every time. Note that "${DEVICE}" corresponds to the interface name of the device and "${MAC}" is the permanent MAC address of the device. Any unrecognized patterns following '$' are treated verbatim, however are reserved for future use. You are thus advised to avoid '$' or escape it as "$$". For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates. If the value is unset, a global connection default is consulted. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection.</p>
+<p>This represents the identity of the connection used for various purposes. It allows to configure multiple profiles to share the identity. Also, the stable-id can contain placeholders that are substituted dynamically and deterministically depending on the context. The stable-id is used for generating IPv6 stable private addresses with ipv6.addr-gen-mode=stable-privacy. It is also used to seed the generated cloned MAC address for ethernet.cloned-mac-address=stable and wifi.cloned-mac-address=stable. It is also used as DHCP client identifier with ipv4.dhcp-client-id=stable and to derive the DHCP DUID with ipv6.dhcp-duid=stable-[llt,ll,uuid]. Note that depending on the context where it is used, other parameters are also seeded into the generation algorithm. For example, a per-host key is commonly also included, so that different systems end up generating different IDs. Or with ipv6.addr-gen-mode=stable-privacy, also the device's name is included, so that different interfaces yield different addresses. The per-host key is the identity of your machine and stored in /var/lib/NetworkManager/secret_key. See NetworkManager(8) manual about the secret-key and the host identity. The '$' character is treated special to perform dynamic substitutions at runtime. Currently, supported are "${CONNECTION}", "${DEVICE}", "${MAC}", "${BOOT}", "${RANDOM}". These effectively create unique IDs per-connection, per-device, per-boot, or every time. Note that "${DEVICE}" corresponds to the interface name of the device and "${MAC}" is the permanent MAC address of the device. Any unrecognized patterns following '$' are treated verbatim, however are reserved for future use. You are thus advised to avoid '$' or escape it as "$$". For example, set it to "${CONNECTION}-${BOOT}-${DEVICE}" to create a unique id for this connection that changes with every reboot and differs depending on the interface where the profile activates. If the value is unset, a global connection default is consulted. If the value is still unset, the default is similar to "${CONNECTION}" and uses a unique, fixed ID for the connection.</p>
 <p>
             Format: string</p>
 </td>
@@ -303,7 +303,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.8"></a><h3>6lowpan setting</h3>
+<a name="id-1.2.10.4.8"></a><h3>6lowpan setting</h3>
 <p>6LoWPAN Settings.</p>
 <p>
         Properties:
@@ -327,7 +327,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.9"></a><h3>802-1x setting</h3>
+<a name="id-1.2.10.4.9"></a><h3>802-1x setting</h3>
 <p>IEEE 802.1x Authentication Settings.</p>
 <p>
         Properties:
@@ -737,7 +737,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.10"></a><h3>adsl setting</h3>
+<a name="id-1.2.10.4.10"></a><h3>adsl setting</h3>
 <p>ADSL Settings.</p>
 <p>
         Properties:
@@ -819,7 +819,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.11"></a><h3>bluetooth setting</h3>
+<a name="id-1.2.10.4.11"></a><h3>bluetooth setting</h3>
 <p>Bluetooth Settings.</p>
 <p>
         Properties:
@@ -855,7 +855,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.12"></a><h3>bond setting</h3>
+<a name="id-1.2.10.4.12"></a><h3>bond setting</h3>
 <p>Bonding Settings.</p>
 <p>
         Properties:
@@ -877,7 +877,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.13"></a><h3>bridge setting</h3>
+<a name="id-1.2.10.4.13"></a><h3>bridge setting</h3>
 <p>Bridging Settings.</p>
 <p>
         Properties:
@@ -1127,7 +1127,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.14"></a><h3>bridge-port setting</h3>
+<a name="id-1.2.10.4.14"></a><h3>bridge-port setting</h3>
 <p>Bridge Port Settings.</p>
 <p>
         Properties:
@@ -1181,7 +1181,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.15"></a><h3>cdma setting</h3>
+<a name="id-1.2.10.4.15"></a><h3>cdma setting</h3>
 <p>CDMA-based Mobile Broadband Settings.</p>
 <p>
         Properties:
@@ -1243,7 +1243,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.16"></a><h3>dcb setting</h3>
+<a name="id-1.2.10.4.16"></a><h3>dcb setting</h3>
 <p>Data Center Bridging Settings.</p>
 <p>
         Properties:
@@ -1379,7 +1379,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.17"></a><h3>ethtool setting</h3>
+<a name="id-1.2.10.4.17"></a><h3>ethtool setting</h3>
 <p>Ethtool Ethernet Settings.</p>
 <p>
         Properties:
@@ -1743,7 +1743,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.18"></a><h3>gsm setting</h3>
+<a name="id-1.2.10.4.18"></a><h3>gsm setting</h3>
 <p>GSM-based Mobile Broadband Settings.</p>
 <p>
         Properties:
@@ -1881,7 +1881,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.19"></a><h3>infiniband setting</h3>
+<a name="id-1.2.10.4.19"></a><h3>infiniband setting</h3>
 <p>Infiniband Settings.</p>
 <p>
         Properties:
@@ -1947,7 +1947,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.20"></a><h3>ipv4 setting</h3>
+<a name="id-1.2.10.4.20"></a><h3>ipv4 setting</h3>
 <p>IPv4 Settings.</p>
 <p>
         Properties:
@@ -2182,7 +2182,8 @@ Various attributes are supported:
 <li class="listitem"><p><code class="literal">"table"</code> - an unsigned 32 bit integer. The default depends on ipv4.route-table.</p></li>
 <li class="listitem"><p><code class="literal">"tos"</code> - an unsigned 8 bit integer. IPv4 only.</p></li>
 <li class="listitem"><p><code class="literal">"type"</code> - one of <code class="literal">unicast</code>, <code class="literal">local</code>, <code class="literal">blackhole</code>,
-<code class="literal">unavailable</code>, <code class="literal">prohibit</code>. The default is <code class="literal">unicast</code>.</p></li>
+<code class="literal">unavailable</code>, <code class="literal">prohibit</code>, <code class="literal">throw</code>.
+The default is <code class="literal">unicast</code>.</p></li>
 <li class="listitem"><p><code class="literal">"window"</code> - an unsigned 32 bit integer.</p></li>
 </ul></div>
 <p>
@@ -2215,7 +2216,7 @@ Example: <code class="literal">priority 5 from 192.167.4.0/24 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.21"></a><h3>ipv6 setting</h3>
+<a name="id-1.2.10.4.21"></a><h3>ipv6 setting</h3>
 <p>IPv6 Settings.</p>
 <p>
         Properties:
@@ -2239,7 +2240,7 @@ Example: <code class="literal">priority 5 from 192.167.4.0/24 table 45</code>
 <td>
 <p>
             Alias: ip6</p>
-<p>A list of IPv6 addresses and their prefix length. Multiple addresses can be separated by comma. For example "2001:db8:85a3::8a2e:370:7334/64, 2001:db8:85a3::5/64". The addresses are listed in increasing priority, meaning the last address will be the primary address.</p>
+<p>A list of IPv6 addresses and their prefix length. Multiple addresses can be separated by comma. For example "2001:db8:85a3::8a2e:370:7334/64, 2001:db8:85a3::5/64". The addresses are listed in decreasing priority, meaning the first address will be the primary address. This can make a difference with IPv6 source address selection (RFC 6724, section 5).</p>
 <p>
             Format: a comma separated list of addresses</p>
 </td>
@@ -2440,7 +2441,8 @@ Various attributes are supported:
 <li class="listitem"><p><code class="literal">"src"</code> - an IPv6 address.</p></li>
 <li class="listitem"><p><code class="literal">"table"</code> - an unsigned 32 bit integer. The default depends on ipv6.route-table.</p></li>
 <li class="listitem"><p><code class="literal">"type"</code> - one of <code class="literal">unicast</code>, <code class="literal">local</code>, <code class="literal">blackhole</code>,
-<code class="literal">unavailable</code>, <code class="literal">prohibit</code>. The default is <code class="literal">unicast</code>.</p></li>
+<code class="literal">unavailable</code>, <code class="literal">prohibit</code>, <code class="literal">throw</code>.
+The default is <code class="literal">unicast</code>.</p></li>
 <li class="listitem"><p><code class="literal">"window"</code> - an unsigned 32 bit integer.</p></li>
 </ul></div>
 <p>
@@ -2481,7 +2483,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.22"></a><h3>ip-tunnel setting</h3>
+<a name="id-1.2.10.4.22"></a><h3>ip-tunnel setting</h3>
 <p>IP Tunneling Settings.</p>
 <p>
         Properties:
@@ -2609,7 +2611,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.23"></a><h3>macsec setting</h3>
+<a name="id-1.2.10.4.23"></a><h3>macsec setting</h3>
 <p>MACSec Settings.</p>
 <p>
         Properties:
@@ -2711,7 +2713,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.24"></a><h3>macvlan setting</h3>
+<a name="id-1.2.10.4.24"></a><h3>macvlan setting</h3>
 <p>MAC VLAN Settings.</p>
 <p>
         Properties:
@@ -2765,7 +2767,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.25"></a><h3>match setting</h3>
+<a name="id-1.2.10.4.25"></a><h3>match setting</h3>
 <p>Match settings.</p>
 <p>
         Properties:
@@ -2813,7 +2815,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.26"></a><h3>802-11-olpc-mesh setting</h3>
+<a name="id-1.2.10.4.26"></a><h3>802-11-olpc-mesh setting</h3>
 <p>
           Alias: olpc-mesh</p>
 <p>OLPC Wireless Mesh Settings.</p>
@@ -2861,7 +2863,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.27"></a><h3>ovs-bridge setting</h3>
+<a name="id-1.2.10.4.27"></a><h3>ovs-bridge setting</h3>
 <p>OvsBridge Link Settings.</p>
 <p>
         Properties:
@@ -2917,7 +2919,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.28"></a><h3>ovs-dpdk setting</h3>
+<a name="id-1.2.10.4.28"></a><h3>ovs-dpdk setting</h3>
 <p>OvsDpdk Link Settings.</p>
 <p>
         Properties:
@@ -2949,7 +2951,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.29"></a><h3>ovs-interface setting</h3>
+<a name="id-1.2.10.4.29"></a><h3>ovs-interface setting</h3>
 <p>Open vSwitch Interface Settings.</p>
 <p>
         Properties:
@@ -2971,7 +2973,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.30"></a><h3>ovs-patch setting</h3>
+<a name="id-1.2.10.4.30"></a><h3>ovs-patch setting</h3>
 <p>OvsPatch Link Settings.</p>
 <p>
         Properties:
@@ -2993,7 +2995,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.31"></a><h3>ovs-port setting</h3>
+<a name="id-1.2.10.4.31"></a><h3>ovs-port setting</h3>
 <p>OvsPort Link Settings.</p>
 <p>
         Properties:
@@ -3057,7 +3059,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.32"></a><h3>ppp setting</h3>
+<a name="id-1.2.10.4.32"></a><h3>ppp setting</h3>
 <p>Point-to-Point Protocol Settings.</p>
 <p>
         Properties:
@@ -3217,7 +3219,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.33"></a><h3>pppoe setting</h3>
+<a name="id-1.2.10.4.33"></a><h3>pppoe setting</h3>
 <p>PPP-over-Ethernet Settings.</p>
 <p>
         Properties:
@@ -3283,7 +3285,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.34"></a><h3>proxy setting</h3>
+<a name="id-1.2.10.4.34"></a><h3>proxy setting</h3>
 <p>WWW Proxy Settings.</p>
 <p>
         Properties:
@@ -3319,7 +3321,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 <td>
 <p>
             Alias: pac-script</p>
-<p>PAC script for the connection.</p>
+<p>The PAC script. In the profile this must be an UTF-8 encoded javascript code that defines a FindProxyForURL() function. When setting the property in nmcli, a filename is accepted too. In that case, nmcli will read the content of the file and set the script. The prefixes "file://" and "js://" are supported to explicitly differentiate between the two.</p>
 <p>
             Format: string</p>
 </td>
@@ -3339,7 +3341,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.35"></a><h3>serial setting</h3>
+<a name="id-1.2.10.4.35"></a><h3>serial setting</h3>
 <p>Serial Link Settings.</p>
 <p>
         Properties:
@@ -3395,7 +3397,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.36"></a><h3>sriov setting</h3>
+<a name="id-1.2.10.4.36"></a><h3>sriov setting</h3>
 <p>SR-IOV settings.</p>
 <p>
         Properties:
@@ -3435,7 +3437,7 @@ Example: <code class="literal">priority 5 from 1:2:3::5/128 table 45</code>
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.37"></a><h3>tc setting</h3>
+<a name="id-1.2.10.4.37"></a><h3>tc setting</h3>
 <p>Linux Traffic Control Settings.</p>
 <p>
         Properties:
@@ -3812,7 +3814,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.38"></a><h3>team setting</h3>
+<a name="id-1.2.10.4.38"></a><h3>team setting</h3>
 <p>Teaming Settings.</p>
 <p>
         Properties:
@@ -3958,7 +3960,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.39"></a><h3>team-port setting</h3>
+<a name="id-1.2.10.4.39"></a><h3>team-port setting</h3>
 <p>Team Port Settings.</p>
 <p>
         Properties:
@@ -4032,7 +4034,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.40"></a><h3>tun setting</h3>
+<a name="id-1.2.10.4.40"></a><h3>tun setting</h3>
 <p>Tunnel Settings.</p>
 <p>
         Properties:
@@ -4108,7 +4110,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.41"></a><h3>vlan setting</h3>
+<a name="id-1.2.10.4.41"></a><h3>vlan setting</h3>
 <p>VLAN Settings.</p>
 <p>
         Properties:
@@ -4174,7 +4176,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.42"></a><h3>vpn setting</h3>
+<a name="id-1.2.10.4.42"></a><h3>vpn setting</h3>
 <p>VPN Settings.</p>
 <p>
         Properties:
@@ -4242,7 +4244,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.43"></a><h3>vrf setting</h3>
+<a name="id-1.2.10.4.43"></a><h3>vrf setting</h3>
 <p>VRF settings.</p>
 <p>
         Properties:
@@ -4266,7 +4268,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.44"></a><h3>vxlan setting</h3>
+<a name="id-1.2.10.4.44"></a><h3>vxlan setting</h3>
 <p>VXLAN Settings.</p>
 <p>
         Properties:
@@ -4424,7 +4426,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.45"></a><h3>wifi-p2p setting</h3>
+<a name="id-1.2.10.4.45"></a><h3>wifi-p2p setting</h3>
 <p>Wi-Fi P2P Settings.</p>
 <p>
         Properties:
@@ -4466,7 +4468,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.46"></a><h3>wimax setting</h3>
+<a name="id-1.2.10.4.46"></a><h3>wimax setting</h3>
 <p>WiMax Settings.</p>
 <p>
         Properties:
@@ -4502,7 +4504,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.47"></a><h3>802-3-ethernet setting</h3>
+<a name="id-1.2.10.4.47"></a><h3>802-3-ethernet setting</h3>
 <p>
           Alias: ethernet</p>
 <p>Wired Ethernet Settings.</p>
@@ -4646,7 +4648,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.48"></a><h3>wireguard setting</h3>
+<a name="id-1.2.10.4.48"></a><h3>wireguard setting</h3>
 <p>WireGuard Settings.</p>
 <p>
         Properties:
@@ -4728,7 +4730,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.49"></a><h3>802-11-wireless setting</h3>
+<a name="id-1.2.10.4.49"></a><h3>802-11-wireless setting</h3>
 <p>
           Alias: wifi</p>
 <p>Wi-Fi Settings.</p>
@@ -4900,7 +4902,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.50"></a><h3>802-11-wireless-security setting</h3>
+<a name="id-1.2.10.4.50"></a><h3>802-11-wireless-security setting</h3>
 <p>
           Alias: wifi-sec</p>
 <p>Wi-Fi Security Settings.</p>
@@ -5084,7 +5086,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.51"></a><h3>wpan setting</h3>
+<a name="id-1.2.10.4.51"></a><h3>wpan setting</h3>
 <p>IEEE 802.15.4 (WPAN) MAC Settings.</p>
 <p>
         Properties:
@@ -5150,7 +5152,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.52"></a><h3>bond-port setting</h3>
+<a name="id-1.2.10.4.52"></a><h3>bond-port setting</h3>
 <p>Bond Port Settings.</p>
 <p>
         Properties:
@@ -5174,7 +5176,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.53"></a><h3>hostname setting</h3>
+<a name="id-1.2.10.4.53"></a><h3>hostname setting</h3>
 <p>Hostname settings.</p>
 <p>
         Properties:
@@ -5222,7 +5224,7 @@ The actual string to print.
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.9.4.54"></a><h3>veth setting</h3>
+<a name="id-1.2.10.4.54"></a><h3>veth setting</h3>
 <p>Veth Settings.</p>
 <p>
         Properties:
@@ -5284,6 +5286,6 @@ The actual string to print.
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

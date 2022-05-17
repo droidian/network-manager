@@ -184,22 +184,31 @@ _nm_auto_freev(gpointer ptr)
  * same name for the same warning. */
 
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#define NM_PRAGMA_DIAGNOSTICS_PUSH _Pragma("GCC diagnostic push")
 #define NM_PRAGMA_WARNING_DISABLE(warning) \
-    _Pragma("GCC diagnostic push") _Pragma(_NM_PRAGMA_WARNING_DO(warning))
-#elif defined(__clang__)
-#define NM_PRAGMA_WARNING_DISABLE(warning)                                                      \
-    _Pragma("clang diagnostic push") _Pragma(_NM_PRAGMA_WARNING_DO("-Wunknown-warning-option")) \
-        _Pragma(_NM_PRAGMA_WARNING_DO(warning))
-#else
-#define NM_PRAGMA_WARNING_DISABLE(warning)
-#endif
-
-#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+    NM_PRAGMA_DIAGNOSTICS_PUSH _Pragma(_NM_PRAGMA_WARNING_DO(warning))
 #define NM_PRAGMA_WARNING_REENABLE _Pragma("GCC diagnostic pop")
 #elif defined(__clang__)
+#define NM_PRAGMA_DIAGNOSTICS_PUSH _Pragma("clang diagnostic push")
+#define NM_PRAGMA_WARNING_DISABLE(warning)                                                \
+    NM_PRAGMA_DIAGNOSTICS_PUSH _Pragma(_NM_PRAGMA_WARNING_DO("-Wunknown-warning-option")) \
+        _Pragma(_NM_PRAGMA_WARNING_DO(warning))
 #define NM_PRAGMA_WARNING_REENABLE _Pragma("clang diagnostic pop")
 #else
+#define NM_PRAGMA_DIAGNOSTICS_PUSH
+#define NM_PRAGMA_WARNING_DISABLE(warning)
 #define NM_PRAGMA_WARNING_REENABLE
+#endif
+
+/*****************************************************************************/
+
+/* Seems gcc-12 has a tendency for false-positive -Wdangling-pointer warnings with
+ * g_error()'s `for(;;);`. See https://bugzilla.redhat.com/show_bug.cgi?id=2056613 .
+ * Work around, but only for the affected gcc 12.0.1. */
+#if defined(__GNUC__) && __GNUC__ == 12 && __GNUC_MINOR__ == 0 && __GNUC_PATCHLEVEL__ <= 1
+#define NM_PRAGMA_WARNING_DISABLE_DANGLING_POINTER NM_PRAGMA_WARNING_DISABLE("-Wdangling-pointer")
+#else
+#define NM_PRAGMA_WARNING_DISABLE_DANGLING_POINTER NM_PRAGMA_DIAGNOSTICS_PUSH
 #endif
 
 /*****************************************************************************/
@@ -611,10 +620,16 @@ nm_str_realloc(char *str)
 /* invokes _notify() for all arguments (of type _PropertyEnums). Note, that if
  * there are more than one prop arguments, this will involve a freeze/thaw
  * of GObject property notifications. */
-#define nm_gobject_notify_together_full(suffix, obj, ...)          \
-    _nm_gobject_notify_together_impl##suffix(obj,                  \
-                                             NM_NARG(__VA_ARGS__), \
-                                             (const _PropertyEnums##suffix[]){__VA_ARGS__})
+#define nm_gobject_notify_together_full(suffix, obj, ...)                            \
+    G_STMT_START                                                                     \
+    {                                                                                \
+        const _PropertyEnums##suffix _props[] = {__VA_ARGS__};                       \
+                                                                                     \
+        G_STATIC_ASSERT(G_N_ELEMENTS(_props) == NM_NARG(__VA_ARGS__));               \
+                                                                                     \
+        _nm_gobject_notify_together_impl##suffix(obj, G_N_ELEMENTS(_props), _props); \
+    }                                                                                \
+    G_STMT_END
 
 #define nm_gobject_notify_together(obj, ...) nm_gobject_notify_together_full(, obj, __VA_ARGS__)
 

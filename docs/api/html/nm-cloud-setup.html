@@ -8,7 +8,7 @@
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
 <link rel="prev" href="nm-initrd-generator.html" title="nm-initrd-generator">
 <link rel="next" href="nm-openvswitch.html" title="nm-openvswitch">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -29,7 +29,7 @@
 <td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
 <div class="refsect1">
-<a name="id-1.2.14.4"></a><h2>Overview</h2>
+<a name="id-1.2.15.4"></a><h2>Overview</h2>
 <p>When running a virtual machine in a public cloud environment, it is
     desirable to automatically configure the network of that VM.
     In simple setups, the VM only has one network interface and the public
@@ -44,7 +44,7 @@
 <p>Multiple cloud providers are supported. See <a class="xref" href="nm-cloud-setup.html#providers" title="Supported Cloud Providers">the section called “Supported Cloud Providers”</a>.</p>
 </div>
 <div class="refsect1">
-<a name="id-1.2.14.5"></a><h2>Use</h2>
+<a name="id-1.2.15.5"></a><h2>Use</h2>
 <p>The goal of nm-cloud-setup is to be configuration-less and work automatically.
     All you need is to opt-in to the desired cloud providers (see <a class="xref" href="nm-cloud-setup.html#env" title="Environment Variables">the section called “Environment Variables”</a>)
     and run <span class="command"><strong>/usr/libexec/nm-cloud-setup</strong></span>.</p>
@@ -53,7 +53,7 @@
     and a NetworkManager dispatcher script.</p>
 </div>
 <div class="refsect1">
-<a name="id-1.2.14.6"></a><h2>Details</h2>
+<a name="id-1.2.15.6"></a><h2>Details</h2>
 <p>
     nm-cloud-setup configures the network by fetching the configuration from
     the well-known meta data server of the cloud provider. That means, it already
@@ -74,7 +74,7 @@
     With this approach, the configuration is not persisted
     and only preserved until the device disconnects.</p>
 <div class="refsect2">
-<a name="id-1.2.14.6.5"></a><h3>/usr/libexec/nm-cloud-setup</h3>
+<a name="id-1.2.15.6.5"></a><h3>/usr/libexec/nm-cloud-setup</h3>
 <p>The binary <span class="command"><strong>/usr/libexec/nm-cloud-setup</strong></span> does most of the
       work. It supports no command line arguments but can be configured via environment
       variables.
@@ -94,7 +94,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.14.6.6"></a><h3>nm-cloud-setup.service systemd unit</h3>
+<a name="id-1.2.15.6.6"></a><h3>nm-cloud-setup.service systemd unit</h3>
 <p>Usually <span class="command"><strong>/usr/libexec/nm-cloud-setup</strong></span> is not run directly,
       but only by <span class="command"><strong>systemctl restart nm-cloud-setup.service</strong></span>. This
       ensures that the tool only runs once at any time. It also allows to integrate
@@ -105,7 +105,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.14.6.7"></a><h3>nm-cloud-setup.timer systemd timer</h3>
+<a name="id-1.2.15.6.7"></a><h3>nm-cloud-setup.timer systemd timer</h3>
 <p><span class="command"><strong>/usr/libexec/nm-cloud-setup</strong></span> is intended to run
       whenever an update is necessary. For example, during boot when when
       changing the network configuration of the virtual machine via the cloud
@@ -115,7 +115,7 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.14.6.8"></a><h3>/usr/lib/NetworkManager/dispatcher.d/90-nm-cloud-setup.sh</h3>
+<a name="id-1.2.15.6.8"></a><h3>/usr/lib/NetworkManager/dispatcher.d/90-nm-cloud-setup.sh</h3>
 <p>There is also a NetworkManager dispatcher script that will
       run for example when an interface is activated by NetworkManager.
       Together with the nm-cloud-setup.timer systemd timer this
@@ -182,7 +182,7 @@ ln -s /etc/systemd/system/timers.target.wants/nm-cloud-setup.timer /usr/lib/syst
 <div class="refsect1">
 <a name="providers"></a><h2>Supported Cloud Providers</h2>
 <div class="refsect2">
-<a name="id-1.2.14.9.2"></a><h3>Amazon EC2 (AWS)</h3>
+<a name="id-1.2.15.9.2"></a><h3>Amazon EC2 (AWS)</h3>
 <p>For AWS, the tools tries to fetch configuration from <code class="literal">http://169.254.169.254/</code>. Currently, it only
       configures IPv4 and does nothing about IPv6. It will do the following.</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
@@ -239,7 +239,7 @@ ln -s /etc/systemd/system/timers.target.wants/nm-cloud-setup.timer /usr/lib/syst
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.14.9.3"></a><h3>Google Cloud Platform (GCP)</h3>
+<a name="id-1.2.15.9.3"></a><h3>Google Cloud Platform (GCP)</h3>
 <p>
         For GCP, the meta data is fetched from URIs starting with <code class="literal">http://metadata.google.internal/computeMetadata/v1/</code> with a
         HTTP header <code class="literal">"Metadata-Flavor: Google"</code>.
@@ -267,7 +267,7 @@ ln -s /etc/systemd/system/timers.target.wants/nm-cloud-setup.timer /usr/lib/syst
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.14.9.4"></a><h3>Microsoft Azure</h3>
+<a name="id-1.2.15.9.4"></a><h3>Microsoft Azure</h3>
 <p>
         For Azure, the meta data is fetched from URIs starting with <code class="literal">http://169.254.169.254/metadata/instance</code> with a
         URL parameter <code class="literal">"?format=text&amp;api-version=2017-04-02"</code> and a HTTP header <code class="literal">"Metadata:true"</code>.
@@ -299,7 +299,7 @@ ln -s /etc/systemd/system/timers.target.wants/nm-cloud-setup.timer /usr/lib/syst
 </div>
 <hr>
 <div class="refsect2">
-<a name="id-1.2.14.9.5"></a><h3>Alibaba Cloud (Aliyun)</h3>
+<a name="id-1.2.15.9.5"></a><h3>Alibaba Cloud (Aliyun)</h3>
 <p>For Aliyun, the tools tries to fetch configuration from <code class="literal">http://100.100.100.200/</code>. Currently, it only
       configures IPv4 and does nothing about IPv6. It will do the following.</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
@@ -327,7 +327,7 @@ ln -s /etc/systemd/system/timers.target.wants/nm-cloud-setup.timer /usr/lib/syst
 </div>
 </div>
 <div class="refsect1">
-<a name="id-1.2.14.10"></a><h2>See Also</h2>
+<a name="id-1.2.15.10"></a><h2>See Also</h2>
 <p>
       <a class="link" href="NetworkManager.html" title="NetworkManager"><span class="citerefentry"><span class="refentrytitle">NetworkManager</span>(8)</span></a>
       <a class="link" href="nmcli.html" title="nmcli"><span class="citerefentry"><span class="refentrytitle">nmcli</span>(1)</span></a>
@@ -335,6 +335,6 @@ ln -s /etc/systemd/system/timers.target.wants/nm-cloud-setup.timer /usr/lib/syst
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

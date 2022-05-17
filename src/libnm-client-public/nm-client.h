@@ -27,9 +27,9 @@ G_BEGIN_DECLS
  *
  * Since: 1.24
  */
-typedef enum { /*< flags >*/
-               NM_CLIENT_INSTANCE_FLAGS_NONE                      = 0,
-               NM_CLIENT_INSTANCE_FLAGS_NO_AUTO_FETCH_PERMISSIONS = 1,
+typedef enum /*< flags >*/ {
+    NM_CLIENT_INSTANCE_FLAGS_NONE                      = 0,
+    NM_CLIENT_INSTANCE_FLAGS_NO_AUTO_FETCH_PERMISSIONS = 1,
 } NMClientInstanceFlags;
 
 #define NM_TYPE_CLIENT            (nm_client_get_type())
@@ -60,6 +60,8 @@ _NM_DEPRECATED_SYNC_WRITABLE_PROPERTY
 #define NM_CLIENT_WIRELESS_HARDWARE_ENABLED "wireless-hardware-enabled"
 #define NM_CLIENT_WWAN_HARDWARE_ENABLED     "wwan-hardware-enabled"
 #define NM_CLIENT_WIMAX_HARDWARE_ENABLED    "wimax-hardware-enabled"
+
+#define NM_CLIENT_RADIO_FLAGS "radio-flags"
 
 #define NM_CLIENT_ACTIVE_CONNECTIONS           "active-connections"
 #define NM_CLIENT_CONNECTIVITY                 "connectivity"
@@ -212,6 +214,9 @@ void nm_client_wimax_set_enabled(NMClient *client, gboolean enabled);
 
 NM_DEPRECATED_IN_1_22
 gboolean nm_client_wimax_hardware_get_enabled(NMClient *client);
+
+NM_AVAILABLE_IN_1_38
+NMRadioFlags nm_client_get_radio_flags(NMClient *client);
 
 NM_AVAILABLE_IN_1_10
 gboolean nm_client_connectivity_check_get_available(NMClient *client);
@@ -490,6 +495,10 @@ gboolean nm_client_dbus_set_property_finish(NMClient *client, GAsyncResult *resu
 
 NM_AVAILABLE_IN_1_30
 void nm_utils_print(int output_mode, const char *msg);
+
+gboolean nm_utils_file_is_certificate(const char *filename);
+gboolean nm_utils_file_is_private_key(const char *filename, gboolean *out_encrypted);
+gboolean nm_utils_file_is_pkcs12(const char *filename);
 
 G_END_DECLS
 

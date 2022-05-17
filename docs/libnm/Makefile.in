@@ -171,7 +171,6 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BLACK = @BLACK@
 BLUEZ5_CFLAGS = @BLUEZ5_CFLAGS@
 BLUEZ5_LIBS = @BLUEZ5_LIBS@
 CC = @CC@
@@ -591,6 +590,7 @@ DOC_STAMPS = setup-build.stamp scan-build.stamp sgml-build.stamp \
 	sgml.stamp html.stamp pdf.stamp
 
 SCANOBJ_FILES = \
+	$(DOC_MODULE).actions	 \
 	$(DOC_MODULE).args 	 \
 	$(DOC_MODULE).hierarchy  \
 	$(DOC_MODULE).interfaces \
@@ -652,9 +652,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu docs/libnm/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign docs/libnm/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu docs/libnm/Makefile
+	  $(AUTOMAKE) --foreign docs/libnm/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \

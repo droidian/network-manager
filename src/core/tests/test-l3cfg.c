@@ -382,13 +382,11 @@ test_l3cfg(gconstpointer test_data)
         nm_l3cfg_commit_type_register(l3cfg0, NM_L3_CFG_COMMIT_TYPE_UPDATE, NULL, "test1");
 
     if (!nmtst_get_rand_one_case_in(4)) {
-        commit_type_2 =
-            nm_l3cfg_commit_type_register(l3cfg0,
-                                          nmtst_rand_select(NM_L3_CFG_COMMIT_TYPE_NONE,
-                                                            NM_L3_CFG_COMMIT_TYPE_ASSUME,
-                                                            NM_L3_CFG_COMMIT_TYPE_UPDATE),
-                                          NULL,
-                                          "test2");
+        commit_type_2 = nm_l3cfg_commit_type_register(
+            l3cfg0,
+            nmtst_rand_select(NM_L3_CFG_COMMIT_TYPE_NONE, NM_L3_CFG_COMMIT_TYPE_UPDATE),
+            NULL,
+            "test2");
     } else
         commit_type_2 = NULL;
 
@@ -956,7 +954,7 @@ test_l3_ipv6ll(gconstpointer test_data)
                                        .steps_done = FALSE,
     };
     TestL3IPv6LLData *const tdata = &tdata_stack;
-    char                    sbuf1[sizeof(_nm_utils_to_string_buffer)];
+    char                    sbuf1[NM_UTILS_TO_STRING_BUFFER_SIZE];
     int                     r;
 
     _LOGD("test start (/l3-ipv6ll/%d)", TEST_IDX);

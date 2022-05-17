@@ -28,7 +28,8 @@ static gboolean
 ip4_process_dhcpcd_rfc3442_routes(const char     *iface,
                                   const char     *str,
                                   NML3ConfigData *l3cd,
-                                  guint32        *gwaddr)
+                                  in_addr_t       address,
+                                  guint32        *out_gwaddr)
 {
     gs_free const char **routes = NULL;
     const char         **r;
@@ -79,7 +80,7 @@ ip4_process_dhcpcd_rfc3442_routes(const char     *iface,
         have_routes = TRUE;
         if (rt_cidr == 0 && rt_addr == 0) {
             /* FIXME: how to handle multiple routers? */
-            *gwaddr = rt_route;
+            *out_gwaddr = rt_route;
         } else {
             _LOG2I(LOGD_DHCP4,
                    iface,
@@ -91,13 +92,13 @@ ip4_process_dhcpcd_rfc3442_routes(const char     *iface,
             nm_l3_config_data_add_route_4(
                 l3cd,
                 &((const NMPlatformIP4Route){
+                    .rt_source  = NM_IP_CONFIG_SOURCE_DHCP,
                     .network    = nm_utils_ip4_address_clear_host_address(rt_addr, rt_cidr),
                     .plen       = rt_cidr,
                     .gateway    = rt_route,
-                    .rt_source  = NM_IP_CONFIG_SOURCE_DHCP,
+                    .pref_src   = address,
                     .metric_any = TRUE,
                     .table_any  = TRUE,
-
                 }));
         }
     }
@@ -158,7 +159,8 @@ static gboolean
 ip4_process_dhclient_rfc3442_routes(const char     *iface,
                                     const char     *str,
                                     NML3ConfigData *l3cd,
-                                    guint32        *gwaddr)
+                                    in_addr_t       address,
+                                    guint32        *out_gwaddr)
 {
     gs_free const char **octets = NULL;
     const char *const   *o;
@@ -182,13 +184,14 @@ ip4_process_dhclient_rfc3442_routes(const char     *iface,
         have_routes = TRUE;
         if (!route.plen) {
             /* gateway passed as classless static route */
-            *gwaddr = route.gateway;
+            *out_gwaddr = route.gateway;
         } else {
             char b1[INET_ADDRSTRLEN];
             char b2[INET_ADDRSTRLEN];
 
             /* normal route */
             route.rt_source     = NM_IP_CONFIG_SOURCE_DHCP;
+            route.pref_src      = address;
             route.table_any     = TRUE;
             route.table_coerced = 0;
             route.metric_any    = TRUE;
@@ -212,14 +215,15 @@ static gboolean
 ip4_process_classless_routes(const char     *iface,
                              GHashTable     *options,
                              NML3ConfigData *l3cd,
-                             guint32        *gwaddr)
+                             in_addr_t       address,
+                             guint32        *out_gwaddr)
 {
     const char *str, *p;
 
     g_return_val_if_fail(options != NULL, FALSE);
     g_return_val_if_fail(l3cd != NULL, FALSE);
 
-    *gwaddr = 0;
+    *out_gwaddr = 0;
 
     /* dhcpd/dhclient in Fedora has support for rfc3442 implemented using a
      * slightly different format:
@@ -266,14 +270,17 @@ ip4_process_classless_routes(const char     *iface,
 
     if (strchr(str, '/')) {
         /* dhcpcd format */
-        return ip4_process_dhcpcd_rfc3442_routes(iface, str, l3cd, gwaddr);
+        return ip4_process_dhcpcd_rfc3442_routes(iface, str, l3cd, address, out_gwaddr);
     }
 
-    return ip4_process_dhclient_rfc3442_routes(iface, str, l3cd, gwaddr);
+    return ip4_process_dhclient_rfc3442_routes(iface, str, l3cd, address, out_gwaddr);
 }
 
 static void
-process_classful_routes(const char *iface, GHashTable *options, NML3ConfigData *l3cd)
+process_classful_routes(const char     *iface,
+                        GHashTable     *options,
+                        NML3ConfigData *l3cd,
+                        in_addr_t       address)
 {
     gs_free const char **searches = NULL;
     const char         **s;
@@ -293,6 +300,7 @@ process_classful_routes(const char *iface, GHashTable *options, NML3ConfigData *
     }
 
     for (s = searches; *s; s += 2) {
+        char               sbuf[NM_UTILS_TO_STRING_BUFFER_SIZE];
         NMPlatformIP4Route route;
         guint32            rt_addr, rt_route;
 
@@ -321,6 +329,7 @@ process_classful_routes(const char *iface, GHashTable *options, NML3ConfigData *
             route.plen = 32;
         }
         route.gateway       = rt_route;
+        route.pref_src      = address;
         route.rt_source     = NM_IP_CONFIG_SOURCE_DHCP;
         route.table_any     = TRUE;
         route.table_coerced = 0;
@@ -334,7 +343,7 @@ process_classful_routes(const char *iface, GHashTable *options, NML3ConfigData *
         _LOG2I(LOGD_DHCP,
                iface,
                "  static route %s",
-               nm_platform_ip4_route_to_string(&route, NULL, 0));
+               nm_platform_ip4_route_to_string(&route, sbuf, sizeof(sbuf)));
     }
 }
 
@@ -422,8 +431,8 @@ nm_dhcp_utils_ip4_config_from_options(NMDedupMultiIndex *multi_idx,
     /* Routes: if the server returns classless static routes, we MUST ignore
      * the 'static_routes' option.
      */
-    if (!ip4_process_classless_routes(iface, options, l3cd, &gateway))
-        process_classful_routes(iface, options, l3cd);
+    if (!ip4_process_classless_routes(iface, options, l3cd, address.address, &gateway))
+        process_classful_routes(iface, options, l3cd, address.address);
 
     if (gateway) {
         _LOG2I(LOGD_DHCP4, iface, "  gateway %s", _nm_utils_inet4_ntop(gateway, sbuf));
@@ -453,6 +462,7 @@ nm_dhcp_utils_ip4_config_from_options(NMDedupMultiIndex *multi_idx,
         const NMPlatformIP4Route r = {
             .rt_source     = NM_IP_CONFIG_SOURCE_DHCP,
             .gateway       = gateway,
+            .pref_src      = address.address,
             .table_any     = TRUE,
             .table_coerced = 0,
             .metric_any    = TRUE,
@@ -659,8 +669,13 @@ nm_dhcp_utils_ip6_config_from_options(NMDedupMultiIndex *multi_idx,
         _LOG2I(LOGD_DHCP6, iface, "  preferred_lft %u", address.preferred);
     }
 
-    str = g_hash_table_lookup(options, "ip6_address");
-    if (str) {
+    if (!info_only) {
+        str = g_hash_table_lookup(options, "ip6_address");
+        if (!str) {
+            /* No address in Managed mode is a hard error */
+            return NULL;
+        }
+
         if (!inet_pton(AF_INET6, str, &tmp_addr)) {
             _LOG2W(LOGD_DHCP6, iface, "(%s): DHCP returned invalid address '%s'", iface, str);
             return NULL;
@@ -670,9 +685,6 @@ nm_dhcp_utils_ip6_config_from_options(NMDedupMultiIndex *multi_idx,
         address.addr_source = NM_IP_CONFIG_SOURCE_DHCP;
         nm_l3_config_data_add_address_6(l3cd, &address);
         _LOG2I(LOGD_DHCP6, iface, "  address %s", str);
-    } else if (info_only == FALSE) {
-        /* No address in Managed mode is a hard error */
-        return NULL;
     }
 
     str = g_hash_table_lookup(options, "host_name");

@@ -29,6 +29,7 @@ libnm.so.0 libnm0 #MINVER#
  libnm_1_32_4@libnm_1_32_4 1.32.12
  libnm_1_34_0@libnm_1_34_0 1.34.0
  libnm_1_36_0@libnm_1_36_0 1.36.0
+ libnm_1_38_0@libnm_1_38_0 1.38.0
  libnm_1_4_0@libnm_1_4_0 1.4.0
  libnm_1_6_0@libnm_1_6_0 1.6.0
  libnm_1_8_0@libnm_1_8_0 1.8.0
@@ -156,6 +157,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_client_get_permission_result@libnm_1_0_0 1.0.0
  nm_client_get_permissions_state@libnm_1_24_0 1.24.0
  nm_client_get_primary_connection@libnm_1_0_0 1.0.0
+ nm_client_get_radio_flags@libnm_1_38_0 1.38.0
  nm_client_get_startup@libnm_1_0_0 1.0.0
  nm_client_get_state@libnm_1_0_0 1.0.0
  nm_client_get_type@libnm_1_0_0 1.0.0
@@ -630,6 +632,7 @@ libnm.so.0 libnm0 #MINVER#
  nm_object_get_client@libnm_1_24_0 1.24.0
  nm_object_get_path@libnm_1_0_0 1.0.0
  nm_object_get_type@libnm_1_0_0 1.0.0
+ nm_radio_flags_get_type@libnm_1_38_0 1.38.0
  nm_remote_connection_commit_changes@libnm_1_0_0 1.0.0
  nm_remote_connection_commit_changes_async@libnm_1_0_0 1.0.0
  nm_remote_connection_commit_changes_finish@libnm_1_0_0 1.0.0

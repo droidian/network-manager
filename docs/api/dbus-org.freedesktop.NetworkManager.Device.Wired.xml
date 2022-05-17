@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.Device.Wired">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Wired.top_of_page">org.freedesktop.NetworkManager.Device.Wired</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Device-Wired.top_of_page"><primary sortas="DeviceEthernet">org.freedesktop.NetworkManager.Device.Wired</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Wired</refname>    <refpurpose>Wired Ethernet Device</refpurpose>  </refnamediv>  <refsect1 role="properties">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Wired</refname>    <refpurpose>Wired Ethernet Device.</refpurpose>  </refnamediv>  <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Wired.HwAddress">HwAddress</link>        readable   s

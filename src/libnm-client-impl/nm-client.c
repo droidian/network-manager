@@ -198,6 +198,7 @@ NM_GOBJECT_PROPERTIES_DEFINE(NMClient,
                              PROP_WWAN_HARDWARE_ENABLED,
                              PROP_WIMAX_ENABLED,
                              PROP_WIMAX_HARDWARE_ENABLED,
+                             PROP_RADIO_FLAGS,
                              PROP_ACTIVE_CONNECTIONS,
                              PROP_CONNECTIVITY,
                              PROP_CONNECTIVITY_CHECK_URI,
@@ -307,6 +308,7 @@ typedef struct {
         guint32           connectivity;
         guint32           state;
         guint32           metered;
+        guint32           radio_flags;
         bool              connectivity_check_available;
         bool              connectivity_check_enabled;
         bool              networking_enabled;
@@ -764,7 +766,7 @@ _nm_client_set_property_sync_legacy(NMClient   *self,
                 NMClientPrivate *_priv = NM_CLIENT_GET_PRIVATE(self);         \
                                                                               \
                 nm_assert(g_source_get_context(_source) == _priv->x_context); \
-                nm_assert(g_main_context_is_owner(_priv->x_context));         \
+                nm_assert(nm_g_main_context_can_acquire(_priv->x_context));   \
             }                                                                 \
         }                                                                     \
     }                                                                         \
@@ -778,7 +780,7 @@ _nm_client_set_property_sync_legacy(NMClient   *self,
                                                                                         \
             nm_assert((g_main_context_get_thread_default() ?: g_main_context_default()) \
                       == _priv->x_context);                                             \
-            nm_assert(g_main_context_is_owner(_priv->x_context));                       \
+            nm_assert(nm_g_main_context_can_acquire(_priv->x_context));                 \
         }                                                                               \
     }                                                                                   \
     G_STMT_END
@@ -4236,6 +4238,24 @@ nm_client_wireless_hardware_get_enabled(NMClient *client)
 }
 
 /**
+ * nm_client_get_radio_flags:
+ * @client: a #NMClient
+ *
+ * Get radio flags.
+ *
+ * Returns: the #NMRadioFlags.
+ *
+ * Since: 1.38
+ **/
+NMRadioFlags
+nm_client_get_radio_flags(NMClient *client)
+{
+    g_return_val_if_fail(NM_IS_CLIENT(client), NM_RADIO_FLAG_NONE);
+
+    return NM_CLIENT_GET_PRIVATE(client)->nm.radio_flags;
+}
+
+/**
  * nm_client_wwan_get_enabled:
  * @client: a #NMClient
  *
@@ -6261,7 +6281,6 @@ nm_client_get_capabilities(NMClient *client, gsize *length)
     NMClientPrivate *priv;
 
     g_return_val_if_fail(NM_IS_CLIENT(client), NULL);
-    g_return_val_if_fail(length, NULL);
 
     priv = NM_CLIENT_GET_PRIVATE(client);
 
@@ -7306,9 +7325,9 @@ _init_start_check_complete(NMClient *self)
 static void
 _init_start_cancelled_cb(GCancellable *cancellable, gpointer user_data)
 {
-    NMClient        *self = user_data;
-    NMClientPrivate *priv = NM_CLIENT_GET_PRIVATE(self);
-    GError          *error;
+    NMClient        *self  = user_data;
+    NMClientPrivate *priv  = NM_CLIENT_GET_PRIVATE(self);
+    GError          *error = NULL;
 
     nm_assert(NM_IS_CLIENT(self));
     nm_assert(priv->init_data);
@@ -7328,8 +7347,8 @@ _init_start_cancelled_cb(GCancellable *cancellable, gpointer user_data)
 static gboolean
 _init_start_cancel_on_idle_cb(gpointer user_data)
 {
-    NMClient *self = user_data;
-    GError   *error;
+    NMClient *self  = user_data;
+    GError   *error = NULL;
 
     nm_utils_error_set_cancelled(&error, FALSE, NULL);
     _init_start_complete(self, error);
@@ -7350,7 +7369,10 @@ _init_start_with_bus(NMClient *self)
                                    NULL);
         if (id == 0) {
             priv->init_data->cancel_on_idle_source =
-                nm_g_idle_source_new(G_PRIORITY_DEFAULT, _init_start_cancel_on_idle_cb, self, NULL);
+                nm_g_idle_source_new(G_PRIORITY_DEFAULT_IDLE,
+                                     _init_start_cancel_on_idle_cb,
+                                     self,
+                                     NULL);
             g_source_attach(priv->init_data->cancel_on_idle_source, priv->main_context);
             return;
         }
@@ -7451,6 +7473,9 @@ get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
         break;
     case PROP_WIRELESS_HARDWARE_ENABLED:
         g_value_set_boolean(value, nm_client_wireless_hardware_get_enabled(self));
+        break;
+    case PROP_RADIO_FLAGS:
+        g_value_set_uint(value, priv->nm.radio_flags);
         break;
     case PROP_WWAN_ENABLED:
         g_value_set_boolean(value, nm_client_wwan_get_enabled(self));
@@ -8044,6 +8069,10 @@ const NMLDBusMetaIface _nml_dbus_meta_iface_nm = NML_DBUS_META_IFACE_INIT_PROP(
                                            _priv.nm.property_o[PROPERTY_O_IDX_NM_PRIMAY_CONNECTION],
                                            nm_active_connection_get_type),
         NML_DBUS_META_PROPERTY_INIT_IGNORE("PrimaryConnectionType", "s"),
+        NML_DBUS_META_PROPERTY_INIT_U("RadioFlags",
+                                      PROP_RADIO_FLAGS,
+                                      NMClient,
+                                      _priv.nm.radio_flags),
         NML_DBUS_META_PROPERTY_INIT_B("Startup", PROP_STARTUP, NMClient, _priv.nm.startup),
         NML_DBUS_META_PROPERTY_INIT_U("State", PROP_STATE, NMClient, _priv.nm.state),
         NML_DBUS_META_PROPERTY_INIT_S("Version", PROP_VERSION, NMClient, _priv.nm.version),
@@ -8310,6 +8339,21 @@ nm_client_class_init(NMClientClass *client_class)
                              "",
                              FALSE,
                              G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
+
+    /**
+     * NMClient:radio-flags:
+     *
+     * Flags for radio interfaces. See #NMRadioFlags.
+     *
+     * Since: 1.38
+     **/
+    obj_properties[PROP_RADIO_FLAGS] = g_param_spec_uint(NM_CLIENT_RADIO_FLAGS,
+                                                         "",
+                                                         "",
+                                                         0,
+                                                         G_MAXUINT32,
+                                                         NM_RADIO_FLAG_NONE,
+                                                         G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
     /**
      * NMClient:active-connections: (type GPtrArray(NMActiveConnection))

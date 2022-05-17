@@ -130,6 +130,7 @@ NM_CLIENT_WIMAX_ENABLED
 NM_CLIENT_WIRELESS_HARDWARE_ENABLED
 NM_CLIENT_WWAN_HARDWARE_ENABLED
 NM_CLIENT_WIMAX_HARDWARE_ENABLED
+NM_CLIENT_RADIO_FLAGS
 NM_CLIENT_ACTIVE_CONNECTIONS
 NM_CLIENT_CONNECTIVITY
 NM_CLIENT_CONNECTIVITY_CHECK_URI
@@ -193,6 +194,7 @@ nm_client_wwan_hardware_get_enabled
 nm_client_wimax_get_enabled
 nm_client_wimax_set_enabled
 nm_client_wimax_hardware_get_enabled
+nm_client_get_radio_flags
 nm_client_connectivity_check_get_available
 nm_client_connectivity_check_get_enabled
 nm_client_connectivity_check_set_enabled
@@ -257,6 +259,9 @@ nm_client_dbus_call_finish
 nm_client_dbus_set_property
 nm_client_dbus_set_property_finish
 nm_utils_print
+nm_utils_file_is_certificate
+nm_utils_file_is_private_key
+nm_utils_file_is_pkcs12
 <SUBSECTION Standard>
 NMClientClass
 NMDnsEntry
@@ -398,6 +403,7 @@ NM_TYPE_KEYFILE_WARN_SEVERITY
 NM_TYPE_MANAGER_ERROR
 NM_TYPE_MANAGER_RELOAD_FLAGS
 NM_TYPE_METERED
+NM_TYPE_RADIO_FLAGS
 NM_TYPE_SECRET_AGENT_CAPABILITIES
 NM_TYPE_SECRET_AGENT_ERROR
 NM_TYPE_SECRET_AGENT_GET_SECRETS_FLAGS
@@ -478,6 +484,7 @@ nm_keyfile_warn_severity_get_type
 nm_manager_error_get_type
 nm_manager_reload_flags_get_type
 nm_metered_get_type
+nm_radio_flags_get_type
 nm_secret_agent_capabilities_get_type
 nm_secret_agent_error_get_type
 nm_secret_agent_get_secrets_flags_get_type
@@ -707,6 +714,7 @@ NMManagerReloadFlags
 NMDeviceInterfaceFlags
 NMClientPermission
 NMClientPermissionResult
+NMRadioFlags
 </SECTION>
 
 <SECTION>
@@ -4331,9 +4339,6 @@ nm_utils_ip_addresses_from_variant
 nm_utils_ip_routes_to_variant
 nm_utils_ip_routes_from_variant
 nm_utils_uuid_generate
-nm_utils_file_is_certificate
-nm_utils_file_is_private_key
-nm_utils_file_is_pkcs12
 NMUtilsFileSearchInPathsPredicate
 NMUtilsCheckFilePredicate
 nm_utils_file_search_in_paths
@@ -4449,6 +4454,9 @@ NM_AVAILABLE_IN_1_34
 NM_DEPRECATED_IN_1_36
 NM_DEPRECATED_IN_1_36_FOR
 NM_AVAILABLE_IN_1_36
+NM_DEPRECATED_IN_1_38
+NM_DEPRECATED_IN_1_38_FOR
+NM_AVAILABLE_IN_1_38
 </SECTION>
 
 <SECTION>
@@ -4479,6 +4487,7 @@ NM_VERSION_1_30
 NM_VERSION_1_32
 NM_VERSION_1_34
 NM_VERSION_1_36
+NM_VERSION_1_38
 NM_API_VERSION
 NM_VERSION_CUR_STABLE
 NM_VERSION_NEXT_STABLE

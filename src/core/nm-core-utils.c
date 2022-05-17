@@ -30,6 +30,7 @@
 #include "libnm-glib-aux/nm-secret-utils.h"
 #include "libnm-glib-aux/nm-time-utils.h"
 #include "libnm-glib-aux/nm-str-buf.h"
+#include "libnm-systemd-shared/nm-sd-utils-shared.h"
 #include "nm-utils.h"
 #include "libnm-core-intern/nm-core-internal.h"
 #include "nm-setting-connection.h"
@@ -2692,8 +2693,9 @@ _host_id_read_timestamp(gboolean      use_secret_key_file,
      * timestamp. It is wrong to worry about using a fake timestamp (which is tied to
      * the secret_key) if we are unable to access the secret_key file in the first place.
      *
-     * Pick a random timestamp from the past two years. Yes, this timestamp
-     * is not stable across restarts, but apparently neither is the host-id
+     * Pick a timestamp from the past two years, by using a generated timespan
+     * by hashing the host-id. Yes, this timestamp counts back from @now, and is
+     * thus not stable across restarts. But apparently neither is the host-id
      * nor the secret_key itself. */
 
 #define EPOCH_TWO_YEARS (G_GINT64_CONSTANT(2 * 365 * 24 * 3600) * NM_UTILS_NSEC_PER_SEC)
@@ -2874,9 +2876,15 @@ out:
 typedef struct {
     guint8 *host_id;
     gsize   host_id_len;
-    gint64  timestamp_ns;
-    bool    is_good : 1;
-    bool    timestamp_is_good : 1;
+
+    /* The timestamp (in nsec since the Epoch) returned by nm_utils_host_id_get_timestamp_nsec().
+     * It is associated with the host (and the host-id). We currently use this for the LLT DUID
+     * generation for IPv6. Instead of persisting the timestamp separately to disk, we re-use the
+     * file timestamp of the secret_key file. */
+    gint64 timestamp_nsec;
+
+    bool is_good : 1;
+    bool timestamp_is_good : 1;
 } HostIdData;
 
 static const HostIdData *volatile host_id_static;
@@ -2900,7 +2908,7 @@ again:
         host_id_data.timestamp_is_good = _host_id_read_timestamp(host_id_data.is_good,
                                                                  host_id_data.host_id,
                                                                  host_id_data.host_id_len,
-                                                                 &host_id_data.timestamp_ns);
+                                                                 &host_id_data.timestamp_nsec);
         if (!host_id_data.timestamp_is_good && host_id_data.is_good)
             nm_log_warn(LOGD_CORE, "secret-key: failure reading host timestamp (use fake one)");
 
@@ -2939,9 +2947,9 @@ nm_utils_host_id_get(const guint8 **out_host_id, gsize *out_host_id_len)
 }
 
 gint64
-nm_utils_host_id_get_timestamp_ns(void)
+nm_utils_host_id_get_timestamp_nsec(void)
 {
-    return _host_id_get()->timestamp_ns;
+    return _host_id_get()->timestamp_nsec;
 }
 
 static GArray    *nmtst_host_id_stack = NULL;
@@ -2952,7 +2960,7 @@ void
 nmtst_utils_host_id_push(const guint8 *host_id,
                          gssize        host_id_len,
                          gboolean      is_good,
-                         const gint64 *timestamp_ns)
+                         const gint64 *p_timestamp_nsec)
 {
     NM_G_MUTEX_LOCKED(&nmtst_host_id_lock);
     gs_free char *str1_to_free = NULL;
@@ -2971,8 +2979,8 @@ nmtst_utils_host_id_push(const guint8 *host_id,
                                             &str1_to_free),
                (gsize) host_id_len,
                !!is_good,
-               timestamp_ns ? *timestamp_ns : 0,
-               timestamp_ns ? "" : " (not-good)");
+               p_timestamp_nsec ? *p_timestamp_nsec : 0,
+               p_timestamp_nsec ? "" : " (not-good)");
 
     if (!nmtst_host_id_stack) {
         nmtst_host_id_stack    = g_array_new(FALSE, FALSE, sizeof(HostIdData));
@@ -2984,9 +2992,9 @@ nmtst_utils_host_id_push(const guint8 *host_id,
     *h = (HostIdData){
         .host_id           = nm_memdup(host_id, host_id_len),
         .host_id_len       = host_id_len,
-        .timestamp_ns      = timestamp_ns ? *timestamp_ns : 0,
+        .timestamp_nsec    = p_timestamp_nsec ? *p_timestamp_nsec : 0,
         .is_good           = is_good,
-        .timestamp_is_good = !!timestamp_ns,
+        .timestamp_is_good = !!p_timestamp_nsec,
     };
 
     g_atomic_pointer_set(&host_id_static, h);
@@ -3342,8 +3350,13 @@ nm_utils_stable_id_generated_complete(const char *stable_id_generated)
 static void
 _stable_id_append(GString *str, const char *substitution)
 {
-    if (!substitution)
+    if (!substitution) {
+        /* Would have been nicer to append "=NIL;" to differentiate between
+         * empty and NULL.
+         *
+         * Can't do that now, as it would change behavior. */
         substitution = "";
+    }
     g_string_append_printf(str, "=%zu{%s}", strlen(substitution), substitution);
 }
 
@@ -3413,7 +3426,7 @@ nm_utils_stable_id_parse(const char *stable_id,
     ({                                                                        \
         gboolean _match = FALSE;                                              \
                                                                               \
-        if (g_str_has_prefix(&stable_id[i], "" prefix "")) {                  \
+        if (NM_STR_HAS_PREFIX(&stable_id[i], "" prefix "")) {                 \
             _match = TRUE;                                                    \
             if (!str)                                                         \
                 str = g_string_sized_new(256);                                \
@@ -5200,4 +5213,51 @@ again:
     }
 
     return g;
+}
+
+/*****************************************************************************/
+
+/**
+ * nm_utils_shorten_hostname:
+ * @hostname: the input hostname
+ * @shortened: (out) (transfer full): on return, the shortened hostname
+ *
+ * Checks whether the input hostname is valid. If not, tries to shorten it
+ * to HOST_NAME_MAX or to the first dot, whatever comes earlier.
+ * The new hostname is returned in @shortened.
+ *
+ * Returns: %TRUE if the input hostname was already valid or if was shortened
+ * successfully; %FALSE otherwise
+ */
+gboolean
+nm_utils_shorten_hostname(const char *hostname, char **shortened)
+{
+    gs_free char *s = NULL;
+    const char   *dot;
+    gsize         l;
+
+    nm_assert(hostname);
+    nm_assert(shortened);
+
+    if (nm_sd_hostname_is_valid(hostname, FALSE)) {
+        *shortened = NULL;
+        return TRUE;
+    }
+
+    dot = strchr(hostname, '.');
+    if (dot)
+        l = (dot - hostname);
+    else
+        l = strlen(hostname);
+    l = MIN(l, (gsize) HOST_NAME_MAX);
+
+    s = g_strndup(hostname, l);
+
+    if (!nm_sd_hostname_is_valid(s, FALSE)) {
+        *shortened = NULL;
+        return FALSE;
+    }
+
+    *shortened = g_steal_pointer(&s);
+    return TRUE;
 }

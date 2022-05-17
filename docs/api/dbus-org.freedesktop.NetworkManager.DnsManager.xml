@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.DnsManager">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-DnsManager.top_of_page">org.freedesktop.NetworkManager.DnsManager</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-DnsManager.top_of_page"><primary sortas=".DnsManager">org.freedesktop.NetworkManager.DnsManager</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.DnsManager</refname>    <refpurpose>DNS Configuration State</refpurpose>  </refnamediv>  <refsect1 role="properties">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.DnsManager</refname>    <refpurpose>DNS Configuration State.</refpurpose>  </refnamediv>  <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-DnsManager.Mode">Mode</link>           readable   s

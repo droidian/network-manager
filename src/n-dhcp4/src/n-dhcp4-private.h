@@ -202,6 +202,7 @@ struct NDhcp4Outgoing {
                 uint8_t type;
                 uint8_t message_type;
                 uint32_t client_addr;
+                uint32_t server_id;
                 uint64_t start_time;
                 uint64_t base_time;
                 uint64_t send_time;
@@ -333,15 +334,6 @@ struct NDhcp4CConnection {
         uint32_t client_ip;             /* client IP address, or 0 */
         uint32_t server_ip;             /* server IP address, or 0 */
         uint16_t mtu;                   /* client mtu, or 0 */
-
-        /*
-         * When we get DHCP packets from the kernel, we need a buffer to read
-         * the data into. Since UDP packets can be up to 2^16 bytes in size, we
-         * avoid placing it on the stack and instead read into this scratch
-         * buffer. It is purely meant as stack replacement, no data is returned
-         * through this buffer.
-         */
-        uint8_t scratch_buffer[UINT16_MAX];
 };
 
 #define N_DHCP4_C_CONNECTION_NULL(_x) {                                         \

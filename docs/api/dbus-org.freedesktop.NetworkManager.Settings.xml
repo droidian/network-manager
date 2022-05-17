@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.Settings">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Settings.top_of_page">org.freedesktop.NetworkManager.Settings</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Settings.top_of_page"><primary sortas=".Settings">org.freedesktop.NetworkManager.Settings</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Settings</refname>    <refpurpose>Connection Settings Profile Manager</refpurpose>  </refnamediv>  <refsynopsisdiv role="synopsis">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Settings</refname>    <refpurpose>Connection Settings Profile Manager.</refpurpose>  </refnamediv>  <refsynopsisdiv role="synopsis">
     <title role="synopsis.title">Methods</title>
     <synopsis>
 <link linkend="gdbus-method-org-freedesktop-NetworkManager-Settings.ListConnections">ListConnections</link>      (OUT ao        connections);
@@ -142,24 +142,43 @@ AddConnection2 (IN  a{sa{sv}} settings,
                 OUT o         path,
                 OUT a{sv}     result);
 </programlisting>
-<para>          "0x1" (to-disk),
-          "0x2" (in-memory),
-          "0x20" (block-autoconnect).
-          Unknown flags cause the call to fail.
-        <parameter>args</parameter>: optional arguments dictionary, for extentibility. Currently, no
-          arguments are accepted. Specifying unknown keys causes the call
-          to fail.
-        <parameter>path</parameter>: Object path of the new connection that was just added.
-        <parameter>result</parameter>: output argument, currently no additional results are returned.
-</para><para>        Add a new connection profile.
-</para><para>        Either the flags 0x1 (to-disk) or 0x2 (in-memory) must be specified.
-        The effect is whether to behave like AddConnection or AddConnectionUnsaved.
-        If 0x20 (block-autoconnect) is specified, autoconnect for the new profile
-        is blocked from the beginning. Otherwise, the profile might automatically
-        connect if a suitable device is around.
-</para><para>        AddConnection2 is a extensible alternative to AddConnection, and AddConnectionUnsaved.
+<para>        Add a new connection profile.
+</para><para>        AddConnection2 is an alternative to
+        <link linkend="gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnection">AddConnection</link> and
+        <link linkend="gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnectionUnsaved">AddConnectionUnsaved</link>.
         The new variant can do everything that the older variants could, and more.
-</para><para>        Since: 1.20
+        Its behavior is extensible via extra <constant>flags</constant> and <constant>args</constant> arguments.
+</para><para>        The <constant>flags</constant> argument accepts the combination of following values,
+        logically or-ed together:
+</para><para>        <variablelist>
+        <varlistentry>
+          <term><literal>0x1 (to-disk)</literal>:</term>
+          <listitem><para>The connection is persisted to disk.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><literal>0x2 (in-memory)</literal>:</term>
+          <listitem><para>The change is only made in memory (without touching an eventual
+          profile on disk). If neither 0x1 nor 0x2 is set, the change is made in memory
+          only, if the connection is already in memory only.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><literal>0x20 (block-autoconnect)</literal>:</term>
+          <listitem><para>Blocks auto-connect on the new profile</para></listitem>
+        </varlistentry>
+        </variablelist>
+</para><para>        The <constant>args</constant> argument accepts the following keys:
+</para><para>        <variablelist>
+        <varlistentry>
+          <term><literal>plugin</literal>:</term>
+          <listitem><para>The settings plugin the newly added connection will
+          use, such as "keyfile" or "ifcfg-rh".</para>
+          <para role="since">Since 1.38</para></listitem>
+        </varlistentry>
+        </variablelist>
+</para><para>        Either the flags 0x1 (to-disk) or 0x2 (in-memory) must be specified.
+        The effect is whether to behave like
+        <link linkend="gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnection">AddConnection</link> or
+        <link linkend="gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnectionUnsaved">AddConnectionUnsaved</link>.
 </para>
 <variablelist role="params">
 <varlistentry>
@@ -168,21 +187,22 @@ AddConnection2 (IN  a{sa{sv}} settings,
 </varlistentry>
 <varlistentry>
   <term><literal>IN u <parameter>flags</parameter></literal>:</term>
-  <listitem><para>optional flags argument. Currently, the following flags are supported:</para></listitem>
+  <listitem><para>Flags. Unknown flags cause the call to fail.</para></listitem>
 </varlistentry>
 <varlistentry>
   <term><literal>IN a{sv} <parameter>args</parameter></literal>:</term>
-  <listitem><para></para></listitem>
+  <listitem><para>Optional arguments dictionary, for extentibility. Specifying unknown keys causes the call to fail.</para></listitem>
 </varlistentry>
 <varlistentry>
   <term><literal>OUT o <parameter>path</parameter></literal>:</term>
-  <listitem><para></para></listitem>
+  <listitem><para>Object path of the new connection that was just added.</para></listitem>
 </varlistentry>
 <varlistentry>
   <term><literal>OUT a{sv} <parameter>result</parameter></literal>:</term>
-  <listitem><para></para></listitem>
+  <listitem><para>Output argument, currently no additional results are returned.</para></listitem>
 </varlistentry>
 </variablelist>
+<para role="since">Since 1.20</para>
 </refsect2>
 <refsect2 role="method" id="gdbus-method-org-freedesktop-NetworkManager-Settings.LoadConnections">
   <title>The LoadConnections() method</title>
@@ -192,13 +212,14 @@ LoadConnections (IN  as filenames,
                  OUT b  status,
                  OUT as failures);
 </programlisting>
-<para>          Note that before 1.20, NetworkManager had a bug and this <parameter>status</parameter> value was wrong. It is better to assume success if the method does not return with a D-Bus error. On top of that, you can look at <parameter>failures</parameter> to know whether any of the requested files failed.
-        <parameter>failures</parameter>: Paths of connection files that could not be loaded.
-</para><para>        Loads or reloads the indicated connections from disk. You should call this
+<para>        Loads or reloads the indicated connections from disk. You should call this
         after making changes directly to an on-disk connection file to make sure
         that NetworkManager sees the changes.
         As with AddConnection(), this operation does not necessarily
         start the network connection.
+</para><para>        Note that before 1.20, NetworkManager had a bug and this <parameter>status</parameter> value was wrong.
+        It is better to assume success if the method does not return with a D-Bus error.
+        On top of that, you can look at <parameter>failures</parameter> to know whether any of the requested files failed.
 </para>
 <variablelist role="params">
 <varlistentry>
@@ -211,7 +232,7 @@ LoadConnections (IN  as filenames,
 </varlistentry>
 <varlistentry>
   <term><literal>OUT as <parameter>failures</parameter></literal>:</term>
-  <listitem><para></para></listitem>
+  <listitem><para>Paths of connection files that could not be loaded.</para></listitem>
 </varlistentry>
 </variablelist>
 </refsect2>

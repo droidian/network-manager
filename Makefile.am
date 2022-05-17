@@ -110,11 +110,15 @@ include config-extra.h.mk
 
 DISTCLEANFILES += config-extra.h
 
-$(src_libnm_core_public_mkenums_h):                 config-extra.h
 $(src_libnm_core_public_mkenums_c):                 config-extra.h
-src/libnm-core-impl/.dirstamp:                      config-extra.h
-src/libnm-core-impl/.dirstamp:                      config-extra.h
+$(src_libnm_core_public_mkenums_h):                 config-extra.h
+src/core/dhcp/.dirstamp:                            config-extra.h
 src/libnm-base/.dirstamp:                           config-extra.h
+src/libnm-client-public/.dirstamp:                  config-extra.h
+src/libnm-client-public/.dirstamp:                  config-extra.h
+src/libnm-core-impl/.dirstamp:                      config-extra.h
+src/libnm-core-impl/.dirstamp:                      config-extra.h
+src/libnm-crypto/.dirstamp:                         config-extra.h
 src/libnm-glib-aux/.dirstamp:                       config-extra.h
 src/libnm-glib-aux/tests/.dirstamp:                 config-extra.h
 src/libnm-log-core/.dirstamp:                       config-extra.h
@@ -124,14 +128,11 @@ src/libnm-platform/tests/.dirstamp:                 config-extra.h
 src/libnm-platform/wifi/.dirstamp:                  config-extra.h
 src/libnm-platform/wpan/.dirstamp:                  config-extra.h
 src/libnm-std-aux/.dirstamp:                        config-extra.h
-src/libnm-udev-aux/.dirstamp:                       config-extra.h
 src/libnm-systemd-shared/.dirstamp:                 config-extra.h
 src/libnm-systemd-shared/src/basic/.dirstamp:       config-extra.h
 src/libnm-systemd-shared/src/fundamental/.dirstamp: config-extra.h
 src/libnm-systemd-shared/src/shared/.dirstamp:      config-extra.h
-src/libnm-client-public/.dirstamp:                  config-extra.h
-src/libnm-client-public/.dirstamp:                  config-extra.h
-src/core/dhcp/.dirstamp:                            config-extra.h
+src/libnm-udev-aux/.dirstamp:                       config-extra.h
 
 ###############################################################################
 
@@ -499,6 +500,7 @@ src_libnm_base_libnm_base_la_CPPFLAGS = \
 	$(NULL)
 
 src_libnm_base_libnm_base_la_SOURCES = \
+	src/libnm-base/nm-base.c \
 	src/libnm-base/nm-base.h \
 	src/libnm-base/nm-config-base.h \
 	src/libnm-base/nm-ethtool-base.c \
@@ -588,6 +590,7 @@ src_libnm_platform_libnm_platform_la_SOURCES = \
 	\
 	src/linux-headers/ethtool.h \
 	src/linux-headers/nl802154.h \
+	src/linux-headers/nl80211-vnd-intel.h \
 	\
 	src/libnm-platform/nm-linux-platform.c \
 	src/libnm-platform/nm-linux-platform.h \
@@ -1240,8 +1243,6 @@ src_libnm_core_public_mkenums_h = \
 	$(NULL)
 src_libnm_core_impl_lib_h_priv = \
 	src/libnm-core-impl/nm-connection-private.h \
-	src/libnm-core-impl/nm-crypto-impl.h \
-	src/libnm-core-impl/nm-crypto.h \
 	src/libnm-core-impl/nm-default-libnm-core.h \
 	src/libnm-core-impl/nm-property-compare.h \
 	src/libnm-core-impl/nm-setting-private.h \
@@ -1311,7 +1312,6 @@ src_libnm_core_impl_lib_c_settings_real = \
 src_libnm_core_impl_lib_c_real = \
 	$(src_libnm_core_impl_lib_c_settings_real) \
 	src/libnm-core-impl/nm-connection.c \
-	src/libnm-core-impl/nm-crypto.c \
 	src/libnm-core-impl/nm-dbus-utils.c \
 	src/libnm-core-impl/nm-errors.c \
 	src/libnm-core-impl/nm-keyfile-utils.c \
@@ -1412,8 +1412,6 @@ src_libnm_core_impl_libnm_core_impl_la_LDFLAGS = \
 	$(NULL)
 
 EXTRA_DIST += \
-	src/libnm-core-impl/nm-crypto-gnutls.c \
-	src/libnm-core-impl/nm-crypto-nss.c \
 	src/libnm-core-impl/meson.build \
 	$(NULL)
 
@@ -1435,43 +1433,92 @@ dist_dependencies += \
 
 ###############################################################################
 
+noinst_LTLIBRARIES += src/libnm-crypto/libnm-crypto.la
+
+src_libnm_crypto_libnm_crypto_la_SOURCES = \
+	src/libnm-crypto/nm-crypto-impl.h \
+	src/libnm-crypto/nm-crypto.c \
+	src/libnm-crypto/nm-crypto.h \
+	$(NULL)
+
+src_libnm_crypto_libnm_crypto_la_CPPFLAGS = \
+	$(dflt_cppflags_libnm_core) \
+	$(NULL)
+
+src_libnm_crypto_libnm_crypto_la_LIBADD = \
+	$(GLIB_LIBS) \
+	$(NULL)
+
+src_libnm_crypto_libnm_crypto_la_LDFLAGS = \
+	$(CODE_COVERAGE_LDFLAGS) \
+	$(SANITIZER_LIB_LDFLAGS) \
+	$(NULL)
+
 if HAVE_CRYPTO_GNUTLS
 if WITH_GNUTLS
-libnm_crypto_lib = src/libnm-core-impl/libnm-crypto-gnutls.la
+libnm_crypto_lib = src/libnm-crypto/libnm-crypto-gnutls.la
 else
-check_ltlibraries += src/libnm-core-impl/libnm-crypto-gnutls.la
+check_ltlibraries += src/libnm-crypto/libnm-crypto-gnutls.la
 endif
 
-src_libnm_core_impl_libnm_crypto_gnutls_la_SOURCES = src/libnm-core-impl/nm-crypto-gnutls.c
-src_libnm_core_impl_libnm_crypto_gnutls_la_CPPFLAGS = \
+src_libnm_crypto_libnm_crypto_gnutls_la_SOURCES = src/libnm-crypto/nm-crypto-gnutls.c
+src_libnm_crypto_libnm_crypto_gnutls_la_CPPFLAGS = \
 	$(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) \
 	$(GNUTLS_CFLAGS)
-src_libnm_core_impl_libnm_crypto_gnutls_la_LDFLAGS = \
+src_libnm_crypto_libnm_crypto_gnutls_la_LDFLAGS = \
 	$(src_libnm_core_impl_libnm_core_impl_la_LDFLAGS)
-src_libnm_core_impl_libnm_crypto_gnutls_la_LIBADD = \
+src_libnm_crypto_libnm_crypto_gnutls_la_LIBADD = \
 	$(GLIB_LIBS) \
 	$(GNUTLS_LIBS)
 endif
 
 if HAVE_CRYPTO_NSS
 if WITH_NSS
-libnm_crypto_lib = src/libnm-core-impl/libnm-crypto-nss.la
+libnm_crypto_lib = src/libnm-crypto/libnm-crypto-nss.la
 else
-check_ltlibraries += src/libnm-core-impl/libnm-crypto-nss.la
+check_ltlibraries += src/libnm-crypto/libnm-crypto-nss.la
 endif
 
-src_libnm_core_impl_libnm_crypto_nss_la_SOURCES = src/libnm-core-impl/nm-crypto-nss.c
-src_libnm_core_impl_libnm_crypto_nss_la_CPPFLAGS = \
+src_libnm_crypto_libnm_crypto_nss_la_SOURCES = src/libnm-crypto/nm-crypto-nss.c
+src_libnm_crypto_libnm_crypto_nss_la_CPPFLAGS = \
 	$(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) \
 	$(NSS_CFLAGS)
-src_libnm_core_impl_libnm_crypto_nss_la_LDFLAGS = \
+src_libnm_crypto_libnm_crypto_nss_la_LDFLAGS = \
 	$(src_libnm_core_impl_libnm_core_impl_la_LDFLAGS)
-src_libnm_core_impl_libnm_crypto_nss_la_LIBADD = \
+src_libnm_crypto_libnm_crypto_nss_la_LIBADD = \
 	$(GLIB_LIBS) \
 	$(NSS_LIBS)
 endif
 
+if !WITH_GNUTLS
+if !WITH_NSS
+libnm_crypto_lib = src/libnm-crypto/libnm-crypto-null.la
+else
+check_ltlibraries += src/libnm-crypto/libnm-crypto-null.la
+endif
+else
+check_ltlibraries += src/libnm-crypto/libnm-crypto-null.la
+endif
+
+src_libnm_crypto_libnm_crypto_null_la_SOURCES = src/libnm-crypto/nm-crypto-null.c
+src_libnm_crypto_libnm_crypto_null_la_CPPFLAGS = \
+	$(src_libnm_core_impl_libnm_core_impl_la_CPPFLAGS) \
+	$(NULL)
+src_libnm_crypto_libnm_crypto_null_la_LDFLAGS = \
+	$(src_libnm_core_impl_libnm_core_impl_la_LDFLAGS) \
+	$(NULL)
+src_libnm_crypto_libnm_crypto_null_la_LIBADD = \
+	$(GLIB_LIBS) \
+	$(NULL)
+
 noinst_LTLIBRARIES += $(libnm_crypto_lib)
+
+EXTRA_DIST += \
+	src/libnm-crypto/README.md \
+	src/libnm-crypto/meson.build \
+	src/libnm-crypto/nm-crypto-gnutls.c \
+	src/libnm-crypto/nm-crypto-nss.c \
+	$(NULL)
 
 ###############################################################################
 
@@ -1526,6 +1573,7 @@ nodist_src_libnm_core_impl_tests_test_general_SOURCES = \
 src_libnm_core_impl_tests_ldadd = \
 	src/libnm-core-aux-extern/libnm-core-aux-extern.la \
 	src/libnm-core-impl/libnm-core-impl.la \
+	src/libnm-crypto/libnm-crypto.la \
 	$(libnm_crypto_lib) \
 	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 	src/libnm-base/libnm-base.la \
@@ -1759,6 +1807,7 @@ nodist_src_libnm_client_impl_libnm_client_impl_la_SOURCES = \
 src_libnm_client_impl_libnm_client_impl_la_LIBADD = \
 	src/libnm-core-aux-extern/libnm-core-aux-extern.la \
 	src/libnm-core-impl/libnm-core-impl.la \
+	src/libnm-crypto/libnm-crypto.la \
 	$(libnm_crypto_lib) \
 	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 	src/libnm-base/libnm-base.la \
@@ -1849,7 +1898,7 @@ src_libnm_client_impl_NM_1_0_gir_INCLUDES = Gio-2.0
 src_libnm_client_impl_NM_1_0_gir_PACKAGES = gio-2.0
 src_libnm_client_impl_NM_1_0_gir_EXPORT_PACKAGES = libnm
 src_libnm_client_impl_NM_1_0_gir_CFLAGS = \
-	$(src_libnm_client_impl_libnm_la_CPPFLAGS) \
+	$(filter-out -DGLIB_VERSION_%, $(src_libnm_client_impl_libnm_la_CPPFLAGS)) \
 	-DNETWORKMANAGER_COMPILATION \
 	$(NULL)
 src_libnm_client_impl_NM_1_0_gir_LIBS = src/libnm-client-impl/libnm.la
@@ -2310,6 +2359,8 @@ src_libnm_systemd_core_libnm_systemd_core_la_SOURCES = \
 	src/libnm-systemd-core/src/libsystemd-network/dhcp6-lease-internal.h \
 	src/libnm-systemd-core/src/libsystemd-network/dhcp6-network.c \
 	src/libnm-systemd-core/src/libsystemd-network/dhcp6-option.c \
+	src/libnm-systemd-core/src/libsystemd-network/dhcp6-option.h \
+	src/libnm-systemd-core/src/libsystemd-network/dhcp6-protocol.c \
 	src/libnm-systemd-core/src/libsystemd-network/dhcp6-protocol.h \
 	src/libnm-systemd-core/src/libsystemd-network/lldp-neighbor.c \
 	src/libnm-systemd-core/src/libsystemd-network/lldp-neighbor.h \
@@ -2607,6 +2658,7 @@ src_core_libNetworkManager_la_LIBADD = \
 	src/core/libNetworkManagerBase.la \
 	src/libnm-core-aux-extern/libnm-core-aux-extern.la \
 	src/libnm-core-impl/libnm-core-impl.la \
+	src/libnm-crypto/libnm-crypto.la \
 	$(libnm_crypto_lib) \
 	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 	src/libnm-platform/libnm-platform.la \
@@ -2752,6 +2804,7 @@ src_nm_initrd_generator_nm_initrd_generator_CPPFLAGS = \
 src_nm_initrd_generator_nm_initrd_generator_LDADD = \
 	src/nm-initrd-generator/libnmi-core.la \
 	src/libnm-core-impl/libnm-core-impl.la \
+	src/libnm-crypto/libnm-crypto.la \
 	$(libnm_crypto_lib) \
 	src/libnm-core-aux-intern/libnm-core-aux-intern.la \
 	src/libnm-platform/libnm-platform.la \
@@ -5416,11 +5469,12 @@ CLEANFILES += $(man_nm_settings_xml)
 endif
 
 man_pages += \
-	man/NetworkManager.8 \
 	man/NetworkManager-dispatcher.8 \
+	man/NetworkManager-wait-online.service.8 \
+	man/NetworkManager.8 \
 	man/NetworkManager.conf.5 \
-	man/nm-online.1 \
 	man/nm-initrd-generator.8 \
+	man/nm-online.1 \
 	man/nmcli-examples.7 \
 	man/nmcli.1 \
 	man/nmtui.1 \
@@ -5558,6 +5612,13 @@ plugin_LTLIBRARIES += $(core_plugins)
 TESTS += $(check_programs)
 
 EXTRA_DIST += \
+	\
+	AUTHORS \
+	COPYING \
+	ChangeLog \
+	NEWS \
+	README.md \
+	\
 	CONTRIBUTING.md \
 	COPYING.LGPL \
 	COPYING.GFDL \
@@ -5619,12 +5680,6 @@ CLEANFILES += \
 ###############################################################################
 
 include Makefile.examples
-
-if WITH_PYTHON_BLACK
-check-python-black:
-	test "$$NMTST_SKIP_PYTHON_BLACK" == 1 || $(BLACK) --check $(top_srcdir) $(top_srcdir)/examples/python/gi/nm-wg-set
-check_local += check-python-black
-endif
 
 ###############################################################################
 

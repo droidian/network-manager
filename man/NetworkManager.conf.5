@@ -2,12 +2,12 @@
 .\"     Title: NetworkManager.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
-.\"      Date: 03/07/2022
+.\"      Date: 05/13/2022
 .\"    Manual: Configuration
-.\"    Source: NetworkManager 1.36.2
+.\"    Source: NetworkManager 1.38.0
 .\"  Language: English
 .\"
-.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.36\&.2" "Configuration"
+.TH "NETWORKMANAGER\&.CONF" "5" "" "NetworkManager 1\&.38\&.0" "Configuration"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -485,11 +485,28 @@ false\&.
 .RE
 .SH "LOGGING SECTION"
 .PP
-This section controls NetworkManager\*(Aqs logging\&. Any settings here are overridden by the
+This section controls NetworkManager\*(Aqs logging\&. Logging is very important to understand what NetworkManager is doing\&. When you report a bug, do not unnecessarily filter or limit the log file\&. Just enable
+level=TRACE
+and
+domains=ALL
+to collect everything\&.
+.PP
+Any settings here are overridden by the
 \fB\-\-log\-level\fR
 and
 \fB\-\-log\-domains\fR
-command\-line options\&.
+command\-line options\&. Logging can also be reconfigured at runtime with
+\fBnmcli general logging level "$LEVEL" domains "$DOMAINS"\fR\&. However, often it is interesting to get a complete log from the start\&. Especially, when debugging an issue, enable debug logging in NetworkManager\&.conf and restart the service to enable verbose logging early on\&.
+.PP
+NetworkManager\*(Aqs logging aims not to contain private sensitive data and you should be fine sharing the debug logs\&. Still, there will be IP addresses and your network setup, if you consider that private then review the log before sharing\&. Do not mangle the logfile in a way that distorts the meaning too much\&.
+.PP
+NetworkManager uses syslog or systemd\-journald, depending on configuration\&. In any case, debug logs are verbose and might be rate limited or filtered by the logging daemon\&. For systemd\-journald, see
+RateLimitIntervalSec
+and
+RateLimitBurst
+in
+journald\&.conf
+manual for how to disable that\&.
 .PP
 .PP
 \fIlevel\fR
@@ -500,16 +517,39 @@ ERR,
 WARN,
 INFO,
 DEBUG,
-TRACE\&. The ERR level logs only critical errors\&. WARN logs warnings that may reflect operation\&. INFO logs various informational messages that are useful for tracking state and operations\&. DEBUG enables verbose logging for debugging purposes\&. TRACE enables even more verbose logging then DEBUG level\&. Subsequent levels also log all messages from earlier levels; thus setting the log level to INFO also logs error and warning messages\&.
+TRACE, in order of verbosity\&.
+.sp
+OFF
+disables all logging\&.
+INFO
+is the default verbosity for regular operation\&.
+TRACE
+is for debugging\&.
+.sp
+The other levels are in most cases not useful\&. For example,
+DEBUG
+is between
+TRACE
+and
+INFO, but it\*(Aqs too verbose for regular operation and lacks possibly interesting messages for debugging\&. Almost always, when debugging an issue or reporting a bug, collect full level
+TRACE
+logs to get the full picture\&.
 .RE
 .PP
 \fIdomains\fR
 .RS 4
-The following log domains are available: PLATFORM, RFKILL, ETHER, WIFI, BT, MB, DHCP4, DHCP6, PPP, WIFI_SCAN, IP4, IP6, AUTOIP4, DNS, VPN, SHARING, SUPPLICANT, AGENTS, SETTINGS, SUSPEND, CORE, DEVICE, OLPC, WIMAX, INFINIBAND, FIREWALL, ADSL, BOND, VLAN, BRIDGE, DBUS_PROPS, TEAM, CONCHECK, DCB, DISPATCH, AUDIT, SYSTEMD, VPN_PLUGIN, PROXY\&.
+Filter the messages by their topic\&. When debugging an issue, it\*(Aqs better to collect all logs (ALL
+domain) upfront\&. The unnecessary parts can always be ignored later\&.
+.sp
+In the uncommon case to tune out certain topics, the following log domains are available: PLATFORM, RFKILL, ETHER, WIFI, BT, MB, DHCP4, DHCP6, PPP, WIFI_SCAN, IP4, IP6, AUTOIP4, DNS, VPN, SHARING, SUPPLICANT, AGENTS, SETTINGS, SUSPEND, CORE, DEVICE, OLPC, WIMAX, INFINIBAND, FIREWALL, ADSL, BOND, VLAN, BRIDGE, DBUS_PROPS, TEAM, CONCHECK, DCB, DISPATCH, AUDIT, SYSTEMD, VPN_PLUGIN, PROXY\&.
 .sp
 In addition, these special domains can be used: NONE, ALL, DEFAULT, DHCP, IP\&.
 .sp
-You can specify per\-domain log level overrides by adding a colon and a log level to any domain\&. E\&.g\&., "WIFI:DEBUG,WIFI_SCAN:OFF"\&.
+You can specify per\-domain log level overrides by adding a colon and a log level to any domain\&. E\&.g\&., "WIFI:DEBUG,WIFI_SCAN:OFF"\&. Another example is
+ALL,VPN_PLUGIN:TRACE
+to enable all the logging there is (see about
+VPN_PLUGIN
+below)\&.
 .RE
 .PP
 .RS 4

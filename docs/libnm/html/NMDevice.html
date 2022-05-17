@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="next" href="NMDevice6Lowpan.html" title="NMDevice6Lowpan">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -1225,7 +1225,7 @@ works with VPN connections.</p>
 <a name="nm-device-get-ip4-config.returns"></a><h4>Returns</h4>
 <p>the IPv4 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the device is not
 activated. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1255,7 +1255,7 @@ works with VPN connections.</p>
 <a name="nm-device-get-dhcp4-config.returns"></a><h4>Returns</h4>
 <p>the IPv4 <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the device is
 not activated or not using DHCP. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1284,7 +1284,7 @@ works with VPN connections.</p>
 <div class="refsect3">
 <a name="nm-device-get-ip6-config.returns"></a><h4>Returns</h4>
 <p>the IPv6 <a class="link" href="NMIPConfig.html" title="NMIPConfig"><span class="type">NMIPConfig</span></a> or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the device is not activated. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1314,7 +1314,7 @@ works with VPN connections.</p>
 <a name="nm-device-get-dhcp6-config.returns"></a><h4>Returns</h4>
 <p>the IPv6 <a class="link" href="NMDhcpConfig.html" title="NMDhcpConfig"><span class="type">NMDhcpConfig</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the device is
 not activated or not using DHCPv6. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1431,7 +1431,7 @@ nm_device_get_active_connection (<em class="parameter"><code><a class="link" hre
 <a name="nm-device-get-active-connection.returns"></a><h4>Returns</h4>
 <p>the <a class="link" href="NMActiveConnection.html" title="NMActiveConnection"><span class="type">NMActiveConnection</span></a> or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the device is
 not part of an active connection. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1439,7 +1439,7 @@ not part of an active connection. </p>
 <a name="nm-device-get-available-connections"></a><h3>nm_device_get_available_connections ()</h3>
 <pre class="programlisting">const <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="returnvalue">GPtrArray</span></a> *
 nm_device_get_available_connections (<em class="parameter"><code><a class="link" href="NMDevice.html" title="NMDevice"><span class="type">NMDevice</span></a> *device</code></em>);</pre>
-<p>Gets the <span class="type">NMRemoteConnections</span> currently known to the daemon that could
+<p>Gets the <a href="NMRemoteConnection.html#NMRemoteConnection-struct"><span class="type">NMRemoteConnections</span></a> currently known to the daemon that could
 be activated on <em class="parameter"><code>device</code></em>
 .</p>
 <div class="refsect3">
@@ -1460,7 +1460,7 @@ be activated on <em class="parameter"><code>device</code></em>
 <div class="refsect3">
 <a name="nm-device-get-available-connections.returns"></a><h4>Returns</h4>
 <p>the <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a>
-containing <span class="type">NMRemoteConnections</span>. This is the internal copy used by
+containing <a href="NMRemoteConnection.html#NMRemoteConnection-struct"><span class="type">NMRemoteConnections</span></a>. This is the internal copy used by
 the connection, and must not be modified. </p>
 <p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMRemoteConnection]</span></p>
 </div>
@@ -1546,7 +1546,7 @@ nm_device_is_real (<em class="parameter"><code><a class="link" href="NMDevice.ht
 <a name="nm-device-is-real.returns"></a><h4>Returns</h4>
 <p> <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the device exists, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if it is a placeholder device
 that could be automatically created by NetworkManager if one of its
-<span class="type">“available-connections”</span> was activated.</p>
+<a href="/usr/share/gtk-doc/html/libnm-glib/NMDevice.html#NMDevice--available-connections"><span class="type">“available-connections”</span></a> was activated.</p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -1718,7 +1718,7 @@ nm_device_get_lldp_neighbors (<em class="parameter"><code><a class="link" href="
 containing <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a>s. This is the internal copy used by the
 device and must not be modified. The library never modifies the returned
 array and thus it is safe for callers to reference and keep using it. </p>
-<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMLldpNeighbor][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMLldpNeighbor][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -1784,7 +1784,7 @@ devices in <em class="parameter"><code>devices</code></em>
 <div class="refsect3">
 <a name="nm-device-disambiguate-names.returns"></a><h4>Returns</h4>
 <p>the device names. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> zero-terminated=1]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> zero-terminated=1]</span></p>
 </div>
 </div>
 <hr>
@@ -2022,7 +2022,7 @@ the applied connection. </p></td>
 or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error.</p>
 <p>The connection is as received from D-Bus and might not validate according
 to <a class="link" href="NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -2126,7 +2126,7 @@ connection. </p></td>
 of error.</p>
 <p>The connection is as received from D-Bus and might not validate according
 to <a class="link" href="NMConnection.html#nm-connection-verify" title="nm_connection_verify ()"><code class="function">nm_connection_verify()</code></a>. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -2425,7 +2425,7 @@ incompatible with the device. To get the full list of connections see
 </tr>
 <tr>
 <td class="parameter_name"><p>connections</p></td>
-<td class="parameter_description"><p>an array of <span class="type">NMConnections</span> to filter. </p></td>
+<td class="parameter_description"><p>an array of <a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> to filter. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></td>
 </tr>
 </tbody>
@@ -2434,13 +2434,13 @@ incompatible with the device. To get the full list of connections see
 <div class="refsect3">
 <a name="nm-device-filter-connections.returns"></a><h4>Returns</h4>
 <p>an array of
-<span class="type">NMConnections</span> that could be activated with the given <em class="parameter"><code>device</code></em>
+<a href="/usr/share/gtk-doc/html/libnm-util/NMConnection.html#NMConnection-struct"><span class="type">NMConnections</span></a> that could be activated with the given <em class="parameter"><code>device</code></em>
 .  The array
 should be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#g-ptr-array-unref"><code class="function">g_ptr_array_unref()</code></a> when it is no longer required.</p>
 <p>WARNING: the transfer annotation for this function may not work correctly
 with bindings. See https://gitlab.gnome.org/GNOME/gobject-introspection/-/issues/305.
 You can filter the list yourself with <a class="link" href="NMDevice.html#nm-device-connection-valid" title="nm_device_connection_valid ()"><code class="function">nm_device_connection_valid()</code></a>. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMConnection]</span></p>
 </div>
 </div>
 <hr>
@@ -2643,7 +2643,7 @@ nm_lldp_neighbor_get_attr_names (<em class="parameter"><code><a class="link" hre
 <div class="refsect3">
 <a name="nm-lldp-neighbor-get-attr-names.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of attribute names. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -2683,7 +2683,7 @@ nm_lldp_neighbor_get_attr_value (<em class="parameter"><code><a class="link" hre
 <p>the value or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the attribute with <em class="parameter"><code>name</code></em>
 was
 not found. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.18</p>
 </div>
@@ -2702,7 +2702,7 @@ actually modify the (empty) instance.</p>
 <div class="refsect3">
 <a name="nm-lldp-neighbor-new.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMDevice.html#NMLldpNeighbor"><span class="type">NMLldpNeighbor</span></a> object. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -2739,7 +2739,7 @@ nm_lldp_neighbor_get_attr_string_value
 <tr>
 <td class="parameter_name"><p>out_value</p></td>
 <td class="parameter_description"><p>on return, the attribute value. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -3112,6 +3112,6 @@ all the VLANs.</p></li>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

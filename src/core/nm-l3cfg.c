@@ -363,7 +363,6 @@ static NM_UTILS_ENUM2STR_DEFINE(_l3_cfg_commit_type_to_string,
                                 NML3CfgCommitType,
                                 NM_UTILS_ENUM2STR(NM_L3_CFG_COMMIT_TYPE_AUTO, "auto"),
                                 NM_UTILS_ENUM2STR(NM_L3_CFG_COMMIT_TYPE_NONE, "none"),
-                                NM_UTILS_ENUM2STR(NM_L3_CFG_COMMIT_TYPE_ASSUME, "assume"),
                                 NM_UTILS_ENUM2STR(NM_L3_CFG_COMMIT_TYPE_UPDATE, "update"),
                                 NM_UTILS_ENUM2STR(NM_L3_CFG_COMMIT_TYPE_REAPPLY, "reapply"), );
 
@@ -585,7 +584,7 @@ _l3_config_notify_data_to_string(const NML3ConfigNotifyData *notify_data,
 void
 _nm_l3cfg_emit_signal_notify(NML3Cfg *self, const NML3ConfigNotifyData *notify_data)
 {
-    char sbuf[sizeof(_nm_utils_to_string_buffer)];
+    char sbuf[NM_UTILS_TO_STRING_BUFFER_SIZE];
 
     nm_assert(notify_data);
     nm_assert(_NM_INT_NOT_NEGATIVE(notify_data->notify_type));
@@ -768,14 +767,6 @@ _nm_n_acd_data_probe_new(NML3Cfg *self, in_addr_t addr, guint32 timeout_msec, gp
     }                                                                                             \
     G_STMT_END
 
-static gboolean
-_obj_state_data_get_assume_config_once(const ObjStateData *obj_state)
-{
-    nm_assert_obj_state(NULL, obj_state);
-
-    return nmp_object_get_assume_config_once(obj_state->obj);
-}
-
 static ObjStateData *
 _obj_state_data_new(const NMPObject *obj, const NMPObject *plobj)
 {
@@ -885,7 +876,7 @@ _obj_state_data_update(ObjStateData *obj_state, const NMPObject *obj)
 static void
 _obj_states_externally_removed_track(NML3Cfg *self, const NMPObject *obj, gboolean in_platform)
 {
-    char          sbuf[sizeof(_nm_utils_to_string_buffer)];
+    char          sbuf[NM_UTILS_TO_STRING_BUFFER_SIZE];
     ObjStateData *obj_state;
 
     nm_assert(NM_IS_L3CFG(self));
@@ -946,7 +937,7 @@ _obj_states_update_all(NML3Cfg *self)
         NMP_OBJECT_TYPE_IP4_ROUTE,
         NMP_OBJECT_TYPE_IP6_ROUTE,
     };
-    char          sbuf[sizeof(_nm_utils_to_string_buffer)];
+    char          sbuf[NM_UTILS_TO_STRING_BUFFER_SIZE];
     ObjStateData *obj_state;
     int           i;
     gboolean      any_dirty = FALSE;
@@ -1037,7 +1028,7 @@ typedef struct {
 static gboolean
 _obj_states_sync_filter(NML3Cfg *self, const NMPObject *obj, NML3CfgCommitType commit_type)
 {
-    char          sbuf[sizeof(_nm_utils_to_string_buffer)];
+    char          sbuf[NM_UTILS_TO_STRING_BUFFER_SIZE];
     NMPObjectType obj_type;
     ObjStateData *obj_state;
 
@@ -1054,10 +1045,6 @@ _obj_states_sync_filter(NML3Cfg *self, const NMPObject *obj, NML3CfgCommitType c
     nm_assert(c_list_is_empty(&obj_state->os_zombie_lst));
 
     if (!obj_state->os_nm_configured) {
-        if (commit_type == NM_L3_CFG_COMMIT_TYPE_ASSUME
-            && !_obj_state_data_get_assume_config_once(obj_state))
-            return FALSE;
-
         obj_state->os_nm_configured = TRUE;
 
         _LOGD("obj-state: configure-first-time: %s",
@@ -1152,7 +1139,7 @@ _obj_state_zombie_lst_get_prune_lists(NML3Cfg    *self,
     const int           IS_IPv4          = NM_IS_IPv4(addr_family);
     const NMPObjectType obj_type_route   = NMP_OBJECT_TYPE_IP_ROUTE(IS_IPv4);
     const NMPObjectType obj_type_address = NMP_OBJECT_TYPE_IP_ADDRESS(IS_IPv4);
-    char                sbuf[sizeof(_nm_utils_to_string_buffer)];
+    char                sbuf[NM_UTILS_TO_STRING_BUFFER_SIZE];
     ObjStateData       *obj_state;
     ObjStateData       *obj_state_safe;
 
@@ -1198,7 +1185,7 @@ _obj_state_zombie_lst_get_prune_lists(NML3Cfg    *self,
 static void
 _obj_state_zombie_lst_prune_all(NML3Cfg *self, int addr_family)
 {
-    char          sbuf[sizeof(_nm_utils_to_string_buffer)];
+    char          sbuf[NM_UTILS_TO_STRING_BUFFER_SIZE];
     ObjStateData *obj_state;
     ObjStateData *obj_state_safe;
 
@@ -1743,9 +1730,7 @@ again:
 
     n_acd_get_fd(self->priv.p->nacd, &fd);
 
-    self->priv.p->nacd_source =
-        nm_g_unix_fd_source_new(fd, G_IO_IN, G_PRIORITY_DEFAULT, _l3_acd_nacd_event, self, NULL);
-    nm_g_source_attach(self->priv.p->nacd_source, NULL);
+    self->priv.p->nacd_source = nm_g_unix_fd_add_source(fd, G_IO_IN, _l3_acd_nacd_event, self);
 
     NM_SET_OUT(out_acd_not_supported, FALSE);
     return self->priv.p->nacd;
@@ -3088,7 +3073,6 @@ nm_l3cfg_commit_on_idle_schedule(NML3Cfg *self, NML3CfgCommitType commit_type)
     nm_assert(NM_IS_L3CFG(self));
     nm_assert(NM_IN_SET(commit_type,
                         NM_L3_CFG_COMMIT_TYPE_AUTO,
-                        NM_L3_CFG_COMMIT_TYPE_ASSUME,
                         NM_L3_CFG_COMMIT_TYPE_UPDATE,
                         NM_L3_CFG_COMMIT_TYPE_REAPPLY));
 
@@ -3503,7 +3487,6 @@ out_clear:
 typedef struct {
     NML3Cfg      *self;
     gconstpointer tag;
-    bool          assume_config_once;
     bool          to_commit;
     bool          force_commit_once;
 } L3ConfigMergeHookAddObjData;
@@ -3523,11 +3506,9 @@ _l3_hook_add_obj_cb(const NML3ConfigData      *l3cd,
     nm_assert(obj);
     nm_assert(hook_result);
     nm_assert(hook_result->ip4acd_not_ready == NM_OPTION_BOOL_DEFAULT);
-    nm_assert(hook_result->assume_config_once == NM_OPTION_BOOL_DEFAULT);
     nm_assert(hook_result->force_commit == NM_OPTION_BOOL_DEFAULT);
 
-    hook_result->assume_config_once = hook_data->assume_config_once;
-    hook_result->force_commit       = hook_data->force_commit_once;
+    hook_result->force_commit = hook_data->force_commit_once;
 
     switch (NMP_OBJECT_GET_TYPE(obj)) {
     case NMP_OBJECT_TYPE_IP4_ADDRESS:
@@ -3683,9 +3664,7 @@ _l3cfg_update_combined_config(NML3Cfg               *self,
             if (NM_FLAGS_HAS(l3cd_data->config_flags, NM_L3CFG_CONFIG_FLAGS_ONLY_FOR_ACD))
                 continue;
 
-            hook_data.tag = l3cd_data->tag_confdata;
-            hook_data.assume_config_once =
-                NM_FLAGS_HAS(l3cd_data->config_flags, NM_L3CFG_CONFIG_FLAGS_ASSUME_CONFIG_ONCE);
+            hook_data.tag               = l3cd_data->tag_confdata;
             hook_data.force_commit_once = l3cd_data->force_commit_once;
 
             nm_l3_config_data_merge(l3cd,
@@ -3859,7 +3838,7 @@ _routes_temporary_not_available_update(NML3Cfg   *self,
 
     for (i = 0; i < routes_temporary_not_available_arr->len; i++) {
         const NMPObject *o = routes_temporary_not_available_arr->pdata[i];
-        char             sbuf[sizeof(_nm_utils_to_string_buffer)];
+        char             sbuf[NM_UTILS_TO_STRING_BUFFER_SIZE];
 
         nm_assert(NMP_OBJECT_GET_TYPE(o) == NMP_OBJECT_TYPE_IP_ROUTE(NM_IS_IPv4(addr_family)));
 
@@ -4207,13 +4186,13 @@ _l3_commit_one(NML3Cfg              *self,
     gboolean                     final_failure_for_temporary_not_available = FALSE;
     char                         sbuf_commit_type[50];
     gboolean                     success = TRUE;
+    guint                        i;
 
     nm_assert(NM_IS_L3CFG(self));
     nm_assert(NM_IN_SET(commit_type,
                         NM_L3_CFG_COMMIT_TYPE_NONE,
                         NM_L3_CFG_COMMIT_TYPE_REAPPLY,
-                        NM_L3_CFG_COMMIT_TYPE_UPDATE,
-                        NM_L3_CFG_COMMIT_TYPE_ASSUME));
+                        NM_L3_CFG_COMMIT_TYPE_UPDATE));
     nm_assert_addr_family(addr_family);
 
     _LOGT("committing IPv%c configuration (%s)",
@@ -4240,11 +4219,35 @@ _l3_commit_one(NML3Cfg              *self,
         route_table_sync = NM_IP_ROUTE_TABLE_SYNC_MODE_MAIN;
 
     if (commit_type == NM_L3_CFG_COMMIT_TYPE_REAPPLY) {
-        addresses_prune = nm_platform_ip_address_get_prune_list(self->priv.platform,
-                                                                addr_family,
-                                                                self->priv.ifindex,
-                                                                TRUE);
-        routes_prune    = nm_platform_ip_route_get_prune_list(self->priv.platform,
+        gs_unref_array GArray *ipv6_temp_addrs_keep = NULL;
+
+        nm_platform_process_events(self->priv.platform);
+
+        if (!IS_IPv4 && addresses) {
+            for (i = 0; i < addresses->len; i++) {
+                const NMPlatformIP6Address *addr = NMP_OBJECT_CAST_IP6_ADDRESS(addresses->pdata[i]);
+
+                if (!NM_FLAGS_HAS(addr->n_ifa_flags, IFA_F_MANAGETEMPADDR))
+                    continue;
+
+                nm_assert(addr->plen == 64);
+
+                /* Construct a list of all IPv6 prefixes for which we (still) set
+                 * IFA_F_MANAGETEMPADDR (that is, for which we will have temporary addresses).
+                 * Those should not be pruned during reapply. */
+                if (!ipv6_temp_addrs_keep)
+                    ipv6_temp_addrs_keep = g_array_new(FALSE, FALSE, sizeof(struct in6_addr));
+                g_array_append_val(ipv6_temp_addrs_keep, addr->address);
+            }
+        }
+        addresses_prune =
+            nm_platform_ip_address_get_prune_list(self->priv.platform,
+                                                  addr_family,
+                                                  self->priv.ifindex,
+                                                  nm_g_array_data(ipv6_temp_addrs_keep),
+                                                  nm_g_array_len(ipv6_temp_addrs_keep));
+
+        routes_prune = nm_platform_ip_route_get_prune_list(self->priv.platform,
                                                            addr_family,
                                                            self->priv.ifindex,
                                                            route_table_sync);
@@ -4299,7 +4302,6 @@ _l3_commit(NML3Cfg *self, NML3CfgCommitType commit_type, gboolean is_idle)
     nm_assert(NM_IN_SET(commit_type,
                         NM_L3_CFG_COMMIT_TYPE_NONE,
                         NM_L3_CFG_COMMIT_TYPE_AUTO,
-                        NM_L3_CFG_COMMIT_TYPE_ASSUME,
                         NM_L3_CFG_COMMIT_TYPE_UPDATE,
                         NM_L3_CFG_COMMIT_TYPE_REAPPLY));
     nm_assert(self->priv.p->commit_reentrant_count == 0);
@@ -4423,10 +4425,7 @@ nm_l3cfg_commit_type_register(NML3Cfg                 *self,
     char                     buf[64];
 
     nm_assert(NM_IS_L3CFG(self));
-    nm_assert(NM_IN_SET(commit_type,
-                        NM_L3_CFG_COMMIT_TYPE_NONE,
-                        NM_L3_CFG_COMMIT_TYPE_ASSUME,
-                        NM_L3_CFG_COMMIT_TYPE_UPDATE));
+    nm_assert(NM_IN_SET(commit_type, NM_L3_CFG_COMMIT_TYPE_NONE, NM_L3_CFG_COMMIT_TYPE_UPDATE));
 
     /* It would be easy (and maybe convenient) to allow that @existing_handle
      * can currently be registered on another NML3Cfg instance. But then we couldn't

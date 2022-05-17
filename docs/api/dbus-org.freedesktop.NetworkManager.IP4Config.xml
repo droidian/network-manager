@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.IP4Config">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-IP4Config.top_of_page">org.freedesktop.NetworkManager.IP4Config</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-IP4Config.top_of_page"><primary sortas=".IP4Config">org.freedesktop.NetworkManager.IP4Config</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.IP4Config</refname>    <refpurpose>IPv4 Configuration Set</refpurpose>  </refnamediv>  <refsect1 role="properties">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.IP4Config</refname>    <refpurpose>IPv4 Configuration Set.</refpurpose>  </refnamediv>  <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Addresses">Addresses</link>       readable   aau
@@ -101,8 +101,8 @@ NameserverData  readable   aa{sv}
 </programlisting>
 <para>        The nameservers in use. Currently, only the value "address"
         is recognized (with an IP address string).
-</para><para>        Since: 1.14
 </para>
+<para role="since">Since 1.14</para>
 </refsect2>
 <refsect2 role="property" id="gdbus-property-org-freedesktop-NetworkManager-IP4Config.Domains">
   <title>The "Domains" property</title>
@@ -158,8 +158,8 @@ WinsServers  readable   au
 WinsServerData  readable   as
 </programlisting>
 <para>        The Windows Internet Name Service servers associated with the connection.
-</para><para>        Since: 1.14
 </para>
+<para role="since">Since 1.14</para>
 </refsect2>
 </refsect1>
 </refentry>

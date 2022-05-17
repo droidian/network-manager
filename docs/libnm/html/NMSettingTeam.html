@@ -8,7 +8,7 @@
 <link rel="up" href="ch03.html" title="Connection and Setting API Reference">
 <link rel="prev" href="NMSettingTeamPort.html" title="NMSettingTeamPort">
 <link rel="next" href="NMSettingTun.html" title="NMSettingTun">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -618,7 +618,7 @@ consistency with the link_watcher constructors of other type</p></td>
 <div class="refsect3">
 <a name="nm-team-link-watcher-new-ethtool.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> object. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -673,7 +673,7 @@ target address in the NS packet</p></td>
 <div class="refsect3">
 <a name="nm-team-link-watcher-new-nsna-ping.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> object, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -741,7 +741,7 @@ address in the arp request</p></td>
 <div class="refsect3">
 <a name="nm-team-link-watcher-new-arp-ping.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> object, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -815,7 +815,7 @@ address in the arp request</p></td>
 <div class="refsect3">
 <a name="nm-team-link-watcher-new-arp-ping2.returns"></a><h4>Returns</h4>
 <p>the new <a class="link" href="NMSettingTeam.html#NMTeamLinkWatcher"><span class="type">NMTeamLinkWatcher</span></a> object, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.16</p>
 </div>
@@ -929,7 +929,7 @@ nm_team_link_watcher_dup (<em class="parameter"><code>const <a class="link" href
 <a name="nm-team-link-watcher-dup.returns"></a><h4>Returns</h4>
 <p>a copy of <em class="parameter"><code>watcher</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -1177,7 +1177,7 @@ nm_setting_team_new (<em class="parameter"><code><span class="type">void</span><
 <div class="refsect3">
 <a name="nm-setting-team-new.returns"></a><h4>Returns</h4>
 <p>the new empty <a class="link" href="NMSettingTeam.html" title="NMSettingTeam"><span class="type">NMSettingTeam</span></a> object. </p>
-<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1202,7 +1202,7 @@ nm_setting_team_get_config (<em class="parameter"><code><a class="link" href="NM
 </div>
 <div class="refsect3">
 <a name="nm-setting-team-get-config.returns"></a><h4>Returns</h4>
-<p> the <span class="type">“config”</span> property of the setting</p>
+<p> the <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingTeam.html#NMSettingTeam--config"><span class="type">“config”</span></a> property of the setting</p>
 </div>
 </div>
 <hr>
@@ -1775,7 +1775,7 @@ nm_setting_team_get_link_watcher (<em class="parameter"><code><a class="link" hr
 <a name="nm-setting-team-get-link-watcher.returns"></a><h4>Returns</h4>
 <p>the link watcher at index <em class="parameter"><code>idx</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.12</p>
 </div>
@@ -2204,6 +2204,6 @@ option 'validate_inactive' is enabled (set to true).</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

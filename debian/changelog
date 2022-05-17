@@ -1,3 +1,32 @@
+network-manager (1.38.0-1) unstable; urgency=medium
+
+  * New upstream version 1.38.0
+  * Bump symbol versions to final 1.38.0 release
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 13 May 2022 15:42:33 +0200
+
+network-manager (1.37.92-1) unstable; urgency=medium
+
+  * New upstream version 1.37.92 (1.38 rc3)
+  * Rebase patches
+  * Update network-manager.docs
+  * Update symbols file for libnm0
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 04 May 2022 16:45:54 +0200
+
+network-manager (1.36.4-2) unstable; urgency=medium
+
+  * supplicant: enable WPA3 transition mode only when interface supports PMF.
+    See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1003907
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 04 Apr 2022 11:39:20 +0200
+
+network-manager (1.36.4-1) unstable; urgency=medium
+
+  * New upstream version 1.36.4
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 23 Mar 2022 20:39:16 +0100
+
 network-manager (1.36.2-1ubuntu1) jammy; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
@@ -163,7 +192,7 @@ network-manager (1.35.92-1ubuntu1) jammy; urgency=medium
 
 network-manager (1.35.92-1) unstable; urgency=medium
 
-  * New upstream version 1.35.92 ((1.36 rc3)
+  * New upstream version 1.35.92 (1.36 rc3)
   * Rename polkit rules file to org.freedesktop.NetworkManager.rules
   * Set path to nft binary
   * Demote iptables to Suggests

@@ -162,6 +162,7 @@
     <keyword type="function" name="nm_client_wimax_get_enabled ()" link="NMClient.html#nm-client-wimax-get-enabled" deprecated="1.22: This function always returns FALSE because WiMax is no longer supported."/>
     <keyword type="function" name="nm_client_wimax_set_enabled ()" link="NMClient.html#nm-client-wimax-set-enabled" deprecated="1.22: This function does nothing because WiMax is no longer supported."/>
     <keyword type="function" name="nm_client_wimax_hardware_get_enabled ()" link="NMClient.html#nm-client-wimax-hardware-get-enabled" deprecated="1.22: This function always returns FALSE because WiMax is no longer supported."/>
+    <keyword type="function" name="nm_client_get_radio_flags ()" link="NMClient.html#nm-client-get-radio-flags" since="1.38"/>
     <keyword type="function" name="nm_client_connectivity_check_get_available ()" link="NMClient.html#nm-client-connectivity-check-get-available" since="1.10"/>
     <keyword type="function" name="nm_client_connectivity_check_get_enabled ()" link="NMClient.html#nm-client-connectivity-check-get-enabled" since="1.10"/>
     <keyword type="function" name="nm_client_connectivity_check_set_enabled ()" link="NMClient.html#nm-client-connectivity-check-set-enabled" deprecated="" since="1.10"/>
@@ -226,6 +227,9 @@
     <keyword type="function" name="nm_client_dbus_set_property ()" link="NMClient.html#nm-client-dbus-set-property" since="1.24"/>
     <keyword type="function" name="nm_client_dbus_set_property_finish ()" link="NMClient.html#nm-client-dbus-set-property-finish" since="1.24"/>
     <keyword type="function" name="nm_utils_print ()" link="NMClient.html#nm-utils-print" since="1.30"/>
+    <keyword type="function" name="nm_utils_file_is_certificate ()" link="NMClient.html#nm-utils-file-is-certificate"/>
+    <keyword type="function" name="nm_utils_file_is_private_key ()" link="NMClient.html#nm-utils-file-is-private-key"/>
+    <keyword type="function" name="nm_utils_file_is_pkcs12 ()" link="NMClient.html#nm-utils-file-is-pkcs12"/>
     <keyword type="enum" name="enum NMClientInstanceFlags" link="NMClient.html#NMClientInstanceFlags" since="1.24"/>
     <keyword type="macro" name="NM_CLIENT_VERSION" link="NMClient.html#NM-CLIENT-VERSION:CAPS"/>
     <keyword type="macro" name="NM_CLIENT_STATE" link="NMClient.html#NM-CLIENT-STATE:CAPS"/>
@@ -241,6 +245,7 @@
     <keyword type="macro" name="NM_CLIENT_WIRELESS_HARDWARE_ENABLED" link="NMClient.html#NM-CLIENT-WIRELESS-HARDWARE-ENABLED:CAPS"/>
     <keyword type="macro" name="NM_CLIENT_WWAN_HARDWARE_ENABLED" link="NMClient.html#NM-CLIENT-WWAN-HARDWARE-ENABLED:CAPS"/>
     <keyword type="macro" name="NM_CLIENT_WIMAX_HARDWARE_ENABLED" link="NMClient.html#NM-CLIENT-WIMAX-HARDWARE-ENABLED:CAPS"/>
+    <keyword type="macro" name="NM_CLIENT_RADIO_FLAGS" link="NMClient.html#NM-CLIENT-RADIO-FLAGS:CAPS"/>
     <keyword type="macro" name="NM_CLIENT_ACTIVE_CONNECTIONS" link="NMClient.html#NM-CLIENT-ACTIVE-CONNECTIONS:CAPS"/>
     <keyword type="macro" name="NM_CLIENT_CONNECTIVITY" link="NMClient.html#NM-CLIENT-CONNECTIVITY:CAPS"/>
     <keyword type="macro" name="NM_CLIENT_CONNECTIVITY_CHECK_URI" link="NMClient.html#NM-CLIENT-CONNECTIVITY-CHECK-URI:CAPS"/>
@@ -446,6 +451,7 @@
     <keyword type="enum" name="enum NMDeviceInterfaceFlags" link="libnm-nm-dbus-interface.html#NMDeviceInterfaceFlags" since="1.22"/>
     <keyword type="enum" name="enum NMClientPermission" link="libnm-nm-dbus-interface.html#NMClientPermission"/>
     <keyword type="enum" name="enum NMClientPermissionResult" link="libnm-nm-dbus-interface.html#NMClientPermissionResult"/>
+    <keyword type="enum" name="enum NMRadioFlags" link="libnm-nm-dbus-interface.html#NMRadioFlags" since="1.38"/>
     <keyword type="function" name="nm_connection_add_setting ()" link="NMConnection.html#nm-connection-add-setting"/>
     <keyword type="function" name="nm_connection_remove_setting ()" link="NMConnection.html#nm-connection-remove-setting"/>
     <keyword type="function" name="nm_connection_get_setting ()" link="NMConnection.html#nm-connection-get-setting"/>
@@ -2602,9 +2608,6 @@
     <keyword type="function" name="nm_utils_ip_routes_to_variant ()" link="libnm-nm-utils.html#nm-utils-ip-routes-to-variant"/>
     <keyword type="function" name="nm_utils_ip_routes_from_variant ()" link="libnm-nm-utils.html#nm-utils-ip-routes-from-variant"/>
     <keyword type="function" name="nm_utils_uuid_generate ()" link="libnm-nm-utils.html#nm-utils-uuid-generate"/>
-    <keyword type="function" name="nm_utils_file_is_certificate ()" link="libnm-nm-utils.html#nm-utils-file-is-certificate"/>
-    <keyword type="function" name="nm_utils_file_is_private_key ()" link="libnm-nm-utils.html#nm-utils-file-is-private-key"/>
-    <keyword type="function" name="nm_utils_file_is_pkcs12 ()" link="libnm-nm-utils.html#nm-utils-file-is-pkcs12"/>
     <keyword type="function" name="NMUtilsFileSearchInPathsPredicate ()" link="libnm-nm-utils.html#NMUtilsFileSearchInPathsPredicate"/>
     <keyword type="function" name="NMUtilsCheckFilePredicate ()" link="libnm-nm-utils.html#NMUtilsCheckFilePredicate"/>
     <keyword type="function" name="nm_utils_file_search_in_paths ()" link="libnm-nm-utils.html#nm-utils-file-search-in-paths"/>
@@ -2675,6 +2678,7 @@
     <keyword type="macro" name="NM_DEPRECATED_IN_1_32_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-32-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_34_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-34-FOR:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_36_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-36-FOR:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_38_FOR()" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-38-FOR:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MIN_REQUIRED" link="libnm-nm-version.html#NM-VERSION-MIN-REQUIRED:CAPS"/>
     <keyword type="macro" name="NM_VERSION_MAX_ALLOWED" link="libnm-nm-version.html#NM-VERSION-MAX-ALLOWED:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_0_9_10" link="libnm-nm-version.html#NM-DEPRECATED-IN-0-9-10:CAPS"/>
@@ -2717,6 +2721,8 @@
     <keyword type="macro" name="NM_AVAILABLE_IN_1_34" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-34:CAPS"/>
     <keyword type="macro" name="NM_DEPRECATED_IN_1_36" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-36:CAPS"/>
     <keyword type="macro" name="NM_AVAILABLE_IN_1_36" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-36:CAPS"/>
+    <keyword type="macro" name="NM_DEPRECATED_IN_1_38" link="libnm-nm-version.html#NM-DEPRECATED-IN-1-38:CAPS"/>
+    <keyword type="macro" name="NM_AVAILABLE_IN_1_38" link="libnm-nm-version.html#NM-AVAILABLE-IN-1-38:CAPS"/>
     <keyword type="function" name="nm_vpn_service_plugin_get_connection ()" link="NMVpnServicePlugin.html#nm-vpn-service-plugin-get-connection" since="1.2"/>
     <keyword type="function" name="nm_vpn_service_plugin_secrets_required ()" link="NMVpnServicePlugin.html#nm-vpn-service-plugin-secrets-required" since="1.2"/>
     <keyword type="function" name="nm_vpn_service_plugin_set_login_banner ()" link="NMVpnServicePlugin.html#nm-vpn-service-plugin-set-login-banner"/>
@@ -3212,6 +3218,9 @@
     <keyword type="constant" name="NM_CLIENT_PERMISSION_RESULT_YES" link="libnm-nm-dbus-interface.html#NM-CLIENT-PERMISSION-RESULT-YES:CAPS"/>
     <keyword type="constant" name="NM_CLIENT_PERMISSION_RESULT_AUTH" link="libnm-nm-dbus-interface.html#NM-CLIENT-PERMISSION-RESULT-AUTH:CAPS"/>
     <keyword type="constant" name="NM_CLIENT_PERMISSION_RESULT_NO" link="libnm-nm-dbus-interface.html#NM-CLIENT-PERMISSION-RESULT-NO:CAPS"/>
+    <keyword type="constant" name="NM_RADIO_FLAG_NONE" link="libnm-nm-dbus-interface.html#NM-RADIO-FLAG-NONE:CAPS"/>
+    <keyword type="constant" name="NM_RADIO_FLAG_WLAN_AVAILABLE" link="libnm-nm-dbus-interface.html#NM-RADIO-FLAG-WLAN-AVAILABLE:CAPS"/>
+    <keyword type="constant" name="NM_RADIO_FLAG_WWAN_AVAILABLE" link="libnm-nm-dbus-interface.html#NM-RADIO-FLAG-WWAN-AVAILABLE:CAPS"/>
     <keyword type="constant" name="NM_CONNECTION_SERIALIZE_ALL" link="NMConnection.html#NM-CONNECTION-SERIALIZE-ALL:CAPS"/>
     <keyword type="constant" name="NM_CONNECTION_SERIALIZE_WITH_NON_SECRET" link="NMConnection.html#NM-CONNECTION-SERIALIZE-WITH-NON-SECRET:CAPS"/>
     <keyword type="constant" name="NM_CONNECTION_SERIALIZE_NO_SECRETS" link="NMConnection.html#NM-CONNECTION-SERIALIZE-NO-SECRETS:CAPS"/>

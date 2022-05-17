@@ -181,8 +181,10 @@ modem_new_config(NMModem                  *modem,
         return;
     }
 
-    if (!IS_IPv4)
+    if (!IS_IPv4) {
         priv->iid = iid ? *iid : ((NMUtilsIPv6IfaceId) NM_UTILS_IPV6_IFACE_ID_INIT);
+        nm_device_sysctl_ip_conf_set(device, AF_INET6, "disable_ipv6", "0");
+    }
 
     if (do_auto) {
         if (IS_IPv4)
@@ -757,8 +759,6 @@ nm_device_modem_new(NMModem *modem)
                         "Broadband",
                         NM_DEVICE_DEVICE_TYPE,
                         NM_DEVICE_TYPE_MODEM,
-                        NM_DEVICE_RFKILL_TYPE,
-                        RFKILL_TYPE_WWAN,
                         NM_DEVICE_MODEM_MODEM,
                         modem,
                         NM_DEVICE_MODEM_CAPABILITIES,
@@ -839,6 +839,8 @@ nm_device_modem_class_init(NMDeviceModemClass *klass)
     device_class->ready_for_ip_config         = ready_for_ip_config;
 
     device_class->state_changed = device_state_changed;
+
+    device_class->rfkill_type = NM_RFKILL_TYPE_WWAN;
 
     obj_properties[PROP_MODEM] =
         g_param_spec_object(NM_DEVICE_MODEM_MODEM,

@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.DHCP6Config">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-DHCP6Config.top_of_page">org.freedesktop.NetworkManager.DHCP6Config</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-DHCP6Config.top_of_page"><primary sortas="Dhcp6Config">org.freedesktop.NetworkManager.DHCP6Config</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.DHCP6Config</refname>    <refpurpose>IPv6 DHCP Client State</refpurpose>  </refnamediv>  <refsect1 role="properties">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.DHCP6Config</refname>    <refpurpose>IPv6 DHCP Client State.</refpurpose>  </refnamediv>  <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-DHCP6Config.Options">Options</link>  readable   a{sv}

@@ -805,6 +805,7 @@ nm_supplicant_config_add_setting_wireless_security(NMSupplicantConfig           
                                                    NMSettingWirelessSecurity    *setting,
                                                    NMSetting8021x               *setting_8021x,
                                                    const char                   *con_uuid,
+                                                   const char                   *mode,
                                                    guint32                       mtu,
                                                    NMSettingWirelessSecurityPmf  pmf,
                                                    NMSettingWirelessSecurityFils fils,
@@ -815,11 +816,19 @@ nm_supplicant_config_add_setting_wireless_security(NMSupplicantConfig           
     const char                   *key_mgmt, *auth_alg;
     const char                   *psk;
     gboolean                      set_pmf, wps_disabled;
+    gboolean                      is_ap;
 
     g_return_val_if_fail(NM_IS_SUPPLICANT_CONFIG(self), FALSE);
     g_return_val_if_fail(setting != NULL, FALSE);
     g_return_val_if_fail(con_uuid != NULL, FALSE);
     g_return_val_if_fail(!error || !*error, FALSE);
+
+    /* Currently wpa_supplicant doesn't support FT in AP mode. Even
+     * if it did, it  would require additional parameters as the nas
+     * identifier and the mobility domain. Therefore we disable all
+     * FT key-mgmts in AP mode.
+     */
+    is_ap = nm_streq0(mode, NM_SETTING_WIRELESS_MODE_AP);
 
     /* Check if we actually support FILS */
     if (!_get_capability(priv, NM_SUPPL_CAP_TYPE_FILS)) {
@@ -852,11 +861,39 @@ nm_supplicant_config_add_setting_wireless_security(NMSupplicantConfig           
             g_string_append(key_mgmt_conf, "WPA-PSK");
         if (_get_capability(priv, NM_SUPPL_CAP_TYPE_PMF))
             g_string_append(key_mgmt_conf, " WPA-PSK-SHA256");
-        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
+        if (!is_ap && _get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
             g_string_append(key_mgmt_conf, " FT-PSK");
-        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_SAE)) {
+
+        /* For NM "key-mgmt=wpa-psk" doesn't strictly mean WPA1/wPA2 only,
+         * but also allows WPA3 (SAE), so that existing connections can
+         * benefit from the improved security when the AP gets upgraded.
+         *
+         * According to WPA3_Specification_v3.0 section 2.3, when operating
+         * in WPA3-Personal transition mode a STA:
+         *
+         * - should allow AKM suite selector: 00-0F-AC:6 (WPA-PSK-SHA256) to
+         *   be selected for an association;
+         * - shall negotiate PMF when associating to an AP using SAE.
+         *
+         * Those conditions are met when the interface has capabilities
+         * SAE, PMF, BIP.
+         *
+         * According to WPA3_Specification_v3.0 section 2.3, when operating
+         * in WPA3-Personal transition mode an AP:
+         *
+         * - shall set MFPC to 1, MFPR to 0.
+         *
+         * Therefore, do not operate in WPA3-Personal transition mode when PMF
+         * is set to disabled. This also provides a way to be compatible with
+         * some devices that are not fully compatible with WPA3-Personal
+         * transition mode.
+         */
+        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_SAE)
+            && _get_capability(priv, NM_SUPPL_CAP_TYPE_PMF)
+            && _get_capability(priv, NM_SUPPL_CAP_TYPE_BIP)
+            && (!is_ap || pmf != NM_SETTING_WIRELESS_SECURITY_PMF_DISABLE)) {
             g_string_append(key_mgmt_conf, " SAE");
-            if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
+            if (!is_ap && _get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
                 g_string_append(key_mgmt_conf, " FT-SAE");
         }
 
@@ -864,13 +901,13 @@ nm_supplicant_config_add_setting_wireless_security(NMSupplicantConfig           
         pmf = NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED;
 
         g_string_append(key_mgmt_conf, "SAE");
-        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
+        if (!is_ap && _get_capability(priv, NM_SUPPL_CAP_TYPE_FT))
             g_string_append(key_mgmt_conf, " FT-SAE");
 
     } else if (nm_streq(key_mgmt, "wpa-eap")) {
         if (pmf != NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED)
             g_string_append(key_mgmt_conf, "WPA-EAP");
-        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT)) {
+        if (!is_ap && _get_capability(priv, NM_SUPPL_CAP_TYPE_FT)) {
             g_string_append(key_mgmt_conf, " FT-EAP");
             if (_get_capability(priv, NM_SUPPL_CAP_TYPE_SHA384))
                 g_string_append(key_mgmt_conf, " FT-EAP-SHA384");
@@ -891,7 +928,7 @@ nm_supplicant_config_add_setting_wireless_security(NMSupplicantConfig           
         case NM_SETTING_WIRELESS_SECURITY_FILS_OPTIONAL:
             if (_get_capability(priv, NM_SUPPL_CAP_TYPE_PMF)) {
                 g_string_append(key_mgmt_conf, " FILS-SHA256 FILS-SHA384");
-                if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT)) {
+                if (!is_ap && _get_capability(priv, NM_SUPPL_CAP_TYPE_FT)) {
                     g_string_append(key_mgmt_conf, " FT-FILS-SHA256");
                     if (_get_capability(priv, NM_SUPPL_CAP_TYPE_SHA384))
                         g_string_append(key_mgmt_conf, " FT-FILS-SHA384");
@@ -907,7 +944,7 @@ nm_supplicant_config_add_setting_wireless_security(NMSupplicantConfig           
         pmf = NM_SETTING_WIRELESS_SECURITY_PMF_REQUIRED;
 
         g_string_append(key_mgmt_conf, "WPA-EAP-SUITE-B-192");
-        if (_get_capability(priv, NM_SUPPL_CAP_TYPE_FT)
+        if (!is_ap && _get_capability(priv, NM_SUPPL_CAP_TYPE_FT)
             && _get_capability(priv, NM_SUPPL_CAP_TYPE_SHA384))
             g_string_append(key_mgmt_conf, " FT-EAP-SHA384");
     }

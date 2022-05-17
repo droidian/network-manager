@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.Connection.Active">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Connection-Active.top_of_page">org.freedesktop.NetworkManager.Connection.Active</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Connection-Active.top_of_page"><primary sortas="ActiveConnection">org.freedesktop.NetworkManager.Connection.Active</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Connection.Active</refname>    <refpurpose>Active Connection</refpurpose>  </refnamediv>  <refsect1 role="signal_proto">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Connection.Active</refname>    <refpurpose>Active Connection.</refpurpose>  </refnamediv>  <refsect1 role="signal_proto">
     <title role="signal_proto.title">Signals</title>
     <synopsis>
 <link linkend="gdbus-signal-org-freedesktop-NetworkManager-Connection-Active.StateChanged">StateChanged</link> (u state,
@@ -61,7 +61,6 @@ StateChanged (u state,
               u reason);
 </programlisting>
 <para>        Emitted when the state of the active connection has changed.
-</para><para>        Since: 1.8
 </para>
 <variablelist role="params">
 <varlistentry>
@@ -73,6 +72,7 @@ StateChanged (u state,
   <listitem><para>(<link linkend="NMActiveConnectionStateReason">NMActiveConnectionStateReason</link>) Reason code describing the change to the new state.</para></listitem>
 </varlistentry>
 </variablelist>
+<para role="since">Since 1.8</para>
 </refsect2>
 </refsect1>
 <refsect1 role="details" id="gdbus-properties-org.freedesktop.NetworkManager.Connection.Active">

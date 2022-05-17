@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.Device.Veth">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Veth.top_of_page">org.freedesktop.NetworkManager.Device.Veth</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Device-Veth.top_of_page"><primary sortas=".Device.Veth">org.freedesktop.NetworkManager.Device.Veth</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Veth</refname>    <refpurpose>Virtual Ethernet Device</refpurpose>  </refnamediv>  <refsect1 role="properties">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Veth</refname>    <refpurpose>Virtual Ethernet Device.</refpurpose>  </refnamediv>  <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Veth.Peer">Peer</link>  readable   o

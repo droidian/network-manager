@@ -60,6 +60,7 @@ _NM80211Mode
 nm_wifi_utils_get_mode(NMWifiUtils *data)
 {
     g_return_val_if_fail(data != NULL, _NM_802_11_MODE_UNKNOWN);
+
     return NM_WIFI_UTILS_GET_CLASS(data)->get_mode(data);
 }
 
@@ -118,6 +119,7 @@ guint32
 nm_wifi_utils_get_freq(NMWifiUtils *data)
 {
     g_return_val_if_fail(data != NULL, 0);
+
     return NM_WIFI_UTILS_GET_CLASS(data)->get_freq(data);
 }
 
@@ -126,6 +128,7 @@ nm_wifi_utils_find_freq(NMWifiUtils *data, const guint32 *freqs)
 {
     g_return_val_if_fail(data != NULL, 0);
     g_return_val_if_fail(freqs != NULL, 0);
+
     return NM_WIFI_UTILS_GET_CLASS(data)->find_freq(data, freqs);
 }
 
@@ -152,6 +155,28 @@ nm_wifi_utils_is_wifi(int dirfd, const char *ifname)
         return TRUE;
 #endif
     return FALSE;
+}
+
+gboolean
+nm_wifi_utils_get_csme_conn_info(NMWifiUtils *data, NMPlatformCsmeConnInfo *out_conn_info)
+{
+    NMWifiUtilsClass *klass;
+
+    g_return_val_if_fail(data != NULL, FALSE);
+
+    klass = NM_WIFI_UTILS_GET_CLASS(data);
+    return klass->get_csme_conn_info ? klass->get_csme_conn_info(data, out_conn_info) : FALSE;
+}
+
+gboolean
+nm_wifi_utils_get_device_from_csme(NMWifiUtils *data)
+{
+    NMWifiUtilsClass *klass;
+
+    g_return_val_if_fail(data != NULL, FALSE);
+
+    klass = NM_WIFI_UTILS_GET_CLASS(data);
+    return klass->get_device_from_csme ? klass->get_device_from_csme(data) : FALSE;
 }
 
 /* OLPC Mesh-only functions */

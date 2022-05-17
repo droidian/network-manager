@@ -7,8 +7,8 @@ dnl  - add corresponding NM_VERSION_x_y_z macros in
 dnl    "shared/nm-version-macros.h.in"
 dnl  - update number in meson.build
 m4_define([nm_major_version], [1])
-m4_define([nm_minor_version], [36])
-m4_define([nm_micro_version], [2])
+m4_define([nm_minor_version], [38])
+m4_define([nm_micro_version], [0])
 m4_define([nm_version],
           [nm_major_version.nm_minor_version.nm_micro_version])
 
@@ -21,7 +21,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_REQUIRE_AUX_FILE([tap-driver.sh])
 
-AM_INIT_AUTOMAKE(1.12 tar-ustar no-dist-gzip dist-xz -Wno-portability)  dnl NB: Do not [quote] this parameter.
+AM_INIT_AUTOMAKE(1.12 foreign tar-ustar no-dist-gzip dist-xz -Wno-portability)  dnl NB: Do not [quote] this parameter.
 AM_MAINTAINER_MODE([enable])
 AM_SILENT_RULES([yes])
 
@@ -323,7 +323,7 @@ AC_ARG_WITH([systemdsystemunitdir],
                            [Directory for systemd service files]))
 # default location
 AS_IF([test -z "$with_systemdsystemunitdir" && $PKG_CONFIG systemd],
-      with_systemdsystemunitdir="\$(prefix)/lib/systemd/system")
+      with_systemdsystemunitdir=`$PKG_CONFIG systemd '--define-variable=prefix=${prefix}' '--define-variable=root_prefix=${prefix}' --variable systemdsystemunitdir`)
 AS_IF([test -z "$with_systemdsystemunitdir"], with_systemdsystemunitdir=no)
 # add conditional and subst
 AM_CONDITIONAL(HAVE_SYSTEMD, [test "$with_systemdsystemunitdir" != no])
@@ -718,7 +718,7 @@ AM_CONDITIONAL(HAVE_CRYPTO_GNUTLS, test "${have_crypto_gnutls}" = 'yes')
 AM_CONDITIONAL(HAVE_CRYPTO_NSS, test "${have_crypto_nss}" = 'yes')
 
 AC_ARG_WITH(crypto,
-            AS_HELP_STRING([--with-crypto=nss|gnutls],
+            AS_HELP_STRING([--with-crypto=nss|gnutls|null],
                            [Cryptography library to use for certificate and key operations]),
             with_crypto=$withval,
             with_crypto=nss)
@@ -730,8 +730,10 @@ elif test "$with_crypto" = 'gnutls'; then
 	if test "${have_crypto_gnutls}" != "yes"; then
 		AC_MSG_ERROR([No usable gnutls found for --with-crypto=gnutls])
 	fi
+elif test "$with_crypto" = 'null'; then
+	:
 else
-	AC_MSG_ERROR([Please choose either 'nss' or 'gnutls' for certificate and crypto operations])
+	AC_MSG_ERROR([Please choose either 'nss', 'gnutls' or 'null' for certificate and crypto operations])
 fi
 AM_CONDITIONAL(WITH_NSS, test "$with_crypto" = 'nss')
 AM_CONDITIONAL(WITH_GNUTLS, test "$with_crypto" = 'gnutls')
@@ -1273,7 +1275,7 @@ else
 fi
 AC_SUBST(NM_LOG_COMPILER, 'LOG_COMPILER = "$(top_srcdir)/tools/run-nm-test.sh" --called-from-make "$(abs_top_builddir)" "$(LIBTOOL)" "$(with_valgrind)" "'"$with_valgrind_suppressions"'" --launch-dbus=auto')
 
-AX_PTHREAD([,AC_MSG_ERROR([Threads are required for the NetworkManager tests])])
+AX_PTHREAD([], [AC_MSG_ERROR([Threads are required for the NetworkManager tests])])
 
 if test -n "$PYTHON" ; then
     AM_PATH_PYTHON([], [], [])
@@ -1318,15 +1320,12 @@ else
 	have_introspection=no
 fi
 
-# check for python black. And check if all files are formatted with python black
-AC_PATH_PROG(BLACK, black)
-AM_CONDITIONAL(WITH_PYTHON_BLACK, test "${BLACK}" != "")
-
 # check for pregenerated manpages and documentation to be installed
 use_pregen_docs=no
 if test "$build_docs" != "yes" -a \
-        -f "$srcdir"/man/NetworkManager.8 -a \
         -f "$srcdir"/man/NetworkManager-dispatcher.8 -a \
+        -f "$srcdir"/man/NetworkManager-wait-online.service.8 -a \
+        -f "$srcdir"/man/NetworkManager.8 -a \
         -f "$srcdir"/man/NetworkManager.conf.5 -a \
         -f "$srcdir"/man/nm-online.1 -a \
         -f "$srcdir"/man/nmcli-examples.7 -a \

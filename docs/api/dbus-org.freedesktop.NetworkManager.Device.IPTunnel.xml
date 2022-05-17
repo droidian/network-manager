@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.Device.IPTunnel">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Device-IPTunnel.top_of_page">org.freedesktop.NetworkManager.Device.IPTunnel</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Device-IPTunnel.top_of_page"><primary sortas=".Device.IPTunnel">org.freedesktop.NetworkManager.Device.IPTunnel</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.IPTunnel</refname>    <refpurpose>IP Tunneling Device</refpurpose>  </refnamediv>  <refsect1 role="properties">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.IPTunnel</refname>    <refpurpose>IP Tunneling Device.</refpurpose>  </refnamediv>  <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-IPTunnel.Mode">Mode</link>                readable   u

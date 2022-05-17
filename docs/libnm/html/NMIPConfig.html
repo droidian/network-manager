@@ -8,7 +8,7 @@
 <link rel="up" href="ch04.html" title="Device and Runtime Configuration API Reference">
 <link rel="prev" href="NMWimaxNsp.html" title="NMWimaxNsp">
 <link rel="next" href="NMDhcpConfig.html" title="NMDhcpConfig">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -199,7 +199,7 @@ nm_ip_config_get_gateway (<em class="parameter"><code><a class="link" href="NMIP
 <div class="refsect3">
 <a name="nm-ip-config-get-gateway.returns"></a><h4>Returns</h4>
 <p>the IP address of the gateway. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -229,7 +229,7 @@ nm_ip_config_get_addresses (<em class="parameter"><code><a class="link" href="NM
 containing <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a>es.  This is the internal copy used by the
 configuration and must not be modified. The library never modifies the
 returned array and thus it is safe for callers to reference and keep using it. </p>
-<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPAddress][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPAddress][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -259,7 +259,7 @@ nm_ip_config_get_routes (<em class="parameter"><code><a class="link" href="NMIPC
 <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a>s. This is the internal copy used by the configuration, and must
 not be modified. The library never modifies the returned array and thus it is
 safe for callers to reference and keep using it. </p>
-<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPRoute][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPRoute][<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -286,7 +286,7 @@ nm_ip_config_get_nameservers (<em class="parameter"><code><a class="link" href="
 <div class="refsect3">
 <a name="nm-ip-config-get-nameservers.returns"></a><h4>Returns</h4>
 <p>the array of nameserver IP addresses. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -314,7 +314,7 @@ nm_ip_config_get_domains (<em class="parameter"><code><a class="link" href="NMIP
 <a name="nm-ip-config-get-domains.returns"></a><h4>Returns</h4>
 <p>the array of domains.
 (This is never <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, though it may be 0-length). </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -342,7 +342,7 @@ nm_ip_config_get_searches (<em class="parameter"><code><a class="link" href="NMI
 <a name="nm-ip-config-get-searches.returns"></a><h4>Returns</h4>
 <p>the array of DNS search strings.
 (This is never <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, though it may be 0-length). </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -370,7 +370,7 @@ nm_ip_config_get_wins_servers (<em class="parameter"><code><a class="link" href=
 <a name="nm-ip-config-get-wins-servers.returns"></a><h4>Returns</h4>
 <p>the arry of WINS server IP address strings.
 (This is never <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, though it may be 0-length.). </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 </div>
@@ -426,6 +426,6 @@ nm_ip_config_get_wins_servers (<em class="parameter"><code><a class="link" href=
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

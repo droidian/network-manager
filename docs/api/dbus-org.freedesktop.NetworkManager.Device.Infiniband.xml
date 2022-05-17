@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.Device.Infiniband">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Infiniband.top_of_page">org.freedesktop.NetworkManager.Device.Infiniband</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Device-Infiniband.top_of_page"><primary sortas=".Device.Infiniband">org.freedesktop.NetworkManager.Device.Infiniband</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Infiniband</refname>    <refpurpose>Infiniband Device</refpurpose>  </refnamediv>  <refsect1 role="properties">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Infiniband</refname>    <refpurpose>Infiniband Device.</refpurpose>  </refnamediv>  <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Infiniband.HwAddress">HwAddress</link>  readable   s

@@ -8,7 +8,7 @@
 <link rel="up" href="ref-dbus-settings-manager.html" title="The /org/freedesktop/NetworkManager/Settings object">
 <link rel="prev" href="ref-dbus-settings-manager.html" title="The /org/freedesktop/NetworkManager/Settings object">
 <link rel="next" href="ref-dbus-settings.html" title="The /org/freedesktop/NetworkManager/Settings/* objects">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -29,7 +29,7 @@
 <div class="refnamediv"><table width="100%"><tr>
 <td valign="top">
 <h2><span class="refentrytitle"><a name="gdbus-interface-org-freedesktop-NetworkManager-Settings.top_of_page"></a>org.freedesktop.NetworkManager.Settings</span></h2>
-<p>org.freedesktop.NetworkManager.Settings — Connection Settings Profile Manager</p>
+<p>org.freedesktop.NetworkManager.Settings — Connection Settings Profile Manager.</p>
 </td>
 <td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
@@ -191,28 +191,65 @@ AddConnection2 (IN  a{sa{sv}} settings,
                 OUT o         path,
                 OUT a{sv}     result);
 </pre>
-<p>          "0x1" (to-disk),
-          "0x2" (in-memory),
-          "0x20" (block-autoconnect).
-          Unknown flags cause the call to fail.
-        <em class="parameter"><code>args</code></em>: optional arguments dictionary, for extentibility. Currently, no
-          arguments are accepted. Specifying unknown keys causes the call
-          to fail.
-        <em class="parameter"><code>path</code></em>: Object path of the new connection that was just added.
-        <em class="parameter"><code>result</code></em>: output argument, currently no additional results are returned.
-</p>
 <p>        Add a new connection profile.
 </p>
-<p>        Either the flags 0x1 (to-disk) or 0x2 (in-memory) must be specified.
-        The effect is whether to behave like AddConnection or AddConnectionUnsaved.
-        If 0x20 (block-autoconnect) is specified, autoconnect for the new profile
-        is blocked from the beginning. Otherwise, the profile might automatically
-        connect if a suitable device is around.
-</p>
-<p>        AddConnection2 is a extensible alternative to AddConnection, and AddConnectionUnsaved.
+<p>        AddConnection2 is an alternative to
+        <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnection" title="The AddConnection() method">AddConnection</a> and
+        <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnectionUnsaved" title="The AddConnectionUnsaved() method">AddConnectionUnsaved</a>.
         The new variant can do everything that the older variants could, and more.
+        Its behavior is extensible via extra <code class="constant">flags</code> and <code class="constant">args</code> arguments.
 </p>
-<p>        Since: 1.20
+<p>        The <code class="constant">flags</code> argument accepts the combination of following values,
+        logically or-ed together:
+</p>
+<p>        </p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="literal">0x1 (to-disk)</code>:</span></p></td>
+<td><p>The connection is persisted to disk.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">0x2 (in-memory)</code>:</span></p></td>
+<td><p>The change is only made in memory (without touching an eventual
+          profile on disk). If neither 0x1 nor 0x2 is set, the change is made in memory
+          only, if the connection is already in memory only.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="literal">0x20 (block-autoconnect)</code>:</span></p></td>
+<td><p>Blocks auto-connect on the new profile</p></td>
+</tr>
+</tbody>
+</table></div>
+<p>
+</p>
+<p>        The <code class="constant">args</code> argument accepts the following keys:
+</p>
+<p>        </p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><code class="literal">plugin</code>:</span></p></td>
+<td>
+<p>The settings plugin the newly added connection will
+          use, such as "keyfile" or "ifcfg-rh".</p>
+<p class="since">Since 1.38</p>
+</td>
+</tr></tbody>
+</table></div>
+<p>
+</p>
+<p>        Either the flags 0x1 (to-disk) or 0x2 (in-memory) must be specified.
+        The effect is whether to behave like
+        <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnection" title="The AddConnection() method">AddConnection</a> or
+        <a class="link" href="gdbus-org.freedesktop.NetworkManager.Settings.html#gdbus-method-org-freedesktop-NetworkManager-Settings.AddConnectionUnsaved" title="The AddConnectionUnsaved() method">AddConnectionUnsaved</a>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -226,22 +263,23 @@ AddConnection2 (IN  a{sa{sv}} settings,
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">IN u <em class="parameter"><code>flags</code></em></code>:</span></p></td>
-<td><p>optional flags argument. Currently, the following flags are supported:</p></td>
+<td><p>Flags. Unknown flags cause the call to fail.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>args</code></em></code>:</span></p></td>
-<td><p></p></td>
+<td><p>Optional arguments dictionary, for extentibility. Specifying unknown keys causes the call to fail.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT o <em class="parameter"><code>path</code></em></code>:</span></p></td>
-<td><p></p></td>
+<td><p>Object path of the new connection that was just added.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>result</code></em></code>:</span></p></td>
-<td><p></p></td>
+<td><p>Output argument, currently no additional results are returned.</p></td>
 </tr>
 </tbody>
 </table></div>
+<p class="since">Since 1.20</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -251,14 +289,15 @@ LoadConnections (IN  as filenames,
                  OUT b  status,
                  OUT as failures);
 </pre>
-<p>          Note that before 1.20, NetworkManager had a bug and this <em class="parameter"><code>status</code></em> value was wrong. It is better to assume success if the method does not return with a D-Bus error. On top of that, you can look at <em class="parameter"><code>failures</code></em> to know whether any of the requested files failed.
-        <em class="parameter"><code>failures</code></em>: Paths of connection files that could not be loaded.
-</p>
 <p>        Loads or reloads the indicated connections from disk. You should call this
         after making changes directly to an on-disk connection file to make sure
         that NetworkManager sees the changes.
         As with AddConnection(), this operation does not necessarily
         start the network connection.
+</p>
+<p>        Note that before 1.20, NetworkManager had a bug and this <em class="parameter"><code>status</code></em> value was wrong.
+        It is better to assume success if the method does not return with a D-Bus error.
+        On top of that, you can look at <em class="parameter"><code>failures</code></em> to know whether any of the requested files failed.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -276,7 +315,7 @@ LoadConnections (IN  as filenames,
 </tr>
 <tr>
 <td><p><span class="term"><code class="literal">OUT as <em class="parameter"><code>failures</code></em></code>:</span></p></td>
-<td><p></p></td>
+<td><p>Paths of connection files that could not be loaded.</p></td>
 </tr>
 </tbody>
 </table></div>
@@ -403,6 +442,6 @@ CanModify  readable   b
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

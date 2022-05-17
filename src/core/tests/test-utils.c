@@ -212,6 +212,52 @@ test_hw_addr_gen_stable_eth(void)
                     "04:0D:CD:0C:9E:2C");
 }
 
+static void
+test_shorten_hostname(void)
+{
+    gs_free char *maxhost = NULL;
+    char         *hostname;
+
+#define do_test_shorten_hostname(_host, _exp_res, _exp_short) \
+    G_STMT_START                                              \
+    {                                                         \
+        gboolean      _res;                                   \
+        gs_free char *_short = NULL;                          \
+                                                              \
+        _res = nm_utils_shorten_hostname((_host), &_short);   \
+        g_assert_cmpint((_res), ==, (_exp_res));              \
+        g_assert_cmpstr(_short, ==, (_exp_short));            \
+    }                                                         \
+    G_STMT_END
+
+    /* 'maxhost' is the longest allowed hostname according to
+     * system configuration (`getconf HOST_NAME_MAX`). On Linux
+     * it's typically 64 characters, but POSIX allows up to
+     * 255 characters.
+     */
+    maxhost = g_strnfill(HOST_NAME_MAX, 'a');
+
+    do_test_shorten_hostname("name1", TRUE, NULL);
+
+    do_test_shorten_hostname("name1.example.com", TRUE, NULL);
+
+    do_test_shorten_hostname(maxhost, TRUE, NULL);
+
+    hostname = g_strdup_printf("%sbbb", maxhost);
+    do_test_shorten_hostname(hostname, TRUE, maxhost);
+    nm_clear_g_free(&hostname);
+
+    hostname = g_strdup_printf("%s.com", maxhost);
+    do_test_shorten_hostname(hostname, TRUE, maxhost);
+    nm_clear_g_free(&hostname);
+
+    hostname = g_strdup_printf("name1.%s.com", maxhost);
+    do_test_shorten_hostname(hostname, TRUE, "name1");
+    nm_clear_g_free(&hostname);
+
+    do_test_shorten_hostname(".name1", FALSE, NULL);
+}
+
 /*****************************************************************************/
 
 NMTST_DEFINE();
@@ -223,6 +269,7 @@ main(int argc, char **argv)
 
     g_test_add_func("/utils/stable_privacy", test_stable_privacy);
     g_test_add_func("/utils/hw_addr_gen_stable_eth", test_hw_addr_gen_stable_eth);
+    g_test_add_func("/utils/shorten-hostname", test_shorten_hostname);
 
     return g_test_run();
 }

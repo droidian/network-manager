@@ -6,9 +6,9 @@
 <meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="NetworkManager Reference Manual">
 <link rel="up" href="manpages.html" title="Part I. Manual Pages">
-<link rel="prev" href="NetworkManager-dispatcher.html" title="NetworkManager-dispatcher">
+<link rel="prev" href="NetworkManager-wait-online.service.html" title="NetworkManager-wait-online.service">
 <link rel="next" href="nmcli-examples.html" title="nmcli-examples">
-<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -16,7 +16,7 @@
 <td width="100%" align="left" class="shortcuts"></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="manpages.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="NetworkManager-dispatcher.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="NetworkManager-wait-online.service.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="nmcli-examples.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
@@ -427,7 +427,7 @@
 </div>
 <div class="refsect1">
 <a name="connection"></a><h2>Connection Management Commands</h2>
-<div class="cmdsynopsis"><p><code class="command">nmcli connection</code>  { <span class="command"><strong>show</strong></span>  |   <span class="command"><strong>up</strong></span>  |   <span class="command"><strong>down</strong></span>  |   <span class="command"><strong>modify</strong></span>  |   <span class="command"><strong>add</strong></span>  |   <span class="command"><strong>edit</strong></span>  |   <span class="command"><strong>clone</strong></span>  |   <span class="command"><strong>delete</strong></span>  |   <span class="command"><strong>monitor</strong></span>  |   <span class="command"><strong>reload</strong></span>  |   <span class="command"><strong>load</strong></span>  |   <span class="command"><strong>import</strong></span>  |   <span class="command"><strong>export</strong></span> } [<em class="replaceable"><code>ARGUMENTS</code></em>...]</p></div>
+<div class="cmdsynopsis"><p><code class="command">nmcli connection</code>  { <span class="command"><strong>show</strong></span>  |   <span class="command"><strong>up</strong></span>  |   <span class="command"><strong>down</strong></span>  |   <span class="command"><strong>modify</strong></span>  |   <span class="command"><strong>add</strong></span>  |   <span class="command"><strong>edit</strong></span>  |   <span class="command"><strong>clone</strong></span>  |   <span class="command"><strong>delete</strong></span>  |   <span class="command"><strong>monitor</strong></span>  |   <span class="command"><strong>reload</strong></span>  |   <span class="command"><strong>load</strong></span>  |   <span class="command"><strong>import</strong></span>  |   <span class="command"><strong>export</strong></span>  |   <span class="command"><strong>migrate</strong></span> } [<em class="replaceable"><code>ARGUMENTS</code></em>...]</p></div>
 <p>NetworkManager stores all network configuration as "connections",
     which are collections of data (Layer2 details, IP addressing, etc.) that
     describe how to create or connect to a network. A connection is "active"
@@ -934,6 +934,31 @@
           data will be printed to standard output.</p>
 </td>
 </tr>
+<tr>
+<td><p><span class="term">
+          <span class="command"><strong>migrate</strong></span>
+           [
+             <code class="option">--plugin</code>
+               <em class="replaceable"><code>plugin</code></em>... 
+          ]
+           [ <code class="option">id</code>  |   <code class="option">uuid</code>  |   <code class="option">path</code> ]
+           [<em class="replaceable"><code>ID</code></em>...]
+        </span></p></td>
+<td>
+<p>Migrate connection profiles to a different settings plugin, such
+	  as <code class="literal">keyfile</code> (default) or <code class="literal">ifcfg-rh</code>.</p>
+<p>The connection to be migrated is identified by its name, UUID or D-Bus path.
+	  If <em class="replaceable"><code>ID</code></em> is ambiguous, a keyword <code class="option">id</code>,
+	  <code class="option">uuid</code> or <code class="option">path</code> can be used. See <span class="command"><strong>connection
+	  show</strong></span> above for the description of the
+	  <em class="replaceable"><code>ID</code></em>-specifying keywords.</p>
+<p>If no connections are specified, the command acts on all available
+	  connections. Therefore, with no arguments, the command migrates all connection
+          profiles to the <code class="literal">keyfile</code> plugin.</p>
+<p>If <code class="option">--wait</code> option is not specified, the default timeout will be 10
+          seconds.</p>
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -1349,8 +1374,16 @@
 <td><p>Connection that is being disconnected.</p></td>
 </tr>
 <tr>
+<td><p><span class="term"><code class="option">connection-external</code></span></p></td>
+<td><p>Connection representing configuration created externally to NetworkManager.</p></td>
+</tr>
+<tr>
 <td><p><span class="term"><code class="option">connection-invisible</code></span></p></td>
 <td><p>Connection whose details is the user not permitted to see.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">connection-deprecated</code></span></p></td>
+<td><p>Connection that uses deprecated settings. It might not be possible to activate it.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="option">connectivity-full</code></span></p></td>
@@ -1383,6 +1416,10 @@
 <tr>
 <td><p><span class="term"><code class="option">device-disconnected</code></span></p></td>
 <td><p>Device that is not connected.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">device-external</code></span></p></td>
+<td><p>Device configured externally to NetworkManager.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="option">device-firmware-missing</code></span></p></td>
@@ -1475,6 +1512,10 @@
 <tr>
 <td><p><span class="term"><code class="option">wifi-signal-unknown</code></span></p></td>
 <td><p>Wi-Fi network that hasn't been actually seen (a hidden AP).</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">wifi-deprecated</code></span></p></td>
+<td><p>Wi-Fi network that might be impossible to connect to due to use of deprecated functionality.</p></td>
 </tr>
 <tr>
 <td><p><span class="term"><code class="option">disabled</code></span></p></td>
@@ -1791,6 +1832,6 @@
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.0</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </body>
 </html>

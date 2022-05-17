@@ -5,7 +5,7 @@
 <refentry id="gdbus-org.freedesktop.NetworkManager.Device.Macvlan">
   <refmeta>    <refentrytitle role="top_of_page" id="gdbus-interface-org-freedesktop-NetworkManager-Device-Macvlan.top_of_page">org.freedesktop.NetworkManager.Device.Macvlan</refentrytitle>
   <indexterm zone="gdbus-interface-org-freedesktop-NetworkManager-Device-Macvlan.top_of_page"><primary sortas=".Device.Macvlan">org.freedesktop.NetworkManager.Device.Macvlan</primary></indexterm>
-  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Macvlan</refname>    <refpurpose>MAC VLAN Device</refpurpose>  </refnamediv>  <refsect1 role="properties">
+  </refmeta>  <refnamediv>    <refname>org.freedesktop.NetworkManager.Device.Macvlan</refname>    <refpurpose>MAC VLAN Device.</refpurpose>  </refnamediv>  <refsect1 role="properties">
     <title role="properties.title">Properties</title>
     <synopsis>
 <link linkend="gdbus-property-org-freedesktop-NetworkManager-Device-Macvlan.Parent">Parent</link>     readable   o

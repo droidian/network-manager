@@ -71,7 +71,8 @@ Various attributes are supported:
 </listitem>
 <listitem>
 <para><literal>"type"</literal> - one of <literal>unicast</literal>, <literal>local</literal>, <literal>blackhole</literal>,
-<literal>unavailable</literal>, <literal>prohibit</literal>. The default is <literal>unicast</literal>.</para>
+<literal>unavailable</literal>, <literal>prohibit</literal>, <literal>throw</literal>.
+The default is <literal>unicast</literal>.</para>
 </listitem>
 <listitem>
 <para><literal>"window"</literal> - an unsigned 32 bit integer.</para>
@@ -90,7 +91,7 @@ fixed priority.
 <para>
 Example: <literal>priority 5 from 192.167.4.0/24 table 45</literal>
 </para></description-docbook></property></setting><setting name="ipv6">
-<property name="addresses" variable="addresses" format="a comma separated list of addresses" values="" default="" example="" description="A list of IPv6 addresses and their prefix length. Multiple addresses can be separated by comma. For example &quot;2001:db8:85a3::8a2e:370:7334/64, 2001:db8:85a3::5/64&quot;. The addresses are listed in increasing priority, meaning the last address will be the primary address." /><property name="routes" variable="routes" format="a comma separated list of routes" values="" default="" example="" description=""><description-docbook>
+<property name="addresses" variable="addresses" format="a comma separated list of addresses" values="" default="" example="" description="A list of IPv6 addresses and their prefix length. Multiple addresses can be separated by comma. For example &quot;2001:db8:85a3::8a2e:370:7334/64, 2001:db8:85a3::5/64&quot;. The addresses are listed in decreasing priority, meaning the first address will be the primary address. This can make a difference with IPv6 source address selection (RFC 6724, section 5)." /><property name="routes" variable="routes" format="a comma separated list of routes" values="" default="" example="" description=""><description-docbook>
 <para>
 A list of IPv6 destination addresses, prefix length, optional IPv6
 next hop addresses, optional route metric, optional attribute. The valid syntax is:
@@ -140,7 +141,8 @@ Various attributes are supported:
 </listitem>
 <listitem>
 <para><literal>"type"</literal> - one of <literal>unicast</literal>, <literal>local</literal>, <literal>blackhole</literal>,
-<literal>unavailable</literal>, <literal>prohibit</literal>. The default is <literal>unicast</literal>.</para>
+<literal>unavailable</literal>, <literal>prohibit</literal>, <literal>throw</literal>.
+The default is <literal>unicast</literal>.</para>
 </listitem>
 <listitem>
 <para><literal>"window"</literal> - an unsigned 32 bit integer.</para>
@@ -171,7 +173,7 @@ Example: <literal>priority 5 from 1:2:3::5/128 table 45</literal>
 </setting><setting name="ppp">
 </setting><setting name="pppoe">
 </setting><setting name="proxy">
-</setting><setting name="serial">
+<property name="pac-script" variable="pac-script" format="" values="" default="" example="" description="The PAC script. In the profile this must be an UTF-8 encoded javascript code that defines a FindProxyForURL() function. When setting the property in nmcli, a filename is accepted too. In that case, nmcli will read the content of the file and set the script. The prefixes &quot;file://&quot; and &quot;js://&quot; are supported to explicitly differentiate between the two." /></setting><setting name="serial">
 </setting><setting name="sriov">
 </setting><setting name="tc">
 <property name="qdiscs" variable="qdiscs" format="GPtrArray(NMTCQdisc)" values="" default="" example="" description=""><description-docbook>

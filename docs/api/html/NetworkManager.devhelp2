@@ -5,6 +5,7 @@
       <sub name="NetworkManager" link="NetworkManager.html"/>
       <sub name="NetworkManager.conf" link="NetworkManager.conf.html"/>
       <sub name="NetworkManager-dispatcher" link="NetworkManager-dispatcher.html"/>
+      <sub name="NetworkManager-wait-online.service" link="NetworkManager-wait-online.service.html"/>
       <sub name="nmcli" link="nmcli.html"/>
       <sub name="nmcli-examples" link="nmcli-examples.html"/>
       <sub name="nmtui" link="nmtui.html"/>
@@ -202,6 +203,7 @@
     <keyword type="property" name="The &quot;WwanHardwareEnabled&quot; property" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.WwanHardwareEnabled"/>
     <keyword type="property" name="The &quot;WimaxEnabled&quot; property" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.WimaxEnabled"/>
     <keyword type="property" name="The &quot;WimaxHardwareEnabled&quot; property" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.WimaxHardwareEnabled"/>
+    <keyword type="property" name="The &quot;RadioFlags&quot; property" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.RadioFlags"/>
     <keyword type="property" name="The &quot;ActiveConnections&quot; property" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.ActiveConnections"/>
     <keyword type="property" name="The &quot;PrimaryConnection&quot; property" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.PrimaryConnection"/>
     <keyword type="property" name="The &quot;PrimaryConnectionType&quot; property" link="gdbus-org.freedesktop.NetworkManager.html#gdbus-property-org-freedesktop-NetworkManager.PrimaryConnectionType"/>
@@ -511,6 +513,7 @@
     <keyword type="enum" name="enum NMDeviceInterfaceFlags" link="nm-dbus-types.html#NMDeviceInterfaceFlags"/>
     <keyword type="enum" name="enum NMClientPermission" link="nm-dbus-types.html#NMClientPermission"/>
     <keyword type="enum" name="enum NMClientPermissionResult" link="nm-dbus-types.html#NMClientPermissionResult"/>
+    <keyword type="enum" name="enum NMRadioFlags" link="nm-dbus-types.html#NMRadioFlags"/>
     <keyword type="method" name="The GetSecrets() method" link="gdbus-org.freedesktop.NetworkManager.SecretAgent.html#gdbus-method-org-freedesktop-NetworkManager-SecretAgent.GetSecrets"/>
     <keyword type="method" name="The CancelGetSecrets() method" link="gdbus-org.freedesktop.NetworkManager.SecretAgent.html#gdbus-method-org-freedesktop-NetworkManager-SecretAgent.CancelGetSecrets"/>
     <keyword type="method" name="The SaveSecrets() method" link="gdbus-org.freedesktop.NetworkManager.SecretAgent.html#gdbus-method-org-freedesktop-NetworkManager-SecretAgent.SaveSecrets"/>
@@ -843,6 +846,9 @@
     <keyword type="constant" name="NM_CLIENT_PERMISSION_RESULT_YES" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.34.4.2.1.4.2.1.1id-1.4.17.2.34.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_CLIENT_PERMISSION_RESULT_AUTH" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.34.4.2.1.4.3.1.1id-1.4.17.2.34.4.2.1.4.3.1.2"/>
     <keyword type="constant" name="NM_CLIENT_PERMISSION_RESULT_NO" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.34.4.2.1.4.4.1.1id-1.4.17.2.34.4.2.1.4.4.1.2"/>
+    <keyword type="constant" name="NM_RADIO_FLAG_NONE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.35.4.2.1.4.1.1.1id-1.4.17.2.35.4.2.1.4.1.1.2"/>
+    <keyword type="constant" name="NM_RADIO_FLAG_WLAN_AVAILABLE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.35.4.2.1.4.2.1.1id-1.4.17.2.35.4.2.1.4.2.1.2"/>
+    <keyword type="constant" name="NM_RADIO_FLAG_WWAN_AVAILABLE" link="nm-dbus-types.htmlnm-dbus-types.html#id-1.4.17.2.35.4.2.1.4.3.1.1id-1.4.17.2.35.4.2.1.4.3.1.2"/>
     <keyword type="constant" name="NM_VPN_SERVICE_STATE_UNKNOWN" link="nm-vpn-dbus-types.htmlnm-vpn-dbus-types.html#id-1.6.3.2.3.4.2.1.4.1.1.1id-1.6.3.2.3.4.2.1.4.1.1.2"/>
     <keyword type="constant" name="NM_VPN_SERVICE_STATE_INIT" link="nm-vpn-dbus-types.htmlnm-vpn-dbus-types.html#id-1.6.3.2.3.4.2.1.4.2.1.1id-1.6.3.2.3.4.2.1.4.2.1.2"/>
     <keyword type="constant" name="NM_VPN_SERVICE_STATE_SHUTDOWN" link="nm-vpn-dbus-types.htmlnm-vpn-dbus-types.html#id-1.6.3.2.3.4.2.1.4.3.1.1id-1.6.3.2.3.4.2.1.4.3.1.2"/>

@@ -1650,7 +1650,7 @@
             <row role="constant">
               <entry role="enum_member_name"><para>NM_CHECKPOINT_CREATE_FLAG_NO_PRESERVE_EXTERNAL_PORTS</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>0x10</literal></para><para></para></entry>
-              <entry role="enum_member_description"><para>during rollback, by default externally added ports attached to bridge devices are preserved. With this flag, the rollback detaches all external ports. This only has an effect for bridge ports. Before 1.38, 1.36.2, this was the default behavior. Since: 1.38, 1.36.2.</para><para></para></entry>
+              <entry role="enum_member_description"><para>during rollback, by default externally added ports attached to bridge devices are preserved. With this flag, the rollback detaches all external ports. This only has an effect for bridge ports. Before 1.38, this was the default behavior. Since: 1.38.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>
@@ -2181,6 +2181,41 @@
               <entry role="enum_member_name"><para>NM_CLIENT_PERMISSION_RESULT_NO</para><para></para></entry>
               <entry role="enum_member_value"><para>= <literal>3</literal></para><para></para></entry>
               <entry role="enum_member_description"><para>permission to perform the operation is denied by system policy</para><para></para></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </informaltable>
+    </refsect3>
+  </refsect2>
+
+  <refsect2 id="NMRadioFlags" role="enum">
+    <title>enum NMRadioFlags</title>
+    <indexterm zone="NMRadioFlags">
+      <primary>NMRadioFlags</primary>
+    </indexterm>
+    <para><para>Flags related to radio interfaces.</para><para>Since: 1.38</para><para></para></para>
+    <refsect3 role="enum_members">
+      <title>Values</title>
+      <informaltable role="enum_members_table" pgwide="1" frame="none">
+        <tgroup cols="4">
+          <colspec colname="enum_members_name" colwidth="300px" />
+          <colspec colname="enum_members_value" colwidth="100px"/>
+          <colspec colname="enum_members_description" />
+          <tbody>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_RADIO_FLAG_NONE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>an alias for numeric zero, no flags set.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_RADIO_FLAG_WLAN_AVAILABLE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x1</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>A Wireless LAN device or rfkill switch is detected in the system.</para><para></para></entry>
+            </row>
+            <row role="constant">
+              <entry role="enum_member_name"><para>NM_RADIO_FLAG_WWAN_AVAILABLE</para><para></para></entry>
+              <entry role="enum_member_value"><para>= <literal>0x2</literal></para><para></para></entry>
+              <entry role="enum_member_description"><para>A Wireless WAN device or rfkill switch is detected in the system.</para><para></para></entry>
             </row>
           </tbody>
         </tgroup>

@@ -104,6 +104,7 @@ typedef struct {
     OvsdbMethodCallback callback;
     gpointer            user_data;
     OvsdbMethodPayload  payload;
+    GObject            *shutdown_wait_obj;
 } OvsdbMethodCall;
 
 /*****************************************************************************/
@@ -245,6 +246,8 @@ static NM_UTILS_LOOKUP_STR_DEFINE(_device_type_to_table,
 static void
 _call_complete(OvsdbMethodCall *call, json_t *response, GError *error)
 {
+    g_clear_object(&call->shutdown_wait_obj);
+
     if (response) {
         gs_free char *str = NULL;
 
@@ -378,12 +381,14 @@ ovsdb_call_method(NMOvsdb                  *self,
 
     call  = g_slice_new(OvsdbMethodCall);
     *call = (OvsdbMethodCall){
-        .self      = self,
-        .call_id   = CALL_ID_UNSPEC,
-        .command   = command,
-        .callback  = callback,
-        .user_data = user_data,
+        .self              = self,
+        .call_id           = CALL_ID_UNSPEC,
+        .command           = command,
+        .callback          = callback,
+        .user_data         = user_data,
+        .shutdown_wait_obj = g_object_new(G_TYPE_OBJECT, NULL),
     };
+    nm_shutdown_wait_obj_register_object(call->shutdown_wait_obj, "ovsdb-call");
 
     if (add_first)
         c_list_link_front(&priv->calls_lst_head, &call->calls_lst);
@@ -2481,29 +2486,27 @@ typedef struct {
 static void
 _transact_cb(NMOvsdb *self, json_t *result, GError *error, gpointer user_data)
 {
-    OvsdbCall  *call = user_data;
-    const char *err;
-    const char *err_details;
-    size_t      index;
-    json_t     *value;
+    OvsdbCall            *call  = user_data;
+    gs_free_error GError *local = NULL;
+    const char           *err;
+    const char           *err_details;
+    size_t                index;
+    json_t               *value;
 
-    if (error)
-        goto out;
-
-    json_array_foreach (result, index, value) {
-        if (json_unpack(value, "{s:s, s:s}", "error", &err, "details", &err_details) == 0) {
-            g_set_error(&error,
-                        G_IO_ERROR,
-                        G_IO_ERROR_FAILED,
-                        "Error running the transaction: %s: %s",
-                        err,
-                        err_details);
-            goto out;
+    if (!error) {
+        json_array_foreach (result, index, value) {
+            if (json_unpack(value, "{s:s, s:s}", "error", &err, "details", &err_details) == 0) {
+                local = g_error_new(G_IO_ERROR,
+                                    G_IO_ERROR_FAILED,
+                                    "Error running the transaction: %s: %s",
+                                    err,
+                                    err_details);
+                break;
+            }
         }
     }
 
-out:
-    call->callback(error, call->user_data);
+    call->callback(local ?: error, call->user_data);
     nm_g_slice_free(call);
 }
 

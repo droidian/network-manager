@@ -1114,20 +1114,22 @@ _linktype_get_type(NMPlatform       *platform,
             return link_type;
     }
 
-    if (arptype == ARPHRD_LOOPBACK)
+    switch (arptype) {
+    case ARPHRD_LOOPBACK:
         return NM_LINK_TYPE_LOOPBACK;
-    else if (arptype == ARPHRD_INFINIBAND)
+    case ARPHRD_INFINIBAND:
         return NM_LINK_TYPE_INFINIBAND;
-    else if (arptype == ARPHRD_SIT)
+    case ARPHRD_SIT:
         return NM_LINK_TYPE_SIT;
-    else if (arptype == ARPHRD_TUNNEL6)
+    case ARPHRD_TUNNEL6:
         return NM_LINK_TYPE_IP6TNL;
-    else if (arptype == ARPHRD_PPP)
+    case ARPHRD_PPP:
         return NM_LINK_TYPE_PPP;
-    else if (arptype == ARPHRD_IEEE802154)
+    case ARPHRD_IEEE802154:
         return NM_LINK_TYPE_WPAN;
-    else if (arptype == ARPHRD_6LOWPAN)
+    case ARPHRD_6LOWPAN:
         return NM_LINK_TYPE_6LOWPAN;
+    }
 
     {
         NMPUtilsEthtoolDriverInfo driver_info;
@@ -3453,7 +3455,8 @@ _new_from_nl_route(struct nlmsghdr *nlh, gboolean id_only, ParseNlmsgIter *parse
                    RTN_LOCAL,
                    RTN_BLACKHOLE,
                    RTN_UNREACHABLE,
-                   RTN_PROHIBIT))
+                   RTN_PROHIBIT,
+                   RTN_THROW))
         return NULL;
 
     if (nlmsg_parse_arr(nlh, sizeof(struct rtmsg), tb, policy) < 0)
@@ -6339,6 +6342,7 @@ cache_prune_one_type(NMPlatform *platform, const NMPLookup *lookup)
 
     nm_dedup_multi_iter_init(&iter, nmp_cache_lookup(cache, lookup));
     while (nm_dedup_multi_iter_next(&iter)) {
+        char                     sbuf[NM_UTILS_TO_STRING_BUFFER_SIZE];
         const NMDedupMultiEntry *main_entry;
 
         /* we only track the dirty flag for the OBJECT-TYPE index. That means,
@@ -6350,7 +6354,7 @@ cache_prune_one_type(NMPlatform *platform, const NMPLookup *lookup)
         obj = main_entry->obj;
 
         _LOGt("cache-prune: prune %s",
-              nmp_object_to_string(obj, NMP_OBJECT_TO_STRING_ALL, NULL, 0));
+              nmp_object_to_string(obj, NMP_OBJECT_TO_STRING_ALL, sbuf, sizeof(sbuf)));
 
         {
             nm_auto_nmpobj const NMPObject *obj_old = NULL;
@@ -6390,8 +6394,8 @@ cache_on_change(NMPlatform      *platform,
                 const NMPObject *obj_new)
 {
     const NMPClass *klass;
-    char            str_buf[sizeof(_nm_utils_to_string_buffer)];
-    char            str_buf2[sizeof(_nm_utils_to_string_buffer)];
+    char            str_buf[NM_UTILS_TO_STRING_BUFFER_SIZE];
+    char            str_buf2[NM_UTILS_TO_STRING_BUFFER_SIZE];
     NMPCache       *cache = nm_platform_get_cache(platform);
 
     ASSERT_nmp_cache_ops(cache, cache_op, obj_old, obj_new);
@@ -7023,6 +7027,7 @@ event_seq_check(NMPlatform             *platform,
 static void
 event_valid_msg(NMPlatform *platform, struct nl_msg *msg, gboolean handle_events)
 {
+    char                      sbuf1[NM_UTILS_TO_STRING_BUFFER_SIZE];
     NMLinuxPlatformPrivate   *priv;
     nm_auto_nmpobj NMPObject *obj = NULL;
     NMPCacheOpsType           cache_op;
@@ -7079,8 +7084,8 @@ event_valid_msg(NMPlatform *platform, struct nl_msg *msg, gboolean handle_events
           is_dump ? ", in-dump" : "",
           nmp_object_to_string(obj,
                                is_del ? NMP_OBJECT_TO_STRING_ID : NMP_OBJECT_TO_STRING_PUBLIC,
-                               NULL,
-                               0));
+                               sbuf1,
+                               sizeof(sbuf1)));
 
     while (TRUE) {
         nm_auto_nmpobj const NMPObject *obj_old = NULL;
@@ -7306,6 +7311,7 @@ do_add_addrroute(NMPlatform      *platform,
                  struct nl_msg   *nlmsg,
                  gboolean         suppress_netlink_failure)
 {
+    char                    sbuf1[NM_UTILS_TO_STRING_BUFFER_SIZE];
     WaitForNlResponseResult seq_result = WAIT_FOR_NL_RESPONSE_RESULT_UNKNOWN;
     gs_free char           *errmsg     = NULL;
     int                     nle;
@@ -7328,7 +7334,7 @@ do_add_addrroute(NMPlatform      *platform,
     if (nle < 0) {
         _LOGE("do-add-%s[%s]: failure sending netlink request \"%s\" (%d)",
               NMP_OBJECT_GET_CLASS(obj_id)->obj_type_name,
-              nmp_object_to_string(obj_id, NMP_OBJECT_TO_STRING_ID, NULL, 0),
+              nmp_object_to_string(obj_id, NMP_OBJECT_TO_STRING_ID, sbuf1, sizeof(sbuf1)),
               nm_strerror(nle),
               -nle);
         return -NME_PL_NETLINK;
@@ -7344,7 +7350,7 @@ do_add_addrroute(NMPlatform      *platform,
                : LOGL_WARN,
            "do-add-%s[%s]: %s",
            NMP_OBJECT_GET_CLASS(obj_id)->obj_type_name,
-           nmp_object_to_string(obj_id, NMP_OBJECT_TO_STRING_ID, NULL, 0),
+           nmp_object_to_string(obj_id, NMP_OBJECT_TO_STRING_ID, sbuf1, sizeof(sbuf1)),
            wait_for_nl_response_to_string(seq_result, errmsg, s_buf, sizeof(s_buf)));
 
     if (NMP_OBJECT_GET_TYPE(obj_id) == NMP_OBJECT_TYPE_IP6_ADDRESS) {
@@ -7365,6 +7371,7 @@ do_add_addrroute(NMPlatform      *platform,
 static gboolean
 do_delete_object(NMPlatform *platform, const NMPObject *obj_id, struct nl_msg *nlmsg)
 {
+    char                    sbuf1[NM_UTILS_TO_STRING_BUFFER_SIZE];
     WaitForNlResponseResult seq_result = WAIT_FOR_NL_RESPONSE_RESULT_UNKNOWN;
     gs_free char           *errmsg     = NULL;
     int                     nle;
@@ -7383,7 +7390,7 @@ do_delete_object(NMPlatform *platform, const NMPObject *obj_id, struct nl_msg *n
     if (nle < 0) {
         _LOGE("do-delete-%s[%s]: failure sending netlink request \"%s\" (%d)",
               NMP_OBJECT_GET_CLASS(obj_id)->obj_type_name,
-              nmp_object_to_string(obj_id, NMP_OBJECT_TO_STRING_ID, NULL, 0),
+              nmp_object_to_string(obj_id, NMP_OBJECT_TO_STRING_ID, sbuf1, sizeof(sbuf1)),
               nm_strerror(nle),
               -nle);
         return FALSE;
@@ -7402,6 +7409,8 @@ do_delete_object(NMPlatform *platform, const NMPObject *obj_id, struct nl_msg *n
              && NM_IN_SET(NMP_OBJECT_GET_TYPE(obj_id), NMP_OBJECT_TYPE_IP6_ADDRESS)) {
         /* On RHEL7 kernel, deleting a non existing address fails with ENXIO */
         log_detail = ", meaning the address was already removed";
+    } else if (NM_IN_SET(-((int) seq_result), ENODEV)) {
+        log_detail = ", meaning the device was already removed";
     } else if (NM_IN_SET(-((int) seq_result), EADDRNOTAVAIL)
                && NM_IN_SET(NMP_OBJECT_GET_TYPE(obj_id),
                             NMP_OBJECT_TYPE_IP4_ADDRESS,
@@ -7413,7 +7422,7 @@ do_delete_object(NMPlatform *platform, const NMPObject *obj_id, struct nl_msg *n
     _NMLOG(success ? LOGL_DEBUG : LOGL_WARN,
            "do-delete-%s[%s]: %s%s",
            NMP_OBJECT_GET_CLASS(obj_id)->obj_type_name,
-           nmp_object_to_string(obj_id, NMP_OBJECT_TO_STRING_ID, NULL, 0),
+           nmp_object_to_string(obj_id, NMP_OBJECT_TO_STRING_ID, sbuf1, sizeof(sbuf1)),
            wait_for_nl_response_to_string(seq_result, errmsg, s_buf, sizeof(s_buf)),
            log_detail);
 
@@ -7531,6 +7540,21 @@ out:
            wait_for_nl_response_to_string(seq_result, errmsg, s_buf, sizeof(s_buf)),
            log_detail);
     return result;
+}
+
+static int
+link_change(NMPlatform *platform, NMLinkType type, int ifindex, gconstpointer extra_data)
+{
+    nm_auto_nlmsg struct nl_msg *nlmsg = NULL;
+
+    nlmsg = _nl_msg_new_link(RTM_NEWLINK, 0, ifindex, 0);
+    if (!nlmsg)
+        return -NME_UNSPEC;
+
+    if (!_nl_msg_new_link_set_linkinfo(nlmsg, type, extra_data))
+        return -NME_UNSPEC;
+
+    return do_change_link(platform, CHANGE_LINK_TYPE_UNSPEC, ifindex, nlmsg, NULL);
 }
 
 static int
@@ -8451,6 +8475,7 @@ static gboolean
 wifi_get_capabilities(NMPlatform *platform, int ifindex, _NMDeviceWifiCapabilities *caps)
 {
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, FALSE);
+
     if (caps)
         *caps = nm_wifi_utils_get_caps(wifi_data);
     return TRUE;
@@ -8460,6 +8485,7 @@ static guint32
 wifi_get_frequency(NMPlatform *platform, int ifindex)
 {
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, 0);
+
     return nm_wifi_utils_get_freq(wifi_data);
 }
 
@@ -8471,6 +8497,7 @@ wifi_get_station(NMPlatform  *platform,
                  guint32     *out_rate)
 {
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, FALSE);
+
     return nm_wifi_utils_get_station(wifi_data, out_bssid, out_quality, out_rate);
 }
 
@@ -8478,6 +8505,7 @@ static _NM80211Mode
 wifi_get_mode(NMPlatform *platform, int ifindex)
 {
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, _NM_802_11_MODE_UNKNOWN);
+
     return nm_wifi_utils_get_mode(wifi_data);
 }
 
@@ -8485,6 +8513,7 @@ static void
 wifi_set_mode(NMPlatform *platform, int ifindex, _NM80211Mode mode)
 {
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, );
+
     nm_wifi_utils_set_mode(wifi_data, mode);
 }
 
@@ -8492,6 +8521,7 @@ static void
 wifi_set_powersave(NMPlatform *platform, int ifindex, guint32 powersave)
 {
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, );
+
     nm_wifi_utils_set_powersave(wifi_data, powersave);
 }
 
@@ -8499,6 +8529,7 @@ static guint32
 wifi_find_frequency(NMPlatform *platform, int ifindex, const guint32 *freqs)
 {
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, 0);
+
     return nm_wifi_utils_find_freq(wifi_data, freqs);
 }
 
@@ -8506,6 +8537,7 @@ static void
 wifi_indicate_addressing_running(NMPlatform *platform, int ifindex, gboolean running)
 {
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, );
+
     nm_wifi_utils_indicate_addressing_running(wifi_data, running);
 }
 
@@ -8513,6 +8545,7 @@ static _NMSettingWirelessWakeOnWLan
 wifi_get_wake_on_wlan(NMPlatform *platform, int ifindex)
 {
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, FALSE);
+
     return nm_wifi_utils_get_wake_on_wlan(wifi_data);
 }
 
@@ -8520,7 +8553,24 @@ static gboolean
 wifi_set_wake_on_wlan(NMPlatform *platform, int ifindex, _NMSettingWirelessWakeOnWLan wowl)
 {
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, FALSE);
+
     return nm_wifi_utils_set_wake_on_wlan(wifi_data, wowl);
+}
+
+static gboolean
+wifi_get_csme_conn_info(NMPlatform *platform, int ifindex, NMPlatformCsmeConnInfo *out_conn_info)
+{
+    WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, FALSE);
+
+    return nm_wifi_utils_get_csme_conn_info(wifi_data, out_conn_info);
+}
+
+static gboolean
+wifi_get_device_from_csme(NMPlatform *platform, int ifindex)
+{
+    WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, FALSE);
+
+    return nm_wifi_utils_get_device_from_csme(wifi_data);
 }
 
 /*****************************************************************************/
@@ -8565,6 +8615,7 @@ static guint32
 mesh_get_channel(NMPlatform *platform, int ifindex)
 {
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, 0);
+
     return nm_wifi_utils_get_mesh_channel(wifi_data);
 }
 
@@ -8572,6 +8623,7 @@ static gboolean
 mesh_set_channel(NMPlatform *platform, int ifindex, guint32 channel)
 {
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, FALSE);
+
     return nm_wifi_utils_set_mesh_channel(wifi_data, channel);
 }
 
@@ -8579,6 +8631,7 @@ static gboolean
 mesh_set_ssid(NMPlatform *platform, int ifindex, const guint8 *ssid, gsize len)
 {
     WIFI_GET_WIFI_DATA_NETNS(wifi_data, platform, ifindex, FALSE);
+
     return nm_wifi_utils_set_mesh_ssid(wifi_data, ssid, len);
 }
 
@@ -9727,13 +9780,10 @@ constructed(GObject *_object)
           fd);
 
     priv->event_source =
-        nm_g_unix_fd_source_new(fd,
+        nm_g_unix_fd_add_source(fd,
                                 G_IO_IN | G_IO_NVAL | G_IO_PRI | G_IO_ERR | G_IO_HUP,
-                                G_PRIORITY_DEFAULT,
                                 event_handler,
-                                platform,
-                                NULL);
-    g_source_attach(priv->event_source, NULL);
+                                platform);
 
     /* complete construction of the GObject instance before populating the cache. */
     G_OBJECT_CLASS(nm_linux_platform_parent_class)->constructed(_object);
@@ -9889,6 +9939,7 @@ nm_linux_platform_class_init(NMLinuxPlatformClass *klass)
     platform_class->sysctl_get       = sysctl_get;
 
     platform_class->link_add    = link_add;
+    platform_class->link_change = link_change;
     platform_class->link_delete = link_delete;
 
     platform_class->link_refresh = link_refresh;
@@ -9938,6 +9989,8 @@ nm_linux_platform_class_init(NMLinuxPlatformClass *klass)
     platform_class->wifi_indicate_addressing_running = wifi_indicate_addressing_running;
     platform_class->wifi_get_wake_on_wlan            = wifi_get_wake_on_wlan;
     platform_class->wifi_set_wake_on_wlan            = wifi_set_wake_on_wlan;
+    platform_class->wifi_get_csme_conn_info          = wifi_get_csme_conn_info;
+    platform_class->wifi_get_device_from_csme        = wifi_get_device_from_csme;
 
     platform_class->mesh_get_channel = mesh_get_channel;
     platform_class->mesh_set_channel = mesh_set_channel;
