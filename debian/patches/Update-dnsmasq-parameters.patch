@@ -10,10 +10,10 @@ See also: https://blueprints.launchpad.net/ubuntu/+spec/foundations-p-dns-resolv
  src/core/dns/nm-dns-manager.c | 6 +++---
  2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/src/core/dns/nm-dns-dnsmasq.c b/src/core/dns/nm-dns-dnsmasq.c
-index f0abf56..01afd52 100644
---- a/src/core/dns/nm-dns-dnsmasq.c
-+++ b/src/core/dns/nm-dns-dnsmasq.c
+Index: network-manager/src/core/dns/nm-dns-dnsmasq.c
+===================================================================
+--- network-manager.orig/src/core/dns/nm-dns-dnsmasq.c
++++ network-manager/src/core/dns/nm-dns-dnsmasq.c
 @@ -522,8 +522,8 @@ _gl_pid_spawn_next_step(void)
      argv[argv_idx++] = "--no-hosts"; /* don't use /etc/hosts to resolve */
      argv[argv_idx++] = "--bind-interfaces";
@@ -25,11 +25,11 @@ index f0abf56..01afd52 100644
      argv[argv_idx++] = "--clear-on-reload";     /* clear cache when dns server changes */
      argv[argv_idx++] = "--conf-file=/dev/null"; /* avoid loading /etc/dnsmasq.conf */
      argv[argv_idx++] = "--proxy-dnssec";        /* Allow DNSSEC to pass through */
-diff --git a/src/core/dns/nm-dns-manager.c b/src/core/dns/nm-dns-manager.c
-index efbf847..a419dd2 100644
---- a/src/core/dns/nm-dns-manager.c
-+++ b/src/core/dns/nm-dns-manager.c
-@@ -1740,12 +1740,12 @@ plugin_skip:;
+Index: network-manager/src/core/dns/nm-dns-manager.c
+===================================================================
+--- network-manager.orig/src/core/dns/nm-dns-manager.c
++++ network-manager/src/core/dns/nm-dns-manager.c
+@@ -1725,12 +1725,12 @@ plugin_skip:;
                                 NM_CAST_STRV_CC(nameservers),
                                 NM_CAST_STRV_CC(options));
  
@@ -44,7 +44,7 @@ index efbf847..a419dd2 100644
          gboolean    need_edns0;
          gboolean    need_trust;
  
-@@ -2096,7 +2096,7 @@ nm_dns_manager_stop(NMDnsManager *self)
+@@ -2093,7 +2093,7 @@ nm_dns_manager_stop(NMDnsManager *self)
      _LOGT("stopping...");
  
      /* If we're quitting, leave a valid resolv.conf in place, not one

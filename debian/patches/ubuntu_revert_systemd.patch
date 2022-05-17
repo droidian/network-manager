@@ -5,10 +5,10 @@ the new systemd doesn't work there (lp: #1914062)
  src/libnm-platform/nm-linux-platform.c | 25 +------------------------
  1 file changed, 1 insertion(+), 24 deletions(-)
 
-diff --git a/src/libnm-platform/nm-linux-platform.c b/src/libnm-platform/nm-linux-platform.c
-index 78df53e..2f3d852 100644
---- a/src/libnm-platform/nm-linux-platform.c
-+++ b/src/libnm-platform/nm-linux-platform.c
+Index: network-manager/src/libnm-platform/nm-linux-platform.c
+===================================================================
+--- network-manager.orig/src/libnm-platform/nm-linux-platform.c
++++ network-manager/src/libnm-platform/nm-linux-platform.c
 @@ -29,7 +29,6 @@
  #include <poll.h>
  #include <sys/ioctl.h>
@@ -17,7 +17,7 @@ index 78df53e..2f3d852 100644
  #include <unistd.h>
  
  #include "libnm-glib-aux/nm-c-list.h"
-@@ -9598,34 +9597,12 @@ constructed(GObject *_object)
+@@ -9830,34 +9829,12 @@ constructed(GObject *_object)
      }
  }
  

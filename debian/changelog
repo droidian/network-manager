@@ -1,3 +1,50 @@
+network-manager (1.38.0-1ubuntu1) UNRELEASED; urgency=medium
+
+  * Resynchronize on Debian, remaining changes:
+    - debian/control:
+      + Depend on isc-dhcp-client
+      + Recommend network-manager-pptp
+      + Suggest avahi-autoipd for IPv4LL support
+    - debian/rules:
+      + Run build tests
+      + Set --enable-lto.
+      + Don't build the network-manager* packages on i386
+        (unneeded and depends on wpasupplicant)
+    - debian/rules, debian/network-manager.postinst:
+      + Don't restart NetworkManager on upgrade but recommend restarting
+        the computer
+    - debian/rules, debian/network-manager.postinst:
+      + Don't install sysvinit scripts or migrate from sysvinit
+    - d/network-manager.install, d/rules, d/10-dns-resolved.conf:
+      + Use systemd-resolved instead of dnsmasq
+    - d/network-manager.install, d/10-globally-managed-devices.conf:
+      + Explicitly unmanage everything that isn't WiFi or WWAN (mobile data)
+    - debian/network-manager.postinst:
+      + Don't add the netdev group.
+      + drop in an empty override file for NetworkManager to manage all
+        devices for upgrade from any version, as long as there is no
+        netplan configuration yet.
+    - d/network-manager.install, d/default-wifi-powersave-on.conf:
+      + Install a config file to enable WiFi powersave
+    - Add autopkgtests
+    - debian/source_network-manager.py, debian/network-manager.install,
+      debian/network-manager.links: Add apport hook
+    - Add network-manager-config-connectivity-ubuntu package
+    - d/NetworkManager.conf: disable MAC randomization feature. There is no
+      easy way for desktop users to disable this feature yet. And there are
+      reports that it doesn't work well with some systems.
+      See gnome-control-center issue 743
+    - Update Vcs links to point to Ubuntu branch
+    - Add patches. See patch descriptions for more details:
+      + Provide-access-to-some-of-NM-s-interfaces-to-whoopsie.patch
+      + Update-dnsmasq-parameters.patch
+      + Disable-general-with-expect.patch
+      + libnm-Check-self-still-NMManager-or-not.patch
+      + dns-manager-don-t-merge-split-DNS-search-domains.patch (but disabled)
+      + Read-system-connections-from-run.patch
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 17 May 2022 15:36:10 +0200
+
 network-manager (1.38.0-1) unstable; urgency=medium
 
   * New upstream version 1.38.0
