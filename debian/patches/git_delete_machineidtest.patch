@@ -1,0 +1,159 @@
+From cd817cdf455835479d3a90a369c04f81860140cc Mon Sep 17 00:00:00 2001
+From: Thomas Haller <thaller@redhat.com>
+Date: Tue, 12 Apr 2022 17:37:52 +0200
+Subject: [PATCH] systemd: drop "nm-sd-utils-core.h" and
+ nm_sd_utils_id128_get_machine()
+
+This was only for unit testing, to check whether our reader
+for "/etc/machine-id" agrees with systemd's.
+
+That unit test was anyway flawed, because it actually accesses
+the machine-id on the test system.
+
+Anyway. Drop this. Most likely our parser is good enough, and
+if we get a bug report with a defect, we can unit test against
+that.
+
+(cherry picked from commit 747d7dcfe34f9e95049376134096a2cc8991dc25)
+---
+ Makefile.am                               |  2 --
+ src/core/tests/test-core.c                | 23 -------------------
+ src/libnm-systemd-core/meson.build        |  1 -
+ src/libnm-systemd-core/nm-sd-utils-core.c | 27 -----------------------
+ src/libnm-systemd-core/nm-sd-utils-core.h | 17 --------------
+ 5 files changed, 70 deletions(-)
+ delete mode 100644 src/libnm-systemd-core/nm-sd-utils-core.c
+ delete mode 100644 src/libnm-systemd-core/nm-sd-utils-core.h
+
+diff --git a/Makefile.am b/Makefile.am
+index 60a171f528..a0bd0e0706 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -2329,8 +2329,6 @@ src_libnm_systemd_core_libnm_systemd_core_la_libadd = \
+ 
+ src_libnm_systemd_core_libnm_systemd_core_la_SOURCES = \
+ 	src/libnm-systemd-core/nm-default-systemd-core.h \
+-	src/libnm-systemd-core/nm-sd-utils-core.c \
+-	src/libnm-systemd-core/nm-sd-utils-core.h \
+ 	src/libnm-systemd-core/nm-sd.c \
+ 	src/libnm-systemd-core/nm-sd.h \
+ 	src/libnm-systemd-core/nm-sd-utils-dhcp.h \
+diff --git a/src/core/tests/test-core.c b/src/core/tests/test-core.c
+index b4e1c4d5f3..11a7f32349 100644
+--- a/src/core/tests/test-core.c
++++ b/src/core/tests/test-core.c
+@@ -15,7 +15,6 @@
+ #include "NetworkManagerUtils.h"
+ #include "libnm-core-intern/nm-core-internal.h"
+ #include "nm-core-utils.h"
+-#include "libnm-systemd-core/nm-sd-utils-core.h"
+ 
+ #include "dns/nm-dns-manager.h"
+ #include "nm-connectivity.h"
+@@ -2314,7 +2313,6 @@ test_dns_create_resolv_conf(void)
+ static void
+ test_machine_id_read(void)
+ {
+-    NMUuid        machine_id_sd;
+     const NMUuid *machine_id;
+     char          machine_id_str[33];
+     gpointer      logstate;
+@@ -2346,27 +2344,6 @@ test_machine_id_read(void)
+              == machine_id_str);
+     g_assert(strlen(machine_id_str) == 32);
+     g_assert_cmpstr(machine_id_str, ==, nm_utils_machine_id_str());
+-
+-    /* double check with systemd's implementation... */
+-    if (!nm_sd_utils_id128_get_machine(&machine_id_sd)) {
+-        /* if systemd failed to read /etc/machine-id, the file likely
+-         * is invalid. Our machine-id is fake, and we have nothing to
+-         * compare against. */
+-
+-        if (g_file_test(LOCALSTATEDIR "/lib/dbus/machine-id", G_FILE_TEST_EXISTS)) {
+-            /* Hm. So systemd failed to read /etc/machine-id, but we may have the one from D-Bus.
+-             * With LOCALSTATEDIR"/lib/dbus/machine-id", we don't really know whether we
+-             * parsed that file. Assume we don't know and skip the test on this system. */
+-            g_assert(!nm_utils_machine_id_is_fake());
+-            return;
+-        }
+-
+-        /* OK, in this case, our function should have generated a random machine ID. */
+-        g_assert(nm_utils_machine_id_is_fake());
+-    } else {
+-        g_assert(!nm_utils_machine_id_is_fake());
+-        g_assert_cmpmem(&machine_id_sd, sizeof(NMUuid), machine_id, 16);
+-    }
+ }
+ 
+ /*****************************************************************************/
+diff --git a/src/libnm-systemd-core/meson.build b/src/libnm-systemd-core/meson.build
+index 80b95c4224..8bbc02a7c2 100644
+--- a/src/libnm-systemd-core/meson.build
++++ b/src/libnm-systemd-core/meson.build
+@@ -25,7 +25,6 @@ libnm_systemd_core = static_library(
+     'src/libsystemd/sd-id128/id128-util.c',
+     'src/libsystemd/sd-id128/sd-id128.c',
+     'nm-sd.c',
+-    'nm-sd-utils-core.c',
+     'nm-sd-utils-dhcp.c',
+     'sd-adapt-core/nm-sd-adapt-core.c',
+   ),
+diff --git a/src/libnm-systemd-core/nm-sd-utils-core.c b/src/libnm-systemd-core/nm-sd-utils-core.c
+deleted file mode 100644
+index 21e8a3044e..0000000000
+--- a/src/libnm-systemd-core/nm-sd-utils-core.c
++++ /dev/null
+@@ -1,27 +0,0 @@
+-/* SPDX-License-Identifier: LGPL-2.1-or-later */
+-/*
+- * Copyright (C) 2018 Red Hat, Inc.
+- */
+-
+-#include "libnm-systemd-core/nm-default-systemd-core.h"
+-
+-#include "nm-sd-utils-core.h"
+-
+-#include "libnm-glib-aux/nm-uuid.h"
+-
+-#include "nm-sd-adapt-core.h"
+-
+-#include "sd-id128.h"
+-
+-/*****************************************************************************/
+-
+-NMUuid *
+-nm_sd_utils_id128_get_machine(NMUuid *out_uuid)
+-{
+-    g_assert(out_uuid);
+-
+-    G_STATIC_ASSERT_EXPR(sizeof(*out_uuid) == sizeof(sd_id128_t));
+-    if (sd_id128_get_machine((sd_id128_t *) out_uuid) < 0)
+-        return NULL;
+-    return out_uuid;
+-}
+diff --git a/src/libnm-systemd-core/nm-sd-utils-core.h b/src/libnm-systemd-core/nm-sd-utils-core.h
+deleted file mode 100644
+index ccad002989..0000000000
+--- a/src/libnm-systemd-core/nm-sd-utils-core.h
++++ /dev/null
+@@ -1,17 +0,0 @@
+-/* SPDX-License-Identifier: LGPL-2.1-or-later */
+-/*
+- * Copyright (C) 2018 Red Hat, Inc.
+- */
+-
+-#ifndef __NM_SD_UTILS_CORE_H__
+-#define __NM_SD_UTILS_CORE_H__
+-
+-/*****************************************************************************/
+-
+-struct _NMUuid;
+-
+-struct _NMUuid *nm_sd_utils_id128_get_machine(struct _NMUuid *out_uuid);
+-
+-/*****************************************************************************/
+-
+-#endif /* __NM_SD_UTILS_CORE_H__ */
+-- 
+GitLab
+

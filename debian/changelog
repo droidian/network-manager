@@ -1,3 +1,11 @@
+network-manager (1.38.0-1ubuntu2) UNRELEASED; urgency=medium
+
+  * debian/patches/git_delete_machineidtest.patch:
+    - cherry pick an upstream change to remove a flawed unitest relying
+      on the host /etc/machine-id, fix the build on launchpad
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 18 May 2022 09:37:18 +0200
+
 network-manager (1.38.0-1ubuntu1) kinetic; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
