@@ -1,4 +1,4 @@
-network-manager (1.38.2-1ubuntu1) UNRELEASED; urgency=medium
+network-manager (1.38.2-1ubuntu1) kinetic; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
     - debian/control:
