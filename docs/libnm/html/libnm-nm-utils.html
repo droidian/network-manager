@@ -8,7 +8,7 @@
 <link rel="up" href="ch05.html" title="Utility API Reference">
 <link rel="prev" href="libnm-nm-keyfile.html" title="nm-keyfile">
 <link rel="next" href="libnm-nm-version.html" title="nm-version">
-<meta name="generator" content="GTK-Doc V1.33.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.33.0 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -853,7 +853,7 @@ _only_.</p>
 <p>an allocated string containing a UTF-8
 representation of the SSID, which must be freed by the caller using <a href="https://developer.gnome.org/glib/unstable/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>.
 Returns <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on errors. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1100,7 +1100,7 @@ type 'au' representing an array of IPv4 addresses.</p>
 <a name="nm-utils-ip4-dns-to-variant.returns"></a><h4>Returns</h4>
 <p>a new floating <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> representing <em class="parameter"><code>dns</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1128,7 +1128,7 @@ IPv4 addresses into an array of IP address strings.</p>
 <div class="refsect3">
 <a name="nm-utils-ip4-dns-from-variant.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of IP address strings. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> utf8]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> utf8]</span></p>
 </div>
 </div>
 <hr>
@@ -1169,7 +1169,7 @@ gateway). The "gateway" field of the first address will get the value of
 <a name="nm-utils-ip4-addresses-to-variant.returns"></a><h4>Returns</h4>
 <p>a new floating <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> representing <em class="parameter"><code>addresses</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1201,7 +1201,7 @@ of the other addresses are ignored.</p>
 <tr>
 <td class="parameter_name"><p>out_gateway</p></td>
 <td class="parameter_description"><p>on return, will contain the IP gateway. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -1210,7 +1210,7 @@ of the other addresses are ignored.</p>
 <a name="nm-utils-ip4-addresses-from-variant.returns"></a><h4>Returns</h4>
 <p>a newly allocated
 <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> objects. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPAddress]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPAddress]</span></p>
 </div>
 </div>
 <hr>
@@ -1241,7 +1241,7 @@ metric).</p>
 <a name="nm-utils-ip4-routes-to-variant.returns"></a><h4>Returns</h4>
 <p>a new floating <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> representing <em class="parameter"><code>routes</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1271,7 +1271,7 @@ and metric) into a <a href="https://developer.gnome.org/glib/unstable/glib-Point
 <a name="nm-utils-ip4-routes-from-variant.returns"></a><h4>Returns</h4>
 <p>a newly allocated
 <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> objects. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPRoute]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPRoute]</span></p>
 </div>
 </div>
 <hr>
@@ -1380,7 +1380,7 @@ type 'aay' representing an array of IPv6 addresses.</p>
 <a name="nm-utils-ip6-dns-to-variant.returns"></a><h4>Returns</h4>
 <p>a new floating <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> representing <em class="parameter"><code>dns</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1410,7 +1410,7 @@ ignored.</p>
 <div class="refsect3">
 <a name="nm-utils-ip6-dns-from-variant.returns"></a><h4>Returns</h4>
 <p>a <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of IP address strings. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> utf8]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> utf8]</span></p>
 </div>
 </div>
 <hr>
@@ -1452,7 +1452,7 @@ all 0s.</p>
 <a name="nm-utils-ip6-addresses-to-variant.returns"></a><h4>Returns</h4>
 <p>a new floating <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> representing <em class="parameter"><code>addresses</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1484,7 +1484,7 @@ fields of the other addresses are ignored.</p>
 <tr>
 <td class="parameter_name"><p>out_gateway</p></td>
 <td class="parameter_description"><p>on return, will contain the IP gateway. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -1493,7 +1493,7 @@ fields of the other addresses are ignored.</p>
 <a name="nm-utils-ip6-addresses-from-variant.returns"></a><h4>Returns</h4>
 <p>a newly allocated
 <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> objects. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPAddress]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPAddress]</span></p>
 </div>
 </div>
 <hr>
@@ -1524,7 +1524,7 @@ metric).</p>
 <a name="nm-utils-ip6-routes-to-variant.returns"></a><h4>Returns</h4>
 <p>a new floating <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> representing <em class="parameter"><code>routes</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1554,7 +1554,7 @@ hop, and metric) into a <a href="https://developer.gnome.org/glib/unstable/glib-
 <a name="nm-utils-ip6-routes-from-variant.returns"></a><h4>Returns</h4>
 <p>a newly allocated
 <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> objects. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPRoute]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPRoute]</span></p>
 </div>
 </div>
 <hr>
@@ -1586,7 +1586,7 @@ include additional attributes.</p>
 <a name="nm-utils-ip-addresses-to-variant.returns"></a><h4>Returns</h4>
 <p>a new floating <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> representing <em class="parameter"><code>addresses</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1625,7 +1625,7 @@ objects.</p>
 <a name="nm-utils-ip-addresses-from-variant.returns"></a><h4>Returns</h4>
 <p>a newly allocated
 <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPAddress"><span class="type">NMIPAddress</span></a> objects. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPAddress]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPAddress]</span></p>
 </div>
 </div>
 <hr>
@@ -1656,7 +1656,7 @@ prefix, next hop, metric, and additional attributes).</p>
 <a name="nm-utils-ip-routes-to-variant.returns"></a><h4>Returns</h4>
 <p>a new floating <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> representing <em class="parameter"><code>routes</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -1695,7 +1695,7 @@ prefix, next hop, metric, and additional attributes) into a <a href="https://dev
 <a name="nm-utils-ip-routes-from-variant.returns"></a><h4>Returns</h4>
 <p>a newly allocated
 <a href="https://developer.gnome.org/glib/unstable/glib-Pointer-Arrays.html#GPtrArray"><span class="type">GPtrArray</span></a> of <a class="link" href="NMSettingIPConfig.html#NMIPRoute"><span class="type">NMIPRoute</span></a> objects. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPRoute]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> NMIPRoute]</span></p>
 </div>
 </div>
 <hr>
@@ -1706,7 +1706,7 @@ nm_utils_uuid_generate (<em class="parameter"><code><span class="type">void</spa
 <div class="refsect3">
 <a name="nm-utils-uuid-generate.returns"></a><h4>Returns</h4>
 <p> a newly allocated UUID suitable for use as the <a class="link" href="NMSettingConnection.html" title="NMSettingConnection"><span class="type">NMSettingConnection</span></a>
-object's <a href="/usr/share/gtk-doc/html/libnm-util/NMSettingConnection.html#NMSettingConnection--id"><span class="type">“id”</span></a>: property.  Should be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a></p>
+object's <span class="type">“id”</span>: property.  Should be freed with <a href="https://developer.gnome.org/glib/unstable/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a></p>
 </div>
 </div>
 <hr>
@@ -1803,7 +1803,7 @@ function. </p></td>
 <p>the full path to the helper, if found, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if not found.
 The returned string is not owned by the caller, but later
 invocations of the function might overwrite it. </p>
-<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2063,7 +2063,7 @@ nm_utils_hwaddr_ntoa (<em class="parameter"><code><a href="https://developer.gno
 <a name="nm-utils-hwaddr-ntoa.returns"></a><h4>Returns</h4>
 <p>the textual form of <em class="parameter"><code>addr</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2102,7 +2102,7 @@ nm_utils_hwaddr_atoba (<em class="parameter"><code>const <span class="type">char
 <p>a new <a href="https://developer.gnome.org/glib/unstable/glib-Byte-Arrays.html#GByteArray"><span class="type">GByteArray</span></a>, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>asc</code></em>
 couldn't
 be parsed. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2233,7 +2233,7 @@ is expected to convert to
 <p>the canonicalized address if <em class="parameter"><code>asc</code></em>
 appears to
 be a valid hardware address of the indicated length, <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if not. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2363,7 +2363,7 @@ array</p></td>
 <a name="nm-utils-bin2hexstr.returns"></a><h4>Returns</h4>
 <p>the textual form of <em class="parameter"><code>bytes</code></em>
 . </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2396,7 +2396,7 @@ may not start or end with ':'.</p>
 <div class="refsect3">
 <a name="nm-utils-hexstr2bin.returns"></a><h4>Returns</h4>
 <p>the converted bytes, or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -2834,7 +2834,7 @@ containing the unrecognized token in <em class="parameter"><code>err_token</code
 <tr>
 <td class="parameter_name"><p>err_token</p></td>
 <td class="parameter_description"><p>location to store the first unrecognized token. </p></td>
-<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
@@ -2884,7 +2884,7 @@ nm_utils_enum_get_values (<em class="parameter"><code><a href="https://developer
 <a name="nm-utils-enum-get-values.returns"></a><h4>Returns</h4>
 <p>a NULL-terminated dynamically-allocated array of static strings
 or <a href="https://developer.gnome.org/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data container, but not the data inside it."><span class="acronym">transfer container</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data container after the code is done."><span class="acronym">transfer container</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.2</p>
 </div>
@@ -2959,7 +2959,7 @@ nm_utils_parse_variant_attributes (<em class="parameter"><code>const <span class
 attribute names to <a href="https://developer.gnome.org/glib/unstable/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> values. Warning: the variant are still floating
 references, owned by the hash table. If you take a reference, ensure to sink
 the one of the hash table first. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 GVariant]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8 GVariant]</span></p>
 </div>
 <p class="since">Since: 1.8</p>
 </div>
@@ -3260,7 +3260,7 @@ nm_utils_sriov_vf_from_str (<em class="parameter"><code>const <span class="type"
 <div class="refsect3">
 <a name="nm-utils-sriov-vf-from-str.returns"></a><h4>Returns</h4>
 <p>the virtual function object. </p>
-<p><span class="annotation">[<acronym title="The caller owns the data, and is responsible for free it."><span class="acronym">transfer full</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 1.14</p>
 </div>
@@ -3457,6 +3457,6 @@ for both <a class="link" href="libnm-nm-utils.html#nm-utils-inet4-ntop" title="n
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.33.1</div>
+<hr>Generated by GTK-Doc V1.33.0</div>
 </body>
 </html>

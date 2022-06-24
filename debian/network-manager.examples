@@ -1,1 +1,2 @@
-debian/tmp/usr/share/doc/NetworkManager/examples/server.conf
+usr/share/doc/NetworkManager/examples/server.conf
+examples/nm-conf.d/

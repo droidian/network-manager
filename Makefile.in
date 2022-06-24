@@ -1501,7 +1501,7 @@ src_libnm_std_aux_libnm_std_aux_la_LINK = $(LIBTOOL) $(AM_V_lt) \
 	$(src_libnm_std_aux_libnm_std_aux_la_LDFLAGS) $(LDFLAGS) -o $@
 src_libnm_systemd_core_libnm_systemd_core_la_DEPENDENCIES =  \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
-am_src_libnm_systemd_core_libnm_systemd_core_la_OBJECTS = src/libnm-systemd-core/libnm_systemd_core_la-nm-sd-utils-core.lo \
+am_src_libnm_systemd_core_libnm_systemd_core_la_OBJECTS =  \
 	src/libnm-systemd-core/libnm_systemd_core_la-nm-sd.lo \
 	src/libnm-systemd-core/libnm_systemd_core_la-nm-sd-utils-dhcp.lo \
 	src/libnm-systemd-core/sd-adapt-core/libnm_systemd_core_la-nm-sd-adapt-core.lo \
@@ -3107,7 +3107,6 @@ am__depfiles_remade = examples/C/glib/$(DEPDIR)/add_connection_gdbus-add-connect
 	src/libnm-platform/wpan/$(DEPDIR)/libnm_platform_la-nm-wpan-utils.Plo \
 	src/libnm-std-aux/$(DEPDIR)/libnm_std_aux_la-c-list-util.Plo \
 	src/libnm-std-aux/$(DEPDIR)/libnm_std_aux_la-nm-std-utils.Plo \
-	src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-utils-core.Plo \
 	src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-utils-dhcp.Plo \
 	src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd.Plo \
 	src/libnm-systemd-core/sd-adapt-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-adapt-core.Plo \
@@ -6833,8 +6832,6 @@ src_libnm_systemd_core_libnm_systemd_core_la_libadd = \
 
 src_libnm_systemd_core_libnm_systemd_core_la_SOURCES = \
 	src/libnm-systemd-core/nm-default-systemd-core.h \
-	src/libnm-systemd-core/nm-sd-utils-core.c \
-	src/libnm-systemd-core/nm-sd-utils-core.h \
 	src/libnm-systemd-core/nm-sd.c \
 	src/libnm-systemd-core/nm-sd.h \
 	src/libnm-systemd-core/nm-sd-utils-dhcp.h \
@@ -10468,9 +10465,6 @@ src/libnm-systemd-core/$(am__dirstamp):
 src/libnm-systemd-core/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/libnm-systemd-core/$(DEPDIR)
 	@: > src/libnm-systemd-core/$(DEPDIR)/$(am__dirstamp)
-src/libnm-systemd-core/libnm_systemd_core_la-nm-sd-utils-core.lo:  \
-	src/libnm-systemd-core/$(am__dirstamp) \
-	src/libnm-systemd-core/$(DEPDIR)/$(am__dirstamp)
 src/libnm-systemd-core/libnm_systemd_core_la-nm-sd.lo:  \
 	src/libnm-systemd-core/$(am__dirstamp) \
 	src/libnm-systemd-core/$(DEPDIR)/$(am__dirstamp)
@@ -12332,7 +12326,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-platform/wpan/$(DEPDIR)/libnm_platform_la-nm-wpan-utils.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-std-aux/$(DEPDIR)/libnm_std_aux_la-c-list-util.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-std-aux/$(DEPDIR)/libnm_std_aux_la-nm-std-utils.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-utils-core.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-utils-dhcp.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/libnm-systemd-core/sd-adapt-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-adapt-core.Plo@am__quote@ # am--include-marker
@@ -15439,13 +15432,6 @@ src/libnm-std-aux/libnm_std_aux_la-nm-std-utils.lo: src/libnm-std-aux/nm-std-uti
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-std-aux/nm-std-utils.c' object='src/libnm-std-aux/libnm_std_aux_la-nm-std-utils.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_std_aux_libnm_std_aux_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-std-aux/libnm_std_aux_la-nm-std-utils.lo `test -f 'src/libnm-std-aux/nm-std-utils.c' || echo '$(srcdir)/'`src/libnm-std-aux/nm-std-utils.c
-
-src/libnm-systemd-core/libnm_systemd_core_la-nm-sd-utils-core.lo: src/libnm-systemd-core/nm-sd-utils-core.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-systemd-core/libnm_systemd_core_la-nm-sd-utils-core.lo -MD -MP -MF src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-utils-core.Tpo -c -o src/libnm-systemd-core/libnm_systemd_core_la-nm-sd-utils-core.lo `test -f 'src/libnm-systemd-core/nm-sd-utils-core.c' || echo '$(srcdir)/'`src/libnm-systemd-core/nm-sd-utils-core.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-utils-core.Tpo src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-utils-core.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/libnm-systemd-core/nm-sd-utils-core.c' object='src/libnm-systemd-core/libnm_systemd_core_la-nm-sd-utils-core.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libnm-systemd-core/libnm_systemd_core_la-nm-sd-utils-core.lo `test -f 'src/libnm-systemd-core/nm-sd-utils-core.c' || echo '$(srcdir)/'`src/libnm-systemd-core/nm-sd-utils-core.c
 
 src/libnm-systemd-core/libnm_systemd_core_la-nm-sd.lo: src/libnm-systemd-core/nm-sd.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_libnm_systemd_core_libnm_systemd_core_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/libnm-systemd-core/libnm_systemd_core_la-nm-sd.lo -MD -MP -MF src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd.Tpo -c -o src/libnm-systemd-core/libnm_systemd_core_la-nm-sd.lo `test -f 'src/libnm-systemd-core/nm-sd.c' || echo '$(srcdir)/'`src/libnm-systemd-core/nm-sd.c
@@ -20100,7 +20086,6 @@ distclean: distclean-recursive
 	-rm -f src/libnm-platform/wpan/$(DEPDIR)/libnm_platform_la-nm-wpan-utils.Plo
 	-rm -f src/libnm-std-aux/$(DEPDIR)/libnm_std_aux_la-c-list-util.Plo
 	-rm -f src/libnm-std-aux/$(DEPDIR)/libnm_std_aux_la-nm-std-utils.Plo
-	-rm -f src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-utils-core.Plo
 	-rm -f src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-utils-dhcp.Plo
 	-rm -f src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd.Plo
 	-rm -f src/libnm-systemd-core/sd-adapt-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-adapt-core.Plo
@@ -20772,7 +20757,6 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f src/libnm-platform/wpan/$(DEPDIR)/libnm_platform_la-nm-wpan-utils.Plo
 	-rm -f src/libnm-std-aux/$(DEPDIR)/libnm_std_aux_la-c-list-util.Plo
 	-rm -f src/libnm-std-aux/$(DEPDIR)/libnm_std_aux_la-nm-std-utils.Plo
-	-rm -f src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-utils-core.Plo
 	-rm -f src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-utils-dhcp.Plo
 	-rm -f src/libnm-systemd-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd.Plo
 	-rm -f src/libnm-systemd-core/sd-adapt-core/$(DEPDIR)/libnm_systemd_core_la-nm-sd-adapt-core.Plo

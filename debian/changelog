@@ -1,12 +1,4 @@
-network-manager (1.38.0-1ubuntu2) kinetic; urgency=medium
-
-  * debian/patches/git_delete_machineidtest.patch:
-    - cherry pick an upstream change to remove a flawed unitest relying
-      on the host /etc/machine-id, fix the build on launchpad
-
- -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 18 May 2022 09:37:18 +0200
-
-network-manager (1.38.0-1ubuntu1) kinetic; urgency=medium
+network-manager (1.38.2-1ubuntu1) UNRELEASED; urgency=medium
 
   * Resynchronize on Debian, remaining changes:
     - debian/control:
@@ -51,7 +43,24 @@ network-manager (1.38.0-1ubuntu1) kinetic; urgency=medium
       + dns-manager-don-t-merge-split-DNS-search-domains.patch (but disabled)
       + Read-system-connections-from-run.patch
 
- -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 17 May 2022 15:36:10 +0200
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 24 Jun 2022 13:35:27 +0200
+
+network-manager (1.38.2-1) unstable; urgency=medium
+
+  * New upstream version 1.38.2
+  * Rebase patches
+  * Bump Standards-Version to 4.6.1
+  * Use dh-sequence-gir instead of gir addon
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 18 Jun 2022 22:26:35 +0200
+
+network-manager (1.38.0-2) unstable; urgency=medium
+
+  * Cherry-pick a couple of fixes from upstream nm-1-38 branch
+  * Install additional config examples found in examples/nm-conf.d/
+    (Closes: #1010889)
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 18 May 2022 23:05:00 +0200
 
 network-manager (1.38.0-1) unstable; urgency=medium
 
