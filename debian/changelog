@@ -1,8 +1,23 @@
-network-manager (1.39.90-1) UNRELEASED; urgency=medium
+network-manager (1.39.90-1) unstable; urgency=medium
 
   * New upstream version 1.39.90 (1.40 rc1)
+  * Rebase patches
+  * Drop obsolete --with-dnssec-trigger configure option.
+    The unbound DNS plugin was marked deprecated for a while and has been
+    removed now in this release.
+  * Simplify dh_autoreconf override by calling upstream provided autogen.sh.
+    This ensures the correct sequence of commands is run. In this specific
+    case we were still using intltoolize when upstream dropped its usage in
+    favour of gettext a while ago.
+  * Replace intltool Build-Depends with gettext
+  * Add Build-Depends on policykit-1.
+    The file /usr/share/gettext/its/polkit.its is required when generating
+    the translations.
+  * Add Build-Depends on python3-pexpect.
+    Required by the test suite.
+  * Update symbols file for libnm0
 
- -- Michael Biebl <biebl@debian.org>  Tue, 16 Aug 2022 18:48:16 +0200
+ -- Michael Biebl <biebl@debian.org>  Wed, 17 Aug 2022 11:35:39 +0200
 
 network-manager (1.38.4-1) unstable; urgency=medium
 
